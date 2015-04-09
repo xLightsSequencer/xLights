@@ -201,7 +201,7 @@
 		6784F9271A5653670018EC0C /* TimeLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TimeLine.cpp; path = sequencer/TimeLine.cpp; sourceTree = "<group>"; };
 		6784F9281A5653670018EC0C /* Waveform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Waveform.cpp; path = sequencer/Waveform.cpp; sourceTree = "<group>"; };
 		67879B7319F94544009D994D /* RenderShimmer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShimmer.cpp; sourceTree = "<group>"; };
-		679B1E361AD6C73200927259 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		679B1E361AD6C73200927259 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = xLights/Images.xcassets; sourceTree = "<group>"; };
 		679BEF1B1A9FCB1D00C37BB4 /* RenderCommandEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderCommandEvent.h; sourceTree = "<group>"; };
 		679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = xlMacUtils.mm; sourceTree = "<group>"; };
 		67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils.cpp; sourceTree = "<group>"; };
@@ -341,13 +341,55 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		67DB87F71AD6CFD100595194 /* EffectRendering */ = {
+			isa = PBXGroup;
+			children = (
+				677421D31A68AB3E0082DA5B /* Render.cpp */,
+				67A619DC17B51C0F008E95BB /* RenderBars.cpp */,
+				67A619DD17B51C0F008E95BB /* RenderButterfly.cpp */,
+				67A619DE17B51C0F008E95BB /* RenderCircles.cpp */,
+				67A619DF17B51C0F008E95BB /* RenderColorWash.cpp */,
+				67C6488619E3396C006526CD /* RenderCoroFaces.cpp */,
+				67E491B117C459B800FE40EA /* RenderCurtain.cpp */,
+				674D34C51918238E00A993C7 /* RenderFaces.cpp */,
+				67A619E017B51C0F008E95BB /* RenderFire.cpp */,
+				67A619E117B51C0F008E95BB /* RenderFireworks.cpp */,
+				67A619E217B51C0F008E95BB /* RenderGarlands.cpp */,
+				675006771923EBBD00875D45 /* RenderGlediator.cpp */,
+				67A619E317B51C0F008E95BB /* RenderLife.cpp */,
+				67A619E417B51C0F008E95BB /* RenderMeteors.cpp */,
+				67B189751AA22C990082B00C /* RenderMorph.cpp */,
+				676F58771A1556210045FA22 /* RenderOff.cpp */,
+				67BC91021A3FD22F00905A53 /* RenderOn.cpp */,
+				67A619E517B51C0F008E95BB /* RenderPiano.cpp */,
+				67A619E617B51C0F008E95BB /* RenderPictures.cpp */,
+				677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */,
+				6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */,
+				67879B7319F94544009D994D /* RenderShimmer.cpp */,
+				67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */,
+				67A619E717B51C0F008E95BB /* RenderSnowflakes.cpp */,
+				67A619E817B51C0F008E95BB /* RenderSnowstorm.cpp */,
+				67A619E917B51C0F008E95BB /* RenderSpirals.cpp */,
+				67A619EA17B51C0F008E95BB /* RenderSpirograph.cpp */,
+				67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */,
+				67A619EB17B51C0F008E95BB /* RenderText.cpp */,
+				67A619EC17B51C0F008E95BB /* RenderTree.cpp */,
+				67A619ED17B51C0F008E95BB /* RenderTwinkle.cpp */,
+				674D34C61918238E00A993C7 /* RenderWave.cpp */,
+			);
+			name = EffectRendering;
+			sourceTree = "<group>";
+		};
 		67E7086417B51AB400A22034 = {
 			isa = PBXGroup;
 			children = (
 				67DB87F51AD6CA1300595194 /* wxsmith */,
 				67E7087617B51AB400A22034 /* xLights */,
-				67E7086F17B51AB400A22034 /* Frameworks */,
+				679B1E361AD6C73200927259 /* Images.xcassets */,
+				67E7087717B51AB400A22034 /* Supporting Files */,
+				67BAE6E21A08252700CB7041 /* spxml-0.5 */,
 				67E7086E17B51AB400A22034 /* Products */,
+				67E7086F17B51AB400A22034 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -392,25 +434,24 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */,
-				67B189751AA22C990082B00C /* RenderMorph.cpp */,
-				67B845001A9C0E7500564051 /* DisplayElementsPanel.cpp */,
-				67B845021A9C0E7500564051 /* ModelViewSelector.cpp */,
-				67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
+				67623E721AD2BF3F0022667B /* BitmapCache.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
 				67A619C017B51C0F008E95BB /* ChannelMapDialog.cpp */,
 				67B797171A5AE343008D5921 /* ColorPanel.cpp */,
 				67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */,
 				675878D91A89297200205A75 /* DataLayer.cpp */,
+				67B845001A9C0E7500564051 /* DisplayElementsPanel.cpp */,
 				67043A4B1A07D17F00C09B71 /* dlgPreviewSize.cpp */,
 				671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */,
+				67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */,
 				67A619C417B51C0F008E95BB /* E131Dialog.cpp */,
 				6778F3E31A601CA7008C2086 /* Effect.cpp */,
 				671D814A1A6723CF005819EA /* EffectDropTarget.cpp */,
 				677421D81A6A8FBE0082DA5B /* EffectIconPanel.cpp */,
 				6778F3E41A601CA7008C2086 /* EffectLayer.cpp */,
 				67A619C817B51C0F008E95BB /* EffectListDialog.cpp */,
+				67DB87F71AD6CFD100595194 /* EffectRendering */,
 				6784F9201A5653670018EC0C /* EffectsGrid.cpp */,
 				67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */,
 				67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */,
@@ -421,12 +462,14 @@
 				67F4C6131A097A35003E978F /* Image_Loader.cpp */,
 				67F4C6141A097A35003E978F /* Image.cpp */,
 				677421D51A68ACDA0082DA5B /* JobPool.cpp */,
+				67623E6F1AD07E320022667B /* KeyBindings.cpp */,
 				676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */,
 				6784F9231A5653670018EC0C /* MainSequencer.cpp */,
 				67A619CC17B51C0F008E95BB /* ModelClass.cpp */,
 				67A619CE17B51C0F008E95BB /* ModelDialog.cpp */,
 				67A619D017B51C0F008E95BB /* ModelListDialog.cpp */,
 				67694F1E1A0729220030D020 /* ModelPreview.cpp */,
+				67B845021A9C0E7500564051 /* ModelViewSelector.cpp */,
 				67A619D217B51C0F008E95BB /* NetInfo.cpp */,
 				671D81671A67408D005819EA /* NewSequenceDialog.cpp */,
 				677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */,
@@ -437,39 +480,6 @@
 				67A619DA17B51C0F008E95BB /* PlayerFrame.cpp */,
 				67694F191A069BBE0030D020 /* PreviewModels.cpp */,
 				677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */,
-				677421D31A68AB3E0082DA5B /* Render.cpp */,
-				67A619DC17B51C0F008E95BB /* RenderBars.cpp */,
-				67A619DD17B51C0F008E95BB /* RenderButterfly.cpp */,
-				67A619DE17B51C0F008E95BB /* RenderCircles.cpp */,
-				67A619DF17B51C0F008E95BB /* RenderColorWash.cpp */,
-				67C6488619E3396C006526CD /* RenderCoroFaces.cpp */,
-				67E491B117C459B800FE40EA /* RenderCurtain.cpp */,
-				674D34C51918238E00A993C7 /* RenderFaces.cpp */,
-				67A619E017B51C0F008E95BB /* RenderFire.cpp */,
-				67A619E117B51C0F008E95BB /* RenderFireworks.cpp */,
-				67A619E217B51C0F008E95BB /* RenderGarlands.cpp */,
-				675006771923EBBD00875D45 /* RenderGlediator.cpp */,
-				67A619E317B51C0F008E95BB /* RenderLife.cpp */,
-				67A619E417B51C0F008E95BB /* RenderMeteors.cpp */,
-				676F58771A1556210045FA22 /* RenderOff.cpp */,
-				67BC91021A3FD22F00905A53 /* RenderOn.cpp */,
-				67A619E517B51C0F008E95BB /* RenderPiano.cpp */,
-				67A619E617B51C0F008E95BB /* RenderPictures.cpp */,
-				677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */,
-				6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */,
-				67879B7319F94544009D994D /* RenderShimmer.cpp */,
-				679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */,
-				67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */,
-				67A619E717B51C0F008E95BB /* RenderSnowflakes.cpp */,
-				67A619E817B51C0F008E95BB /* RenderSnowstorm.cpp */,
-				67A619E917B51C0F008E95BB /* RenderSpirals.cpp */,
-				67A619EA17B51C0F008E95BB /* RenderSpirograph.cpp */,
-				67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */,
-				67A619EB17B51C0F008E95BB /* RenderText.cpp */,
-				67A619EC17B51C0F008E95BB /* RenderTree.cpp */,
-				67A619ED17B51C0F008E95BB /* RenderTwinkle.cpp */,
-				67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */,
-				674D34C61918238E00A993C7 /* RenderWave.cpp */,
 				67A619EF17B51C0F008E95BB /* RgbEffects.cpp */,
 				6784F9241A5653670018EC0C /* RowHeading.cpp */,
 				67A619F217B51C0F008E95BB /* SeqElementMismatchDialog.cpp */,
@@ -483,7 +493,6 @@
 				67A619FD17B51C0F008E95BB /* serial.cpp */,
 				67A619FF17B51C0F008E95BB /* SerialPortWithRate.cpp */,
 				67A61A0117B51C0F008E95BB /* ShowDatesDialog.cpp */,
-				67E7087717B51AB400A22034 /* Supporting Files */,
 				67C7969017B5791700CEE775 /* TabConvert.cpp */,
 				6760BF121953BAD700704AEA /* TabPapagayo.cpp */,
 				673E425717F0D23E00F4BC76 /* TabPreview.cpp */,
@@ -493,19 +502,18 @@
 				6784F9271A5653670018EC0C /* TimeLine.cpp */,
 				67B797181A5AE343008D5921 /* TimingPanel.cpp */,
 				67D678FC1A7E628400421B05 /* tmGridCell.cpp */,
-				676DCBFD1A98E53800FBA86B /* tmGridCell.h */,
 				67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */,
 				67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */,
 				6784F9281A5653670018EC0C /* Waveform.cpp */,
 				67A543FD1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp */,
+				67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */,
+				67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */,
 				67A61A1D17B51C0F008E95BB /* xlights_out.cpp */,
 				67A61A2117B51C0F008E95BB /* xLightsApp.cpp */,
 				67F4C6151A097A35003E978F /* XlightsDrawable.cpp */,
 				67A61A2417B51C0F008E95BB /* xLightsMain.cpp */,
 				6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */,
-				67623E6F1AD07E320022667B /* KeyBindings.cpp */,
-				67623E721AD2BF3F0022667B /* BitmapCache.cpp */,
-				679B1E361AD6C73200927259 /* Images.xcassets */,
+				679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */,
 			);
 			path = xLights;
 			sourceTree = "<group>";
@@ -513,6 +521,7 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				676DCBFD1A98E53800FBA86B /* tmGridCell.h */,
 				671B331C1AD5CB7600C9F215 /* UtilClasses.h */,
 				671B331D1AD6071600C9F215 /* BitmapCache.h */,
 				67623E701AD07E320022667B /* KeyBindings.h */,
@@ -568,7 +577,6 @@
 				67A619FE17B51C0F008E95BB /* serial.h */,
 				67A61A0017B51C0F008E95BB /* SerialPortWithRate.h */,
 				67A61A0217B51C0F008E95BB /* ShowDatesDialog.h */,
-				67BAE6E21A08252700CB7041 /* spxml-0.5 */,
 				673E425817F0D23E00F4BC76 /* TabSchedule.cpp */,
 				673E425A17F0D23E00F4BC76 /* TabTest.cpp */,
 				672F95141A7A6619005FF8BF /* TimingPanel.h */,
@@ -585,6 +593,7 @@
 				679BEF1B1A9FCB1D00C37BB4 /* RenderCommandEvent.h */,
 			);
 			name = "Supporting Files";
+			path = xLights;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
