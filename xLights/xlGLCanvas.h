@@ -20,13 +20,18 @@ class xlGLCanvas
 {
     public:
         xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
-                const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
+                   const wxSize &size=wxDefaultSize,
+                   long style=0,
+                   const wxString &name=wxPanelNameStr,
+                   bool allowRetina = true);
         virtual ~xlGLCanvas();
 
         void SetCurrentGLContext();
 
         int getWidth() { return mWindowWidth; }
         int getHeight() { return mWindowHeight; }
+    
+        double translateToBacking(double x);
 
 #ifdef __WXMSW__
         bool SwapBuffers();

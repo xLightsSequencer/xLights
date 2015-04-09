@@ -10,6 +10,7 @@
 
 #include <wx/html/htmprint.h>
 #include "ModelClass.h"
+#include "SequenceElements.h"
 
 class ModelListDialog: public wxDialog
 {
@@ -19,6 +20,7 @@ public:
     virtual ~ModelListDialog();
 
     wxHtmlEasyPrinting* HtmlEasyPrint;
+    void SetSequenceElements(SequenceElements* elements);
 
     //(*Declarations(ModelListDialog)
     wxButton* Button_ExportCsv;
@@ -59,6 +61,7 @@ private:
     //*)
 
     bool ValidateModelName(const wxString& name);
+    SequenceElements* mSequenceElements;
 
     DECLARE_EVENT_TABLE()
 };

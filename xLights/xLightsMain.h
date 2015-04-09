@@ -372,7 +372,7 @@ public:
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);
 
-    static const wxBitmap &GetIcon(int effectID, wxString &toolTip, int size = 16);
+    static const wxBitmap &GetIcon(int effectID, wxString &toolTip, int size = 16, bool exact = false);
 
 
      enum RGB_EFFECTS_e

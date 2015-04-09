@@ -120,10 +120,20 @@ EVT_SIZE(xlGLCanvas::Resized)
 EVT_ERASE_BACKGROUND(xlGLCanvas::OnEraseBackGround)  // Override to do nothing on this event
 END_EVENT_TABLE()
 
+#ifdef __WXOSX__
+void xlSetOpenGLRetina(wxGLCanvas &win);
+void xlSetRetinaCanvasViewport(wxGLCanvas &win, int &x, int &y, int &x2, int&y2);
+double xlTranslateToRetina(wxGLCanvas &win, double x);
+#else
+#define xlSetOpenGLRetina(a)
+#define xlSetRetinaCanvasViewport(w,a,b,c,d)
+#define xlTranslateToRetina(a, x) x
+#endif
+
 static const int GLARGS[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
-                const wxSize &size, long style, const wxString &name)
+                const wxSize &size, long style, const wxString &name, bool allowRetina)
 #ifndef __WXMSW__
     :wxGLCanvas(parent, id, GLARGS, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS),
 #else
@@ -135,6 +145,9 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         mIsInitialized(false),
         m_context(new GL_CONTEXT_CLASS(this))
 {
+    if (allowRetina) {
+        xlSetOpenGLRetina(*this);
+    }
 }
 
 xlGLCanvas::~xlGLCanvas()
@@ -159,10 +172,21 @@ void xlGLCanvas::Resized(wxSizeEvent& evt)
     mWindowResized = true;
 }
 
+double xlGLCanvas::translateToBacking(double x) {
+    return xlTranslateToRetina(*this, x);
+}
+
+
 // Inits the OpenGL viewport for drawing in 2D.
 void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
 {
-    glViewport(topleft_x, topleft_y, bottomrigth_x-topleft_x, bottomrigth_y-topleft_y);
+    int x, y, x2, y2;
+    x = topleft_x;
+    y = topleft_y;
+    x2 = bottomrigth_x;
+    y2 =bottomrigth_y;
+    xlSetRetinaCanvasViewport(*this, x,y,x2,y2);
+    glViewport(x,y,x2,y2);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 

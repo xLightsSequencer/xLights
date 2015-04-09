@@ -18,7 +18,9 @@ class ModelPreview : public xlGLCanvas
 
 public:
     ModelPreview(wxPanel* parent);
-	ModelPreview(wxPanel* parent, std::vector<ModelClassPtr> &previewModels, bool allowSelected);
+	ModelPreview(wxPanel* parent,
+                 std::vector<ModelClassPtr> &previewModels,
+                 bool allowSelected);
 	virtual ~ModelPreview();
 
     // Public Methods

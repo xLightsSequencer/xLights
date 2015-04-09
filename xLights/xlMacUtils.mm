@@ -6,6 +6,9 @@
 
 #import <Foundation/Foundation.h>
 #include <Cocoa/Cocoa.h>
+#import <AppKit/NSOpenGL.h>
+#import <AppKit/NSOpenGLView.h>
+#include "wx/glcanvas.h"
 
 double xlOSXGetMainScreenContentScaleFactor()
 {
@@ -21,3 +24,37 @@ double xlOSXGetMainScreenContentScaleFactor()
     }
     return displayScale;
 }
+
+
+
+void xlSetOpenGLRetina(wxGLCanvas &win) {
+    NSOpenGLView *glView = (NSOpenGLView*)win.GetHandle();
+    [glView setWantsBestResolutionOpenGLSurface:YES];
+}
+
+void xlSetRetinaCanvasViewport(wxGLCanvas &win, int &x, int &y, int &x2, int&y2) {
+    NSOpenGLView *glView = (NSOpenGLView*)win.GetHandle();
+    
+    NSPoint pt;
+    pt.x = x;
+    pt.y = y;
+    NSPoint pt2 = [glView convertPointToBacking: pt];
+    x = pt2.x;
+    y = -pt2.y;
+    
+    pt.x = x2;
+    pt.y = y2;
+    pt2 = [glView convertPointToBacking: pt];
+    x2 = pt2.x;
+    y2 = -pt2.y;
+}
+
+double xlTranslateToRetina(wxGLCanvas &win, double x) {
+    NSOpenGLView *glView = (NSOpenGLView*)win.GetHandle();
+    NSSize pt;
+    pt.width = x;
+    pt.height = 0;
+    NSSize pt2 = [glView convertSizeToBacking: pt];
+    return pt2.width;
+}
+

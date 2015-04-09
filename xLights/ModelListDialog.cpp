@@ -1,6 +1,7 @@
 #include "ModelListDialog.h"
 #include "ModelDialog.h"
 #include "ChannelLayoutDialog.h"
+#include "Element.h"
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
 #include <wx/textdlg.h>
@@ -29,6 +30,7 @@ BEGIN_EVENT_TABLE(ModelListDialog,wxDialog)
 END_EVENT_TABLE()
 
 ModelListDialog::ModelListDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+: mSequenceElements(NULL)
 {
     //(*Initialize(ModelListDialog)
     wxFlexGridSizer* FlexGridSizer3;
@@ -84,6 +86,11 @@ ModelListDialog::~ModelListDialog()
 {
     //(*Destroy(ModelListDialog)
     //*)
+}
+
+void ModelListDialog::SetSequenceElements(SequenceElements* elements)
+{
+    mSequenceElements = elements;
 }
 
 // returns true if name is ok
@@ -174,11 +181,24 @@ void ModelListDialog::OnButton_DeleteClick(wxCommandEvent& event)
         wxMessageBox(_("Select an item before clicking the Delete button"));
         return;
     }
+
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
-    ListBox1->Delete(sel);
-    wxXmlNode* p=e->GetParent();
-    if (p) p->RemoveChild(e);
-    delete e;
+    wxString attr;
+    int result = wxNO;
+    e->GetAttribute("name", &attr);
+    Element* elem_to_delete = mSequenceElements->GetElement(attr);
+    if( elem_to_delete != NULL )
+    {
+        result = wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO);
+        if( result == wxYES ) mSequenceElements->DeleteElement(attr);
+    }
+    if( elem_to_delete == NULL || result == wxYES )
+    {
+        ListBox1->Delete(sel);
+        wxXmlNode* p=e->GetParent();
+        if (p) p->RemoveChild(e);
+        delete e;
+    }
 }
 
 void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
