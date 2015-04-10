@@ -6,16 +6,18 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.18  Apr 10, 2015
     -- enh (gil) Provide 2 render modes. Erase mode clears canvas then renders. Canvas mode renders over old data. #141
     -- bug (gil) Display sequence duration cutoff on Timeline and honor it during playback. Fixes #193.
     -- bug (gil) Fix adding timing sections to open sequence. Fixes #195.
     -- bug (dkulp) WholeHouseModel now records the node type and uses that info at rendering.  #177
-    -- bug/enh (dkulp) Bunches of fixes in dialogs and rendering for Retina and HiDPI displays
+    -- bug/enh (dkulp) Bunches of fixes in dialogues and rendering for Retina and HiDPI displays
     -- change (dkulp) Background image is proportionally scaled to best fill the area
     -- bug (dkulp/gil) fix problems on the Preview related to mouse positioning #124
     -- bug (dkulp) Use floats for the model sizing to provide better control as well as problems converting to/from ints causing truncation and such.
-    -- eh (dkulp) add updates to Model dialog to allow controlling pixel rendering.
-                  Includes transparence of pixels, size of pixels, and "type" of rendering (point, smooth point, circle, blended circle)
+    -- enh (dkulp) add updates to Model dialog to allow controlling pixel rendering.
+                  Includes transparency of pixels, size of pixels, and "type" of rendering (point, smooth point, circle, blended circle)
+	-- bug () Incoming file conversion not correct #80
 4.0.17  Apr 8, 2015
     -- enh (dkulp) Add changes to support older graphics cards. This code fixes white boxes seen in the sequencer grid.
     -- bug (Gil) Delete model and effects from Sequencer when model is deleted from Preview page. #178
