@@ -41,6 +41,7 @@ public:
     wxStaticText* StaticText2;
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrlModelBrightness;
+    wxCheckBox* AntiAliasCheckBox;
     wxSpinCtrl* SpinCtrl_parm3;
     wxStaticText* StaticText8;
     wxStaticText* StaticText1;
@@ -61,7 +62,6 @@ public:
     wxStaticText* ExtraParameterLabel;
     wxSlider* Slider_Model_Brightness;
     wxButton* ButtonCustomModelHelp;
-    wxChoice* Choice_Antialias;
     wxGrid* gridStartChannels;
     wxBitmapButton* BitmapButtonCustomCut;
     wxChoice* Choice_DisplayAs;
@@ -98,7 +98,7 @@ protected:
     static const long ID_RADIOBUTTON4;
     static const long ID_RADIOBUTTON3;
     static const long ID_STATICTEXT9;
-    static const long ID_CHOICE3;
+    static const long ID_CHECKBOX3;
     static const long ID_STATICTEXT10;
     static const long ID_CHECKBOX1;
     static const long ID_STATICTEXT7;

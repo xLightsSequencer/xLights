@@ -245,12 +245,20 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
            sprite = new xLightsDrawable(image);
         }
         float intensity = mBackgroundBrightness*.01;
+        glPushMatrix();
+        double scaleh= double(virtualHeight) / double(image->height);
+        double scalew = double(virtualWidth) / double(image->width);
+        if (scalew < scaleh) {
+            scaleh = scalew;
+        }
+        glScalef(scaleh, scaleh, 1.0);
+        
         glColor3f(intensity, intensity, intensity);
         glEnable(GL_TEXTURE_2D);   // textures
         sprite->render();
         glDisable(GL_TEXTURE_2D);   // textures
+        glPopMatrix();
     }
-    glEnable(GL_POINT_SMOOTH);
     return true;
 }
 

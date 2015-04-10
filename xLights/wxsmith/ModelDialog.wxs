@@ -240,20 +240,15 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText4" member="yes">
-							<label>Smooth Edges - antialias&#x0A;(future capability)</label>
+							<label>Smooth Pixels (antialias)</label>
 						</object>
 						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE3" variable="Choice_Antialias" member="yes">
-							<content>
-								<item>None</item>
-								<item>2x</item>
-							</content>
-							<selection>0</selection>
-							<enabled>0</enabled>
+						<object class="wxCheckBox" name="ID_CHECKBOX3" variable="AntiAliasCheckBox" member="yes">
+							<checked>1</checked>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

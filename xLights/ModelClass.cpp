@@ -157,9 +157,10 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
         isBotToTop=true;
     }
 
-    tempstr=ModelNode->GetAttribute("Antialias","0");
-    tempstr.ToLong(&Antialias);
-    AliasFactor=1 << Antialias;
+    tempstr=ModelNode->GetAttribute("Antialias","1");
+    long n;
+    tempstr.ToLong(&n);
+    Antialias = n;
 
 
     MyDisplay=IsMyDisplay(ModelNode);
@@ -1478,6 +1479,10 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
     //preview->GetSize(&w, &h);
     preview->GetVirtualCanvasSize(w, h);
     
+    if (Antialias) {
+        glEnable(GL_POINT_SMOOTH);
+    }
+    
     double scalex=double(w) / RenderWi * PreviewScale;
     double scaley=double(h) / RenderHt * PreviewScale;
     if (RenderHt > RenderWi) {
@@ -1519,6 +1524,10 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
     if (started) {
         DrawGLUtils::EndPoints();
     }
+    if (Antialias) {
+        glDisable(GL_POINT_SMOOTH);
+    }
+
 
     if (Selected && c != NULL && allowSelected) {
         //Draw bounding rectangle
