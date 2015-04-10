@@ -14,18 +14,21 @@
 #include "../include/bars-24.xpm"
 #include "../include/bars-32.xpm"
 #include "../include/bars-48.xpm"
+#include "../include/bars-64.xpm"
 
 //#include "../include/butterfly.xpm"
 #include "../include/butterfly-16.xpm"
 #include "../include/butterfly-24.xpm"
 #include "../include/butterfly_32.xpm"
 #include "../include/butterfly-48.xpm"
+#include "../include/butterfly-64.xpm"
 
 //#include "../include/circles.xpm"
 #include "../include/circles-16.xpm"
 #include "../include/circles-24.xpm"
 #include "../include/circles-32.xpm"
 #include "../include/circles-48.xpm"
+#include "../include/circles-64.xpm"
 
 #include "../include/ColorWash.xpm"
 #include "../include/corofaces.xpm"
@@ -35,7 +38,7 @@
 #include "../include/curtain-24.xpm"
 #include "../include/curtain-32.xpm"
 #include "../include/curtain-48.xpm"
-
+#include "../include/curtain-64.xpm"
 
 #include "../include/faces.xpm"
 
@@ -44,6 +47,7 @@
 #include "../include/fire-24.xpm"
 #include "../include/fire-32.xpm"
 #include "../include/fire-48.xpm"
+#include "../include/fire-64.xpm"
 
 
 //#include "../include/fireworks.xpm"
@@ -201,13 +205,13 @@ class xlArtProvider : public wxArtProvider {
 public:
     xlArtProvider() {}
     virtual ~xlArtProvider() {};
-    
+
     virtual wxBitmap CreateBitmap(const wxArtID& id,
                                   const wxArtClient& client,
                                   const wxSize& size);
     virtual wxIconBundle CreateIconBundle(const wxArtID& id,
                                           const wxArtClient& client);
-    
+
 };
 
 class EffectBitmapCache {
@@ -309,7 +313,7 @@ public:
     std::map<wxString, wxBitmap> size32;
     std::map<wxString, wxBitmap> size48;
     std::map<wxString, wxBitmap> size64;
-    
+
 #ifdef __WXOSX__
     std::map<wxString, wxBitmap> size16e;
     std::map<wxString, wxBitmap> size24e;
@@ -407,13 +411,13 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
             return effectBitmaps.get(size, exact, "On", On, On, On, On, On);
         case BitmapCache::RGB_EFFECTS_e::eff_BARS:
             toolTip = "Bars";
-            return effectBitmaps.get(size, exact, "Bars", bars_16, bars_24, bars_32, bars_48, bars_48);
+            return effectBitmaps.get(size, exact, "Bars", bars_16, bars_24, bars_32, bars_48, bars_64);
         case BitmapCache::RGB_EFFECTS_e::eff_BUTTERFLY:
             toolTip = "Butterfly";
-            return effectBitmaps.get(size, exact, "Butterfly", butterfly_16, butterfly_24, butterfly_32, butterfly_48, butterfly_48);
+            return effectBitmaps.get(size, exact, "Butterfly", butterfly_16, butterfly_24, butterfly_32, butterfly_48, butterfly_64);
         case BitmapCache::RGB_EFFECTS_e::eff_CIRCLES:
             toolTip = "Circles";
-            return effectBitmaps.get(size, exact, "Circles", circles_16, circles_24, circles_32, circles_48, circles_48);
+            return effectBitmaps.get(size, exact, "Circles", circles_16, circles_24, circles_32, circles_48, circles_64);
         case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH:
             toolTip = "ColorWash";
             return effectBitmaps.get(size, exact, "ColorWash", ColorWash, ColorWash, ColorWash, ColorWash, ColorWash);
@@ -422,13 +426,13 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
             return effectBitmaps.get(size, exact, "Coro Faces", corofaces, corofaces, corofaces, corofaces, corofaces);
         case BitmapCache::RGB_EFFECTS_e::eff_CURTAIN:
             toolTip = "Curtain";
-            return effectBitmaps.get(size, exact, "Curtain", curtain_16, curtain_24, curtain_32, curtain_48, curtain_48);
+            return effectBitmaps.get(size, exact, "Curtain", curtain_16, curtain_24, curtain_32, curtain_48, curtain_64);
         case BitmapCache::RGB_EFFECTS_e::eff_FACES:
             toolTip = "Matrix Faces";
             return effectBitmaps.get(size, exact, "Matrix Faces", faces, faces, faces, faces, faces);
         case BitmapCache::RGB_EFFECTS_e::eff_FIRE:
             toolTip = "Fire";
-            return effectBitmaps.get(size, exact, "Fire", fire_16, fire_24, fire_32, fire_48, fire_48);
+            return effectBitmaps.get(size, exact, "Fire", fire_16, fire_24, fire_32, fire_48, fire_64);
         case BitmapCache::RGB_EFFECTS_e::eff_FIREWORKS:
             toolTip = "Fireworks";
             return effectBitmaps.get(size, exact, "Fireworks", fireworks_16, fireworks_24, fireworks_32, fireworks_48, fireworks_48);

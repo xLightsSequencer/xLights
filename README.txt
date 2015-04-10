@@ -6,8 +6,13 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.17  Apr 8, 2015
+	-- enh (dkulp) Add changes to support older graphics cards. This code fixes white boxes seen in the sequencer grid.
     -- bug (Gil) Delete model and effects from Sequencer when model is deleted from Preview page. #178
     -- bug (Gil) Fix Vixen import issue.
+	-- bug (dkulp) You can't use a comma in text effect. :-) #188
+	-- bug () Drag and drop crash #161
+	-- bug () 4.0.14 Hot keys for O, D, U inconsistent #171
 4.0.16  Apr 7, 2015
 	-- enh (sean) Added new icons (16,24,32,48 bit sizes) for pictures, text, spirograph, twinkle,wave,tree,snowflakes,snowstorm
     -- enh (Gil) Add SuperStar import function (Morphs only).

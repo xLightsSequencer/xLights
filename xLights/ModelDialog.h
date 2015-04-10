@@ -5,6 +5,7 @@
 
 
 //(*Headers(ModelDialog)
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -39,6 +40,7 @@ public:
     wxTextCtrl* TextCtrl_Name;
     wxStaticText* StaticTextCustomModel;
     wxStaticText* StaticText2;
+    wxScrolledWindow* ScrolledWindow1;
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrlModelBrightness;
     wxSpinCtrl* SpinCtrl_parm3;
@@ -57,6 +59,7 @@ public:
     wxStaticText* StaticText5;
     wxStaticText* StaticText7;
     wxBitmapButton* BitmapButtonCustomCopy;
+    wxScrolledWindow* ScrolledWindow2;
     wxCheckBox* cbIndividualStartNumbers;
     wxStaticText* ExtraParameterLabel;
     wxSlider* Slider_Model_Brightness;
@@ -109,6 +112,7 @@ protected:
     static const long ID_TEXTCTRL2;
     static const long ID_CHECKBOX2;
     static const long ID_GRID_START_CHANNELS;
+    static const long ID_SCROLLEDWINDOW1;
     static const long ID_STATICTEXT14;
     static const long ID_BITMAPBUTTON_CUSTOM_CUT;
     static const long ID_BITMAPBUTTON_CUSTOM_COPY;
@@ -117,6 +121,7 @@ protected:
     static const long ID_BUTTON_CustomModelZoomIn;
     static const long ID_BUTTON_CustomModelZoomOut;
     static const long ID_GRID_Custom;
+    static const long ID_SCROLLEDWINDOW2;
     //*)
 
 private:

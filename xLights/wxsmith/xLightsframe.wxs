@@ -2146,7 +2146,7 @@
 												</object>
 												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON_BUILD_WHOLEHOUSE_MODEL" variable="ButtonBuildWholeHouseModel" member="yes">
-														<label>Build Whole House Model</label>
+														<label>Build Model from Preview</label>
 														<handler function="OnButtonBuildWholeHouseModelClick" entry="EVT_BUTTON" />
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

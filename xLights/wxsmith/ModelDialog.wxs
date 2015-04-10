@@ -363,18 +363,25 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxGrid" name="ID_GRID_START_CHANNELS" variable="gridStartChannels" member="yes">
-							<cols>2</cols>
-							<rows>10</rows>
-							<labelcolwidth>40</labelcolwidth>
-							<collabels>
-								<item>Start</item>
-								<item>End</item>
-							</collabels>
-							<style>wxVSCROLL|wxHSCROLL|wxFULL_REPAINT_ON_RESIZE</style>
-							<handler function="OngridStartChannelsCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+						<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="ScrolledWindow1" member="yes">
+							<style>wxVSCROLL</style>
+							<object class="wxGrid" name="ID_GRID_START_CHANNELS" variable="gridStartChannels" member="yes">
+								<cols>2</cols>
+								<rows>10</rows>
+								<labelcolwidth>40</labelcolwidth>
+								<collabels>
+									<item>Start Ch.</item>
+									<item>End Ch.</item>
+								</collabels>
+								<pos>0,3</pos>
+								<size>87,150d</size>
+								<style>wxVSCROLL|wxHSCROLL|wxFULL_REPAINT_ON_RESIZE</style>
+								<handler function="OngridStartChannelsCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+							</object>
 						</object>
-						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -463,16 +470,23 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxGrid" name="ID_GRID_Custom" variable="GridCustom" member="yes">
-							<cols>1</cols>
-							<rows>1</rows>
-							<labelrowheight>20</labelrowheight>
-							<labelcolwidth>30</labelcolwidth>
-							<defaultcolsize>30</defaultcolsize>
-							<style>wxVSCROLL|wxHSCROLL</style>
-							<handler function="OnGridCustomCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+						<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW2" variable="ScrolledWindow2" member="yes">
+							<size>430,323</size>
+							<minsize>504,-1</minsize>
+							<object class="wxGrid" name="ID_GRID_Custom" variable="GridCustom" member="yes">
+								<cols>1</cols>
+								<rows>1</rows>
+								<labelrowheight>20</labelrowheight>
+								<labelcolwidth>30</labelcolwidth>
+								<defaultcolsize>30</defaultcolsize>
+								<pos>6,5</pos>
+								<size>200,150d</size>
+								<handler function="OnGridCustomCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+							</object>
 						</object>
-						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
