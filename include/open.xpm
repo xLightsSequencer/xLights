@@ -1,7 +1,7 @@
 /* XPM */
 static const char *open_xpm[] = {
 /* width height num_colors chars_per_pixel */
-"    23    22      256            2",
+"    23    24      256            2",
 /* colors */
 "`` c #000000",
 "`. c #668000",
@@ -265,6 +265,7 @@ static const char *open_xpm[] = {
 "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
 "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
 "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
+"a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
 "a8a8a8a8a8a8a8a8a8a8a8a8``````a8a8a8a8a8a8a8a8",
 "a8a8a8a8a8a8a8a8a8a8a8``a8a8a8``a8``a8a8a8a8a8",
 "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8````a8a8a8a8a8",
@@ -278,6 +279,7 @@ static const char *open_xpm[] = {
 "a8a8a8```a```.`#`.`#`.`#`.`#`.``a8a8a8a8a8a8a8",
 "a8a8a8`````#`.`#`.`#`.`#`.`#``a8a8a8a8a8a8a8a8",
 "a8a8a8``````````````````````a8a8a8a8a8a8a8a8a8",
+"a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
 "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
 "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",
 "a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8",

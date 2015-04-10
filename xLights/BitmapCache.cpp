@@ -282,7 +282,7 @@ public:
         const wxBitmap &bmp = (*data)[eff];
         if (!bmp.IsOk()) {
             wxImage image(dc);
-            if (image.GetSize() == wxSize(size, size)) {
+            if (image.GetHeight() == size) {
                 (*data)[eff] = wxBitmap(image, -1, scale);
             } else {
                 wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
@@ -293,7 +293,7 @@ public:
         const wxBitmap &bmp = (*data)[eff];
         if (!bmp.IsOk()) {
             wxImage image(dc);
-            if (image.GetSize() == wxSize(size, size)) {
+            if (image.GetHeight() == size) {
                 (*data)[eff] = wxBitmap(image);
             } else {
                 wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
