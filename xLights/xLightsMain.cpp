@@ -1231,7 +1231,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     TextCtrlPreviewElementSize = new wxTextCtrl(PanelPreview, ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE, _("50"), wxDefaultPosition, wxDLG_UNIT(PanelPreview,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE"));
     FlexGridSizer37->Add(TextCtrlPreviewElementSize, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer35->Add(FlexGridSizer37, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    SliderPreviewScale = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_SCALE, 50, 1, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_SCALE"));
+    SliderPreviewScale = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_SCALE, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_SCALE"));
     FlexGridSizer35->Add(SliderPreviewScale, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer39 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticTextPreviewRotation = new wxStaticText(PanelPreview, ID_STATICTEXT25, _("Model Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT25"));
@@ -1241,7 +1241,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer39->Add(TextCtrlModelRotationDegrees, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer35->Add(FlexGridSizer39, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     SliderPreviewRotate = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_ROTATE, 0, -180, 180, wxDefaultPosition, wxDefaultSize, wxTRANSPARENT_WINDOW, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_ROTATE"));
-    SliderPreviewRotate->SetTickFreq(15);
+    SliderPreviewRotate->SetTickFreq(1);
     SliderPreviewRotate->Disable();
     FlexGridSizer35->Add(SliderPreviewRotate, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer34->Add(FlexGridSizer35, 1, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
