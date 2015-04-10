@@ -990,3 +990,12 @@ void xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& 
 }
 
 
+void xLightsFrame::OnScaleImageCheckboxClick(wxCommandEvent& event)
+{
+    SetXmlSetting("scaleImage",wxString::Format("%d",ScaleImageCheckbox->IsChecked()));
+    modelPreview->SetScaleBackgroundImage(ScaleImageCheckbox->IsChecked());
+    sPreview2->SetScaleBackgroundImage(ScaleImageCheckbox->IsChecked());
+    SaveEffectsFile();
+}
+
+

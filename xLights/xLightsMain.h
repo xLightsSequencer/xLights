@@ -554,6 +554,7 @@ private:
     void OnButton_ImportSuperstarClick(wxCommandEvent& event);
     void OnMenuItemRenderEraseModeSelected(wxCommandEvent& event);
     void OnMenuItemRenderCanvasModeSelected(wxCommandEvent& event);
+    void OnScaleImageCheckboxClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -735,6 +736,7 @@ private:
     static const long ID_STATICTEXT_CURRENT_PREVIEW_SIZE;
     static const long ID_BUTTON_SET_PREVIEW_SIZE;
     static const long ID_BUTTON_SET_BACKGROUND_IMAGE;
+    static const long ID_CHECKBOX1;
     static const long ID_STATICTEXT32;
     static const long ID_SLIDER_BACKGROUND_BRIGHTNESS;
     static const long ID_BUTTON_SELECT_MODEL_GROUPS;
@@ -1115,6 +1117,7 @@ private:
     wxChoice* LORImportTimeResolution;
     wxStaticText* StaticText17;
     wxStaticText* StaticText11;
+    wxCheckBox* ScaleImageCheckbox;
     wxRadioButton* RadioButtonRgbCycle5;
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
@@ -1206,6 +1209,7 @@ private:
     int mHitTestNextSelectModelIndex;
     wxString mBackgroundImage;
     int mBackgroundBrightness;
+    bool mScaleBackgroundImage = false;
 
     // convert
 public:

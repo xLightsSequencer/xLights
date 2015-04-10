@@ -158,6 +158,10 @@ void ModelPreview::InitializeGLCanvas()
 void ModelPreview::SetOrigin()
 {
 }
+void ModelPreview::SetScaleBackgroundImage(bool b) {
+    scaleImage = b;
+    Refresh();
+}
 
 void ModelPreview::SetbackgroundImage(wxString img)
 {
@@ -254,10 +258,14 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         glPushMatrix();
         double scaleh= double(virtualHeight) / double(image->height);
         double scalew = double(virtualWidth) / double(image->width);
-        if (scalew < scaleh) {
-            scaleh = scalew;
+        if (scaleImage) {
+            glScalef(scalew, scaleh, 1.0);
+        } else {
+            if (scalew < scaleh) {
+                scaleh = scalew;
+            }
+            glScalef(scaleh, scaleh, 1.0);
         }
-        glScalef(scaleh, scaleh, 1.0);
         
         glColor3f(intensity, intensity, intensity);
         glEnable(GL_TEXTURE_2D);   // textures

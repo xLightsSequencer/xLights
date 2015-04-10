@@ -105,6 +105,7 @@ void xLightsFrame::InitSequencer()
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
     sPreview2->InitializePreview(mBackgroundImage,mBackgroundBrightness);
+    sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 
 void xLightsFrame::CheckForAndCreateDefaultPerpective()

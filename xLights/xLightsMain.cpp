@@ -256,6 +256,7 @@ const long xLightsFrame::ID_SLIDER_PREVIEW_TIME = wxNewId();
 const long xLightsFrame::ID_STATICTEXT_CURRENT_PREVIEW_SIZE = wxNewId();
 const long xLightsFrame::ID_BUTTON_SET_PREVIEW_SIZE = wxNewId();
 const long xLightsFrame::ID_BUTTON_SET_BACKGROUND_IMAGE = wxNewId();
+const long xLightsFrame::ID_CHECKBOX1 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT32 = wxNewId();
 const long xLightsFrame::ID_SLIDER_BACKGROUND_BRIGHTNESS = wxNewId();
 const long xLightsFrame::ID_BUTTON_SELECT_MODEL_GROUPS = wxNewId();
@@ -1194,7 +1195,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     TextCtrlPreviewTime = new wxTextCtrl(PanelPreview, ID_TEXTCTRL_PREVIEW_TIME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_TIME"));
     FlexGridSizer31->Add(TextCtrlPreviewTime, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer30 = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer40 = new wxFlexGridSizer(0, 6, 0, 0);
+    FlexGridSizer40 = new wxFlexGridSizer(0, 7, 0, 0);
     FlexGridSizer40->AddGrowableCol(1);
     SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxDLG_UNIT(PanelPreview,wxSize(150,-1)), 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
     FlexGridSizer40->Add(SliderPreviewTime, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1204,6 +1205,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer40->Add(ButtonSetPreviewSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonSetBackgroundImage = new wxButton(PanelPreview, ID_BUTTON_SET_BACKGROUND_IMAGE, _("Image"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SET_BACKGROUND_IMAGE"));
     FlexGridSizer40->Add(ButtonSetBackgroundImage, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ScaleImageCheckbox = new wxCheckBox(PanelPreview, ID_CHECKBOX1, _("Fill Background"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    ScaleImageCheckbox->SetValue(false);
+    FlexGridSizer40->Add(ScaleImageCheckbox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText30 = new wxStaticText(PanelPreview, ID_STATICTEXT32, _("Brightness:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT32"));
     FlexGridSizer40->Add(StaticText30, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_BackgroundBrightness = new wxSlider(PanelPreview, ID_SLIDER_BACKGROUND_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BACKGROUND_BRIGHTNESS"));
@@ -1745,6 +1749,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_SLIDER_PREVIEW_TIME,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated);
     Connect(ID_BUTTON_SET_PREVIEW_SIZE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSetPreviewSizeClick);
     Connect(ID_BUTTON_SET_BACKGROUND_IMAGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSetBackgroundImageClick);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnScaleImageCheckboxClick);
     Connect(ID_SLIDER_BACKGROUND_BRIGHTNESS,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated);
     Connect(ID_BUTTON_SELECT_MODEL_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSelectModelGroupsClick);
     Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListSelect);
@@ -2440,6 +2445,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     else if (pagenum == PREVIEWTAB)
     {
         modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
+        modelPreview->SetScaleBackgroundImage(mScaleBackgroundImage);
     }
     else if (pagenum == NEWSEQUENCER)
     {
@@ -3176,3 +3182,4 @@ void xLightsFrame::UpdateRenderMode()
         MenuItemRenderCanvasMode->Check(false);
     }
 }
+

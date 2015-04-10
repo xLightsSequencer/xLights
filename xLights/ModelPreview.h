@@ -42,6 +42,7 @@ public:
     }
 	void SetbackgroundImage(wxString image);
 	void SetBackgroundBrightness(int brightness);
+    void SetScaleBackgroundImage(bool b);
     
     void Render();
     void Render(const unsigned char *data);
@@ -72,6 +73,7 @@ private:
     int virtualWidth, virtualHeight;
 
     Image* image = NULL;
+    bool scaleImage = false;
     xLightsDrawable* sprite;
     std::vector<ModelClassPtr> *PreviewModels;
     bool allowSelected;
