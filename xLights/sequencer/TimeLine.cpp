@@ -114,6 +114,15 @@ void TimeLine::RaiseChangeTimeline()
     wxPostEvent(mParent, eventTimeLineChanged);
 }
 
+void TimeLine::SetSequenceEnd(int ms)
+{
+    mSequenceEndMarkerMS = ms;
+    mSequenceEndMarker = GetPositionFromTimeMS(ms);
+    mEndPos = GetPositionFromTimeMS(mEndTimeMS);
+    Refresh();
+    Update();
+}
+
 void TimeLine::SetPlayMarkerMS(int ms)
 {
     mCurrentPlayMarkerMS = ms;
@@ -346,6 +355,8 @@ void TimeLine::RecalcMarkerPositions()
      } else {
         mSelectedPlayMarkerEnd = GetPositionFromTimeMS(mSelectedPlayMarkerEndMS);
      }
+     mSequenceEndMarker = GetPositionFromTimeMS(mSequenceEndMarkerMS);
+     mEndPos = GetPositionFromTimeMS(mEndTimeMS);
 }
 
 int TimeLine::GetZoomLevel()
@@ -363,8 +374,10 @@ void TimeLine::ZoomOut()
             mStartTimeMS = 0;
             mStartPixelOffset = 0;
             mEndTimeMS = GetMaxViewableTimeMS();
+            mEndPos = GetPositionFromTimeMS(mEndTimeMS);
             mStartTime = 0;
             mEndTime = (double)mEndTimeMS/(double)1000;
+            mSequenceEndMarker = GetPositionFromTimeMS(mSequenceEndMarkerMS);
             RaiseChangeTimeline();
         }
     }
@@ -572,6 +585,7 @@ void TimeLine::render( wxPaintEvent& event )
     dc.GetSize(&w,&h);
     wxBrush brush(wxColor(212,208,200),wxBRUSHSTYLE_SOLID);
     wxBrush brush_range(wxColor(187, 173,193),wxBRUSHSTYLE_SOLID);
+    wxBrush brush_past_end(wxColor(153, 204, 255),wxBRUSHSTYLE_CROSSDIAG_HATCH);
     dc.SetBrush(brush);
     dc.DrawRectangle(0,0,w,h+1);
 
@@ -670,6 +684,10 @@ void TimeLine::render( wxPaintEvent& event )
         dc.SetPen(*pen_black);
         dc.DrawLine(mSelectedPlayMarkerStart, 0, mSelectedPlayMarkerStart, h-1);
     }
+
+    // grey out where sequence ends
+    dc.SetBrush(brush_past_end);
+    dc.DrawRectangle(mSequenceEndMarker, 0, mEndPos, h);
 }
 
 void TimeLine::DrawTriangleMarkerFacingLeft(wxPaintDC& dc, int& play_start_mark, const int& tri_size, int& height)

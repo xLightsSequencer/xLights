@@ -230,6 +230,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
     mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
+    mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     ResizeAndMakeEffectsScroll();
     ResizeMainSequencer();
     mainSequencer->PanelEffectGrid->Refresh();
@@ -588,8 +589,8 @@ void xLightsFrame::PlaySequence(wxCommandEvent& event)
             if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
                 PlayerDlg->MediaCtrl->Seek(playStartTime);
             }
-            if( playEndTime == -1 ) {
-                playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
+            if( playEndTime == -1 || playEndTime > CurrentSeqXmlFile->GetSequenceDurationMS()) {
+                playEndTime = CurrentSeqXmlFile->GetSequenceDurationMS();
             }
             mainSequencer->PanelTimeLine->PlayStarted();
             if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
@@ -686,7 +687,7 @@ void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
     wxPostEvent(this, eventScroll);
 
-    int end_ms = SeqData.NumFrames() * SeqData.FrameTime();
+    int end_ms = CurrentSeqXmlFile->GetSequenceDurationMS();
     mainSequencer->PanelTimeLine->ResetMarkers(end_ms);
     mainSequencer->PanelWaveForm->UpdatePlayMarker();
     mainSequencer->UpdateTimeDisplay(end_ms);
@@ -761,11 +762,6 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
     // return if play is stopped
     if (playType == PLAY_TYPE_STOPPED || CurrentSeqXmlFile == NULL) {
-        return;
-    }
-
-    // return if in model play mode and media has stopped
-    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && playType == PLAY_TYPE_MODEL && PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING) {
         return;
     }
 

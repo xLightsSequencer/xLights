@@ -69,6 +69,8 @@ class TimeLine : public wxWindow
         int GetPositionFromTime(double time);
         int GetPositionFromTimeMS(int time);
 
+        void SetSequenceEnd(int ms);
+
         int GetTimeMSfromPosition(int position);
         int GetAbsoluteTimeMSfromPosition(int position);
         double GetAbsoluteTimefromPosition(int position);
@@ -103,6 +105,7 @@ class TimeLine : public wxWindow
         bool mIsInitialized;
         int mStartTimeMS;
         int mEndTimeMS;
+        int mEndPos;
         double mStartTime;
         double mEndTime;
 
@@ -121,6 +124,8 @@ class TimeLine : public wxWindow
         int mSelectedPlayMarkerStartMS;
         int mSelectedPlayMarkerEndMS;
         int mCurrentPlayMarkerMS;
+        int mSequenceEndMarker;
+        int mSequenceEndMarkerMS;
         bool m_dragging;
         bool timeline_initiated_play;
 
