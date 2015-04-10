@@ -2,9 +2,11 @@
 
 namespace DrawGLUtils
 {
-    void DrawPoint(const xlColor &color, wxDouble x, wxDouble y);
-    
-    void StartPoints(const xlColor &color);
+    void DrawPoint(const xlColor &color, double x, double y);
+
+    void DrawCircle(const xlColor &color, double x, double y, double r, int ctransparency = 0, int etransparency = 0);
+
+    void StartPoints(const xlColor &color, int transparency = 0);
     void AddPoint(wxDouble x, wxDouble y);
     void EndPoints();
     

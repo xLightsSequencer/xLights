@@ -45,6 +45,8 @@ public:
     
     void Render();
     void Render(const unsigned char *data);
+    
+    double calcPixelSize(double i);
 
 protected:
     virtual void InitializeGLCanvas();
@@ -73,6 +75,8 @@ private:
     xLightsDrawable* sprite;
     std::vector<ModelClassPtr> *PreviewModels;
     bool allowSelected;
+    
+    double currentPixelScaleFactor = 1.0;
 
 	DECLARE_EVENT_TABLE()
 };

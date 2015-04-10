@@ -10,11 +10,18 @@
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"
 
-void DrawGLUtils::StartPoints(const xlColor &color) {
-    glColor3ub(color.Red(), color.Green(),color.Blue());
+void DrawGLUtils::StartPoints(const xlColor &color, int transparency) {
+    if (transparency) {
+        double t = 100.0 - transparency;
+        t *= 2.56;
+        transparency = t;
+        glColor4ub(color.Red(), color.Green(),color.Blue(), transparency);
+    } else {
+        glColor3ub(color.Red(), color.Green(),color.Blue());
+    }
     glBegin(GL_POINTS);
 }
-void DrawGLUtils::AddPoint(wxDouble x, wxDouble y) {
+void DrawGLUtils::AddPoint(double x, double y) {
     glVertex2f(x, y);
 }
 void DrawGLUtils::EndPoints() {
@@ -23,13 +30,75 @@ void DrawGLUtils::EndPoints() {
 
 
 
-void DrawGLUtils::DrawPoint(const xlColor &color, wxDouble x, wxDouble y)
+void DrawGLUtils::DrawPoint(const xlColor &color, double x, double y)
 {
     glColor3ub(color.Red(), color.Green(),color.Blue());
     glBegin(GL_POINTS);
     glVertex2f(x, y);
     glEnd();
 }
+
+void DrawGLUtils::DrawCircle(const xlColor &color, double cx, double cy, double r, int ctransparency, int etransparency)
+{
+    if (ctransparency) {
+        double t = 100.0 - ctransparency;
+        t *= 2.56;
+        ctransparency = t;
+        glColor4ub(color.Red(), color.Green(),color.Blue(), ctransparency);
+    } else {
+        glColor3ub(color.Red(), color.Green(),color.Blue());
+    }
+    
+    int num_segments = r / 2;
+    if (num_segments < 16) {
+        num_segments = 16;
+    }
+    float theta = 2 * 3.1415926 / float(num_segments);
+    float tangetial_factor = tanf(theta);//calculate the tangential factor
+    
+    float radial_factor = cosf(theta);//calculate the radial factor
+    
+    float x = r;//we start at angle = 0
+    
+    float y = 0;
+    
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(cx, cy); //center vertex
+    
+    if (etransparency) {
+        double t = 100.0 - etransparency;
+        t *= 2.56;
+        etransparency = t;
+        glColor4ub(color.Red(), color.Green(),color.Blue(), etransparency);
+    } else {
+        glColor3ub(color.Red(), color.Green(),color.Blue());
+    }
+
+    for(int ii = 0; ii < num_segments; ii++)
+    {
+        glVertex2f(x + cx, y + cy);//output vertex
+        
+        //calculate the tangential vector
+        //remember, the radial vector is (x, y)
+        //to get the tangential vector we flip those coordinates and negate one of them
+        
+        float tx = -y;
+        float ty = x;
+        
+        //add the tangential vector
+        
+        x += tx * tangetial_factor;
+        y += ty * tangetial_factor;
+        
+        //correct using the radial factor 
+        
+        x *= radial_factor; 
+        y *= radial_factor; 
+    }
+    glVertex2f(x + cx, y + cy);//output vertex
+    glEnd();
+}
+
 
 void DrawGLUtils::DrawLine(const xlColor &color, wxByte alpha,int x1, int y1, int x2, int y2, float width)
 {

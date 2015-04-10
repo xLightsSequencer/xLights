@@ -325,7 +325,10 @@ private:
     std::vector<int> starSizes;
     bool IsLtoR;         // true=left to right, false=right to left
     bool isBotToTop;
-    int Antialias;      // amount of anti-alias (0,1,2)
+    
+    int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
+    int pixelSize = 2;
+    int transparency = 0;
 
     int TreeDegrees,FrameWidth;
     bool modelv2;
