@@ -208,7 +208,7 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
     wxSize s2 = modelPreview->GetSize();
     if (s2.y > s1.y) {
         //part of top of preview is cut off, adjust
-        y += s2.y - s1.y;
+        //y += s2.y - s1.y;
     }
 
     if (event.ControlDown())
@@ -579,12 +579,6 @@ void xLightsFrame::SetSelectedModelToGroupSelected()
 void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
 {
     int y = event.GetY();
-    wxSize s1 = ScrolledWindowPreview->GetSize();
-    wxSize s2 = modelPreview->GetSize();
-    if (s2.y > s1.y) {
-        //part of top of preview is cut off, adjust
-        y += s2.y - s1.y;
-    }
 
     m_rotating = false;
     m_dragging = false;
@@ -619,13 +613,6 @@ void xLightsFrame::OnScrolledWindowPreviewMouseLeave(wxMouseEvent& event)
 void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
 {
     int y = event.GetY();
-    wxSize s1 = ScrolledWindowPreview->GetSize();
-    wxSize s2 = modelPreview->GetSize();
-    if (s2.y > s1.y) {
-        //part of top of preview is cut off, adjust
-        y += s2.y - s1.y;
-    }
-
     int wi,ht;
 
     if (m_creating_bound_rect)

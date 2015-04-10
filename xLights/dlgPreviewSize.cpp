@@ -26,7 +26,7 @@ dlgPreviewSize::dlgPreviewSize(wxWindow* parent,wxWindowID id,const wxPoint& pos
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, _("Set Preview Size"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
-	SetClientSize(wxSize(191,110));
+	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -45,8 +45,8 @@ dlgPreviewSize::dlgPreviewSize(wxWindow* parent,wxWindowID id,const wxPoint& pos
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	SetSizer(FlexGridSizer1);
-	Layout();
+	FlexGridSizer1->Fit(this);
+	FlexGridSizer1->SetSizeHints(this);
 	//*)
 }
 

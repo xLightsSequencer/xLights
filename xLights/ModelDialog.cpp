@@ -75,9 +75,11 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-    Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     SetHelpText(_("Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical."));
     FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer1->AddGrowableCol(2);
+    FlexGridSizer1->AddGrowableRow(0);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Model Name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -188,7 +190,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     StarSizes = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
     FlexGridSizer7->Add(StarSizes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer3->AddGrowableCol(0);
     FlexGridSizer3->AddGrowableRow(1);
