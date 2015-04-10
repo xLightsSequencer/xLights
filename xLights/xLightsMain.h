@@ -1358,6 +1358,7 @@ public:
     void RenameTimingElement(wxString& old_name, wxString& new_name);
     wxArrayString ImportTimingElement();
     void ExecuteImportTimingElement(wxCommandEvent &command);
+    void SetSequenceEnd(int ms);
 
 protected:
     void ClearEffectWindow();

@@ -644,6 +644,7 @@ void SeqSettingsDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
 void SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event)
 {
     xml_file->SetSequenceDuration(TextCtrl_Xml_Seq_Duration->GetValue());
+    xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
 }
 
 void SeqSettingsDialog::PopulateTimingGrid()
@@ -1050,6 +1051,7 @@ void SeqSettingsDialog::MediaChooser()
         {
             xLightsParent->LoadAudioData(*xml_file);
         }
+        xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
         StaticText_Warning->Hide();
         ProcessSequenceType();
     }
@@ -1075,6 +1077,7 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
     xml_file->SetSequenceType("Animation");
     TextCtrl_Xml_Seq_Duration->SetValue("30.0");
     xml_file->SetSequenceDuration(30.0);
+    xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
     ProcessSequenceType();
     WizardPage2();
 }
