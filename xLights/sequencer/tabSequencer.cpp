@@ -225,6 +225,8 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mSequenceElements.LoadSequencerFile(xml_file);
     mSequenceElements.PopulateRowInformation();
 
+    Menu_Settings_Sequence->Enable(true);
+    MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, true);
     if( xml_file.GetRenderMode() == xLightsXmlFile::CANVAS_MODE )
     {
         MenuItemRenderEraseMode->Check(false);

@@ -36,7 +36,6 @@ void xLightsFrame::NewSequence()
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
     CurrentSeqXmlFile->AddNewTimingSection("New Timing", this);
-    Menu_Settings_Sequence->Enable(true);
     MenuItem_File_Save_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);
 
@@ -266,6 +265,8 @@ void xLightsFrame::CloseSequence()
     mainSequencer->PanelWaveForm->CloseMediaFile();
 
     EnableSequenceControls(true);  // let it re-evaluate menu state
+    MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, false);
+    Menu_Settings_Sequence->Enable(false);
 }
 
 bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)

@@ -853,7 +853,7 @@ private:
     static const long ID_MENUITEM6;
     static const long ID_MENU_CANVAS_ERASE_MODE;
     static const long ID_MENU_CANVAS_CANVAS_MODE;
-    static const long ID_MENUITEM8;
+    static const long ID_MENUITEM_RENDER_MODE;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_STATUSBAR1;
@@ -921,7 +921,6 @@ private:
     DragEffectBitmapButton* BitmapButton4;
     wxButton* ButtonAddE131;
     wxTextCtrl* TextCtrlFilename;
-    wxMenu* MenuItem29;
     DragEffectBitmapButton* BitmapButton2;
     wxMenuItem* MenuItemRenderEraseMode;
     wxMenuItem* MenuItem_File_Close_Sequence;
@@ -998,6 +997,7 @@ private:
     wxSlider* SliderChaseSpeed;
     wxButton* Button_PgoCopyVoices;
     wxCheckBox* CheckBoxMapEmptyChannels;
+    wxMenu* MenuItemRenderMode;
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
     wxRadioButton* RadioButtonDim;
@@ -1118,6 +1118,7 @@ private:
     wxStaticText* StaticText17;
     wxStaticText* StaticText11;
     wxCheckBox* ScaleImageCheckbox;
+    wxMenu* MenuSettings;
     wxRadioButton* RadioButtonRgbCycle5;
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;

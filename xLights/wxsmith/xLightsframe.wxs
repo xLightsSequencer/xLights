@@ -3189,7 +3189,7 @@
 					<label>Export Model</label>
 				</object>
 			</object>
-			<object class="wxMenu" variable="Menu1" member="no">
+			<object class="wxMenu" variable="MenuSettings" member="yes">
 				<label>&amp;Settings</label>
 				<object class="wxMenuItem" name="ID_SEQ_SETTINGS" variable="Menu_Settings_Sequence" member="yes">
 					<label>Sequence Settings</label>
@@ -3241,8 +3241,9 @@
 						<handler function="SetIconSize" entry="EVT_MENU" />
 					</object>
 				</object>
-				<object class="wxMenu" name="ID_MENUITEM8" variable="MenuItem29" member="yes">
+				<object class="wxMenu" name="ID_MENUITEM_RENDER_MODE" variable="MenuItemRenderMode" member="yes">
 					<label>Render Mode</label>
+					<enabled>0</enabled>
 					<object class="wxMenuItem" name="ID_MENU_CANVAS_ERASE_MODE" variable="MenuItemRenderEraseMode" member="yes">
 						<label>Erase Mode</label>
 						<checked>1</checked>
