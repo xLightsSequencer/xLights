@@ -1391,7 +1391,7 @@ protected:
     void CutOrCopyToClipboard(bool IsCut);
     void PasteFromClipboard(void);
     bool IsValidEffectString(wxString& s);
-    void PreviewScaleUpdated(int newscale);
+    void PreviewScaleUpdated(float newscale);
     void LoadPapagayoFile(const wxString& filename, int frame_offset = 0);
     void InitPapagayoTab(bool tab_changed);
     bool LoadPgoSettings(void);

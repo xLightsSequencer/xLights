@@ -2183,7 +2183,7 @@
 													<object class="wxSlider" name="ID_SLIDER_PREVIEW_SCALE" variable="SliderPreviewScale" member="yes">
 														<value>50</value>
 														<min>1</min>
-														<max>300</max>
+														<max>700</max>
 														<handler function="OnSliderPreviewScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2220,7 +2220,7 @@
 													<object class="wxSlider" name="ID_SLIDER_PREVIEW_ROTATE" variable="SliderPreviewRotate" member="yes">
 														<min>-180</min>
 														<max>180</max>
-														<tickfreq>15</tickfreq>
+														<tickfreq>1</tickfreq>
 														<enabled>0</enabled>
 														<style>wxTRANSPARENT_WINDOW</style>
 														<handler function="OnSliderPreviewRotateCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />

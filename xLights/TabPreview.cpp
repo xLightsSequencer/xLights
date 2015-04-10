@@ -186,9 +186,9 @@ void xLightsFrame::SelectModel(wxString name)
             ListBoxElementList->SetSelection(i);
             ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(i);
             m->Selected = true;
-            int newscale=m->GetScale()*100.0;
-            SliderPreviewScale->SetValue(newscale);
-            TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
+            float newscale=m->GetScale()*100.0;
+            SliderPreviewScale->SetValue(newscale*10);
+            TextCtrlPreviewElementSize->SetValue(wxString::Format( "%.1f",newscale));
             SliderPreviewRotate->SetValue(m->GetRotation());
             TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",m->GetRotation()));
             bool canrotate=m->CanRotate();
@@ -629,7 +629,7 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
     else if(m_resizing)
     {
         m->ResizeWithHandles(modelPreview,event.GetPosition().x,y);
-        TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",(int)(m->GetScale()*100)));
+        TextCtrlPreviewElementSize->SetValue(wxString::Format( "%0.1f",m->GetScale()*100.0));
         UpdatePreview();
     }
     else if (m_dragging && event.Dragging())
@@ -672,19 +672,20 @@ void xLightsFrame::OnScrolledWindowPreviewPaint(wxPaintEvent& event)
 }
 
 
-void xLightsFrame::PreviewScaleUpdated(int newscale)
+void xLightsFrame::PreviewScaleUpdated(float newscale)
 {
     int sel=ListBoxElementList->GetSelection();
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
-    m->SetScale(double(newscale)/100.0);
+    m->SetScale(newscale/100.0);
     UpdatePreview();
 }
 
 void xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated(wxScrollEvent& event)
 {
-    int newscale=SliderPreviewScale->GetValue();
-    TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
+    double newscale=SliderPreviewScale->GetValue();
+    newscale /= 10.0;
+    TextCtrlPreviewElementSize->SetValue(wxString::Format( "%.1f",newscale));
     PreviewScaleUpdated(newscale);
 }
 
@@ -905,8 +906,8 @@ void xLightsFrame::OnTextCtrlModelRotationDegreesText(wxCommandEvent& event)
 
 void xLightsFrame::OnTextCtrlPreviewElementSizeText(wxCommandEvent& event)
 {
-    int newscale = wxAtoi(TextCtrlPreviewElementSize->GetValue()); //SliderPreviewScale->GetValue();
-    SliderPreviewScale->SetValue(newscale);
+    float newscale = wxAtof(TextCtrlPreviewElementSize->GetValue());
+    SliderPreviewScale->SetValue(newscale * 10);
     PreviewScaleUpdated(newscale); //slider event not called automatically, so force it here
 }
 
