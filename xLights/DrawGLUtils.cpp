@@ -125,8 +125,8 @@ void DrawGLUtils::DrawRectangle(const xlColor &color, bool dashed, int x1, int y
         glVertex2f(x2, y2 - 0.4f);
         glVertex2f(x1, y2 - 0.4f);
 
-        glVertex2f(x1+1, y2 - 0.4f);
-        glVertex2f(x1+1, y1);
+        glVertex2f(x1, y1);
+        glVertex2f(x1, y2);
         glEnd();
     }
     else

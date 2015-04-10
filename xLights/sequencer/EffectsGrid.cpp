@@ -891,13 +891,12 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                     if(x > (DEFAULT_ROW_HEADING_HEIGHT + 4))
                     {
                         int sz = (DEFAULT_ROW_HEADING_HEIGHT - 6) / 2;
-                        DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-sz-1,y,1);
-                        DrawGLUtils::DrawLine(*mEffectColorRight,255,x1+(x/2)+sz+1,y,x2,y,1);
-                        DrawGLUtils::DrawRectangle(*mEffectColor,false,x1+(x/2)-sz-1,y1,x1+(x/2)+sz+1,y2);
                         glEnable(GL_TEXTURE_2D);
                         DrawEffectIcon(&m_EffectTextures[e->GetEffectIndex()],x1+(x/2)-sz-3,row*DEFAULT_ROW_HEADING_HEIGHT);
                         glDisable(GL_TEXTURE_2D);
-
+                        DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-sz-1,y,1);
+                        DrawGLUtils::DrawLine(*mEffectColorRight,255,x1+(x/2)+sz+1,y,x2,y,1);
+                        DrawGLUtils::DrawRectangle(*mEffectColor,false,x1+(x/2)-sz-1,y1,x1+(x/2)+sz+1,y2);
                     }
                     else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT)
                     {
@@ -1057,23 +1056,26 @@ void EffectsGrid::Draw()
 }
 
 
-void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
+void EffectsGrid::DrawEffectIcon(GLuint* texture,int xin, int yin)
 {
     glColor3f(1.0f, 1.0f, 1.0f);
     glBindTexture(GL_TEXTURE_2D,*texture);
     glPushMatrix();
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0);
-    glVertex2f( x+3, y+3);
+    
+    float x = xin;
+    float y = yin;
+    glVertex2f(x+2, y+2.5);
 
     glTexCoord2f(1,0);
-    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-3,y+3);
+    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-2.5,y+2.5);
 
     glTexCoord2f(1,1);
-    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-3,y+DEFAULT_ROW_HEADING_HEIGHT-3);
+    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-2.5,y+DEFAULT_ROW_HEADING_HEIGHT-2.5);
 
     glTexCoord2f(0,1);
-    glVertex2f(x+3,y+DEFAULT_ROW_HEADING_HEIGHT-3);
+    glVertex2f(x+2,y+DEFAULT_ROW_HEADING_HEIGHT-2.5);
     glEnd();
     glPopMatrix();
 }
