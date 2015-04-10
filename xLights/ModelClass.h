@@ -326,7 +326,7 @@ private:
     bool IsLtoR;         // true=left to right, false=right to left
     bool isBotToTop;
     
-    bool Antialias;  //smoothed
+    int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
     int pixelSize = 2;
     int transparency = 0;
 

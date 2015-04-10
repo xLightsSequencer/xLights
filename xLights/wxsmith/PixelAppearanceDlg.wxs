@@ -32,15 +32,23 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
-							<label>Smooth Pixels:</label>
+							<label>Pixel Style:</label>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="AntialiasCheckBox" member="yes" />
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<object class="wxChoice" name="ID_CHOICE1" variable="PixelStyleBox" member="yes">
+							<content>
+								<item>Default (fastest)</item>
+								<item>Smooth</item>
+								<item>Solid Circle</item>
+								<item>Blended Circle</item>
+							</content>
+							<selection>0</selection>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

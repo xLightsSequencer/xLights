@@ -158,9 +158,9 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
     }
 
     long n;
-    tempstr=ModelNode->GetAttribute("Antialias","1");
+    tempstr=ModelNode->GetAttribute("Antialias","0");
     tempstr.ToLong(&n);
-    Antialias = n;
+    pixelStyle = n;
     tempstr=ModelNode->GetAttribute("PixelSize","2");
     tempstr.ToLong(&n);
     pixelSize = n;
@@ -1484,7 +1484,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
     //preview->GetSize(&w, &h);
     preview->GetVirtualCanvasSize(w, h);
     
-    if (Antialias) {
+    if (pixelStyle == 1) {
         glEnable(GL_POINT_SMOOTH);
     }
     if (pixelSize != 2) {
@@ -1511,7 +1511,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         if (c == NULL) {
             Nodes[n]->GetColor(color);
         }
-        if (!started || lastColor != color) {
+        if (pixelStyle < 2 && (!started || lastColor != color)) {
             if (started) {
                 DrawGLUtils::EndPoints();
             }
@@ -1526,13 +1526,18 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
             sy=Nodes[n]->Coords[c].screenY;
             sx = (sx*scalex)+w1;
             sy = (sy*scaley)+h1;
-            DrawGLUtils::AddPoint(sx,sy);
+            if (pixelStyle < 2) {
+                DrawGLUtils::AddPoint(sx,sy);
+            } else {
+                DrawGLUtils::DrawCircle(color, sx, sy, pixelSize / 2,
+                                        transparency, pixelStyle == 2 ? transparency : 100);
+            }
         }
     }
     if (started) {
         DrawGLUtils::EndPoints();
     }
-    if (Antialias) {
+    if (pixelStyle == 1) {
         glDisable(GL_POINT_SMOOTH);
     }
     if (pixelSize != 2) {
@@ -1616,7 +1621,7 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
     if (pixelSize != 2) {
         glPointSize(preview->calcPixelSize(pixelSize));
     }
-    if (Antialias) {
+    if (pixelStyle == 1) {
         glEnable(GL_POINT_SMOOTH);
     }
 
@@ -1628,7 +1633,7 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
         bool started = false;
         for(size_t n=0; n<NodeCount; n++) {
             Nodes[n]->GetColor(color);
-            if (!started || lastColor != color) {
+            if (pixelStyle < 2 && (!started || lastColor != color)) {
                 if (started) {
                     DrawGLUtils::EndPoints();
                 }
@@ -1643,7 +1648,12 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
                 sy=Nodes[n]->Coords[c].screenY;
                 
                 double newsy = ((sy*scale)+(h/2));
-                DrawGLUtils::AddPoint((sx*scale)+(w/2), newsy);
+                if (pixelStyle < 2) {
+                    DrawGLUtils::AddPoint((sx*scale)+(w/2), newsy);
+                } else {
+                    DrawGLUtils::DrawCircle(color, (sx*scale)+(w/2), newsy, pixelSize,
+                                            transparency, pixelStyle == 2 ? transparency : 100);
+                }
             }
         }
         if (started) {
@@ -1654,7 +1664,7 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
     if (pixelSize != 2) {
         glPointSize(preview->calcPixelSize(2));
     }
-    if (Antialias) {
+    if (pixelStyle == 1) {
         glDisable(GL_POINT_SMOOTH);
     }
 }

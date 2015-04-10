@@ -740,7 +740,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     else
         e->AddAttribute("Dir","R");
 
-    e->AddAttribute("Antialias", antiAlias ? "1" : "0");
+    e->AddAttribute("Antialias", wxString::Format("%d", pixelStyle));
     e->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));
     e->AddAttribute("Transparency", wxString::Format("%d", transparency));
 
@@ -772,7 +772,8 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     }
     //Choice_Order->SetStringSelection(e->GetAttribute("Order"));
     tempStr=e->GetAttribute("Antialias","0");
-    antiAlias = tempStr == "1";
+    tempStr.ToLong(&n);
+    pixelStyle = n;
     tempStr=e->GetAttribute("PixelSize","2");
     tempStr.ToLong(&n);
     pixelSize = n;
@@ -1066,11 +1067,11 @@ void ModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
 void ModelDialog::OnAppearanceButtonClicked(wxCommandEvent& event)
 {
     PixelAppearanceDlg dlg(this);
-    dlg.AntialiasCheckBox->SetValue(antiAlias);
+    dlg.PixelStyleBox->SetSelection(pixelStyle);
     dlg.TransparencySlider->SetValue(transparency);
     dlg.PixelSizeSpinner->SetValue(pixelSize);
     if (dlg.ShowModal() == wxID_OK) {
-        antiAlias = dlg.AntialiasCheckBox->IsChecked();
+        pixelStyle = dlg.PixelStyleBox->GetSelection();
         transparency = dlg.TransparencySlider->GetValue();
         pixelSize = dlg.PixelSizeSpinner->GetValue();
     }

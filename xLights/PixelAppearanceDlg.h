@@ -4,9 +4,9 @@
 //(*Headers(PixelAppearanceDlg)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/slider.h>
+#include <wx/choice.h>
 #include <wx/dialog.h>
 //*)
 
@@ -18,9 +18,9 @@ class PixelAppearanceDlg: public wxDialog
 		virtual ~PixelAppearanceDlg();
 
 		//(*Declarations(PixelAppearanceDlg)
+		wxChoice* PixelStyleBox;
 		wxStaticText* StaticText1;
 		wxSlider* TransparencySlider;
-		wxCheckBox* AntialiasCheckBox;
 		wxSpinCtrl* PixelSizeSpinner;
 		//*)
 
@@ -29,7 +29,7 @@ class PixelAppearanceDlg: public wxDialog
 		//(*Identifiers(PixelAppearanceDlg)
 		static const long ID_STATICTEXT1;
 		static const long ID_SPINCTRL1;
-		static const long ID_CHECKBOX1;
+		static const long ID_CHOICE1;
 		static const long ID_SLIDER1;
 		//*)
 
