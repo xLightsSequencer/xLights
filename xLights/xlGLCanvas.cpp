@@ -135,9 +135,9 @@ static const int GLARGS[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 1
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                 const wxSize &size, long style, const wxString &name, bool allowRetina)
 #ifndef __WXMSW__
-    :wxGLCanvas(parent, id, GLARGS, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS),
+    :wxGLCanvas(parent, id, GLARGS, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style),
 #else
-    :   wxWindow(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS),
+    :   wxWindow(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style),
 #endif
         mWindowWidth(0),
         mWindowHeight(0),

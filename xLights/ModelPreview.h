@@ -20,7 +20,8 @@ public:
     ModelPreview(wxPanel* parent);
 	ModelPreview(wxPanel* parent,
                  std::vector<ModelClassPtr> &previewModels,
-                 bool allowSelected);
+                 bool allowSelected,
+                 int style = 0);
 	virtual ~ModelPreview();
 
     // Public Methods
@@ -32,6 +33,12 @@ public:
     void SetVirtualCanvasSize(int width, int height);
     void GetVirtualCanvasSize(int &w, int& h) {
         w = virtualWidth; h = virtualHeight;
+    }
+    int GetVirtualCanvasHeight() {
+        return virtualHeight;
+    }
+    int GetVirtualCanvasWidth() {
+        return virtualWidth;
     }
 	void SetbackgroundImage(wxString image);
 	void SetBackgroundBrightness(int brightness);

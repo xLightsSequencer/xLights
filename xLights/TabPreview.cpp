@@ -117,7 +117,7 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     std::vector<int> actChannel;
     std::vector<wxString> nodeType;
 
-    modelPreview->GetSize(&w, &h);
+    modelPreview->GetVirtualCanvasSize(w, h);
 
     // Add node position and channel number to arrays
     for (int i=0; i<PreviewModels.size(); i++)
@@ -204,13 +204,6 @@ void xLightsFrame::SelectModel(wxString name)
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 {
     int y = event.GetY();
-    wxSize s1 = ScrolledWindowPreview->GetSize();
-    wxSize s2 = modelPreview->GetSize();
-    if (s2.y > s1.y) {
-        //part of top of preview is cut off, adjust
-        //y += s2.y - s1.y;
-    }
-
     if (event.ControlDown())
     {
         SelectMultipleModels(event.GetX(),y);
@@ -222,7 +215,7 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
     {
         m_creating_bound_rect = true;
         m_bound_start_x = event.GetX();
-        m_bound_start_y = modelPreview->getHeight() - y;
+        m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
     }
     else if (m_over_handle == OVER_ROTATE_HANDLE)
     {
@@ -586,7 +579,7 @@ void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
     if(m_creating_bound_rect)
     {
         m_bound_end_x = event.GetPosition().x;
-        m_bound_end_y = modelPreview->getHeight() - y;
+        m_bound_end_y = modelPreview->GetVirtualCanvasHeight() - y;
         SelectAllInBoundingRect();
         m_creating_bound_rect = false;
         UpdatePreview();
@@ -618,7 +611,7 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
     if (m_creating_bound_rect)
     {
         m_bound_end_x = event.GetPosition().x;
-        m_bound_end_y = modelPreview->getHeight() - y;
+        m_bound_end_y = modelPreview->GetVirtualCanvasHeight() - y;
         UpdatePreview();
         return;
     }
@@ -663,7 +656,7 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
     {
         if(m->Selected)
         {
-            m_over_handle = m->CheckIfOverHandles(modelPreview,event.GetPosition().x,modelPreview->getHeight() - y);
+            m_over_handle = m->CheckIfOverHandles(modelPreview,event.GetPosition().x,modelPreview->GetVirtualCanvasHeight() - y);
         }
     }
 }

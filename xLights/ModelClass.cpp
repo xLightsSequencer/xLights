@@ -1327,7 +1327,7 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
     wxCoord sx,sy;
     wxPen pen;
     int w, h;
-    preview->GetSize(&w,&h);
+    preview->GetVirtualCanvasSize(w,h);
 
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
@@ -1365,7 +1365,7 @@ bool ModelClass::IsContained(ModelPreview* preview, int x1, int y1, int x2, int 
 
 
 bool ModelClass::HitTest(ModelPreview* preview,int x,int y) {
-    int y1 = preview->getHeight()-y;
+    int y1 = preview->GetVirtualCanvasHeight()-y;
     SetMinMaxModelScreenCoordinates(preview);
     if (x>=mMinScreenX && x<=mMaxScreenX && y1>=mMinScreenY && y1 <= mMaxScreenY) {
         return true;
@@ -1690,7 +1690,7 @@ void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
     int w, h;
-    preview->GetSize(&w,&h);
+    preview->GetVirtualCanvasSize(w, h);
 
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
@@ -1738,7 +1738,7 @@ void ModelClass::ResizeWithHandles(ModelPreview* preview,int mouseX,int mouseY) 
     int w, h;
     float newScale;
     // Get Center Point
-    preview->GetSize(&w, &h);
+    preview->GetVirtualCanvasSize(w, h);
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
     // Get mouse point in model space/ not screen space
@@ -1759,7 +1759,7 @@ void ModelClass::ResizeWithHandles(ModelPreview* preview,int mouseX,int mouseY) 
 
 void ModelClass::RotateWithHandles(ModelPreview* preview, bool ShiftKeyPressed, int mouseX,int mouseY) {
     int w, h;
-    preview->GetSize(&w, &h);
+    preview->GetVirtualCanvasSize(w, h);
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
     // Get mouse point in screen space where center of model is origin.
@@ -1783,7 +1783,7 @@ void ModelClass::RotateWithHandles(ModelPreview* preview, bool ShiftKeyPressed, 
 
 void ModelClass::SetTop(ModelPreview* preview,int y) {
     SetMinMaxModelScreenCoordinates(preview);
-    int h = preview->getHeight();
+    int h = preview->GetVirtualCanvasHeight();
     int screenCenterY = h*offsetYpct;
     int newCenterY = screenCenterY + (y-mMaxScreenY);
     offsetYpct = ((float)newCenterY/(float)h);
@@ -1791,7 +1791,7 @@ void ModelClass::SetTop(ModelPreview* preview,int y) {
 
 void ModelClass::SetBottom(ModelPreview* preview,int y) {
     SetMinMaxModelScreenCoordinates(preview);
-    int h = preview->getHeight();
+    int h = preview->GetVirtualCanvasHeight();
     int screenCenterY = h*offsetYpct;
     int newCenterY = screenCenterY + (y-mMinScreenY);
     offsetYpct = ((float)newCenterY/(float)h);
@@ -1799,7 +1799,7 @@ void ModelClass::SetBottom(ModelPreview* preview,int y) {
 
 void ModelClass::SetLeft(ModelPreview* preview,int x) {
     SetMinMaxModelScreenCoordinates(preview);
-    int w = preview->getWidth();
+    int w = preview->GetVirtualCanvasWidth();
     int screenCenterX = w*offsetXpct;
     int newCenterX = screenCenterX + (x-mMinScreenX);
     offsetXpct = ((float)newCenterX/(float)w);
@@ -1807,7 +1807,7 @@ void ModelClass::SetLeft(ModelPreview* preview,int x) {
 
 void ModelClass::SetRight(ModelPreview* preview,int x) {
     SetMinMaxModelScreenCoordinates(preview);
-    int w = preview->getWidth();
+    int w = preview->GetVirtualCanvasWidth();
     int screenCenterX = w*offsetXpct;
     int newCenterX = screenCenterX + (x-mMaxScreenX);
     offsetXpct = ((float)newCenterX/(float)w);

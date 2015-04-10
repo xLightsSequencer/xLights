@@ -13,7 +13,6 @@
 
 //(*Headers(xLightsFrame)
 #include <wx/listctrl.h>
-#include <wx/scrolwin.h>
 #include <wx/treectrl.h>
 #include <wx/notebook.h>
 #include <wx/sizer.h>
@@ -748,7 +747,7 @@ private:
     static const long ID_STATICTEXT25;
     static const long ID_TEXTCTRL2;
     static const long ID_SLIDER_PREVIEW_ROTATE;
-    static const long ID_SCROLLEDWINDOW1;
+    static const long ID_PANEL1;
     static const long ID_PANEL_PREVIEW;
     static const long ID_TREECTRL1;
     static const long ID_CHECKBOX_RUN_SCHEDULE;
@@ -897,6 +896,7 @@ private:
     wxButton* ButtonClearLog;
     DragEffectBitmapButton* BitmapButton6;
     xlAuiToolBar* PlayToolBar;
+    wxFlexGridSizer* PreviewGLSizer;
     wxStaticText* StaticText68;
     wxSlider* SliderBgIntensity;
     wxButton* Button_CoroGroupDelete;
@@ -964,6 +964,7 @@ private:
     wxAuiManager* m_mgr;
     wxListBox* ListBoxElementList;
     wxSlider* Slider_BackgroundBrightness;
+    wxPanel* PreviewGLPanel;
     wxStaticText* StaticText10;
     wxButton* ButtonBuildWholeHouseModel;
     wxTextCtrl* TextCtrlPreviewElementSize;
@@ -1106,7 +1107,6 @@ private:
     wxChoice* LORImportTimeResolution;
     wxStaticText* StaticText17;
     wxStaticText* StaticText11;
-    wxScrolledWindow* ScrolledWindowPreview;
     wxRadioButton* RadioButtonRgbCycle5;
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
