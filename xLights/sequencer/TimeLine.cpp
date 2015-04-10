@@ -95,7 +95,7 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     DOUBLE_BUFFER(this);
     mIsInitialized = false;
     mZoomLevel = 0;
-    mFrequency = 20;
+    mFrequency = 40;
     m_dragging = false;
     // most variable initialization is done in the Initialize() function
 }
@@ -550,7 +550,6 @@ void TimeLine::Initialize()
 {
     mIsInitialized = true;
     mStartPixelOffset = 0;
-    mFrequency = 40;
     mZoomLevel = 0;
     mStartTimeMS = 0;
     mStartTime = 0;
@@ -744,7 +743,7 @@ void TimeLine::DrawRectangle(wxPaintDC& dc, int x1, int y1, int x2, int y2)
 
 int TimeLine::TimePerMajorTickInMS()
 {
-    return (int)((double)ZoomLevelValues[mZoomLevel] * ((double)1/(double)mFrequency) * 1000);
+    return (int)((double)ZoomLevelValues[mZoomLevel] * ((double)1000.0/(double)mFrequency));
 }
 
 void TimeLine::GetViewableTimeRange(double &StartTime, double &EndTime)

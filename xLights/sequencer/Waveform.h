@@ -33,7 +33,7 @@ class Waveform : public xlGLCanvas
         int SetStartPixelOffset(int startPixel);
         int GetStartPixelOffset();
 
-        void SetTimeFrequency(int startPixel);
+        void SetTimeFrequency(int frequency);
         int GetTimeFrequency();
 
         void SetTimeline(TimeLine* timeLine);

@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug (gil) Allow 25ms and 100ms sequences and limit which timings are available to be added.  Fixes #198.
 4.0.18  Apr 10, 2015
     -- enh (gil) Provide 2 render modes. Erase mode clears canvas then renders. Canvas mode renders over old data. #141
     -- bug (gil) Display sequence duration cutoff on Timeline and honor it during playback. Fixes #193.

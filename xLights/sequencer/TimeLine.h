@@ -48,7 +48,7 @@ class TimeLine : public wxWindow
         void SetStartPixelOffset(int startPixel);
         int GetStartPixelOffset();
 
-        void SetTimeFrequency(int startPixel);
+        void SetTimeFrequency(int frequency);
         int GetTimeFrequency();
 
         void SetTimeLength(int ms);

@@ -66,6 +66,7 @@ class xLightsXmlFile : public wxFileName
 
         const wxString GetSequenceTiming() const { return seq_timing; }
         void SetSequenceTiming(  const wxString& timing );
+        int GetFrequency();
 
         const wxString GetSequenceType() const { return seq_type; }
         void SetSequenceType( const wxString& type );

@@ -51,3 +51,15 @@ NewTimingDialog::~NewTimingDialog()
 	//*)
 }
 
+void NewTimingDialog::RemoveChoice(const wxString selection)
+{
+    for( int i = 0; i < Choice_New_Fixed_Timing->GetCount(); i++ )
+    {
+        if( Choice_New_Fixed_Timing->GetString(i) == selection )
+        {
+            Choice_New_Fixed_Timing->Delete(i);
+            Choice_New_Fixed_Timing->SetSelection(0);
+            return;
+        }
+    }
+}

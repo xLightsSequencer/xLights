@@ -29,8 +29,6 @@ void xLightsFrame::CreateSequencer()
     EffectsPanel1 = NULL;
     timingPanel = NULL;
 
-    mSequenceElements.SetFrequency(40);
-
     mainSequencer = new MainSequencer(PanelSequencer);
     mainSequencer->SetSequenceElements(&mSequenceElements);
 
@@ -221,6 +219,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 
 void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
+    SetFrequency(xml_file.GetFrequency());
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     mSequenceElements.LoadSequencerFile(xml_file);
     mSequenceElements.PopulateRowInformation();

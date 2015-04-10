@@ -1117,8 +1117,8 @@ private:
     wxChoice* LORImportTimeResolution;
     wxStaticText* StaticText17;
     wxStaticText* StaticText11;
-    wxCheckBox* ScaleImageCheckbox;
     wxMenu* MenuSettings;
+    wxCheckBox* ScaleImageCheckbox;
     wxRadioButton* RadioButtonRgbCycle5;
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
@@ -1373,6 +1373,7 @@ public:
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void SetSequenceEnd(int ms);
     void UpdateRenderMode();
+    void SetFrequency(int frequency);
 
 protected:
     void ClearEffectWindow();

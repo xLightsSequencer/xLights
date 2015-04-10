@@ -21,6 +21,8 @@ class NewTimingDialog: public wxDialog
             return Choice_New_Fixed_Timing->GetString(selection);
         }
 
+        void RemoveChoice(const wxString selection);
+
 		//(*Declarations(NewTimingDialog)
 		wxChoice* Choice_New_Fixed_Timing;
 		wxStaticText* StaticText1;

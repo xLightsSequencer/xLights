@@ -96,6 +96,13 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
     }
 }
 
+int xLightsXmlFile::GetFrequency()
+{
+    double freq_ms;
+    seq_timing.ToDouble(&freq_ms);
+    return (int)(1000.0/freq_ms);
+}
+
 void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
 {
     seq_timing = timing;

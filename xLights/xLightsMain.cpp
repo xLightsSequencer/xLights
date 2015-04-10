@@ -3182,3 +3182,9 @@ void xLightsFrame::UpdateRenderMode()
     }
 }
 
+void xLightsFrame::SetFrequency(int frequency)
+{
+    mSequenceElements.SetFrequency(frequency);
+    mainSequencer->PanelTimeLine->SetTimeFrequency(frequency);
+    mainSequencer->PanelWaveForm->SetTimeFrequency(frequency);
+}

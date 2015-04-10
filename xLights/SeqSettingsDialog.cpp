@@ -211,6 +211,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Choice_Xml_Seq_Timing->Append(_("25 ms"));
     Choice_Xml_Seq_Timing->SetSelection( Choice_Xml_Seq_Timing->Append(_("50 ms")) );
     Choice_Xml_Seq_Timing->Append(_("100 ms"));
+    Choice_Xml_Seq_Timing->Disable();
     FlexGridSizer3->Add(Choice_Xml_Seq_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(FlexGridSizer3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel3->SetSizer(FlexGridSizer4);
@@ -669,6 +670,14 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
 {
     NewTimingDialog dialog(this);
     dialog.Fit();
+    if(xml_file->GetFrequency() < 40)
+    {
+        dialog.RemoveChoice("25ms");
+    }
+    if(xml_file->GetFrequency() < 20)
+    {
+        dialog.RemoveChoice("50ms");
+    }
     if (dialog.ShowModal() == wxID_OK)
     {
         wxString selected_timing = dialog.GetTiming();
@@ -928,6 +937,7 @@ void SeqSettingsDialog::UpdateDataLayer()
         }
     }
 }
+
 void SeqSettingsDialog::OnChoice_Xml_Seq_TimingSelect(wxCommandEvent& event)
 {
 }
@@ -1104,18 +1114,21 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnBitmapButton_25msClick(wxCommandEvent& event)
 {
+    xml_file->SetSequenceTiming("25 ms");
     Choice_Xml_Seq_Timing->SetSelection(0);
     WizardPage3();
 }
 
 void SeqSettingsDialog::OnBitmapButton_50msClick(wxCommandEvent& event)
 {
+    xml_file->SetSequenceTiming("50 ms");
     Choice_Xml_Seq_Timing->SetSelection(1);
     WizardPage3();
 }
 
 void SeqSettingsDialog::OnBitmapButton_100msClick(wxCommandEvent& event)
 {
+    xml_file->SetSequenceTiming("100 ms");
     Choice_Xml_Seq_Timing->SetSelection(2);
     WizardPage3();
 }

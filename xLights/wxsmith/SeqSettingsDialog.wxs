@@ -209,6 +209,7 @@
 													<item>100 ms</item>
 												</content>
 												<selection>1</selection>
+												<enabled>0</enabled>
 												<handler function="OnChoice_Xml_Seq_TimingSelect" entry="EVT_CHOICE" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

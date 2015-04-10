@@ -55,7 +55,7 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     mZoomLevel=0;
     mStartPixelOffset = 0;
-    SetTimeFrequency(40);
+    mFrequency = 40;
 }
 
 Waveform::~Waveform()
