@@ -33,7 +33,7 @@ const long ModelDialog::ID_STATICTEXT11 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON4 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT9 = wxNewId();
-const long ModelDialog::ID_CHOICE3 = wxNewId();
+const long ModelDialog::ID_CHECKBOX3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT10 = wxNewId();
 const long ModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT7 = wxNewId();
@@ -160,13 +160,11 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     RadioButton_BotRight = new wxRadioButton(this, ID_RADIOBUTTON3, _("Bottom Right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
     BoxSizer2->Add(RadioButton_BotRight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(BoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText4 = new wxStaticText(this, ID_STATICTEXT9, _("Smooth Edges - antialias\n(future capability)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+    StaticText4 = new wxStaticText(this, ID_STATICTEXT9, _("Smooth Pixels (antialias)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
     FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_Antialias = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
-    Choice_Antialias->SetSelection( Choice_Antialias->Append(_("None")) );
-    Choice_Antialias->Append(_("2x"));
-    Choice_Antialias->Disable();
-    FlexGridSizer2->Add(Choice_Antialias, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    AntiAliasCheckBox = new wxCheckBox(this, ID_CHECKBOX3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+    AntiAliasCheckBox->SetValue(true);
+    FlexGridSizer2->Add(AntiAliasCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText7 = new wxStaticText(this, ID_STATICTEXT10, _("Part of my display"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
     FlexGridSizer2->Add(StaticText7, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_MyDisplay = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
@@ -741,7 +739,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     else
         e->AddAttribute("Dir","R");
 
-    e->AddAttribute("Antialias", wxString::Format("%d",Choice_Antialias->GetSelection()));
+    e->AddAttribute("Antialias", AntiAliasCheckBox->IsChecked() ? "1" : "0");
 
     e->AddAttribute("ModelBrightness", wxString::Format("%d",Slider_Model_Brightness->GetValue()));
     if (Choice_DisplayAs->GetStringSelection() == "Custom")
@@ -772,7 +770,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     //Choice_Order->SetStringSelection(e->GetAttribute("Order"));
     tempStr=e->GetAttribute("Antialias","0");
     tempStr.ToLong(&n);
-    Choice_Antialias->SetSelection(n);
+    AntiAliasCheckBox->SetValue(n);
 
 
     if(e->HasAttribute("ModelBrightness"))

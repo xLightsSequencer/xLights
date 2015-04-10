@@ -95,8 +95,8 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
-ModelPreview::ModelPreview(wxPanel* parent, std::vector<ModelClassPtr> &models, bool a)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "", !a), PreviewModels(&models), allowSelected(a)
+ModelPreview::ModelPreview(wxPanel* parent, std::vector<ModelClassPtr> &models, bool a, int styles)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, ""), PreviewModels(&models), allowSelected(a)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
@@ -115,12 +115,14 @@ ModelPreview::~ModelPreview()
 
 void ModelPreview::SetCanvasSize(int width,int height)
 {
+    /*
     SetSize(width,height);
     wxSize s;
     s.SetWidth(width);
     s.SetHeight(height);
     SetMaxSize(s);
     SetMinSize(s);
+     */
     SetVirtualCanvasSize(width, height);
 }
 void ModelPreview::SetVirtualCanvasSize(int width, int height) {
@@ -140,7 +142,11 @@ void ModelPreview::InitializeGLCanvas()
     if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
+    if (allowSelected) {
+        glClearColor(0.8f, 0.8f, 0.8f, 1.0f); // Black Background
+    } else {
+        glClearColor(0.0, 0.0, 0.0, 1.0f); // Black Background
+    }
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
@@ -196,10 +202,10 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     glLoadIdentity();
     glRotatef(180,0,0,1);
     glRotatef(180,0,1,0);
-    glTranslatef(0,-mWindowHeight,0);
 
-    if (virtualWidth > 0 && virtualHeight > 0
+    if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
         && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
+        glTranslatef(0,-mWindowHeight,0);
         double scaleh= double(mWindowHeight) / double(virtualHeight);
         double scalew = double(mWindowWidth) / double(virtualWidth);
         glScalef(scalew, scaleh, 1.0);
@@ -212,6 +218,24 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             d = 1.0;
         }
         glPointSize(d);
+        glColor3f(0.0, 0.0, 0.0);
+        glBegin(GL_QUADS);
+        glVertex2f(0, 0);
+        glVertex2f(virtualWidth, 0);
+        glVertex2f(virtualWidth, virtualHeight);
+        glVertex2f(0, virtualHeight);
+        glEnd();
+    } else if (virtualWidth == 0 && virtualHeight == 0) {
+        glTranslatef(0, -mWindowHeight, 0);
+    } else {
+        glTranslatef(0, -virtualHeight, 0);
+        glColor3f(0.0, 0.0, 0.0);
+        glBegin(GL_QUADS);
+        glVertex2f(0, 0);
+        glVertex2f(virtualWidth, 0);
+        glVertex2f(virtualWidth, virtualHeight);
+        glVertex2f(0, virtualHeight);
+        glEnd();
     }
     if(mBackgroundImageExists)
     {
@@ -221,12 +245,20 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
            sprite = new xLightsDrawable(image);
         }
         float intensity = mBackgroundBrightness*.01;
+        glPushMatrix();
+        double scaleh= double(virtualHeight) / double(image->height);
+        double scalew = double(virtualWidth) / double(image->width);
+        if (scalew < scaleh) {
+            scaleh = scalew;
+        }
+        glScalef(scaleh, scaleh, 1.0);
+        
         glColor3f(intensity, intensity, intensity);
         glEnable(GL_TEXTURE_2D);   // textures
         sprite->render();
         glDisable(GL_TEXTURE_2D);   // textures
+        glPopMatrix();
     }
-    
     return true;
 }
 

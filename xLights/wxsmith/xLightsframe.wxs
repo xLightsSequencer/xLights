@@ -2235,14 +2235,14 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="ScrolledWindowPreview" member="yes">
-												<handler function="OnScrolledWindowPreviewPaint" entry="EVT_PAINT" />
-												<handler function="OnScrolledWindowPreviewLeftDown" entry="EVT_LEFT_DOWN" />
-												<handler function="OnScrolledWindowPreviewLeftUp" entry="EVT_LEFT_UP" />
-												<handler function="OnScrolledWindowPreviewRightDown" entry="EVT_RIGHT_DOWN" />
-												<handler function="OnScrolledWindowPreviewMouseMove" entry="EVT_MOTION" />
-												<handler function="OnScrolledWindowPreviewMouseLeave" entry="EVT_LEAVE_WINDOW" />
-												<object class="wxBoxSizer" variable="BoxSizerModelsPreview" member="no" />
+											<object class="wxPanel" name="ID_PANEL1" variable="PreviewGLPanel" member="yes">
+												<style>0</style>
+												<object class="wxFlexGridSizer" variable="PreviewGLSizer" member="yes">
+													<cols>1</cols>
+													<rows>1</rows>
+													<growablecols>0</growablecols>
+													<growablerows>0</growablerows>
+												</object>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>

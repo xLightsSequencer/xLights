@@ -270,7 +270,7 @@ const long xLightsFrame::ID_SLIDER_PREVIEW_SCALE = wxNewId();
 const long xLightsFrame::ID_STATICTEXT25 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL2 = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_ROTATE = wxNewId();
-const long xLightsFrame::ID_SCROLLEDWINDOW1 = wxNewId();
+const long xLightsFrame::ID_PANEL1 = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
 const long xLightsFrame::ID_TREECTRL1 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_RUN_SCHEDULE = wxNewId();
@@ -477,7 +477,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxStaticBoxSizer* StaticBoxSizer2;
     wxMenu* MenuHelp;
     wxFlexGridSizer* FlexGridSizer4;
-    wxBoxSizer* BoxSizerModelsPreview;
     wxFlexGridSizer* FlexGridSizer47;
     wxFlexGridSizer* FlexGridSizer54;
     wxFlexGridSizer* FlexGridSizerTest;
@@ -1246,12 +1245,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SliderPreviewRotate->Disable();
     FlexGridSizer35->Add(SliderPreviewRotate, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer34->Add(FlexGridSizer35, 1, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    ScrolledWindowPreview = new wxScrolledWindow(PanelPreview, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
-    BoxSizerModelsPreview = new wxBoxSizer(wxHORIZONTAL);
-    ScrolledWindowPreview->SetSizer(BoxSizerModelsPreview);
-    BoxSizerModelsPreview->Fit(ScrolledWindowPreview);
-    BoxSizerModelsPreview->SetSizeHints(ScrolledWindowPreview);
-    FlexGridSizer34->Add(ScrolledWindowPreview, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    PreviewGLPanel = new wxPanel(PanelPreview, ID_PANEL1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_PANEL1"));
+    PreviewGLSizer = new wxFlexGridSizer(1, 1, 0, 0);
+    PreviewGLSizer->AddGrowableCol(0);
+    PreviewGLSizer->AddGrowableRow(0);
+    PreviewGLPanel->SetSizer(PreviewGLSizer);
+    PreviewGLSizer->Fit(PreviewGLPanel);
+    PreviewGLSizer->SetSizeHints(PreviewGLPanel);
+    FlexGridSizer34->Add(PreviewGLPanel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerPreview->Add(FlexGridSizer34, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     PanelPreview->SetSizer(FlexGridSizerPreview);
     FlexGridSizerPreview->Fit(PanelPreview);
@@ -1744,12 +1745,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_SLIDER_PREVIEW_SCALE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated);
     Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlModelRotationDegreesText);
     Connect(ID_SLIDER_PREVIEW_ROTATE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewRotateCmdSliderUpdated);
-    ScrolledWindowPreview->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewPaint,0,this);
-    ScrolledWindowPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftDown,0,this);
-    ScrolledWindowPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftUp,0,this);
-    ScrolledWindowPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewRightDown,0,this);
-    ScrolledWindowPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseMove,0,this);
-    ScrolledWindowPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseLeave,0,this);
     Connect(ID_CHECKBOX_RUN_SCHEDULE,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxRunScheduleClick);
     Connect(ID_BUTTON_SAVE_SCHEDULE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveScheduleClick);
     Connect(ID_BUTTON_ADD_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddShowClick);
@@ -1833,8 +1828,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     CreateSequencer();
 
-    modelPreview = new ModelPreview( (wxPanel*) ScrolledWindowPreview, PreviewModels, true);
-    BoxSizerModelsPreview->Add(modelPreview, 1, wxEXPAND);
+    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, PreviewModels, true);
+    PreviewGLSizer->Add(modelPreview, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    
+    modelPreview->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewPaint,0,this);
+    modelPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftDown,0,this);
+    modelPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftUp,0,this);
+    modelPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewRightDown,0,this);
+    modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseMove,0,this);
+    modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseLeave,0,this);
 
     playIcon = wxBitmap(control_play_blue_icon);
     pauseIcon = wxBitmap(control_pause_blue_icon);
@@ -2665,8 +2667,6 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     selectedEffect = NULL;
 
-    // Disconnect the resize events, otherwise they get called as we are shutting down
-    ScrolledWindowPreview->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewResize,0,this);
     StopNow();
     wxLogDebug("xLightsFrame::OnClose");
     if (UnsavedChanges && wxNO == wxMessageBox("Quit without saving?",
@@ -2835,8 +2835,8 @@ void xLightsFrame::OnButtonSetPreviewSizeClick(wxCommandEvent& event)
 {
     int DlgResult;
     dlgPreviewSize dialog(this);
-    dialog.TextCtrl_PreviewWidth->SetValue(wxString::Format("%d",modelPreview->getWidth()));
-    dialog.TextCtrl_PreviewHeight->SetValue(wxString::Format("%d",modelPreview->getHeight()));
+    dialog.TextCtrl_PreviewWidth->SetValue(wxString::Format("%d",modelPreview->GetVirtualCanvasWidth()));
+    dialog.TextCtrl_PreviewHeight->SetValue(wxString::Format("%d",modelPreview->GetVirtualCanvasHeight()));
     dialog.CenterOnParent();
     DlgResult = dialog.ShowModal();
     if (DlgResult == wxID_OK)
@@ -2859,7 +2859,9 @@ void xLightsFrame::SetPreviewSize(int width,int height)
     SetXmlSetting("previewHeight",wxString::Format("%d",height));
     SaveEffectsFile();
     modelPreview->SetCanvasSize(width,height);
+    modelPreview->Refresh();
     sPreview2->SetVirtualCanvasSize(width, height);
+    sPreview2->Refresh();
 }
 void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& value)
 {
