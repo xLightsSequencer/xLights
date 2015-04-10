@@ -552,6 +552,8 @@ private:
     void ResetToolbarLocations(wxCommandEvent& event);
     void SetToolIconSize(wxCommandEvent& event);
     void OnButton_ImportSuperstarClick(wxCommandEvent& event);
+    void OnMenuItemRenderEraseModeSelected(wxCommandEvent& event);
+    void OnMenuItemRenderCanvasModeSelected(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -847,6 +849,9 @@ private:
     static const long ID_MENUITEM_GRID_ICON_LARGE;
     static const long ID_MENUITEM_GRID_ICON_XLARGE;
     static const long ID_MENUITEM6;
+    static const long ID_MENU_CANVAS_ERASE_MODE;
+    static const long ID_MENU_CANVAS_CANVAS_MODE;
+    static const long ID_MENUITEM8;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_STATUSBAR1;
@@ -914,7 +919,9 @@ private:
     DragEffectBitmapButton* BitmapButton4;
     wxButton* ButtonAddE131;
     wxTextCtrl* TextCtrlFilename;
+    wxMenu* MenuItem29;
     DragEffectBitmapButton* BitmapButton2;
+    wxMenuItem* MenuItemRenderEraseMode;
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxFileDialog* FileDialogConvert;
     wxTimer Timer1;
@@ -1071,6 +1078,7 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
+    wxMenuItem* MenuItemRenderCanvasMode;
     wxMenuItem* MenuItem_File_Open_Sequence;
     wxStaticText* StaticText26;
     wxStaticText* StaticText15;
@@ -1359,6 +1367,7 @@ public:
     wxArrayString ImportTimingElement();
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void SetSequenceEnd(int ms);
+    void UpdateRenderMode();
 
 protected:
     void ClearEffectWindow();

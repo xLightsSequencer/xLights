@@ -999,6 +999,26 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event)
     wxTreeItemId itemId = event.GetItem();
     wxString item_text = TreeCtrl_Data_Layers->GetItemText(itemId);
 
+    if( item_text.Contains("Data:") )
+    {
+        wxTreeItemId parent = TreeCtrl_Data_Layers->GetItemParent(itemId);
+        LayerTreeItemData* data = (LayerTreeItemData*)TreeCtrl_Data_Layers->GetItemData(parent);
+        DataLayer* layer = data->GetLayer();
+        if( layer->GetName() == "Nutcracker" )
+        {
+            if( xml_file->GetRenderMode() == xLightsXmlFile::CANVAS_MODE )
+            {
+                xml_file->SetRenderMode(xLightsXmlFile::ERASE_MODE);
+            }
+            else
+            {
+                xml_file->SetRenderMode(xLightsXmlFile::CANVAS_MODE);
+            }
+            TreeCtrl_Data_Layers->SetItemText(itemId, wxString::Format("Data: %s", xml_file->GetRenderMode()));
+            xLightsParent->UpdateRenderMode();
+        }
+    }
+
     if( !item_text.Contains("Channel Offset:") )
     {
         event.Veto();

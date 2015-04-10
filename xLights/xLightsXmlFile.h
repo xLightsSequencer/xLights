@@ -45,6 +45,9 @@ class xLightsXmlFile : public wxFileName
             "comment"
         };
 
+        static const wxString ERASE_MODE;
+        static const wxString CANVAS_MODE;
+
         bool Open();
 
         void Save( SequenceElements& elements);
@@ -92,6 +95,9 @@ class xLightsXmlFile : public wxFileName
         void AcknowledgeConversion() { was_converted = false; }  // called to turn off conversion warning
         bool IsV3Sequence();
         bool ExtractMetaTagsFromMP3(wxString filename);
+
+        void SetRenderMode(const wxString& mode);
+        wxString GetRenderMode();
 
         // static methods
         static void FixVersionDifferences(const wxString& filename);

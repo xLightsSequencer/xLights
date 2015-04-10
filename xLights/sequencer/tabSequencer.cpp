@@ -224,6 +224,18 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mSequenceElements.LoadSequencerFile(xml_file);
     mSequenceElements.PopulateRowInformation();
 
+    if( xml_file.GetRenderMode() == xLightsXmlFile::CANVAS_MODE )
+    {
+        MenuItemRenderEraseMode->Check(false);
+        MenuItemRenderCanvasMode->Check(true);
+
+    }
+    else
+    {
+        MenuItemRenderEraseMode->Check(true);
+        MenuItemRenderCanvasMode->Check(false);
+    }
+
     CheckForValidModels();
 
     LoadAudioData(xml_file);

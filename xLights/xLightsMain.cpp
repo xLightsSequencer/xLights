@@ -370,6 +370,9 @@ const long xLightsFrame::ID_MENUITEM_GRID_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_LARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_XLARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM6 = wxNewId();
+const long xLightsFrame::ID_MENU_CANVAS_ERASE_MODE = wxNewId();
+const long xLightsFrame::ID_MENU_CANVAS_CANVAS_MODE = wxNewId();
+const long xLightsFrame::ID_MENUITEM8 = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
@@ -1631,6 +1634,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem28 = new wxMenuItem(MenuItem16, ID_MENUITEM_GRID_ICON_XLARGE, _("Extra Large\tCTRL-4"), wxEmptyString, wxITEM_NORMAL);
     MenuItem16->Append(MenuItem28);
     Menu1->Append(ID_MENUITEM6, _("Grid Spacing"), MenuItem16, wxEmptyString);
+    MenuItem29 = new wxMenu();
+    MenuItemRenderEraseMode = new wxMenuItem(MenuItem29, ID_MENU_CANVAS_ERASE_MODE, _("Erase Mode"), wxEmptyString, wxITEM_CHECK);
+    MenuItem29->Append(MenuItemRenderEraseMode);
+    MenuItemRenderEraseMode->Check(true);
+    MenuItemRenderCanvasMode = new wxMenuItem(MenuItem29, ID_MENU_CANVAS_CANVAS_MODE, _("Canvas Mode"), wxEmptyString, wxITEM_CHECK);
+    MenuItem29->Append(MenuItemRenderCanvasMode);
+    Menu1->Append(ID_MENUITEM8, _("Render Mode"), MenuItem29, wxEmptyString);
     MenuItem13 = new wxMenuItem(Menu1, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem13);
     MenuBar->Append(Menu1, _("&Settings"));
@@ -1803,6 +1813,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_GRID_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_XLARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
+    Connect(ID_MENU_CANVAS_ERASE_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderEraseModeSelected);
+    Connect(ID_MENU_CANVAS_CANVAS_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderCanvasModeSelected);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
@@ -1830,7 +1842,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, PreviewModels, true);
     PreviewGLSizer->Add(modelPreview, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    
+
     modelPreview->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewPaint,0,this);
     modelPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftDown,0,this);
     modelPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftUp,0,this);
@@ -3135,4 +3147,32 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
 void xLightsFrame::OnButton_ImportSuperstarClick(wxCommandEvent& event)
 {
     ImportSuperStar();
+}
+
+void xLightsFrame::OnMenuItemRenderEraseModeSelected(wxCommandEvent& event)
+{
+    MenuItemRenderEraseMode->Check(true);
+    MenuItemRenderCanvasMode->Check(false);
+    CurrentSeqXmlFile->SetRenderMode(xLightsXmlFile::ERASE_MODE);
+}
+
+void xLightsFrame::OnMenuItemRenderCanvasModeSelected(wxCommandEvent& event)
+{
+    MenuItemRenderEraseMode->Check(false);
+    MenuItemRenderCanvasMode->Check(true);
+    CurrentSeqXmlFile->SetRenderMode(xLightsXmlFile::CANVAS_MODE);
+}
+
+void xLightsFrame::UpdateRenderMode()
+{
+    if( CurrentSeqXmlFile->GetRenderMode() == xLightsXmlFile::CANVAS_MODE )
+    {
+        MenuItemRenderEraseMode->Check(false);
+        MenuItemRenderCanvasMode->Check(true);
+    }
+    else
+    {
+        MenuItemRenderEraseMode->Check(true);
+        MenuItemRenderCanvasMode->Check(false);
+    }
 }
