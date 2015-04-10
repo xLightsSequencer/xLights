@@ -2835,8 +2835,8 @@ void xLightsFrame::OnButtonSetPreviewSizeClick(wxCommandEvent& event)
 {
     int DlgResult;
     dlgPreviewSize dialog(this);
-    dialog.TextCtrl_PreviewWidth->SetValue(wxString::Format("%d",modelPreview->getWidth()));
-    dialog.TextCtrl_PreviewHeight->SetValue(wxString::Format("%d",modelPreview->getHeight()));
+    dialog.TextCtrl_PreviewWidth->SetValue(wxString::Format("%d",modelPreview->GetVirtualCanvasWidth()));
+    dialog.TextCtrl_PreviewHeight->SetValue(wxString::Format("%d",modelPreview->GetVirtualCanvasHeight()));
     dialog.CenterOnParent();
     DlgResult = dialog.ShowModal();
     if (DlgResult == wxID_OK)
@@ -2859,7 +2859,9 @@ void xLightsFrame::SetPreviewSize(int width,int height)
     SetXmlSetting("previewHeight",wxString::Format("%d",height));
     SaveEffectsFile();
     modelPreview->SetCanvasSize(width,height);
+    modelPreview->Refresh();
     sPreview2->SetVirtualCanvasSize(width, height);
+    sPreview2->Refresh();
 }
 void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& value)
 {

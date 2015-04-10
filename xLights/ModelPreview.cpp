@@ -250,7 +250,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         sprite->render();
         glDisable(GL_TEXTURE_2D);   // textures
     }
-    
+    glEnable(GL_POINT_SMOOTH);
     return true;
 }
 
