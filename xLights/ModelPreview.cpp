@@ -180,6 +180,14 @@ void ModelPreview::SetPointSize(wxDouble pointSize)
     mPointSize = pointSize;
     glPointSize( mPointSize );
 }
+double ModelPreview::calcPixelSize(double i) {
+    double d = translateToBacking(i * currentPixelScaleFactor);
+    if (d < 1.0) {
+        d = 1.0;
+    }
+    return d;
+}
+
 
 bool ModelPreview::StartDrawing(wxDouble pointSize)
 {
@@ -203,6 +211,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     glRotatef(180,0,0,1);
     glRotatef(180,0,1,0);
 
+    currentPixelScaleFactor = 1.0;
     if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
         && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
         glTranslatef(0,-mWindowHeight,0);
@@ -213,11 +222,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         if (scalew < scaleh) {
             scaleh = scalew;
         }
-        double d = translateToBacking(mPointSize * scaleh);
-        if (d < 1.0) {
-            d = 1.0;
-        }
-        glPointSize(d);
+        currentPixelScaleFactor = scaleh;
+        glPointSize(calcPixelSize(mPointSize));
         glColor3f(0.0, 0.0, 0.0);
         glBegin(GL_QUADS);
         glVertex2f(0, 0);

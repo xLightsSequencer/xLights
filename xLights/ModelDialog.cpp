@@ -11,6 +11,8 @@
 #include <wx/string.h>
 //*)
 
+#include "PixelAppearanceDlg.h"
+
 //(*IdInit(ModelDialog)
 const long ModelDialog::ID_STATICTEXT1 = wxNewId();
 const long ModelDialog::ID_TEXTCTRL1 = wxNewId();
@@ -32,8 +34,6 @@ const long ModelDialog::ID_RADIOBUTTON2 = wxNewId();
 const long ModelDialog::ID_STATICTEXT11 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON4 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON3 = wxNewId();
-const long ModelDialog::ID_STATICTEXT9 = wxNewId();
-const long ModelDialog::ID_CHECKBOX3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT10 = wxNewId();
 const long ModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT7 = wxNewId();
@@ -52,6 +52,7 @@ const long ModelDialog::ID_BUTTON_CUSTOM_MODEL_HELP = wxNewId();
 const long ModelDialog::ID_BUTTON_CustomModelZoomIn = wxNewId();
 const long ModelDialog::ID_BUTTON_CustomModelZoomOut = wxNewId();
 const long ModelDialog::ID_GRID_Custom = wxNewId();
+const long ModelDialog::ID_BUTTON1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ModelDialog,wxDialog)
@@ -68,6 +69,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer8;
     wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer1;
@@ -158,11 +160,6 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     RadioButton_BotRight = new wxRadioButton(this, ID_RADIOBUTTON3, _("Bottom Right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
     BoxSizer2->Add(RadioButton_BotRight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(BoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText4 = new wxStaticText(this, ID_STATICTEXT9, _("Smooth Pixels (antialias)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
-    FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    AntiAliasCheckBox = new wxCheckBox(this, ID_CHECKBOX3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
-    AntiAliasCheckBox->SetValue(true);
-    FlexGridSizer2->Add(AntiAliasCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText7 = new wxStaticText(this, ID_STATICTEXT10, _("Part of my display"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
     FlexGridSizer2->Add(StaticText7, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_MyDisplay = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
@@ -239,11 +236,17 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     GridCustom->SetDefaultCellTextColour( GridCustom->GetForegroundColour() );
     FlexGridSizer4->Add(GridCustom, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
     FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8 = new wxFlexGridSizer(0, 5, 0, 0);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
     StdDialogButtonSizer1->Realize();
-    FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button1 = new wxButton(this, ID_BUTTON1, _("Appearance"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizer8->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -267,6 +270,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_CustomModelZoomIn,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButton_CustomModelZoomInClick);
     Connect(ID_BUTTON_CustomModelZoomOut,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButton_CustomModelZoomOutClick);
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OnGridCustomCellChange);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnAppearanceButtonClicked);
     //*)
 
     gridStartChannels->SetDefaultEditor(new wxGridCellNumberEditor());
@@ -709,6 +713,8 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute("Order");
     e->DeleteAttribute("Dir");
     e->DeleteAttribute("Antialias");
+    e->DeleteAttribute("PixelSize");
+    e->DeleteAttribute("Transparency");
     e->DeleteAttribute("starSizes");
     e->DeleteAttribute("exportFirstStrand");
     e->AddAttribute("DisplayAs", Choice_DisplayAs->GetStringSelection());
@@ -734,7 +740,9 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     else
         e->AddAttribute("Dir","R");
 
-    e->AddAttribute("Antialias", AntiAliasCheckBox->IsChecked() ? "1" : "0");
+    e->AddAttribute("Antialias", antiAlias ? "1" : "0");
+    e->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));
+    e->AddAttribute("Transparency", wxString::Format("%d", transparency));
 
     e->AddAttribute("ModelBrightness", wxString::Format("%d",Slider_Model_Brightness->GetValue()));
     if (Choice_DisplayAs->GetStringSelection() == "Custom")
@@ -764,8 +772,13 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     }
     //Choice_Order->SetStringSelection(e->GetAttribute("Order"));
     tempStr=e->GetAttribute("Antialias","0");
+    antiAlias = tempStr == "1";
+    tempStr=e->GetAttribute("PixelSize","2");
     tempStr.ToLong(&n);
-    AntiAliasCheckBox->SetValue(n);
+    pixelSize = n;
+    tempStr=e->GetAttribute("Transparency","0");
+    tempStr.ToLong(&n);
+    transparency = n;
 
 
     if(e->HasAttribute("ModelBrightness"))
@@ -816,7 +829,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
         SetCustomGridData(tempStr);
     }
     CheckBox_MyDisplay->SetValue(ModelClass::IsMyDisplay(e));
-    
+
     wxFont font = GridCustom->GetDefaultCellFont();
     GridCustom->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
     GridCustom->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
@@ -826,7 +839,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
         GridCustom->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 4/5);
     font = GridCustom->GetLabelFont();
     GridCustom->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
-    
+
     UpdateLabels();
     Fit();
 }
@@ -1048,4 +1061,18 @@ void ModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
         GridCustom->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 5/4);
 //    debug(10, "font+: is now size = %d, %d, pt %d, cell w %d, min w %d", font.GetPixelSize().x, font.GetPixelSize().y, font.GetPointSize(), ((myGrid*)GridCustom)->GetColWidth(0), GridCustom->GetColMinimalAcceptableWidth());
     GridCustom->EndBatch();
+}
+
+void ModelDialog::OnAppearanceButtonClicked(wxCommandEvent& event)
+{
+    PixelAppearanceDlg dlg(this);
+    dlg.AntialiasCheckBox->SetValue(antiAlias);
+    dlg.TransparencySlider->SetValue(transparency);
+    dlg.PixelSizeSpinner->SetValue(pixelSize);
+    if (dlg.ShowModal() == wxID_OK) {
+        antiAlias = dlg.AntialiasCheckBox->IsChecked();
+        transparency = dlg.TransparencySlider->GetValue();
+        pixelSize = dlg.PixelSizeSpinner->GetValue();
+    }
+    
 }

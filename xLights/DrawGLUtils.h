@@ -4,7 +4,7 @@ namespace DrawGLUtils
 {
     void DrawPoint(const xlColor &color, wxDouble x, wxDouble y);
     
-    void StartPoints(const xlColor &color);
+    void StartPoints(const xlColor &color, int transparency = 0);
     void AddPoint(wxDouble x, wxDouble y);
     void EndPoints();
     

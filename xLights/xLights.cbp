@@ -425,6 +425,8 @@
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="PerspectivesPanel.cpp" />
 		<Unit filename="PerspectivesPanel.h" />
+		<Unit filename="PixelAppearanceDlg.cpp" />
+		<Unit filename="PixelAppearanceDlg.h" />
 		<Unit filename="PixelBuffer.cpp" />
 		<Unit filename="PixelBuffer.h" />
 		<Unit filename="PlaybackOptionsDialog.cpp" />
@@ -578,6 +580,7 @@
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PerspectivesPanel.wxs" />
+		<Unit filename="wxsmith/PixelAppearanceDlg.wxs" />
 		<Unit filename="wxsmith/PlaybackOptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
@@ -649,6 +652,7 @@
 					<wxDialog wxs="wxsmith/LorConvertDialog.wxs" src="LorConvertDialog.cpp" hdr="LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/DisplayElementsPanel.wxs" src="DisplayElementsPanel.cpp" hdr="DisplayElementsPanel.h" fwddecl="0" i18n="1" name="DisplayElementsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelViewSelector.wxs" src="ModelViewSelector.cpp" hdr="ModelViewSelector.h" fwddecl="0" i18n="1" name="ModelViewSelector" language="CPP" />
+					<wxDialog wxs="wxsmith/PixelAppearanceDlg.wxs" src="PixelAppearanceDlg.cpp" hdr="PixelAppearanceDlg.h" fwddecl="0" i18n="1" name="PixelAppearanceDlg" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

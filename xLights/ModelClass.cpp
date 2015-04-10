@@ -157,11 +157,16 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
         isBotToTop=true;
     }
 
-    tempstr=ModelNode->GetAttribute("Antialias","1");
     long n;
+    tempstr=ModelNode->GetAttribute("Antialias","1");
     tempstr.ToLong(&n);
     Antialias = n;
-
+    tempstr=ModelNode->GetAttribute("PixelSize","2");
+    tempstr.ToLong(&n);
+    pixelSize = n;
+    tempstr=ModelNode->GetAttribute("Transparency","0");
+    tempstr.ToLong(&n);
+    transparency = n;
 
     MyDisplay=IsMyDisplay(ModelNode);
 
@@ -1482,6 +1487,9 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
     if (Antialias) {
         glEnable(GL_POINT_SMOOTH);
     }
+    if (pixelSize != 2) {
+        glPointSize(preview->calcPixelSize(pixelSize));
+    }
     
     double scalex=double(w) / RenderWi * PreviewScale;
     double scaley=double(h) / RenderHt * PreviewScale;
@@ -1507,7 +1515,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
             if (started) {
                 DrawGLUtils::EndPoints();
             }
-            DrawGLUtils::StartPoints(color);
+            DrawGLUtils::StartPoints(color, transparency);
             started = true;
             lastColor = color;
         }
@@ -1526,6 +1534,9 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
     }
     if (Antialias) {
         glDisable(GL_POINT_SMOOTH);
+    }
+    if (pixelSize != 2) {
+        glPointSize(preview->calcPixelSize(2));
     }
 
 
@@ -1602,6 +1613,13 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
     
     bool success = preview->StartDrawing(pointSize);
     
+    if (pixelSize != 2) {
+        glPointSize(preview->calcPixelSize(pixelSize));
+    }
+    if (Antialias) {
+        glEnable(GL_POINT_SMOOTH);
+    }
+
     if(success) {
         // layer calculation and map to output
         size_t NodeCount=Nodes.size();
@@ -1614,7 +1632,7 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
                 if (started) {
                     DrawGLUtils::EndPoints();
                 }
-                DrawGLUtils::StartPoints(color);
+                DrawGLUtils::StartPoints(color, transparency);
                 started = true;
                 lastColor = color;
             }
@@ -1632,6 +1650,12 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
             DrawGLUtils::EndPoints();
         }
         preview->EndDrawing();
+    }
+    if (pixelSize != 2) {
+        glPointSize(preview->calcPixelSize(2));
+    }
+    if (Antialias) {
+        glDisable(GL_POINT_SMOOTH);
     }
 }
 

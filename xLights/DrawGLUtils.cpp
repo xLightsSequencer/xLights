@@ -10,8 +10,15 @@
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"
 
-void DrawGLUtils::StartPoints(const xlColor &color) {
-    glColor3ub(color.Red(), color.Green(),color.Blue());
+void DrawGLUtils::StartPoints(const xlColor &color, int transparency) {
+    if (transparency) {
+        double t = 100.0 - transparency;
+        t *= 2.56;
+        transparency = t;
+        glColor4ub(color.Red(), color.Green(),color.Blue(), transparency);
+    } else {
+        glColor3ub(color.Red(), color.Green(),color.Blue());
+    }
     glBegin(GL_POINTS);
 }
 void DrawGLUtils::AddPoint(wxDouble x, wxDouble y) {
