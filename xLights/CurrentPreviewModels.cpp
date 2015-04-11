@@ -94,9 +94,9 @@ void CurrentPreviewModels::PopulateModelGroups()
             name=e->GetAttribute("name");
             if (!name.IsEmpty())
             {
-                CheckListBoxCurrentGroups->Append(name,e);
+                int item_index = CheckListBoxCurrentGroups->Append(name,e);
                 bool isChecked = e->GetAttribute("selected")=="1"?true:false;
-                CheckListBoxCurrentGroups->Check(CheckListBoxCurrentGroups->GetCount()-1,isChecked);
+                CheckListBoxCurrentGroups->Check(item_index,isChecked);
             }
         }
     }

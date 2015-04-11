@@ -58,6 +58,7 @@ class PreviewModels: public wxDialog
         wxXmlNode* mModels;
         void PopulateModelGroups();
         void PopulateUnusedModels(wxArrayString ModelsInGroup);
+        void UpdateSelectedModel();
 		//(*Handlers(PreviewModels)
 		void OnListBoxModelGroupsSelect(wxCommandEvent& event);
 		void OnButtonAddToModelGroupClick(wxCommandEvent& event);

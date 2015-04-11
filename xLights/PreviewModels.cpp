@@ -146,9 +146,7 @@ void PreviewModels::PopulateModelGroups()
     }
 }
 
-
-
-void PreviewModels::OnListBoxModelGroupsSelect(wxCommandEvent& event)
+void PreviewModels::UpdateSelectedModel()
 {
     wxString groupModels;
     wxXmlNode* e;
@@ -162,6 +160,12 @@ void PreviewModels::OnListBoxModelGroupsSelect(wxCommandEvent& event)
     }
     TextModelGroupName->SetValue(ListBoxModelGroups->GetString(ListBoxModelGroups->GetSelection()));
     PopulateUnusedModels(ModelsInGroup);
+}
+
+
+void PreviewModels::OnListBoxModelGroupsSelect(wxCommandEvent& event)
+{
+    UpdateSelectedModel();
 }
 
 void PreviewModels::PopulateUnusedModels(wxArrayString ModelsInGroup)
@@ -246,11 +250,15 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
 }
 
 void PreviewModels::OnButtonRemoveModelGroupClick(wxCommandEvent& event)
-{    if(ListBoxModelGroups->GetSelection() != wxNOT_FOUND)
+{
+    int selected_index = ListBoxModelGroups->GetSelection();
+    if(selected_index != wxNOT_FOUND)
     {
-        wxXmlNode* e=(wxXmlNode*)(ListBoxModelGroups->GetClientData(ListBoxModelGroups->GetSelection()));
+        wxXmlNode* e=(wxXmlNode*)(ListBoxModelGroups->GetClientData(selected_index));
         mModelGroups->RemoveChild(e);
-        ListBoxModelGroups->Delete(ListBoxModelGroups->GetSelection());
+        ListBoxModelGroups->Delete(selected_index);
+        ListBoxModelGroups->SetSelection(selected_index);
+        UpdateSelectedModel();
     }
 }
 
@@ -261,8 +269,8 @@ void PreviewModels::OnButtonAddModelGroupClick(wxCommandEvent& event)
     e->AddAttribute("name", "New Model Group");
     e->AddAttribute("models", "");
     mModelGroups->AddChild(e);
-    ListBoxModelGroups->Append("New Model Group",e);
-    ListBoxModelGroups->SetSelection(ListBoxModelGroups->GetCount()-1);
+    int item_index = ListBoxModelGroups->Append("New Model Group",e);
+    ListBoxModelGroups->SetSelection(item_index);
     TextModelGroupName->SetValue("New Model Group");
     PopulateUnusedModels(arrModelsInGroup);
     ListBoxModelsInGroup->Clear();
