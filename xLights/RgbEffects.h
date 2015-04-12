@@ -483,6 +483,7 @@ protected:
     void DrawHLine(int y, int xstart, int xend, const xlColor& color, bool wrap = false);
     void DrawVLine(int x, int ystart, int yend, const xlColor& color, bool wrap = false);
     void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap = false);
+    void DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb);
     void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);
     void DrawLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color );
     void DrawThickLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction );
@@ -523,6 +524,7 @@ protected:
     void coroface(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y);
     void drawline1(int Phoneme,int x1,int x2,int y1, int y2);
     void drawoutline(int Phoneme,int BufferHt,int BufferWi);
+    double calcAccel(double ratio, double accel);
 
     void facesCircle(int Phoneme, int xc,int yc,double radius,int start_degrees, int end_degrees);
     void drawline3 (int Phoneme, int x1,int x2,int y6,int y7);

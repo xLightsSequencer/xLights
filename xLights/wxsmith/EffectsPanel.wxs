@@ -1381,6 +1381,468 @@
 						<label>Fireworks</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="Panel1_Galaxy" member="yes">
+							<pos>-3,-233</pos>
+							<object class="wxFlexGridSizer" variable="FlexGridSizer108" member="no">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<object class="sizeritem">
+									<object class="wxNotebook" name="ID_NOTEBOOK_Galaxy" variable="Notebook_Galaxy" member="yes">
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL29" variable="Panel6" member="no">
+												<object class="wxGridBagSizer" variable="GridBagSizerGalaxyStart" member="no">
+													<object class="sizeritem">
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticText125" member="no">
+															<label>Center X:</label>
+														</object>
+														<col>0</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterX" variable="SLIDER_Galaxy_CenterX" member="yes">
+															<value>50</value>
+														</object>
+														<col>1</col>
+														<row>0</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX" variable="BitmapButton_Galaxy_CenterX" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>2</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText126" member="yes">
+															<label>Center Y:</label>
+														</object>
+														<col>0</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterY" variable="SLIDER_Galaxy_CenterY" member="yes">
+															<value>50</value>
+														</object>
+														<col>1</col>
+														<row>1</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_CenterY" variable="BitmapButton_Galaxy_CenterY" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>2</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT125" variable="StaticText127" member="yes">
+															<label>Radius:</label>
+														</object>
+														<col>0</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Radius" variable="SLIDER_Galaxy_Start_Radius" member="yes">
+															<value>1</value>
+															<max>20</max>
+														</object>
+														<col>1</col>
+														<row>2</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Radius" variable="BitmapButton_Galaxy_Start_Radius" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>2</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT127" variable="StaticText131" member="yes">
+															<label>Width:</label>
+														</object>
+														<col>0</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Width" variable="SLIDER_Galaxy_Start_Width" member="yes">
+															<value>5</value>
+															<max>25</max>
+														</object>
+														<col>1</col>
+														<row>3</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Width" variable="BitmapButton_Galaxy_Start_Width" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>2</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT126" variable="StaticText129" member="yes">
+															<label>Angle:</label>
+														</object>
+														<col>0</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Angle" variable="SLIDER_Galaxy_Start_Angle" member="yes">
+															<max>360</max>
+														</object>
+														<col>1</col>
+														<row>4</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Angle" variable="BitmapButton_Galaxy_Start_Angle" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>2</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Start_Radius_x10" variable="CheckBox_Galaxy_Start_Radius_x10" member="yes">
+																	<label>Radius x10:</label>
+																	<style>wxALIGN_RIGHT</style>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Start_Width_x10" variable="CheckBox_Galaxy_Start_Width_x10" member="yes">
+																	<label>Width x10:</label>
+																	<style>wxALIGN_RIGHT</style>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<colspan>2</colspan>
+														<col>0</col>
+														<row>5</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Start</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL31" variable="Panel7" member="no">
+												<object class="wxGridBagSizer" variable="GridBagSizerGalaxyEnd" member="no">
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT130" variable="StaticText138" member="yes">
+															<label>Radius:</label>
+														</object>
+														<col>0</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Radius" variable="SLIDER_Galaxy_End_Radius" member="yes">
+															<value>10</value>
+															<max>20</max>
+														</object>
+														<col>1</col>
+														<row>2</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_End_Radius" variable="BitmapButton_Galaxy_End_Radius" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>2</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT132" variable="StaticText139" member="yes">
+															<label>Width:</label>
+														</object>
+														<col>0</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Width" variable="SLIDER_Galaxy_End_Width" member="yes">
+															<value>5</value>
+															<max>25</max>
+														</object>
+														<col>1</col>
+														<row>3</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_End_Width" variable="BitmapButton_Galaxy_End_Width" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>2</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT134" variable="StaticText140" member="yes">
+															<label>Rev&apos;s:</label>
+														</object>
+														<col>0</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Revolutions" variable="SLIDER_Galaxy_Revolutions" member="no">
+															<value>80</value>
+														</object>
+														<col>1</col>
+														<row>4</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions" variable="BitmapButton_Galaxy_Revolutions" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>2</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBoxSizer" variable="BoxSizer2" member="no">
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_CheckBox_End_Radius_x10" variable="CheckBox_Galaxy_End_Radius_x10" member="yes">
+																	<label>Radius x10:</label>
+																	<style>wxALIGN_RIGHT</style>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_End_Width_x10" variable="CheckBox_Galaxy_End_Width_x10" member="yes">
+																	<label>Width x10:</label>
+																	<style>wxALIGN_RIGHT</style>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Revs_x2" variable="CheckBox_Galaxy_Revs_x2" member="no">
+																	<label>Rev&apos;s x2:</label>
+																	<style>wxALIGN_RIGHT</style>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<colspan>2</colspan>
+														<col>0</col>
+														<row>5</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<col>0</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<col>0</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>End</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL32" variable="Panel8" member="no">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer111" member="no">
+													<cols>1</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizer112" member="no">
+															<cols>3</cols>
+															<growablecols>1</growablecols>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT139" variable="StaticText141" member="yes">
+																	<label>Head Duration:</label>
+																	<size>-1,-1</size>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_Galaxy_Duration" variable="SLIDER_Galaxy_Duration" member="yes">
+																	<value>20</value>
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Duration" variable="BitmapButton_Galaxy_Duration" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT140" variable="StaticText142" member="yes">
+																	<label>Acceleration:</label>
+																</object>
+																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_Galaxy_Accel" variable="SLIDER_Galaxy_Accel" member="yes">
+																	<min>-10</min>
+																	<max>10</max>
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Accel" variable="BitmapButton_Galaxy_Accel" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Options</label>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Galaxy</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL14" variable="Panel1_Garlands" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer39" member="no">
 								<cols>3</cols>

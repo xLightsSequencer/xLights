@@ -652,6 +652,17 @@
 						</object>
 						<label>Item label</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON36" subclass="DragEffectBitmapButton" variable="BitmapButton32" member="yes">
+							<size>16,16</size>
+							<bg>wxSYS_COLOUR_BACKGROUND</bg>
+							<minsize>16,16</minsize>
+							<maxsize>16,16</maxsize>
+							<extra_code>BitmapButton32-&gt;SetEffectIndex(31);</extra_code>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+						</object>
+						<label>Item label</label>
+					</object>
 				</object>
 				<name>EffectsToolBar</name>
 				<standardpanetype>Toolbar</standardpanetype>

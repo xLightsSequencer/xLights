@@ -514,6 +514,14 @@ void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Vel
     effects[CurrentLayer].RenderFireworks(Number_Explosions,Count,Velocity,Fade);
 }
 
+void PixelBufferClass::RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
+                                    int start_width, int end_width, int duration, int acceleration,
+                                    bool start_radius_x10, bool start_width_x10, bool end_radius_x10, bool end_width_x10, bool revolutions_x2 ) {
+    effects[CurrentLayer].RenderGalaxy(center_x, center_y, start_radius, end_radius, start_angle, revolutions,
+                                       start_width, end_width, duration, acceleration,
+                                       start_radius_x10, start_width_x10, end_radius_x10, end_width_x10, revolutions_x2 );
+}
+
 void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing) {
     effects[CurrentLayer].RenderGarlands(GarlandType,Spacing);
 }

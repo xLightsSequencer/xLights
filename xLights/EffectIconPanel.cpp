@@ -39,6 +39,7 @@ const long EffectIconPanel::ID_BITMAPBUTTON28 = wxNewId();
 const long EffectIconPanel::ID_BITMAPBUTTON29 = wxNewId();
 const long EffectIconPanel::ID_BITMAPBUTTON30 = wxNewId();
 const long EffectIconPanel::ID_BITMAPBUTTON31 = wxNewId();
+const long EffectIconPanel::ID_BITMAPBUTTON32 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectIconPanel,wxPanel)
@@ -51,7 +52,7 @@ EffectIconPanel::EffectIconPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	//(*Initialize(EffectIconPanel)
 	wxGridSizer* GridSizer1;
 
-	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	GridSizer1 = new wxGridSizer(7, 5, 0, 0);
 	BitmapButton1 = new DragEffectBitmapButton(this, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
 	BitmapButton1->SetMinSize(wxSize(16,16));
@@ -239,6 +240,12 @@ EffectIconPanel::EffectIconPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	BitmapButton31->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
 	BitmapButton31->SetEffectIndex(30);
 	GridSizer1->Add(BitmapButton31, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton32 = new DragEffectBitmapButton(this, ID_BITMAPBUTTON32, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON32"));
+	BitmapButton32->SetMinSize(wxSize(16,16));
+	BitmapButton32->SetMaxSize(wxSize(16,16));
+	BitmapButton32->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
+	BitmapButton32->SetEffectIndex(31);
+	GridSizer1->Add(BitmapButton32, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridSizer1);
 	GridSizer1->Fit(this);
 	GridSizer1->SetSizeHints(this);
