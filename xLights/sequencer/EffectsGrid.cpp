@@ -456,7 +456,7 @@ void EffectsGrid::Paste(const wxString &data) {
             {
                 wxArrayString efdata = wxSplit(all_efdata[i], '\t');
                 if (efdata.size() != 6) {
-                    return;
+                    break;
                 }
                 efdata[3].ToDouble(&new_start_time);
                 efdata[4].ToDouble(&new_end_time);
@@ -464,10 +464,15 @@ void EffectsGrid::Paste(const wxString &data) {
                 new_end_time += drop_time_offset;
                 int eff_index = wxAtoi(efdata[5]);
                 drop_index = eff_index + drop_index_offset;
-                EffectLayer* el = mSequenceElements->GetRowInformation(mDropRow)->element->GetEffectLayer(drop_index);
-                int effectIndex = Effect::GetEffectIndex(efdata[0]);
+                Row_Information_Struct* row_info = mSequenceElements->GetRowInformation(drop_index);
+                if( row_info == nullptr ) break;
+                Element* elem = row_info->element;
+                if( elem == nullptr ) break;
+                EffectLayer* el = elem->GetEffectLayer(drop_index);
+                if( el == nullptr ) break;
                 if( el->GetRangeIsClear(new_start_time, new_end_time) )
                 {
+                    int effectIndex = Effect::GetEffectIndex(efdata[0]);
                     if (effectIndex >= 0) {
                         Effect* ef = el->AddEffect(0,
                                       effectIndex,
