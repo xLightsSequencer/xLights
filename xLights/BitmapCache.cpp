@@ -55,12 +55,14 @@
 #include "../include/fireworks-24.xpm"
 #include "../include/fireworks-32.xpm"
 #include "../include/fireworks-48.xpm"
+#include "../include/fireworks-64.xpm"
 
 //#include "../include/garlands.xpm"
 #include "../include/garlands-16.xpm"
 #include "../include/garlands-24.xpm"
 #include "../include/garlands-32.xpm"
 #include "../include/garlands-48.xpm"
+#include "../include/garlands-64.xpm"
 
 #include "../include/glediator.xpm"
 //#include "../include/life.xpm"
@@ -68,12 +70,14 @@
 #include "../include/life-24.xpm"
 #include "../include/life-32.xpm"
 #include "../include/life-48.xpm"
+#include "../include/life-64.xpm"
 
 //#include "../include/meteors.xpm"
 #include "../include/meteors-16.xpm"
 #include "../include/meteors-24.xpm"
 #include "../include/meteors-32.xpm"
 #include "../include/meteors-48.xpm"
+#include "../include/meteors-64.xpm"
 
 #include "../include/morph.xpm"
 
@@ -86,19 +90,21 @@
 #include "../include/pictures-24.xpm"
 #include "../include/pictures-32.xpm"
 #include "../include/pictures-48.xpm"
+#include "../include/pictures-64.xpm"
 
 //#include "../include/pinwheel.xpm"
 #include "../include/pinwheel-16.xpm"
 #include "../include/pinwheel-24.xpm"
 #include "../include/pinwheel-32.xpm"
 #include "../include/pinwheel-48.xpm"
-
+#include "../include/pinwheel-64.xpm"
 
 //#include "../include/ripple.xpm"
 #include "../include/ripple-16.xpm"
 #include "../include/ripple-24.xpm"
 #include "../include/ripple-32.xpm"
 #include "../include/ripple-48.xpm"
+#include "../include/ripple-64.xpm"
 
 #include "../include/shimmer.xpm"
 #include "../include/singleStrand.xpm"
@@ -108,18 +114,20 @@
 #include "../include/snowflakes-24.xpm"
 #include "../include/snowflakes-32.xpm"
 #include "../include/snowflakes-48.xpm"
+#include "../include/snowflakes-64.xpm"
 
 //#include "../include/snowstorm.xpm"
 #include "../include/snowstorm-16.xpm"
 #include "../include/snowstorm-24.xpm"
 #include "../include/snowstorm-32.xpm"
 #include "../include/snowstorm-48.xpm"
-
+#include "../include/snowstorm-64.xpm"
 //#include "../include/spirals.xpm"
 #include "../include/spirals-16.xpm"
 #include "../include/spirals-24.xpm"
 #include "../include/spirals-32.xpm"
 #include "../include/spirals-48.xpm"
+#include "../include/spirals-64.xpm"
 
 //#include "../include/spirograph.xpm"
 #include "../include/spirograph-16.xpm"
@@ -134,24 +142,28 @@
 #include "../include/text-24.xpm"
 #include "../include/text-32.xpm"
 #include "../include/text-48.xpm"
+#include "../include/text-64.xpm"
 
 //#include "../include/tree.xpm"
 #include "../include/tree-16.xpm"
 #include "../include/tree-24.xpm"
 #include "../include/tree-32.xpm"
 #include "../include/tree-48.xpm"
+#include "../include/tree-64.xpm"
 
 //#include "../include/twinkle.xpm"
 #include "../include/twinkle-16.xpm"
 #include "../include/twinkle-24.xpm"
 #include "../include/twinkle-32.xpm"
 #include "../include/twinkle-48.xpm"
+#include "../include/twinkle-64.xpm"
 
 //#include "../include/wave.xpm"
 #include "../include/wave-16.xpm"
 #include "../include/wave-24.xpm"
 #include "../include/wave-32.xpm"
 #include "../include/wave-48.xpm"
+#include "../include/wave-64.xpm"
 
 
 /*-----  Toolbar Art ----- */
@@ -435,10 +447,10 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
             return effectBitmaps.get(size, exact, "Fire", fire_16, fire_24, fire_32, fire_48, fire_64);
         case BitmapCache::RGB_EFFECTS_e::eff_FIREWORKS:
             toolTip = "Fireworks";
-            return effectBitmaps.get(size, exact, "Fireworks", fireworks_16, fireworks_24, fireworks_32, fireworks_48, fireworks_48);
+            return effectBitmaps.get(size, exact, "Fireworks", fireworks_16, fireworks_24, fireworks_32, fireworks_48, fireworks_64);
         case BitmapCache::RGB_EFFECTS_e::eff_GARLANDS:
             toolTip = "Garlands";
-            return effectBitmaps.get(size, exact, "Garlands", garlands_16, garlands_24, garlands_32, garlands_48, garlands_48);
+            return effectBitmaps.get(size, exact, "Garlands", garlands_16, garlands_24, garlands_32, garlands_48, garlands_64);
         case BitmapCache::RGB_EFFECTS_e::eff_GLEDIATOR:
             toolTip = "Glediator";
             return effectBitmaps.get(size, exact, "Glediator", glediator, glediator, glediator, glediator, glediator);
@@ -447,7 +459,7 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
             return effectBitmaps.get(size, exact, "Life", life_16, life_24, life_32, life_48, life_48);
         case BitmapCache::RGB_EFFECTS_e::eff_METEORS:
             toolTip = "Meteors";
-            return effectBitmaps.get(size, exact, "Meteors", meteors_16, meteors_24, meteors_32, meteors_48, meteors_48);
+            return effectBitmaps.get(size, exact, "Meteors", meteors_16, meteors_24, meteors_32, meteors_48, meteors_64);
         case BitmapCache::RGB_EFFECTS_e::eff_MORPH:
             toolTip = "Morph";
             return effectBitmaps.get(size, exact, "Morph", morph, morph, morph, morph, morph);
@@ -456,13 +468,13 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
             return effectBitmaps.get(size, exact, "Piano", piano, piano, piano, piano, piano);
         case BitmapCache::RGB_EFFECTS_e::eff_PICTURES:
             toolTip = "Pictures";
-            return effectBitmaps.get(size, exact, "Pictures", pictures_16, pictures_24, pictures_32, pictures_48, pictures_48);
+            return effectBitmaps.get(size, exact, "Pictures", pictures_16, pictures_24, pictures_32, pictures_48, pictures_64);
         case BitmapCache::RGB_EFFECTS_e::eff_PINWHEEL:
             toolTip = "Pinwheel";
-            return effectBitmaps.get(size, exact, "Pinwheel", pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48, pinwheel_48);
+            return effectBitmaps.get(size, exact, "Pinwheel", pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48, pinwheel_64);
         case BitmapCache::RGB_EFFECTS_e::eff_RIPPLE:
             toolTip = "Ripple";
-            return effectBitmaps.get(size, exact, "Ripple", ripple_16, ripple_24, ripple_32, ripple_48, ripple_48);
+            return effectBitmaps.get(size, exact, "Ripple", ripple_16, ripple_24, ripple_32, ripple_48, ripple_64);
         case BitmapCache::RGB_EFFECTS_e::eff_SHIMMER:
             toolTip = "Shimmer";
             return effectBitmaps.get(size, exact, "Shimmer", shimmer, shimmer, shimmer, shimmer, shimmer);
@@ -471,13 +483,13 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
             return effectBitmaps.get(size, exact, "Single Strand", singleStrand, singleStrand, singleStrand, singleStrand, singleStrand);
         case BitmapCache::RGB_EFFECTS_e::eff_SNOWFLAKES:
             toolTip = "Snow Flakes";
-            return effectBitmaps.get(size, exact, "Snow Flakes", snowflakes_16, snowflakes_24, snowflakes_32, snowflakes_48, snowflakes_48);
+            return effectBitmaps.get(size, exact, "Snow Flakes", snowflakes_16, snowflakes_24, snowflakes_32, snowflakes_48, snowflakes_64);
         case BitmapCache::RGB_EFFECTS_e::eff_SNOWSTORM:
             toolTip = "Snow Storm";
-            return effectBitmaps.get(size, exact, "Snow Storm", snowstorm_16, snowstorm_24, snowstorm_32, snowstorm_48, snowstorm_48);
+            return effectBitmaps.get(size, exact, "Snow Storm", snowstorm_16, snowstorm_24, snowstorm_32, snowstorm_48, snowstorm_64);
         case BitmapCache::RGB_EFFECTS_e::eff_SPIRALS:
             toolTip = "Spirals";
-            return effectBitmaps.get(size, exact, "Sprials", spirals_16, spirals_24, spirals_32, spirals_48, spirals_48);
+            return effectBitmaps.get(size, exact, "Sprials", spirals_16, spirals_24, spirals_32, spirals_48, spirals_64);
         case BitmapCache::RGB_EFFECTS_e::eff_SPIROGRAPH:
             toolTip = "Spirograph";
             return effectBitmaps.get(size, exact, "Spirograph", spirograph_16, spirograph_24, spirograph_32, spirograph_48, spirograph_48);
@@ -486,16 +498,16 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
             return effectBitmaps.get(size, exact, "Strobe", strobe, strobe, strobe, strobe, strobe);
         case BitmapCache::RGB_EFFECTS_e::eff_TEXT:
             toolTip = "Text";
-            return effectBitmaps.get(size, exact, "Text", text_16, text_24, text_32, text_48, text_48);
+            return effectBitmaps.get(size, exact, "Text", text_16, text_24, text_32, text_48, text_64);
         case BitmapCache::RGB_EFFECTS_e::eff_TREE:
             toolTip = "Tree";
-            return effectBitmaps.get(size, exact, "Tree", tree_16, tree_24, tree_32, tree_48, tree_48);
+            return effectBitmaps.get(size, exact, "Tree", tree_16, tree_24, tree_32, tree_48, tree_64);
         case BitmapCache::RGB_EFFECTS_e::eff_TWINKLE:
             toolTip = "Twinkle";
-            return effectBitmaps.get(size, exact, "Twinkle", twinkle_16, twinkle_24, twinkle_32, twinkle_48, twinkle_48);
+            return effectBitmaps.get(size, exact, "Twinkle", twinkle_16, twinkle_24, twinkle_32, twinkle_48, twinkle_64);
         case BitmapCache::RGB_EFFECTS_e::eff_WAVE:
             toolTip = "Wave";
-            return effectBitmaps.get(size, exact, "Wave", wave_16, wave_24, wave_32, wave_48, wave_48);
+            return effectBitmaps.get(size, exact, "Wave", wave_16, wave_24, wave_32, wave_48, wave_64);
         default:
             break;
     }
