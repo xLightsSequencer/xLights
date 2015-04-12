@@ -102,6 +102,7 @@ void Element::SetIndex(int index)
 
 EffectLayer* Element::GetEffectLayer(int index)
 {
+    if( index >= mEffectLayers.size() ) return nullptr;
     return mEffectLayers[index];
 }
 

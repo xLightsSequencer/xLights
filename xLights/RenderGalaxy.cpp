@@ -43,8 +43,7 @@ void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int 
     int num_colors = palette.Size();
     xlColor color, c1;
     HSVValue hsv2, hsv3;
-    double head_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
-    double angle1 = (double)start_angle;
+    double eff_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
     double revs = (double)revolutions * 18.0;
     if( revolutions_x2 ) revs *= 2.0;
 
@@ -56,7 +55,7 @@ void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int 
     double color_length = tail_length / num_colors;
     if(color_length < 1.0) color_length = 1.0;
 
-    double tail_end_of_tail = ((revs + tail_length) * eff_pos) - tail_length;
+    double tail_end_of_tail = ((revs + tail_length) * eff_pos_adj) - tail_length;
     double head_end_of_tail = tail_end_of_tail + tail_length;
 
     double radius1 = (start_radius_x10 ? start_radius * 10.0 : start_radius);
@@ -66,6 +65,7 @@ void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int 
 
     for( double i = std::max(0.0, tail_end_of_tail); i <= std::min(head_end_of_tail,revs); i += 0.3 )
     {
+        double adj_angle = i + (double)start_angle;
         double color_val = (head_end_of_tail-i) / color_length;
         int color_int = (int)color_val;
         double color_pct = color_val - (double)color_int;
@@ -88,11 +88,11 @@ void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int 
         for( double r = inside_radius; ; r += 0.5 )
         {
             if( r > current_radius ) r = current_radius;
-            double x1 = std::sin(ToRadians(i)) * r + (double)pos_x;
-            double y1 = std::cos(ToRadians(i)) * r + (double)pos_y;
+            double x1 = std::sin(ToRadians(adj_angle)) * r + (double)pos_x;
+            double y1 = std::cos(ToRadians(adj_angle)) * r + (double)pos_y;
             double outside_radius = current_radius + (current_radius - r);
-            double x2 = std::sin(ToRadians(i)) * outside_radius + (double)pos_x;
-            double y2 = std::cos(ToRadians(i)) * outside_radius + (double)pos_y;
+            double x2 = std::sin(ToRadians(adj_angle)) * outside_radius + (double)pos_x;
+            double y2 = std::cos(ToRadians(adj_angle)) * outside_radius + (double)pos_y;
             double color_pct = (r-inside_radius)/(current_radius-inside_radius);
             hsv.value = full_brightness * color_pct;
             if( hsv.value > 0.0 )

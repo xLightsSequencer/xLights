@@ -50,6 +50,7 @@ public:
     bool DragOver(int x, int y);
     void OnDrop(int x, int y);
     void ForceRefresh();
+    void SetEffectIconBackground(bool mode) {mGridIconBackgrounds = mode;}
 
     void Paste(const wxString &data);
 protected:
@@ -95,6 +96,7 @@ private:
     int GetRow(int y);
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
+    bool mGridIconBackgrounds;
 
     //~ Need to see why I cannot access xLightsFrame::GB_EFFECTS_e from xLightsMain.h
     // for effect count

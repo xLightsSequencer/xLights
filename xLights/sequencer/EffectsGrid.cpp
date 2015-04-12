@@ -439,34 +439,87 @@ bool EffectsGrid::MultipleEffectsSelected()
 }
 void EffectsGrid::Paste(const wxString &data) {
     if (mEmptyCellSelected) {
-        wxArrayString efdata = wxSplit(data, '\n');
-        if (efdata.size() == 0) {
+        wxArrayString all_efdata = wxSplit(data, '\n');
+        if (all_efdata.size() == 0) {
             return;
         }
-        efdata = wxSplit(efdata[0], '\t');
-        if (efdata.size() != 3) {
-            return;
-        }
-        EffectLayer* el = mSequenceElements->GetRowInformation(mDropRow)->element->GetEffectLayer(mSequenceElements->GetRowInformation(mDropRow)->layerIndex);
-        int effectIndex = Effect::GetEffectIndex(efdata[0]);
-        if (effectIndex >= 0) {
-            Effect* ef = el->AddEffect(0,
-                          effectIndex,
-                          efdata[0],
-                          efdata[1],
-                          efdata[2],
-                          mDropStartTime,
-                          mDropEndTime,
-                          EFFECT_SELECTED,
-                          false);
-            if (!ef->GetPaletteMap().empty()) {
-                sendRenderEvent(el->GetParentElement()->GetName(),
-                                mDropStartTime,
-                                mDropEndTime, true);
+        if( all_efdata.size() > 2 )  // multi-effect paste
+        {
+            wxArrayString eff1data = wxSplit(all_efdata[0], '\t');
+            double drop_time_offset, new_start_time, new_end_time;
+            eff1data[3].ToDouble(&drop_time_offset);
+            drop_time_offset = mDropStartTime - drop_time_offset;
+            int drop_index = mSequenceElements->GetRowInformation(mDropRow)->layerIndex;
+            int start_index = wxAtoi(eff1data[5]);
+            int drop_index_offset = drop_index - start_index;
+            for( int i = 0; i < all_efdata.size()-1; i++ )
+            {
+                wxArrayString efdata = wxSplit(all_efdata[i], '\t');
+                if (efdata.size() != 6) {
+                    break;
+                }
+                efdata[3].ToDouble(&new_start_time);
+                efdata[4].ToDouble(&new_end_time);
+                new_start_time += drop_time_offset;
+                new_end_time += drop_time_offset;
+                int eff_index = wxAtoi(efdata[5]);
+                drop_index = eff_index + drop_index_offset;
+                Row_Information_Struct* row_info = mSequenceElements->GetRowInformation(drop_index);
+                if( row_info == nullptr ) break;
+                Element* elem = row_info->element;
+                if( elem == nullptr ) break;
+                EffectLayer* el = elem->GetEffectLayer(drop_index);
+                if( el == nullptr ) break;
+                if( el->GetRangeIsClear(new_start_time, new_end_time) )
+                {
+                    int effectIndex = Effect::GetEffectIndex(efdata[0]);
+                    if (effectIndex >= 0) {
+                        Effect* ef = el->AddEffect(0,
+                                      effectIndex,
+                                      efdata[0],
+                                      efdata[1],
+                                      efdata[2],
+                                      new_start_time,
+                                      new_end_time,
+                                      EFFECT_NOT_SELECTED,
+                                      false);
+                        if (!ef->GetPaletteMap().empty()) {
+                            sendRenderEvent(el->GetParentElement()->GetName(),
+                                            new_start_time,
+                                            new_end_time, true);
+                        }
+                    }
+                }
             }
-            RaiseSelectedEffectChanged(ef);
-            mSelectedEffect = ef;
             mEmptyCellSelected = false;
+        }
+        else
+        {
+            wxArrayString efdata = wxSplit(all_efdata[0], '\t');
+            if (efdata.size() != 6) {
+                return;
+            }
+            EffectLayer* el = mSequenceElements->GetRowInformation(mDropRow)->element->GetEffectLayer(mSequenceElements->GetRowInformation(mDropRow)->layerIndex);
+            int effectIndex = Effect::GetEffectIndex(efdata[0]);
+            if (effectIndex >= 0) {
+                Effect* ef = el->AddEffect(0,
+                              effectIndex,
+                              efdata[0],
+                              efdata[1],
+                              efdata[2],
+                              mDropStartTime,
+                              mDropEndTime,
+                              EFFECT_SELECTED,
+                              false);
+                if (!ef->GetPaletteMap().empty()) {
+                    sendRenderEvent(el->GetParentElement()->GetName(),
+                                    mDropStartTime,
+                                    mDropEndTime, true);
+                }
+                RaiseSelectedEffectChanged(ef);
+                mSelectedEffect = ef;
+                mEmptyCellSelected = false;
+            }
         }
     }
     Refresh();
@@ -861,8 +914,11 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?mEffectColor:mSelectionColor;
         mEffectColorCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?mSelectionColor:mEffectColor;
 
-        bool drawIcon = DrawEffectBackground(e, x3, y1, x4, y2);
-
+        bool drawIcon = true;
+        if(mGridIconBackgrounds)
+        {
+            drawIcon = DrawEffectBackground(e, x3, y1, x4, y2);
+        }
 
         if (mode==SCREEN_L_R_OFF)
         {

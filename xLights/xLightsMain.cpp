@@ -372,6 +372,9 @@ const long xLightsFrame::ID_MENUITEM_GRID_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_LARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_XLARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM6 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_GRID_ICON_BACKGROUND_ON = wxNewId();
+const long xLightsFrame::ID_MENUITEM_GRID_ICON_BACKGROUND_OFF = wxNewId();
+const long xLightsFrame::ID_MENUITEM_Grid_Icon_Backgrounds = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_ERASE_MODE = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_CANVAS_MODE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_RENDER_MODE = wxNewId();
@@ -525,6 +528,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer7;
     wxMenuItem* MenuItem10;
     wxFlexGridSizer* FlexGridSizerCal;
+    wxMenu* MenuItem_Grid_Icon_Backgrounds;
     wxStaticText* StaticText21;
     wxFlexGridSizer* FlexGridSizer55;
     wxMenu* MenuItem7;
@@ -1644,6 +1648,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem28 = new wxMenuItem(MenuItem16, ID_MENUITEM_GRID_ICON_XLARGE, _("Extra Large\tCTRL-4"), wxEmptyString, wxITEM_NORMAL);
     MenuItem16->Append(MenuItem28);
     MenuSettings->Append(ID_MENUITEM6, _("Grid Spacing"), MenuItem16, wxEmptyString);
+    MenuItem_Grid_Icon_Backgrounds = new wxMenu();
+    MenuItemGridIconBackgroundOn = new wxMenuItem(MenuItem_Grid_Icon_Backgrounds, ID_MENUITEM_GRID_ICON_BACKGROUND_ON, _("On"), wxEmptyString, wxITEM_CHECK);
+    MenuItem_Grid_Icon_Backgrounds->Append(MenuItemGridIconBackgroundOn);
+    MenuItemGridIconBackgroundOn->Check(true);
+    MenuItemGridIconBackgroundOff = new wxMenuItem(MenuItem_Grid_Icon_Backgrounds, ID_MENUITEM_GRID_ICON_BACKGROUND_OFF, _("Off"), wxEmptyString, wxITEM_CHECK);
+    MenuItem_Grid_Icon_Backgrounds->Append(MenuItemGridIconBackgroundOff);
+    MenuSettings->Append(ID_MENUITEM_Grid_Icon_Backgrounds, _("Grid Icon Backgrounds"), MenuItem_Grid_Icon_Backgrounds, wxEmptyString);
     MenuItemRenderMode = new wxMenu();
     MenuItemRenderEraseMode = new wxMenuItem(MenuItemRenderMode, ID_MENU_CANVAS_ERASE_MODE, _("Erase Mode"), wxEmptyString, wxITEM_CHECK);
     MenuItemRenderMode->Append(MenuItemRenderEraseMode);
@@ -1824,6 +1835,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_GRID_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_XLARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
+    Connect(ID_MENUITEM_GRID_ICON_BACKGROUND_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridIconBackground);
+    Connect(ID_MENUITEM_GRID_ICON_BACKGROUND_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridIconBackground);
     Connect(ID_MENU_CANVAS_ERASE_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderEraseModeSelected);
     Connect(ID_MENU_CANVAS_CANVAS_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderCanvasModeSelected);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
@@ -1955,6 +1968,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         }
         wxCommandEvent event(wxEVT_NULL, id);
         SetIconSize(event);
+    }
+    config->Read("xLightsGridIconBackgrounds", &mGridIconBackgrounds, 1);
+    {
+        int id = ID_MENUITEM_GRID_ICON_BACKGROUND_ON;
+        if (mGridIconBackgrounds == 0) {
+            id = ID_MENUITEM_GRID_ICON_BACKGROUND_OFF;
+        }
+        wxCommandEvent event(wxEVT_NULL, id);
+        OnSetGridIconBackground(event);
     }
 
     // initialize all effect wxChoice lists
@@ -2220,6 +2242,7 @@ xLightsFrame::~xLightsFrame()
     }
     config->Write("xLightsIconSize", mIconSize);
     config->Write("xLightsGridSpacing", mGridSpacing);
+    config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
 
     config->Flush();
 
@@ -3194,4 +3217,17 @@ void xLightsFrame::SetFrequency(int frequency)
     mSequenceElements.SetFrequency(frequency);
     mainSequencer->PanelTimeLine->SetTimeFrequency(frequency);
     mainSequencer->PanelWaveForm->SetTimeFrequency(frequency);
+}
+
+void xLightsFrame::OnSetGridIconBackground(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_ON) {
+        mGridIconBackgrounds = 1;
+    } else if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_OFF) {
+        mGridIconBackgrounds = 0;
+    }
+    MenuItemGridIconBackgroundOn->Check(mGridIconBackgrounds==1);
+    MenuItemGridIconBackgroundOff->Check(mGridIconBackgrounds==0);
+    mainSequencer->PanelEffectGrid->SetEffectIconBackground(mGridIconBackgrounds==1);
+    mainSequencer->PanelEffectGrid->Refresh();
 }
