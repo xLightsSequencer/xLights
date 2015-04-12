@@ -164,6 +164,7 @@ int Effect::GetEffectIndex(wxString effectName)
     else if(effectName=="Faces"){return BitmapCache::RGB_EFFECTS_e::eff_FACES;}
     else if(effectName=="Fire"){return BitmapCache::RGB_EFFECTS_e::eff_FIRE;}
     else if(effectName=="Fireworks"){return BitmapCache::RGB_EFFECTS_e::eff_FIREWORKS;}
+    else if(effectName=="Galaxy"){return BitmapCache::RGB_EFFECTS_e::eff_GALAXY;}
     else if(effectName=="Garlands"){return BitmapCache::RGB_EFFECTS_e::eff_GARLANDS;}
     else if(effectName=="Glediator"){return BitmapCache::RGB_EFFECTS_e::eff_GLEDIATOR;}
     else if(effectName=="Life"){return BitmapCache::RGB_EFFECTS_e::eff_LIFE;}

@@ -62,6 +62,13 @@
 #include "../include/garlands-32.xpm"
 #include "../include/garlands-48.xpm"
 
+// Galaxy Icons
+#include "../include/galaxy-16.xpm"
+#include "../include/galaxy-24.xpm"
+#include "../include/galaxy-32.xpm"
+#include "../include/galaxy-48.xpm"
+#include "../include/galaxy-64.xpm"
+
 #include "../include/glediator.xpm"
 //#include "../include/life.xpm"
 #include "../include/life-16.xpm"
@@ -436,6 +443,9 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
         case BitmapCache::RGB_EFFECTS_e::eff_FIREWORKS:
             toolTip = "Fireworks";
             return effectBitmaps.get(size, exact, "Fireworks", fireworks_16, fireworks_24, fireworks_32, fireworks_48, fireworks_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_GALAXY:
+            toolTip = "Galaxy";
+            return effectBitmaps.get(size, exact, "Galaxy", galaxy_16, galaxy_24, galaxy_32, galaxy_48, galaxy_64);
         case BitmapCache::RGB_EFFECTS_e::eff_GARLANDS:
             toolTip = "Garlands";
             return effectBitmaps.get(size, exact, "Garlands", garlands_16, garlands_24, garlands_32, garlands_48, garlands_48);

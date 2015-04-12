@@ -282,7 +282,7 @@ private:
                          MapStringString& settingsMap) {
         settingsMap.clear();
         settingsMap["Effect"]=effectName;
-        
+
         for (std::map<wxString,wxString>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
             wxString name = it->first;
             if (name[1] == '_') {
@@ -590,6 +590,22 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Count"]),
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Velocity"]),
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Fade"]));
+    } else if (effect == "Galaxy") {
+        buffer.RenderGalaxy(wxAtoi(SettingsMap["SLIDER_Galaxy_CenterX"]),
+                            wxAtoi(SettingsMap["SLIDER_Galaxy_CenterY"]),
+                            wxAtoi(SettingsMap["SLIDER_Galaxy_Start_Radius"]),
+                            wxAtoi(SettingsMap["SLIDER_Galaxy_End_Radius"]),
+                            wxAtoi(SettingsMap["SLIDER_Galaxy_Start_Angle"]),
+                            wxAtoi(SettingsMap["SLIDER_Galaxy_Revolutions"]),
+                            wxAtoi(SettingsMap["SLIDER_Galaxy_Start_Width"]),
+                            wxAtoi(SettingsMap["SLIDER_Galaxy_End_Width"]),
+                            wxAtoi(SettingsMap["SLIDER_Galaxy_Duration"]),
+                            wxAtoi(SettingsMap["SLIDER_Galaxy_Accel"]),
+                            SettingsMap["CHECKBOX_Galaxy_Start_Radius_x10"]=="1",
+                            SettingsMap["CHECKBOX_Galaxy_Start_Width_x10"]=="1",
+                            SettingsMap["CHECKBOX_Galaxy_End_Radius_x10"]=="1",
+                            SettingsMap["CHECKBOX_Galaxy_End_Width_x10"]=="1",
+                            SettingsMap["CHECKBOX_Galaxy_Revs_x2"]=="1");
     } else if (effect == "Garlands") {
         buffer.RenderGarlands(wxAtoi(SettingsMap["SLIDER_Garlands_Type"]),
                               wxAtoi(SettingsMap["SLIDER_Garlands_Spacing"]));

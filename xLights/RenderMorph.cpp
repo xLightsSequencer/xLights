@@ -45,7 +45,7 @@ static void StoreLine( const int x0_, const int y0_, const int x1_, const int y1
   }
 }
 
-double calcAccel(double ratio, double accel)
+double RgbEffects::calcAccel(double ratio, double accel)
 {
     accel /= 3.0;
     if( accel == 0 ) return 1.0;

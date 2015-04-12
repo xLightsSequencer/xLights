@@ -447,6 +447,7 @@
 		<Unit filename="RenderFaces.cpp" />
 		<Unit filename="RenderFire.cpp" />
 		<Unit filename="RenderFireworks.cpp" />
+		<Unit filename="RenderGalaxy.cpp" />
 		<Unit filename="RenderGarlands.cpp" />
 		<Unit filename="RenderGlediator.cpp" />
 		<Unit filename="RenderLife.cpp" />

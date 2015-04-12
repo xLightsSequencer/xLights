@@ -628,6 +628,7 @@ private:
     static const long ID_BITMAPBUTTON29;
     static const long ID_BITMAPBUTTON30;
     static const long ID_BITMAPBUTTON35;
+    static const long ID_BITMAPBUTTON36;
     static const long ID_AUIEFFECTSTOOLBAR;
     static const long ID_BUTTON3;
     static const long ID_STATICTEXT4;
@@ -931,6 +932,7 @@ private:
     DragEffectBitmapButton* BitmapButton26;
     wxMenuItem* MenuItem_ViewZoomOut;
     wxPanel* PanelPapagayo;
+    DragEffectBitmapButton* BitmapButton32;
     wxRadioButton* RadioButtonChase3;
     wxRadioButton* RadioButtonChase4;
     wxTextCtrl* TextCtrl_PgoMaxRest;
