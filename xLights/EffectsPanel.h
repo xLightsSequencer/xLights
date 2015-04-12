@@ -394,6 +394,7 @@ public:
     wxBitmapButton* BitmapButton_TextFont4;
     wxSlider* Slider_Color_Mix1;
     wxSlider* SLIDER_Galaxy_CenterY;
+    wxCheckBox* CheckBox_Galaxy_Reverse;
     wxCheckBox* CheckBox_ColorWash_HFade;
     wxStaticText* StaticText132;
     wxBitmapButton* BitmapButton_Direction;
@@ -742,6 +743,7 @@ protected:
     static const long ID_STATICTEXT140;
     static const long ID_SLIDER_Galaxy_Accel;
     static const long ID_BITMAPBUTTON_SLIDER_Galaxy_Accel;
+    static const long ID_CHECKBOX_Galaxy_Reverse;
     static const long ID_PANEL32;
     static const long ID_NOTEBOOK_Galaxy;
     static const long ID_SCROLLEDWINDOW1;

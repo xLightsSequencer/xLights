@@ -12,8 +12,8 @@ void RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_ou
 void RenderFire(int HeightPct,int HueShift,bool GrowFire);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                  int start_width, int end_width, int duration, int acceleration,
-                  bool start_radius_x10, bool start_width_x10, bool end_radius_x10, bool end_width_x10, bool revolutions_x2 );
+                  int start_width, int end_width, int duration, int acceleration, bool start_radius_x10,
+                  bool start_width_x10, bool end_radius_x10, bool end_width_x10, bool revolutions_x2, bool reverse_dir );
 void RenderGarlands(int GarlandType, int Spacing);
 void RenderGlediator(const wxString& NewPictureName);
 void RenderLife(int Count, int Type);

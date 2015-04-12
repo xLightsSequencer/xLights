@@ -36,8 +36,8 @@ double calcAccel(double ratio, double accel)
 }
 
 void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                              int start_width, int end_width, int duration, int acceleration,
-                              bool start_radius_x10, bool start_width_x10, bool end_radius_x10, bool end_width_x10, bool revolutions_x2 )
+                              int start_width, int end_width, int duration, int acceleration, bool start_radius_x10,
+                              bool start_width_x10, bool end_radius_x10, bool end_width_x10, bool revolutions_x2, bool reverse_dir )
 {
     double eff_pos = GetEffectTimeIntervalPosition();
     int num_colors = palette.Size();
@@ -66,6 +66,10 @@ void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int 
     for( double i = std::max(0.0, tail_end_of_tail); i <= std::min(head_end_of_tail,revs); i += 0.3 )
     {
         double adj_angle = i + (double)start_angle;
+        if( reverse_dir )
+        {
+            adj_angle *= -1.0;
+        }
         double color_val = (head_end_of_tail-i) / color_length;
         int color_int = (int)color_val;
         double color_pct = color_val - (double)color_int;
