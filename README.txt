@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Added settings option to toggle between showing effect icons and backgrounds.
     -- enh (gil) New effect: Galaxy (similar to SuperStar Spiral effect)
     -- bug (gil) Prevent timings from being inserted over other timings due to rounding of position to time conversion.
     -- bug (gil) Fix Model dialogs issues caused by sorting.

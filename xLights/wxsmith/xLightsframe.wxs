@@ -3252,6 +3252,20 @@
 						<handler function="SetIconSize" entry="EVT_MENU" />
 					</object>
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM_Grid_Icon_Backgrounds" variable="MenuItem_Grid_Icon_Backgrounds" member="no">
+					<label>Grid Icon Backgrounds</label>
+					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_BACKGROUND_ON" variable="MenuItemGridIconBackgroundOn" member="yes">
+						<label>On</label>
+						<checked>1</checked>
+						<handler function="OnSetGridIconBackground" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_BACKGROUND_OFF" variable="MenuItemGridIconBackgroundOff" member="yes">
+						<label>Off</label>
+						<handler function="OnSetGridIconBackground" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+				</object>
 				<object class="wxMenu" name="ID_MENUITEM_RENDER_MODE" variable="MenuItemRenderMode" member="yes">
 					<label>Render Mode</label>
 					<enabled>0</enabled>
