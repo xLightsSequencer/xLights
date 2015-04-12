@@ -178,6 +178,22 @@ bool EffectLayer::HitTestEffect(int position,int &index, int &result)
     return isHit;
 }
 
+bool EffectLayer::HitTestEffectByTime(double time,int &index)
+{
+    bool isHit=false;
+    for(int i=0;i<mEffects.size();i++)
+    {
+        if (time >= mEffects[i]->GetStartTime() &&
+            time <= mEffects[i]->GetEndTime())
+        {
+            isHit = true;
+            index = i;
+            break;
+        }
+    }
+    return isHit;
+}
+
 int EffectLayer::GetEffectIndexThatContainsPosition(int position,int &selectionType)
 {
    int index=-1;

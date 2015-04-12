@@ -134,6 +134,7 @@
 #include "../include/spirograph-24.xpm"
 #include "../include/spirograph-32.xpm"
 #include "../include/spirograph-48.xpm"
+#include "../include/spirograph-64.xpm"
 
 #include "../include/strobe.xpm"
 
@@ -492,7 +493,7 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
             return effectBitmaps.get(size, exact, "Sprials", spirals_16, spirals_24, spirals_32, spirals_48, spirals_64);
         case BitmapCache::RGB_EFFECTS_e::eff_SPIROGRAPH:
             toolTip = "Spirograph";
-            return effectBitmaps.get(size, exact, "Spirograph", spirograph_16, spirograph_24, spirograph_32, spirograph_48, spirograph_48);
+            return effectBitmaps.get(size, exact, "Spirograph", spirograph_16, spirograph_24, spirograph_32, spirograph_48, spirograph_64);
         case BitmapCache::RGB_EFFECTS_e::eff_STROBE:
             toolTip = "Strobe";
             return effectBitmaps.get(size, exact, "Strobe", strobe, strobe, strobe, strobe, strobe);

@@ -43,6 +43,7 @@ class EffectLayer
         float GetMinimumStartTime(int index);
 
         bool HitTestEffect(int position,int &index, int &result);
+        bool HitTestEffectByTime(double time,int &index);
         int GetEffectIndexThatContainsPosition(int position,int &selectionType);
         Effect* GetEffectBeforePosition(int position);
         Effect* GetEffectAfterPosition(int position);
