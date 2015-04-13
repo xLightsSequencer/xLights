@@ -1404,11 +1404,26 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterX" variable="SLIDER_Galaxy_CenterX" member="yes">
 															<value>50</value>
+															<handler function="OnSLIDER_Galaxy_CenterXCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>0</row>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Galaxy_CenterX" variable="TextCtrl_Galaxy_CenterX" member="yes">
+															<value>50</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Galaxy_CenterXText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5d</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -1419,7 +1434,7 @@
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
-														<col>2</col>
+														<col>3</col>
 														<row>0</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1438,6 +1453,7 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterY" variable="SLIDER_Galaxy_CenterY" member="yes">
 															<value>50</value>
+															<handler function="OnSLIDER_Galaxy_CenterYCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>1</row>
@@ -1453,7 +1469,7 @@
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
-														<col>2</col>
+														<col>3</col>
 														<row>1</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1472,7 +1488,8 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Radius" variable="SLIDER_Galaxy_Start_Radius" member="yes">
 															<value>1</value>
-															<max>20</max>
+															<max>200</max>
+															<handler function="OnSLIDER_Galaxy_Start_RadiusCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>2</row>
@@ -1488,7 +1505,7 @@
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
-														<col>2</col>
+														<col>3</col>
 														<row>2</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1507,7 +1524,8 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Width" variable="SLIDER_Galaxy_Start_Width" member="yes">
 															<value>5</value>
-															<max>25</max>
+															<max>255</max>
+															<handler function="OnSLIDER_Galaxy_Start_WidthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>3</row>
@@ -1523,7 +1541,7 @@
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
-														<col>2</col>
+														<col>3</col>
 														<row>3</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1542,6 +1560,7 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Angle" variable="SLIDER_Galaxy_Start_Angle" member="yes">
 															<max>360</max>
+															<handler function="OnSLIDER_Galaxy_Start_AngleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>4</row>
@@ -1557,37 +1576,65 @@
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
-														<col>2</col>
+														<col>3</col>
 														<row>4</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBoxSizer" variable="BoxSizer1" member="no">
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Start_Radius_x10" variable="CheckBox_Galaxy_Start_Radius_x10" member="yes">
-																	<label>Radius x10:</label>
-																	<style>wxALIGN_RIGHT</style>
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Start_Width_x10" variable="CheckBox_Galaxy_Start_Width_x10" member="yes">
-																	<label>Width x10:</label>
-																	<style>wxALIGN_RIGHT</style>
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Galaxy_CenterY" variable="TextCtrl_Galaxy_CenterY" member="yes">
+															<value>50</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Galaxy_CenterYText" entry="EVT_TEXT" />
 														</object>
-														<colspan>2</colspan>
-														<col>0</col>
-														<row>5</row>
-														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<col>2</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Galaxy_Start_Radius" variable="TextCtrl_Galaxy_Start_Radius" member="yes">
+															<value>1</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Galaxy_Start_RadiusText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Galaxy_Start_Width" variable="TextCtrl_Galaxy_Start_Width" member="yes">
+															<value>5</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Galaxy_Start_WidthText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Galaxy_Start_Angle" variable="TextCtrl_Galaxy_Start_Angle" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Galaxy_Start_AngleText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1611,7 +1658,8 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Radius" variable="SLIDER_Galaxy_End_Radius" member="yes">
 															<value>10</value>
-															<max>20</max>
+															<max>200</max>
+															<handler function="OnSLIDER_Galaxy_End_RadiusCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>2</row>
@@ -1627,7 +1675,7 @@
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
-														<col>2</col>
+														<col>3</col>
 														<row>2</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1646,7 +1694,8 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Width" variable="SLIDER_Galaxy_End_Width" member="yes">
 															<value>5</value>
-															<max>25</max>
+															<max>255</max>
+															<handler function="OnSLIDER_Galaxy_End_WidthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>3</row>
@@ -1662,7 +1711,7 @@
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
-														<col>2</col>
+														<col>3</col>
 														<row>3</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1679,8 +1728,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_Revolutions" variable="SLIDER_Galaxy_Revolutions" member="no">
-															<value>80</value>
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Revolutions" variable="SLIDER_Galaxy_Revolutions" member="yes">
+															<value>1440</value>
+															<max>3600</max>
+															<handler function="OnSLIDER_Galaxy_RevolutionsCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>4</row>
@@ -1696,46 +1747,9 @@
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
-														<col>2</col>
+														<col>3</col>
 														<row>4</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBoxSizer" variable="BoxSizer2" member="no">
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_CheckBox_End_Radius_x10" variable="CheckBox_Galaxy_End_Radius_x10" member="yes">
-																	<label>Radius x10:</label>
-																	<style>wxALIGN_RIGHT</style>
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_End_Width_x10" variable="CheckBox_Galaxy_End_Width_x10" member="yes">
-																	<label>Width x10:</label>
-																	<style>wxALIGN_RIGHT</style>
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Revs_x2" variable="CheckBox_Galaxy_Revs_x2" member="no">
-																	<label>Rev&apos;s x2:</label>
-																	<style>wxALIGN_RIGHT</style>
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-														</object>
-														<colspan>2</colspan>
-														<col>0</col>
-														<row>5</row>
-														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1753,89 +1767,164 @@
 														<border>5</border>
 														<option>1</option>
 													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Galaxy_End_Radius" variable="TextCtrl_Galaxy_End_Radius" member="yes">
+															<value>10</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Galaxy_End_RadiusText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Galaxy_End_Width" variable="TextCtrl_Galaxy_End_Width" member="yes">
+															<value>5</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Galaxy_End_WidthText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Galaxy_Revolutions" variable="TextCtrl_Galaxy_Revolutions" member="yes">
+															<value>4.0</value>
+															<maxlength>4</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Galaxy_RevolutionsText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
 												</object>
 											</object>
 											<label>End</label>
 										</object>
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL32" variable="Panel8" member="no">
-												<object class="wxFlexGridSizer" variable="FlexGridSizer111" member="no">
-													<cols>1</cols>
-													<growablecols>0</growablecols>
+												<object class="wxGridBagSizer" variable="GridBagSizerGalaxyOptions" member="no">
 													<object class="sizeritem">
-														<object class="wxFlexGridSizer" variable="FlexGridSizer112" member="no">
-															<cols>3</cols>
-															<growablecols>1</growablecols>
-															<object class="sizeritem">
-																<object class="wxStaticText" name="ID_STATICTEXT139" variable="StaticText141" member="yes">
-																	<label>Head Duration:</label>
-																	<size>-1,-1</size>
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxSlider" name="ID_SLIDER_Galaxy_Duration" variable="SLIDER_Galaxy_Duration" member="yes">
-																	<value>20</value>
-																</object>
-																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Duration" variable="BitmapButton_Galaxy_Duration" member="yes">
-																	<bitmap code="padlock16x16_blue_xpm" />
-																	<size>13,13</size>
-																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxStaticText" name="ID_STATICTEXT140" variable="StaticText142" member="yes">
-																	<label>Acceleration:</label>
-																</object>
-																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxSlider" name="ID_SLIDER_Galaxy_Accel" variable="SLIDER_Galaxy_Accel" member="yes">
-																	<min>-10</min>
-																	<max>10</max>
-																</object>
-																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Accel" variable="BitmapButton_Galaxy_Accel" member="yes">
-																	<bitmap code="padlock16x16_blue_xpm" />
-																	<size>13,13</size>
-																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Reverse" variable="CheckBox_Galaxy_Reverse" member="yes">
-																	<label>Reverse:</label>
-																	<style>wxALIGN_RIGHT</style>
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
+														<object class="wxStaticText" name="ID_STATICTEXT139" variable="StaticText141" member="yes">
+															<label>Head Duration:</label>
+															<size>-1,-1</size>
 														</object>
+														<col>0</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Duration" variable="SLIDER_Galaxy_Duration" member="yes">
+															<value>20</value>
+															<handler function="OnSLIDER_Galaxy_DurationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>0</row>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT140" variable="StaticText142" member="yes">
+															<label>Acceleration:</label>
+														</object>
+														<col>0</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Accel" variable="SLIDER_Galaxy_Accel" member="yes">
+															<min>-10</min>
+															<max>10</max>
+															<handler function="OnSLIDER_Galaxy_AccelCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>1</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Galaxy_Duration" variable="TextCtrl_Galaxy_Duration" member="yes">
+															<value>20</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Galaxy_DurationText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Duration" variable="BitmapButton_Galaxy_Duration" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Galaxy_Accel" variable="TextCtrl_Galaxy_Accel" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Galaxy_AccelText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Accel" variable="BitmapButton_Galaxy_Accel" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Reverse" variable="CheckBox_Galaxy_Reverse" member="yes">
+															<label>Reverse:</label>
+															<style>wxALIGN_RIGHT</style>
+														</object>
+														<col>0</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
 														<option>1</option>
 													</object>
 												</object>

@@ -195,6 +195,7 @@ const long EffectsPanel::ID_SLIDER_Fireworks_Fade = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Fireworks_Fade = wxNewId();
 const long EffectsPanel::ID_PANEL36 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Galaxy_CenterX = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Galaxy_CenterX = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX = wxNewId();
 const long EffectsPanel::ID_STATICTEXT2 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Galaxy_CenterY = wxNewId();
@@ -208,8 +209,10 @@ const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Width = wxNewId();
 const long EffectsPanel::ID_STATICTEXT126 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Galaxy_Start_Angle = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Angle = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Galaxy_Start_Radius_x10 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Galaxy_Start_Width_x10 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Galaxy_CenterY = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Galaxy_Start_Radius = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Galaxy_Start_Width = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Galaxy_Start_Angle = wxNewId();
 const long EffectsPanel::ID_PANEL29 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT130 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Galaxy_End_Radius = wxNewId();
@@ -220,15 +223,17 @@ const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Galaxy_End_Width = wxNewId();
 const long EffectsPanel::ID_STATICTEXT134 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Galaxy_Revolutions = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_CheckBox_End_Radius_x10 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Galaxy_End_Width_x10 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Galaxy_Revs_x2 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Galaxy_End_Radius = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Galaxy_End_Width = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Galaxy_Revolutions = wxNewId();
 const long EffectsPanel::ID_PANEL31 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT139 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Galaxy_Duration = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Galaxy_Duration = wxNewId();
 const long EffectsPanel::ID_STATICTEXT140 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Galaxy_Accel = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Galaxy_Duration = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Galaxy_Duration = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Galaxy_Accel = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Galaxy_Accel = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Galaxy_Reverse = wxNewId();
 const long EffectsPanel::ID_PANEL32 = wxNewId();
@@ -646,11 +651,11 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer105;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer71;
+    wxGridBagSizer* GridBagSizerGalaxyOptions;
     wxFlexGridSizer* FlexGridSizer85;
     wxFlexGridSizer* FlexGridSizer45;
     wxFlexGridSizer* FlexGridSizer59;
     wxFlexGridSizer* FlexGridSizer47;
-    wxFlexGridSizer* FlexGridSizer112;
     wxFlexGridSizer* FlexGridSizer54;
     wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizer73;
@@ -667,7 +672,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxStaticText* StaticText2;
     wxFlexGridSizer* FlexGridSizer41;
     wxFlexGridSizer* FlexGridSizer103;
-    wxSlider* SLIDER_Galaxy_Revolutions;
     wxFlexGridSizer* FlexGridSizer51;
     wxFlexGridSizer* FlexGridSizer77;
     wxGridBagSizer* GridBagSizer1;
@@ -693,7 +697,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer66;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer69;
-    wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer53;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer102;
@@ -703,7 +706,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer55;
     wxFlexGridSizer* FlexGridSizer86;
     wxFlexGridSizer* FlexGridSizer97;
-    wxCheckBox* CheckBox_Galaxy_Revs_x2;
     wxFlexGridSizer* FlexGridSizer74;
     wxFlexGridSizer* FlexGridSizer57;
     wxStaticText* StaticText113;
@@ -721,11 +723,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer98;
     wxFlexGridSizer* FlexGridSizer21;
     wxFlexGridSizer* FlexGridSizer93;
-    wxFlexGridSizer* FlexGridSizer111;
     wxFlexGridSizer* FlexGridSizer14;
     wxFlexGridSizer* FlexGridSizer20;
     wxFlexGridSizer* FlexGridSizer82;
-    wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer50;
     wxFlexGridSizer* FlexGridSizer13;
     wxFlexGridSizer* FlexGridSizer12;
@@ -1216,45 +1216,52 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     GridBagSizerGalaxyStart->Add(StaticText125, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     SLIDER_Galaxy_CenterX = new wxSlider(Panel6, ID_SLIDER_Galaxy_CenterX, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_CenterX"));
     GridBagSizerGalaxyStart->Add(SLIDER_Galaxy_CenterX, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Galaxy_CenterX = new wxTextCtrl(Panel6, ID_TEXTCTRL_Galaxy_CenterX, _("50"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Galaxy_CenterX"));
+    TextCtrl_Galaxy_CenterX->SetMaxLength(3);
+    GridBagSizerGalaxyStart->Add(TextCtrl_Galaxy_CenterX, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(Panel6,wxSize(5,0)).GetWidth());
     BitmapButton_Galaxy_CenterX = new wxBitmapButton(Panel6, ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX"));
     BitmapButton_Galaxy_CenterX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_CenterX, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_CenterX, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText126 = new wxStaticText(Panel6, ID_STATICTEXT2, _("Center Y:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     GridBagSizerGalaxyStart->Add(StaticText126, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     SLIDER_Galaxy_CenterY = new wxSlider(Panel6, ID_SLIDER_Galaxy_CenterY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_CenterY"));
     GridBagSizerGalaxyStart->Add(SLIDER_Galaxy_CenterY, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Galaxy_CenterY = new wxBitmapButton(Panel6, ID_BITMAPBUTTON_SLIDER_Galaxy_CenterY, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_CenterY"));
     BitmapButton_Galaxy_CenterY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_CenterY, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_CenterY, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText127 = new wxStaticText(Panel6, ID_STATICTEXT125, _("Radius:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT125"));
     GridBagSizerGalaxyStart->Add(StaticText127, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    SLIDER_Galaxy_Start_Radius = new wxSlider(Panel6, ID_SLIDER_Galaxy_Start_Radius, 1, 0, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Start_Radius"));
+    SLIDER_Galaxy_Start_Radius = new wxSlider(Panel6, ID_SLIDER_Galaxy_Start_Radius, 1, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Start_Radius"));
     GridBagSizerGalaxyStart->Add(SLIDER_Galaxy_Start_Radius, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Galaxy_Start_Radius = new wxBitmapButton(Panel6, ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Radius, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Radius"));
     BitmapButton_Galaxy_Start_Radius->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_Start_Radius, wxGBPosition(2, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_Start_Radius, wxGBPosition(2, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText131 = new wxStaticText(Panel6, ID_STATICTEXT127, _("Width:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT127"));
     GridBagSizerGalaxyStart->Add(StaticText131, wxGBPosition(3, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    SLIDER_Galaxy_Start_Width = new wxSlider(Panel6, ID_SLIDER_Galaxy_Start_Width, 5, 0, 25, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Start_Width"));
+    SLIDER_Galaxy_Start_Width = new wxSlider(Panel6, ID_SLIDER_Galaxy_Start_Width, 5, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Start_Width"));
     GridBagSizerGalaxyStart->Add(SLIDER_Galaxy_Start_Width, wxGBPosition(3, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Galaxy_Start_Width = new wxBitmapButton(Panel6, ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Width, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Width"));
     BitmapButton_Galaxy_Start_Width->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_Start_Width, wxGBPosition(3, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_Start_Width, wxGBPosition(3, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText129 = new wxStaticText(Panel6, ID_STATICTEXT126, _("Angle:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT126"));
     GridBagSizerGalaxyStart->Add(StaticText129, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     SLIDER_Galaxy_Start_Angle = new wxSlider(Panel6, ID_SLIDER_Galaxy_Start_Angle, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Start_Angle"));
     GridBagSizerGalaxyStart->Add(SLIDER_Galaxy_Start_Angle, wxGBPosition(4, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Galaxy_Start_Angle = new wxBitmapButton(Panel6, ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Angle, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Angle"));
     BitmapButton_Galaxy_Start_Angle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_Start_Angle, wxGBPosition(4, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
-    CheckBox_Galaxy_Start_Radius_x10 = new wxCheckBox(Panel6, ID_CHECKBOX_Galaxy_Start_Radius_x10, _("Radius x10:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Galaxy_Start_Radius_x10"));
-    CheckBox_Galaxy_Start_Radius_x10->SetValue(false);
-    BoxSizer1->Add(CheckBox_Galaxy_Start_Radius_x10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_Galaxy_Start_Width_x10 = new wxCheckBox(Panel6, ID_CHECKBOX_Galaxy_Start_Width_x10, _("Width x10:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Galaxy_Start_Width_x10"));
-    CheckBox_Galaxy_Start_Width_x10->SetValue(false);
-    BoxSizer1->Add(CheckBox_Galaxy_Start_Width_x10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    GridBagSizerGalaxyStart->Add(BoxSizer1, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_Start_Angle, wxGBPosition(4, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Galaxy_CenterY = new wxTextCtrl(Panel6, ID_TEXTCTRL_Galaxy_CenterY, _("50"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Galaxy_CenterY"));
+    TextCtrl_Galaxy_CenterY->SetMaxLength(3);
+    GridBagSizerGalaxyStart->Add(TextCtrl_Galaxy_CenterY, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Galaxy_Start_Radius = new wxTextCtrl(Panel6, ID_TEXTCTRL_Galaxy_Start_Radius, _("1"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Galaxy_Start_Radius"));
+    TextCtrl_Galaxy_Start_Radius->SetMaxLength(3);
+    GridBagSizerGalaxyStart->Add(TextCtrl_Galaxy_Start_Radius, wxGBPosition(2, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Galaxy_Start_Width = new wxTextCtrl(Panel6, ID_TEXTCTRL_Galaxy_Start_Width, _("5"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Galaxy_Start_Width"));
+    TextCtrl_Galaxy_Start_Width->SetMaxLength(3);
+    GridBagSizerGalaxyStart->Add(TextCtrl_Galaxy_Start_Width, wxGBPosition(3, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Galaxy_Start_Angle = new wxTextCtrl(Panel6, ID_TEXTCTRL_Galaxy_Start_Angle, _("0"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Galaxy_Start_Angle"));
+    TextCtrl_Galaxy_Start_Angle->SetMaxLength(3);
+    GridBagSizerGalaxyStart->Add(TextCtrl_Galaxy_Start_Angle, wxGBPosition(4, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel6->SetSizer(GridBagSizerGalaxyStart);
     GridBagSizerGalaxyStart->Fit(Panel6);
     GridBagSizerGalaxyStart->SetSizeHints(Panel6);
@@ -1262,67 +1269,67 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     GridBagSizerGalaxyEnd = new wxGridBagSizer(0, 0);
     StaticText138 = new wxStaticText(Panel7, ID_STATICTEXT130, _("Radius:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT130"));
     GridBagSizerGalaxyEnd->Add(StaticText138, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    SLIDER_Galaxy_End_Radius = new wxSlider(Panel7, ID_SLIDER_Galaxy_End_Radius, 10, 0, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_End_Radius"));
+    SLIDER_Galaxy_End_Radius = new wxSlider(Panel7, ID_SLIDER_Galaxy_End_Radius, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_End_Radius"));
     GridBagSizerGalaxyEnd->Add(SLIDER_Galaxy_End_Radius, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Galaxy_End_Radius = new wxBitmapButton(Panel7, ID_BITMAPBUTTON_SLIDER_Galaxy_End_Radius, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_End_Radius"));
     BitmapButton_Galaxy_End_Radius->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    GridBagSizerGalaxyEnd->Add(BitmapButton_Galaxy_End_Radius, wxGBPosition(2, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyEnd->Add(BitmapButton_Galaxy_End_Radius, wxGBPosition(2, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText139 = new wxStaticText(Panel7, ID_STATICTEXT132, _("Width:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT132"));
     GridBagSizerGalaxyEnd->Add(StaticText139, wxGBPosition(3, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    SLIDER_Galaxy_End_Width = new wxSlider(Panel7, ID_SLIDER_Galaxy_End_Width, 5, 0, 25, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_End_Width"));
+    SLIDER_Galaxy_End_Width = new wxSlider(Panel7, ID_SLIDER_Galaxy_End_Width, 5, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_End_Width"));
     GridBagSizerGalaxyEnd->Add(SLIDER_Galaxy_End_Width, wxGBPosition(3, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Galaxy_End_Width = new wxBitmapButton(Panel7, ID_BITMAPBUTTON_SLIDER_Galaxy_End_Width, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_End_Width"));
     BitmapButton_Galaxy_End_Width->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    GridBagSizerGalaxyEnd->Add(BitmapButton_Galaxy_End_Width, wxGBPosition(3, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyEnd->Add(BitmapButton_Galaxy_End_Width, wxGBPosition(3, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText140 = new wxStaticText(Panel7, ID_STATICTEXT134, _("Rev\'s:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT134"));
     GridBagSizerGalaxyEnd->Add(StaticText140, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    SLIDER_Galaxy_Revolutions = new wxSlider(Panel7, ID_SLIDER_Galaxy_Revolutions, 80, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Revolutions"));
+    SLIDER_Galaxy_Revolutions = new wxSlider(Panel7, ID_SLIDER_Galaxy_Revolutions, 1440, 0, 3600, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Revolutions"));
     GridBagSizerGalaxyEnd->Add(SLIDER_Galaxy_Revolutions, wxGBPosition(4, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Galaxy_Revolutions = new wxBitmapButton(Panel7, ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions"));
     BitmapButton_Galaxy_Revolutions->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    GridBagSizerGalaxyEnd->Add(BitmapButton_Galaxy_Revolutions, wxGBPosition(4, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
-    CheckBox_Galaxy_End_Radius_x10 = new wxCheckBox(Panel7, ID_CHECKBOX_CheckBox_End_Radius_x10, _("Radius x10:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_CheckBox_End_Radius_x10"));
-    CheckBox_Galaxy_End_Radius_x10->SetValue(false);
-    BoxSizer2->Add(CheckBox_Galaxy_End_Radius_x10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_Galaxy_End_Width_x10 = new wxCheckBox(Panel7, ID_CHECKBOX_Galaxy_End_Width_x10, _("Width x10:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Galaxy_End_Width_x10"));
-    CheckBox_Galaxy_End_Width_x10->SetValue(false);
-    BoxSizer2->Add(CheckBox_Galaxy_End_Width_x10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_Galaxy_Revs_x2 = new wxCheckBox(Panel7, ID_CHECKBOX_Galaxy_Revs_x2, _("Rev\'s x2:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Galaxy_Revs_x2"));
-    CheckBox_Galaxy_Revs_x2->SetValue(false);
-    BoxSizer2->Add(CheckBox_Galaxy_Revs_x2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    GridBagSizerGalaxyEnd->Add(BoxSizer2, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyEnd->Add(BitmapButton_Galaxy_Revolutions, wxGBPosition(4, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerGalaxyEnd->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerGalaxyEnd->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Galaxy_End_Radius = new wxTextCtrl(Panel7, ID_TEXTCTRL_Galaxy_End_Radius, _("10"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Galaxy_End_Radius"));
+    TextCtrl_Galaxy_End_Radius->SetMaxLength(3);
+    GridBagSizerGalaxyEnd->Add(TextCtrl_Galaxy_End_Radius, wxGBPosition(2, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Galaxy_End_Width = new wxTextCtrl(Panel7, ID_TEXTCTRL_Galaxy_End_Width, _("5"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Galaxy_End_Width"));
+    TextCtrl_Galaxy_End_Width->SetMaxLength(3);
+    GridBagSizerGalaxyEnd->Add(TextCtrl_Galaxy_End_Width, wxGBPosition(3, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Galaxy_Revolutions = new wxTextCtrl(Panel7, ID_TEXTCTRL_Galaxy_Revolutions, _("4.0"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Galaxy_Revolutions"));
+    TextCtrl_Galaxy_Revolutions->SetMaxLength(4);
+    GridBagSizerGalaxyEnd->Add(TextCtrl_Galaxy_Revolutions, wxGBPosition(4, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel7->SetSizer(GridBagSizerGalaxyEnd);
     GridBagSizerGalaxyEnd->Fit(Panel7);
     GridBagSizerGalaxyEnd->SetSizeHints(Panel7);
     Panel8 = new wxPanel(Notebook_Galaxy, ID_PANEL32, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL32"));
-    FlexGridSizer111 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer111->AddGrowableCol(0);
-    FlexGridSizer112 = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer112->AddGrowableCol(1);
+    GridBagSizerGalaxyOptions = new wxGridBagSizer(0, 0);
     StaticText141 = new wxStaticText(Panel8, ID_STATICTEXT139, _("Head Duration:"), wxDefaultPosition, wxSize(-1,-1), 0, _T("ID_STATICTEXT139"));
-    FlexGridSizer112->Add(StaticText141, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyOptions->Add(StaticText141, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SLIDER_Galaxy_Duration = new wxSlider(Panel8, ID_SLIDER_Galaxy_Duration, 20, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Duration"));
-    FlexGridSizer112->Add(SLIDER_Galaxy_Duration, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyOptions->Add(SLIDER_Galaxy_Duration, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText142 = new wxStaticText(Panel8, ID_STATICTEXT140, _("Acceleration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT140"));
+    GridBagSizerGalaxyOptions->Add(StaticText142, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    SLIDER_Galaxy_Accel = new wxSlider(Panel8, ID_SLIDER_Galaxy_Accel, 0, -10, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Accel"));
+    GridBagSizerGalaxyOptions->Add(SLIDER_Galaxy_Accel, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Galaxy_Duration = new wxTextCtrl(Panel8, ID_TEXTCTRL_Galaxy_Duration, _("20"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Galaxy_Duration"));
+    TextCtrl_Galaxy_Duration->SetMaxLength(3);
+    GridBagSizerGalaxyOptions->Add(TextCtrl_Galaxy_Duration, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Galaxy_Duration = new wxBitmapButton(Panel8, ID_BITMAPBUTTON_SLIDER_Galaxy_Duration, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_Duration"));
     BitmapButton_Galaxy_Duration->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer112->Add(BitmapButton_Galaxy_Duration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText142 = new wxStaticText(Panel8, ID_STATICTEXT140, _("Acceleration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT140"));
-    FlexGridSizer112->Add(StaticText142, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    SLIDER_Galaxy_Accel = new wxSlider(Panel8, ID_SLIDER_Galaxy_Accel, 0, -10, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Accel"));
-    FlexGridSizer112->Add(SLIDER_Galaxy_Accel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyOptions->Add(BitmapButton_Galaxy_Duration, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Galaxy_Accel = new wxTextCtrl(Panel8, ID_TEXTCTRL_Galaxy_Accel, _("0"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Galaxy_Accel"));
+    TextCtrl_Galaxy_Accel->SetMaxLength(3);
+    GridBagSizerGalaxyOptions->Add(TextCtrl_Galaxy_Accel, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Galaxy_Accel = new wxBitmapButton(Panel8, ID_BITMAPBUTTON_SLIDER_Galaxy_Accel, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_Accel"));
     BitmapButton_Galaxy_Accel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer112->Add(BitmapButton_Galaxy_Accel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerGalaxyOptions->Add(BitmapButton_Galaxy_Accel, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Galaxy_Reverse = new wxCheckBox(Panel8, ID_CHECKBOX_Galaxy_Reverse, _("Reverse:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Galaxy_Reverse"));
     CheckBox_Galaxy_Reverse->SetValue(false);
-    FlexGridSizer112->Add(CheckBox_Galaxy_Reverse, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer111->Add(FlexGridSizer112, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    Panel8->SetSizer(FlexGridSizer111);
-    FlexGridSizer111->Fit(Panel8);
-    FlexGridSizer111->SetSizeHints(Panel8);
+    GridBagSizerGalaxyOptions->Add(CheckBox_Galaxy_Reverse, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel8->SetSizer(GridBagSizerGalaxyOptions);
+    GridBagSizerGalaxyOptions->Fit(Panel8);
+    GridBagSizerGalaxyOptions->SetSizeHints(Panel8);
     Notebook_Galaxy->AddPage(Panel6, _("Start"), false);
     Notebook_Galaxy->AddPage(Panel7, _("End"), false);
     Notebook_Galaxy->AddPage(Panel8, _("Options"), false);
@@ -2686,15 +2693,35 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FireworksCountClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FireworksVelocityClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FireworksFadeClick);
+    Connect(ID_SLIDER_Galaxy_CenterX,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSLIDER_Galaxy_CenterXCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Galaxy_CenterX,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Galaxy_CenterXText);
     Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_SLIDER_Galaxy_CenterY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSLIDER_Galaxy_CenterYCmdSliderUpdated);
     Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_CenterY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_SLIDER_Galaxy_Start_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSLIDER_Galaxy_Start_RadiusCmdSliderUpdated);
     Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_SLIDER_Galaxy_Start_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSLIDER_Galaxy_Start_WidthCmdSliderUpdated);
     Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_SLIDER_Galaxy_Start_Angle,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSLIDER_Galaxy_Start_AngleCmdSliderUpdated);
     Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Angle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_TEXTCTRL_Galaxy_CenterY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Galaxy_CenterYText);
+    Connect(ID_TEXTCTRL_Galaxy_Start_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Galaxy_Start_RadiusText);
+    Connect(ID_TEXTCTRL_Galaxy_Start_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Galaxy_Start_WidthText);
+    Connect(ID_TEXTCTRL_Galaxy_Start_Angle,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Galaxy_Start_AngleText);
+    Connect(ID_SLIDER_Galaxy_End_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSLIDER_Galaxy_End_RadiusCmdSliderUpdated);
     Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_End_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_SLIDER_Galaxy_End_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSLIDER_Galaxy_End_WidthCmdSliderUpdated);
     Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_SLIDER_Galaxy_Revolutions,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSLIDER_Galaxy_RevolutionsCmdSliderUpdated);
     Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_TEXTCTRL_Galaxy_End_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Galaxy_End_RadiusText);
+    Connect(ID_TEXTCTRL_Galaxy_End_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Galaxy_End_WidthText);
+    Connect(ID_TEXTCTRL_Galaxy_Revolutions,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Galaxy_RevolutionsText);
+    Connect(ID_SLIDER_Galaxy_Duration,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSLIDER_Galaxy_DurationCmdSliderUpdated);
+    Connect(ID_SLIDER_Galaxy_Accel,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSLIDER_Galaxy_AccelCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Galaxy_Duration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Galaxy_DurationText);
     Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Duration,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_TEXTCTRL_Galaxy_Accel,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Galaxy_AccelText);
     Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Accel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Garlands_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_GarlandsTypeClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Garlands_Spacing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_GarlandsSpacingClick);
@@ -2836,6 +2863,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     // This code is here because if you let CodeBlocks autogenerate it there is an assert because it does the operation before any columns exist
     GridBagSizerGalaxyStart->AddGrowableCol(1);
     GridBagSizerGalaxyEnd->AddGrowableCol(1);
+    GridBagSizerGalaxyOptions->AddGrowableCol(1);
 
     this->SetName(name);
 }
@@ -3519,3 +3547,232 @@ void EffectsPanel::OnPaint1(wxPaintEvent& event)
 
 }
 
+void EffectsPanel::OnTextCtrl_Galaxy_CenterXText(wxCommandEvent& event)
+{
+    int value = wxAtoi(TextCtrl_Galaxy_CenterX->GetValue());
+    if( value < SLIDER_Galaxy_CenterX->GetMin() )
+    {
+        value = SLIDER_Galaxy_CenterX->GetMin();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_CenterX->SetValue(val_str);
+    }
+    else if( value > SLIDER_Galaxy_CenterX->GetMax() )
+    {
+        value = SLIDER_Galaxy_CenterX->GetMax();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_CenterX->SetValue(val_str);
+    }
+    SLIDER_Galaxy_CenterX->SetValue(value);
+}
+
+void EffectsPanel::OnSLIDER_Galaxy_CenterXCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Galaxy_CenterX->SetValue(wxString::Format("%d",SLIDER_Galaxy_CenterX->GetValue()));
+}
+
+void EffectsPanel::OnTextCtrl_Galaxy_CenterYText(wxCommandEvent& event)
+{
+    int value = wxAtoi(TextCtrl_Galaxy_CenterY->GetValue());
+    if( value < SLIDER_Galaxy_CenterY->GetMin() )
+    {
+        value = SLIDER_Galaxy_CenterY->GetMin();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_CenterY->SetValue(val_str);
+    }
+    else if( value > SLIDER_Galaxy_CenterY->GetMax() )
+    {
+        value = SLIDER_Galaxy_CenterY->GetMax();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_CenterY->SetValue(val_str);
+    }
+    SLIDER_Galaxy_CenterY->SetValue(value);
+}
+
+void EffectsPanel::OnSLIDER_Galaxy_CenterYCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Galaxy_CenterY->SetValue(wxString::Format("%d",SLIDER_Galaxy_CenterY->GetValue()));
+}
+
+void EffectsPanel::OnTextCtrl_Galaxy_Start_RadiusText(wxCommandEvent& event)
+{
+    int value = wxAtoi(TextCtrl_Galaxy_Start_Radius->GetValue());
+    if( value < SLIDER_Galaxy_Start_Radius->GetMin() )
+    {
+        value = SLIDER_Galaxy_Start_Radius->GetMin();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_Start_Radius->SetValue(val_str);
+    }
+    else if( value > SLIDER_Galaxy_Start_Radius->GetMax() )
+    {
+        value = SLIDER_Galaxy_Start_Radius->GetMax();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_Start_Radius->SetValue(val_str);
+    }
+    SLIDER_Galaxy_Start_Radius->SetValue(value);
+}
+
+void EffectsPanel::OnSLIDER_Galaxy_Start_RadiusCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Galaxy_Start_Radius->SetValue(wxString::Format("%d",SLIDER_Galaxy_Start_Radius->GetValue()));
+}
+
+void EffectsPanel::OnTextCtrl_Galaxy_Start_WidthText(wxCommandEvent& event)
+{
+    int value = wxAtoi(TextCtrl_Galaxy_Start_Width->GetValue());
+    if( value < SLIDER_Galaxy_Start_Width->GetMin() )
+    {
+        value = SLIDER_Galaxy_Start_Width->GetMin();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_Start_Width->SetValue(val_str);
+    }
+    else if( value > SLIDER_Galaxy_Start_Width->GetMax() )
+    {
+        value = SLIDER_Galaxy_Start_Width->GetMax();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_Start_Width->SetValue(val_str);
+    }
+    SLIDER_Galaxy_Start_Width->SetValue(value);
+}
+
+void EffectsPanel::OnSLIDER_Galaxy_Start_WidthCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Galaxy_Start_Width->SetValue(wxString::Format("%d",SLIDER_Galaxy_Start_Width->GetValue()));
+}
+
+void EffectsPanel::OnTextCtrl_Galaxy_Start_AngleText(wxCommandEvent& event)
+{
+    int value = wxAtoi(TextCtrl_Galaxy_Start_Angle->GetValue());
+    if( value < SLIDER_Galaxy_Start_Angle->GetMin() )
+    {
+        value = SLIDER_Galaxy_Start_Angle->GetMin();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_Start_Angle->SetValue(val_str);
+    }
+    else if( value > SLIDER_Galaxy_Start_Angle->GetMax() )
+    {
+        value = SLIDER_Galaxy_Start_Angle->GetMax();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_Start_Angle->SetValue(val_str);
+    }
+    SLIDER_Galaxy_Start_Angle->SetValue(value);
+}
+
+void EffectsPanel::OnSLIDER_Galaxy_Start_AngleCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Galaxy_Start_Angle->SetValue(wxString::Format("%d",SLIDER_Galaxy_Start_Angle->GetValue()));
+}
+
+void EffectsPanel::OnTextCtrl_Galaxy_End_RadiusText(wxCommandEvent& event)
+{
+    int value = wxAtoi(TextCtrl_Galaxy_End_Radius->GetValue());
+    if( value < SLIDER_Galaxy_End_Radius->GetMin() )
+    {
+        value = SLIDER_Galaxy_End_Radius->GetMin();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_End_Radius->SetValue(val_str);
+    }
+    else if( value > SLIDER_Galaxy_End_Radius->GetMax() )
+    {
+        value = SLIDER_Galaxy_End_Radius->GetMax();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_End_Radius->SetValue(val_str);
+    }
+    SLIDER_Galaxy_End_Radius->SetValue(value);
+}
+
+void EffectsPanel::OnSLIDER_Galaxy_End_RadiusCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Galaxy_End_Radius->SetValue(wxString::Format("%d",SLIDER_Galaxy_End_Radius->GetValue()));
+}
+
+void EffectsPanel::OnTextCtrl_Galaxy_End_WidthText(wxCommandEvent& event)
+{
+    int value = wxAtoi(TextCtrl_Galaxy_End_Width->GetValue());
+    if( value < SLIDER_Galaxy_End_Width->GetMin() )
+    {
+        value = SLIDER_Galaxy_End_Width->GetMin();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_End_Width->SetValue(val_str);
+    }
+    else if( value > SLIDER_Galaxy_End_Width->GetMax() )
+    {
+        value = SLIDER_Galaxy_End_Width->GetMax();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_End_Width->SetValue(val_str);
+    }
+    SLIDER_Galaxy_End_Width->SetValue(value);
+}
+
+void EffectsPanel::OnSLIDER_Galaxy_End_WidthCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Galaxy_End_Width->SetValue(wxString::Format("%d",SLIDER_Galaxy_End_Width->GetValue()));
+}
+
+void EffectsPanel::OnTextCtrl_Galaxy_RevolutionsText(wxCommandEvent& event)
+{
+    double revs;
+    TextCtrl_Galaxy_Revolutions->GetValue().ToDouble(&revs);
+    int value = (int)(revs * 360.0);
+    if( value < SLIDER_Galaxy_Revolutions->GetMin() )
+    {
+        value = SLIDER_Galaxy_Revolutions->GetMin();
+        TextCtrl_Galaxy_Revolutions->SetValue(wxString::Format("%0.2f",(double)value/360.0));
+    }
+    else if( value > SLIDER_Galaxy_Revolutions->GetMax() )
+    {
+        value = SLIDER_Galaxy_Revolutions->GetMax();
+        TextCtrl_Galaxy_Revolutions->SetValue(wxString::Format("%0.2f",(double)value/360.0));
+    }
+    SLIDER_Galaxy_Revolutions->SetValue(value);
+}
+
+void EffectsPanel::OnSLIDER_Galaxy_RevolutionsCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Galaxy_Revolutions->SetValue(wxString::Format("%0.2f",SLIDER_Galaxy_Revolutions->GetValue()/360.0));
+}
+
+void EffectsPanel::OnTextCtrl_Galaxy_DurationText(wxCommandEvent& event)
+{
+    int value = wxAtoi(TextCtrl_Galaxy_Duration->GetValue());
+    if( value < SLIDER_Galaxy_Duration->GetMin() )
+    {
+        value = SLIDER_Galaxy_Duration->GetMin();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_Duration->SetValue(val_str);
+    }
+    else if( value > SLIDER_Galaxy_Duration->GetMax() )
+    {
+        value = SLIDER_Galaxy_Duration->GetMax();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_Duration->SetValue(val_str);
+    }
+    SLIDER_Galaxy_Duration->SetValue(value);
+}
+
+void EffectsPanel::OnSLIDER_Galaxy_DurationCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Galaxy_Duration->SetValue(wxString::Format("%d",SLIDER_Galaxy_Duration->GetValue()));
+}
+
+void EffectsPanel::OnTextCtrl_Galaxy_AccelText(wxCommandEvent& event)
+{
+    int value = wxAtoi(TextCtrl_Galaxy_Accel->GetValue());
+    if( value < SLIDER_Galaxy_Accel->GetMin() )
+    {
+        value = SLIDER_Galaxy_Accel->GetMin();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_Accel->SetValue(val_str);
+    }
+    else if( value > SLIDER_Galaxy_Accel->GetMax() )
+    {
+        value = SLIDER_Galaxy_Accel->GetMax();
+        wxString val_str; val_str << value;
+        TextCtrl_Galaxy_Accel->SetValue(val_str);
+    }
+    SLIDER_Galaxy_Accel->SetValue(value);
+}
+
+void EffectsPanel::OnSLIDER_Galaxy_AccelCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_Galaxy_Accel->SetValue(wxString::Format("%d",SLIDER_Galaxy_Accel->GetValue()));
+}

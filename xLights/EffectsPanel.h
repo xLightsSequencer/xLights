@@ -104,7 +104,6 @@ public:
     wxScrolledWindow* Panel1_Ripple;
     wxBitmapButton* BitmapButton_Wave_Thickness;
     wxSlider* Slider_Morph_Start_Y1;
-    wxCheckBox* CheckBox_Galaxy_End_Radius_x10;
     wxBitmapButton* BitmapButton_TextToCenter2;
     wxStaticText* StaticText45;
     wxPanel* Panel3;
@@ -129,6 +128,7 @@ public:
     wxCheckBox* CheckBox_Chase_3dFade1;
     wxScrolledWindow* Panel1_Piano;
     wxBitmapButton* BitmapButton_CurtainSwag;
+    wxTextCtrl* TextCtrl_Galaxy_End_Radius;
     wxBitmapButton* BitmapButton_Morph_Start_X2;
     wxButton* Button_Text_Font1;
     wxStaticText* StaticText116;
@@ -138,7 +138,6 @@ public:
     wxCheckBox* CheckBox_TextToCenter2;
     wxStaticText* StaticText37;
     wxCheckBox* CheckBox_Spirlas_Shrink;
-    wxCheckBox* CheckBox_Galaxy_Start_Radius_x10;
     wxSlider* Slider_Eff_On_Start;
     wxChoice* Choice_Butterfly_Colors;
     wxTextCtrl* TextCtrl_Text_Font1;
@@ -232,6 +231,7 @@ public:
     wxPanel* Panel5;
     wxStaticText* StaticText56;
     wxStaticText* StaticText8;
+    wxTextCtrl* TextCtrl_Galaxy_Start_Radius;
     wxButton* Button_Text_Font2;
     wxStaticText* StaticText25;
     wxSlider* Slider_Strobe_Type;
@@ -305,6 +305,7 @@ public:
     wxStaticText* StaticText127;
     wxBitmapButton* BitmapButton_Morph_End_Y2;
     wxBitmapButton* BitmapButton13;
+    wxSlider* SLIDER_Galaxy_Revolutions;
     wxBitmapButton* BitmapButton_Pinwheel3D;
     wxBitmapButton* BitmapButton_Ripple3D;
     wxBitmapButton* BitmapButton_TextFont1;
@@ -330,6 +331,7 @@ public:
     wxBitmapButton* BitmapButton_ButterflyStyle;
     wxScrolledWindow* Panel1_Spirograph;
     wxStaticText* StaticText129;
+    wxTextCtrl* TextCtrl_Galaxy_Start_Angle;
     wxNotebook* SingleStrandEffectType;
     wxSlider* Slider_Text_Position4;
     wxBitmapButton* BitmapButton_TextEffect4;
@@ -444,6 +446,7 @@ public:
     wxBitmapButton* BitmapButton_FireworksFade;
     wxSlider* Slider_Tree_Branches;
     wxCheckBox* CheckBox_TextToCenter3;
+    wxTextCtrl* TextCtrl_Galaxy_CenterX;
     wxBitmapButton* BitmapButton_Spirographd;
     wxBitmapButton* BitmapButton_Ripple_Movement;
     wxSlider* Slider_Butterfly_Style;
@@ -456,6 +459,7 @@ public:
     wxBitmapButton* BitmapButton_SpiralsThickness;
     wxCheckBox* CheckBox_Spirograph_Animate;
     wxCheckBox* CheckBox_Ripple3D;
+    wxTextCtrl* TextCtrl_Galaxy_Revolutions;
     wxBitmapButton* BitmapButton_ColorWashCount;
     wxBitmapButton* BitmapButton_CirclesRadial3D;
     wxStaticText* StaticText50;
@@ -478,6 +482,7 @@ public:
     wxBitmapButton* BitmapButton_WaveType;
     wxSlider* Slider_Snowstorm_Count;
     wxChoice* Choice_Fill_Colors;
+    wxTextCtrl* TextCtrl_Galaxy_CenterY;
     wxChoice* Choice_Text_Count2;
     wxScrolledWindow* Panel1_Glediator;
     wxSlider* Slider_PinwheelYC;
@@ -524,9 +529,7 @@ public:
     wxCheckBox* CheckBox_Spirals_Blend;
     wxStaticText* StaticText33;
     wxStaticText* StaticText_Pictures_XC;
-    wxCheckBox* CheckBox_Galaxy_Start_Width_x10;
     wxScrolledWindow* Panel1_ColorWash;
-    wxCheckBox* CheckBox_Galaxy_End_Width_x10;
     wxSlider* Slider_Pinwheel_Twist;
     wxTextCtrl* TextCtrl_Eff_On_End;
     wxCheckBox* CheckBox_ColorWash_VFade;
@@ -536,6 +539,7 @@ public:
     wxTextCtrl* TextCtrl_Pictures_Filename;
     wxBitmapButton* BitmapButton_TextFont3;
     wxSlider* Slider_Strobe_Duration;
+    wxTextCtrl* TextCtrl_Galaxy_Start_Width;
     wxSlider* Slider_Thickness_Percentage;
     wxStaticText* StaticText5;
     wxCheckBox* CheckBox_ShowHeadAtStart;
@@ -547,9 +551,12 @@ public:
     wxCheckBox* CheckBox_Curtain_Repeat;
     wxBitmapButton* BitmapButton_FireWidth;
     wxChoice* Choice_Chase_Type1;
+    wxTextCtrl* TextCtrl_Galaxy_Accel;
     wxStaticText* StaticText16;
     wxChoice* Choice_Skips_Direction;
+    wxTextCtrl* TextCtrl_Galaxy_End_Width;
     wxScrolledWindow* Panel1_On;
+    wxTextCtrl* TextCtrl_Galaxy_Duration;
     wxSlider* Slider_Fireworks_Fade;
     wxBitmapButton* BitmapButton_Piano_ShapeFilename;
     wxCheckBox* CheckBox_Shimmer_Blink_Timing;
@@ -708,6 +715,7 @@ protected:
     static const long ID_BITMAPBUTTON_SLIDER_Fireworks_Fade;
     static const long ID_PANEL36;
     static const long ID_SLIDER_Galaxy_CenterX;
+    static const long ID_TEXTCTRL_Galaxy_CenterX;
     static const long ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX;
     static const long ID_STATICTEXT2;
     static const long ID_SLIDER_Galaxy_CenterY;
@@ -721,8 +729,10 @@ protected:
     static const long ID_STATICTEXT126;
     static const long ID_SLIDER_Galaxy_Start_Angle;
     static const long ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Angle;
-    static const long ID_CHECKBOX_Galaxy_Start_Radius_x10;
-    static const long ID_CHECKBOX_Galaxy_Start_Width_x10;
+    static const long ID_TEXTCTRL_Galaxy_CenterY;
+    static const long ID_TEXTCTRL_Galaxy_Start_Radius;
+    static const long ID_TEXTCTRL_Galaxy_Start_Width;
+    static const long ID_TEXTCTRL_Galaxy_Start_Angle;
     static const long ID_PANEL29;
     static const long ID_STATICTEXT130;
     static const long ID_SLIDER_Galaxy_End_Radius;
@@ -733,15 +743,17 @@ protected:
     static const long ID_STATICTEXT134;
     static const long ID_SLIDER_Galaxy_Revolutions;
     static const long ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions;
-    static const long ID_CHECKBOX_CheckBox_End_Radius_x10;
-    static const long ID_CHECKBOX_Galaxy_End_Width_x10;
-    static const long ID_CHECKBOX_Galaxy_Revs_x2;
+    static const long ID_TEXTCTRL_Galaxy_End_Radius;
+    static const long ID_TEXTCTRL_Galaxy_End_Width;
+    static const long ID_TEXTCTRL_Galaxy_Revolutions;
     static const long ID_PANEL31;
     static const long ID_STATICTEXT139;
     static const long ID_SLIDER_Galaxy_Duration;
-    static const long ID_BITMAPBUTTON_SLIDER_Galaxy_Duration;
     static const long ID_STATICTEXT140;
     static const long ID_SLIDER_Galaxy_Accel;
+    static const long ID_TEXTCTRL_Galaxy_Duration;
+    static const long ID_BITMAPBUTTON_SLIDER_Galaxy_Duration;
+    static const long ID_TEXTCTRL_Galaxy_Accel;
     static const long ID_BITMAPBUTTON_SLIDER_Galaxy_Accel;
     static const long ID_CHECKBOX_Galaxy_Reverse;
     static const long ID_PANEL32;
@@ -1373,6 +1385,31 @@ private:
     void OnPaint1(wxPaintEvent& event);
     void OnCheckBox_Morph_Start_LinkClick(wxCommandEvent& event);
     void OnCheckBox_Morph_End_LinkClick(wxCommandEvent& event);
+    void OnTextCtrl_Galaxy_CenterXText(wxCommandEvent& event);
+    void OnSLIDER_Galaxy_CenterXCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_Galaxy_CenterYText(wxCommandEvent& event);
+    void OnSLIDER_Galaxy_CenterYCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_Galaxy_Start_RadiusText(wxCommandEvent& event);
+    void OnSLIDER_Galaxy_Start_RadiusCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_Galaxy_Start_WidthText(wxCommandEvent& event);
+    void OnSLIDER_Galaxy_Start_WidthCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_Galaxy_Start_AngleText(wxCommandEvent& event);
+    void OnSLIDER_Galaxy_Start_AngleCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_Galaxy_End_RadiusText(wxCommandEvent& event);
+    void OnSLIDER_Galaxy_End_RadiusCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_Galaxy_End_WidthText(wxCommandEvent& event);
+    void OnSLIDER_Galaxy_End_WidthCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_Galaxy_RevolutionsText(wxCommandEvent& event);
+    void OnSLIDER_Galaxy_RevolutionsCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_Galaxy_DurationText(wxCommandEvent& event);
+    void OnSLIDER_Galaxy_DurationCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_Galaxy_AccelText(wxCommandEvent& event);
+    void OnSLIDER_Galaxy_AccelCmdSliderUpdated(wxScrollEvent& event);
+    void OnCheckBox_Galaxy_Start_Radius_x10Click(wxCommandEvent& event);
+    void OnCheckBox_Galaxy_Start_Width_x10Click(wxCommandEvent& event);
+    void OnCheckBox_Galaxy_End_Radius_x10Click(wxCommandEvent& event);
+    void OnCheckBox_Galaxy_End_Width_x10Click(wxCommandEvent& event);
+    void OnCheckBox_Galaxy_Revs_x2Click(wxCommandEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);

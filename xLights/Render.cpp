@@ -601,11 +601,6 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                             wxAtoi(SettingsMap["SLIDER_Galaxy_End_Width"]),
                             wxAtoi(SettingsMap["SLIDER_Galaxy_Duration"]),
                             wxAtoi(SettingsMap["SLIDER_Galaxy_Accel"]),
-                            SettingsMap["CHECKBOX_Galaxy_Start_Radius_x10"]=="1",
-                            SettingsMap["CHECKBOX_Galaxy_Start_Width_x10"]=="1",
-                            SettingsMap["CHECKBOX_Galaxy_End_Radius_x10"]=="1",
-                            SettingsMap["CHECKBOX_Galaxy_End_Width_x10"]=="1",
-                            SettingsMap["CHECKBOX_Galaxy_Revs_x2"]=="1",
                             SettingsMap["CHECKBOX_Galaxy_Reverse"]=="1");
     } else if (effect == "Garlands") {
         buffer.RenderGarlands(wxAtoi(SettingsMap["SLIDER_Garlands_Type"]),
