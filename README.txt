@@ -10,7 +10,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh (gil) Added settings option to toggle between showing effect icons and backgrounds.
     -- enh (gil) New effect: Galaxy (similar to SuperStar Spiral effect)
     -- bug (gil) Prevent timings from being inserted over other timings due to rounding of position to time conversion.
-    -- bug (gil) Fix Model dialogs issues caused by sorting.
+    -- bug (gil) Fix Model dialogues issues caused by sorting.
     -- bug (gil) Allow 25ms and 100ms sequences and limit which timings are available to be added.  Fixes #198.
 4.0.18  Apr 10, 2015
     -- enh (gil) Provide 2 render modes. Erase mode clears canvas then renders. Canvas mode renders over old data. #141
