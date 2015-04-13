@@ -496,7 +496,7 @@ void EffectsGrid::Paste(const wxString &data) {
         else
         {
             wxArrayString efdata = wxSplit(all_efdata[0], '\t');
-            if (efdata.size() != 6) {
+            if (efdata.size() < 3) {
                 return;
             }
             EffectLayer* el = mSequenceElements->GetRowInformation(mDropRow)->element->GetEffectLayer(mSequenceElements->GetRowInformation(mDropRow)->layerIndex);
