@@ -123,11 +123,15 @@ DisplayElementsPanel::~DisplayElementsPanel()
 	//*)
 }
 
-void DisplayElementsPanel::SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models,wxXmlNode* views)
+void DisplayElementsPanel::SetSequenceElementsModelsViews(SequenceElements* elements,
+                                                          wxXmlNode* models,
+                                                          wxXmlNode* modelGroups,
+                                                          wxXmlNode* views)
 {
     mSequenceElements = elements;
     mModels = models;
     mViews = views;
+    mModelGroups = modelGroups;
 }
 
 void DisplayElementsPanel::Initialize()
@@ -189,7 +193,8 @@ void DisplayElementsPanel::PopulateModels()
     int j=0;
     for(int i=0;i<mSequenceElements->GetElementCount();i++)
     {
-        if(mSequenceElements->GetElement(i)->GetType()== "model")
+        if(mSequenceElements->GetElement(i)->GetType()== "model"
+           || mSequenceElements->GetElement(i)->GetType()== "modelGroup")
         {
             wxListItem li;
             li.SetId(j);
@@ -223,7 +228,7 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
 void DisplayElementsPanel::AddElements(wxString type)
 {
     ModelViewSelector dialog(this);
-    dialog.SetSequenceElementsModelsViews(mSequenceElements,mModels,mViews);
+    dialog.SetSequenceElementsModelsViews(mSequenceElements,mModels,mModelGroups,mViews);
     dialog.Initialize(type);
     dialog.CenterOnParent();
     int DlgResult = dialog.ShowModal();

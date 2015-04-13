@@ -106,6 +106,21 @@ void xLightsFrame::InitSequencer()
     sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 
+bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
+    wxXmlNode *model = GetModelNode(modelName);
+    if (model == NULL) {
+        model = CreateModelNodeFromGroup(modelName);
+        if (model == NULL) {
+            return false;
+        }
+        buffer.InitBuffer(model, layerCount, SeqData.FrameTime(), zeroBased);
+        delete model;
+    } else {
+        buffer.InitBuffer(model, layerCount, SeqData.FrameTime(), zeroBased);
+    }
+    return true;
+}
+
 void xLightsFrame::CheckForAndCreateDefaultPerpective()
 {
     wxXmlNode* prospectives = PerspectivesNode->GetChildren();
@@ -152,7 +167,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
 void xLightsFrame::CheckForValidModels()
 {
     wxArrayString ModelNames;
-    GetModelNames(ModelNames);
+    GetModelNames(ModelNames, true);
     SeqElementMismatchDialog dialog(this);
     dialog.ChoiceModels->Set(ModelNames);
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
@@ -489,9 +504,9 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             playEndTime = effect->GetEndTime() * 1000;
             playStartMS = -1;
 
-            playBuffer.InitBuffer(GetModelNode(effect->GetParentEffectLayer()->GetParentElement()->GetName()),
-                                  effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount(),
-                                  SeqData.FrameTime());
+            InitPixelBuffer(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
+                            playBuffer,
+                            effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount());
 
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
@@ -539,10 +554,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             playStartMS = -1;
             RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
 
-            playBuffer.InitBuffer(GetModelNode(el->GetParentElement()->GetName()),
-                                  el->GetParentElement()->GetEffectLayerCount(),
-                                  SeqData.FrameTime());
-
+            InitPixelBuffer(el->GetParentElement()->GetName(), playBuffer,
+                            el->GetParentElement()->GetEffectLayerCount());
 
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
@@ -558,13 +571,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
     wxString model = event.GetString();
-
-    playBuffer.InitBuffer(GetModelNode(model),
-                          mSequenceElements.GetElement(model)->GetEffectLayerCount(),
-                          SeqData.FrameTime());
-
-    if (playType != PLAY_TYPE_MODEL)
-    {
+    if (InitPixelBuffer(model, playBuffer, mSequenceElements.GetElement(model)->GetEffectLayerCount())
+        && playType != PLAY_TYPE_MODEL) {
         wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
         wxPostEvent(this, playEvent);
     }
@@ -575,9 +583,7 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
     if (playType == PLAY_TYPE_MODEL)
     {
         wxString model = event.GetString();
-        playBuffer.InitBuffer(GetModelNode(model),
-                              mSequenceElements.GetElement(model)->GetEffectLayerCount(),
-                              SeqData.FrameTime());
+        InitPixelBuffer(model, playBuffer, mSequenceElements.GetElement(model)->GetEffectLayerCount());
     }
 }
 
@@ -725,9 +731,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
             RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
         }
         playStartMS = -1;
-        playBuffer.InitBuffer(GetModelNode(args->element->GetName()),
-                              args->element->GetEffectLayerCount(),
-                              SeqData.FrameTime());
+        InitPixelBuffer(args->element->GetName(), playBuffer, args->element->GetEffectLayerCount());
     }
 }
 
@@ -998,7 +1002,6 @@ void xLightsFrame::SetEffectControls(const MapStringString &settings) {
     MixTypeChanged=true;
     FadesChanged=true;
     EffectsPanel1->PaletteChanged=true;
-    ResetEffectStates(playResetEffectState);
 }
 
 wxString xLightsFrame::GetEffectTextFromWindows(wxString &palette)

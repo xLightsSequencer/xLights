@@ -101,12 +101,13 @@ private:
 
 class RenderJob: public Job, public NextRenderer {
 public:
-    RenderJob(Element *row, wxXmlNode *modelNode, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
+    RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(data), xLights(xframe) {
         if (row != NULL) {
             name = row->GetName();
             buffer = new PixelBufferClass();
-            buffer->InitBuffer(modelNode, rowToRender->GetEffectLayerCount(), seqData.FrameTime(), zeroBased);
+            
+            xframe->InitPixelBuffer(name, *buffer, rowToRender->GetEffectLayerCount(), zeroBased);
         } else {
             buffer = NULL;
             name = "";
@@ -353,13 +354,12 @@ void xLightsFrame::RenderGridToSeqData() {
         Element *rowEl = mSequenceElements.GetElement(row);
         if (rowEl->GetType() == "model" && rowEl != lastRowEl) {
             lastRowEl = rowEl;
-            wxXmlNode *modelNode = GetModelNode(rowEl->GetName());
-            RenderJob *job = new RenderJob(rowEl, modelNode, SeqData, this);
+            RenderJob *job = new RenderJob(rowEl, SeqData, this);
             job->setRenderRange(0, SeqData.NumFrames());
 
             bool hasDep = false;
             PixelBufferClass *buffer = job->getBuffer();
-            size_t cn = playBuffer.ChannelsPerNode();
+            size_t cn = buffer->ChannelsPerNode();
             for (int node = 0; node < buffer->GetNodeCount(); node++) {
                 int start = buffer->NodeStartChannel(node);
                 for (int c = 0; c < cn; c++) {
@@ -419,10 +419,10 @@ void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int 
     //printf("render model %d %d   %d\n", startms,endms, clear);
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
-    wxXmlNode *modelNode = GetModelNode(model);
-    if( el->GetType() != "Timing" && modelNode != nullptr )
+    if( el->GetType() != "Timing")
     {
-        job = new RenderJob(el, modelNode, SeqData, this, false, clear);
+        job = new RenderJob(el, SeqData, this, false, clear);
+        
         //account for some rounding by rendering before/after
         int startframe = startms / SeqData.FrameTime() - 1;
         if (startframe < 0) {
@@ -477,10 +477,9 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
     wxYield();
 
-    wxXmlNode *modelNode = GetModelNode(model);
     Element * el = mSequenceElements.GetElement(model);
     NextRenderer wait;
-    RenderJob *job = new RenderJob(el, modelNode, SeqData, this, true);
+    RenderJob *job = new RenderJob(el, SeqData, this, true);
     SequenceData *data = job->createExportBuffer();
     job->setRenderRange(0, SeqData.NumFrames());
     job->setPreviousFrameDone(SeqData.NumFrames() + 1);
@@ -513,9 +512,12 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         WriteHLSFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
     } else if (Out3 == "Fal") {
         wxString tempstr;
-        long stChan;
-        tempstr=modelNode->GetAttribute("StartChannel","1");
-        tempstr.ToLong(&stChan);
+        long stChan = 1;
+        wxXmlNode *modelNode = GetModelNode(model);
+        if (modelNode != NULL) {
+            tempstr=modelNode->GetAttribute("StartChannel","1");
+            tempstr.ToLong(&stChan);
+        }
         oName.SetExt(_("eseq"));
         fullpath=oName.GetFullPath();
         WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());

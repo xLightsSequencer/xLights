@@ -359,10 +359,12 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
         parentData=(MyTreeItemData *)TreeCtrl1->GetItemData(parentID);
     }
 
+    /*
     wxXmlNode *node=parentData->GetElement();
     wxXmlNode *newNode=((xLightsFrame *)xLightParent)->CreateEffectNode(name);
     node->AddChild(newNode);
     TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode));
+     */
     SaveEffectsFile();
 }
 
@@ -388,10 +390,12 @@ void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
     delete oldXml;
     TreeCtrl1->Delete(itemID);
 
+    /*
     wxXmlNode *newNode=((xLightsFrame *)xLightParent)->CreateEffectNode(name);
     pnode->AddChild(newNode);
     itemID = TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode));
     TreeCtrl1->SelectItem(itemID);
+     */
     SaveEffectsFile();
 }
 

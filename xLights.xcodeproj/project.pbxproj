@@ -14,6 +14,7 @@
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
 		671D81681A67408D005819EA /* NewSequenceDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81671A67408D005819EA /* NewSequenceDialog.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
+		6730E4D21ADB54E8005DECF0 /* RenderGalaxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
 		674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C51918238E00A993C7 /* RenderFaces.cpp */; };
@@ -160,6 +161,7 @@
 		672F95231A7A6619005FF8BF /* ViewsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewsDialog.h; sourceTree = "<group>"; };
 		672F95241A7A6619005FF8BF /* WholeHouseModelNameDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WholeHouseModelNameDialog.h; sourceTree = "<group>"; };
 		672F95251A7A6619005FF8BF /* XlightsDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XlightsDrawable.h; sourceTree = "<group>"; };
+		6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGalaxy.cpp; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
 		673E425817F0D23E00F4BC76 /* TabSchedule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSchedule.cpp; sourceTree = "<group>"; };
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
@@ -357,6 +359,7 @@
 				674D34C51918238E00A993C7 /* RenderFaces.cpp */,
 				67A619E017B51C0F008E95BB /* RenderFire.cpp */,
 				67A619E117B51C0F008E95BB /* RenderFireworks.cpp */,
+				6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */,
 				67A619E217B51C0F008E95BB /* RenderGarlands.cpp */,
 				675006771923EBBD00875D45 /* RenderGlediator.cpp */,
 				67A619E317B51C0F008E95BB /* RenderLife.cpp */,
@@ -762,6 +765,7 @@
 				67E5B9E71A19AC860044D685 /* RenderStrobe.cpp in Sources */,
 				674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */,
 				6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */,
+				6730E4D21ADB54E8005DECF0 /* RenderGalaxy.cpp in Sources */,
 				67A61A5317B51C0F008E95BB /* SerialPortWithRate.cpp in Sources */,
 				674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */,
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,

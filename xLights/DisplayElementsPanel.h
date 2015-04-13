@@ -24,7 +24,9 @@ class DisplayElementsPanel: public wxPanel
 		DisplayElementsPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~DisplayElementsPanel();
 
-		void SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models,wxXmlNode* views);
+        void SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models,
+                                        wxXmlNode* modelGroups,
+                                        wxXmlNode* views);
         void Initialize();
         void AddElements(wxString type);
         void AddMissingModelsOfView(wxString view);
@@ -70,6 +72,7 @@ class DisplayElementsPanel: public wxPanel
         SequenceElements* mSequenceElements;
         wxXmlNode* mModels;
         wxXmlNode* mViews;
+        wxXmlNode* mModelGroups;
         void ListItemChecked(wxCommandEvent& event);
 		//(*Handlers(DisplayElementsPanel)
 		void OnMouseLeave(wxMouseEvent& event);

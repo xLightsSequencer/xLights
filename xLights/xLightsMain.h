@@ -319,7 +319,6 @@ public:
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
     void SetEffectControls(const wxString &name, const MapStringString &settings, const MapStringString &palette);
     void SetEffectControls(const MapStringString &settings);
-    wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);
 
@@ -1330,7 +1329,6 @@ private:
     void ShowAllModelsView();
     void ShowModelsView();
     void ViewHideAllModels();
-    void UpdateViewList();
     void UpdateModelsList();
     void ChooseColor(wxTextCtrl* TextCtrl);
     void LoadSizerControlsToAttr(wxSizer* sizer,wxXmlNode* x);
@@ -1346,8 +1344,9 @@ private:
     void OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer);
     void ChooseModelsForSequence();
     void GetGridColumnLabels(wxArrayString& a);
-    void GetModelNames(wxArrayString& a);
+    void GetModelNames(wxArrayString& a, bool includeGroups = false);
     wxXmlNode* GetModelNode(const wxString& name);
+    wxXmlNode* CreateModelNodeFromGroup(const wxString &name);
     void DisplayXlightsFilename(const wxString& filename);
     void CopyRow(int row1, int row2);
     void NumericSort();
@@ -1361,8 +1360,10 @@ private:
     void UpdateBufferFadesFromCtrl(PixelBufferClass &buffer);
     int UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer, int playCol);
     void ResetEffectDuration(PixelBufferClass &buffer);
+    
 
 public:
+    bool InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     void RenderGridToSeqData();
     bool RenderEffectFromMap(int layer, int period, const MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
@@ -1385,7 +1386,6 @@ public:
 
 protected:
     void ClearEffectWindow();
-    void ResetEffectStates(bool *ResetEffectState);
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
     void ResetEffectsXml();
@@ -1399,20 +1399,15 @@ protected:
     void RenderAll();
     void InsertRow();
     void UpdatePreview();
-    void BuildWholeHouseModel(wxString modelName);
+    wxXmlNode *BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClassPtr> &models);
     void ShowModelsDialog();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
     void TimerOutput(int period);
-    void ResetSequenceGrid();
-    void CompareMyDisplayToSeq();
     void GetSeqModelNames(wxArrayString& a);
     void UpdateChannelNames();
     void StopNow(void);
     void PlayRgbSequence(void);
-    void PlayEffect(void);
-    void CutOrCopyToClipboard(bool IsCut);
-    void PasteFromClipboard(void);
     bool IsValidEffectString(wxString& s);
     void PreviewScaleUpdated(float newscale);
     void LoadPapagayoFile(const wxString& filename, int frame_offset = 0);
@@ -1479,7 +1474,6 @@ protected:
     Effect *selectedEffect;
 
     wxString lastPlayEffect;
-    bool playResetEffectState[2];
     double mPointSize = 2.0;
 
     // fast save support

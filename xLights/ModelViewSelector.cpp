@@ -114,13 +114,25 @@ void ModelViewSelector::PopulateModelsToAdd()
             }
         }
     }
+    for(wxXmlNode* e=mModelGroups->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "modelGroup")
+        {
+            wxString name=e->GetAttribute("name");
+            if (!mSequenceElements->ElementExists(name))
+            {
+                ListBoxElements->Append(name,e);
+            }
+        }
+    }
 }
 
 
 
-void ModelViewSelector::SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models,wxXmlNode* views)
+void ModelViewSelector::SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models,wxXmlNode* modelGroups, wxXmlNode* views)
 {
     mSequenceElements = elements;
+    mModelGroups = modelGroups;
     mModels = models;
     mViews = views;
 }

@@ -221,7 +221,8 @@ void xLightsFrame::OpenSequence()
             bbPlayPause->SetBitmap(playIcon);
             SliderPreviewTime->SetValue(0);
             TextCtrlPreviewTime->Clear();
-            CompareMyDisplayToSeq();
+            UpdateModelsList();
+            UpdatePreview();
             Timer1.Start(SeqData.FrameTime());
         }
         else if( !loaded_xml )
@@ -250,7 +251,6 @@ void xLightsFrame::CloseSequence()
     previewLoaded = false;
     previewPlaying = false;
     ResetTimer(NO_SEQ);
-    ResetSequenceGrid();
     changedRow = 99999;
     changedColumn = 99999;
     playType = 0;

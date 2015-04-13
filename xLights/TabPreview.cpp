@@ -30,49 +30,12 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     previewLoaded = false;
     previewPlaying = false;
     ResetTimer(NO_SEQ);
-    ResetSequenceGrid();
     wxString filename=dialog.GetStringSelection();
     SeqLoadXlightsXSEQ(filename);
     SeqLoadXlightsFile(filename, false);
     bbPlayPause->SetBitmap(playIcon);
     SliderPreviewTime->SetValue(0);
     TextCtrlPreviewTime->Clear();
-    CompareMyDisplayToSeq();
-}
-
-// ask user if they want to reset MyDisplay flags to match sequence
-void xLightsFrame::CompareMyDisplayToSeq()
-{
-    wxString name;
-    wxArrayString SeqModels;
-    GetSeqModelNames(SeqModels);
-    int SeqModelCount=SeqModels.size();
-    if (SeqModelCount == 0) return;
-    bool match=SeqModelCount == ListBoxElementList->GetCount();
-    wxString reason; //tell the user why -DJ
-    if (!match) reason = wxString::Format(wxT(", model count mismatch: sequence has %d, preview has %d"), SeqModelCount, ListBoxElementList->GetCount());
-    for(int i=0; i < SeqModelCount && match; i++)
-    {
-        if (ListBoxElementList->FindString(SeqModels[i]) == wxNOT_FOUND)
-        {
-            match=false;
-            reason += wxString::Format(wxT(", '%s' not in preview"), SeqModels[i]);
-        }
-    }
-    if (match) return;
-    if (!reason.IsEmpty()) reason = wxT("\nReason: ") + reason.Mid(2);
-    int retval = wxMessageBox(_("Reset 'My Display' flags on element models to match sequence?") + reason,_("Adjust Preview"),wxCENTRE | wxYES_NO);
-    if (retval != wxYES) return;
-
-    // reset My Display flags
-    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "model")
-        {
-            name=e->GetAttribute("name");
-            ModelClass::SetMyDisplay(e,SeqModels.Index(name) != wxNOT_FOUND);
-        }
-    }
     UpdateModelsList();
     UpdatePreview();
 }
@@ -95,11 +58,29 @@ void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
     wxString modelName = whDialog.Text_WholehouseModelName->GetValue();
     if(modelName.Length()> 0)
     {
-        BuildWholeHouseModel(modelName);
+        wxXmlNode *e = BuildWholeHouseModel(modelName, PreviewModels);
+        
+        // Delete exisiting wholehouse model with same name
+        for(wxXmlNode* n=ModelsNode->GetChildren(); n!=NULL; n=n->GetNext() )
+        {
+            if (n->GetAttribute("name") == modelName)
+            {
+                ModelsNode->RemoveChild(n);
+                // No break, remove them all if more than one
+            }
+        }
+        // Add model node to models
+        ModelsNode->AddChild(e);
+        // Save models to effects file
+        SaveEffectsFile();
+        // Update List on Sequencer page
+        UpdateModelsList();
+        StatusBar1->SetStatusText(wxString::Format("Completed creating '%s' whole house model",modelName));
+
     }
 }
 
-void xLightsFrame::BuildWholeHouseModel(wxString modelName)
+wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClassPtr> &models)
 {
     size_t numberOfNodes=0;
     int w,h,wScaled,hScaled;
@@ -107,10 +88,9 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     float scale=0;
     wxString WholeHouseData="";
 
-    wxString SelModelName=ListBoxElementList->GetStringSelection();
-    for (int i=0; i<PreviewModels.size(); i++)
+    for (int i=0; i<models.size(); i++)
     {
-        numberOfNodes+= PreviewModels[i]->GetNodeCount();
+        numberOfNodes+= models[i]->GetNodeCount();
     }
     std::vector<int> xPos;
     std::vector<int> yPos;
@@ -120,11 +100,10 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     modelPreview->GetVirtualCanvasSize(w, h);
 
     // Add node position and channel number to arrays
-    for (int i=0; i<PreviewModels.size(); i++)
+    for (int i=0; i<models.size(); i++)
     {
-        PreviewModels[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel,nodeType);
-        index+=PreviewModels[i]->GetNodeCount();
-        StatusBar1->SetStatusText(wxString::Format("Processing %d of %d models",i+1,PreviewModels.size()));
+        models[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel,nodeType);
+        index+=models[i]->GetNodeCount();
     }
 
     // Add WholeHouseData attribute
@@ -152,22 +131,7 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     }
 
     e->AddAttribute("WholeHouseData", WholeHouseData);
-    // Delete exisiting wholehouse model with same name
-    for(wxXmlNode* n=ModelsNode->GetChildren(); n!=NULL; n=n->GetNext() )
-    {
-        if (n->GetAttribute("name") == modelName)
-        {
-            ModelsNode->RemoveChild(n);
-            // No break, remove them all if more than one
-        }
-    }
-    // Add model node to models
-    ModelsNode->AddChild(e);
-    // Save models to effects file
-    SaveEffectsFile();
-    // Update List on Sequencer page
-    UpdateModelsList();
-    StatusBar1->SetStatusText(wxString::Format("Completed creating '%s' whole house model",modelName));
+    return e;
 }
 
 
