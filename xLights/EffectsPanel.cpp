@@ -230,6 +230,7 @@ const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Galaxy_Duration = wxNewId();
 const long EffectsPanel::ID_STATICTEXT140 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Galaxy_Accel = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Galaxy_Accel = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Galaxy_Reverse = wxNewId();
 const long EffectsPanel::ID_PANEL32 = wxNewId();
 const long EffectsPanel::ID_NOTEBOOK_Galaxy = wxNewId();
 const long EffectsPanel::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -1315,6 +1316,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_Galaxy_Accel = new wxBitmapButton(Panel8, ID_BITMAPBUTTON_SLIDER_Galaxy_Accel, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Galaxy_Accel"));
     BitmapButton_Galaxy_Accel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer112->Add(BitmapButton_Galaxy_Accel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Galaxy_Reverse = new wxCheckBox(Panel8, ID_CHECKBOX_Galaxy_Reverse, _("Reverse:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Galaxy_Reverse"));
+    CheckBox_Galaxy_Reverse->SetValue(false);
+    FlexGridSizer112->Add(CheckBox_Galaxy_Reverse, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer111->Add(FlexGridSizer112, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     Panel8->SetSizer(FlexGridSizer111);
     FlexGridSizer111->Fit(Panel8);
