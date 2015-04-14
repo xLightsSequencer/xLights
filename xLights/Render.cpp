@@ -102,7 +102,7 @@ private:
 class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
-        : Job(), NextRenderer(), rowToRender(row), seqData(data), xLights(xframe) {
+        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe) {
         if (row != NULL) {
             name = row->GetName();
             buffer = new PixelBufferClass();
@@ -124,8 +124,8 @@ public:
     }
     SequenceData *createExportBuffer() {
         SequenceData *sb = new SequenceData();
-        sb->init(buffer->GetChanCount(), seqData.NumFrames(), seqData.FrameTime());
-        seqData = *sb;
+        sb->init(buffer->GetChanCount(), seqData->NumFrames(), seqData->FrameTime());
+        seqData = sb;
         return sb;
     }
     PixelBufferClass *getBuffer() {
@@ -189,7 +189,7 @@ public:
                 size_t nodeCnt = buffer->GetNodeCount();
                 for(size_t n = 0; n < nodeCnt; n++) {
                     int start = buffer->NodeStartChannel(n);
-                    buffer->GetNodeChannelValues(n, &seqData[frame][start]);
+                    buffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
                 }
             }
             if (next) {
@@ -268,7 +268,7 @@ private:
     }
 
     Effect *findEffectForFrame(int layer, int frame) {
-        int time = frame * seqData.FrameTime();
+        int time = frame * seqData->FrameTime();
         for (int e = 0; e < rowToRender->GetEffectLayer(layer)->GetEffectCount(); e++) {
             Effect *effect = rowToRender->GetEffectLayer(layer)->GetEffect(e);
             if ((effect->GetEndTime() * 1000) > time && (effect->GetStartTime() * 1000) <= time) {
@@ -307,7 +307,7 @@ private:
     int endFrame;
     PixelBufferClass *buffer;
     xLightsFrame *xLights;
-    SequenceData &seqData;
+    SequenceData *seqData;
     bool clearAllFrames;
     RenderEvent renderEvent;
 };
@@ -461,7 +461,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             return;
         }
     } while (!ok);
-
+    EnableSequenceControls(false);
     wxString format=dialog.ChoiceFormat->GetStringSelection();
     wxStopWatch sw;
     wxString Out3=format.Left(3);
@@ -525,6 +525,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     StatusBar1->SetStatusText(_("Finished writing model: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
 
     delete data;
+    EnableSequenceControls(true);
 }
 
 
@@ -729,6 +730,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
             if (event->signal.WaitTimeout(500) == wxCOND_NO_ERROR) {
                 retval = event->returnVal;
                 event->mutex.Unlock();
+            } else {
+                printf("HELP!!!!\n");
             }
         } else {
             buffer.RenderText(wxAtoi(SettingsMap["SLIDER_Text_Position1"]),

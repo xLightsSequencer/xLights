@@ -46,6 +46,9 @@ public:
     int FrameTime() { return frameTime;}
 
 private:
+    SequenceData(const SequenceData&);  //make sure we cannot "copy" these
+    SequenceData &operator=(const SequenceData& rgb);
+    
     unsigned char *invalidData;
     unsigned char *data;
     int numChannels;
