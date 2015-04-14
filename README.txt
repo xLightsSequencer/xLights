@@ -6,7 +6,12 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.20  Apr 14, 2015
     -- enh (gil) Remove multipliers from Galaxy effect and add text fields.
+	-- bug (dkulp) 4.0.19 ignores xlights_keybindings.xml file #203	
+	-- enh (dkulp) Model Groups can be added to the sequence grid and have effects 
+			and layer associated with them directly. No need to create Whole House Models from the groups.		
+4.0.19  Apr 12, 2015
     -- enh (gil) Copy/Paste for multiple effect selection.
     -- enh (gil) Added settings option to toggle between showing effect icons and backgrounds.
     -- enh (gil) New effect: Galaxy (similar to SuperStar Spiral effect)

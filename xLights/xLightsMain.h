@@ -166,8 +166,8 @@ wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 
 
 static const wxString xlights_base_name      = "XL4 BETA";
-static const wxString xlights_version_string = "4.0.19";
-static const wxString xlights_build_date     = "Apr12";
+static const wxString xlights_version_string = "4.0.20";
+static const wxString xlights_build_date     = "Apr14";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 
@@ -1360,7 +1360,7 @@ private:
     void UpdateBufferFadesFromCtrl(PixelBufferClass &buffer);
     int UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer, int playCol);
     void ResetEffectDuration(PixelBufferClass &buffer);
-    
+
 
 public:
     bool InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
