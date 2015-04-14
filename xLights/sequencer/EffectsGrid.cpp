@@ -449,26 +449,26 @@ void EffectsGrid::Paste(const wxString &data) {
             double drop_time_offset, new_start_time, new_end_time;
             eff1data[3].ToDouble(&drop_time_offset);
             drop_time_offset = mDropStartTime - drop_time_offset;
-            int drop_index = mSequenceElements->GetRowInformation(mDropRow)->layerIndex;
-            int start_index = wxAtoi(eff1data[5]);
-            int drop_index_offset = drop_index - start_index;
+            int drop_row = mSequenceElements->GetRowInformation(mDropRow)->RowNumber;
+            int start_row = wxAtoi(eff1data[5]);
+            int drop_row_offset = drop_row - start_row;
             for( int i = 0; i < all_efdata.size()-1; i++ )
             {
                 wxArrayString efdata = wxSplit(all_efdata[i], '\t');
-                if (efdata.size() != 6) {
+                if (efdata.size() < 6) {
                     break;
                 }
                 efdata[3].ToDouble(&new_start_time);
                 efdata[4].ToDouble(&new_end_time);
                 new_start_time += drop_time_offset;
                 new_end_time += drop_time_offset;
-                int eff_index = wxAtoi(efdata[5]);
-                drop_index = eff_index + drop_index_offset;
-                Row_Information_Struct* row_info = mSequenceElements->GetRowInformation(drop_index);
+                int eff_row = wxAtoi(efdata[5]);
+                drop_row = eff_row + drop_row_offset;
+                Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
                 if( row_info == nullptr ) break;
                 Element* elem = row_info->element;
                 if( elem == nullptr ) break;
-                EffectLayer* el = elem->GetEffectLayer(drop_index);
+                EffectLayer* el = elem->GetEffectLayer(row_info->layerIndex);
                 if( el == nullptr ) break;
                 if( el->GetRangeIsClear(new_start_time, new_end_time) )
                 {

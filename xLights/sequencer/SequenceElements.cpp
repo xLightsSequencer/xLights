@@ -145,6 +145,18 @@ Row_Information_Struct* SequenceElements::GetRowInformation(int index)
     }
 }
 
+Row_Information_Struct* SequenceElements::GetRowInformationFromRow(int row_number)
+{
+    for(int i=0;i<mVisibleRowInformation.size();i++)
+    {
+        if(row_number == mVisibleRowInformation[i].RowNumber)
+        {
+            return &mVisibleRowInformation[i];
+        }
+    }
+    return NULL;
+}
+
 int SequenceElements::GetRowInformationSize()
 {
     return mVisibleRowInformation.size();
@@ -506,6 +518,7 @@ void SequenceElements::PopulateVisibleRowInformation()
 
     for(;row<mMaxRowsDisplayed && row+mFirstVisibleModelRow<mRowInformation.size();row++)
     {
+        mRowInformation[row+mFirstVisibleModelRow].RowNumber = row;
         mVisibleRowInformation.push_back(mRowInformation[row+mFirstVisibleModelRow]);
     }
 }

@@ -328,13 +328,14 @@ void MainSequencer::CopySelectedEffects() {
     {
         Element* element = mSequenceElements->GetRowInformation(i)->element;
         int layer_index = mSequenceElements->GetRowInformation(i)->layerIndex;
+        int row_number = mSequenceElements->GetRowInformation(i)->RowNumber;
         EffectLayer* el = element->GetEffectLayer(layer_index);
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
             if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
                 wxString start_time = wxString::Format("%f",ef->GetStartTime());
                 wxString end_time = wxString::Format("%f",ef->GetEndTime());
-                wxString index = wxString::Format("%d",layer_index);
+                wxString index = wxString::Format("%d",row_number);
                 copy_data += ef->GetEffectName() + "\t" + ef->GetSettingsAsString() + "\t" + ef->GetPaletteAsString() + "\t" + start_time + "\t" + end_time + "\t" + index + "\n";
             }
         }

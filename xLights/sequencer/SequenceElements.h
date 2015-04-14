@@ -51,6 +51,7 @@ class SequenceElements
         Element* GetElement(int index);
         int GetElementCount();
         Row_Information_Struct* GetRowInformation(int index);
+        Row_Information_Struct* GetRowInformationFromRow(int row_number);
         int GetRowInformationSize();
         int GetMaxModelsDisplayed();
         int GetFirstVisibleModelRow();
