@@ -1,4 +1,4 @@
-o//
+//
 //  Render.cpp
 //  xLights
 //
