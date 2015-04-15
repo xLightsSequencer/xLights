@@ -1255,7 +1255,7 @@ Element* EffectsGrid::GetActiveTimingElement()
     for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
     {
         Element* e = mSequenceElements->GetRowInformation(row)->element;
-        if(e->GetType()== "Timing" && e->GetActive())
+        if(e->GetType()== "timing" && e->GetActive())
         {
             returnValue = e;
             break;
