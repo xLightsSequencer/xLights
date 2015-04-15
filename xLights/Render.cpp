@@ -145,7 +145,7 @@ public:
         Effect *currentEffects[numLayers];
         MapStringString *settingsMaps = new MapStringString[numLayers];
         bool effectStates[numLayers];
-        if (clearAllFrames) {
+        if (clearAllFrames && buffer != NULL) {
             buffer->Clear(0);
         }
 
