@@ -1,4 +1,4 @@
-//
+o//
 //  Render.cpp
 //  xLights
 //
@@ -650,7 +650,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
     } else if (effect == "Pictures") {
         buffer.RenderPictures(PictureEffectDirections.Index(SettingsMap["CHOICE_Pictures_Direction"]),
                               SettingsMap["TEXTCTRL_Pictures_Filename"],
-                              wxAtoi(SettingsMap["SLIDER_Pictures_GifType"]),
+                              wxAtoi(SettingsMap["SLIDER_Pictures_GifSpeed"]),
                               SettingsMap["CHECKBOX_MovieIs20FPS"] == "1",
                               wxAtoi(SettingsMap["SLIDER_PicturesXC"]),
                               wxAtoi(SettingsMap["SLIDER_PicturesYC"]),
