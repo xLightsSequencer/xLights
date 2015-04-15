@@ -419,7 +419,7 @@ void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int 
     //printf("render model %d %d   %d\n", startms,endms, clear);
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
-    if( el->GetType() != "Timing")
+    if( el->GetType() != "timing")
     {
         job = new RenderJob(el, SeqData, this, false, clear);
         
