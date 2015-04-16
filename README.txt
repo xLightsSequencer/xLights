@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.21  Apr 14, 2015
+	-- bug (dkulp) App will crash when importing duplicate timing tracks. #208
+	-- bug (dkulp) Crash after export #201
 4.0.20  Apr 14, 2015
     -- enh (gil) Remove multipliers from Galaxy effect and add text fields.
 	-- bug (dkulp) 4.0.19 ignores xlights_keybindings.xml file #203	
