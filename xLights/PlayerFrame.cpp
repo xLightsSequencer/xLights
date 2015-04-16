@@ -2,7 +2,7 @@
 #include <wx/msgdlg.h>
 #include <wx/sizer.h>
 #include <wx/icon.h>
-#include "../include/xLights4.xpm"
+#include "../include/xLights.xpm"
 
 // as of wxWidgets 2.8.11, wxMediaCtrl events are messed up on Vista and Win7
 // so just avoid them altogether

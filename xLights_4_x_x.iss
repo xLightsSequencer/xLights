@@ -46,7 +46,8 @@ Source: "bin/modelxls.bat";     DestDir: "{app}"
 Source: "bin/merge_xml.awk";    DestDir: "{app}"
 Source: "bin/PathEditor.exe";   DestDir: "{app}"
 Source: "include\xLights.ico";  DestDir: "{app}"
-Source: "include\xLights4.ico"; DestDir: "{app}"
+Source: "include\xLights_orig.ico"; DestDir: "{app}"
+Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
 Source: "piano/*.*"; DestDir: "{app}/piano" 
 Source: "License.txt"; DestDir: "{app}";

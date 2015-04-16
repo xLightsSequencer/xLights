@@ -28,7 +28,7 @@
 #include "xLightsBasic.cpp"
 
 // image files
-#include "../include/xLights4.xpm"
+#include "../include/xLights.xpm"
 #include "../include/open.xpm"
 #include "../include/save.xpm"
 #include "../include/insertrow.xpm"
