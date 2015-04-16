@@ -388,6 +388,7 @@ void MainSequencer::DeleteAllSelectedEffects()
 
 void MainSequencer::InsertTimingMarkFromRange()
 {
+    bool is_range = true;
     int x1;
     int x2;
     if( mPlayType == PLAY_TYPE_MODEL )
@@ -401,12 +402,13 @@ void MainSequencer::InsertTimingMarkFromRange()
         x2 = PanelTimeLine->GetSelectedPositionEnd();
     }
     if( x2 == -1 ) x2 = x1;
+    if( x1 == x2) is_range = false;
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
     if(selectedTiming >= 0)
     {
         double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(x1);
         double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
-        if(t1!=t2)
+        if(is_range)
         {
             Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
             EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
