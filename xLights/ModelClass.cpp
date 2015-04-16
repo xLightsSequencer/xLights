@@ -28,6 +28,11 @@
 #include "Color.h"
 #include "DrawGLUtils.h"
 
+static inline void TranslatePointDoubles(double radians,double x, double y,double &x1, double &y1) {
+    x1 = cos(radians)*x-(sin(radians)*y);
+    y1 = sin(radians)*x+(cos(radians)*y);
+}
+
 void ModelClass::InitWholeHouse(wxString WholeHouseData) {
     long xCoord,yCoord,actChn;
     int lastActChn=0;
@@ -522,7 +527,7 @@ void ModelClass::SetTreeCoord(long degrees) {
     TreeDegrees=degrees;
     if (BufferWi < 2) return;
     if(BufferHt<1) return; // June 27,2013. added check to not divide by zero
-    int factor=1000/BufferHt;
+    float factor=1000/BufferHt;
     RenderHt=BufferHt*factor;
     RenderWi=RenderHt/2;
     double radians=toRadians(degrees);
@@ -538,7 +543,7 @@ void ModelClass::SetTreeCoord(long degrees) {
             bufferY=Nodes[n]->Coords[c].bufY;
             angle=StartAngle + double(bufferX) * AngleIncr;
             x0=radius * sin(angle);
-            Nodes[n]->Coords[c].screenX=floor(x0*(1.0-double(bufferY)/double(BufferHt)) + 0.5);
+            Nodes[n]->Coords[c].screenX=x0*(1.0-double(bufferY)/double(BufferHt));
 //            Nodes[n]->Coords[c].screenY=bufferY * factor;
             Nodes[n]->Coords[c].screenY=(bufferY * factor)-(RenderHt/2);
         }
@@ -758,11 +763,11 @@ void ModelClass::InitWreath() {
 // parm1=Number of Strings/Arches
 // parm2=Pixels Per String/Arch
 void ModelClass::SetLineCoord() {
-    int x,y;
-    int idx=0;
+    double x,y;
+    float idx=0;
     size_t NodeCount=GetNodeCount();
     int numlights=parm1*parm2;
-    int half=numlights/2;
+    double half=numlights/2;
     SetRenderSize(numlights*2,numlights);
 
     double radians=toRadians(PreviewRotation);
@@ -781,18 +786,20 @@ void ModelClass::SetLineCoord() {
 
 // Set screen coordinates for arches
 void ModelClass::SetArchCoord() {
-    int xoffset,x,y;
+    double xoffset,x,y;
     int numlights=parm1*parm2;
     size_t NodeCount=GetNodeCount();
     SetRenderSize(parm2,numlights*2);
     double midpt=parm2;
+    midpt -= 1.0;
+    midpt /= 2.0;
     for(size_t n=0; n<NodeCount; n++) {
         xoffset=Nodes[n]->StringNum*parm2*2 - numlights;
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
-            double angle=-M_PI/2.0 + M_PI * (double)Nodes[n]->Coords[c].bufX/midpt;
-            x=xoffset + (int)floor(midpt*sin(angle)+midpt);
-            y=(int)floor(midpt*cos(angle)+0.5);
+            double angle=-M_PI/2.0 + M_PI * ((double)Nodes[n]->Coords[c].bufX)/midpt/2.0;
+            x=xoffset + midpt*sin(angle)*2.0+parm2;
+            y=parm2*cos(angle);
             Nodes[n]->Coords[c].screenX=x;
             Nodes[n]->Coords[c].screenY=y-(RenderHt/2);
         }
@@ -1331,7 +1338,6 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
                                       std::vector<int>& actChannel, std::vector<wxString>& nodeTypes) {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
-    wxPen pen;
     int w, h;
     preview->GetVirtualCanvasSize(w,h);
 
@@ -1473,8 +1479,7 @@ int ModelClass::CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y) {
 // used when preview is running
 void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, bool allowSelected) {
     size_t NodeCount=Nodes.size();
-    wxCoord sx,sy;
-    wxPen pen;
+    double sx,sy;
     xlColour color;
     if (c != NULL) {
         color = *c;
@@ -1551,7 +1556,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         // Upper Left Handle
         sx =  (-RenderWi*scalex/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
         sy = (RenderHt*scaley/2) + BOUNDING_RECT_OFFSET;
-        TranslatePoint(radians,sx,sy,&sx,&sy);
+        TranslatePointDoubles(radians,sx,sy,sx,sy);
         sx = sx + w1;
         sy = sy + h1;
         DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
@@ -1560,7 +1565,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         // Upper Right Handle
         sx =  (RenderWi*scalex/2) + BOUNDING_RECT_OFFSET;
         sy = (RenderHt*scaley/2) + BOUNDING_RECT_OFFSET;
-        TranslatePoint(radians,sx,sy,&sx,&sy);
+        TranslatePointDoubles(radians,sx,sy,sx,sy);
         sx = sx + w1;
         sy = sy + h1;
         DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
@@ -1569,7 +1574,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         // Lower Right Handle
         sx =  (RenderWi*scalex/2) + BOUNDING_RECT_OFFSET;
         sy = (-RenderHt*scaley/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-        TranslatePoint(radians,sx,sy,&sx,&sy);
+        TranslatePointDoubles(radians,sx,sy,sx,sy);
         sx = sx + w1;
         sy = sy + h1;
         DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
@@ -1578,7 +1583,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         // Lower Left Handle
         sx =  (-RenderWi*scalex/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
         sy = (-RenderHt*scaley/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-        TranslatePoint(radians,sx,sy,&sx,&sy);
+        TranslatePointDoubles(radians,sx,sy,sx,sy);
         sx = sx + w1;
         sy = sy + h1;
         DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
@@ -1588,7 +1593,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         // Draw rotation handle square
         sx = -RECT_HANDLE_WIDTH/2;
         sy = ((RenderHt*scaley/2) + 50);
-        TranslatePoint(radians,sx,sy,&sx,&sy);
+        TranslatePointDoubles(radians,sx,sy,sx,sy);
         sx += w1;
         sy += h1;
         DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
@@ -1598,7 +1603,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         // Draw rotation handle from center to 25 over rendered height
         sx = 0;
         sy = ((RenderHt*scaley/2) + 50);
-        TranslatePoint(radians,sx,sy,&sx,&sy);
+        TranslatePointDoubles(radians,sx,sy,sx,sy);
         sx += w1;
         sy += h1;
         DrawGLUtils::DrawLine(xlWHITE,255,w1,h1,sx,sy,1.0);
@@ -1669,19 +1674,13 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
     }
 }
 
-static inline void TranslatePointDoubles(double radians,wxCoord x,wxCoord y,double &x1, double &y1) {
-    x1 = cos(radians)*((double)x)-(sin(radians)*(double)y);
-    y1 = sin(radians)*((double)x)+(cos(radians)*(double)y);
-}
 
-void ModelClass::SetModelCoord( int degrees) {
+void ModelClass::SetModelCoord(int degrees) {
     PreviewRotation=degrees;
 
     size_t NodeCount=Nodes.size();
-    wxCoord sx,sy;
+    double sx,sy;
     double x1, y1;
-    wxCoord lastX = -9999;
-    wxCoord lastY = -9999;
     double radians=toRadians(PreviewRotation);
 
     for(size_t nn=0; nn<NodeCount; nn++) {
@@ -1695,43 +1694,16 @@ void ModelClass::SetModelCoord( int degrees) {
             sy=Nodes[nn]->OrigCoords[cc].screenY;
 
             TranslatePointDoubles(radians,sx,sy,x1,y1);
-            int sx1 = round(x1);
-            int sy1 = round(y1);
-            if (sx1 == lastX && sy1 == lastY) {
-                //going to display in the same place as the last light, let's try moving around a little
-                if (rint(x1) != lastX) {
-                    sx1 = rint(x1);
-                } else if (rint(y1) != lastY) {
-                    sy1 = rint(y1);
-                } else if (floor(x1) != lastX) {
-                    sx1 = floor(x1);
-                } else if (floor(y1) != lastY) {
-                    sy1 = floor(y1);
-                } else if (ceil(x1) != lastX) {
-                    sx1 = ceil(x1);
-                } else if (ceil(y1) != lastY) {
-                    sy1 = ceil(y1);
-                }
-            }
-            Nodes[nn]->Coords[cc].screenX = sx1;
-            Nodes[nn]->Coords[cc].screenY = sy1;
-            lastX = sx1;
-            lastY = sy1;
+            
+            Nodes[nn]->Coords[cc].screenX = x1;
+            Nodes[nn]->Coords[cc].screenY = y1;
         }
     }
 }
 
-void ModelClass::TranslatePoint(double radians,wxCoord x,wxCoord y,wxCoord* x1,wxCoord* y1) {
-    double xd,yd;
-    TranslatePointDoubles(radians, x, y, xd, yd);
-
-    *x1 = round(xd);
-    *y1 = round(yd);
-}
-
 void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
     size_t NodeCount=Nodes.size();
-    wxCoord sx,sy;
+    double sx,sy;
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
@@ -1785,13 +1757,13 @@ void ModelClass::ResizeWithHandles(ModelPreview* preview,int mouseX,int mouseY) 
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
     // Get mouse point in model space/ not screen space
-    int sx,sy;
+    double sx,sy;
     sx = mouseX-w1;
     sy = (h-mouseY)-h1;
     double radians=-toRadians(PreviewRotation); // negative angle to reverse translation
-    TranslatePoint(radians,sx,sy,&sx,&sy);
-    sx = abs(sx) - RECT_HANDLE_WIDTH;
-    sy = abs(sy) - RECT_HANDLE_WIDTH;
+    TranslatePointDoubles(radians,sx,sy,sx,sy);
+    sx = fabs(sx) - RECT_HANDLE_WIDTH;
+    sy = fabs(sy) - RECT_HANDLE_WIDTH;
     if(RenderWi >= RenderHt) {
         newScale = (float)(sx*2)/(float)w;
     } else {

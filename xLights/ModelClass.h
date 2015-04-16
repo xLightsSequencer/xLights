@@ -59,7 +59,8 @@ private:
         // buffer and screen coordinates for displayed nodes
         struct CoordStruct
         {
-            wxCoord bufX, bufY, screenX, screenY;
+            wxCoord bufX, bufY;
+            float screenX, screenY;
         };
 
     protected:
@@ -315,7 +316,6 @@ private:
     void InitCustomMatrix(const wxString& customModel);
     double toRadians(long degrees);
     long toDegrees(double radians);
-    void TranslatePoint(double radians,wxCoord x,wxCoord y,wxCoord* x1,wxCoord* y1);
 
     wxString DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
     wxString StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
