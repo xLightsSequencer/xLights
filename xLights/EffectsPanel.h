@@ -58,6 +58,7 @@ public:
     wxBitmapButton* BitmapButton_SnowflakesType;
     wxSlider* Slider_Skips_StartPos;
     wxBitmapButton* BitmapButton_Piano_Clipping;
+    wxTextCtrl* TextCtrl_PicturesYC;
     wxBitmapButton* BitmapButton_Galaxy_CenterX;
     wxCheckBox* CheckBox_Morph_Start_Link;
     wxChoice* Choice_Text_Dir1;
@@ -202,6 +203,7 @@ public:
     wxSlider* Slider_Spirals_Thickness;
     wxBitmapButton* BitmapButton_TextToCenter1;
     wxSlider* Slider_Number_Waves;
+    wxTextCtrl* TextCtrl_Pictures_GifSpeed;
     wxStaticText* StaticText142;
     wxStaticText* StaticText13;
     wxBitmapButton* BitmapButton_Galaxy_Start_Width;
@@ -211,8 +213,8 @@ public:
     wxBitmapButton* BitmapButton_CirclesRadial;
     wxBitmapButton* BitmapButton_FireworksNumberExplosions;
     wxBitmapButton* BitmapButton_Morph_End_X2;
-    wxStaticText* StaticText65;
     wxSlider* Slider_Shimmer_Blinks_Per_Row;
+    wxStaticText* StaticText65;
     wxStaticText* StaticText60;
     wxChoice* Choice_Wave_Direction;
     wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
@@ -518,6 +520,7 @@ public:
     wxStaticText* StaticText111;
     wxBitmapButton* BitmapButton_RippleThickness;
     wxChoice* Choice_Text_Effect1;
+    wxTextCtrl* TextCtrl_PicturesXC;
     wxBitmapButton* BitmapButton_SpirographR;
     wxBitmapButton* BitmapButton_MeteorsEffect;
     wxChoice* Choice_Text_Count3;
@@ -883,6 +886,7 @@ protected:
     static const long ID_BITMAPBUTTON_CHOICE_Pictures_Direction;
     static const long ID_STATICTEXT97;
     static const long ID_SLIDER_Pictures_GifSpeed;
+    static const long ID_TEXTCTRL_Pictures_GifSpeed;
     static const long ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed;
     static const long ID_STATICTEXT4;
     static const long ID_CHECKBOX_MovieIs20FPS;
@@ -890,7 +894,9 @@ protected:
     static const long ID_STATICTEXT_Pictures_XC;
     static const long ID_SLIDER_PicturesXC;
     static const long ID_CHECKBOX_Pictures_WrapX;
+    static const long ID_TEXTCTRL_PicturesXC;
     static const long ID_STATICTEXT_Pictures_YC;
+    static const long ID_TEXTCTRL_PicturesYC;
     static const long ID_SLIDER_PicturesYC;
     static const long ID_PANEL20;
     static const long ID_STATICTEXT65;
@@ -1414,6 +1420,12 @@ private:
     void OnCheckBox_Galaxy_End_Radius_x10Click(wxCommandEvent& event);
     void OnCheckBox_Galaxy_End_Width_x10Click(wxCommandEvent& event);
     void OnCheckBox_Galaxy_Revs_x2Click(wxCommandEvent& event);
+    void OnTextCtrl_Pictures_GifSpeedText(wxCommandEvent& event);
+    void OnSlider_Pictures_GifSpeedCmdSliderUpdated(wxScrollEvent& event);
+    void OnSlider_PicturesXCCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_PicturesXCText(wxCommandEvent& event);
+    void OnSlider_PicturesYCCmdSliderUpdated(wxScrollEvent& event);
+    void OnTextCtrl_PicturesYCText(wxCommandEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);

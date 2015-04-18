@@ -3192,7 +3192,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer31" member="no">
-										<cols>3</cols>
+										<cols>4</cols>
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT46" variable="StaticText46" member="yes">
@@ -3222,6 +3222,11 @@
 											<border>1</border>
 											<option>1</option>
 										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT97" variable="StaticText96" member="yes">
 												<label>Anim Gif Speed</label>
@@ -3235,9 +3240,22 @@
 												<value>20</value>
 												<min>1</min>
 												<max>20</max>
+												<handler function="OnSlider_Pictures_GifSpeedCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_GifSpeed" variable="TextCtrl_Pictures_GifSpeed" member="yes">
+												<value>20</value>
+												<maxlength>3</maxlength>
+												<size>35,-1</size>
+												<style>wxTE_CENTRE</style>
+												<handler function="OnTextCtrl_Pictures_GifSpeedText" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
@@ -3245,6 +3263,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>13,13</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_PicturesSpeedClick" entry="EVT_BUTTON" />
 											</object>
@@ -3300,6 +3319,7 @@
 												<object class="sizeritem">
 													<object class="wxSlider" name="ID_SLIDER_PicturesXC" variable="Slider_PicturesXC" member="yes">
 														<min>-100</min>
+														<handler function="OnSlider_PicturesXCCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
@@ -3313,6 +3333,18 @@
 													<border>5</border>
 													<option>1</option>
 												</object>
+												<object class="sizeritem">
+													<object class="wxTextCtrl" name="ID_TEXTCTRL_PicturesXC" variable="TextCtrl_PicturesXC" member="yes">
+														<value>0</value>
+														<maxlength>3</maxlength>
+														<size>35,-1</size>
+														<style>wxTE_CENTRE</style>
+														<handler function="OnTextCtrl_PicturesXCText" entry="EVT_TEXT" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
 											</object>
 											<col>0</col>
 											<row>0</row>
@@ -3321,12 +3353,27 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxFlexGridSizer" variable="FlexGridSizer107" member="no">
-												<cols>3</cols>
+											<object class="wxGridBagSizer" variable="GridBagSizer2" member="no">
 												<object class="sizeritem">
 													<object class="wxStaticText" name="ID_STATICTEXT_Pictures_YC" variable="StaticText_Pictures_YC" member="yes">
 														<label>Y-axis Center</label>
 													</object>
+													<col>0</col>
+													<row>1</row>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxTextCtrl" name="ID_TEXTCTRL_PicturesYC" variable="TextCtrl_PicturesYC" member="yes">
+														<value>0</value>
+														<maxlength>3</maxlength>
+														<size>35,-1</size>
+														<style>wxTE_CENTRE</style>
+														<handler function="OnTextCtrl_PicturesYCText" entry="EVT_TEXT" />
+													</object>
+													<col>0</col>
+													<row>2</row>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
@@ -3334,8 +3381,12 @@
 												<object class="sizeritem">
 													<object class="wxSlider" name="ID_SLIDER_PicturesYC" variable="Slider_PicturesYC" member="yes">
 														<min>-100</min>
-														<style>wxSL_VERTICAL</style>
+														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
+														<handler function="OnSlider_PicturesYCCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
+													<rowspan>4</rowspan>
+													<col>1</col>
+													<row>0</row>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
@@ -3344,7 +3395,7 @@
 											<rowspan>2</rowspan>
 											<col>1</col>
 											<row>0</row>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>

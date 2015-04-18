@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Add text field to Pictures effect and inverse Pictures Y position slider.
     -- enh (gil) Galaxy effect update.  New options for edge blending and spiral inwards.
 4.0.22  Apr 15, 2015
     -- bug  (gil) Marking timing marks with "t" does not create start time and end time #212
@@ -19,9 +20,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	-- bug (dkulp) Crash after export #201
 4.0.20  Apr 14, 2015
     -- enh (gil) Remove multipliers from Galaxy effect and add text fields.
-	-- bug (dkulp) 4.0.19 ignores xlights_keybindings.xml file #203	
-	-- enh (dkulp) Model Groups can be added to the sequence grid and have effects 
-			and layer associated with them directly. No need to create Whole House Models from the groups.		
+	-- bug (dkulp) 4.0.19 ignores xlights_keybindings.xml file #203
+	-- enh (dkulp) Model Groups can be added to the sequence grid and have effects
+			and layer associated with them directly. No need to create Whole House Models from the groups.
 4.0.19  Apr 12, 2015
     -- enh (gil) Copy/Paste for multiple effect selection.
     -- enh (gil) Added settings option to toggle between showing effect icons and backgrounds.
