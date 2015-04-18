@@ -484,8 +484,8 @@ void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, i
 }
 
 void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                                     bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma) {
-    effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma);
+                                     bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade) {
+    effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma, fade);
 }
 
 void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount) {

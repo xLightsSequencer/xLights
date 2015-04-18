@@ -98,6 +98,7 @@ public:
     wxStaticText* StaticText91;
     wxNotebook* Notebook_Text1;
     wxCheckBox* CheckBox_Circles_Radial_3D;
+    wxBitmapButton* BitmapButton_Circles_Linear_Fade;
     wxSlider* Slider_Fireworks_Number_Explosions;
     wxBitmapButton* BitmapButton_CirclesPlasma;
     wxSlider* Slider_Shimmer_Duty_Factor;
@@ -111,6 +112,7 @@ public:
     wxSlider* SLIDER_Galaxy_End_Radius;
     wxStaticText* StaticText11;
     wxBitmapButton* BitmapButton_Glediator_Filename;
+    wxBitmapButton* BitmapButton_CirclesBubbles;
     wxStaticText* StaticText18;
     wxStaticText* StaticText131;
     wxStaticText* StaticText30;
@@ -269,7 +271,6 @@ public:
     wxSlider* Slider_Spirograph_R;
     wxBitmapButton* BitmapButton_SpiralsShrink;
     wxStaticText* StaticText39;
-    wxBitmapButton* BitmapButton3;
     wxStaticText* StaticText124;
     wxStaticText* StaticText78;
     wxBitmapButton* BitmapButton_LayerEffect;
@@ -525,6 +526,7 @@ public:
     wxBitmapButton* BitmapButton_MeteorsEffect;
     wxChoice* Choice_Text_Count3;
     wxBitmapButton* BitmapButton_Skips_StartingPosition;
+    wxCheckBox* CheckBox_Circles_Linear_Fade;
     wxCheckBox* CheckBox_Shimmer_Use_All_Colors;
     wxStaticText* StaticText136;
     wxSlider* Slider_Spirals_Rotation;
@@ -657,11 +659,13 @@ protected:
     static const long ID_CHECKBOX_Circles_Radial_3D;
     static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D;
     static const long ID_CHECKBOX_Circles_Bubbles;
-    static const long ID_BITMAPBUTTON15;
+    static const long ID_BITMAPBUTTON_CirclesBubbles;
     static const long ID_CHECKBOX_Circles_Collide;
     static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Collide;
     static const long ID_CHECKBOX_Circles_Random_m;
     static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m;
+    static const long ID_CHECKBOX_Circles_Linear_Fade;
+    static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade;
     static const long ID_PANEL37;
     static const long ID_STATICTEXT21;
     static const long ID_SLIDER_ColorWash_Count;
@@ -1426,6 +1430,9 @@ private:
     void OnTextCtrl_PicturesXCText(wxCommandEvent& event);
     void OnSlider_PicturesYCCmdSliderUpdated(wxScrollEvent& event);
     void OnTextCtrl_PicturesYCText(wxCommandEvent& event);
+    void OnBitmapButton_CirclesLinearClick(wxCommandEvent& event);
+    void OnBitmapButton_Circles_Linear_FadeClick(wxCommandEvent& event);
+    void OnBitmapButton_CirclesBubblesClick(wxCommandEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);

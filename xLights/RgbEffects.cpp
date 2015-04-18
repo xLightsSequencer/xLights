@@ -329,7 +329,7 @@ void RgbEffects::DrawThickLine( const int x0_, const int y0_, const int x1_, con
   }
 }
 
-void RgbEffects::DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb)
+void RgbEffects::DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap)
 {
     HSVValue hsv = wxImage::RGBtoHSV(rgb);
     xlColor color;
@@ -341,7 +341,7 @@ void RgbEffects::DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb
         if( hsv.value > 0.0 )
         {
             color = wxImage::HSVtoRGB(hsv);
-            DrawCircle(x0, y0, r, color, true);
+            DrawCircle(x0, y0, r, color, wrap);
         }
         r--;
     }

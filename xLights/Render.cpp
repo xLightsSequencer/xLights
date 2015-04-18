@@ -567,7 +567,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                              SettingsMap["CHECKBOX_Circles_Radial_3D"]=="1",
                              SettingsMap["CHECKBOX_Circles_Bubbles"]=="1",
                              buffer.BufferWi/2, buffer.BufferHt/2,
-                             SettingsMap["CHECKBOX_Circles_Plasma"]=="1"
+                             SettingsMap["CHECKBOX_Circles_Plasma"]=="1",
+                             SettingsMap["CHECKBOX_Circles_Linear_Fade"]=="1"
                              );
 
     } else if (effect == "Color Wash") {

@@ -26,7 +26,7 @@
 static const int MAX_RGB_BALLS = 20;
 
 void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma)
+                               bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade)
 {
 
     int ii=0;
@@ -110,7 +110,14 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         for (ii=0; ii<number; ii++)
         {
             hsv = balls[ii].hsvcolor;
-            DrawCircle(balls[ii]._x, balls[ii]._y, balls[ii]._radius, hsv, !bubbles, !bounce && !collide);
+            if( fade )
+            {
+                DrawFadingCircle(balls[ii]._x, balls[ii]._y, balls[ii]._radius, hsv, !bounce && !collide);
+            }
+            else
+            {
+                DrawCircle(balls[ii]._x, balls[ii]._y, balls[ii]._radius, hsv, !bubbles, !bounce && !collide);
+            }
         }
     }
 }
@@ -139,7 +146,7 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int numbe
 
     barht = barht>0?barht:1;
     palette.GetHSV(0,hsv);
-    
+
     xlColor lastColor;
     for( ii = maxRadius ; ii >= 0;  ii--)
     {
