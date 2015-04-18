@@ -196,6 +196,7 @@ public:
     wxBitmapButton* BitmapButton_PinwheelThickness;
     wxBitmapButton* BitmapButton_Galaxy_Start_Angle;
     wxScrolledWindow* Panel1_Fire;
+    wxCheckBox* CheckBox_Galaxy_Blend_Edges;
     wxSlider* SLIDER_Galaxy_Duration;
     wxBitmapButton* BitmapButton_Galaxy_Accel;
     wxSlider* Slider_Spirals_Thickness;
@@ -513,6 +514,7 @@ public:
     wxScrolledWindow* Panel1_Twinkle;
     wxStaticText* StaticText31;
     wxChoice* Choice_Bars_Direction;
+    wxCheckBox* CheckBox_Galaxy_Inward;
     wxStaticText* StaticText111;
     wxBitmapButton* BitmapButton_RippleThickness;
     wxChoice* Choice_Text_Effect1;
@@ -756,6 +758,8 @@ protected:
     static const long ID_TEXTCTRL_Galaxy_Accel;
     static const long ID_BITMAPBUTTON_SLIDER_Galaxy_Accel;
     static const long ID_CHECKBOX_Galaxy_Reverse;
+    static const long ID_CHECKBOX_Galaxy_Blend_Edges;
+    static const long ID_CHECKBOX_Galaxy_Inward;
     static const long ID_PANEL32;
     static const long ID_NOTEBOOK_Galaxy;
     static const long ID_SCROLLEDWINDOW1;

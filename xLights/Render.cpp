@@ -106,7 +106,7 @@ public:
         if (row != NULL) {
             name = row->GetName();
             buffer = new PixelBufferClass();
-            
+
             xframe->InitPixelBuffer(name, *buffer, rowToRender->GetEffectLayerCount(), zeroBased);
         } else {
             buffer = NULL;
@@ -423,7 +423,7 @@ void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int 
     if( el->GetType() != "timing")
     {
         job = new RenderJob(el, SeqData, this, false, clear);
-        
+
         //account for some rounding by rendering before/after
         int startframe = startms / SeqData.FrameTime() - 1;
         if (startframe < 0) {
@@ -605,7 +605,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                             wxAtoi(SettingsMap["SLIDER_Galaxy_End_Width"]),
                             wxAtoi(SettingsMap["SLIDER_Galaxy_Duration"]),
                             wxAtoi(SettingsMap["SLIDER_Galaxy_Accel"]),
-                            SettingsMap["CHECKBOX_Galaxy_Reverse"]=="1");
+                            SettingsMap["CHECKBOX_Galaxy_Reverse"]=="1",
+                            SettingsMap["CHECKBOX_Galaxy_Blend_Edges"]=="1",
+                            SettingsMap["CHECKBOX_Galaxy_Inward"]=="1");
     } else if (effect == "Garlands") {
         buffer.RenderGarlands(wxAtoi(SettingsMap["SLIDER_Garlands_Type"]),
                               wxAtoi(SettingsMap["SLIDER_Garlands_Spacing"]));

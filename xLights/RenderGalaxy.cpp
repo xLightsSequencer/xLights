@@ -36,11 +36,14 @@ double calcAccel(double ratio, double accel)
 }
 
 void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                              int start_width, int end_width, int duration, int acceleration, bool reverse_dir )
+                              int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward )
 {
+    double temp_colors_pct[BufferWi][BufferHt];
+    double pixel_age[BufferWi][BufferHt];
     double eff_pos = GetEffectTimeIntervalPosition();
     int num_colors = palette.Size();
-    xlColor color;
+    xlColor color, c_old, c_new;
+    HSVValue hsv1;
     double eff_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
     double revs = (double)revolutions;
 
@@ -60,7 +63,29 @@ void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int 
     double width1 = start_width;
     double width2 = end_width;
 
-    for( double i = std::max(0.0, tail_end_of_tail); i <= std::min(head_end_of_tail,revs); i += 0.3 )
+    for( int x = 0; x < BufferWi; x++ )
+    {
+        for( int y = 0; y < BufferHt; y++ )
+        {
+            temp_colors_pct[x][y] = 0.0;
+            pixel_age[x][y] = 0.0;
+        }
+    }
+    ClearTempBuf();
+
+    double progress = 0.0;
+    double last_check = std::max(0.0, tail_end_of_tail) + (double)start_angle;
+    double step = 0.5;
+    double sign = 1.0;
+    double angle1 = std::max(0.0, tail_end_of_tail);
+    double angle2 = std::min(head_end_of_tail,revs);
+    if( inward )
+    {
+        step = -0.5;
+        sign = -1.0;
+        std::swap(angle1, angle2);
+    }
+    for( double i = angle1; (angle1 < angle2) ? (i <= angle2) : (i >= angle2); i += step )
     {
         double adj_angle = i + (double)start_angle;
         if( reverse_dir )
@@ -95,14 +120,75 @@ void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int 
             double x2 = std::sin(ToRadians(adj_angle)) * outside_radius + (double)pos_x;
             double y2 = std::cos(ToRadians(adj_angle)) * outside_radius + (double)pos_y;
             double color_pct2 = (r-inside_radius)/(current_radius-inside_radius);
-            hsv.value = full_brightness * color_pct2;
-            if( hsv.value > 0.0 )
+            if( blend_edges )
             {
-                SetPixel(x1,y1,hsv);
-                SetPixel(x2,y2,hsv);
+                if( hsv.value > 0.0 )
+                {
+                    if ((int)x1 >= 0 && (int)x1 < BufferWi && (int)y1 >= 0 && (int)y1 < BufferHt)
+                    {
+                        SetTempPixel((int)x1,(int)y1,color);
+                        temp_colors_pct[(int)x1][(int)y1] = color_pct2;
+                        pixel_age[(int)x1][(int)y1] = adj_angle;
+                    }
+                    if ((int)x2 >= 0 && (int)x2 < BufferWi && (int)y2 >= 0 && (int)y2 < BufferHt)
+                    {
+                        SetTempPixel((int)x2,(int)y2,color);
+                        temp_colors_pct[(int)x2][(int)y2] = color_pct2;
+                        pixel_age[(int)x2][(int)y2] = adj_angle;
+                    }
+                }
+            }
+            else
+            {
+                hsv.value = full_brightness * color_pct2;
+                if( hsv.value > 0.0 )
+                {
+                    SetPixel(x1,y1,hsv);
+                    SetPixel(x2,y2,hsv);
+                }
             }
             if( r >= current_radius ) break;
         }
+        // blend old data down into final buffer
+        if( blend_edges && (adj_angle - last_check >= (90.0*sign)) )
+        {
+            for( int x = 0; x < BufferWi; x++ )
+            {
+                for( int y = 0; y < BufferHt; y++ )
+                {
+                    if( temp_colors_pct[x][y] > 0.0 && (adj_angle - pixel_age[x][y] >= (180.0*sign)) )
+                    {
+                            GetTempPixel(x,y,c_new);
+                            GetPixel(x,y,c_old);
+                            Get2ColorAlphaBlend(c_old, c_new, temp_colors_pct[x][y], color);
+                            SetPixel(x,y,color);
+                            temp_colors_pct[x][y] = 0.0;
+                            pixel_age[x][y] = 0.0;
+                    }
+                }
+            }
+            last_check = adj_angle;
+        }
+        progress += step;
     }
+
+    // blend remaining data down into final buffer
+    if( blend_edges )
+    {
+        for( int x = 0; x < BufferWi; x++ )
+        {
+            for( int y = 0; y < BufferHt; y++ )
+            {
+                if( temp_colors_pct[x][y] > 0.0 )
+                {
+                    GetTempPixel(x,y,c_new);
+                    GetPixel(x,y,c_old);
+                    Get2ColorAlphaBlend(c_old, c_new, temp_colors_pct[x][y], color);
+                    SetPixel(x,y,color);
+                }
+            }
+        }
+    }
+
 }
 

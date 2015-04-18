@@ -132,6 +132,11 @@ void RgbEffects::Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlCo
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
 }
 
+void RgbEffects::Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, double ratio, xlColour &color)
+{
+    color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
+}
+
 HSVValue RgbEffects::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
 {
     wxImage::RGBValue rgb;

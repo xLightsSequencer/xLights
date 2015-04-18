@@ -500,6 +500,7 @@ protected:
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
     void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColor &color);
+    void Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, double ratio, xlColour &color);
     void GetMultiColorBlend(double n, bool circular, xlColor &color);
     void SetRangeColor(const wxImage::HSVValue& hsv1, const wxImage::HSVValue& hsv2, wxImage::HSVValue& newhsv);
     double RandomRange(double num1, double num2);
