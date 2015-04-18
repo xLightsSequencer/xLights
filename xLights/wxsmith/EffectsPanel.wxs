@@ -3210,21 +3210,22 @@
 											<border>2</border>
 											<option>1</option>
 										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Pictures_Direction" variable="BitmapButton_PicturesDirection" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>13,13</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_PicturesDirectionClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
-											<option>1</option>
-										</object>
-										<object class="spacer">
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
@@ -3285,11 +3286,17 @@
 											<border>5</border>
 											<option>1</option>
 										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS" variable="BitmapButton_MovieIs20FPS" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>13,13</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_MovieIs20FPSClick" entry="EVT_BUTTON" />
 											</object>
