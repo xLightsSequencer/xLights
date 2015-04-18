@@ -3,7 +3,7 @@ void RenderOff(void);
 void RenderOn(int start, int end);
 void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection);
 void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                   bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma);
+                   bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade);
 void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount);
 void RenderCurtain(int edge, int effect, int swag, bool repeat);
 void RenderFaces(int Phoneme);
@@ -12,7 +12,7 @@ void RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_ou
 void RenderFire(int HeightPct,int HueShift,bool GrowFire);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                  int start_width, int end_width, int duration, int acceleration, bool reverse_dir );
+                  int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward );
 void RenderGarlands(int GarlandType, int Spacing);
 void RenderGlediator(const wxString& NewPictureName);
 void RenderLife(int Count, int Type);

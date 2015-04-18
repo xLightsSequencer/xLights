@@ -36,11 +36,15 @@ double calcAccel(double ratio, double accel)
 }
 
 void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                              int start_width, int end_width, int duration, int acceleration, bool reverse_dir )
+                              int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward )
 {
+    double step = 0.5;
+    double temp_colors_pct[BufferWi][BufferHt];
+    double pixel_age[BufferWi][BufferHt];
     double eff_pos = GetEffectTimeIntervalPosition();
     int num_colors = palette.Size();
-    xlColor color;
+    xlColor color, c_old, c_new;
+    HSVValue hsv1;
     double eff_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
     double revs = (double)revolutions;
 
@@ -60,49 +64,212 @@ void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int 
     double width1 = start_width;
     double width2 = end_width;
 
-    for( double i = std::max(0.0, tail_end_of_tail); i <= std::min(head_end_of_tail,revs); i += 0.3 )
+    for( int x = 0; x < BufferWi; x++ )
     {
-        double adj_angle = i + (double)start_angle;
-        if( reverse_dir )
+        for( int y = 0; y < BufferHt; y++ )
         {
-            adj_angle *= -1.0;
-        }
-        double color_val = (head_end_of_tail-i) / color_length;
-        int color_int = (int)color_val;
-        double color_pct = color_val - (double)color_int;
-        int color2 = std::min(color_int+1, num_colors-1);
-        if( color_int < color2 )
-        {
-            Get2ColorBlend(color_int, color2, std::min( color_pct, 1.0), color);
-        }
-        else
-        {
-            palette.GetColor(color2, color);
-        }
-        HSVValue hsv = wxImage::RGBtoHSV(color);
-        double full_brightness = hsv.value;
-        double pct = i/revs;
-        double current_radius = radius2 * pct + radius1 * (1.0 - pct);
-        double current_width = width2 * pct + width1 * (1.0 - pct);
-        double half_width = current_width / 2.0;
-        double inside_radius = current_radius - half_width;
-        for( double r = inside_radius; ; r += 0.5 )
-        {
-            if( r > current_radius ) r = current_radius;
-            double x1 = std::sin(ToRadians(adj_angle)) * r + (double)pos_x;
-            double y1 = std::cos(ToRadians(adj_angle)) * r + (double)pos_y;
-            double outside_radius = current_radius + (current_radius - r);
-            double x2 = std::sin(ToRadians(adj_angle)) * outside_radius + (double)pos_x;
-            double y2 = std::cos(ToRadians(adj_angle)) * outside_radius + (double)pos_y;
-            double color_pct2 = (r-inside_radius)/(current_radius-inside_radius);
-            hsv.value = full_brightness * color_pct2;
-            if( hsv.value > 0.0 )
-            {
-                SetPixel(x1,y1,hsv);
-                SetPixel(x2,y2,hsv);
-            }
-            if( r >= current_radius ) break;
+            temp_colors_pct[x][y] = 0.0;
+            pixel_age[x][y] = 0.0;
         }
     }
+    ClearTempBuf();
+
+    if( !inward )
+    {
+        double last_check = std::max(0.0, tail_end_of_tail) + (double)start_angle;
+        for( double i = std::max(0.0, tail_end_of_tail); i <= std::min(head_end_of_tail,revs); i += step )
+        {
+            double adj_angle = i + (double)start_angle;
+            if( reverse_dir )
+            {
+                adj_angle *= -1.0;
+            }
+            double color_val = (head_end_of_tail-i) / color_length;
+            int color_int = (int)color_val;
+            double color_pct = color_val - (double)color_int;
+            int color2 = std::min(color_int+1, num_colors-1);
+            if( color_int < color2 )
+            {
+                Get2ColorBlend(color_int, color2, std::min( color_pct, 1.0), color);
+            }
+            else
+            {
+                palette.GetColor(color2, color);
+            }
+            HSVValue hsv = wxImage::RGBtoHSV(color);
+            double full_brightness = hsv.value;
+            double pct = i/revs;
+            double current_radius = radius2 * pct + radius1 * (1.0 - pct);
+            double current_width = width2 * pct + width1 * (1.0 - pct);
+            double half_width = current_width / 2.0;
+            double inside_radius = current_radius - half_width;
+            for( double r = inside_radius; ; r += 0.5 )
+            {
+                if( r > current_radius ) r = current_radius;
+                double x1 = std::sin(ToRadians(adj_angle)) * r + (double)pos_x;
+                double y1 = std::cos(ToRadians(adj_angle)) * r + (double)pos_y;
+                double outside_radius = current_radius + (current_radius - r);
+                double x2 = std::sin(ToRadians(adj_angle)) * outside_radius + (double)pos_x;
+                double y2 = std::cos(ToRadians(adj_angle)) * outside_radius + (double)pos_y;
+                double color_pct2 = (r-inside_radius)/(current_radius-inside_radius);
+                if( blend_edges )
+                {
+                    if( hsv.value > 0.0 )
+                    {
+                        if ((int)x1 >= 0 && (int)x1 < BufferWi && (int)y1 >= 0 && (int)y1 < BufferHt)
+                        {
+                            SetTempPixel((int)x1,(int)y1,color);
+                            temp_colors_pct[(int)x1][(int)y1] = color_pct2;
+                            pixel_age[(int)x1][(int)y1] = adj_angle;
+                        }
+                        if ((int)x2 >= 0 && (int)x2 < BufferWi && (int)y2 >= 0 && (int)y2 < BufferHt)
+                        {
+                            SetTempPixel((int)x2,(int)y2,color);
+                            temp_colors_pct[(int)x2][(int)y2] = color_pct2;
+                            pixel_age[(int)x2][(int)y2] = adj_angle;
+                        }
+                    }
+                }
+                else
+                {
+                    hsv.value = full_brightness * color_pct2;
+                    if( hsv.value > 0.0 )
+                    {
+                        SetPixel(x1,y1,hsv);
+                        SetPixel(x2,y2,hsv);
+                    }
+                }
+                if( r >= current_radius ) break;
+            }
+            // blend old data down into final buffer
+            if( blend_edges && (adj_angle - last_check >= 90.0) )
+            {
+                for( int x = 0; x < BufferWi; x++ )
+                {
+                    for( int y = 0; y < BufferHt; y++ )
+                    {
+                        if( temp_colors_pct[x][y] > 0.0 && (adj_angle - pixel_age[x][y] >= 180.0) )
+                        {
+                                GetTempPixel(x,y,c_new);
+                                GetPixel(x,y,c_old);
+                                Get2ColorAlphaBlend(c_old, c_new, temp_colors_pct[x][y], color);
+                                SetPixel(x,y,color);
+                                temp_colors_pct[x][y] = 0.0;
+                                pixel_age[x][y] = 0.0;
+                        }
+                    }
+                }
+                last_check = adj_angle;
+            }
+        }
+    }
+    else
+    {
+        double last_check = std::min(head_end_of_tail,revs) + (double)start_angle;
+        for( double i = std::min(head_end_of_tail,revs); i >= std::max(0.0, tail_end_of_tail); i -= step )
+        {
+            double adj_angle = i + (double)start_angle;
+            if( reverse_dir )
+            {
+                adj_angle *= -1.0;
+            }
+            double color_val = (head_end_of_tail-i) / color_length;
+            int color_int = (int)color_val;
+            double color_pct = color_val - (double)color_int;
+            int color2 = std::min(color_int+1, num_colors-1);
+            if( color_int < color2 )
+            {
+                Get2ColorBlend(color_int, color2, std::min( color_pct, 1.0), color);
+            }
+            else
+            {
+                palette.GetColor(color2, color);
+            }
+            HSVValue hsv = wxImage::RGBtoHSV(color);
+            double full_brightness = hsv.value;
+            double pct = i/revs;
+            double current_radius = radius2 * pct + radius1 * (1.0 - pct);
+            double current_width = width2 * pct + width1 * (1.0 - pct);
+            double half_width = current_width / 2.0;
+            double inside_radius = current_radius - half_width;
+            for( double r = inside_radius; ; r += 0.5 )
+            {
+                if( r > current_radius ) r = current_radius;
+                double x1 = std::sin(ToRadians(adj_angle)) * r + (double)pos_x;
+                double y1 = std::cos(ToRadians(adj_angle)) * r + (double)pos_y;
+                double outside_radius = current_radius + (current_radius - r);
+                double x2 = std::sin(ToRadians(adj_angle)) * outside_radius + (double)pos_x;
+                double y2 = std::cos(ToRadians(adj_angle)) * outside_radius + (double)pos_y;
+                double color_pct2 = (r-inside_radius)/(current_radius-inside_radius);
+                if( blend_edges )
+                {
+                    if( hsv.value > 0.0 )
+                    {
+                        if ((int)x1 >= 0 && (int)x1 < BufferWi && (int)y1 >= 0 && (int)y1 < BufferHt)
+                        {
+                            SetTempPixel((int)x1,(int)y1,color);
+                            temp_colors_pct[(int)x1][(int)y1] = color_pct2;
+                            pixel_age[(int)x1][(int)y1] = adj_angle;
+                        }
+                        if ((int)x2 >= 0 && (int)x2 < BufferWi && (int)y2 >= 0 && (int)y2 < BufferHt)
+                        {
+                            SetTempPixel((int)x2,(int)y2,color);
+                            temp_colors_pct[(int)x2][(int)y2] = color_pct2;
+                            pixel_age[(int)x2][(int)y2] = adj_angle;
+                        }
+                    }
+                }
+                else
+                {
+                    hsv.value = full_brightness * color_pct2;
+                    if( hsv.value > 0.0 )
+                    {
+                        SetPixel(x1,y1,hsv);
+                        SetPixel(x2,y2,hsv);
+                    }
+                }
+                if( r >= current_radius ) break;
+            }
+            // blend old data down into final buffer
+            if( blend_edges && (last_check - adj_angle >= 90.0) )
+            {
+                for( int x = 0; x < BufferWi; x++ )
+                {
+                    for( int y = 0; y < BufferHt; y++ )
+                    {
+                        if( temp_colors_pct[x][y] > 0.0 && (pixel_age[x][y] - adj_angle >= 180.0) )
+                        {
+                                GetTempPixel(x,y,c_new);
+                                GetPixel(x,y,c_old);
+                                Get2ColorAlphaBlend(c_old, c_new, temp_colors_pct[x][y], color);
+                                SetPixel(x,y,color);
+                                temp_colors_pct[x][y] = 0.0;
+                                pixel_age[x][y] = 0.0;
+                        }
+                    }
+                }
+                last_check = adj_angle;
+            }
+        }
+    }
+
+    // blend remaining data down into final buffer
+    if( blend_edges )
+    {
+        for( int x = 0; x < BufferWi; x++ )
+        {
+            for( int y = 0; y < BufferHt; y++ )
+            {
+                if( temp_colors_pct[x][y] > 0.0 )
+                {
+                    GetTempPixel(x,y,c_new);
+                    GetPixel(x,y,c_old);
+                    Get2ColorAlphaBlend(c_old, c_new, temp_colors_pct[x][y], color);
+                    SetPixel(x,y,color);
+                }
+            }
+        }
+    }
+
 }
 

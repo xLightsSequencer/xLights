@@ -484,8 +484,8 @@ void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, i
 }
 
 void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                                     bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma) {
-    effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma);
+                                     bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade) {
+    effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma, fade);
 }
 
 void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount) {
@@ -515,9 +515,9 @@ void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Vel
 }
 
 void PixelBufferClass::RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                                    int start_width, int end_width, int duration, int acceleration, bool reverse_dir ) {
+                                    int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward ) {
     effects[CurrentLayer].RenderGalaxy(center_x, center_y, start_radius, end_radius, start_angle, revolutions,
-                                       start_width, end_width, duration, acceleration, reverse_dir );
+                                       start_width, end_width, duration, acceleration, reverse_dir, blend_edges, inward );
 }
 
 void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing) {

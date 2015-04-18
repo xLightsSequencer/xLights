@@ -483,7 +483,7 @@ protected:
     void DrawHLine(int y, int xstart, int xend, const xlColor& color, bool wrap = false);
     void DrawVLine(int x, int ystart, int yend, const xlColor& color, bool wrap = false);
     void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap = false);
-    void DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb);
+    void DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap = false);
     void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);
     void DrawLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color );
     void DrawThickLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction );
@@ -500,6 +500,7 @@ protected:
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
     void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColor &color);
+    void Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, double ratio, xlColour &color);
     void GetMultiColorBlend(double n, bool circular, xlColor &color);
     void SetRangeColor(const wxImage::HSVValue& hsv1, const wxImage::HSVValue& hsv2, wxImage::HSVValue& newhsv);
     double RandomRange(double num1, double num2);
