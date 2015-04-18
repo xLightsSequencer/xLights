@@ -174,6 +174,7 @@ static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms
 static wxCriticalSection gs_xoutCriticalSection;
 
 
+
 typedef SequenceData SeqDataType;
 
 enum play_modes

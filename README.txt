@@ -12,7 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	-- enh (sean) Include two icon files. xlights_nutcracker.ico and xlights_orig.ico. By default the xlights_nutcracker.ico is used.
 		This icon (Nutcracker) matches the icon used on the wiki page. http://www.nutcracker123.com/wk/index.php?title=Main_Page
 		to change icon to the original xLights icon. Copy xlights_orig.icon on top of xlights.ico. You will find these icon files
-		in the installation directory. On my Windows 7mahcine that wold be C:\Program Files (x86)\xLights
+		in the installation directory. On my Windows 7 machine that would be C:\Program Files (x86)\xLights
 4.0.21  Apr 14, 2015
 	-- bug (dkulp) App will crash when importing duplicate timing tracks. #208
 	-- bug (dkulp) Crash after export #201

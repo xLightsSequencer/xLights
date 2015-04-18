@@ -907,8 +907,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer36->SetSizeHints(Panel1_Butterfly);
     Panel1_Circles = new wxScrolledWindow(Choicebook1, ID_PANEL37, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL37"));
     FlexGridSizer80 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer80->AddGrowableCol(0);
+    FlexGridSizer80->AddGrowableCol(10);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer3->AddGrowableCol(10);
     FlexGridSizer17 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer17->AddGrowableCol(1);
     StaticText136 = new wxStaticText(Panel1_Circles, ID_STATICTEXT137, _("Number of Circles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT137"));
