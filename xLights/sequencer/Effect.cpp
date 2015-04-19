@@ -162,6 +162,7 @@ int Effect::GetEffectIndex(wxString effectName)
     else if(effectName=="Color Wash"){return BitmapCache::RGB_EFFECTS_e::eff_COLORWASH;}
     else if(effectName=="Curtain"){return BitmapCache::RGB_EFFECTS_e::eff_CURTAIN;}
     else if(effectName=="Faces"){return BitmapCache::RGB_EFFECTS_e::eff_FACES;}
+    else if(effectName=="Fan"){return BitmapCache::RGB_EFFECTS_e::eff_FAN;}
     else if(effectName=="Fire"){return BitmapCache::RGB_EFFECTS_e::eff_FIRE;}
     else if(effectName=="Fireworks"){return BitmapCache::RGB_EFFECTS_e::eff_FIREWORKS;}
     else if(effectName=="Galaxy"){return BitmapCache::RGB_EFFECTS_e::eff_GALAXY;}

@@ -866,6 +866,8 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
             int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
             DrawGLUtils::DrawHBlendedRectangle(head_color, head_color, x1, y1+1, x_mid, y2-1);
             int num_colors = e->GetPalette().size();
+            if( num_colors == 0 )
+                num_colors = 1;
             int color_length = (x2 - x_mid) / num_colors;
             for(int i = 0; i < num_colors; i++ )
             {
@@ -876,6 +878,42 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
                 }
                 else
                 {
+                    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx1, y1+4, cx1+color_length, y2-4);
+                }
+            }
+            return false;
+        }
+        case BitmapCache::RGB_EFFECTS_e::eff_FAN: {
+            int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_Fan_Duration", "50"));
+            xlColor head_color = e->GetPalette()[0];
+            int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
+            int num_colors = e->GetPalette().size();
+            if( num_colors == 0 )
+                num_colors = 1;
+            int head_length;
+            int color_length;
+            if( num_colors > 1 )
+            {
+                head_length = (x_mid - x1) / (num_colors-1);
+                color_length = (x2 - x_mid) / (num_colors-1);
+            }
+            else
+            {
+                head_length = (x_mid - x1);
+                color_length = (x2 - x_mid);
+            }
+            for(int i = 0; i < num_colors; i++ )
+            {
+                int cx = x1 + (i*head_length);
+                int cx1 = x_mid + (i*color_length);
+                if( i == (num_colors-1) ) // fix any roundoff error for last color
+                {
+                    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i], cx, y1+1, x_mid, y2-1);
+                    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i], cx1, y1+4, x2, y2-4);
+                }
+                else
+                {
+                    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx, y1+1, cx+head_length, y2-1);
                     DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx1, y1+4, cx1+color_length, y2-4);
                 }
             }

@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) New Effect: Fan
+    -- enh (gil) Created macros for handling slider and text control events
     -- enh (gil) Add linear fade option to Circles effect
     -- enh (gil) Add text field to Pictures effect and inverse Pictures Y position slider.
     -- enh (gil) Galaxy effect update.  New options for edge blending and spiral inwards.
