@@ -337,50 +337,62 @@ const long EffectsPanel::ID_SLIDER_Meteors_Swirl_Intensity = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity = wxNewId();
 const long EffectsPanel::ID_PANEL18 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Morph_Start_X1 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Morph_Start_X1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_Start_X1 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT3 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Morph_Start_Y1 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Morph_Start_Y1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT61 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Morph_Start_X2 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Morph_Start_X2 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_Start_X2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT102 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Morph_Start_Y2 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Morph_Start_Y2 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_Start_Y2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT115 = wxNewId();
 const long EffectsPanel::ID_SLIDER_MorphStartLength = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_MorphStartLength = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_MorphStartLength = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Morph_Start_Link = wxNewId();
 const long EffectsPanel::ID_PANEL4 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT116 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Morph_End_X1 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Morph_End_X1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_End_X1 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT117 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Morph_End_Y1 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Morph_End_Y1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_End_Y1 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT119 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Morph_End_X2 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Morph_End_X2 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_End_X2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT121 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Morph_End_Y2 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Morph_End_Y2 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_End_Y2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT122 = wxNewId();
 const long EffectsPanel::ID_SLIDER_MorphEndLength = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON24 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_MorphEndLength = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_MorphEndLength = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Morph_End_Link = wxNewId();
 const long EffectsPanel::ID_PANEL27 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT123 = wxNewId();
 const long EffectsPanel::ID_SLIDER_MorphDuration = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_Head_Length = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_MorphDuration = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_MorphDuration = wxNewId();
 const long EffectsPanel::ID_STATICTEXT124 = wxNewId();
 const long EffectsPanel::ID_SLIDER_MorphAccel = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_MorphAccel = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_MorphAccel = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_ShowHeadAtStart = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_MorphUseHeadStartColor = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON22 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_MorphUseHeadStartColor = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_MorphUseHeadEndColor = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON23 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_MorphUseHeadEndColor = wxNewId();
 const long EffectsPanel::ID_PANEL30 = wxNewId();
 const long EffectsPanel::ID_NOTEBOOK_Morph = wxNewId();
 const long EffectsPanel::ID_PANEL_Morph = wxNewId();
@@ -1702,12 +1714,15 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer78->AddGrowableCol(0);
     Notebook_Morph = new wxNotebook(Panel1_Morph, ID_NOTEBOOK_Morph, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Morph"));
     MorphPanelStart = new wxPanel(Notebook_Morph, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-    FlexGridSizer86 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer86 = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer86->AddGrowableCol(1);
     StaticText2 = new wxStaticText(MorphPanelStart, wxID_ANY, _("X1a:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer86->Add(StaticText2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Morph_Start_X1 = new wxSlider(MorphPanelStart, ID_SLIDER_Morph_Start_X1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Start_X1"));
     FlexGridSizer86->Add(Slider_Morph_Start_X1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Morph_Start_X1 = new wxTextCtrl(MorphPanelStart, ID_TEXTCTRL_Morph_Start_X1, _("0"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Morph_Start_X1"));
+    TextCtrl_Morph_Start_X1->SetMaxLength(3);
+    FlexGridSizer86->Add(TextCtrl_Morph_Start_X1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Morph_Start_X1 = new wxBitmapButton(MorphPanelStart, ID_BITMAPBUTTON_SLIDER_Morph_Start_X1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_Start_X1"));
     BitmapButton_Morph_Start_X1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer86->Add(BitmapButton_Morph_Start_X1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1715,6 +1730,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer86->Add(StaticText3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Morph_Start_Y1 = new wxSlider(MorphPanelStart, ID_SLIDER_Morph_Start_Y1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Start_Y1"));
     FlexGridSizer86->Add(Slider_Morph_Start_Y1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Morph_Start_Y1 = new wxTextCtrl(MorphPanelStart, ID_TEXTCTRL_Morph_Start_Y1, _("0"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Morph_Start_Y1"));
+    TextCtrl_Morph_Start_Y1->SetMaxLength(3);
+    FlexGridSizer86->Add(TextCtrl_Morph_Start_Y1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Morph_Start_Y1 = new wxBitmapButton(MorphPanelStart, ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1"));
     BitmapButton_Morph_Start_Y1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer86->Add(BitmapButton_Morph_Start_Y1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1722,6 +1740,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer86->Add(StaticText59, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Morph_Start_X2 = new wxSlider(MorphPanelStart, ID_SLIDER_Morph_Start_X2, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Start_X2"));
     FlexGridSizer86->Add(Slider_Morph_Start_X2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Morph_Start_X2 = new wxTextCtrl(MorphPanelStart, ID_TEXTCTRL_Morph_Start_X2, _("100"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Morph_Start_X2"));
+    TextCtrl_Morph_Start_X2->SetMaxLength(3);
+    FlexGridSizer86->Add(TextCtrl_Morph_Start_X2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Morph_Start_X2 = new wxBitmapButton(MorphPanelStart, ID_BITMAPBUTTON_SLIDER_Morph_Start_X2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_Start_X2"));
     BitmapButton_Morph_Start_X2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer86->Add(BitmapButton_Morph_Start_X2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1729,6 +1750,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer86->Add(StaticText99, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Morph_Start_Y2 = new wxSlider(MorphPanelStart, ID_SLIDER_Morph_Start_Y2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Start_Y2"));
     FlexGridSizer86->Add(Slider_Morph_Start_Y2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Morph_Start_Y2 = new wxTextCtrl(MorphPanelStart, ID_TEXTCTRL_Morph_Start_Y2, _("0"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Morph_Start_Y2"));
+    TextCtrl_Morph_Start_Y2->SetMaxLength(3);
+    FlexGridSizer86->Add(TextCtrl_Morph_Start_Y2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Morph_Start_Y2 = new wxBitmapButton(MorphPanelStart, ID_BITMAPBUTTON_SLIDER_Morph_Start_Y2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_Start_Y2"));
     BitmapButton_Morph_Start_Y2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer86->Add(BitmapButton_Morph_Start_Y2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1736,6 +1760,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer86->Add(StaticText115, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_MorphStartLength = new wxSlider(MorphPanelStart, ID_SLIDER_MorphStartLength, 1, 0, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphStartLength"));
     FlexGridSizer86->Add(Slider_MorphStartLength, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_MorphStartLength = new wxTextCtrl(MorphPanelStart, ID_TEXTCTRL_MorphStartLength, _("1"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_MorphStartLength"));
+    TextCtrl_MorphStartLength->SetMaxLength(3);
+    FlexGridSizer86->Add(TextCtrl_MorphStartLength, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_MorphStartLength = new wxBitmapButton(MorphPanelStart, ID_BITMAPBUTTON_SLIDER_MorphStartLength, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_MorphStartLength"));
     BitmapButton_MorphStartLength->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer86->Add(BitmapButton_MorphStartLength, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1747,12 +1774,15 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer86->Fit(MorphPanelStart);
     FlexGridSizer86->SetSizeHints(MorphPanelStart);
     MorphPanelEnd = new wxPanel(Notebook_Morph, ID_PANEL27, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL27"));
-    FlexGridSizer94 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer94 = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer94->AddGrowableCol(1);
     StaticText117 = new wxStaticText(MorphPanelEnd, ID_STATICTEXT116, _("X2a:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT116"));
     FlexGridSizer94->Add(StaticText117, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Morph_End_X1 = new wxSlider(MorphPanelEnd, ID_SLIDER_Morph_End_X1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_End_X1"));
     FlexGridSizer94->Add(Slider_Morph_End_X1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Morph_End_X1 = new wxTextCtrl(MorphPanelEnd, ID_TEXTCTRL_Morph_End_X1, _("0"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Morph_End_X1"));
+    TextCtrl_Morph_End_X1->SetMaxLength(3);
+    FlexGridSizer94->Add(TextCtrl_Morph_End_X1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Morph_End_X1 = new wxBitmapButton(MorphPanelEnd, ID_BITMAPBUTTON_SLIDER_Morph_End_X1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_End_X1"));
     BitmapButton_Morph_End_X1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer94->Add(BitmapButton_Morph_End_X1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1760,6 +1790,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer94->Add(StaticText119, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Morph_End_Y1 = new wxSlider(MorphPanelEnd, ID_SLIDER_Morph_End_Y1, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_End_Y1"));
     FlexGridSizer94->Add(Slider_Morph_End_Y1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Morph_End_Y1 = new wxTextCtrl(MorphPanelEnd, ID_TEXTCTRL_Morph_End_Y1, _("100"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Morph_End_Y1"));
+    TextCtrl_Morph_End_Y1->SetMaxLength(3);
+    FlexGridSizer94->Add(TextCtrl_Morph_End_Y1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Morph_End_Y1 = new wxBitmapButton(MorphPanelEnd, ID_BITMAPBUTTON_SLIDER_Morph_End_Y1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_End_Y1"));
     BitmapButton_Morph_End_Y1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer94->Add(BitmapButton_Morph_End_Y1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1767,6 +1800,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer94->Add(StaticText120, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Morph_End_X2 = new wxSlider(MorphPanelEnd, ID_SLIDER_Morph_End_X2, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_End_X2"));
     FlexGridSizer94->Add(Slider_Morph_End_X2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Morph_End_X2 = new wxTextCtrl(MorphPanelEnd, ID_TEXTCTRL_Morph_End_X2, _("100"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Morph_End_X2"));
+    TextCtrl_Morph_End_X2->SetMaxLength(3);
+    FlexGridSizer94->Add(TextCtrl_Morph_End_X2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Morph_End_X2 = new wxBitmapButton(MorphPanelEnd, ID_BITMAPBUTTON_SLIDER_Morph_End_X2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_End_X2"));
     BitmapButton_Morph_End_X2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer94->Add(BitmapButton_Morph_End_X2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1774,6 +1810,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer94->Add(StaticText121, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Morph_End_Y2 = new wxSlider(MorphPanelEnd, ID_SLIDER_Morph_End_Y2, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_End_Y2"));
     FlexGridSizer94->Add(Slider_Morph_End_Y2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Morph_End_Y2 = new wxTextCtrl(MorphPanelEnd, ID_TEXTCTRL_Morph_End_Y2, _("100"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Morph_End_Y2"));
+    TextCtrl_Morph_End_Y2->SetMaxLength(3);
+    FlexGridSizer94->Add(TextCtrl_Morph_End_Y2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Morph_End_Y2 = new wxBitmapButton(MorphPanelEnd, ID_BITMAPBUTTON_SLIDER_Morph_End_Y2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_End_Y2"));
     BitmapButton_Morph_End_Y2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer94->Add(BitmapButton_Morph_End_Y2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1781,9 +1820,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer94->Add(StaticText122, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_MorphEndLength = new wxSlider(MorphPanelEnd, ID_SLIDER_MorphEndLength, 1, 0, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphEndLength"));
     FlexGridSizer94->Add(Slider_MorphEndLength, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton4 = new wxBitmapButton(MorphPanelEnd, ID_BITMAPBUTTON24, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON24"));
-    BitmapButton4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer94->Add(BitmapButton4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_MorphEndLength = new wxTextCtrl(MorphPanelEnd, ID_TEXTCTRL_MorphEndLength, _("1"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_MorphEndLength"));
+    TextCtrl_MorphEndLength->SetMaxLength(3);
+    FlexGridSizer94->Add(TextCtrl_MorphEndLength, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_MorphEndLength = new wxBitmapButton(MorphPanelEnd, ID_BITMAPBUTTON_SLIDER_MorphEndLength, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_MorphEndLength"));
+    BitmapButton_MorphEndLength->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer94->Add(BitmapButton_MorphEndLength, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer94->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Morph_End_Link = new wxCheckBox(MorphPanelEnd, ID_CHECKBOX_Morph_End_Link, _("Link Points"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Morph_End_Link"));
     CheckBox_Morph_End_Link->SetValue(false);
@@ -1794,43 +1836,48 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     MorphPanelOptions = new wxPanel(Notebook_Morph, ID_PANEL30, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL30"));
     FlexGridSizer104 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer104->AddGrowableCol(0);
-    FlexGridSizer99 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer99 = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer99->AddGrowableCol(1);
     StaticText123 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT123, _("Head Duration:"), wxDefaultPosition, wxSize(-1,-1), 0, _T("ID_STATICTEXT123"));
     FlexGridSizer99->Add(StaticText123, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_MorphDuration = new wxSlider(MorphPanelOptions, ID_SLIDER_MorphDuration, 20, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphDuration"));
     FlexGridSizer99->Add(Slider_MorphDuration, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Morph_Head_Length = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_SLIDER_Morph_Head_Length, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_Head_Length"));
-    BitmapButton_Morph_Head_Length->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer99->Add(BitmapButton_Morph_Head_Length, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_MorphDuration = new wxTextCtrl(MorphPanelOptions, ID_TEXTCTRL_MorphDuration, _("20"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_MorphDuration"));
+    TextCtrl_MorphDuration->SetMaxLength(3);
+    FlexGridSizer99->Add(TextCtrl_MorphDuration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_MorphDuration = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_SLIDER_MorphDuration, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_MorphDuration"));
+    BitmapButton_MorphDuration->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer99->Add(BitmapButton_MorphDuration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText124 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT124, _("Acceleration"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT124"));
     FlexGridSizer99->Add(StaticText124, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_MorphAccel = new wxSlider(MorphPanelOptions, ID_SLIDER_MorphAccel, 0, -10, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphAccel"));
     FlexGridSizer99->Add(Slider_MorphAccel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_MorphAccel = new wxTextCtrl(MorphPanelOptions, ID_TEXTCTRL_MorphAccel, _("0"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_MorphAccel"));
+    TextCtrl_MorphAccel->SetMaxLength(3);
+    FlexGridSizer99->Add(TextCtrl_MorphAccel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_MorphAccel = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_SLIDER_MorphAccel, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_MorphAccel"));
     BitmapButton_MorphAccel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer99->Add(BitmapButton_MorphAccel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer99->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_ShowHeadAtStart = new wxCheckBox(MorphPanelOptions, ID_CHECKBOX_ShowHeadAtStart, _("Show Head at Start"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ShowHeadAtStart"));
-    CheckBox_ShowHeadAtStart->SetValue(false);
-    FlexGridSizer99->Add(CheckBox_ShowHeadAtStart, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_ShowHeadAtStart = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart"));
-    BitmapButton_ShowHeadAtStart->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer99->Add(BitmapButton_ShowHeadAtStart, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer104->Add(FlexGridSizer99, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer105 = new wxFlexGridSizer(0, 2, 0, 0);
+    CheckBox_ShowHeadAtStart = new wxCheckBox(MorphPanelOptions, ID_CHECKBOX_ShowHeadAtStart, _("Show Head at Start"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ShowHeadAtStart"));
+    CheckBox_ShowHeadAtStart->SetValue(false);
+    FlexGridSizer105->Add(CheckBox_ShowHeadAtStart, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_ShowHeadAtStart = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart"));
+    BitmapButton_ShowHeadAtStart->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer105->Add(BitmapButton_ShowHeadAtStart, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_MorphUseHeadStartColor = new wxCheckBox(MorphPanelOptions, ID_CHECKBOX_MorphUseHeadStartColor, _("Use Head Start Color for Tail Start"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MorphUseHeadStartColor"));
     CheckBox_MorphUseHeadStartColor->SetValue(false);
     FlexGridSizer105->Add(CheckBox_MorphUseHeadStartColor, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton1 = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON22, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON22"));
-    BitmapButton1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer105->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_MorphUseHeadStartColor = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_MorphUseHeadStartColor, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_MorphUseHeadStartColor"));
+    BitmapButton_MorphUseHeadStartColor->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer105->Add(BitmapButton_MorphUseHeadStartColor, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_MorphUseHeadEndColor = new wxCheckBox(MorphPanelOptions, ID_CHECKBOX_MorphUseHeadEndColor, _("Use Head End Color for Tail End"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MorphUseHeadEndColor"));
     CheckBox_MorphUseHeadEndColor->SetValue(false);
     FlexGridSizer105->Add(CheckBox_MorphUseHeadEndColor, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton2 = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON23, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON23"));
-    BitmapButton2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer105->Add(BitmapButton2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_MorphUseHeadEndColor = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_MorphUseHeadEndColor, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_MorphUseHeadEndColor"));
+    BitmapButton_MorphUseHeadEndColor->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer105->Add(BitmapButton_MorphUseHeadEndColor, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer104->Add(FlexGridSizer105, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     MorphPanelOptions->SetSizer(FlexGridSizer104);
     FlexGridSizer104->Fit(MorphPanelOptions);
@@ -3043,23 +3090,47 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsCountClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsLengthClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsSwirlIntensityClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_X2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_Y2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_MorphStartLength,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_SLIDER_Morph_Start_X1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Morph_Start_X1CmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Morph_Start_X1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Morph_Start_X1Text);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_Start_X1Click);
+    Connect(ID_SLIDER_Morph_Start_Y1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Morph_Start_Y1CmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Morph_Start_Y1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Morph_Start_Y1Text);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_Start_Y1Click);
+    Connect(ID_SLIDER_Morph_Start_X2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Morph_Start_X2CmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Morph_Start_X2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Morph_Start_X2Text);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_X2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_Start_X2Click);
+    Connect(ID_SLIDER_Morph_Start_Y2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Morph_Start_Y2CmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Morph_Start_Y2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Morph_Start_Y2Text);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_Y2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_Start_Y2Click);
+    Connect(ID_SLIDER_MorphStartLength,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_MorphStartLengthCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_MorphStartLength,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_MorphStartLengthText);
+    Connect(ID_BITMAPBUTTON_SLIDER_MorphStartLength,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphStartLengthClick);
     Connect(ID_CHECKBOX_Morph_Start_Link,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_Morph_Start_LinkClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_Y1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_X2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_Y2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON24,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_SLIDER_Morph_End_X1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Morph_End_X1CmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Morph_End_X1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Morph_End_X1Text);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_End_X1Click);
+    Connect(ID_SLIDER_Morph_End_Y1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Morph_End_Y1CmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Morph_End_Y1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Morph_End_Y1Text);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_Y1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_End_Y1Click);
+    Connect(ID_SLIDER_Morph_End_X2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Morph_End_X2CmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Morph_End_X2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Morph_End_X2Text);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_X2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_End_X2Click);
+    Connect(ID_SLIDER_Morph_End_Y2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Morph_End_Y2CmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Morph_End_Y2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Morph_End_Y2Text);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_Y2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_End_Y2Click);
+    Connect(ID_SLIDER_MorphEndLength,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_MorphEndLengthCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_MorphEndLength,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_MorphEndLengthText);
+    Connect(ID_BITMAPBUTTON_SLIDER_MorphEndLength,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphEndLengthClick);
     Connect(ID_CHECKBOX_Morph_End_Link,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_Morph_End_LinkClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Head_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_MorphAccel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON22,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON23,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_SLIDER_MorphDuration,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_MorphDurationCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_MorphDuration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_MorphDurationText);
+    Connect(ID_BITMAPBUTTON_SLIDER_MorphDuration,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphDurationClick);
+    Connect(ID_SLIDER_MorphAccel,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_MorphAccelCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_MorphAccel,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_MorphAccelText);
+    Connect(ID_BITMAPBUTTON_SLIDER_MorphAccel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphAccelClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ShowHeadAtStartClick);
+    Connect(ID_BITMAPBUTTON_MorphUseHeadStartColor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphUseHeadStartColorClick);
+    Connect(ID_BITMAPBUTTON_MorphUseHeadEndColor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphUseHeadEndColorClick);
     Connect(ID_CHOICE_Piano_Style,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnPiano_StyleSelect);
     Connect(ID_BITMAPBUTTON_SLIDER_Piano_Style,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_StyleClick);
     Connect(ID_SLIDER_Piano_NumKeys,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Piano_NumKeysCmdScroll);
@@ -4000,3 +4071,55 @@ void EffectsPanel::OnSlider_Fan_RevolutionsCmdSliderUpdated(wxScrollEvent& event
 {
     TextCtrl_Fan_Revolutions->SetValue(wxString::Format("%0.2f",Slider_Fan_Revolutions->GetValue()/360.0));
 }
+
+slider_event(Morph_Start_X1)
+text_ctrl_event(Morph_Start_X1)
+showlock(Morph_Start_X1)
+
+slider_event(Morph_Start_Y1)
+text_ctrl_event(Morph_Start_Y1)
+showlock(Morph_Start_Y1)
+
+slider_event(Morph_Start_X2)
+text_ctrl_event(Morph_Start_X2)
+showlock(Morph_Start_X2)
+
+slider_event(Morph_Start_Y2)
+text_ctrl_event(Morph_Start_Y2)
+showlock(Morph_Start_Y2)
+
+slider_event(MorphStartLength)
+text_ctrl_event(MorphStartLength)
+showlock(MorphStartLength)
+
+slider_event(Morph_End_X1)
+text_ctrl_event(Morph_End_X1)
+showlock(Morph_End_X1)
+
+slider_event(Morph_End_Y1)
+text_ctrl_event(Morph_End_Y1)
+showlock(Morph_End_Y1)
+
+slider_event(Morph_End_X2)
+text_ctrl_event(Morph_End_X2)
+showlock(Morph_End_X2)
+
+slider_event(Morph_End_Y2)
+text_ctrl_event(Morph_End_Y2)
+showlock(Morph_End_Y2)
+
+slider_event(MorphEndLength)
+text_ctrl_event(MorphEndLength)
+showlock(MorphEndLength)
+
+slider_event(MorphDuration)
+text_ctrl_event(MorphDuration)
+showlock(MorphDuration)
+
+slider_event(MorphAccel)
+text_ctrl_event(MorphAccel)
+showlock(MorphAccel)
+
+showlock(ShowHeadAtStart)
+showlock(MorphUseHeadStartColor)
+showlock(MorphUseHeadEndColor)
