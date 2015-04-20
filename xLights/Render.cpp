@@ -593,8 +593,6 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                          wxAtoi(SettingsMap["SLIDER_Fan_End_Radius"]),
                          wxAtoi(SettingsMap["SLIDER_Fan_Start_Angle"]),
                          wxAtoi(SettingsMap["SLIDER_Fan_Revolutions"]),
-                         wxAtoi(SettingsMap["SLIDER_Fan_Start_Width"]),
-                         wxAtoi(SettingsMap["SLIDER_Fan_End_Width"]),
                          wxAtoi(SettingsMap["SLIDER_Fan_Duration"]),
                          wxAtoi(SettingsMap["SLIDER_Fan_Accel"]),
                          SettingsMap["CHECKBOX_Fan_Reverse"]=="1",

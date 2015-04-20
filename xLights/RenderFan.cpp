@@ -28,7 +28,7 @@ const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
 void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                           int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges,
+                           int duration, int acceleration, bool reverse_dir, bool blend_edges,
                            int num_blades, int blade_width, int blade_angle, int num_elements, int element_width )
 {
     double step = 0.5;
@@ -50,10 +50,6 @@ void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end
     double radius1 = start_radius;
     double radius2 = end_radius;
     double a_const = radius2 / ToRadians(std::abs(blade_angle));
-
-    double width1 = start_width;
-    double width2 = end_width;
-    double current_width = width2;
 
     double blade_div_angle = 360.0 / (double)num_blades;
     double blade_width_angle = blade_div_angle * (double)blade_width / 100.0;
