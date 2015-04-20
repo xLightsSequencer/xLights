@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.23  Apr 20, 2015
     -- enh (gil) Add text fields to the Morph effect.
     -- enh (gil) New Effect: Fan
     -- enh (gil) Created macros for handling slider and text control events
