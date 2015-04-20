@@ -149,6 +149,7 @@ const long xLightsFrame::ID_BITMAPBUTTON29 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON30 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON35 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON36 = wxNewId();
+const long xLightsFrame::ID_BITMAPBUTTON37 = wxNewId();
 const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
@@ -791,6 +792,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BitmapButton32->SetMaxSize(wxSize(16,16));
     BitmapButton32->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
     BitmapButton32->SetEffectIndex(31);
+    BitmapButton33 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON37, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON37"));
+    BitmapButton33->SetMinSize(wxSize(16,16));
+    BitmapButton33->SetMaxSize(wxSize(16,16));
+    BitmapButton33->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
+    BitmapButton33->SetEffectIndex(32);
     EffectsToolBar->AddControl(BitmapButton1, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton2, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton3, _("Item label"));
@@ -823,6 +829,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectsToolBar->AddControl(BitmapButton30, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton31, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton32, _("Item label"));
+    EffectsToolBar->AddControl(BitmapButton33, _("Item label"));
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
     Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER);

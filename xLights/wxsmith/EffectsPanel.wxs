@@ -105,7 +105,7 @@
 												<object class="sizeritem">
 													<object class="wxSlider" name="IDN_SLIDER_Eff_On_Start" variable="Slider_Eff_On_Start" member="yes">
 														<value>100</value>
-														<handler function="OnSlider_Eff_On_StartCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														<handler function="OnSlider_Eff_On_StartCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>2</border>
@@ -133,7 +133,7 @@
 												<object class="sizeritem">
 													<object class="wxSlider" name="IDN_SLIDER_Eff_On_End" variable="Slider_Eff_On_End" member="yes">
 														<value>100</value>
-														<handler function="OnSlider_Eff_On_EndCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														<handler function="OnSlider_Eff_On_EndCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>2</border>
@@ -1184,6 +1184,728 @@
 						<label>Faces</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW_FAN" variable="Panel1_Fan" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer109" member="no">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<object class="sizeritem">
+									<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL38" variable="Panel9" member="no">
+												<object class="wxGridBagSizer" variable="GridBagSizerFanPosition" member="no">
+													<object class="sizeritem">
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticText133" member="no">
+															<label>Center X:</label>
+														</object>
+														<col>0</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_CenterX" variable="Slider_Fan_CenterX" member="yes">
+															<value>50</value>
+															<handler function="OnSlider_Fan_CenterXCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>0</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_CenterX" variable="TextCtrl_Fan_CenterX" member="yes">
+															<value>50</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_CenterXText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5d</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_CenterX" variable="BitmapButton_Fan_CenterX" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_CenterXClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT128" variable="StaticText135" member="yes">
+															<label>Center Y:</label>
+														</object>
+														<col>0</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_CenterY" variable="Slider_Fan_CenterY" member="yes">
+															<value>50</value>
+															<handler function="OnSlider_Fan_CenterYCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>1</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_CenterY" variable="BitmapButton_Fan_CenterY" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_CenterYClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT136" variable="StaticText143" member="yes">
+															<label>Radius1:</label>
+														</object>
+														<col>0</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_Start_Radius" variable="Slider_Fan_Start_Radius" member="yes">
+															<value>1</value>
+															<max>200</max>
+															<handler function="OnSlider_Fan_Start_RadiusCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>2</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_Start_Radius" variable="BitmapButton_Fan_Start_Radius" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_Start_RadiusClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT142" variable="StaticText145" member="yes">
+															<label>Angle:</label>
+														</object>
+														<col>0</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_Start_Angle" variable="Slider_Fan_Start_Angle" member="yes">
+															<max>360</max>
+															<handler function="OnSlider_Fan_Start_AngleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>4</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_Start_Angle" variable="BitmapButton_Fan_Start_Angle" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_Start_AngleClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_CenterY" variable="TextCtrl_Fan_CenterY" member="yes">
+															<value>50</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_CenterYText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_Start_Radius" variable="TextCtrl_Fan_Start_Radius" member="yes">
+															<value>1</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_Start_RadiusText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_Start_Angle" variable="TextCtrl_Fan_Start_Angle" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_Start_AngleText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT141" variable="StaticText144" member="yes">
+															<label>Radius2:</label>
+														</object>
+														<col>0</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_End_Radius" variable="Slider_Fan_End_Radius" member="yes">
+															<value>10</value>
+															<max>200</max>
+															<handler function="OnSlider_Fan_End_RadiusCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>3</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_End_Radius" variable="TextCtrl_Fan_End_Radius" member="yes">
+															<value>10</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_End_RadiusText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_End_Radius" variable="BitmapButton_Fan_End_Radius" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_End_RadiusClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT145" variable="StaticText148" member="yes">
+															<label>Rev&apos;s:</label>
+														</object>
+														<col>0</col>
+														<row>5</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_Revolutions" variable="Slider_Fan_Revolutions" member="yes">
+															<value>720</value>
+															<max>3600</max>
+															<handler function="OnSlider_Fan_RevolutionsCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>5</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_Revolutions" variable="TextCtrl_Fan_Revolutions" member="yes">
+															<value>2.0</value>
+															<maxlength>4</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_RevolutionsText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>5</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_Revolutions" variable="BitmapButton_Fan_Revolutions" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_RevolutionsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>5</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Position</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL42" variable="Panel12" member="no">
+												<object class="wxGridBagSizer" variable="GridBagSizerFanBlades" member="no">
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT148" variable="StaticText151" member="yes">
+															<label># Blades:</label>
+															<size>-1,-1</size>
+														</object>
+														<col>0</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_Num_Blades" variable="Slider_Fan_Num_Blades" member="yes">
+															<value>3</value>
+															<min>1</min>
+															<max>16</max>
+															<handler function="OnSlider_Fan_Num_BladesCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>0</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT149" variable="StaticText152" member="yes">
+															<label>Width:</label>
+														</object>
+														<col>0</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_Blade_Width" variable="Slider_Fan_Blade_Width" member="yes">
+															<value>50</value>
+															<min>5</min>
+															<handler function="OnSlider_Fan_Blade_WidthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>1</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_Num_Blades" variable="TextCtrl_Fan_Num_Blades" member="yes">
+															<value>3</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_Num_BladesText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_Num_Blades" variable="BitmapButton_Fan_Num_Blades" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_Num_BladesClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_Blade_Width" variable="TextCtrl_Fan_Blade_Width" member="yes">
+															<value>50</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_Blade_WidthText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_Blade_Width" variable="BitmapButton_Fan_Blade_Width" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_Blade_WidthClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT150" variable="StaticText153" member="yes">
+															<label>Angle:</label>
+														</object>
+														<col>0</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_Blade_Angle" variable="Slider_Fan_Blade_Angle" member="yes">
+															<value>90</value>
+															<min>-360</min>
+															<max>360</max>
+															<handler function="OnSlider_Fan_Blade_AngleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>2</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_Blade_Angle" variable="TextCtrl_Fan_Blade_Angle" member="yes">
+															<value>90</value>
+															<maxlength>4</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_Blade_AngleText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_Blade_Angle" variable="BitmapButton_Fan_Blade_Angle" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_Blade_AngleClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticLine" name="ID_STATICLINE1" variable="StaticLine1" member="yes">
+															<size>10,-1</size>
+														</object>
+														<colspan>4</colspan>
+														<col>0</col>
+														<row>3</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT143" variable="StaticText146" member="yes">
+															<label># Elements:</label>
+														</object>
+														<col>0</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_Num_Elements" variable="Slider_Fan_Num_Elements" member="yes">
+															<value>1</value>
+															<min>1</min>
+															<max>4</max>
+															<handler function="OnSlider_Fan_Num_ElementsCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>4</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_Num_Elements" variable="TextCtrl_Fan_Num_Elements" member="yes">
+															<value>1</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_Num_ElementsText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_Num_Elements" variable="BitmapButton_Fan_Num_Elements" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_Num_ElementsClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT144" variable="StaticText147" member="yes">
+															<label>Width:</label>
+														</object>
+														<col>0</col>
+														<row>5</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_Element_Width" variable="Slider_Fan_Element_Width" member="yes">
+															<value>100</value>
+															<min>5</min>
+															<handler function="OnSlider_Fan_Element_WidthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>5</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_Element_Width" variable="TextCtrl_Fan_Element_Width" member="yes">
+															<value>100</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_Element_WidthText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>5</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_Element_Width" variable="BitmapButton_Fan_Element_Width" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_Element_WidthClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>5</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Blades</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL41" variable="Panel11" member="no">
+												<object class="wxGridBagSizer" variable="GridBagSizerFanOptions" member="no">
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT146" variable="StaticText149" member="yes">
+															<label>Duration:</label>
+															<size>-1,-1</size>
+														</object>
+														<col>0</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_Duration" variable="Slider_Fan_Duration" member="yes">
+															<value>80</value>
+															<handler function="OnSlider_Fan_DurationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>0</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT147" variable="StaticText150" member="yes">
+															<label>Acceleration:</label>
+														</object>
+														<col>0</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Fan_Accel" variable="Slider_Fan_Accel" member="yes">
+															<min>-10</min>
+															<max>10</max>
+															<handler function="OnSlider_Fan_AccelCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>1</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_Duration" variable="TextCtrl_Fan_Duration" member="yes">
+															<value>80</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_DurationText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_Duration" variable="BitmapButton_Fan_Duration" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_DurationClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fan_Accel" variable="TextCtrl_Fan_Accel" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Fan_AccelText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fan_Accel" variable="BitmapButton_Fan_Accel" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Fan_AccelClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxCheckBox" name="ID_CHECKBOX_Fan_Reverse" variable="CheckBox_Fan_Reverse" member="yes">
+															<label>Reverse:</label>
+															<style>wxALIGN_RIGHT</style>
+														</object>
+														<col>0</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxCheckBox" name="ID_CHECKBOX_Fan_Blend_Edges" variable="CheckBox_Fan_Blend_Edges" member="yes">
+															<label>Blend Edges:</label>
+															<checked>1</checked>
+															<style>wxALIGN_RIGHT</style>
+														</object>
+														<col>0</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Options</label>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Fan</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL12" variable="Panel1_Fire" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer38" member="no">
 								<cols>3</cols>
@@ -1431,9 +2153,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterX" variable="SLIDER_Galaxy_CenterX" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterX" variable="Slider_Galaxy_CenterX" member="yes">
 															<value>50</value>
-															<handler function="OnSLIDER_Galaxy_CenterXCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_Galaxy_CenterXCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>0</row>
@@ -1461,7 +2183,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Galaxy_CenterXClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>0</row>
@@ -1480,9 +2202,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterY" variable="SLIDER_Galaxy_CenterY" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_CenterY" variable="Slider_Galaxy_CenterY" member="yes">
 															<value>50</value>
-															<handler function="OnSLIDER_Galaxy_CenterYCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_Galaxy_CenterYCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>1</row>
@@ -1496,7 +2218,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Galaxy_CenterYClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>1</row>
@@ -1515,10 +2237,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Radius" variable="SLIDER_Galaxy_Start_Radius" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Radius" variable="Slider_Galaxy_Start_Radius" member="yes">
 															<value>1</value>
 															<max>200</max>
-															<handler function="OnSLIDER_Galaxy_Start_RadiusCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_Galaxy_Start_RadiusCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>2</row>
@@ -1532,7 +2254,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Galaxy_Start_RadiusClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>2</row>
@@ -1551,10 +2273,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Width" variable="SLIDER_Galaxy_Start_Width" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Width" variable="Slider_Galaxy_Start_Width" member="yes">
 															<value>5</value>
 															<max>255</max>
-															<handler function="OnSLIDER_Galaxy_Start_WidthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_Galaxy_Start_WidthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>3</row>
@@ -1568,7 +2290,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Galaxy_Start_WidthClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>3</row>
@@ -1587,9 +2309,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Angle" variable="SLIDER_Galaxy_Start_Angle" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Angle" variable="Slider_Galaxy_Start_Angle" member="yes">
 															<max>360</max>
-															<handler function="OnSLIDER_Galaxy_Start_AngleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_Galaxy_Start_AngleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>4</row>
@@ -1603,7 +2325,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Galaxy_Start_AngleClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>4</row>
@@ -1685,10 +2407,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Radius" variable="SLIDER_Galaxy_End_Radius" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Radius" variable="Slider_Galaxy_End_Radius" member="yes">
 															<value>10</value>
 															<max>200</max>
-															<handler function="OnSLIDER_Galaxy_End_RadiusCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_Galaxy_End_RadiusCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>2</row>
@@ -1702,7 +2424,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Galaxy_End_RadiusClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>2</row>
@@ -1721,10 +2443,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Width" variable="SLIDER_Galaxy_End_Width" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Width" variable="Slider_Galaxy_End_Width" member="yes">
 															<value>5</value>
 															<max>255</max>
-															<handler function="OnSLIDER_Galaxy_End_WidthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_Galaxy_End_WidthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>3</row>
@@ -1738,7 +2460,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Galaxy_End_WidthClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>3</row>
@@ -1757,10 +2479,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_Revolutions" variable="SLIDER_Galaxy_Revolutions" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Revolutions" variable="Slider_Galaxy_Revolutions" member="yes">
 															<value>1440</value>
 															<max>3600</max>
-															<handler function="OnSLIDER_Galaxy_RevolutionsCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_Galaxy_RevolutionsCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>4</row>
@@ -1774,7 +2496,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Galaxy_RevolutionsClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>4</row>
@@ -1857,9 +2579,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_Duration" variable="SLIDER_Galaxy_Duration" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Duration" variable="Slider_Galaxy_Duration" member="yes">
 															<value>20</value>
-															<handler function="OnSLIDER_Galaxy_DurationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_Galaxy_DurationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>0</row>
@@ -1878,10 +2600,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Galaxy_Accel" variable="SLIDER_Galaxy_Accel" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Galaxy_Accel" variable="Slider_Galaxy_Accel" member="yes">
 															<min>-10</min>
 															<max>10</max>
-															<handler function="OnSLIDER_Galaxy_AccelCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+															<handler function="OnSlider_Galaxy_AccelCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<col>1</col>
 														<row>1</row>
@@ -1909,7 +2631,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Galaxy_DurationClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>0</row>
@@ -1937,7 +2659,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Galaxy_AccelClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>1</row>
@@ -2344,7 +3066,7 @@
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL4" variable="MorphPanelStart" member="no">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer86" member="no">
-													<cols>3</cols>
+													<cols>4</cols>
 													<growablecols>1</growablecols>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
@@ -2355,8 +3077,22 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" variable="Slider_Morph_Start_X1" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" variable="Slider_Morph_Start_X1" member="yes">
+															<handler function="OnSlider_Morph_Start_X1CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_Start_X1" variable="TextCtrl_Morph_Start_X1" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Morph_Start_X1Text" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2366,7 +3102,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Morph_Start_X1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2381,8 +3117,22 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" variable="Slider_Morph_Start_Y1" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" variable="Slider_Morph_Start_Y1" member="yes">
+															<handler function="OnSlider_Morph_Start_Y1CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_Start_Y1" variable="TextCtrl_Morph_Start_Y1" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Morph_Start_Y1Text" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2392,7 +3142,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Morph_Start_Y1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2409,8 +3159,21 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X2" variable="Slider_Morph_Start_X2" member="yes">
 															<value>100</value>
+															<handler function="OnSlider_Morph_Start_X2CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_Start_X2" variable="TextCtrl_Morph_Start_X2" member="yes">
+															<value>100</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Morph_Start_X2Text" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2420,7 +3183,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Morph_Start_X2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2435,8 +3198,22 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" variable="Slider_Morph_Start_Y2" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" variable="Slider_Morph_Start_Y2" member="yes">
+															<handler function="OnSlider_Morph_Start_Y2CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_Start_Y2" variable="TextCtrl_Morph_Start_Y2" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Morph_Start_Y2Text" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2446,7 +3223,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Morph_Start_Y2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2464,8 +3241,21 @@
 														<object class="wxSlider" name="ID_SLIDER_MorphStartLength" variable="Slider_MorphStartLength" member="yes">
 															<value>1</value>
 															<max>20</max>
+															<handler function="OnSlider_MorphStartLengthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_MorphStartLength" variable="TextCtrl_MorphStartLength" member="yes">
+															<value>1</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_MorphStartLengthText" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2475,7 +3265,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_MorphStartLengthClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2502,7 +3292,7 @@
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL27" variable="MorphPanelEnd" member="no">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer94" member="no">
-													<cols>3</cols>
+													<cols>4</cols>
 													<growablecols>1</growablecols>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT116" variable="StaticText117" member="yes">
@@ -2513,8 +3303,22 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" variable="Slider_Morph_End_X1" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" variable="Slider_Morph_End_X1" member="yes">
+															<handler function="OnSlider_Morph_End_X1CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_End_X1" variable="TextCtrl_Morph_End_X1" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Morph_End_X1Text" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2524,7 +3328,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Morph_End_X1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2541,8 +3345,21 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Morph_End_Y1" variable="Slider_Morph_End_Y1" member="yes">
 															<value>100</value>
+															<handler function="OnSlider_Morph_End_Y1CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_End_Y1" variable="TextCtrl_Morph_End_Y1" member="yes">
+															<value>100</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Morph_End_Y1Text" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2552,7 +3369,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Morph_End_Y1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2569,8 +3386,21 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Morph_End_X2" variable="Slider_Morph_End_X2" member="yes">
 															<value>100</value>
+															<handler function="OnSlider_Morph_End_X2CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_End_X2" variable="TextCtrl_Morph_End_X2" member="yes">
+															<value>100</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Morph_End_X2Text" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2580,7 +3410,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Morph_End_X2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2597,8 +3427,21 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Morph_End_Y2" variable="Slider_Morph_End_Y2" member="yes">
 															<value>100</value>
+															<handler function="OnSlider_Morph_End_Y2CmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_End_Y2" variable="TextCtrl_Morph_End_Y2" member="yes">
+															<value>100</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Morph_End_Y2Text" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2608,7 +3451,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_Morph_End_Y2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2626,18 +3469,31 @@
 														<object class="wxSlider" name="ID_SLIDER_MorphEndLength" variable="Slider_MorphEndLength" member="yes">
 															<value>1</value>
 															<max>20</max>
+															<handler function="OnSlider_MorphEndLengthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON24" variable="BitmapButton4" member="yes">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_MorphEndLength" variable="TextCtrl_MorphEndLength" member="yes">
+															<value>1</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_MorphEndLengthText" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphEndLength" variable="BitmapButton_MorphEndLength" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_MorphEndLengthClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2668,7 +3524,7 @@
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer99" member="no">
-															<cols>3</cols>
+															<cols>4</cols>
 															<growablecols>1</growablecols>
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT123" variable="StaticText123" member="yes">
@@ -2682,18 +3538,31 @@
 															<object class="sizeritem">
 																<object class="wxSlider" name="ID_SLIDER_MorphDuration" variable="Slider_MorphDuration" member="yes">
 																	<value>20</value>
+																	<handler function="OnSlider_MorphDurationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Head_Length" variable="BitmapButton_Morph_Head_Length" member="yes">
+																<object class="wxTextCtrl" name="ID_TEXTCTRL_MorphDuration" variable="TextCtrl_MorphDuration" member="yes">
+																	<value>20</value>
+																	<maxlength>3</maxlength>
+																	<size>35,-1</size>
+																	<style>wxTE_CENTRE</style>
+																	<handler function="OnTextCtrl_MorphDurationText" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphDuration" variable="BitmapButton_MorphDuration" member="yes">
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																	<handler function="OnBitmapButton_MorphDurationClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -2711,8 +3580,21 @@
 																<object class="wxSlider" name="ID_SLIDER_MorphAccel" variable="Slider_MorphAccel" member="yes">
 																	<min>-10</min>
 																	<max>10</max>
+																	<handler function="OnSlider_MorphAccelCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="ID_TEXTCTRL_MorphAccel" variable="TextCtrl_MorphAccel" member="yes">
+																	<value>0</value>
+																	<maxlength>3</maxlength>
+																	<size>35,-1</size>
+																	<style>wxTE_CENTRE</style>
+																	<handler function="OnTextCtrl_MorphAccelText" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -2722,32 +3604,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="spacer">
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_ShowHeadAtStart" variable="CheckBox_ShowHeadAtStart" member="yes">
-																	<label>Show Head at Start</label>
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart" variable="BitmapButton_ShowHeadAtStart" member="yes">
-																	<bitmap code="padlock16x16_blue_xpm" />
-																	<size>13,13</size>
-																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																	<handler function="OnBitmapButton_MorphAccelClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -2762,6 +3619,26 @@
 														<object class="wxFlexGridSizer" variable="FlexGridSizer105" member="no">
 															<cols>2</cols>
 															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_ShowHeadAtStart" variable="CheckBox_ShowHeadAtStart" member="yes">
+																	<label>Show Head at Start</label>
+																</object>
+																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart" variable="BitmapButton_ShowHeadAtStart" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<handler function="OnBitmapButton_ShowHeadAtStartClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
 																<object class="wxCheckBox" name="ID_CHECKBOX_MorphUseHeadStartColor" variable="CheckBox_MorphUseHeadStartColor" member="yes">
 																	<label>Use Head Start Color for Tail Start</label>
 																</object>
@@ -2770,12 +3647,12 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON22" variable="BitmapButton1" member="yes">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MorphUseHeadStartColor" variable="BitmapButton_MorphUseHeadStartColor" member="yes">
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																	<handler function="OnBitmapButton_MorphUseHeadStartColorClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -2790,12 +3667,12 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON23" variable="BitmapButton2" member="yes">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MorphUseHeadEndColor" variable="BitmapButton_MorphUseHeadEndColor" member="yes">
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																	<handler function="OnBitmapButton_MorphUseHeadEndColorClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>

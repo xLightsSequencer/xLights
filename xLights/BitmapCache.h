@@ -21,6 +21,7 @@ public:
         eff_COROFACES,
         eff_CURTAIN,
         eff_FACES,
+        eff_FAN,
         eff_FIRE,
         eff_FIREWORKS,
         eff_GALAXY,

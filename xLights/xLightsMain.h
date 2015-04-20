@@ -630,6 +630,7 @@ private:
     static const long ID_BITMAPBUTTON30;
     static const long ID_BITMAPBUTTON35;
     static const long ID_BITMAPBUTTON36;
+    static const long ID_BITMAPBUTTON37;
     static const long ID_AUIEFFECTSTOOLBAR;
     static const long ID_BUTTON3;
     static const long ID_STATICTEXT4;
@@ -1013,6 +1014,7 @@ private:
     wxStaticText* ShowDirectoryLabel;
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
+    DragEffectBitmapButton* BitmapButton33;
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
     DragEffectBitmapButton* BitmapButton30;

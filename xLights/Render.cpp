@@ -586,6 +586,22 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
         buffer.RenderCoroFaces(SettingsMap["CHOICE_CoroFaces_Phoneme"],
                                SettingsMap["CHOICE_CoroFaces_Eyes"],
                                SettingsMap["CHECKBOX_CoroFaces_Outline"] == "1");
+    } else if (effect == "Fan") {
+        buffer.RenderFan(wxAtoi(SettingsMap["SLIDER_Fan_CenterX"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_CenterY"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_Start_Radius"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_End_Radius"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_Start_Angle"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_Revolutions"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_Duration"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_Accel"]),
+                         SettingsMap["CHECKBOX_Fan_Reverse"]=="1",
+                         SettingsMap["CHECKBOX_Fan_Blend_Edges"]=="1",
+                         wxAtoi(SettingsMap["SLIDER_Fan_Num_Blades"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_Blade_Width"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_Blade_Angle"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_Num_Elements"]),
+                         wxAtoi(SettingsMap["SLIDER_Fan_Element_Width"]));
     } else if (effect == "Fire") {
         buffer.RenderFire(wxAtoi(SettingsMap["SLIDER_Fire_Height"]),
                           wxAtoi(SettingsMap["SLIDER_Fire_HueShift"]),

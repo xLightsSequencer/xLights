@@ -42,6 +42,13 @@
 
 #include "../include/faces.xpm"
 
+// Fan Icons
+#include "../include/fan-16.xpm"
+#include "../include/fan-24.xpm"
+#include "../include/fan-32.xpm"
+#include "../include/fan-48.xpm"
+#include "../include/fan-64.xpm"
+
 //#include "../include/fire.xpm"
 #include "../include/fire-16.xpm"
 #include "../include/fire-24.xpm"
@@ -450,6 +457,9 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
         case BitmapCache::RGB_EFFECTS_e::eff_FACES:
             toolTip = "Matrix Faces";
             return effectBitmaps.get(size, exact, "Matrix Faces", faces, faces, faces, faces, faces);
+        case BitmapCache::RGB_EFFECTS_e::eff_FAN:
+            toolTip = "Fan";
+            return effectBitmaps.get(size, exact, "Fan", fan_16, fan_24, fan_32, fan_48, fan_64);
         case BitmapCache::RGB_EFFECTS_e::eff_FIRE:
             toolTip = "Fire";
             return effectBitmaps.get(size, exact, "Fire", fire_16, fire_24, fire_32, fire_48, fire_64);

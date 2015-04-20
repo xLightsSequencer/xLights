@@ -445,6 +445,7 @@
 		<Unit filename="RenderCoroFaces.cpp" />
 		<Unit filename="RenderCurtain.cpp" />
 		<Unit filename="RenderFaces.cpp" />
+		<Unit filename="RenderFan.cpp" />
 		<Unit filename="RenderFire.cpp" />
 		<Unit filename="RenderFireworks.cpp" />
 		<Unit filename="RenderGalaxy.cpp" />
