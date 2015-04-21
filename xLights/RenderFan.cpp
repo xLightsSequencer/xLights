@@ -49,7 +49,6 @@ void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end
 
     double radius1 = start_radius;
     double radius2 = end_radius;
-    double a_const = radius2 / ToRadians(std::abs(blade_angle));
 
     double blade_div_angle = 360.0 / (double)num_blades;
     double blade_width_angle = blade_div_angle * (double)blade_width / 100.0;
@@ -97,6 +96,8 @@ void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end
     {
         std::swap(radius1, radius2);
     }
+
+    double a_const = radius2 / ToRadians(std::abs(blade_angle));
 
     for( int blade = 0; blade < num_blades; blade++ )
     {
