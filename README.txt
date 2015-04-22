@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Clicking on effect while model play is paused will restart effect play.  I believe this will remove some confusion
+                 for one case where you click on an effect and it doesn't appear to do anything.
+    -- enh (gil) Spacebar always turns on/off model play.  Use pause button to pause effect play.
     -- enh (gil) Always trigger selected effect even if already selected since it may have been paused.
     -- bug (gil) Unpausing from spacebar should restart from pause point.
     -- bug (gil) Fan effect not working correctly when radius2 > radius1

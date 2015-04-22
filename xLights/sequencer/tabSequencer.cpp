@@ -498,7 +498,13 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
                                  effect->GetEndTime() * 1000);
         }
 
-        if (playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED) {
+        if (playType == PLAY_TYPE_MODEL_PAUSED) {
+            mainSequencer->PanelTimeLine->PlayStopped();
+            mainSequencer->PanelWaveForm->UpdatePlayMarker();
+            mainSequencer->UpdateTimeDisplay(playStartTime);
+        }
+
+        if (playType != PLAY_TYPE_MODEL) {
             playType = PLAY_TYPE_EFFECT;
             playStartTime = effect->GetStartTime() * 1000;
             playEndTime = effect->GetEndTime() * 1000;
@@ -547,7 +553,13 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                       mSequenceElements.GetSelectedRange(i)->EndTime,
                       EFFECT_SELECTED,false);
 
-        if (playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED) {
+        if (playType == PLAY_TYPE_MODEL_PAUSED) {
+            mainSequencer->PanelTimeLine->PlayStopped();
+            mainSequencer->PanelWaveForm->UpdatePlayMarker();
+            mainSequencer->UpdateTimeDisplay(playStartTime);
+        }
+
+        if (playType != PLAY_TYPE_MODEL) {
             playType = PLAY_TYPE_EFFECT;
             playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime * 1000;
             playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
@@ -649,8 +661,16 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 
 void xLightsFrame::TogglePlay(wxCommandEvent& event)
 {
-    wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
-    wxPostEvent(this, playEvent);
+    if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED )
+    {
+        wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
+        wxPostEvent(this, playEvent);
+    }
+    else
+    {
+        wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
+        wxPostEvent(this, playEvent);
+    }
 }
 
 void xLightsFrame::StopSequence(wxCommandEvent& event)
