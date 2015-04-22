@@ -649,15 +649,8 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 
 void xLightsFrame::TogglePlay(wxCommandEvent& event)
 {
-    if (playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_EFFECT) {
-        wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
-        wxPostEvent(this, playEvent);
-    }
-    else
-    {
-        wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
-        wxPostEvent(this, playEvent);
-    }
+    wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
+    wxPostEvent(this, playEvent);
 }
 
 void xLightsFrame::StopSequence(wxCommandEvent& event)

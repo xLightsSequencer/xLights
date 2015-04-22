@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Always trigger selected effect even if already selected since it may have been paused.
+    -- bug (gil) Unpausing from spacebar should restart from pause point.
     -- bug (gil) Fan effect not working correctly when radius2 > radius1
 4.0.23  Apr 20, 2015
     -- enh (gil) Add text fields to the Morph effect.
