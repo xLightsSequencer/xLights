@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.24  Apr 23, 2015
     -- enh (gil) Clicking on effect while model play is paused will restart effect play.  I believe this will remove some confusion
                  for one case where you click on an effect and it doesn't appear to do anything.
     -- enh (gil) Spacebar always turns on/off model play.  Use pause button to pause effect play.
