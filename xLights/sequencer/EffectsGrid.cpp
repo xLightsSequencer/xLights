@@ -457,8 +457,6 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
             if( effectIndex == -1 && el != nullptr )
             {
                 mDropStartTime = mTimeline->GetAbsoluteTimefromPosition(event.GetPosition().x);
-                mDropStartTime -= 0.5;
-                if( mDropStartTime < 0.0 ) mDropStartTime = 0.0;
                 mDropEndTime = mDropStartTime + 1.0;
                 mDropStartX = mTimeline->GetPositionFromTime(mDropStartTime);
                 mDropEndX = mTimeline->GetPositionFromTime(mDropEndTime);
