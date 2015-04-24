@@ -43,6 +43,7 @@ void TimeLine::mouseLeftDown( wxMouseEvent& event)
         m_dragging = true;
         CaptureMouse();
     }
+    SetFocus();
     Refresh(false);
 }
 
