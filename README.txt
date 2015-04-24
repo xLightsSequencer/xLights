@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Allow selection in empty area when no timing is active.  Provides a paste target without timing marks.
     -- bug (gil) Store media directory and fseq directory in global config instead of networks file. Fixes #173.
 4.0.24  Apr 23, 2015
     -- enh (gil) Clicking on effect while model play is paused will restart effect play.  I believe this will remove some confusion

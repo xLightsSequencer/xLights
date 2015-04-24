@@ -400,7 +400,27 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                 wxPostEvent(mParent, eventUnSelected);
             }
         }
-    }
+        else if (row < mSequenceElements->GetRowInformationSize()) {
+            EffectLayer* el = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+            int selectionType;
+            int effectIndex = el->GetEffectIndexThatContainsPosition(event.GetX(),selectionType);
+            if( effectIndex == -1 && el != nullptr )
+            {
+                mDropStartTime = mTimeline->GetAbsoluteTimefromPosition(event.GetPosition().x);
+                mDropStartTime -= 0.5;
+                if( mDropStartTime < 0.0 ) mDropStartTime = 0.0;
+                mDropEndTime = mDropStartTime + 1.0;
+                mDropStartX = mTimeline->GetPositionFromTime(mDropStartTime);
+                mDropEndX = mTimeline->GetPositionFromTime(mDropEndTime);
+                AdjustDropLocations(event.GetPosition().x, el);
+                mEmptyCellSelected = true;
+                mDropRow = row;
+                mSequenceElements->UnSelectAllEffects();
+                wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
+                wxPostEvent(mParent, eventUnSelected);
+            }
+        }
+   }
 
     mResizing = false;
     mDragDropping = false;
