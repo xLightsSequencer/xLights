@@ -118,7 +118,10 @@ private:
     int mStartResizeTime;
     bool mResizing;
     bool mDragging;
+    bool mEffectDragging;
     int mDragStartX;
+    int mDragStartX1;
+    int mDragStartX2;
     int mDragStartY;
     int mDragEndX;
     int mDragEndY;

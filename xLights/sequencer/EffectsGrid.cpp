@@ -45,6 +45,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
 {
     mParent = parent;
     mDragging = false;
+    mEffectDragging = false;
     mResizing = false;
     mDragDropping = false;
     mDropStartX = 0;
@@ -87,6 +88,7 @@ void EffectsGrid::sendRenderEvent(const wxString &model, double start, double en
 void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
 {
     mDragging = false;
+    mEffectDragging = false;
     mResizing = false;
     mDragDropping = false;
     mResizingMode = EFFECT_RESIZE_NO;
@@ -217,6 +219,41 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
         Refresh(false);
 
     }
+    else if( mEffectDragging )
+    {
+        int offset = event.GetX() - mDragStartX;
+        int new_start_pos = mDragStartX1 + offset;
+        int new_end_pos = mDragStartX2 + offset;
+        if( new_start_pos >= 0 )
+        {
+            bool ok_to_move = false;
+            double t1 = mTimeline->GetAbsoluteTimefromPosition(new_start_pos);
+            double t2 = mTimeline->GetAbsoluteTimefromPosition(new_end_pos);
+            EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
+            if( new_start_pos < mSelectedEffect->GetStartPosition() )
+            {
+                double t3 = mSelectedEffect->GetStartTime();
+                if( el->GetRangeIsClear(t1, t3) ) {
+                    ok_to_move = true;
+                }
+            }
+            else if( new_start_pos > mSelectedEffect->GetStartPosition() )
+            {
+                double t3 = mSelectedEffect->GetEndTime();
+                if( el->GetRangeIsClear(t3, t2) ) {
+                    ok_to_move = true;
+                }
+            }
+            if( ok_to_move )
+            {
+                mSelectedEffect->SetStartPosition(new_start_pos);
+                mSelectedEffect->SetEndPosition(new_end_pos);
+                mSelectedEffect->SetStartTime(t1);
+                mSelectedEffect->SetEndTime(t2);
+                Refresh(false);
+            }
+        }
+    }
     else
     {
         if(!out_of_bounds)
@@ -263,6 +300,15 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         {
             selected_time = (int)(selectedEffect->GetEndTime()*1000.0);
         }
+        else if( selectionType == EFFECT_SELECTED )
+        {
+            mDragStartX = event.GetX();
+            mDragStartX1 = selectedEffect->GetStartPosition();
+            mDragStartX2 = selectedEffect->GetEndPosition();
+            mDragStartY = event.GetY();
+            CaptureMouse();
+            mEffectDragging = true;
+        }
         if(selectedEffect->GetSelected() != selectionType && !(event.ShiftDown() || event.ControlDown()))
         {
             mSequenceElements->UnSelectAllEffects();
@@ -291,7 +337,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     }
     else
     {
-        if( !mDragging )
+        if( !mDragging && !mEffectDragging)
         {
             mDragging = true;
             mDragStartX = event.GetX();
@@ -371,9 +417,13 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
             checkForEmptyCell = true;
         }
 
+    } else if (mEffectDragging) {
+        ReleaseMouse();
+        mEffectDragging = false;
     } else {
         checkForEmptyCell = true;
     }
+
     if (checkForEmptyCell) {
         int row = GetRow(event.GetPosition().y);
         int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();

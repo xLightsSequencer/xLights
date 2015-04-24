@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Allow a single effect to be selected and moved with both endpoints.
     -- enh (gil) Switch spacebar back to work like Audacity which is Stop instead of pausing.  Only deviation is I do unpause
                  instead of stop if spacebar is hit while model play is paused.  Also fixed timeline click not receiving
                  focus to allow spacebar to work.
