@@ -43,7 +43,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
         kbf.SetFullName("xlights_keybindings.xml");
         mainSequencer->keyBindings.Save(kbf);
     }
-    
+
     // reject change if something is playing
     if (play_mode == play_sched || play_mode == play_list || play_mode == play_single)
     {
@@ -132,8 +132,6 @@ void xLightsFrame::SetDir(const wxString& newdir)
     }
     CurrentDir=newdir;
     showDirectory=newdir;
-    mediaDirectory=newdir;
-    fseqDirectory=newdir;
     UnsavedChanges=false;
     TextCtrlLog->Clear();
     while (Notebook1->GetPageCount() > FixedPages)
@@ -159,13 +157,8 @@ void xLightsFrame::SetDir(const wxString& newdir)
         }
     }
 
-    NetworkXML.GetRoot()->GetAttribute("showDirectory", &showDirectory);
-    NetworkXML.GetRoot()->GetAttribute("mediaDirectory", &mediaDirectory);
-    NetworkXML.GetRoot()->GetAttribute("fseqDirectory", &fseqDirectory);
     ShowDirectoryLabel->SetLabel(showDirectory);
-    MediaDirectoryLabel->SetLabel(mediaDirectory);
-    fseqDirectoryLabel->SetLabel(fseqDirectory);
-    MediaDirectoryLabel->GetParent()->Layout();
+    ShowDirectoryLabel->GetParent()->Layout();
 
     // load schedule
     UpdateShowDates(wxDateTime::Now(),wxDateTime::Now());
@@ -184,7 +177,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     UpdateNetworkList();
     LoadEffectsFile();
     UpdateChannelNames();
-    
+
     wxFileName kbf;
     kbf.AssignDir(CurrentDir);
     kbf.SetFullName("xlights_keybindings.xml");
@@ -709,10 +702,10 @@ void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
     if (dialog.ShowModal() == wxID_OK)
     {
         mediaDirectory = dialog.GetPath();
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write(_("MediaDir"), mediaDirectory);
         MediaDirectoryLabel->SetLabel(mediaDirectory);
         MediaDirectoryLabel->GetParent()->Layout();
-        NetworkXML.GetRoot()->DeleteAttribute("mediaDirectory");
-        NetworkXML.GetRoot()->AddAttribute("mediaDirectory", mediaDirectory);
     }
 }
 
@@ -723,10 +716,10 @@ void xLightsFrame::ChangeFseqDirectory(wxCommandEvent& event)
     if (dialog.ShowModal() == wxID_OK)
     {
         fseqDirectory = dialog.GetPath();
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write(_("FseqDir"), fseqDirectory);
         fseqDirectoryLabel->SetLabel(fseqDirectory);
         fseqDirectoryLabel->GetParent()->Layout();
-        NetworkXML.GetRoot()->DeleteAttribute("fseqDirectory");
-        NetworkXML.GetRoot()->AddAttribute("fseqDirectory", fseqDirectory);
     }
 }
 

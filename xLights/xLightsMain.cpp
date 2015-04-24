@@ -1941,13 +1941,26 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         mru_MenuItem[i] = NULL;
     }
     dir.clear();
-    bool ok = config->Read(_("LastDir"), &dir);
+    bool ok = config->Read("LastDir", &dir);
     wxString ConvertDir;
-    if (ok && !config->Read(_("ConvertDir"), &ConvertDir))
+    ConvertDir.clear();
+    if (ok && !config->Read("ConvertDir", &ConvertDir))
     {
         ConvertDir=dir;
     }
     FileDialogConvert->SetDirectory(ConvertDir);
+
+    if (ok && !config->Read(_("MediaDir"), &mediaDirectory))
+    {
+        mediaDirectory=dir;
+    }
+    MediaDirectoryLabel->SetLabel(mediaDirectory);
+
+    if (ok && !config->Read(_("FseqDir"), &fseqDirectory))
+    {
+        fseqDirectory=dir;
+    }
+    fseqDirectoryLabel->SetLabel(fseqDirectory);
 
     wxString tbData = config->Read("ToolbarLocations");
    // wxMessageBox(tbData);
