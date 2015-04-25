@@ -66,7 +66,7 @@ void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end
     }
     ClearTempBuf();
 
-    if( reverse_dir )
+    if( reverse_dir ^ (blade_angle < 0) )
     {
         angle_offset *= -1.0;
     }
