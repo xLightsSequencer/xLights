@@ -8,6 +8,8 @@
 
 #include "SequenceData.h"
 
+const unsigned char FrameData::constzero = 0;
+
 SequenceData::SequenceData() {
     data = NULL;
     invalidData = NULL;
@@ -47,6 +49,12 @@ void SequenceData::init(int numChannels, int numFrames, int frameTime) {
 }
 
 FrameData SequenceData::operator[](int frame) {
+    if (frame >= numFrames) {
+        return FrameData(numChannels, invalidData);
+    }
+    return FrameData(numChannels, &data[frame * numChannels]);
+}
+const FrameData SequenceData::operator[](int frame) const {
     if (frame >= numFrames) {
         return FrameData(numChannels, invalidData);
     }

@@ -25,6 +25,8 @@ const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_PLAY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_TOGGLE_STRANDS = wxNewId();
+const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
@@ -94,19 +96,33 @@ void RowHeading::rightClick( wxMouseEvent& event)
         return;
     }
 
-    Element* element = mSequenceElements->GetRowInformation(mSelectedRow)->element;
-    if(element->GetType()=="model" || element->GetType()=="view")
+    Row_Information_Struct *ri =  mSequenceElements->GetRowInformation(mSelectedRow);
+    Element* element = ri->element;
+    if (element->GetType()=="model" || element->GetType()=="view")
     {
         mnuLayer = new wxMenu();
-        mnuLayer->Append(ID_ROW_MNU_ADD_LAYER,"Add Layer");
-        if(element->GetEffectLayerCount() > 1)
-        {
-            mnuLayer->Append(ID_ROW_MNU_DELETE_LAYER,"Delete Layer");
+        if (ri->strandIndex < 0) {
+            mnuLayer->Append(ID_ROW_MNU_ADD_LAYER,"Add Layer");
+            if(element->GetEffectLayerCount() > 1)
+            {
+                mnuLayer->Append(ID_ROW_MNU_DELETE_LAYER,"Delete Layer");
+            }
+            if (element->GetType()=="model") {
+                mnuLayer->AppendSeparator();
+            }
         }
         if (element->GetType()=="model") {
-            mnuLayer->AppendSeparator();
             mnuLayer->Append(ID_ROW_MNU_PLAY_MODEL,"Play Model");
             mnuLayer->Append(ID_ROW_MNU_EXPORT_MODEL,"Export Model");
+            mnuLayer->AppendSeparator();
+            if (element->getStrandLayerCount() == 1) {
+                mnuLayer->Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
+            } else if (element->getStrandLayerCount() > 1) {
+                mnuLayer->Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Strands");
+                if (ri->strandIndex >= 0) {
+                    mnuLayer->Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
+                }
+            }
         }
     }
     else
@@ -186,14 +202,23 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent playEvent(EVT_PLAY_MODEL);
         playEvent.SetString(element->GetName());
         wxPostEvent(GetParent(), playEvent);
-    }
-
-    else if(id==ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS)
-    {
+    } else if(id==ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS) {
         wxCommandEvent displayElementEvent(EVT_SHOW_DISPLAY_ELEMENTS);
         wxPostEvent(GetParent(), displayElementEvent);
+    } else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {
+        element->ShowStrands(!element->ShowStrands());
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    } else if (id == ID_ROW_MNU_TOGGLE_NODES) {
+        if (mSequenceElements->GetRowInformation(mSelectedRow)->strandIndex == -1) {
+            element->GetStrandLayer(0)->ShowNodes(true);
+            element->ShowStrands(!element->ShowStrands());
+        } else {
+            ((StrandLayer*)mSequenceElements->GetEffectLayer(mSelectedRow))->ShowNodes(!((StrandLayer*)mSequenceElements->GetEffectLayer(mSelectedRow))->ShowNodes());
+        }
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
-
 
     // Make sure message box is painted over by grid.
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
@@ -255,12 +280,21 @@ void RowHeading::render( wxPaintEvent& event )
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);
-        if(mSequenceElements->GetRowInformation(i)->layerIndex>0)   // If effect layer = 0
+        if(mSequenceElements->GetRowInformation(i)->layerIndex>0
+           || mSequenceElements->GetRowInformation(i)->strandIndex >= 0)   // If effect layer = 0
         {
             dc.SetPen(*wxLIGHT_GREY_PEN);
             dc.DrawLine(1,startY,w-1,startY);
             dc.DrawLine(1,startY-1,w-1,startY-1);
             dc.SetPen(*wxBLACK_PEN);
+            if (mSequenceElements->GetRowInformation(i)->strandIndex >= 0) {
+                wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
+                if (mSequenceElements->GetRowInformation(i)->nodeIndex >= 0) {
+                    dc.DrawLabel(wxString::Format("     Node %d", mSequenceElements->GetRowInformation(i)->nodeIndex + 1),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                } else {
+                    dc.DrawLabel(wxString::Format("  Strand %d", mSequenceElements->GetRowInformation(i)->strandIndex + 1),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                }
+            }
         }
         else        // Draw label
         {
@@ -292,7 +326,8 @@ void RowHeading::render( wxPaintEvent& event )
         else if (mSequenceElements->GetRowInformation(i)->element->GetType()=="model")
         {
             if(mSequenceElements->GetRowInformation(i)->element->GetEffectLayerCount() > 1 &&
-               mSequenceElements->GetRowInformation(i)->layerIndex == 0)
+               mSequenceElements->GetRowInformation(i)->layerIndex == 0 &&
+               mSequenceElements->GetRowInformation(i)->strandIndex == -1)
             {
                 dc.SetBrush(*wxWHITE_BRUSH);
                 dc.SetPen(*wxBLACK_PEN);

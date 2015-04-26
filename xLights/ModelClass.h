@@ -35,6 +35,7 @@
 #include <wx/choice.h>
 #include <wx/checklst.h>
 #include <wx/listbox.h>
+#include <wx/tokenzr.h>
 
 #include "ModelPreview.h"
 #include "Color.h"
@@ -294,14 +295,15 @@ private:
     typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
     static NodeBaseClass* createNode(int ns, const wxString &StringType, size_t NodesPerString, const wxString &rgbOrder);
 
-
+protected:
+    void InitLine();
+private:
     void InitVMatrix(int firstExportStrand = 0);
     void InitHMatrix();
-    void InitLine();
     void InitFrame();
     void InitStar();
     void InitWreath();
-      void InitSphere();
+    void InitSphere();
     void InitWholeHouse(wxString);
 
     void SetBufferSize(int NewHt, int NewWi);
@@ -317,14 +319,8 @@ private:
     double toRadians(long degrees);
     long toDegrees(double radians);
 
-    wxString DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
-    wxString StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
-    long parm1;         /**< Number of strings in the model (except for frames & custom) */
-    long parm2;         /**< Number of nodes per string in the model (except for frames & custom) */
-    long parm3;         /**< Number of strands per string in the model (except for frames & custom) */
+    
     std::vector<int> starSizes;
-    bool IsLtoR;         // true=left to right, false=right to left
-    bool isBotToTop;
     
     int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
     int pixelSize = 2;
@@ -336,8 +332,6 @@ private:
     double offsetXpct,offsetYpct;
     double PreviewScale;
     int PreviewRotation;
-    bool SingleNode;     // true for dumb strings and single channel strings
-    bool SingleChannel;  // true for traditional single-color strings
     long ModelVersion;
 
     int mMinScreenX;
@@ -347,12 +341,21 @@ private:
     wxPoint mHandlePosition[5];
     int mDragMode;
     int mLastResizeX;
-    StartChannelVector_t stringStartChan;
     wxXmlNode* ModelXml;
-    wxString rgbOrder;
 
 protected:
     std::vector<NodeBaseClassPtr> Nodes;
+    wxString rgbOrder;
+    long parm1;         /**< Number of strings in the model (except for frames & custom) */
+    long parm2;         /**< Number of nodes per string in the model (except for frames & custom) */
+    long parm3;         /**< Number of strands per string in the model (except for frames & custom) */
+    bool SingleNode;     // true for dumb strings and single channel strings
+    bool SingleChannel;  // true for traditional single-color strings
+    StartChannelVector_t stringStartChan;
+    bool IsLtoR;         // true=left to right, false=right to left
+    bool isBotToTop;
+    wxString StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
+    wxString DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
 
 public:
     wxString name;       // user-designated model name
@@ -399,6 +402,7 @@ public:
 
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
+    xlColor GetNodeColor(size_t nodenum);
     wxChar GetChannelColorLetter(wxByte chidx);
 
     wxString ChannelLayoutHtml();
@@ -441,6 +445,23 @@ public:
             return parm2;
         else
             return 0;
+    }
+    
+    int GetNumStrands() {
+        wxStringTokenizer tkz(DisplayAs, " ");
+        wxString token = tkz.GetNextToken();
+        if (DisplayAs == wxT("Arches"))
+            return parm1;
+        else if (token == wxT("Tree"))
+            return parm1*parm3;
+        else if (DisplayAs == wxT("Vert Matrix"))
+            return parm1*parm3;
+        else if (token == wxT("Horiz Matrix"))
+            return parm1*parm3;
+        else if (token == wxT("Star"))
+            return starSizes.size();
+        else
+            return 1;
     }
     
     

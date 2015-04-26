@@ -188,6 +188,23 @@ void DrawGLUtils::DrawFillRectangle(const xlColor &color, wxByte alpha, int x, i
     glEnd();
 }
 
+void DrawGLUtils::DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors) {
+    glBegin(GL_QUADS);
+    glColor3ub(colors[0].Red(), colors[0].Green(),colors[0].Blue());
+
+    for (int n = 0; n < xs.size(); n++) {
+        glColor3ub(colors[n].Red(), colors[n].Green(),colors[n].Blue());
+        glVertex2f(x, y1);
+        glVertex2f(x, y2);
+        int x2 = xs[n];
+        glVertex2f(x2, y2);
+        glVertex2f(x2, y1);
+        x = x2;
+    }
+    glEnd();
+}
+
+
 void DrawGLUtils::DrawHBlendedRectangle(const xlColor &left, const xlColor &right, int x1, int y1,int x2, int y2) {
     glColor3ub(left.Red(), left.Green(), left.Blue());
     glBegin(GL_QUADS);

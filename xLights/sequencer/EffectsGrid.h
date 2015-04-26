@@ -33,7 +33,6 @@ struct EffectDropData;
 
 class MainSequencer;
 
-
 class EffectsGrid : public xlGLCanvas
 {
 
@@ -53,6 +52,10 @@ public:
     void SetEffectIconBackground(bool mode) {mGridIconBackgrounds = mode;}
 
     void Paste(const wxString &data);
+    
+    void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
+        xlights = xl;  seqData = data;
+    }
 protected:
     virtual void InitializeGLCanvas();
 
@@ -81,7 +84,7 @@ private:
     void DrawEffects();
     void AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position);
-    void RunMouseOverHitTests(Element * element,int effectLayerIndex, int x,int y);
+    void RunMouseOverHitTests(int rowIndex, int x,int y);
     void UpdateTimePosition(int time);
     void CheckForSelectionRectangle();
     void RaiseSelectedEffectChanged(Effect* effect);
@@ -142,6 +145,9 @@ private:
     int mSelectedTimingRow;
 
     EventPlayEffectArgs* playArgs;
+    
+    const SequenceData *seqData;
+    xLightsFrame *xlights;
 
 	DECLARE_EVENT_TABLE()
 };

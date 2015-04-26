@@ -75,10 +75,14 @@ private:
     void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[]);
     xlColour mixColors(const wxCoord &x, const wxCoord &y, xlColour &c0, xlColour &c1, int layer);
     void SetModelBrightness(int value);
+    void reset(int layers, int timing);
 public:
     PixelBufferClass();
     ~PixelBufferClass();
     void InitBuffer(wxXmlNode* ModelNode, int layers, int timing, bool zeroBased=false);
+    void InitStrandBuffer(PixelBufferClass &pbc, int strand);
+    void InitNodeBuffer(PixelBufferClass &pbc, int strand, int node);
+    
     void Clear(int which);
     // not used: size_t GetColorCount(int layer);
     void SetMixType(int layer, const wxString& MixName);

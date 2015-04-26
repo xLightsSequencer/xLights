@@ -4,6 +4,7 @@
 #include "EffectsGrid.h"
 #include "Effect.h"
 #include "RowHeading.h"
+#include "ModelClass.h"
 
 
 
@@ -614,4 +615,19 @@ void EffectLayer::IncrementChangeCount()
 {
     mParentElement->IncrementChangeCount();
     changeCount++;
+}
+EffectLayer *StrandLayer::GetNodeLayer(int n, bool create) {
+    while (create && n >= mNodeLayers.size()) {
+        mNodeLayers.push_back(new EffectLayer(GetParentElement()));
+    }
+    if (n < mNodeLayers.size()) {
+        return mNodeLayers[n];
+    }
+    return nullptr;
+}
+void StrandLayer::InitFromModel(ModelClass &model) {
+    int nc = model.GetNodeCount() / model.GetNumStrands();
+    while (mNodeLayers.size() < nc) {
+        mNodeLayers.push_back(new EffectLayer(GetParentElement()));
+    }
 }

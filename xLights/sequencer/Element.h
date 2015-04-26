@@ -43,9 +43,16 @@ class Element
 
         EffectLayer* GetEffectLayer(int index);
         int GetEffectLayerCount();
+    
 
         EffectLayer* AddEffectLayer();
         void RemoveEffectLayer(int index);
+
+        StrandLayer* GetStrandLayer(int index, bool create = false);
+        int getStrandLayerCount();
+        void InitStrands(wxXmlNode *node);
+        bool ShowStrands() { return mStrandsVisible;}
+        void ShowStrands(bool b) { mStrandsVisible = b;}
 
         int GetIndex();
         void SetIndex(int index);
@@ -63,10 +70,12 @@ class Element
         wxString mElementType;
         bool mVisible;
         bool mCollapsed;
+        bool mStrandsVisible = false;
         bool mActive;
         bool mSelected;
         int mFixed;
         std::vector<EffectLayer*> mEffectLayers;
+        std::vector<StrandLayer*> mStrandLayers;
 };
 
 #endif // ELEMENT_H

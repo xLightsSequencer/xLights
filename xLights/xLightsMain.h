@@ -1350,7 +1350,6 @@ private:
     void ChooseModelsForSequence();
     void GetGridColumnLabels(wxArrayString& a);
     void GetModelNames(wxArrayString& a, bool includeGroups = false);
-    wxXmlNode* GetModelNode(const wxString& name);
     wxXmlNode* CreateModelNodeFromGroup(const wxString &name);
     void DisplayXlightsFilename(const wxString& filename);
     void CopyRow(int row1, int row2);
@@ -1368,6 +1367,7 @@ private:
 
 
 public:
+    wxXmlNode* GetModelNode(const wxString& name);
     bool InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     void RenderGridToSeqData();
     bool RenderEffectFromMap(int layer, int period, const MapStringString& SettingsMap,

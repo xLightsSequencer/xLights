@@ -412,7 +412,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
 
     // Draw Outside rectangle
-    glPointSize( .3 );
+    glPointSize( translateToBacking(.3) );
     glColor3ub(128,128,128);
     glBegin(GL_LINES);
     glVertex2f(1, 0);
@@ -445,6 +445,10 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     if( mAudioIsLoaded )
     {
+        
+        glPointSize( translateToBacking(1.1) );
+        glLineWidth( 1.1 );
+        glColor3ub(130,178,207);
         for (int x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
         {
             index = x+mStartPixelOffset;
@@ -455,15 +459,12 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
                 if(y1 == y2)
                 {
-                    glColor3ub(130,178,207);
                     glBegin(GL_POINTS);
                     glVertex2f(x,y1);
                     glEnd();
                 }
                 else
                 {
-                    glPointSize( 1 );
-                    glColor3ub(130,178,207);
                     glBegin(GL_LINES);
                     glVertex2f(x, y1);
                     glVertex2f(x, y2);
@@ -474,7 +475,6 @@ void Waveform::DrawWaveView(const WaveView &wv)
         }
 
         glBegin(GL_LINES);
-        glPointSize( 2 );
         glColor3ub(255,255,255);
         for(int x=0;x<mWindowWidth-1 && (x)<wv.MinMaxs.size();x++)
         {

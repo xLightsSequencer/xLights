@@ -64,8 +64,8 @@ PixelBufferClass::~PixelBufferClass() {
     }
 }
 
-void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, bool zeroBased) {
-    frameTimeInMs = timing;
+
+void PixelBufferClass::reset(int layers, int timing) {
     if (effects != NULL) {
         delete [] effects;
     }
@@ -90,8 +90,9 @@ void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, 
     if (effectMixVaries != NULL) {
         delete [] effectMixVaries;
     }
-    SetFromXml(ModelNode, zeroBased);
-    SetModelBrightness(wxAtoi(ModelNode->GetAttribute("ModelBrightness","0")));
+    
+    frameTimeInMs = timing;
+    
     numLayers = layers;
     effects = new RgbEffects[numLayers];
     for (int x = 0; x < numLayers; x++) {
@@ -104,10 +105,60 @@ void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, 
     effectMixThreshold = new float[numLayers];
     fadeFactor = new double[numLayers];
     effectMixVaries = new bool[numLayers]; //allow varying mix threshold -DJ
-
+    
     for(size_t i = 0; i < numLayers; i++) {
         effects[i].InitBuffer(BufferHt, BufferWi);
     }
+}
+
+
+void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, bool zeroBased) {
+    SetFromXml(ModelNode, zeroBased);
+    SetModelBrightness(wxAtoi(ModelNode->GetAttribute("ModelBrightness","0")));
+    reset(layers, timing);
+}
+void PixelBufferClass::InitStrandBuffer(PixelBufferClass &pbc, int strand) {
+    parm1 = 1;
+    parm2 = pbc.parm2;
+    parm3 = 1;
+    StringType = pbc.StringType;
+    rgbOrder = pbc.rgbOrder;
+    SingleNode = pbc.SingleNode;
+    SingleChannel = pbc.SingleChannel;
+    IsLtoR = pbc.IsLtoR;
+    
+    int node = strand;
+    stringStartChan.resize(1);
+    if ("Custom" != pbc.DisplayAs) {
+        node *= pbc.parm2;
+        node /= pbc.parm3;
+        stringStartChan[0] = pbc.NodeStartChannel(node);
+    } else {
+        stringStartChan[0] = pbc.stringStartChan[0];
+    }
+    InitLine();
+    SetModelBrightness(pbc.ModelBrightness);
+    reset(1, pbc.frameTimeInMs);
+}
+void PixelBufferClass::InitNodeBuffer(PixelBufferClass &pbc, int strand, int node) {
+    parm1 = 1;
+    parm2 = 1;
+    parm3 = 1;
+    StringType = pbc.StringType;
+    rgbOrder = pbc.rgbOrder;
+    SingleNode = pbc.SingleNode;
+    SingleChannel = pbc.SingleChannel;
+    IsLtoR = pbc.IsLtoR;
+    stringStartChan.resize(1);
+    if ("Custom" == pbc.DisplayAs) {
+        stringStartChan[0] = pbc.stringStartChan[0] + node * pbc.ChannelsPerNode();
+    } else {
+        stringStartChan[0] = pbc.NodeStartChannel(strand * pbc.parm2  / pbc.parm3 + node);
+    }
+    InitLine();
+
+    SetModelBrightness(pbc.ModelBrightness);
+    reset(1, pbc.frameTimeInMs);
 }
 
 void PixelBufferClass::Clear(int which) {

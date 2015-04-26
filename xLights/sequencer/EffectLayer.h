@@ -82,6 +82,31 @@ class EffectLayer
         Element* mParentElement;
 };
 
+class ModelClass;
+class StrandLayer: public EffectLayer
+{
+public:
+    StrandLayer(Element *parent, int s) : EffectLayer(parent), strand(s) {}
+    virtual ~StrandLayer() {}
+    
+    int GetStrand() { return strand;}
+    
+    bool ShowNodes() { return mShowNodes;}
+    void ShowNodes(bool b) { mShowNodes = b;}
+    
+    void InitFromModel(ModelClass &model);
+    
+    EffectLayer *GetNodeLayer(int n, bool create = false);
+    int GetNodeLayerCount() {
+        return mNodeLayers.size();
+    }
+    
+private:
+    int strand;
+    bool mShowNodes = false;
+    std::vector<EffectLayer*> mNodeLayers;
+};
+
 
 #endif // EFFECTLAYER_H
 

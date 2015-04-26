@@ -7,6 +7,9 @@
 #include "xLightsMain.h"
 #include "RenderCommandEvent.h"
 
+#include <map>
+#include <memory>
+
 
 class RenderEvent
 {
@@ -105,31 +108,43 @@ public:
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe) {
         if (row != NULL) {
             name = row->GetName();
-            buffer = new PixelBufferClass();
-
-            xframe->InitPixelBuffer(name, *buffer, rowToRender->GetEffectLayerCount(), zeroBased);
+            mainBuffer = new PixelBufferClass();
+            xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), zeroBased);
+            
+            for (int x = 0; x < row->getStrandLayerCount(); x++) {
+                StrandLayer *sl = row->GetStrandLayer(x);
+                if (sl -> GetEffectCount() > 0) {
+                    strandBuffers[x].InitStrandBuffer(*mainBuffer, x);
+                }
+                for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
+                    EffectLayer *nl = sl->GetNodeLayer(n);
+                    if (nl -> GetEffectCount() > 0) {
+                        nodeBuffers[x * mainBuffer->GetNodeCount() + n].InitNodeBuffer(*mainBuffer, x, n);
+                    }
+                }
+            }
         } else {
-            buffer = NULL;
+            mainBuffer = NULL;
             name = "";
         }
         startFrame = 0;
         clearAllFrames = clear;
-        renderEvent.buffer = buffer;
+        renderEvent.buffer = mainBuffer;
     }
 
     virtual ~RenderJob() {
-        if (buffer != NULL) {
-            delete buffer;
+        if (mainBuffer != NULL) {
+            delete mainBuffer;
         }
     }
     SequenceData *createExportBuffer() {
         SequenceData *sb = new SequenceData();
-        sb->init(buffer->GetChanCount(), seqData->NumFrames(), seqData->FrameTime());
+        sb->init(mainBuffer->GetChanCount(), seqData->NumFrames(), seqData->FrameTime());
         seqData = sb;
         return sb;
     }
     PixelBufferClass *getBuffer() {
-        return buffer;
+        return mainBuffer;
     }
 
     void setRenderRange(int start, int end) {
@@ -145,13 +160,21 @@ public:
         Effect *currentEffects[numLayers];
         MapStringString *settingsMaps = new MapStringString[numLayers];
         bool effectStates[numLayers];
-        if (clearAllFrames && buffer != NULL) {
-            buffer->Clear(0);
+        
+        std::map<int, Effect*> strandEffects;
+        std::map<int, MapStringString> strandSettingsMaps;
+        std::map<int, bool> strandEffectStates;
+        std::map<int, Effect*> nodeEffects;
+        std::map<int, MapStringString> nodeSettingsMaps;
+        std::map<int, bool> nodeEffectStates;
+        
+        if (clearAllFrames && mainBuffer != NULL) {
+            mainBuffer->Clear(0);
         }
 
         for (int layer = 0; layer < numLayers; layer++) {
             currentEffects[layer] = findEffectForFrame(layer, startFrame);
-            initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer]);
+            initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer], mainBuffer);
             effectStates[layer] = true;
         }
 
@@ -169,15 +192,15 @@ public:
                 Effect *el = findEffectForFrame(layer, frame);
                 if (el != currentEffects[layer]) {
                     currentEffects[layer] = el;
-                    initialize(layer, frame, el, settingsMaps[layer]);
+                    initialize(layer, frame, el, settingsMaps[layer], mainBuffer);
                     effectStates[layer] = true;
                 }
                 int persist=wxAtoi(settingsMaps[layer]["CHECKBOX_OverlayBkg"]);
                 if (!persist || "None" == settingsMaps[layer]["Effect"]) {
-                    buffer->Clear(layer);
+                    mainBuffer->Clear(layer);
                 }
 
-                validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *buffer, effectStates[layer], true, &renderEvent);
+                validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *mainBuffer, effectStates[layer], true, &renderEvent);
                 effectsToUpdate |= validLayers[layer];
             }
             if (!effectsToUpdate && clearAllFrames) {
@@ -185,11 +208,70 @@ public:
                 effectsToUpdate = true;
             }
             if (effectsToUpdate) {
-                buffer->CalcOutput(frame, validLayers);
-                size_t nodeCnt = buffer->GetNodeCount();
+                mainBuffer->CalcOutput(frame, validLayers);
+                size_t nodeCnt = mainBuffer->GetNodeCount();
                 for(size_t n = 0; n < nodeCnt; n++) {
-                    int start = buffer->NodeStartChannel(n);
-                    buffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                    int start = mainBuffer->NodeStartChannel(n);
+                    mainBuffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                }
+            }
+            if (!strandBuffers.empty()) {
+                for (std::map<int, PixelBufferClass>::iterator it = strandBuffers.begin(); it != strandBuffers.end(); it++) {
+                    int strand = it->first;
+                    PixelBufferClass *buffer = &it->second;
+                    StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
+                    Effect *el = findEffectForFrame(slayer, frame);
+                    if (el != strandEffects[strand]) {
+                        strandEffects[strand] = el;
+                        initialize(0, frame, el, strandSettingsMaps[strand], buffer);
+                        strandEffectStates[strand] = true;
+                    }
+                    int persist=wxAtoi(strandSettingsMaps[strand]["CHECKBOX_OverlayBkg"]);
+                    if (!persist || "None" == strandSettingsMaps[strand]["Effect"]) {
+                        buffer->Clear(0);
+                    }
+                    
+                    if (xLights->RenderEffectFromMap(0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
+                        //copy to output
+                        bool valid[1] = {true};
+                        buffer->CalcOutput(frame, valid);
+                        size_t nodeCnt = buffer->GetNodeCount();
+                        for(size_t n = 0; n < nodeCnt; n++) {
+                            int start = buffer->NodeStartChannel(n);
+                            buffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                        }
+                    }
+                }
+            }
+            if (!nodeBuffers.empty()) {
+                for (std::map<int, PixelBufferClass>::iterator it = nodeBuffers.begin(); it != nodeBuffers.end(); it++) {
+                    int node = it->first;
+                    PixelBufferClass *buffer = &it->second;
+                    int strand = node / mainBuffer->GetNodeCount();
+                    int inode = node % mainBuffer->GetNodeCount();
+                    StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
+                    EffectLayer *nlayer = slayer->GetNodeLayer(inode);
+                    Effect *el = findEffectForFrame(nlayer, frame);
+                    if (el != nodeEffects[node]) {
+                        nodeEffects[node] = el;
+                        initialize(0, frame, el, nodeSettingsMaps[strand], buffer);
+                        nodeEffectStates[strand] = true;
+                    }
+                    int persist=wxAtoi(nodeSettingsMaps[strand]["CHECKBOX_OverlayBkg"]);
+                    if (!persist || "None" == nodeSettingsMaps[strand]["Effect"]) {
+                        buffer->Clear(0);
+                    }
+                    
+                    if (xLights->RenderEffectFromMap(0, frame, nodeSettingsMaps[strand], *buffer, nodeEffectStates[strand], true, &renderEvent)) {
+                        //copy to output
+                        bool valid[1] = {true};
+                        buffer->CalcOutput(frame, valid);
+                        size_t nodeCnt = buffer->GetNodeCount();
+                        for(size_t n = 0; n < nodeCnt; n++) {
+                            int start = buffer->NodeStartChannel(n);
+                            buffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                        }
+                    }
                 }
             }
             if (next) {
@@ -201,11 +283,12 @@ public:
             next->setPreviousFrameDone(endFrame);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
         }
+
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
     }
 
 private:
-    void initialize(int layer, int frame, Effect *el, MapStringString &settingsMap) {
+    void initialize(int layer, int frame, Effect *el, MapStringString &settingsMap, PixelBufferClass *buffer) {
         if (el == NULL) {
             settingsMap.clear();
             settingsMap["Effect"]="None";
@@ -215,9 +298,9 @@ private:
                             el->GetPaletteMap(),
                             settingsMap);
         }
-        updateBufferPaletteFromMap(layer, settingsMap);
-        updateBufferFadesFromMap(layer, settingsMap);
-        updateFitToTimeFromMap(layer, settingsMap);
+        updateBufferPaletteFromMap(layer, settingsMap, buffer);
+        updateBufferFadesFromMap(layer, settingsMap, buffer);
+        updateFitToTimeFromMap(layer, settingsMap, buffer);
 
         if (el != NULL) {
             buffer->SetTimes(layer, el->GetStartTime() * 1000, el->GetEndTime() * 1000);
@@ -241,7 +324,7 @@ private:
         buffer->SetMixThreshold(layer, effectMixThreshold, wxAtoi(settingsMap["CHECKBOX_LayerMorph"]) != 0); //allow threshold to vary -DJ
     }
 
-    void updateBufferPaletteFromMap(int layer, MapStringString& settingsMap) {
+    void updateBufferPaletteFromMap(int layer, MapStringString& settingsMap, PixelBufferClass *buffer) {
         xlColorVector newcolors;
         for (int i = 1; i <= 6; i++) {
             if (settingsMap[wxString::Format("CHECKBOX_Palette%d",i)] ==  "1") {
@@ -250,7 +333,7 @@ private:
         }
         buffer->SetPalette(layer, newcolors);
     }
-    void updateBufferFadesFromMap(int layer, MapStringString& settingsMap) {
+    void updateBufferFadesFromMap(int layer, MapStringString& settingsMap, PixelBufferClass *buffer) {
         wxString tmpStr;
         double fadeIn, fadeOut;
 
@@ -262,20 +345,23 @@ private:
         buffer->SetFadeTimes(layer, fadeIn, fadeOut);
     }
 
-    void updateFitToTimeFromMap(int layer, MapStringString& settingsMap) {
+    void updateFitToTimeFromMap(int layer, MapStringString& settingsMap, PixelBufferClass *buffer) {
         bool fitToTime = settingsMap["CHECKBOX_FitToTime"] == "1";
         buffer->SetFitToTime(layer, fitToTime);
     }
 
-    Effect *findEffectForFrame(int layer, int frame) {
+    Effect *findEffectForFrame(EffectLayer* layer, int frame) {
         int time = frame * seqData->FrameTime();
-        for (int e = 0; e < rowToRender->GetEffectLayer(layer)->GetEffectCount(); e++) {
-            Effect *effect = rowToRender->GetEffectLayer(layer)->GetEffect(e);
+        for (int e = 0; e < layer->GetEffectCount(); e++) {
+            Effect *effect = layer->GetEffect(e);
             if ((effect->GetEndTime() * 1000) > time && (effect->GetStartTime() * 1000) <= time) {
                 return effect;
             }
         }
         return NULL;
+    }
+    Effect *findEffectForFrame(int layer, int frame) {
+        return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame);
     }
     void loadSettingsMap(const wxString &effectName,
                          const MapStringString &settings,
@@ -305,11 +391,13 @@ private:
     wxString name;
     int startFrame;
     int endFrame;
-    PixelBufferClass *buffer;
+    PixelBufferClass *mainBuffer;
     xLightsFrame *xLights;
     SequenceData *seqData;
     bool clearAllFrames;
     RenderEvent renderEvent;
+    std::map<int, PixelBufferClass> strandBuffers;
+    std::map<int, PixelBufferClass> nodeBuffers;
 };
 
 

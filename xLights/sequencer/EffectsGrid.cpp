@@ -141,13 +141,12 @@ bool EffectsGrid::DragOver(int x, int y)
             int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
             if(selectedTimingIndex >= 0)
             {
-                Element* e = mSequenceElements->GetRowInformation(selectedTimingIndex)->element;
-                EffectLayer* tel = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTimingIndex)->layerIndex);
+                EffectLayer* tel = mSequenceElements->GetEffectLayer(selectedTimingIndex);
                 int selectionType;
                 int timingIndex = tel->GetEffectIndexThatContainsPosition(x,selectionType);
                 if(timingIndex >=0)
                 {
-                    EffectLayer* el = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+                    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
                     if( el != nullptr )
                     {
                         mDropStartX = tel->GetEffect(timingIndex)->GetStartPosition();
@@ -162,7 +161,7 @@ bool EffectsGrid::DragOver(int x, int y)
             }
             else
             {
-                EffectLayer* el = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+                EffectLayer* el = mSequenceElements->GetEffectLayer(row);
                 if( el != nullptr )
                 {
                     mDropStartTime = mTimeline->GetAbsoluteTimefromPosition(x);
@@ -261,7 +260,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
             Element* element = mSequenceElements->GetRowInformation(rowIndex)->element;
             if( element != nullptr )
             {
-                RunMouseOverHitTests(element,mSequenceElements->GetRowInformation(rowIndex)->layerIndex,event.GetX(),event.GetY());
+                RunMouseOverHitTests(rowIndex,event.GetX(),event.GetY());
             }
         }
     }
@@ -284,7 +283,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     int selected_time = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
     mStartResizeTime = selected_time;
     int row = GetRow(event.GetY());
-    if(row>=mSequenceElements->GetRowInformationSize())
+    if(row>=mSequenceElements->GetRowInformationSize() || row < 0)
         return;
     int effectIndex;
     int selectionType;
@@ -314,12 +313,15 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             mSequenceElements->UnSelectAllEffects();
             selectedEffect->SetSelected(selectionType);
         }
-        mEffectLayer = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
-        Element* element = mSequenceElements->GetRowInformation(row)->element;
+
+        mEffectLayer = mSequenceElements->GetEffectLayer(row);
+        Element* element = mEffectLayer->GetParentElement();
 
         mSelectedEffect = selectedEffect;
         if(element->GetType()=="model")
         {
+            mSelectedRow = row;
+            mSelectedEffect = selectedEffect;
             RaiseSelectedEffectChanged(mSelectedEffect);
             RaisePlayModelEffect(element,mSelectedEffect,false);
         }
@@ -428,9 +430,8 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         int row = GetRow(event.GetPosition().y);
         int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
         if (selectedTimingIndex >= 0 && row < mSequenceElements->GetRowInformationSize()) {
-            Element* e = mSequenceElements->GetRowInformation(selectedTimingIndex)->element;
-            EffectLayer* tel = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTimingIndex)->layerIndex);
-            EffectLayer* el = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+            EffectLayer* tel = mSequenceElements->GetEffectLayer(selectedTimingIndex);
+            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
 
             int selectionType;
             int timingIndex = tel->GetEffectIndexThatContainsPosition(event.GetX(),selectionType);
@@ -445,6 +446,8 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                 mEmptyCellSelected = true;
                 mSelectedTimingIndex = timingIndex;
                 mSelectedTimingRow = selectedTimingIndex;
+                mSelectedRow = -1;
+                mSelectedEffect = nullptr;
                 mSequenceElements->UnSelectAllEffects();
                 wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
                 wxPostEvent(mParent, eventUnSelected);
@@ -492,7 +495,7 @@ bool EffectsGrid::MultipleEffectsSelected()
     int count=0;
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
-        EffectLayer* el = mSequenceElements->GetRowInformation(i)->element->GetEffectLayer(mSequenceElements->GetRowInformation(i)->layerIndex);
+        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         count+= el->GetSelectedEffectCount();
         if(count > 1)
         {
@@ -532,7 +535,7 @@ void EffectsGrid::Paste(const wxString &data) {
                 if( row_info == nullptr ) break;
                 Element* elem = row_info->element;
                 if( elem == nullptr ) break;
-                EffectLayer* el = elem->GetEffectLayer(row_info->layerIndex);
+                EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
                 if( el == nullptr ) break;
                 if( el->GetRangeIsClear(new_start_time, new_end_time) )
                 {
@@ -563,7 +566,7 @@ void EffectsGrid::Paste(const wxString &data) {
             if (efdata.size() < 3) {
                 return;
             }
-            EffectLayer* el = mSequenceElements->GetRowInformation(mDropRow)->element->GetEffectLayer(mSequenceElements->GetRowInformation(mDropRow)->layerIndex);
+            EffectLayer* el = mSequenceElements->GetEffectLayer(mDropRow);
             int effectIndex = Effect::GetEffectIndex(efdata[0]);
             if (effectIndex >= 0) {
                 Effect* ef = el->AddEffect(0,
@@ -678,12 +681,12 @@ void EffectsGrid::ResizeSingleEffect(int position)
 }
 
 
-void EffectsGrid::RunMouseOverHitTests(Element* element,int effectLayerIndex,int x,int y)
+void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
 {
     int effectIndex;
     int result;
 
-    EffectLayer* layer = element->GetEffectLayer(effectLayerIndex);
+    EffectLayer* layer = mSequenceElements->GetEffectLayer(rowIndex);
     bool isHit = layer->HitTestEffect(x,effectIndex,result);
     if(isHit)
     {
@@ -783,13 +786,13 @@ void EffectsGrid::DrawHorizontalLines()
 
     glEnable(GL_BLEND);
     glColor4ub(100,100,100,5);
-    for(int row=0;(row*DEFAULT_ROW_HEADING_HEIGHT)< mWindowHeight, row < mSequenceElements->GetRowInformationSize();row++)
+    for(int row=0;row < mSequenceElements->GetRowInformationSize();row++)
     {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformation(row);
         Element* e = ri->element;
         y = row*DEFAULT_ROW_HEADING_HEIGHT;
 
-        if(ri->layerIndex == 0)
+        if(ri->layerIndex == 0 && ri->strandIndex == -1)
         {
             if (isEvenLayer)
             {
@@ -798,11 +801,17 @@ void EffectsGrid::DrawHorizontalLines()
                 DrawGLUtils::DrawFillRectangle(xlLIGHT_GREY,40,x1,y,x2,h);
             }
             isEvenLayer = !isEvenLayer;
+        } else if (ri->strandIndex != -1) {
+            if (isEvenLayer)
+            {
+                DrawGLUtils::DrawFillRectangle(xlLIGHT_GREY,40,x1,y,x2,DEFAULT_ROW_HEADING_HEIGHT);
+            }
+            isEvenLayer = !isEvenLayer;
         }
     }
     glDisable(GL_BLEND);
 
-    for(int row=0;(row*DEFAULT_ROW_HEADING_HEIGHT)< mWindowHeight, row < mSequenceElements->GetRowInformationSize();row++)
+    for(int row=0;row < mSequenceElements->GetRowInformationSize();row++)
     {
         y = (row+1)*DEFAULT_ROW_HEADING_HEIGHT;
         DrawGLUtils::DrawLine(*mGridlineColor,255,x1,y,x2,y,.2);
@@ -992,14 +1001,42 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
 
 void EffectsGrid::DrawModelOrViewEffects(int row)
 {
-    EffectLayer* effectLayer =mSequenceElements->GetRowInformation(row)->
-                              element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+    Row_Information_Struct *ri = mSequenceElements->GetRowInformation(row);
+    EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(ri);
     xlColor* mEffectColorRight;
     xlColor* mEffectColorLeft;
     xlColor* mEffectColorCenter;
     int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+2;
     int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-2;
     int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
+    
+    if (mGridIconBackgrounds && ri->nodeIndex != -1) {
+        std::vector<xlColor> colors;
+        std::vector<double> xs;
+        PixelBufferClass cls;
+        PixelBufferClass ncls;
+        xlights->InitPixelBuffer(ri->element->GetName(), cls, 1);
+        ncls.InitNodeBuffer(cls, ri->strandIndex, ri->nodeIndex);
+        xlColor lastColor;
+        for (int f = 0; f < seqData->NumFrames(); f++) {
+            ncls.SetNodeChannelValues(0, (*seqData)[f][ncls.NodeStartChannel(0)]);
+            xlColor c = ncls.GetNodeColor(0);
+            if (f == 0) {
+                colors.push_back(c);
+                lastColor = c;
+            } else if (c != lastColor) {
+                colors.push_back(c);
+                lastColor = c;
+                int timems = f * seqData->FrameTime();
+                xs.push_back(mTimeline->GetPositionFromTimeMS(timems));
+            }
+        }
+        int timems = (seqData->NumFrames() + 1) * seqData->FrameTime();
+        xs.push_back(mTimeline->GetPositionFromTimeMS(timems));
+        DrawGLUtils::DrawRectangleArray((row*DEFAULT_ROW_HEADING_HEIGHT)+3,
+                                        ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-3,
+                                        mTimeline->GetPositionFromTimeMS(0), xs, colors);
+    }
 
     for(int effectIndex=0;effectIndex < effectLayer->GetEffectCount();effectIndex++)
     {
@@ -1116,7 +1153,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
 void EffectsGrid::DrawTimingEffects(int row)
 {
     Element* element =mSequenceElements->GetRowInformation(row)->element;
-    EffectLayer* effectLayer=element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+    EffectLayer* effectLayer=mSequenceElements->GetEffectLayer(row);
     xlColor* mEffectColorRight;
     xlColor* mEffectColorLeft;
     xlColor* mEffectColorCenter;
@@ -1337,8 +1374,7 @@ void EffectsGrid::RaiseEffectDropped(int x, int y)
     if (row >= mSequenceElements->GetRowInformationSize()) {
         return;
     }
-    Element* e = mSequenceElements->GetRowInformation(row)->element;
-    EffectLayer* effectLayer = e->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+    EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(row);
 
     mSequenceElements->ClearSelectedRanges();
     EffectRange effectRange;
@@ -1374,8 +1410,7 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(double &toLeft, double &t
     toRight = 1000;
     for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
     {
-        Element* element = mSequenceElements->GetRowInformation(row)->element;
-        EffectLayer* el =  element->GetEffectLayer( mSequenceElements->GetRowInformation(row)->layerIndex);
+        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
         el->GetMaximumRangeOfMovementForSelectedEffects(left,right);
         toLeft = toLeft<left?toLeft:left;
         toRight = toRight<right?toRight:right;
@@ -1386,8 +1421,7 @@ void EffectsGrid::MoveAllSelectedEffects(double delta)
 {
     for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
     {
-        Element* element = mSequenceElements->GetRowInformation(row)->element;
-        EffectLayer* el =  element->GetEffectLayer( mSequenceElements->GetRowInformation(row)->layerIndex);
+        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
         el->MoveAllSelectedEffects(delta);
     }
 }

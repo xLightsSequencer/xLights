@@ -363,7 +363,7 @@ void MainSequencer::DeleteAllSelectedEffects()
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
         Element* element = mSequenceElements->GetRowInformation(i)->element;
-        EffectLayer* el = element->GetEffectLayer(mSequenceElements->GetRowInformation(i)->layerIndex);
+        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         double start = 99999999;
         double end = -1;
         for (int x = 0; x < el->GetEffectCount(); x++) {

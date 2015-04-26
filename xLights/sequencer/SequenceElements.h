@@ -20,6 +20,8 @@ struct Row_Information_Struct
     bool PartOfView;
     int colorIndex;
     int layerIndex;
+    int strandIndex = -1;
+    int nodeIndex = -1;
 };
 
 struct EffectRange
@@ -36,6 +38,9 @@ struct EventPlayEffectArgs
     Effect* effect;
     bool renderEffect;
 };
+
+class wxXmlNode;
+class EffectLayer;
 
 class SequenceElements
 {
@@ -83,6 +88,7 @@ class SequenceElements
         bool ElementExists(wxString elementName);
 
         void SetViewsNode(wxXmlNode* viewsNode);
+        void SetModelsNode(wxXmlNode *modelsNode);
         wxString GetViewModels(wxString viewName);
 
         void SortElements();
@@ -95,10 +101,17 @@ class SequenceElements
         Effect* GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType);
         void UnSelectAllEffects();
         void UnSelectAllElements();
+    
+        EffectLayer* GetEffectLayer(Row_Information_Struct *s);
+        EffectLayer* GetEffectLayer(int row);
 
     protected:
     private:
-
+        void LoadEffects(EffectLayer *layer,
+                         const wxString &type,
+                     wxXmlNode *effectLayerNode,
+                     std::vector<wxString> effectStrings,
+                     std::vector<wxString> colorPalettes);
         static bool SortElementsByIndex(const Element *element1,const Element *element2)
         {
             return (element1->Index<element2->Index);
@@ -118,6 +131,7 @@ class SequenceElements
         std::vector<EffectRange> mSelectedRanges;
         int mSelectedTimingRow;
         wxXmlNode* mViewsNode;
+        wxXmlNode* mModelsNode;
         double mFrequency;
         int mTimingRowCount;
         int mMaxRowsDisplayed;

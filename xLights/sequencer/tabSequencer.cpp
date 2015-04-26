@@ -89,6 +89,8 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
     mainSequencer->Layout();
+    mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
+    
     m_mgr->Update();
 }
 
@@ -236,6 +238,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
     SetFrequency(xml_file.GetFrequency());
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
+    mSequenceElements.SetModelsNode(ModelsNode);
     mSequenceElements.LoadSequencerFile(xml_file);
     mSequenceElements.PopulateRowInformation();
 
@@ -765,8 +768,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
         Element* element = mSequenceElements.GetRowInformation(i)->element;
         if(element->GetType() == "model" || element->GetType() == "timing")
         {
-            int layerIndex = mSequenceElements.GetRowInformation(i)->layerIndex;
-            EffectLayer* el = element->GetEffectLayer(layerIndex);
+            EffectLayer* el = mSequenceElements.GetEffectLayer(i);
             for(int j=0;j< el->GetEffectCount();j++)
             {
                 if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)

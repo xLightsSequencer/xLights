@@ -158,6 +158,13 @@ class xLightsXmlFile : public wxFileName
         void SetSequenceDuration(const wxString& length, wxXmlNode* node);
 
         static wxString InsertMissing(wxString str, wxString missing_array, bool INSERT);
+    
+    void WriteEffects(EffectLayer *layer,
+                      wxXmlNode *effect_layer_node,                      
+                      StringIntMap &colorPalettes,
+                      wxXmlNode* colorPalette_node,
+                      StringIntMap &effectStrings,
+                      wxXmlNode* effectDB_Node);
 };
 
 #endif // XLIGHTSXMLFILE_H

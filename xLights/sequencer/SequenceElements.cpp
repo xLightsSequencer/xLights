@@ -37,6 +37,20 @@ void SequenceElements::Clear() {
     mFirstVisibleModelRow = 0;
 }
 
+EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
+    
+    Element* e = s->element;
+    if (s->strandIndex == -1) {
+        return e->GetEffectLayer(s->layerIndex);
+    } else if (s->nodeIndex == -1) {
+        return e->GetStrandLayer(s->strandIndex);
+    } else {
+        return e->GetStrandLayer(s->strandIndex)->GetNodeLayer(s->nodeIndex);
+    }
+}
+EffectLayer* SequenceElements::GetEffectLayer(int row) {
+    return GetEffectLayer(GetRowInformation(row));
+}
 
 Element* SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed,bool active, bool selected)
 {
@@ -80,6 +94,10 @@ void SequenceElements::SetViewsNode(wxXmlNode* viewsNode)
     mViewsNode = viewsNode;
 }
 
+void SequenceElements::SetModelsNode(wxXmlNode* node)
+{
+    mModelsNode = node;
+}
 wxString SequenceElements::GetViewModels(wxString viewName)
 {
     wxString result="";
@@ -190,7 +208,66 @@ void SequenceElements::MoveElement(int index,int destinationIndex)
 
 }
 
+void SequenceElements::LoadEffects(EffectLayer *effectLayer,
+                                   const wxString &type,
+                                   wxXmlNode *effectLayerNode,
+                                   std::vector<wxString> effectStrings,
+                                   std::vector<wxString> colorPalettes) {
+    for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
+    {
+        if (effect->GetName() == "Effect")
+        {
+            wxString effectName;
+            wxString settings;
+            int id = 0;
+            int effectIndex = 0;
+            long palette = -1;
+            bool bProtected=false;
+            
+            // Start time
+            double startTime;
+            effect->GetAttribute("startTime").ToDouble(&startTime);
+            startTime = TimeLine::RoundToMultipleOfPeriod(startTime,mFrequency);
+            // End time
+            double endTime;
+            effect->GetAttribute("endTime").ToDouble(&endTime);
+            endTime = TimeLine::RoundToMultipleOfPeriod(endTime,mFrequency);
+            // Protected
+            bProtected = effect->GetAttribute("protected")=='1'?true:false;
+            if(type != "timing")
+            {
+                // Name
+                effectName = effect->GetAttribute("name");
+                effectIndex = Effect::GetEffectIndex(effectName);
+                // ID
+                id = wxAtoi(effect->GetAttribute("id"));
+                if (effect->GetAttribute("ref") != "") {
+                    settings = effectStrings[wxAtoi(effect->GetAttribute("ref"))];
+                } else {
+                    settings = effect->GetNodeContent();
+                }
+                
+                wxString tmp;
+                if (effect->GetAttribute("palette", &tmp)) {
+                    tmp.ToLong(&palette);
+                }
+            }
+            else
+            {
+                // store timing labels in name attribute
+                effectName = effect->GetAttribute("label");
+                
+            }
+            effectLayer->AddEffect(id,effectIndex,effectName,settings,
+                                   palette == -1 ? "" : colorPalettes[palette],
+                                   startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
+        } else if (effect->GetName() == "Node" && effectLayerNode->GetName() == "Strand") {
+            EffectLayer* neffectLayer = ((StrandLayer*)effectLayer)->GetNodeLayer(wxAtoi(effect->GetAttribute("index")), true);
+            LoadEffects(neffectLayer, type, effect, effectStrings, colorPalettes);
+        }
+    }
 
+}
 bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
 {
     wxXmlDocument& seqDocument = xml_file.GetXmlDocument();
@@ -296,59 +373,15 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                         {
                             for(wxXmlNode* effectLayerNode=elementNode->GetChildren(); effectLayerNode!=NULL; effectLayerNode=effectLayerNode->GetNext())
                             {
-                                if (effectLayerNode->GetName() == "EffectLayer")
+                                if (effectLayerNode->GetName() == "EffectLayer" || effectLayerNode->GetName() == "Strand")
                                 {
-                                    EffectLayer* effectLayer = element->AddEffectLayer();
-                                    for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
-                                    {
-                                        if (effect->GetName() == "Effect")
-                                        {
-                                            wxString effectName;
-                                            wxString settings;
-                                            int id = 0;
-                                            int effectIndex = 0;
-                                            long palette = -1;
-                                            bool bProtected=false;
-
-                                            // Start time
-                                            double startTime;
-                                            effect->GetAttribute("startTime").ToDouble(&startTime);
-                                            startTime = TimeLine::RoundToMultipleOfPeriod(startTime,mFrequency);
-                                            // End time
-                                            double endTime;
-                                            effect->GetAttribute("endTime").ToDouble(&endTime);
-                                            endTime = TimeLine::RoundToMultipleOfPeriod(endTime,mFrequency);
-                                            // Protected
-                                            bProtected = effect->GetAttribute("protected")=='1'?true:false;
-                                            if(elementNode->GetAttribute("type") != "timing")
-                                            {
-                                                // Name
-                                                effectName = effect->GetAttribute("name");
-                                                effectIndex = Effect::GetEffectIndex(effectName);
-                                                // ID
-                                                id = wxAtoi(effect->GetAttribute("id"));
-                                                if (effect->GetAttribute("ref") != "") {
-                                                    settings = effectStrings[wxAtoi(effect->GetAttribute("ref"))];
-                                                } else {
-                                                    settings = effect->GetNodeContent();
-                                                }
-
-                                                wxString tmp;
-                                                if (effect->GetAttribute("palette", &tmp)) {
-                                                    tmp.ToLong(&palette);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                // store timing labels in name attribute
-                                                effectName = effect->GetAttribute("label");
-
-                                            }
-                                            effectLayer->AddEffect(id,effectIndex,effectName,settings,
-                                                                   palette == -1 ? "" : colorPalettes[palette],
-                                                                   startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
-                                        }
+                                    EffectLayer* effectLayer = NULL;
+                                    if (effectLayerNode->GetName() == "EffectLayer") {
+                                        effectLayer = element->AddEffectLayer();
+                                    } else {
+                                        effectLayer = element->GetStrandLayer(wxAtoi(effectLayerNode->GetAttribute("index")), true);
                                     }
+                                    LoadEffects(effectLayer, elementNode->GetAttribute("type"), effectLayerNode, effectStrings, colorPalettes);
                                 }
                             }
                         }
@@ -384,7 +417,17 @@ int SequenceElements::GetSelectedTimingRow()
     return mSelectedTimingRow;
 }
 
-
+wxXmlNode *GetModelNode(wxXmlNode *root, const wxString & name) {
+    wxXmlNode* e;
+    for(e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "model")
+        {
+            if (name == e->GetAttribute("name")) return e;
+        }
+    }
+    return NULL;
+}
 void SequenceElements::PopulateRowInformation()
 {
     int rowIndex=0;
@@ -424,6 +467,41 @@ void SequenceElements::PopulateRowInformation()
                     ri.layerIndex = 0;
                     ri.Index = rowIndex++;
                     mRowInformation.push_back(ri);
+                }
+                mElements[i]->InitStrands(GetModelNode(mModelsNode, mElements[i]->GetName()));
+                if (mElements[i]->ShowStrands()) {
+                    for (int s = 0; s < mElements[i]->getStrandLayerCount(); s++) {
+                        if (mElements[i]->getStrandLayerCount() > 1) {
+                            Row_Information_Struct ri;
+                            ri.element = mElements[i];
+                            ri.Collapsed = !mElements[i]->ShowStrands();
+                            ri.Active = mElements[i]->GetActive();
+                            ri.PartOfView = false;
+                            ri.colorIndex = 0;
+                            ri.layerIndex = 0;
+                            ri.Index = rowIndex++;
+                            ri.strandIndex = s;
+                            mRowInformation.push_back(ri);
+                        }
+                        
+                        StrandLayer * sl = mElements[i]->GetStrandLayer(s);
+                        if (sl->ShowNodes()) {
+                            for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
+                                Row_Information_Struct ri;
+                                ri.element = mElements[i];
+                                ri.Collapsed = sl->ShowNodes();
+                                ri.Active = !mElements[i]->GetActive();
+                                ri.PartOfView = false;
+                                ri.colorIndex = 0;
+                                ri.layerIndex = 0;
+                                ri.Index = rowIndex++;
+                                ri.strandIndex = s;
+                                ri.nodeIndex = n;
+                                mRowInformation.push_back(ri);
+                            }
+                        }
+                    }
+                    
                 }
             }
             else if (mElements[i]->GetType()=="timing")
@@ -598,7 +676,7 @@ void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endR
         }
         for(int i=startRow;i<=endRow;i++)
         {
-            EffectLayer* effectLayer = mVisibleRowInformation[i].element->GetEffectLayer(mVisibleRowInformation[i].layerIndex);
+            EffectLayer* effectLayer = GetEffectLayer(&mVisibleRowInformation[i]);
             effectLayer->SelectEffectsInPositionRange(startX,endX,FirstSelected);
         }
     }
@@ -606,7 +684,7 @@ void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endR
 
 Effect* SequenceElements::GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType)
 {
-    EffectLayer* effectLayer = mVisibleRowInformation[row].element->GetEffectLayer(mVisibleRowInformation[row].layerIndex);
+    EffectLayer* effectLayer = GetEffectLayer(&mVisibleRowInformation[row]);
 
     index = effectLayer->GetEffectIndexThatContainsPosition(x,selectionType);
     if(index<0)
@@ -625,7 +703,7 @@ void SequenceElements::UnSelectAllEffects()
 {
     for(int i=0;i<mRowInformation.size();i++)
     {
-        EffectLayer* effectLayer = mRowInformation[i].element->GetEffectLayer(mRowInformation[i].layerIndex);
+        EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
         effectLayer->UnSelectAllEffects();
     }
 }

@@ -97,9 +97,6 @@ class DrawingContext;
 class NCCDLLEXPORT RgbEffects
 {
 public:
-//BL: it turns out this actually works... the pix buf class is the only consumer of this...
-//protected:
-//    friend class PixelBufferClass;
 
     RgbEffects();
     ~RgbEffects();

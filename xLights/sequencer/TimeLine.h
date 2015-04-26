@@ -67,7 +67,7 @@ class TimeLine : public wxWindow
 
         void GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2, int& x3, int& x4);
         int GetPositionFromTime(double time);
-        int GetPositionFromTimeMS(int time);
+        double GetPositionFromTimeMS(int time);
 
         void SetSequenceEnd(int ms);
 

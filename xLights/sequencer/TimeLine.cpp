@@ -407,10 +407,10 @@ int TimeLine::GetPositionFromTime(double time)
    return xAbsolutePosition - mStartPixelOffset;
 }
 
-int TimeLine::GetPositionFromTimeMS(int time)
+double TimeLine::GetPositionFromTimeMS(int time)
 {
    double majorHashs = (double)time/(double)TimePerMajorTickInMS();
-   int xAbsolutePosition = (int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+   double xAbsolutePosition = majorHashs * (double)PIXELS_PER_MAJOR_HASH;
    return xAbsolutePosition - mStartPixelOffset;
 }
 
