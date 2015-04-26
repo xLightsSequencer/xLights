@@ -4855,7 +4855,7 @@
 									<object class="wxNotebook" name="ID_NOTEBOOK3" variable="Notebook3" member="yes">
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL40" variable="Panel10" member="no">
-												<object class="wxGridBagSizer" variable="GridBagSizer3" member="no">
+												<object class="wxGridBagSizer" variable="GridBagSizerShockwavePosition" member="no">
 													<object class="sizeritem">
 														<object class="wxStaticText" name="wxID_ANY" variable="StaticText154" member="no">
 															<label>Center X:</label>
@@ -5160,7 +5160,7 @@
 										</object>
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL44" variable="Panel14" member="no">
-												<object class="wxGridBagSizer" variable="GridBagSizer5" member="no">
+												<object class="wxGridBagSizer" variable="GridBagSizerShockwaveOptions" member="no">
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT162" variable="StaticText166" member="yes">
 															<label>Acceleration:</label>
