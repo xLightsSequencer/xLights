@@ -548,7 +548,7 @@ void ModelClass::SetTreeCoord(long degrees) {
             bufferY=Nodes[n]->Coords[c].bufY;
             angle=StartAngle + double(bufferX) * AngleIncr;
             x0=radius * sin(angle);
-            Nodes[n]->Coords[c].screenX=x0*(1.0-double(bufferY)/double(BufferHt));
+            Nodes[n]->Coords[c].screenX=x0*(1.0-double(bufferY)/(double(BufferHt) * 1.1));
 //            Nodes[n]->Coords[c].screenY=bufferY * factor;
             Nodes[n]->Coords[c].screenY=(bufferY * factor)-(RenderHt/2);
         }
