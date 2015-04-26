@@ -4847,6 +4847,396 @@
 						<label>Shimmer</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW_SHOCKWAVE" variable="Panel1_Shockwave" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer110" member="no">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<object class="sizeritem">
+									<object class="wxNotebook" name="ID_NOTEBOOK3" variable="Notebook3" member="yes">
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL40" variable="Panel10" member="no">
+												<object class="wxGridBagSizer" variable="GridBagSizer3" member="no">
+													<object class="sizeritem">
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticText154" member="no">
+															<label>Center X:</label>
+														</object>
+														<col>0</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterX" variable="Slider_Shockwave_CenterX" member="yes">
+															<value>50</value>
+															<handler function="OnSlider_Shockwave_CenterXCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>0</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Shockwave_CenterX" variable="TextCtrl_Shockwave_CenterX" member="yes">
+															<value>50</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Shockwave_CenterXText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5d</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX" variable="BitmapButton_Shockwave_CenterX" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Shockwave_CenterXClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT151" variable="StaticText155" member="yes">
+															<label>Center Y:</label>
+														</object>
+														<col>0</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterY" variable="Slider_Shockwave_CenterY" member="yes">
+															<value>50</value>
+															<handler function="OnSlider_Shockwave_CenterYCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>1</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY" variable="BitmapButton_Shockwave_CenterY" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Shockwave_CenterYClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT152" variable="StaticText156" member="yes">
+															<label>Radius1:</label>
+														</object>
+														<col>0</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Radius" variable="Slider_Shockwave_Start_Radius" member="yes">
+															<value>1</value>
+															<max>200</max>
+															<handler function="OnSlider_Shockwave_Start_RadiusCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>2</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius" variable="BitmapButton_Shockwave_Start_Radius" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Shockwave_Start_RadiusClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT153" variable="StaticText157" member="yes">
+															<label>Width1:</label>
+														</object>
+														<col>0</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Width" variable="Slider_Shockwave_Start_Width" member="yes">
+															<value>5</value>
+															<max>255</max>
+															<handler function="OnSlider_Shockwave_Start_WidthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>4</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width" variable="BitmapButton_Shockwave_Start_Width" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Shockwave_Start_WidthClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Shockwave_CenterY" variable="TextCtrl_Shockwave_CenterY" member="yes">
+															<value>50</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Shockwave_CenterYText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Shockwave_Start_Radius" variable="TextCtrl_Shockwave_Start_Radius" member="yes">
+															<value>1</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Shockwave_Start_RadiusText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>2</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Shockwave_Start_Width" variable="TextCtrl_Shockwave_Start_Width" member="yes">
+															<value>5</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Shockwave_Start_WidthText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>4</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT154" variable="StaticText158" member="yes">
+															<label>Radius2:</label>
+														</object>
+														<col>0</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Radius" variable="Slider_Shockwave_End_Radius" member="yes">
+															<value>10</value>
+															<max>200</max>
+															<handler function="OnSlider_Shockwave_End_RadiusCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>3</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Shockwave_End_Radius" variable="TextCtrl_Shockwave_End_Radius" member="yes">
+															<value>10</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Shockwave_End_RadiusText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius" variable="BitmapButton_Shockwave_End_Radius" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Shockwave_End_RadiusClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>3</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT155" variable="StaticText159" member="yes">
+															<label>Width2:</label>
+														</object>
+														<col>0</col>
+														<row>5</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Width" variable="Slider_Shockwave_End_Width" member="yes">
+															<value>10</value>
+															<max>255</max>
+															<handler function="OnSlider_Shockwave_End_WidthCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>5</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Shockwave_End_Width" variable="TextCtrl_Shockwave_End_Width" member="yes">
+															<value>10</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Shockwave_End_WidthText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>5</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width" variable="BitmapButton_Shockwave_End_Width" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Shockwave_End_WidthClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>5</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Position</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL44" variable="Panel14" member="no">
+												<object class="wxGridBagSizer" variable="GridBagSizer5" member="no">
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT162" variable="StaticText166" member="yes">
+															<label>Acceleration:</label>
+														</object>
+														<col>0</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Shockwave_Accel" variable="Slider_Shockwave_Accel" member="yes">
+															<min>-10</min>
+															<max>10</max>
+															<handler function="OnSlider_Shockwave_AccelCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<col>1</col>
+														<row>0</row>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Shockwave_Accel" variable="TextCtrl_Shockwave_Accel" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>35,-1</size>
+															<style>wxTE_CENTRE</style>
+															<handler function="OnTextCtrl_Shockwave_AccelText" entry="EVT_TEXT" />
+														</object>
+														<col>2</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Accel" variable="BitmapButton_Shockwave_Accel" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnBitmapButton_Shockwave_AccelClick" entry="EVT_BUTTON" />
+														</object>
+														<col>3</col>
+														<row>0</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxCheckBox" name="ID_CHECKBOX_Shockwave_Blend_Edges" variable="CheckBox_Shockwave_Blend_Edges" member="yes">
+															<label>Blend Edges:</label>
+															<checked>1</checked>
+															<style>wxALIGN_RIGHT</style>
+														</object>
+														<col>0</col>
+														<row>1</row>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Options</label>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Shockwave</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL2" variable="Panel1_SingleStrand" member="yes">
 							<pos>39,6</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer89" member="no">

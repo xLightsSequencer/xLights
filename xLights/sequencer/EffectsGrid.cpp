@@ -907,7 +907,8 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
             DrawGLUtils::DrawHBlendedRectangle(start, end, x1, y1, x2, y2);
         }
         break;
-        case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH: {
+        case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH:
+        case BitmapCache::RGB_EFFECTS_e::eff_SHOCKWAVE: {
             DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
         }
         break;

@@ -495,6 +495,38 @@ const long EffectsPanel::ID_STATICTEXT67 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Shimmer_Blinks_Per_Row = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_BlinksPerRow = wxNewId();
 const long EffectsPanel::ID_PANELShimmer = wxNewId();
+const long EffectsPanel::ID_SLIDER_Shockwave_CenterX = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Shockwave_CenterX = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX = wxNewId();
+const long EffectsPanel::ID_STATICTEXT151 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Shockwave_CenterY = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY = wxNewId();
+const long EffectsPanel::ID_STATICTEXT152 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Shockwave_Start_Radius = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius = wxNewId();
+const long EffectsPanel::ID_STATICTEXT153 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Shockwave_Start_Width = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Shockwave_CenterY = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Shockwave_Start_Radius = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Shockwave_Start_Width = wxNewId();
+const long EffectsPanel::ID_STATICTEXT154 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Shockwave_End_Radius = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Shockwave_End_Radius = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius = wxNewId();
+const long EffectsPanel::ID_STATICTEXT155 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Shockwave_End_Width = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Shockwave_End_Width = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width = wxNewId();
+const long EffectsPanel::ID_PANEL40 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT162 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Shockwave_Accel = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Shockwave_Accel = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Shockwave_Accel = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Shockwave_Blend_Edges = wxNewId();
+const long EffectsPanel::ID_PANEL44 = wxNewId();
+const long EffectsPanel::ID_NOTEBOOK3 = wxNewId();
+const long EffectsPanel::ID_SCROLLEDWINDOW_SHOCKWAVE = wxNewId();
 const long EffectsPanel::ID_STATICTEXT63 = wxNewId();
 const long EffectsPanel::ID_CHOICE_SingleStrand_Colors = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SingleStrand_Colors = wxNewId();
@@ -725,6 +757,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 {
     //(*Initialize(EffectsPanel)
     wxFlexGridSizer* FlexGridSizer91;
+    wxFlexGridSizer* FlexGridSizer110;
     wxPanel* MorphPanelStart;
     wxFlexGridSizer* FlexGridSizer105;
     wxFlexGridSizer* FlexGridSizer4;
@@ -762,6 +795,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer109;
     wxFlexGridSizer* FlexGridSizer44;
     wxFlexGridSizer* FlexGridSizer96;
+    wxStaticText* StaticText154;
     wxPanel* Panel11;
     wxFlexGridSizer* FlexGridSizer37;
     wxFlexGridSizer* FlexGridSizer25;
@@ -817,12 +851,15 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer99;
     wxGridBagSizer* GridBagSizerFanBlades;
     wxFlexGridSizer* FlexGridSizer36;
+    wxPanel* Panel14;
+    wxGridBagSizer* GridBagSizer5;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer78;
     wxFlexGridSizer* FlexGridSizer89;
     wxFlexGridSizer* FlexGridSizer46;
     wxFlexGridSizer* FlexGridSizer48;
     wxFlexGridSizer* FlexGridSizer1;
+    wxPanel* Panel10;
     wxFlexGridSizer* FlexGridSizer106;
     wxFlexGridSizer* FlexGridSizer33;
     wxFlexGridSizer* FlexGridSizer107;
@@ -830,6 +867,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer11;
     wxFlexGridSizer* FlexGridSizer84;
     wxFlexGridSizer* FlexGridSizer17;
+    wxGridBagSizer* GridBagSizer3;
     wxFlexGridSizer* FlexGridSizer32;
     wxFlexGridSizer* FlexGridSizer65;
     wxGridBagSizer* GridBagSizerGalaxyStart;
@@ -2231,6 +2269,99 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Shimmer->SetSizer(FlexGridSizer56);
     FlexGridSizer56->Fit(Panel1_Shimmer);
     FlexGridSizer56->SetSizeHints(Panel1_Shimmer);
+    Panel1_Shockwave = new wxScrolledWindow(Choicebook1, ID_SCROLLEDWINDOW_SHOCKWAVE, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW_SHOCKWAVE"));
+    FlexGridSizer110 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer110->AddGrowableCol(0);
+    Notebook3 = new wxNotebook(Panel1_Shockwave, ID_NOTEBOOK3, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK3"));
+    Panel10 = new wxPanel(Notebook3, ID_PANEL40, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL40"));
+    GridBagSizer3 = new wxGridBagSizer(0, 0);
+    StaticText154 = new wxStaticText(Panel10, wxID_ANY, _("Center X:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    GridBagSizer3->Add(StaticText154, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Shockwave_CenterX = new wxSlider(Panel10, ID_SLIDER_Shockwave_CenterX, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_CenterX"));
+    GridBagSizer3->Add(Slider_Shockwave_CenterX, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Shockwave_CenterX = new wxTextCtrl(Panel10, ID_TEXTCTRL_Shockwave_CenterX, _("50"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Shockwave_CenterX"));
+    TextCtrl_Shockwave_CenterX->SetMaxLength(3);
+    GridBagSizer3->Add(TextCtrl_Shockwave_CenterX, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(Panel10,wxSize(5,0)).GetWidth());
+    BitmapButton_Shockwave_CenterX = new wxBitmapButton(Panel10, ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX"));
+    BitmapButton_Shockwave_CenterX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    GridBagSizer3->Add(BitmapButton_Shockwave_CenterX, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText155 = new wxStaticText(Panel10, ID_STATICTEXT151, _("Center Y:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT151"));
+    GridBagSizer3->Add(StaticText155, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Shockwave_CenterY = new wxSlider(Panel10, ID_SLIDER_Shockwave_CenterY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_CenterY"));
+    GridBagSizer3->Add(Slider_Shockwave_CenterY, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Shockwave_CenterY = new wxBitmapButton(Panel10, ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY"));
+    BitmapButton_Shockwave_CenterY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    GridBagSizer3->Add(BitmapButton_Shockwave_CenterY, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText156 = new wxStaticText(Panel10, ID_STATICTEXT152, _("Radius1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT152"));
+    GridBagSizer3->Add(StaticText156, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Shockwave_Start_Radius = new wxSlider(Panel10, ID_SLIDER_Shockwave_Start_Radius, 1, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_Start_Radius"));
+    GridBagSizer3->Add(Slider_Shockwave_Start_Radius, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Shockwave_Start_Radius = new wxBitmapButton(Panel10, ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius"));
+    BitmapButton_Shockwave_Start_Radius->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    GridBagSizer3->Add(BitmapButton_Shockwave_Start_Radius, wxGBPosition(2, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText157 = new wxStaticText(Panel10, ID_STATICTEXT153, _("Width1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT153"));
+    GridBagSizer3->Add(StaticText157, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Shockwave_Start_Width = new wxSlider(Panel10, ID_SLIDER_Shockwave_Start_Width, 5, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_Start_Width"));
+    GridBagSizer3->Add(Slider_Shockwave_Start_Width, wxGBPosition(4, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Shockwave_Start_Width = new wxBitmapButton(Panel10, ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width"));
+    BitmapButton_Shockwave_Start_Width->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    GridBagSizer3->Add(BitmapButton_Shockwave_Start_Width, wxGBPosition(4, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Shockwave_CenterY = new wxTextCtrl(Panel10, ID_TEXTCTRL_Shockwave_CenterY, _("50"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Shockwave_CenterY"));
+    TextCtrl_Shockwave_CenterY->SetMaxLength(3);
+    GridBagSizer3->Add(TextCtrl_Shockwave_CenterY, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Shockwave_Start_Radius = new wxTextCtrl(Panel10, ID_TEXTCTRL_Shockwave_Start_Radius, _("1"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Shockwave_Start_Radius"));
+    TextCtrl_Shockwave_Start_Radius->SetMaxLength(3);
+    GridBagSizer3->Add(TextCtrl_Shockwave_Start_Radius, wxGBPosition(2, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Shockwave_Start_Width = new wxTextCtrl(Panel10, ID_TEXTCTRL_Shockwave_Start_Width, _("5"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Shockwave_Start_Width"));
+    TextCtrl_Shockwave_Start_Width->SetMaxLength(3);
+    GridBagSizer3->Add(TextCtrl_Shockwave_Start_Width, wxGBPosition(4, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText158 = new wxStaticText(Panel10, ID_STATICTEXT154, _("Radius2:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT154"));
+    GridBagSizer3->Add(StaticText158, wxGBPosition(3, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Shockwave_End_Radius = new wxSlider(Panel10, ID_SLIDER_Shockwave_End_Radius, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_End_Radius"));
+    GridBagSizer3->Add(Slider_Shockwave_End_Radius, wxGBPosition(3, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Shockwave_End_Radius = new wxTextCtrl(Panel10, ID_TEXTCTRL_Shockwave_End_Radius, _("10"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Shockwave_End_Radius"));
+    TextCtrl_Shockwave_End_Radius->SetMaxLength(3);
+    GridBagSizer3->Add(TextCtrl_Shockwave_End_Radius, wxGBPosition(3, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Shockwave_End_Radius = new wxBitmapButton(Panel10, ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius"));
+    BitmapButton_Shockwave_End_Radius->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    GridBagSizer3->Add(BitmapButton_Shockwave_End_Radius, wxGBPosition(3, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText159 = new wxStaticText(Panel10, ID_STATICTEXT155, _("Width2:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT155"));
+    GridBagSizer3->Add(StaticText159, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Shockwave_End_Width = new wxSlider(Panel10, ID_SLIDER_Shockwave_End_Width, 10, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_End_Width"));
+    GridBagSizer3->Add(Slider_Shockwave_End_Width, wxGBPosition(5, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Shockwave_End_Width = new wxTextCtrl(Panel10, ID_TEXTCTRL_Shockwave_End_Width, _("10"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Shockwave_End_Width"));
+    TextCtrl_Shockwave_End_Width->SetMaxLength(3);
+    GridBagSizer3->Add(TextCtrl_Shockwave_End_Width, wxGBPosition(5, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Shockwave_End_Width = new wxBitmapButton(Panel10, ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width"));
+    BitmapButton_Shockwave_End_Width->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    GridBagSizer3->Add(BitmapButton_Shockwave_End_Width, wxGBPosition(5, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel10->SetSizer(GridBagSizer3);
+    GridBagSizer3->Fit(Panel10);
+    GridBagSizer3->SetSizeHints(Panel10);
+    Panel14 = new wxPanel(Notebook3, ID_PANEL44, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL44"));
+    GridBagSizer5 = new wxGridBagSizer(0, 0);
+    StaticText166 = new wxStaticText(Panel14, ID_STATICTEXT162, _("Acceleration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT162"));
+    GridBagSizer5->Add(StaticText166, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Shockwave_Accel = new wxSlider(Panel14, ID_SLIDER_Shockwave_Accel, 0, -10, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_Accel"));
+    GridBagSizer5->Add(Slider_Shockwave_Accel, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Shockwave_Accel = new wxTextCtrl(Panel14, ID_TEXTCTRL_Shockwave_Accel, _("0"), wxDefaultPosition, wxSize(35,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Shockwave_Accel"));
+    TextCtrl_Shockwave_Accel->SetMaxLength(3);
+    GridBagSizer5->Add(TextCtrl_Shockwave_Accel, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Shockwave_Accel = new wxBitmapButton(Panel14, ID_BITMAPBUTTON_SLIDER_Shockwave_Accel, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Shockwave_Accel"));
+    BitmapButton_Shockwave_Accel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    GridBagSizer5->Add(BitmapButton_Shockwave_Accel, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Shockwave_Blend_Edges = new wxCheckBox(Panel14, ID_CHECKBOX_Shockwave_Blend_Edges, _("Blend Edges:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Shockwave_Blend_Edges"));
+    CheckBox_Shockwave_Blend_Edges->SetValue(true);
+    GridBagSizer5->Add(CheckBox_Shockwave_Blend_Edges, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel14->SetSizer(GridBagSizer5);
+    GridBagSizer5->Fit(Panel14);
+    GridBagSizer5->SetSizeHints(Panel14);
+    Notebook3->AddPage(Panel10, _("Position"), false);
+    Notebook3->AddPage(Panel14, _("Options"), false);
+    FlexGridSizer110->Add(Notebook3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel1_Shockwave->SetSizer(FlexGridSizer110);
+    FlexGridSizer110->Fit(Panel1_Shockwave);
+    FlexGridSizer110->SetSizeHints(Panel1_Shockwave);
     Panel1_SingleStrand = new wxScrolledWindow(Choicebook1, ID_PANEL2, wxPoint(39,6), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL2"));
     FlexGridSizer89 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer89->AddGrowableCol(0);
@@ -2939,6 +3070,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Choicebook1->AddPage(Panel1_Pinwheel, _("Pinwheel"), false);
     Choicebook1->AddPage(Panel1_Ripple, _("Ripple"), false);
     Choicebook1->AddPage(Panel1_Shimmer, _("Shimmer"), false);
+    Choicebook1->AddPage(Panel1_Shockwave, _("Shockwave"), false);
     Choicebook1->AddPage(Panel1_SingleStrand, _("SingleStrand"), false);
     Choicebook1->AddPage(Panel1_Snowflakes, _("Snowflakes"), false);
     Choicebook1->AddPage(Panel1_Snowstorm, _("Snowstorm"), false);
@@ -3170,6 +3302,27 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_ShimmerUseAllColors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Use_All_ColorsClick);
     Connect(ID_BITMAPBUTTON_Shimmer_Blink_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Blink_TimingClick);
     Connect(ID_BITMAPBUTTON_BlinksPerRow,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Blinks_Per_RowClick);
+    Connect(ID_SLIDER_Shockwave_CenterX,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Shockwave_CenterXCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Shockwave_CenterX,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Shockwave_CenterXText);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_CenterXClick);
+    Connect(ID_SLIDER_Shockwave_CenterY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Shockwave_CenterYCmdSliderUpdated);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_CenterYClick);
+    Connect(ID_SLIDER_Shockwave_Start_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Shockwave_Start_RadiusCmdSliderUpdated);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_Start_RadiusClick);
+    Connect(ID_SLIDER_Shockwave_Start_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Shockwave_Start_WidthCmdSliderUpdated);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_Start_WidthClick);
+    Connect(ID_TEXTCTRL_Shockwave_CenterY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Shockwave_CenterYText);
+    Connect(ID_TEXTCTRL_Shockwave_Start_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Shockwave_Start_RadiusText);
+    Connect(ID_TEXTCTRL_Shockwave_Start_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Shockwave_Start_WidthText);
+    Connect(ID_SLIDER_Shockwave_End_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Shockwave_End_RadiusCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Shockwave_End_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Shockwave_End_RadiusText);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_End_RadiusClick);
+    Connect(ID_SLIDER_Shockwave_End_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Shockwave_End_WidthCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Shockwave_End_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Shockwave_End_WidthText);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_End_WidthClick);
+    Connect(ID_SLIDER_Shockwave_Accel,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Shockwave_AccelCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_Shockwave_Accel,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Shockwave_AccelText);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Accel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_AccelClick);
     Connect(ID_BITMAPBUTTON_SingleStrand_Colors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
     Connect(ID_BITMAPBUTTON_Number_Chases,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Number_ChasesClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Color_Mix1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Color_Mix1Click);
@@ -4123,3 +4276,31 @@ showlock(MorphAccel)
 showlock(ShowHeadAtStart)
 showlock(MorphUseHeadStartColor)
 showlock(MorphUseHeadEndColor)
+
+slider_event(Shockwave_CenterX)
+text_ctrl_event(Shockwave_CenterX)
+showlock(Shockwave_CenterX)
+
+slider_event(Shockwave_CenterY)
+text_ctrl_event(Shockwave_CenterY)
+showlock(Shockwave_CenterY)
+
+slider_event(Shockwave_Start_Radius)
+text_ctrl_event(Shockwave_Start_Radius)
+showlock(Shockwave_Start_Radius)
+
+slider_event(Shockwave_End_Radius)
+text_ctrl_event(Shockwave_End_Radius)
+showlock(Shockwave_End_Radius)
+
+slider_event(Shockwave_Start_Width)
+text_ctrl_event(Shockwave_Start_Width)
+showlock(Shockwave_Start_Width)
+
+slider_event(Shockwave_End_Width)
+text_ctrl_event(Shockwave_End_Width)
+showlock(Shockwave_End_Width)
+
+slider_event(Shockwave_Accel)
+text_ctrl_event(Shockwave_Accel)
+showlock(Shockwave_Accel)

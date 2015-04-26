@@ -35,6 +35,7 @@ public:
         eff_PINWHEEL,
         eff_RIPPLE,
         eff_SHIMMER,
+        eff_SHOCKWAVE,
         eff_SINGLESTRAND,
         eff_SNOWFLAKES,
         eff_SNOWSTORM,

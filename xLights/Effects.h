@@ -40,6 +40,8 @@ void Drawcircle(int Movement, int xc,int yc,double radius, wxImage::HSVValue hsv
 
 
 void RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row);
+void RenderShockwave(int center_x, int center_y, int start_radius, int end_radius,
+                     int start_width, int end_width, int acceleration, bool blend_edges );
 void RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_Type);
 
 

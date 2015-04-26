@@ -695,6 +695,15 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                              SettingsMap["CHECKBOX_Shimmer_Use_All_Colors"]=="1",
                              SettingsMap["CHECKBOX_Shimmer_Blink_Timing"]=="1",
                              wxAtoi(SettingsMap["SLIDER_Shimmer_Blinks_Per_Row"]));
+    } else if (effect == "Shockwave") {
+        buffer.RenderShockwave(wxAtoi(SettingsMap["SLIDER_Shockwave_CenterX"]),
+                               wxAtoi(SettingsMap["SLIDER_Shockwave_CenterY"]),
+                               wxAtoi(SettingsMap["SLIDER_Shockwave_Start_Radius"]),
+                               wxAtoi(SettingsMap["SLIDER_Shockwave_End_Radius"]),
+                               wxAtoi(SettingsMap["SLIDER_Shockwave_Start_Width"]),
+                               wxAtoi(SettingsMap["SLIDER_Shockwave_End_Width"]),
+                               wxAtoi(SettingsMap["SLIDER_Shockwave_Accel"]),
+                               SettingsMap["CHECKBOX_Shockwave_Blend_Edges"]=="1");
     } else if (effect == "SingleStrand") {
         if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
             buffer.RenderSingleStrandSkips(

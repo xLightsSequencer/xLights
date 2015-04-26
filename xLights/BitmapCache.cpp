@@ -123,6 +123,13 @@
 #include "../include/shimmer.xpm"
 #include "../include/singleStrand.xpm"
 
+// Shockwave Icons
+#include "../include/shockwave-16.xpm"
+#include "../include/shockwave-24.xpm"
+#include "../include/shockwave-32.xpm"
+#include "../include/shockwave-48.xpm"
+#include "../include/shockwave-64.xpm"
+
 //#include "../include/snowflakes.xpm"
 #include "../include/snowflakes-16.xpm"
 #include "../include/snowflakes-24.xpm"
@@ -499,6 +506,9 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
         case BitmapCache::RGB_EFFECTS_e::eff_SHIMMER:
             toolTip = "Shimmer";
             return effectBitmaps.get(size, exact, "Shimmer", shimmer, shimmer, shimmer, shimmer, shimmer);
+        case BitmapCache::RGB_EFFECTS_e::eff_SHOCKWAVE:
+            toolTip = "Shockwave";
+            return effectBitmaps.get(size, exact, "Shockwave", shockwave_16, shockwave_24, shockwave_32, shockwave_48, shockwave_64);
         case BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND:
             toolTip = "Single Strand";
             return effectBitmaps.get(size, exact, "Single Strand", singleStrand, singleStrand, singleStrand, singleStrand, singleStrand);

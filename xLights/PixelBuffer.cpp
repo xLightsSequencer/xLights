@@ -572,6 +572,11 @@ void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple
 void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row) {
     effects[CurrentLayer].RenderShimmer(Duty_Factor,Use_All_Colors,Blink_Timing,Blinks_Per_Row );
 }
+void PixelBufferClass::RenderShockwave(int center_x, int center_y, int start_radius, int end_radius,
+                                       int start_width, int end_width, int acceleration, bool blend_edges )
+{
+    effects[CurrentLayer].RenderShockwave( center_x, center_y, start_radius, end_radius, start_width, end_width, acceleration, blend_edges );
+}
 void PixelBufferClass::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int Color_Mix1,
         int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All) {
     effects[CurrentLayer].RenderSingleStrandChase( ColorScheme,Number_Chases, Color_Mix1,

@@ -176,6 +176,7 @@ int Effect::GetEffectIndex(wxString effectName)
     else if(effectName=="Pinwheel"){return BitmapCache::RGB_EFFECTS_e::eff_PINWHEEL;}
     else if(effectName=="Ripple"){return BitmapCache::RGB_EFFECTS_e::eff_RIPPLE;}
     else if(effectName=="Shimmer"){return BitmapCache::RGB_EFFECTS_e::eff_SHIMMER;}
+    else if(effectName=="Shockwave"){return BitmapCache::RGB_EFFECTS_e::eff_SHOCKWAVE;}
     else if(effectName=="SingleStrand"){return BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND;}
     else if(effectName=="Snowflakes"){return BitmapCache::RGB_EFFECTS_e::eff_SNOWFLAKES;}
     else if(effectName=="Snowstorm"){return BitmapCache::RGB_EFFECTS_e::eff_SNOWSTORM;}
