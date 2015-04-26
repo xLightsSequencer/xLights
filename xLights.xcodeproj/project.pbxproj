@@ -13,6 +13,8 @@
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
 		671D81681A67408D005819EA /* NewSequenceDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81671A67408D005819EA /* NewSequenceDialog.cpp */; };
+		671E7DFA1AED4FFD0034C6DF /* RenderFan.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */; };
+		671E7DFB1AED4FFD0034C6DF /* RenderShockwave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		6730E4D21ADB54E8005DECF0 /* RenderGalaxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
@@ -138,6 +140,8 @@
 		671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DragEffectBitmapButton.cpp; path = sequencer/DragEffectBitmapButton.cpp; sourceTree = "<group>"; };
 		671D814A1A6723CF005819EA /* EffectDropTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectDropTarget.cpp; path = sequencer/EffectDropTarget.cpp; sourceTree = "<group>"; };
 		671D81671A67408D005819EA /* NewSequenceDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NewSequenceDialog.cpp; sourceTree = "<group>"; };
+		671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFan.cpp; sourceTree = "<group>"; };
+		671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShockwave.cpp; sourceTree = "<group>"; };
 		672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SeqSettingsDialog.cpp; sourceTree = "<group>"; };
 		672F950E1A7A6619005FF8BF /* SeqSettingsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SeqSettingsDialog.h; sourceTree = "<group>"; };
 		672F950F1A7A6619005FF8BF /* xLightsXmlFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsXmlFile.h; sourceTree = "<group>"; };
@@ -357,6 +361,7 @@
 				67C6488619E3396C006526CD /* RenderCoroFaces.cpp */,
 				67E491B117C459B800FE40EA /* RenderCurtain.cpp */,
 				674D34C51918238E00A993C7 /* RenderFaces.cpp */,
+				671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */,
 				67A619E017B51C0F008E95BB /* RenderFire.cpp */,
 				67A619E117B51C0F008E95BB /* RenderFireworks.cpp */,
 				6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */,
@@ -372,6 +377,7 @@
 				677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */,
 				6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */,
 				67879B7319F94544009D994D /* RenderShimmer.cpp */,
+				671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */,
 				67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */,
 				67A619E717B51C0F008E95BB /* RenderSnowflakes.cpp */,
 				67A619E817B51C0F008E95BB /* RenderSnowstorm.cpp */,
@@ -704,6 +710,7 @@
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
+				671E7DFA1AED4FFD0034C6DF /* RenderFan.cpp in Sources */,
 				67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */,
 				67A61A3417B51C0F008E95BB /* PlaybackOptionsDialog.cpp in Sources */,
 				67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */,
@@ -778,6 +785,7 @@
 				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
 				6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */,
 				679E52BF1AD2F7520065E6EA /* xlMacUtils.mm in Sources */,
+				671E7DFB1AED4FFD0034C6DF /* RenderShockwave.cpp in Sources */,
 				67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */,
 				67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */,
 				67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */,

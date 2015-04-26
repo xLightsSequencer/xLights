@@ -283,7 +283,7 @@ public:
             next->setPreviousFrameDone(endFrame);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
         }
-
+        xLights->CallAfter(&xLightsFrame::RenderDone);
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
     }
 
@@ -503,7 +503,9 @@ void xLightsFrame::RenderGridToSeqData() {
     delete []depJobs;
     delete []noDepJobs;
 }
-
+void xLightsFrame::RenderDone() {
+    mainSequencer->PanelEffectGrid->Refresh();
+}
 void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int endms, bool clear) {
     //printf("render model %d %d   %d\n", startms,endms, clear);
     RenderJob *job = NULL;

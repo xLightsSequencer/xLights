@@ -1377,6 +1377,7 @@ public:
     void RenderEffectForModel(const wxString &model, int startms, int endms, bool clear = false);
 
     void RenderRange(RenderCommandEvent &cmd);
+    void RenderDone();
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return mSequenceElements; }
