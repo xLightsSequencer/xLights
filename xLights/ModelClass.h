@@ -60,7 +60,7 @@ private:
         // buffer and screen coordinates for displayed nodes
         struct CoordStruct
         {
-            wxCoord bufX, bufY;
+            unsigned short bufX, bufY;
             float screenX, screenY;
         };
 
@@ -69,7 +69,7 @@ private:
         uint8_t c[3];
         // color channel offsets, rgb would be 0,1,2
         uint8_t offsets[3];
-        int chanCnt;
+        unsigned short chanCnt;
 
     public:
 
@@ -78,6 +78,7 @@ private:
         int StringNum; // node is part of this string (0 is the first string)
         std::vector<CoordStruct> Coords;
         std::vector<CoordStruct> OrigCoords;
+        wxString *name = nullptr;
 
         NodeBaseClass()
         {
@@ -168,9 +169,21 @@ private:
         {
             OrigCoords = Coords;
         }
+        void SetName(const wxString &n) {
+            if (name != nullptr) {
+                delete name;
+            }
+            name = new wxString(n);
+        }
+        const wxString &GetName() {
+            return *name;
+        }
 
         virtual ~NodeBaseClass()
         {
+            if (name != nullptr) {
+                delete name;
+            }
         }
 
         virtual void GetColor(xlColor& color)
@@ -462,6 +475,9 @@ public:
             return starSizes.size();
         else
             return 1;
+    }
+    int GetStarSize(int starLayer) {
+        return starSizes[starLayer];
     }
     
     

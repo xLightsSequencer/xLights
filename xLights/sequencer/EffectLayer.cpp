@@ -627,6 +627,9 @@ EffectLayer *StrandLayer::GetNodeLayer(int n, bool create) {
 }
 void StrandLayer::InitFromModel(ModelClass &model) {
     int nc = model.GetNodeCount() / model.GetNumStrands();
+    if (model.GetDisplayAs() == "Star") {
+        nc = model.GetStarSize(strand);
+    }
     while (mNodeLayers.size() < nc) {
         mNodeLayers.push_back(new EffectLayer(GetParentElement()));
     }
