@@ -221,7 +221,7 @@ public:
                     PixelBufferClass *buffer = &it->second;
                     StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
                     Effect *el = findEffectForFrame(slayer, frame);
-                    if (el != strandEffects[strand]) {
+                    if (el != strandEffects[strand] || frame == startFrame) {
                         strandEffects[strand] = el;
                         initialize(0, frame, el, strandSettingsMaps[strand], buffer);
                         strandEffectStates[strand] = true;
@@ -252,7 +252,7 @@ public:
                     StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
                     EffectLayer *nlayer = slayer->GetNodeLayer(inode);
                     Effect *el = findEffectForFrame(nlayer, frame);
-                    if (el != nodeEffects[node]) {
+                    if (el != nodeEffects[node] || frame == startFrame) {
                         nodeEffects[node] = el;
                         initialize(0, frame, el, nodeSettingsMaps[strand], buffer);
                         nodeEffectStates[strand] = true;
