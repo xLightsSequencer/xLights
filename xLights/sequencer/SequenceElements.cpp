@@ -447,6 +447,7 @@ void SequenceElements::PopulateRowInformation()
                     {
                         Row_Information_Struct ri;
                         ri.element = mElements[i];
+                        ri.displayName = mElements[i]->GetName();
                         ri.Collapsed = mElements[i]->GetCollapsed();
                         ri.Active = mElements[i]->GetActive();
                         ri.PartOfView = false;
@@ -461,6 +462,7 @@ void SequenceElements::PopulateRowInformation()
                     Row_Information_Struct ri;
                     ri.element = mElements[i];
                     ri.Collapsed = mElements[i]->GetCollapsed();
+                    ri.displayName = mElements[i]->GetName();
                     ri.Active = mElements[i]->GetActive();
                     ri.PartOfView = false;
                     ri.colorIndex = 0;
@@ -471,11 +473,14 @@ void SequenceElements::PopulateRowInformation()
                 mElements[i]->InitStrands(GetModelNode(mModelsNode, mElements[i]->GetName()));
                 if (mElements[i]->ShowStrands()) {
                     for (int s = 0; s < mElements[i]->getStrandLayerCount(); s++) {
+                        StrandLayer * sl = mElements[i]->GetStrandLayer(s);
                         if (mElements[i]->getStrandLayerCount() > 1) {
                             Row_Information_Struct ri;
                             ri.element = mElements[i];
                             ri.Collapsed = !mElements[i]->ShowStrands();
                             ri.Active = mElements[i]->GetActive();
+                            ri.displayName = sl->GetName();
+
                             ri.PartOfView = false;
                             ri.colorIndex = 0;
                             ri.layerIndex = 0;
@@ -484,13 +489,13 @@ void SequenceElements::PopulateRowInformation()
                             mRowInformation.push_back(ri);
                         }
                         
-                        StrandLayer * sl = mElements[i]->GetStrandLayer(s);
                         if (sl->ShowNodes()) {
                             for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                                 Row_Information_Struct ri;
                                 ri.element = mElements[i];
                                 ri.Collapsed = sl->ShowNodes();
                                 ri.Active = !mElements[i]->GetActive();
+                                ri.displayName = sl->GetNodeLayer(n)->GetName();
                                 ri.PartOfView = false;
                                 ri.colorIndex = 0;
                                 ri.layerIndex = 0;

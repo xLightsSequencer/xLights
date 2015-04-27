@@ -82,6 +82,21 @@ class EffectLayer
         Element* mParentElement;
 };
 
+class NodeLayer: public EffectLayer {
+public:
+    NodeLayer(Element *parent, const wxString &n) : EffectLayer(parent), name(n) {}
+    virtual ~NodeLayer() {};
+    
+    const wxString GetName() const {
+        return name;
+    }
+    void SetName(const wxString &n) {
+        name = n;
+    }
+private:
+    wxString name;
+};
+
 class ModelClass;
 class StrandLayer: public EffectLayer
 {
@@ -96,15 +111,21 @@ public:
     
     void InitFromModel(ModelClass &model);
     
-    EffectLayer *GetNodeLayer(int n, bool create = false);
+    NodeLayer *GetNodeLayer(int n, bool create = false);
     int GetNodeLayerCount() {
         return mNodeLayers.size();
     }
-    
+    const wxString GetName() const {
+        return name;
+    }
+    void SetName(const wxString &n) {
+        name = n;
+    }
 private:
+    wxString name;
     int strand;
     bool mShowNodes = false;
-    std::vector<EffectLayer*> mNodeLayers;
+    std::vector<NodeLayer*> mNodeLayers;
 };
 
 

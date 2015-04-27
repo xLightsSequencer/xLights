@@ -10,8 +10,9 @@
 
 class xLightsXmlFile;  // forward declaration needed due to circular dependency
 
-struct Row_Information_Struct
+class Row_Information_Struct
 {
+public:
     Element *element;
     int Index;
     int RowNumber;
@@ -22,6 +23,7 @@ struct Row_Information_Struct
     int layerIndex;
     int strandIndex = -1;
     int nodeIndex = -1;
+    wxString displayName;
 };
 
 struct EffectRange

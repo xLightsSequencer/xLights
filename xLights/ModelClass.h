@@ -97,7 +97,7 @@ private:
             offsets[1] = 1;
             offsets[2] = 2;
         }
-        NodeBaseClass(int StringNumber, size_t NodesPerString, const wxString &rgbOrder)
+        NodeBaseClass(int StringNumber, size_t NodesPerString, const wxString &rgbOrder, const wxString &n = "")
         {
             StringNum=StringNumber;
             Coords.resize(NodesPerString);
@@ -105,6 +105,11 @@ private:
             offsets[0]=rgbOrder.Find('R');
             offsets[1]=rgbOrder.Find('G');
             offsets[2]=rgbOrder.Find('B');
+            if (n != "") {
+                name = new wxString(n);
+            } else {
+                name = nullptr;
+            }
         }
 
         // only for use in initializing the custom model
@@ -172,10 +177,16 @@ private:
         void SetName(const wxString &n) {
             if (name != nullptr) {
                 delete name;
+                name = nullptr;
             }
-            name = new wxString(n);
+            if (n != "") {
+                name = new wxString(n);
+            }
         }
-        const wxString &GetName() {
+        wxString GetName() {
+            if (name == nullptr) {
+                return "";
+            }
             return *name;
         }
 
@@ -195,11 +206,12 @@ private:
     class NodeClassRed : public NodeBaseClass
     {
     public:
-        NodeClassRed(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
+        NodeClassRed(int StringNumber, size_t NodesPerString, const wxString &n = "") : NodeBaseClass(StringNumber,NodesPerString)
         {
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
             offsets[0] = 0;
             offsets[1] = offsets[2] = 255;
+            SetName(n);
         }
         virtual void GetColor(xlColor& color)
         {
@@ -214,11 +226,12 @@ private:
     class NodeClassGreen : public NodeBaseClass
     {
     public:
-        NodeClassGreen(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
+        NodeClassGreen(int StringNumber, size_t NodesPerString, const wxString &n = "") : NodeBaseClass(StringNumber,NodesPerString)
         {
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
             offsets[1] = 0;
             offsets[0] = offsets[2] = 255;
+            SetName(n);
         }
         virtual void GetColor(xlColor& color)
         {
@@ -232,11 +245,12 @@ private:
     class NodeClassBlue : public NodeBaseClass
     {
     public:
-        NodeClassBlue(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
+        NodeClassBlue(int StringNumber, size_t NodesPerString, const wxString &n = "") : NodeBaseClass(StringNumber,NodesPerString)
         {
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
             offsets[2] = 0;
             offsets[0] = offsets[1] = 255;
+            SetName(n);
         }
         virtual void GetColor(xlColor& color)
         {
@@ -250,9 +264,10 @@ private:
     class NodeClassWhite : public NodeBaseClass
     {
     public:
-        NodeClassWhite(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
+        NodeClassWhite(int StringNumber, size_t NodesPerString, const wxString &n = "") : NodeBaseClass(StringNumber,NodesPerString)
         {
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
+            SetName(n);
         }
 
         virtual void GetColor(xlColor& color)
@@ -273,9 +288,10 @@ private:
     class NodeClassRGBW : public NodeBaseClass
     {
     public:
-        NodeClassRGBW(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
+        NodeClassRGBW(int StringNumber, size_t NodesPerString, const wxString &n = "") : NodeBaseClass(StringNumber,NodesPerString)
         {
             chanCnt = NODE_RGBW_CHAN_CNT;
+            SetName(n);
         }
         virtual void SetFromChannels(const unsigned char *buf) {
             if (buf[3] != 0) {
@@ -331,6 +347,7 @@ private:
     void InitCustomMatrix(const wxString& customModel);
     double toRadians(long degrees);
     long toDegrees(double radians);
+    wxString GetNextName();
 
     
     std::vector<int> starSizes;
@@ -358,6 +375,8 @@ private:
 
 protected:
     std::vector<NodeBaseClassPtr> Nodes;
+    std::vector<wxString> strandNames;
+    std::vector<wxString> nodeNames;
     wxString rgbOrder;
     long parm1;         /**< Number of strings in the model (except for frames & custom) */
     long parm2;         /**< Number of nodes per string in the model (except for frames & custom) */
@@ -479,9 +498,18 @@ public:
     int GetStarSize(int starLayer) {
         return starSizes[starLayer];
     }
-    
-    
-
+    wxString GetStrandName(int x) {
+        if (x < strandNames.size()) {
+            return strandNames[x];
+        }
+        return "";
+    }
+    wxString GetNodeName(int x) {
+        if (x < nodeNames.size()) {
+            return nodeNames[x];
+        }
+        return "";
+    }
     static bool IsMyDisplay(wxXmlNode* ModelNode)
     {
         return ModelNode->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1");

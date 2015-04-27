@@ -616,9 +616,9 @@ void EffectLayer::IncrementChangeCount()
     mParentElement->IncrementChangeCount();
     changeCount++;
 }
-EffectLayer *StrandLayer::GetNodeLayer(int n, bool create) {
+NodeLayer *StrandLayer::GetNodeLayer(int n, bool create) {
     while (create && n >= mNodeLayers.size()) {
-        mNodeLayers.push_back(new EffectLayer(GetParentElement()));
+        mNodeLayers.push_back(new NodeLayer(GetParentElement(),""));
     }
     if (n < mNodeLayers.size()) {
         return mNodeLayers[n];
@@ -630,7 +630,12 @@ void StrandLayer::InitFromModel(ModelClass &model) {
     if (model.GetDisplayAs() == "Star") {
         nc = model.GetStarSize(strand);
     }
+    name = model.GetStrandName(strand);
+    for (int x = 0; x < mNodeLayers.size(); x++) {
+        mNodeLayers[x]->SetName(model.GetNodeName(x));
+    }
     while (mNodeLayers.size() < nc) {
-        mNodeLayers.push_back(new EffectLayer(GetParentElement()));
+        NodeLayer *nl = new NodeLayer(GetParentElement(), model.GetNodeName(mNodeLayers.size()));
+        mNodeLayers.push_back(nl);
     }
 }

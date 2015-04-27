@@ -289,10 +289,19 @@ void RowHeading::render( wxPaintEvent& event )
             dc.SetPen(*wxBLACK_PEN);
             if (mSequenceElements->GetRowInformation(i)->strandIndex >= 0) {
                 wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
+                wxString name = mSequenceElements->GetRowInformation(i)->displayName;
+                if (name == "") {
+                    if (mSequenceElements->GetRowInformation(i)->nodeIndex >= 0) {
+                        name = wxString::Format("Node %d", mSequenceElements->GetRowInformation(i)->nodeIndex + 1);
+                    } else {
+                        name = wxString::Format("Strand %d", mSequenceElements->GetRowInformation(i)->strandIndex + 1);
+                    }
+                    
+                }
                 if (mSequenceElements->GetRowInformation(i)->nodeIndex >= 0) {
-                    dc.DrawLabel(wxString::Format("     Node %d", mSequenceElements->GetRowInformation(i)->nodeIndex + 1),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                    dc.DrawLabel("     " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else {
-                    dc.DrawLabel(wxString::Format("  Strand %d", mSequenceElements->GetRowInformation(i)->strandIndex + 1),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                    dc.DrawLabel("  " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 }
             }
         }

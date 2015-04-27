@@ -129,22 +129,50 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
     tempstr.ToLong(&parm3);
     tempstr=ModelNode->GetAttribute("starSizes");
     starSizes.resize(0);
-
-    while (tempstr.Contains(",")) {
-        wxString t2 = tempstr.SubString(0, tempstr.Find(","));
+    while (tempstr.size() > 0) {
+        wxString t2 = tempstr;
+        if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(","));
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        } else {
+            tempstr = "";
+        }
         i2 = 0;
         t2.ToLong(&i2);
         if ( i2 > 0) {
             starSizes.resize(starSizes.size() + 1);
             starSizes[starSizes.size() - 1] = i2;
         }
-        tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
     }
-    i2 = 0;
-    tempstr.ToLong(&i2);
-    if ( i2 > 0) {
-        starSizes.resize(starSizes.size() + 1);
-        starSizes[starSizes.size() - 1] = i2;
+    tempstr=ModelNode->GetAttribute("StrandNames");
+    strandNames.clear();
+    while (tempstr.size() > 0) {
+        wxString t2 = tempstr;
+        if (tempstr[0] == ',') {
+            t2 = "";
+            tempstr = tempstr(1, tempstr.length());
+        } else if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        } else {
+            tempstr = "";
+        }
+        strandNames.push_back(t2);
+    }
+    tempstr=ModelNode->GetAttribute("NodeNames");
+    nodeNames.clear();
+    while (tempstr.size() > 0) {
+        wxString t2 = tempstr;
+        if (tempstr[0] == ',') {
+            t2 = "";
+            tempstr = tempstr(1, tempstr.length());
+        } else if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        } else {
+            tempstr = "";
+        }
+        nodeNames.push_back(t2);
     }
 
     tempstr=ModelNode->GetAttribute("StartChannel","1");
@@ -504,6 +532,9 @@ void ModelClass::InitCustomMatrix(const wxString& customModel) {
                     SetNodeCount(1,0,rgbOrder);  // this creates a node of the correct class
                     Nodes.back()->StringNum= SingleNode ? idx : 0;
                     Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
+                    if (idx < nodeNames.size()) {
+                        Nodes.back()->SetName(nodeNames[idx]);
+                    }
                     Nodes.back()->AddBufCoord(col,height - row - 1);
                 } else {
                     // mapped - so add a coord to existing node
@@ -918,41 +949,46 @@ ModelClass::NodeBaseClass* ModelClass::createNode(int ns, const wxString &String
     }
     return new NodeBaseClass(ns,1,rgbOrder);
 }
-
+wxString ModelClass::GetNextName() {
+    if (nodeNames.size() > Nodes.size()) {
+        return nodeNames[Nodes.size()];
+    }
+    return "";
+}
 // set size of Nodes vector and each Node's Coords vector
 void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString, const wxString &rgbOrder) {
     size_t n;
     if (SingleNode) {
         if (StringType=="Single Color Red") {
             for(n=0; n<NumStrings; n++)
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassRed(n,NodesPerString)));
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassRed(n,NodesPerString, GetNextName())));
         } else if (StringType=="Single Color Green") {
             for(n=0; n<NumStrings; n++)
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassGreen(n,NodesPerString)));
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassGreen(n,NodesPerString, GetNextName())));
         } else if (StringType=="Single Color Blue") {
             for(n=0; n<NumStrings; n++)
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassBlue(n,NodesPerString)));
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassBlue(n,NodesPerString, GetNextName())));
         } else if (StringType=="Single Color White") {
             for(n=0; n<NumStrings; n++)
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString)));
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString, GetNextName())));
         } else if (StringType=="Strobes White 3fps") {
             StrobeRate=7;  // 1 out of every 7 frames
             for(n=0; n<NumStrings; n++)
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString)));
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString, GetNextName())));
         } else if (StringType=="4 Channel RGBW") {
             for(n=0; n<NumStrings; n++)
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n,NodesPerString)));
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n,NodesPerString, GetNextName())));
         } else {
             // 3 Channel RGB
             for(n=0; n<NumStrings; n++)
-                Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n,NodesPerString)));
+                Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n,NodesPerString, GetNextName())));
         }
     } else if (NodesPerString == 0) {
-        Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(0, 0)));
+        Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(0, 0, GetNextName())));
     } else {
         size_t numnodes=NumStrings*NodesPerString;
         for(n=0; n<numnodes; n++)
-            Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n/NodesPerString, 1, rgbOrder)));
+            Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n/NodesPerString, 1, rgbOrder, GetNextName())));
     }
 }
 
