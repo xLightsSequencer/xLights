@@ -25,7 +25,7 @@ StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,cons
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
+	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -45,7 +45,7 @@ StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,cons
 	StrandsGrid->EnableGridLines(true);
 	StrandsGrid->SetDefaultCellFont( StrandsGrid->GetFont() );
 	StrandsGrid->SetDefaultCellTextColour( StrandsGrid->GetForegroundColour() );
-	FlexGridSizer2->Add(StrandsGrid, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(StrandsGrid, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	NodesGrid = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID1"));
 	NodesGrid->CreateGrid(10,1);
 	NodesGrid->EnableEditing(true);

@@ -724,6 +724,8 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute("Transparency");
     e->DeleteAttribute("starSizes");
     e->DeleteAttribute("exportFirstStrand");
+    e->DeleteAttribute("NodeNames");
+    e->DeleteAttribute("StrandNames");
     e->AddAttribute("DisplayAs", Choice_DisplayAs->GetStringSelection());
     e->AddAttribute("StringType", Choice_StringType->GetStringSelection());
     if (Choice_DisplayAs->GetStringSelection() == "Star") {
@@ -755,6 +757,12 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     if (Choice_DisplayAs->GetStringSelection() == "Custom")
     {
         e->AddAttribute("CustomModel",GetCustomGridData());
+    }
+    if ("" != nodeNames) {
+        e->AddAttribute("NodeNames", nodeNames);
+    }
+    if ("" != strandNames) {
+        e->AddAttribute("StrandNames", strandNames);
     }
     ModelClass::SetMyDisplay(e,CheckBox_MyDisplay->GetValue());
 }
@@ -788,6 +796,8 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     tempStr.ToLong(&n);
     transparency = n;
 
+    nodeNames = e->GetAttribute("NodeNames");
+    strandNames = e->GetAttribute("StrandNames");
 
     if(e->HasAttribute("ModelBrightness"))
     {
@@ -1087,8 +1097,91 @@ void ModelDialog::OnAppearanceButtonClicked(wxCommandEvent& event)
 
 void ModelDialog::OnNamesButtonClick(wxCommandEvent& event)
 {
+    wxXmlNode xml;
+    UpdateXml(&xml);
+    ModelClass md;
+    md.SetFromXml(&xml);
+    
     StrandNodeNamesDialog dlg(this);
+    std::vector<wxString> strands;
+    std::vector<wxString> nodes;
+    wxString tempstr = strandNames;
+    while (tempstr.size() > 0) {
+        wxString t2 = tempstr;
+        if (tempstr[0] == ',') {
+            t2 = "";
+            tempstr = tempstr(1, tempstr.length());
+        } else if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        } else {
+            tempstr = "";
+        }
+        strands.push_back(t2);
+    }
+    if (strands.size() < md.GetNumStrands()) {
+        strands.resize(md.GetNumStrands());
+    }
+    dlg.StrandsGrid->BeginBatch();
+    dlg.StrandsGrid->SetMaxSize(dlg.StrandsGrid->GetSize());
+    dlg.StrandsGrid->HideColLabels();
+    dlg.StrandsGrid->DeleteRows(0, 10);
+    dlg.StrandsGrid->AppendRows(strands.size());
+    dlg.StrandsGrid->SetRowLabelSize(40);
+
+    for (int x = 0; x < strands.size(); x++) {
+        dlg.StrandsGrid->SetCellValue(x, 0, strands[x]);
+    }
+    dlg.StrandsGrid->EndBatch();
+    
+    tempstr=nodeNames;
+    nodes.clear();
+    while (tempstr.size() > 0) {
+        wxString t2 = tempstr;
+        if (tempstr[0] == ',') {
+            t2 = "";
+            tempstr = tempstr(1, tempstr.length());
+        } else if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        } else {
+            tempstr = "";
+        }
+        nodes.push_back(t2);
+    }
+    if (nodes.size() < md.GetNodeCount()) {
+        nodes.resize(md.GetNodeCount());
+    }
+    dlg.NodesGrid->BeginBatch();
+    dlg.NodesGrid->SetMaxSize(dlg.StrandsGrid->GetSize());
+    dlg.NodesGrid->HideColLabels();
+    dlg.NodesGrid->DeleteRows(0, 10);
+    dlg.NodesGrid->SetRowLabelSize(40);
+    
+    dlg.NodesGrid->AppendRows(nodes.size());
+    for (int x = 0; x < nodes.size(); x++) {
+        dlg.NodesGrid->SetCellValue(x, 0, nodes[x]);
+    }
+    dlg.NodesGrid->EndBatch();
+    
     if (dlg.ShowModal() == wxID_OK) {
-        
+        nodeNames.clear();
+        for (int x = dlg.NodesGrid->GetNumberRows(); x > 0; x--) {
+            if ("" != dlg.NodesGrid->GetCellValue(x-1,0) || nodeNames.size() > 0) {
+                if (nodeNames.size() > 0) {
+                    nodeNames = "," + nodeNames;
+                }
+                nodeNames = dlg.NodesGrid->GetCellValue(x-1,0) + nodeNames;
+            }
+        }
+        strandNames.clear();
+        for (int x = dlg.StrandsGrid->GetNumberRows(); x > 0; x--) {
+            if ("" != dlg.StrandsGrid->GetCellValue(x-1,0) || strandNames.size() > 0) {
+                if (strandNames.size() > 0) {
+                    strandNames = "," + strandNames;
+                }
+                strandNames = dlg.StrandsGrid->GetCellValue(x-1,0) + strandNames;
+            }
+        }
     }
 }

@@ -3,7 +3,6 @@
 	<object class="wxDialog" name="StrandNodeNamesDialog">
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
-		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -33,9 +32,9 @@
 						<object class="wxGrid" name="ID_GRID2" variable="StrandsGrid" member="yes">
 							<cols>1</cols>
 							<rows>10</rows>
-							<style>wxVSCROLL|wxHSCROLL|wxALWAYS_SHOW_SB</style>
+							<style>wxVSCROLL|wxHSCROLL</style>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -43,7 +42,7 @@
 						<object class="wxGrid" name="ID_GRID1" variable="NodesGrid" member="yes">
 							<cols>1</cols>
 							<rows>10</rows>
-							<style>wxVSCROLL|wxHSCROLL|wxALWAYS_SHOW_SB</style>
+							<style>wxVSCROLL|wxHSCROLL</style>
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
