@@ -138,7 +138,7 @@ void PixelBufferClass::InitStrandBuffer(PixelBufferClass &pbc, int strand) {
     }
     InitLine();
     SetModelBrightness(pbc.ModelBrightness);
-    reset(1, pbc.frameTimeInMs);
+    reset(2, pbc.frameTimeInMs);
 }
 void PixelBufferClass::InitNodeBuffer(PixelBufferClass &pbc, int strand, int node) {
     parm1 = 1;
@@ -158,7 +158,7 @@ void PixelBufferClass::InitNodeBuffer(PixelBufferClass &pbc, int strand, int nod
     InitLine();
 
     SetModelBrightness(pbc.ModelBrightness);
-    reset(1, pbc.frameTimeInMs);
+    reset(2, pbc.frameTimeInMs);
 }
 
 void PixelBufferClass::Clear(int which) {
@@ -424,6 +424,17 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime) {
 }
 void PixelBufferClass::SetFitToTime(int layer, bool fit) {
     effects[layer].SetFitToTime(fit);
+}
+void PixelBufferClass::SetColors(int layer, const unsigned char *fdata) {
+    for (int n = 0; n < Nodes.size(); n++) {
+        int start = NodeStartChannel(n);
+        SetNodeChannelValues(n, &fdata[start]);
+        xlColor color;
+        Nodes[n]->GetColor(color);
+        for (int x = 0; x < Nodes[n]->Coords.size(); x++) {
+            effects[layer].SetPixel(Nodes[n]->Coords[x].bufX, Nodes[n]->Coords[x].bufY, color);
+        }
+    }
 }
 
 void PixelBufferClass::CalcOutput(int EffectPeriod, bool validLayers[]) {

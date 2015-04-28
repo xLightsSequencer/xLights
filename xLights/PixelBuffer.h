@@ -99,6 +99,8 @@ public:
     void SetMixThreshold(int layer, int value, bool varies);
 
     void CalcOutput(int EffectPeriod, bool validLayers[]);
+    
+    void SetColors(int layer, const unsigned char *fdata);
 
 #include "Effects.h"
 

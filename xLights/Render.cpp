@@ -235,7 +235,8 @@ public:
                     
                     if (xLights->RenderEffectFromMap(0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
                         //copy to output
-                        bool valid[1] = {true};
+                        bool valid[2] = {true, true};
+                        buffer->SetColors(1, &((*seqData)[frame][0]));
                         buffer->CalcOutput(frame, valid);
                         size_t nodeCnt = buffer->GetNodeCount();
                         for(size_t n = 0; n < nodeCnt; n++) {
@@ -266,7 +267,8 @@ public:
                     
                     if (xLights->RenderEffectFromMap(0, frame, nodeSettingsMaps[strand], *buffer, nodeEffectStates[strand], true, &renderEvent)) {
                         //copy to output
-                        bool valid[1] = {true};
+                        bool valid[2] = {true, true};
+                        buffer->SetColors(1, &((*seqData)[frame][0]));
                         buffer->CalcOutput(frame, valid);
                         size_t nodeCnt = buffer->GetNodeCount();
                         for(size_t n = 0; n < nodeCnt; n++) {

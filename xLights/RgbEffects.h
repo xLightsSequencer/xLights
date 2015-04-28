@@ -114,6 +114,8 @@ public:
 
     void SetFrameTimeInMs(int i) { frameTimeInMs = i;};
     void GetPixel(int x, int y, xlColor &color);
+    void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
+    void SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap = false);
 
 #include "Effects.h"
 
@@ -464,14 +466,6 @@ protected:
         }
     };
 
-
-
-
-
-
-
-    void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
-    void SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap = false);
 
     void CopyPixel(int srcx, int srcy, int destx, int desty);
     void SetTempPixel(int x, int y, const xlColor &color);
