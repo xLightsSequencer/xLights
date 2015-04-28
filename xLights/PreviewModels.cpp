@@ -246,7 +246,6 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
         e->DeleteAttribute("models");
         e->AddAttribute("models",ModelsInGroup);
     }
-
 }
 
 void PreviewModels::OnButtonRemoveModelGroupClick(wxCommandEvent& event)
@@ -257,8 +256,16 @@ void PreviewModels::OnButtonRemoveModelGroupClick(wxCommandEvent& event)
         wxXmlNode* e=(wxXmlNode*)(ListBoxModelGroups->GetClientData(selected_index));
         mModelGroups->RemoveChild(e);
         ListBoxModelGroups->Delete(selected_index);
-        ListBoxModelGroups->SetSelection(selected_index);
-        UpdateSelectedModel();
+        int model_count = ListBoxModelGroups->GetCount();
+        if( model_count > 0 )
+        {
+            if( selected_index >= model_count )
+            {
+                selected_index = model_count - 1;
+            }
+            ListBoxModelGroups->SetSelection(selected_index);
+            UpdateSelectedModel();
+        }
     }
 }
 
