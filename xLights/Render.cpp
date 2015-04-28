@@ -284,8 +284,9 @@ public:
         if (next) {
             next->setPreviousFrameDone(endFrame);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
+        } else {
+            xLights->CallAfter(&xLightsFrame::RenderDone);
         }
-        xLights->CallAfter(&xLightsFrame::RenderDone);
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
     }
 
@@ -505,6 +506,7 @@ void xLightsFrame::RenderGridToSeqData() {
     delete []channelsRendered;
     delete []depJobs;
     delete []noDepJobs;
+    RenderDone();
 }
 void xLightsFrame::RenderDone() {
     mainSequencer->PanelEffectGrid->Refresh();
