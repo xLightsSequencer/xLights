@@ -626,10 +626,7 @@ NodeLayer *StrandLayer::GetNodeLayer(int n, bool create) {
     return nullptr;
 }
 void StrandLayer::InitFromModel(ModelClass &model) {
-    int nc = model.GetNodeCount() / model.GetNumStrands();
-    if (model.GetDisplayAs() == "Star") {
-        nc = model.GetStarSize(strand);
-    }
+    int nc = model.GetStrandLength(strand);
     name = model.GetStrandName(strand);
     for (int x = 0; x < mNodeLayers.size(); x++) {
         mNodeLayers[x]->SetName(model.GetNodeName(x));

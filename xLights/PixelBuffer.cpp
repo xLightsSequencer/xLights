@@ -119,7 +119,7 @@ void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, 
 }
 void PixelBufferClass::InitStrandBuffer(PixelBufferClass &pbc, int strand) {
     parm1 = 1;
-    parm2 = pbc.parm2;
+    parm2 = pbc.GetStrandLength(strand);
     parm3 = 1;
     StringType = pbc.StringType;
     rgbOrder = pbc.rgbOrder;
@@ -127,15 +127,8 @@ void PixelBufferClass::InitStrandBuffer(PixelBufferClass &pbc, int strand) {
     SingleChannel = pbc.SingleChannel;
     IsLtoR = pbc.IsLtoR;
     
-    int node = strand;
     stringStartChan.resize(1);
-    if ("Custom" != pbc.DisplayAs) {
-        node *= pbc.parm2;
-        node /= pbc.parm3;
-        stringStartChan[0] = pbc.NodeStartChannel(node);
-    } else {
-        stringStartChan[0] = pbc.stringStartChan[0];
-    }
+    stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, 0));
     InitLine();
     SetModelBrightness(pbc.ModelBrightness);
     reset(2, pbc.frameTimeInMs);
@@ -150,11 +143,7 @@ void PixelBufferClass::InitNodeBuffer(PixelBufferClass &pbc, int strand, int nod
     SingleChannel = pbc.SingleChannel;
     IsLtoR = pbc.IsLtoR;
     stringStartChan.resize(1);
-    if ("Custom" == pbc.DisplayAs) {
-        stringStartChan[0] = pbc.stringStartChan[0] + node * pbc.ChannelsPerNode();
-    } else {
-        stringStartChan[0] = pbc.NodeStartChannel(strand * pbc.parm2  / pbc.parm3 + node);
-    }
+    stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, node));
     InitLine();
 
     SetModelBrightness(pbc.ModelBrightness);

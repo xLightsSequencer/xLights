@@ -1092,6 +1092,7 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
+    wxMenuItem* QuitMenuItem;
     wxMenuItem* MenuItemRenderCanvasMode;
     wxMenuItem* MenuItem_File_Open_Sequence;
     wxStaticText* StaticText26;

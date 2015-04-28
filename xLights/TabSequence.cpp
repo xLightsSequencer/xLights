@@ -478,6 +478,13 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_File_Close_Sequence->Enable(false);
         MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, false);
     }
+    if (!enable && SeqData.NumFrames() > 0) {
+        //file is loaded, but we're doing something that requires controls disabled (such as rendering)
+        //we need to also disable the quit button
+        QuitMenuItem->Enable(false);
+    } else {
+        QuitMenuItem->Enable(true);
+    }
 }
 
 

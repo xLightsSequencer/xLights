@@ -3117,7 +3117,7 @@
 					<bitmap stock_id="wxART_HARDDISK" />
 					<handler function="OnMenuItemBackupSelected" entry="EVT_MENU" />
 				</object>
-				<object class="wxMenuItem" name="wxID_EXIT" variable="MenuItem1" member="no">
+				<object class="wxMenuItem" name="wxID_EXIT" variable="QuitMenuItem" member="yes">
 					<label>Quit</label>
 					<accel>Alt-F4</accel>
 					<help>Quit the application</help>

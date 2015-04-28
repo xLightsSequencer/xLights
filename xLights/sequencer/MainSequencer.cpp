@@ -326,10 +326,8 @@ void MainSequencer::CopySelectedEffects() {
     wxString copy_data;
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
-        Element* element = mSequenceElements->GetRowInformation(i)->element;
-        int layer_index = mSequenceElements->GetRowInformation(i)->layerIndex;
         int row_number = mSequenceElements->GetRowInformation(i)->RowNumber;
-        EffectLayer* el = element->GetEffectLayer(layer_index);
+        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
             if (ef->GetSelected() != EFFECT_NOT_SELECTED) {

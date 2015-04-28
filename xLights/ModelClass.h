@@ -72,7 +72,6 @@ private:
         unsigned short chanCnt;
 
     public:
-
         int sparkle;
         int ActChan;   // 0 is the first channel
         int StringNum; // node is part of this string (0 is the first string)
@@ -374,6 +373,8 @@ private:
     wxXmlNode* ModelXml;
 
 protected:
+    int MapToNodeIndex(int strand, int node);
+
     std::vector<NodeBaseClassPtr> Nodes;
     std::vector<wxString> strandNames;
     std::vector<wxString> nodeNames;
@@ -465,6 +466,8 @@ public:
     int GetRight(ModelPreview* preview);
     float GetHcenterOffset();
     float GetVcenterOffset();
+
+    int GetStrandLength(int strand);
 
     long GetNumArches()
     {

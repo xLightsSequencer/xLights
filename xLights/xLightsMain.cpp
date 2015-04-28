@@ -511,7 +511,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer27;
-    wxMenuItem* MenuItem1;
     wxMenuItem* MenuItem4;
     wxMenuItem* MenuItem14;
     wxFlexGridSizer* FlexGridSizer37;
@@ -1581,9 +1580,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
     MenuItemBackup->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_HARDDISK")),wxART_OTHER));
     MenuFile->Append(MenuItemBackup);
-    MenuItem1 = new wxMenuItem(MenuFile, wxID_EXIT, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
-    MenuItem1->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_QUIT")),wxART_OTHER));
-    MenuFile->Append(MenuItem1);
+    QuitMenuItem = new wxMenuItem(MenuFile, wxID_EXIT, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
+    QuitMenuItem->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_QUIT")),wxART_OTHER));
+    MenuFile->Append(QuitMenuItem);
     MenuBar->Append(MenuFile, _("&File"));
     MenuPlaylist = new wxMenu();
     MenuItemSavePlaylists = new wxMenuItem(MenuPlaylist, idMenuSaveSched, _("Save Playlists"), wxEmptyString, wxITEM_NORMAL);
@@ -2298,7 +2297,9 @@ xLightsFrame::~xLightsFrame()
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
     wxCloseEvent evt;
-    OnClose(evt);
+    if (QuitMenuItem->IsEnabled()) {
+        OnClose(evt);
+    }
 }
 
 void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)

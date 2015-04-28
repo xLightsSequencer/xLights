@@ -500,7 +500,6 @@ int ModelClass::GetCustomMaxChannel(const wxString& customModel) {
     }
     return maxval;
 }
-
 void ModelClass::InitCustomMatrix(const wxString& customModel) {
     wxString value;
     wxArrayString cols;
@@ -540,10 +539,18 @@ void ModelClass::InitCustomMatrix(const wxString& customModel) {
                     // mapped - so add a coord to existing node
                     Nodes[nodemap[idx]]->AddBufCoord(col,height - row - 1);
                 }
-
             }
         }
     }
+    for (int x = 0; x < Nodes.size(); x++) {
+        for (int y = 1; y < Nodes.size(); y++) {
+            if (Nodes[y]->StringNum == x) {
+                Nodes[x].swap(Nodes[y]);
+                y = Nodes.size();
+            }
+        }
+    }
+    
     SetBufferSize(height,width);
 }
 
@@ -1904,4 +1911,28 @@ float ModelClass::GetHcenterOffset() {
 float ModelClass::GetVcenterOffset() {
     return offsetYpct;
 }
+
+int ModelClass::GetStrandLength(int strand) {
+    if ("Custom" == DisplayAs) {
+        return Nodes.size();
+    } else if ("Star" == DisplayAs) {
+        return GetStarSize(strand);
+    }
+    return GetNodeCount() / GetNumStrands();
+}
+
+int ModelClass::MapToNodeIndex(int strand, int node) {
+    if ("Custom" == DisplayAs) {
+        return node;
+    } else if ("Star" == DisplayAs) {
+        int idx = 0;
+        for (int x = 0; x < strand; x++) {
+            idx += GetStarSize(x);
+        }
+        idx += node;
+        return idx;
+    }
+    return (strand * parm2 / parm3) + node;
+}
+
 
