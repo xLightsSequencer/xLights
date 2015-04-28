@@ -492,8 +492,6 @@
 		<Unit filename="SerialPortWithRate.h" />
 		<Unit filename="ShowDatesDialog.cpp" />
 		<Unit filename="ShowDatesDialog.h" />
-		<Unit filename="StrandNodeNamesDialog.cpp" />
-		<Unit filename="StrandNodeNamesDialog.h" />
 		<Unit filename="TabConvert.cpp" />
 		<Unit filename="TabPapagayo.cpp" />
 		<Unit filename="TabPreview.cpp" />
@@ -595,7 +593,6 @@
 		<Unit filename="wxsmith/SeqOpenDialog.wxs" />
 		<Unit filename="wxsmith/SeqParmsDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
-		<Unit filename="wxsmith/StrandNodeNamesDialog.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
@@ -655,7 +652,6 @@
 					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="EffectIconPanel.cpp" hdr="EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="PerspectivesPanel.cpp" hdr="PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/StrandNodeNamesDialog.wxs" src="StrandNodeNamesDialog.cpp" hdr="StrandNodeNamesDialog.h" fwddecl="0" i18n="1" name="StrandNodeNamesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LorConvertDialog.wxs" src="LorConvertDialog.cpp" hdr="LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/DisplayElementsPanel.wxs" src="DisplayElementsPanel.cpp" hdr="DisplayElementsPanel.h" fwddecl="0" i18n="1" name="DisplayElementsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelViewSelector.wxs" src="ModelViewSelector.cpp" hdr="ModelViewSelector.h" fwddecl="0" i18n="1" name="ModelViewSelector" language="CPP" />

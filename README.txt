@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.26  Apr 28, 2015
     -- enh (dkulp) New ability to add effects to individual stands and nodes
     -- enh (dkulp) Ability to see current colors/status of individual nodes
     -- bug (dkulp) Disable "Quit" during rendering as that causes a crash
