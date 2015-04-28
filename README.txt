@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.25  Apr 28, 2015
     -- enh (gil) New Efffect: Shockwave
     -- enh (gil) Allow a single effect to be selected and moved with both endpoints.
     -- enh (gil) Switch spacebar back to work like Audacity which is Stop instead of pausing.  Only deviation is I do unpause
