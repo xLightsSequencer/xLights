@@ -56,6 +56,8 @@ enum MixTypes
 class PixelBufferClass : public ModelClass
 {
 private:
+    PixelBufferClass(const PixelBufferClass &cls);
+    PixelBufferClass &operator=(const PixelBufferClass &);
     int numLayers;
     int frameTimeInMs;
 
@@ -78,7 +80,7 @@ private:
     void reset(int layers, int timing);
 public:
     PixelBufferClass();
-    ~PixelBufferClass();
+    virtual ~PixelBufferClass();
     void InitBuffer(wxXmlNode* ModelNode, int layers, int timing, bool zeroBased=false);
     void InitStrandBuffer(PixelBufferClass &pbc, int strand);
     void InitNodeBuffer(PixelBufferClass &pbc, int strand, int node);
@@ -101,5 +103,6 @@ public:
 #include "Effects.h"
 
 };
+typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;
 
 #endif // PIXELBUFFER_H

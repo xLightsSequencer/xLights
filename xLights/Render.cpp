@@ -114,12 +114,14 @@ public:
             for (int x = 0; x < row->getStrandLayerCount(); x++) {
                 StrandLayer *sl = row->GetStrandLayer(x);
                 if (sl -> GetEffectCount() > 0) {
-                    strandBuffers[x].InitStrandBuffer(*mainBuffer, x);
+                    strandBuffers[x].reset(new PixelBufferClass());
+                    strandBuffers[x]->InitStrandBuffer(*mainBuffer, x);
                 }
                 for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                     EffectLayer *nl = sl->GetNodeLayer(n);
                     if (nl -> GetEffectCount() > 0) {
-                        nodeBuffers[x * mainBuffer->GetNodeCount() + n].InitNodeBuffer(*mainBuffer, x, n);
+                        nodeBuffers[x * mainBuffer->GetNodeCount() + n].reset(new PixelBufferClass());
+                        nodeBuffers[x * mainBuffer->GetNodeCount() + n]->InitNodeBuffer(*mainBuffer, x, n);
                     }
                 }
             }
@@ -216,9 +218,9 @@ public:
                 }
             }
             if (!strandBuffers.empty()) {
-                for (std::map<int, PixelBufferClass>::iterator it = strandBuffers.begin(); it != strandBuffers.end(); it++) {
+                for (std::map<int, PixelBufferClassPtr>::iterator it = strandBuffers.begin(); it != strandBuffers.end(); it++) {
                     int strand = it->first;
-                    PixelBufferClass *buffer = &it->second;
+                    PixelBufferClass *buffer = it->second.get();
                     StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
                     Effect *el = findEffectForFrame(slayer, frame);
                     if (el != strandEffects[strand] || frame == startFrame) {
@@ -244,9 +246,9 @@ public:
                 }
             }
             if (!nodeBuffers.empty()) {
-                for (std::map<int, PixelBufferClass>::iterator it = nodeBuffers.begin(); it != nodeBuffers.end(); it++) {
+                for (std::map<int, PixelBufferClassPtr>::iterator it = nodeBuffers.begin(); it != nodeBuffers.end(); it++) {
                     int node = it->first;
-                    PixelBufferClass *buffer = &it->second;
+                    PixelBufferClass *buffer = it->second.get();
                     int strand = node / mainBuffer->GetNodeCount();
                     int inode = node % mainBuffer->GetNodeCount();
                     StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
@@ -396,8 +398,9 @@ private:
     SequenceData *seqData;
     bool clearAllFrames;
     RenderEvent renderEvent;
-    std::map<int, PixelBufferClass> strandBuffers;
-    std::map<int, PixelBufferClass> nodeBuffers;
+    
+    std::map<int, PixelBufferClassPtr> strandBuffers;
+    std::map<int, PixelBufferClassPtr> nodeBuffers;
 };
 
 

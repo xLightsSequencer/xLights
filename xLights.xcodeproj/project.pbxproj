@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */; };
 		67043A4C1A07D17F00C09B71 /* dlgPreviewSize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67043A4B1A07D17F00C09B71 /* dlgPreviewSize.cpp */; };
+		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
 		6717E3AE19FC9D3F00E94972 /* RenderRipple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */; };
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
@@ -134,6 +135,8 @@
 		6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelAppearanceDlg.h; sourceTree = "<group>"; };
 		67043A4B1A07D17F00C09B71 /* dlgPreviewSize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dlgPreviewSize.cpp; sourceTree = "<group>"; };
 		6708AB4B1A37F88F008313E3 /* minibasic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = minibasic.cpp; path = include/minibasic.cpp; sourceTree = SOURCE_ROOT; };
+		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
+		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
 		6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderRipple.cpp; sourceTree = "<group>"; };
 		671B331C1AD5CB7600C9F215 /* UtilClasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UtilClasses.h; sourceTree = "<group>"; };
 		671B331D1AD6071600C9F215 /* BitmapCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BitmapCache.h; sourceTree = "<group>"; };
@@ -477,6 +480,7 @@
 				67623E6F1AD07E320022667B /* KeyBindings.cpp */,
 				676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */,
 				6784F9231A5653670018EC0C /* MainSequencer.cpp */,
+				6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */,
 				67A619CC17B51C0F008E95BB /* ModelClass.cpp */,
 				67A619CE17B51C0F008E95BB /* ModelDialog.cpp */,
 				67A619D017B51C0F008E95BB /* ModelListDialog.cpp */,
@@ -535,6 +539,7 @@
 			isa = PBXGroup;
 			children = (
 				67A619BD17B51C0F008E95BB /* AddShowDialog.h */,
+				6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */,
 				671B331D1AD6071600C9F215 /* BitmapCache.h */,
 				67A619BF17B51C0F008E95BB /* ChannelLayoutDialog.h */,
 				67A619C117B51C0F008E95BB /* ChannelMapDialog.h */,
@@ -773,6 +778,7 @@
 				674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */,
 				6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */,
 				6730E4D21ADB54E8005DECF0 /* RenderGalaxy.cpp in Sources */,
+				6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */,
 				67A61A5317B51C0F008E95BB /* SerialPortWithRate.cpp in Sources */,
 				674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */,
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,

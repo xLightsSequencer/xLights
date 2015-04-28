@@ -174,9 +174,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -216,9 +216,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -305,9 +305,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -346,9 +346,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -592,6 +592,7 @@
 		<Unit filename="wxsmith/SeqOpenDialog.wxs" />
 		<Unit filename="wxsmith/SeqParmsDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
+		<Unit filename="wxsmith/StrandNodeNamesDialog.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
@@ -651,6 +652,7 @@
 					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="EffectIconPanel.cpp" hdr="EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="PerspectivesPanel.cpp" hdr="PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/StrandNodeNamesDialog.wxs" src="StrandNodeNamesDialog.cpp" hdr="StrandNodeNamesDialog.h" fwddecl="0" i18n="1" name="StrandNodeNamesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LorConvertDialog.wxs" src="LorConvertDialog.cpp" hdr="LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/DisplayElementsPanel.wxs" src="DisplayElementsPanel.cpp" hdr="DisplayElementsPanel.h" fwddecl="0" i18n="1" name="DisplayElementsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelViewSelector.wxs" src="ModelViewSelector.cpp" hdr="ModelViewSelector.h" fwddecl="0" i18n="1" name="ModelViewSelector" language="CPP" />

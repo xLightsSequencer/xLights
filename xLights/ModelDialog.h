@@ -39,7 +39,6 @@ public:
     wxTextCtrl* TextCtrl_Name;
     wxStaticText* StaticTextCustomModel;
     wxStaticText* StaticText2;
-    wxButton* Button1;
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrlModelBrightness;
     wxSpinCtrl* SpinCtrl_parm3;
@@ -115,6 +114,7 @@ protected:
     static const long ID_BUTTON_CustomModelZoomOut;
     static const long ID_GRID_Custom;
     static const long ID_BUTTON1;
+    static const long ID_BUTTON2;
     //*)
 
 private:
@@ -140,6 +140,7 @@ private:
     void OnButton_CustomModelZoomInClick(wxCommandEvent& event);
     void OnSpinCtrlModelBrightnessChange(wxSpinEvent& event);
     void OnAppearanceButtonClicked(wxCommandEvent& event);
+    void OnNamesButtonClick(wxCommandEvent& event);
     //*)
 
     void SetReadOnly(bool);

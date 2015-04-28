@@ -12,6 +12,7 @@
 //*)
 
 #include "PixelAppearanceDlg.h"
+#include "StrandNodeNamesDialog.h"
 
 //(*IdInit(ModelDialog)
 const long ModelDialog::ID_STATICTEXT1 = wxNewId();
@@ -53,6 +54,7 @@ const long ModelDialog::ID_BUTTON_CustomModelZoomIn = wxNewId();
 const long ModelDialog::ID_BUTTON_CustomModelZoomOut = wxNewId();
 const long ModelDialog::ID_GRID_Custom = wxNewId();
 const long ModelDialog::ID_BUTTON1 = wxNewId();
+const long ModelDialog::ID_BUTTON2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ModelDialog,wxDialog)
@@ -64,11 +66,13 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 {
     //(*Initialize(ModelDialog)
     wxFlexGridSizer* FlexGridSizer4;
+    wxButton* Button1;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer7;
+    wxButton* Button2;
     wxFlexGridSizer* FlexGridSizer8;
     wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer6;
@@ -246,6 +250,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button1 = new wxButton(this, ID_BUTTON1, _("Appearance"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer8->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button2 = new wxButton(this, ID_BUTTON2, _("Names"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    FlexGridSizer8->Add(Button2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
@@ -271,6 +277,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_CustomModelZoomOut,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButton_CustomModelZoomOutClick);
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OnGridCustomCellChange);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnAppearanceButtonClicked);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnNamesButtonClick);
     //*)
 
     gridStartChannels->SetDefaultEditor(new wxGridCellNumberEditor());
@@ -1076,4 +1083,12 @@ void ModelDialog::OnAppearanceButtonClicked(wxCommandEvent& event)
         pixelSize = dlg.PixelSizeSpinner->GetValue();
     }
 
+}
+
+void ModelDialog::OnNamesButtonClick(wxCommandEvent& event)
+{
+    StrandNodeNamesDialog dlg(this);
+    if (dlg.ShowModal() == wxID_OK) {
+        
+    }
 }
