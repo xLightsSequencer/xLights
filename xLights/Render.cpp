@@ -257,15 +257,15 @@ public:
                     Effect *el = findEffectForFrame(nlayer, frame);
                     if (el != nodeEffects[node] || frame == startFrame) {
                         nodeEffects[node] = el;
-                        initialize(0, frame, el, nodeSettingsMaps[strand], buffer);
-                        nodeEffectStates[strand] = true;
+                        initialize(0, frame, el, nodeSettingsMaps[node], buffer);
+                        nodeEffectStates[node] = true;
                     }
-                    int persist=wxAtoi(nodeSettingsMaps[strand]["CHECKBOX_OverlayBkg"]);
-                    if (!persist || "None" == nodeSettingsMaps[strand]["Effect"]) {
+                    int persist=wxAtoi(nodeSettingsMaps[node]["CHECKBOX_OverlayBkg"]);
+                    if (!persist || "None" == nodeSettingsMaps[node]["Effect"]) {
                         buffer->Clear(0);
                     }
                     
-                    if (xLights->RenderEffectFromMap(0, frame, nodeSettingsMaps[strand], *buffer, nodeEffectStates[strand], true, &renderEvent)) {
+                    if (xLights->RenderEffectFromMap(0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                         //copy to output
                         bool valid[2] = {true, true};
                         buffer->SetColors(1, &((*seqData)[frame][0]));
