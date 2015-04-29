@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.27  Apr 28, 2015
+    -- bug (dkulp) Fix for custom models when expanding a model into strands.
 4.0.26  Apr 28, 2015
     -- enh (dkulp) New ability to add effects to individual stands and nodes
     -- enh (dkulp) Ability to see current colors/status of individual nodes
