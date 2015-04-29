@@ -27,6 +27,9 @@ void RgbEffects::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, i
                                bool Blend, bool Show3D, bool grow, bool shrink)
 {
     int strand_base,strand,thick,x,y,ColorIdx;
+    if (PaletteRepeat == 0) {
+        PaletteRepeat = 1;
+    }
     size_t colorcnt=GetColorCount();
     int SpiralCount=colorcnt * PaletteRepeat;
     int deltaStrands=BufferWi / SpiralCount;
