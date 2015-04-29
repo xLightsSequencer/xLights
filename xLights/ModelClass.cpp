@@ -990,7 +990,7 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString, const wx
                 Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n,NodesPerString, GetNextName())));
         }
     } else if (NodesPerString == 0) {
-        Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(0, 0, GetNextName())));
+        Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(0, 0, rgbOrder, GetNextName())));
     } else {
         size_t numnodes=NumStrings*NodesPerString;
         for(n=0; n<numnodes; n++)
