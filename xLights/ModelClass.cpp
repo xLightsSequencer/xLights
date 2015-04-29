@@ -544,9 +544,8 @@ void ModelClass::InitCustomMatrix(const wxString& customModel) {
     }
     for (int x = 0; x < Nodes.size(); x++) {
         for (int y = 1; y < Nodes.size(); y++) {
-            if (Nodes[y]->StringNum == x) {
+            if (Nodes[y]->StringNum < Nodes[x]->StringNum) {
                 Nodes[x].swap(Nodes[y]);
-                y = Nodes.size();
             }
         }
     }
