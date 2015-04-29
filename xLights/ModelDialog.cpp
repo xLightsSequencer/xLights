@@ -557,6 +557,10 @@ void ModelDialog::UpdateStartChannels()
             // dumb rgb
             StringCnt = maxval;
             break;
+        case 4:
+            //RGBW
+            StringCnt = maxval;
+            break;
         default:
             // rgb pixels
             ChannelsPerString = maxval*3;
