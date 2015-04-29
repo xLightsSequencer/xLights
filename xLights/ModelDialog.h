@@ -42,6 +42,7 @@ public:
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrlModelBrightness;
     wxSpinCtrl* SpinCtrl_parm3;
+    wxFlexGridSizer* OuterSizer;
     wxStaticText* StaticText8;
     wxStaticText* StaticText1;
     wxTextCtrl* StarSizes;
@@ -51,6 +52,7 @@ public:
     wxButton* Button_CustomModelZoomIn;
     wxGrid* GridCustom;
     wxBitmapButton* BitmapButtonCustomPaste;
+    wxFlexGridSizer* LeftGridSizer;
     wxRadioButton* RadioButton_TopLeft;
     wxRadioButton* RadioButton_BotLeft;
     wxCheckBox* CheckBox_MyDisplay;
@@ -101,8 +103,10 @@ protected:
     static const long ID_Slider_Model_Brightness;
     static const long ID_SPINCTRLMODELBRIGHTNESS;
     static const long ID_STATICTEXT15;
-    static const long ID_SPINCONTROL_TREE_FIRST_STRING;
-    static const long ID_TEXTCTRL2;
+    static const long ID_SPINCTRL5;
+    static const long ID_TEXTCTRL3;
+    static const long ID_BUTTON3;
+    static const long ID_BUTTON4;
     static const long ID_CHECKBOX2;
     static const long ID_GRID_START_CHANNELS;
     static const long ID_STATICTEXT14;
@@ -113,8 +117,6 @@ protected:
     static const long ID_BUTTON_CustomModelZoomIn;
     static const long ID_BUTTON_CustomModelZoomOut;
     static const long ID_GRID_Custom;
-    static const long ID_BUTTON1;
-    static const long ID_BUTTON2;
     //*)
 
 private:
