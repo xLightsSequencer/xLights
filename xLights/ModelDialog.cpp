@@ -396,18 +396,22 @@ int ModelDialog::GetChannelsPerStringStd()
 {
     wxString StringType=Choice_StringType->GetStringSelection();
     wxString DisplayAs=Choice_DisplayAs->GetStringSelection();
+    if ("Arches" == DisplayAs) {
+        int chanCountPerString = ModelClass::GetNodeChannelCount(StringType);
+        return chanCountPerString * SpinCtrl_parm2->GetValue();
+    }
     int chanCountPerString = ModelClass::GetNodeChannelCount(StringType);
     if (chanCountPerString != 3) {
         return chanCountPerString;
     }
     if (ModelClass::HasSingleNode(StringType)) return 3;
-    if (DisplayAs != "Window Frame")
+    if (DisplayAs == "Window Frame")
     {
-        return SpinCtrl_parm2->GetValue()*3;
+        return (SpinCtrl_parm1->GetValue()+2*SpinCtrl_parm2->GetValue()+SpinCtrl_parm3->GetValue())*3;
     }
     else
     {
-        return (SpinCtrl_parm1->GetValue()+2*SpinCtrl_parm2->GetValue()+SpinCtrl_parm3->GetValue())*3;
+        return SpinCtrl_parm2->GetValue()*3;
     }
 }
 
@@ -433,11 +437,11 @@ void ModelDialog::UpdateLabels()
     if (DisplayAs == "Arches")
     {
         StaticText_Strings->SetLabelText(_("# of Arches"));
-        s=_("# of ") + NodeLabel + _(" per Arch");
+        s=_("# of ") + (ModelClass::HasSingleChannel(StringType) ? "Segments" : "Nodes") + _(" per Arch");
         StaticText_Nodes->SetLabelText(s);
-        StaticText_Strands->SetLabelText(_("n/a"));
-        SpinCtrl_parm3->SetValue(1);
-        SpinCtrl_parm3->Enable(false);
+        StaticText_Strands->SetLabelText(_("# of lights per ") + (ModelClass::HasSingleChannel(StringType) ? "Segment" : "Node"));
+        //SpinCtrl_parm3->SetValue(1);
+        SpinCtrl_parm3->Enable(true);
     }
     else if (DisplayAs == "Tree 360" || DisplayAs == "Tree 270" || DisplayAs == "Sphere 360" || DisplayAs == "Sphere 270")
     {

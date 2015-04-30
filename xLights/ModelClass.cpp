@@ -229,20 +229,23 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings= HasOneString(DisplayAs) ? 1 : parm1;
-    int ChannelsPerString=parm2*3;
+    int ChannelsPerString=parm2*GetNodeChannelCount(StringType);
     if (SingleChannel)
         ChannelsPerString=1;
     else if (SingleNode)
-        ChannelsPerString=3;
-
-    if (ModelNode->HasAttribute("CustomModel")) {
+        ChannelsPerString=GetNodeChannelCount(StringType);
+    
+    if ("Arches" == DisplayAs) {
+        SingleChannel = false;
+        ChannelsPerString=GetNodeChannelCount(StringType) * parm2;
+    } else if (ModelNode->HasAttribute("CustomModel")) {
         customModel = ModelNode->GetAttribute("CustomModel");
         int maxval=GetCustomMaxChannel(customModel);
         // fix NumberOfStrings
         if (SingleNode) {
             NumberOfStrings=maxval;
         } else {
-            ChannelsPerString=maxval*3;
+            ChannelsPerString=maxval*GetNodeChannelCount(StringType);
         }
     }
 
@@ -298,7 +301,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
         CopyBufCoord2ScreenCoord();
         //SetLineCoord();
     } else if (DisplayAs == "Arches") {
-        InitHMatrix(); // Old call was InitLine();
+        InitArches();
         SetArchCoord();
     } else if (DisplayAs == "Window Frame") {
         InitFrame();
@@ -434,7 +437,48 @@ void ModelClass::InitVMatrix(int firstExportStrand) {
         }
     }
 }
+void ModelClass::InitArches() {
+    int NumArches=parm1;
+    int SegmentsPerArch=parm2;
+    
+    SetBufferSize(NumArches,SegmentsPerArch);
+    SetNodeCount(NumArches * SegmentsPerArch, parm3,rgbOrder);
+    SetRenderSize(NumArches,SegmentsPerArch);
 
+    for (int y=0; y < NumArches; y++) {
+        for(int x=0; x<SegmentsPerArch; x++) {
+            int idx = y * SegmentsPerArch + x;
+            Nodes[idx]->ActChan = stringStartChan[y] + x*GetNodeChannelCount(StringType);
+            Nodes[idx]->StringNum=y;
+            for(size_t c=0; c < GetCoordCount(idx); c++) {
+                Nodes[idx]->Coords[c].bufX=IsLtoR ? x : SegmentsPerArch-x-1;
+                Nodes[idx]->Coords[c].bufY=isBotToTop ? y : NumArches-y-1;
+            }
+        }
+    }
+}
+
+// Set screen coordinates for arches
+void ModelClass::SetArchCoord() {
+    double xoffset,x,y;
+    int numlights=parm1*parm2*parm3;
+    size_t NodeCount=GetNodeCount();
+    SetRenderSize(parm2*parm3,numlights*2);
+    double midpt=parm2*parm3;
+    midpt -= 1.0;
+    midpt /= 2.0;
+    for(size_t n=0; n<NodeCount; n++) {
+        xoffset=Nodes[n]->StringNum*parm2*parm3*2 - numlights;
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++) {
+            double angle=-M_PI/2.0 + M_PI * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c))/midpt/2.0;
+            x=xoffset + midpt*sin(angle)*2.0+parm2*parm3;
+            y=(parm2*parm3)*cos(angle);
+            Nodes[n]->Coords[c].screenX=x;
+            Nodes[n]->Coords[c].screenY=y-(RenderHt/2);
+        }
+    }
+}
 // initialize buffer coordinates
 // parm1=NumStrings
 // parm2=PixelsPerString
@@ -826,27 +870,6 @@ void ModelClass::SetLineCoord() {
     }
 }
 
-// Set screen coordinates for arches
-void ModelClass::SetArchCoord() {
-    double xoffset,x,y;
-    int numlights=parm1*parm2;
-    size_t NodeCount=GetNodeCount();
-    SetRenderSize(parm2,numlights*2);
-    double midpt=parm2;
-    midpt -= 1.0;
-    midpt /= 2.0;
-    for(size_t n=0; n<NodeCount; n++) {
-        xoffset=Nodes[n]->StringNum*parm2*2 - numlights;
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++) {
-            double angle=-M_PI/2.0 + M_PI * ((double)Nodes[n]->Coords[c].bufX)/midpt/2.0;
-            x=xoffset + midpt*sin(angle)*2.0+parm2;
-            y=parm2*cos(angle);
-            Nodes[n]->Coords[c].screenX=x;
-            Nodes[n]->Coords[c].screenY=y-(RenderHt/2);
-        }
-    }
-}
 
 // initialize buffer coordinates
 // parm1=Nodes on Top
@@ -987,7 +1010,7 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString, const wx
         } else {
             // 3 Channel RGB
             for(n=0; n<NumStrings; n++)
-                Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n,NodesPerString, GetNextName())));
+                Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n,NodesPerString, "RGB", GetNextName())));
         }
     } else if (NodesPerString == 0) {
         Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(0, 0, rgbOrder, GetNextName())));
@@ -1930,6 +1953,8 @@ int ModelClass::MapToNodeIndex(int strand, int node) {
         }
         idx += node;
         return idx;
+    } else if ("Arches" == DisplayAs) {
+        return strand * parm2 + node;
     }
     return (strand * parm2 / parm3) + node;
 }

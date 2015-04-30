@@ -118,8 +118,8 @@ void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, 
     reset(layers, timing);
 }
 void PixelBufferClass::InitStrandBuffer(PixelBufferClass &pbc, int strand) {
-    parm1 = 1;
-    parm2 = pbc.GetStrandLength(strand);
+    parm1 = pbc.GetStrandLength(strand);
+    parm2 = 1;
     parm3 = 1;
     StringType = pbc.StringType;
     rgbOrder = pbc.rgbOrder;
@@ -127,8 +127,10 @@ void PixelBufferClass::InitStrandBuffer(PixelBufferClass &pbc, int strand) {
     SingleChannel = pbc.SingleChannel;
     IsLtoR = pbc.IsLtoR;
     
-    stringStartChan.resize(1);
-    stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, 0));
+    stringStartChan.resize(parm1);
+    for (int x = 0; x < parm1; x++) {
+        stringStartChan[x] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, x));
+    }
     InitLine();
     SetModelBrightness(pbc.ModelBrightness);
     reset(2, pbc.frameTimeInMs);

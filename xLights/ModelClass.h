@@ -328,6 +328,7 @@ protected:
 private:
     void InitVMatrix(int firstExportStrand = 0);
     void InitHMatrix();
+    void InitArches();
     void InitFrame();
     void InitStar();
     void InitWreath();
@@ -379,9 +380,9 @@ protected:
     std::vector<wxString> strandNames;
     std::vector<wxString> nodeNames;
     wxString rgbOrder;
-    long parm1;         /**< Number of strings in the model (except for frames & custom) */
-    long parm2;         /**< Number of nodes per string in the model (except for frames & custom) */
-    long parm3;         /**< Number of strands per string in the model (except for frames & custom) */
+    long parm1;         /* Number of strings in the model or number of arches (except for frames & custom) */
+    long parm2;         /* Number of nodes per string in the model or number of segments per arch (except for frames & custom) */
+    long parm3;         /* Number of strands per string in the model or number of lights per arch segment (except for frames & custom) */
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
     StartChannelVector_t stringStartChan;
