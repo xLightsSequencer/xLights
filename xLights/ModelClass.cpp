@@ -573,7 +573,7 @@ void ModelClass::InitCustomMatrix(const wxString& customModel) {
                     // unmapped - so add a node
                     nodemap[idx]=Nodes.size();
                     SetNodeCount(1,0,rgbOrder);  // this creates a node of the correct class
-                    Nodes.back()->StringNum= SingleNode ? idx : 0;
+                    Nodes.back()->StringNum=idx;
                     Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
                     if (idx < nodeNames.size()) {
                         Nodes.back()->SetName(nodeNames[idx]);
@@ -587,11 +587,14 @@ void ModelClass::InitCustomMatrix(const wxString& customModel) {
         }
     }
     for (int x = 0; x < Nodes.size(); x++) {
-        for (int y = 1; y < Nodes.size(); y++) {
+        for (int y = x+1; y < Nodes.size(); y++) {
             if (Nodes[y]->StringNum < Nodes[x]->StringNum) {
                 Nodes[x].swap(Nodes[y]);
             }
         }
+    }
+    for (int x = 0; x < Nodes.size(); x++) {
+        Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
     }
     
     SetBufferSize(height,width);
