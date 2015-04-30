@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.28  Apr 29, 2015
     -- enh (dkulp) Allow specifying number of segments and lights per segment for arches
     -- bug (dkulp) "3 Channel RGB" string types not working correctly
     -- bug (dkulp) #213/202 Issues with the Model Dialog losing the buttons if too big of a model is loaded
