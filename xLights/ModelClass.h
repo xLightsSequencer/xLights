@@ -73,7 +73,7 @@ private:
 
     public:
         int sparkle;
-        int ActChan;   // 0 is the first channel
+        int ActChan = 0;   // 0 is the first channel
         int StringNum; // node is part of this string (0 is the first string)
         std::vector<CoordStruct> Coords;
         std::vector<CoordStruct> OrigCoords;
@@ -374,7 +374,6 @@ private:
     wxXmlNode* ModelXml;
 
 protected:
-    int MapToNodeIndex(int strand, int node);
 
     std::vector<NodeBaseClassPtr> Nodes;
     std::vector<wxString> strandNames;
@@ -383,14 +382,15 @@ protected:
     long parm1;         /* Number of strings in the model or number of arches (except for frames & custom) */
     long parm2;         /* Number of nodes per string in the model or number of segments per arch (except for frames & custom) */
     long parm3;         /* Number of strands per string in the model or number of lights per arch segment (except for frames & custom) */
+    bool IsLtoR;         // true=left to right, false=right to left
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
     StartChannelVector_t stringStartChan;
-    bool IsLtoR;         // true=left to right, false=right to left
     bool isBotToTop;
     wxString StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     wxString DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
 
+    friend class PixelBufferClass;
 public:
     ModelClass() {}
     virtual ~ModelClass() {}
@@ -403,9 +403,9 @@ public:
     bool Selected=false;
     bool GroupSelected=false;
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
-    size_t GetNodeCount();
-    int GetChanCount();
-    int GetChanCountPerNode();
+    size_t GetNodeCount() const;
+    int GetChanCount() const;
+    int GetChanCountPerNode() const;
     size_t GetCoordCount(size_t nodenum);
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
@@ -428,14 +428,15 @@ public:
     void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
     bool CanRotate();
     void Rotate(int degrees);
-    const wxString& GetStringType(void) { return StringType; }
-    const wxString& GetDisplayAs(void) { return DisplayAs; }
+    const wxString& GetStringType(void) const { return StringType; }
+    const wxString& GetDisplayAs(void) const { return DisplayAs; }
     int NodesPerString();
     void SetModelCoord(int degrees);
     int CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y);
     int GetRotation();
     int ChannelsPerNode();
-    int NodeStartChannel(size_t nodenum);
+    int NodeStartChannel(size_t nodenum) const;
+    int MapToNodeIndex(int strand, int node) const;
 
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
@@ -449,8 +450,6 @@ public:
     size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
     static bool ParseFaceElement(const wxString& str, std::vector<wxPoint>& first_xy);
 //    int FindChannelAtXY(int x, int y, const wxString& model);
-    static ModelClass* FindModel(const wxString& name);
-    static size_t EnumModels(wxArrayString* choices, const wxString& InactivePrefix);
     wxString GetNodeXY(const wxString& nodenumstr);
     wxString GetNodeXY(int nodeinx);
 
@@ -468,9 +467,9 @@ public:
     float GetHcenterOffset();
     float GetVcenterOffset();
 
-    int GetStrandLength(int strand);
+    int GetStrandLength(int strand) const;
 
-    long GetNumArches()
+    long GetNumArches() const
     {
         if (DisplayAs == wxT("Arches"))
             return parm1;
@@ -478,7 +477,7 @@ public:
             return 0;
     }
 
-    long GetNodesPerArch()
+    long GetNodesPerArch() const
     {
         if (DisplayAs == wxT("Arches"))
             return parm2;
@@ -486,7 +485,7 @@ public:
             return 0;
     }
     
-    int GetNumStrands() {
+    int GetNumStrands() const {
         wxStringTokenizer tkz(DisplayAs, " ");
         wxString token = tkz.GetNextToken();
         if (DisplayAs == wxT("Arches"))
@@ -502,16 +501,16 @@ public:
         else
             return 1;
     }
-    int GetStarSize(int starLayer) {
+    int GetStarSize(int starLayer) const {
         return starSizes[starLayer];
     }
-    wxString GetStrandName(int x) {
+    wxString GetStrandName(int x) const {
         if (x < strandNames.size()) {
             return strandNames[x];
         }
         return "";
     }
-    wxString GetNodeName(int x) {
+    wxString GetNodeName(int x) const {
         if (x < nodeNames.size()) {
             return nodeNames[x];
         }

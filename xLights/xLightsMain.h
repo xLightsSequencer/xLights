@@ -556,6 +556,7 @@ private:
     void OnMenuItemRenderCanvasModeSelected(wxCommandEvent& event);
     void OnScaleImageCheckboxClick(wxCommandEvent& event);
     void OnSetGridIconBackground(wxCommandEvent& event);
+    void OnSetGridNodeValues(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -858,6 +859,9 @@ private:
     static const long ID_MENUITEM_GRID_ICON_BACKGROUND_ON;
     static const long ID_MENUITEM_GRID_ICON_BACKGROUND_OFF;
     static const long ID_MENUITEM_Grid_Icon_Backgrounds;
+    static const long ID_MENUITEM_GRID_NODE_VALUES_ON;
+    static const long ID_MENUITEM_GRID_NODE_VALUES_OFF;
+    static const long ID_MENUITEM8;
     static const long ID_MENU_CANVAS_ERASE_MODE;
     static const long ID_MENU_CANVAS_CANVAS_MODE;
     static const long ID_MENUITEM_RENDER_MODE;
@@ -955,6 +959,7 @@ private:
     DragEffectBitmapButton* BitmapButton15;
     wxRadioButton* RadioButtonRgbDim;
     wxStaticText* StaticText5;
+    wxMenuItem* MenuItemGridNodeValuesOn;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxCheckBox* CheckBox_CoroPictureScaled;
     wxStaticText* StaticText25;
@@ -1021,6 +1026,7 @@ private:
     wxStaticText* StaticText16;
     DragEffectBitmapButton* BitmapButton30;
     wxStaticText* StaticText_PgoOutputType;
+    wxMenu* MenuItem1;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxButton* ButtonSaveLog;
     wxPanel* PanelSetup;
@@ -1109,6 +1115,7 @@ private:
     DragEffectBitmapButton* BitmapButton5;
     wxMenuItem* Menu_Settings_Sequence;
     DragEffectBitmapButton* BitmapButton22;
+    wxMenuItem* MenuItemGridNodeValuesOff;
     wxSlider* SliderPreviewScale;
     wxButton* ButtonTestLoad;
     wxRadioButton* RadioButtonOff;
@@ -1370,6 +1377,7 @@ private:
 public:
     wxXmlNode* GetModelNode(const wxString& name);
     bool InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
+    ModelClass &GetModelClass(const wxString& name);
     void RenderGridToSeqData();
     bool RenderEffectFromMap(int layer, int period, const MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
@@ -1406,7 +1414,7 @@ protected:
     void RenderAll();
     void InsertRow();
     void UpdatePreview();
-    wxXmlNode *BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClassPtr> &models);
+    wxXmlNode *BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClass*> &models);
     void ShowModelsDialog();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
@@ -1466,7 +1474,8 @@ protected:
     bool mResetToolbars;
     int mIconSize;
     int mGridSpacing;
-    int mGridIconBackgrounds;
+    bool mGridIconBackgrounds;
+    bool mGridNodeValues;
 
     PixelBufferClass playBuffer;
     int playType;
@@ -1613,7 +1622,8 @@ protected:
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
 public:
-    static std::vector<ModelClassPtr> PreviewModels, OtherModels; //make public and static for easier access -DJ
+    static std::vector<ModelClass *> PreviewModels;
+    static std::map<wxString, ModelClassPtr> AllModels; //make public and static for easier access -DJ
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
 
     wxString GetSeqXmlFileName();

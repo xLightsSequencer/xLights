@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (dkulp) Add ability to turn off the node value display in the grid to improve performance (particularly 
+                   if all that is important is the xLights effects dropped on the nodes)
 4.0.28  Apr 29, 2015
     -- enh (dkulp) Allow specifying number of segments and lights per segment for arches
     -- bug (dkulp) "3 Channel RGB" string types not working correctly

@@ -609,7 +609,7 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position)
     }
     if(deltaTime<0)
     {
-        if (abs(deltaTime)< toLeft)
+        if (std::abs(deltaTime)< toLeft)
         {
             MoveAllSelectedEffects(deltaTime);
         }
@@ -1010,13 +1010,11 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
     int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-2;
     int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
     
-    if (mGridIconBackgrounds && ri->nodeIndex != -1) {
+    if (mGridNodeValues && ri->nodeIndex != -1) {
         std::vector<xlColor> colors;
         std::vector<double> xs;
-        PixelBufferClass cls;
         PixelBufferClass ncls;
-        xlights->InitPixelBuffer(ri->element->GetName(), cls, 1);
-        ncls.InitNodeBuffer(cls, ri->strandIndex, ri->nodeIndex);
+        ncls.InitNodeBuffer(xlights->GetModelClass(ri->element->GetName()), ri->strandIndex, ri->nodeIndex, seqData->FrameTime());
         xlColor lastColor;
         for (int f = 0; f < seqData->NumFrames(); f++) {
             ncls.SetNodeChannelValues(0, (*seqData)[f][ncls.NodeStartChannel(0)]);

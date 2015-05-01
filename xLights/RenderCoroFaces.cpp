@@ -241,7 +241,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
 #endif // 0
 
         std::vector<wxPoint> first_xy;
-        ModelClass* model_info = ModelClass::FindModel(cur_model);
+        ModelClass* model_info = xLightsFrame::AllModels[cur_model].get();
         if (!model_info || !parse_model(cur_model))
         {
             debug(10, "model '%s' not found", (const char*)cur_model.c_str());

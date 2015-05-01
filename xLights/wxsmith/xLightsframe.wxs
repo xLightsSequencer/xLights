@@ -3288,6 +3288,20 @@
 						<checkable>1</checkable>
 					</object>
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM8" variable="MenuItem1" member="yes">
+					<label>Grid Node Values</label>
+					<object class="wxMenuItem" name="ID_MENUITEM_GRID_NODE_VALUES_ON" variable="MenuItemGridNodeValuesOn" member="yes">
+						<label>On</label>
+						<checked>1</checked>
+						<handler function="OnSetGridNodeValues" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_GRID_NODE_VALUES_OFF" variable="MenuItemGridNodeValuesOff" member="yes">
+						<label>Off</label>
+						<handler function="OnSetGridNodeValues" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+				</object>
 				<object class="wxMenu" name="ID_MENUITEM_RENDER_MODE" variable="MenuItemRenderMode" member="yes">
 					<label>Render Mode</label>
 					<enabled>0</enabled>

@@ -80,7 +80,7 @@ void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
     }
 }
 
-wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClassPtr> &models)
+wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClass*> &models)
 {
     size_t numberOfNodes=0;
     int w,h,wScaled,hScaled;

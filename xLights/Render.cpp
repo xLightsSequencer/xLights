@@ -115,13 +115,13 @@ public:
                 StrandLayer *sl = row->GetStrandLayer(x);
                 if (sl -> GetEffectCount() > 0) {
                     strandBuffers[x].reset(new PixelBufferClass());
-                    strandBuffers[x]->InitStrandBuffer(*mainBuffer, x);
+                    strandBuffers[x]->InitStrandBuffer(*mainBuffer, x, data.FrameTime());
                 }
                 for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                     EffectLayer *nl = sl->GetNodeLayer(n);
                     if (nl -> GetEffectCount() > 0) {
                         nodeBuffers[x * mainBuffer->GetNodeCount() + n].reset(new PixelBufferClass());
-                        nodeBuffers[x * mainBuffer->GetNodeCount() + n]->InitNodeBuffer(*mainBuffer, x, n);
+                        nodeBuffers[x * mainBuffer->GetNodeCount() + n]->InitNodeBuffer(*mainBuffer, x, n, data.FrameTime());
                     }
                 }
             }

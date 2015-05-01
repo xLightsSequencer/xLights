@@ -108,6 +108,20 @@ void xLightsFrame::InitSequencer()
     sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 
+ModelClass &xLightsFrame::GetModelClass(const wxString& name) {
+    ModelClass *cls = AllModels[name].get();
+    if (cls == nullptr) {
+        wxXmlNode *model = GetModelNode(name);
+        if (model == NULL) {
+            model = CreateModelNodeFromGroup(name);
+        }
+        cls = new ModelClass();
+        cls->SetFromXml(model);
+        AllModels[name].reset(cls);
+    }
+    return *cls;
+}
+
 bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
     wxXmlNode *model = GetModelNode(modelName);
     if (model == NULL) {

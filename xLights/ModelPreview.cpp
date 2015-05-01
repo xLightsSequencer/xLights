@@ -95,7 +95,7 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
-ModelPreview::ModelPreview(wxPanel* parent, std::vector<ModelClassPtr> &models, bool a, int styles)
+ModelPreview::ModelPreview(wxPanel* parent, std::vector<ModelClass*> &models, bool a, int styles)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, ""), PreviewModels(&models), allowSelected(a)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);

@@ -50,6 +50,7 @@ public:
     void OnDrop(int x, int y);
     void ForceRefresh();
     void SetEffectIconBackground(bool mode) {mGridIconBackgrounds = mode;}
+    void SetEffectNodeValues(bool mode) {mGridNodeValues = mode;}
 
     void Paste(const wxString &data);
     
@@ -100,6 +101,7 @@ private:
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mGridIconBackgrounds;
+    bool mGridNodeValues = true;
 
     //~ Need to see why I cannot access xLightsFrame::GB_EFFECTS_e from xLightsMain.h
     // for effect count

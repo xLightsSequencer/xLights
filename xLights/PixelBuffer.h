@@ -82,8 +82,8 @@ public:
     PixelBufferClass();
     virtual ~PixelBufferClass();
     void InitBuffer(wxXmlNode* ModelNode, int layers, int timing, bool zeroBased=false);
-    void InitStrandBuffer(PixelBufferClass &pbc, int strand);
-    void InitNodeBuffer(PixelBufferClass &pbc, int strand, int node);
+    void InitStrandBuffer(const ModelClass &pbc, int strand, int timing);
+    void InitNodeBuffer(const ModelClass &pbc, int strand, int node, int timing);
     
     void Clear(int which);
     // not used: size_t GetColorCount(int layer);

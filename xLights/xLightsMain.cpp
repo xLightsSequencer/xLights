@@ -377,6 +377,9 @@ const long xLightsFrame::ID_MENUITEM6 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_BACKGROUND_ON = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_BACKGROUND_OFF = wxNewId();
 const long xLightsFrame::ID_MENUITEM_Grid_Icon_Backgrounds = wxNewId();
+const long xLightsFrame::ID_MENUITEM_GRID_NODE_VALUES_ON = wxNewId();
+const long xLightsFrame::ID_MENUITEM_GRID_NODE_VALUES_OFF = wxNewId();
+const long xLightsFrame::ID_MENUITEM8 = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_ERASE_MODE = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_CANVAS_MODE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_RENDER_MODE = wxNewId();
@@ -1668,6 +1671,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItemGridIconBackgroundOff = new wxMenuItem(MenuItem_Grid_Icon_Backgrounds, ID_MENUITEM_GRID_ICON_BACKGROUND_OFF, _("Off"), wxEmptyString, wxITEM_CHECK);
     MenuItem_Grid_Icon_Backgrounds->Append(MenuItemGridIconBackgroundOff);
     MenuSettings->Append(ID_MENUITEM_Grid_Icon_Backgrounds, _("Grid Icon Backgrounds"), MenuItem_Grid_Icon_Backgrounds, wxEmptyString);
+    MenuItem1 = new wxMenu();
+    MenuItemGridNodeValuesOn = new wxMenuItem(MenuItem1, ID_MENUITEM_GRID_NODE_VALUES_ON, _("On"), wxEmptyString, wxITEM_CHECK);
+    MenuItem1->Append(MenuItemGridNodeValuesOn);
+    MenuItemGridNodeValuesOn->Check(true);
+    MenuItemGridNodeValuesOff = new wxMenuItem(MenuItem1, ID_MENUITEM_GRID_NODE_VALUES_OFF, _("Off"), wxEmptyString, wxITEM_CHECK);
+    MenuItem1->Append(MenuItemGridNodeValuesOff);
+    MenuSettings->Append(ID_MENUITEM8, _("Grid Node Values"), MenuItem1, wxEmptyString);
     MenuItemRenderMode = new wxMenu();
     MenuItemRenderEraseMode = new wxMenuItem(MenuItemRenderMode, ID_MENU_CANVAS_ERASE_MODE, _("Erase Mode"), wxEmptyString, wxITEM_CHECK);
     MenuItemRenderMode->Append(MenuItemRenderEraseMode);
@@ -1850,6 +1860,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_GRID_ICON_XLARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_BACKGROUND_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridIconBackground);
     Connect(ID_MENUITEM_GRID_ICON_BACKGROUND_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridIconBackground);
+    Connect(ID_MENUITEM_GRID_NODE_VALUES_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
+    Connect(ID_MENUITEM_GRID_NODE_VALUES_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
     Connect(ID_MENU_CANVAS_ERASE_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderEraseModeSelected);
     Connect(ID_MENU_CANVAS_CANVAS_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderCanvasModeSelected);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
@@ -1995,16 +2007,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         wxCommandEvent event(wxEVT_NULL, id);
         SetIconSize(event);
     }
-    config->Read("xLightsGridIconBackgrounds", &mGridIconBackgrounds, 1);
+    config->Read("xLightsGridIconBackgrounds", &mGridIconBackgrounds, true);
     {
-        int id = ID_MENUITEM_GRID_ICON_BACKGROUND_ON;
-        if (mGridIconBackgrounds == 0) {
-            id = ID_MENUITEM_GRID_ICON_BACKGROUND_OFF;
-        }
+        int id = mGridIconBackgrounds ? ID_MENUITEM_GRID_ICON_BACKGROUND_ON : ID_MENUITEM_GRID_ICON_BACKGROUND_OFF;
         wxCommandEvent event(wxEVT_NULL, id);
         OnSetGridIconBackground(event);
     }
-
+    config->Read("xLightsGridNodeValues", &mGridNodeValues, true);
+    {
+        int id = mGridNodeValues ? ID_MENUITEM_GRID_NODE_VALUES_ON : ID_MENUITEM_GRID_NODE_VALUES_OFF;
+        wxCommandEvent event(wxEVT_NULL, id);
+        OnSetGridNodeValues(event);
+    }
     // initialize all effect wxChoice lists
 
     BarEffectDirections.Add("up");          // 0
@@ -2269,6 +2283,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsIconSize", mIconSize);
     config->Write("xLightsGridSpacing", mGridSpacing);
     config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
+    config->Write("xLightsGridNodeValues", mGridNodeValues);
 
     config->Flush();
 
@@ -2722,7 +2737,8 @@ void xLightsFrame::OnButtonGracefulStopClick(wxCommandEvent& event)
 wxString xLightsFrame::CurrentDir = "";
 wxString xLightsFrame::PlaybackMarker = "";
 wxString xLightsFrame::xlightsFilename = "";
-std::vector<ModelClassPtr> xLightsFrame::PreviewModels, xLightsFrame::OtherModels;
+std::vector<ModelClass*> xLightsFrame::PreviewModels;
+std::map<wxString, ModelClassPtr> xLightsFrame::AllModels;
 xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = NULL;
 
 void xLightsFrame::OnButtonSaveScheduleClick(wxCommandEvent& event)
@@ -3250,12 +3266,25 @@ void xLightsFrame::SetFrequency(int frequency)
 void xLightsFrame::OnSetGridIconBackground(wxCommandEvent& event)
 {
     if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_ON) {
-        mGridIconBackgrounds = 1;
+        mGridIconBackgrounds = true;
     } else if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_OFF) {
-        mGridIconBackgrounds = 0;
+        mGridIconBackgrounds = false;
     }
-    MenuItemGridIconBackgroundOn->Check(mGridIconBackgrounds==1);
-    MenuItemGridIconBackgroundOff->Check(mGridIconBackgrounds==0);
-    mainSequencer->PanelEffectGrid->SetEffectIconBackground(mGridIconBackgrounds==1);
+    MenuItemGridIconBackgroundOn->Check(mGridIconBackgrounds);
+    MenuItemGridIconBackgroundOff->Check(!mGridIconBackgrounds);
+    mainSequencer->PanelEffectGrid->SetEffectIconBackground(mGridIconBackgrounds);
+    mainSequencer->PanelEffectGrid->Refresh();
+}
+
+void xLightsFrame::OnSetGridNodeValues(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_MENUITEM_GRID_NODE_VALUES_ON) {
+        mGridNodeValues = true;
+    } else if (event.GetId() == ID_MENUITEM_GRID_NODE_VALUES_OFF) {
+        mGridNodeValues = false;
+    }
+    MenuItemGridNodeValuesOn->Check(mGridNodeValues);
+    MenuItemGridNodeValuesOff->Check(!mGridNodeValues);
+    mainSequencer->PanelEffectGrid->SetEffectNodeValues(mGridNodeValues);
     mainSequencer->PanelEffectGrid->Refresh();
 }

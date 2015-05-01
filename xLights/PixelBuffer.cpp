@@ -117,11 +117,11 @@ void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, 
     SetModelBrightness(wxAtoi(ModelNode->GetAttribute("ModelBrightness","0")));
     reset(layers, timing);
 }
-void PixelBufferClass::InitStrandBuffer(PixelBufferClass &pbc, int strand) {
+void PixelBufferClass::InitStrandBuffer(const ModelClass &pbc, int strand, int timing) {
     parm1 = pbc.GetStrandLength(strand);
     parm2 = 1;
     parm3 = 1;
-    StringType = pbc.StringType;
+    StringType = pbc.GetStringType();
     rgbOrder = pbc.rgbOrder;
     SingleNode = pbc.SingleNode;
     SingleChannel = pbc.SingleChannel;
@@ -133,13 +133,13 @@ void PixelBufferClass::InitStrandBuffer(PixelBufferClass &pbc, int strand) {
     }
     InitLine();
     SetModelBrightness(pbc.ModelBrightness);
-    reset(2, pbc.frameTimeInMs);
+    reset(2, timing);
 }
-void PixelBufferClass::InitNodeBuffer(PixelBufferClass &pbc, int strand, int node) {
+void PixelBufferClass::InitNodeBuffer(const ModelClass &pbc, int strand, int node, int timing) {
     parm1 = 1;
     parm2 = 1;
     parm3 = 1;
-    StringType = pbc.StringType;
+    StringType = pbc.GetStringType();
     rgbOrder = pbc.rgbOrder;
     SingleNode = pbc.SingleNode;
     SingleChannel = pbc.SingleChannel;
@@ -149,7 +149,7 @@ void PixelBufferClass::InitNodeBuffer(PixelBufferClass &pbc, int strand, int nod
     InitLine();
 
     SetModelBrightness(pbc.ModelBrightness);
-    reset(2, pbc.frameTimeInMs);
+    reset(2, timing);
 }
 
 void PixelBufferClass::Clear(int which) {

@@ -957,7 +957,7 @@ int ModelClass::NodesPerString() {
     return SingleNode ? 1 : parm2;
 }
 
-int ModelClass::NodeStartChannel(size_t nodenum) {
+int ModelClass::NodeStartChannel(size_t nodenum) const {
     return Nodes.size()? Nodes[nodenum]->ActChan: 0; //avoid memory access error if no nods -DJ
 }
 
@@ -1059,11 +1059,11 @@ int ModelClass::GetNodeNumber(size_t nodenum) {
     return (Nodes[nodenum]->ActChan - stringStartChan[sn]) / 3 + sn*NodesPerString() + 1;
 }
 
-size_t ModelClass::GetNodeCount() {
+size_t ModelClass::GetNodeCount() const {
     return Nodes.size();
 }
 
-int ModelClass::GetChanCount() {
+int ModelClass::GetChanCount() const {
     size_t NodeCnt=GetNodeCount();
     if (NodeCnt == 0) {
         return 0;
@@ -1083,7 +1083,7 @@ int ModelClass::GetChanCount() {
     }
     return max - min;
 }
-int ModelClass::GetChanCountPerNode() {
+int ModelClass::GetChanCountPerNode() const {
     size_t NodeCnt=GetNodeCount();
     if (NodeCnt == 0) {
         return 0;
@@ -1094,76 +1094,6 @@ size_t ModelClass::GetCoordCount(size_t nodenum) {
     return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
 }
 
-#if 0 //obsolete
-int ModelClass::FindChannelAt(int x, int y) {
-    size_t NodeCount=GetNodeCount();
-    for(size_t n=0; n<NodeCount; n++) {
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++) {
-//??            if ((Nodes[n]->Coords[c].screenX == x) && (Nodes[n]->Coords[c].screenY == y)) return Nodes[n].ActChan;
-            if ((Nodes[n]->Coords[c].bufX == x) && (Nodes[n]->Coords[c].bufY == y)) return Nodes[n]->ActChan;
-        }
-    }
-    return -1; //not found
-}
-#endif // 0
-
-
-//return (x,y) matrix of channel#s for pgo RenderFaces:
-#if 0 //obsolete
-wxSize ModelClass::GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink) {
-    size_t h = 0;
-    if (shrink) chxy.clear();
-    size_t NodeCount = GetNodeCount();
-    for (size_t n = 0; n < NodeCount; n++) {
-        size_t CoordCount = GetCoordCount(n);
-        for (size_t c = 0; c < CoordCount; c++) {
-//??            if ((Nodes[n]->Coords[c].screenX == x) && (Nodes[n]->Coords[c].screenY == y)) return Nodes[n].ActChan;
-            if (Nodes[n]->Coords[c].bufX >= chxy.size()) chxy.resize(Nodes[n]->Coords[c].bufX + 1); //enlarge to fit; TODO: pad with -1s?
-            std::vector<int>& row = chxy[Nodes[n]->Coords[c].bufX];
-            if (Nodes[n]->Coords[c].bufY >= row.size()) row.resize(Nodes[n]->Coords[c].bufY + 1); //enlarge to fit; TODO: pad with -1s?
-            if (Nodes[n]->Coords[c].bufY >= h) h = Nodes[n]->Coords[c].bufY + 1;
-//            row[Nodes[n]->Coords[c].bufY] = Nodes[n]->ActChan;
-            //GetNodeNumber(i)
-        }
-    }
-    for (auto it = chxy.begin(); it != chxy.end(); ++it) //force rectangular matrix
-        (*it).resize(h); //TODO: pad with -1s?
-    return wxSize(chxy.size(), h); //tell caller how big the model is
-}
-#else
-ModelClass* ModelClass::FindModel(const wxString& name) {
-//TODO: use static member array rather than xLightsFrame?
-//first check active models, then non-preview models:
-    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::OtherModels.end(); ++it) {
-        if (it == xLightsFrame::PreviewModels.end()) { //also list non-preview models
-            it = xLightsFrame::OtherModels.begin() - 1;
-            continue;
-        }
-        if ((*it)->name.IsEmpty()) continue;
-        if ((*it)->name == name) return &**it;
-    }
-    return 0; //not found
-}
-
-#if 1 //obsolete
-size_t ModelClass::EnumModels(wxArrayString* choices, const wxString& InactivePrefix) {
-//TODO: use static member array rather than xLightsFrame?
-    wxString prefix;
-    size_t svcount = choices->GetCount(); //don't clear it; caller might have extra values in list
-//first check active models, then non-preview models:
-    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::OtherModels.end(); ++it) {
-        if (it == xLightsFrame::PreviewModels.end()) { //also list non-preview models
-            it = xLightsFrame::OtherModels.begin() - 1;
-            prefix = InactivePrefix; //mark non-active models
-            continue;
-        }
-        if ((*it)->name.IsEmpty()) continue;
-        choices->Add(prefix + (*it)->name); //show indicator for non-active models
-    }
-    return choices->GetCount() - svcount; //#entries added
-}
-#endif // 0
 
 bool ModelClass::IsCustom(void) {
     return (DisplayAs == "Custom");
@@ -1200,22 +1130,9 @@ size_t ModelClass::GetChannelCoords(wxArrayString& choices) { //wxChoice* choice
         wxString newstr;
 //        debug(10, "model::node[%d/%d]: #coords %d, ach# %d, str %d", n, NodeCount, Nodes[n]->Coords.size(), Nodes[n]->StringNum, Nodes[n]->ActChan);
         if (Nodes[n]->Coords.empty()) continue;
-#if 0
-        if (GetCoordCount(n) > 1) //show count and first + last coordinates
-            if (IsCustom())
-                newstr = wxString::Format(wxT("%d: %d# @%s%d-%s%d"), GetNodeNumber(n), GetCoordCount(n), AA(Nodes[n]->Coords.front().bufX + 1), BufferHt - Nodes[n]->Coords.front().bufY, AA(Nodes[n]->Coords.back().bufX + 1), BufferHt - Nodes[n]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
-            else
-                newstr = wxString::Format(wxT("%d: %d# @(%d,%d)-(%d,%d"), GetNodeNumber(n), GetCoordCount(n), Nodes[n]->Coords.front().bufX + 1, BufferHt - Nodes[n]->Coords.front().bufY, Nodes[n]->Coords.back().bufX + 1, BufferHt - Nodes[n]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
-        else //just show singleton
-            if (IsCustom())
-                newstr = wxString::Format(wxT("%d: @%s%d"), GetNodeNumber(n), AA(Nodes[n]->Coords.front().bufX + 1), BufferHt - Nodes[n]->Coords.front().bufY);
-            else
-                newstr = wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(n), Nodes[n]->Coords.front().bufX + 1, BufferHt - Nodes[n]->Coords.front().bufY);
-#else
 //        newstr = wxString::Format(wxT("%d"), GetNodeNumber(n));
 //        choices.Add(newstr);
         choices.Add(GetNodeXY(n));
-#endif // 0
 //        if (choices1) choices1->Append(newstr);
 //        if (choices2) choices2->Append(newstr);
 //        if (choices3)
@@ -1223,12 +1140,6 @@ size_t ModelClass::GetChannelCoords(wxArrayString& choices) { //wxChoice* choice
 //            wxArrayString strary;
 //            choices3->InsertItems(strary, choices3->GetCount() + 0);
 //        }
-#if 0
-        Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + y*3;
-        Nodes[idx]->Coords[0].bufX=IsLtoR ? x : NumStrands-x-1;
-        Nodes[idx]->Coords[0].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
-        Nodes[idx]->StringNum=stringnum;
-#endif // 0
     }
     return choices.GetCount(); //choices1? choices1->GetCount(): 0) + (choices2? choices2->GetCount(): 0);
 }
@@ -1267,9 +1178,7 @@ bool ModelClass::ParseFaceElement(const wxString& multi_str, std::vector<wxPoint
         wxString str = wtkz.GetNextToken();
         if (str.empty()) continue;
         if (str.Find('@') == wxNOT_FOUND) continue; //return false;
-#if 0 //hard-coded test results
-        first_xy.push_back(1, 2); //TODO
-#else
+
         wxString xystr = str.AfterFirst('@');
         if (xystr.empty()) continue; //return false;
         long xval = 0, yval = 0;
@@ -1297,10 +1206,10 @@ bool ModelClass::ParseFaceElement(const wxString& multi_str, std::vector<wxPoint
         wxPoint newxy(xval, yval);
         first_xy.push_back(newxy);
     }
-#endif // 0
-        return !first_xy.empty(); //true;
-    }
-#endif // 0
+
+    return !first_xy.empty(); //true;
+}
+
 
 wxString ModelClass::ChannelLayoutHtml() {
     size_t NodeCount=GetNodeCount();
@@ -1937,7 +1846,7 @@ float ModelClass::GetVcenterOffset() {
     return offsetYpct;
 }
 
-int ModelClass::GetStrandLength(int strand) {
+int ModelClass::GetStrandLength(int strand) const {
     if ("Custom" == DisplayAs) {
         return Nodes.size();
     } else if ("Star" == DisplayAs) {
@@ -1946,7 +1855,7 @@ int ModelClass::GetStrandLength(int strand) {
     return GetNodeCount() / GetNumStrands();
 }
 
-int ModelClass::MapToNodeIndex(int strand, int node) {
+int ModelClass::MapToNodeIndex(int strand, int node) const {
     if ("Custom" == DisplayAs) {
         return node;
     } else if ("Star" == DisplayAs) {

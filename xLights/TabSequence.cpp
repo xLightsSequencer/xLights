@@ -216,17 +216,16 @@ wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
 }
 wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const wxString &name) {
     wxXmlNode* e;
-    std::vector<ModelClassPtr> models;
+    std::vector<ModelClass*> models;
     for(e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
         if (e->GetName() == "modelGroup") {
             if (name == e->GetAttribute("name")) {
                 wxString modelString = e->GetAttribute("models");
                 wxArrayString modelNames = wxSplit(modelString, ',');
                 for (int x = 0; x < modelNames.size(); x++) {
-                    ModelClass *c = new ModelClass();
-                    wxXmlNode *xml = GetModelNode(modelNames[x]);
-                    c->SetFromXml(xml, false);
-                    models.push_back(ModelClassPtr(c));
+                    ModelClass &c = GetModelClass(modelNames[x]);
+                   
+                    models.push_back(&c);
                 }
             }
         }
@@ -293,7 +292,7 @@ void xLightsFrame::UpdateModelsList()
     ModelClass *model;
     ListBoxElementList->Clear();
     PreviewModels.clear();
-    OtherModels.clear();
+    AllModels.clear();
     for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == "model")
@@ -310,12 +309,9 @@ void xLightsFrame::UpdateModelsList()
                 if (ModelClass::IsMyDisplay(e))
                 {
                     ListBoxElementList->Append(name,model);
-                    PreviewModels.push_back(ModelClassPtr(model));
+                    PreviewModels.push_back(model);
                 }
-                else //keep a list of non-preview models as well -DJ
-                {
-                    OtherModels.push_back(ModelClassPtr(model));
-                }
+                AllModels[name].reset(model);
             }
         }
     }

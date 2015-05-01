@@ -2188,7 +2188,8 @@ bool xLightsFrame::LoadPgoSettings(void)
 //    debug(10, "set selection hint on model row");
 
 //    wxMessageBox(wxString::Format(_("load settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.end() - xLightsFrame::PreviewModels.begin(), xLightsFrame::OtherModels.end() - xLightsFrame::OtherModels.begin(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()), wxT("Debug info"));
-    StatusBar1->SetStatusText(wxString::Format(_("Loaded pgo settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.size(), xLightsFrame::OtherModels.size(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()));
+    StatusBar1->SetStatusText(wxString::Format(_("Loaded pgo settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.size(), xLightsFrame::AllModels.size() - xLightsFrame::PreviewModels.size(),
+        Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()));
     debug(10, "loaded pgo settings: %u active models, %u inactive models, grp choice %d of %u", xLightsFrame::PreviewModels.size(), xLightsFrame::OtherModels.size(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount());
     return true;
 }
@@ -2452,17 +2453,12 @@ void myGridCellChoiceEditor::GetChoices(wxArrayString& choices, int row, int col
         return;
     }
     if ((row != Model_Row) && !WantCustom) return; //auto-face other parts
-    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
+    for (auto iter = xLightsFrame::AllModels.begin(); iter != xLightsFrame::AllModels.end(); ++iter)
     {
-        if (it == xLightsFrame::PreviewModels.end()) //also list non-preview models
-        {
-            it = xLightsFrame::OtherModels.begin() - 1;
-            if (WantCustom) prefix = InactiveIndicator; //mark non-active models
-            continue;
-        }
-        if ((*it)->name.IsEmpty()) continue;
-        if (WantCustom && !(*it)->IsCustom()) continue; //coro faces only wants custom models for now
-        if (row == Model_Row) choices.Add(prefix + (*it)->name); //get list of models
+        ModelClass *it = iter->second.get();
+        if (it->name.IsEmpty()) continue;
+        if (WantCustom && !it->IsCustom()) continue; //coro faces only wants custom models for now
+        if (row == Model_Row) choices.Add(prefix + it->name); //get list of models
 //        else if (!WantCustom && !WantFiles && (row == Outline_Row)) //auto-face: only option is face shape currently
 //        {
 //            choices.Add("Off");
@@ -2470,14 +2466,14 @@ void myGridCellChoiceEditor::GetChoices(wxArrayString& choices, int row, int col
 //            choices.Add("Round");
 //            break;
 //        }
-        else if (WantCustom && (prefix + (*it)->name == want_model)) //enumerate node#s for this model
+        else if (WantCustom && (prefix + it->name == want_model)) //enumerate node#s for this model
         {
 //get list of face parts (nodes) for this model:
 //    choices.Add(wxT("1: first"));
 //    choices.Add(wxT("2: 2nd"));
 //    choices.Add(wxT("3: TODO!"));
             debug(10, "parse model '%s'", (const char*)(*it)->name.c_str());
-            if (!(*it)->GetChannelCoords(choices)) choices.Add(NoneHint);
+            if (!it->GetChannelCoords(choices)) choices.Add(NoneHint);
 //    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
             else //put them in sorted order
             {
@@ -2702,7 +2698,7 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
 //            }
             AddNonDupAttr(voice, Name, voice_model); //NOTE: should not be blank
 //            if (voice_model.empty()) continue;
-            ModelClass* model_info = (outmode == 'c')? ModelClass::FindModel(voice_model): 0; //only need parsed model info for Coro faces
+            ModelClass* model_info = (outmode == 'c')? xLightsFrame::AllModels[voice_model].get(): 0; //only need parsed model info for Coro faces
             AddNonDupAttr(voice, wxT("Outline"), addxy(model_info, "outline", GridCoroFaces->GetCellValue(Outline_Row, c)));
             if (outmode != 'a')
             {
@@ -2900,18 +2896,13 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
             wxString prefix, msg = "not found";
             /*if (voice_name.empty())*/ GridCoroFaces->SetCellValue(Model_Row, destcol, SelectionHint); //in case not found
 //            if ((outmode == 'c') && !has_name) msg = "not found";
-            for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
+            for (auto iter = xLightsFrame::AllModels.begin(); iter != xLightsFrame::AllModels.end(); ++iter)
             {
-                if (it == xLightsFrame::PreviewModels.end()) //also check non-preview models
-                {
-                    it = xLightsFrame::OtherModels.begin() - 1;
-                    if (outmode == 'c') prefix = InactiveIndicator; //mark non-active models
-                    continue;
-                }
-                if ((*it)->name.IsEmpty()) continue;
-                if ((outmode == 'c') && !(*it)->IsCustom()) continue; //coro faces only wants custom models for now
+                ModelClass *it = iter->second.get();
+                if (it->name.IsEmpty()) continue;
+                if ((outmode == 'c') && !it->IsCustom()) continue; //coro faces only wants custom models for now
 //            choices.Add((*it)->name);
-                if ((*it)->name == model_name)
+                if (it->name == model_name)
                 {
                     GridCoroFaces->SetCellValue(Model_Row, destcol, prefix + model_name);
                     if (prefix.empty()) msg.Clear(); //success
