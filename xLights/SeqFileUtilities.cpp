@@ -5,6 +5,8 @@
 
 #include "LMSImportChannelMapDialog.h"
 
+#include <wx/wfstream.h>
+
 void xLightsFrame::NewSequence()
 {
     // close any open sequences
@@ -406,6 +408,92 @@ static EffectLayer* FindOpenLayer(Element* model, int layer_index, double start_
     return layer;
 }
 
+#define MAXBUFSIZE 4096
+class FixXMLInputStream : public wxInputStream {
+public:
+    FixXMLInputStream(wxInputStream & in) : wxInputStream(), bin(in) {
+    }
+    void fillBuf() {
+        int pos = bufLen;
+        int sz =  MAXBUFSIZE - bufLen;
+        bin.Read(&buf[pos], sz);
+        size_t ret = bin.LastRead();
+        bufLen += ret;
+        
+        bool needToClose = false;
+        for (int x = 7; x < bufLen; x++) {
+            if (buf[x-7] == '<'
+                && buf[x-6] == 'p'
+                && buf[x-5] == 'i'
+                && buf[x-4] == 'x'
+                && buf[x-3] == 'e'
+                && buf[x-2] == 'l'
+                && buf[x-1] == 's'
+                && buf[x] == '=') {
+                buf[x-2] = ' ';
+            } else if (buf[x-7] == '<'
+                       && buf[x-6] == 't'
+                       && buf[x-5] == 'i'
+                       && buf[x-4] == 'm'
+                       && buf[x-3] == 'i'
+                       && buf[x-2] == 'n'
+                       && buf[x-1] == 'g'
+                       && buf[x] == ' ') {
+                needToClose = true;
+            } else if (x > 12 &&
+                       buf[x-12] == '<'
+                       && buf[x-11] == 'i'
+                       && buf[x-10] == 'm'
+                       && buf[x-9] == 'a'
+                       && buf[x-8] == 'g'
+                       && buf[x-7] == 'e'
+                       && buf[x-6] == 'A'
+                       && buf[x-5] == 'c'
+                       && buf[x-4] == 't'
+                       && buf[x-3] == 'i'
+                       && buf[x-2] == 'o'
+                       && buf[x-1] == 'n'
+                       && buf[x] == ' ') {
+                needToClose = true;
+            } else if (buf[x-1] == '>' && needToClose) {
+                if (buf[x-2] != '/') {
+                    buf[x - 1] = '/';
+                    buf[x] = '>';
+                }
+                needToClose = false;
+            }
+        }
+    }
+    
+    virtual size_t OnSysRead(void *buffer, size_t bufsize) {
+        unsigned char *b = (unsigned char *)buffer;
+        if (bufsize > 1024) {
+            bufsize = 1024;
+        }
+        size_t ret = 0;
+        if (bufLen < 2000) {
+            fillBuf();
+        }
+        
+        if (bufLen) {
+            ret = std::min(bufsize, bufLen);
+            memcpy(b, buf, ret);
+            for (int x = ret; x < bufLen; x++) {
+                buf[x-ret] = buf[x];
+            }
+            bufLen -= ret;
+            buf[bufLen] = 0;
+            return ret;
+        }
+        return 0;
+    }
+    
+private:
+    wxBufferedInputStream bin;
+    unsigned char buf[MAXBUFSIZE];
+    size_t bufLen = 0;
+};
+
 void xLightsFrame::ImportSuperStar()
 {
     wxString model_name = ChoiceSuperStarImportModel->GetStringSelection();
@@ -426,7 +514,10 @@ void xLightsFrame::ImportSuperStar()
         wxFileName xml_file(filename);
         wxXmlDocument input_xml;
         wxString xml_doc = xml_file.GetFullPath();
-        if( !input_xml.Load(xml_doc) )  return;
+        wxFileInputStream fin(xml_doc);
+        FixXMLInputStream bufIn(fin);
+        
+        if( !input_xml.Load(bufIn) )  return;
 
         Element* model = nullptr;
 
