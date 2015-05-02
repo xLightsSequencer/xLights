@@ -163,6 +163,7 @@ private:
     int pixelStyle = 0;
     int pixelSize = 2;
     int transparency = 0;
+    int blackTransparency = 0;
     wxString strandNames;
     wxString nodeNames;
 };

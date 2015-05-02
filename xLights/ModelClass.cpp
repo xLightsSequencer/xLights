@@ -200,6 +200,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
     tempstr=ModelNode->GetAttribute("Transparency","0");
     tempstr.ToLong(&n);
     transparency = n;
+    blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency","0"));
 
     MyDisplay=IsMyDisplay(ModelNode);
 
@@ -1499,10 +1500,14 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
             Nodes[n]->GetColor(color);
         }
         if (pixelStyle < 2 && (!started || lastColor != color)) {
-            if (started) {
-                DrawGLUtils::EndPoints();
-            }
-            DrawGLUtils::StartPoints(color, transparency);
+             if (started) {
+                 DrawGLUtils::EndPoints();
+             }
+             if (color == xlBLACK) {
+                 DrawGLUtils::StartPoints(color, blackTransparency);
+             } else {
+                 DrawGLUtils::StartPoints(color, transparency);
+             }
             started = true;
             lastColor = color;
         }
@@ -1516,8 +1521,12 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
             if (pixelStyle < 2) {
                 DrawGLUtils::AddPoint(sx,sy);
             } else {
+                int trans = transparency;
+                if (color == xlBLACK) {
+                    trans = blackTransparency;
+                }
                 DrawGLUtils::DrawCircle(color, sx, sy, pixelSize / 2,
-                                        transparency, pixelStyle == 2 ? transparency : 100);
+                                        trans, pixelStyle == 2 ? transparency : 100);
             }
         }
     }
@@ -1624,7 +1633,11 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
                 if (started) {
                     DrawGLUtils::EndPoints();
                 }
-                DrawGLUtils::StartPoints(color, transparency);
+                if (color == xlBLACK) {
+                    DrawGLUtils::StartPoints(color, blackTransparency);
+                } else {
+                    DrawGLUtils::StartPoints(color, transparency);
+                }
                 started = true;
                 lastColor = color;
             }
@@ -1638,8 +1651,12 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
                 if (pixelStyle < 2) {
                     DrawGLUtils::AddPoint((sx*scale)+(w/2), newsy);
                 } else {
+                    int trans = transparency;
+                    if (color == xlBLACK) {
+                        trans = blackTransparency;
+                    }
                     DrawGLUtils::DrawCircle(color, (sx*scale)+(w/2), newsy, pixelSize,
-                                            transparency, pixelStyle == 2 ? transparency : 100);
+                                            trans, pixelStyle == 2 ? transparency : 100);
                 }
             }
         }

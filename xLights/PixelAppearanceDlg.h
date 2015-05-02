@@ -22,6 +22,8 @@ class PixelAppearanceDlg: public wxDialog
 		wxStaticText* StaticText1;
 		wxSlider* TransparencySlider;
 		wxSpinCtrl* PixelSizeSpinner;
+		wxStaticText* StaticText4;
+		wxSlider* BlackTransparency;
 		//*)
 
 	protected:
@@ -31,6 +33,8 @@ class PixelAppearanceDlg: public wxDialog
 		static const long ID_SPINCTRL1;
 		static const long ID_CHOICE1;
 		static const long ID_SLIDER1;
+		static const long ID_STATICTEXT2;
+		static const long ID_SLIDER2;
 		//*)
 
 	private:

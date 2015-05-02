@@ -355,6 +355,7 @@ private:
     int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
     int pixelSize = 2;
     int transparency = 0;
+    int blackTransparency = 0;
 
     int TreeDegrees,FrameWidth;
     bool modelv2;

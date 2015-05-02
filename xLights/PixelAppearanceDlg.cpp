@@ -11,6 +11,8 @@ const long PixelAppearanceDlg::ID_STATICTEXT1 = wxNewId();
 const long PixelAppearanceDlg::ID_SPINCTRL1 = wxNewId();
 const long PixelAppearanceDlg::ID_CHOICE1 = wxNewId();
 const long PixelAppearanceDlg::ID_SLIDER1 = wxNewId();
+const long PixelAppearanceDlg::ID_STATICTEXT2 = wxNewId();
+const long PixelAppearanceDlg::ID_SLIDER2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PixelAppearanceDlg,wxDialog)
@@ -52,6 +54,10 @@ PixelAppearanceDlg::PixelAppearanceDlg(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer5->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TransparencySlider = new wxSlider(this, ID_SLIDER1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
 	FlexGridSizer5->Add(TransparencySlider, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT2, _("Black Transparency:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer5->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BlackTransparency = new wxSlider(this, ID_SLIDER2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER2"));
+	FlexGridSizer5->Add(BlackTransparency, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

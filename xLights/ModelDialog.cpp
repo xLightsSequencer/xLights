@@ -736,6 +736,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute("Dir");
     e->DeleteAttribute("Antialias");
     e->DeleteAttribute("PixelSize");
+    e->DeleteAttribute("BlackTransparency");
     e->DeleteAttribute("Transparency");
     e->DeleteAttribute("starSizes");
     e->DeleteAttribute("exportFirstStrand");
@@ -767,6 +768,9 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->AddAttribute("Antialias", wxString::Format("%d", pixelStyle));
     e->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));
     e->AddAttribute("Transparency", wxString::Format("%d", transparency));
+    if (blackTransparency > 0) {
+        e->AddAttribute("BlackTransparency", wxString::Format("%d", blackTransparency));
+    }
 
     e->AddAttribute("ModelBrightness", wxString::Format("%d",Slider_Model_Brightness->GetValue()));
     if (Choice_DisplayAs->GetStringSelection() == "Custom")
@@ -810,6 +814,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     tempStr=e->GetAttribute("Transparency","0");
     tempStr.ToLong(&n);
     transparency = n;
+    blackTransparency = wxAtoi(e->GetAttribute("BlackTransparency", "0"));
 
     nodeNames = e->GetAttribute("NodeNames");
     strandNames = e->GetAttribute("StrandNames");
@@ -1101,10 +1106,12 @@ void ModelDialog::OnAppearanceButtonClicked(wxCommandEvent& event)
     dlg.PixelStyleBox->SetSelection(pixelStyle);
     dlg.TransparencySlider->SetValue(transparency);
     dlg.PixelSizeSpinner->SetValue(pixelSize);
+    dlg.BlackTransparency->SetValue(blackTransparency);
     if (dlg.ShowModal() == wxID_OK) {
         pixelStyle = dlg.PixelStyleBox->GetSelection();
         transparency = dlg.TransparencySlider->GetValue();
         pixelSize = dlg.PixelSizeSpinner->GetValue();
+        blackTransparency = dlg.BlackTransparency->GetValue();
     }
 
 }
