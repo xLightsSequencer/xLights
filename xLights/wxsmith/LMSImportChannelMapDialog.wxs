@@ -1,29 +1,34 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
-	<object class="wxDialog" name="NewTimingDialog">
+	<object class="wxDialog" name="LMSImportChannelMapDialog">
 		<title>Map Channels</title>
+		<maxsize>-1,500d</maxsize>
 		<id_arg>0</id_arg>
-		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+		<object class="wxFlexGridSizer" variable="Sizer" member="yes">
 			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>1</growablerows>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Select New Fixed Timing Interval:</label>
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="MapByStrand" member="yes">
+					<label>Map by Strand/CCR</label>
+					<handler function="OnMapByStrandClick" entry="EVT_CHECKBOX" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_New_Fixed_Timing" variable="Choice_New_Fixed_Timing" member="yes">
-					<content>
-						<item>25ms</item>
-						<item>50ms</item>
-						<item>100ms</item>
-						<item>Empty</item>
-					</content>
-					<selection>1</selection>
+				<object class="wxGrid" name="ID_GRID1" variable="ChannelMapGrid" member="yes">
+					<cols>2</cols>
+					<rows>10</rows>
+					<collabels>
+						<item>Model Node</item>
+						<item>LMS Channel</item>
+					</collabels>
+					<maxsize>-1,440d</maxsize>
+					<style>wxVSCROLL|wxHSCROLL</style>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

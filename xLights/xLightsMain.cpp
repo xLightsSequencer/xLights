@@ -1181,13 +1181,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer25->Add(FlexGridSizer23, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerConvert->Add(FlexGridSizer25, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer32 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, PanelConvert, _("SuperStar Importer:"));
+    StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, PanelConvert, _("Data Importer:"));
     GridBagSizer1 = new wxGridBagSizer(0, 0);
     ChoiceSuperStarImportModel = new wxChoice(PanelConvert, ID_CHOICE_SuperStarImportModel, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_SuperStarImportModel"));
     GridBagSizer1->Add(ChoiceSuperStarImportModel, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_ImportSuperstar = new wxButton(PanelConvert, ID_BUTTON_IMPORT_SUPERSTAR, _("Select SuperStar File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT_SUPERSTAR"));
+    Button_ImportSuperstar = new wxButton(PanelConvert, ID_BUTTON_IMPORT_SUPERSTAR, _("Select SuperStar or LMS File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT_SUPERSTAR"));
     GridBagSizer1->Add(Button_ImportSuperstar, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText39 = new wxStaticText(PanelConvert, ID_STATICTEXT31, _("This is currently designed to work with SuperStar sequences\nfor CCR ribbon trees.  Some SuperStar files are not XML compliant\nand need manual editing first. \nThe only sections needed are \"layouts\" and \"morphs\"."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
+    StaticText39 = new wxStaticText(PanelConvert, ID_STATICTEXT31, _("SuperStar: This is currently designed to work with SuperStar sequences\nfor CCR ribbon trees.  Some SuperStar files are not XML compliant\nand need manual editing first. \nThe only sections needed are \"layouts\" and \"morphs\".\nLMS: Onlys imports individually selected and mapped channels to the target model"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
     GridBagSizer1->Add(StaticText39, wxGBPosition(2, 0), wxGBSpan(1, 4), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText40 = new wxStaticText(PanelConvert, ID_STATICTEXT39, _("Select Model:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT39"));
     GridBagSizer1->Add(StaticText40, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);

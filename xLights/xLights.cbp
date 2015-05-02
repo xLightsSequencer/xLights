@@ -403,6 +403,8 @@
 		<Unit filename="JobPool.h" />
 		<Unit filename="KeyBindings.cpp" />
 		<Unit filename="KeyBindings.h" />
+		<Unit filename="LMSImportChannelMapDialog.cpp" />
+		<Unit filename="LMSImportChannelMapDialog.h" />
 		<Unit filename="LorConvertDialog.cpp" />
 		<Unit filename="LorConvertDialog.h" />
 		<Unit filename="ModelClass.cpp" />
@@ -578,6 +580,7 @@
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
+		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/ModelViewSelector.wxs" />
@@ -658,6 +661,7 @@
 					<wxPanel wxs="wxsmith/DisplayElementsPanel.wxs" src="DisplayElementsPanel.cpp" hdr="DisplayElementsPanel.h" fwddecl="0" i18n="1" name="DisplayElementsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelViewSelector.wxs" src="ModelViewSelector.cpp" hdr="ModelViewSelector.h" fwddecl="0" i18n="1" name="ModelViewSelector" language="CPP" />
 					<wxDialog wxs="wxsmith/PixelAppearanceDlg.wxs" src="PixelAppearanceDlg.cpp" hdr="PixelAppearanceDlg.h" fwddecl="0" i18n="1" name="PixelAppearanceDlg" language="CPP" />
+					<wxDialog wxs="wxsmith/LMSImportChannelMapDialog.wxs" src="LMSImportChannelMapDialog.cpp" hdr="LMSImportChannelMapDialog.h" fwddecl="0" i18n="1" name="LMSImportChannelMapDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

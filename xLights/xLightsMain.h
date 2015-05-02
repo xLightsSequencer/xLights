@@ -358,6 +358,8 @@ public:
     void ImportSuperStar();
 
 private:
+    bool ImportSuperStar(Element *el, wxXmlDocument &doc);
+    bool ImportLMS(Element *el, wxXmlDocument &doc);
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);

@@ -1907,7 +1907,7 @@
 										<cols>3</cols>
 										<object class="sizeritem">
 											<object class="wxStaticBoxSizer" variable="StaticBoxSizer3" member="no">
-												<label>SuperStar Importer:</label>
+												<label>Data Importer:</label>
 												<object class="sizeritem">
 													<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
 														<object class="sizeritem">
@@ -1922,7 +1922,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxButton" name="ID_BUTTON_IMPORT_SUPERSTAR" variable="Button_ImportSuperstar" member="yes">
-																<label>Select SuperStar File</label>
+																<label>Select SuperStar or LMS File</label>
 																<handler function="OnButton_ImportSuperstarClick" entry="EVT_BUTTON" />
 															</object>
 															<col>1</col>
@@ -1933,7 +1933,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText39" member="yes">
-																<label>This is currently designed to work with SuperStar sequences&#x0A;for CCR ribbon trees.  Some SuperStar files are not XML compliant&#x0A;and need manual editing first. &#x0A;The only sections needed are &quot;layouts&quot; and &quot;morphs&quot;.</label>
+																<label>SuperStar: This is currently designed to work with SuperStar sequences&#x0A;for CCR ribbon trees.  Some SuperStar files are not XML compliant&#x0A;and need manual editing first. &#x0A;The only sections needed are &quot;layouts&quot; and &quot;morphs&quot;.&#x0A;LMS: Onlys imports individually selected and mapped channels to the target model</label>
 															</object>
 															<colspan>4</colspan>
 															<col>0</col>

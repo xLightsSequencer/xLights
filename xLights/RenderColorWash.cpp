@@ -51,7 +51,7 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
     else
     {
         double position = GetEffectTimeIntervalPosition();
-        GetMultiColorBlend(position, true, color);
+        GetMultiColorBlend(position, false, color);
     }
     if (HorizFade || VertFade) {
         Color2HSV(color,hsv);

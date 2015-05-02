@@ -42,6 +42,7 @@
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
 		677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */; };
 		6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780AB891A65C3480090B26E /* SequenceData.cpp */; };
+		6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */; };
 		6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9201A5653670018EC0C /* EffectsGrid.cpp */; };
 		6784F92A1A5653670018EC0C /* Element.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9211A5653670018EC0C /* Element.cpp */; };
 		6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9231A5653670018EC0C /* MainSequencer.cpp */; };
@@ -204,6 +205,8 @@
 		677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPinwheel.cpp; sourceTree = "<group>"; };
 		6780AB881A65C3100090B26E /* SequenceData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceData.h; sourceTree = "<group>"; };
 		6780AB891A65C3480090B26E /* SequenceData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceData.cpp; sourceTree = "<group>"; };
+		6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LMSImportChannelMapDialog.cpp; sourceTree = "<group>"; };
+		6781B1D81AF407A300A75E59 /* LMSImportChannelMapDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LMSImportChannelMapDialog.h; sourceTree = "<group>"; };
 		6784F9201A5653670018EC0C /* EffectsGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectsGrid.cpp; path = sequencer/EffectsGrid.cpp; sourceTree = "<group>"; };
 		6784F9211A5653670018EC0C /* Element.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Element.cpp; path = sequencer/Element.cpp; sourceTree = "<group>"; };
 		6784F9231A5653670018EC0C /* MainSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MainSequencer.cpp; path = sequencer/MainSequencer.cpp; sourceTree = "<group>"; };
@@ -478,9 +481,9 @@
 				67F4C6141A097A35003E978F /* Image.cpp */,
 				677421D51A68ACDA0082DA5B /* JobPool.cpp */,
 				67623E6F1AD07E320022667B /* KeyBindings.cpp */,
+				6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */,
 				676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */,
 				6784F9231A5653670018EC0C /* MainSequencer.cpp */,
-				6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */,
 				67A619CC17B51C0F008E95BB /* ModelClass.cpp */,
 				67A619CE17B51C0F008E95BB /* ModelDialog.cpp */,
 				67A619D017B51C0F008E95BB /* ModelListDialog.cpp */,
@@ -510,6 +513,7 @@
 				67A619FD17B51C0F008E95BB /* serial.cpp */,
 				67A619FF17B51C0F008E95BB /* SerialPortWithRate.cpp */,
 				67A61A0117B51C0F008E95BB /* ShowDatesDialog.cpp */,
+				6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */,
 				67C7969017B5791700CEE775 /* TabConvert.cpp */,
 				6760BF121953BAD700704AEA /* TabPapagayo.cpp */,
 				673E425717F0D23E00F4BC76 /* TabPreview.cpp */,
@@ -539,7 +543,6 @@
 			isa = PBXGroup;
 			children = (
 				67A619BD17B51C0F008E95BB /* AddShowDialog.h */,
-				6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */,
 				671B331D1AD6071600C9F215 /* BitmapCache.h */,
 				67A619BF17B51C0F008E95BB /* ChannelLayoutDialog.h */,
 				67A619C117B51C0F008E95BB /* ChannelMapDialog.h */,
@@ -563,6 +566,7 @@
 				676DCBFA1A98E53800FBA86B /* Images_png.h */,
 				677421D61A68ACDA0082DA5B /* JobPool.h */,
 				67623E701AD07E320022667B /* KeyBindings.h */,
+				6781B1D81AF407A300A75E59 /* LMSImportChannelMapDialog.h */,
 				676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */,
 				6708AB4B1A37F88F008313E3 /* minibasic.cpp */,
 				67A619CD17B51C0F008E95BB /* ModelClass.h */,
@@ -593,6 +597,7 @@
 				67A619FE17B51C0F008E95BB /* serial.h */,
 				67A61A0017B51C0F008E95BB /* SerialPortWithRate.h */,
 				67A61A0217B51C0F008E95BB /* ShowDatesDialog.h */,
+				6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */,
 				673E425817F0D23E00F4BC76 /* TabSchedule.cpp */,
 				673E425A17F0D23E00F4BC76 /* TabTest.cpp */,
 				672F95141A7A6619005FF8BF /* TimingPanel.h */,
@@ -733,6 +738,7 @@
 				67A61A3917B51C0F008E95BB /* RenderColorWash.cpp in Sources */,
 				67A61A3A17B51C0F008E95BB /* RenderFire.cpp in Sources */,
 				67A61A3B17B51C0F008E95BB /* RenderFireworks.cpp in Sources */,
+				6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */,
 				67B7971B1A5AE343008D5921 /* TimingPanel.cpp in Sources */,
 				67043A4C1A07D17F00C09B71 /* dlgPreviewSize.cpp in Sources */,
 				67A61A3C17B51C0F008E95BB /* RenderGarlands.cpp in Sources */,
