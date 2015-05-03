@@ -237,7 +237,8 @@ void RgbEffects::ProcessPixel(int x_pos, int y_pos, xlColour color, bool wrap_x,
 //#define WANT_DEBUG 100
 //#include "djdebug.cpp"
 
-void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed, bool is20fps, int xc_adj, int yc_adj, bool wrap_x)
+void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed, bool is20fps,
+                                int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x)
 {
     const int speedfactor=4;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
@@ -411,8 +412,12 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 //    if (state < 4) wrdebug(1, "pic: state %d, style %d, img (%d, %d), wnd (%d, %d)", state, dir, imgwidth, imght, BufferWi, BufferHt);
 //    if (state < 4) wxMessageBox(xLightsApp::WantDebug? "DEBUG ON": "debug off");
 
-    int xoffset_adj = (xc_adj/100.0)*BufferWi; // xc_adj is from -100 to 100
-    int yoffset_adj = (yc_adj/100.0)*BufferHt; // yc_adj is from -100 to 100
+    int xoffset_adj = xc_adj;
+    int yoffset_adj = yc_adj;
+    if (!pixelOffsets) {
+        xoffset_adj = (xc_adj*BufferWi)/100.0; // xc_adj is from -100 to 100
+        yoffset_adj = (yc_adj*BufferHt)/100.0; // yc_adj is from -100 to 100
+    }
 
 // copy image to buffer
     xlColour c;

@@ -1072,6 +1072,7 @@ protected:
     static const long ID_STATICTEXT_Pictures_YC;
     static const long ID_TEXTCTRL_PicturesYC;
     static const long ID_SLIDER_PicturesYC;
+    static const long ID_CHECKBOX_Pictures_PixelOffsets;
     static const long ID_PANEL20;
     static const long ID_STATICTEXT65;
     static const long ID_SLIDER_Pinwheel_Arms;

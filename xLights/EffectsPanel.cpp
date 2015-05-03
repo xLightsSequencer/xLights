@@ -446,6 +446,7 @@ const long EffectsPanel::ID_TEXTCTRL_PicturesXC = wxNewId();
 const long EffectsPanel::ID_STATICTEXT_Pictures_YC = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_PicturesYC = wxNewId();
 const long EffectsPanel::ID_SLIDER_PicturesYC = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Pictures_PixelOffsets = wxNewId();
 const long EffectsPanel::ID_PANEL20 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT65 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Pinwheel_Arms = wxNewId();
@@ -819,6 +820,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer100;
     wxFlexGridSizer* FlexGridSizer88;
     wxPanel* Panel6;
+    wxCheckBox* CheckBox1;
     wxFlexGridSizer* FlexGridSizer55;
     wxFlexGridSizer* FlexGridSizer86;
     wxFlexGridSizer* FlexGridSizer97;
@@ -2114,6 +2116,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Slider_PicturesYC = new wxSlider(Panel1_Pictures, ID_SLIDER_PicturesYC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_PicturesYC"));
     GridBagSizer2->Add(Slider_PicturesYC, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizer1->Add(GridBagSizer2, wxGBPosition(0, 1), wxGBSpan(2, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox1 = new wxCheckBox(Panel1_Pictures, ID_CHECKBOX_Pictures_PixelOffsets, _("Offsets In Pixels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_PixelOffsets"));
+    CheckBox1->SetValue(false);
+    GridBagSizer1->Add(CheckBox1, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
     FlexGridSizer42->Add(GridBagSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Pictures->SetSizer(FlexGridSizer42);
     FlexGridSizer42->Fit(Panel1_Pictures);

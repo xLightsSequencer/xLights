@@ -878,6 +878,24 @@ bool xLightsFrame::ImportLMS(Element *model, wxXmlDocument &input_xml)
     
     return true;
 }
+
+class ImageInfo {
+public:
+    int xoffset;
+    int yoffset;
+    int width;
+    int height;
+    wxString imageName;
+    
+    void Set(int x, int y, int w, int h, const wxString &n) {
+        xoffset = x;
+        yoffset = y;
+        width = w;
+        height = h;
+        imageName = n;
+    }
+};
+
 bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
 {
     double num_rows = 1.0;
@@ -886,7 +904,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
     bool layout_defined = false;
     wxXmlNode* input_root=input_xml.GetRoot();
     int morph_index = Effect::GetEffectIndex("Morph");
+    int picture_index = Effect::GetEffectIndex("Pictures");
     EffectLayer* layer = model->AddEffectLayer();
+    std::map<int, ImageInfo> imageInfo;
+    wxString imagePfx;
     for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == "layouts")
@@ -1009,6 +1030,120 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                 }
                 layer = FindOpenLayer(model, layer_index, start_time, end_time);
                 layer->AddEffect(0, morph_index, "Morph", settings, palette, start_time, end_time, false, false);
+            }
+        } else if ("images" == e->GetName()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+                if ("image" == element->GetName()) {
+                    for(wxXmlNode* i=element->GetChildren(); i!=NULL; i=i->GetNext()) {
+                        if ("pixe" == i->GetName()){
+                            wxString data = i->GetAttribute("s");
+                            int w = wxAtoi(element->GetAttribute("width"));
+                            int h = wxAtoi(element->GetAttribute("height"));
+                            
+                            
+                            int idx = wxAtoi(element->GetAttribute("savedIndex"));
+                            int xOffset =  wxAtoi(element->GetAttribute("xOffset"));
+                            int yOffset =  wxAtoi(element->GetAttribute("yOffset"));
+                            unsigned char *bytes = (unsigned char *)malloc(w*h*3);
+                            int cnt = 0;
+                            wxStringTokenizer tokenizer(data, ",");
+                            while (tokenizer.HasMoreTokens()) {
+                                unsigned int i = wxAtoi(tokenizer.GetNextToken());
+                                unsigned int v = (i >> 16) & 0xff;
+                                v *= 255;
+                                v /= 100;
+                                bytes[cnt] = v;
+                                v = (i >> 8) & 0xff;
+                                v *= 255;
+                                v /= 100;
+                                bytes[cnt + 1] = v;
+                                v = i & 0xff;
+                                v *= 255;
+                                v /= 100;
+                                bytes[cnt + 2] = v;
+                                
+                                cnt += 3;
+                            }
+                            
+                            wxImage image(w, h, bytes);
+                            if ("" == imagePfx) {
+                                imagePfx = wxGetTextFromUser("Choose prefix for images extracted from Superstar File");
+                            }
+                            wxString fname = imagePfx + "_" + wxString::Format("%d.bmp", idx);
+                            imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
+                        }
+                    }
+                }
+            }
+        } else if ("imageActions" == e->GetName()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+                if ("imageAction" == element->GetName()) {
+                    //<imageAction name="Image Action 14" colorType="nativeColor" maskType="normal" rotation="0" direction="8"
+                    //  stopAtEdge="0" layer="3" xStart="-1" yStart="0" xEnd="0" yEnd="0" startCentisecond="115" endCentisecond="145"
+                    //  preRampTime="0" rampTime="0" fadeToBright="0" fadeFromBright="0" imageIndex="5" savedIndex="0">
+                    
+                    int idx = wxAtoi(element->GetAttribute("imageIndex"));
+                    double startms = wxAtoi(element->GetAttribute("startCentisecond")) * 10;
+                    double endms = wxAtoi(element->GetAttribute("endCentisecond")) * 10;
+                    int layer_index = wxAtoi(element->GetAttribute("layer"));
+                    
+                    int y = num_rows - imageInfo[idx].yoffset - (imageInfo[idx].height + num_rows) / 2;
+                    int x = imageInfo[idx].xoffset + (imageInfo[idx].width + num_columns) / 2 - num_columns;
+                    
+                    int startx = wxAtoi(element->GetAttribute("xStart"));
+                    int starty = wxAtoi(element->GetAttribute("yStart"));
+                    int endx = wxAtoi(element->GetAttribute("xEnd"));
+                    int endy = wxAtoi(element->GetAttribute("yEnd"));
+                    
+                    while( model->GetEffectLayerCount() < layer_index ) {
+                        model->AddEffectLayer();
+                    }
+                    if (idx >= 110 && idx <= 115) {
+                        printf("%d    x: %d\n", idx, x);
+                    }
+                    layer = FindOpenLayer(model, layer_index, startms / 1000.0, endms / 1000.0);
+                    if (endy == starty && endx == startx) {
+                        x += startx;
+                        y -= starty;
+                        wxString settings = _("E_CHECKBOX_MovieIs20FPS=0,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,")
+                            + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x)
+                            + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y)
+                            + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
+                            + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
+                            + ",E_TEXTCTRL_Pictures_GifSpeed=20,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,"
+                            + "T_TEXTCTRL_Fadeout=0.00";
+                        
+                        layer->AddEffect(0, picture_index, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
+                    } else {
+                        int steps = std::max(std::abs(startx - endx), std::abs(starty - endy)) * 2;
+                        int curx = startx;
+                        int cury = starty;
+                        double starttime = startms / 1000.0;
+                        for (int step = 0; step <= steps; step++) {
+                            int newx = startx + (endx - startx) * step / steps;
+                            int newy = starty + (endy - starty) * step / steps;
+                            if (newy != cury || newx != curx || step == steps) {
+                                double time = (startms + (endms - startms) * step / steps) / 1000.0;
+
+                                wxString settings = _("E_CHECKBOX_MovieIs20FPS=0,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,")
+                                    + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x + curx)
+                                    + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - cury)
+                                    + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
+                                    + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
+                                    + ",E_TEXTCTRL_Pictures_GifSpeed=20,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                    + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,"
+                                    + "T_TEXTCTRL_Fadeout=0.00";
+                                
+                                layer->AddEffect(0, picture_index, "Pictures", settings, "", starttime, time, false, false);
+
+                                starttime = time;
+                                curx = newx;
+                                cury = newy;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
