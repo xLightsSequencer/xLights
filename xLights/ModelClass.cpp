@@ -1495,7 +1495,19 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
     bool started = false;
     xlColor lastColor;
 
-    for(size_t n=0; n<NodeCount; n++) {
+    int first = 0; int last = NodeCount;
+    bool left = true;
+    while (first < last) {
+        int n = 0;
+        if (left) {
+            left = false;
+            n = first;
+            first++;
+        } else {
+            left = true;
+            last--;
+            n = last;
+        }
         if (c == NULL) {
             Nodes[n]->GetColor(color);
         }
@@ -1627,7 +1639,19 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
         double sx,sy;
         xlColor lastColor;
         bool started = false;
-        for(size_t n=0; n<NodeCount; n++) {
+        int first = 0; int last = NodeCount;
+        bool left = true;
+        while (first < last) {
+            int n = 0;
+            if (left) {
+                left = false;
+                n = first;
+                first++;
+            } else {
+                left = true;
+                last--;
+                n = last;
+            }
             Nodes[n]->GetColor(color);
             if (pixelStyle < 2 && (!started || lastColor != color)) {
                 if (started) {
