@@ -1091,8 +1091,17 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             }
                             wxString fname = imagePfx + "_" + wxString::Format("%d.bmp", idx);
                             imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
+                            image.SaveFile(fname);
                         }
                     }
+                }
+            }
+        } else if ("flowys" == e->GetName()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+                if ("flowy" == element->GetName()) {
+                    wxString startms = element->GetAttribute("startTime");
+                    wxString type = element->GetAttribute("flowyType");
+                    AppendConvertStatus("Could not map flowy of type " + type + " at starting time " + startms + "0 ms\n", true);
                 }
             }
         } else if ("imageActions" == e->GetName()) {
