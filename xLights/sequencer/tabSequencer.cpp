@@ -975,7 +975,15 @@ void xLightsFrame::SetEffectControls(const MapStringString &settings) {
             if (name.StartsWith("ID_SLIDER"))
             {
                 wxSlider* ctrl=(wxSlider*)CtrlWin;
-                if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong);
+                if (value.ToLong(&TempLong)) {
+                    ctrl->SetValue(TempLong);
+                    name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
+                    CtrlWin=wxWindow::FindWindowByName(name,ContextWin);
+                    if (CtrlWin) {
+                        wxTextCtrl* ctrl=(wxTextCtrl*)CtrlWin;
+                        ctrl->ChangeValue(value);
+                    }
+                }
             }
             else if (name.StartsWith("ID_TEXTCTRL"))
             {

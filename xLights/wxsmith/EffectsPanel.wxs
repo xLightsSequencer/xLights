@@ -3085,7 +3085,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_Start_X1" variable="TextCtrl_Morph_Start_X1" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X1" variable="TextCtrl_Morph_Start_X1" member="yes">
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>35,-1</size>
@@ -3125,7 +3125,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_Start_Y1" variable="TextCtrl_Morph_Start_Y1" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y1" variable="TextCtrl_Morph_Start_Y1" member="yes">
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>35,-1</size>
@@ -3166,7 +3166,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_Start_X2" variable="TextCtrl_Morph_Start_X2" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X2" variable="TextCtrl_Morph_Start_X2" member="yes">
 															<value>100</value>
 															<maxlength>3</maxlength>
 															<size>35,-1</size>
@@ -3206,7 +3206,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_Start_Y2" variable="TextCtrl_Morph_Start_Y2" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y2" variable="TextCtrl_Morph_Start_Y2" member="yes">
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>35,-1</size>
@@ -3248,7 +3248,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_MorphStartLength" variable="TextCtrl_MorphStartLength" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphStartLength" variable="TextCtrl_MorphStartLength" member="yes">
 															<value>1</value>
 															<maxlength>3</maxlength>
 															<size>35,-1</size>
@@ -3311,7 +3311,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_End_X1" variable="TextCtrl_Morph_End_X1" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X1" variable="TextCtrl_Morph_End_X1" member="yes">
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>35,-1</size>
@@ -3352,7 +3352,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_End_Y1" variable="TextCtrl_Morph_End_Y1" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y1" variable="TextCtrl_Morph_End_Y1" member="yes">
 															<value>100</value>
 															<maxlength>3</maxlength>
 															<size>35,-1</size>
@@ -3393,7 +3393,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_End_X2" variable="TextCtrl_Morph_End_X2" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X2" variable="TextCtrl_Morph_End_X2" member="yes">
 															<value>100</value>
 															<maxlength>3</maxlength>
 															<size>35,-1</size>
@@ -3434,7 +3434,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Morph_End_Y2" variable="TextCtrl_Morph_End_Y2" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y2" variable="TextCtrl_Morph_End_Y2" member="yes">
 															<value>100</value>
 															<maxlength>3</maxlength>
 															<size>35,-1</size>
@@ -3476,7 +3476,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_MorphEndLength" variable="TextCtrl_MorphEndLength" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphEndLength" variable="TextCtrl_MorphEndLength" member="yes">
 															<value>1</value>
 															<maxlength>3</maxlength>
 															<size>35,-1</size>
@@ -3545,7 +3545,7 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxTextCtrl" name="ID_TEXTCTRL_MorphDuration" variable="TextCtrl_MorphDuration" member="yes">
+																<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphDuration" variable="TextCtrl_MorphDuration" member="yes">
 																	<value>20</value>
 																	<maxlength>3</maxlength>
 																	<size>35,-1</size>
@@ -3587,7 +3587,7 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxTextCtrl" name="ID_TEXTCTRL_MorphAccel" variable="TextCtrl_MorphAccel" member="yes">
+																<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphAccel" variable="TextCtrl_MorphAccel" member="yes">
 																	<value>0</value>
 																	<maxlength>3</maxlength>
 																	<size>35,-1</size>
@@ -4154,7 +4154,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_GifSpeed" variable="TextCtrl_Pictures_GifSpeed" member="yes">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pictures_GifSpeed" variable="TextCtrl_Pictures_GifSpeed" member="yes">
 												<value>20</value>
 												<maxlength>3</maxlength>
 												<size>35,-1</size>
@@ -4247,7 +4247,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxTextCtrl" name="ID_TEXTCTRL_PicturesXC" variable="TextCtrl_PicturesXC" member="yes">
+													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesXC" variable="TextCtrl_PicturesXC" member="yes">
 														<value>0</value>
 														<maxlength>3</maxlength>
 														<size>35,-1</size>
@@ -4278,7 +4278,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxTextCtrl" name="ID_TEXTCTRL_PicturesYC" variable="TextCtrl_PicturesYC" member="yes">
+													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesYC" variable="TextCtrl_PicturesYC" member="yes">
 														<value>0</value>
 														<maxlength>3</maxlength>
 														<size>35,-1</size>

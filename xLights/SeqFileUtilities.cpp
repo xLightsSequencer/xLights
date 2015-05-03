@@ -382,7 +382,7 @@ static wxString GetColorString(wxString& sRed, wxString& sGreen, wxString& sBlue
     return (wxString)color;
 }
 
-static EffectLayer* FindOpenLayer(Element* model, int layer_index, double start_time, double end_time)
+static EffectLayer* FindOpenLayer(Element* model, int layer_index, double start_time, double end_time, std::vector<bool> &reserved)
 {
     EffectLayer* layer;
     int index = layer_index-1;
@@ -396,15 +396,20 @@ static EffectLayer* FindOpenLayer(Element* model, int layer_index, double start_
     // need to search for open layer
     for( int i = 0; i < model->GetEffectLayerCount(); i++ )
     {
-        layer = model->GetEffectLayer(i);
-        if( layer->GetRangeIsClear(start_time, end_time) )
-        {
-            return layer;
+        if (i >= reserved.size() || !reserved[i]) {
+            layer = model->GetEffectLayer(i);
+            if( layer->GetRangeIsClear(start_time, end_time) )
+            {
+                return layer;
+            }
         }
     }
 
     // empty layer not found so create a new one
     layer = model->AddEffectLayer();
+    if (model->GetEffectLayerCount() > reserved.size()) {
+        reserved.resize(model->GetEffectLayerCount(), false);
+    }
     return layer;
 }
 
@@ -908,6 +913,21 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
     EffectLayer* layer = model->AddEffectLayer();
     std::map<int, ImageInfo> imageInfo;
     wxString imagePfx;
+    std::vector<bool> reserved;
+    for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext()) {
+        if ("imageActions" == e->GetName()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+                if ("imageAction" == element->GetName()) {
+                    int layer_index = wxAtoi(element->GetAttribute("layer"));
+                    if (layer_index > 0) layer_index--;
+                    if (layer_index >= reserved.size()) {
+                        reserved.resize(layer_index + 1, false);
+                    }
+                    reserved[layer_index] = true;
+                }
+            }
+        }
+    }
     for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == "layouts")
@@ -1028,7 +1048,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                 {
                     model->AddEffectLayer();
                 }
-                layer = FindOpenLayer(model, layer_index, start_time, end_time);
+                layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
                 layer->AddEffect(0, morph_index, "Morph", settings, palette, start_time, end_time, false, false);
             }
         } else if ("images" == e->GetName()) {
@@ -1099,9 +1119,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                         model->AddEffectLayer();
                     }
                     if (idx >= 110 && idx <= 115) {
-                        printf("%d    x: %d\n", idx, x);
+                        //printf("%d    x: %d\n", idx, x);
                     }
-                    layer = FindOpenLayer(model, layer_index, startms / 1000.0, endms / 1000.0);
+
+                    layer = FindOpenLayer(model, layer_index, startms / 1000.0, endms / 1000.0, reserved);
                     if (endy == starty && endx == startx) {
                         x += startx;
                         y -= starty;
@@ -1110,7 +1131,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y)
                             + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
                             + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
-                            + ",E_TEXTCTRL_Pictures_GifSpeed=20,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                            + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                             + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,"
                             + "T_TEXTCTRL_Fadeout=0.00";
                         
@@ -1126,12 +1147,13 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             if (newy != cury || newx != curx || step == steps) {
                                 double time = (startms + (endms - startms) * step / steps) / 1000.0;
 
+                                
                                 wxString settings = _("E_CHECKBOX_MovieIs20FPS=0,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,")
                                     + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x + curx)
                                     + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - cury)
                                     + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
                                     + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
-                                    + ",E_TEXTCTRL_Pictures_GifSpeed=20,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                    + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                                     + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,"
                                     + "T_TEXTCTRL_Fadeout=0.00";
                                 
