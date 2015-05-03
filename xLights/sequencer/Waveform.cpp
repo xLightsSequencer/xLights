@@ -447,55 +447,37 @@ void Waveform::DrawWaveView(const WaveView &wv)
     {
         
         glPointSize( translateToBacking(1.1) );
-        glLineWidth( 1.1 );
+        glLineWidth( 1 );
         glColor3ub(130,178,207);
+        glBegin(GL_TRIANGLE_STRIP);
+        std::vector<double> vertexes;
+        vertexes.resize(mWindowWidth * 2);
+
         for (int x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
         {
             index = x+mStartPixelOffset;
             if (index >= 0 && index < wv.MinMaxs.size())
             {
-                y1 = (int)((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                y2 = (int)((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-
-                if(y1 == y2)
-                {
-                    glBegin(GL_POINTS);
-                    glVertex2f(x,y1);
-                    glEnd();
-                }
-                else
-                {
-                    glBegin(GL_LINES);
-                    glVertex2f(x, y1);
-                    glVertex2f(x, y2);
-                    glEnd();
-                }
-
+                double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                double y2 = ((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                glVertex2f(x,y1);
+                glVertex2f(x,y2);
+                vertexes[x * 2] = y1;
+                vertexes[x * 2 + 1] = y2;
             }
         }
+        glEnd();
 
-        glBegin(GL_LINES);
+        glBegin(GL_LINE_STRIP);
         glColor3ub(255,255,255);
         for(int x=0;x<mWindowWidth-1 && (x)<wv.MinMaxs.size();x++)
         {
-            index = x + mStartPixelOffset ;
-            if (index >= 0 && index < wv.MinMaxs.size())
-            {
-                y1 = (int)((wv.MinMaxs[mStartPixelOffset+x].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                y2 = (int)((wv.MinMaxs[mStartPixelOffset+x].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                if(y1 != y2)
-                {
-                    if(x<wv.MinMaxs.size()-1)
-                    {
-                        y1_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                        y2_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                        glVertex2f(x, y1);
-                        glVertex2f(x+1, y1_2);
-
-                        glVertex2f(x, y2);
-                        glVertex2f(x+1, y2_2);
-                    }
-                }
+            glVertex2f(x, vertexes[x * 2]);
+        }
+        for(int x=mWindowWidth;x >= 0 ; x--)
+        {
+            if (x<wv.MinMaxs.size()) {
+                glVertex2f(x, vertexes[x * 2 + 1]);
             }
         }
         glEnd();
