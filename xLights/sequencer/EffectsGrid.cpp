@@ -1053,7 +1053,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
         mEffectColorCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?mSelectionColor:mEffectColor;
 
         bool drawIcon = true;
-        if(mGridIconBackgrounds)
+        if(mGridIconBackgrounds && (ri->nodeIndex == -1 || !mGridNodeValues))
         {
             drawIcon = DrawEffectBackground(e, x3, y1, x4, y2);
         }
