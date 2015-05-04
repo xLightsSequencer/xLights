@@ -855,9 +855,7 @@ void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
     int starti = wxAtoi(e->GetSettings().Get("E_TEXTCTRL_Eff_On_Start", "100"));
     int endi = wxAtoi(e->GetSettings().Get("E_TEXTCTRL_Eff_On_End", "100"));
     xlColor newcolor;
-    if (e->GetPalette().size() > 0) {
-        newcolor = e->GetPalette()[0];
-    }
+    newcolor = e->GetPalette()[0];
     if (starti == 100 && endi == 100) {
         start = end = newcolor;
     } else {
@@ -908,6 +906,13 @@ void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlC
 }
 
 bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
+    if (e->GetPalette().size() == 0) {
+        //if there are no colors selected, none of the "backgrounds" make sense.  Don't draw
+        //the background and instead make sure the icon is displayed to the user knows they
+        //need to make some decisions about the colors to be used.
+        return false;
+    }
+    
     switch (e->GetEffectIndex()) {
         case BitmapCache::RGB_EFFECTS_e::eff_ON: {
             xlColor start;
@@ -937,10 +942,6 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
         case BitmapCache::RGB_EFFECTS_e::eff_GALAXY: {
             int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_Galaxy_Duration", "20"));
             int num_colors = e->GetPalette().size();
-            if (num_colors == 0) {
-                //no colors, don't draw a background and let the icon be drawn
-                return true;
-            }
             xlColor head_color = e->GetPalette()[0];
             int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
             DrawGLUtils::DrawHBlendedRectangle(head_color, head_color, x1, y1+1, x_mid, y2-1);
@@ -962,10 +963,6 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
         case BitmapCache::RGB_EFFECTS_e::eff_FAN: {
             int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_Fan_Duration", "50"));
             int num_colors = e->GetPalette().size();
-            if (num_colors == 0) {
-                //no colors, don't draw a background and let the icon be drawn
-                return true;
-            }
             xlColor head_color = e->GetPalette()[0];
             int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
             int head_length;
