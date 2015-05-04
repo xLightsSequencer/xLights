@@ -31,7 +31,7 @@ void RgbEffects::RenderShockwave(int center_x, int center_y, int start_radius, i
                                  int start_width, int end_width, int acceleration, bool blend_edges )
 {
     double step = 0.5;
-    double temp_colors_pct[BufferWi][BufferHt];
+    std::vector< std::vector<double> > temp_colors_pct(BufferWi, std::vector<double>(BufferHt));
     double eff_pos = GetEffectTimeIntervalPosition();
     int num_colors = palette.Size();
     if( num_colors == 0 )

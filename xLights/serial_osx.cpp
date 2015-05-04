@@ -14,6 +14,7 @@
 #include "serial.h"
 
 // OS/X version
+#include <IOKit/serial/ioss.h>
 
 SerialPort::SerialPort()
 {
@@ -100,7 +101,8 @@ int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol
     m_devname = devname;
 
     // set baud rate
-    cfsetspeed(&t, AdaptBaudrate( baudrate ) );
+    speed_t configuredRate = AdaptBaudrate( baudrate );
+    cfsetspeed(&t, configuredRate );
 
     // parity settings
     switch( protocol[1] )
@@ -158,6 +160,14 @@ int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol
 
     // write the settings
     if (tcsetattr(fd,TCSANOW,&t) == -1) return -1;
+    
+    if (configuredRate != baudrate) {
+        configuredRate = baudrate;
+        if ( ioctl( fd, IOSSIOSPEED, &configuredRate ) == -1 )
+        {
+            printf( "Error %d calling ioctl( ..., IOSSIOSPEED, ... )\n", errno );
+        }
+    }
 
     return fd;
 };
