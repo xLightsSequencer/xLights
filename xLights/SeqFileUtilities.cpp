@@ -753,7 +753,7 @@ bool xLightsFrame::ImportLMS(Element *model, wxXmlDocument &input_xml)
             int idx = mc.MapToNodeIndex(s,n);
             wxString name = mc.GetNodeName(idx);
             if ("" == name) {
-                name = wxString::Format("Node %d", (nodeNames.size() + 2 - strandNames.size()));
+                name = wxString::Format("Node %d", (nodeNames.size() - strandNames.size()));
             }
             nodeNames.push_back(name);
         }
