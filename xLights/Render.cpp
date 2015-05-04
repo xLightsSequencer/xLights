@@ -771,6 +771,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                               SettingsMap["CHECKBOX_MovieIs20FPS"] == "1",
                               wxAtoi(SettingsMap["SLIDER_PicturesXC"]),
                               wxAtoi(SettingsMap["SLIDER_PicturesYC"]),
+                              wxAtoi(SettingsMap["SLIDER_PicturesEndXC"]),
+                              wxAtoi(SettingsMap["SLIDER_PicturesEndYC"]),
                               SettingsMap["CHECKBOX_Pictures_PixelOffsets"] == "1",
                               SettingsMap["CHECKBOX_Pictures_WrapX"] == "1"
                               );

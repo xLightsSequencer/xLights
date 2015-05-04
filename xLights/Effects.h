@@ -27,7 +27,9 @@ void RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2,
                  bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart );
 void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Clipping,
                  const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
-void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool is20fps, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x);
+void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool is20fps,
+                    int xc_adj, int yc_adj, int xce_adj, int yce_adj,
+                    bool pixelOffsets, bool wrap_x);
 void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,
                     bool pinwheel_rotation,int pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize);
 void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,

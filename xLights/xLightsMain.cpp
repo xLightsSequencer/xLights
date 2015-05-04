@@ -2130,7 +2130,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PictureEffectDirections.Add("flag wave"); //17; flag waving in wind -DJ
     PictureEffectDirections.Add("up once"); //18
     PictureEffectDirections.Add("down once"); //19
-
+    PictureEffectDirections.Add("vector"); //20
 
 //  remember to godown to around line 1800 to active ate these add's
 

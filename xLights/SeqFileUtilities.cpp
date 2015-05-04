@@ -1146,33 +1146,18 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                         
                         layer->AddEffect(0, picture_index, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
                     } else {
-                        int steps = std::max(std::abs(startx - endx), std::abs(starty - endy)) * 2;
-                        int curx = startx;
-                        int cury = starty;
-                        double starttime = startms / 1000.0;
-                        for (int step = 0; step <= steps; step++) {
-                            int newx = startx + (endx - startx) * step / steps;
-                            int newy = starty + (endy - starty) * step / steps;
-                            if (newy != cury || newx != curx || step == steps) {
-                                double time = (startms + (endms - startms) * step / steps) / 1000.0;
-
-                                
-                                wxString settings = _("E_CHECKBOX_MovieIs20FPS=0,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,")
-                                    + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x + curx)
-                                    + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - cury)
-                                    + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
-                                    + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
-                                    + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                    + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,"
-                                    + "T_TEXTCTRL_Fadeout=0.00";
-                                
-                                layer->AddEffect(0, picture_index, "Pictures", settings, "", starttime, time, false, false);
-
-                                starttime = time;
-                                curx = newx;
-                                cury = newy;
-                            }
-                        }
+                        wxString settings = _("E_CHECKBOX_MovieIs20FPS=0,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=vector,")
+                            + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x + startx)
+                            + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - starty)
+                            + ",E_SLIDER_PicturesEndXC=" + wxString::Format("%d", x + endx)
+                            + ",E_SLIDER_PicturesEndYC=" + wxString::Format("%d", y - endy)
+                            + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
+                            + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
+                            + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,"
+                            + "T_TEXTCTRL_Fadeout=0.00";
+                        
+                        layer->AddEffect(0, picture_index, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
                     }
                 }
             }

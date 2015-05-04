@@ -994,6 +994,11 @@ void xLightsFrame::SetEffectControls(const MapStringString &settings) {
             {
                 wxChoice* ctrl=(wxChoice*)CtrlWin;
                 ctrl->SetStringSelection(value);
+                
+                wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
+                event.SetEventObject(ctrl);
+                event.SetString(value);
+                ctrl->ProcessWindowEvent(event);
             }
             else if (name.StartsWith("ID_BUTTON"))
             {
@@ -1051,7 +1056,7 @@ wxString xLightsFrame::GetEffectTextFromWindows(wxString &palette)
     wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
     // This is needed because of the "Off" effect that does not return any text.
     wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window);
-    if (effectText.size() > 0) {
+    if (effectText.size() > 0 && !effectText.EndsWith(",")) {
         effectText += ",";
     }
     effectText += timingPanel->GetTimingString();

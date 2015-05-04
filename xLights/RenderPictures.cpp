@@ -51,6 +51,7 @@
 #define RENDER_PICTURE_FLAGWAVE  17
 #define RENDER_PICTURE_UPONCE  18
 #define RENDER_PICTURE_DOWNONCE  19
+#define RENDER_PICTURE_VECTOR  20
 
 
 #define wrdebug(msg)  if (debug.IsOpened()) debug.Write(msg + "\n")
@@ -152,75 +153,6 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
 
 //            image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
 
-#if 0
-void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
-{
-    wxTextFile f;
-
-    if (!PictureName.CmpNoCase(filename)) { wrdebug("no change: " + filename); return; }
-    if (!wxFileExists(filename)) { wrdebug("not found: " + filename); return; }
-    if (!f.Open(filename.c_str())) { wrdebug("can't open: " + filename); return; }
-
-//read pixel values 1-to-1 from file:
-//for ease of access, wrap them as an image
-//this should preobably be rewritten into a wx image handler, or maybe reuse one of the existing handlers
-    image.Clear();
-//        imageCount = 0;
-//        imageIndex = 0;
-    int maxcol = 0; //vix routine should be rectangular, but in case it isn't, pad out the shorter rows
-    std::vector<std::vector</*xlColor or WXCOLORREF*/ wxUint32>> pixels; //wxImage appears to have a static size, so we need to collect all the pixels first before creating the wxImage
-    for (wxString linebuf = f.GetFirstLine(); !f.Eof(); linebuf = f.GetNextLine())
-    {
-        std::string::size_type ofs;
-        if ((ofs = linebuf.find("#")) != std::string::npos) linebuf.erase(ofs); //remove comments
-        while (!linebuf.empty() && isspace(linebuf.Last())) linebuf.RemoveLast(); //trim trailing spaces
-        if (linebuf.empty()) continue; //skip blank lines
-
-        pixels.emplace_back(); //add new row
-        wrdebug("got line '" + linebuf + "'");
-        wxStringTokenizer tkz(linebuf, " ");
-#ifdef ASRGB //use channel triplets to make each pixel
-        for (int col = tkz.CountTokens(); col > 0; col -= 3)
-        {
-            if (col > maxcol) maxcol = col;
-//for now assume channels are in R, G, B order:
-//            xlColour c;
-//            c.Set(gray, gray, gray);
-            byte r = wxAtoi(tkz.GetNextToken());
-            byte g = wxAtoi(tkz.GetNextToken());
-            byte b = wxAtoi(tkz.GetNextToken());
-//            c.Set(r, g, b);
-            pixels.back().push_back(r); //c.GetRGB()); //image.Set(x, y, c);
-            pixels.back().push_back(g);
-            pixels.back().push_back(b);
-//            image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
-        }
-#endif // ASRGB
-#ifdef ASMONO //use one channel for each pixel; color can be added later
-        for (int col = tkz.CountTokens(); col > 0; --col)
-        {
-            if (col > maxcol) maxcol = col;
-            byte gray = wxAtoi(tkz.GetNextToken());
-//            xlColour c;
-//            c.Set(gray, gray, gray);
-            pixels.back().push_back(gray); //c.GetRGB()); //image.Set(x, y, c);
-            pixels.back().push_back(gray);
-            pixels.back().push_back(gray);
-        }
-#endif // ASMONO
-    }
-//now create an image to look like it was loaded like the other picture functions:
-    image.Create(maxcol + 1, pixels.size());
-    for (int y = 0; y < pixels.size(); ++y)
-        for (int x = 0; x < pixels[y].size(); x += 3)
-            image.SetRGB(x, y, pixels[y][x + 0], pixels[y][x + 1], pixels[y][x + 2]);
-
-    wrdebug(wxString::Format("read %d x %d pixels", maxcol, pixels.size()));
-    imageCount = 1; //TODO: allow multiple?
-    imageIndex = 0;
-    PictureName = filename;
-}
-#endif
 
 void RgbEffects::ProcessPixel(int x_pos, int y_pos, xlColour color, bool wrap_x, int width)
 {
@@ -237,8 +169,11 @@ void RgbEffects::ProcessPixel(int x_pos, int y_pos, xlColour color, bool wrap_x,
 //#define WANT_DEBUG 100
 //#include "djdebug.cpp"
 
-void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed, bool is20fps,
-                                int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x)
+void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
+                                int GifSpeed, bool is20fps,
+                                int xc_adj, int yc_adj,
+                                int xce_adj, int yce_adj,
+                                bool pixelOffsets, bool wrap_x)
 {
     const int speedfactor=4;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
@@ -414,11 +349,23 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
     int xoffset_adj = xc_adj;
     int yoffset_adj = yc_adj;
-    if (!pixelOffsets) {
-        xoffset_adj = (xc_adj*BufferWi)/100.0; // xc_adj is from -100 to 100
-        yoffset_adj = (yc_adj*BufferHt)/100.0; // yc_adj is from -100 to 100
+    if (dir == RENDER_PICTURE_VECTOR) {
+        //adjust the picture offset
+        dir = RENDER_PICTURE_NONE;
+        if (fitToTime) {
+            xoffset_adj = GetEffectTimeIntervalPosition() * (xce_adj - xc_adj) + xc_adj;
+            yoffset_adj = GetEffectTimeIntervalPosition() * (yce_adj - yc_adj) + yc_adj;
+        } else {
+            int steps = std::max(std::abs((float)(xce_adj - xc_adj)), std::abs((float)(yce_adj - yc_adj)));
+            
+            xoffset_adj = ((state / 10) % steps) * (xce_adj - xc_adj) / steps + xc_adj;
+            yoffset_adj = ((state / 10) % steps) * (yce_adj - yc_adj) / steps + yc_adj;
+        }
     }
-
+    if (!pixelOffsets) {
+        xoffset_adj = (xoffset_adj*BufferWi)/100.0; // xc_adj is from -100 to 100
+        yoffset_adj = (yoffset_adj*BufferHt)/100.0; // yc_adj is from -100 to 100
+    }
 // copy image to buffer
     xlColour c;
     int debug_count = 0;

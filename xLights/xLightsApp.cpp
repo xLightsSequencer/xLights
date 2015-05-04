@@ -118,7 +118,6 @@ void handleCrash(void *data) {
     report.SetCompressedFileDirectory(topFrame->CurrentDir);
     report.AddAll(wxDebugReport::Context_Exception);
     report.AddAll(wxDebugReport::Context_Current);
-    report.AddExceptionContext();
     report.AddFile(wxFileName(topFrame->CurrentDir, "xlights_networks.xml").GetFullPath(), "xlights_networks.xml");
     report.AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     if (topFrame->GetSeqXmlFileName() != "") {
