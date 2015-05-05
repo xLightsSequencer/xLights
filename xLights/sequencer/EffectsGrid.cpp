@@ -910,7 +910,7 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
         //if there are no colors selected, none of the "backgrounds" make sense.  Don't draw
         //the background and instead make sure the icon is displayed to the user knows they
         //need to make some decisions about the colors to be used.
-        return false;
+        return true;
     }
     
     switch (e->GetEffectIndex()) {

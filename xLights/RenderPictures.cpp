@@ -154,7 +154,7 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
 //            image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
 
 
-void RgbEffects::ProcessPixel(int x_pos, int y_pos, xlColour color, bool wrap_x, int width)
+void RgbEffects::ProcessPixel(int x_pos, int y_pos, const xlColour &color, bool wrap_x, int width)
 {
     int x_value = x_pos;
     if( wrap_x )  // if set wrap image at boundary
@@ -353,8 +353,8 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
         //adjust the picture offset
         dir = RENDER_PICTURE_NONE;
         if (fitToTime) {
-            xoffset_adj = GetEffectTimeIntervalPosition() * (xce_adj - xc_adj) + xc_adj;
-            yoffset_adj = GetEffectTimeIntervalPosition() * (yce_adj - yc_adj) + yc_adj;
+            xoffset_adj = std::round(GetEffectTimeIntervalPosition() * double(xce_adj - xc_adj)) + xc_adj;
+            yoffset_adj = std::round(GetEffectTimeIntervalPosition() * double(yce_adj - yc_adj)) + yc_adj;
         } else {
             int steps = std::max(std::abs((float)(xce_adj - xc_adj)), std::abs((float)(yce_adj - yc_adj)));
             
@@ -366,7 +366,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
         xoffset_adj = (xoffset_adj*BufferWi)/100.0; // xc_adj is from -100 to 100
         yoffset_adj = (yoffset_adj*BufferHt)/100.0; // yc_adj is from -100 to 100
     }
-// copy image to buffer
+    // copy image to buffer
     xlColour c;
     int debug_count = 0;
     for(int x=0; x<imgwidth; x++)

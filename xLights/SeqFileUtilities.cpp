@@ -1115,21 +1115,57 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                     double startms = wxAtoi(element->GetAttribute("startCentisecond")) * 10;
                     double endms = wxAtoi(element->GetAttribute("endCentisecond")) * 10;
                     int layer_index = wxAtoi(element->GetAttribute("layer"));
+                    int rampDownTime = wxAtoi(element->GetAttribute("rampTime")) * 10;
+                    int rampUpTime = wxAtoi(element->GetAttribute("preRampTime")) * 10;
+                    while( model->GetEffectLayerCount() <= layer_index ) {
+                        model->AddEffectLayer();
+                    }
+                    wxString rampUpTimeString = "0";
+                    if (rampUpTime) {
+                        double fadeIn = rampUpTime;
+                        fadeIn /= 1000;  //FadeIn is in seconds
+                        rampUpTimeString = wxString::Format("%lf", fadeIn);
+                    }
+                    wxString rampDownTimeString = "0";
+                    if (rampDownTime) {
+                        double fade = rampDownTime;
+                        fade /= 1000;  //FadeIn is in seconds
+                        rampDownTimeString = wxString::Format("%lf", fade);
+                    }
                     
-                    int y = num_rows - imageInfo[idx].yoffset - (imageInfo[idx].height + num_rows) / 2;
-                    int x = imageInfo[idx].xoffset + (imageInfo[idx].width + num_columns) / 2 - num_columns;
                     
                     int startx = wxAtoi(element->GetAttribute("xStart"));
                     int starty = wxAtoi(element->GetAttribute("yStart"));
                     int endx = wxAtoi(element->GetAttribute("xEnd"));
                     int endy = wxAtoi(element->GetAttribute("yEnd"));
                     
-                    while( model->GetEffectLayerCount() < layer_index ) {
-                        model->AddEffectLayer();
+                    
+                    int xOffIfCentered =(imageInfo[idx].width-num_columns)/2;
+                    int x = imageInfo[idx].xoffset + xOffIfCentered;
+                    
+
+                    
+                    int yll = num_rows -  imageInfo[idx].yoffset;
+                    int yOffIfCentered =(num_rows+imageInfo[idx].height)/2; //centered if sizes don't match
+                    int y = yll - yOffIfCentered + 1;
+                    
+                    
+                    //yoffset+yoffset_adj-y - 1
+                    /*
+                    int xoffset =(imageInfo[idx].width-12)/2; //centered if sizes don't match
+                    if (imageInfo[idx].xoffset != (0-xoffset + x)) {
+                        printf("%d:  %d  %d  %d\n", idx, imageInfo[idx].width, imageInfo[idx].xoffset, startx);
+                        printf("x    %d       %d\n", imageInfo[idx].xoffset + startx, x);
+                        printf("     %d  \n", 0-xoffset + (x + startx));
                     }
-                    if (idx >= 110 && idx <= 115) {
-                        //printf("%d    x: %d\n", idx, x);
+                    int yoffset =(50+imageInfo[idx].height)/2; //centered if sizes don't match
+                    if ((num_rows-(imageInfo[idx].yoffset + starty)) != (yoffset + (y - starty) - 1)) {
+                        printf("%d:  %d  %d  %d\n", idx, imageInfo[idx].height, imageInfo[idx].yoffset, starty);
+                        printf("y    %d       %d\n", int(num_rows) - (imageInfo[idx].yoffset + starty), y);
+                        printf("     %d  \n", (yoffset + (y - starty) - 1));
                     }
+                     */
+                    
 
                     layer = FindOpenLayer(model, layer_index, startms / 1000.0, endms / 1000.0, reserved);
                     if (endy == starty && endx == startx) {
@@ -1141,8 +1177,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
                             + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,"
-                            + "T_TEXTCTRL_Fadeout=0.00";
+                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + rampUpTimeString
+                            + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
                         
                         layer->AddEffect(0, picture_index, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
                     } else {
@@ -1154,8 +1190,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
                             + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,"
-                            + "T_TEXTCTRL_Fadeout=0.00";
+                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + rampUpTimeString
+                            + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
                         
                         layer->AddEffect(0, picture_index, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
                     }
