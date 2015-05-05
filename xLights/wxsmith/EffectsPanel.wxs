@@ -4059,16 +4059,14 @@
 								<growablecols>0</growablecols>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer19" member="no">
-										<cols>3</cols>
+										<cols>2</cols>
+										<growablecols>0</growablecols>
 										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON_PICTURES_FILENAME" variable="Button_Pictures_Filename" member="yes">
-												<label>File name</label>
-												<bg>#E0E0E0</bg>
-												<style>wxBU_EXACTFIT</style>
-												<handler function="OnButton_Pictures_FilenameClick" entry="EVT_BUTTON" />
+											<object class="wxFilePickerCtrl" name="ID_FILEPICKER_Pictures_Filename" subclass="xlPictureFilePickerCtrl" variable="FilePickerCtrl1" member="no">
+												<message></message>
+												<wildcard></wildcard>
 											</object>
-											<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
@@ -4084,16 +4082,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_Filename" variable="TextCtrl_Pictures_Filename" member="yes">
-										<style>wxTE_READONLY</style>
-									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -6384,110 +6373,74 @@
 								<growablecols>0</growablecols>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer65" member="no">
-										<cols>1</cols>
-										<growablecols>0</growablecols>
+										<cols>2</cols>
+										<growablecols>1</growablecols>
 										<object class="sizeritem">
-											<object class="wxFlexGridSizer" variable="FlexGridSizer100" member="no">
-												<cols>2</cols>
-												<growablecols>1</growablecols>
-												<object class="sizeritem">
-													<object class="wxStaticText" name="ID_STATICTEXT53" variable="StaticText53" member="yes">
-														<label>Line 1</label>
-													</object>
-													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>2</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line1" variable="TextCtrl_Text_Line1" member="yes">
-														<maxlength>256</maxlength>
-														<style>wxTE_PROCESS_ENTER</style>
-													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>2</border>
-													<option>1</option>
-												</object>
+											<object class="wxStaticText" name="ID_STATICTEXT53" variable="StaticText53" member="yes">
+												<label>Line 1</label>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxFlexGridSizer" variable="FlexGridSizer101" member="no">
-												<cols>2</cols>
-												<growablecols>1</growablecols>
-												<object class="sizeritem">
-													<object class="wxStaticText" name="ID_STATICTEXT54" variable="StaticText54" member="yes">
-														<label>Line 2</label>
-													</object>
-													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>2</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line2" variable="TextCtrl_Text_Line2" member="yes">
-														<maxlength>256</maxlength>
-														<style>wxTE_PROCESS_ENTER</style>
-													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>2</border>
-													<option>1</option>
-												</object>
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line1" variable="TextCtrl_Text_Line1" member="yes">
+												<maxlength>256</maxlength>
+												<style>wxTE_PROCESS_ENTER</style>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxFlexGridSizer" variable="FlexGridSizer102" member="no">
-												<cols>2</cols>
-												<growablecols>1</growablecols>
-												<object class="sizeritem">
-													<object class="wxStaticText" name="ID_STATICTEXT22" variable="StaticText19" member="yes">
-														<label>Line 3</label>
-													</object>
-													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>2</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line3" variable="TextCtrl_Text_Line3" member="yes">
-														<maxlength>256</maxlength>
-														<style>wxTE_PROCESS_ENTER</style>
-													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>2</border>
-													<option>1</option>
-												</object>
+											<object class="wxStaticText" name="ID_STATICTEXT54" variable="StaticText54" member="yes">
+												<label>Line 2</label>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxFlexGridSizer" variable="FlexGridSizer103" member="no">
-												<cols>2</cols>
-												<growablecols>1</growablecols>
-												<object class="sizeritem">
-													<object class="wxStaticText" name="ID_STATICTEXT23" variable="StaticText20" member="yes">
-														<label>Line 4</label>
-													</object>
-													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>2</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line4" variable="TextCtrl_Text_Line4" member="yes">
-														<maxlength>256</maxlength>
-														<style>wxTE_PROCESS_ENTER</style>
-													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>2</border>
-													<option>1</option>
-												</object>
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line2" variable="TextCtrl_Text_Line2" member="yes">
+												<maxlength>256</maxlength>
+												<style>wxTE_PROCESS_ENTER</style>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT22" variable="StaticText19" member="yes">
+												<label>Line 3</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line3" variable="TextCtrl_Text_Line3" member="yes">
+												<maxlength>256</maxlength>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT23" variable="StaticText20" member="yes">
+												<label>Line 4</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line4" variable="TextCtrl_Text_Line4" member="yes">
+												<maxlength>256</maxlength>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
 									</object>
@@ -6496,7 +6449,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxNotebook" name="ID_NOTEBOOK_Text1" variable="Notebook_Text1" member="yes">
+									<object class="wxNotebook" name="IDD_NOTEBOOK_Text" variable="Notebook_Text1" member="no">
 										<bg>wxSYS_COLOUR_SCROLLBAR</bg>
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL_Text1" variable="Panel_Text1" member="yes">
@@ -6504,25 +6457,21 @@
 													<cols>3</cols>
 													<growablecols>1</growablecols>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_TEXT_FONT1" variable="Button_Text_Font1" member="yes">
-															<label>Font1</label>
-															<style>wxBU_EXACTFIT</style>
-															<handler function="OnButton_Text_Font1Click" entry="EVT_BUTTON" />
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticText162" member="no">
+															<label>Font</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Text_Font1" variable="FontPickerCtrl1" member="no" />
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Font1" variable="TextCtrl_Text_Font1" member="yes">
-															<style>wxTE_READONLY</style>
-														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Text_Font1" variable="BitmapButton_TextFont1" member="yes">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_FONTPICKER_Text_Font1" variable="BitmapButton_TextFont1" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>13,13</size>
@@ -6686,25 +6635,21 @@
 													<cols>3</cols>
 													<growablecols>1</growablecols>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_TEXT_FONT2" variable="Button_Text_Font2" member="yes">
-															<label>Font2</label>
-															<style>wxBU_EXACTFIT</style>
-															<handler function="OnButton_Text_Font2Click" entry="EVT_BUTTON" />
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticText163" member="no">
+															<label>Font</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Text_Font2" variable="FontPickerCtrl2" member="no" />
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Font2" variable="TextCtrl_Text_Font2" member="yes">
-															<style>wxTE_READONLY</style>
-														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Text_Font2" variable="BitmapButton_TextFont2" member="yes">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_FONTPICKER_Text_Font2" variable="BitmapButton_TextFont2" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>13,13</size>
@@ -6868,26 +6813,21 @@
 													<cols>3</cols>
 													<growablecols>1</growablecols>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_TEXT_FONT3" variable="Button_Text_Font3" member="yes">
-															<label>Font3</label>
-															<style>wxBU_EXACTFIT</style>
-															<handler function="OnButton_Text_Font3Click" entry="EVT_BUTTON" />
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticText164" member="no">
+															<label>Font</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Text_Font3" variable="FontPickerCtrl3" member="no" />
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Font3" variable="TextCtrl_Text_Font3" member="yes">
-															<size>180,23</size>
-															<style>wxTE_READONLY</style>
-														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Text_Font3" variable="BitmapButton_TextFont3" member="yes">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_FONTPICKER_Text_Font3" variable="BitmapButton_TextFont3" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>13,13</size>
@@ -7050,25 +6990,21 @@
 													<cols>3</cols>
 													<growablecols>1</growablecols>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_TEXT_FONT4" variable="Button_Text_Font4" member="yes">
-															<label>Font4</label>
-															<style>wxBU_EXACTFIT</style>
-															<handler function="OnButton_Text_Font4Click" entry="EVT_BUTTON" />
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticText165" member="no">
+															<label>Font</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Text_Font4" variable="FontPickerCtrl4" member="no" />
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Font4" variable="TextCtrl_Text_Font4" member="yes">
-															<style>wxTE_READONLY</style>
-														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Text_Font4" variable="BitmapButton_TextFont4" member="yes">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_FONTPICKER_Text_Font4" variable="BitmapButton_TextFont4" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -7182,6 +7118,7 @@
 															<default>1</default>
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextCount4Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

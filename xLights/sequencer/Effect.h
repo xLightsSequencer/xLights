@@ -80,13 +80,13 @@ class Effect
         wxString GetSettingsAsString() const {
             return mSettings.AsString();
         }
-        const MapStringString &GetSettings() const {
+        const SettingsMap &GetSettings() const {
             return mSettings;
         }
         void SetSettings(const wxString &settings);
 
         const xlColorVector GetPalette() const { return mColors;}
-        const MapStringString &GetPaletteMap() const { return mPaletteMap;}
+        const SettingsMap &GetPaletteMap() const { return mPaletteMap;}
         wxString GetPaletteAsString() const { return mPaletteMap.AsString();}
         void SetPalette(const wxString& i);
 
@@ -105,8 +105,8 @@ class Effect
         bool mDirty;
         EffectLayer* mParentLayer;
     
-        MapStringString mSettings;
-        MapStringString mPaletteMap;
+        SettingsMap mSettings;
+        SettingsMap mPaletteMap;
         xlColorVector mColors;
 };
 

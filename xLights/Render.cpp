@@ -22,7 +22,7 @@ public:
 
     int layer;
     int period;
-    const MapStringString *settingsMap;
+    const SettingsMap *settingsMap;
     PixelBufferClass *buffer;
     bool *ResetEffectState;
     bool returnVal = true;
@@ -35,6 +35,7 @@ public:
         previousFrameDone = -1;
         next = NULL;
     }
+    virtual ~NextRenderer() {}
     void setNext(NextRenderer *n) {
         next = n;
     }
@@ -74,7 +75,7 @@ public:
         max = 0;
         maxFrameSoFar = 0;
     }
-    ~AggregatorRenderer() {
+    virtual ~AggregatorRenderer() {
         delete [] data;
     }
     void incNumAggregated() {
@@ -160,14 +161,14 @@ public:
         int origChangeCount = rowToRender->getChangeCount();
         int numLayers = rowToRender->GetEffectLayerCount();
         Effect *currentEffects[numLayers];
-        MapStringString *settingsMaps = new MapStringString[numLayers];
+        SettingsMap *settingsMaps = new SettingsMap[numLayers];
         bool effectStates[numLayers];
         
         std::map<int, Effect*> strandEffects;
-        std::map<int, MapStringString> strandSettingsMaps;
+        std::map<int, SettingsMap> strandSettingsMaps;
         std::map<int, bool> strandEffectStates;
         std::map<int, Effect*> nodeEffects;
-        std::map<int, MapStringString> nodeSettingsMaps;
+        std::map<int, SettingsMap> nodeSettingsMaps;
         std::map<int, bool> nodeEffectStates;
         
         if (clearAllFrames && mainBuffer != NULL) {
@@ -181,7 +182,7 @@ public:
         }
 
         for (int frame = startFrame; frame < endFrame; frame++) {
-            if (origChangeCount != rowToRender->getChangeCount()) {
+            if (next == nullptr && origChangeCount != rowToRender->getChangeCount()) {
                 break;
             }
             bool validLayers[numLayers];
@@ -293,7 +294,7 @@ public:
     }
 
 private:
-    void initialize(int layer, int frame, Effect *el, MapStringString &settingsMap, PixelBufferClass *buffer) {
+    void initialize(int layer, int frame, Effect *el, SettingsMap &settingsMap, PixelBufferClass *buffer) {
         if (el == NULL) {
             settingsMap.clear();
             settingsMap["Effect"]="None";
@@ -329,7 +330,7 @@ private:
         buffer->SetMixThreshold(layer, effectMixThreshold, wxAtoi(settingsMap["CHECKBOX_LayerMorph"]) != 0); //allow threshold to vary -DJ
     }
 
-    void updateBufferPaletteFromMap(int layer, MapStringString& settingsMap, PixelBufferClass *buffer) {
+    void updateBufferPaletteFromMap(int layer, SettingsMap& settingsMap, PixelBufferClass *buffer) {
         xlColorVector newcolors;
         for (int i = 1; i <= 6; i++) {
             if (settingsMap[wxString::Format("CHECKBOX_Palette%d",i)] ==  "1") {
@@ -338,7 +339,7 @@ private:
         }
         buffer->SetPalette(layer, newcolors);
     }
-    void updateBufferFadesFromMap(int layer, MapStringString& settingsMap, PixelBufferClass *buffer) {
+    void updateBufferFadesFromMap(int layer, SettingsMap& settingsMap, PixelBufferClass *buffer) {
         wxString tmpStr;
         double fadeIn, fadeOut;
 
@@ -350,7 +351,7 @@ private:
         buffer->SetFadeTimes(layer, fadeIn, fadeOut);
     }
 
-    void updateFitToTimeFromMap(int layer, MapStringString& settingsMap, PixelBufferClass *buffer) {
+    void updateFitToTimeFromMap(int layer, SettingsMap& settingsMap, PixelBufferClass *buffer) {
         bool fitToTime = settingsMap["CHECKBOX_FitToTime"] == "1";
         buffer->SetFitToTime(layer, fitToTime);
     }
@@ -369,9 +370,9 @@ private:
         return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame);
     }
     void loadSettingsMap(const wxString &effectName,
-                         const MapStringString &settings,
-                         const MapStringString &colorPalette,
-                         MapStringString& settingsMap) {
+                         const SettingsMap &settings,
+                         const SettingsMap &colorPalette,
+                         SettingsMap& settingsMap) {
         settingsMap.clear();
         settingsMap["Effect"]=effectName;
 
@@ -627,7 +628,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 }
 
 
-bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringString& SettingsMap,
+bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap& SettingsMap,
                                        PixelBufferClass &buffer, bool &resetEffectState,
                                        bool bgThread, RenderEvent *event) {
     bool retval=true;
@@ -766,7 +767,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                            SettingsMap["TEXTCTRL_Piano_ShapeFilename"]);
     } else if (effect == "Pictures") {
         buffer.RenderPictures(PictureEffectDirections.Index(SettingsMap["CHOICE_Pictures_Direction"]),
-                              SettingsMap["TEXTCTRL_Pictures_Filename"],
+                              SettingsMap["FILEPICKER_Pictures_Filename"],
                               wxAtoi(SettingsMap["SLIDER_Pictures_GifSpeed"]),
                               SettingsMap["CHECKBOX_MovieIs20FPS"] == "1",
                               wxAtoi(SettingsMap["SLIDER_PicturesXC"]),
@@ -865,7 +866,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
         } else {
             buffer.RenderText(wxAtoi(SettingsMap["SLIDER_Text_Position1"]),
                               SettingsMap["TEXTCTRL_Text_Line1"],
-                              SettingsMap["TEXTCTRL_Text_Font1"],
+                              SettingsMap["FONTPICKER_Text_Font1"],
                               TextEffectDirections.Index(SettingsMap["CHOICE_Text_Dir1"]),
                               wxAtoi(SettingsMap["CHECKBOX_TextToCenter1"]) != 0,
                               TextEffects.Index(SettingsMap["CHOICE_Text_Effect1"]),
@@ -873,7 +874,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                               //
                               wxAtoi(SettingsMap["SLIDER_Text_Position2"]),
                               SettingsMap["TEXTCTRL_Text_Line2"],
-                              SettingsMap["TEXTCTRL_Text_Font2"],
+                              SettingsMap["FONTPICKER_Text_Font2"],
                               TextEffectDirections.Index(SettingsMap["CHOICE_Text_Dir2"]),
                               wxAtoi(SettingsMap["CHECKBOX_TextToCenter2"]) != 0,
                               TextEffects.Index(SettingsMap["CHOICE_Text_Effect2"]),
@@ -881,7 +882,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                               //
                               wxAtoi(SettingsMap["SLIDER_Text_Position3"]),
                               SettingsMap["TEXTCTRL_Text_Line3"],
-                              SettingsMap["TEXTCTRL_Text_Font3"],
+                              SettingsMap["FONTPICKER_Text_Font3"],
                               TextEffectDirections.Index(SettingsMap["CHOICE_Text_Dir3"]),
                               wxAtoi(SettingsMap["CHECKBOX_TextToCenter3"]) != 0,
                               TextEffects.Index(SettingsMap["CHOICE_Text_Effect3"]),
@@ -889,7 +890,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                               //
                               wxAtoi(SettingsMap["SLIDER_Text_Position4"]),
                               SettingsMap["TEXTCTRL_Text_Line4"],
-                              SettingsMap["TEXTCTRL_Text_Font4"],
+                              SettingsMap["FONTPICKER_Text_Font4"],
                               TextEffectDirections.Index(SettingsMap["CHOICE_Text_Dir4"]),
                               wxAtoi(SettingsMap["CHECKBOX_TextToCenter4"]) != 0,
                               TextEffects.Index(SettingsMap["CHOICE_Text_Effect4"]),

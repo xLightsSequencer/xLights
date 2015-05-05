@@ -1,4 +1,6 @@
 #include <wx/msgdlg.h>
+#include <wx/fontpicker.h>
+#include <wx/filepicker.h>
 #include "EffectsPanel.h"
 #include "../include/padlock16x16-green.xpm" //-DJ
 #include "../include/padlock16x16-red.xpm" //-DJ
@@ -426,9 +428,8 @@ const long EffectsPanel::ID_TEXTCTRL_Piano_ShapeFilename = wxNewId();
 const long EffectsPanel::ID_PANEL13 = wxNewId();
 const long EffectsPanel::ID_NOTEBOOK2 = wxNewId();
 const long EffectsPanel::ID_PANEL39 = wxNewId();
-const long EffectsPanel::ID_BUTTON_PICTURES_FILENAME = wxNewId();
+const long EffectsPanel::ID_FILEPICKER_Pictures_Filename = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Pictures_Filename = wxNewId();
 const long EffectsPanel::ID_STATICTEXT46 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Pictures_Direction = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Pictures_Direction = wxNewId();
@@ -636,9 +637,8 @@ const long EffectsPanel::ID_STATICTEXT22 = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_Text_Line3 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT23 = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_Text_Line4 = wxNewId();
-const long EffectsPanel::ID_BUTTON_TEXT_FONT1 = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Text_Font1 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Font1 = wxNewId();
+const long EffectsPanel::ID_FONTPICKER_Text_Font1 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_FONTPICKER_Text_Font1 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT79 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Dir1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Dir1 = wxNewId();
@@ -654,9 +654,8 @@ const long EffectsPanel::ID_STATICTEXT101 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Text_Position1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Text_Position1 = wxNewId();
 const long EffectsPanel::ID_PANEL_Text1 = wxNewId();
-const long EffectsPanel::ID_BUTTON_TEXT_FONT2 = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Text_Font2 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Font2 = wxNewId();
+const long EffectsPanel::ID_FONTPICKER_Text_Font2 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_FONTPICKER_Text_Font2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT57 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Dir2 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Dir2 = wxNewId();
@@ -672,9 +671,8 @@ const long EffectsPanel::ID_STATICTEXT103 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Text_Position2 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Text_Position2 = wxNewId();
 const long EffectsPanel::ID_PANEL_Text2 = wxNewId();
-const long EffectsPanel::ID_BUTTON_TEXT_FONT3 = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Text_Font3 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Font3 = wxNewId();
+const long EffectsPanel::ID_FONTPICKER_Text_Font3 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_FONTPICKER_Text_Font3 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT16 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Dir3 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Dir3 = wxNewId();
@@ -690,9 +688,8 @@ const long EffectsPanel::ID_STATICTEXT19 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Text_Position3 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Text_Position3 = wxNewId();
 const long EffectsPanel::ID_PANEL_Text3 = wxNewId();
-const long EffectsPanel::ID_BUTTON_TEXT_FONT4 = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Text_Font4 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Font4 = wxNewId();
+const long EffectsPanel::ID_FONTPICKER_Text_Font4 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_FONTPICKER_Text_Font4 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT24 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Dir4 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Dir4 = wxNewId();
@@ -708,7 +705,7 @@ const long EffectsPanel::ID_STATICTEXT48 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Text_Position4 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Text_Position4 = wxNewId();
 const long EffectsPanel::ID_PANEL_Text4 = wxNewId();
-const long EffectsPanel::ID_NOTEBOOK_Text1 = wxNewId();
+const long EffectsPanel::IDD_NOTEBOOK_Text = wxNewId();
 const long EffectsPanel::ID_PANEL7 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON40 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT87 = wxNewId();
@@ -758,168 +755,193 @@ BEGIN_EVENT_TABLE(EffectsPanel,wxPanel)
     //*)
 END_EVENT_TABLE()
 
+class xlPictureFilePickerCtrl : public wxFilePickerCtrl {
+public:
+    xlPictureFilePickerCtrl(wxWindow *parent,
+                     wxWindowID id,
+                     const wxString& path = wxEmptyString,
+                     const wxString& message = wxFileSelectorPromptStr,
+                     const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
+                     const wxPoint& pos = wxDefaultPosition,
+                     const wxSize& size = wxDefaultSize,
+                     long style = wxFLP_DEFAULT_STYLE,
+                     const wxValidator& validator = wxDefaultValidator,
+                     const wxString& name = wxFilePickerCtrlNameStr)
+    : wxFilePickerCtrl(parent, id, path, message, wxImage::GetImageExtWildcard(), pos, size, style, validator, name) {
+
+    }
+    virtual ~xlPictureFilePickerCtrl() {}
+};
+
+
 EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
 {
     //(*Initialize(EffectsPanel)
-    wxSlider* Slider1;
-    wxFlexGridSizer* FlexGridSizer91;
-    wxFlexGridSizer* FlexGridSizer110;
+    wxFlexGridSizer* FlexGridSizer74;
+    wxFlexGridSizer* FlexGridSizer25;
+    wxFlexGridSizer* FlexGridSizer99;
+    wxFlexGridSizer* FlexGridSizer18;
+    wxFlexGridSizer* FlexGridSizer49;
+    wxFlexGridSizer* FlexGridSizer9;
+    wxPanel* Panel8;
     wxPanel* MorphPanelStart;
+    wxGridBagSizer* GridBagSizerShockwavePosition;
+    wxFlexGridSizer* FlexGridSizer113;
+    wxFontPickerCtrl* FontPickerCtrl1;
+    wxFlexGridSizer* FlexGridSizer108;
+    wxFlexGridSizer* FlexGridSizer15;
+    wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizer55;
+    wxFlexGridSizer* FlexGridSizer50;
+    wxFlexGridSizer* FlexGridSizer69;
+    wxFlexGridSizer* FlexGridSizer89;
+    wxFlexGridSizer* FlexGridSizer109;
+    wxFlexGridSizer* FlexGridSizer27;
+    wxFlexGridSizer* FlexGridSizer110;
+    wxFlexGridSizer* FlexGridSizer84;
+    wxFlexGridSizer* FlexGridSizer13;
+    wxFlexGridSizer* FlexGridSizer35;
+    wxFlexGridSizer* FlexGridSizer44;
     wxFlexGridSizer* FlexGridSizer105;
-    wxFlexGridSizer* FlexGridSizer4;
-    wxFlexGridSizer* FlexGridSizer71;
-    wxGridBagSizer* GridBagSizerGalaxyOptions;
-    wxFlexGridSizer* FlexGridSizer85;
-    wxFlexGridSizer* FlexGridSizer45;
-    wxFlexGridSizer* FlexGridSizer59;
+    wxFlexGridSizer* FlexGridSizer79;
+    wxFlexGridSizer* FlexGridSizer96;
+    wxTextCtrl* TextCtrl_PicturesXC;
+    wxFlexGridSizer* FlexGridSizer52;
+    wxFlexGridSizer* FlexGridSizer97;
+    wxFontPickerCtrl* FontPickerCtrl2;
+    wxFlexGridSizer* FlexGridSizer38;
+    wxFontPickerCtrl* FontPickerCtrl3;
+    wxFlexGridSizer* FlexGridSizer29;
+    wxStaticText* StaticText_Pictures_XC;
+    wxSlider* Slider_PicturesXC;
     wxFlexGridSizer* FlexGridSizer47;
+    wxGridBagSizer* GridBagSizerGalaxyOptions;
+    wxPanel* MorphPanelOptions;
+    wxFlexGridSizer* FlexGridSizer42;
+    wxStaticText* StaticText165;
+    wxTextCtrl* TextCtrl_Pictures_GifSpeed;
+    wxFontPickerCtrl* FontPickerCtrl4;
+    wxStaticText* StaticText160;
+    wxFlexGridSizer* FlexGridSizer104;
+    wxFlexGridSizer* FlexGridSizer91;
+    wxFlexGridSizer* FlexGridSizer82;
     wxFlexGridSizer* FlexGridSizer112;
-    wxFlexGridSizer* FlexGridSizer54;
-    wxFlexGridSizer* FlexGridSizer16;
-    wxFlexGridSizer* FlexGridSizer73;
-    wxFlexGridSizer* FlexGridSizer24;
-    wxFlexGridSizer* FlexGridSizer90;
+    wxFlexGridSizer* FlexGridSizer68;
+    wxFlexGridSizer* FlexGridSizer62;
+    wxStaticText* StaticText162;
+    wxFlexGridSizer* FlexGridSizer3;
+    wxGridBagSizer* GridBagSizer1;
+    wxSlider* Slider1;
     wxSlider* Slider2;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxGridBagSizer* GridBagSizer3;
+    wxFlexGridSizer* FlexGridSizer30;
+    wxGridBagSizer* GridBagSizerShockwaveOptions;
+    wxFlexGridSizer* FlexGridSizer65;
+    wxPanel* Panel14;
+    wxFlexGridSizer* FlexGridSizer60;
+    wxFlexGridSizer* FlexGridSizer98;
+    wxNotebook* Notebook4;
+    wxFlexGridSizer* FlexGridSizer33;
+    wxFlexGridSizer* FlexGridSizer66;
+    wxPanel* Panel7;
+    wxFlexGridSizer* FlexGridSizer45;
+    wxFlexGridSizer* FlexGridSizer75;
+    wxFlexGridSizer* FlexGridSizer106;
+    wxFlexGridSizer* FlexGridSizer41;
+    wxFlexGridSizer* FlexGridSizer88;
     wxFlexGridSizer* FlexGridSizer63;
     wxFlexGridSizer* FlexGridSizer19;
-    wxFlexGridSizer* FlexGridSizer76;
-    wxFlexGridSizer* FlexGridSizer108;
-    wxFlexGridSizer* FlexGridSizer70;
-    wxFlexGridSizer* FlexGridSizer95;
-    wxFlexGridSizer* FlexGridSizer38;
-    wxFlexGridSizer* FlexGridSizer23;
-    wxStaticText* StaticText2;
-    wxFlexGridSizer* FlexGridSizer41;
-    wxFlexGridSizer* FlexGridSizer103;
-    wxFlexGridSizer* FlexGridSizer51;
-    wxFlexGridSizer* FlexGridSizer77;
-    wxGridBagSizer* GridBagSizer1;
-    wxGridBagSizer* GridBagSizerGalaxyEnd;
-    wxFlexGridSizer* FlexGridSizer10;
-    wxFlexGridSizer* FlexGridSizer3;
-    wxFlexGridSizer* FlexGridSizer80;
-    wxGridBagSizer* GridBagSizer2;
-    wxFlexGridSizer* FlexGridSizer27;
-    wxFlexGridSizer* FlexGridSizer109;
-    wxFlexGridSizer* FlexGridSizer44;
-    wxFlexGridSizer* FlexGridSizer96;
+    wxFlexGridSizer* FlexGridSizer85;
     wxStaticText* StaticText154;
-    wxPanel* Panel11;
-    wxFlexGridSizer* FlexGridSizer37;
-    wxFlexGridSizer* FlexGridSizer25;
-    wxFlexGridSizer* FlexGridSizer5;
-    wxStaticText* StaticText125;
-    wxStaticText* StaticText114;
-    wxPanel* Panel9;
-    wxFlexGridSizer* FlexGridSizer22;
-    wxFlexGridSizer* FlexGridSizer56;
-    wxFlexGridSizer* FlexGridSizer62;
-    wxFlexGridSizer* FlexGridSizer9;
-    wxPanel* MorphPanelOptions;
-    wxPanel* MorphPanelEnd;
-    wxPanel* Panel8;
-    wxFlexGridSizer* FlexGridSizer66;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxFlexGridSizer* FlexGridSizer69;
-    wxStaticText* StaticText_Pictures_YC;
-    wxFlexGridSizer* FlexGridSizer53;
-    wxPanel* PictureStartPositionPanel;
-    wxFlexGridSizer* FlexGridSizer7;
-    wxFlexGridSizer* FlexGridSizer102;
-    wxFlexGridSizer* FlexGridSizer100;
-    wxFlexGridSizer* FlexGridSizer88;
-    wxTextCtrl* TextCtrl_PicturesXC;
-    wxPanel* Panel6;
-    wxCheckBox* CheckBox1;
-    wxFlexGridSizer* FlexGridSizer55;
-    wxSlider* Slider_PicturesXC;
-    wxFlexGridSizer* FlexGridSizer86;
-    wxFlexGridSizer* FlexGridSizer97;
-    wxSlider* Slider_PicturesYC;
-    wxFlexGridSizer* FlexGridSizer74;
-    wxFlexGridSizer* FlexGridSizer57;
-    wxStaticText* StaticText113;
-    wxFlexGridSizer* FlexGridSizer52;
-    wxFlexGridSizer* FlexGridSizer61;
-    wxFlexGridSizer* FlexGridSizer29;
-    wxFlexGridSizer* FlexGridSizer34;
-    wxFlexGridSizer* FlexGridSizer49;
-    wxFlexGridSizer* FlexGridSizer87;
-    wxFlexGridSizer* FlexGridSizer15;
-    wxStaticText* StaticText133;
-    wxGridBagSizer* GridBagSizerShockwaveOptions;
-    wxTextCtrl* TextCtrl_PicturesYC;
-    wxFlexGridSizer* FlexGridSizer18;
-    wxFlexGridSizer* FlexGridSizer8;
-    wxPanel* Panel7;
-    wxFlexGridSizer* FlexGridSizer81;
-    wxFlexGridSizer* FlexGridSizer98;
-    wxFlexGridSizer* FlexGridSizer21;
-    wxFlexGridSizer* FlexGridSizer93;
-    wxFlexGridSizer* FlexGridSizer111;
-    wxFlexGridSizer* FlexGridSizer14;
-    wxTextCtrl* TextCtrl2;
-    wxStaticText* StaticText96;
-    wxFlexGridSizer* FlexGridSizer20;
-    wxGridBagSizer* GridBagSizerFanPosition;
-    wxFlexGridSizer* FlexGridSizer82;
-    wxFlexGridSizer* FlexGridSizer50;
-    wxTextCtrl* TextCtrl1;
-    wxFlexGridSizer* FlexGridSizer13;
-    wxFlexGridSizer* FlexGridSizer12;
-    wxFlexGridSizer* FlexGridSizer35;
-    wxFlexGridSizer* FlexGridSizer99;
-    wxGridBagSizer* GridBagSizerFanBlades;
-    wxFlexGridSizer* FlexGridSizer36;
-    wxPanel* Panel14;
-    wxStaticText* StaticText160;
-    wxFlexGridSizer* FlexGridSizer6;
-    wxFlexGridSizer* FlexGridSizer78;
-    wxFlexGridSizer* FlexGridSizer89;
-    wxFlexGridSizer* FlexGridSizer46;
     wxFlexGridSizer* FlexGridSizer48;
-    wxFlexGridSizer* FlexGridSizer1;
     wxPanel* Panel10;
-    wxFlexGridSizer* FlexGridSizer106;
-    wxStaticText* StaticText_Pictures_XC;
-    wxFlexGridSizer* FlexGridSizer33;
-    wxFlexGridSizer* FlexGridSizer107;
-    wxFlexGridSizer* FlexGridSizer43;
-    wxFlexGridSizer* FlexGridSizer11;
-    wxFlexGridSizer* FlexGridSizer84;
-    wxFlexGridSizer* FlexGridSizer17;
-    wxTextCtrl* TextCtrl_Pictures_GifSpeed;
-    wxGridBagSizer* GridBagSizer3;
-    wxFlexGridSizer* FlexGridSizer32;
-    wxFlexGridSizer* FlexGridSizer65;
-    wxStaticText* StaticText161;
-    wxGridBagSizer* GridBagSizerGalaxyStart;
-    wxPanel* Panel12;
-    wxFlexGridSizer* FlexGridSizer79;
-    wxFlexGridSizer* FlexGridSizer42;
-    wxFlexGridSizer* FlexGridSizer64;
-    wxFlexGridSizer* FlexGridSizer58;
-    wxNotebook* Notebook4;
-    wxFlexGridSizer* FlexGridSizer75;
-    wxFlexGridSizer* FlexGridSizer72;
-    wxFlexGridSizer* FlexGridSizer68;
-    wxFlexGridSizer* FlexGridSizer31;
-    wxFlexGridSizer* FlexGridSizer92;
-    wxFlexGridSizer* FlexGridSizer40;
-    wxFlexGridSizer* FlexGridSizer104;
-    wxGridBagSizer* GridBagSizerShockwavePosition;
-    wxFlexGridSizer* FlexGridSizer39;
-    wxFlexGridSizer* FlexGridSizer28;
-    wxFlexGridSizer* FlexGridSizer26;
-    wxFlexGridSizer* FlexGridSizer60;
-    wxFlexGridSizer* FlexGridSizer83;
+    wxStaticText* StaticText125;
     wxSlider* Slider_Pictures_GifSpeed;
-    wxFlexGridSizer* FlexGridSizer30;
-    wxFlexGridSizer* FlexGridSizer67;
-    wxFlexGridSizer* FlexGridSizer113;
-    wxGridBagSizer* GridBagSizerFanOptions;
-    wxFlexGridSizer* FlexGridSizer101;
+    wxFlexGridSizer* FlexGridSizer51;
+    wxFlexGridSizer* FlexGridSizer28;
+    wxFlexGridSizer* FlexGridSizer107;
+    wxFlexGridSizer* FlexGridSizer23;
+    wxFlexGridSizer* FlexGridSizer40;
+    wxStaticText* StaticText113;
+    wxFlexGridSizer* FlexGridSizer77;
     wxFlexGridSizer* FlexGridSizer94;
+    wxPanel* Panel12;
+    wxCheckBox* CheckBox1;
+    wxFlexGridSizer* FlexGridSizer81;
+    wxFlexGridSizer* FlexGridSizer53;
+    wxGridBagSizer* GridBagSizerGalaxyEnd;
+    wxFlexGridSizer* FlexGridSizer46;
+    wxFlexGridSizer* FlexGridSizer78;
+    wxSlider* Slider_PicturesYC;
+    wxFlexGridSizer* FlexGridSizer17;
+    wxGridBagSizer* GridBagSizerGalaxyStart;
+    wxFlexGridSizer* FlexGridSizer86;
+    wxFlexGridSizer* FlexGridSizer39;
+    wxStaticText* StaticText96;
+    wxFlexGridSizer* FlexGridSizer72;
+    wxFlexGridSizer* FlexGridSizer14;
+    wxFlexGridSizer* FlexGridSizer61;
+    wxFlexGridSizer* FlexGridSizer5;
+    wxFlexGridSizer* FlexGridSizer16;
+    wxFlexGridSizer* FlexGridSizer71;
+    wxPanel* MorphPanelEnd;
+    wxFlexGridSizer* FlexGridSizer22;
+    wxFlexGridSizer* FlexGridSizer31;
+    wxFlexGridSizer* FlexGridSizer80;
+    wxTextCtrl* TextCtrl2;
+    wxStaticText* StaticText114;
+    wxPanel* Panel6;
+    wxTextCtrl* TextCtrl_PicturesYC;
+    wxFlexGridSizer* FlexGridSizer93;
+    wxFlexGridSizer* FlexGridSizer58;
+    wxStaticText* StaticText164;
+    wxFlexGridSizer* FlexGridSizer36;
+    wxFlexGridSizer* FlexGridSizer67;
+    wxFlexGridSizer* FlexGridSizer56;
+    wxStaticText* StaticText161;
+    wxGridBagSizer* GridBagSizerFanPosition;
+    wxStaticText* StaticText163;
+    wxFlexGridSizer* FlexGridSizer95;
+    wxPanel* Panel11;
+    wxGridBagSizer* GridBagSizerFanBlades;
+    wxFlexGridSizer* FlexGridSizer26;
+    wxGridBagSizer* GridBagSizer2;
+    wxStaticText* StaticText2;
+    wxFlexGridSizer* FlexGridSizer59;
+    wxFlexGridSizer* FlexGridSizer10;
+    wxFlexGridSizer* FlexGridSizer70;
+    wxFlexGridSizer* FlexGridSizer43;
+    wxFlexGridSizer* FlexGridSizer92;
+    wxFlexGridSizer* FlexGridSizer32;
+    wxStaticText* StaticText133;
+    wxStaticText* StaticText_Pictures_YC;
+    wxFlexGridSizer* FlexGridSizer76;
+    wxFlexGridSizer* FlexGridSizer20;
+    wxFlexGridSizer* FlexGridSizer64;
+    wxPanel* PictureStartPositionPanel;
+    wxFlexGridSizer* FlexGridSizer6;
+    wxFlexGridSizer* FlexGridSizer34;
+    wxTextCtrl* TextCtrl1;
+    wxFlexGridSizer* FlexGridSizer57;
+    wxFlexGridSizer* FlexGridSizer12;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer11;
+    wxNotebook* Notebook_Text1;
+    wxFlexGridSizer* FlexGridSizer83;
+    wxFlexGridSizer* FlexGridSizer37;
+    wxFlexGridSizer* FlexGridSizer21;
+    wxPanel* Panel9;
+    wxFlexGridSizer* FlexGridSizer90;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer54;
+    wxFlexGridSizer* FlexGridSizer24;
+    wxFlexGridSizer* FlexGridSizer2;
+    xlPictureFilePickerCtrl* FilePickerCtrl1;
+    wxFlexGridSizer* FlexGridSizer87;
+    wxGridBagSizer* GridBagSizerFanOptions;
+    wxFlexGridSizer* FlexGridSizer73;
+    wxFlexGridSizer* FlexGridSizer111;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxSize(150,150), wxTAB_TRAVERSAL, _T("wxID_ANY"));
     SetMinSize(wxSize(150,150));
@@ -2075,16 +2097,14 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Pictures = new wxScrolledWindow(Choicebook1, ID_PANEL20, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL20"));
     FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer42->AddGrowableCol(0);
-    FlexGridSizer19 = new wxFlexGridSizer(0, 3, 0, 0);
-    Button_Pictures_Filename = new wxButton(Panel1_Pictures, ID_BUTTON_PICTURES_FILENAME, _("File name"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_PICTURES_FILENAME"));
-    Button_Pictures_Filename->SetBackgroundColour(wxColour(224,224,224));
-    FlexGridSizer19->Add(Button_Pictures_Filename, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer19 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer19->AddGrowableCol(0);
+    FilePickerCtrl1 = new xlPictureFilePickerCtrl(Panel1_Pictures, ID_FILEPICKER_Pictures_Filename, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKER_Pictures_Filename"));
+    FlexGridSizer19->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     BitmapButton_PicturesFilename = new wxBitmapButton(Panel1_Pictures, ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME"));
     BitmapButton_PicturesFilename->SetDefault();
     FlexGridSizer19->Add(BitmapButton_PicturesFilename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer42->Add(FlexGridSizer19, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Pictures_Filename = new wxTextCtrl(Panel1_Pictures, ID_TEXTCTRL_Pictures_Filename, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_Filename"));
-    FlexGridSizer42->Add(TextCtrl_Pictures_Filename, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer42->Add(FlexGridSizer19, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
     FlexGridSizer31 = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer31->AddGrowableCol(1);
     StaticText46 = new wxStaticText(Panel1_Pictures, ID_STATICTEXT46, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT46"));
@@ -2740,51 +2760,39 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Text = new wxScrolledWindow(Choicebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL7"));
     FlexGridSizer46 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer46->AddGrowableCol(0);
-    FlexGridSizer65 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer65->AddGrowableCol(0);
-    FlexGridSizer100 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer100->AddGrowableCol(1);
+    FlexGridSizer65 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer65->AddGrowableCol(1);
     StaticText53 = new wxStaticText(Panel1_Text, ID_STATICTEXT53, _("Line 1"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT53"));
-    FlexGridSizer100->Add(StaticText53, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer65->Add(StaticText53, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     TextCtrl_Text_Line1 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line1"));
     TextCtrl_Text_Line1->SetMaxLength(256);
-    FlexGridSizer100->Add(TextCtrl_Text_Line1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer65->Add(FlexGridSizer100, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer101 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer101->AddGrowableCol(1);
+    FlexGridSizer65->Add(TextCtrl_Text_Line1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText54 = new wxStaticText(Panel1_Text, ID_STATICTEXT54, _("Line 2"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT54"));
-    FlexGridSizer101->Add(StaticText54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer65->Add(StaticText54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     TextCtrl_Text_Line2 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line2"));
     TextCtrl_Text_Line2->SetMaxLength(256);
-    FlexGridSizer101->Add(TextCtrl_Text_Line2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer65->Add(FlexGridSizer101, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer102 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer102->AddGrowableCol(1);
+    FlexGridSizer65->Add(TextCtrl_Text_Line2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText19 = new wxStaticText(Panel1_Text, ID_STATICTEXT22, _("Line 3"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
-    FlexGridSizer102->Add(StaticText19, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer65->Add(StaticText19, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     TextCtrl_Text_Line3 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line3, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line3"));
     TextCtrl_Text_Line3->SetMaxLength(256);
-    FlexGridSizer102->Add(TextCtrl_Text_Line3, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer65->Add(FlexGridSizer102, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer103 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer103->AddGrowableCol(1);
+    FlexGridSizer65->Add(TextCtrl_Text_Line3, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText20 = new wxStaticText(Panel1_Text, ID_STATICTEXT23, _("Line 4"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT23"));
-    FlexGridSizer103->Add(StaticText20, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer65->Add(StaticText20, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     TextCtrl_Text_Line4 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line4, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line4"));
     TextCtrl_Text_Line4->SetMaxLength(256);
-    FlexGridSizer103->Add(TextCtrl_Text_Line4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer65->Add(FlexGridSizer103, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer65->Add(TextCtrl_Text_Line4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer46->Add(FlexGridSizer65, 1, wxBOTTOM|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Notebook_Text1 = new wxNotebook(Panel1_Text, ID_NOTEBOOK_Text1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Text1"));
+    Notebook_Text1 = new wxNotebook(Panel1_Text, IDD_NOTEBOOK_Text, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK_Text"));
     Notebook_Text1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
     Panel_Text1 = new wxPanel(Notebook_Text1, ID_PANEL_Text1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Text1"));
     FlexGridSizer69 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer69->AddGrowableCol(1);
-    Button_Text_Font1 = new wxButton(Panel_Text1, ID_BUTTON_TEXT_FONT1, _("Font1"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_TEXT_FONT1"));
-    FlexGridSizer69->Add(Button_Text_Font1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Text_Font1 = new wxTextCtrl(Panel_Text1, ID_TEXTCTRL_Text_Font1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Font1"));
-    FlexGridSizer69->Add(TextCtrl_Text_Font1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_TextFont1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_TEXTCTRL_Text_Font1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Font1"));
+    StaticText162 = new wxStaticText(Panel_Text1, wxID_ANY, _("Font"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer69->Add(StaticText162, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FontPickerCtrl1 = new wxFontPickerCtrl(Panel_Text1, ID_FONTPICKER_Text_Font1, wxNullFont, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Text_Font1"));
+    FlexGridSizer69->Add(FontPickerCtrl1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    BitmapButton_TextFont1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_FONTPICKER_Text_Font1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FONTPICKER_Text_Font1"));
     BitmapButton_TextFont1->SetDefault();
     BitmapButton_TextFont1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer69->Add(BitmapButton_TextFont1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -2836,11 +2844,11 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel_Text2 = new wxPanel(Notebook_Text1, ID_PANEL_Text2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Text2"));
     FlexGridSizer74 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer74->AddGrowableCol(1);
-    Button_Text_Font2 = new wxButton(Panel_Text2, ID_BUTTON_TEXT_FONT2, _("Font2"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_TEXT_FONT2"));
-    FlexGridSizer74->Add(Button_Text_Font2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Text_Font2 = new wxTextCtrl(Panel_Text2, ID_TEXTCTRL_Text_Font2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Font2"));
-    FlexGridSizer74->Add(TextCtrl_Text_Font2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_TextFont2 = new wxBitmapButton(Panel_Text2, ID_BITMAPBUTTON_TEXTCTRL_Text_Font2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Font2"));
+    StaticText163 = new wxStaticText(Panel_Text2, wxID_ANY, _("Font"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer74->Add(StaticText163, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FontPickerCtrl2 = new wxFontPickerCtrl(Panel_Text2, ID_FONTPICKER_Text_Font2, wxNullFont, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Text_Font2"));
+    FlexGridSizer74->Add(FontPickerCtrl2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    BitmapButton_TextFont2 = new wxBitmapButton(Panel_Text2, ID_BITMAPBUTTON_FONTPICKER_Text_Font2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FONTPICKER_Text_Font2"));
     BitmapButton_TextFont2->SetDefault();
     BitmapButton_TextFont2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer74->Add(BitmapButton_TextFont2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -2892,11 +2900,11 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel_Text3 = new wxPanel(Notebook_Text1, ID_PANEL_Text3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Text3"));
     FlexGridSizer25 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer25->AddGrowableCol(1);
-    Button_Text_Font3 = new wxButton(Panel_Text3, ID_BUTTON_TEXT_FONT3, _("Font3"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_TEXT_FONT3"));
-    FlexGridSizer25->Add(Button_Text_Font3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Text_Font3 = new wxTextCtrl(Panel_Text3, ID_TEXTCTRL_Text_Font3, wxEmptyString, wxDefaultPosition, wxSize(180,23), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Font3"));
-    FlexGridSizer25->Add(TextCtrl_Text_Font3, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_TextFont3 = new wxBitmapButton(Panel_Text3, ID_BITMAPBUTTON_TEXTCTRL_Text_Font3, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Font3"));
+    StaticText164 = new wxStaticText(Panel_Text3, wxID_ANY, _("Font"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer25->Add(StaticText164, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FontPickerCtrl3 = new wxFontPickerCtrl(Panel_Text3, ID_FONTPICKER_Text_Font3, wxNullFont, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Text_Font3"));
+    FlexGridSizer25->Add(FontPickerCtrl3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    BitmapButton_TextFont3 = new wxBitmapButton(Panel_Text3, ID_BITMAPBUTTON_FONTPICKER_Text_Font3, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FONTPICKER_Text_Font3"));
     BitmapButton_TextFont3->SetDefault();
     BitmapButton_TextFont3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer25->Add(BitmapButton_TextFont3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -2948,11 +2956,11 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel_Text4 = new wxPanel(Notebook_Text1, ID_PANEL_Text4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Text4"));
     FlexGridSizer29 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer29->AddGrowableCol(1);
-    Button_Text_Font4 = new wxButton(Panel_Text4, ID_BUTTON_TEXT_FONT4, _("Font4"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_TEXT_FONT4"));
-    FlexGridSizer29->Add(Button_Text_Font4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Text_Font4 = new wxTextCtrl(Panel_Text4, ID_TEXTCTRL_Text_Font4, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Font4"));
-    FlexGridSizer29->Add(TextCtrl_Text_Font4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_TextFont4 = new wxBitmapButton(Panel_Text4, ID_BITMAPBUTTON_TEXTCTRL_Text_Font4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Font4"));
+    StaticText165 = new wxStaticText(Panel_Text4, wxID_ANY, _("Font"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer29->Add(StaticText165, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FontPickerCtrl4 = new wxFontPickerCtrl(Panel_Text4, ID_FONTPICKER_Text_Font4, wxNullFont, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Text_Font4"));
+    FlexGridSizer29->Add(FontPickerCtrl4, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    BitmapButton_TextFont4 = new wxBitmapButton(Panel_Text4, ID_BITMAPBUTTON_FONTPICKER_Text_Font4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FONTPICKER_Text_Font4"));
     BitmapButton_TextFont4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer29->Add(BitmapButton_TextFont4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText22 = new wxStaticText(Panel_Text4, ID_STATICTEXT24, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
@@ -2984,7 +2992,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer29->Add(StaticText42, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Choice_Text_Count4 = new wxChoice(Panel_Text4, ID_CHOICE_Text_Count4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Count4"));
     FlexGridSizer29->Add(Choice_Text_Count4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_TextCount4 = new wxBitmapButton(Panel_Text4, ID_BITMAPBUTTON_CHOICE_Text_Count4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Count4"));
+    BitmapButton_TextCount4 = new wxBitmapButton(Panel_Text4, ID_BITMAPBUTTON_CHOICE_Text_Count4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Count4"));
     BitmapButton_TextCount4->SetDefault();
     BitmapButton_TextCount4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer29->Add(BitmapButton_TextCount4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -3341,7 +3349,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Piano_ShapeFilenameClick);
     Connect(ID_BITMAPBUTTON_Piano_ShapeFilename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_ShapeFilenameClick);
     Connect(ID_BITMAPBUTTON_Piano_Clipping,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_ClippingClick);
-    Connect(ID_BUTTON_PICTURES_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Pictures_FilenameClick);
     Connect(ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesFilenameClick);
     Connect(ID_CHOICE_Pictures_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnChoicePicturesDirectionSelect);
     Connect(ID_BITMAPBUTTON_CHOICE_Pictures_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesDirectionClick);
@@ -3423,29 +3430,25 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON49,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_NumberStrobesClick);
     Connect(ID_BITMAPBUTTON51,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_StrobeDurationClick);
     Connect(ID_BITMAPBUTTON50,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Strobe_TypeClick);
-    Connect(ID_BUTTON_TEXT_FONT1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Text_Font1Click);
-    Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Font1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont1Click);
+    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont1Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir1Click);
     Connect(ID_BITMAPBUTTON_TextToCenter1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter1Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect1Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Count1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount1Click);
     Connect(ID_BITMAPBUTTON_SLIDER_Text_Position1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition1Click);
-    Connect(ID_BUTTON_TEXT_FONT2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Text_Font2Click);
-    Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Font2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont2Click);
+    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont2Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir2Click);
     Connect(ID_BITMAPBUTTON_Text2Center2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter2Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect2Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Count2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount2Click);
     Connect(ID_BITMAPBUTTON_SLIDER_Text_Position2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition2Click);
-    Connect(ID_BUTTON_TEXT_FONT3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Text_Font3Click);
-    Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Font3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont3Click);
+    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont3Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir3Click);
     Connect(ID_BITMAPBUTTON_TextToCenter3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter3Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect3Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Count3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount3Click);
     Connect(ID_BITMAPBUTTON_SLIDER_Text_Position3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition3Click);
-    Connect(ID_BUTTON_TEXT_FONT4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Text_Font4Click);
-    Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Font4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont4Click);
+    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont4Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir4Click);
     Connect(ID_BITMAPBUTTON_TextToCenter4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter4Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect4Click);
@@ -3541,6 +3544,23 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
             wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
             wxString checkedVal =(ctrl->IsChecked()) ? "1" : "0";
             s+=AttrName + "=" + checkedVal + ",";
+        }
+        else if (ChildName.StartsWith("ID_FILEPICKER"))
+        {
+            wxFilePickerCtrl* ctrl=(wxFilePickerCtrl*)ChildWin;
+            s+=AttrName + "=" + ctrl->GetFileName().GetFullPath() + ",";
+        }
+        else if (ChildName.StartsWith("ID_FONTPICKER"))
+        {
+            wxFontPickerCtrl* ctrl=(wxFontPickerCtrl*)ChildWin;
+            wxFont f = ctrl->GetSelectedFont();
+            if (f.IsOk()) {
+                wxString FontDesc=f.GetNativeFontInfoUserDesc();
+                FontDesc.Replace(" unknown-90","");
+                s+=AttrName + "=" + FontDesc + ",";
+            } else {
+                s+=AttrName + "=,";
+            }
         }
         else if (ChildName.StartsWith("ID_NOTEBOOK") || ChildName.StartsWith("IDD_NOTEBOOK"))
         {
@@ -3678,16 +3698,6 @@ bool EffectsPanel::WantOverlayBkg(void)
     return false;
 }
 
-
-void EffectsPanel::OnButton_Pictures_FilenameClick(wxCommandEvent& event)
-{
-    wxString filename = wxFileSelector( "Choose Image", *CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
-    if (!filename.IsEmpty()) TextCtrl_Pictures_Filename->SetValue(filename);
-}
-
-
-
-
 void EffectsPanel::OnButton_Glediator_FilenameClick(wxCommandEvent& event)
 {
     wxString filename = wxFileSelector( "Choose Glediator *.gled", *CurrentDir, "", "",
@@ -3724,40 +3734,6 @@ void EffectsPanel::OnButton_Piano_ShapeFilenameClick(wxCommandEvent& event)
                                        "Key shapes files " + wxImage::GetImageExtWildcard(), wxFD_OPEN );
     if (!filename.IsEmpty()) TextCtrl_Piano_ShapeFilename->SetValue(filename);
 }
-
-void EffectsPanel::UpdateFont(wxTextCtrl* FontCtrl)
-{
-    wxFont oldfont,newfont;
-    oldfont.SetNativeFontInfoUserDesc(FontCtrl->GetValue());
-    newfont=wxGetFontFromUser(this,oldfont);
-    if (newfont.IsOk())
-    {
-        wxString FontDesc=newfont.GetNativeFontInfoUserDesc();
-        FontDesc.Replace(" unknown-90","");
-        FontCtrl->SetValue(FontDesc);
-    }
-}
-
-void EffectsPanel::OnButton_Text_Font1Click(wxCommandEvent& event)
-{
-    UpdateFont(TextCtrl_Text_Font1);
-}
-
-void EffectsPanel::OnButton_Text_Font2Click(wxCommandEvent& event)
-{
-    UpdateFont(TextCtrl_Text_Font2);
-}
-
-void EffectsPanel::OnButton_Text_Font3Click(wxCommandEvent& event)
-{
-    UpdateFont(TextCtrl_Text_Font3);
-}
-
-void EffectsPanel::OnButton_Text_Font4Click(wxCommandEvent& event)
-{
-    UpdateFont(TextCtrl_Text_Font4);
-}
-
 
 
 void EffectsPanel::OnCheckBox_PaletteClick(wxCommandEvent& event)

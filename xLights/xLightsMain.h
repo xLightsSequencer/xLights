@@ -318,8 +318,8 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(const wxString &name, const MapStringString &settings, const MapStringString &palette);
-    void SetEffectControls(const MapStringString &settings);
+    void SetEffectControls(const wxString &name, const SettingsMap &settings, const SettingsMap &palette);
+    void SetEffectControls(const SettingsMap &settings);
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);
 
@@ -1342,7 +1342,7 @@ private:
     void UpdateModelsList();
     void ChooseColor(wxTextCtrl* TextCtrl);
     void LoadSizerControlsToAttr(wxSizer* sizer,wxXmlNode* x);
-    void PlayRgbEffect(int EffectPeriod, MapStringString &SettingsMap);
+    void PlayRgbEffect(int EffectPeriod, SettingsMap &SettingsMap);
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     void UpdateGrid();
@@ -1376,7 +1376,7 @@ public:
     bool InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     ModelClass &GetModelClass(const wxString& name);
     void RenderGridToSeqData();
-    bool RenderEffectFromMap(int layer, int period, const MapStringString& SettingsMap,
+    bool RenderEffectFromMap(int layer, int period, const SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false, RenderEvent *event = NULL);
     void RenderEffectOnMainThread(RenderEvent *evt);

@@ -902,6 +902,10 @@ bool xLightsFrame::ImportLMS(Element *model, wxXmlDocument &input_xml)
 
     return true;
 }
+unsigned char ChannelBlend(unsigned char c1, unsigned char  c2, double ratio)
+{
+    return c1 + floor(ratio*(c2-c1)+0.5);
+}
 
 class ImageInfo {
 public:
@@ -920,7 +924,9 @@ public:
     }
 };
 
-wxString CreateSceneImage(const wxString &imagePfx, wxXmlNode *element, int numCols, int numRows, bool reverse, const xlColor &color) {
+wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
+                          wxXmlNode *element, int numCols,
+                          int numRows, bool reverse, const xlColor &color) {
     wxImage i;
     i.Create(numCols, numRows);
     
@@ -933,7 +939,7 @@ wxString CreateSceneImage(const wxString &imagePfx, wxXmlNode *element, int numC
             }
         }
     }
-    wxString name = imagePfx + "_s" + element->GetAttribute("savedIndex")+ ".bmp";
+    wxString name = imagePfx + "_s" + element->GetAttribute("savedIndex") + postFix + ".bmp";
     i.SaveFile(name);
     return name;
 }
@@ -1269,39 +1275,56 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                         model->AddEffectLayer();
                     }
                     
-                    if ((type == "intensity") && (startc == xlBLACK || endc == xlBLACK || endc == startc)) {
-                        double start_time = wxAtoi(startms) / 1000.0;
-                        double end_time = wxAtoi(endms) / 1000.0;
-                        layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
-                        if ("" == imagePfx) {
-                            imagePfx = wxGetTextFromUser("Choose prefix for images extracted from Superstar File");
-                        }
-                        wxString imageName = CreateSceneImage(imagePfx, element, num_columns, num_rows, reverse_rows, (startc == xlBLACK) ? endc : startc);
-                        
+                    double start_time = wxAtoi(startms) / 1000.0;
+                    double end_time = wxAtoi(endms) / 1000.0;
+                    layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
+                    if ("" == imagePfx) {
+                        imagePfx = wxGetTextFromUser("Choose prefix for images extracted from Superstar File");
+                    }
+                    
+                    wxString ru = "0.0";
+                    wxString rd = "0.0";
+                    wxString imageName;
+                    if (startc == xlBLACK || endc == xlBLACK || endc == startc) {
+                        imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, reverse_rows, (startc == xlBLACK) ? endc : startc);
                         wxString ramp = wxString::Format("%lf", (end_time - start_time));
-                        wxString ru = "0.0";
-                        wxString rd = "0.0";
                         if (endc == xlBLACK) {
                             rd = ramp;
                         }
                         if (startc == xlBLACK) {
                             ru = ramp;
                         }
-                        
-                        wxString settings = _("E_CHECKBOX_MovieIs20FPS=0,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,")
-                            + "E_SLIDER_PicturesXC=0"
-                            + ",E_SLIDER_PicturesYC=0"
-                            + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
-                            + ",E_TEXTCTRL_Pictures_Filename=" + imageName
-                            + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + ru
-                            + ",T_TEXTCTRL_Fadeout=" + rd;
-                        
-                        layer->AddEffect(0, picture_index, "Pictures", settings, "", start_time, end_time, false, false);
-                        
                     } else {
-                        AppendConvertStatus("Could not map scene at starting time " + startms + " ms\n", true);
+                        int time = wxAtoi(endms) - wxAtoi(startms);
+                        int numFrames = time / SeqData.FrameTime();
+                        xlColor color;
+                        for (int x = 0; x < numFrames; x++) {
+                            double ratio = x;
+                            ratio /= numFrames;
+                            color.Set(ChannelBlend(startc.Red(),endc.Red(),ratio),
+                                      ChannelBlend(startc.Green(),endc.Green(),ratio),
+                                      ChannelBlend(startc.Blue(),endc.Blue(),ratio));
+                            wxString s = CreateSceneImage(imagePfx, wxString::Format("-%d", x+1),
+                                                          element,
+                                                          num_columns, num_rows, reverse_rows,
+                                                          color);
+                            if (x == 0) {
+                                imageName = s;
+                            }
+                        }
                     }
+                    
+                    
+                    wxString settings = _("E_CHECKBOX_MovieIs20FPS=1,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=scaled,")
+                        + "E_SLIDER_PicturesXC=0"
+                        + ",E_SLIDER_PicturesYC=0"
+                        + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
+                        + ",E_TEXTCTRL_Pictures_Filename=" + imageName
+                        + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                        + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + ru
+                        + ",T_TEXTCTRL_Fadeout=" + rd;
+                    
+                    layer->AddEffect(0, picture_index, "Pictures", settings, "", start_time, end_time, false, false);
                 }
             }
         } else if ("textActions" == e->GetName()) {
@@ -1354,7 +1377,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
 
                     int yll = num_rows -  imageInfo[idx].yoffset;
                     int yOffIfCentered =(num_rows+imageInfo[idx].height)/2; //centered if sizes don't match
-                    int y = yll - yOffIfCentered + 1;
+                    int y = yll - yOffIfCentered;
 
 
                     //yoffset+yoffset_adj-y - 1

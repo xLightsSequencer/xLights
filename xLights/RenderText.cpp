@@ -103,6 +103,39 @@ private:
 #endif
 
 
+void SetFont(wxFont &font,  const wxString& FontString) {
+    if (!FontString.IsEmpty())
+    {
+        font.SetNativeFontInfoUserDesc(FontString);
+        //we want "Arial 8" to be 8 pixels high and not depend on the System DPI
+        font.SetPixelSize(wxSize(0, font.GetPointSize()));
+    }
+#ifdef __WXMSW__
+    /*
+     Here is the format for NativeFontInfo on Windows (taken from the source)
+     We want to change lfQuality from 2 to 3 - this disables antialiasing
+     s.Printf(wxS("%d;%ld;%ld;%ld;%ld;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%s"),
+     0, // version, in case we want to change the format later
+     lf.lfHeight,
+     lf.lfWidth,
+     lf.lfEscapement,
+     lf.lfOrientation,
+     lf.lfWeight,
+     lf.lfItalic,
+     lf.lfUnderline,
+     lf.lfStrikeOut,
+     lf.lfCharSet,
+     lf.lfOutPrecision,
+     lf.lfClipPrecision,
+     lf.lfQuality,
+     lf.lfPitchAndFamily,
+     lf.lfFaceName);*/
+    wxString s = font.GetNativeFontInfoDesc();
+    s.Replace(";2;",";3;",false);
+    font.SetNativeFontInfo(s);
+#endif
+}
+
 // Render 4 independent strings of text
 // FontString is a value that can be fed to SetNativeFontInfoUserDesc
 // dir is 0: move left, 1: move right, 2: up, 3: down, 4: 5: , 6: no movement
@@ -127,59 +160,10 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     wxFont Font2(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
     wxFont Font3(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
     wxFont Font4(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
-    if (!FontString1.IsEmpty())
-    {
-        Font1.SetNativeFontInfoUserDesc(FontString1);
-    }
-    if (!FontString2.IsEmpty())
-    {
-        Font2.SetNativeFontInfoUserDesc(FontString2);
-    }
-    if (!FontString3.IsEmpty())
-    {
-        Font3.SetNativeFontInfoUserDesc(FontString3);
-    }
-    if (!FontString4.IsEmpty())
-    {
-        Font4.SetNativeFontInfoUserDesc(FontString4);
-    }
-
-#ifdef __WXMSW__
-    /*
-    Here is the format for NativeFontInfo on Windows (taken from the source)
-    We want to change lfQuality from 2 to 3 - this disables antialiasing
-    s.Printf(wxS("%d;%ld;%ld;%ld;%ld;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%s"),
-             0, // version, in case we want to change the format later
-             lf.lfHeight,
-             lf.lfWidth,
-             lf.lfEscapement,
-             lf.lfOrientation,
-             lf.lfWeight,
-             lf.lfItalic,
-             lf.lfUnderline,
-             lf.lfStrikeOut,
-             lf.lfCharSet,
-             lf.lfOutPrecision,
-             lf.lfClipPrecision,
-             lf.lfQuality,
-             lf.lfPitchAndFamily,
-             lf.lfFaceName);*/
-    wxString s = Font1.GetNativeFontInfoDesc();
-    s.Replace(";2;",";3;",false);
-    Font1.SetNativeFontInfo(s);
-
-    s = Font2.GetNativeFontInfoDesc();
-    s.Replace(";2;",";3;",false);
-    Font2.SetNativeFontInfo(s);
-
-    s = Font3.GetNativeFontInfoDesc();
-    s.Replace(";2;",";3;",false);
-    Font3.SetNativeFontInfo(s);
-
-    s = Font4.GetNativeFontInfoDesc();
-    s.Replace(";2;",";3;",false);
-    Font4.SetNativeFontInfo(s);
-#endif
+    SetFont(Font1, FontString1);
+    SetFont(Font2, FontString2);
+    SetFont(Font3, FontString3);
+    SetFont(Font4, FontString4);
 
     for (int pass = 0; pass < 2; ++pass)
     {

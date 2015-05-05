@@ -101,7 +101,7 @@ bool ModelListDialog::ValidateModelName(const wxString& name)
         wxMessageBox(_("A model name is required"), _("ERROR"));
         return false;
     }
-    if (ListBox1->FindString(name) != wxNOT_FOUND)
+    if (ListBox1->FindString(name, true) != wxNOT_FOUND)
     {
         wxMessageBox(_("A model with this name already exists"), _("ERROR"));
         return false;

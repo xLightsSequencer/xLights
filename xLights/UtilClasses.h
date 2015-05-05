@@ -9,6 +9,8 @@ class MapStringString: public std::map<wxString,wxString> {
 public:
     MapStringString(): std::map<wxString,wxString>() {
     }
+    virtual ~MapStringString() {}
+    
     const wxString &operator[](const wxString &key) const {
         return Get(key, notFound);
     }
@@ -36,9 +38,14 @@ public:
             value.Replace("&comma;", ",", true); //unescape the commas
             value.Replace("&amp;", "&", true); //unescape the amps
 
-            (*this)[name]=value;
+            RemapKey(name, value);
+            if (!name.empty()) {
+                (*this)[name]=value;
+            }
         }
     }
+    
+    virtual void RemapKey(wxString &n, wxString &value) {};
     
     wxString AsString() const {
         wxString ret;
@@ -57,6 +64,19 @@ public:
     
 private:
     wxString notFound;
+};
+
+class SettingsMap: public MapStringString {
+public:
+    SettingsMap(): MapStringString() {
+    }
+    virtual ~SettingsMap() {}
+    
+    virtual void RemapKey(wxString &n, wxString &value) {
+        RemapChangedSettingKey(n, value);
+    }
+private:
+    static void RemapChangedSettingKey(wxString &n,  wxString &value);
 };
 
 

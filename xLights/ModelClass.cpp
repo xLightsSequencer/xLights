@@ -770,8 +770,9 @@ void ModelClass::InitStar() {
             int n = cur;
             if (!SingleNode) {
                 n = start + cnt;
+            } else {
+                n = 0;
             }
-
             if (Nodes[n]->StringNum != LastStringNum) {
                 LastStringNum=Nodes[n]->StringNum;
                 chan=stringStartChan[LastStringNum];

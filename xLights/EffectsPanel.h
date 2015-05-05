@@ -8,6 +8,7 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
+#include <wx/filepicker.h>
 #include <wx/statline.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
@@ -15,6 +16,7 @@
 #include <wx/bmpbuttn.h>
 #include <wx/gbsizer.h>
 #include <wx/button.h>
+#include <wx/fontpicker.h>
 #include <wx/choicebk.h>
 //*)
 
@@ -69,7 +71,6 @@ public:
     wxSlider* Slider_Pinwheel_ArmSize;
     wxTextCtrl* TextCtrl_MorphStartLength;
     wxSlider* Slider_Number_Strobes;
-    wxButton* Button_Pictures_Filename;
     wxBitmapButton* BitmapButton_TextCount4;
     wxSlider* Slider_Fan_Element_Width;
     wxSlider* Slider_Number_Chases;
@@ -84,7 +85,6 @@ public:
     wxStaticText* StaticText4;
     wxChoicebook* Choicebook1;
     wxStaticText* StaticText38;
-    wxTextCtrl* TextCtrl_Text_Font4;
     wxStaticText* StaticText86;
     wxStaticText* StaticText42;
     wxTextCtrl* TextCtrl_Morph_End_Y2;
@@ -110,7 +110,6 @@ public:
     wxBitmapButton* BitmapButton_Galaxy_End_Radius;
     wxChoice* Choice_Wave_Type;
     wxStaticText* StaticText91;
-    wxNotebook* Notebook_Text1;
     wxCheckBox* CheckBox_Circles_Radial_3D;
     wxBitmapButton* BitmapButton_Circles_Linear_Fade;
     wxBitmapButton* BitmapButton_Shockwave_Start_Radius;
@@ -151,7 +150,6 @@ public:
     wxCheckBox* CheckBox_Shockwave_Blend_Edges;
     wxTextCtrl* TextCtrl_Galaxy_End_Radius;
     wxBitmapButton* BitmapButton_Morph_Start_X2;
-    wxButton* Button_Text_Font1;
     wxSlider* Slider_Fan_Revolutions;
     wxStaticText* StaticText116;
     wxStaticText* StaticText48;
@@ -164,7 +162,6 @@ public:
     wxTextCtrl* TextCtrl_MorphEndLength;
     wxSlider* Slider_Eff_On_Start;
     wxChoice* Choice_Butterfly_Colors;
-    wxTextCtrl* TextCtrl_Text_Font1;
     wxBitmapButton* BitmapButton_MeteorsLength;
     wxTextCtrl* TextCtrl_Shockwave_End_Radius;
     wxStaticText* StaticText1;
@@ -269,7 +266,6 @@ public:
     wxStaticText* StaticText8;
     wxTextCtrl* TextCtrl_Fan_Revolutions;
     wxTextCtrl* TextCtrl_Galaxy_Start_Radius;
-    wxButton* Button_Text_Font2;
     wxTextCtrl* TextCtrl_Morph_End_X1;
     wxStaticText* StaticText25;
     wxSlider* Slider_Strobe_Type;
@@ -302,7 +298,6 @@ public:
     wxTextCtrl* TextCtrl_Fan_CenterY;
     wxBitmapButton* BitmapButton_SnowstormCount;
     wxCheckBox* CheckBox_Fan_Blend_Edges;
-    wxTextCtrl* TextCtrl_Text_Font3;
     wxTextCtrl* TextCtrl_Eff_On_Start;
     wxSlider* Slider_Spirograph_R;
     wxBitmapButton* BitmapButton_SpiralsShrink;
@@ -341,7 +336,6 @@ public:
     wxNotebook* Notebook2;
     wxBitmapButton* BitmapButton_GarlandsType;
     wxTextCtrl* TextCtrl_Morph_Start_X1;
-    wxTextCtrl* TextCtrl_Text_Font2;
     wxBitmapButton* BitmapButton_random;
     wxBitmapButton* BitmapButton_PinwheelNumberArms;
     wxStaticText* StaticText153;
@@ -420,7 +414,6 @@ public:
     wxStaticText* StaticText61;
     wxSlider* Slider_Morph_Start_X2;
     wxBitmapButton* BitmapButton_Galaxy_Start_Radius;
-    wxButton* Button_Text_Font4;
     wxStaticText* StaticText62;
     wxStaticText* StaticText150;
     wxCheckBox* CheckBox_Spirals_Grow;
@@ -553,7 +546,6 @@ public:
     wxBitmapButton* BitmapButton_PicturesDirection;
     wxCheckBox* CheckBox_CoroFaces_Outline;
     wxTextCtrl* TextCtrl_Fan_Element_Width;
-    wxButton* Button_Text_Font3;
     wxBitmapButton* BitmapButton_Shimmer_Duty_Factor;
     wxBitmapButton* BitmapButton_SpiralsBlend;
     wxBitmapButton* BitmapButton_WaveType;
@@ -622,7 +614,6 @@ public:
     wxCheckBox* CheckBox_ColorWash_VFade;
     wxBitmapButton* BitmapButton_Shimmer_Blinks_Per_Row;
     wxBitmapButton* BitmapButton_SnowflakesCount;
-    wxTextCtrl* TextCtrl_Pictures_Filename;
     wxBitmapButton* BitmapButton_TextFont3;
     wxSlider* Slider_Strobe_Duration;
     wxTextCtrl* TextCtrl_Galaxy_Start_Width;
@@ -1044,9 +1035,8 @@ protected:
     static const long ID_PANEL13;
     static const long ID_NOTEBOOK2;
     static const long ID_PANEL39;
-    static const long ID_BUTTON_PICTURES_FILENAME;
+    static const long ID_FILEPICKER_Pictures_Filename;
     static const long ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME;
-    static const long ID_TEXTCTRL_Pictures_Filename;
     static const long ID_STATICTEXT46;
     static const long ID_CHOICE_Pictures_Direction;
     static const long ID_BITMAPBUTTON_CHOICE_Pictures_Direction;
@@ -1254,9 +1244,8 @@ protected:
     static const long ID_TEXTCTRL_Text_Line3;
     static const long ID_STATICTEXT23;
     static const long ID_TEXTCTRL_Text_Line4;
-    static const long ID_BUTTON_TEXT_FONT1;
-    static const long ID_TEXTCTRL_Text_Font1;
-    static const long ID_BITMAPBUTTON_TEXTCTRL_Text_Font1;
+    static const long ID_FONTPICKER_Text_Font1;
+    static const long ID_BITMAPBUTTON_FONTPICKER_Text_Font1;
     static const long ID_STATICTEXT79;
     static const long ID_CHOICE_Text_Dir1;
     static const long ID_BITMAPBUTTON_CHOICE_Text_Dir1;
@@ -1272,9 +1261,8 @@ protected:
     static const long ID_SLIDER_Text_Position1;
     static const long ID_BITMAPBUTTON_SLIDER_Text_Position1;
     static const long ID_PANEL_Text1;
-    static const long ID_BUTTON_TEXT_FONT2;
-    static const long ID_TEXTCTRL_Text_Font2;
-    static const long ID_BITMAPBUTTON_TEXTCTRL_Text_Font2;
+    static const long ID_FONTPICKER_Text_Font2;
+    static const long ID_BITMAPBUTTON_FONTPICKER_Text_Font2;
     static const long ID_STATICTEXT57;
     static const long ID_CHOICE_Text_Dir2;
     static const long ID_BITMAPBUTTON_CHOICE_Text_Dir2;
@@ -1290,9 +1278,8 @@ protected:
     static const long ID_SLIDER_Text_Position2;
     static const long ID_BITMAPBUTTON_SLIDER_Text_Position2;
     static const long ID_PANEL_Text2;
-    static const long ID_BUTTON_TEXT_FONT3;
-    static const long ID_TEXTCTRL_Text_Font3;
-    static const long ID_BITMAPBUTTON_TEXTCTRL_Text_Font3;
+    static const long ID_FONTPICKER_Text_Font3;
+    static const long ID_BITMAPBUTTON_FONTPICKER_Text_Font3;
     static const long ID_STATICTEXT16;
     static const long ID_CHOICE_Text_Dir3;
     static const long ID_BITMAPBUTTON_CHOICE_Text_Dir3;
@@ -1308,9 +1295,8 @@ protected:
     static const long ID_SLIDER_Text_Position3;
     static const long ID_BITMAPBUTTON_SLIDER_Text_Position3;
     static const long ID_PANEL_Text3;
-    static const long ID_BUTTON_TEXT_FONT4;
-    static const long ID_TEXTCTRL_Text_Font4;
-    static const long ID_BITMAPBUTTON_TEXTCTRL_Text_Font4;
+    static const long ID_FONTPICKER_Text_Font4;
+    static const long ID_BITMAPBUTTON_FONTPICKER_Text_Font4;
     static const long ID_STATICTEXT24;
     static const long ID_CHOICE_Text_Dir4;
     static const long ID_BITMAPBUTTON_CHOICE_Text_Dir4;
@@ -1326,7 +1312,7 @@ protected:
     static const long ID_SLIDER_Text_Position4;
     static const long ID_BITMAPBUTTON_SLIDER_Text_Position4;
     static const long ID_PANEL_Text4;
-    static const long ID_NOTEBOOK_Text1;
+    static const long IDD_NOTEBOOK_Text;
     static const long ID_PANEL7;
     static const long ID_BITMAPBUTTON40;
     static const long ID_STATICTEXT87;
@@ -1376,12 +1362,9 @@ protected:
 private:
 
     //(*Handlers(EffectsPanel)
-    void OnButton_Pictures_FilenameClick(wxCommandEvent& event);
     void OnButton_pgo_filenameClick(wxCommandEvent& event);
     //    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
     void OnButton_Glediator_FilenameClick(wxCommandEvent& event);
-    void OnButton_Text_Font1Click(wxCommandEvent& event);
-    void OnButton_Text_Font2Click(wxCommandEvent& event);
     void OnCheckBox_PaletteClick(wxCommandEvent& event);
     void OnButton_PaletteNumberClick(wxCommandEvent& event);
     void OnChoicebook1PageChanged(wxChoicebookEvent& event);
@@ -1502,8 +1485,6 @@ private:
     void OnBitmapButton_Chase_3dFade1Click(wxCommandEvent& event);
     void OnBitmapButton_R_TO_L1Click(wxCommandEvent& event);
     void OnBitmapButton_OverlayBkgClick(wxCommandEvent& event);
-    void OnButton_Text_Font3Click(wxCommandEvent& event);
-    void OnButton_Text_Font4Click(wxCommandEvent& event);
     void OnBitmapButton_TextLine3Click(wxCommandEvent& event);
     void OnBitmapButton_TextLine4Click(wxCommandEvent& event);
     void OnBitmapButton_TextFont3Click(wxCommandEvent& event);
@@ -1753,7 +1734,6 @@ private:
     void OnChoicePicturesDirectionSelect(wxCommandEvent& event);
     //*)
 
-    void UpdateFont(wxTextCtrl* FontCtrl);
     int GetRandomSliderValue(wxSlider* slider);
     wxString GetAttrPrefix();
     wxString GetRandomEffectStringFromWindow(wxWindow *ParentWin, const wxString &prefix);
