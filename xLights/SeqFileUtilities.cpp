@@ -429,7 +429,7 @@ public:
         bin.Read(&buf[pos], sz);
         size_t ret = bin.LastRead();
         bufLen += ret;
-        
+
         bool needToClose = false;
         for (int x = 7; x < bufLen; x++) {
             if (buf[x-7] == '<'
@@ -465,6 +465,20 @@ public:
                        && buf[x-1] == 'n'
                        && buf[x] == ' ') {
                 needToClose = true;
+            } else if (x > 11 &&
+                       buf[x-11] == '<'
+                       && buf[x-10] == 't'
+                       && buf[x-9] == 'e'
+                       && buf[x-8] == 'x'
+                       && buf[x-7] == 't'
+                       && buf[x-6] == 'A'
+                       && buf[x-5] == 'c'
+                       && buf[x-4] == 't'
+                       && buf[x-3] == 'i'
+                       && buf[x-2] == 'o'
+                       && buf[x-1] == 'n'
+                       && buf[x] == ' ') {
+                needToClose = true;
             } else if (buf[x-1] == '>' && needToClose) {
                 if (buf[x-2] != '/') {
                     buf[x - 1] = '/';
@@ -474,7 +488,7 @@ public:
             }
         }
     }
-    
+
     virtual size_t OnSysRead(void *buffer, size_t bufsize) {
         unsigned char *b = (unsigned char *)buffer;
         if (bufsize > 1024) {
@@ -484,7 +498,7 @@ public:
         if (bufLen < 2000) {
             fillBuf();
         }
-        
+
         if (bufLen) {
             ret = std::min(bufsize, bufLen);
             memcpy(b, buf, ret);
@@ -497,7 +511,7 @@ public:
         }
         return 0;
     }
-    
+
 private:
     wxBufferedInputStream bin;
     unsigned char buf[MAXBUFSIZE];
@@ -526,7 +540,7 @@ void xLightsFrame::ImportSuperStar()
         wxString xml_doc = xml_file.GetFullPath();
         wxFileInputStream fin(xml_doc);
         FixXMLInputStream bufIn(fin);
-        
+
         if( !input_xml.Load(bufIn) )  return;
 
         Element* model = nullptr;
@@ -655,7 +669,7 @@ void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel,
     while (ge != nullptr && "effect" != ge->GetName()) ge = ge->GetNext();
     wxXmlNode* be=bchannel->GetChildren();
     while (be != nullptr && "effect" != be->GetName()) be = be->GetNext();
-    
+
     int cwIndex = Effect::GetEffectIndex("Color Wash");
     int shimmerIndex = Effect::GetEffectIndex("Shimmer");
     int onIndex = Effect::GetEffectIndex("On");
@@ -670,7 +684,7 @@ void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel,
             + "C_BUTTON_Palette2=" + ec + ",C_CHECKBOX_Palette2=1,"
             + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-        
+
         if (isShimmer && sc == ec) {
             wxString settings = _("E_CHECKBOX_Shimmer_Blink_Timing=0,E_CHECKBOX_Shimmer_Use_All_Colors=0,E_SLIDER_Shimmer_Blinks_Per_Row=1,")
                 + "E_SLIDER_Shimmer_Duty_Factor=60,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
@@ -786,7 +800,7 @@ bool xLightsFrame::ImportLMS(Element *model, wxXmlDocument &input_xml)
     ccrNames.Insert("", 0);
     LMSImportChannelMapDialog dlg(this);
     dlg.SetNames(&channelNames, &strandNames, &nodeNames, &ccrNames);
-    
+
     if (dlg.ShowModal() == wxID_CANCEL) {
         return false;
     }
@@ -833,8 +847,8 @@ bool xLightsFrame::ImportLMS(Element *model, wxXmlDocument &input_xml)
             cnt++;
         }
     }
-    
-    
+
+
     for (int s = 0; s < model->getStrandLayerCount(); s++) {
         StrandLayer *sl = model->GetStrandLayer(s);
         wxString ccrName;
@@ -844,7 +858,7 @@ bool xLightsFrame::ImportLMS(Element *model, wxXmlDocument &input_xml)
                 continue;
             }
         }
-        
+
         for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
             EffectLayer *layer = sl->GetNodeLayer(n);
             wxString nm;
@@ -885,7 +899,7 @@ bool xLightsFrame::ImportLMS(Element *model, wxXmlDocument &input_xml)
             cnt++;
         }
     }
-    
+
     return true;
 }
 
@@ -896,7 +910,7 @@ public:
     int width;
     int height;
     wxString imageName;
-    
+
     void Set(int x, int y, int w, int h, const wxString &n) {
         xoffset = x;
         yoffset = y;
@@ -932,6 +946,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
     bool layout_defined = false;
     wxXmlNode* input_root=input_xml.GetRoot();
     int morph_index = Effect::GetEffectIndex("Morph");
+    int galaxy_index = Effect::GetEffectIndex("Galaxy");
+    int shockwave_index = Effect::GetEffectIndex("Shockwave");
+    int fan_index = Effect::GetEffectIndex("Fan");
     int picture_index = Effect::GetEffectIndex("Pictures");
     EffectLayer* layer = model->AddEffectLayer();
     std::map<int, ImageInfo> imageInfo;
@@ -1081,8 +1098,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             wxString data = i->GetAttribute("s");
                             int w = wxAtoi(element->GetAttribute("width"));
                             int h = wxAtoi(element->GetAttribute("height"));
-                            
-                            
+
+
                             int idx = wxAtoi(element->GetAttribute("savedIndex"));
                             int xOffset =  wxAtoi(element->GetAttribute("xOffset"));
                             int yOffset =  wxAtoi(element->GetAttribute("yOffset"));
@@ -1103,10 +1120,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                                 v *= 255;
                                 v /= 100;
                                 bytes[cnt + 2] = v;
-                                
+
                                 cnt += 3;
                             }
-                            
+
                             wxImage image(w, h, bytes);
                             if ("" == imagePfx) {
                                 imagePfx = wxGetTextFromUser("Choose prefix for images extracted from Superstar File");
@@ -1121,9 +1138,118 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
         } else if ("flowys" == e->GetName()) {
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
                 if ("flowy" == element->GetName()) {
-                    wxString startms = element->GetAttribute("startTime");
+                    wxString centerX, centerY;
+                    double startms = wxAtoi(element->GetAttribute("startTime")) * 10;
+                    double endms = wxAtoi(element->GetAttribute("endTime")) * 10;
                     wxString type = element->GetAttribute("flowyType");
-                    AppendConvertStatus("Could not map flowy of type " + type + " at starting time " + startms + "0 ms\n", true);
+                    wxString color_string = element->GetAttribute("Colors");
+                    wxString sRed, sGreen, sBlue, color;
+                    wxString palette = "C_BUTTON_Palette1=" + color + ",";
+                    int cnt = 1;
+                    wxStringTokenizer tokenizer(color_string, " ");
+                    while (tokenizer.HasMoreTokens() && cnt <=6) {
+                        wxStringTokenizer tokenizer2(tokenizer.GetNextToken(), ",");
+                        sRed = tokenizer2.GetNextToken();
+                        sGreen = tokenizer2.GetNextToken();
+                        sBlue = tokenizer2.GetNextToken();
+                        color = GetColorString(sRed, sGreen, sBlue);
+                        if( cnt > 1 ) {
+                            palette += ",";
+                        }
+                        palette += "C_BUTTON_Palette" + wxString::Format("%d", cnt) + "=" + color;
+                        palette += ",C_CHECKBOX_Palette" + wxString::Format("%d", cnt) + "=1";
+                        cnt++;
+                    }
+                    while (cnt<=6) {
+                        if( cnt > 1 ) {
+                            palette += ",";
+                        }
+                        palette += "C_BUTTON_Palette" + wxString::Format("%d", cnt) + "=#000000";
+                        palette += ",C_CHECKBOX_Palette" + wxString::Format("%d", cnt) + "=0";
+                        cnt++;
+                    }
+                    palette += ",C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+
+                    int layer_index = wxAtoi(element->GetAttribute("layer"));
+                    int acceleration = wxAtoi(element->GetAttribute("acceleration"));
+                    element->GetAttribute("centerX", &centerX);
+                    CalcPercentage(centerX, num_columns, false);
+                    element->GetAttribute("centerY", &centerY);
+                    CalcPercentage(centerY, num_rows, reverse_rows);
+                    int startAngle = wxAtoi(element->GetAttribute("startAngle"));
+                    int endAngle = wxAtoi(element->GetAttribute("endAngle"));
+                    int revolutions = std::abs(endAngle-startAngle);
+                    int startRadius = wxAtoi(element->GetAttribute("startRadius"));
+                    int endRadius = wxAtoi(element->GetAttribute("endRadius"));
+                    layer = FindOpenLayer(model, layer_index, startms / 1000.0, endms / 1000.0, reserved);
+                    if( type == "Spiral" )
+                    {
+                        double tailms = wxAtoi(element->GetAttribute("tailTimeLength")) * 10;
+                        double duration = (1.0 - tailms/(endms-startms)) * 100.0;
+                        int startWidth = wxAtoi(element->GetAttribute("startDotSize"));
+                        int endWidth = wxAtoi(element->GetAttribute("endDotSize"));
+                        wxString settings = "E_CHECKBOX_Galaxy_Reverse=" + wxString::Format("%d", startAngle < endAngle)
+                                            + ",E_CHECKBOX_Galaxy_Blend_Edges=1"
+                                            + ",E_CHECKBOX_Galaxy_Inward=1"
+                                            + ",E_NOTEBOOK_Galaxy=Start,E_SLIDER_Galaxy_Accel=" + wxString::Format("%d", acceleration)
+                                            + ",E_SLIDER_Galaxy_CenterX=" + centerX
+                                            + ",E_SLIDER_Galaxy_CenterY=" + centerY
+                                            + ",E_SLIDER_Galaxy_Duration=" + wxString::Format("%d", (int)duration)
+                                            + ",E_SLIDER_Galaxy_End_Radius=" + wxString::Format("%d", endRadius)
+                                            + ",E_SLIDER_Galaxy_End_Width=" + wxString::Format("%d", endWidth)
+                                            + ",E_SLIDER_Galaxy_Revolutions=" + wxString::Format("%d", revolutions)
+                                            + ",E_SLIDER_Galaxy_Start_Angle=" + wxString::Format("%d", startAngle)
+                                            + ",E_SLIDER_Galaxy_Start_Radius=" + wxString::Format("%d", startRadius)
+                                            + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth)
+                                            + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00"
+                                            + ",T_TEXTCTRL_Fadeout=0.00";
+                        layer->AddEffect(0, galaxy_index, "Galaxy", settings, palette, startms / 1000.0, endms / 1000.0, false, false);
+                    }
+                    else if( type == "Shockwave" )
+                    {
+                        int startWidth = wxAtoi(element->GetAttribute("headWidth"));
+                        int endWidth = wxAtoi(element->GetAttribute("tailWidth"));
+                        wxString settings = "E_CHECKBOX_Shockwave_Blend_Edges=1"
+                                            + _(",E_NOTEBOOK_Shockwave=Position,E_SLIDER_Shockwave_Accel=") + wxString::Format("%d", acceleration)
+                                            + ",E_SLIDER_Shockwave_CenterX=" + centerX
+                                            + ",E_SLIDER_Shockwave_CenterY=" + centerY
+                                            + ",E_SLIDER_Shockwave_End_Radius=" + wxString::Format("%d", endRadius)
+                                            + ",E_SLIDER_Shockwave_End_Width=" + wxString::Format("%d", endWidth)
+                                            + ",E_SLIDER_Shockwave_Start_Radius=" + wxString::Format("%d", startRadius)
+                                            + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth)
+                                            + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00"
+                                            + ",T_TEXTCTRL_Fadeout=0.00";
+                        layer->AddEffect(0, shockwave_index, "Shockwave", settings, "", startms / 1000.0, endms / 1000.0, false, false);
+                    }
+                    else if( type == "Fan" )
+                    {
+                        int revolutionsPerSecond = wxAtoi(element->GetAttribute("revolutionsPerSecond"));
+                        int blades = wxAtoi(element->GetAttribute("blades"));
+                        int blade_width = wxAtoi(element->GetAttribute("width"));
+                        int elementAngle = wxAtoi(element->GetAttribute("elementAngle"));
+                        int elementStepAngle = wxAtoi(element->GetAttribute("elementStepAngle"));
+                        wxString settings = "E_CHECKBOX_Fan_Reverse=" + wxString::Format("%d", startAngle < endAngle)
+                                            + ",E_CHECKBOX_Fan_Blend_Edges=1"
+                                            + ",E_NOTEBOOK_Fan=Position,E_SLIDER_Fan_Accel=" + wxString::Format("%d", acceleration)
+                                            + ",E_SLIDER_Fan_Blade_Angle=" + wxString::Format("%d", elementAngle)
+                                            + ",E_SLIDER_Fan_Blade_Width=" + wxString::Format("%d", blade_width)
+                                            + ",E_SLIDER_Fan_CenterX=" + centerX
+                                            + ",E_SLIDER_Fan_CenterY=" + centerY
+                                            + ",E_SLIDER_Fan_Duration=100"
+                                            + ",E_SLIDER_Fan_Element_Width=" + wxString::Format("%d", 100)
+                                            + ",E_SLIDER_Fan_Num_Blades=" + wxString::Format("%d", blades)
+                                            + ",E_SLIDER_Fan_Num_Elements=" + wxString::Format("%d", (int)(360.0/(double)blades*(double)blade_width/100.0/(double)elementStepAngle))
+                                            + ",E_SLIDER_Fan_End_Radius=" + wxString::Format("%d", endRadius)
+                                            + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond*((endms-startms)/1000.0)))
+                                            + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle)
+                                            + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius)
+                                            + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00"
+                                            + ",T_TEXTCTRL_Fadeout=0.00";
+                        layer->AddEffect(0, fan_index, "Fan", settings, palette, startms / 1000.0, endms / 1000.0, false, false);
+                    }
                 }
             }
         } else if ("scenes" == e->GetName()) {
@@ -1191,7 +1317,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                     //<imageAction name="Image Action 14" colorType="nativeColor" maskType="normal" rotation="0" direction="8"
                     //  stopAtEdge="0" layer="3" xStart="-1" yStart="0" xEnd="0" yEnd="0" startCentisecond="115" endCentisecond="145"
                     //  preRampTime="0" rampTime="0" fadeToBright="0" fadeFromBright="0" imageIndex="5" savedIndex="0">
-                    
+
                     int idx = wxAtoi(element->GetAttribute("imageIndex"));
                     double startms = wxAtoi(element->GetAttribute("startCentisecond")) * 10;
                     double endms = wxAtoi(element->GetAttribute("endCentisecond")) * 10;
@@ -1213,24 +1339,24 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                         fade /= 1000;  //FadeIn is in seconds
                         rampDownTimeString = wxString::Format("%lf", fade);
                     }
-                    
-                    
+
+
                     int startx = wxAtoi(element->GetAttribute("xStart"));
                     int starty = wxAtoi(element->GetAttribute("yStart"));
                     int endx = wxAtoi(element->GetAttribute("xEnd"));
                     int endy = wxAtoi(element->GetAttribute("yEnd"));
-                    
-                    
+
+
                     int xOffIfCentered =(imageInfo[idx].width-num_columns)/2;
                     int x = imageInfo[idx].xoffset + xOffIfCentered;
-                    
 
-                    
+
+
                     int yll = num_rows -  imageInfo[idx].yoffset;
                     int yOffIfCentered =(num_rows+imageInfo[idx].height)/2; //centered if sizes don't match
                     int y = yll - yOffIfCentered + 1;
-                    
-                    
+
+
                     //yoffset+yoffset_adj-y - 1
                     /*
                     int xoffset =(imageInfo[idx].width-12)/2; //centered if sizes don't match
@@ -1246,7 +1372,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                         printf("     %d  \n", (yoffset + (y - starty) - 1));
                     }
                      */
-                    
+
 
                     layer = FindOpenLayer(model, layer_index, startms / 1000.0, endms / 1000.0, reserved);
                     if (endy == starty && endx == startx) {
@@ -1260,7 +1386,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                             + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + rampUpTimeString
                             + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
-                        
+
                         layer->AddEffect(0, picture_index, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
                     } else {
                         wxString settings = _("E_CHECKBOX_MovieIs20FPS=0,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=vector,")
@@ -1273,7 +1399,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                             + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + rampUpTimeString
                             + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
-                        
+
                         layer->AddEffect(0, picture_index, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
                     }
                 }

@@ -848,7 +848,7 @@ protected:
     static const long ID_CHECKBOX_Fan_Reverse;
     static const long ID_CHECKBOX_Fan_Blend_Edges;
     static const long ID_PANEL41;
-    static const long ID_NOTEBOOK1;
+    static const long ID_NOTEBOOK_Fan;
     static const long ID_SCROLLEDWINDOW_FAN;
     static const long ID_STATICTEXT84;
     static const long ID_SLIDER_Fire_Height;
@@ -1148,7 +1148,7 @@ protected:
     static const long ID_BITMAPBUTTON_SLIDER_Shockwave_Accel;
     static const long ID_CHECKBOX_Shockwave_Blend_Edges;
     static const long ID_PANEL44;
-    static const long ID_NOTEBOOK3;
+    static const long ID_NOTEBOOK_Shockwave;
     static const long ID_SCROLLEDWINDOW_SHOCKWAVE;
     static const long ID_STATICTEXT63;
     static const long ID_CHOICE_SingleStrand_Colors;

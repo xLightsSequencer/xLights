@@ -1189,7 +1189,7 @@
 								<cols>1</cols>
 								<growablecols>0</growablecols>
 								<object class="sizeritem">
-									<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
+									<object class="wxNotebook" name="ID_NOTEBOOK_Fan" variable="Notebook1" member="yes">
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL38" variable="Panel9" member="no">
 												<object class="wxGridBagSizer" variable="GridBagSizerFanPosition" member="no">
@@ -4972,7 +4972,7 @@
 								<cols>1</cols>
 								<growablecols>0</growablecols>
 								<object class="sizeritem">
-									<object class="wxNotebook" name="ID_NOTEBOOK3" variable="Notebook3" member="yes">
+									<object class="wxNotebook" name="ID_NOTEBOOK_Shockwave" variable="Notebook3" member="yes">
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL40" variable="Panel10" member="no">
 												<object class="wxGridBagSizer" variable="GridBagSizerShockwavePosition" member="no">
