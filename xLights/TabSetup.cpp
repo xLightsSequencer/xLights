@@ -709,17 +709,3 @@ void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
     }
 }
 
-void xLightsFrame::ChangeFseqDirectory(wxCommandEvent& event)
-{
-    wxDirDialog dialog(this);
-    dialog.SetPath(fseqDirectory);
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        fseqDirectory = dialog.GetPath();
-        wxConfigBase* config = wxConfigBase::Get();
-        config->Write(_("FseqDir"), fseqDirectory);
-        fseqDirectoryLabel->SetLabel(fseqDirectory);
-        fseqDirectoryLabel->GetParent()->Layout();
-    }
-}
-

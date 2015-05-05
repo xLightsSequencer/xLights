@@ -769,31 +769,6 @@
 													<border>5</border>
 													<option>1</option>
 												</object>
-												<object class="sizeritem">
-													<object class="wxStaticText" name="wxID_ANY" variable="StaticText37" member="no">
-														<label>fseq Save Directory:</label>
-													</object>
-													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxButton" name="ID_BUTTON2" variable="Button02" member="no">
-														<label>Change</label>
-														<handler function="ChangeFseqDirectory" entry="EVT_BUTTON" />
-													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxStaticText" name="ID_STATICTEXT24" variable="fseqDirectoryLabel" member="yes">
-														<label>{Fseq Directory not set}</label>
-													</object>
-													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>

@@ -343,7 +343,7 @@ public:
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
     static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
-    wxString GetFseqDirectory() { return fseqDirectory; }
+    wxString GetShowDirectory() { return showDirectory; }
     NetInfoClass& GetNetInfo() { return NetInfo; }
     wxCheckListBox* GetCheckListBoxTestChannels() { return CheckListBoxTestChannels; }
     void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
@@ -526,7 +526,6 @@ private:
     void OnNotebook1PageChanged1(wxAuiNotebookEvent& event);
     void OnMenuXmlConversionSettings(wxCommandEvent& event);
     void ChangeMediaDirectory(wxCommandEvent& event);
-    void ChangeFseqDirectory(wxCommandEvent& event);
     void OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event);
     void OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event);
     void OnAuiToolBarItemStopClick(wxCommandEvent& event);
@@ -640,8 +639,6 @@ private:
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON1;
     static const long ID_ANY;
-    static const long ID_BUTTON2;
-    static const long ID_STATICTEXT24;
     static const long ID_BUTTON_SAVE_SETUP;
     static const long ID_BUTTON_ADD_DONGLE;
     static const long ID_BUTTON_ADD_E131;
@@ -1093,7 +1090,6 @@ private:
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
     wxCheckBox* CheckBoxRunSchedule;
-    wxStaticText* fseqDirectoryLabel;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxBitmapButton* bbStop;
     wxBitmapButton* bbPlayPause;
@@ -1221,7 +1217,6 @@ private:
     wxString mediaFilename;
     wxString showDirectory;
     wxString mediaDirectory;
-    wxString fseqDirectory;
     SeqDataType SeqData;
 
     wxArrayString FileNames;

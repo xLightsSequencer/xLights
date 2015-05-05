@@ -767,7 +767,7 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes)
         full_name.SetPath(fDir);
         wxFileName data_file(full_name);
         data_file.SetExt("iseq");
-        data_file.SetPath(xLightsParent->GetFseqDirectory());
+        data_file.SetPath(xLightsParent->GetShowDirectory());
         DataLayerSet& data_layers = xml_file->GetDataLayers();
         DataLayer* new_data_layer = data_layers.AddDataLayer(full_name.GetName(), full_name.GetFullPath(), data_file.GetFullPath() );
         wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
