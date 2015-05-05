@@ -369,9 +369,9 @@ static void CalcPercentage(wxString& value, double base, bool reverse)
     value = wxString::Format("%d",(int)percent);
 }
 
-static wxString GetColorString(wxString& sRed, wxString& sGreen, wxString& sBlue)
+static xlColor GetColor(const wxString& sRed, const wxString& sGreen, const wxString& sBlue)
 {
-    double val,red,green,blue;
+    double red,green,blue;
     sRed.ToDouble(&red);
     red = red / 100.0 * 255.0;
     sGreen.ToDouble(&green);
@@ -379,8 +379,13 @@ static wxString GetColorString(wxString& sRed, wxString& sGreen, wxString& sBlue
     sBlue.ToDouble(&blue);
     blue = blue / 100.0 * 255.0;
     xlColor color(red, green, blue);
-    return (wxString)color;
+    return color;
 }
+static wxString GetColorString(const wxString& sRed, const wxString& sGreen, const wxString& sBlue)
+{
+    return (wxString)GetColor(sRed, sGreen, sBlue);
+}
+
 
 static EffectLayer* FindOpenLayer(Element* model, int layer_index, double start_time, double end_time, std::vector<bool> &reserved)
 {
@@ -901,6 +906,24 @@ public:
     }
 };
 
+wxString CreateSceneImage(const wxString &imagePfx, wxXmlNode *element, int numCols, int numRows, bool reverse, const xlColor &color) {
+    wxImage i;
+    i.Create(numCols, numRows);
+    
+    for(wxXmlNode* e=element->GetChildren(); e!=NULL; e=e->GetNext()) {
+        if (e->GetName() == "element") {
+            int x = wxAtoi(e->GetAttribute("ribbonIndex"));
+            int y = wxAtoi(e->GetAttribute("pixelIndex"));
+            if (x < numCols) {
+                i.SetRGB(x, y, color.Red(), color.Green(), color.Blue());
+            }
+        }
+    }
+    wxString name = imagePfx + "_s" + element->GetAttribute("savedIndex")+ ".bmp";
+    i.SaveFile(name);
+    return name;
+}
+
 bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
 {
     double num_rows = 1.0;
@@ -933,7 +956,6 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
         if (e->GetName() == "layouts")
         {
             wxXmlNode* element=e->GetChildren();
-            double value;
             wxString attr;
             element->GetAttribute("nbrOfRibbons", &attr);
             attr.ToDouble(&num_columns);
@@ -1102,6 +1124,65 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                     wxString startms = element->GetAttribute("startTime");
                     wxString type = element->GetAttribute("flowyType");
                     AppendConvertStatus("Could not map flowy of type " + type + " at starting time " + startms + "0 ms\n", true);
+                }
+            }
+        } else if ("scenes" == e->GetName()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+                if ("scene" == element->GetName()) {
+                    wxString startms = element->GetAttribute("startCentisecond") + "0";
+                    wxString endms = element->GetAttribute("endCentisecond") + "0";
+                    wxString type = element->GetAttribute("type");
+                    int layer_index = wxAtoi(element->GetAttribute("layer"));
+                    xlColor startc = GetColor(element->GetAttribute("red1"),
+                                             element->GetAttribute("green1"),
+                                             element->GetAttribute("blue1"));
+                    xlColor endc = GetColor(element->GetAttribute("red2"),
+                                             element->GetAttribute("green3"),
+                                             element->GetAttribute("blue2"));
+                    while( model->GetEffectLayerCount() < layer_index ) {
+                        model->AddEffectLayer();
+                    }
+                    
+                    if ((type == "intensity") && (startc == xlBLACK || endc == xlBLACK || endc == startc)) {
+                        double start_time = wxAtoi(startms) / 1000.0;
+                        double end_time = wxAtoi(endms) / 1000.0;
+                        layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
+                        if ("" == imagePfx) {
+                            imagePfx = wxGetTextFromUser("Choose prefix for images extracted from Superstar File");
+                        }
+                        wxString imageName = CreateSceneImage(imagePfx, element, num_columns, num_rows, reverse_rows, (startc == xlBLACK) ? endc : startc);
+                        
+                        wxString ramp = wxString::Format("%lf", (end_time - start_time));
+                        wxString ru = "0.0";
+                        wxString rd = "0.0";
+                        if (endc == xlBLACK) {
+                            rd = ramp;
+                        }
+                        if (startc == xlBLACK) {
+                            ru = ramp;
+                        }
+                        
+                        wxString settings = _("E_CHECKBOX_MovieIs20FPS=0,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,")
+                            + "E_SLIDER_PicturesXC=0"
+                            + ",E_SLIDER_PicturesYC=0"
+                            + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
+                            + ",E_TEXTCTRL_Pictures_Filename=" + imageName
+                            + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + ru
+                            + ",T_TEXTCTRL_Fadeout=" + rd;
+                        
+                        layer->AddEffect(0, picture_index, "Pictures", settings, "", start_time, end_time, false, false);
+                        
+                    } else {
+                        AppendConvertStatus("Could not map scene at starting time " + startms + " ms\n", true);
+                    }
+                }
+            }
+        } else if ("textActions" == e->GetName()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+                if ("textAction" == element->GetName()) {
+                    wxString startms = element->GetAttribute("startCentisecond");
+                    AppendConvertStatus("Could not map textAction at starting time " + startms + "0 ms\n", true);
                 }
             }
         } else if ("imageActions" == e->GetName()) {
