@@ -929,7 +929,7 @@ wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
                           int numRows, bool reverse, const xlColor &color) {
     wxImage i;
     i.Create(numCols, numRows);
-    
+
     for(wxXmlNode* e=element->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "element") {
             int x = wxAtoi(e->GetAttribute("ribbonIndex"));
@@ -1227,7 +1227,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                                             + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00"
                                             + ",T_TEXTCTRL_Fadeout=0.00";
-                        layer->AddEffect(0, shockwave_index, "Shockwave", settings, "", startms / 1000.0, endms / 1000.0, false, false);
+                        layer->AddEffect(0, shockwave_index, "Shockwave", settings, palette, startms / 1000.0, endms / 1000.0, false, false);
                     }
                     else if( type == "Fan" )
                     {
@@ -1236,7 +1236,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                         int blade_width = wxAtoi(element->GetAttribute("width"));
                         int elementAngle = wxAtoi(element->GetAttribute("elementAngle"));
                         int elementStepAngle = wxAtoi(element->GetAttribute("elementStepAngle"));
-                        wxString settings = "E_CHECKBOX_Fan_Reverse=" + wxString::Format("%d", startAngle < endAngle)
+                        wxString settings = "E_CHECKBOX_Fan_Reverse=" + wxString::Format("%d", startAngle > endAngle)
                                             + ",E_CHECKBOX_Fan_Blend_Edges=1"
                                             + ",E_NOTEBOOK_Fan=Position,E_SLIDER_Fan_Accel=" + wxString::Format("%d", acceleration)
                                             + ",E_SLIDER_Fan_Blade_Angle=" + wxString::Format("%d", elementAngle)
@@ -1248,7 +1248,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                                             + ",E_SLIDER_Fan_Num_Blades=" + wxString::Format("%d", blades)
                                             + ",E_SLIDER_Fan_Num_Elements=" + wxString::Format("%d", (int)(360.0/(double)blades*(double)blade_width/100.0/(double)elementStepAngle))
                                             + ",E_SLIDER_Fan_End_Radius=" + wxString::Format("%d", endRadius)
-                                            + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond*((endms-startms)/1000.0)))
+                                            + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond*((endms-startms)/1000.0)*3.6))
                                             + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle)
                                             + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius)
                                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
@@ -1274,14 +1274,14 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                     while( model->GetEffectLayerCount() < layer_index ) {
                         model->AddEffectLayer();
                     }
-                    
+
                     double start_time = wxAtoi(startms) / 1000.0;
                     double end_time = wxAtoi(endms) / 1000.0;
                     layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
                     if ("" == imagePfx) {
                         imagePfx = wxGetTextFromUser("Choose prefix for images extracted from Superstar File");
                     }
-                    
+
                     wxString ru = "0.0";
                     wxString rd = "0.0";
                     wxString imageName;
@@ -1313,8 +1313,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             }
                         }
                     }
-                    
-                    
+
+
                     wxString settings = _("E_CHECKBOX_MovieIs20FPS=1,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=scaled,")
                         + "E_SLIDER_PicturesXC=0"
                         + ",E_SLIDER_PicturesYC=0"
@@ -1323,7 +1323,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                         + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                         + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + ru
                         + ",T_TEXTCTRL_Fadeout=" + rd;
-                    
+
                     layer->AddEffect(0, picture_index, "Pictures", settings, "", start_time, end_time, false, false);
                 }
             }
