@@ -56,6 +56,25 @@ void EffectLayer::RemoveEffect(int index)
     }
 }
 
+
+Effect* EffectLayer::AddEffect(int id, const wxString &name, const wxString &settings, const wxString &palette,
+                               double startTime,double endTime, int Selected, bool Protected)
+{
+    Effect *e = new Effect(this);
+    e->SetID(id);
+    e->SetPalette(palette);
+    e->SetEffectIndex(Effect::GetEffectIndex(name));
+    e->SetEffectName(name);
+    e->SetSettings(settings);
+    e->SetStartTime(startTime);
+    e->SetEndTime(endTime);
+    e->SetProtected(Protected);
+    e->SetSelected(Selected);
+    mEffects.push_back(e);
+    SortEffects();
+    IncrementChangeCount();
+    return e;
+}
 Effect* EffectLayer::AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
                                double startTime,double endTime, int Selected, bool Protected)
 {

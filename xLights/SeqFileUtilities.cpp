@@ -979,8 +979,6 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
     int galaxy_index = Effect::GetEffectIndex("Galaxy");
     int shockwave_index = Effect::GetEffectIndex("Shockwave");
     int fan_index = Effect::GetEffectIndex("Fan");
-    int picture_index = Effect::GetEffectIndex("Pictures");
-    int colorwash_index = Effect::GetEffectIndex("Color Wash");
     EffectLayer* layer = model->AddEffectLayer();
     std::map<int, ImageInfo> imageInfo;
     wxString imagePfx;
@@ -1321,7 +1319,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
                         wxString settings = _("T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
                             + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_SLIDER_ColorWash_Count=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0";
-                        layer->AddEffect(0, colorwash_index, "Color Wash", settings, palette, start_time, end_time, false, false);
+                        layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                     } else if (isPartOfModel) {
                         if (startc == xlBLACK || endc == xlBLACK || endc == startc) {
                             imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, reverse_rows, (startc == xlBLACK) ? endc : startc);
@@ -1361,7 +1359,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + ru
                             + ",T_TEXTCTRL_Fadeout=" + rd;
 
-                        layer->AddEffect(0, picture_index, "Pictures", settings, "", start_time, end_time, false, false);
+                        layer->AddEffect(0, "Pictures", settings, "", start_time, end_time, false, false);
                     }
                 }
             }
@@ -1448,7 +1446,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + rampUpTimeString
                             + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
 
-                        layer->AddEffect(0, picture_index, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
+                        layer->AddEffect(0, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
                     } else {
                         wxString settings = _("E_CHECKBOX_MovieIs20FPS=0,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=vector,")
                             + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x + startx)
@@ -1461,7 +1459,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                             + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + rampUpTimeString
                             + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
 
-                        layer->AddEffect(0, picture_index, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
+                        layer->AddEffect(0, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
                     }
                 }
             }

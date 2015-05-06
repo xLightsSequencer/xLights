@@ -300,6 +300,13 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
     switch (dir) //prep
     {
         case RENDER_PICTURE_SCALED:
+            dir = RENDER_PICTURE_NONE;
+            image.Rescale(BufferWi, BufferHt);
+            imgwidth=image.GetWidth();
+            imght = image.GetHeight();
+            yoffset =(BufferHt+imght)/2; //centered if sizes don't match
+            xoffset =(imgwidth-BufferWi)/2; //centered if sizes don't match
+            break;
         case RENDER_PICTURE_ZOOMIN: //src <- dest scale factor -DJ
             xscale = (imgwidth > 1)? (float)BufferWi / imgwidth: 1;
             yscale = (imght > 1)? (float)BufferHt / imght: 1;
@@ -408,11 +415,6 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                 case RENDER_PICTURE_DOWNRIGHT: //8:
                     ProcessPixel(x+xoffset_adj+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,BufferHt+imght-y-yoffset_adj-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c, wrap_x, imgwidth);
                     break; // down-right
-                case RENDER_PICTURE_SCALED: //9: //scaled, no motion -DJ
-//TODO: use rescale or resize?
-//                    wrdebug(1, "zoom[%d]: pic (x, y) (%d, %d) of (%d, %d) -> wnd (%d, %d) of (%d, %d), color 0x%x", state, x, y, imgwidth, imght, (int)(x * xscale), (int)(BufferHt - 1 - y * yscale), BufferWi, BufferHt, c.GetRGB());
-                    ProcessPixel((x+xoffset_adj) * xscale, BufferHt - 1 - y * yscale, c, wrap_x, imgwidth); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
-                    break;
                 case RENDER_PICTURE_PEEKABOO_0: //10: //up+down 1x (peekaboo) -DJ
                     ProcessPixel(x - xoffset+xoffset_adj, BufferHt + yoffset - y - yoffset_adj, c, wrap_x, imgwidth); // - BufferHt, c);
                     break;
