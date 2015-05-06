@@ -943,6 +943,30 @@ wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
     i.SaveFile(name);
     return name;
 }
+bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFull) {
+    std::vector< std::vector<bool> > data(num_columns, std::vector<bool>(num_rows));
+    for(wxXmlNode* e=element->GetChildren(); e!=NULL; e=e->GetNext()) {
+        if (e->GetName() == "element") {
+            int x = wxAtoi(e->GetAttribute("ribbonIndex"));
+            int y = wxAtoi(e->GetAttribute("pixelIndex"));
+            if (x < num_columns) {
+                data[x][y] = true;
+            } else {
+                return false;
+            }
+        }
+    }
+    isFull = true;
+    for (int x = 0; x < num_columns; x++) {
+        for (int y = 0; y < num_rows; y++) {
+            if (!data[x][y]) {
+                isFull = false;
+                return true;
+            }
+        }
+    }
+    return true;
+}
 
 bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
 {
@@ -956,6 +980,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
     int shockwave_index = Effect::GetEffectIndex("Shockwave");
     int fan_index = Effect::GetEffectIndex("Fan");
     int picture_index = Effect::GetEffectIndex("Pictures");
+    int colorwash_index = Effect::GetEffectIndex("Color Wash");
     EffectLayer* layer = model->AddEffectLayer();
     std::map<int, ImageInfo> imageInfo;
     wxString imagePfx;
@@ -1269,7 +1294,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                                              element->GetAttribute("green1"),
                                              element->GetAttribute("blue1"));
                     xlColor endc = GetColor(element->GetAttribute("red2"),
-                                             element->GetAttribute("green3"),
+                                             element->GetAttribute("green2"),
                                              element->GetAttribute("blue2"));
                     while( model->GetEffectLayerCount() < layer_index ) {
                         model->AddEffectLayer();
@@ -1285,46 +1310,59 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                     wxString ru = "0.0";
                     wxString rd = "0.0";
                     wxString imageName;
-                    if (startc == xlBLACK || endc == xlBLACK || endc == startc) {
-                        imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, reverse_rows, (startc == xlBLACK) ? endc : startc);
-                        wxString ramp = wxString::Format("%lf", (end_time - start_time));
-                        if (endc == xlBLACK) {
-                            rd = ramp;
-                        }
-                        if (startc == xlBLACK) {
-                            ru = ramp;
-                        }
-                    } else {
-                        int time = wxAtoi(endms) - wxAtoi(startms);
-                        int numFrames = time / SeqData.FrameTime();
-                        xlColor color;
-                        for (int x = 0; x < numFrames; x++) {
-                            double ratio = x;
-                            ratio /= numFrames;
-                            color.Set(ChannelBlend(startc.Red(),endc.Red(),ratio),
-                                      ChannelBlend(startc.Green(),endc.Green(),ratio),
-                                      ChannelBlend(startc.Blue(),endc.Blue(),ratio));
-                            wxString s = CreateSceneImage(imagePfx, wxString::Format("-%d", x+1),
-                                                          element,
-                                                          num_columns, num_rows, reverse_rows,
-                                                          color);
-                            if (x == 0) {
-                                imageName = s;
+                    bool isFull = false;
+                    
+                    bool isPartOfModel = IsPartOfModel(element, num_rows, num_columns, isFull);
+                    
+                    if (isPartOfModel && isFull) {
+                        //Every pixel in the model is specified, we can use a color wash instead of images
+                        wxString palette = _("C_BUTTON_Palette1=") + startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + endc
+                            + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                            + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                        wxString settings = _("T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
+                            + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_SLIDER_ColorWash_Count=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0";
+                        layer->AddEffect(0, colorwash_index, "Color Wash", settings, palette, start_time, end_time, false, false);
+                    } else if (isPartOfModel) {
+                        if (startc == xlBLACK || endc == xlBLACK || endc == startc) {
+                            imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, reverse_rows, (startc == xlBLACK) ? endc : startc);
+                            wxString ramp = wxString::Format("%lf", (end_time - start_time));
+                            if (endc == xlBLACK) {
+                                rd = ramp;
+                            }
+                            if (startc == xlBLACK) {
+                                ru = ramp;
+                            }
+                        } else {
+                            int time = wxAtoi(endms) - wxAtoi(startms);
+                            int numFrames = time / SeqData.FrameTime();
+                            xlColor color;
+                            for (int x = 0; x < numFrames; x++) {
+                                double ratio = x;
+                                ratio /= numFrames;
+                                color.Set(ChannelBlend(startc.Red(),endc.Red(),ratio),
+                                          ChannelBlend(startc.Green(),endc.Green(),ratio),
+                                          ChannelBlend(startc.Blue(),endc.Blue(),ratio));
+                                wxString s = CreateSceneImage(imagePfx, wxString::Format("-%d", x+1),
+                                                              element,
+                                                              num_columns, num_rows, reverse_rows,
+                                                              color);
+                                if (x == 0) {
+                                    imageName = s;
+                                }
                             }
                         }
+
+                        wxString settings = _("E_CHECKBOX_MovieIs20FPS=1,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=scaled,")
+                            + "E_SLIDER_PicturesXC=0"
+                            + ",E_SLIDER_PicturesYC=0"
+                            + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
+                            + ",E_TEXTCTRL_Pictures_Filename=" + imageName
+                            + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + ru
+                            + ",T_TEXTCTRL_Fadeout=" + rd;
+
+                        layer->AddEffect(0, picture_index, "Pictures", settings, "", start_time, end_time, false, false);
                     }
-
-
-                    wxString settings = _("E_CHECKBOX_MovieIs20FPS=1,E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=scaled,")
-                        + "E_SLIDER_PicturesXC=0"
-                        + ",E_SLIDER_PicturesYC=0"
-                        + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
-                        + ",E_TEXTCTRL_Pictures_Filename=" + imageName
-                        + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                        + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + ru
-                        + ",T_TEXTCTRL_Fadeout=" + rd;
-
-                    layer->AddEffect(0, picture_index, "Pictures", settings, "", start_time, end_time, false, false);
                 }
             }
         } else if ("textActions" == e->GetName()) {
