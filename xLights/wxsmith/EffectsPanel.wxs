@@ -185,7 +185,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_PaletteRepClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -219,7 +219,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_DirectionClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -243,7 +243,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_HighlightClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -269,7 +269,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_3DClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -312,7 +312,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_ButterflyColorsClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -343,7 +343,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_ButterflyStyleClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -374,7 +374,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_ButterflyChunksClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -405,7 +405,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_ButterflySkipClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -481,7 +481,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_CirclesCountClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -521,7 +521,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_CirclesSizeClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -550,7 +550,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_CirclesBounceClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -579,7 +579,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_CirclesRadialClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -608,7 +608,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_CirclesPlasmaClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -637,7 +637,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_CirclesRadial3DClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -666,7 +666,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_CirclesBubblesClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -697,7 +697,7 @@
 												<hidden>1</hidden>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_CirclesCollideClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -728,7 +728,7 @@
 												<hidden>1</hidden>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_RandomMotionClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -757,7 +757,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Circles_Linear_FadeClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -814,7 +814,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_ColorWashCountClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -851,7 +851,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_ColorWashVFadeClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -888,7 +888,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_ColorWashHFadeClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -1016,7 +1016,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_CurtainEdgeClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -1051,7 +1051,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_CurtainEffectClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -1081,7 +1081,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_CurtainSwagClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -1110,7 +1110,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_CurtainRepeatClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -1219,7 +1219,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_CenterXClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1260,7 +1260,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_CenterYClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1302,7 +1302,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_Start_RadiusClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1343,7 +1343,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_Start_AngleClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1385,7 +1385,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_End_RadiusClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1427,7 +1427,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_RevolutionsClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1480,7 +1480,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_Num_BladesClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1522,7 +1522,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_Blade_WidthClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1565,7 +1565,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_Blade_AngleClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1608,7 +1608,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_Num_ElementsClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1650,7 +1650,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_Element_WidthClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1701,7 +1701,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_DurationClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1743,7 +1743,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Fan_AccelClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1810,7 +1810,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_FireHeightClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -1837,7 +1837,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_FireWidthClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -1866,7 +1866,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_FireGrowClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -1906,7 +1906,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_FireworksNumberExplosionsClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -1936,7 +1936,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_FireworksCountClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -1967,7 +1967,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_FireworksVelocityClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -1997,7 +1997,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_FireworksFadeClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2055,7 +2055,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Galaxy_CenterXClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2096,7 +2096,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Galaxy_CenterYClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2138,7 +2138,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Galaxy_Start_RadiusClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2180,7 +2180,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Galaxy_Start_WidthClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2221,7 +2221,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Galaxy_Start_AngleClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2272,7 +2272,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Galaxy_End_RadiusClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2314,7 +2314,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Galaxy_End_WidthClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2356,7 +2356,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Galaxy_RevolutionsClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2407,7 +2407,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Galaxy_DurationClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2449,7 +2449,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Galaxy_AccelClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2564,7 +2564,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_GarlandsTypeClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2591,7 +2591,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_GarlandsSpacingClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2623,7 +2623,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>20,17</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnBitmapButton_Glediator_FilenameClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -2685,7 +2685,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_LifeCountClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2714,7 +2714,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_LifeSpeedClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2752,7 +2752,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_MeteorsTypeClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2779,7 +2779,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_MeteorsEffectClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2809,7 +2809,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_MeteorsCountClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2839,7 +2839,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_MeteorsLengthClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2868,7 +2868,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_MeteorsSwirlIntensityClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2924,7 +2924,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Morph_Start_X1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -2964,7 +2964,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Morph_Start_Y1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3005,7 +3005,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Morph_Start_X2Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3045,7 +3045,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Morph_Start_Y2Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3087,7 +3087,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_MorphStartLengthClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3150,7 +3150,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Morph_End_X1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3191,7 +3191,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Morph_End_Y1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3232,7 +3232,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Morph_End_X2Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3273,7 +3273,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Morph_End_Y2Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3315,7 +3315,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_MorphEndLengthClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3384,7 +3384,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_MorphDurationClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -3426,7 +3426,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_MorphAccelClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -3454,7 +3454,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_ShowHeadAtStartClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -3474,7 +3474,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_MorphUseHeadStartColorClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -3494,7 +3494,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_MorphUseHeadEndColorClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -3556,7 +3556,7 @@
 												<default>1</default>
 												<size>13,13</size>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Piano_StyleClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -3587,7 +3587,7 @@
 												<default>1</default>
 												<size>13,13</size>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Piano_NumKeysClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -3618,7 +3618,7 @@
 												<default>1</default>
 												<size>13,13</size>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Piano_NumRowsClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -3659,7 +3659,7 @@
 												<default>1</default>
 												<size>13,13</size>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Piano_KeyPlacementClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -3697,7 +3697,7 @@
 																	<default>1</default>
 																	<size>13,13</size>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_Piano_CueFilenameClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>1</border>
@@ -3757,7 +3757,7 @@
 																	<default>1</default>
 																	<size>13,13</size>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_Piano_MapFilenameClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -3817,7 +3817,7 @@
 																	<default>1</default>
 																	<size>13,13</size>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_Piano_ShapeFilenameClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -3842,7 +3842,7 @@
 																	<default>1</default>
 																	<size>13,13</size>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_Piano_ClippingClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>1</border>
@@ -3897,7 +3897,7 @@
 												<default>1</default>
 												<size>13,13</size>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_PicturesFilenameClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -3940,7 +3940,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_PicturesDirectionClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -3984,7 +3984,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_PicturesSpeedClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -4016,7 +4016,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_MovieIs20FPSClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -4285,7 +4285,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_PinwheelNumberArmsClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -4322,7 +4322,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnBitmapButton_Pinwheel_ArmSizeClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -4359,7 +4359,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnBitmapButton_PinwheelTwistClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -4394,7 +4394,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnBitmapButton_PinwheelThicknessClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -4430,7 +4430,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnBitmapButton_PinwheelRotationClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -4470,7 +4470,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnBitmapButton_Pinwheel3DClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -4560,7 +4560,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_Ripple_Object_To_DrawClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -4587,7 +4587,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_Ripple_MovementClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -4617,7 +4617,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_RippleThicknessClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -4641,7 +4641,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Ripple3DClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -4684,7 +4684,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_Shimmer_Duty_FactorClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -4711,7 +4711,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<minsize>21,21</minsize>
-										<handler function="OnBitmapButton_Shimmer_Use_All_ColorsClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -4738,7 +4738,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_Shimmer_Blink_TimingClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -4767,7 +4767,7 @@
 										<pos>-1,-1</pos>
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_Shimmer_Blinks_Per_RowClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -4824,7 +4824,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Shockwave_CenterXClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -4865,7 +4865,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Shockwave_CenterYClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -4907,7 +4907,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Shockwave_Start_RadiusClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -4949,7 +4949,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Shockwave_End_RadiusClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -4991,7 +4991,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Shockwave_Start_WidthClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -5033,7 +5033,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Shockwave_End_WidthClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -5088,7 +5088,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Shockwave_AccelClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<col>3</col>
 														<row>0</row>
@@ -5153,7 +5153,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -5184,7 +5184,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-															<handler function="OnBitmapButton_Number_ChasesClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -5214,7 +5214,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Color_Mix1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -5245,7 +5245,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Chase_Spacing1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -5272,7 +5272,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Chase_Type1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -5301,7 +5301,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Chase_3dFade1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -5328,7 +5328,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_Chase_Group_AllClick" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -5383,7 +5383,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_Skips_BandSizeClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -5432,7 +5432,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_Skips_SkipSizeClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -5482,7 +5482,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_Skips_StartingPositionClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -5523,7 +5523,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_Skips_DirectionClick" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -5576,7 +5576,7 @@
 										<default>1</default>
 										<size>13,13</size>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SnowflakesCountClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5605,7 +5605,7 @@
 										<default>1</default>
 										<size>13,13</size>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SnowflakesTypeClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5642,7 +5642,7 @@
 										<default>1</default>
 										<size>13,13</size>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SnowstormCountClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5670,7 +5670,7 @@
 										<default>1</default>
 										<size>13,13</size>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SnowstormLengthClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5710,7 +5710,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SpiralsCountClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5741,7 +5741,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SpiralsRotationClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5770,7 +5770,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SpiralsThicknessClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5801,7 +5801,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SpiralsDirectionClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5825,7 +5825,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_SpiralsBlendClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -5856,7 +5856,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_Spirals3DClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5880,7 +5880,7 @@
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_SpiralsGrowClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
@@ -5911,7 +5911,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SpiralsShrinkClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5950,7 +5950,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SpirographRClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -5980,7 +5980,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SpirographrClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -6010,7 +6010,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SpirographAnimateClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -6039,7 +6039,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SpirographdClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -6089,7 +6089,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnBitmapButton_NumberStrobesClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -6126,7 +6126,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnBitmapButton_StrobeDurationClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -6164,7 +6164,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnBitmapButton_Strobe_TypeClick" entry="EVT_BUTTON" />
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -6290,7 +6290,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextFont1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6322,7 +6322,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_TextDir1Click" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>1</border>
@@ -6349,7 +6349,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextToCenter1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -6376,7 +6376,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextEffect1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6403,7 +6403,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextCount1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6432,7 +6432,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextPosition1Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6468,7 +6468,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextFont2Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6500,7 +6500,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_TextDir2Click" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>1</border>
@@ -6527,7 +6527,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextToCenter2Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -6554,7 +6554,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextEffect2Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6581,7 +6581,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextCount2Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6610,7 +6610,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextPosition2Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6646,7 +6646,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextFont3Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6676,7 +6676,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_TextDir3Click" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>1</border>
@@ -6703,7 +6703,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextToCenter3Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -6730,7 +6730,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextEffect3Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6757,7 +6757,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextCount3Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6787,7 +6787,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextPosition3Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6822,7 +6822,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextFont4Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6851,7 +6851,7 @@
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnBitmapButton_TextDir4Click" entry="EVT_BUTTON" />
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>1</border>
@@ -6878,7 +6878,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextToCenter4Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -6905,7 +6905,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextEffect4Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6932,7 +6932,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextCount4Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -6961,7 +6961,7 @@
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextPosition4Click" entry="EVT_BUTTON" />
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -7028,7 +7028,7 @@
 										<default>1</default>
 										<size>13,13</size>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_TreeBranchesClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -7068,7 +7068,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_TwinkleCountClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -7100,7 +7100,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_TwinkleStepsClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -7121,7 +7121,7 @@
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_TwinkleStrobeClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -7161,7 +7161,7 @@
 										<bitmap code="padlock16x16_green_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_WaveTypeClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -7186,7 +7186,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_Wave_FillColorsClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -7211,7 +7211,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_Wave_MirrorWaveClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -7240,7 +7240,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_NumberWavesClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -7267,7 +7267,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_Wave_ThicknessClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -7294,7 +7294,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_Wave_HeightClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -7319,7 +7319,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnBitmapButton_Wave_DirectionClick" entry="EVT_BUTTON" />
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -7346,7 +7346,7 @@
 									<default>1</default>
 									<size>13,13</size>
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-									<handler function="OnBitmapButton_LayerEffectClick" entry="EVT_BUTTON" />
+									<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>1</border>

@@ -2213,8 +2213,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     {
         PromptForShowDirectory();
     }
-    EffectsPanel1->PaletteChanged=true;
-//~    EffectsPanel2->PaletteChanged=true;
     MixTypeChanged=true;
     HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
     basic.setFrame(this);

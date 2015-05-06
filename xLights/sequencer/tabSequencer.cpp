@@ -1105,12 +1105,10 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     }
     // set textbox values for sliders that have them
     colorPanel->UpdateSliderText();
-    EffectsPanel1->UpdateSpeedText();
     timingPanel->UpdateEffectLayerMix();
 
     MixTypeChanged=true;
     FadesChanged=true;
-    EffectsPanel1->PaletteChanged=true;
 }
 
 wxString xLightsFrame::GetEffectTextFromWindows(wxString &palette)

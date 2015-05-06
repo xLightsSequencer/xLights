@@ -3291,180 +3291,180 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_TEXTCTRL_Eff_On_Start,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(IDD_SLIDER_Eff_On_End,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(ID_TEXTCTRL_Eff_On_End,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PaletteRepClick);
-    Connect(ID_BITMAPBUTTON_CHOICE_Bars_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_DirectionClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_HighlightClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_3DClick);
-    Connect(ID_BITMAPBUTTON_CHOICE_Butterfly_Color,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ButterflyColorsClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Style,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ButterflyStyleClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ButterflyChunksClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Skip,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ButterflySkipClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Circles_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesCountClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Circles_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesSizeClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesBounceClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Radial,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesRadialClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesPlasmaClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesRadial3DClick);
-    Connect(ID_BITMAPBUTTON_CirclesBubbles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesBubblesClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Collide,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesCollideClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_RandomMotionClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Circles_Linear_FadeClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_ColorWash_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashCountClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashVFadeClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashHFadeClick);
-    Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Edge,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CurtainEdgeClick);
-    Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CurtainEffectClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Curtain_Swag,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CurtainSwagClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CurtainRepeatClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Bars_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Butterfly_Color,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Style,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Butterfly_Skip,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Circles_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Circles_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Radial,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CirclesBubbles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Collide,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_ColorWash_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Edge,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Curtain_Swag,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_CenterX,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_CenterX,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_CenterXClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_CenterY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_CenterY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_CenterY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_CenterYClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_CenterY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_Start_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_Start_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Start_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_Start_RadiusClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Start_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_Start_Angle,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_Start_Angle,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Start_Angle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_Start_AngleClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Start_Angle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_End_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_End_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_End_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_End_RadiusClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_End_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_Revolutions,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl360);
     Connect(IDD_TEXTCTRL_Fan_Revolutions,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider360);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Revolutions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_RevolutionsClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Revolutions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_Num_Blades,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_Num_Blades,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Num_Blades,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_Num_BladesClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Num_Blades,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_Blade_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_Blade_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Blade_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_Blade_WidthClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Blade_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_Blade_Angle,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_Blade_Angle,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Blade_Angle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_Blade_AngleClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Blade_Angle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_Num_Elements,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_Num_Elements,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Num_Elements,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_Num_ElementsClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Num_Elements,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_Element_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_Element_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Element_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_Element_WidthClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Element_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_Duration,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_Duration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Duration,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_DurationClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Duration,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Fan_Accel,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_Accel,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Accel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Fan_AccelClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fire_Height,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FireHeightClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fire_HueShift,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FireWidthClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FireGrowClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FireworksNumberExplosionsClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FireworksCountClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FireworksVelocityClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FireworksFadeClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fan_Accel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fire_Height,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fire_HueShift,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Galaxy_CenterX,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Galaxy_CenterX,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Galaxy_CenterXClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Galaxy_CenterY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Galaxy_CenterY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_CenterY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Galaxy_CenterYClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_CenterY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Galaxy_Start_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Galaxy_Start_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Galaxy_Start_RadiusClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Galaxy_Start_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Galaxy_Start_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Galaxy_Start_WidthClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Galaxy_Start_Angle,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Galaxy_Start_Angle,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Angle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Galaxy_Start_AngleClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Angle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Galaxy_End_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Galaxy_End_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_End_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Galaxy_End_RadiusClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_End_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Galaxy_End_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Galaxy_End_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Galaxy_End_WidthClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Galaxy_Revolutions,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl360);
     Connect(IDD_TEXTCTRL_Galaxy_Revolutions,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider360);
-    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Galaxy_RevolutionsClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Galaxy_Duration,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Galaxy_Duration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Duration,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Galaxy_DurationClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Duration,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Galaxy_Accel,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Galaxy_Accel,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Accel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Galaxy_AccelClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Garlands_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_GarlandsTypeClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Garlands_Spacing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_GarlandsSpacingClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Accel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Garlands_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Garlands_Spacing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BUTTON_GLED_FILE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Glediator_FilenameClick);
-    Connect(ID_BITMAPBUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Glediator_FilenameClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Life_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_LifeCountClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Life_Seed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_LifeSpeedClick);
-    Connect(ID_BITMAPBUTTON_CHOICE_Meteors_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsTypeClick);
-    Connect(ID_BITMAPBUTTON_CHOICE_Meteors_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsEffectClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsCountClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsLengthClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsSwirlIntensityClick);
+    Connect(ID_BITMAPBUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Life_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Life_Seed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Meteors_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Meteors_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Morph_Start_X1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Morph_Start_X1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_Start_X1Click);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Morph_Start_Y1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Morph_Start_Y1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnChoicePicturesDirectionSelect);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_Start_Y1Click);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Morph_Start_X2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Morph_Start_X2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_X2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_Start_X2Click);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_X2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Morph_Start_Y2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Morph_Start_Y2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_Y2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_Start_Y2Click);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_Y2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_MorphStartLength,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_MorphStartLength,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_MorphStartLength,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphStartLengthClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_MorphStartLength,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_CHECKBOX_Morph_Start_Link,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_Morph_Start_LinkClick);
     Connect(ID_SLIDER_Morph_End_X1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Morph_End_X1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_End_X1Click);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Morph_End_Y1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Morph_End_Y1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_Y1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_End_Y1Click);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_Y1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Morph_End_X2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Morph_End_X2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_X2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_End_X2Click);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_X2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Morph_End_Y2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Morph_End_Y2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_Y2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Morph_End_Y2Click);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_Y2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_MorphEndLength,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_MorphEndLength,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_MorphEndLength,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphEndLengthClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_MorphEndLength,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_CHECKBOX_Morph_End_Link,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_Morph_End_LinkClick);
     Connect(ID_SLIDER_MorphDuration,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_MorphDuration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_MorphDuration,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphDurationClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_MorphDuration,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_MorphAccel,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_MorphAccel,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_MorphAccel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphAccelClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ShowHeadAtStartClick);
-    Connect(ID_BITMAPBUTTON_MorphUseHeadStartColor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphUseHeadStartColorClick);
-    Connect(ID_BITMAPBUTTON_MorphUseHeadEndColor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MorphUseHeadEndColorClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_MorphAccel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_MorphUseHeadStartColor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_MorphUseHeadEndColor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_CHOICE_Piano_Style,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnPiano_StyleSelect);
-    Connect(ID_BITMAPBUTTON_SLIDER_Piano_Style,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_StyleClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Piano_Style,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Piano_NumKeys,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Piano_NumKeysCmdScroll);
-    Connect(ID_BITMAPBUTTON_Piano_NumKeys,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_NumKeysClick);
+    Connect(ID_BITMAPBUTTON_Piano_NumKeys,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Piano_KeyWidth,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Piano_NumRowsCmdScroll);
-    Connect(ID_BITMAPBUTTON_Piano_NumRows,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_NumRowsClick);
-    Connect(ID_BITMAPBUTTON_Piano_KeyPlacement,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_KeyPlacementClick);
+    Connect(ID_BITMAPBUTTON_Piano_NumRows,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_Piano_KeyPlacement,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BUTTON_Piano_CueFilename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Piano_CueFilenameClick);
-    Connect(ID_BITMAPBUTTON_Piano_Filename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_CueFilenameClick);
+    Connect(ID_BITMAPBUTTON_Piano_Filename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Piano_MapFilenameClick);
-    Connect(ID_BITMAPBUTTON_Piano_MapFilename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_MapFilenameClick);
+    Connect(ID_BITMAPBUTTON_Piano_MapFilename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Piano_ShapeFilenameClick);
-    Connect(ID_BITMAPBUTTON_Piano_ShapeFilename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_ShapeFilenameClick);
-    Connect(ID_BITMAPBUTTON_Piano_Clipping,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_ClippingClick);
-    Connect(ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesFilenameClick);
+    Connect(ID_BITMAPBUTTON_Piano_ShapeFilename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_Piano_Clipping,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_CHOICE_Pictures_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnChoicePicturesDirectionSelect);
-    Connect(ID_BITMAPBUTTON_CHOICE_Pictures_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesDirectionClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Pictures_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Pictures_GifSpeed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Pictures_GifSpeed,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesSpeedClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MovieIs20FPSClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_PicturesXC,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_PicturesXC,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(IDD_TEXTCTRL_PicturesYC,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
@@ -3473,114 +3473,114 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(IDD_TEXTCTRL_PicturesEndXC,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(IDD_TEXTCTRL_PicturesEndYC,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(ID_SLIDER_PicturesEndYC,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
-    Connect(ID_BITMAPBUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PinwheelNumberArmsClick);
-    Connect(ID_BITMAPBUTTON16,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Pinwheel_ArmSizeClick);
-    Connect(ID_BITMAPBUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PinwheelTwistClick);
-    Connect(ID_BITMAPBUTTON18,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PinwheelThicknessClick);
-    Connect(ID_BITMAPBUTTON19,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PinwheelRotationClick);
-    Connect(ID_BITMAPBUTTON_Pinwheel3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Pinwheel3DClick);
-    Connect(ID_BITMAPBUTTON20,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Ripple_Object_To_DrawClick);
-    Connect(ID_BITMAPBUTTON13,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Ripple_MovementClick);
-    Connect(ID_BITMAPBUTTON14,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_RippleThicknessClick);
-    Connect(ID_BITMAPBUTTON17,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Ripple3DClick);
-    Connect(ID_BITMAPBUTTON_DutyFactor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Duty_FactorClick);
-    Connect(ID_BITMAPBUTTON_ShimmerUseAllColors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Use_All_ColorsClick);
-    Connect(ID_BITMAPBUTTON_Shimmer_Blink_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Blink_TimingClick);
-    Connect(ID_BITMAPBUTTON_BlinksPerRow,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Blinks_Per_RowClick);
+    Connect(ID_BITMAPBUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON16,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON18,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON19,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_Pinwheel3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON20,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON13,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON14,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON17,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_DutyFactor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_ShimmerUseAllColors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_Shimmer_Blink_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_BlinksPerRow,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Shockwave_CenterX,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Shockwave_CenterX,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_CenterXClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Shockwave_CenterY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Shockwave_CenterY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_CenterYClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Shockwave_Start_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Shockwave_Start_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_Start_RadiusClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Shockwave_End_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Shockwave_End_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_End_RadiusClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Shockwave_Start_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Shockwave_Start_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_Start_WidthClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Shockwave_End_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Shockwave_End_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_End_WidthClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Shockwave_Accel,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Shockwave_Accel,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Accel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shockwave_AccelClick);
-    Connect(ID_BITMAPBUTTON_SingleStrand_Colors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
-    Connect(ID_BITMAPBUTTON_Number_Chases,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Number_ChasesClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Color_Mix1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Color_Mix1Click);
-    Connect(ID_BITMAPBUTTON_SLIDER_Chase_Spacing1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Spacing1Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Chase_Type1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Type1Click);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_3dFade1Click);
-    Connect(ID_BITMAPBUTTON_Chase_Group_All,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Group_AllClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Accel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SingleStrand_Colors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_Number_Chases,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Color_Mix1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Chase_Spacing1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Chase_Type1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_Chase_Group_All,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Skips_BandSize,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Skips_BandSize,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON44,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Skips_BandSizeClick);
+    Connect(ID_BITMAPBUTTON44,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Skips_SkipSize,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Skips_SkipSize,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON46,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Skips_SkipSizeClick);
+    Connect(ID_BITMAPBUTTON46,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Skips_StartPos,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Skips_StartPos,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
-    Connect(ID_BITMAPBUTTON47,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Skips_StartingPositionClick);
-    Connect(ID_BITMAPBUTTON48,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Skips_DirectionClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Snowflakes_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SnowflakesCountClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Snowflakes_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SnowflakesTypeClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Snowstorm_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SnowstormCountClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Snowstorm_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SnowstormLengthClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpiralsCountClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpiralsRotationClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpiralsThicknessClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpiralsDirectionClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_Blend,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpiralsBlendClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Spirals3DClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_Grow,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpiralsGrowClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_Shrink,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpiralsShrinkClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_R,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpirographRClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_r,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpirographrClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_d,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpirographAnimateClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpirographdClick);
-    Connect(ID_BITMAPBUTTON49,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_NumberStrobesClick);
-    Connect(ID_BITMAPBUTTON51,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_StrobeDurationClick);
-    Connect(ID_BITMAPBUTTON50,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Strobe_TypeClick);
-    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont1Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir1Click);
-    Connect(ID_BITMAPBUTTON_TextToCenter1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter1Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect1Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Count1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount1Click);
-    Connect(ID_BITMAPBUTTON_SLIDER_Text_Position1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition1Click);
-    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont2Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir2Click);
-    Connect(ID_BITMAPBUTTON_Text2Center2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter2Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect2Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Count2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount2Click);
-    Connect(ID_BITMAPBUTTON_SLIDER_Text_Position2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition2Click);
-    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont3Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir3Click);
-    Connect(ID_BITMAPBUTTON_TextToCenter3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter3Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect3Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Count3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount3Click);
-    Connect(ID_BITMAPBUTTON_SLIDER_Text_Position3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition3Click);
-    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont4Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir4Click);
-    Connect(ID_BITMAPBUTTON_TextToCenter4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter4Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect4Click);
-    Connect(ID_BITMAPBUTTON_CHOICE_Text_Count4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount4Click);
-    Connect(ID_BITMAPBUTTON_SLIDER_Text_Position4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition4Click);
-    Connect(ID_BITMAPBUTTON_SLIDER_Tree_Branches,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TreeBranchesClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Twinkle_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TwinkleCountClick);
-    Connect(ID_BITMAPBUTTON_SLIDER_Twinkle_Steps,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TwinkleStepsClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TwinkleStrobeClick);
-    Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_WaveTypeClick);
-    Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_FillColorsClick);
-    Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_MirrorWaveClick);
-    Connect(ID_BITMAPBUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_NumberWavesClick);
-    Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_ThicknessClick);
-    Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_HeightClick);
-    Connect(ID_BITMAPBUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_DirectionClick);
+    Connect(ID_BITMAPBUTTON47,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON48,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Snowflakes_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Snowflakes_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Snowstorm_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Snowstorm_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_Blend,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_Grow,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_Shrink,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_R,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_r,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_d,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON49,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON51,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON50,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_TextToCenter1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Count1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Text_Position1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_Text2Center2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Count2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Text_Position2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_TextToCenter3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Count3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Text_Position3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_TextToCenter4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHOICE_Text_Count4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Text_Position4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Tree_Branches,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Twinkle_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Twinkle_Steps,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnChoicebook1PageChanged);
-    Connect(ID_BITMAPBUTTON_CHOICEBOOK1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_LayerEffectClick);
+    Connect(ID_BITMAPBUTTON_CHOICEBOOK1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(wxEVT_PAINT,(wxObjectEventFunction)&EffectsPanel::OnPaint1);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&EffectsPanel::OnResize);
     //*)
@@ -3839,27 +3839,6 @@ void EffectsPanel::OnButton_Piano_ShapeFilenameClick(wxCommandEvent& event)
     if (!filename.IsEmpty()) TextCtrl_Piano_ShapeFilename->SetValue(filename);
 }
 
-
-void EffectsPanel::OnCheckBox_PaletteClick(wxCommandEvent& event)
-{
-    PaletteChanged=true;
-}
-
-void EffectsPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
-{
-    wxButton* w=(wxButton*)event.GetEventObject();
-    wxColour color = w->GetBackgroundColour();
-    colorData.SetColour(color);
-    wxColourDialog dialog(this, &colorData);
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        wxColourData retData = dialog.GetColourData();
-        wxColour color = retData.GetColour();
-//~        SetButtonColor(w, &color);
-        PaletteChanged=true;
-    }
-}
-
 void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 {
     EffectChanged=true;
@@ -3877,17 +3856,6 @@ void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
     w->Refresh();
     GetEffectStringFromWindow(Choicebook1->GetPage(Choicebook1->GetSelection()));
 }
-
-void EffectsPanel::UpdateSpeedText()
-{
-    //~TextCtrl_Speed->SetValue(wxString::Format("%d",Slider_Speed->GetValue()));
-}
-
-void EffectsPanel::OnSlider_SpeedCmdScroll(wxScrollEvent& event)
-{
-    UpdateSpeedText();
-}
-
 
 //  Pinwheel
 /*
@@ -3971,183 +3939,11 @@ bool EffectsPanel::isRandom_(void)
     return isRandom(Choicebook1);
 }
 
-#define showlock(name)  \
-/*EditState isLockedFx_##name = Normal;*/ \
-void EffectsPanel::OnBitmapButton_##name##Click(wxCommandEvent& event) \
-{ \
-    setlock(BitmapButton_##name/*, isLockedFx_##name*/); \
+void EffectsPanel::OnLockButtonClick(wxCommandEvent& event) {
+    wxButton * button = (wxButton*)event.GetEventObject();
+    setlock(button);
 }
-showlock(LayerEffect)
-//~showlock(Speed)
-//~showlock(FadeOut)
-//~showlock(FadeIn)
-//~showlock(FitToTime)
-//~showlock(OverlayBkg)
-showlock(PaletteRep)
-showlock(Direction)
-showlock(Highlight)
-showlock(3D)
-showlock(ButterflyColors)
-showlock(ButterflyStyle)
-showlock(ButterflyChunks)
-showlock(ButterflySkip)
-showlock(CirclesCount)
-showlock(CirclesSize)
-showlock(CirclesBounce)
-showlock(CirclesRadial)
-showlock(CirclesRadial3D)
-showlock(CirclesCollide)
-showlock(CirclesPlasma)
-showlock(CirclesBubbles)
-showlock(Circles_Linear_Fade)
-showlock(RandomMotion)
 
-showlock(ColorWashCount)
-showlock(ColorWashHFade)
-showlock(ColorWashVFade)
-showlock(CurtainEdge)
-showlock(CurtainEffect)
-showlock(CurtainSwag)
-showlock(CurtainRepeat)
-showlock(FireHeight)
-showlock(FireWidth)
-showlock(FireGrow)
-showlock(FireworksNumberExplosions)
-showlock(FireworksVelocity)
-showlock(FireworksFade)
-showlock(FireworksCount)
-showlock(GarlandsType)
-showlock(GarlandsSpacing)
-showlock(LifeCount)
-showlock(LifeSpeed)
-showlock(MeteorsType)
-showlock(MeteorsEffect)
-showlock(MeteorsCount)
-showlock(MeteorsLength)
-showlock(MeteorsSwirlIntensity)
-showlock(Piano_Style)
-showlock(Piano_NumKeys)
-showlock(Piano_NumRows)
-showlock(Piano_KeyPlacement)
-showlock(Piano_Clipping)
-showlock(Piano_CueFilename)
-showlock(Piano_MapFilename)
-showlock(Piano_ShapeFilename)
-showlock(PicturesFilename)
-showlock(PicturesDirection)
-showlock(PicturesSpeed)
-
-showlock(PinwheelNumberArms)
-showlock(PinwheelTwist)
-showlock(PinwheelThickness)
-showlock(Pinwheel3D)
-showlock(PinwheelRotation)
-showlock(Pinwheel_ArmSize)
-
-
-showlock(Ripple3D)
-showlock(Ripple_Object_To_Draw)
-showlock(Ripple_Movement)
-showlock(RippleThickness)
-
-
-
-showlock(SnowflakesCount)
-showlock(SnowflakesType)
-showlock(SnowstormCount)
-showlock(SnowstormLength)
-showlock(SpiralsCount)
-showlock(SpiralsRotation)
-showlock(SpiralsThickness)
-showlock(SpiralsDirection)
-showlock(Spirals3D)
-showlock(SpiralsShrink)
-showlock(SpiralsBlend)
-showlock(SpiralsGrow)
-showlock(SpirographR)
-showlock(Spirographr)
-showlock(SpirographAnimate)
-showlock(Spirographd)
-
-// strobe
-showlock(NumberStrobes)
-showlock(StrobeDuration)
-showlock(Strobe_Type)
-
-//  Text
-//showlock(TextLine1)
-//showlock(TextLine2)
-//showlock(TextLine3)
-//showlock(TextLine4)
-
-
-showlock(TextFont1)
-showlock(TextDir1)
-showlock(TextToCenter1)
-showlock(TextEffect1)
-showlock(TextCount1)
-showlock(TextPosition1)
-
-showlock(TextFont2)
-showlock(TextDir2)
-showlock(TextToCenter2)
-showlock(TextEffect2)
-showlock(TextCount2)
-showlock(TextPosition2)
-
-showlock(TextFont3)
-showlock(TextDir3)
-showlock(TextToCenter3)
-showlock(TextEffect3)
-showlock(TextCount3)
-showlock(TextPosition3)
-
-showlock(TextFont4)
-showlock(TextDir4)
-showlock(TextToCenter4)
-showlock(TextEffect4)
-showlock(TextCount4)
-showlock(TextPosition4)
-
-
-showlock(TreeBranches)
-showlock(TwinkleCount)
-showlock(TwinkleSteps)
-showlock(TwinkleStrobe)
-
-
-//lock buttons for Single Strand:
-showlock(SingleStrand_Colors)
-showlock(Number_Chases)
-showlock(Color_Mix1)
-showlock(Chase_Spacing1)
-showlock(Chase_Type1)
-showlock(Chase_3dFade1)
-showlock(Chase_Group_All)
-
-showlock(Skips_BandSize)
-showlock(Skips_SkipSize)
-showlock(Skips_StartingPosition)
-showlock(Skips_Direction)
-
-
-// ----------------
-
-showlock(WaveType)
-showlock(Wave_FillColors)
-showlock(Wave_MirrorWave)
-showlock(NumberWaves)
-showlock(Wave_Thickness)
-showlock(Wave_Height)
-showlock(Wave_Direction)
-
-showlock(Glediator_Filename)
-
-showlock(Shimmer_Duty_Factor)
-showlock(Shimmer_Use_All_Colors)
-showlock(Shimmer_Blink_Timing)
-showlock(Shimmer_Blinks_Per_Row)
-showlock(MovieIs20FPS)
 
 void EffectsPanel::OnCheckBox_Morph_Start_LinkClick(wxCommandEvent& event)
 {
@@ -4172,55 +3968,6 @@ void EffectsPanel::OnPaint1(wxPaintEvent& event)
 {
 
 }
-
-showlock(Galaxy_CenterX)
-showlock(Galaxy_CenterY)
-showlock(Galaxy_Start_Radius)
-showlock(Galaxy_Start_Width)
-showlock(Galaxy_Start_Angle)
-showlock(Galaxy_End_Radius)
-showlock(Galaxy_End_Width)
-showlock(Galaxy_Duration)
-showlock(Galaxy_Accel)
-
-showlock(Fan_CenterX)
-showlock(Fan_CenterY)
-showlock(Fan_Start_Radius)
-showlock(Fan_Start_Angle)
-showlock(Fan_End_Radius)
-showlock(Fan_Duration)
-showlock(Fan_Accel)
-showlock(Fan_Num_Blades)
-showlock(Fan_Blade_Width)
-showlock(Fan_Blade_Angle)
-showlock(Fan_Num_Elements)
-showlock(Fan_Element_Width)
-showlock(Galaxy_Revolutions)
-showlock(Fan_Revolutions)
-showlock(Morph_Start_X1)
-showlock(Morph_Start_Y1)
-showlock(Morph_Start_X2)
-showlock(Morph_Start_Y2)
-showlock(MorphStartLength)
-showlock(Morph_End_X1)
-showlock(Morph_End_Y1)
-showlock(Morph_End_X2)
-showlock(Morph_End_Y2)
-showlock(MorphEndLength)
-showlock(MorphDuration)
-showlock(MorphAccel)
-
-showlock(ShowHeadAtStart)
-showlock(MorphUseHeadStartColor)
-showlock(MorphUseHeadEndColor)
-showlock(Shockwave_CenterX)
-showlock(Shockwave_CenterY)
-showlock(Shockwave_Start_Radius)
-showlock(Shockwave_End_Radius)
-showlock(Shockwave_Start_Width)
-showlock(Shockwave_End_Width)
-showlock(Shockwave_Accel)
-
 
 
 //generic routines that can replace the above and be completely implemented in the codeblocks
