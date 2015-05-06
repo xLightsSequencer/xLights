@@ -929,17 +929,23 @@ wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
                           int numRows, bool reverse, const xlColor &color) {
     wxImage i;
     i.Create(numCols, numRows);
-
+    i.InitAlpha();
+    for (int x = 0; x < numCols; x++)  {
+        for (int y = 0; y < numCols; y++) {
+            i.SetAlpha(x, y, wxALPHA_TRANSPARENT);
+        }
+    }
     for(wxXmlNode* e=element->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "element") {
             int x = wxAtoi(e->GetAttribute("ribbonIndex"));
             int y = wxAtoi(e->GetAttribute("pixelIndex"));
             if (x < numCols) {
                 i.SetRGB(x, y, color.Red(), color.Green(), color.Blue());
+                i.SetAlpha(x, y, wxALPHA_OPAQUE);
             }
         }
     }
-    wxString name = imagePfx + "_s" + element->GetAttribute("savedIndex") + postFix + ".bmp";
+    wxString name = imagePfx + "_s" + element->GetAttribute("savedIndex") + postFix + ".png";
     i.SaveFile(name);
     return name;
 }

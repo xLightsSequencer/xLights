@@ -44,6 +44,7 @@ enum MixTypes
     Mix_1_reveals_2,  /**<  Effect 2 color only shows if Effect 1 is black  1 reveals 2 */
     Mix_2_reveals_1,  /**<  Effect 1 color only shows if Effect 2 is black */
     Mix_Layered, /**<  Effect 1 is back ground and shows only when effect 2 is black */
+    Mix_Alpha, /** Effect 1 is back ground and effect 2 is alpha blended onto it */
     Mix_Average, /**<  Average color value between effects per pixel */
     Mix_BottomTop,
     Mix_LeftRight,

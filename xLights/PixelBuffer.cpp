@@ -153,7 +153,7 @@ void PixelBufferClass::InitNodeBuffer(const ModelClass &pbc, int strand, int nod
 }
 
 void PixelBufferClass::Clear(int which) {
-    xlColour bgColor(0, 0, 0);
+    xlColour bgColor(0, 0, 0, 0);
     if (which != -1) {
         effects[which].Clear(bgColor); //just clear this one
     } else {
@@ -189,6 +189,8 @@ void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
         MixType=Mix_Shadow_2on1;
     } else if (MixName == "Layered") {
         MixType=Mix_Layered;
+    } else if (MixName == "Alpha Blended") {
+        MixType=Mix_Alpha;
     } else if (MixName == "Average") {
         MixType=Mix_Average;
     } else if (MixName == "Bottom-Top") {
@@ -319,6 +321,9 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
         } else {
             c=c1;
         }
+        break;
+    case Mix_Alpha:
+        c = c0.AlphaBlend(c1);
         break;
     case Mix_Average:
         // only average when both colors are non-black

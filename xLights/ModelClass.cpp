@@ -1627,11 +1627,11 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
     
     bool success = preview->StartDrawing(pointSize);
     
-    if (pixelSize != 2) {
-        glPointSize(preview->calcPixelSize(pixelSize));
-    }
     if (pixelStyle == 1) {
         glEnable(GL_POINT_SMOOTH);
+    }
+    if (pixelSize != 2) {
+        glPointSize(preview->calcPixelSize(pixelSize));
     }
 
     if(success) {
@@ -1690,11 +1690,11 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
         }
         preview->EndDrawing();
     }
-    if (pixelSize != 2) {
-        glPointSize(preview->calcPixelSize(2));
-    }
     if (pixelStyle == 1) {
         glDisable(GL_POINT_SMOOTH);
+    }
+    if (pixelSize != 2) {
+        glPointSize(preview->calcPixelSize(2));
     }
 }
 

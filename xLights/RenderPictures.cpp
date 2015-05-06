@@ -376,13 +376,14 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
     // copy image to buffer
     xlColour c;
     int debug_count = 0;
+    bool hasAlpha = image.HasAlpha();
     for(int x=0; x<imgwidth; x++)
     {
         for(int y=0; y<imght; y++)
         {
             if (!image.IsTransparent(x,y))
             {
-                c.Set(image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
+                c.Set(image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y), hasAlpha ? image.GetAlpha(x, y) : 255);
                 switch (dir)
                 {
                 case RENDER_PICTURE_LEFT: //0:

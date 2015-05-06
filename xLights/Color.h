@@ -8,18 +8,28 @@
 
 class xlColor : public wxImage::RGBValue {
 public:
+    unsigned char alpha;
     xlColor() {
         red = green = blue = 0;
+        alpha = 255;
     }
     xlColor(unsigned char r, unsigned char g, unsigned char b) {
         red = r;
         green = g;
         blue = b;
+        alpha = 255;
+    }
+    xlColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+        red = r;
+        green = g;
+        blue = b;
+        alpha = a;
     }
     xlColor(const xlColor &rgb) {
         red = rgb.red;
         blue = rgb.blue;
         green = rgb.green;
+        alpha = rgb.alpha;
     }
     xlColor(const wxString &str) {
         SetFromString(str);
@@ -28,54 +38,62 @@ public:
         red = rgb.red;
         blue = rgb.blue;
         green = rgb.green;
+        alpha = 255;
     }
     xlColor(const wxImage::HSVValue &hsv) {
         wxImage::RGBValue rgb = wxImage::HSVtoRGB(hsv);
         red = rgb.red;
         blue = rgb.blue;
         green = rgb.green;
+        alpha = 255;
     }
     unsigned char Red() const { return red; }
     unsigned char Blue() const { return blue; };
     unsigned char Green() const { return green; };
+    unsigned char Alpha() const { return alpha; };
 
     void Set(unsigned char r, unsigned char g, unsigned char b) {
         red = r;
         green = g;
         blue = b;
+        alpha = 255;
+    }
+    void Set(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+        red = r;
+        green = g;
+        blue = b;
+        alpha = a;
     }
     xlColor&operator=(const wxImage::HSVValue& hsv) {
         wxImage::RGBValue rgb = wxImage::HSVtoRGB(hsv);
         red = rgb.red;
         blue = rgb.blue;
         green = rgb.green;
+        alpha = 255;
         return *this;
     }
     xlColor&operator=(const wxImage::RGBValue& rgb) {
         red = rgb.red;
         blue = rgb.blue;
         green = rgb.green;
+        alpha = 255;
         return *this;
     }
     bool operator==(const xlColor &rgb) const {
         return (red == rgb.red)
             && (blue == rgb.blue)
-            && (green == rgb.green);
+            && (green == rgb.green);  //don't compare alpha
     }
     bool operator!=(const xlColor &rgb) const {
         return (red != rgb.red)
             || (blue != rgb.blue)
-            || (green != rgb.green);
+            || (green != rgb.green); //don't compare alpha
     }
     wxColor asWxColor() const {
-        return wxColor(red, green, blue);
+        return wxColor(red, green, blue, alpha);
     }
-    wxImage::HSVValue asHSV() {
-        wxImage::RGBValue newrgb;
-        newrgb.red= Red();
-        newrgb.green=Green();
-        newrgb.blue=Blue();
-        return wxImage::RGBtoHSV(newrgb);
+    wxImage::HSVValue asHSV() const {
+        return wxImage::RGBtoHSV(*this);
     }
     wxUint32 GetRGB() const
     { return Red() | (Green() << 8) | (Blue() << 16); }
@@ -83,7 +101,16 @@ public:
     operator wxString() const {
         return wxString::Format("#%02x%02x%02x", red, green, blue);
     }
+    xlColor AlphaBlend(const xlColor &c) const {
+        double a = c.alpha;
+        a /= 255; // 0 (transparent) - 1.0 (opague)
+        double dr = c.red * a + red * (1.0 - a);
+        double dg = c.green * a + green * (1.0 - a);
+        double db = c.blue * a + blue * (1.0 - a);
+        return xlColor(dr, dg, db);
+    }
     void SetFromString(const wxString &str) {
+        alpha = 255;
         if (str.empty()) {
             red = blue = green = 0;
             return;
