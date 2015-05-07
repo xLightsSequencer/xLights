@@ -358,14 +358,12 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
 
 void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[]) {
     xlColour *colors = new xlColour[numLayers];
-    int layerIdxs[numLayers];
 
     wxImage::HSVValue hsv;
     int pos = 0;
-    for (int layer = 0; layer < numLayers; layer++) {
+    for (int layer = numLayers - 1; layer >= 0; layer--) {
         if (validLayers[layer]) {
             effects[layer].GetPixel(x, y, colors[pos]);
-            layerIdxs[pos] = layer;
             if (fadeFactor[layer] != 1.0) {
                 hsv = wxImage::RGBtoHSV(colors[pos]);
                 hsv.value *= fadeFactor[layer];
@@ -374,7 +372,7 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
 
             if (pos > 0) {
                 //mix with layer below
-                colors[pos] = mixColors(x, y, colors[pos - 1], colors[pos], layerIdxs[pos - 1]);
+                colors[pos] = mixColors(x, y, colors[pos], colors[pos - 1], layer);
             }
             pos++;
         }

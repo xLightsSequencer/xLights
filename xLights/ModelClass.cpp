@@ -97,7 +97,6 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
     long i2;
 
     ModelXml=ModelNode;
-    TreeDegrees=0;
     StrobeRate=0;
     Nodes.clear();
 
@@ -284,6 +283,9 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
         InitVMatrix(firstStrand);
         token = tkz.GetNextToken();
         token.ToLong(&degrees);
+        if (token == "Flat") {
+            degrees = 0;
+        }
         SetTreeCoord(degrees);
     } else if (token == "Sphere") {
         InitSphere();
@@ -612,30 +614,66 @@ long ModelClass::toDegrees(double radians) {
 
 // initialize screen coordinates for tree
 void ModelClass::SetTreeCoord(long degrees) {
-    int bufferX, bufferY;
-    double angle,x0;
-    TreeDegrees=degrees;
+    double bufferX, bufferY;
     if (BufferWi < 2) return;
-    if(BufferHt<1) return; // June 27,2013. added check to not divide by zero
-    float factor=1000/BufferHt;
-    RenderHt=BufferHt*factor;
-    RenderWi=RenderHt/2;
-    double radians=toRadians(degrees);
-    double radius=RenderWi/2.0;
-    double StartAngle=-radians/2.0;
-    double AngleIncr=radians/double(BufferWi-1);
-    //wxString msg=wxString::Format("BufferHt=%d, BufferWi=%d, factor=%d, RenderHt=%d, RenderWi=%d\n",BufferHt,BufferWi,factor,RenderHt,RenderWi);
-    size_t NodeCount=GetNodeCount();
-    for(size_t n=0; n<NodeCount; n++) {
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++) {
-            bufferX=Nodes[n]->Coords[c].bufX;
-            bufferY=Nodes[n]->Coords[c].bufY;
-            angle=StartAngle + double(bufferX) * AngleIncr;
-            x0=radius * sin(angle);
-            Nodes[n]->Coords[c].screenX=x0*(1.0-double(bufferY)/(double(BufferHt) * 1.1));
-//            Nodes[n]->Coords[c].screenY=bufferY * factor;
-            Nodes[n]->Coords[c].screenY=(bufferY * factor)-(RenderHt/2);
+    if (BufferHt < 1) return; // June 27,2013. added check to not divide by zero
+    if (degrees > 0) {
+        double angle;
+        RenderHt=1000;
+        RenderWi=((double)RenderHt)/1.8;
+
+        double radians=toRadians(degrees);
+        double radius=RenderWi/2.0;
+        double topradius=RenderWi/12;
+        
+        double StartAngle=-radians/2.0;
+        double AngleIncr=radians/double(BufferWi);
+        if (degrees > 180) {
+            //shift a tiny bit to make the strands in back not line up exactly with the strands in front
+            StartAngle += AngleIncr / 5.0;
+        }
+        double topYoffset = std::abs(0.2 * topradius * cos(M_PI));
+        double ytop = RenderHt - topYoffset;
+        double ybot = std::abs(0.2 * radius * cos(M_PI));
+        
+        size_t NodeCount=GetNodeCount();
+        for(size_t n=0; n<NodeCount; n++) {
+            size_t CoordCount=GetCoordCount(n);
+            for(size_t c=0; c < CoordCount; c++) {
+                bufferX=Nodes[n]->Coords[c].bufX;
+                bufferY=Nodes[n]->Coords[c].bufY;
+                angle=StartAngle + double(bufferX) * AngleIncr;
+                double xb=radius * sin(angle);
+                double xt=topradius * sin(angle);
+                double yb = ybot - 0.2 * radius * cos(angle);
+                double yt = ytop - 0.2 * topradius * cos(angle);
+                double posOnString = (bufferY/(double)(BufferHt-1.0));
+                
+                Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
+                Nodes[n]->Coords[c].screenY = yb + (yt - yb) * posOnString - ((double)RenderHt)/2.0;
+            }
+        }
+    } else {
+        double treeScale = 4.0;
+        double botWid = BufferWi * treeScale;
+        RenderHt=BufferHt * 2.0;
+        RenderWi=(botWid + 2);
+
+        double offset = 0.5;
+        size_t NodeCount=GetNodeCount();
+        for(size_t n=0; n<NodeCount; n++) {
+            size_t CoordCount=GetCoordCount(n);
+            for(size_t c=0; c < CoordCount; c++) {
+                bufferX=Nodes[n]->Coords[c].bufX;
+                bufferY=Nodes[n]->Coords[c].bufY;
+                
+                double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
+                double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
+                double posOnString = (bufferY/(double)(BufferHt-1.0));
+                
+                Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
+                Nodes[n]->Coords[c].screenY = RenderHt * posOnString - ((double)RenderHt)/2.0;
+            }
         }
     }
 }
@@ -1497,17 +1535,28 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
     xlColor lastColor;
 
     int first = 0; int last = NodeCount;
+    int buffFirst = -1; int buffLast = -1;
     bool left = true;
     while (first < last) {
         int n = 0;
         if (left) {
-            left = false;
             n = first;
             first++;
+            if (buffFirst == -1) {
+                buffFirst = Nodes[n]->Coords[0].bufX;
+            }
+            if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                left = false;
+            }
         } else {
-            left = true;
             last--;
             n = last;
+            if (buffLast == -1) {
+                buffLast = Nodes[n]->Coords[0].bufX;
+            }
+            if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
+                left = true;
+            }
         }
         if (c == NULL) {
             Nodes[n]->GetColor(color);
@@ -1641,18 +1690,30 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
         xlColor lastColor;
         bool started = false;
         int first = 0; int last = NodeCount;
+        int buffFirst = -1; int buffLast = -1;
         bool left = true;
         while (first < last) {
             int n = 0;
             if (left) {
-                left = false;
                 n = first;
                 first++;
+                if (buffFirst == -1) {
+                    buffFirst = Nodes[n]->Coords[0].bufX;
+                }
+                if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                    left = false;
+                }
             } else {
-                left = true;
                 last--;
                 n = last;
+                if (buffLast == -1) {
+                    buffLast = Nodes[n]->Coords[0].bufX;
+                }
+                if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
+                    left = true;
+                }
             }
+
             Nodes[n]->GetColor(color);
             if (pixelStyle < 2 && (!started || lastColor != color)) {
                 if (started) {

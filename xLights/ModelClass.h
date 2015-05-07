@@ -357,7 +357,7 @@ private:
     int transparency = 0;
     int blackTransparency = 0;
 
-    int TreeDegrees,FrameWidth;
+    int FrameWidth;
     bool modelv2;
     int StrobeRate;      // 0=no strobing
     double offsetXpct,offsetYpct;

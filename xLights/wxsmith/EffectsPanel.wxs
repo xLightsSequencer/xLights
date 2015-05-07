@@ -207,11 +207,6 @@
 									<border>2</border>
 									<option>1</option>
 								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Bars_Direction" variable="BitmapButton_Direction" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
@@ -223,6 +218,11 @@
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -1205,7 +1205,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_CenterX" variable="TextCtrl_Fan_CenterX" member="no">
 															<value>50</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1246,7 +1246,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_CenterY" variable="TextCtrl_Fan_CenterY" member="no">
 															<value>50</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1288,7 +1288,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Start_Radius" variable="TextCtrl_Fan_Start_Radius" member="no">
 															<value>1</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1329,7 +1329,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Start_Angle" variable="TextCtrl_Fan_Start_Angle" member="no">
 															<value>0</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1371,7 +1371,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_End_Radius" variable="TextCtrl_Fan_End_Radius" member="no">
 															<value>10</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1413,7 +1413,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Revolutions" variable="TextCtrl_Fan_Revolutions" member="no">
 															<value>2.0</value>
 															<maxlength>4</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider360" entry="EVT_TEXT" />
 														</object>
@@ -1466,7 +1466,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Num_Blades" variable="TextCtrl_Fan_Num_Blades" member="no">
 															<value>3</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1508,7 +1508,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Blade_Width" variable="TextCtrl_Fan_Blade_Width" member="no">
 															<value>50</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1551,7 +1551,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Blade_Angle" variable="TextCtrl_Fan_Blade_Angle" member="no">
 															<value>90</value>
 															<maxlength>4</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1594,7 +1594,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Num_Elements" variable="TextCtrl_Fan_Num_Elements" member="no">
 															<value>1</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1636,7 +1636,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Element_Width" variable="TextCtrl_Fan_Element_Width" member="no">
 															<value>100</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1687,7 +1687,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Duration" variable="TextCtrl_Fan_Duration" member="no">
 															<value>80</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -1729,7 +1729,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fan_Accel" variable="TextCtrl_Fan_Accel" member="no">
 															<value>0</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2041,7 +2041,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_CenterX" variable="TextCtrl_Galaxy_CenterX" member="no">
 															<value>50</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2082,7 +2082,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_CenterY" variable="TextCtrl_Galaxy_CenterY" member="no">
 															<value>50</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2124,7 +2124,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_Start_Radius" variable="TextCtrl_Galaxy_Start_Radius" member="no">
 															<value>1</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2166,7 +2166,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_Start_Width" variable="TextCtrl_Galaxy_Start_Width" member="no">
 															<value>5</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2207,7 +2207,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_Start_Angle" variable="TextCtrl_Galaxy_Start_Angle" member="no">
 															<value>0</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2258,7 +2258,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_End_Radius" variable="TextCtrl_Galaxy_End_Radius" member="no">
 															<value>10</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2300,7 +2300,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_End_Width" variable="TextCtrl_Galaxy_End_Width" member="no">
 															<value>5</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2342,7 +2342,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_Revolutions" variable="TextCtrl_Galaxy_Revolutions" member="no">
 															<value>4.0</value>
 															<maxlength>4</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider360" entry="EVT_TEXT" />
 														</object>
@@ -2393,7 +2393,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_Duration" variable="TextCtrl_Galaxy_Duration" member="no">
 															<value>20</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2435,7 +2435,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_Accel" variable="TextCtrl_Galaxy_Accel" member="no">
 															<value>0</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2910,7 +2910,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X1" variable="TextCtrl_Morph_Start_X1" member="no">
 															<value>0</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -2950,7 +2950,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y1" variable="TextCtrl_Morph_Start_Y1" member="no">
 															<value>0</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="OnChoicePicturesDirectionSelect" entry="EVT_TEXT" />
 														</object>
@@ -2991,7 +2991,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X2" variable="TextCtrl_Morph_Start_X2" member="no">
 															<value>100</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -3031,7 +3031,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y2" variable="TextCtrl_Morph_Start_Y2" member="no">
 															<value>0</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -3073,7 +3073,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphStartLength" variable="TextCtrl_MorphStartLength" member="no">
 															<value>1</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -3136,7 +3136,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X1" variable="TextCtrl_Morph_End_X1" member="no">
 															<value>0</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -3177,7 +3177,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y1" variable="TextCtrl_Morph_End_Y1" member="no">
 															<value>100</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -3218,7 +3218,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X2" variable="TextCtrl_Morph_End_X2" member="no">
 															<value>100</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -3259,7 +3259,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y2" variable="TextCtrl_Morph_End_Y2" member="no">
 															<value>100</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -3301,7 +3301,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphEndLength" variable="TextCtrl_MorphEndLength" member="no">
 															<value>1</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -3370,7 +3370,7 @@
 																<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphDuration" variable="TextCtrl_MorphDuration" member="no">
 																	<value>20</value>
 																	<maxlength>3</maxlength>
-																	<size>35,-1</size>
+																	<size>20,-1d</size>
 																	<style>wxTE_CENTRE</style>
 																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																</object>
@@ -3412,7 +3412,7 @@
 																<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphAccel" variable="TextCtrl_MorphAccel" member="no">
 																	<value>0</value>
 																	<maxlength>3</maxlength>
-																	<size>35,-1</size>
+																	<size>20,-1d</size>
 																	<style>wxTE_CENTRE</style>
 																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																</object>
@@ -3969,7 +3969,7 @@
 											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pictures_GifSpeed" variable="TextCtrl_Pictures_GifSpeed" member="no">
 												<value>20</value>
 												<maxlength>3</maxlength>
-												<size>35,-1</size>
+												<size>20,-1d</size>
 												<style>wxTE_CENTRE</style>
 												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
@@ -4028,13 +4028,13 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer102" member="no">
+										<cols>1</cols>
+										<growablecols>0</growablecols>
 										<object class="sizeritem">
 											<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_PixelOffsets" variable="CheckBox1" member="no">
 												<label>Offsets In Pixels</label>
 											</object>
-											<col>0</col>
-											<row>0</row>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
 											<border>5</border>
 											<option>1</option>
@@ -4046,6 +4046,7 @@
 														<pos>15,49</pos>
 														<object class="wxFlexGridSizer" variable="FlexGridSizer112" member="no">
 															<cols>2</cols>
+															<growablecols>0</growablecols>
 															<object class="sizeritem">
 																<object class="wxFlexGridSizer" variable="FlexGridSizer106" member="no">
 																	<cols>2</cols>
@@ -4079,7 +4080,7 @@
 																		<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesXC" variable="TextCtrl_PicturesXC" member="no">
 																			<value>0</value>
 																			<maxlength>3</maxlength>
-																			<size>35,-1</size>
+																			<size>20,-1d</size>
 																			<style>wxTE_CENTRE</style>
 																			<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																		</object>
@@ -4108,7 +4109,7 @@
 																		<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesYC" variable="TextCtrl_PicturesYC" member="no">
 																			<value>0</value>
 																			<maxlength>3</maxlength>
-																			<size>35,-1</size>
+																			<size>20,-1d</size>
 																			<style>wxTE_CENTRE</style>
 																			<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																		</object>
@@ -4145,6 +4146,7 @@
 														<pos>104,13</pos>
 														<object class="wxFlexGridSizer" variable="FlexGridSizer111" member="no">
 															<cols>2</cols>
+															<growablecols>0</growablecols>
 															<object class="sizeritem">
 																<object class="wxFlexGridSizer" variable="FlexGridSizer113" member="no">
 																	<cols>2</cols>
@@ -4175,7 +4177,7 @@
 																		<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesEndXC" variable="TextCtrl1" member="no">
 																			<value>0</value>
 																			<maxlength>3</maxlength>
-																			<size>35,-1</size>
+																			<size>20,-1d</size>
 																			<style>wxTE_CENTRE</style>
 																			<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																		</object>
@@ -4204,7 +4206,7 @@
 																		<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesEndYC" variable="TextCtrl2" member="no">
 																			<value>0</value>
 																			<maxlength>3</maxlength>
-																			<size>35,-1</size>
+																			<size>20,-1d</size>
 																			<style>wxTE_CENTRE</style>
 																			<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																		</object>
@@ -4237,8 +4239,6 @@
 													<label>End Position</label>
 												</object>
 											</object>
-											<col>0</col>
-											<row>1</row>
 											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
@@ -4810,7 +4810,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_CenterX" variable="TextCtrl_Shockwave_CenterX" member="no">
 															<value>50</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -4851,7 +4851,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_CenterY" variable="TextCtrl_Shockwave_CenterY" member="no">
 															<value>50</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -4893,7 +4893,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_Start_Radius" variable="TextCtrl_Shockwave_Start_Radius" member="no">
 															<value>1</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -4935,7 +4935,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_End_Radius" variable="TextCtrl_Shockwave_End_Radius" member="no">
 															<value>10</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -4977,7 +4977,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_Start_Width" variable="TextCtrl_Shockwave_Start_Width" member="no">
 															<value>5</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -5019,7 +5019,7 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_End_Width" variable="TextCtrl_Shockwave_End_Width" member="no">
 															<value>10</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
@@ -5045,13 +5045,13 @@
 										</object>
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL44" variable="Panel14" member="no">
-												<object class="wxGridBagSizer" variable="GridBagSizerShockwaveOptions" member="no">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer101" member="no">
+													<cols>4</cols>
+													<growablecols>1</growablecols>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT162" variable="StaticText166" member="yes">
 															<label>Acceleration:</label>
 														</object>
-														<col>0</col>
-														<row>0</row>
 														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -5062,8 +5062,6 @@
 															<max>10</max>
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
-														<col>1</col>
-														<row>0</row>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -5072,12 +5070,10 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_Accel" variable="TextCtrl_Shockwave_Accel" member="no">
 															<value>0</value>
 															<maxlength>3</maxlength>
-															<size>35,-1</size>
+															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
 															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
-														<col>2</col>
-														<row>0</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -5090,8 +5086,6 @@
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
-														<col>3</col>
-														<row>0</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -5102,8 +5096,6 @@
 															<checked>1</checked>
 															<style>wxALIGN_RIGHT</style>
 														</object>
-														<col>0</col>
-														<row>1</row>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -5370,7 +5362,7 @@
 																<object class="wxTextCtrl" name="IDD_TEXTCTRL_Skips_BandSize" variable="TextCtrl3" member="no">
 																	<value>1</value>
 																	<maxlength>3</maxlength>
-																	<size>15,-1d</size>
+																	<size>20,-1d</size>
 																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -5419,7 +5411,7 @@
 															<object class="sizeritem">
 																<object class="wxTextCtrl" name="IDD_TEXTCTRL_Skips_SkipSize" variable="TextCtrl4" member="no">
 																	<value>1</value>
-																	<size>15,-1d</size>
+																	<size>20,-1d</size>
 																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -5469,7 +5461,7 @@
 															<object class="sizeritem">
 																<object class="wxTextCtrl" name="IDD_TEXTCTRL_Skips_StartPos" variable="TextCtrl5" member="no">
 																	<value>1</value>
-																	<size>15,-1d</size>
+																	<size>20,-1d</size>
 																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
