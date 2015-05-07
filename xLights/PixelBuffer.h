@@ -76,7 +76,7 @@ private:
     bool *effectMixVaries; //allow varying mix threshold -DJ
 
     void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[]);
-    xlColour mixColors(const wxCoord &x, const wxCoord &y, xlColour &c0, xlColour &c1, int layer);
+    xlColour mixColors(const wxCoord &x, const wxCoord &y, const xlColour &c0, const xlColour &c1, int layer);
     void SetModelBrightness(int value);
     void reset(int layers, int timing);
 public:

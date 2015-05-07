@@ -213,9 +213,9 @@ void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
 }
 
 
-xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColour &c0, xlColour &c1, int layer) {
+xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xlColour &fg, const xlColour &c1, int layer) {
     static const int n = 0;  //increase to change the curve of the crossfade
-
+    xlColor c0 = fg;
     
     wxImage::HSVValue hsv0;
     wxImage::HSVValue hsv1;
@@ -244,7 +244,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
             c = c0.AlphaBlend(c1);
         break;
     case Mix_Effect1:
-    case Mix_Effect2:
+    case Mix_Effect2: {
         if (!effectMixVaries[layer]) {
             emt = effectMixThreshold[layer];
             if ((emt > 0.000001) && (emt < 0.99999)) {
@@ -261,15 +261,17 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
             emtNot = 1-effectMixThreshold[layer];
         }
 
+        xlColor c2(c1);
         if (mixType[layer] == Mix_Effect2) {
             c0.Set(c0.Red()*(emtNot) ,c0.Green()*(emtNot), c0.Blue()*(emtNot));
-            c1.Set(c1.Red()*(emt) ,c1.Green()*(emt), c1.Blue()*(emt));
+            c2.Set(c1.Red()*(emt) ,c1.Green()*(emt), c1.Blue()*(emt));
         } else {
             c0.Set(c0.Red()*(emt) ,c0.Green()*(emt), c0.Blue()*(emt));
-            c1.Set(c1.Red()*(emtNot) ,c1.Green()*(emtNot), c1.Blue()*(emtNot));
+            c2.Set(c1.Red()*(emtNot) ,c1.Green()*(emtNot), c1.Blue()*(emtNot));
         }
-        c.Set(c0.Red()+c1.Red(), c0.Green()+c1.Green(), c0.Blue()+c1.Blue());
+        c.Set(c0.Red()+c2.Red(), c0.Green()+c2.Green(), c0.Blue()+c2.Blue());
         break;
+    }
     case Mix_Mask1:
         // first masks second
         hsv0 = wxImage::RGBtoHSV(c0);
@@ -376,29 +378,32 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
 
 
 void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[]) {
-    xlColour *colors = new xlColour[numLayers];
-
     wxImage::HSVValue hsv;
-    int pos = 0;
+    int cnt = 0;
+    xlColor color;
+    c = xlBLACK;
     for (int layer = numLayers - 1; layer >= 0; layer--) {
         if (validLayers[layer]) {
-            effects[layer].GetPixel(x, y, colors[pos]);
-            if (pos == 0 && fadeFactor[layer] != 1.0) {
-                //need to fade the first here as we're not mixing anything
-                hsv = wxImage::RGBtoHSV(colors[pos]);
-                hsv.value *= fadeFactor[layer];
-                colors[pos] = hsv;
+            effects[layer].GetPixel(x, y, color);
+            if (MixTypeHandlesAlpha(mixType[layer])) {
+                c = mixColors(x, y, color, c, layer);
+            } else {
+                if (cnt == 0 && fadeFactor[layer] != 1.0) {
+                    //need to fade the first here as we're not mixing anything
+                    hsv = wxImage::RGBtoHSV(color);
+                    hsv.value *= fadeFactor[layer];
+                    color = hsv;
+                }
+                if (cnt > 0) {
+                    //mix with layer below
+                    c = mixColors(x, y, color, c, layer);
+                } else {
+                    c = color;
+                }
             }
-
-            if (pos > 0) {
-                //mix with layer below
-                colors[pos] = mixColors(x, y, colors[pos], colors[pos - 1], layer);
-            }
-            pos++;
+            cnt++;
         }
     }
-    c = colors[pos - 1];
-    delete [] colors;
 }
 void PixelBufferClass::SetPalette(int layer, xlColourVector& newcolors) {
     effects[layer].SetPalette(newcolors);

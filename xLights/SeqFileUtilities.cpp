@@ -937,7 +937,7 @@ wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
     i.Create(numCols, numRows);
     i.InitAlpha();
     for (int x = 0; x < numCols; x++)  {
-        for (int y = 0; y < numCols; y++) {
+        for (int y = 0; y < numRows; y++) {
             i.SetAlpha(x, y, wxALPHA_TRANSPARENT);
         }
     }
@@ -1151,7 +1151,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             int xOffset =  wxAtoi(element->GetAttribute("xOffset"));
                             int yOffset =  wxAtoi(element->GetAttribute("yOffset"));
                             unsigned char *bytes = (unsigned char *)malloc(w*h*3);
+                            unsigned char *alpha = (unsigned char *)malloc(w*h);
                             int cnt = 0;
+                            int p = 0;
                             wxStringTokenizer tokenizer(data, ",");
                             while (tokenizer.HasMoreTokens()) {
                                 unsigned int i = wxAtoi(tokenizer.GetNextToken());
@@ -1167,11 +1169,16 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                 v *= 255;
                                 v /= 100;
                                 bytes[cnt + 2] = v;
-
+                                
+                                alpha[p] = wxALPHA_OPAQUE;
+                                if (i == 0) {
+                                    alpha[p] = wxALPHA_TRANSPARENT;
+                                }
+                                p++;
                                 cnt += 3;
                             }
 
-                            wxImage image(w, h, bytes);
+                            wxImage image(w, h, bytes, alpha);
                             if ("" == imagePfx) {
                                 wxFileDialog fd(this,
                                                 "Choose location and base name for image files",
@@ -1183,7 +1190,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                 }
                                 imagePfx = fd.GetPath();
                             }
-                            wxString fname = imagePfx + "_" + wxString::Format("%d.bmp", idx);
+                            wxString fname = imagePfx + "_" + wxString::Format("%d.png", idx);
                             imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
                             image.SaveFile(fname);
                         }
