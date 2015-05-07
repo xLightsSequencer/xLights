@@ -163,6 +163,14 @@ void PixelBufferClass::Clear(int which) {
         }
     }
 }
+bool MixTypeHandlesAlpha(MixTypes mt) {
+    switch (mt) {
+        case Mix_Normal:
+            return true;
+        default:
+            return false;
+    }
+}
 
 // convert MixName to MixType enum
 void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
@@ -201,16 +209,9 @@ void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
         MixType=Mix_Effect1;
     }
     mixType[layer] = MixType;
+    effects[layer].SetAllowAlphaChannel(MixTypeHandlesAlpha(MixType));
 }
 
-bool MixTypeHandlesAlpha(MixTypes mt) {
-    switch (mt) {
-    case Mix_Normal:
-        return true;
-    default:
-        return false;
-    }
-}
 
 xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColour &c0, xlColour &c1, int layer) {
     static const int n = 0;  //increase to change the curve of the crossfade

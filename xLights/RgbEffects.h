@@ -104,6 +104,7 @@ public:
     void Clear(const xlColor& bgColor);
     void SetPalette(xlColourVector& newcolors);
     void SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name);
+    void SetAllowAlphaChannel(bool a) {allowAlpha = a;};
 
     void SetFadeTimes(float fadeIn, float fadeOut );
     void SetEffectDuration(int startMsec, int endMsec);
@@ -129,7 +130,7 @@ protected:
     int frameTimeInMs;
     wxString cur_model; //name of model currently in effect (used by RenderCoroFaces)
     int cur_period; //current frame# within sequence
-
+    bool allowAlpha;
     class RgbFireworks
     {
     public:

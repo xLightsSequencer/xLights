@@ -383,7 +383,12 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
         {
             if (!image.IsTransparent(x,y))
             {
-                c.Set(image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y), hasAlpha ? image.GetAlpha(x, y) : 255);
+                unsigned char alpha = hasAlpha ? image.GetAlpha(x, y) : 255;
+                c.Set(image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y), alpha);
+                if (!allowAlpha && alpha < 64) {
+                    //almost transparent, but this mix doesn't support transparent unless it's black;
+                    c = xlBLACK;
+                }
                 switch (dir)
                 {
                 case RENDER_PICTURE_LEFT: //0:
