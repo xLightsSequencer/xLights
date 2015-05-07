@@ -1173,7 +1173,15 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
 
                             wxImage image(w, h, bytes);
                             if ("" == imagePfx) {
-                                imagePfx = wxGetTextFromUser("Choose prefix for images extracted from Superstar File");
+                                wxFileDialog fd(this,
+                                                "Choose location and base name for image files",
+                                                showDirectory,
+                                                wxEmptyString,
+                                                wxFileSelectorDefaultWildcardStr,
+                                                wxFD_SAVE);
+                                while (fd.ShowModal() == wxID_CANCEL || fd.GetFilename() == "") {
+                                }
+                                imagePfx = fd.GetPath();
                             }
                             wxString fname = imagePfx + "_" + wxString::Format("%d.bmp", idx);
                             imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
@@ -1320,7 +1328,15 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     double end_time = wxAtoi(endms) / 1000.0;
                     layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
                     if ("" == imagePfx) {
-                        imagePfx = wxGetTextFromUser("Choose prefix for images extracted from Superstar File");
+                        wxFileDialog fd(this,
+                                        "Choose location and base name for image files",
+                                        showDirectory,
+                                        wxEmptyString,
+                                        wxFileSelectorDefaultWildcardStr,
+                                        wxFD_SAVE);
+                        while (fd.ShowModal() == wxID_CANCEL || fd.GetFilename() == "") {
+                        }
+                        imagePfx = fd.GetPath();
                     }
 
                     wxString ru = "0.0";

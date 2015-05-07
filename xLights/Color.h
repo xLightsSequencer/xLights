@@ -101,12 +101,13 @@ public:
     operator wxString() const {
         return wxString::Format("#%02x%02x%02x", red, green, blue);
     }
-    xlColor AlphaBlend(const xlColor &c) const {
-        double a = c.alpha;
+    /** AlphaBlend this color onto the background **/
+    xlColor AlphaBlend(const xlColor &bc) const {
+        double a = alpha;
         a /= 255; // 0 (transparent) - 1.0 (opague)
-        double dr = c.red * a + red * (1.0 - a);
-        double dg = c.green * a + green * (1.0 - a);
-        double db = c.blue * a + blue * (1.0 - a);
+        double dr = red * a + bc.red * (1.0 - a);
+        double dg = green * a + bc.green * (1.0 - a);
+        double db = blue * a + bc.blue * (1.0 - a);
         return xlColor(dr, dg, db);
     }
     void SetFromString(const wxString &str) {
