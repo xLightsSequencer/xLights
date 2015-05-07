@@ -627,16 +627,6 @@ void SequenceElements::SetFirstVisibleModelRow(int row)
         {
             mFirstVisibleModelRow = row;
         }
-        for(int i=mFirstVisibleModelRow;i<mRowInformation.size();i++)
-        {
-            // Make sure the first visible row is a layer 0 row.
-            // We want the first row to always be a layer 0
-            if(mRowInformation[i+mTimingRowCount].layerIndex == 0)
-            {
-                mFirstVisibleModelRow = i;
-                break;
-            }
-        }
     }
     PopulateVisibleRowInformation();
 }

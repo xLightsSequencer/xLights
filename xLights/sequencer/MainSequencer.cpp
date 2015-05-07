@@ -199,7 +199,7 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
             if (position > 0) {
                 position -= ts;
             }
-        } else {
+        } else if (i > 0) {
             position += ts;
             if (position >= ScrollBarEffectsHorizontal->GetRange()) {
                 position = ScrollBarEffectsHorizontal->GetRange() - 1;
@@ -218,9 +218,7 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
                 ScrollBarEffectsVertical->SetThumbPosition(position);
                 mSequenceElements->SetFirstVisibleModelRow(position);
             }
-        }
-        else
-        {
+        } else if (i > 0) {
             if(position > 0)
             {
                 position--;
