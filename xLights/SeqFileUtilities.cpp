@@ -357,11 +357,13 @@ void xLightsFrame::SetSequenceEnd(int ms)
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
 }
 
-static void CalcPercentage(wxString& value, double base, bool reverse)
+static void CalcPercentage(wxString& value, double base, bool reverse, int offset)
 {
-    double val;
-    value.ToDouble(&val);
-    double percent = val/(base-1)*100.0;
+    int val = wxAtoi(value);
+    val %= (int)base;
+    val -= offset;
+    if( val < 0 ) val = 0;
+    double percent = (double)val/(base-1)*100.0;
     if( reverse )
     {
         percent = 100.0 - percent;
@@ -559,11 +561,15 @@ void xLightsFrame::ImportSuperStar()
         }
         if( model != nullptr && model_found )
         {
+            int x_size = wxAtoi(TextCtrl_SS_X_Size->GetValue());
+            int y_size = wxAtoi(TextCtrl_SS_Y_Size->GetValue());
+            int x_offset = wxAtoi(TextCtrl_SS_X_Offset->GetValue());
+            int y_offset = wxAtoi(TextCtrl_SS_Y_Offset->GetValue());
             if (input_xml.GetRoot()->GetName() == "sequence") {
                 if (!ImportLMS(model, input_xml)) {
                     return;
                 }
-            } else if (!ImportSuperStar(model, input_xml)) {
+            } else if (!ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset)) {
                 return;
             }
         }
@@ -974,7 +980,7 @@ bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFu
     return true;
 }
 
-bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
+bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int x_size, int y_size, int x_offset, int y_offset)
 {
     double num_rows = 1.0;
     double num_columns = 1.0;
@@ -1009,17 +1015,23 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
         {
             wxXmlNode* element=e->GetChildren();
             wxString attr;
-            element->GetAttribute("nbrOfRibbons", &attr);
-            attr.ToDouble(&num_columns);
-            element->GetAttribute("ribbonType", &attr);
-            if( attr == "CCR" )
+            element->GetAttribute("visualizationMode", &attr);
+            if( attr == "false" )
             {
+                element->GetAttribute("nbrOfRibbons", &attr);
+                attr.ToDouble(&num_columns);
                 num_rows = 50.0;
+                element->GetAttribute("ribbonLength", &attr);
+                if( attr == "half" )
+                {
+                    num_rows /= 2.0;
+                    num_columns *= 2.0;
+                }
             }
             else
             {
-                wxMessageBox("Currently only CCRs are supported!");
-                return false;
+                num_rows = (double)y_size;
+                num_columns = (double)x_size;
             }
             element->GetAttribute("controllerLocation", &attr);
             if( attr == "bottom" )
@@ -1071,28 +1083,28 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                 state1->GetAttribute("trailLen", &attr);
                 settings += "E_SLIDER_MorphStartLength=" + attr + ",";
                 state2->GetAttribute("x1", &attr);
-                CalcPercentage(attr, num_columns, false);
+                CalcPercentage(attr, num_columns, false, x_offset);
                 settings += "E_SLIDER_Morph_End_X1=" + attr + ",";
                 state2->GetAttribute("x2", &attr);
-                CalcPercentage(attr, num_columns, false);
+                CalcPercentage(attr, num_columns, false, x_offset);
                 settings += "E_SLIDER_Morph_End_X2=" + attr + ",";
                 state2->GetAttribute("y1", &attr);
-                CalcPercentage(attr, num_rows, reverse_rows);
+                CalcPercentage(attr, num_rows, reverse_rows, y_offset);
                 settings += "E_SLIDER_Morph_End_Y1=" + attr + ",";
                 state2->GetAttribute("y2", &attr);
-                CalcPercentage(attr, num_rows, reverse_rows);
+                CalcPercentage(attr, num_rows, reverse_rows, y_offset);
                 settings += "E_SLIDER_Morph_End_Y2=" + attr + ",";
                 state1->GetAttribute("x1", &attr);
-                CalcPercentage(attr, num_columns, false);
+                CalcPercentage(attr, num_columns, false, x_offset);
                 settings += "E_SLIDER_Morph_Start_X1=" + attr + ",";
                 state1->GetAttribute("x2", &attr);
-                CalcPercentage(attr, num_columns, false);
+                CalcPercentage(attr, num_columns, false, x_offset);
                 settings += "E_SLIDER_Morph_Start_X2=" + attr + ",";
                 state1->GetAttribute("y1", &attr);
-                CalcPercentage(attr, num_rows, reverse_rows);
+                CalcPercentage(attr, num_rows, reverse_rows, y_offset);
                 settings += "E_SLIDER_Morph_Start_Y1=" + attr + ",";
                 state1->GetAttribute("y2", &attr);
-                CalcPercentage(attr, num_rows, reverse_rows);
+                CalcPercentage(attr, num_rows, reverse_rows, y_offset);
                 settings += "E_SLIDER_Morph_Start_Y2=" + attr + ",";
                 settings += "T_CHECKBOX_FitToTime=0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
                 wxString sRed, sGreen, sBlue,color;
@@ -1208,9 +1220,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                     int layer_index = wxAtoi(element->GetAttribute("layer"));
                     int acceleration = wxAtoi(element->GetAttribute("acceleration"));
                     element->GetAttribute("centerX", &centerX);
-                    CalcPercentage(centerX, num_columns, false);
+                    CalcPercentage(centerX, num_columns, false, x_offset);
                     element->GetAttribute("centerY", &centerY);
-                    CalcPercentage(centerY, num_rows, reverse_rows);
+                    CalcPercentage(centerY, num_rows, reverse_rows, y_offset);
                     int startAngle = wxAtoi(element->GetAttribute("startAngle"));
                     int endAngle = wxAtoi(element->GetAttribute("endAngle"));
                     int revolutions = std::abs(endAngle-startAngle);
@@ -1315,9 +1327,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml)
                     wxString rd = "0.0";
                     wxString imageName;
                     bool isFull = false;
-                    
+
                     bool isPartOfModel = IsPartOfModel(element, num_rows, num_columns, isFull);
-                    
+
                     if (isPartOfModel && isFull) {
                         //Every pixel in the model is specified, we can use a color wash instead of images
                         wxString palette = _("C_BUTTON_Palette1=") + startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + endc
