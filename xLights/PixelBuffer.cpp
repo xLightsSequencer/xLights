@@ -189,8 +189,8 @@ void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
         MixType=Mix_Shadow_2on1;
     } else if (MixName == "Layered") {
         MixType=Mix_Layered;
-    } else if (MixName == "Alpha Blended") {
-        MixType=Mix_Alpha;
+    } else if (MixName == "Normal") {
+        MixType=Mix_Normal;
     } else if (MixName == "Average") {
         MixType=Mix_Average;
     } else if (MixName == "Bottom-Top") {
@@ -203,10 +203,29 @@ void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
     mixType[layer] = MixType;
 }
 
+bool MixTypeHandlesAlpha(MixTypes mt) {
+    switch (mt) {
+    case Mix_Normal:
+        return true;
+    default:
+        return false;
+    }
+}
 
 xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColour &c0, xlColour &c1, int layer) {
     static const int n = 0;  //increase to change the curve of the crossfade
 
+    
+    wxImage::HSVValue hsv0;
+    wxImage::HSVValue hsv1;
+    bool handlesAlpha = MixTypeHandlesAlpha(mixType[layer]);
+    if (!handlesAlpha && fadeFactor[layer] != 1.0) {
+        //need to fade the first here as we're not mixing anything
+        hsv0 = wxImage::RGBtoHSV(c0);
+        hsv0.value *= fadeFactor[layer];
+        c0 = hsv0;
+    }
+    
     float svthresh = effectMixThreshold[layer];
     if (effectMixVaries[layer]) {
         //vary mix threshold gradually during effect interval -DJ
@@ -216,12 +235,13 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
         effectMixThreshold[layer] = 0;
     }
 
-    wxImage::HSVValue hsv0;
-    wxImage::HSVValue hsv1;
-
     xlColour c;
     double emt, emtNot;
     switch (mixType[layer]) {
+    case Mix_Normal:
+            c0.alpha = c0.alpha * fadeFactor[layer] * (1.0 - effectMixThreshold[layer]);
+            c = c0.AlphaBlend(c1);
+        break;
     case Mix_Effect1:
     case Mix_Effect2:
         if (!effectMixVaries[layer]) {
@@ -322,9 +342,6 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
             c=c1;
         }
         break;
-    case Mix_Alpha:
-        c = c0.AlphaBlend(c1);
-        break;
     case Mix_Average:
         // only average when both colors are non-black
         if (c0.GetRGB() == 0) {
@@ -356,6 +373,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
     return c;
 }
 
+
 void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[]) {
     xlColour *colors = new xlColour[numLayers];
 
@@ -364,7 +382,8 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
     for (int layer = numLayers - 1; layer >= 0; layer--) {
         if (validLayers[layer]) {
             effects[layer].GetPixel(x, y, colors[pos]);
-            if (fadeFactor[layer] != 1.0) {
+            if (pos == 0 && fadeFactor[layer] != 1.0) {
+                //need to fade the first here as we're not mixing anything
                 hsv = wxImage::RGBtoHSV(colors[pos]);
                 hsv.value *= fadeFactor[layer];
                 colors[pos] = hsv;

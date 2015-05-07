@@ -103,6 +103,8 @@ public:
     }
     /** AlphaBlend this color onto the background **/
     xlColor AlphaBlend(const xlColor &bc) const {
+        if (alpha == 0) return bc;
+        if (alpha == 255) return *this;
         double a = alpha;
         a /= 255; // 0 (transparent) - 1.0 (opague)
         double dr = red * a + bc.red * (1.0 - a);

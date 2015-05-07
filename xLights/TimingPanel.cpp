@@ -97,7 +97,8 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BitmapButton_CheckBox_LayerMorph->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_CheckBox_LayerMorph, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_LayerMethod = new wxChoice(ScrolledWindowTiming, ID_CHOICE_LayerMethod, wxDefaultPosition, wxDefaultSize, 0, 0, wxFULL_REPAINT_ON_RESIZE, wxDefaultValidator, _T("ID_CHOICE_LayerMethod"));
-	Choice_LayerMethod->SetSelection( Choice_LayerMethod->Append(_("Effect 1")) );
+	Choice_LayerMethod->SetSelection( Choice_LayerMethod->Append(_("Normal")) );
+	Choice_LayerMethod->Append(_("Effect 1"));
 	Choice_LayerMethod->Append(_("Effect 2"));
 	Choice_LayerMethod->Append(_("1 is Mask"));
 	Choice_LayerMethod->Append(_("2 is Mask"));

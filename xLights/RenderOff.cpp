@@ -26,15 +26,12 @@
 void RgbEffects::RenderOff(void)
 {
     int x,y;
-
-    xlColor black(0, 0, 0); //BLACK
-
 //  Every Node, every frame set to BLACK
     for (x=0; x<BufferWi; x++)
     {
         for (y=0; y<BufferHt; y++)
         {
-            SetPixel(x,y,black);
+            SetPixel(x, y, xlBLACK);
         }
     }
 }

@@ -136,6 +136,7 @@
 													<object class="sizeritem">
 														<object class="wxChoice" name="ID_CHOICE_LayerMethod" variable="Choice_LayerMethod" member="yes">
 															<content>
+																<item>Normal</item>
 																<item>Effect 1</item>
 																<item>Effect 2</item>
 																<item>1 is Mask</item>

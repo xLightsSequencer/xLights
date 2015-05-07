@@ -1106,7 +1106,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 state1->GetAttribute("y2", &attr);
                 CalcPercentage(attr, num_rows, reverse_rows, y_offset);
                 settings += "E_SLIDER_Morph_Start_Y2=" + attr + ",";
-                settings += "T_CHECKBOX_FitToTime=0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                settings += "T_CHECKBOX_FitToTime=0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
                 wxString sRed, sGreen, sBlue,color;
                 state1->GetAttribute("red", &sRed);
                 state1->GetAttribute("green", &sGreen);
@@ -1257,7 +1257,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Galaxy_Start_Radius=" + wxString::Format("%d", startRadius)
                                             + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth)
                                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00"
+                                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00"
                                             + ",T_TEXTCTRL_Fadeout=0.00";
                         layer->AddEffect(0, galaxy_index, "Galaxy", settings, palette, startms / 1000.0, endms / 1000.0, false, false);
                     }
@@ -1274,7 +1274,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Shockwave_Start_Radius=" + wxString::Format("%d", startRadius)
                                             + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth)
                                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00"
+                                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00"
                                             + ",T_TEXTCTRL_Fadeout=0.00";
                         layer->AddEffect(0, shockwave_index, "Shockwave", settings, palette, startms / 1000.0, endms / 1000.0, false, false);
                     }
@@ -1301,7 +1301,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle)
                                             + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius)
                                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00"
+                                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00"
                                             + ",T_TEXTCTRL_Fadeout=0.00";
                         layer->AddEffect(0, fan_index, "Fan", settings, palette, startms / 1000.0, endms / 1000.0, false, false);
                     }
@@ -1351,7 +1351,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         wxString palette = _("C_BUTTON_Palette1=") + startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + endc
                             + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                        wxString settings = _("T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
+                        wxString settings = _("T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
                             + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_SLIDER_ColorWash_Count=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0";
                         layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                     } else if (isPartOfModel) {
@@ -1390,7 +1390,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
                             + ",E_TEXTCTRL_Pictures_Filename=" + imageName
                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + ru
+                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + ru
                             + ",T_TEXTCTRL_Fadeout=" + rd;
 
                         layer->AddEffect(0, "Pictures", settings, "", start_time, end_time, false, false);
@@ -1477,7 +1477,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
                             + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + rampUpTimeString
+                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + rampUpTimeString
                             + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
 
                         layer->AddEffect(0, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);
@@ -1490,7 +1490,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",E_SLIDER_Pictures_GifSpeed=20,E_CHECKBOX_Pictures_PixelOffsets=1"
                             + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
                             + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                            + "T_CHOICE_LayerMethod=1 reveals 2,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + rampUpTimeString
+                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=" + rampUpTimeString
                             + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
 
                         layer->AddEffect(0, "Pictures", settings, "", startms / 1000.0, endms / 1000.0, false, false);

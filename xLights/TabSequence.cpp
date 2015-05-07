@@ -293,6 +293,7 @@ void xLightsFrame::UpdateModelsList()
     ListBoxElementList->Clear();
     PreviewModels.clear();
     AllModels.clear();
+    wxString msg;
     for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == "model")
@@ -304,7 +305,7 @@ void xLightsFrame::UpdateModelsList()
                 model->SetFromXml(e);
 
                 if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
-                    wxMessageBox(wxString::Format("Model %s's last channel (%u) is beyond the end of the configured number of output channels (%u)",name, model->GetLastChannel(), NetInfo.GetTotChannels()));
+                    msg += wxString::Format("%s - last channel: %u\n",name, model->GetLastChannel());
                 }
                 if (ModelClass::IsMyDisplay(e))
                 {
@@ -314,6 +315,9 @@ void xLightsFrame::UpdateModelsList()
                 AllModels[name].reset(model);
             }
         }
+    }
+    if (msg != "") {
+        wxMessageBox(wxString::Format("These models extends beyond the number of configured channels (%u):\n", NetInfo.GetTotChannels()) + msg);
     }
 }
 
