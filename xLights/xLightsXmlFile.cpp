@@ -1257,6 +1257,11 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
         wxString filename = next_file.GetName();
 
+        while( TimingAlreadyExists(filename, xLightsParent) )
+        {
+            filename += "_1";
+        }
+
         Element* element;
         EffectLayer* effectLayer;
         wxXmlNode* layer;
@@ -1308,21 +1313,21 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
         for( int k = 0; k < start_times.GetCount(); ++k )
         {
             start_times[k].ToDouble(&time);
-            startTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+            startTime = TimeLine::RoundToMultipleOfPeriod(time,GetFrequency());
             end_times[k].ToDouble(&time);
-            endTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+            endTime = TimeLine::RoundToMultipleOfPeriod(time,GetFrequency());
             iTime1 = (int)(startTime * 1000);
             iTime2 = (int)(endTime * 1000);
             if( iTime1 == iTime2 )
             {
                 if( k == start_times.GetCount()-1 ) // last timing mark
                 {
-                    endTime = startTime + xLightsParent->GetSequenceElements().GetFrequency() / 1000.0;
+                    endTime = startTime + GetFrequency() / 1000.0;
                 }
                 else
                 {
                     start_times[k+1].ToDouble(&time);
-                    endTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+                    endTime = TimeLine::RoundToMultipleOfPeriod(time,GetFrequency());
                 }
             }
 
@@ -1376,8 +1381,8 @@ void xLightsXmlFile::WriteEffects(EffectLayer *layer,
             effectStrings[effectString] = ref + 1;
             AddChildXmlNode(effectDB_Node, "Effect", effectString);
         }
-        
-        
+
+
         // Add effect node
         wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect");
         effect_node->AddAttribute("ref", string_format("%d", ref));
@@ -1504,7 +1509,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                         Effect* effect = layer->GetEffect(k);
                         // Add effect node
                         wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect", effect->GetSettingsAsString());
-                    
+
                         effect_node->AddAttribute("label", effect->GetEffectName());
                         if (effect->GetProtected()) {
                             effect_node->AddAttribute("protected", "1");
@@ -1527,12 +1532,12 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                 }
             }
             if( element->GetType() == "model" ) {
-                
+
                 int num_layers = element->getStrandLayerCount();
                 for(int j = 0; j < num_layers; ++j)
                 {
                     StrandLayer* layer = element->GetStrandLayer(j);
-                    
+
                     wxXmlNode* effect_layer_node = nullptr;
                     if (layer->GetEffectCount() != 0) {
                         effect_layer_node = AddChildXmlNode(element_effects_node, "Strand");
@@ -1542,7 +1547,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                                      effectStrings,
                                      effectDB_Node);
                     }
-                    
+
                     for (int n = 0; n < layer->GetNodeLayerCount(); n++) {
                         EffectLayer* nlayer = layer->GetNodeLayer(n);
                         if (nlayer->GetEffectCount() == 0) {
@@ -1629,8 +1634,8 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame*
             while( time <= end_time )
             {
                 next_time = (time + interval <= end_time) ? time + interval : end_time;
-                startTime = TimeLine::RoundToMultipleOfPeriod(time, xLightsParent->GetSequenceElements().GetFrequency());
-                endTime = TimeLine::RoundToMultipleOfPeriod(next_time, xLightsParent->GetSequenceElements().GetFrequency());
+                startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
+                endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
                 effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
                 time += interval;
             }
