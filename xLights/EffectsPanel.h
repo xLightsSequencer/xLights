@@ -203,7 +203,6 @@ public:
     wxSlider* Slider_Meteors_Length;
     wxBitmapButton* BitmapButton_Piano_KeyPlacement;
     wxStaticText* StaticText_Piano_NumRows;
-    wxBitmapButton* BitmapButton_Morph_Blend_Tail;
     wxBitmapButton* BitmapButton_CirclesRadial;
     wxBitmapButton* BitmapButton_FireworksNumberExplosions;
     wxBitmapButton* BitmapButton_Morph_End_X2;
@@ -391,7 +390,6 @@ public:
     wxBitmapButton* BitmapButton_Fan_Duration;
     wxSlider* Slider_Twinkle_Count;
     wxBitmapButton* BitmapButton_TextFont4;
-    wxCheckBox* CheckBox_Fan_Blend_Background;
     wxSlider* Slider_Color_Mix1;
     wxCheckBox* CheckBox_Galaxy_Reverse;
     wxCheckBox* CheckBox_ColorWash_HFade;
@@ -494,9 +492,9 @@ public:
     wxBitmapButton* BitmapButton_Galaxy_Duration;
     wxScrolledWindow* Panel1_Shimmer;
     wxStaticText* StaticText47;
-    wxBitmapButton* BitmapButton_Shockwave_End_Width;
     wxBitmapButton* BitmapButton_Shimmer_Use_All_Colors;
     wxCheckBox* CheckBox_Circles_Collide;
+    wxBitmapButton* BitmapButton_Shockwave_End_Width;
     wxStaticText* StaticText69;
     wxStaticText* StaticText3;
     wxSlider* Slider_Life_Seed;
@@ -542,7 +540,6 @@ public:
     wxStaticText* StaticText5;
     wxCheckBox* CheckBox_ShowHeadAtStart;
     wxBitmapButton* BitmapButton_TextEffect2;
-    wxCheckBox* CheckBox_Morph_Blend_Tail;
     wxBitmapButton* BitmapButton_Skips_Direction;
     wxBitmapButton* BitmapButton_CirclesSize;
     wxBitmapButton* BitmapButton_MeteorsCount;
@@ -755,7 +752,6 @@ protected:
     static const long ID_BITMAPBUTTON_SLIDER_Fan_Accel;
     static const long ID_CHECKBOX_Fan_Reverse;
     static const long ID_CHECKBOX_Fan_Blend_Edges;
-    static const long ID_CHECKBOX_Fan_Blend_Background;
     static const long ID_PANEL41;
     static const long ID_NOTEBOOK_Fan;
     static const long ID_SCROLLEDWINDOW_FAN;
@@ -920,8 +916,6 @@ protected:
     static const long ID_BITMAPBUTTON_MorphUseHeadStartColor;
     static const long ID_CHECKBOX_MorphUseHeadEndColor;
     static const long ID_BITMAPBUTTON_MorphUseHeadEndColor;
-    static const long ID_CHECKBOX_Morph_Blend_Tail;
-    static const long ID_BITMAPBUTTON_Morph_Blend_Tail;
     static const long ID_PANEL30;
     static const long ID_NOTEBOOK_Morph;
     static const long ID_PANEL_Morph;

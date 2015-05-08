@@ -589,11 +589,11 @@ void PixelBufferClass::RenderCoroFaces(const wxString& Phoneme, const wxString& 
 }
 
 void PixelBufferClass::RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                                 int duration, int acceleration, bool reverse_dir, bool blend_edges, bool blend_background,
+                                 int duration, int acceleration, bool reverse_dir, bool blend_edges,
                                  int num_blades, int blade_width, int blade_angle, int num_elements, int element_width )
 {
     effects[CurrentLayer].RenderFan( center_x, center_y, start_radius, end_radius, start_angle, revolutions,
-                                     duration, acceleration, reverse_dir, blend_edges, blend_background,
+                                     duration, acceleration, reverse_dir, blend_edges,
                                      num_blades, blade_width, blade_angle, num_elements, element_width );
 }
 
@@ -630,10 +630,10 @@ void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int 
 
 void PixelBufferClass::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2,
                                    int start_length, int end_length, bool start_linked, bool end_linked, int duration, int acceleration, int tail_style,
-                                   bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart, bool blended_tail ) {
+                                   bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart ) {
     effects[CurrentLayer].RenderMorph(start_x1, start_y1, start_x2, start_y2, end_x1, end_y1, end_x2, end_y2,
                                       start_length, end_length, start_linked, end_linked, duration, acceleration, tail_style,
-                                      useHeadForStartColor, useHeadForEndColor, showEntireHeadAtStart, blended_tail);
+                                      useHeadForStartColor, useHeadForEndColor, showEntireHeadAtStart);
 }
 
 

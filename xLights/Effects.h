@@ -11,7 +11,7 @@ void RenderFaces(int Phoneme);
 //void RenderCoroFaces( int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/);
 void RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline);
 void RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-               int duration, int acceleration, bool reverse_dir, bool blend_edges, bool blend_background,
+               int duration, int acceleration, bool reverse_dir, bool blend_edges,
                int num_blades, int blade_width, int blade_angle, int num_elements, int element_width );
 void RenderFire(int HeightPct,int HueShift,bool GrowFire);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
@@ -25,7 +25,7 @@ void RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2,
                  int end_x1,   int end_y1,   int end_x2,   int end_y2,
                  int start_length, int end_length, bool start_linked, bool end_linked,
                  int duration, int acceleration, int tail_style,
-                 bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart, bool blended_tail );
+                 bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart );
 void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Clipping,
                  const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
 void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool is20fps,

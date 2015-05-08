@@ -1125,7 +1125,6 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 state1->GetAttribute("y2", &attr);
                 CalcPercentage(attr, num_rows, reverse_rows, y_offset);
                 settings += "E_SLIDER_Morph_Start_Y2=" + attr + ",";
-                settings += "T_CHECKBOX_FitToTime=0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
                 wxString sRed, sGreen, sBlue,color;
                 state1->GetAttribute("red", &sRed);
                 state1->GetAttribute("green", &sGreen);
@@ -1146,15 +1145,17 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 ramp->GetAttribute("green2", &sGreen);
                 ramp->GetAttribute("blue2", &sBlue);
                 color = GetColorString(sRed, sGreen, sBlue);
-                if( color == xlBLACK ) {
-                    settings += "E_CHECKBOX_Morph_Blend_Tail=1,";
-                }
-                else {
-                    settings += "E_CHECKBOX_Morph_Blend_Tail=0,";
-                }
                 palette += "C_BUTTON_Palette4=" + color + ",";
                 palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
                 palette += "C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                settings += "T_CHECKBOX_FitToTime=0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,";
+                if( color == xlBLACK ) {
+                    settings += "T_CHOICE_LayerMethod=Normal,";
+                }
+                else {
+                    settings += "T_CHOICE_LayerMethod=1 reveals 2,";
+                }
+                settings += "T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
                 while( model->GetEffectLayerCount() < layer_index )
                 {
                     model->AddEffectLayer();
@@ -1393,7 +1394,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         wxString palette = _("C_BUTTON_Palette1=") + startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + endc
                             + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                        
+
                         wxString settings = "";
                         wxString val = wxString::Format("%d", rect.x);
                         CalcPercentage(val, num_columns, false, x_offset);
@@ -1407,14 +1408,14 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         val = wxString::Format("%d", rect.height);
                         CalcPercentage(val, num_rows, true, y_offset);
                         settings += ",E_SLIDER_ColorWash_Y2=" + val;
-                        
+
                         printf("scene:  %s     %d %d %d %d\n    %s\n", (const char *)element->GetAttribute("savedIndex"), rect.x, rect.y, rect.width, rect.height,
                                (const char *)settings);
                         settings = _("T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
                             + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_SLIDER_ColorWash_Count=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
                             + "E_CHECKBOX_ColorWash_EntireModel=0" + settings;
 
-                    
+
                         layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                     } else if (isPartOfModel) {
                         if (startc == xlBLACK || endc == xlBLACK || endc == startc) {

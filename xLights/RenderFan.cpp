@@ -28,7 +28,7 @@ const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
 void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                           int duration, int acceleration, bool reverse_dir, bool blend_edges, bool blend_background,
+                           int duration, int acceleration, bool reverse_dir, bool blend_edges,
                            int num_blades, int blade_width, int blade_angle, int num_elements, int element_width )
 {
     double step = 0.5;
@@ -149,7 +149,7 @@ void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end
                         {
                             if( temp_colors_pct[x][y] > 0.0 )
                             {
-                                if( blend_background )
+                                if( allowAlpha )
                                 {
                                     GetTempPixel(x,y,color);
                                     color.alpha = 255 * temp_colors_pct[x][y];

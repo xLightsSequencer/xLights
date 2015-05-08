@@ -701,7 +701,6 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                          wxAtoi(SettingsMap["SLIDER_Fan_Accel"]),
                          SettingsMap["CHECKBOX_Fan_Reverse"]=="1",
                          SettingsMap["CHECKBOX_Fan_Blend_Edges"]=="1",
-                         SettingsMap["CHECKBOX_Fan_Blend_Background"]=="1",
                          wxAtoi(SettingsMap["SLIDER_Fan_Num_Blades"]),
                          wxAtoi(SettingsMap["SLIDER_Fan_Blade_Width"]),
                          wxAtoi(SettingsMap["SLIDER_Fan_Blade_Angle"]),
@@ -762,8 +761,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                             0,                      // int tail_style,
                             SettingsMap["CHECKBOX_MorphUseHeadStartColor"]=="1",
                             SettingsMap["CHECKBOX_MorphUseHeadEndColor"]=="1",
-                            SettingsMap["CHECKBOX_ShowHeadAtStart"]=="1",
-                            SettingsMap["CHECKBOX_Morph_Blend_Tail"]=="1");
+                            SettingsMap["CHECKBOX_ShowHeadAtStart"]=="1");
     } else if(effect == "Piano") {
         buffer.RenderPiano(PianoEffectStyles.Index(SettingsMap["CHOICE_Piano_Style"]),
                            wxAtoi(SettingsMap["SLIDER_Piano_NumKeys"]),

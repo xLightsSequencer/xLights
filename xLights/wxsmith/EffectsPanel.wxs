@@ -2007,15 +2007,6 @@
 																<border>5</border>
 																<option>1</option>
 															</object>
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_Fan_Blend_Background" variable="CheckBox_Fan_Blend_Background" member="yes">
-																	<label>Blend To Background:</label>
-																	<style>wxALIGN_RIGHT</style>
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3306,7 +3297,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT115" variable="StaticText115" member="yes">
-															<label>Length:</label>
+															<label>Head Length:</label>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3534,7 +3525,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT122" variable="StaticText122" member="yes">
-															<label>Length:</label>
+															<label>Head Length:</label>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3743,27 +3734,6 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MorphUseHeadEndColor" variable="BitmapButton_MorphUseHeadEndColor" member="yes">
-																	<bitmap code="padlock16x16_blue_xpm" />
-																	<size>13,13</size>
-																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_Morph_Blend_Tail" variable="CheckBox_Morph_Blend_Tail" member="yes">
-																	<label>Blend Tail</label>
-																	<checked>1</checked>
-																</object>
-																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Morph_Blend_Tail" variable="BitmapButton_Morph_Blend_Tail" member="yes">
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
