@@ -1333,7 +1333,7 @@ wxString ModelClass::ChannelLayoutHtml() {
             Ibufx = Nodes[i]->Coords[0].bufX;
             Ibufy = Nodes[i]->Coords[0].bufY;
             idx=Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
-            if (idx < chmap.size()) chmap[idx]=GetNodeNumber(i);
+            if (idx < chmap.size()) chmap[idx]=i + 1;
         }
         for(y=BufferHt-1; y>=0; y--) {
             html+="<tr>";
