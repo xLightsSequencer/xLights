@@ -55,7 +55,7 @@ double RgbEffects::calcAccel(double ratio, double accel)
 
 void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2,
                              int start_length, int end_length, bool start_linked, bool end_linked, int duration, int acceleration, int tail_style,
-                             bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart )
+                             bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart, bool blended_tail )
 {
     double eff_pos = GetEffectTimeIntervalPosition();
     double step_size = 0.1;
@@ -116,7 +116,7 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         y2b = BufferHt * (end_y2/100.0);
     }
 
-    xlColor head_color, tail_color;
+    xlColor head_color, tail_color, test_color;
 
     // compute direction
     int direction = 0;
@@ -204,6 +204,10 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         pos_b = v_shtx->size() * pct;
         double tail_color_pct = (i-tail_end_of_tail_pos) / total_tail_length;
         Get2ColorBlend(tcole, tcols, tail_color_pct, tail_color);
+        palette.GetColor(tcole, test_color);
+        if( blended_tail ) {
+            tail_color.alpha = 255 * tail_color_pct;
+        }
         DrawThickLine( (*v_lngx)[pos_a], (*v_lngy)[pos_a], (*v_shtx)[pos_b], (*v_shty)[pos_b], tail_color, direction >= 0);
     }
 

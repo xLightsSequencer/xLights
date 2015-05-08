@@ -90,9 +90,9 @@ void PixelBufferClass::reset(int layers, int timing) {
     if (effectMixVaries != NULL) {
         delete [] effectMixVaries;
     }
-    
+
     frameTimeInMs = timing;
-    
+
     numLayers = layers;
     effects = new RgbEffects[numLayers];
     for (int x = 0; x < numLayers; x++) {
@@ -105,7 +105,7 @@ void PixelBufferClass::reset(int layers, int timing) {
     effectMixThreshold = new float[numLayers];
     fadeFactor = new double[numLayers];
     effectMixVaries = new bool[numLayers]; //allow varying mix threshold -DJ
-    
+
     for(size_t i = 0; i < numLayers; i++) {
         effects[i].InitBuffer(BufferHt, BufferWi);
     }
@@ -126,7 +126,7 @@ void PixelBufferClass::InitStrandBuffer(const ModelClass &pbc, int strand, int t
     SingleNode = pbc.SingleNode;
     SingleChannel = pbc.SingleChannel;
     IsLtoR = pbc.IsLtoR;
-    
+
     stringStartChan.resize(parm1);
     for (int x = 0; x < parm1; x++) {
         stringStartChan[x] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, x));
@@ -216,7 +216,7 @@ void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
 xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xlColour &fg, const xlColour &c1, int layer) {
     static const int n = 0;  //increase to change the curve of the crossfade
     xlColor c0 = fg;
-    
+
     wxImage::HSVValue hsv0;
     wxImage::HSVValue hsv1;
     bool handlesAlpha = MixTypeHandlesAlpha(mixType[layer]);
@@ -226,7 +226,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         hsv0.value *= fadeFactor[layer];
         c0 = hsv0;
     }
-    
+
     float svthresh = effectMixThreshold[layer];
     if (effectMixVaries[layer]) {
         //vary mix threshold gradually during effect interval -DJ
@@ -628,10 +628,10 @@ void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int 
 
 void PixelBufferClass::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2,
                                    int start_length, int end_length, bool start_linked, bool end_linked, int duration, int acceleration, int tail_style,
-                                   bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart ) {
+                                   bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart, bool blended_tail ) {
     effects[CurrentLayer].RenderMorph(start_x1, start_y1, start_x2, start_y2, end_x1, end_y1, end_x2, end_y2,
                                       start_length, end_length, start_linked, end_linked, duration, acceleration, tail_style,
-                                      useHeadForStartColor, useHeadForEndColor, showEntireHeadAtStart);
+                                      useHeadForStartColor, useHeadForEndColor, showEntireHeadAtStart, blended_tail);
 }
 
 

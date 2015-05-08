@@ -111,7 +111,7 @@ public:
             name = row->GetName();
             mainBuffer = new PixelBufferClass();
             xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), zeroBased);
-            
+
             for (int x = 0; x < row->getStrandLayerCount(); x++) {
                 StrandLayer *sl = row->GetStrandLayer(x);
                 if (sl -> GetEffectCount() > 0) {
@@ -163,14 +163,14 @@ public:
         Effect *currentEffects[numLayers];
         SettingsMap *settingsMaps = new SettingsMap[numLayers];
         bool effectStates[numLayers];
-        
+
         std::map<int, Effect*> strandEffects;
         std::map<int, SettingsMap> strandSettingsMaps;
         std::map<int, bool> strandEffectStates;
         std::map<int, Effect*> nodeEffects;
         std::map<int, SettingsMap> nodeSettingsMaps;
         std::map<int, bool> nodeEffectStates;
-        
+
         if (clearAllFrames && mainBuffer != NULL) {
             mainBuffer->Clear(0);
         }
@@ -233,7 +233,7 @@ public:
                     if (!persist || "None" == strandSettingsMaps[strand]["Effect"]) {
                         buffer->Clear(0);
                     }
-                    
+
                     if (xLights->RenderEffectFromMap(0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
                         //copy to output
                         bool valid[2] = {true, true};
@@ -265,7 +265,7 @@ public:
                     if (!persist || "None" == nodeSettingsMaps[node]["Effect"]) {
                         buffer->Clear(0);
                     }
-                    
+
                     if (xLights->RenderEffectFromMap(0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                         //copy to output
                         bool valid[2] = {true, true};
@@ -402,7 +402,7 @@ private:
     SequenceData *seqData;
     bool clearAllFrames;
     RenderEvent renderEvent;
-    
+
     std::map<int, PixelBufferClassPtr> strandBuffers;
     std::map<int, PixelBufferClassPtr> nodeBuffers;
 };
@@ -755,7 +755,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                             0,                      // int tail_style,
                             SettingsMap["CHECKBOX_MorphUseHeadStartColor"]=="1",
                             SettingsMap["CHECKBOX_MorphUseHeadEndColor"]=="1",
-                            SettingsMap["CHECKBOX_ShowHeadAtStart"]=="1");
+                            SettingsMap["CHECKBOX_ShowHeadAtStart"]=="1",
+                            SettingsMap["CHECKBOX_Morph_Blend_Tail"]=="1");
     } else if(effect == "Piano") {
         buffer.RenderPiano(PianoEffectStyles.Index(SettingsMap["CHOICE_Piano_Style"]),
                            wxAtoi(SettingsMap["SLIDER_Piano_NumKeys"]),

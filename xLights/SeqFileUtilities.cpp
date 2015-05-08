@@ -1127,6 +1127,12 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 ramp->GetAttribute("green2", &sGreen);
                 ramp->GetAttribute("blue2", &sBlue);
                 color = GetColorString(sRed, sGreen, sBlue);
+                if( color == xlBLACK ) {
+                    settings += "E_CHECKBOX_Morph_Blend_Tail=1,";
+                }
+                else {
+                    settings += "E_CHECKBOX_Morph_Blend_Tail=0,";
+                }
                 palette += "C_BUTTON_Palette4=" + color + ",";
                 palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
                 palette += "C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
@@ -1169,7 +1175,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                 v *= 255;
                                 v /= 100;
                                 bytes[cnt + 2] = v;
-                                
+
                                 alpha[p] = wxALPHA_OPAQUE;
                                 if (i == 0) {
                                     alpha[p] = wxALPHA_TRANSPARENT;
