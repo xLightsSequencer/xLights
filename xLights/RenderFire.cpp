@@ -37,6 +37,7 @@ public:
             hsv.value=double(i)/100.0;
             firePalette.push_back(hsv);
             firePaletteColors.push_back(hsv);
+            firePaletteColorsAlpha.push_back(xlColor(255, 0, 0, i * 255 / 100));
         }
         
         // gives 100 hues red to yellow
@@ -45,6 +46,7 @@ public:
         {
             firePalette.push_back(hsv);
             firePaletteColors.push_back(hsv);
+            firePaletteColorsAlpha.push_back(hsv);
             hsv.hue+=0.00166666;
         }
     }
@@ -57,10 +59,14 @@ public:
     const xlColor &asColor(int x) const {
         return firePaletteColors[x];
     }
+    const xlColor &asAlphaColor(int x) const {
+        return firePaletteColorsAlpha[x];
+    }
 
 private:
     hsvVector firePalette;
     xlColorVector firePaletteColors;
+    xlColorVector firePaletteColorsAlpha;
 };
 static const FirePaletteClass FirePalette;
 
@@ -203,9 +209,19 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
                 hsv = FirePalette[GetFireBuffer(x,y)];
                 hsv.hue = hsv.hue +(HueShift/100.0);
                 if (hsv.hue>1.0) hsv.hue=1.0;
-                SetPixel(x, y, hsv);
+                if (allowAlpha) {
+                    xlColor c(hsv);
+                    c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x,y)).Alpha();
+                    SetPixel(x, y, c);
+                } else {
+                    SetPixel(x, y, hsv);
+                }
             } else {
-                SetPixel(x, y, FirePalette.asColor(GetFireBuffer(x,y)));
+                if (allowAlpha) {
+                    SetPixel(x, y, FirePalette.asAlphaColor(GetFireBuffer(x,y)));
+                } else {
+                    SetPixel(x, y, FirePalette.asColor(GetFireBuffer(x,y)));
+                }
             }
         }
     }
