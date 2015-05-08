@@ -587,11 +587,11 @@ void PixelBufferClass::RenderCoroFaces(const wxString& Phoneme, const wxString& 
 }
 
 void PixelBufferClass::RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                                 int duration, int acceleration, bool reverse_dir, bool blend_edges,
+                                 int duration, int acceleration, bool reverse_dir, bool blend_edges, bool blend_background,
                                  int num_blades, int blade_width, int blade_angle, int num_elements, int element_width )
 {
     effects[CurrentLayer].RenderFan( center_x, center_y, start_radius, end_radius, start_angle, revolutions,
-                                     duration, acceleration, reverse_dir, blend_edges,
+                                     duration, acceleration, reverse_dir, blend_edges, blend_background,
                                      num_blades, blade_width, blade_angle, num_elements, element_width );
 }
 

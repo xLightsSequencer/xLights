@@ -10,7 +10,7 @@ void RenderFaces(int Phoneme);
 //void RenderCoroFaces( int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/);
 void RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline);
 void RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-               int duration, int acceleration, bool reverse_dir, bool blend_edges,
+               int duration, int acceleration, bool reverse_dir, bool blend_edges, bool blend_background,
                int num_blades, int blade_width, int blade_angle, int num_elements, int element_width );
 void RenderFire(int HeightPct,int HueShift,bool GrowFire);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);

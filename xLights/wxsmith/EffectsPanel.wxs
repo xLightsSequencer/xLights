@@ -1749,20 +1749,42 @@
 														<border>5</border>
 														<option>1</option>
 													</object>
-													<object class="sizeritem">
-														<object class="wxCheckBox" name="ID_CHECKBOX_Fan_Reverse" variable="CheckBox_Fan_Reverse" member="yes">
-															<label>Reverse:</label>
-															<style>wxALIGN_RIGHT</style>
-														</object>
-														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxCheckBox" name="ID_CHECKBOX_Fan_Blend_Edges" variable="CheckBox_Fan_Blend_Edges" member="yes">
-															<label>Blend Edges:</label>
-															<checked>1</checked>
-															<style>wxALIGN_RIGHT</style>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer103" member="no">
+															<cols>1</cols>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_Fan_Reverse" variable="CheckBox_Fan_Reverse" member="yes">
+																	<label>Reverse:</label>
+																	<style>wxALIGN_RIGHT</style>
+																</object>
+																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_Fan_Blend_Edges" variable="CheckBox_Fan_Blend_Edges" member="yes">
+																	<label>Blend Edges:</label>
+																	<checked>1</checked>
+																	<style>wxALIGN_RIGHT</style>
+																</object>
+																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_Fan_Blend_Background" variable="CheckBox_Fan_Blend_Background" member="yes">
+																	<label>Blend To Background:</label>
+																	<style>wxALIGN_RIGHT</style>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>

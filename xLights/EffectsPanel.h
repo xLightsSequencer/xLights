@@ -392,6 +392,7 @@ public:
     wxBitmapButton* BitmapButton_Fan_Duration;
     wxSlider* Slider_Twinkle_Count;
     wxBitmapButton* BitmapButton_TextFont4;
+    wxCheckBox* CheckBox_Fan_Blend_Background;
     wxSlider* Slider_Color_Mix1;
     wxCheckBox* CheckBox_Galaxy_Reverse;
     wxCheckBox* CheckBox_ColorWash_HFade;
@@ -440,8 +441,8 @@ public:
     wxChoice* Choice_Faces_Phoneme;
     wxStaticText* StaticText100;
     wxBitmapButton* BitmapButton20;
-    wxScrolledWindow* Panel1_Morph;
     wxBitmapButton* BitmapButton_Shockwave_Start_Width;
+    wxScrolledWindow* Panel1_Morph;
     wxSlider* Slider_Circles_Count;
     wxBitmapButton* BitmapButton_MorphStartLength;
     wxBitmapButton* BitmapButton_FireworksFade;
@@ -741,6 +742,7 @@ protected:
     static const long ID_BITMAPBUTTON_SLIDER_Fan_Accel;
     static const long ID_CHECKBOX_Fan_Reverse;
     static const long ID_CHECKBOX_Fan_Blend_Edges;
+    static const long ID_CHECKBOX_Fan_Blend_Background;
     static const long ID_PANEL41;
     static const long ID_NOTEBOOK_Fan;
     static const long ID_SCROLLEDWINDOW_FAN;
