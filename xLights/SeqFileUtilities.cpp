@@ -694,18 +694,18 @@ void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel,
         if (isShimmer && sc == ec) {
             wxString settings = _("E_CHECKBOX_Shimmer_Blink_Timing=0,E_CHECKBOX_Shimmer_Use_All_Colors=0,E_SLIDER_Shimmer_Blinks_Per_Row=1,")
                 + "E_SLIDER_Shimmer_Duty_Factor=60,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                + "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=30,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=30,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
             layer->AddEffect(0, shimmerIndex, "Shimmer", settings, palette, starttime, endtime, false, false);
         //} else if (isShimmer) {  //what to do with a color wash with a shimmer?
         } else if (ec == sc) {
             wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
                 + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                + "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
+                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
                 + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
             layer->AddEffect(0, onIndex, "On", settings, palette, starttime, endtime, false, false);
         } else {
             wxString settings = _("E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,E_SLIDER_ColorWash_Count=1,T_CHECKBOX_FitToTime=1,")
-                + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Effect 1,"
+                + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,"
                 + "T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
             layer->AddEffect(0, cwIndex, "Color Wash", settings, palette, starttime, endtime, false, false);
         }
@@ -741,14 +741,14 @@ void MapOnEffects(EffectLayer *layer, wxXmlNode *channel, int chancountpernode) 
             if ("intensity" == ch->GetAttribute("type")) {
                 wxString settings = "E_TEXTCTRL_Eff_On_End=" + endi +",E_TEXTCTRL_Eff_On_Start=" + starti
                     + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                    + "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
+                    + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
                     + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
                 layer->AddEffect(0, on_index, "On", settings, palette, starttime, endtime, false, false);
             } else if ("shimmer" == ch->GetAttribute("type")) {
                 //FIXME - our shimmer doesn't really match  :(
                 wxString settings = _("E_CHECKBOX_Shimmer_Blink_Timing=0,E_CHECKBOX_Shimmer_Use_All_Colors=0,E_SLIDER_Shimmer_Blinks_Per_Row=1,")
                     + "E_SLIDER_Shimmer_Duty_Factor=60,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                    + "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=30,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                    + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=30,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
                 layer->AddEffect(0, shimmer_index, "Shimmer", settings, palette, starttime, endtime, false, false);
             }
         }
