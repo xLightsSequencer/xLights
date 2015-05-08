@@ -285,6 +285,8 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
         token.ToLong(&degrees);
         if (token == "Flat") {
             degrees = 0;
+        } else if (token == "Ribbon") {
+            degrees = -1;
         }
         SetTreeCoord(degrees);
     } else if (token == "Sphere") {
@@ -654,7 +656,7 @@ void ModelClass::SetTreeCoord(long degrees) {
             }
         }
     } else {
-        double treeScale = 4.0;
+        double treeScale = degrees == -1 ? 5.0 : 4.0;
         double botWid = BufferWi * treeScale;
         RenderHt=BufferHt * 2.0;
         RenderWi=(botWid + 2);
@@ -663,16 +665,44 @@ void ModelClass::SetTreeCoord(long degrees) {
         size_t NodeCount=GetNodeCount();
         for(size_t n=0; n<NodeCount; n++) {
             size_t CoordCount=GetCoordCount(n);
-            for(size_t c=0; c < CoordCount; c++) {
-                bufferX=Nodes[n]->Coords[c].bufX;
-                bufferY=Nodes[n]->Coords[c].bufY;
-                
-                double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
-                double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
-                double posOnString = (bufferY/(double)(BufferHt-1.0));
-                
-                Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
-                Nodes[n]->Coords[c].screenY = RenderHt * posOnString - ((double)RenderHt)/2.0;
+            if (degrees == -1) {
+                for(size_t c=0; c < CoordCount; c++) {
+                    bufferX=Nodes[n]->Coords[c].bufX;
+                    bufferY=Nodes[n]->Coords[c].bufY;
+                    
+                    double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
+                    double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
+                    double h = std::sqrt(RenderHt * RenderHt + (xt - xb)*(xt - xb));
+
+                    double posOnString = (bufferY/(double)(BufferHt-1.0));
+                    double newh = RenderHt * posOnString;
+                    Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
+                    Nodes[n]->Coords[c].screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
+                    
+                    posOnString = ((bufferY - 0.33)/(double)(BufferHt-1.0));
+                    newh = RenderHt * posOnString;
+                    Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
+                    Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
+                    Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
+                    
+                    posOnString = ((bufferY + 0.33)/(double)(BufferHt-1.0));
+                    newh = RenderHt * posOnString;
+                    Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
+                    Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
+                    Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
+                }
+
+            } else {
+                for(size_t c=0; c < CoordCount; c++) {
+                    bufferX=Nodes[n]->Coords[c].bufX;
+                    bufferY=Nodes[n]->Coords[c].bufY;
+                    
+                    double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
+                    double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
+                    double posOnString = (bufferY/(double)(BufferHt-1.0));
+                    Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
+                    Nodes[n]->Coords[c].screenY = RenderHt * posOnString - ((double)RenderHt)/2.0;
+                }
             }
         }
     }

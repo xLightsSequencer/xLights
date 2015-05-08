@@ -96,6 +96,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_DisplayAs->Append(_("Tree 180"));
     Choice_DisplayAs->Append(_("Tree 90"));
     Choice_DisplayAs->Append(_("Tree Flat"));
+    Choice_DisplayAs->Append(_("Tree Ribbon"));
     Choice_DisplayAs->Append(_("Vert Matrix"));
     Choice_DisplayAs->Append(_("Horiz Matrix"));
     Choice_DisplayAs->Append(_("Single Line"));
