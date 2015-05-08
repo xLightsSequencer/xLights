@@ -569,8 +569,10 @@ void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool co
     effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma, fade);
 }
 
-void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount) {
-    effects[CurrentLayer].RenderColorWash(HorizFade,VertFade,RepeatCount);
+void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
+                                       bool EntireModel, int x1, int y1, int x2, int y2) {
+    effects[CurrentLayer].RenderColorWash(HorizFade,VertFade,RepeatCount,
+                                          EntireModel, x1, y1, x2, y2);
 }
 
 void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat) {

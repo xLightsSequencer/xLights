@@ -514,7 +514,6 @@ private:
     void OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event);
     void OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event);
     void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
-    void OnChoicebook1PageChanged(wxChoicebookEvent& event);
     void OnGrid1LabelRightClick(wxGridEvent& event);
     void OnGridCoroFacesLabelLeftClick(wxGridEvent& event);
     void OnPanelSequencerPaint(wxPaintEvent& event);

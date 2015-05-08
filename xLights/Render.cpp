@@ -672,7 +672,13 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
     } else if (effect == "Color Wash") {
         buffer.RenderColorWash(SettingsMap["CHECKBOX_ColorWash_HFade"]=="1",
                                SettingsMap["CHECKBOX_ColorWash_VFade"]=="1",
-                               wxAtoi(SettingsMap["SLIDER_ColorWash_Count"]));
+                               wxAtoi(SettingsMap["SLIDER_ColorWash_Count"]),
+                               wxAtoi(SettingsMap.Get("CHECKBOX_ColorWash_EntireModel", "1")),
+                               wxAtoi(SettingsMap.Get("SLIDER_ColorWash_X1", "-50")),
+                               wxAtoi(SettingsMap.Get("SLIDER_ColorWash_Y1", "-50")),
+                               wxAtoi(SettingsMap.Get("SLIDER_ColorWash_X2", "50")),
+                               wxAtoi(SettingsMap.Get("SLIDER_ColorWash_Y2", "50"))
+                               );
     } else if (effect == "Curtain") {
         buffer.RenderCurtain(CurtainEdge.Index(SettingsMap["CHOICE_Curtain_Edge"]),
                              CurtainEffect.Index(SettingsMap["CHOICE_Curtain_Effect"]),

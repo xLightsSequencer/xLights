@@ -55,9 +55,9 @@ void xLightsFrame::CreateSequencer()
     effectsPnl->Refresh();
 
     wxScrolledWindow* w;
-    for(int i =0;i<EffectsPanel1->Choicebook1->GetPageCount();i++)
+    for(int i =0;i<EffectsPanel1->EffectChoicebook->GetPageCount();i++)
     {
-        w = (wxScrolledWindow*)EffectsPanel1->Choicebook1->GetPage(i);
+        w = (wxScrolledWindow*)EffectsPanel1->EffectChoicebook->GetPage(i);
         w->FitInside();
         w->SetScrollRate(5, 5);
     }
@@ -428,15 +428,15 @@ void xLightsFrame::ResizeAndMakeEffectsScroll()
     EffectsPanel1->SetMaxSize(s);
 
 
-    EffectsPanel1->Choicebook1->SetSize(s);
-    EffectsPanel1->Choicebook1->SetMinSize(s);
-    EffectsPanel1->Choicebook1->SetMaxSize(s);
+    EffectsPanel1->EffectChoicebook->SetSize(s);
+    EffectsPanel1->EffectChoicebook->SetMinSize(s);
+    EffectsPanel1->EffectChoicebook->SetMaxSize(s);
 
     EffectsPanel1->Refresh();
-    EffectsPanel1->Choicebook1->Refresh();
+    EffectsPanel1->EffectChoicebook->Refresh();
 
     // Make effects window scroll by updating its container size
-    wxScrolledWindow* sw = (wxScrolledWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
+    wxScrolledWindow* sw = (wxScrolledWindow*)EffectsPanel1->EffectChoicebook->GetPage(EffectsPanel1->EffectChoicebook->GetSelection());
     sw->FitInside();
     sw->SetScrollRate(5, 5);
     sw->Refresh();
@@ -488,9 +488,9 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
     {
         int pageIndex = event.GetInt();
         // Dont change page if it is already on correct page
-        if (EffectsPanel1->Choicebook1->GetSelection()!=pageIndex)
+        if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex)
         {
-            EffectsPanel1->Choicebook1->SetSelection(pageIndex);
+            EffectsPanel1->EffectChoicebook->SetSelection(pageIndex);
         }
     }
     else
@@ -542,16 +542,16 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 
     }
     wxString tooltip;
-    effectsPnl->SetDragIconBuffer(BitmapCache::GetEffectIcon(EffectsPanel1->Choicebook1->GetSelection(), tooltip));
-    effectsPnl->BitmapButtonSelectedEffect->SetEffectIndex(EffectsPanel1->Choicebook1->GetSelection());
+    effectsPnl->SetDragIconBuffer(BitmapCache::GetEffectIcon(EffectsPanel1->EffectChoicebook->GetSelection(), tooltip));
+    effectsPnl->BitmapButtonSelectedEffect->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
     mainSequencer->PanelEffectGrid->SetFocus();
 }
 
 void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 {
-    int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
+    int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
     mSequenceElements.UnSelectAllEffects();
-    wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
+    wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
     wxString palette;
     wxString settings = GetEffectTextFromWindows(palette);
     selectedEffect = NULL;
@@ -776,8 +776,8 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 {
     wxString palette;
     wxString effectText = GetEffectTextFromWindows(palette);
-    int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
-    wxString effectName = EffectsPanel1->Choicebook1->GetPageText(EffectsPanel1->Choicebook1->GetSelection());
+    int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
+    wxString effectName = EffectsPanel1->EffectChoicebook->GetPageText(EffectsPanel1->EffectChoicebook->GetSelection());
 
     for(int i=0;i<mSequenceElements.GetRowInformationSize();i++)
     {
@@ -883,11 +883,11 @@ void xLightsFrame::TimerRgbSeq(long msec)
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette) {
 
-            int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
-            wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
+            int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
+            wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
             if (name !=  selectedEffect->GetEffectName()) {
                 selectedEffect->SetEffectName(name);
-                selectedEffect->SetEffectIndex(EffectsPanel1->Choicebook1->GetSelection());
+                selectedEffect->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
             }
 
             selectedEffect->SetSettings(effectText);
@@ -920,7 +920,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
 }
 
 void xLightsFrame::SetEffectControls(const wxString &effectName, const SettingsMap &settings, const SettingsMap &palette) {
-    SetChoicebook(EffectsPanel1->Choicebook1, effectName);
+    SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
+    EffectsPanel1->SetDefaultEffectValues(effectName);
     SetEffectControls(settings);
     SetEffectControls(palette);
 }
@@ -1060,7 +1061,13 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             else if (name.StartsWith("ID_CHECKBOX"))
             {
                 wxCheckBox* ctrl=(wxCheckBox*)CtrlWin;
-                if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong!=0);
+                if (value.ToLong(&TempLong)) {
+                    ctrl->SetValue(TempLong!=0);
+                    wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, ctrl->GetId());
+                    evt.SetEventObject(ctrl);
+                    evt.SetInt(TempLong != 0);
+                    ctrl->ProcessWindowEvent(evt);
+                }
             }
             else if (name.StartsWith("ID_NOTEBOOK"))
             {
@@ -1113,7 +1120,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
 wxString xLightsFrame::GetEffectTextFromWindows(wxString &palette)
 {
-    wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
+    wxWindow*  window = (wxWindow*)EffectsPanel1->EffectChoicebook->GetPage(EffectsPanel1->EffectChoicebook->GetSelection());
     // This is needed because of the "Off" effect that does not return any text.
     wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window);
     if (effectText.size() > 0 && !effectText.EndsWith(",")) {

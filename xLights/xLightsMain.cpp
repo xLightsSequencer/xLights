@@ -2242,7 +2242,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     basic.setFrame(this);
     PlayerDlg = new PlayerFrame(this, ID_PLAYER_DIALOG);
 
-    EffectNames=EffectsPanel1->Choicebook1->GetChoiceCtrl()->GetStrings();
+    EffectNames=EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStrings();
 //~    EffectLayerOptions=Choice_LayerMethod->GetStrings();
 
     if (RunFlag && !ShowEvents.IsEmpty())
@@ -2987,10 +2987,6 @@ wxString xLightsFrame::GetXmlSetting(const wxString& settingName,const wxString&
         }
     }
     return defaultValue;
-}
-
-void xLightsFrame::OnChoicebook1PageChanged(wxChoicebookEvent& event)
-{
 }
 
 void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)

@@ -11,8 +11,8 @@
 			<cols>2</cols>
 			<growablecols>0</growablecols>
 			<object class="sizeritem">
-				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="Choicebook1" member="yes">
-					<handler function="OnChoicebook1PageChanged" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
+				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="EffectChoicebook" member="yes">
+					<handler function="EffectSelected" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
 					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL19" variable="Panel1_Off" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer77" member="no">
@@ -780,6 +780,7 @@
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 										<cols>2</cols>
+										<growablecols>0</growablecols>
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer22" member="no">
 												<cols>3</cols>
@@ -793,13 +794,24 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_ColorWash_Count" variable="Slider_ColorWash_Count" member="yes">
+													<object class="wxSlider" name="ID_SLIDER_ColorWash_Count" variable="Slider_ColorWash_Count" member="no">
 														<value>1</value>
 														<min>1</min>
 														<max>10</max>
+														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>2</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxTextCtrl" name="IDD_TEXTCTRL_ColorWash_Count" variable="TextCtrl10" member="no">
+														<value>1</value>
+														<size>20,-1d</size>
+														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
 													<option>1</option>
 												</object>
 											</object>
@@ -895,8 +907,227 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer114" member="no">
+										<cols>1</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_EntireModel" variable="ColorWashEntireModelCheckbox" member="no">
+												<label>Entire Model</label>
+												<checked>1</checked>
+												<handler function="OnColorWashEntireModelClicked" entry="EVT_CHECKBOX" />
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxNotebook" name="IDD_NOTEBOOK_ColorWashRect" variable="Notebook5" member="no">
+												<enabled>0</enabled>
+												<object class="notebookpage">
+													<object class="wxPanel" name="ID_PANEL46" variable="Panel13" member="no">
+														<pos>15,49</pos>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer115" member="no">
+															<cols>2</cols>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxFlexGridSizer" variable="FlexGridSizer116" member="no">
+																	<cols>2</cols>
+																	<growablecols>1</growablecols>
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="wxID_ANY" variable="StaticText167" member="no">
+																			<label>X</label>
+																		</object>
+																		<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxSlider" name="ID_SLIDER_ColorWash_X1" variable="Slider3" member="no">
+																			<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																		</object>
+																		<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="spacer">
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxTextCtrl" name="IDD_TEXTCTRL_ColorWash_X1" variable="TextCtrl6" member="no">
+																			<value>0</value>
+																			<maxlength>4</maxlength>
+																			<size>24,-1d</size>
+																			<style>wxTE_CENTRE</style>
+																			<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="wxID_ANY" variable="StaticText168" member="no">
+																			<label>Y</label>
+																		</object>
+																		<col>0</col>
+																		<row>1</row>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxTextCtrl" name="IDD_TEXTCTRL_ColorWash_Y1" variable="TextCtrl7" member="no">
+																			<value>0</value>
+																			<maxlength>4</maxlength>
+																			<size>24,-1d</size>
+																			<style>wxTE_CENTRE</style>
+																			<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																		</object>
+																		<col>0</col>
+																		<row>2</row>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxSlider" name="ID_SLIDER_ColorWash_Y1" variable="Slider4" member="no">
+																			<style>wxSL_VERTICAL|wxSL_INVERSE</style>
+																			<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																		</object>
+																		<rowspan>4</rowspan>
+																		<col>1</col>
+																		<row>0</row>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+													</object>
+													<label>Corner 1</label>
+												</object>
+												<object class="notebookpage">
+													<object class="wxPanel" name="ID_PANEL47" variable="Panel15" member="no">
+														<pos>104,13</pos>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer117" member="no">
+															<cols>2</cols>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxFlexGridSizer" variable="FlexGridSizer118" member="no">
+																	<cols>2</cols>
+																	<growablecols>1</growablecols>
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="wxID_ANY" variable="StaticText169" member="no">
+																			<label>X</label>
+																		</object>
+																		<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxSlider" name="ID_SLIDER_ColorWash_X2" variable="Slider5" member="no">
+																			<value>100</value>
+																			<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																		</object>
+																		<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="spacer">
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxTextCtrl" name="IDD_TEXTCTRL_ColorWash_X2" variable="TextCtrl8" member="no">
+																			<value>100</value>
+																			<maxlength>4</maxlength>
+																			<size>24,-1d</size>
+																			<style>wxTE_CENTRE</style>
+																			<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxGridBagSizer" variable="GridBagSizer4" member="no">
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="wxID_ANY" variable="StaticText170" member="no">
+																			<label>Y</label>
+																		</object>
+																		<col>0</col>
+																		<row>1</row>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxTextCtrl" name="IDD_TEXTCTRL_ColorWash_Y2" variable="TextCtrl9" member="no">
+																			<value>100</value>
+																			<maxlength>4</maxlength>
+																			<size>24,-1d</size>
+																			<style>wxTE_CENTRE</style>
+																			<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																		</object>
+																		<col>0</col>
+																		<row>2</row>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxSlider" name="ID_SLIDER_ColorWash_Y2" variable="Slider6" member="no">
+																			<value>100</value>
+																			<style>wxSL_VERTICAL|wxSL_INVERSE</style>
+																			<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																		</object>
+																		<rowspan>4</rowspan>
+																		<col>1</col>
+																		<row>0</row>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+													</object>
+													<label>Corner 2</label>
+												</object>
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 							</object>

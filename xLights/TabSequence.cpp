@@ -497,7 +497,7 @@ wxString xLightsFrame::CreateEffectStringRandom(wxString &settings, wxString &pa
     if (EffectsPanel1->isRandom_()) { //avoid a few types of random effects
         eff1 = ChooseRandomEffect();
     } else {
-        eff1 = EffectsPanel1->Choicebook1->GetSelection();
+        eff1 = EffectsPanel1->EffectChoicebook->GetSelection();
     }
 
     settings = EffectsPanel1->GetRandomEffectString(eff1);

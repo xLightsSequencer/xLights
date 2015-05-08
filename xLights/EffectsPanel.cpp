@@ -143,6 +143,7 @@ const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade = wxNewId(
 const long EffectsPanel::ID_PANEL37 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT21 = wxNewId();
 const long EffectsPanel::ID_SLIDER_ColorWash_Count = wxNewId();
+const long EffectsPanel::IDD_TEXTCTRL_ColorWash_Count = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_ColorWash_Count = wxNewId();
 const long EffectsPanel::ID_STATICTEXT33 = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_ColorWash_VFade = wxNewId();
@@ -150,6 +151,18 @@ const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade = wxNewId();
 const long EffectsPanel::ID_STATICTEXT32 = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_ColorWash_HFade = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_ColorWash_EntireModel = wxNewId();
+const long EffectsPanel::ID_SLIDER_ColorWash_X1 = wxNewId();
+const long EffectsPanel::IDD_TEXTCTRL_ColorWash_X1 = wxNewId();
+const long EffectsPanel::IDD_TEXTCTRL_ColorWash_Y1 = wxNewId();
+const long EffectsPanel::ID_SLIDER_ColorWash_Y1 = wxNewId();
+const long EffectsPanel::ID_PANEL46 = wxNewId();
+const long EffectsPanel::ID_SLIDER_ColorWash_X2 = wxNewId();
+const long EffectsPanel::IDD_TEXTCTRL_ColorWash_X2 = wxNewId();
+const long EffectsPanel::IDD_TEXTCTRL_ColorWash_Y2 = wxNewId();
+const long EffectsPanel::ID_SLIDER_ColorWash_Y2 = wxNewId();
+const long EffectsPanel::ID_PANEL47 = wxNewId();
+const long EffectsPanel::IDD_NOTEBOOK_ColorWashRect = wxNewId();
 const long EffectsPanel::ID_PANEL5 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT73 = wxNewId();
 const long EffectsPanel::ID_CHOICE_CoroFaces_Phoneme = wxNewId();
@@ -797,10 +810,13 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider_Morph_Start_X2;
     wxSlider* Slider_Galaxy_CenterX;
     wxSlider* Slider_Galaxy_CenterY;
+    wxFlexGridSizer* FlexGridSizer118;
     wxTextCtrl* TextCtrl_Fan_Accel;
     wxFlexGridSizer* FlexGridSizer113;
+    wxFlexGridSizer* FlexGridSizer116;
     wxSlider* Slider_Fan_Start_Angle;
     wxFontPickerCtrl* FontPickerCtrl1;
+    wxStaticText* StaticText168;
     wxTextCtrl* TextCtrl_Fan_Start_Radius;
     wxFlexGridSizer* FlexGridSizer108;
     wxFlexGridSizer* FlexGridSizer15;
@@ -813,6 +829,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider_Fan_CenterX;
     wxFlexGridSizer* FlexGridSizer27;
     wxTextCtrl* TextCtrl_Galaxy_CenterX;
+    wxFlexGridSizer* FlexGridSizer117;
     wxFlexGridSizer* FlexGridSizer110;
     wxSlider* Slider_Morph_End_X2;
     wxFlexGridSizer* FlexGridSizer84;
@@ -827,10 +844,13 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer52;
     wxFlexGridSizer* FlexGridSizer97;
     wxFontPickerCtrl* FontPickerCtrl2;
+    wxSlider* Slider4;
     wxSlider* Slider_Eff_On_Start;
     wxFlexGridSizer* FlexGridSizer38;
+    wxTextCtrl* TextCtrl8;
     wxFontPickerCtrl* FontPickerCtrl3;
     wxFlexGridSizer* FlexGridSizer29;
+    wxPanel* Panel15;
     wxSlider* Slider_Fan_Accel;
     wxSlider* Slider_Galaxy_Start_Width;
     wxStaticText* StaticText_Pictures_XC;
@@ -838,16 +858,18 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer47;
     wxSlider* Slider_MorphDuration;
     wxTextCtrl* TextCtrl_Shockwave_CenterY;
-    wxFlexGridSizer* GridBagSizerFanOptions;
     wxPanel* MorphPanelOptions;
+    wxFlexGridSizer* GridBagSizerFanOptions;
     wxFlexGridSizer* FlexGridSizer42;
     wxStaticText* StaticText165;
     wxSlider* Slider_Fan_CenterY;
+    wxStaticText* StaticText167;
     wxTextCtrl* TextCtrl_Pictures_GifSpeed;
     wxFlexGridSizer* FlexGridSizer100;
     wxFontPickerCtrl* FontPickerCtrl4;
     wxTextCtrl* TextCtrl_Morph_Start_X1;
     wxTextCtrl* TextCtrl_Morph_End_X2;
+    wxSlider* Slider6;
     wxTextCtrl* TextCtrl_MorphDuration;
     wxTextCtrl* TextCtrl_MorphStartLength;
     wxStaticText* StaticText160;
@@ -867,9 +889,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxStaticText* StaticText162;
     wxFlexGridSizer* FlexGridSizer3;
     wxTextCtrl* TextCtrl_Galaxy_CenterY;
+    wxGridBagSizer* GridBagSizer1;
     wxSlider* Slider_MorphStartLength;
+    wxCheckBox* ColorWashEntireModelCheckbox;
     wxTextCtrl* TextCtrl_Galaxy_Start_Radius;
     wxSlider* Slider_Morph_Start_X1;
+    wxGridBagSizer* GridBagSizer4;
     wxSlider* Slider1;
     wxFlexGridSizer* FlexGridSizer4;
     wxSlider* Slider2;
@@ -880,6 +905,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider_Shockwave_End_Width;
     wxTextCtrl* TextCtrl_Morph_End_Y1;
     wxFlexGridSizer* FlexGridSizer60;
+    wxSlider* Slider3;
     wxTextCtrl* TextCtrl_Fan_Num_Elements;
     wxFlexGridSizer* FlexGridSizer98;
     wxNotebook* Notebook4;
@@ -889,11 +915,14 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer45;
     wxFlexGridSizer* FlexGridSizer102;
     wxPanel* Panel7;
+    wxSlider* Slider5;
     wxTextCtrl* TextCtrl_Shockwave_Accel;
     wxSlider* Slider_Galaxy_End_Radius;
     wxFlexGridSizer* FlexGridSizer75;
+    wxTextCtrl* TextCtrl6;
     wxSlider* Slider_Morph_End_Y2;
     wxFlexGridSizer* FlexGridSizer106;
+    wxFlexGridSizer* FlexGridSizer114;
     wxFlexGridSizer* FlexGridSizer41;
     wxFlexGridSizer* FlexGridSizer88;
     wxFlexGridSizer* FlexGridSizer63;
@@ -926,27 +955,33 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer107;
     wxFlexGridSizer* FlexGridSizer23;
     wxFlexGridSizer* FlexGridSizer40;
+    wxTextCtrl* TextCtrl7;
     wxStaticText* StaticText113;
     wxFlexGridSizer* FlexGridSizer77;
     wxFlexGridSizer* FlexGridSizer94;
     wxTextCtrl* TextCtrl_Morph_Start_X2;
+    wxCheckBox* CheckBox1;
     wxPanel* Panel12;
     wxSlider* Slider_Fan_End_Radius;
     wxTextCtrl* TextCtrl_Morph_End_X1;
-    wxCheckBox* CheckBox1;
+    wxTextCtrl* TextCtrl9;
     wxFlexGridSizer* FlexGridSizer81;
     wxSlider* Slider_MorphEndLength;
     wxSlider* Slider_Fan_Revolutions;
     wxSlider* Slider_Morph_Start_Y2;
     wxFlexGridSizer* FlexGridSizer53;
     wxTextCtrl* TextCtrl_Morph_Start_Y2;
+    wxNotebook* Notebook5;
     wxFlexGridSizer* FlexGridSizer46;
     wxFlexGridSizer* FlexGridSizer78;
+    wxTextCtrl* TextCtrl10;
     wxSlider* Slider_Galaxy_Revolutions;
     wxSlider* Slider_PicturesYC;
+    wxFlexGridSizer* FlexGridSizer115;
     wxFlexGridSizer* FlexGridSizer101;
     wxFlexGridSizer* FlexGridSizer17;
     wxTextCtrl* TextCtrl_Shockwave_End_Radius;
+    wxPanel* Panel13;
     wxFlexGridSizer* FlexGridSizer86;
     wxFlexGridSizer* FlexGridSizer39;
     wxStaticText* StaticText96;
@@ -960,6 +995,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer16;
     wxTextCtrl* TextCtrl_Galaxy_End_Width;
     wxFlexGridSizer* FlexGridSizer71;
+    wxStaticText* StaticText170;
     wxPanel* MorphPanelEnd;
     wxFlexGridSizer* FlexGridSizer22;
     wxTextCtrl* TextCtrl_Morph_Start_Y1;
@@ -972,6 +1008,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxStaticText* StaticText114;
     wxPanel* Panel6;
     wxSlider* Slider_Shockwave_CenterY;
+    wxSlider* Slider_ColorWash_Count;
     wxFlexGridSizer* FlexGridSizer103;
     wxTextCtrl* TextCtrl_PicturesYC;
     wxFlexGridSizer* FlexGridSizer93;
@@ -1000,14 +1037,15 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer70;
     wxFlexGridSizer* FlexGridSizer43;
     wxFlexGridSizer* GridBagSizerFanPosition;
-    wxFlexGridSizer* FlexGridSizer92;
     wxFlexGridSizer* FlexGridSizer32;
+    wxFlexGridSizer* FlexGridSizer92;
     wxStaticText* StaticText133;
     wxStaticText* StaticText_Pictures_YC;
     wxTextCtrl* TextCtrl_Shockwave_Start_Width;
     wxFlexGridSizer* FlexGridSizer76;
     wxFlexGridSizer* FlexGridSizer20;
     wxFlexGridSizer* GridBagSizerGalaxyStart;
+    wxStaticText* StaticText169;
     wxFlexGridSizer* FlexGridSizer64;
     wxPanel* PictureStartPositionPanel;
     wxTextCtrl* TextCtrl_MorphAccel;
@@ -1047,8 +1085,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     SetMaxSize(wxSize(150,150));
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
-    Choicebook1 = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
-    Panel1_Off = new wxScrolledWindow(Choicebook1, ID_PANEL19, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL19"));
+    EffectChoicebook = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
+    Panel1_Off = new wxScrolledWindow(EffectChoicebook, ID_PANEL19, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL19"));
     FlexGridSizer77 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer77->AddGrowableCol(0);
     FlexGridSizer77->Add(19,44,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -1062,7 +1100,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Off->SetSizer(FlexGridSizer77);
     FlexGridSizer77->Fit(Panel1_Off);
     FlexGridSizer77->SetSizeHints(Panel1_Off);
-    Panel1_On = new wxScrolledWindow(Choicebook1, ID_PANEL25, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL25"));
+    Panel1_On = new wxScrolledWindow(EffectChoicebook, ID_PANEL25, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL25"));
     FlexGridSizer92 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer92->AddGrowableCol(0);
     FlexGridSizer96 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -1090,7 +1128,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_On->SetSizer(FlexGridSizer92);
     FlexGridSizer92->Fit(Panel1_On);
     FlexGridSizer92->SetSizeHints(Panel1_On);
-    Panel1_Bars = new wxScrolledWindow(Choicebook1, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL8"));
+    Panel1_Bars = new wxScrolledWindow(EffectChoicebook, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL8"));
     FlexGridSizer35 = new wxFlexGridSizer(0, 3, wxDLG_UNIT(Panel1_Bars,wxSize(0,0)).GetWidth(), 0);
     FlexGridSizer35->AddGrowableCol(1);
     StaticText23 = new wxStaticText(Panel1_Bars, ID_STATICTEXT25, _("Palette Rep"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT25"));
@@ -1130,7 +1168,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Bars->SetSizer(FlexGridSizer35);
     FlexGridSizer35->Fit(Panel1_Bars);
     FlexGridSizer35->SetSizeHints(Panel1_Bars);
-    Panel1_Butterfly = new wxScrolledWindow(Choicebook1, ID_PANEL10, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL10"));
+    Panel1_Butterfly = new wxScrolledWindow(EffectChoicebook, ID_PANEL10, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL10"));
     FlexGridSizer36 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer36->AddGrowableCol(1);
     StaticText25 = new wxStaticText(Panel1_Butterfly, ID_STATICTEXT27, _("Colors"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT27"));
@@ -1175,7 +1213,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Butterfly->SetSizer(FlexGridSizer36);
     FlexGridSizer36->Fit(Panel1_Butterfly);
     FlexGridSizer36->SetSizeHints(Panel1_Butterfly);
-    Panel1_Circles = new wxScrolledWindow(Choicebook1, ID_PANEL37, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL37"));
+    Panel1_Circles = new wxScrolledWindow(EffectChoicebook, ID_PANEL37, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL37"));
     FlexGridSizer80 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer80->AddGrowableCol(0);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -1281,16 +1319,19 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Circles->SetSizer(FlexGridSizer80);
     FlexGridSizer80->Fit(Panel1_Circles);
     FlexGridSizer80->SetSizeHints(Panel1_Circles);
-    Panel1_ColorWash = new wxScrolledWindow(Choicebook1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL5"));
+    Panel1_ColorWash = new wxScrolledWindow(EffectChoicebook, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL5"));
     FlexGridSizer37 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer37->AddGrowableCol(0);
     FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer9->AddGrowableCol(0);
     FlexGridSizer22 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer22->AddGrowableCol(1);
     StaticText5 = new wxStaticText(Panel1_ColorWash, ID_STATICTEXT21, _("Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT21"));
     FlexGridSizer22->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_ColorWash_Count = new wxSlider(Panel1_ColorWash, ID_SLIDER_ColorWash_Count, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_ColorWash_Count"));
     FlexGridSizer22->Add(Slider_ColorWash_Count, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    TextCtrl10 = new wxTextCtrl(Panel1_ColorWash, IDD_TEXTCTRL_ColorWash_Count, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel1_ColorWash,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_ColorWash_Count"));
+    FlexGridSizer22->Add(TextCtrl10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer9->Add(FlexGridSizer22, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_ColorWashCount = new wxBitmapButton(Panel1_ColorWash, ID_BITMAPBUTTON_SLIDER_ColorWash_Count, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_ColorWash_Count"));
     BitmapButton_ColorWashCount->SetDefault();
@@ -1318,11 +1359,74 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_ColorWashHFade->SetDefault();
     BitmapButton_ColorWashHFade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer9->Add(BitmapButton_ColorWashHFade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer37->Add(FlexGridSizer9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer37->Add(FlexGridSizer9, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer114 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer114->AddGrowableCol(0);
+    ColorWashEntireModelCheckbox = new wxCheckBox(Panel1_ColorWash, ID_CHECKBOX_ColorWash_EntireModel, _("Entire Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ColorWash_EntireModel"));
+    ColorWashEntireModelCheckbox->SetValue(true);
+    FlexGridSizer114->Add(ColorWashEntireModelCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
+    Notebook5 = new wxNotebook(Panel1_ColorWash, IDD_NOTEBOOK_ColorWashRect, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK_ColorWashRect"));
+    Notebook5->Disable();
+    Panel13 = new wxPanel(Notebook5, ID_PANEL46, wxPoint(15,49), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL46"));
+    FlexGridSizer115 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer115->AddGrowableCol(0);
+    FlexGridSizer116 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer116->AddGrowableCol(1);
+    StaticText167 = new wxStaticText(Panel13, wxID_ANY, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer116->Add(StaticText167, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider3 = new wxSlider(Panel13, ID_SLIDER_ColorWash_X1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_ColorWash_X1"));
+    FlexGridSizer116->Add(Slider3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer116->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl6 = new wxTextCtrl(Panel13, IDD_TEXTCTRL_ColorWash_X1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel13,wxSize(24,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_ColorWash_X1"));
+    TextCtrl6->SetMaxLength(4);
+    FlexGridSizer116->Add(TextCtrl6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer115->Add(FlexGridSizer116, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1 = new wxGridBagSizer(0, 0);
+    StaticText168 = new wxStaticText(Panel13, wxID_ANY, _("Y"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    GridBagSizer1->Add(StaticText168, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl7 = new wxTextCtrl(Panel13, IDD_TEXTCTRL_ColorWash_Y1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel13,wxSize(24,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_ColorWash_Y1"));
+    TextCtrl7->SetMaxLength(4);
+    GridBagSizer1->Add(TextCtrl7, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider4 = new wxSlider(Panel13, ID_SLIDER_ColorWash_Y1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_ColorWash_Y1"));
+    GridBagSizer1->Add(Slider4, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer115->Add(GridBagSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel13->SetSizer(FlexGridSizer115);
+    FlexGridSizer115->Fit(Panel13);
+    FlexGridSizer115->SetSizeHints(Panel13);
+    Panel15 = new wxPanel(Notebook5, ID_PANEL47, wxPoint(104,13), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL47"));
+    FlexGridSizer117 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer117->AddGrowableCol(0);
+    FlexGridSizer118 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer118->AddGrowableCol(1);
+    StaticText169 = new wxStaticText(Panel15, wxID_ANY, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer118->Add(StaticText169, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider5 = new wxSlider(Panel15, ID_SLIDER_ColorWash_X2, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_ColorWash_X2"));
+    FlexGridSizer118->Add(Slider5, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer118->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl8 = new wxTextCtrl(Panel15, IDD_TEXTCTRL_ColorWash_X2, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel15,wxSize(24,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_ColorWash_X2"));
+    TextCtrl8->SetMaxLength(4);
+    FlexGridSizer118->Add(TextCtrl8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer117->Add(FlexGridSizer118, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer4 = new wxGridBagSizer(0, 0);
+    StaticText170 = new wxStaticText(Panel15, wxID_ANY, _("Y"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    GridBagSizer4->Add(StaticText170, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl9 = new wxTextCtrl(Panel15, IDD_TEXTCTRL_ColorWash_Y2, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel15,wxSize(24,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_ColorWash_Y2"));
+    TextCtrl9->SetMaxLength(4);
+    GridBagSizer4->Add(TextCtrl9, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider6 = new wxSlider(Panel15, ID_SLIDER_ColorWash_Y2, 100, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_ColorWash_Y2"));
+    GridBagSizer4->Add(Slider6, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer117->Add(GridBagSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel15->SetSizer(FlexGridSizer117);
+    FlexGridSizer117->Fit(Panel15);
+    FlexGridSizer117->SetSizeHints(Panel15);
+    Notebook5->AddPage(Panel13, _("Corner 1"), false);
+    Notebook5->AddPage(Panel15, _("Corner 2"), false);
+    FlexGridSizer114->Add(Notebook5, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer37->Add(FlexGridSizer114, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_ColorWash->SetSizer(FlexGridSizer37);
     FlexGridSizer37->Fit(Panel1_ColorWash);
     FlexGridSizer37->SetSizeHints(Panel1_ColorWash);
-    Panel1_CoroFaces = new wxScrolledWindow(Choicebook1, ID_PANEL28, wxPoint(202,8), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL28"));
+    Panel1_CoroFaces = new wxScrolledWindow(EffectChoicebook, ID_PANEL28, wxPoint(202,8), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL28"));
     FlexGridSizer58 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer58->AddGrowableCol(0);
     FlexGridSizer23 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -1351,7 +1455,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_CoroFaces->SetSizer(FlexGridSizer58);
     FlexGridSizer58->Fit(Panel1_CoroFaces);
     FlexGridSizer58->SetSizeHints(Panel1_CoroFaces);
-    Panel1_Curtain = new wxScrolledWindow(Choicebook1, ID_PANEL1, wxPoint(150,14), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL1"));
+    Panel1_Curtain = new wxScrolledWindow(EffectChoicebook, ID_PANEL1, wxPoint(150,14), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL1"));
     FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer7->AddGrowableCol(1);
     StaticText7 = new wxStaticText(Panel1_Curtain, ID_STATICTEXT6, _("Curtain Edge"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
@@ -1401,7 +1505,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Curtain->SetSizer(FlexGridSizer7);
     FlexGridSizer7->Fit(Panel1_Curtain);
     FlexGridSizer7->SetSizeHints(Panel1_Curtain);
-    Panel1_Faces = new wxScrolledWindow(Choicebook1, ID_PANEL6, wxPoint(141,8), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL6"));
+    Panel1_Faces = new wxScrolledWindow(EffectChoicebook, ID_PANEL6, wxPoint(141,8), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL6"));
     FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer97 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText116 = new wxStaticText(Panel1_Faces, ID_STATICTEXT118, _("Draw a face on a Matrix or Megatree"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT118"));
@@ -1416,7 +1520,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Faces->SetSizer(FlexGridSizer47);
     FlexGridSizer47->Fit(Panel1_Faces);
     FlexGridSizer47->SetSizeHints(Panel1_Faces);
-    Panel1_Fan = new wxScrolledWindow(Choicebook1, ID_SCROLLEDWINDOW_FAN, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW_FAN"));
+    Panel1_Fan = new wxScrolledWindow(EffectChoicebook, ID_SCROLLEDWINDOW_FAN, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW_FAN"));
     FlexGridSizer109 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer109->AddGrowableCol(0);
     Notebook1 = new wxNotebook(Panel1_Fan, ID_NOTEBOOK_Fan, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Fan"));
@@ -1565,7 +1669,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_Fan_Accel = new wxBitmapButton(Panel11, ID_BITMAPBUTTON_SLIDER_Fan_Accel, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fan_Accel"));
     BitmapButton_Fan_Accel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     GridBagSizerFanOptions->Add(BitmapButton_Fan_Accel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    GridBagSizerFanOptions->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerFanOptions->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer103 = new wxFlexGridSizer(0, 1, 0, 0);
     CheckBox_Fan_Reverse = new wxCheckBox(Panel11, ID_CHECKBOX_Fan_Reverse, _("Reverse:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Fan_Reverse"));
     CheckBox_Fan_Reverse->SetValue(false);
@@ -1587,7 +1691,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Fan->SetSizer(FlexGridSizer109);
     FlexGridSizer109->Fit(Panel1_Fan);
     FlexGridSizer109->SetSizeHints(Panel1_Fan);
-    Panel1_Fire = new wxScrolledWindow(Choicebook1, ID_PANEL12, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL12"));
+    Panel1_Fire = new wxScrolledWindow(EffectChoicebook, ID_PANEL12, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL12"));
     FlexGridSizer38 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer38->AddGrowableCol(1);
     StaticText83 = new wxStaticText(Panel1_Fire, ID_STATICTEXT84, _("Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT84"));
@@ -1618,7 +1722,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Fire->SetSizer(FlexGridSizer38);
     FlexGridSizer38->Fit(Panel1_Fire);
     FlexGridSizer38->SetSizeHints(Panel1_Fire);
-    Panel1_Fireworks = new wxScrolledWindow(Choicebook1, ID_PANEL36, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL36"));
+    Panel1_Fireworks = new wxScrolledWindow(EffectChoicebook, ID_PANEL36, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL36"));
     FlexGridSizer73 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer73->AddGrowableCol(1);
     StaticText94 = new wxStaticText(Panel1_Fireworks, ID_STATICTEXT95, _("Number of Explosions"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT95"));
@@ -1656,7 +1760,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Fireworks->SetSizer(FlexGridSizer73);
     FlexGridSizer73->Fit(Panel1_Fireworks);
     FlexGridSizer73->SetSizeHints(Panel1_Fireworks);
-    Panel1_Galaxy = new wxScrolledWindow(Choicebook1, ID_SCROLLEDWINDOW1, wxPoint(-3,-233), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
+    Panel1_Galaxy = new wxScrolledWindow(EffectChoicebook, ID_SCROLLEDWINDOW1, wxPoint(-3,-233), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
     FlexGridSizer108 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer108->AddGrowableCol(0);
     Notebook_Galaxy = new wxNotebook(Panel1_Galaxy, ID_NOTEBOOK_Galaxy, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Galaxy"));
@@ -1802,7 +1906,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Galaxy->SetSizer(FlexGridSizer108);
     FlexGridSizer108->Fit(Panel1_Galaxy);
     FlexGridSizer108->SetSizeHints(Panel1_Galaxy);
-    Panel1_Garlands = new wxScrolledWindow(Choicebook1, ID_PANEL14, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL14"));
+    Panel1_Garlands = new wxScrolledWindow(EffectChoicebook, ID_PANEL14, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL14"));
     FlexGridSizer39 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer39->AddGrowableCol(1);
     StaticText32 = new wxStaticText(Panel1_Garlands, ID_STATICTEXT34, _("Garland Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT34"));
@@ -1824,7 +1928,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Garlands->SetSizer(FlexGridSizer39);
     FlexGridSizer39->Fit(Panel1_Garlands);
     FlexGridSizer39->SetSizeHints(Panel1_Garlands);
-    Panel1_Glediator = new wxScrolledWindow(Choicebook1, ID_PANEL17, wxPoint(37,9), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL17"));
+    Panel1_Glediator = new wxScrolledWindow(EffectChoicebook, ID_PANEL17, wxPoint(37,9), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL17"));
     FlexGridSizer53 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer54 = new wxFlexGridSizer(0, 2, 0, 0);
     ButtonGledFile = new wxButton(Panel1_Glediator, ID_BUTTON_GLED_FILE, _("Glediator *.gled File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GLED_FILE"));
@@ -1840,7 +1944,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Glediator->SetSizer(FlexGridSizer53);
     FlexGridSizer53->Fit(Panel1_Glediator);
     FlexGridSizer53->SetSizeHints(Panel1_Glediator);
-    Panel1_Life = new wxScrolledWindow(Choicebook1, ID_PANEL16, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL16"));
+    Panel1_Life = new wxScrolledWindow(EffectChoicebook, ID_PANEL16, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL16"));
     FlexGridSizer40 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer40->AddGrowableCol(1);
     StaticText35 = new wxStaticText(Panel1_Life, ID_STATICTEXT36, _("Cells to start"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT36"));
@@ -1862,7 +1966,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Life->SetSizer(FlexGridSizer40);
     FlexGridSizer40->Fit(Panel1_Life);
     FlexGridSizer40->SetSizeHints(Panel1_Life);
-    Panel1_Meteors = new wxScrolledWindow(Choicebook1, ID_PANEL18, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL18"));
+    Panel1_Meteors = new wxScrolledWindow(EffectChoicebook, ID_PANEL18, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL18"));
     FlexGridSizer41 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer41->AddGrowableCol(1);
     StaticText39 = new wxStaticText(Panel1_Meteors, ID_STATICTEXT39, _("Colors"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT39"));
@@ -1908,7 +2012,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Meteors->SetSizer(FlexGridSizer41);
     FlexGridSizer41->Fit(Panel1_Meteors);
     FlexGridSizer41->SetSizeHints(Panel1_Meteors);
-    Panel1_Morph = new wxScrolledWindow(Choicebook1, ID_PANEL_Morph, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL_Morph"));
+    Panel1_Morph = new wxScrolledWindow(EffectChoicebook, ID_PANEL_Morph, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL_Morph"));
     FlexGridSizer78 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer78->AddGrowableCol(0);
     Notebook_Morph = new wxNotebook(Panel1_Morph, ID_NOTEBOOK_Morph, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Morph"));
@@ -2094,7 +2198,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Morph->SetSizer(FlexGridSizer78);
     FlexGridSizer78->Fit(Panel1_Morph);
     FlexGridSizer78->SetSizeHints(Panel1_Morph);
-    Panel1_Piano = new wxScrolledWindow(Choicebook1, ID_PANEL39, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL39"));
+    Panel1_Piano = new wxScrolledWindow(EffectChoicebook, ID_PANEL39, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL39"));
     FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer5->AddGrowableCol(0);
     FlexGridSizer27 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -2212,7 +2316,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Piano->SetSizer(FlexGridSizer5);
     FlexGridSizer5->Fit(Panel1_Piano);
     FlexGridSizer5->SetSizeHints(Panel1_Piano);
-    Panel1_Pictures = new wxScrolledWindow(Choicebook1, ID_PANEL20, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL20"));
+    Panel1_Pictures = new wxScrolledWindow(EffectChoicebook, ID_PANEL20, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL20"));
     FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer42->AddGrowableCol(0);
     FlexGridSizer19 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -2323,7 +2427,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Pictures->SetSizer(FlexGridSizer42);
     FlexGridSizer42->Fit(Panel1_Pictures);
     FlexGridSizer42->SetSizeHints(Panel1_Pictures);
-    Panel1_Pinwheel = new wxScrolledWindow(Choicebook1, ID_PANEL_Pinwheel, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL_Pinwheel"));
+    Panel1_Pinwheel = new wxScrolledWindow(EffectChoicebook, ID_PANEL_Pinwheel, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL_Pinwheel"));
     FlexGridSizer55 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer63 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText63 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT65, _("#Arms"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT65"));
@@ -2399,7 +2503,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Pinwheel->SetSizer(FlexGridSizer55);
     FlexGridSizer55->Fit(Panel1_Pinwheel);
     FlexGridSizer55->SetSizeHints(Panel1_Pinwheel);
-    Panel1_Ripple = new wxScrolledWindow(Choicebook1, ID_PANELRipple, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANELRipple"));
+    Panel1_Ripple = new wxScrolledWindow(EffectChoicebook, ID_PANELRipple, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANELRipple"));
     FlexGridSizer57 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer57->AddGrowableCol(1);
     StaticText69 = new wxStaticText(Panel1_Ripple, ID_STATICTEXT71, _("Object to Draw"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT71"));
@@ -2437,7 +2541,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Ripple->SetSizer(FlexGridSizer57);
     FlexGridSizer57->Fit(Panel1_Ripple);
     FlexGridSizer57->SetSizeHints(Panel1_Ripple);
-    Panel1_Shimmer = new wxScrolledWindow(Choicebook1, ID_PANELShimmer, wxPoint(39,6), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANELShimmer"));
+    Panel1_Shimmer = new wxScrolledWindow(EffectChoicebook, ID_PANELShimmer, wxPoint(39,6), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANELShimmer"));
     FlexGridSizer56 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer56->AddGrowableCol(1);
     StaticText66 = new wxStaticText(Panel1_Shimmer, ID_STATICTEXT68, _("Duty Factor"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT68"));
@@ -2474,7 +2578,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Shimmer->SetSizer(FlexGridSizer56);
     FlexGridSizer56->Fit(Panel1_Shimmer);
     FlexGridSizer56->SetSizeHints(Panel1_Shimmer);
-    Panel1_Shockwave = new wxScrolledWindow(Choicebook1, ID_SCROLLEDWINDOW_SHOCKWAVE, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW_SHOCKWAVE"));
+    Panel1_Shockwave = new wxScrolledWindow(EffectChoicebook, ID_SCROLLEDWINDOW_SHOCKWAVE, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW_SHOCKWAVE"));
     FlexGridSizer110 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer110->AddGrowableCol(0);
     Notebook3 = new wxNotebook(Panel1_Shockwave, ID_NOTEBOOK_Shockwave, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Shockwave"));
@@ -2569,7 +2673,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Shockwave->SetSizer(FlexGridSizer110);
     FlexGridSizer110->Fit(Panel1_Shockwave);
     FlexGridSizer110->SetSizeHints(Panel1_Shockwave);
-    Panel1_SingleStrand = new wxScrolledWindow(Choicebook1, ID_PANEL2, wxPoint(39,6), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL2"));
+    Panel1_SingleStrand = new wxScrolledWindow(EffectChoicebook, ID_PANEL2, wxPoint(39,6), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL2"));
     FlexGridSizer89 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer89->AddGrowableCol(0);
     SingleStrandEffectType = new wxNotebook(Panel1_SingleStrand, ID_NOTEBOOK_SSEFFECT_TYPE, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_SSEFFECT_TYPE"));
@@ -2698,7 +2802,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_SingleStrand->SetSizer(FlexGridSizer89);
     FlexGridSizer89->Fit(Panel1_SingleStrand);
     FlexGridSizer89->SetSizeHints(Panel1_SingleStrand);
-    Panel1_Snowflakes = new wxScrolledWindow(Choicebook1, ID_PANEL22, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL22"));
+    Panel1_Snowflakes = new wxScrolledWindow(EffectChoicebook, ID_PANEL22, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL22"));
     FlexGridSizer43 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer43->AddGrowableCol(1);
     StaticText79 = new wxStaticText(Panel1_Snowflakes, ID_STATICTEXT80, _("Max flakes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT80"));
@@ -2718,7 +2822,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Snowflakes->SetSizer(FlexGridSizer43);
     FlexGridSizer43->Fit(Panel1_Snowflakes);
     FlexGridSizer43->SetSizeHints(Panel1_Snowflakes);
-    Panel1_Snowstorm = new wxScrolledWindow(Choicebook1, ID_PANEL24, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL24"));
+    Panel1_Snowstorm = new wxScrolledWindow(EffectChoicebook, ID_PANEL24, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL24"));
     FlexGridSizer44 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer44->AddGrowableCol(1);
     StaticText45 = new wxStaticText(Panel1_Snowstorm, ID_STATICTEXT45, _("Max flakes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT45"));
@@ -2738,7 +2842,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Snowstorm->SetSizer(FlexGridSizer44);
     FlexGridSizer44->Fit(Panel1_Snowstorm);
     FlexGridSizer44->SetSizeHints(Panel1_Snowstorm);
-    Panel1_Spirals = new wxScrolledWindow(Choicebook1, ID_PANEL26, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL26"));
+    Panel1_Spirals = new wxScrolledWindow(EffectChoicebook, ID_PANEL26, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL26"));
     FlexGridSizer45 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer45->AddGrowableCol(1);
     StaticText34 = new wxStaticText(Panel1_Spirals, ID_STATICTEXT38, _("Palette Rep"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT38"));
@@ -2810,7 +2914,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Spirals->SetSizer(FlexGridSizer45);
     FlexGridSizer45->Fit(Panel1_Spirals);
     FlexGridSizer45->SetSizeHints(Panel1_Spirals);
-    Panel1_Spirograph = new wxScrolledWindow(Choicebook1, ID_PANEL35, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL35"));
+    Panel1_Spirograph = new wxScrolledWindow(EffectChoicebook, ID_PANEL35, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL35"));
     FlexGridSizer72 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer72->AddGrowableCol(1);
     StaticText87 = new wxStaticText(Panel1_Spirograph, ID_STATICTEXT88, _("R - Radius of outer circle"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT88"));
@@ -2851,7 +2955,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Spirograph->SetSizer(FlexGridSizer72);
     FlexGridSizer72->Fit(Panel1_Spirograph);
     FlexGridSizer72->SetSizeHints(Panel1_Spirograph);
-    Panel1_Strobe = new wxScrolledWindow(Choicebook1, ID_PANEL23, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL23"));
+    Panel1_Strobe = new wxScrolledWindow(EffectChoicebook, ID_PANEL23, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL23"));
     FlexGridSizer85 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer85->AddGrowableCol(0);
     FlexGridSizer87 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -2887,7 +2991,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Strobe->SetSizer(FlexGridSizer85);
     FlexGridSizer85->Fit(Panel1_Strobe);
     FlexGridSizer85->SetSizeHints(Panel1_Strobe);
-    Panel1_Text = new wxScrolledWindow(Choicebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL7"));
+    Panel1_Text = new wxScrolledWindow(EffectChoicebook, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL7"));
     FlexGridSizer46 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer46->AddGrowableCol(0);
     FlexGridSizer65 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -3145,7 +3249,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Text->SetSizer(FlexGridSizer46);
     FlexGridSizer46->Fit(Panel1_Text);
     FlexGridSizer46->SetSizeHints(Panel1_Text);
-    Panel1_Tree = new wxScrolledWindow(Choicebook1, ID_PANEL34, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL34"));
+    Panel1_Tree = new wxScrolledWindow(EffectChoicebook, ID_PANEL34, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL34"));
     FlexGridSizer71 = new wxFlexGridSizer(5, 3, 0, 0);
     FlexGridSizer71->AddGrowableCol(1);
     BitmapButton20 = new wxBitmapButton(Panel1_Tree, ID_BITMAPBUTTON40, tree, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON40"));
@@ -3163,7 +3267,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Tree->SetSizer(FlexGridSizer71);
     FlexGridSizer71->Fit(Panel1_Tree);
     FlexGridSizer71->SetSizeHints(Panel1_Tree);
-    Panel1_Twinkle = new wxScrolledWindow(Choicebook1, ID_PANEL33, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL33"));
+    Panel1_Twinkle = new wxScrolledWindow(EffectChoicebook, ID_PANEL33, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL33"));
     FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer4->AddGrowableCol(1);
     StaticText85 = new wxStaticText(Panel1_Twinkle, ID_STATICTEXT86, _("Number Lights"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT86"));
@@ -3193,7 +3297,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Twinkle->SetSizer(FlexGridSizer4);
     FlexGridSizer4->Fit(Panel1_Twinkle);
     FlexGridSizer4->SetSizeHints(Panel1_Twinkle);
-    Panel1_Wave = new wxScrolledWindow(Choicebook1, ID_PANEL15, wxPoint(184,10), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL15"));
+    Panel1_Wave = new wxScrolledWindow(EffectChoicebook, ID_PANEL15, wxPoint(184,10), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL15"));
     FlexGridSizer51 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer51->AddGrowableCol(1);
     StaticText47 = new wxStaticText(Panel1_Wave, ID_STATICTEXT49, _("Wave Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT49"));
@@ -3249,41 +3353,41 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Wave->SetSizer(FlexGridSizer51);
     FlexGridSizer51->Fit(Panel1_Wave);
     FlexGridSizer51->SetSizeHints(Panel1_Wave);
-    Choicebook1->AddPage(Panel1_Off, _("Off"), false);
-    Choicebook1->AddPage(Panel1_On, _("On"), false);
-    Choicebook1->AddPage(Panel1_Bars, _("Bars"), false);
-    Choicebook1->AddPage(Panel1_Butterfly, _("Butterfly"), false);
-    Choicebook1->AddPage(Panel1_Circles, _("Circles"), false);
-    Choicebook1->AddPage(Panel1_ColorWash, _("Color Wash"), false);
-    Choicebook1->AddPage(Panel1_CoroFaces, _("CoroFaces"), false);
-    Choicebook1->AddPage(Panel1_Curtain, _("Curtain"), false);
-    Choicebook1->AddPage(Panel1_Faces, _("Faces"), false);
-    Choicebook1->AddPage(Panel1_Fan, _("Fan"), false);
-    Choicebook1->AddPage(Panel1_Fire, _("Fire"), false);
-    Choicebook1->AddPage(Panel1_Fireworks, _("Fireworks"), false);
-    Choicebook1->AddPage(Panel1_Galaxy, _("Galaxy"), false);
-    Choicebook1->AddPage(Panel1_Garlands, _("Garlands"), false);
-    Choicebook1->AddPage(Panel1_Glediator, _("Glediator"), false);
-    Choicebook1->AddPage(Panel1_Life, _("Life"), false);
-    Choicebook1->AddPage(Panel1_Meteors, _("Meteors"), false);
-    Choicebook1->AddPage(Panel1_Morph, _("Morph"), false);
-    Choicebook1->AddPage(Panel1_Piano, _("Piano"), false);
-    Choicebook1->AddPage(Panel1_Pictures, _("Pictures"), false);
-    Choicebook1->AddPage(Panel1_Pinwheel, _("Pinwheel"), false);
-    Choicebook1->AddPage(Panel1_Ripple, _("Ripple"), false);
-    Choicebook1->AddPage(Panel1_Shimmer, _("Shimmer"), false);
-    Choicebook1->AddPage(Panel1_Shockwave, _("Shockwave"), false);
-    Choicebook1->AddPage(Panel1_SingleStrand, _("SingleStrand"), false);
-    Choicebook1->AddPage(Panel1_Snowflakes, _("Snowflakes"), false);
-    Choicebook1->AddPage(Panel1_Snowstorm, _("Snowstorm"), false);
-    Choicebook1->AddPage(Panel1_Spirals, _("Spirals"), false);
-    Choicebook1->AddPage(Panel1_Spirograph, _("Spirograph"), false);
-    Choicebook1->AddPage(Panel1_Strobe, _("Strobe"), false);
-    Choicebook1->AddPage(Panel1_Text, _("Text"), false);
-    Choicebook1->AddPage(Panel1_Tree, _("Tree"), false);
-    Choicebook1->AddPage(Panel1_Twinkle, _("Twinkle"), false);
-    Choicebook1->AddPage(Panel1_Wave, _("Wave"), false);
-    FlexGridSizer1->Add(Choicebook1, 1, wxRIGHT|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
+    EffectChoicebook->AddPage(Panel1_Off, _("Off"), false);
+    EffectChoicebook->AddPage(Panel1_On, _("On"), false);
+    EffectChoicebook->AddPage(Panel1_Bars, _("Bars"), false);
+    EffectChoicebook->AddPage(Panel1_Butterfly, _("Butterfly"), false);
+    EffectChoicebook->AddPage(Panel1_Circles, _("Circles"), false);
+    EffectChoicebook->AddPage(Panel1_ColorWash, _("Color Wash"), false);
+    EffectChoicebook->AddPage(Panel1_CoroFaces, _("CoroFaces"), false);
+    EffectChoicebook->AddPage(Panel1_Curtain, _("Curtain"), false);
+    EffectChoicebook->AddPage(Panel1_Faces, _("Faces"), false);
+    EffectChoicebook->AddPage(Panel1_Fan, _("Fan"), false);
+    EffectChoicebook->AddPage(Panel1_Fire, _("Fire"), false);
+    EffectChoicebook->AddPage(Panel1_Fireworks, _("Fireworks"), false);
+    EffectChoicebook->AddPage(Panel1_Galaxy, _("Galaxy"), false);
+    EffectChoicebook->AddPage(Panel1_Garlands, _("Garlands"), false);
+    EffectChoicebook->AddPage(Panel1_Glediator, _("Glediator"), false);
+    EffectChoicebook->AddPage(Panel1_Life, _("Life"), false);
+    EffectChoicebook->AddPage(Panel1_Meteors, _("Meteors"), false);
+    EffectChoicebook->AddPage(Panel1_Morph, _("Morph"), false);
+    EffectChoicebook->AddPage(Panel1_Piano, _("Piano"), false);
+    EffectChoicebook->AddPage(Panel1_Pictures, _("Pictures"), false);
+    EffectChoicebook->AddPage(Panel1_Pinwheel, _("Pinwheel"), false);
+    EffectChoicebook->AddPage(Panel1_Ripple, _("Ripple"), false);
+    EffectChoicebook->AddPage(Panel1_Shimmer, _("Shimmer"), false);
+    EffectChoicebook->AddPage(Panel1_Shockwave, _("Shockwave"), false);
+    EffectChoicebook->AddPage(Panel1_SingleStrand, _("SingleStrand"), false);
+    EffectChoicebook->AddPage(Panel1_Snowflakes, _("Snowflakes"), false);
+    EffectChoicebook->AddPage(Panel1_Snowstorm, _("Snowstorm"), false);
+    EffectChoicebook->AddPage(Panel1_Spirals, _("Spirals"), false);
+    EffectChoicebook->AddPage(Panel1_Spirograph, _("Spirograph"), false);
+    EffectChoicebook->AddPage(Panel1_Strobe, _("Strobe"), false);
+    EffectChoicebook->AddPage(Panel1_Text, _("Text"), false);
+    EffectChoicebook->AddPage(Panel1_Tree, _("Tree"), false);
+    EffectChoicebook->AddPage(Panel1_Twinkle, _("Twinkle"), false);
+    EffectChoicebook->AddPage(Panel1_Wave, _("Wave"), false);
+    FlexGridSizer1->Add(EffectChoicebook, 1, wxRIGHT|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
     BitmapButton_LayerEffect = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICEBOOK1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICEBOOK1"));
@@ -3329,9 +3433,20 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Collide,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_SLIDER_ColorWash_Count,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
+    Connect(IDD_TEXTCTRL_ColorWash_Count,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(ID_BITMAPBUTTON_SLIDER_ColorWash_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_CHECKBOX_ColorWash_EntireModel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnColorWashEntireModelClicked);
+    Connect(ID_SLIDER_ColorWash_X1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
+    Connect(IDD_TEXTCTRL_ColorWash_X1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
+    Connect(IDD_TEXTCTRL_ColorWash_Y1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
+    Connect(ID_SLIDER_ColorWash_Y1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
+    Connect(ID_SLIDER_ColorWash_X2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
+    Connect(IDD_TEXTCTRL_ColorWash_X2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
+    Connect(IDD_TEXTCTRL_ColorWash_Y2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
+    Connect(ID_SLIDER_ColorWash_Y2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Edge,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Curtain_Swag,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
@@ -3600,7 +3715,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
-    Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnChoicebook1PageChanged);
+    Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::EffectSelected);
     Connect(ID_BITMAPBUTTON_CHOICEBOOK1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(wxEVT_PAINT,(wxObjectEventFunction)&EffectsPanel::OnPaint1);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&EffectsPanel::OnResize);
@@ -3614,6 +3729,28 @@ EffectsPanel::~EffectsPanel()
     //(*Destroy(EffectsPanel)
     //*)
 }
+
+
+
+void SetCheckboxValue(wxWindow *w, int id, bool b) {
+    wxCheckBox *c = (wxCheckBox*)w->FindWindowById(id);
+    c->SetValue(b);
+    wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, id);
+    evt.SetEventObject(c);
+    evt.SetInt(b);
+    c->ProcessWindowEvent(evt);
+}
+void EnableControl(wxWindow *w, int id, bool e) {
+    wxWindow *c = w->FindWindowById(id);
+    if (c) c->Enable(e);
+}
+
+void EffectsPanel::SetDefaultEffectValues(const wxString &name) {
+    if ("Color Wash" == name) {
+        SetCheckboxValue(this, ID_CHECKBOX_ColorWash_EntireModel, true);
+    }
+}
+
 
 
 // returns ",E1_" or ",E2_"
@@ -3779,7 +3916,7 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
    //~ s = prefix + wxString::Format("SLIDER_Speed=%d", GetRandomSliderValue(Slider_Speed));
 
     // get effect controls
-    wxWindow *window = Choicebook1->GetPage(effidx);
+    wxWindow *window = EffectChoicebook->GetPage(effidx);
     s += GetRandomEffectStringFromWindow(window, prefix);
 
     return s;
@@ -3797,7 +3934,7 @@ wxString EffectsPanel::GetEffectString()
     //~s+=prefix+wxString::Format("CHECKBOX_OverlayBkg=%d",CheckBox_OverlayBkg->GetValue()?1:0);
 
     // get effect controls
-    s+=GetEffectStringFromWindow(Choicebook1->GetCurrentPage());
+    s+=GetEffectStringFromWindow(EffectChoicebook->GetCurrentPage());
 
     // get palette
     wxColour color;
@@ -3860,22 +3997,25 @@ void EffectsPanel::OnButton_Piano_ShapeFilenameClick(wxCommandEvent& event)
     if (!filename.IsEmpty()) TextCtrl_Piano_ShapeFilename->SetValue(filename);
 }
 
-void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
+void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
 {
     EffectChanged=true;
-    wxScrolledWindow* w = (wxScrolledWindow*)Choicebook1->GetPage(Choicebook1->GetSelection());
+    wxScrolledWindow* w = (wxScrolledWindow*)EffectChoicebook->GetPage(EffectChoicebook->GetSelection());
+    
+    wxString ef = EffectChoicebook->GetPageText(EffectChoicebook->GetSelection());
+    SetDefaultEffectValues(ef);
 
     wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
     // We do not have an actual effect in grid to send
     // Set Index of page.
-    eventEffectChanged.SetInt(Choicebook1->GetSelection());
+    eventEffectChanged.SetInt(EffectChoicebook->GetSelection());
     eventEffectChanged.SetClientData(nullptr);
     wxPostEvent(GetParent(), eventEffectChanged);
 
     w->FitInside();
     w->SetScrollRate(5, 5);
     w->Refresh();
-    GetEffectStringFromWindow(Choicebook1->GetPage(Choicebook1->GetSelection()));
+    GetEffectStringFromWindow(EffectChoicebook->GetPage(EffectChoicebook->GetSelection()));
 }
 
 //  Pinwheel
@@ -3957,7 +4097,7 @@ bool EffectsPanel::isRandom_(wxControl* ctl, const char*debug)
 }
 bool EffectsPanel::isRandom_(void)
 {
-    return isRandom(Choicebook1);
+    return isRandom(EffectChoicebook);
 }
 
 void EffectsPanel::OnLockButtonClick(wxCommandEvent& event) {
@@ -4077,22 +4217,6 @@ void EffectsPanel::UpdateLinkedTextCtrl360(wxScrollEvent& event)
     wxTextCtrl *txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
     txt->ChangeValue(wxString::Format("%0.2f",slider->GetValue()/360.0));
 }
-
-
-void EnableControl(wxWindow *w, int id, bool e) {
-    wxWindow *c = w->FindWindowById(id);
-    if (c) c->Enable(e);
-}
-void EffectsPanel::OnChoicePicturesDirectionSelect(wxCommandEvent& event)
-{
-    bool enable = "vector" == Choice_Pictures_Direction->GetStringSelection();
-    EnableControl(Choice_Pictures_Direction->GetParent(), IDD_TEXTCTRL_PicturesEndXC, enable);
-    EnableControl(Choice_Pictures_Direction->GetParent(), IDD_TEXTCTRL_PicturesEndYC, enable);
-    EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndXC, enable);
-    EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndYC, enable);
-    PictureEndPositionPanel->Enable(enable);
-}
-
 void EffectsPanel::enableControlsByName(const wxString &name, bool enable) {
     wxWindow *w = FindWindowByName(name);
     if (w != nullptr) {
@@ -4103,4 +4227,21 @@ void EffectsPanel::enableControlsByName(const wxString &name, bool enable) {
     if (w != nullptr) {
         w->Enable(enable);
     }
+}
+
+void EffectsPanel::OnChoicePicturesDirectionSelect(wxCommandEvent& event)
+{
+    bool enable = "vector" == Choice_Pictures_Direction->GetStringSelection();
+    EnableControl(Choice_Pictures_Direction->GetParent(), IDD_TEXTCTRL_PicturesEndXC, enable);
+    EnableControl(Choice_Pictures_Direction->GetParent(), IDD_TEXTCTRL_PicturesEndYC, enable);
+    EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndXC, enable);
+    EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndYC, enable);
+    PictureEndPositionPanel->Enable(enable);
+}
+
+
+void EffectsPanel::OnColorWashEntireModelClicked(wxCommandEvent& event)
+{
+    bool on = ((wxCheckBox*)event.GetEventObject())->GetValue();
+    EnableControl(this, IDD_NOTEBOOK_ColorWashRect, !on);
 }

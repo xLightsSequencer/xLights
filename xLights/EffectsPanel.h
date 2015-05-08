@@ -37,6 +37,7 @@ public:
     void SetDefaultPalette();
     wxString* CurrentDir;
     wxString GetEffectString();
+    void SetDefaultEffectValues(const wxString &name);
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
     wxString GetEffectStringFromWindow(wxWindow *ParentWin);
@@ -73,7 +74,6 @@ public:
     wxBitmapButton* BitmapButton_Piano_MapFilename;
     wxBitmapButton* BitmapButton_NumberStrobes;
     wxStaticText* StaticText4;
-    wxChoicebook* Choicebook1;
     wxStaticText* StaticText38;
     wxStaticText* StaticText86;
     wxStaticText* StaticText42;
@@ -289,7 +289,6 @@ public:
     wxStaticText* StaticText110;
     wxStaticText* StaticText70;
     wxStaticText* StaticText35;
-    wxSlider* Slider_ColorWash_Count;
     wxStaticText* StaticText85;
     wxNotebook* Notebook2;
     wxBitmapButton* BitmapButton_GarlandsType;
@@ -441,8 +440,8 @@ public:
     wxChoice* Choice_Faces_Phoneme;
     wxStaticText* StaticText100;
     wxBitmapButton* BitmapButton20;
-    wxBitmapButton* BitmapButton_Shockwave_Start_Width;
     wxScrolledWindow* Panel1_Morph;
+    wxBitmapButton* BitmapButton_Shockwave_Start_Width;
     wxSlider* Slider_Circles_Count;
     wxBitmapButton* BitmapButton_MorphStartLength;
     wxBitmapButton* BitmapButton_FireworksFade;
@@ -521,6 +520,7 @@ public:
     wxChoice* Choice_Text_Count3;
     wxBitmapButton* BitmapButton_Skips_StartingPosition;
     wxCheckBox* CheckBox_Circles_Linear_Fade;
+    wxChoicebook* EffectChoicebook;
     wxStaticText* StaticText143;
     wxCheckBox* CheckBox_Shimmer_Use_All_Colors;
     wxStaticText* StaticText136;
@@ -656,6 +656,7 @@ protected:
     static const long ID_PANEL37;
     static const long ID_STATICTEXT21;
     static const long ID_SLIDER_ColorWash_Count;
+    static const long IDD_TEXTCTRL_ColorWash_Count;
     static const long ID_BITMAPBUTTON_SLIDER_ColorWash_Count;
     static const long ID_STATICTEXT33;
     static const long ID_CHECKBOX_ColorWash_VFade;
@@ -663,6 +664,18 @@ protected:
     static const long ID_STATICTEXT32;
     static const long ID_CHECKBOX_ColorWash_HFade;
     static const long ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade;
+    static const long ID_CHECKBOX_ColorWash_EntireModel;
+    static const long ID_SLIDER_ColorWash_X1;
+    static const long IDD_TEXTCTRL_ColorWash_X1;
+    static const long IDD_TEXTCTRL_ColorWash_Y1;
+    static const long ID_SLIDER_ColorWash_Y1;
+    static const long ID_PANEL46;
+    static const long ID_SLIDER_ColorWash_X2;
+    static const long IDD_TEXTCTRL_ColorWash_X2;
+    static const long IDD_TEXTCTRL_ColorWash_Y2;
+    static const long ID_SLIDER_ColorWash_Y2;
+    static const long ID_PANEL47;
+    static const long IDD_NOTEBOOK_ColorWashRect;
     static const long ID_PANEL5;
     static const long ID_STATICTEXT73;
     static const long ID_CHOICE_CoroFaces_Phoneme;
@@ -1278,7 +1291,6 @@ private:
     void OnButton_Glediator_FilenameClick(wxCommandEvent& event);
     void OnCheckBox_PaletteClick(wxCommandEvent& event);
     void OnButton_PaletteNumberClick(wxCommandEvent& event);
-    void OnChoicebook1PageChanged(wxChoicebookEvent& event);
     void OnPiano_StyleSelect(wxCommandEvent& event);
     void OnSlider_Piano_NumKeysCmdScroll(wxScrollEvent& event);
     void OnTextCtrl_Piano_FilenameText(wxCommandEvent& event);
@@ -1309,13 +1321,14 @@ private:
     void OnCheckBox_Galaxy_End_Radius_x10Click(wxCommandEvent& event);
     void OnCheckBox_Galaxy_End_Width_x10Click(wxCommandEvent& event);
     void OnCheckBox_Galaxy_Revs_x2Click(wxCommandEvent& event);
-    
     void OnLockButtonClick(wxCommandEvent& event);
     void UpdateLinkedSlider(wxCommandEvent& event);
     void UpdateLinkedTextCtrl(wxScrollEvent& event);
     void UpdateLinkedSlider360(wxCommandEvent& event);
     void UpdateLinkedTextCtrl360(wxScrollEvent& event);
     void OnChoicePicturesDirectionSelect(wxCommandEvent& event);
+    void EffectSelected(wxChoicebookEvent& event);
+    void OnColorWashEntireModelClicked(wxCommandEvent& event);
     //*)
 
     int GetRandomSliderValue(wxSlider* slider);

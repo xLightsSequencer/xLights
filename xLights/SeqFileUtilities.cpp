@@ -955,27 +955,46 @@ wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
     i.SaveFile(name);
     return name;
 }
-bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFull) {
+bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFull, wxRect &rect) {
     std::vector< std::vector<bool> > data(num_columns, std::vector<bool>(num_rows));
+    int maxCol = -1;
+    int maxRow = -1;
+    int minCol = 9999999;
+    int minRow = 9999999;
+    isFull = true;
     for(wxXmlNode* e=element->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "element") {
             int x = wxAtoi(e->GetAttribute("ribbonIndex"));
             int y = wxAtoi(e->GetAttribute("pixelIndex"));
             if (x < num_columns) {
                 data[x][y] = true;
+                if (x > maxCol) maxCol = x;
+                if (x < minCol) minCol = x;
+                if (y > maxRow) maxRow = y;
+                if (y < minRow) minRow = y;
             } else {
                 return false;
             }
         }
     }
-    isFull = true;
-    for (int x = 0; x < num_columns; x++) {
-        for (int y = 0; y < num_rows; y++) {
+    isFull = minCol == 0 && minRow == 0 && maxRow == (num_rows - 1) && maxCol == (num_columns - 1);
+    bool isRect = true;
+    for (int x = minCol; x <= maxCol; x++) {
+        for (int y = minRow; y <= maxRow; y++) {
             if (!data[x][y]) {
                 isFull = false;
-                return true;
+                isRect = false;
             }
         }
+    }
+    if (isRect) {
+        rect.x = minCol;
+        rect.y = minRow;
+        rect.width = maxCol;
+        rect.height = maxRow;
+    } else {
+        rect.x = -1;
+        rect.y = -1;
     }
     return true;
 }
@@ -1356,8 +1375,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     wxString rd = "0.0";
                     wxString imageName;
                     bool isFull = false;
+                    wxRect rect;
 
-                    bool isPartOfModel = IsPartOfModel(element, num_rows, num_columns, isFull);
+                    bool isPartOfModel = IsPartOfModel(element, num_rows, num_columns, isFull, rect);
 
                     if (isPartOfModel && isFull) {
                         //Every pixel in the model is specified, we can use a color wash instead of images
@@ -1365,7 +1385,36 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
                         wxString settings = _("T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
-                            + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_SLIDER_ColorWash_Count=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0";
+                            + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_SLIDER_ColorWash_Count=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
+                            + "E_CHECKBOX_ColorWash_EntireModel=1";
+                        layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
+                    } else if (isPartOfModel && rect.x != -1) {
+                        //forms a simple rectangle, we can use a ColorWash affect for this with a partial rectangle
+                        wxString palette = _("C_BUTTON_Palette1=") + startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + endc
+                            + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                            + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                        
+                        wxString settings = "";
+                        wxString val = wxString::Format("%d", rect.x);
+                        CalcPercentage(val, num_columns, false, x_offset);
+                        settings += ",E_SLIDER_ColorWash_X1=" + val;
+                        val = wxString::Format("%d", rect.width);
+                        CalcPercentage(val, num_columns, false, x_offset);
+                        settings += ",E_SLIDER_ColorWash_X2=" + val;
+                        val = wxString::Format("%d", rect.y);
+                        CalcPercentage(val, num_rows, true, y_offset);
+                        settings += ",E_SLIDER_ColorWash_Y1=" + val;
+                        val = wxString::Format("%d", rect.height);
+                        CalcPercentage(val, num_rows, true, y_offset);
+                        settings += ",E_SLIDER_ColorWash_Y2=" + val;
+                        
+                        printf("scene:  %s     %d %d %d %d\n    %s\n", (const char *)element->GetAttribute("savedIndex"), rect.x, rect.y, rect.width, rect.height,
+                               (const char *)settings);
+                        settings = _("T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
+                            + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_SLIDER_ColorWash_Count=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
+                            + "E_CHECKBOX_ColorWash_EntireModel=0" + settings;
+
+                    
                         layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                     } else if (isPartOfModel) {
                         if (startc == xlBLACK || endc == xlBLACK || endc == startc) {

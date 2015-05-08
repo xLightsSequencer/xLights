@@ -28,7 +28,8 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
+void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
+                                 bool EntireModel, int x1, int y1, int x2, int y2)
 {
     static const int SpeedFactor=200;
     int x,y;
@@ -56,20 +57,41 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
     if (HorizFade || VertFade) {
         Color2HSV(color,hsv);
     }
-    double HalfHt=double(BufferHt-1)/2.0;
-    double HalfWi=double(BufferWi-1)/2.0;
-    for (x=0; x<BufferWi; x++)
+    int startX = 0;
+    int startY = 0;
+    int endX = BufferWi - 1;
+    int endY = BufferHt - 1;
+    
+    if (!EntireModel) {
+        startX = std::min(x1, x2);
+        endX = std::max(x1, x2);
+        startY = std::min(y1, y2);
+        endY = std::max(y1, y2);
+        startX = std::round(double(BufferWi - 0.5) * (double)startX / 100.0);
+        endX = std::round(double(BufferWi - 0.5) * (double)endX / 100.0);
+        startY = std::round(double(BufferHt - 0.5) * (double)startY / 100.0);
+        endY = std::round(double(BufferHt - 0.5) * (double)endY / 100.0);
+        startX = std::max(startX, 0);
+        endX = std::min(endX, BufferWi - 1);
+        startY = std::max(startY, 0);
+        endY = std::min(endY, BufferHt - 1);
+    }
+    
+    double HalfHt=double(endY - startY)/2.0;
+    double HalfWi=double(endX - startX)/2.0;
+    
+    for (x=startX; x <= endX; x++)
     {
         hsvx=hsv;
         if (HorizFade) {
-            hsvx.value*=1.0-abs(HalfWi-x)/HalfWi;
+            hsvx.value*=1.0-std::abs(HalfWi-x)/HalfWi;
             color = hsvx;
         }
-        for (y=0; y<BufferHt; y++)
+        for (y=startY; y<=endY; y++)
         {
             if (VertFade) {
                 wxImage::HSVValue hsvy = hsvx;
-                hsvy.value*=1.0-abs(HalfHt-y)/HalfHt;
+                hsvy.value*=1.0-std::abs(HalfHt-y)/HalfHt;
                 color = hsvy;
             }
             SetPixel(x, y, color);
