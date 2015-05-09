@@ -118,7 +118,7 @@ EffectLayer* Element::InsertEffectLayer(int index)
 {
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.insert(mEffectLayers.begin()+index, new_layer);
-    IncrementChangeCount();
+    IncrementChangeCount(-1, -1);
     return new_layer;
 }
 
