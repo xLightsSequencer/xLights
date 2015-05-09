@@ -19,7 +19,8 @@ EVT_PAINT(RowHeading::render)
 END_EVENT_TABLE()
 
 // Menu constants
-const long RowHeading::ID_ROW_MNU_ADD_LAYER = wxNewId();
+const long RowHeading::ID_ROW_MNU_INSERT_LAYER_ABOVE = wxNewId();
+const long RowHeading::ID_ROW_MNU_INSERT_LAYER_BELOW = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_PLAY_MODEL = wxNewId();
@@ -55,11 +56,11 @@ RowHeading::~RowHeading()
 
 void RowHeading::mouseLeftDown( wxMouseEvent& event)
 {
-    int rowIndex = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
-    if(rowIndex < mSequenceElements->GetRowInformationSize())
+    mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
+    if(mSelectedRow < mSequenceElements->GetRowInformationSize())
     {
         bool result;
-        Element* e = mSequenceElements->GetRowInformation(rowIndex)->element;
+        Element* e = mSequenceElements->GetRowInformation(mSelectedRow)->element;
         if(e->GetType()=="model")
         {
             mSequenceElements->UnSelectAllElements();
@@ -69,18 +70,18 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
             wxPostEvent(GetParent(), playEvent);
             Refresh(false);
         }
-        if(HitTestCollapseExpand(rowIndex,event.GetX(),&result))
+        if(HitTestCollapseExpand(mSelectedRow,event.GetX(),&result))
         {
             e->SetCollapsed(!result);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
-        else if(HitTestTimingActive(rowIndex,event.GetX(),&result))
+        else if(HitTestTimingActive(mSelectedRow,event.GetX(),&result))
         {
             mSequenceElements->DeactivateAllTimingElements();
             e->SetActive(!result);
             // Set the selected timing row.
-            int selectedTimingRow = result?rowIndex:-1;
+            int selectedTimingRow = result?mSelectedRow:-1;
             mSequenceElements->SetSelectedTimingRow(selectedTimingRow);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -102,7 +103,14 @@ void RowHeading::rightClick( wxMouseEvent& event)
     {
         mnuLayer = new wxMenu();
         if (ri->strandIndex < 0) {
-            mnuLayer->Append(ID_ROW_MNU_ADD_LAYER,"Add Layer");
+            mnuLayer->Append(ID_ROW_MNU_INSERT_LAYER_ABOVE,"Insert Layer Above");
+            mnuLayer->Append(ID_ROW_MNU_INSERT_LAYER_BELOW,"Insert Layer Below");
+            //if( ri->Index > 0 )
+            {
+            }
+            //if( ri->Index < element->GetEffectLayerCount()-1 )
+            {
+            }
             if(element->GetEffectLayerCount() > 1)
             {
                 mnuLayer->Append(ID_ROW_MNU_DELETE_LAYER,"Delete Layer");
@@ -136,16 +144,31 @@ void RowHeading::rightClick( wxMouseEvent& event)
     mnuLayer->AppendSeparator();
     mnuLayer->Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS,"Edit Display Elements");
     mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, NULL, this);
+    Draw();
     PopupMenu(mnuLayer);
 }
 
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
 {
     Element* element = mSequenceElements->GetRowInformation(mSelectedRow)->element;
+    int layer_index = mSequenceElements->GetRowInformation(mSelectedRow)->layerIndex;
     int id = event.GetId();
-    if(id == ID_ROW_MNU_ADD_LAYER)
+    if(id == ID_ROW_MNU_INSERT_LAYER_ABOVE)
     {
-        element->AddEffectLayer();
+        element->InsertEffectLayer(layer_index);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    }
+    else if(id == ID_ROW_MNU_INSERT_LAYER_BELOW)
+    {
+        if( layer_index < element->GetEffectLayerCount()-1)
+        {
+            element->InsertEffectLayer(layer_index+1);
+        }
+        else
+        {
+            element->AddEffectLayer();
+        }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
@@ -154,7 +177,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         int layerIndex = mSequenceElements->GetRowInformation(mSelectedRow)->layerIndex;
         wxString prompt = wxString::Format("Delete 'Layer %d' of '%s'?",
                                       layerIndex+1,element->GetName());
-        wxString caption = "Comfirm Layer Deletion";
+        wxString caption = "Confirm Layer Deletion";
 
         int answer = wxMessageBox(prompt,caption,wxYES_NO);
         if(answer == wxYES)
@@ -263,8 +286,14 @@ int RowHeading::GetMaxRows()
 void RowHeading::render( wxPaintEvent& event )
 {
     if(!IsShownOnScreen()) return;
-    wxCoord w,h;
     wxPaintDC dc(this);
+    Draw();
+}
+
+void RowHeading::Draw()
+{
+    wxClientDC dc(this);
+    wxCoord w,h;
     wxPen penOutline(wxColor(32,32,32), .1);
     dc.GetSize(&w,&h);
     wxBrush brush(mHeaderColorModel->asWxColor(),wxBRUSHSTYLE_SOLID);
@@ -296,7 +325,7 @@ void RowHeading::render( wxPaintEvent& event )
                     } else {
                         name = wxString::Format("Strand %d", mSequenceElements->GetRowInformation(i)->strandIndex + 1);
                     }
-                    
+
                 }
                 if (mSequenceElements->GetRowInformation(i)->nodeIndex >= 0) {
                     dc.DrawLabel("     " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
@@ -374,7 +403,6 @@ void RowHeading::render( wxPaintEvent& event )
     wxBrush b(mHeaderColorModel->asWxColor(),wxBRUSHSTYLE_SOLID);
     dc.SetBrush(b);
     dc.DrawRectangle(0,endY,w,h);
-
 }
 
 const xlColor* RowHeading::GetHeaderColor(Row_Information_Struct* info)
@@ -387,7 +415,8 @@ const xlColor* RowHeading::GetHeaderColor(Row_Information_Struct* info)
         }
         else
         {
-            if (info->element->GetSelected())
+            if (info->RowNumber == mSelectedRow )
+            //if (info->element->GetSelected())
             {
                 return  mHeaderSelectedColor;
             }

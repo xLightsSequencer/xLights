@@ -43,10 +43,11 @@ class Element
 
         EffectLayer* GetEffectLayer(int index);
         int GetEffectLayerCount();
-    
+
 
         EffectLayer* AddEffectLayer();
         void RemoveEffectLayer(int index);
+        EffectLayer* InsertEffectLayer(int index);
 
         StrandLayer* GetStrandLayer(int index, bool create = false);
         int getStrandLayerCount();

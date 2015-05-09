@@ -29,12 +29,13 @@ class RowHeading : public wxWindow
         int getWidth();
         int getHeight();
         int GetMaxRows();
-    
+
     static int rowHeadingSize;
 
     protected:
     private:
         DECLARE_EVENT_TABLE()
+        void Draw();
         void render( wxPaintEvent& event );
         void mouseLeftDown( wxMouseEvent& event);
         void rightClick( wxMouseEvent& event);
@@ -51,7 +52,8 @@ class RowHeading : public wxWindow
         int mSelectedRow;
         SequenceElements* mSequenceElements;
 
-        static const long ID_ROW_MNU_ADD_LAYER;
+        static const long ID_ROW_MNU_INSERT_LAYER_ABOVE;
+        static const long ID_ROW_MNU_INSERT_LAYER_BELOW;
         static const long ID_ROW_MNU_DELETE_LAYER;
         static const long ID_ROW_MNU_LAYER;
         static const long ID_ROW_MNU_PLAY_MODEL;
@@ -59,7 +61,7 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS;
         static const long ID_ROW_MNU_TOGGLE_STRANDS;
         static const long ID_ROW_MNU_TOGGLE_NODES;
-    
+
 
         static const long ID_ROW_MNU_ADD_TIMING_TRACK;
         static const long ID_ROW_MNU_DELETE_TIMING_TRACK;

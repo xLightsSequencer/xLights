@@ -114,6 +114,14 @@ EffectLayer* Element::AddEffectLayer()
     return new_layer;
 }
 
+EffectLayer* Element::InsertEffectLayer(int index)
+{
+    EffectLayer* new_layer = new EffectLayer(this);
+    mEffectLayers.insert(mEffectLayers.begin()+index, new_layer);
+    IncrementChangeCount();
+    return new_layer;
+}
+
 void Element::RemoveEffectLayer(int index)
 {
     EffectLayer *l = GetEffectLayer(index);

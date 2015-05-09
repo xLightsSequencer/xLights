@@ -6,7 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-    -- enh (dkulp) Add ability to turn off the node value display in the grid to improve performance (particularly 
+    -- ehn (gil) Ability to insert new layers above and below selected layer
+    -- enh (dkulp) Add ability to turn off the node value display in the grid to improve performance (particularly
                    if all that is important is the xLights effects dropped on the nodes)
     -- Improved SuperStar import to handle all effects, images and scenes (text still not supported)
     -- Added more SuperStar import options to support visualization sequences
@@ -40,7 +41,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- bug (dkulp) Disable "Quit" during rendering as that causes a crash
     -- enh (dkulp) Widen the top of the tree a little bit
     -- enh (dkulp) Add ability to specify the display names for strands and nodes
-    -- 
+    --
 4.0.25  Apr 28, 2015
     -- enh (gil) New Efffect: Shockwave
     -- enh (gil) Allow a single effect to be selected and moved with both endpoints.
