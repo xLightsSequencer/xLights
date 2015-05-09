@@ -51,8 +51,8 @@ void EffectLayer::RemoveEffect(int index)
     {
         Effect *e = mEffects[index];
         mEffects.erase(mEffects.begin()+index);
+        IncrementChangeCount(e->GetStartTime() * 1000, e->GetEndTime() * 1000);
         delete e;
-        IncrementChangeCount();
     }
 }
 
@@ -72,7 +72,7 @@ Effect* EffectLayer::AddEffect(int id, const wxString &name, const wxString &set
     e->SetSelected(Selected);
     mEffects.push_back(e);
     SortEffects();
-    IncrementChangeCount();
+    IncrementChangeCount(startTime * 1000, endTime * 1000);
     return e;
 }
 Effect* EffectLayer::AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
@@ -90,7 +90,7 @@ Effect* EffectLayer::AddEffect(int id, int effectIndex, const wxString &name, co
     e->SetSelected(Selected);
     mEffects.push_back(e);
     SortEffects();
-    IncrementChangeCount();
+    IncrementChangeCount(startTime * 1000, endTime * 1000);
     return e;
 }
 
@@ -616,8 +616,12 @@ void EffectLayer::MoveAllSelectedEffects(double delta)
 
 void EffectLayer::DeleteSelectedEffects()
 {
+    for (std::vector<Effect*>::iterator it = mEffects.begin(); it != mEffects.end(); it++) {
+        if ((*it)->GetSelected() != EFFECT_NOT_SELECTED) {
+             IncrementChangeCount((*it)->GetStartTime() * 1000, (*it)->GetEndTime() * 1000);
+        }
+    }
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDeleteSelected),mEffects.end());
-    IncrementChangeCount();
 }
 
 bool EffectLayer::ShouldDeleteSelected(Effect *eff)
@@ -630,9 +634,9 @@ bool EffectLayer::SortEffectByStartTime(Effect *e1,Effect *e2)
     return e1->GetStartTime() < e2->GetStartTime();
 }
 
-void EffectLayer::IncrementChangeCount()
+void EffectLayer::IncrementChangeCount(int startMS, int endMS)
 {
-    mParentElement->IncrementChangeCount();
+    mParentElement->IncrementChangeCount(startMS, endMS);
     changeCount++;
 }
 NodeLayer *StrandLayer::GetNodeLayer(int n, bool create) {

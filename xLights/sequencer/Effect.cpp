@@ -78,9 +78,14 @@ double Effect::GetStartTime() const
 
 void Effect::SetStartTime(double startTime)
 {
-   mStartTime = startTime;
-   IncrementChangeCount();
-   mDirty = true;
+    if (startTime > mStartTime) {
+        IncrementChangeCount();
+        mStartTime = startTime;
+    } else {
+        mStartTime = startTime;
+        IncrementChangeCount();
+    }
+    mDirty = true;
 }
 
 double Effect::GetEndTime() const
@@ -90,8 +95,13 @@ double Effect::GetEndTime() const
 
 void Effect::SetEndTime(double endTime)
 {
-    mEndTime = endTime;
-    IncrementChangeCount();
+    if (endTime < mEndTime) {
+        IncrementChangeCount();
+        mEndTime = endTime;
+    } else {
+        mEndTime = endTime;
+        IncrementChangeCount();
+    }
     mDirty = true;
 }
 
@@ -202,7 +212,7 @@ void Effect::SetParentEffectLayer(EffectLayer* parent)
 
 void Effect::IncrementChangeCount()
 {
-    mParentLayer->IncrementChangeCount();
+    mParentLayer->IncrementChangeCount(GetStartTime() * 1000, GetEndTime() * 1000);
     changeCount++;
 }
 

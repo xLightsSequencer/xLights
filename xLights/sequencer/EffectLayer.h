@@ -66,7 +66,7 @@ class EffectLayer
         static bool ShouldDeleteSelected(Effect *eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
 
-        void IncrementChangeCount();
+        void IncrementChangeCount(int startMS, int endMS);
         int getChangeCount() const { return changeCount; }
 
     protected:

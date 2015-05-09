@@ -159,6 +159,21 @@ public:
         //printf("Starting rendering %lx (no next)\n", (unsigned long)this);
         int maxFrameBeforeCheck = -1;
         int origChangeCount = rowToRender->getChangeCount();
+        
+        int ss, es;
+        rowToRender->GetAndResetDirtyRange(origChangeCount, ss, es);
+        if (ss != -1) {
+            //expand to cover the whole dirty range
+            ss = ss / seqData->FrameTime();
+            es = es / seqData->FrameTime();
+            if (ss < startFrame) {
+                startFrame = ss;
+            }
+            if (es > endFrame) {
+                endFrame = es;
+            }
+        }
+
         int numLayers = rowToRender->GetEffectLayerCount();
         Effect *currentEffects[numLayers];
         SettingsMap *settingsMaps = new SettingsMap[numLayers];
@@ -183,6 +198,8 @@ public:
 
         for (int frame = startFrame; frame < endFrame; frame++) {
             if (next == nullptr && origChangeCount != rowToRender->getChangeCount()) {
+                //we're bailing out but make sure this range is reconsidered
+                rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
                 break;
             }
             bool validLayers[numLayers];

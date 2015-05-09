@@ -110,7 +110,7 @@ EffectLayer* Element::AddEffectLayer()
 {
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.push_back(new_layer);
-    IncrementChangeCount();
+    IncrementChangeCount(-1, -1);
     return new_layer;
 }
 
@@ -127,7 +127,7 @@ void Element::RemoveEffectLayer(int index)
     EffectLayer *l = GetEffectLayer(index);
     mEffectLayers.erase(mEffectLayers.begin()+index);
     delete l;
-    IncrementChangeCount();
+    IncrementChangeCount(-1, -1);
 }
 
 int Element::GetEffectLayerCount()
@@ -136,8 +136,9 @@ int Element::GetEffectLayerCount()
 }
 
 
-void Element::IncrementChangeCount()
+void Element::IncrementChangeCount(int sms, int ems)
 {
+    SetDirtyRange(sms, ems);
     changeCount++;
 }
 
@@ -157,7 +158,7 @@ StrandLayer* Element::GetStrandLayer(int index, bool create) {
     while (create && index >= mStrandLayers.size()) {
         StrandLayer* new_layer = new StrandLayer(this, mStrandLayers.size());
         mStrandLayers.push_back(new_layer);
-        IncrementChangeCount();
+        IncrementChangeCount(-1, -1);
     }
     if (index >= mStrandLayers.size()) {
         return nullptr;

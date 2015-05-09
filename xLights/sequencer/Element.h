@@ -60,11 +60,37 @@ class Element
 
         int Index;
 
-        void IncrementChangeCount();
+        void IncrementChangeCount(int startMs, int endMS);
         int getChangeCount() const { return changeCount; }
+    
+        void GetDirtyRange(int &startMs, int &endMs) {
+            startMs = dirtyStart;
+            endMs = dirtyEnd;
+        }
+        void GetAndResetDirtyRange(int &changes, int &startMs, int &endMs) {
+            changes = changeCount;
+            startMs = dirtyStart;
+            endMs = dirtyEnd;
+            dirtyStart = dirtyEnd = -1;
+        }
+        void SetDirtyRange(int start, int end) {
+            if (dirtyStart == -1) {
+                dirtyStart = start;
+                dirtyEnd = end;
+            } else {
+                if (dirtyEnd < end) {
+                    dirtyEnd = end;
+                }
+                if (dirtyStart > start) {
+                    dirtyStart = start;
+                }
+            }
+        }
+        void ClearDirtyFlags() {
+            dirtyStart = dirtyEnd = -1;
+        }
     protected:
     private:
-        volatile int changeCount;
 
         int mIndex;
         wxString mName;
@@ -77,6 +103,10 @@ class Element
         int mFixed;
         std::vector<EffectLayer*> mEffectLayers;
         std::vector<StrandLayer*> mStrandLayers;
+    
+        volatile int changeCount = 0;
+        volatile int dirtyStart = -1;
+        volatile int dirtyEnd = -1;
 };
 
 #endif // ELEMENT_H
