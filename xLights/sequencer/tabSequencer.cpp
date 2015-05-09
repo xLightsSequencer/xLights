@@ -1314,4 +1314,45 @@ void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
 }
 
 
+void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
+    Element *el = (Element*)event.GetClientData();
+    int strand = event.GetInt() >> 16;
+    int node = event.GetInt() & 0xFFFF;
+    EffectLayer *layer = el->GetStrandLayer(strand)->GetNodeLayer(node);
+    
+    std::vector<xlColor> colors;
+    PixelBufferClass ncls;
+    ncls.InitNodeBuffer(GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
+    for (int f = 0; f < SeqData.NumFrames(); f++) {
+        ncls.SetNodeChannelValues(0, &SeqData[f][ncls.NodeStartChannel(0)]);
+        xlColor c = ncls.GetNodeColor(0);
+        colors.push_back(c);
+    }
+    colors.push_back(xlBLACK);
+    int startTime = 0;
+    xlColor lastColor(xlBLACK);
+    wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
+        + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+        + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
+        + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+    for (int x = 0; x < colors.size(); x++) {
+        if (lastColor != colors[x]) {
+            int time = x * SeqData.FrameTime();
+            if (lastColor != xlBLACK) {
+                wxString palette = "C_BUTTON_Palette1=" + lastColor + ",C_CHECKBOX_Palette1=1,"
+                    + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
+                    + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                    + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                
+                if (time != startTime) {
+                    layer->AddEffect(0, "On", settings, palette, startTime / 1000.0, time / 1000.0, false, false);
+                }
+            }
+            startTime = time;
+            lastColor = colors[x];
+        }
+    }
+    
+}
+
 

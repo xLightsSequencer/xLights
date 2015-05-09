@@ -163,6 +163,7 @@ wxDECLARE_EVENT(EVT_SEQUENCE_LAST_FRAME, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
+wxDECLARE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 
 
 static const wxString xlights_base_name       = "xLights 4 BETA";
@@ -1407,6 +1408,7 @@ public:
     void RenameTimingElement(wxString& old_name, wxString& new_name);
     wxArrayString ImportTimingElement();
     void ExecuteImportTimingElement(wxCommandEvent &command);
+    void ConvertDataRowToEffects(wxCommandEvent &command);
     void SetSequenceEnd(int ms);
     void UpdateRenderMode();
     void SetFrequency(int frequency);

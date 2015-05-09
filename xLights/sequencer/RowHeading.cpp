@@ -28,6 +28,7 @@ const long RowHeading::ID_ROW_MNU_EXPORT_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_STRANDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
+const long RowHeading::ID_ROW_MNU_CONVERT_TO_EFFECTS = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
@@ -131,6 +132,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer->Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
                 }
             }
+            if (ri->nodeIndex > -1 && element->GetStrandLayer(ri->strandIndex)->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
+                mnuLayer->Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+            }
         }
     }
     else
@@ -150,8 +154,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
 {
-    Element* element = mSequenceElements->GetRowInformation(mSelectedRow)->element;
-    int layer_index = mSequenceElements->GetRowInformation(mSelectedRow)->layerIndex;
+    Row_Information_Struct *ri = mSequenceElements->GetRowInformation(mSelectedRow);
+    Element* element = ri->element;
+    int layer_index = ri->layerIndex;
     int id = event.GetId();
     if(id == ID_ROW_MNU_INSERT_LAYER_ABOVE)
     {
@@ -241,6 +246,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
+    } else if (id == ID_ROW_MNU_CONVERT_TO_EFFECTS) {
+        wxCommandEvent evt(EVT_CONVERT_DATA_TO_EFFECTS);
+        evt.SetClientData(element);
+        int i = ((ri->strandIndex << 16) & 0xFFFF0000) + ri->nodeIndex;
+        evt.SetInt(i);
+        wxPostEvent(GetParent(), evt);
     }
 
     // Make sure message box is painted over by grid.
