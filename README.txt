@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.29  May 09, 2015
     -- enh (gil) Allow effects to be moved up or down between layers with the arrow keys
     -- Keep track of "dirty" ranges and render the whole range.   Should reduce artifacts and need to re-render as oftern
     -- For Effects that display a background and Node layers where seeing the background colors is important, use smaller icons
