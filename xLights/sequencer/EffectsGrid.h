@@ -51,9 +51,12 @@ public:
     void ForceRefresh();
     void SetEffectIconBackground(bool mode) {mGridIconBackgrounds = mode;}
     void SetEffectNodeValues(bool mode) {mGridNodeValues = mode;}
+    void MoveSelectedEffectUp();
+    void MoveSelectedEffectDown();
+    void ProcessDroppedEffect(Effect* effect);
 
     void Paste(const wxString &data);
-    
+
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         xlights = xl;  seqData = data;
     }
@@ -147,7 +150,7 @@ private:
     int mSelectedTimingRow;
 
     EventPlayEffectArgs* playArgs;
-    
+
     const SequenceData *seqData;
     xLightsFrame *xlights;
 

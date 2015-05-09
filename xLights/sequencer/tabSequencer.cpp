@@ -92,7 +92,7 @@ void xLightsFrame::CreateSequencer()
 
     mainSequencer->Layout();
     mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
-    
+
     m_mgr->Update();
 }
 
@@ -567,10 +567,12 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                                      mSequenceElements.GetSelectedRange(i)->EndTime);
         el->DeleteSelectedEffects();
         // Add dropped effect
-        el->AddEffect(0,effectIndex,name,settings,palette,
-                      mSequenceElements.GetSelectedRange(i)->StartTime,
-                      mSequenceElements.GetSelectedRange(i)->EndTime,
-                      EFFECT_SELECTED,false);
+        Effect* effect = el->AddEffect(0,effectIndex,name,settings,palette,
+                                       mSequenceElements.GetSelectedRange(i)->StartTime,
+                                       mSequenceElements.GetSelectedRange(i)->EndTime,
+                                       EFFECT_SELECTED,false);
+
+        mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
             mainSequencer->PanelTimeLine->PlayStopped();
@@ -944,7 +946,7 @@ public:
         data["E_TEXTCTRL_Pictures_GifSpeed"] = "";
         data["E_TEXTCTRL_PicturesXC"] = "";
         data["E_TEXTCTRL_PicturesYC"] = "";
-        
+
         data["E_NOTEBOOK_Text1"] = "";
         data["E_TEXTCTRL_Pictures_Filename"] = "E_FILEPICKER_Pictures_Filename";
         data["E_TEXTCTRL_Text_Font1"] = "E_FONTPICKER_Text_Font1";
@@ -1022,7 +1024,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
                 wxSlider* ctrl=(wxSlider*)CtrlWin;
                 if (value.ToLong(&TempLong)) {
                     ctrl->SetValue(TempLong);
-                    
+
                     wxScrollEvent event(wxEVT_SLIDER, ctrl->GetId());
                     event.SetEventObject(ctrl);
                     event.SetInt(TempLong);
@@ -1038,7 +1040,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             {
                 wxChoice* ctrl=(wxChoice*)CtrlWin;
                 ctrl->SetStringSelection(value);
-                
+
                 wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
                 event.SetEventObject(ctrl);
                 event.SetString(value);
@@ -1319,7 +1321,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
     int strand = event.GetInt() >> 16;
     int node = event.GetInt() & 0xFFFF;
     EffectLayer *layer = el->GetStrandLayer(strand)->GetNodeLayer(node);
-    
+
     std::vector<xlColor> colors;
     PixelBufferClass ncls;
     ncls.InitNodeBuffer(GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
@@ -1343,7 +1345,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                     + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
                     + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                     + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                
+
                 if (time != startTime) {
                     layer->AddEffect(0, "On", settings, palette, startTime / 1000.0, time / 1000.0, false, false);
                 }
@@ -1352,7 +1354,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
             lastColor = colors[x];
         }
     }
-    
+
 }
 
 

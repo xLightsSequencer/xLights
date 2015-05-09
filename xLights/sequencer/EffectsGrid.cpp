@@ -84,6 +84,11 @@ void EffectsGrid::sendRenderEvent(const wxString &model, double start, double en
     wxPostEvent(mParent, event);
 }
 
+void EffectsGrid::ProcessDroppedEffect(Effect* effect)
+{
+    mSelectedEffect = effect;
+    mSelectedRow = mDropRow;
+}
 
 void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
 {
@@ -487,6 +492,81 @@ void EffectsGrid::Resize(int position)
     else
     {
         ResizeSingleEffect(position);
+    }
+}
+
+void EffectsGrid::MoveSelectedEffectUp()
+{
+    if( !MultipleEffectsSelected() )
+    {
+        if( mSelectedEffect != nullptr )
+        {
+            Row_Information_Struct *ri = mSequenceElements->GetRowInformation(mSelectedRow);
+            int row = mSelectedRow-1;
+            EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
+            int layer_index = ri->layerIndex;
+            while( layer_index > 0 )
+            {
+                EffectLayer* new_el = mSequenceElements->GetEffectLayer(row);
+                if( new_el->GetRangeIsClear( mSelectedEffect->GetStartTime(), mSelectedEffect->GetEndTime()))
+                {
+                    Effect* ef = new_el->AddEffect(0,
+                                                   mSelectedEffect->GetEffectIndex(),
+                                                   mSelectedEffect->GetEffectName(),
+                                                   mSelectedEffect->GetSettingsAsString(),
+                                                   mSelectedEffect->GetPaletteAsString(),
+                                                   mSelectedEffect->GetStartTime(),
+                                                   mSelectedEffect->GetEndTime(),
+                                                   EFFECT_SELECTED,
+                                                   false);
+                    mSelectedRow = row;
+                    mSelectedEffect = ef;
+                    el->DeleteSelectedEffects();
+                    Refresh(false);
+                    return;
+                }
+                row--;
+                layer_index--;
+            }
+        }
+    }
+}
+
+void EffectsGrid::MoveSelectedEffectDown()
+{
+    if( !MultipleEffectsSelected() )
+    {
+        if( mSelectedEffect != nullptr )
+        {
+            Row_Information_Struct *ri = mSequenceElements->GetRowInformation(mSelectedRow);
+            int row = mSelectedRow+1;
+            EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
+            Element* element = el->GetParentElement();
+            int layer_index = ri->layerIndex;
+            while( layer_index < element->GetEffectLayerCount()-1 )
+            {
+                EffectLayer* new_el = mSequenceElements->GetEffectLayer(row);
+                if( new_el->GetRangeIsClear( mSelectedEffect->GetStartTime(), mSelectedEffect->GetEndTime()))
+                {
+                    Effect* ef = new_el->AddEffect(0,
+                                                   mSelectedEffect->GetEffectIndex(),
+                                                   mSelectedEffect->GetEffectName(),
+                                                   mSelectedEffect->GetSettingsAsString(),
+                                                   mSelectedEffect->GetPaletteAsString(),
+                                                   mSelectedEffect->GetStartTime(),
+                                                   mSelectedEffect->GetEndTime(),
+                                                   EFFECT_SELECTED,
+                                                   false);
+                    mSelectedRow = row;
+                    mSelectedEffect = ef;
+                    el->DeleteSelectedEffects();
+                    Refresh(false);
+                    return;
+                }
+                row++;
+                layer_index++;
+            }
+        }
     }
 }
 
@@ -912,7 +992,7 @@ int EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, i
         //need to make some decisions about the colors to be used.
         return 1;
     }
-    
+
     switch (e->GetEffectIndex()) {
         case BitmapCache::RGB_EFFECTS_e::eff_ON: {
             xlColor start;
@@ -1012,7 +1092,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
     int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+2;
     int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-2;
     int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
-    
+
     if (mGridNodeValues && ri->nodeIndex != -1) {
         std::vector<xlColor> colors;
         std::vector<double> xs;
@@ -1112,7 +1192,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                 if (drawIcon) {
                     if(x > (DEFAULT_ROW_HEADING_HEIGHT + 4)) {
                         double sz = (DEFAULT_ROW_HEADING_HEIGHT - 6.0) / (2.0 * drawIcon) + 1.0;
-                        
+
                         double xl = (x1+x2)/2.0-sz;
                         double xr = (x1+x2)/2.0+sz;
                         DrawEffectIcon(&m_EffectTextures[e->GetEffectIndex()],

@@ -250,6 +250,14 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
             }
             event.StopPropagation();
             break;
+        case WXK_UP:
+            PanelEffectGrid->MoveSelectedEffectUp();
+            event.StopPropagation();
+            break;
+        case WXK_DOWN:
+            PanelEffectGrid->MoveSelectedEffectDown();
+            event.StopPropagation();
+            break;
         default:
             event.Skip();
             break;

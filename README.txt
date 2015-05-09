@@ -6,9 +6,10 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Allow effects to be moved up or down between layers with the arrow keys
     -- Keep track of "dirty" ranges and render the whole range.   Should reduce artifacts and need to re-render as oftern
     -- For Effects that display a background and Node layers where seeing the background colors is important, use smaller icons
-    -- ehn (gil) Ability to insert new layers above and below selected layer
+    -- enh (gil) Ability to insert new layers above and below selected layer
     -- enh (dkulp) Add ability to turn off the node value display in the grid to improve performance (particularly
                    if all that is important is the xLights effects dropped on the nodes)
     -- Improved SuperStar import to handle all effects, images and scenes (text still not supported)
