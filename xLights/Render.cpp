@@ -377,7 +377,9 @@ private:
         int time = frame * seqData->FrameTime();
         for (int e = 0; e < layer->GetEffectCount(); e++) {
             Effect *effect = layer->GetEffect(e);
-            if ((effect->GetEndTime() * 1000) > time && (effect->GetStartTime() * 1000) <= time) {
+            int st = effect->GetStartTime() * 1000;
+            int et = effect->GetEndTime() * 1000;
+            if (et > time && st <= time) {
                 return effect;
             }
         }

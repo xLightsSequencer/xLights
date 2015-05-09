@@ -198,7 +198,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     }
 
     int rowIndex = GetRow(event.GetY());
-    bool out_of_bounds = (rowIndex >= mSequenceElements->GetRowInformationSize());
+    bool out_of_bounds =  rowIndex < 0 || (rowIndex >= mSequenceElements->GetRowInformationSize());
 
     if(mResizing)
     {
