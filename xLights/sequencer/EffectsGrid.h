@@ -74,13 +74,13 @@ private:
 	void keyReleased(wxKeyEvent& event);
 	void Draw();
 
-    void DrawEffectIcon(GLuint* texture,int x, int y);
+    void DrawEffectIcon(GLuint* texture,double x, double y, double x2, double y2);
     void CreateEffectIconTextures();
     void DeleteEffectIconTextures();
     void DrawHorizontalLines();
     void DrawVerticalLines();
     void DrawModelOrViewEffects(int row);
-    bool DrawEffectBackground(const Effect *effect, int x1, int y1, int x2, int y2);
+    int DrawEffectBackground(const Effect *effect, int x1, int y1, int x2, int y2);
     void DrawTimingEffects(int row);
     void DrawEffects();
     void AdjustDropLocations(int x, EffectLayer* el);

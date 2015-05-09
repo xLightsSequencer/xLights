@@ -8,6 +8,25 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
     -- enh (dkulp) Add ability to turn off the node value display in the grid to improve performance (particularly 
                    if all that is important is the xLights effects dropped on the nodes)
+    -- Improved SuperStar import to handle all effects, images and scenes (text still not supported)
+    -- Added more SuperStar import options to support visualization sequences
+    -- Ability to import LMS files/channels into xLights effects
+    -- Added Normal blending mode which supports alpha channels if used within effects
+    -- Optimize strand/node rendering performance
+    -- Improved waveform rendering
+    -- Fix crashes if no color is selected for certain effects
+    -- Added vector mode for Pictures
+    -- Removed fseq directory
+    -- Improved handling of text controls and associated sliders
+    -- High DPI display improvements
+    -- New Tree Ribbon type and Tree Flat type
+    -- Improved display of 360/270/180 Trees
+    -- Fixed bug with timing imports #225.
+    -- Morph, Fan, and Fire effects updated to support alpha blending
+    -- Color Wash effect updated to provide capability to limit it to a rectangle
+    -- Fixed crash with strand/nodes on custom models
+    -- Smaller icons displayed on effects with backgrounds and node lines so background colors are not obscured
+    -- Fix crashes with Fan/Galaxy/Shockwave when used on WholeHouseModels
 4.0.28  Apr 29, 2015
     -- enh (dkulp) Allow specifying number of segments and lights per segment for arches
     -- bug (dkulp) "3 Channel RGB" string types not working correctly

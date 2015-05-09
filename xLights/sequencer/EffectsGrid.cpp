@@ -905,12 +905,12 @@ void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlC
     end_t = e->GetPalette()[tcole];
 }
 
-bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
+int EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
     if (e->GetPalette().size() == 0) {
         //if there are no colors selected, none of the "backgrounds" make sense.  Don't draw
         //the background and instead make sure the icon is displayed to the user knows they
         //need to make some decisions about the colors to be used.
-        return true;
+        return 1;
     }
     
     switch (e->GetEffectIndex()) {
@@ -919,11 +919,13 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
             xlColor end;
             GetOnEffectColors(e, start, end);
             DrawGLUtils::DrawHBlendedRectangle(start, end, x1, y1, x2, y2);
+            return 2;
         }
         break;
         case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH:
         case BitmapCache::RGB_EFFECTS_e::eff_SHOCKWAVE: {
             DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
+            return 2;
         }
         break;
         case BitmapCache::RGB_EFFECTS_e::eff_MORPH: {
@@ -936,7 +938,7 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
             int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
             DrawGLUtils::DrawHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
             DrawGLUtils::DrawHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
-            return false;
+            return 0;
         }
         break;
         case BitmapCache::RGB_EFFECTS_e::eff_GALAXY: {
@@ -958,7 +960,7 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
                     DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx1, y1+4, cx1+color_length, y2-4);
                 }
             }
-            return false;
+            return 0;
         }
         case BitmapCache::RGB_EFFECTS_e::eff_FAN: {
             int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_Fan_Duration", "50"));
@@ -992,12 +994,12 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
                     DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx1, y1+4, cx1+color_length, y2-4);
                 }
             }
-            return false;
+            return 0;
         }
         break;
         default: {}
     }
-    return true;
+    return 1;
 }
 
 void EffectsGrid::DrawModelOrViewEffects(int row)
@@ -1053,10 +1055,13 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?mEffectColor:mSelectionColor;
         mEffectColorCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?mSelectionColor:mEffectColor;
 
-        bool drawIcon = true;
+        int drawIcon = 1;
         if(mGridIconBackgrounds && (ri->nodeIndex == -1 || !mGridNodeValues))
         {
             drawIcon = DrawEffectBackground(e, x3, y1, x4, y2);
+        }
+        if (mGridNodeValues && ri->nodeIndex != -1) {
+            drawIcon = 2;
         }
 
         if (mode==SCREEN_L_R_OFF)
@@ -1105,15 +1110,19 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
             if(mode!=SCREEN_L_R_OFF)
             {
                 if (drawIcon) {
-                    if(x > (DEFAULT_ROW_HEADING_HEIGHT + 4))
-                    {
-                        int sz = (DEFAULT_ROW_HEADING_HEIGHT - 6) / 2;
-                        glEnable(GL_TEXTURE_2D);
-                        DrawEffectIcon(&m_EffectTextures[e->GetEffectIndex()],x1+(x/2)-sz-3,row*DEFAULT_ROW_HEADING_HEIGHT);
-                        glDisable(GL_TEXTURE_2D);
-                        DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-sz-1,y,1);
-                        DrawGLUtils::DrawLine(*mEffectColorRight,255,x1+(x/2)+sz+1,y,x2,y,1);
-                        DrawGLUtils::DrawRectangle(*mEffectColor,false,x1+(x/2)-sz-1,y1,x1+(x/2)+sz+1,y2);
+                    if(x > (DEFAULT_ROW_HEADING_HEIGHT + 4)) {
+                        double sz = (DEFAULT_ROW_HEADING_HEIGHT - 6.0) / (2.0 * drawIcon) + 1.0;
+                        
+                        double xl = (x1+x2)/2.0-sz;
+                        double xr = (x1+x2)/2.0+sz;
+                        DrawEffectIcon(&m_EffectTextures[e->GetEffectIndex()],
+                                       xl,y-sz,
+                                       xr,y+sz);
+                        DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,(x1+x2)/2.0-sz,y,1);
+                        DrawGLUtils::DrawLine(*mEffectColorRight,255,(x1+x2)/2.0+sz,y,x2,y,1);
+                        DrawGLUtils::DrawRectangle(*mEffectColor,false,
+                                                   xl,y-sz,
+                                                   xr,y+sz);
                     }
                     else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT)
                     {
@@ -1273,28 +1282,28 @@ void EffectsGrid::Draw()
 }
 
 
-void EffectsGrid::DrawEffectIcon(GLuint* texture,int xin, int yin)
+void EffectsGrid::DrawEffectIcon(GLuint* texture,double x, double y, double x2, double y2)
 {
+    glEnable(GL_TEXTURE_2D);
     glColor3f(1.0f, 1.0f, 1.0f);
     glBindTexture(GL_TEXTURE_2D,*texture);
     glPushMatrix();
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0);
 
-    float x = xin;
-    float y = yin;
-    glVertex2f(x+2, y+2.5);
+    glVertex2f(x-0.4, y);
 
     glTexCoord2f(1,0);
-    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-2.5,y+2.5);
+    glVertex2f(x2-0.4,y);
 
     glTexCoord2f(1,1);
-    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-2.5,y+DEFAULT_ROW_HEADING_HEIGHT-2.5);
+    glVertex2f(x2-0.4,y2);
 
     glTexCoord2f(0,1);
-    glVertex2f(x+2,y+DEFAULT_ROW_HEADING_HEIGHT-2.5);
+    glVertex2f(x-0.4,y2);
     glEnd();
     glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
 }
 
 void EffectsGrid::CreateEffectIconTextures()
