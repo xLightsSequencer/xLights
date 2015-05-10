@@ -158,8 +158,7 @@ public:
     virtual void Process() {
         //printf("Starting rendering %lx (no next)\n", (unsigned long)this);
         int maxFrameBeforeCheck = -1;
-        int origChangeCount = rowToRender->getChangeCount();
-        
+        int origChangeCount;
         int ss, es;
         rowToRender->GetAndResetDirtyRange(origChangeCount, ss, es);
         if (ss != -1) {

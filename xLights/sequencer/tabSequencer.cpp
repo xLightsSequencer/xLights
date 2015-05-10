@@ -879,7 +879,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         mainSequencer->UpdateTimeDisplay(current_play_time);
     }
 
-    if (selectedEffect != NULL) {
+    if (selectedEffect != NULL && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
         wxString palette;
         wxString effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
