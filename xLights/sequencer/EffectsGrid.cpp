@@ -649,13 +649,22 @@ void EffectsGrid::Paste(const wxString &data) {
             EffectLayer* el = mSequenceElements->GetEffectLayer(mDropRow);
             int effectIndex = Effect::GetEffectIndex(efdata[0]);
             if (effectIndex >= 0) {
+                double end_time = mDropEndTime;
+                if( (efdata.size() == 6) && GetActiveTimingElement() == nullptr )  // use original effect length if no timing track is active
+                {
+                    double drop_time_offset;
+                    efdata[3].ToDouble(&drop_time_offset);
+                    drop_time_offset = mDropStartTime - drop_time_offset;
+                    efdata[4].ToDouble(&end_time);
+                    end_time += drop_time_offset;
+                }
                 Effect* ef = el->AddEffect(0,
                               effectIndex,
                               efdata[0],
                               efdata[1],
                               efdata[2],
                               mDropStartTime,
-                              mDropEndTime,
+                              end_time,
                               EFFECT_SELECTED,
                               false);
                 if (!ef->GetPaletteMap().empty()) {
