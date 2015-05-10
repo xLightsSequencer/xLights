@@ -42,8 +42,8 @@ void RgbEffects::RenderOn(int start, int end)
         } else {
             d = GetEffectTimeIntervalPosition();
         }
-        start = start + (end - start) * d;
-        d = start / 100.0;
+        d = start + (end - start) * d;
+        d = d / 100.0;
         hsv.value = hsv.value * d;
         color = hsv;
     }

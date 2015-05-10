@@ -444,7 +444,7 @@ void RgbEffects::ClearTempBuf()
 
 double RgbEffects::GetEffectTimeIntervalPosition()
 {
-    double retval = (double)(curPeriod-curEffStartPer)/(curEffEndPer-curEffStartPer);
+    double retval = (double)(curPeriod-curEffStartPer)/(double)(curEffEndPer-curEffStartPer);
 //    debug(10, "GetEffTiIntPos(fr last? %d): (cur %d - curst %d)/(curend %d - curst) = %f, (cur - curst)/(next %d - curst) = %f, (cur - prev %d)/(curend - prev) = %f", from_last, curPeriod, curEffStartPer, curEffEndPer, GetEffectPeriodPosition(), nextEffTimePeriod, (double)(curPeriod-curEffStartPer)/(nextEffTimePeriod-curEffStartPer), prevNonBlankStartPeriod, (double)(curPeriod - prevNonBlankStartPeriod) / (curEffEndPer - prevNonBlankStartPeriod));
     return retval;
 }
@@ -481,7 +481,7 @@ void RgbEffects::GetFadeSteps( int& fadeInSteps, int& fadeOutSteps)
 void RgbEffects::SetEffectDuration(int startMsec, int endMsec)
 {
     curEffStartPer = startMsec / frameTimeInMs;
-    curEffEndPer = endMsec / frameTimeInMs;
+    curEffEndPer = (endMsec - 1) / frameTimeInMs;
 }
 
 void RgbEffects::GetEffectPeriods( int& start, int& endp)
