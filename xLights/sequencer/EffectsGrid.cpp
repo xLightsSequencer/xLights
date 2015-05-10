@@ -924,7 +924,15 @@ void EffectsGrid::DrawEffects()
         {
             DrawModelOrViewEffects(row);
         }
-        else
+    }
+}
+
+void EffectsGrid::DrawTimings()
+{
+    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
+    {
+        wxString type = mSequenceElements->GetRowInformation(row)->element->GetType();
+        if(type!="view" && type != "model")
         {
             DrawTimingEffects(row);
         }
@@ -1351,6 +1359,7 @@ void EffectsGrid::Draw()
         DrawHorizontalLines();
         DrawVerticalLines();
         DrawEffects();
+        DrawTimings();
     }
     if(mDragging)
     {

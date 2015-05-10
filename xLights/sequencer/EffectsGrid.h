@@ -86,6 +86,7 @@ private:
     int DrawEffectBackground(const Effect *effect, int x1, int y1, int x2, int y2);
     void DrawTimingEffects(int row);
     void DrawEffects();
+    void DrawTimings();
     void AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
