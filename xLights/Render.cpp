@@ -49,7 +49,7 @@ public:
     }
     int waitForFrame(int frame) {
         wxMutexLocker lock(nextLock);
-        while (frame >= previousFrameDone) {
+        while (frame > previousFrameDone) {
             nextSignal.WaitTimeout(5);
         }
         return previousFrameDone;

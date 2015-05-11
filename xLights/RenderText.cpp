@@ -39,13 +39,28 @@
 #if wxUSE_GRAPHICS_CONTEXT
 class DrawingContext {
 public:
-    DrawingContext(wxImage *image) {
+    DrawingContext(int BufferWi, int BufferHt) {
+        image = new wxImage(BufferWi, BufferHt);
+        image->SetAlpha();
+        for(wxCoord x=0; x<BufferWi; x++) {
+            for(wxCoord y=0; y<BufferHt; y++) {
+                image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
+            }
+        }
+
         dc = wxGraphicsContext::Create(*image);
         dc->SetAntialiasMode(wxANTIALIAS_NONE);
     }
     ~DrawingContext() {
+        if (dc != nullptr) {
+            delete dc;
+        }
+    }
+    wxImage *FlushAndGetImage() {
         dc->Flush();
         delete dc;
+        dc = nullptr;
+        return image;
     }
 
     void SetFont(wxFont &font, const xlColor &color) {
@@ -63,18 +78,26 @@ public:
         dc->GetTextExtent(msg, width, height);
     }
 private:
+    wxImage *image;
     wxGraphicsContext *dc;
 };
 #else
 class DrawingContext {
 public:
-    DrawingContext(wxImage *image) : bitmap(image->GetWidth(), image->GetHeight()) {
+    DrawingContext(int BufferWi, int BufferHt) : bitmap(BufferWi, BufferHt, 32) {
         dc = new wxMemoryDC(bitmap);
-        img = image;
     }
     ~DrawingContext() {
+        if (dc != nullptr) {
+            delete dc;
+        }
+    }
+    wxImage *FlushAndGetImage() {
         delete dc;
-        *img = bitmap.ConvertToImage();
+        dc = nullptr;
+        wxImage *image = new wxImage();
+        *image = bitmap.ConvertToImage();
+        return image;
     }
 
     void SetFont(wxFont &font, const xlColor &color) {
@@ -95,7 +118,6 @@ public:
         *height = size.GetHeight();
     }
 private:
-    wxImage *img;
     wxBitmap bitmap;
     wxMemoryDC *dc;
 };
@@ -148,9 +170,7 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
                             int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4)
 {
     xlColour c;
-
-    wxImage image(BufferWi,BufferHt);
-    DrawingContext *dc = new DrawingContext(&image);
+    DrawingContext *dc = new DrawingContext(BufferWi,BufferHt);
 
     long DefaultPixelHt=BufferHt/2;
 //    if (DefaultPixelHt < 10) DefaultPixelHt=10; // min height
@@ -198,20 +218,31 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         RenderTextLine(dc,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass);
     }
 
+    wxImage * i = dc->FlushAndGetImage();
     delete dc;
 
-    //convert to image to get the pixel data
-    //wxImage image(bitmap.ConvertToImage());
+    bool ha = i->HasAlpha();
     for(wxCoord x=0; x<BufferWi; x++)
     {
         for(wxCoord y=0; y<BufferHt; y++)
         {
-            c.Set(image.GetRed(x, BufferHt-y-1),
-                  image.GetGreen(x, BufferHt-y-1),
-                  image.GetBlue(x, BufferHt-y-1));
+            if (ha) {
+                c.Set(i->GetRed(x, BufferHt-y-1),
+                      i->GetGreen(x, BufferHt-y-1),
+                      i->GetBlue(x, BufferHt-y-1),
+                      i->GetAlpha(x, BufferHt-y-1));
+            } else {
+                c.Set(i->GetRed(x, BufferHt-y-1),
+                      i->GetGreen(x, BufferHt-y-1),
+                      i->GetBlue(x, BufferHt-y-1));
+                if (c == xlBLACK) {
+                    c.alpha = 0;
+                }
+            }
             SetPixel(x,y,c);
         }
     }
+    delete i;
 }
 
 
