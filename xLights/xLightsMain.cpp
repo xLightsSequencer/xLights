@@ -3291,3 +3291,4 @@ void xLightsFrame::OnSetGridNodeValues(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->SetEffectNodeValues(mGridNodeValues);
     mainSequencer->PanelEffectGrid->Refresh();
 }
+

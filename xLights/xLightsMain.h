@@ -214,6 +214,7 @@ enum SeqPlayerStates
 };
 
 class RenderEvent;
+class wxDebugReportCompress;
 
 class xlAuiToolBar : public wxAuiToolBar {
 public:
@@ -357,6 +358,7 @@ public:
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
     void ImportSuperStar();
+    void CreateDebugReport(wxDebugReportCompress *report);
 
 private:
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size, int x_offset, int y_offset);
