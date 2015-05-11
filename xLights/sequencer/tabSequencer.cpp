@@ -976,17 +976,6 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     wxPanel *efPanel;
     int cnt=0;
 
-//NOTE: the settings loop after this section does not initialize controls.
-//For controls that have been added recently, an older version of the XML file will cause initial settings to be incorrect.
-//A loop needs to be added to initialize the wx controls to a predictable value.
-//For now, a few recently added controls are explicitly initialized here:
-//(not sure if there will be side effects to using a full loop) -DJ
-    timingPanel->CheckBox_LayerMorph->SetValue(false);
-    EffectsPanel1->CheckBox_TextToCenter1->SetValue(false);
-    EffectsPanel1->CheckBox_TextToCenter2->SetValue(false);
-    EffectsPanel1->CheckBox_TextToCenter3->SetValue(false);
-    EffectsPanel1->CheckBox_TextToCenter4->SetValue(false);
-    EffectsPanel1->SingleStrandEffectType->SetSelection(0);
     for (std::map<wxString,wxString>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
 //NOTE: this doesn't handle "," embedded into Text lines (causes "unable to find" error): -DJ
         name = it->first;

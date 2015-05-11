@@ -134,7 +134,6 @@ public:
     wxStaticText* StaticText48;
     wxScrolledWindow* Panel1_Faces;
     wxBitmapButton* BitmapButton_MorphUseHeadStartColor;
-    wxCheckBox* CheckBox_TextToCenter2;
     wxStaticText* StaticText37;
     wxCheckBox* CheckBox_Spirlas_Shrink;
     wxChoice* Choice_Butterfly_Colors;
@@ -274,7 +273,6 @@ public:
     wxStaticText* StaticText108;
     wxBitmapButton* BitmapButton_FireHeight;
     wxBitmapButton* BitmapButton_Fan_Accel;
-    wxCheckBox* CheckBox_TextToCenter1;
     wxBitmapButton* BitmapButton_FireworksCount;
     wxStaticText* StaticText146;
     wxBitmapButton* BitmapButton_SpiralsDirection;
@@ -444,7 +442,6 @@ public:
     wxBitmapButton* BitmapButton_MorphStartLength;
     wxBitmapButton* BitmapButton_FireworksFade;
     wxSlider* Slider_Tree_Branches;
-    wxCheckBox* CheckBox_TextToCenter3;
     wxBitmapButton* BitmapButton_Spirographd;
     wxBitmapButton* BitmapButton_Ripple_Movement;
     wxSlider* Slider_Butterfly_Style;
@@ -584,7 +581,6 @@ public:
     wxBitmapButton* BitmapButton_TreeBranches;
     wxBitmapButton* BitmapButton_SpirographAnimate;
     wxScrolledWindow* Panel1_Tree;
-    wxCheckBox* CheckBox_TextToCenter4;
     wxBitmapButton* BitmapButton_Spirals3D;
     wxStaticText* StaticText159;
     //*)
@@ -1176,6 +1172,7 @@ protected:
     static const long ID_BITMAPBUTTON_CHOICE_Text_Count1;
     static const long ID_STATICTEXT101;
     static const long ID_SLIDER_Text_Position1;
+    static const long IDD_TEXTCTRL_Text_Position1;
     static const long ID_BITMAPBUTTON_SLIDER_Text_Position1;
     static const long ID_PANEL_Text1;
     static const long ID_FONTPICKER_Text_Font2;
@@ -1193,6 +1190,7 @@ protected:
     static const long ID_BITMAPBUTTON_CHOICE_Text_Count2;
     static const long ID_STATICTEXT103;
     static const long ID_SLIDER_Text_Position2;
+    static const long IDD_TEXTCTRL_Text_Position2;
     static const long ID_BITMAPBUTTON_SLIDER_Text_Position2;
     static const long ID_PANEL_Text2;
     static const long ID_FONTPICKER_Text_Font3;
@@ -1210,6 +1208,7 @@ protected:
     static const long ID_BITMAPBUTTON_CHOICE_Text_Count3;
     static const long ID_STATICTEXT19;
     static const long ID_SLIDER_Text_Position3;
+    static const long IDD_TEXTCTRL_Text_Position3;
     static const long ID_BITMAPBUTTON_SLIDER_Text_Position3;
     static const long ID_PANEL_Text3;
     static const long ID_FONTPICKER_Text_Font4;
@@ -1227,6 +1226,7 @@ protected:
     static const long ID_BITMAPBUTTON_CHOICE_Text_Count4;
     static const long ID_STATICTEXT48;
     static const long ID_SLIDER_Text_Position4;
+    static const long IDD_TEXTCTRL_Text_Position4;
     static const long ID_BITMAPBUTTON_SLIDER_Text_Position4;
     static const long ID_PANEL_Text4;
     static const long IDD_NOTEBOOK_Text;

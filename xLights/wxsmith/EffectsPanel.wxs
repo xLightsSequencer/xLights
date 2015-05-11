@@ -6565,7 +6565,7 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter1" variable="CheckBox_TextToCenter1" member="yes">
+																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter1" variable="CheckBox_TextToCenter1" member="no">
 																	<label>C</label>
 																	<tooltip>Move to center and stop</tooltip>
 																</object>
@@ -6654,11 +6654,32 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Text_Position1" variable="Slider_Text_Position1" member="yes">
-															<value>50</value>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer119" member="no">
+															<cols>2</cols>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_Text_Position1" variable="Slider_Text_Position1" member="yes">
+																	<value>50</value>
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="IDD_TEXTCTRL_Text_Position1" variable="TextCtrl11" member="no">
+																	<value>50</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -6743,7 +6764,7 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter2" variable="CheckBox_TextToCenter2" member="yes">
+																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter2" variable="CheckBox_TextToCenter2" member="no">
 																	<label>C</label>
 																	<tooltip>Move to center and stop</tooltip>
 																</object>
@@ -6832,11 +6853,32 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Text_Position2" variable="Slider_Text_Position2" member="yes">
-															<value>50</value>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer120" member="no">
+															<cols>2</cols>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_Text_Position2" variable="Slider_Text_Position2" member="yes">
+																	<value>50</value>
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="IDD_TEXTCTRL_Text_Position2" variable="TextCtrl12" member="no">
+																	<value>50</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -6919,7 +6961,7 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter3" variable="CheckBox_TextToCenter3" member="yes">
+																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter3" variable="CheckBox_TextToCenter3" member="no">
 																	<label>C</label>
 																	<tooltip>Move to center and stop</tooltip>
 																</object>
@@ -7008,12 +7050,33 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Text_Position3" variable="Slider_Text_Position3" member="yes">
-															<value>50</value>
-															<size>177,24</size>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer121" member="no">
+															<cols>2</cols>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_Text_Position3" variable="Slider_Text_Position3" member="yes">
+																	<value>50</value>
+																	<size>177,24</size>
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="IDD_TEXTCTRL_Text_Position3" variable="TextCtrl13" member="no">
+																	<value>50</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -7094,7 +7157,7 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter4" variable="CheckBox_TextToCenter4" member="yes">
+																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter4" variable="CheckBox_TextToCenter4" member="no">
 																	<label>C</label>
 																	<tooltip>Move to center and stop</tooltip>
 																</object>
@@ -7183,11 +7246,32 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Text_Position4" variable="Slider_Text_Position4" member="yes">
-															<value>50</value>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer122" member="no">
+															<cols>2</cols>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_Text_Position4" variable="Slider_Text_Position4" member="yes">
+																	<value>50</value>
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="IDD_TEXTCTRL_Text_Position4" variable="TextCtrl14" member="no">
+																	<value>50</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
