@@ -17,7 +17,7 @@
 						<object class="wxScrolledWindow" name="ID_PANEL19" variable="Panel1_Off" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer77" member="no">
 								<cols>3</cols>
-								<growablecols>0</growablecols>
+								<growablecols>1</growablecols>
 								<object class="spacer">
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<option>1</option>
@@ -169,13 +169,34 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Bars_BarCount" variable="Slider_Bars_BarCount" member="yes">
-										<value>1</value>
-										<min>1</min>
-										<max>5</max>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer123" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Bars_BarCount" variable="Slider_Bars_BarCount" member="yes">
+												<value>1</value>
+												<min>1</min>
+												<max>5</max>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Bars_BarCount" variable="TextCtrl15" member="no">
+												<value>1</value>
+												<maxlength>1</maxlength>
+												<size>20,-1d</size>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -287,7 +308,7 @@
 					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL10" variable="Panel1_Butterfly" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer36" member="no">
-								<cols>3</cols>
+								<cols>4</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT27" variable="StaticText25" member="yes">
@@ -302,6 +323,11 @@
 										<selection>0</selection>
 									</object>
 									<flag>wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -327,13 +353,25 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Butterfly_Style" variable="Slider_Butterfly_Style" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Butterfly_Style" variable="Slider_Butterfly_Style" member="no">
 										<value>1</value>
 										<min>1</min>
 										<max>5</max>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Style" variable="TextCtrl16" member="no">
+										<value>1</value>
+										<maxlength>1</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -358,13 +396,25 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Butterfly_Chunks" variable="Slider_Butterfly_Chunks" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Butterfly_Chunks" variable="Slider_Butterfly_Chunks" member="no">
 										<value>1</value>
 										<min>1</min>
 										<max>10</max>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Chunks" variable="TextCtrl17" member="no">
+										<value>1</value>
+										<maxlength>2</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -389,13 +439,25 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Butterfly_Skip" variable="Slider_Butterfly_Skip" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Butterfly_Skip" variable="Slider_Butterfly_Skip" member="no">
 										<value>2</value>
 										<min>2</min>
 										<max>10</max>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Skip" variable="TextCtrl18" member="no">
+										<value>2</value>
+										<maxlength>2</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -422,6 +484,11 @@
 								<object class="sizeritem">
 									<object class="wxChoice" name="ID_CHOICE_Butterfly_Direction" variable="Choice_Butterfly_Direction" member="yes" />
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -2028,7 +2095,7 @@
 					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL12" variable="Panel1_Fire" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer38" member="no">
-								<cols>3</cols>
+								<cols>4</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT84" variable="StaticText83" member="yes">
@@ -2042,9 +2109,21 @@
 									<object class="wxSlider" name="ID_SLIDER_Fire_Height" variable="Slider_Fire_Height" member="yes">
 										<value>50</value>
 										<min>10</min>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fire_Height" variable="TextCtrl19" member="no">
+										<value>50</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -2069,9 +2148,22 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fire_HueShift" variable="Slider_Fire_HueShift" member="yes" />
+									<object class="wxSlider" name="ID_SLIDER_Fire_HueShift" variable="Slider_Fire_HueShift" member="no">
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fire_HueShift" variable="TextCtrl20" member="no">
+										<value>0</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -2100,6 +2192,11 @@
 										<label>Yes</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>

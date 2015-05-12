@@ -253,7 +253,6 @@ public:
     wxNotebook* Notebook3;
     wxCheckBox* CheckBox_Bars_Highlight;
     wxBitmapButton* BitmapButton8;
-    wxSlider* Slider_Butterfly_Skip;
     wxBitmapButton* BitmapButton_SnowstormCount;
     wxCheckBox* CheckBox_Fan_Blend_Edges;
     wxSlider* Slider_Spirograph_R;
@@ -312,7 +311,6 @@ public:
     wxBitmapButton* BitmapButton_TextEffect3;
     wxTextCtrl* TextCtrl_Text_Line2;
     wxStaticText* StaticText72;
-    wxSlider* Slider_Fire_HueShift;
     wxBitmapButton* BitmapButton_Number_Chases;
     wxBitmapButton* BitmapButton_TextDir2;
     wxBitmapButton* BitmapButton_Fan_Start_Angle;
@@ -382,7 +380,6 @@ public:
     wxScrolledWindow* Panel1_Wave;
     wxBitmapButton* BitmapButton_Fan_End_Radius;
     wxStaticText* StaticText99;
-    wxSlider* Slider_Butterfly_Chunks;
     wxTextCtrl* TextCtrl_Piano_MapFilename;
     wxScrolledWindow* Panel1_Pictures;
     wxBitmapButton* BitmapButton_Fan_Duration;
@@ -444,7 +441,6 @@ public:
     wxSlider* Slider_Tree_Branches;
     wxBitmapButton* BitmapButton_Spirographd;
     wxBitmapButton* BitmapButton_Ripple_Movement;
-    wxSlider* Slider_Butterfly_Style;
     wxBitmapButton* BitmapButton_Wave_Direction;
     wxStaticText* StaticText26;
     wxCheckBox* CheckBox_Piano_Clipping;
@@ -599,6 +595,7 @@ protected:
     static const long ID_PANEL25;
     static const long ID_STATICTEXT25;
     static const long ID_SLIDER_Bars_BarCount;
+    static const long IDD_TEXTCTRL_Bars_BarCount;
     static const long ID_BITMAPBUTTON_SLIDER_Bars_BarCount;
     static const long ID_STATICTEXT26;
     static const long ID_CHOICE_Bars_Direction;
@@ -613,12 +610,15 @@ protected:
     static const long ID_BITMAPBUTTON_CHOICE_Butterfly_Color;
     static const long ID_STATICTEXT28;
     static const long ID_SLIDER_Butterfly_Style;
+    static const long IDD_TEXTCTRL_Butterfly_Style;
     static const long ID_BITMAPBUTTON_SLIDER_Butterfly_Style;
     static const long ID_STATICTEXT30;
     static const long ID_SLIDER_Butterfly_Chunks;
+    static const long IDD_TEXTCTRL_Butterfly_Chunks;
     static const long ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks;
     static const long ID_STATICTEXT31;
     static const long ID_SLIDER_Butterfly_Skip;
+    static const long IDD_TEXTCTRL_Butterfly_Skip;
     static const long ID_BITMAPBUTTON_SLIDER_Butterfly_Skip;
     static const long ID_STATICTEXT60;
     static const long ID_CHOICE_Butterfly_Direction;
@@ -753,9 +753,11 @@ protected:
     static const long ID_SCROLLEDWINDOW_FAN;
     static const long ID_STATICTEXT84;
     static const long ID_SLIDER_Fire_Height;
+    static const long IDD_TEXTCTRL_Fire_Height;
     static const long ID_BITMAPBUTTON_SLIDER_Fire_Height;
     static const long ID_STATICTEXT133;
     static const long ID_SLIDER_Fire_HueShift;
+    static const long IDD_TEXTCTRL_Fire_HueShift;
     static const long ID_BITMAPBUTTON_SLIDER_Fire_HueShift;
     static const long ID_STATICTEXT135;
     static const long ID_CHECKBOX_Fire_GrowFire;
