@@ -32,7 +32,7 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(1);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 5, 0, 0);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonAddPerspective = new wxButton(this, ID_BUTTON_ADD_PERSPECTIVE, _("+"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_ADD_PERSPECTIVE"));
 	ButtonAddPerspective->SetToolTip(_("Add Perspective"));
 	FlexGridSizer3->Add(ButtonAddPerspective, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -42,7 +42,7 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	ButtonRenamePerspective = new wxButton(this, ID_BUTTON_RENAME_PERSPECTIVE, _("Rename"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_RENAME_PERSPECTIVE"));
 	ButtonRenamePerspective->SetToolTip(_("Rename Perspective"));
 	FlexGridSizer3->Add(ButtonRenamePerspective, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);

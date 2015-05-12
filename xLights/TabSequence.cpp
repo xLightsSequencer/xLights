@@ -4,9 +4,7 @@
 #include "xLightsMain.h"
 #include "heartbeat.h"
 
-#include "SeqOpenDialog.h"
 #include "SeqSettingsDialog.h"
-#include "NewSequenceDialog.h"
 #include "xLightsXmlFile.h"
 #include "BitmapCache.h"
 

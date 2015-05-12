@@ -419,8 +419,6 @@
 		<Unit filename="ModelViewSelector.h" />
 		<Unit filename="NetInfo.cpp" />
 		<Unit filename="NetInfo.h" />
-		<Unit filename="NewSequenceDialog.cpp" />
-		<Unit filename="NewSequenceDialog.h" />
 		<Unit filename="NewTimingDialog.cpp" />
 		<Unit filename="NewTimingDialog.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
@@ -482,10 +480,6 @@
 		<Unit filename="SeqExportDialog.cpp" />
 		<Unit filename="SeqExportDialog.h" />
 		<Unit filename="SeqFileUtilities.cpp" />
-		<Unit filename="SeqOpenDialog.cpp" />
-		<Unit filename="SeqOpenDialog.h" />
-		<Unit filename="SeqParmsDialog.cpp" />
-		<Unit filename="SeqParmsDialog.h" />
 		<Unit filename="SeqSettingsDialog.cpp" />
 		<Unit filename="SeqSettingsDialog.h" />
 		<Unit filename="SequenceData.cpp" />
@@ -584,7 +578,6 @@
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/ModelViewSelector.wxs" />
-		<Unit filename="wxsmith/NewSequenceDialog.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PerspectivesPanel.wxs" />
@@ -595,8 +588,6 @@
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
-		<Unit filename="wxsmith/SeqOpenDialog.wxs" />
-		<Unit filename="wxsmith/SeqParmsDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
@@ -636,11 +627,9 @@
 					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ChannelLayoutDialog.cpp" hdr="ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" fwddecl="0" i18n="1" name="PaletteMgmtDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SeqParmsDialog.wxs" src="SeqParmsDialog.cpp" hdr="SeqParmsDialog.h" fwddecl="0" i18n="1" name="SeqParmsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ChannelMapDialog.wxs" src="ChannelMapDialog.cpp" hdr="ChannelMapDialog.h" fwddecl="0" i18n="1" name="ChannelMapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqElementMismatchDialog.wxs" src="SeqElementMismatchDialog.cpp" hdr="SeqElementMismatchDialog.h" fwddecl="0" i18n="1" name="SeqElementMismatchDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqExportDialog.wxs" src="SeqExportDialog.cpp" hdr="SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SeqOpenDialog.wxs" src="SeqOpenDialog.cpp" hdr="SeqOpenDialog.h" fwddecl="0" i18n="1" name="SeqOpenDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectsPanel.wxs" src="EffectsPanel.cpp" hdr="EffectsPanel.h" fwddecl="0" i18n="1" name="EffectsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectTreeDialog.wxs" src="EffectTreeDialog.cpp" hdr="EffectTreeDialog.h" fwddecl="0" i18n="1" name="EffectTreeDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ViewsDialog.wxs" src="ViewsDialog.cpp" hdr="ViewsDialog.h" fwddecl="0" i18n="1" name="ViewsDialog" language="CPP" />
@@ -651,7 +640,6 @@
 					<wxPanel wxs="wxsmith/ColorPanel.wxs" src="ColorPanel.cpp" hdr="ColorPanel.h" fwddecl="0" i18n="1" name="ColorPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TimingPanel.wxs" src="TimingPanel.cpp" hdr="TimingPanel.h" fwddecl="0" i18n="1" name="TimingPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="TopEffectsPanel.cpp" hdr="TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
-					<wxDialog wxs="wxsmith/NewSequenceDialog.wxs" src="NewSequenceDialog.cpp" hdr="NewSequenceDialog.h" fwddecl="0" i18n="1" name="NewSequenceDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/RenameTextDialog.wxs" src="RenameTextDialog.cpp" hdr="RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NewTimingDialog.wxs" src="NewTimingDialog.cpp" hdr="NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="EffectIconPanel.cpp" hdr="EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
