@@ -425,6 +425,9 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         }
 
     } else if (mEffectDragging) {
+        sendRenderEvent(mSelectedEffect->GetParentEffectLayer()->GetParentElement()->GetName(),
+                        mSelectedEffect->GetStartTime(),
+                        mSelectedEffect->GetEndTime());
         ReleaseMouse();
         mEffectDragging = false;
     } else {

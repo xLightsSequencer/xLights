@@ -1304,40 +1304,33 @@ void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
     m_mgr->Update();
 }
 
-bool EqualEnough(double d1, double d2) {
-    return std::abs(d1 - d2) < 0.005;
-}
-bool isOnLine(int x1, double y1, int x2, double y2, int x3, double y3, wxImage::HSVValue v3) {
+
+bool isOnLine(int x1, int y1, int x2, int y2, int x3, int y3) {
     double diffx = x2 - x1;
     double diffy = y2 - y1;
     double b = y1 - diffy/diffx*x1;
     double ye1 = diffy/diffx*x3 + b;
     
-    if (!EqualEnough(y3, ye1)) {
-        v3.value = ye1;
-        xlColor c(v3);
-        double ye2 = c.asHSV().value;
-        return EqualEnough(y3, ye2);
-    }
-    return true;
+    return (y3 + 1) >= ye1
+        && (y3 - 1) <= ye1;
 }
-bool isOnLine(const wxImage::HSVValue &v1, const wxImage::HSVValue &v2, const wxImage::HSVValue &v3,
+
+bool isOnLineColor(const xlColor &v1, const xlColor &v2, const xlColor &v3,
               int x, int x2, int x3) {
-    return EqualEnough(v1.hue, v2.hue) && EqualEnough(v1.saturation, v2.saturation)
-        && EqualEnough(v1.hue, v3.hue) && EqualEnough(v1.saturation, v3.saturation)
-        && isOnLine(x, v1.value, x2, v2.value, x3, v3.value, v3);
+    return isOnLine(x, v1.Red(), x2, v2.Red(), x3, v3.Red())
+    && isOnLine(x, v1.Green(), x2, v2.Green(), x3, v3.Green())
+    && isOnLine(x, v1.Blue(), x2, v2.Blue(), x3, v3.Blue());
 }
-int RampLen(int start, std::vector<wxImage::HSVValue> &colors) {
+int RampLenColor(int start, std::vector<xlColor> &colors) {
     
     for (int s = start + 2; s < colors.size(); s++) {
-        if (!isOnLine(colors[start], colors[s-1], colors[s],
+        if (!isOnLineColor(colors[start], colors[s-1], colors[s],
                       start, s-1, s)) {
             return s - start;
         }
     }
     return 0;
 }
-
 void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
     Element *el = (Element*)event.GetClientData();
     int strand = event.GetInt() >> 16;
@@ -1345,51 +1338,64 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
     EffectLayer *layer = el->GetStrandLayer(strand)->GetNodeLayer(node);
 
     std::vector<xlColor> colors;
-    std::vector<wxImage::HSVValue> hsvColors;
     PixelBufferClass ncls;
     ncls.InitNodeBuffer(GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
     for (int f = 0; f < SeqData.NumFrames(); f++) {
         ncls.SetNodeChannelValues(0, &SeqData[f][ncls.NodeStartChannel(0)]);
         xlColor c = ncls.GetNodeColor(0);
         colors.push_back(c);
-        hsvColors.push_back(c.asHSV());
     }
     colors.push_back(xlBLACK);
-    hsvColors.push_back(xlBLACK.asHSV());
     int startTime = 0;
     xlColor lastColor(xlBLACK);
+    
     for (int x = 0; x < colors.size()-3; x++) {
         if (colors[x] != colors[x + 1]) {
-            int len = RampLen(x, hsvColors);
+            int len = RampLenColor(x, colors);
             if (len >= 3) {
-                wxImage::HSVValue c = hsvColors[x];
-                c.value = 1.0;
-                xlColor c2(c);
-                
-                int i = hsvColors[x].value * 100.0;
-                int i2 = hsvColors[x + len - 1].value * 100.0;
-                wxString settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2)
-                    + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                    + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
-                    + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
-                wxString palette = "C_BUTTON_Palette1=" + c2 + ",C_CHECKBOX_Palette1=1,"
-                    + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
-                    + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                    + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
                 
                 int stime = x * SeqData.FrameTime();
                 int etime = (x+len)*SeqData.FrameTime();
-                layer->AddEffect(0, "On", settings, palette, stime / 1000.0, etime / 1000.0, false, false);
+                if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK) {
+                    wxImage::HSVValue c = colors[x].asHSV();
+                    if (colors[x] == xlBLACK) {
+                        c = colors[x + len - 1].asHSV();
+                    }
+                    c.value = 1.0;
+                    xlColor c2(c);
+                    
+                    int i = colors[x].asHSV().value * 100.0;
+                    int i2 = colors[x + len - 1].asHSV().value * 100.0;
+                    wxString settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2)
+                        + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                        + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
+                        + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                    wxString palette = "C_BUTTON_Palette1=" + c2 + ",C_CHECKBOX_Palette1=1,"
+                        + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
+                        + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                        + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                    
+                    layer->AddEffect(0, "On", settings, palette, stime / 1000.0, etime / 1000.0, false, false);
+                } else {
+                
+                    wxString settings = _("E_CHECKBOX_ColorWash_EntireModel=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,")
+                        + "E_SLIDER_ColorWash_Count=1,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                        + "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                    
+                    wxString palette = "C_BUTTON_Palette1=" + colors[x] + ",C_CHECKBOX_Palette1=1,"
+                        + "C_BUTTON_Palette2=" + colors[x + len - 1] + ",C_CHECKBOX_Palette2=1,"
+                        + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                        + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                    
+                    layer->AddEffect(0, "Color Wash", settings, palette, stime / 1000.0, etime / 1000.0, false, false);
+                }
                 for (int z = 0; z < len; z++) {
                     //clear it
                     colors[x + z] = xlBLACK;
                 }
-                
-                x += len;
             }
         }
     }
-    
     
     wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
         + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
