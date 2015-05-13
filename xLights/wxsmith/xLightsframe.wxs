@@ -3279,12 +3279,10 @@
 				</object>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">
-				<label>&amp;Export</label>
-				<object class="wxMenuItem" name="ID_EXPORT_ALL" variable="MenuItem8" member="yes">
-					<label>Export All</label>
-				</object>
-				<object class="wxMenuItem" name="ID_EXPORT_MODEL" variable="MenuItem9" member="yes">
-					<label>Export Model</label>
+				<label>&amp;Import</label>
+				<object class="wxMenuItem" name="ID_IMPORT_EFFECTS" variable="MenuItem29" member="no">
+					<label>Import Effects</label>
+					<handler function="OnMenuItemImportEffects" entry="EVT_MENU" />
 				</object>
 			</object>
 			<object class="wxMenu" variable="MenuSettings" member="yes">

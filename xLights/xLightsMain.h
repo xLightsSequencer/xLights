@@ -558,6 +558,7 @@ private:
     void OnScaleImageCheckboxClick(wxCommandEvent& event);
     void OnSetGridIconBackground(wxCommandEvent& event);
     void OnSetGridNodeValues(wxCommandEvent& event);
+    void OnMenuItemImportEffects(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -850,8 +851,7 @@ private:
     static const long ID_MENUITEM17;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM10;
-    static const long ID_EXPORT_ALL;
-    static const long ID_EXPORT_MODEL;
+    static const long ID_IMPORT_EFFECTS;
     static const long ID_SEQ_SETTINGS;
     static const long ID_MENUITEM_ICON_SMALL;
     static const long ID_MENUITEM_ICON_MEDIUM;
@@ -917,7 +917,6 @@ private:
     wxMenu* MenuItem18;
     wxTextCtrl* TextCtrl_PgoAutoFade;
     xlAuiToolBar* ViewToolBar;
-    wxMenuItem* MenuItem8;
     wxButton* ButtonClearLog;
     DragEffectBitmapButton* BitmapButton6;
     xlAuiToolBar* PlayToolBar;
@@ -1095,7 +1094,6 @@ private:
     wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
-    wxMenuItem* MenuItem9;
     wxStaticText* StaticText4;
     wxRadioButton* RadioButtonAlt;
     xlAuiToolBar* WindowMgmtToolbar;

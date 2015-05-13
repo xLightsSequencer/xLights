@@ -115,9 +115,15 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
         {
             v = ((Fade*10.0)-fireworkBursts[i]._cycles)/(Fade*10.0);
             if(v<0) v=0.0;
-            hsv=fireworkBursts[i]._hsv;
-            hsv.value=v;
-            SetPixel(fireworkBursts[i]._x, fireworkBursts[i]._y, hsv);
+            if (allowAlpha) {
+                xlColor c(fireworkBursts[i]._hsv);
+                c.alpha = 255.0 * v;
+                SetPixel(fireworkBursts[i]._x, fireworkBursts[i]._y, c);
+            } else {
+                hsv=fireworkBursts[i]._hsv;
+                hsv.value=v;
+                SetPixel(fireworkBursts[i]._x, fireworkBursts[i]._y, hsv);
+            }
         }
     }
 }

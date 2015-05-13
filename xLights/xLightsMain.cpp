@@ -367,8 +367,7 @@ const long xLightsFrame::ID_MENUITEM16 = wxNewId();
 const long xLightsFrame::ID_MENUITEM17 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM10 = wxNewId();
-const long xLightsFrame::ID_EXPORT_ALL = wxNewId();
-const long xLightsFrame::ID_EXPORT_MODEL = wxNewId();
+const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_SMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
@@ -527,6 +526,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer25;
     wxMenuItem* MenuItem11;
+    wxMenuItem* MenuItem29;
     wxFlexGridSizer* FlexGridSizer22;
     wxStaticText* StaticText38;
     wxFlexGridSizer* FlexGridSizer56;
@@ -1652,11 +1652,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Menu5->Append(ID_MENUITEM10, _("Windows"), MenuItem18, wxEmptyString);
     MenuBar->Append(Menu5, _("&View"));
     Menu2 = new wxMenu();
-    MenuItem8 = new wxMenuItem(Menu2, ID_EXPORT_ALL, _("Export All"), wxEmptyString, wxITEM_NORMAL);
-    Menu2->Append(MenuItem8);
-    MenuItem9 = new wxMenuItem(Menu2, ID_EXPORT_MODEL, _("Export Model"), wxEmptyString, wxITEM_NORMAL);
-    Menu2->Append(MenuItem9);
-    MenuBar->Append(Menu2, _("&Export"));
+    MenuItem29 = new wxMenuItem(Menu2, ID_IMPORT_EFFECTS, _("Import Effects"), wxEmptyString, wxITEM_NORMAL);
+    Menu2->Append(MenuItem29);
+    MenuBar->Append(Menu2, _("&Import"));
     MenuSettings = new wxMenu();
     Menu_Settings_Sequence = new wxMenuItem(MenuSettings, ID_SEQ_SETTINGS, _("Sequence Settings"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(Menu_Settings_Sequence);
@@ -1864,6 +1862,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_MENUITEM16,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
     Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
+    Connect(ID_IMPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemImportEffects);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_MENUITEM_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
@@ -3291,4 +3290,5 @@ void xLightsFrame::OnSetGridNodeValues(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->SetEffectNodeValues(mGridNodeValues);
     mainSequencer->PanelEffectGrid->Refresh();
 }
+
 

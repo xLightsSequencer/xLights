@@ -78,8 +78,13 @@ void RgbEffects::RenderShockwave(int center_x, int center_y, int start_radius, i
                 {
                     if (x1 >= 0 && x1 < BufferWi && y1 >= 0 && y1 < BufferHt)
                     {
-                        temp_colors_pct[(int)x1][(int)y1] = color_pct;
-                        SetTempPixel((int)x1,(int)y1,color);
+                        if (allowAlpha) {
+                            color.alpha = 255.0 * color_pct;
+                            SetPixel((int)x1,(int)y1,color);
+                        } else {
+                            temp_colors_pct[(int)x1][(int)y1] = color_pct;
+                            SetTempPixel((int)x1,(int)y1,color);
+                        }
                     }
                 }
             }
@@ -91,7 +96,7 @@ void RgbEffects::RenderShockwave(int center_x, int center_y, int start_radius, i
     }
 
     // blend element data into final buffer
-    if( blend_edges )
+    if( blend_edges && !allowAlpha )
     {
         for( int x = 0; x < BufferWi; x++ )
         {

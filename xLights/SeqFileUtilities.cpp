@@ -357,6 +357,11 @@ void xLightsFrame::SetSequenceEnd(int ms)
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
 }
 
+
+void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
+{
+}
+
 static void CalcPercentage(wxString& value, double base, bool reverse, int offset)
 {
     int val = wxAtoi(value);
