@@ -6,6 +6,27 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.30  May 13, 2015
+  NOTES FROM DEVELOPMENT
+	(Dkulp) * Detect ramp up/down when converting to effects
+	(Dkulp) * IF the effects panels are disabled (for example, while rendering and saving), 
+		we cannot update the effect as disabling the controls changes the effect strings.
+	(Gil) * Draw Timing lines last. This makes a timing grid look better when selecting 25,50ms.
+	(Gil) * Use original effect duration for paste if no timing track is active.
+	(dkulp) * Fix problem of "To Center" checkbox on text always being turned off
+	(dkulp) * Add the alpha channel handling to text effect
+	(dkulp) * Re-render range when effect moves
+	(dkulp) * More slider<->text updates. Dan is adding text boxes to all effects that have sliders. This allows entering exact values	
+  ISSUES CLOSED in 4.0.29 and 4.0.30. See https://github.com/smeighan/xLights/issues
+		-- 4.0.30  May 13, 2015
+		-- Three channels in Custom Model when selecting 4 Channel RGBW #216
+		-- 4.0.2x Tall custom model causes Ok, Cancel Appearance buttons to move out of view, clickable area #213
+		-- Unable to change model on lengthy models #202
+		-- Nutcracker Timing Mark Import Failure #225
+		-- Enhancement - Models - Arches - single color #136
+		-- fseq Save Directory doesn't save to location specified. #190
+		-- Test tab requires that XL4 be restarted to see the new network configuration in 4.0.18 #211
+
 4.0.29  May 09, 2015
     -- enh (gil) Allow effects to be moved up or down between layers with the arrow keys
     -- Keep track of "dirty" ranges and render the whole range.   Should reduce artifacts and need to re-render as oftern
