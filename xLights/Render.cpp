@@ -164,7 +164,13 @@ public:
         if (ss != -1) {
             //expand to cover the whole dirty range
             ss = ss / seqData->FrameTime();
+            if (ss < 0) {
+                ss = 0;
+            }
             es = es / seqData->FrameTime();
+            if (es > seqData->NumFrames()) {
+                es = seqData->NumFrames();
+            }
             if (ss < startFrame) {
                 startFrame = ss;
             }

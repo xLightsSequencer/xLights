@@ -60,34 +60,12 @@ void EffectLayer::RemoveEffect(int index)
 Effect* EffectLayer::AddEffect(int id, const wxString &name, const wxString &settings, const wxString &palette,
                                double startTime,double endTime, int Selected, bool Protected)
 {
-    Effect *e = new Effect(this);
-    e->SetID(id);
-    e->SetPalette(palette);
-    e->SetEffectIndex(Effect::GetEffectIndex(name));
-    e->SetEffectName(name);
-    e->SetSettings(settings);
-    e->SetStartTime(startTime);
-    e->SetEndTime(endTime);
-    e->SetProtected(Protected);
-    e->SetSelected(Selected);
-    mEffects.push_back(e);
-    SortEffects();
-    IncrementChangeCount(startTime * 1000, endTime * 1000);
-    return e;
+    return AddEffect(id, Effect::GetEffectIndex(name), name, settings, palette, startTime, endTime, Selected, Protected);
 }
 Effect* EffectLayer::AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
                                double startTime,double endTime, int Selected, bool Protected)
 {
-    Effect *e = new Effect(this);
-    e->SetID(id);
-    e->SetPalette(palette);
-    e->SetEffectIndex(effectIndex);
-    e->SetEffectName(name);
-    e->SetSettings(settings);
-    e->SetStartTime(startTime);
-    e->SetEndTime(endTime);
-    e->SetProtected(Protected);
-    e->SetSelected(Selected);
+    Effect *e = new Effect(this, id, effectIndex, name, settings, palette, startTime, endTime, Selected, Protected);
     mEffects.push_back(e);
     SortEffects();
     IncrementChangeCount(startTime * 1000, endTime * 1000);

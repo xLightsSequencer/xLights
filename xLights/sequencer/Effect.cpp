@@ -8,6 +8,29 @@ Effect::Effect(EffectLayer* parent)
     mParentLayer = parent;
     changeCount = 0;
 }
+Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
+       double startTime,double endTime, int Selected, bool Protected) {
+    mParentLayer = parent;
+    changeCount = 0;
+    mID = id;
+    mName = name;
+    mEffectIndex = effectIndex;
+    mSettings.Parse(settings);
+    mPaletteMap.Parse(palette);
+    mStartTime = startTime;
+    mEndTime = endTime;
+    mSelected = Selected;
+    mProtected = Protected;
+    mColors.clear();
+    if (!mPaletteMap.empty()) {
+        for (int i = 1; i <= 6; i++) {
+            if (mPaletteMap[wxString::Format("C_CHECKBOX_Palette%d",i)] ==  "1") {
+                mColors.push_back(xlColor(mPaletteMap[wxString::Format("C_BUTTON_Palette%d",i)]));
+            }
+        }
+    }
+}
+
 
 Effect::~Effect()
 {
