@@ -881,7 +881,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
 
             event->mutex.Lock();
             CallAfter(&xLightsFrame::RenderEffectOnMainThread, event);
-            if (event->signal.WaitTimeout(500) == wxCOND_NO_ERROR) {
+            if (event->signal.Wait() == wxCOND_NO_ERROR) {
                 retval = event->returnVal;
                 event->mutex.Unlock();
             } else {
