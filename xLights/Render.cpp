@@ -178,6 +178,8 @@ public:
                 endFrame = es;
             }
         }
+        if (startFrame < 0) startFrame = 0;
+        if (endFrame > seqData->NumFrames()) endFrame = seqData->NumFrames();
 
         int numLayers = rowToRender->GetEffectLayerCount();
         std::vector<Effect*> currentEffects(numLayers, nullptr);
