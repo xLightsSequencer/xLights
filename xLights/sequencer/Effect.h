@@ -34,8 +34,10 @@ class EffectLayer;
 
 class Effect
 {
+    private:
+        Effect();  //don't allow default or copy constructor
+        Effect(const Effect &e);
     public:
-        Effect(EffectLayer* parent);
         Effect(EffectLayer* parent,int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
                double startTime,double endTime, int Selected, bool Protected);
         virtual ~Effect();
@@ -98,8 +100,8 @@ class Effect
         int mID;
         int mEffectIndex;
         wxString mName;
-        double mStartTime = 0.0;
-        double mEndTime = 0.0;
+        double mStartTime;
+        double mEndTime;
         int mSelected;
         bool mProtected;
         int mStartPosition;
