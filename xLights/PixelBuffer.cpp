@@ -377,7 +377,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
 }
 
 
-void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[]) {
+void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, const std::vector<bool> & validLayers) {
     wxImage::HSVValue hsv;
     int cnt = 0;
     xlColor color;
@@ -456,7 +456,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata) {
     }
 }
 
-void PixelBufferClass::CalcOutput(int EffectPeriod, bool validLayers[]) {
+void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers) {
     xlColor color;
     wxImage::HSVValue hsv;
     int curStep, fadeInSteps, fadeOutSteps;

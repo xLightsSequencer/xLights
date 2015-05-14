@@ -174,10 +174,10 @@ public:
         }
 
         int numLayers = rowToRender->GetEffectLayerCount();
-        Effect *currentEffects[numLayers];
-        SettingsMap *settingsMaps = new SettingsMap[numLayers];
-        bool effectStates[numLayers];
-
+        std::vector<Effect*> currentEffects(numLayers, nullptr);
+        std::vector<SettingsMap> settingsMaps(numLayers);
+        std::vector<bool> effectStates(numLayers);
+        std::vector<bool> validLayers(numLayers);
         std::map<int, Effect*> strandEffects;
         std::map<int, SettingsMap> strandSettingsMaps;
         std::map<int, bool> strandEffectStates;
@@ -201,7 +201,6 @@ public:
                 rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
                 break;
             }
-            bool validLayers[numLayers];
             //make sure we can do this frame
             if (frame >= maxFrameBeforeCheck) {
                 maxFrameBeforeCheck = waitForFrame(frame);
@@ -219,7 +218,9 @@ public:
                     mainBuffer->Clear(layer);
                 }
 
-                validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *mainBuffer, effectStates[layer], true, &renderEvent);
+                bool b = effectStates[layer];
+                validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *mainBuffer, b, true, &renderEvent);
+                effectStates[layer] = b;
                 effectsToUpdate |= validLayers[layer];
             }
             if (!effectsToUpdate && clearAllFrames) {
@@ -252,7 +253,7 @@ public:
 
                     if (xLights->RenderEffectFromMap(0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
                         //copy to output
-                        bool valid[2] = {true, true};
+                        std::vector<bool> valid(2, true);
                         buffer->SetColors(1, &((*seqData)[frame][0]));
                         buffer->CalcOutput(frame, valid);
                         size_t nodeCnt = buffer->GetNodeCount();
@@ -284,7 +285,7 @@ public:
 
                     if (xLights->RenderEffectFromMap(0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                         //copy to output
-                        bool valid[2] = {true, true};
+                        std::vector<bool> valid(2, true);
                         buffer->SetColors(1, &((*seqData)[frame][0]));
                         buffer->CalcOutput(frame, valid);
                         size_t nodeCnt = buffer->GetNodeCount();
@@ -299,7 +300,6 @@ public:
                 next->setPreviousFrameDone(frame);
             }
         }
-        delete [] settingsMaps;
         if (next) {
             next->setPreviousFrameDone(endFrame);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));

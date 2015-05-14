@@ -75,7 +75,7 @@ private:
     float *effectMixThreshold;
     bool *effectMixVaries; //allow varying mix threshold -DJ
 
-    void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[]);
+    void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, const std::vector<bool> & validLayers);
     xlColour mixColors(const wxCoord &x, const wxCoord &y, const xlColour &c0, const xlColour &c1, int layer);
     void SetModelBrightness(int value);
     void reset(int layers, int timing);
@@ -99,7 +99,7 @@ public:
     void SetContrast(int layer, int value);
     void SetMixThreshold(int layer, int value, bool varies);
 
-    void CalcOutput(int EffectPeriod, bool validLayers[]);
+    void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers);
     
     void SetColors(int layer, const unsigned char *fdata);
 
