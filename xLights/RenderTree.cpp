@@ -33,8 +33,7 @@ void RgbEffects::RenderTree(int Branches)
 
     number_garlands=1;
     srand(1); // always have the same random numbers for each frame (state)
-    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
-
+    xlColor color;
     if(Branches<1)  Branches=1;
     pixels_per_branch=(int)(0.5+BufferHt/Branches);
     if(pixels_per_branch<1) pixels_per_branch=1;
@@ -58,8 +57,14 @@ void RgbEffects::RenderTree(int Branches)
 
             ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
             ColorIdx=0;
-            palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-            hsv.value = V; // we have now set the color for the background tree
+            palette.GetColor(ColorIdx, color); // Now go and get the hsv value for this ColorIdx
+            if (allowAlpha) {
+                color.alpha = 255.0 * V;
+            } else {
+                wxImage::HSVValue hsv = color.asHSV();
+                hsv.value = V; // we have now set the color for the background tree
+                color = hsv;
+            }
 
             //   $orig_rgbval=$rgb_val;
             branch = (int)((y-1)/pixels_per_branch);
@@ -106,9 +111,11 @@ void RgbEffects::RenderTree(int Branches)
                     ))
                 if((odd_even ==0 && x<=f_mod) || (odd_even ==1 && s_odd_row<=f_mod))
                 {
+                    wxImage::HSVValue hsv;
                     hsv.hue = H;
                     hsv.saturation=1.0;
                     hsv.value=1.0;
+                    color = hsv;
                 }
             //	if(branch>b)
 //	{
@@ -132,7 +139,7 @@ void RgbEffects::RenderTree(int Branches)
 
 
             //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
-            SetPixel(x,y,hsv); // Turn pixel on
+            SetPixel(x,y,color); // Turn pixel on
 
         }
     }

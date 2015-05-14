@@ -32,7 +32,7 @@ void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool i
                     int xc_adj, int yc_adj, int xce_adj, int yce_adj,
                     bool pixelOffsets, bool wrap_x);
 void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,
-                    bool pinwheel_rotation,int pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize);
+                    bool pinwheel_rotation,const wxString &pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize);
 void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,
               int xc_adj, int yc_adj);
 

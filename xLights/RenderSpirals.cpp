@@ -91,16 +91,25 @@ void RgbEffects::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, i
                 }
                 if (Show3D)
                 {
-                    Color2HSV(color,hsv);
+                    double f = 1.0;
+                    
                     if (Rotation < 0)
                     {
-                        hsv.value*=double(thick+1)/SpiralThickness;
+                        f=double(thick+1)/SpiralThickness;
                     }
                     else
                     {
-                        hsv.value*=double(SpiralThickness-thick)/SpiralThickness;
+                        f=double(SpiralThickness-thick)/SpiralThickness;
                     }
-                    SetPixel(x,y,hsv);
+                    if (allowAlpha) {
+                        xlColor c(color);
+                        c.alpha = 255.0 * f;
+                        SetPixel(x,y,c);
+                    } else {
+                        Color2HSV(color,hsv);
+                        hsv.value *= f;
+                        SetPixel(x,y,hsv);
+                    }
                 }
                 else
                 {

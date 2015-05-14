@@ -148,8 +148,12 @@ void RgbEffects::Drawsquare(int Movement, int x1, int x2, int y1,int y2,int Ripp
     for (i=0; i<Ripple_Thickness; i++)
     {
         if (CheckBox_Ripple3D) {
-            hsv.value *= 1.0-((float(i)/2.0)/float(Ripple_Thickness)); // we multiply by 1.0 when Ripple_Thickness=0
-            color = hsv;
+            if (allowAlpha) {
+                color.alpha = 255.0 * (1.0-((float(i)/2.0)/float(Ripple_Thickness)));
+            } else {
+                hsv.value *= 1.0-((float(i)/2.0)/float(Ripple_Thickness)); // we multiply by 1.0 when Ripple_Thickness=0
+                color = hsv;
+            }
         }
         if(Movement==MOVEMENT_EXPLODE)
         {
@@ -189,8 +193,12 @@ void RgbEffects::Drawcircle(int Movement,int xc,int yc,double radius,wxImage::HS
     for (i=0; i<Ripple_Thickness; i+=.5)
     {
         if(CheckBox_Ripple3D) {
-            hsv.value *= 1.0-(float(i)/float(Ripple_Thickness)); // we multiply by 1.0 when steps=0
-            color = hsv;
+            if (allowAlpha) {
+                color.alpha = 255.0 * (1.0- (float(i)/float(Ripple_Thickness)));
+            } else {
+                hsv.value *= 1.0-(float(i)/float(Ripple_Thickness)); // we multiply by 1.0 when steps=0
+                color = hsv;
+            }
         }
         if(Movement==MOVEMENT_EXPLODE)
         {

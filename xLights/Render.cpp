@@ -806,7 +806,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                               wxAtoi(SettingsMap["SLIDER_Pinwheel_Twist"]),
                               wxAtoi(SettingsMap["SLIDER_Pinwheel_Thickness"]),
                               SettingsMap["CHECKBOX_Pinwheel_Rotation"] == "1",
-                              wxAtoi(SettingsMap["CHOICE_Pinwheel_3D"]),
+                              SettingsMap["CHOICE_Pinwheel_3D"],
                               wxAtoi(SettingsMap["SLIDER_PinwheelXC"]),
                               wxAtoi(SettingsMap["SLIDER_PinwheelYC"]),
                               wxAtoi(SettingsMap["SLIDER_Pinwheel_ArmSize"]));

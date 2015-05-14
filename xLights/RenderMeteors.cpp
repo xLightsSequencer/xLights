@@ -140,7 +140,6 @@ void RgbEffects::RenderMeteorsHorizontal(int ColorScheme, int Count, int Length,
                 hsv=it->hsv;
                 break;
             }
-            hsv.value*= 1.0 - double(ph)/TailLength;
 
             swirl_phase=double(it->x)/5.0+double(n)/100.0;
             dy=int(double(SwirlIntensity*BufferHt)/80.0*sin(swirl_phase));
@@ -148,7 +147,15 @@ void RgbEffects::RenderMeteorsHorizontal(int ColorScheme, int Count, int Length,
             x=it->x+ph;
             y=it->y+dy;
             if (MeteorsEffect==3) x=BufferWi-x;
-            SetPixel(x,y,hsv);
+            
+            if (allowAlpha) {
+                xlColor c(hsv);
+                c.alpha = 255.0 * (1.0 - double(ph)/TailLength);
+                SetPixel(x,y,c);
+            } else {
+                hsv.value*= 1.0 - double(ph)/TailLength;
+                SetPixel(x,y,hsv);
+            }
         }
 
         it->x -= mspeed;
@@ -243,17 +250,23 @@ void RgbEffects::RenderMeteorsVertical(int ColorScheme, int Count, int Length, i
                 hsv=it->hsv;
                 break;
             }
-            hsv.value*= 1.0 - double(ph)/TailLength;
 
             // we adjust x axis with some sine function if swirl1 or swirl2
             // swirling more than 25% of the buffer width doesn't look good
             swirl_phase=double(it->y)/5.0+double(n)/100.0;
             dx=int(double(SwirlIntensity*BufferWi)/80.0*sin(swirl_phase));
-
             x=it->x+dx;
             y=it->y+ph;
             if (MeteorsEffect==1) y=BufferHt-y;
-            SetPixel(x,y,hsv);
+
+            if (allowAlpha) {
+                xlColor c(hsv);
+                c.alpha = 255.0 * (1.0 - double(ph)/TailLength);
+                SetPixel(x,y,c);
+            } else {
+                hsv.value*= 1.0 - double(ph)/TailLength;
+                SetPixel(x,y,hsv);
+            }
         }
 
         it->y -= mspeed;
@@ -518,8 +531,6 @@ void RgbEffects::RenderMeteorsImplode(int ColorScheme, int Count, int Length, in
                 hsv=it->hsv;
                 break;
             }
-            hsv.value*= double(ph)/TailLength;
-
             // if we were to swirl, it would need to alter the angle here
 
             x=int(it->x-it->dx*double(ph));
@@ -528,7 +539,14 @@ void RgbEffects::RenderMeteorsImplode(int ColorScheme, int Count, int Length, in
             // the next line cannot test for exact center! Some lines miss by 1 because of rounding.
             if ((abs(y - centerY) < 2) && (abs(x - centerX) < 2)) break;
 
-            SetPixel(x,y,hsv);
+            if (allowAlpha) {
+                xlColor c(hsv);
+                c.alpha = 255.0 * (double(ph)/TailLength);
+                SetPixel(x,y,c);
+            } else {
+                hsv.value*= double(ph)/TailLength;
+                SetPixel(x,y,hsv);
+            }
         }
 
         it->x -= it->dx*mspeed;
@@ -628,13 +646,21 @@ void RgbEffects::RenderMeteorsExplode(int ColorScheme, int Count, int Length, in
                 hsv=it->hsv;
                 break;
             }
-            hsv.value*= double(ph)/TailLength;
 
             // if we were to swirl, it would need to alter the angle here
 
             x=int(it->x+it->dx*double(ph));
             y=int(it->y+it->dy*double(ph));
-            SetPixel(x,y,hsv);
+            
+            
+            if (allowAlpha) {
+                xlColor c(hsv);
+                c.alpha = 255.0 * (double(ph)/TailLength);
+                SetPixel(x,y,c);
+            } else {
+                hsv.value*= double(ph)/TailLength;
+                SetPixel(x,y,hsv);
+            }
         }
 
         it->x += it->dx*mspeed;

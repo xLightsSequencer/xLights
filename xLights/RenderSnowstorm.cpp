@@ -170,9 +170,15 @@ void RgbEffects::RenderSnowstorm(int Count, int TailLength)
         for(int pt=0; pt < sz; pt++)
         {
             hsv=it->hsv;
-            hsv.value=1.0 - double(sz - pt + it->ssDecay)/TailLength;
-            if (hsv.value < 0.0) hsv.value=0.0;
-            SetPixel(it->points[pt].x,it->points[pt].y,hsv);
+            if (allowAlpha) {
+                xlColor c(hsv);
+                c.alpha = 255.8 * (1.0 - double(sz - pt + it->ssDecay)/TailLength);
+                SetPixel(it->points[pt].x,it->points[pt].y,c);
+            } else {
+                hsv.value=1.0 - double(sz - pt + it->ssDecay)/TailLength;
+                if (hsv.value < 0.0) hsv.value=0.0;
+                SetPixel(it->points[pt].x,it->points[pt].y,hsv);
+            }
         }
         cnt++;
     }

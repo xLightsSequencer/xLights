@@ -65,10 +65,17 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
         {
             n=y+f_offset;
             ColorIdx=(n % BlockHt) / BarHt;
-            palette.GetHSV(ColorIdx, hsv);
-            if (Highlight && n % BarHt == 0) hsv.saturation=0.0;
-            if (Show3D) hsv.value *= double(BarHt - n%BarHt - 1) / BarHt;
-            color = hsv;
+            
+            if (allowAlpha) {
+                palette.GetColor(ColorIdx, color);
+                if (Highlight && n % BarHt == 0) color = xlWHITE;
+                if (Show3D) color.alpha = 255.0 * double(BarHt - n%BarHt - 1) / BarHt;
+            } else {
+                palette.GetHSV(ColorIdx, hsv);
+                if (Highlight && n % BarHt == 0) hsv.saturation=0.0;
+                if (Show3D) hsv.value *= double(BarHt - n%BarHt - 1) / BarHt;
+                color = hsv;
+            }
             switch (Direction)
             {
             case 1:
@@ -122,10 +129,16 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
         {
             n=x+f_offset;
             ColorIdx=(n % BlockWi) / BarWi;
-            palette.GetHSV(ColorIdx, hsv);
-            if (Highlight && n % BarWi == 0) hsv.saturation=0.0;
-            if (Show3D) hsv.value *= double(BarWi - n%BarWi - 1) / BarWi;
-            color = hsv;
+            if (allowAlpha) {
+                palette.GetColor(ColorIdx, color);
+                if (Highlight && n % BarWi == 0) color = xlWHITE;
+                if (Show3D) color.alpha = 255.0 * double(BarWi - n%BarWi - 1) / BarWi;
+            } else {
+                palette.GetHSV(ColorIdx, hsv);
+                if (Highlight && n % BarWi == 0) hsv.saturation=0.0;
+                if (Show3D) hsv.value *= double(BarWi - n%BarWi - 1) / BarWi;
+                color = hsv;
+            }
             switch (Direction)
             {
             case 5:

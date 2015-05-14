@@ -83,14 +83,19 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_
             SetPixel(x,y,color);
         }
 
+        double v = 1.0;
         if(it->duration==1)
         {
-            hsv.value /=2;
-            color = hsv;
+            v = 0.5;
         }
         else if(it->duration==2)
         {
-            hsv.value /=1.5;
+            v = 0.75;
+        }
+        if (allowAlpha) {
+            color.alpha = 255.0 * v;
+        } else {
+            hsv.value *= v;
             color = hsv;
         }
 

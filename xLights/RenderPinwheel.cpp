@@ -5,7 +5,7 @@
 
 void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
                                 int pinwheel_thickness,bool pinwheel_rotation,
-                                int pinwheel_3d, int xc_adj, int yc_adj,int pinwheel_armsize)
+                                const wxString &pinwheel_3d, int xc_adj, int yc_adj,int pinwheel_armsize)
 {
     int a,xc,ColorIdx,base_degrees;
     float t,tmax;
@@ -49,15 +49,23 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
             xlColor color(hsv1);
             for (t=1; t<=tmax; t++)
             {
-                if(pinwheel_3d==1)
+                if(pinwheel_3d=="3D")
                 {
-                    hsv1.value = hsv.value * ((tmax-t)/tmax);
-                    color = hsv1;
+                    if (allowAlpha) {
+                        color.alpha = 255.0 * ((tmax-t)/tmax);
+                    } else {
+                        hsv1.value = hsv.value * ((tmax-t)/tmax);
+                        color = hsv1;
+                    }
                 }
-                else if(pinwheel_3d==2)
+                else if(pinwheel_3d=="3D Inverted")
                 {
-                    hsv1.value = hsv.value * ((t)/tmax);
-                    color = hsv1;
+                    if (allowAlpha) {
+                        color.alpha = 255.0 * ((t)/tmax);
+                    } else {
+                        hsv1.value = hsv.value * ((t)/tmax);
+                        color = hsv1;
+                    }
                 }
                 Draw_arm( base_degrees-t, xc*armsize, pinwheel_twist,color,xc_adj,yc_adj);
                 Draw_arm( base_degrees+t, xc*armsize, pinwheel_twist,color,xc_adj,yc_adj);

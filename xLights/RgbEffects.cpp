@@ -332,18 +332,27 @@ void RgbEffects::DrawThickLine( const int x0_, const int y0_, const int x1_, con
 void RgbEffects::DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap)
 {
     HSVValue hsv = wxImage::RGBtoHSV(rgb);
-    xlColor color;
+    xlColor color(rgb);
     int r = radius;
-    double full_brightness = hsv.value;
-    while(r >= 0)
-    {
-        hsv.value = full_brightness * (1.0 - (double)(r) / (double)radius);
-        if( hsv.value > 0.0 )
+    if (allowAlpha) {
+        while(r >= 0)
         {
-            color = wxImage::HSVtoRGB(hsv);
+            color.alpha = (double)rgb.alpha * (1.0 - (double)(r) / (double)radius);
             DrawCircle(x0, y0, r, color, wrap);
+            r--;
         }
-        r--;
+    } else {
+        double full_brightness = hsv.value;
+        while(r >= 0)
+        {
+            hsv.value = full_brightness * (1.0 - (double)(r) / (double)radius);
+            if( hsv.value > 0.0 )
+            {
+                color = wxImage::HSVtoRGB(hsv);
+                DrawCircle(x0, y0, r, color, wrap);
+            }
+            r--;
+        }
     }
 }
 
@@ -438,7 +447,7 @@ void RgbEffects::ClearTempBuf()
 {
     for (size_t i=0; i < tempbuf.size(); i++)
     {
-        tempbuf[i].Set(0, 0, 0);
+        tempbuf[i].Set(0, 0, 0, 0);
     }
 }
 

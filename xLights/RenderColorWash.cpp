@@ -33,8 +33,7 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
 {
     static const int SpeedFactor=200;
     int x,y;
-    xlColour color;
-    wxImage::HSVValue hsv,hsvx;
+    xlColour color, orig;
     size_t colorcnt=GetColorCount();
 
     if (!fitToTime)
@@ -54,9 +53,7 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
         double position = GetEffectTimeIntervalPosition();
         GetMultiColorBlend(position, false, color);
     }
-    if (HorizFade || VertFade) {
-        Color2HSV(color,hsv);
-    }
+
     int startX = 0;
     int startY = 0;
     int endX = BufferWi - 1;
@@ -80,19 +77,28 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
     double HalfHt=double(endY - startY)/2.0;
     double HalfWi=double(endX - startX)/2.0;
     
+    orig = color;
+    wxImage::HSVValue hsvOrig = color.asHSV();
     for (x=startX; x <= endX; x++)
     {
-        hsvx=hsv;
+        wxImage::HSVValue hsv = hsvOrig;
         if (HorizFade) {
-            hsvx.value*=1.0-std::abs(HalfWi-x)/HalfWi;
-            color = hsvx;
+            if (allowAlpha) {
+                color.alpha = (double)orig.alpha*(1.0-std::abs(HalfWi-x-startX)/HalfWi);
+            } else {
+                hsv.value*=1.0-std::abs(HalfWi-x-startX)/HalfWi;
+                color = hsv;
+            }
         }
         for (y=startY; y<=endY; y++)
         {
             if (VertFade) {
-                wxImage::HSVValue hsvy = hsvx;
-                hsvy.value*=1.0-std::abs(HalfHt-y)/HalfHt;
-                color = hsvy;
+                if (allowAlpha) {
+                    color.alpha = (double)orig.alpha*(1.0-std::abs(HalfHt-(y-startY))/HalfHt);
+                } else {
+                    hsv.value*=1.0-std::abs(HalfHt-y-startY)/HalfHt;
+                    color = hsv;
+                }
             }
             SetPixel(x, y, color);
         }

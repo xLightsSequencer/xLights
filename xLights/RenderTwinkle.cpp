@@ -70,27 +70,35 @@ void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
 //                if(i7==4)  hsv.value = 1.0;
 //                else  hsv.value = 0.0;
 
+                double v = hsv.value;
                 if(i7<=max_modulo2)
                 {
-                    if(max_modulo2>0) hsv.value = (1.0*i7)/max_modulo2;
-                    else  hsv.value =0;
+                    if(max_modulo2>0) v = (1.0*i7)/max_modulo2;
+                    else v =0;
                 }
                 else
                 {
-                    if(max_modulo2>0) hsv.value = (max_modulo-i7)*1.0/(max_modulo2);
-                    else hsv.value = 0;
+                    if(max_modulo2>0)v = (max_modulo-i7)*1.0/(max_modulo2);
+                    else v = 0;
                 }
-                if(hsv.value<0.0) hsv.value=0.0;
+                if(v<0.0) v=0.0;
 
                 if(Strobe)
                 {
-                    if(i7==max_modulo2)  hsv.value = 1.0;
-                    else  hsv.value = 0.0;
+                    if(i7==max_modulo2)  v = 1.0;
+                    else  v = 0.0;
                 }
 
+                if (allowAlpha) {
+                    xlColor color(hsv);
+                    color.alpha = 255.0 * v;
+                    SetPixel(x,y,color); // Turn pixel on
+                } else {
 
-                //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
-                SetPixel(x,y,hsv); // Turn pixel on
+                    //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
+                    hsv.value = v;
+                    SetPixel(x,y,hsv); // Turn pixel on
+                }
             }
         }
     }
