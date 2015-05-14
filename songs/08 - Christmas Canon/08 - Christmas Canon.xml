@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsequence BaseChannel="1" ChanCtrlBasic="0" ChanCtrlColor="0">
+  <tr>
+   <td>Start Time</td>
+   <td>Label</td>
+   <td>MTREE</td>
+  </tr>
+<tr>
+  <td> 0.382723</td>
+  <td>1 </td>
+  <td>Bars,None,Effect 1,ID_SLIDER_SparkleFrequency=23,ID_SLIDER_Speed1=60,ID_SLIDER_Speed2=79,ID_SLIDER_Bars1_BarCount=3,ID_CHOICE_Bars1_Direction=compress,ID_CHECKBOX_Bars1_Highlight=1,ID_CHECKBOX_Bars1_3D=0,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#1ecbed,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#1fa69e,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#a52b74,ID_CHECKBOX_Palette1_4=1,ID_BUTTON_Palette1_4=#2452d8,ID_CHECKBOX_Palette1_5=1,ID_BUTTON_Palette1_5=#629359,ID_CHECKBOX_Palette1_6=1,ID_BUTTON_Palette1_6=#e5e64b,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#c14c7d,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#f4efca,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#6e3360,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#b38673,ID_CHECKBOX_Palette2_5=1,ID_BUTTON_Palette2_5=#14b59f,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 28.972158</td>
+  <td>2 </td>
+  <td>Spirals,None,Effect 1,ID_SLIDER_SparkleFrequency=26,ID_SLIDER_Speed1=96,ID_SLIDER_Speed2=8,ID_SLIDER_Spirals1_Count=2,ID_SLIDER_Spirals1_Rotation=-37,ID_SLIDER_Spirals1_Thickness=26,ID_SLIDER_Spirals1_Direction=,ID_CHECKBOX_Spirals1_Blend=0,ID_CHECKBOX_Spirals1_3D=1,ID_SLIDER_Spirals1_Rotation=2,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#87e073,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#fcbdf2,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#e42c15,ID_CHECKBOX_Palette1_4=1,ID_BUTTON_Palette1_4=#d9b0c7,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#87f213,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#75e2fd,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#e747a1,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#6ef2b2,ID_CHECKBOX_Palette2_5=1,ID_BUTTON_Palette2_5=#db149b,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 43.037241</td>
+  <td>3 </td>
+  <td>Twinkle,None,Effect 1,ID_SLIDER_SparkleFrequency=148,ID_SLIDER_Speed1=46,ID_SLIDER_Speed2=28,ID_SLIDER_Twinkle1_Count=58,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#8a81a3,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#2e10a6,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#fa909c,ID_CHECKBOX_Palette1_4=1,ID_BUTTON_Palette1_4=#21d47c,ID_CHECKBOX_Palette1_5=1,ID_BUTTON_Palette1_5=#d5bf28,ID_CHECKBOX_Palette1_6=1,ID_BUTTON_Palette1_6=#89e801,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#9c89c,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#6c788,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#40f707,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#a38cf7,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 57.274549</td>
+  <td>4 </td>
+  <td>Spirals,None,Effect 1,ID_SLIDER_SparkleFrequency=140,ID_SLIDER_Speed1=100,ID_SLIDER_Speed2=12,ID_SLIDER_Spirals1_Count=4,ID_SLIDER_Spirals1_Rotation=-26,ID_SLIDER_Spirals1_Thickness=82,ID_SLIDER_Spirals1_Direction=,ID_CHECKBOX_Spirals1_Blend=1,ID_CHECKBOX_Spirals1_3D=1,ID_SLIDER_Spirals1_Rotation=1,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#b005e8,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#c21e69,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#8cfacc,ID_CHECKBOX_Palette1_4=1,ID_BUTTON_Palette1_4=#3c7317,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#16f12c,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#fb0930,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#1e5093,ID_CHECKBOX_Palette2_4=0,ID_BUTTON_Palette2_4=#000000,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 71.473586</td>
+  <td>5 </td>
+  <td>Bars,None,Effect 1,ID_SLIDER_SparkleFrequency=137,ID_SLIDER_Speed1=80,ID_SLIDER_Speed2=99,ID_SLIDER_Bars1_BarCount=1,ID_CHOICE_Bars1_Direction=down,ID_CHECKBOX_Bars1_Highlight=0,ID_CHECKBOX_Bars1_3D=0,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#34aa82,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#6163c1,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#6c401c,ID_CHECKBOX_Palette1_4=1,ID_BUTTON_Palette1_4=#aa4dca,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#720230,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#7be28f,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#a55958,ID_CHECKBOX_Palette2_4=0,ID_BUTTON_Palette2_4=#000000,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 85.978801</td>
+  <td>6 </td>
+  <td>Bars,None,Effect 1,ID_SLIDER_SparkleFrequency=89,ID_SLIDER_Speed1=86,ID_SLIDER_Speed2=6,ID_SLIDER_Bars1_BarCount=5,ID_CHOICE_Bars1_Direction=down,ID_CHECKBOX_Bars1_Highlight=0,ID_CHECKBOX_Bars1_3D=0,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#b83c84,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#5820e,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#6fd33b,ID_CHECKBOX_Palette1_4=0,ID_BUTTON_Palette1_4=#000000,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#b9e42e,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#71c3eb,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#989900,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#36a463,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 100.445743</td>
+  <td>7 </td>
+  <td>Twinkle,None,Effect 1,ID_SLIDER_SparkleFrequency=174,ID_SLIDER_Speed1=45,ID_SLIDER_Speed2=31,ID_SLIDER_Twinkle1_Count=83,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#e1b3d1,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#ccb454,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#603b67,ID_CHECKBOX_Palette1_4=0,ID_BUTTON_Palette1_4=#000000,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#74c577,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#e0a568,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#d1dc57,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#81794c,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 114.874414</td>
+  <td>8 </td>
+  <td>Spirals,None,Effect 1,ID_SLIDER_SparkleFrequency=63,ID_SLIDER_Speed1=36,ID_SLIDER_Speed2=35,ID_SLIDER_Spirals1_Count=4,ID_SLIDER_Spirals1_Rotation=42,ID_SLIDER_Spirals1_Thickness=88,ID_SLIDER_Spirals1_Direction=-1,ID_CHECKBOX_Spirals1_Blend=0,ID_CHECKBOX_Spirals1_3D=1,ID_SLIDER_Spirals1_Rotation=5,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#c91f52,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#58225c,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#58b9ad,ID_CHECKBOX_Palette1_4=1,ID_BUTTON_Palette1_4=#169cae,ID_CHECKBOX_Palette1_5=1,ID_BUTTON_Palette1_5=#f423f2,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#d43316,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#6598bf,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#7c9f16,ID_CHECKBOX_Palette2_4=0,ID_BUTTON_Palette2_4=#000000,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 129.341356</td>
+  <td>9 </td>
+  <td>Spirals,None,Effect 1,ID_SLIDER_SparkleFrequency=78,ID_SLIDER_Speed1=62,ID_SLIDER_Speed2=32,ID_SLIDER_Spirals1_Count=2,ID_SLIDER_Spirals1_Rotation=-31,ID_SLIDER_Spirals1_Thickness=63,ID_SLIDER_Spirals1_Direction=,ID_CHECKBOX_Spirals1_Blend=0,ID_CHECKBOX_Spirals1_3D=1,ID_SLIDER_Spirals1_Rotation=3,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#18f34f,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#d40c55,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#cfb828,ID_CHECKBOX_Palette1_4=1,ID_BUTTON_Palette1_4=#664db1,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#b32807,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#2674bd,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#64a94f,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#3efdcb,ID_CHECKBOX_Palette2_5=1,ID_BUTTON_Palette2_5=#417960,ID_CHECKBOX_Palette2_6=1,ID_BUTTON_Palette2_6=#639977</td>
+</tr>
+<tr>
+  <td> 143.827435</td>
+  <td>10 </td>
+  <td>Twinkle,None,Effect 1,ID_SLIDER_SparkleFrequency=42,ID_SLIDER_Speed1=77,ID_SLIDER_Speed2=34,ID_SLIDER_Twinkle1_Count=52,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#c5454a,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#87cc2,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#b366b8,ID_CHECKBOX_Palette1_4=0,ID_BUTTON_Palette1_4=#000000,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#18c078,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#c66b0e,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#bec71f,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#b35538,ID_CHECKBOX_Palette2_5=1,ID_BUTTON_Palette2_5=#2fd002,ID_CHECKBOX_Palette2_6=1,ID_BUTTON_Palette2_6=#71cf75</td>
+</tr>
+<tr>
+  <td> 158.256105</td>
+  <td>11 </td>
+  <td>Twinkle,None,Effect 1,ID_SLIDER_SparkleFrequency=192,ID_SLIDER_Speed1=58,ID_SLIDER_Speed2=84,ID_SLIDER_Twinkle1_Count=78,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#a48ad9,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#a210e2,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#73a407,ID_CHECKBOX_Palette1_4=0,ID_BUTTON_Palette1_4=#000000,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#436455,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#4581ee,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#cf59fa,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#f7c13d,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 172.684776</td>
+  <td>12 </td>
+  <td>Spirals,None,Effect 1,ID_SLIDER_SparkleFrequency=25,ID_SLIDER_Speed1=24,ID_SLIDER_Speed2=46,ID_SLIDER_Spirals1_Count=5,ID_SLIDER_Spirals1_Rotation=-47,ID_SLIDER_Spirals1_Thickness=29,ID_SLIDER_Spirals1_Direction=-1,ID_CHECKBOX_Spirals1_Blend=1,ID_CHECKBOX_Spirals1_3D=0,ID_SLIDER_Spirals1_Rotation=2,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#244a2b,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#ed997b,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#f5d660,ID_CHECKBOX_Palette1_4=1,ID_BUTTON_Palette1_4=#e58a7,ID_CHECKBOX_Palette1_5=1,ID_BUTTON_Palette1_5=#262264,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#29b332,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#d13673,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#dcf328,ID_CHECKBOX_Palette2_4=0,ID_BUTTON_Palette2_4=#000000,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 187.132582</td>
+  <td>13 </td>
+  <td>Bars,None,Effect 1,ID_SLIDER_SparkleFrequency=16,ID_SLIDER_Speed1=57,ID_SLIDER_Speed2=57,ID_SLIDER_Bars1_BarCount=5,ID_CHOICE_Bars1_Direction=down,ID_CHECKBOX_Bars1_Highlight=1,ID_CHECKBOX_Bars1_3D=1,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#b2218a,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#f9306d,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#8e28c6,ID_CHECKBOX_Palette1_4=0,ID_BUTTON_Palette1_4=#000000,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#50a3ae,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#7279f,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#720045,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#b9272d,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 201.656933</td>
+  <td>14 </td>
+  <td>Spirals,None,Effect 1,ID_SLIDER_SparkleFrequency=134,ID_SLIDER_Speed1=94,ID_SLIDER_Speed2=65,ID_SLIDER_Spirals1_Count=2,ID_SLIDER_Spirals1_Rotation=25,ID_SLIDER_Spirals1_Thickness=69,ID_SLIDER_Spirals1_Direction=-1,ID_CHECKBOX_Spirals1_Blend=1,ID_CHECKBOX_Spirals1_3D=1,ID_SLIDER_Spirals1_Rotation=5,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#522b74,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#7b68c0,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#9cfa2b,ID_CHECKBOX_Palette1_4=1,ID_BUTTON_Palette1_4=#2cad8,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#2538ba,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#197417,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#fb28c9,ID_CHECKBOX_Palette2_4=0,ID_BUTTON_Palette2_4=#000000,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 216.066468</td>
+  <td>15 </td>
+  <td>Bars,None,Effect 1,ID_SLIDER_SparkleFrequency=180,ID_SLIDER_Speed1=88,ID_SLIDER_Speed2=90,ID_SLIDER_Bars1_BarCount=5,ID_CHOICE_Bars1_Direction=expand,ID_CHECKBOX_Bars1_Highlight=1,ID_CHECKBOX_Bars1_3D=0,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#e5bfb2,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#6f670f,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#fac21,ID_CHECKBOX_Palette1_4=0,ID_BUTTON_Palette1_4=#000000,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#8387e8,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#90505c,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#d9a6cd,ID_CHECKBOX_Palette2_4=0,ID_BUTTON_Palette2_4=#000000,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 230.495138</td>
+  <td>16 </td>
+  <td>Twinkle,None,Effect 1,ID_SLIDER_SparkleFrequency=188,ID_SLIDER_Speed1=50,ID_SLIDER_Speed2=21,ID_SLIDER_Twinkle1_Count=95,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#4a578e,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#4a6d66,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#d6d2db,ID_CHECKBOX_Palette1_4=1,ID_BUTTON_Palette1_4=#39dec0,ID_CHECKBOX_Palette1_5=1,ID_BUTTON_Palette1_5=#9b10b1,ID_CHECKBOX_Palette1_6=1,ID_BUTTON_Palette1_6=#a640ad,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#31435,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#cca61f,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#db612a,ID_CHECKBOX_Palette2_4=0,ID_BUTTON_Palette2_4=#000000,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> 247.009650</td>
+  <td>17 </td>
+  <td>Spirals,None,Effect 1,ID_SLIDER_SparkleFrequency=197,ID_SLIDER_Speed1=35,ID_SLIDER_Speed2=92,ID_SLIDER_Spirals1_Count=3,ID_SLIDER_Spirals1_Rotation=-47,ID_SLIDER_Spirals1_Thickness=84,ID_SLIDER_Spirals1_Direction=,ID_CHECKBOX_Spirals1_Blend=0,ID_CHECKBOX_Spirals1_3D=0,ID_SLIDER_Spirals1_Rotation=3,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#2c0c40,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#7a73b3,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#994bbe,ID_CHECKBOX_Palette1_4=0,ID_BUTTON_Palette1_4=#000000,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#341d99,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#6b9960,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#71bd2b,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#8a115a,ID_CHECKBOX_Palette2_5=0,ID_BUTTON_Palette2_5=#000000,ID_CHECKBOX_Palette2_6=0,ID_BUTTON_Palette2_6=#000000</td>
+</tr>
+<tr>
+  <td> </td>
+  <td> </td>
+  <td>Bars,None,Effect 1,ID_SLIDER_SparkleFrequency=138,ID_SLIDER_Speed1=42,ID_SLIDER_Speed2=27,ID_SLIDER_Bars1_BarCount=1,ID_CHOICE_Bars1_Direction=down,ID_CHECKBOX_Bars1_Highlight=0,ID_CHECKBOX_Bars1_3D=0,ID_CHECKBOX_Palette1_1=1,ID_BUTTON_Palette1_1=#15ec9a,ID_CHECKBOX_Palette1_2=1,ID_BUTTON_Palette1_2=#b5736e,ID_CHECKBOX_Palette1_3=1,ID_BUTTON_Palette1_3=#9f4496,ID_CHECKBOX_Palette1_4=0,ID_BUTTON_Palette1_4=#000000,ID_CHECKBOX_Palette1_5=0,ID_BUTTON_Palette1_5=#000000,ID_CHECKBOX_Palette1_6=0,ID_BUTTON_Palette1_6=#000000,ID_CHECKBOX_Palette2_1=1,ID_BUTTON_Palette2_1=#a25abc,ID_CHECKBOX_Palette2_2=1,ID_BUTTON_Palette2_2=#39715,ID_CHECKBOX_Palette2_3=1,ID_BUTTON_Palette2_3=#3dc649,ID_CHECKBOX_Palette2_4=1,ID_BUTTON_Palette2_4=#cdf02c,ID_CHECKBOX_Palette2_5=1,ID_BUTTON_Palette2_5=#47cd33,ID_CHECKBOX_Palette2_6=1,ID_BUTTON_Palette2_6=#578566</td>
+</tr>
+</xsequence>
