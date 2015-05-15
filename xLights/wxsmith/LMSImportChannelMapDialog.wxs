@@ -7,7 +7,30 @@
 		<object class="wxFlexGridSizer" variable="Sizer" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
-			<growablerows>1</growablerows>
+			<growablerows>2</growablerows>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+					<cols>3</cols>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE1" variable="ModelsChoice" member="yes" />
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_ADDMODEL" variable="AddModelButton" member="no">
+							<label>Add Model For Import</label>
+							<handler function="OnAddModelButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="MapByStrand" member="yes">
 					<label>Map by Strand/CCR</label>
@@ -19,16 +42,21 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxGrid" name="ID_GRID1" variable="ChannelMapGrid" member="yes">
-					<cols>2</cols>
-					<rows>10</rows>
+					<cols>5</cols>
+					<rows>18</rows>
 					<collabels>
-						<item>Model Node</item>
-						<item>LMS Channel</item>
+						<item>Model</item>
+						<item>Strand</item>
+						<item>Node</item>
+						<item>Channel</item>
+						<item>Color</item>
 					</collabels>
 					<maxsize>-1,440d</maxsize>
 					<style>wxVSCROLL|wxHSCROLL</style>
+					<handler function="OnChannelMapGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
+					<handler function="OnChannelMapGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

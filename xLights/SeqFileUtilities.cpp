@@ -4,6 +4,7 @@
 #include "DataLayer.h"
 
 #include "LMSImportChannelMapDialog.h"
+#include "SuperStarImportDialog.h"
 
 #include <wx/wfstream.h>
 
@@ -358,9 +359,6 @@ void xLightsFrame::SetSequenceEnd(int ms)
 }
 
 
-void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
-{
-}
 
 static void CalcPercentage(wxString& value, double base, bool reverse, int offset)
 {
@@ -392,7 +390,14 @@ static wxString GetColorString(const wxString& sRed, const wxString& sGreen, con
 {
     return (wxString)GetColor(sRed, sGreen, sBlue);
 }
-
+static xlColor GetColor(const wxString& rgb) {
+    int i = wxAtoi(rgb);
+    xlColor cl;
+    cl.red = (i & 0xff);
+    cl.green = ((i >> 8) & 0xFF);
+    cl.blue = ((i >> 16) & 0xff);
+    return cl;
+}
 
 static EffectLayer* FindOpenLayer(Element* model, int layer_index, double start_time, double end_time, std::vector<bool> &reserved)
 {
@@ -525,66 +530,95 @@ private:
     size_t bufLen = 0;
 };
 
-void xLightsFrame::ImportSuperStar()
+
+void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 {
-    wxString model_name = ChoiceSuperStarImportModel->GetStringSelection();
+    wxFileDialog file(this, "Choose file to import", "", "",
+                      "SuperStar File (*.sup)|*.sup|\nLOR Music Sequences (*.lms)|*.lms|\nHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
+    if (file.ShowModal() == wxID_OK) {
+        wxFileName fn = file.GetPath();
+        if (!fn.Exists()) {
+            return;
+        }
+        if (fn.GetExt() == "lms") {
+            ImportLMS(fn);
+        } else if (fn.GetExt() == "hlsIdata") {
+            ImportHLS(fn);
+        } else if (fn.GetExt() == "sup") {
+            ImportSuperStar(fn);
+        }
+    }
+}
+
+void xLightsFrame::ImportHLS(const wxFileName &filename)
+{}
+
+void xLightsFrame::ImportLMS(const wxFileName &filename) {
+    wxStopWatch sw; // start a stopwatch timer
+
+    wxFileName xml_file(filename);
+    wxXmlDocument input_xml;
+    wxString xml_doc = xml_file.GetFullPath();
+    wxFileInputStream fin(xml_doc);
+    FixXMLInputStream bufIn(fin);
+    
+    if( !input_xml.Load(bufIn) )  return;
+    ImportLMS(input_xml);
+    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+}
+void xLightsFrame::ImportSuperStar(const wxFileName &filename)
+{
+    SuperStarImportDialog dlg(this);
+    
+    for(int i=0;i<mSequenceElements.GetElementCount();i++) {
+        if(mSequenceElements.GetElement(i)->GetType()== "model") {
+            dlg.ChoiceSuperStarImportModel->Append(mSequenceElements.GetElement(i)->GetName());
+        }
+    }
+
+    if (dlg.ShowModal() == wxID_CANCEL) {
+        return;
+    }
+    wxString model_name = dlg.ChoiceSuperStarImportModel->GetStringSelection();
     if( model_name == "" )
     {
         wxMessageBox("Please select the target model!");
         return;
     }
 
-    wxString wildcards = "SuperStar files (*.sup)|*.sup|LOR Sequence(*.lms)|*.lms";
-    wxString filename = wxFileSelector("Choose SuperStar file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-    if ( !filename.empty() )
-    {
-        wxStopWatch sw; // start a stopwatch timer
-        bool model_found = false;
+    wxStopWatch sw; // start a stopwatch timer
+    bool model_found = false;
 
-        // read v3 xml file into temporary document
-        wxFileName xml_file(filename);
-        wxXmlDocument input_xml;
-        wxString xml_doc = xml_file.GetFullPath();
-        wxFileInputStream fin(xml_doc);
-        FixXMLInputStream bufIn(fin);
+    // read v3 xml file into temporary document
+    wxFileName xml_file(filename);
+    wxXmlDocument input_xml;
+    wxString xml_doc = xml_file.GetFullPath();
+    wxFileInputStream fin(xml_doc);
+    FixXMLInputStream bufIn(fin);
 
-        if( !input_xml.Load(bufIn) )  return;
+    if( !input_xml.Load(bufIn) )  return;
 
-        Element* model = nullptr;
+    Element* model = nullptr;
 
-        for(int i=0;i<mSequenceElements.GetElementCount();i++)
-        {
-            if(mSequenceElements.GetElement(i)->GetType()== "model")
-            {
-                model = mSequenceElements.GetElement(i);
-                if( model->GetName() == model_name )
-                {
-                    model_found = true;
-                    break;
-                }
+    for(int i=0;i<mSequenceElements.GetElementCount();i++) {
+        if(mSequenceElements.GetElement(i)->GetType()== "model") {
+            model = mSequenceElements.GetElement(i);
+            if( model->GetName() == model_name ) {
+                model_found = true;
+                break;
             }
         }
-        if( model != nullptr && model_found )
-        {
-            int x_size = wxAtoi(TextCtrl_SS_X_Size->GetValue());
-            int y_size = wxAtoi(TextCtrl_SS_Y_Size->GetValue());
-            int x_offset = wxAtoi(TextCtrl_SS_X_Offset->GetValue());
-            int y_offset = wxAtoi(TextCtrl_SS_Y_Offset->GetValue());
-            if (input_xml.GetRoot()->GetName() == "sequence") {
-                if (!ImportLMS(model, input_xml)) {
-                    return;
-                }
-            } else if (!ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset)) {
-                return;
-            }
-        }
-        float elapsedTime = sw.Time()/1000.0; //msec => sec
-        StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename, elapsedTime));
     }
-    else
-    {
-        wxMessageBox(wxString::Format("Model %s was not found. Check that sequence is open and model is in the grid.", model_name));
+    if( model != nullptr && model_found ) {
+        int x_size = wxAtoi(dlg.TextCtrl_SS_X_Size->GetValue());
+        int y_size = wxAtoi(dlg.TextCtrl_SS_Y_Size->GetValue());
+        int x_offset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
+        int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
+        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset);
     }
+    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 
 bool findRGB(wxXmlNode *e, wxXmlNode *chan, wxXmlNode *&rchannel, wxXmlNode *&gchannel, wxXmlNode *&bchannel) {
@@ -716,13 +750,12 @@ void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel,
         }
     }
 }
-void MapOnEffects(EffectLayer *layer, wxXmlNode *channel, int chancountpernode) {
+void MapOnEffects(EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
     wxString palette = _("C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1,")
         + "C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
     if (chancountpernode > 1) {
-        int rgb = wxAtoi(channel->GetAttribute("color"));
-        wxString c = wxString::Format("#%06lx",rgb);
+        wxString c = wxString::Format("#%06lx",color.GetRGB());
         xlColor color(c);
         palette = "C_BUTTON_Palette1=" + color + ",C_CHECKBOX_Palette1=1,"
             + "C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
@@ -759,156 +792,135 @@ void MapOnEffects(EffectLayer *layer, wxXmlNode *channel, int chancountpernode) 
         }
     }
 }
-
-bool xLightsFrame::ImportLMS(Element *model, wxXmlDocument &input_xml)
-{
-    wxArrayString channelNames;
-    wxArrayString strandNames;
-    wxArrayString nodeNames;
-    wxArrayString ccrNames;
-    ModelClass &mc = GetModelClass(model->GetName());
-    nodeNames.push_back(model->GetName());
-    for (int s = 0; s < model->getStrandLayerCount(); s++) {
-        StrandLayer *sl = model->GetStrandLayer(s);
-        wxString sname = sl->GetName();
-        if ("" == sname) {
-            sname = wxString::Format("Strand %d", (s + 1));
-        }
-        nodeNames.push_back(sname);
-        strandNames.push_back(sname);
+bool MapChannelInformation(EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const ModelClass &mc) {
+    if ("" == nm) {
+        return false;
     }
-    for (int s = 0; s < model->getStrandLayerCount(); s++) {
-        StrandLayer *sl = model->GetStrandLayer(s);
-                for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-            int idx = mc.MapToNodeIndex(s,n);
-            wxString name = mc.GetNodeName(idx);
-            if ("" == name) {
-                name = wxString::Format("Node %d", (nodeNames.size() - strandNames.size()));
+    wxXmlNode *channel = nullptr;
+    wxXmlNode *rchannel = nullptr;
+    wxXmlNode *gchannel = nullptr;
+    wxXmlNode *bchannel = nullptr;
+    for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=NULL; e=e->GetNext()) {
+        if (e->GetName() == "channels"){
+            for (wxXmlNode* chan=e->GetChildren(); chan!=NULL; chan=chan->GetNext()) {
+                if ((chan->GetName() == "channel" || chan->GetName() == "rgbChannel")
+                    && nm == chan->GetAttribute("name")) {
+                    channel = chan;
+                    if (chan->GetName() == "rgbChannel"
+                        && !findRGB(e, chan, rchannel, gchannel, bchannel)) {
+                        return false;
+                    }
+                    break;
+                }
             }
-            nodeNames.push_back(name);
         }
     }
+    if (channel == nullptr) {
+        return false;
+    }
+    if (channel->GetName() == "rgbChannel") {
+        MapRGBEffects(layer, rchannel, gchannel, bchannel);
+    } else {
+        MapOnEffects(layer, channel, mc.GetChanCountPerNode(), color);
+    }
+    return true;
+}
+bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
+{
+    LMSImportChannelMapDialog dlg(this);
+    dlg.mSequenceElements = &mSequenceElements;
+    dlg.xlights = this;
+  
     for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "channels"){
             for (wxXmlNode* chan=e->GetChildren(); chan!=NULL; chan=chan->GetNext()) {
                 if (chan->GetName() == "channel" || chan->GetName() == "rgbChannel") {
                     wxString name = chan->GetAttribute("name");
-                    channelNames.push_back(name);
+                    if (chan->GetName() == "rgbChannel") {
+                        dlg.channelColors.push_back(xlBLACK);
+                    } else {
+                        wxString color = chan->GetAttribute("color");
+                        dlg.channelColors.push_back(GetColor(color));
+                    }
+                    
+                    dlg.channelNames.push_back(name);
                     if (chan->GetName() == "rgbChannel" && name.Contains("-P")) {
                         int i = wxAtoi(name.SubString(name.Find("-P") + 2, name.size()));
                         if (i > 0
-                            && (ccrNames.size() == 0 || ccrNames.back() != name.SubString(0, name.Find("-P") - 1))) {
-                            ccrNames.push_back(name.SubString(0, name.Find("-P") - 1));
+                            && (dlg.ccrNames.size() == 0 || dlg.ccrNames.back() != name.SubString(0, name.Find("-P") - 1))) {
+                            dlg.ccrNames.push_back(name.SubString(0, name.Find("-P") - 1));
                         }
                     }
                 }
             }
         }
     }
-    channelNames.Sort();
-    channelNames.Insert("", 0);
-    ccrNames.Sort();
-    ccrNames.Insert("", 0);
-    LMSImportChannelMapDialog dlg(this);
-    dlg.SetNames(&channelNames, &strandNames, &nodeNames, &ccrNames);
+    dlg.channelNames.Sort();
+    dlg.channelNames.Insert("", 0);
+    dlg.ccrNames.Sort();
+    dlg.ccrNames.Insert("", 0);
 
-    if (dlg.ShowModal() == wxID_CANCEL) {
+    dlg.Init();
+
+    if (dlg.ShowModal() != wxID_OK) {
         return false;
     }
-    bool mapByStrand = dlg.MapByStrand->GetValue();
-    int cnt = 0;
-    if (!mapByStrand) {
-        for (int x = 0; x <= strandNames.size(); x++) {
-            EffectLayer *layer = nullptr;
-            if (cnt == 0) {
-                layer = model->GetEffectLayer(0);
-            } else {
-                layer = model->GetStrandLayer(x - 1);
+    
+    int row = 0;
+    for (int m = 0; m < dlg.modelNames.size(); m++) {
+        wxString modelName = dlg.modelNames[m];
+        ModelClass &mc = GetModelClass(modelName);
+        Element * model = nullptr;
+        for (int i=0;i<mSequenceElements.GetElementCount();i++) {
+            if (mSequenceElements.GetElement(i)->GetType() == "model"
+                && modelName == mSequenceElements.GetElement(i)->GetName()) {
+                model = mSequenceElements.GetElement(i);
             }
-            wxString nm = dlg.ChannelMapGrid->GetCellValue(cnt, 1);
-            if (!nm.IsEmpty()) {
-                wxXmlNode *channel = nullptr;
-                wxXmlNode *rchannel = nullptr;
-                wxXmlNode *gchannel = nullptr;
-                wxXmlNode *bchannel = nullptr;
-                for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=NULL; e=e->GetNext()) {
-                    if (e->GetName() == "channels"){
-                        for (wxXmlNode* chan=e->GetChildren(); chan!=NULL; chan=chan->GetNext()) {
-                            if ((chan->GetName() == "channel" || chan->GetName() == "rgbChannel")
-                                && nm == chan->GetAttribute("name")) {
-                                channel = chan;
-                                if (chan->GetName() == "rgbChannel"
-                                    && !findRGB(e, chan, rchannel, gchannel, bchannel)) {
-                                    return false;
-                                }
-                                break;
-                            }
-                        }
+        }
+        MapChannelInformation(model->GetEffectLayer(0), input_xml,
+                              dlg.ChannelMapGrid->GetCellValue(row, 3),
+                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), mc);
+        row++;
+            
+        for (int str = 0; str < mc.GetNumStrands(); str++) {
+            StrandLayer *sl = model->GetStrandLayer(str);
+
+            if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                if (!dlg.MapByStrand->GetValue()) {
+                    MapChannelInformation(sl,
+                                      input_xml,
+                                      dlg.ChannelMapGrid->GetCellValue(row, 3),
+                                      dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), mc);
+                } else {
+                    wxString ccrName = dlg.ChannelMapGrid->GetCellValue(row, 3);
+                    for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
+                        EffectLayer *layer = sl->GetNodeLayer(n);
+                        wxString nm = ccrName + wxString::Format("-P%02d", (n + 1));
+                        MapChannelInformation(layer,
+                                              input_xml,
+                                              nm,
+                                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
+                                              mc);
+                        
+                        
+                        
                     }
                 }
-                if (channel == nullptr) {
-                    return false;
-                }
-                if (channel->GetName() == "rgbChannel") {
-                    MapRGBEffects(layer, rchannel, gchannel, bchannel);
-                } else {
-                    MapOnEffects(layer, channel, mc.GetChanCountPerNode());
-                }
             }
-            cnt++;
-        }
-    }
-
-
-    for (int s = 0; s < model->getStrandLayerCount(); s++) {
-        StrandLayer *sl = model->GetStrandLayer(s);
-        wxString ccrName;
-        if (mapByStrand) {
-            ccrName = dlg.ChannelMapGrid->GetCellValue(s, 1);
-            if (ccrName == "") {
-                continue;
-            }
-        }
-
-        for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-            EffectLayer *layer = sl->GetNodeLayer(n);
-            wxString nm;
-            if (mapByStrand) {
-                nm = ccrName + wxString::Format("-P%02d", (n + 1));
-            } else {
-                nm = dlg.ChannelMapGrid->GetCellValue(cnt, 1);
-            }
-            if (!nm.IsEmpty()) {
-                wxXmlNode *channel = nullptr;
-                wxXmlNode *rchannel = nullptr;
-                wxXmlNode *gchannel = nullptr;
-                wxXmlNode *bchannel = nullptr;
-                for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=NULL; e=e->GetNext()) {
-                    if (e->GetName() == "channels"){
-                        for (wxXmlNode* chan=e->GetChildren(); chan!=NULL; chan=chan->GetNext()) {
-                            if ((chan->GetName() == "channel" || chan->GetName() == "rgbChannel")
-                                && nm == chan->GetAttribute("name")) {
-                                channel = chan;
-                                if (chan->GetName() == "rgbChannel"
-                                    && !findRGB(e, chan, rchannel, gchannel, bchannel)) {
-                                    return false;
-                                }
-                                break;
-                            }
-                        }
+            row++;
+            if (!dlg.MapByStrand->GetValue()) {
+                for (int n = 0; n < mc.GetStrandLength(str); n++) {
+                    if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                        MapChannelInformation(sl->GetNodeLayer(n),
+                                              input_xml,
+                                              dlg.ChannelMapGrid->GetCellValue(row, 3),
+                                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), mc);
                     }
-                }
-                if (channel == nullptr) {
-                    return false;
-                }
-                if (channel->GetName() == "rgbChannel") {
-                    MapRGBEffects(layer, rchannel, gchannel, bchannel);
-                } else {
-                    MapOnEffects(layer, channel, mc.GetChanCountPerNode());
+                    row++;
                 }
             }
-            cnt++;
         }
+        
     }
 
     return true;

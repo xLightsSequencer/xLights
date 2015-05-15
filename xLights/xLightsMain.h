@@ -32,7 +32,6 @@
 #include <wx/filedlg.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/gbsizer.h>
 #include <wx/button.h>
 #include <wx/dirdlg.h>
 #include <wx/frame.h>
@@ -355,12 +354,16 @@ public:
     void RenderIseqData(bool bottom_layers);
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
-    void ImportSuperStar();
     void CreateDebugReport(wxDebugReportCompress *report);
+
+    
+    void ImportSuperStar(const wxFileName &filename);
+    void ImportLMS(const wxFileName &filename);
+    void ImportHLS(const wxFileName &filename);
 
 private:
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size, int x_offset, int y_offset);
-    bool ImportLMS(Element *el, wxXmlDocument &doc);
+    bool ImportLMS(wxXmlDocument &doc);
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);
@@ -552,7 +555,6 @@ private:
     void SetIconSize(wxCommandEvent& event);
     void ResetToolbarLocations(wxCommandEvent& event);
     void SetToolIconSize(wxCommandEvent& event);
-    void OnButton_ImportSuperstarClick(wxCommandEvent& event);
     void OnMenuItemRenderEraseModeSelected(wxCommandEvent& event);
     void OnMenuItemRenderCanvasModeSelected(wxCommandEvent& event);
     void OnScaleImageCheckboxClick(wxCommandEvent& event);
@@ -727,18 +729,6 @@ private:
     static const long ID_BUTTON_START_CONVERSION;
     static const long ID_STATICTEXT18;
     static const long ID_TEXTCTRL_CONVERSION_STATUS;
-    static const long ID_CHOICE_SuperStarImportModel;
-    static const long ID_STATICTEXT31;
-    static const long ID_STATICTEXT39;
-    static const long ID_BUTTON_IMPORT_SUPERSTAR;
-    static const long ID_TEXTCTRL_SS_X_Offset;
-    static const long ID_STATICTEXT24;
-    static const long ID_STATICTEXT40;
-    static const long ID_TEXTCTRL_SS_Y_Offset;
-    static const long ID_STATICTEXT42;
-    static const long ID_TEXTCTRL_SS_X_Size;
-    static const long ID_STATICTEXT41;
-    static const long ID_TEXTCTRL_SS_Y_Size;
     static const long ID_PANEL_CONVERT;
     static const long ID_BUTTON_PREVIEW_OPEN;
     static const long ID_STATICTEXT23;
@@ -929,20 +919,17 @@ private:
     wxStaticText* StaticText36;
     wxPanel* Panel2;
     wxButton* ButtonTestSelectAll;
-    wxStaticText* StaticText40;
     wxButton* ButtonSaveSchedule;
     wxRadioButton* RadioButtonRgbTwinkle50;
     wxMenu* MenuItem16;
     wxStaticText* StaticText27;
     DragEffectBitmapButton* BitmapButton13;
-    wxTextCtrl* TextCtrl_SS_Y_Size;
     DragEffectBitmapButton* BitmapButton4;
     wxButton* ButtonAddE131;
     wxTextCtrl* TextCtrlFilename;
     DragEffectBitmapButton* BitmapButton2;
     wxMenuItem* MenuItemRenderEraseMode;
     wxMenuItem* MenuItem_File_Close_Sequence;
-    wxStaticText* StaticText41;
     wxFileDialog* FileDialogConvert;
     wxTimer Timer1;
     wxRadioButton* RadioButtonTwinkle50;
@@ -961,7 +948,6 @@ private:
     DragEffectBitmapButton* BitmapButton24;
     wxButton* ButtonPreviewOpen;
     wxPanel* PanelTest;
-    wxStaticText* StaticText42;
     wxMenuItem* MenuItemBackup;
     DragEffectBitmapButton* BitmapButton23;
     wxButton* ButtonChooseFile;
@@ -972,8 +958,8 @@ private:
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxCheckBox* CheckBox_CoroPictureScaled;
     wxStaticText* StaticText25;
-    wxPanel* PanelPreview;
     wxCheckBox* MapLORChannelsWithNoNetwork;
+    wxPanel* PanelPreview;
     wxStaticText* StaticText6;
     wxButton* ButtonTestClear;
     wxPanel* PanelConvert;
@@ -983,13 +969,11 @@ private:
     DragEffectBitmapButton* BitmapButton20;
     wxButton* ButtonStartConversion;
     wxStaticText* StaticText19;
-    wxChoice* ChoiceSuperStarImportModel;
     wxPanel* PanelSequencer;
     wxMenuItem* MenuItemViewSavePerspective;
     wxButton* ButtonDeleteShow;
     wxButton* Button_CoroGroupClear;
     DragEffectBitmapButton* BitmapButton17;
-    wxStaticText* StaticText39;
     wxButton* ButtonSelectModelGroups;
     wxRadioButton* RadioButtonRgbShimmer;
     wxAuiManager* m_mgr;
@@ -1004,7 +988,6 @@ private:
     wxChoice* ChoiceOutputFormat;
     DragEffectBitmapButton* BitmapButton12;
     wxDirDialog* DirDialog1;
-    wxTextCtrl* TextCtrl_SS_X_Size;
     wxCheckListBox* CheckListBoxTestChannels;
     wxStaticText* StaticText33;
     wxStaticText* StaticText23;
@@ -1061,7 +1044,6 @@ private:
     wxListCtrl* GridNetwork;
     DragEffectBitmapButton* BitmapButton9;
     wxSlider* SliderRgbChaseSpeed;
-    wxStaticText* StaticText37;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
     wxStaticText* StaticTextPreviewRotation;
@@ -1120,7 +1102,6 @@ private:
     wxSlider* SliderFgColorA;
     wxCheckBox* CheckBoxOffAtEnd;
     wxSlider* SliderRgbCycleSpeed;
-    wxTextCtrl* TextCtrl_SS_Y_Offset;
     wxButton* ButtonNetworkDelete;
     DragEffectBitmapButton* BitmapButton5;
     wxMenuItem* Menu_Settings_Sequence;
@@ -1153,7 +1134,6 @@ private:
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
-    wxButton* Button_ImportSuperstar;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
     wxStaticText* StaticText9;
@@ -1166,9 +1146,7 @@ private:
     DragEffectBitmapButton* BitmapButton11;
     wxRadioButton* RadioButtonRgbCycle3;
     wxSlider* SliderBgColorA;
-    wxStaticText* StaticText44;
     wxRadioButton* RadioButtonTwinkle05;
-    wxTextCtrl* TextCtrl_SS_X_Offset;
     wxStaticText* StaticText3;
     //*)
 

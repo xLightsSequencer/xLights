@@ -243,18 +243,6 @@ const long xLightsFrame::ID_CHOICE1 = wxNewId();
 const long xLightsFrame::ID_BUTTON_START_CONVERSION = wxNewId();
 const long xLightsFrame::ID_STATICTEXT18 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_CONVERSION_STATUS = wxNewId();
-const long xLightsFrame::ID_CHOICE_SuperStarImportModel = wxNewId();
-const long xLightsFrame::ID_STATICTEXT31 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT39 = wxNewId();
-const long xLightsFrame::ID_BUTTON_IMPORT_SUPERSTAR = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL_SS_X_Offset = wxNewId();
-const long xLightsFrame::ID_STATICTEXT24 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT40 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL_SS_Y_Offset = wxNewId();
-const long xLightsFrame::ID_STATICTEXT42 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL_SS_X_Size = wxNewId();
-const long xLightsFrame::ID_STATICTEXT41 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL_SS_Y_Size = wxNewId();
 const long xLightsFrame::ID_PANEL_CONVERT = wxNewId();
 const long xLightsFrame::ID_BUTTON_PREVIEW_OPEN = wxNewId();
 const long xLightsFrame::ID_STATICTEXT23 = wxNewId();
@@ -515,7 +503,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenuItem* MenuItem5;
     wxMenuItem* MenuItem2;
     wxMenuItem* MenuItemAddList;
-    wxGridBagSizer* GridBagSizer1;
     wxStaticBoxSizer* StaticBoxSizer4;
     wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer3;
@@ -553,7 +540,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer34;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
-    wxStaticBoxSizer* StaticBoxSizer3;
     wxMenuItem* MenuItem28;
     wxFlexGridSizer* FlexGridSizer15;
     wxFlexGridSizer* FlexGridSizer18;
@@ -583,7 +569,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer17;
     wxMenu* Menu2;
     wxFlexGridSizer* FlexGridSizerPapagayo;
-    wxFlexGridSizer* FlexGridSizer32;
     wxFlexGridSizer* FlexGridSizer31;
     wxFlexGridSizer* FlexGridSizer40;
     wxFlexGridSizer* FlexGridSizer39;
@@ -1180,36 +1165,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer23->Add(TextCtrlConversionStatus, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer25->Add(FlexGridSizer23, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerConvert->Add(FlexGridSizer25, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer32 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, PanelConvert, _("Data Importer:"));
-    GridBagSizer1 = new wxGridBagSizer(0, 0);
-    ChoiceSuperStarImportModel = new wxChoice(PanelConvert, ID_CHOICE_SuperStarImportModel, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_SuperStarImportModel"));
-    GridBagSizer1->Add(ChoiceSuperStarImportModel, wxGBPosition(0, 1), wxGBSpan(1, 3), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText39 = new wxStaticText(PanelConvert, ID_STATICTEXT31, _("SuperStar: This is currently designed to work with SuperStar sequences\nfor CCR ribbon trees.  X/Y Size and Offset only apply to SuperStar. \nX/Y Size is ignored unless the sequence type is a Visualization.\n\nLMS: Only imports individually selected and mapped channels to the target model"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
-    GridBagSizer1->Add(StaticText39, wxGBPosition(4, 0), wxGBSpan(1, 5), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText40 = new wxStaticText(PanelConvert, ID_STATICTEXT39, _("Select Model:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT39"));
-    GridBagSizer1->Add(StaticText40, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Button_ImportSuperstar = new wxButton(PanelConvert, ID_BUTTON_IMPORT_SUPERSTAR, _("Select SuperStar or LMS File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT_SUPERSTAR"));
-    GridBagSizer1->Add(Button_ImportSuperstar, wxGBPosition(3, 1), wxGBSpan(1, 4), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_SS_X_Offset = new wxTextCtrl(PanelConvert, ID_TEXTCTRL_SS_X_Offset, _("0"), wxDefaultPosition, wxSize(50,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_SS_X_Offset"));
-    GridBagSizer1->Add(TextCtrl_SS_X_Offset, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(PanelConvert,wxSize(5,0)).GetWidth());
-    StaticText37 = new wxStaticText(PanelConvert, ID_STATICTEXT24, _("X Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
-    GridBagSizer1->Add(StaticText37, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText41 = new wxStaticText(PanelConvert, ID_STATICTEXT40, _("Y Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT40"));
-    GridBagSizer1->Add(StaticText41, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_SS_Y_Offset = new wxTextCtrl(PanelConvert, ID_TEXTCTRL_SS_Y_Offset, _("0"), wxDefaultPosition, wxSize(50,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_SS_Y_Offset"));
-    GridBagSizer1->Add(TextCtrl_SS_Y_Offset, wxGBPosition(2, 3), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(PanelConvert,wxSize(5,0)).GetWidth());
-    StaticText44 = new wxStaticText(PanelConvert, ID_STATICTEXT42, _("X Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT42"));
-    GridBagSizer1->Add(StaticText44, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_SS_X_Size = new wxTextCtrl(PanelConvert, ID_TEXTCTRL_SS_X_Size, _("12"), wxDefaultPosition, wxSize(50,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_SS_X_Size"));
-    GridBagSizer1->Add(TextCtrl_SS_X_Size, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText42 = new wxStaticText(PanelConvert, ID_STATICTEXT41, _("Y Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT41"));
-    GridBagSizer1->Add(StaticText42, wxGBPosition(2, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_SS_Y_Size = new wxTextCtrl(PanelConvert, ID_TEXTCTRL_SS_Y_Size, _("50"), wxDefaultPosition, wxSize(50,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_SS_Y_Size"));
-    GridBagSizer1->Add(TextCtrl_SS_Y_Size, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticBoxSizer3->Add(GridBagSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer32->Add(StaticBoxSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerConvert->Add(FlexGridSizer32, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     PanelConvert->SetSizer(FlexGridSizerConvert);
     FlexGridSizerConvert->Fit(PanelConvert);
     FlexGridSizerConvert->SetSizeHints(PanelConvert);
@@ -1793,7 +1748,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_RADIOBUTTON27,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonDimSelect);
     Connect(ID_BUTTON_CHOOSE_FILE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonChooseFileClick);
     Connect(ID_BUTTON_START_CONVERSION,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartConversionClick);
-    Connect(ID_BUTTON_IMPORT_SUPERSTAR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ImportSuperstarClick);
     Connect(ID_BUTTON_PREVIEW_OPEN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPreviewOpenClick);
     Connect(ID_BITMAPBUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPlayPreviewClick);
     Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopPreviewClick);
@@ -2533,7 +2487,6 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     {
         wxArrayString ModelNames;
         GetModelNames(ModelNames);
-        ChoiceSuperStarImportModel->Set(ModelNames);
     }
     else
     {
@@ -3223,11 +3176,6 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
         lst[x]->SetSizeHints(size, size, size, size);
     }
     effectPalettePanel->Layout();
-}
-
-void xLightsFrame::OnButton_ImportSuperstarClick(wxCommandEvent& event)
-{
-    ImportSuperStar();
 }
 
 void xLightsFrame::OnMenuItemRenderEraseModeSelected(wxCommandEvent& event)
