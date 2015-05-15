@@ -6,6 +6,15 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.31  May 14, 2015
+	-- bug (sean) The songs directories were not being included in the current releases. 37 song directories are now under
+		the songs subdirectory. Remember this directory is located in your "C:\Program Files (x86)\xLights\songs" directory 
+		if you are  on Windows
+	-- bugs (Dan and Gil) A couple of bugs that caused crashes have been fixed
+	-- enh (dkulp) Add alpha support to Bars, Meteors, Pinwheel ripple, snowstorm, spirals, strobe, tree, twinkle, snowflakes, shockwave, fireworks
+    -- bug (dkulp Fix pinwheel 3d flags.  
+	-- bug (dkulp) Fix ColorWash fades when not on full matrix
+
 4.0.30  May 13, 2015
   NOTES FROM DEVELOPMENT
 	(Dkulp) * Detect ramp up/down when converting to effects
