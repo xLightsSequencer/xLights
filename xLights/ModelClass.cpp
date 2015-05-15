@@ -2000,6 +2000,8 @@ int ModelClass::MapToNodeIndex(int strand, int node) const {
         return idx;
     } else if ("Arches" == DisplayAs) {
         return strand * parm2 + node;
+    } else if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix")) && SingleChannel) {
+        return node;
     }
     return (strand * parm2 / parm3) + node;
 }

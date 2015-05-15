@@ -493,11 +493,12 @@ public:
             return parm1;
         else if (token == wxT("Tree"))
             return parm1*parm3;
-        else if (DisplayAs == wxT("Vert Matrix"))
+        else if (DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix")) {
+            if (SingleChannel) {
+                return 1;
+            }
             return parm1*parm3;
-        else if (token == wxT("Horiz Matrix"))
-            return parm1*parm3;
-        else if (token == wxT("Star"))
+        } else if (token == wxT("Star"))
             return starSizes.size();
         else
             return 1;

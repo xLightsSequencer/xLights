@@ -355,6 +355,10 @@ const long xLightsFrame::ID_MENUITEM16 = wxNewId();
 const long xLightsFrame::ID_MENUITEM17 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM10 = wxNewId();
+const long xLightsFrame::ID_PLAY_FULL = wxNewId();
+const long xLightsFrame::ID_PLAY_3_4 = wxNewId();
+const long xLightsFrame::ID_PLAY_1_2 = wxNewId();
+const long xLightsFrame::ID_PLAY_1_4 = wxNewId();
 const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_SMALL = wxNewId();
@@ -483,7 +487,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     //(*Initialize(xLightsFrame)
     wxStaticText* StaticText22;
     wxStaticBoxSizer* StaticBoxSizer2;
+    wxMenuItem* MenuItem31;
     wxMenu* MenuHelp;
+    wxMenuItem* MenuItem8;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer47;
     wxFlexGridSizer* FlexGridSizer54;
@@ -569,6 +575,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer17;
     wxMenu* Menu2;
     wxFlexGridSizer* FlexGridSizerPapagayo;
+    wxMenuItem* MenuItem9;
+    wxMenuItem* MenuItem30;
     wxFlexGridSizer* FlexGridSizer31;
     wxFlexGridSizer* FlexGridSizer40;
     wxFlexGridSizer* FlexGridSizer39;
@@ -1606,6 +1614,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem18->Append(MenuItem26);
     Menu5->Append(ID_MENUITEM10, _("Windows"), MenuItem18, wxEmptyString);
     MenuBar->Append(Menu5, _("&View"));
+    AudioMenu = new wxMenu();
+    MenuItem8 = new wxMenuItem(AudioMenu, ID_PLAY_FULL, _("Play Full Speed"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem8);
+    MenuItem9 = new wxMenuItem(AudioMenu, ID_PLAY_3_4, _("Play 3/4 Speed"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem9);
+    MenuItem30 = new wxMenuItem(AudioMenu, ID_PLAY_1_2, _("Play 1/2 Speed"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem30);
+    MenuItem31 = new wxMenuItem(AudioMenu, ID_PLAY_1_4, _("Play 1/4 Speed"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem31);
+    MenuBar->Append(AudioMenu, _("&Audio"));
     Menu2 = new wxMenu();
     MenuItem29 = new wxMenuItem(Menu2, ID_IMPORT_EFFECTS, _("Import Effects"), wxEmptyString, wxITEM_NORMAL);
     Menu2->Append(MenuItem29);
@@ -1816,6 +1834,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_MENUITEM16,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
     Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
+    Connect(ID_PLAY_FULL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
+    Connect(ID_PLAY_3_4,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
+    Connect(ID_PLAY_1_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
+    Connect(ID_PLAY_1_4,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
     Connect(ID_IMPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemImportEffects);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_MENUITEM_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
@@ -3240,3 +3262,18 @@ void xLightsFrame::OnSetGridNodeValues(wxCommandEvent& event)
 }
 
 
+
+void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
+{
+    double playSpeed = 1.0;
+    if (event.GetId() == ID_PLAY_FULL) {
+        playSpeed = 1.0;
+    } else if (event.GetId() == ID_PLAY_3_4) {
+        playSpeed = 0.75;
+    } else if (event.GetId() == ID_PLAY_1_2) {
+        playSpeed = 0.5;
+    } else if (event.GetId() == ID_PLAY_1_4) {
+        playSpeed = 0.25;
+    }
+    PlayerDlg->MediaCtrl->SetPlaybackRate(playSpeed);
+}

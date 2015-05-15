@@ -10,6 +10,7 @@
 #include <wx/dialog.h>
 //*)
 
+#include <map>
 #include "Color.h"
 
 class SequenceElements;
@@ -30,12 +31,13 @@ class LMSImportChannelMapDialog: public wxDialog
 		wxChoice* ModelsChoice;
 		wxFlexGridSizer* Sizer;
 		wxCheckBox* MapByStrand;
+		wxButton* AddModelButton;
 		//*)
 
         SequenceElements *mSequenceElements;
         xLightsFrame * xlights;
         wxArrayString channelNames;
-        xlColorVector channelColors;
+        std::map<wxString, xlColor> channelColors;
         wxArrayString ccrNames;
         wxArrayString modelNames;
 	protected:
@@ -57,6 +59,8 @@ class LMSImportChannelMapDialog: public wxDialog
 		void OnAddModelButtonClick(wxCommandEvent& event);
 		void OnChannelMapGridCellChange(wxGridEvent& event);
 		void OnChannelMapGridCellLeftDClick(wxGridEvent& event);
+		void OnChannelMapGridEditorShown(wxGridEvent& event);
+		void OnChannelMapGridEditorHidden(wxGridEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

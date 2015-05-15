@@ -18,7 +18,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON_ADDMODEL" variable="AddModelButton" member="no">
+						<object class="wxButton" name="ID_BUTTON_ADDMODEL" variable="AddModelButton" member="yes">
 							<label>Add Model For Import</label>
 							<handler function="OnAddModelButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -42,7 +42,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxGrid" name="ID_GRID1" variable="ChannelMapGrid" member="yes">
-					<cols>5</cols>
+					<cols>7</cols>
 					<rows>18</rows>
 					<collabels>
 						<item>Model</item>
@@ -55,6 +55,8 @@
 					<style>wxVSCROLL|wxHSCROLL</style>
 					<handler function="OnChannelMapGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
 					<handler function="OnChannelMapGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+					<handler function="OnChannelMapGridEditorHidden" entry="EVT_CMD_GRID_EDITOR_HIDDEN" />
+					<handler function="OnChannelMapGridEditorShown" entry="EVT_CMD_GRID_EDITOR_SHOWN" />
 				</object>
 				<flag>wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>5</border>

@@ -869,8 +869,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
         int current_play_time = 0;
         if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
             current_play_time = PlayerDlg->MediaCtrl->Tell();
-        }
-        else {
+            curt = current_play_time;
+        } else {
             current_play_time = curt;
         }
         mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time);
@@ -1331,20 +1331,8 @@ int RampLenColor(int start, std::vector<xlColor> &colors) {
     }
     return 0;
 }
-void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
-    Element *el = (Element*)event.GetClientData();
-    int strand = event.GetInt() >> 16;
-    int node = event.GetInt() & 0xFFFF;
-    EffectLayer *layer = el->GetStrandLayer(strand)->GetNodeLayer(node);
 
-    std::vector<xlColor> colors;
-    PixelBufferClass ncls;
-    ncls.InitNodeBuffer(GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
-    for (int f = 0; f < SeqData.NumFrames(); f++) {
-        ncls.SetNodeChannelValues(0, &SeqData[f][ncls.NodeStartChannel(0)]);
-        xlColor c = ncls.GetNodeColor(0);
-        colors.push_back(c);
-    }
+void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime) {
     colors.push_back(xlBLACK);
     int startTime = 0;
     xlColor lastColor(xlBLACK);
@@ -1377,7 +1365,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
                     
                     layer->AddEffect(0, "On", settings, palette, stime / 1000.0, etime / 1000.0, false, false);
                 } else {
-                
+                    
                     wxString settings = _("E_CHECKBOX_ColorWash_EntireModel=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,")
                         + "E_SLIDER_ColorWash_Count=1,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                         + "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
@@ -1406,10 +1394,10 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
             int time = x * SeqData.FrameTime();
             if (lastColor != xlBLACK) {
                 wxString palette = "C_BUTTON_Palette1=" + lastColor + ",C_CHECKBOX_Palette1=1,"
-                    + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
-                    + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                    + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-
+                + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
+                + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                
                 if (time != startTime) {
                     layer->AddEffect(0, "On", settings, palette, startTime / 1000.0, time / 1000.0, false, false);
                 }
@@ -1418,7 +1406,23 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
             lastColor = colors[x];
         }
     }
+}
 
+void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
+    Element *el = (Element*)event.GetClientData();
+    int strand = event.GetInt() >> 16;
+    int node = event.GetInt() & 0xFFFF;
+    EffectLayer *layer = el->GetStrandLayer(strand)->GetNodeLayer(node);
+
+    xlColorVector colors;
+    PixelBufferClass ncls;
+    ncls.InitNodeBuffer(GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
+    for (int f = 0; f < SeqData.NumFrames(); f++) {
+        ncls.SetNodeChannelValues(0, &SeqData[f][ncls.NodeStartChannel(0)]);
+        xlColor c = ncls.GetNodeColor(0);
+        colors.push_back(c);
+    }
+    ConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
 }
 
 

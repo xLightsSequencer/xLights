@@ -25,7 +25,6 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 {
 	//(*Initialize(LMSImportChannelMapDialog)
 	wxFlexGridSizer* FlexGridSizer1;
-	wxButton* AddModelButton;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
@@ -43,7 +42,7 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	MapByStrand->SetValue(false);
 	Sizer->Add(MapByStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ChannelMapGrid = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID1"));
-	ChannelMapGrid->CreateGrid(18,5);
+	ChannelMapGrid->CreateGrid(18,7);
 	ChannelMapGrid->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,440)));
 	ChannelMapGrid->EnableEditing(true);
 	ChannelMapGrid->EnableGridLines(true);
@@ -68,6 +67,8 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnMapByStrandClick);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridCellLeftDClick);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridCellChange);
+	Connect(ID_GRID1,wxEVT_GRID_EDITOR_HIDDEN,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridEditorHidden);
+	Connect(ID_GRID1,wxEVT_GRID_EDITOR_SHOWN,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridEditorShown);
 	//*)
 }
 
@@ -84,7 +85,11 @@ void LMSImportChannelMapDialog::Init() {
         }
     }
     int sz = ChannelMapGrid->GetColSize(3);
-    ChannelMapGrid->SetColSize(3, sz * 2);
+    ChannelMapGrid->DeleteCols(5, 2);
+    ChannelMapGrid->SetColSize(0, sz * 1.5);
+    ChannelMapGrid->SetColSize(1, sz * 1.5);
+    ChannelMapGrid->SetColSize(2, sz * 1.5);
+    ChannelMapGrid->SetColSize(3, sz * 2.5);
     ChannelMapGrid->SetColSize(4, sz / 2);
     ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     ChannelMapGrid->SetRowLabelSize(0);
@@ -180,14 +185,9 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
     int row = event.GetRow();
     int col = event.GetCol();
     wxString s = ChannelMapGrid->GetCellValue(row, col);
-    for (int x = 0; x < channelNames.size(); x++) {
-        if (s == channelNames[x]) {
-            ChannelMapGrid->SetCellBackgroundColour(channelColors[x].asWxColor(), row, col + 1);
-            MapByStrand->Enable(false);
-            ChannelMapGrid->Refresh();
-            return;
-        }
-    }
+    ChannelMapGrid->SetCellBackgroundColour(channelColors[s].asWxColor(), row, col + 1);
+    MapByStrand->Enable(false);
+    ChannelMapGrid->Refresh();
 }
 
 void LMSImportChannelMapDialog::OnChannelMapGridCellLeftDClick(wxGridEvent& event)
@@ -201,4 +201,18 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellLeftDClick(wxGridEvent& even
         ChannelMapGrid->SetCellBackgroundColour(event.GetRow(), 4, dlg.GetColourData().GetColour());
         ChannelMapGrid->Refresh();
     }
+}
+
+void LMSImportChannelMapDialog::OnChannelMapGridEditorShown(wxGridEvent& event)
+{
+    ModelsChoice->Enable(false);
+    AddModelButton->Enable(false);
+    MapByStrand->Enable(false);
+}
+
+void LMSImportChannelMapDialog::OnChannelMapGridEditorHidden(wxGridEvent& event)
+{
+    ModelsChoice->Enable(true);
+    AddModelButton->Enable(true);
+    MapByStrand->Enable(true);
 }

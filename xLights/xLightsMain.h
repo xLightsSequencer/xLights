@@ -561,6 +561,7 @@ private:
     void OnSetGridIconBackground(wxCommandEvent& event);
     void OnSetGridNodeValues(wxCommandEvent& event);
     void OnMenuItemImportEffects(wxCommandEvent& event);
+    void SetPlaySpeed(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -841,6 +842,10 @@ private:
     static const long ID_MENUITEM17;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM10;
+    static const long ID_PLAY_FULL;
+    static const long ID_PLAY_3_4;
+    static const long ID_PLAY_1_2;
+    static const long ID_PLAY_1_4;
     static const long ID_IMPORT_EFFECTS;
     static const long ID_SEQ_SETTINGS;
     static const long ID_MENUITEM_ICON_SMALL;
@@ -936,6 +941,7 @@ private:
     wxRadioButton* RadioButtonRgbTwinkle10;
     DragEffectBitmapButton* BitmapButton26;
     wxMenuItem* MenuItem_ViewZoomOut;
+    wxMenu* AudioMenu;
     wxPanel* PanelPapagayo;
     DragEffectBitmapButton* BitmapButton32;
     wxRadioButton* RadioButtonChase3;
@@ -1385,6 +1391,8 @@ public:
     wxArrayString ImportTimingElement();
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void ConvertDataRowToEffects(wxCommandEvent &command);
+    void ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime);
+    
     void SetSequenceEnd(int ms);
     void UpdateRenderMode();
     void SetFrequency(int frequency);

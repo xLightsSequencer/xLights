@@ -3123,6 +3123,29 @@
 					</object>
 				</object>
 			</object>
+			<object class="wxMenu" variable="AudioMenu" member="yes">
+				<label>&amp;Audio</label>
+				<object class="wxMenuItem" name="ID_PLAY_FULL" variable="MenuItem8" member="no">
+					<label>Play Full Speed</label>
+					<handler function="SetPlaySpeed" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_PLAY_3_4" variable="MenuItem9" member="no">
+					<label>Play 3/4 Speed</label>
+					<handler function="SetPlaySpeed" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_PLAY_1_2" variable="MenuItem30" member="no">
+					<label>Play 1/2 Speed</label>
+					<handler function="SetPlaySpeed" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_PLAY_1_4" variable="MenuItem31" member="no">
+					<label>Play 1/4 Speed</label>
+					<handler function="SetPlaySpeed" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+			</object>
 			<object class="wxMenu" variable="Menu2" member="no">
 				<label>&amp;Import</label>
 				<object class="wxMenuItem" name="ID_IMPORT_EFFECTS" variable="MenuItem29" member="no">
