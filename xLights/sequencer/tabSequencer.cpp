@@ -1342,8 +1342,8 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
             int len = RampLenColor(x, colors);
             if (len >= 3) {
                 
-                int stime = x * SeqData.FrameTime();
-                int etime = (x+len)*SeqData.FrameTime();
+                int stime = x * frameTime;
+                int etime = (x+len)*frameTime;
                 if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK) {
                     wxImage::HSVValue c = colors[x].asHSV();
                     if (colors[x] == xlBLACK) {
@@ -1391,7 +1391,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
         + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
     for (int x = 0; x < colors.size(); x++) {
         if (lastColor != colors[x]) {
-            int time = x * SeqData.FrameTime();
+            int time = x * frameTime;
             if (lastColor != xlBLACK) {
                 wxString palette = "C_BUTTON_Palette1=" + lastColor + ",C_CHECKBOX_Palette1=1,"
                 + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
