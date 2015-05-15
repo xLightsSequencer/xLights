@@ -87,10 +87,10 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         tcole = hcole;
     }
 
-    int x1a = BufferWi * (start_x1/100.0);
-    int y1a = BufferHt * (start_y1/100.0);
-    int x2a = BufferWi * (end_x1/100.0);
-    int y2a = BufferHt * (end_y1/100.0);
+    int x1a = (BufferWi-1) * (start_x1/100.0);
+    int y1a = (BufferHt-1) * (start_y1/100.0);
+    int x2a = (BufferWi-1) * (end_x1/100.0);
+    int y2a = (BufferHt-1) * (end_y1/100.0);
 
     int x1b, x2b, y1b, y2b;
 
@@ -101,8 +101,8 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     }
     else
     {
-        x1b = BufferWi * (start_x2/100.0);
-        y1b = BufferHt * (start_y2/100.0);
+        x1b = (BufferWi-1) * (start_x2/100.0);
+        y1b = (BufferHt-1) * (start_y2/100.0);
     }
 
     if( end_linked )
@@ -112,8 +112,8 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     }
     else
     {
-        x2b = BufferWi * (end_x2/100.0);
-        y2b = BufferHt * (end_y2/100.0);
+        x2b = (BufferWi-1) * (end_x2/100.0);
+        y2b = (BufferHt-1) * (end_y2/100.0);
     }
 
     xlColor head_color, tail_color, test_color;
@@ -161,39 +161,32 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     double head_duration = duration/100.0;    // time the head is in the frame
     double head_end_of_head_pos = total_length + 1;
     double tail_end_of_head_pos = total_length + 1;
-    double head_end_of_tail_pos = -1.0;
-    double tail_end_of_tail_pos = -1.0;
-    double total_tail_length = 0.0;
-
-    // calculate current size of the head
-    double current_total_head_length = 0.0;
-    double head_loc_pct;
-    double head_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
-
+    double head_end_of_tail_pos = -1;
+    double tail_end_of_tail_pos = -1;
+    double total_tail_length = total_length * (1.0 - head_duration);
+    double eff_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
     if( head_duration > 0.0 )
     {
-        head_loc_pct = head_pos_adj / head_duration;
-        current_total_head_length = end_length * head_loc_pct + start_length * (1.0 - head_loc_pct);  // adjusted head length excluding clipping
+        double head_loc_pct = eff_pos_adj / head_duration;
+        double current_total_head_length = end_length * head_loc_pct + start_length * (1.0 - head_loc_pct);  // adjusted head length excluding clipping
         if( showEntireHeadAtStart )
         {
-            tail_end_of_head_pos = total_length * head_loc_pct;
+            head_end_of_tail_pos = (total_length + total_tail_length) * eff_pos_adj;
         }
         else
         {
-            tail_end_of_head_pos = total_length * head_loc_pct - current_total_head_length;
+            head_end_of_tail_pos = (total_length + total_tail_length + current_total_head_length) * eff_pos_adj;
+            head_end_of_tail_pos -= current_total_head_length;
         }
-        head_end_of_head_pos = tail_end_of_head_pos + current_total_head_length - 1;
-        head_end_of_tail_pos = tail_end_of_head_pos  - step_size;
-        tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length + 1;
-        tail_end_of_tail_pos = (2.0 * head_pos_adj - 1) * total_length;
-        total_tail_length = head_end_of_tail_pos - tail_end_of_tail_pos;
+        tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length;
+        tail_end_of_head_pos = head_end_of_tail_pos + step_size;
+        head_end_of_head_pos = tail_end_of_head_pos + current_total_head_length;
         Get2ColorBlend(hcols, hcole, std::min( head_loc_pct, 1.0), head_color);
     }
     else
     {
-        total_tail_length = total_length;
-        tail_end_of_tail_pos = (2.0 * head_pos_adj - 1) * total_length;
-        head_end_of_tail_pos = tail_end_of_tail_pos + total_tail_length;
+        head_end_of_tail_pos = total_length * 2 * eff_pos_adj;
+        tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length;
     }
 
     // draw the tail
@@ -219,11 +212,5 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         pos_b = v_shtx->size() * pct;
         DrawThickLine( (*v_lngx)[pos_a], (*v_lngy)[pos_a], (*v_shtx)[pos_b], (*v_shty)[pos_b], head_color, direction >= 0);
     }
-
-    // draw head and tail line for debug
-    //Get2ColorBlend(3, 2, 1.0, tail_color);
-    //DrawLine( x1a, y1a, x1b, y1b, tail_color);
-    //Get2ColorBlend(3, 2, 0, tail_color);
-    //DrawLine( x2a, y2a, x2b, y2b, tail_color);
 }
 
