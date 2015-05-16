@@ -179,7 +179,7 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     }
 
     double pos_a, pos_b;
-    double total_tail_length;
+    double total_tail_length, alpha_pct;
     double total_length = v_lngx->size();     // total length of longest vector
     double head_duration = duration/100.0;    // time the head is in the frame
     double head_end_of_head_pos = total_length + 1;
@@ -224,15 +224,34 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
             pos_a = i;
             pos_b = v_shtx->size() * pct;
             double tail_color_pct = (i-tail_end_of_tail_pos) / total_tail_length;
-            double alpha_pct = tail_color_pct;
             if( num_tail_colors > 2 )
             {
                 double color_index = ((double)num_tail_colors - 1.0) * (1.0 - tail_color_pct);
                 tail_color_pct = color_index - (double)((int)color_index);
-                tcole = (int)color_index + 2;
-                tcols = tcole + 1;
+                tcols = (int)color_index + 2;
+                tcole = tcols + 1;
+                if( tcole == num_tail_colors+1 )
+                {
+                    alpha_pct = (1.0 - tail_color_pct);
+                }
+                else
+                {
+                    alpha_pct = 1.0;
+                }
+                Get2ColorBlend(tcols, tcole, tail_color_pct, tail_color);
             }
-            Get2ColorBlend(tcole, tcols, tail_color_pct, tail_color);
+            else
+            {
+                if( tail_color_pct > 0.5 )
+                {
+                    alpha_pct = 1.0;
+                }
+                else
+                {
+                    alpha_pct = tail_color_pct / 0.5;
+                }
+                Get2ColorBlend(tcole, tcols, tail_color_pct, tail_color);
+            }
             if( allowAlpha ) {
                 tail_color.alpha = 255 * alpha_pct;
             }
