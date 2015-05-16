@@ -630,10 +630,10 @@ void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int 
 
 void PixelBufferClass::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2,
                                    int start_length, int end_length, bool start_linked, bool end_linked, int duration, int acceleration, int tail_style,
-                                   bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart ) {
+                                   bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart, int repeat_count, int repeat_skip ) {
     effects[CurrentLayer].RenderMorph(start_x1, start_y1, start_x2, start_y2, end_x1, end_y1, end_x2, end_y2,
                                       start_length, end_length, start_linked, end_linked, duration, acceleration, tail_style,
-                                      useHeadForStartColor, useHeadForEndColor, showEntireHeadAtStart);
+                                      useHeadForStartColor, useHeadForEndColor, showEntireHeadAtStart, repeat_count, repeat_skip);
 }
 
 

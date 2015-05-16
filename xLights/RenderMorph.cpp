@@ -55,13 +55,14 @@ double RgbEffects::calcAccel(double ratio, double accel)
 
 void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2,
                              int start_length, int end_length, bool start_linked, bool end_linked, int duration, int acceleration, int tail_style,
-                             bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart )
+                             bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart, int repeat_count, int repeat_skip )
 {
     double eff_pos = GetEffectTimeIntervalPosition();
     double step_size = 0.1;
 
     int hcols = 0, hcole = 1;
     int tcols = 2, tcole = 3;
+    int num_tail_colors = 2;
     switch (palette.Size()) {
         case 1:  //one color selected, use it for all
             hcols = hcole = tcols = tcole = 0;
@@ -74,6 +75,14 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
             hcols = hcole = 0;
             tcols = 1;
             tcole = 2;
+            break;
+        case 4:
+            break;
+        case 5:
+            num_tail_colors = 3;
+            break;
+        case 6:
+            num_tail_colors = 4;
             break;
     }
 
@@ -119,11 +128,24 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     xlColor head_color, tail_color, test_color;
 
     // compute direction
-    int direction = 0;
-    direction += x2a - x1a;
-    direction += x2b - x1b;
-    direction += y2a - y1a;
-    direction += y2b - y1b;
+    int delta_xa = x2a - x1a;
+    int delta_xb = x2b - x1b;
+    int delta_ya = y2a - y1a;
+    int delta_yb = y2b - y1b;
+    int direction = delta_xa + delta_xb + delta_ya + delta_yb;
+    int repeat_x = 0;
+    int repeat_y = 0;
+    if( repeat_count > 0 )
+    {
+        if( (std::abs(delta_xa) + std::abs(delta_xb)) < (std::abs(delta_ya) + std::abs(delta_yb)) )
+        {
+            repeat_x = repeat_skip;
+        }
+        else
+        {
+            repeat_y = repeat_skip;
+        }
+    }
 
     std::vector<int> v_ax;
     std::vector<int> v_ay;
@@ -157,60 +179,74 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     }
 
     double pos_a, pos_b;
+    double total_tail_length;
     double total_length = v_lngx->size();     // total length of longest vector
     double head_duration = duration/100.0;    // time the head is in the frame
     double head_end_of_head_pos = total_length + 1;
     double tail_end_of_head_pos = total_length + 1;
     double head_end_of_tail_pos = -1;
     double tail_end_of_tail_pos = -1;
-    double total_tail_length = total_length * (1.0 - head_duration);
     double eff_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
+
     if( head_duration > 0.0 )
     {
         double head_loc_pct = eff_pos_adj / head_duration;
+        head_end_of_head_pos = total_length * head_loc_pct;
         double current_total_head_length = end_length * head_loc_pct + start_length * (1.0 - head_loc_pct);  // adjusted head length excluding clipping
+        if( head_loc_pct > 1.0 )
+        {
+            //current_total_head_length = end_length;
+        }
+        head_end_of_head_pos += current_total_head_length * head_loc_pct * head_duration;
+        total_tail_length = total_length * ( 1 / head_duration - 1.0);
         if( showEntireHeadAtStart )
         {
-            head_end_of_tail_pos = (total_length + total_tail_length) * eff_pos_adj;
+            head_end_of_head_pos += current_total_head_length * (1.0 - eff_pos_adj);
         }
-        else
-        {
-            head_end_of_tail_pos = (total_length + total_tail_length + current_total_head_length) * eff_pos_adj;
-            head_end_of_tail_pos -= current_total_head_length;
-        }
+        tail_end_of_head_pos = head_end_of_head_pos - current_total_head_length;
+        head_end_of_tail_pos = tail_end_of_head_pos - step_size;
         tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length;
-        tail_end_of_head_pos = head_end_of_tail_pos + step_size;
-        head_end_of_head_pos = tail_end_of_head_pos + current_total_head_length;
         Get2ColorBlend(hcols, hcole, std::min( head_loc_pct, 1.0), head_color);
     }
     else
     {
+        total_tail_length = total_length;
         head_end_of_tail_pos = total_length * 2 * eff_pos_adj;
         tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length;
     }
 
-    // draw the tail
-    for( double i = std::min(head_end_of_tail_pos, total_length-1); i >= tail_end_of_tail_pos && i >= 0.0; i -= step_size )
+    for( int repeat = 0; repeat <= repeat_count; repeat++ )
     {
-        double pct = ((total_length == 0) ? 0.0 : i / total_length);
-        pos_a = i;
-        pos_b = v_shtx->size() * pct;
-        double tail_color_pct = (i-tail_end_of_tail_pos) / total_tail_length;
-        Get2ColorBlend(tcole, tcols, tail_color_pct, tail_color);
-        palette.GetColor(tcole, test_color);
-        if( allowAlpha ) {
-            tail_color.alpha = 255 * tail_color_pct;
+        // draw the tail
+        for( double i = std::min(head_end_of_tail_pos, total_length-1); i >= tail_end_of_tail_pos && i >= 0.0; i -= step_size )
+        {
+            double pct = ((total_length == 0) ? 0.0 : i / total_length);
+            pos_a = i;
+            pos_b = v_shtx->size() * pct;
+            double tail_color_pct = (i-tail_end_of_tail_pos) / total_tail_length;
+            double alpha_pct = tail_color_pct;
+            if( num_tail_colors > 2 )
+            {
+                double color_index = ((double)num_tail_colors - 1.0) * (1.0 - tail_color_pct);
+                tail_color_pct = color_index - (double)((int)color_index);
+                tcole = (int)color_index + 2;
+                tcols = tcole + 1;
+            }
+            Get2ColorBlend(tcole, tcols, tail_color_pct, tail_color);
+            if( allowAlpha ) {
+                tail_color.alpha = 255 * alpha_pct;
+            }
+            DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), tail_color, direction >= 0);
         }
-        DrawThickLine( (*v_lngx)[pos_a], (*v_lngy)[pos_a], (*v_shtx)[pos_b], (*v_shty)[pos_b], tail_color, direction >= 0);
-    }
 
-    // draw the head
-    for( double i = std::max(tail_end_of_head_pos, 0.0); i <= head_end_of_head_pos && i < total_length; i += step_size )
-    {
-        double pct = ((total_length == 0) ? 0.0 : i / total_length);
-        pos_a = i;
-        pos_b = v_shtx->size() * pct;
-        DrawThickLine( (*v_lngx)[pos_a], (*v_lngy)[pos_a], (*v_shtx)[pos_b], (*v_shty)[pos_b], head_color, direction >= 0);
+        // draw the head
+        for( double i = std::max(tail_end_of_head_pos, 0.0); i <= head_end_of_head_pos && i < total_length; i += step_size )
+        {
+            double pct = ((total_length == 0) ? 0.0 : i / total_length);
+            pos_a = i;
+            pos_b = v_shtx->size() * pct;
+            DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), head_color, direction >= 0);
+        }
     }
 }
 

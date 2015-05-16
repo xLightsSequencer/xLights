@@ -25,7 +25,8 @@ void RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2,
                  int end_x1,   int end_y1,   int end_x2,   int end_y2,
                  int start_length, int end_length, bool start_linked, bool end_linked,
                  int duration, int acceleration, int tail_style,
-                 bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart );
+                 bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart,
+                 int repeat_count, int repeat_skip );
 void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Clipping,
                  const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
 void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool is20fps,

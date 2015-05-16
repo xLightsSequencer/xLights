@@ -787,7 +787,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                             0,                      // int tail_style,
                             SettingsMap["CHECKBOX_MorphUseHeadStartColor"]=="1",
                             SettingsMap["CHECKBOX_MorphUseHeadEndColor"]=="1",
-                            SettingsMap["CHECKBOX_ShowHeadAtStart"]=="1");
+                            SettingsMap["CHECKBOX_ShowHeadAtStart"]=="1",
+                            wxAtoi(SettingsMap["SLIDER_Morph_Repeat_Count"]),
+                            wxAtoi(SettingsMap["SLIDER_Morph_Repeat_Skip"]));
     } else if(effect == "Piano") {
         buffer.RenderPiano(PianoEffectStyles.Index(SettingsMap["CHOICE_Piano_Style"]),
                            wxAtoi(SettingsMap["SLIDER_Piano_NumKeys"]),

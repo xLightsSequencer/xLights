@@ -48,23 +48,23 @@ void DrawGLUtils::DrawCircle(const xlColor &color, double cx, double cy, double 
     } else {
         glColor3ub(color.Red(), color.Green(),color.Blue());
     }
-    
+
     int num_segments = r / 2;
     if (num_segments < 16) {
         num_segments = 16;
     }
     float theta = 2 * 3.1415926 / float(num_segments);
     float tangetial_factor = tanf(theta);//calculate the tangential factor
-    
+
     float radial_factor = cosf(theta);//calculate the radial factor
-    
+
     float x = r;//we start at angle = 0
-    
+
     float y = 0;
-    
+
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(cx, cy); //center vertex
-    
+
     if (etransparency) {
         double t = 100.0 - etransparency;
         t *= 2.56;
@@ -77,23 +77,23 @@ void DrawGLUtils::DrawCircle(const xlColor &color, double cx, double cy, double 
     for(int ii = 0; ii < num_segments; ii++)
     {
         glVertex2f(x + cx, y + cy);//output vertex
-        
+
         //calculate the tangential vector
         //remember, the radial vector is (x, y)
         //to get the tangential vector we flip those coordinates and negate one of them
-        
+
         float tx = -y;
         float ty = x;
-        
+
         //add the tangential vector
-        
+
         x += tx * tangetial_factor;
         y += ty * tangetial_factor;
-        
-        //correct using the radial factor 
-        
-        x *= radial_factor; 
-        y *= radial_factor; 
+
+        //correct using the radial factor
+
+        x *= radial_factor;
+        y *= radial_factor;
     }
     glVertex2f(x + cx, y + cy);//output vertex
     glEnd();
@@ -215,21 +215,21 @@ void DrawGLUtils::DrawHBlendedRectangle(const xlColor &left, const xlColor &righ
     glVertex2f(x2, y1);
     glEnd();
 }
-void DrawGLUtils::DrawHBlendedRectangle(const xlColorVector &colors, int x1, int y1,int x2, int y2) {
+void DrawGLUtils::DrawHBlendedRectangle(const xlColorVector &colors, int x1, int y1,int x2, int y2, int offset) {
     xlColor start;
     xlColor end;
     int cnt = colors.size();
     if (cnt == 0) {
         return;
     }
-    start = colors[0];
+    start = colors[0+offset];
     if (cnt == 1) {
         DrawGLUtils::DrawHBlendedRectangle(start, start, x1, y1, x2, y2);
         return;
     }
     int xl = x1;
-    start = colors[0];
-    for (int x = 1; x < cnt; x++) {
+    start = colors[0+offset];
+    for (int x = 1+offset; x < cnt; x++) {
         end =  colors[x];
         int xr = x1 + (x2 - x1) * x / (cnt  - 1);
         if (x == (cnt - 1)) {

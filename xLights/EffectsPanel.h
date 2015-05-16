@@ -77,6 +77,7 @@ public:
     wxStaticText* StaticText38;
     wxStaticText* StaticText86;
     wxStaticText* StaticText42;
+    wxTextCtrl* TextCtrl_Morph_End_Y2;
     wxBitmapButton* BitmapButton_PicturesSpeed;
     wxScrolledWindow* Panel1_Curtain;
     wxChoice* Choice_Piano_KeyPlacement;
@@ -88,6 +89,7 @@ public:
     wxBitmapButton* BitmapButton_TextPosition4;
     wxButton* Button_Piano_CueFilename;
     wxBitmapButton* BitmapButton_TextCount1;
+    wxTextCtrl* TextCtrl_Morph_Start_Y2;
     wxPanel* Panel_Text2;
     wxChoice* Choice_Curtain_Edge;
     wxSlider* Slider_Spirograph_d;
@@ -130,6 +132,7 @@ public:
     wxBitmapButton* BitmapButton_CurtainSwag;
     wxCheckBox* CheckBox_Shockwave_Blend_Edges;
     wxBitmapButton* BitmapButton_Morph_Start_X2;
+    wxStaticText* StaticText171;
     wxStaticText* StaticText116;
     wxStaticText* StaticText48;
     wxScrolledWindow* Panel1_Faces;
@@ -171,6 +174,7 @@ public:
     wxChoice* Choice_Text_Effect4;
     wxBitmapButton* BitmapButton_LifeSpeed;
     wxBitmapButton* BitmapButton_Strobe_Type;
+    wxBitmapButton* BitmapButton_Morph_Repeat_Count;
     wxScrolledWindow* Panel1_SingleStrand;
     wxStaticText* StaticText166;
     wxSlider* Slider_Garlands_Spacing;
@@ -218,6 +222,7 @@ public:
     wxBitmapButton* BitmapButton_Chase_Spacing1;
     wxSlider* Slider_Fireworks_Count;
     wxBitmapButton* BitmapButton_CurtainEdge;
+    wxChoice* Choice_Morph_QuickSet;
     wxStaticText* StaticText32;
     wxStaticText* StaticText36;
     wxStaticText* StaticText14;
@@ -227,6 +232,7 @@ public:
     wxPanel* Panel5;
     wxStaticText* StaticText56;
     wxStaticText* StaticText8;
+    wxTextCtrl* TextCtrl_Morph_End_X1;
     wxStaticText* StaticText25;
     wxSlider* Slider_Strobe_Type;
     wxStaticText* StaticText15_layout_kludge_1;
@@ -288,11 +294,13 @@ public:
     wxStaticText* StaticText85;
     wxNotebook* Notebook2;
     wxBitmapButton* BitmapButton_GarlandsType;
+    wxTextCtrl* TextCtrl_Morph_Start_X1;
     wxBitmapButton* BitmapButton_random;
     wxBitmapButton* BitmapButton_PinwheelNumberArms;
     wxStaticText* StaticText153;
     wxSlider* Slider_Bars_BarCount;
     wxCheckBox* CheckBox_Morph_End_Link;
+    wxBitmapButton* BitmapButton_Morph_Repeat_Skip;
     wxBitmapButton* BitmapButton_MovieIs20FPS;
     wxStaticText* StaticText127;
     wxBitmapButton* BitmapButton_Morph_End_Y2;
@@ -328,6 +336,7 @@ public:
     wxCheckBox* CheckBox_Chase_Group_All;
     wxStaticText* StaticText40;
     wxBitmapButton* BitmapButton_TwinkleCount;
+    wxTextCtrl* TextCtrl_Morph_Start_X2;
     wxChoice* Choice_Meteors_Effect;
     wxStaticText* StaticText21;
     wxSlider* Slider_Wave_Height;
@@ -337,6 +346,7 @@ public:
     wxSlider* Slider_Text_Position1;
     wxBitmapButton* BitmapButton_Morph_Start_X1;
     wxSlider* Slider_Garlands_Type;
+    wxStaticText* StaticText172;
     wxBitmapButton* BitmapButton_Piano_NumKeys;
     wxBitmapButton* BitmapButton_ShowHeadAtStart;
     wxStaticText* StaticText57;
@@ -373,8 +383,8 @@ public:
     wxScrolledWindow* Panel1_Galaxy;
     wxBitmapButton* BitmapButton_CurtainEffect;
     wxBitmapButton* BitmapButton_Chase_Type1;
-    wxScrolledWindow* Panel1_Fan;
     wxBitmapButton* BitmapButton_Shockwave_End_Radius;
+    wxScrolledWindow* Panel1_Fan;
     wxSlider* Slider_Meteors_Swirl_Intensity;
     wxStaticText* StaticText79;
     wxScrolledWindow* Panel1_Wave;
@@ -398,6 +408,7 @@ public:
     wxChoice* Choice_Butterfly_Direction;
     wxBitmapButton* BitmapButton_Wave_Height;
     wxStaticText* StaticText98;
+    wxTextCtrl* TextCtrl_Morph_Start_Y1;
     wxSlider* Slider_Meteors_Count;
     wxBitmapButton* BitmapButton_TwinkleStrobe;
     wxStaticText* StaticText105;
@@ -433,8 +444,8 @@ public:
     wxChoice* Choice_Faces_Phoneme;
     wxStaticText* StaticText100;
     wxBitmapButton* BitmapButton20;
-    wxScrolledWindow* Panel1_Morph;
     wxBitmapButton* BitmapButton_Shockwave_Start_Width;
+    wxScrolledWindow* Panel1_Morph;
     wxSlider* Slider_Circles_Count;
     wxBitmapButton* BitmapButton_MorphStartLength;
     wxBitmapButton* BitmapButton_FireworksFade;
@@ -485,9 +496,9 @@ public:
     wxBitmapButton* BitmapButton_Galaxy_Duration;
     wxScrolledWindow* Panel1_Shimmer;
     wxStaticText* StaticText47;
+    wxBitmapButton* BitmapButton_Shockwave_End_Width;
     wxBitmapButton* BitmapButton_Shimmer_Use_All_Colors;
     wxCheckBox* CheckBox_Circles_Collide;
-    wxBitmapButton* BitmapButton_Shockwave_End_Width;
     wxStaticText* StaticText69;
     wxStaticText* StaticText3;
     wxSlider* Slider_Life_Seed;
@@ -533,6 +544,7 @@ public:
     wxStaticText* StaticText5;
     wxCheckBox* CheckBox_ShowHeadAtStart;
     wxBitmapButton* BitmapButton_TextEffect2;
+    wxTextCtrl* TextCtrl_Morph_End_X2;
     wxBitmapButton* BitmapButton_Skips_Direction;
     wxBitmapButton* BitmapButton_CirclesSize;
     wxBitmapButton* BitmapButton_MeteorsCount;
@@ -557,6 +569,7 @@ public:
     wxBitmapButton* BitmapButton_Chase_3dFade1;
     wxChoice* Choice_Ripple_Movement;
     wxScrolledWindow* Panel1_Strobe;
+    wxTextCtrl* TextCtrl_Morph_End_Y1;
     wxStaticText* StaticText94;
     wxStaticText* StaticText46;
     wxBitmapButton* BitmapButton_TextDir4;
@@ -877,6 +890,7 @@ protected:
     static const long IDD_TEXTCTRL_MorphStartLength;
     static const long ID_BITMAPBUTTON_SLIDER_MorphStartLength;
     static const long ID_CHECKBOX_Morph_Start_Link;
+    static const long IDD_CHOICE_Morph_QuickSet;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT116;
     static const long ID_SLIDER_Morph_End_X1;
@@ -908,6 +922,14 @@ protected:
     static const long ID_SLIDER_MorphAccel;
     static const long IDD_TEXTCTRL_MorphAccel;
     static const long ID_BITMAPBUTTON_SLIDER_MorphAccel;
+    static const long ID_STATICTEXT97;
+    static const long ID_SLIDER_Morph_Repeat_Count;
+    static const long IDD_TEXTCTRL_Morph_Repeat_Count;
+    static const long ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Count;
+    static const long ID_STATICTEXT156;
+    static const long ID_SLIDER_Morph_Repeat_Skip;
+    static const long IDD_TEXTCTRL_Morph_Repeat_Skip;
+    static const long ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Skip;
     static const long ID_CHECKBOX_ShowHeadAtStart;
     static const long ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart;
     static const long ID_CHECKBOX_MorphUseHeadStartColor;
@@ -1325,6 +1347,7 @@ private:
     void OnChoicePicturesDirectionSelect(wxCommandEvent& event);
     void EffectSelected(wxChoicebookEvent& event);
     void OnColorWashEntireModelClicked(wxCommandEvent& event);
+    void OnChoice_Morph_QuickSetSelect(wxCommandEvent& event);
     //*)
 
     int GetRandomSliderValue(wxSlider* slider);

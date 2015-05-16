@@ -3248,7 +3248,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X1" variable="TextCtrl_Morph_Start_X1" member="no">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X1" variable="TextCtrl_Morph_Start_X1" member="yes">
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
@@ -3288,12 +3288,12 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y1" variable="TextCtrl_Morph_Start_Y1" member="no">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y1" variable="TextCtrl_Morph_Start_Y1" member="yes">
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
 															<style>wxTE_CENTRE</style>
-															<handler function="OnChoicePicturesDirectionSelect" entry="EVT_TEXT" />
+															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -3329,7 +3329,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X2" variable="TextCtrl_Morph_Start_X2" member="no">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X2" variable="TextCtrl_Morph_Start_X2" member="yes">
 															<value>100</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
@@ -3369,7 +3369,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y2" variable="TextCtrl_Morph_Start_Y2" member="no">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y2" variable="TextCtrl_Morph_Start_Y2" member="yes">
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
@@ -3448,6 +3448,41 @@
 														<border>5</border>
 														<option>1</option>
 													</object>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxChoice" name="IDD_CHOICE_Morph_QuickSet" variable="Choice_Morph_QuickSet" member="yes">
+															<content>
+																<item>Morph Quickset Options</item>
+																<item>Full Sweep Up</item>
+																<item>Full Sweep Down</item>
+																<item>Full Sweep Right</item>
+																<item>Full Sweep Left</item>
+																<item>Single Sweep Up</item>
+																<item>Single Sweep Down</item>
+																<item>Single Sweep Right</item>
+																<item>Single Sweep Left</item>
+															</content>
+															<selection>0</selection>
+															<handler function="OnChoice_Morph_QuickSetSelect" entry="EVT_CHOICE" />
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
 												</object>
 											</object>
 											<label>Start</label>
@@ -3474,7 +3509,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X1" variable="TextCtrl_Morph_End_X1" member="no">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X1" variable="TextCtrl_Morph_End_X1" member="yes">
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
@@ -3515,7 +3550,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y1" variable="TextCtrl_Morph_End_Y1" member="no">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y1" variable="TextCtrl_Morph_End_Y1" member="yes">
 															<value>100</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
@@ -3556,7 +3591,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X2" variable="TextCtrl_Morph_End_X2" member="no">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X2" variable="TextCtrl_Morph_End_X2" member="yes">
 															<value>100</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
@@ -3597,7 +3632,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y2" variable="TextCtrl_Morph_End_Y2" member="no">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y2" variable="TextCtrl_Morph_End_Y2" member="yes">
 															<value>100</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
@@ -3733,9 +3768,9 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT124" variable="StaticText124" member="yes">
-																	<label>Acceleration</label>
+																	<label>Acceleration:</label>
 																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -3763,6 +3798,89 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphAccel" variable="BitmapButton_MorphAccel" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT97" variable="StaticText171" member="yes">
+																	<label>Repeat Count:</label>
+																</object>
+																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_Morph_Repeat_Count" variable="Slider_Morph_Repeat_Count" member="no">
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Repeat_Count" variable="TextCtrl_Morph_Repeat_Count" member="no">
+																	<value>0</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<style>wxTE_CENTRE</style>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Count" variable="BitmapButton_Morph_Repeat_Count" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT156" variable="StaticText172" member="yes">
+																	<label>Repeat Skip:</label>
+																</object>
+																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_Morph_Repeat_Skip" variable="Slider_Morph_Repeat_Skip" member="no">
+																	<value>1</value>
+																	<min>1</min>
+																	<max>25</max>
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Repeat_Skip" variable="TextCtrl_Morph_Repeat_Skip" member="no">
+																	<value>1</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<style>wxTE_CENTRE</style>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Skip" variable="BitmapButton_Morph_Repeat_Skip" member="yes">
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

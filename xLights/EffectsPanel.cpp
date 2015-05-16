@@ -375,6 +375,7 @@ const long EffectsPanel::ID_SLIDER_MorphStartLength = wxNewId();
 const long EffectsPanel::IDD_TEXTCTRL_MorphStartLength = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_MorphStartLength = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Morph_Start_Link = wxNewId();
+const long EffectsPanel::IDD_CHOICE_Morph_QuickSet = wxNewId();
 const long EffectsPanel::ID_PANEL4 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT116 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Morph_End_X1 = wxNewId();
@@ -406,6 +407,14 @@ const long EffectsPanel::ID_STATICTEXT124 = wxNewId();
 const long EffectsPanel::ID_SLIDER_MorphAccel = wxNewId();
 const long EffectsPanel::IDD_TEXTCTRL_MorphAccel = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_MorphAccel = wxNewId();
+const long EffectsPanel::ID_STATICTEXT97 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Morph_Repeat_Count = wxNewId();
+const long EffectsPanel::IDD_TEXTCTRL_Morph_Repeat_Count = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Count = wxNewId();
+const long EffectsPanel::ID_STATICTEXT156 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Morph_Repeat_Skip = wxNewId();
+const long EffectsPanel::IDD_TEXTCTRL_Morph_Repeat_Skip = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Skip = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_ShowHeadAtStart = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_MorphUseHeadStartColor = wxNewId();
@@ -858,6 +867,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer120;
     wxSlider* Slider_Eff_On_Start;
     wxFlexGridSizer* FlexGridSizer38;
+    wxTextCtrl* TextCtrl_Morph_Repeat_Skip;
     wxTextCtrl* TextCtrl8;
     wxFontPickerCtrl* FontPickerCtrl3;
     wxFlexGridSizer* FlexGridSizer29;
@@ -879,10 +889,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxTextCtrl* TextCtrl_Pictures_GifSpeed;
     wxFlexGridSizer* FlexGridSizer100;
     wxFontPickerCtrl* FontPickerCtrl4;
-    wxTextCtrl* TextCtrl_Morph_Start_X1;
     wxCheckBox* CheckBox_TextToCenter3;
     wxTextCtrl* TextCtrl20;
-    wxTextCtrl* TextCtrl_Morph_End_X2;
     wxSlider* Slider6;
     wxTextCtrl* TextCtrl_MorphDuration;
     wxTextCtrl* TextCtrl_MorphStartLength;
@@ -918,7 +926,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer65;
     wxPanel* Panel14;
     wxSlider* Slider_Shockwave_End_Width;
-    wxTextCtrl* TextCtrl_Morph_End_Y1;
     wxFlexGridSizer* FlexGridSizer60;
     wxSlider* Slider3;
     wxTextCtrl* TextCtrl_Fan_Num_Elements;
@@ -928,6 +935,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer33;
     wxSlider* Slider_Morph_End_Y1;
     wxSlider* Slider_Fire_HueShift;
+    wxSlider* Slider_Morph_Repeat_Skip;
     wxFlexGridSizer* FlexGridSizer45;
     wxFlexGridSizer* FlexGridSizer102;
     wxPanel* Panel7;
@@ -959,7 +967,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxTextCtrl* TextCtrl_Shockwave_CenterX;
     wxSlider* Slider_Skips_SkipSize;
     wxSlider* Slider_Fan_Element_Width;
-    wxTextCtrl* TextCtrl_Morph_End_Y2;
     wxTextCtrl* TextCtrl_Eff_On_Start;
     wxPanel* Panel10;
     wxTextCtrl* TextCtrl_Fan_Revolutions;
@@ -980,18 +987,15 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxStaticText* StaticText113;
     wxFlexGridSizer* FlexGridSizer77;
     wxFlexGridSizer* FlexGridSizer94;
-    wxTextCtrl* TextCtrl_Morph_Start_X2;
     wxCheckBox* CheckBox1;
     wxPanel* Panel12;
     wxSlider* Slider_Fan_End_Radius;
-    wxTextCtrl* TextCtrl_Morph_End_X1;
     wxTextCtrl* TextCtrl9;
     wxFlexGridSizer* FlexGridSizer81;
     wxSlider* Slider_MorphEndLength;
     wxSlider* Slider_Fan_Revolutions;
     wxSlider* Slider_Morph_Start_Y2;
     wxFlexGridSizer* FlexGridSizer53;
-    wxTextCtrl* TextCtrl_Morph_Start_Y2;
     wxNotebook* Notebook5;
     wxFlexGridSizer* FlexGridSizer46;
     wxFlexGridSizer* FlexGridSizer78;
@@ -1022,7 +1026,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxStaticText* StaticText170;
     wxPanel* MorphPanelEnd;
     wxFlexGridSizer* FlexGridSizer22;
-    wxTextCtrl* TextCtrl_Morph_Start_Y1;
     wxSlider* Slider_Shockwave_Accel;
     wxFlexGridSizer* FlexGridSizer31;
     wxSlider* Slider_Galaxy_Start_Radius;
@@ -1053,6 +1056,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider_Fan_Start_Radius;
     wxTextCtrl* TextCtrl_Fan_Blade_Angle;
     wxTextCtrl* TextCtrl4;
+    wxTextCtrl* TextCtrl_Morph_Repeat_Count;
     wxSlider* Slider_Butterfly_Chunks;
     wxGridBagSizer* GridBagSizer2;
     wxFlexGridSizer* FlexGridSizer26;
@@ -1068,6 +1072,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxStaticText* StaticText_Pictures_YC;
     wxTextCtrl* TextCtrl_Shockwave_Start_Width;
     wxFlexGridSizer* FlexGridSizer76;
+    wxSlider* Slider_Morph_Repeat_Count;
     wxFlexGridSizer* FlexGridSizer20;
     wxFlexGridSizer* GridBagSizerGalaxyStart;
     wxStaticText* StaticText169;
@@ -1096,8 +1101,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxTextCtrl* TextCtrl_Shockwave_Start_Radius;
     wxTextCtrl* TextCtrl19;
     wxFlexGridSizer* FlexGridSizer90;
-    wxSlider* Slider_MorphAccel;
     wxTextCtrl* TextCtrl_Galaxy_End_Radius;
+    wxSlider* Slider_MorphAccel;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer54;
     wxFlexGridSizer* FlexGridSizer24;
@@ -2124,6 +2129,20 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     CheckBox_Morph_Start_Link = new wxCheckBox(MorphPanelStart, ID_CHECKBOX_Morph_Start_Link, _("Link Points"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Morph_Start_Link"));
     CheckBox_Morph_Start_Link->SetValue(false);
     FlexGridSizer86->Add(CheckBox_Morph_Start_Link, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer86->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer86->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer86->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Morph_QuickSet = new wxChoice(MorphPanelStart, IDD_CHOICE_Morph_QuickSet, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("IDD_CHOICE_Morph_QuickSet"));
+    Choice_Morph_QuickSet->SetSelection( Choice_Morph_QuickSet->Append(_("Morph Quickset Options")) );
+    Choice_Morph_QuickSet->Append(_("Full Sweep Up"));
+    Choice_Morph_QuickSet->Append(_("Full Sweep Down"));
+    Choice_Morph_QuickSet->Append(_("Full Sweep Right"));
+    Choice_Morph_QuickSet->Append(_("Full Sweep Left"));
+    Choice_Morph_QuickSet->Append(_("Single Sweep Up"));
+    Choice_Morph_QuickSet->Append(_("Single Sweep Down"));
+    Choice_Morph_QuickSet->Append(_("Single Sweep Right"));
+    Choice_Morph_QuickSet->Append(_("Single Sweep Left"));
+    FlexGridSizer86->Add(Choice_Morph_QuickSet, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     MorphPanelStart->SetSizer(FlexGridSizer86);
     FlexGridSizer86->Fit(MorphPanelStart);
     FlexGridSizer86->SetSizeHints(MorphPanelStart);
@@ -2202,8 +2221,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_MorphDuration = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_SLIDER_MorphDuration, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_MorphDuration"));
     BitmapButton_MorphDuration->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer99->Add(BitmapButton_MorphDuration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText124 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT124, _("Acceleration"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT124"));
-    FlexGridSizer99->Add(StaticText124, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText124 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT124, _("Acceleration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT124"));
+    FlexGridSizer99->Add(StaticText124, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_MorphAccel = new wxSlider(MorphPanelOptions, ID_SLIDER_MorphAccel, 0, -10, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphAccel"));
     FlexGridSizer99->Add(Slider_MorphAccel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_MorphAccel = new wxTextCtrl(MorphPanelOptions, IDD_TEXTCTRL_MorphAccel, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelOptions,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_MorphAccel"));
@@ -2212,6 +2231,26 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_MorphAccel = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_SLIDER_MorphAccel, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_MorphAccel"));
     BitmapButton_MorphAccel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer99->Add(BitmapButton_MorphAccel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText171 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT97, _("Repeat Count:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT97"));
+    FlexGridSizer99->Add(StaticText171, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Morph_Repeat_Count = new wxSlider(MorphPanelOptions, ID_SLIDER_Morph_Repeat_Count, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Repeat_Count"));
+    FlexGridSizer99->Add(Slider_Morph_Repeat_Count, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Morph_Repeat_Count = new wxTextCtrl(MorphPanelOptions, IDD_TEXTCTRL_Morph_Repeat_Count, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelOptions,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Repeat_Count"));
+    TextCtrl_Morph_Repeat_Count->SetMaxLength(3);
+    FlexGridSizer99->Add(TextCtrl_Morph_Repeat_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Morph_Repeat_Count = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Count, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Count"));
+    BitmapButton_Morph_Repeat_Count->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer99->Add(BitmapButton_Morph_Repeat_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText172 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT156, _("Repeat Skip:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT156"));
+    FlexGridSizer99->Add(StaticText172, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Morph_Repeat_Skip = new wxSlider(MorphPanelOptions, ID_SLIDER_Morph_Repeat_Skip, 1, 1, 25, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Repeat_Skip"));
+    FlexGridSizer99->Add(Slider_Morph_Repeat_Skip, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Morph_Repeat_Skip = new wxTextCtrl(MorphPanelOptions, IDD_TEXTCTRL_Morph_Repeat_Skip, _("1"), wxDefaultPosition, wxDLG_UNIT(MorphPanelOptions,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Repeat_Skip"));
+    TextCtrl_Morph_Repeat_Skip->SetMaxLength(3);
+    FlexGridSizer99->Add(TextCtrl_Morph_Repeat_Skip, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Morph_Repeat_Skip = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Skip, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Skip"));
+    BitmapButton_Morph_Repeat_Skip->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer99->Add(BitmapButton_Morph_Repeat_Skip, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer104->Add(FlexGridSizer99, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer105 = new wxFlexGridSizer(0, 2, 0, 0);
     CheckBox_ShowHeadAtStart = new wxCheckBox(MorphPanelOptions, ID_CHECKBOX_ShowHeadAtStart, _("Show Head at Start"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ShowHeadAtStart"));
@@ -3623,7 +3662,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(IDD_TEXTCTRL_Morph_Start_X1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Morph_Start_Y1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
-    Connect(IDD_TEXTCTRL_Morph_Start_Y1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnChoicePicturesDirectionSelect);
+    Connect(IDD_TEXTCTRL_Morph_Start_Y1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Morph_Start_X2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Morph_Start_X2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
@@ -3635,6 +3674,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(IDD_TEXTCTRL_MorphStartLength,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(ID_BITMAPBUTTON_SLIDER_MorphStartLength,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_CHECKBOX_Morph_Start_Link,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_Morph_Start_LinkClick);
+    Connect(IDD_CHOICE_Morph_QuickSet,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnChoice_Morph_QuickSetSelect);
     Connect(ID_SLIDER_Morph_End_X1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Morph_End_X1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(ID_BITMAPBUTTON_SLIDER_Morph_End_X1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
@@ -3657,6 +3697,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_SLIDER_MorphAccel,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_MorphAccel,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(ID_BITMAPBUTTON_SLIDER_MorphAccel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_SLIDER_Morph_Repeat_Count,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
+    Connect(IDD_TEXTCTRL_Morph_Repeat_Count,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(ID_SLIDER_Morph_Repeat_Skip,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
+    Connect(IDD_TEXTCTRL_Morph_Repeat_Skip,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
+    Connect(ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Skip,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_MorphUseHeadStartColor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_MorphUseHeadEndColor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
@@ -4343,4 +4389,98 @@ void EffectsPanel::OnColorWashEntireModelClicked(wxCommandEvent& event)
 {
     bool on = ((wxCheckBox*)event.GetEventObject())->GetValue();
     EnableControl(this, IDD_NOTEBOOK_ColorWashRect, !on);
+}
+
+void EffectsPanel::OnChoice_Morph_QuickSetSelect(wxCommandEvent& event)
+{
+    wxString quickset_choice = Choice_Morph_QuickSet->GetStringSelection();
+    if( quickset_choice == "Full Sweep Up" )
+    {
+        TextCtrl_Morph_Start_X1->SetValue("0");
+        TextCtrl_Morph_Start_X2->SetValue("100");
+        TextCtrl_Morph_End_X1->SetValue("0");
+        TextCtrl_Morph_End_X2->SetValue("100");
+        TextCtrl_Morph_Start_Y1->SetValue("0");
+        TextCtrl_Morph_Start_Y2->SetValue("0");
+        TextCtrl_Morph_End_Y1->SetValue("100");
+        TextCtrl_Morph_End_Y2->SetValue("100");
+    }
+    else if( quickset_choice == "Full Sweep Down" )
+    {
+        TextCtrl_Morph_Start_X1->SetValue("0");
+        TextCtrl_Morph_Start_X2->SetValue("100");
+        TextCtrl_Morph_End_X1->SetValue("0");
+        TextCtrl_Morph_End_X2->SetValue("100");
+        TextCtrl_Morph_Start_Y1->SetValue("100");
+        TextCtrl_Morph_Start_Y2->SetValue("100");
+        TextCtrl_Morph_End_Y1->SetValue("0");
+        TextCtrl_Morph_End_Y2->SetValue("0");
+    }
+    else if( quickset_choice == "Full Sweep Left" )
+    {
+        TextCtrl_Morph_Start_X1->SetValue("100");
+        TextCtrl_Morph_Start_X2->SetValue("100");
+        TextCtrl_Morph_End_X1->SetValue("0");
+        TextCtrl_Morph_End_X2->SetValue("0");
+        TextCtrl_Morph_Start_Y1->SetValue("0");
+        TextCtrl_Morph_Start_Y2->SetValue("100");
+        TextCtrl_Morph_End_Y1->SetValue("0");
+        TextCtrl_Morph_End_Y2->SetValue("100");
+    }
+    else if( quickset_choice == "Full Sweep Right" )
+    {
+        TextCtrl_Morph_Start_X1->SetValue("0");
+        TextCtrl_Morph_Start_X2->SetValue("0");
+        TextCtrl_Morph_End_X1->SetValue("100");
+        TextCtrl_Morph_End_X2->SetValue("100");
+        TextCtrl_Morph_Start_Y1->SetValue("0");
+        TextCtrl_Morph_Start_Y2->SetValue("100");
+        TextCtrl_Morph_End_Y1->SetValue("0");
+        TextCtrl_Morph_End_Y2->SetValue("100");
+    }
+    else if( quickset_choice == "Single Sweep Up" )
+    {
+        TextCtrl_Morph_Start_X1->SetValue("0");
+        TextCtrl_Morph_Start_X2->SetValue("0");
+        TextCtrl_Morph_End_X1->SetValue("0");
+        TextCtrl_Morph_End_X2->SetValue("0");
+        TextCtrl_Morph_Start_Y1->SetValue("0");
+        TextCtrl_Morph_Start_Y2->SetValue("0");
+        TextCtrl_Morph_End_Y1->SetValue("100");
+        TextCtrl_Morph_End_Y2->SetValue("100");
+    }
+    else if( quickset_choice == "Single Sweep Down" )
+    {
+        TextCtrl_Morph_Start_X1->SetValue("0");
+        TextCtrl_Morph_Start_X2->SetValue("0");
+        TextCtrl_Morph_End_X1->SetValue("0");
+        TextCtrl_Morph_End_X2->SetValue("0");
+        TextCtrl_Morph_Start_Y1->SetValue("100");
+        TextCtrl_Morph_Start_Y2->SetValue("100");
+        TextCtrl_Morph_End_Y1->SetValue("0");
+        TextCtrl_Morph_End_Y2->SetValue("0");
+    }
+    else if( quickset_choice == "Single Sweep Left" )
+    {
+        TextCtrl_Morph_Start_X1->SetValue("100");
+        TextCtrl_Morph_Start_X2->SetValue("100");
+        TextCtrl_Morph_End_X1->SetValue("0");
+        TextCtrl_Morph_End_X2->SetValue("0");
+        TextCtrl_Morph_Start_Y1->SetValue("0");
+        TextCtrl_Morph_Start_Y2->SetValue("0");
+        TextCtrl_Morph_End_Y1->SetValue("0");
+        TextCtrl_Morph_End_Y2->SetValue("0");
+    }
+    else if( quickset_choice == "Single Sweep Right" )
+    {
+        TextCtrl_Morph_Start_X1->SetValue("0");
+        TextCtrl_Morph_Start_X2->SetValue("0");
+        TextCtrl_Morph_End_X1->SetValue("100");
+        TextCtrl_Morph_End_X2->SetValue("100");
+        TextCtrl_Morph_Start_Y1->SetValue("0");
+        TextCtrl_Morph_Start_Y2->SetValue("0");
+        TextCtrl_Morph_End_Y1->SetValue("0");
+        TextCtrl_Morph_End_Y2->SetValue("0");
+    }
+    Choice_Morph_QuickSet->SetSelection(0);
 }

@@ -6,26 +6,28 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil) Morph update.  Improved position calculation. Added support for up to 4 tail colors.
+                Added repeat and skip count options. Added choice to quickly create 8 different morph types.
 4.0.31  May 14, 2015
 	-- bug (sean) The songs directories were not being included in the current releases. 37 song directories are now under
-		the songs subdirectory. Remember this directory is located in your "C:\Program Files (x86)\xLights\songs" directory 
+		the songs subdirectory. Remember this directory is located in your "C:\Program Files (x86)\xLights\songs" directory
 		if you are  on Windows
 	-- bugs (Dan and Gil) A couple of bugs that caused crashes have been fixed
 	-- enh (dkulp) Add alpha support to Bars, Meteors, Pinwheel ripple, snowstorm, spirals, strobe, tree, twinkle, snowflakes, shockwave, fireworks
-    -- bug (dkulp Fix pinwheel 3d flags.  
+    -- bug (dkulp Fix pinwheel 3d flags.
 	-- bug (dkulp) Fix ColorWash fades when not on full matrix
 
 4.0.30  May 13, 2015
   NOTES FROM DEVELOPMENT
 	(Dkulp) * Detect ramp up/down when converting to effects
-	(Dkulp) * IF the effects panels are disabled (for example, while rendering and saving), 
+	(Dkulp) * IF the effects panels are disabled (for example, while rendering and saving),
 		we cannot update the effect as disabling the controls changes the effect strings.
 	(Gil) * Draw Timing lines last. This makes a timing grid look better when selecting 25,50ms.
 	(Gil) * Use original effect duration for paste if no timing track is active.
 	(dkulp) * Fix problem of "To Center" checkbox on text always being turned off
 	(dkulp) * Add the alpha channel handling to text effect
 	(dkulp) * Re-render range when effect moves
-	(dkulp) * More slider<->text updates. Dan is adding text boxes to all effects that have sliders. This allows entering exact values	
+	(dkulp) * More slider<->text updates. Dan is adding text boxes to all effects that have sliders. This allows entering exact values
   ISSUES CLOSED in 4.0.29 and 4.0.30. See https://github.com/smeighan/xLights/issues
 		-- 4.0.30  May 13, 2015
 		-- Three channels in Custom Model when selecting 4 Channel RGBW #216
