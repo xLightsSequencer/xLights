@@ -360,6 +360,7 @@ public:
     void ImportSuperStar(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
+    void ImportVix(const wxFileName &filename);
 
 private:
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size, int x_offset, int y_offset);

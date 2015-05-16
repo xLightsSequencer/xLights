@@ -534,7 +534,9 @@ private:
 void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 {
     wxFileDialog file(this, "Choose file to import", "", "",
-                      "SuperStar File (*.sup)|*.sup|\nLOR Music Sequences (*.lms)|*.lms|\nHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
+                      _("SuperStar File (*.sup)|*.sup|\nLOR Music Sequences (*.lms)|*.lms")
+                      + "|\nHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"
+                      + "|\nVixen 2.x Sequence(*.vix)|*.vix");
     if (file.ShowModal() == wxID_OK) {
         wxFileName fn = file.GetPath();
         if (!fn.Exists()) {
@@ -546,6 +548,8 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
             ImportHLS(fn);
         } else if (fn.GetExt() == "sup") {
             ImportSuperStar(fn);
+        } else if (fn.GetExt() == "vix") {
+            ImportVix(fn);
         }
         mainSequencer->PanelEffectGrid->Refresh();
     }
@@ -556,7 +560,7 @@ void MapToStrandName(const wxString &name, wxArrayString &strands) {
     if (name.Contains("_")) {
         int idx = name.Find("_") + 1;
         //maybe map to a strand?  Name_0001, Name_0002... etc...
-        
+
         int ppos = -1;
         int spos = -1;
         for (int x = idx; x < name.size(); x++) {
@@ -576,7 +580,7 @@ void MapToStrandName(const wxString &name, wxArrayString &strands) {
             //more complex of _S###P###
             strandName = name.SubString(0, ppos - 1);
         }
-        if ("" != strandName && std::find(strands.begin(), strands.end(), strandName) == strands.end()) {
+        if ("" != strandName && strands.Index(strandName) == wxNOT_FOUND) {
             strands.push_back(strandName);
         }
     }
@@ -704,23 +708,50 @@ wxString FindHLSStrandName(const wxString &ccrName, int node, const wxArrayStrin
     }
     return "";
 }
-
-void xLightsFrame::ImportHLS(const wxFileName &filename)
-{
+void xLightsFrame::ImportVix(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
-    
+
     wxFileName xml_file(filename);
     wxXmlDocument input_xml;
     wxString xml_doc = xml_file.GetFullPath();
     wxFileInputStream fin(xml_doc);
     FixXMLInputStream bufIn(fin);
-    
+
     if( !input_xml.Load(bufIn) )  return;
-    
+
     LMSImportChannelMapDialog dlg(this);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
-    
+
+    int time = 0;
+    int frameTime = 0;
+    wxXmlNode *totalUniverses = nullptr;
+    for (wxXmlNode* tuniv=input_xml.GetRoot()->GetChildren(); tuniv!=NULL; tuniv=tuniv->GetNext()) {
+        if (tuniv->GetName() == "Time") {
+            time = wxAtoi(tuniv->GetChildren()->GetContent());
+        } else if (tuniv->GetName() == "EventPeriodInMilliseconds") {
+            frameTime = wxAtoi(tuniv->GetChildren()->GetContent());
+        } else if (tuniv->GetName() == "Channels") {
+        }
+    }
+}
+
+void xLightsFrame::ImportHLS(const wxFileName &filename)
+{
+    wxStopWatch sw; // start a stopwatch timer
+
+    wxFileName xml_file(filename);
+    wxXmlDocument input_xml;
+    wxString xml_doc = xml_file.GetFullPath();
+    wxFileInputStream fin(xml_doc);
+    FixXMLInputStream bufIn(fin);
+
+    if( !input_xml.Load(bufIn) )  return;
+
+    LMSImportChannelMapDialog dlg(this);
+    dlg.mSequenceElements = &mSequenceElements;
+    dlg.xlights = this;
+
     /*
      </ChannelData> | </IlluminationData>
      </Channels>
@@ -779,19 +810,19 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
             }
         }
     }
-    
+
     dlg.ccrNames.Sort();
     dlg.ccrNames.Insert("", 0);
-    
+
     dlg.channelNames.Sort();
     dlg.channelNames.Insert("", 0);
-    
+
     dlg.Init();
-    
+
     if (dlg.ShowModal() != wxID_OK) {
         return;
     }
-    
+
     int row = 0;
     for (int m = 0; m < dlg.modelNames.size(); m++) {
         wxString modelName = dlg.modelNames[m];
@@ -809,10 +840,10 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
                                  mc, dlg.MapByStrand->GetValue());
         row++;
-        
+
         for (int str = 0; str < mc.GetNumStrands(); str++) {
             StrandLayer *sl = model->GetStrandLayer(str);
-            
+
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                 if (!dlg.MapByStrand->GetValue()) {
                     MapHLSChannelInformation(this, sl,
@@ -823,17 +854,17 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                     wxString ccrName = dlg.ChannelMapGrid->GetCellValue(row, 3);
                     for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                         EffectLayer *layer = sl->GetNodeLayer(n);
-                        
+
                         wxString nm = FindHLSStrandName(ccrName, n+1, dlg.channelNames);
-                        
+
                         MapHLSChannelInformation(this, layer,
                                                  totalUniverses, frames, frameTime,
                                                  nm,
                                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
                                                  mc, true);
-                        
-                        
-                        
+
+
+
                     }
                 }
             }
@@ -851,8 +882,8 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
             }
         }
     }
-    
-    
+
+
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
@@ -865,7 +896,7 @@ void xLightsFrame::ImportLMS(const wxFileName &filename) {
     wxString xml_doc = xml_file.GetFullPath();
     wxFileInputStream fin(xml_doc);
     FixXMLInputStream bufIn(fin);
-    
+
     if( !input_xml.Load(bufIn) )  return;
     ImportLMS(input_xml);
     float elapsedTime = sw.Time()/1000.0; //msec => sec
@@ -874,7 +905,7 @@ void xLightsFrame::ImportLMS(const wxFileName &filename) {
 void xLightsFrame::ImportSuperStar(const wxFileName &filename)
 {
     SuperStarImportDialog dlg(this);
-    
+
     for(int i=0;i<mSequenceElements.GetElementCount();i++) {
         if(mSequenceElements.GetElement(i)->GetType()== "model") {
             dlg.ChoiceSuperStarImportModel->Append(mSequenceElements.GetElement(i)->GetName());
@@ -1134,7 +1165,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
     LMSImportChannelMapDialog dlg(this);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
-  
+
     for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "channels"){
             for (wxXmlNode* chan=e->GetChildren(); chan!=NULL; chan=chan->GetNext()) {
@@ -1146,7 +1177,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                         wxString color = chan->GetAttribute("color");
                         dlg.channelColors[name] = GetColor(color);
                     }
-                    
+
                     dlg.channelNames.push_back(name);
                     if (chan->GetName() == "rgbChannel" && name.Contains("-P")) {
                         int i = wxAtoi(name.SubString(name.Find("-P") + 2, name.size()));
@@ -1169,7 +1200,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
     if (dlg.ShowModal() != wxID_OK) {
         return false;
     }
-    
+
     int row = 0;
     for (int m = 0; m < dlg.modelNames.size(); m++) {
         wxString modelName = dlg.modelNames[m];
@@ -1185,7 +1216,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                               dlg.ChannelMapGrid->GetCellValue(row, 3),
                               dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), mc);
         row++;
-            
+
         for (int str = 0; str < mc.GetNumStrands(); str++) {
             StrandLayer *sl = model->GetStrandLayer(str);
 
@@ -1205,9 +1236,9 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                                               nm,
                                               dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
                                               mc);
-                        
-                        
-                        
+
+
+
                     }
                 }
             }
@@ -1224,7 +1255,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                 }
             }
         }
-        
+
     }
 
     return true;
