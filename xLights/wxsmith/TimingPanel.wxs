@@ -265,6 +265,7 @@
 													<object class="sizeritem">
 														<object class="wxCheckBox" name="ID_CHECKBOX_FitToTime" variable="CheckBox_FitToTime" member="yes">
 															<label>Fit to time</label>
+															<checked>1</checked>
 															<handler function="OnCheckBox_FitToTimeClick" entry="EVT_CHECKBOX" />
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
