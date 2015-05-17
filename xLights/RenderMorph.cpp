@@ -137,8 +137,9 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         {
             repeat_y = repeat_skip;
         }
-        effect_pct = 1.0 / (1 + (double)stagger/100.0 * repeat_count);
-        stagger_pct = effect_pct * (double)stagger/100.0;
+        double stagger_val = (double)(std::abs(stagger))/100.0;
+        effect_pct = 1.0 / (1 + stagger_val * repeat_count);
+        stagger_pct = effect_pct * stagger_val;
     }
 
     std::vector<int> v_ax;
@@ -184,7 +185,7 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     for( int repeat = 0; repeat <= repeat_count; repeat++ )
     {
         double eff_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
-        double eff_start_pct = stagger_pct*repeat;
+        double eff_start_pct = (stagger >= 0) ? stagger_pct*repeat : stagger_pct*(repeat_count-repeat);
         double eff_end_pct = eff_start_pct + effect_pct;
         eff_pos_adj = (eff_pos_adj - eff_start_pct) / (eff_end_pct - eff_start_pct);
         if( eff_pos_adj < 0.0 )

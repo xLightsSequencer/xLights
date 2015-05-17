@@ -2255,7 +2255,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer99->Add(BitmapButton_Morph_Repeat_Skip, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText173 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT157, _("Stagger:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT157"));
     FlexGridSizer99->Add(StaticText173, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Morph_Stagger = new wxSlider(MorphPanelOptions, ID_SLIDER_Morph_Stagger, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Stagger"));
+    Slider_Morph_Stagger = new wxSlider(MorphPanelOptions, ID_SLIDER_Morph_Stagger, 0, -50, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Stagger"));
     FlexGridSizer99->Add(Slider_Morph_Stagger, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Morph_Stagger = new wxTextCtrl(MorphPanelOptions, IDD_TEXTCTRL_Morph_Stagger, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelOptions,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Stagger"));
     TextCtrl_Morph_Stagger->SetMaxLength(3);
