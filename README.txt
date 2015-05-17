@@ -8,6 +8,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
     -- enh(gil) Morph update.  Improved position calculation. Added support for up to 4 tail colors.
                 Added repeat and skip count options. Added choice to quickly create 8 different morph types.
+                Removed Use Head Start Color for Tail Start and Use Head End Color for Tail End.
+                Added stagger option to allow morph repeats to each have a delay.
 4.0.31  May 14, 2015
 	-- bug (sean) The songs directories were not being included in the current releases. 37 song directories are now under
 		the songs subdirectory. Remember this directory is located in your "C:\Program Files (x86)\xLights\songs" directory

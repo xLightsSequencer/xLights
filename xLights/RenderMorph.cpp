@@ -54,8 +54,8 @@ double RgbEffects::calcAccel(double ratio, double accel)
 }
 
 void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2,
-                             int start_length, int end_length, bool start_linked, bool end_linked, int duration, int acceleration, int tail_style,
-                             bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart, int repeat_count, int repeat_skip )
+                             int start_length, int end_length, bool start_linked, bool end_linked, int duration, int acceleration,
+                             bool showEntireHeadAtStart, int repeat_count, int repeat_skip, int stagger )
 {
     double eff_pos = GetEffectTimeIntervalPosition();
     double step_size = 0.1;
@@ -84,16 +84,6 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         case 6:
             num_tail_colors = 4;
             break;
-    }
-
-    if( useHeadForStartColor )
-    {
-        tcols = hcols;
-    }
-
-    if( useHeadForEndColor )
-    {
-        tcole = hcole;
     }
 
     int x1a = (BufferWi-1) * (start_x1/100.0);
@@ -135,6 +125,8 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     int direction = delta_xa + delta_xb + delta_ya + delta_yb;
     int repeat_x = 0;
     int repeat_y = 0;
+    double effect_pct = 1.0;
+    double stagger_pct = 0.0;
     if( repeat_count > 0 )
     {
         if( (std::abs(delta_xa) + std::abs(delta_xb)) < (std::abs(delta_ya) + std::abs(delta_yb)) )
@@ -145,6 +137,8 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         {
             repeat_y = repeat_skip;
         }
+        effect_pct = 1.0 / (1 + (double)stagger/100.0 * repeat_count);
+        stagger_pct = effect_pct * (double)stagger/100.0;
     }
 
     std::vector<int> v_ax;
@@ -186,37 +180,51 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     double tail_end_of_head_pos = total_length + 1;
     double head_end_of_tail_pos = -1;
     double tail_end_of_tail_pos = -1;
-    double eff_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
-
-    if( head_duration > 0.0 )
-    {
-        double head_loc_pct = eff_pos_adj / head_duration;
-        head_end_of_head_pos = total_length * head_loc_pct;
-        double current_total_head_length = end_length * head_loc_pct + start_length * (1.0 - head_loc_pct);  // adjusted head length excluding clipping
-        if( head_loc_pct > 1.0 )
-        {
-            //current_total_head_length = end_length;
-        }
-        head_end_of_head_pos += current_total_head_length * head_loc_pct * head_duration;
-        total_tail_length = total_length * ( 1 / head_duration - 1.0);
-        if( showEntireHeadAtStart )
-        {
-            head_end_of_head_pos += current_total_head_length * (1.0 - eff_pos_adj);
-        }
-        tail_end_of_head_pos = head_end_of_head_pos - current_total_head_length;
-        head_end_of_tail_pos = tail_end_of_head_pos - step_size;
-        tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length;
-        Get2ColorBlend(hcols, hcole, std::min( head_loc_pct, 1.0), head_color);
-    }
-    else
-    {
-        total_tail_length = total_length;
-        head_end_of_tail_pos = total_length * 2 * eff_pos_adj;
-        tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length;
-    }
 
     for( int repeat = 0; repeat <= repeat_count; repeat++ )
     {
+        double eff_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
+        double eff_start_pct = stagger_pct*repeat;
+        double eff_end_pct = eff_start_pct + effect_pct;
+        eff_pos_adj = (eff_pos_adj - eff_start_pct) / (eff_end_pct - eff_start_pct);
+        if( eff_pos_adj < 0.0 )
+        {
+            head_end_of_head_pos = -1;
+            tail_end_of_head_pos = -1;
+            head_end_of_tail_pos = -1;
+            tail_end_of_tail_pos = -1;
+            total_tail_length = 1.0;
+            if( showEntireHeadAtStart )
+            {
+                head_end_of_head_pos = start_length;
+            }
+        }
+        else
+        {
+            if( head_duration > 0.0 )
+            {
+                double head_loc_pct = eff_pos_adj / head_duration;
+                head_end_of_head_pos = total_length * head_loc_pct;
+                double current_total_head_length = end_length * head_loc_pct + start_length * (1.0 - head_loc_pct);  // adjusted head length excluding clipping
+                head_end_of_head_pos += current_total_head_length * head_loc_pct * head_duration;
+                total_tail_length = total_length * ( 1 / head_duration - 1.0);
+                if( showEntireHeadAtStart )
+                {
+                    head_end_of_head_pos += current_total_head_length * (1.0 - eff_pos_adj);
+                }
+                tail_end_of_head_pos = head_end_of_head_pos - current_total_head_length;
+                head_end_of_tail_pos = tail_end_of_head_pos - step_size;
+                tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length;
+                Get2ColorBlend(hcols, hcole, std::min( head_loc_pct, 1.0), head_color);
+            }
+            else
+            {
+                total_tail_length = total_length;
+                head_end_of_tail_pos = total_length * 2 * eff_pos_adj;
+                tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length;
+            }
+        }
+
         // draw the tail
         for( double i = std::min(head_end_of_tail_pos, total_length-1); i >= tail_end_of_tail_pos && i >= 0.0; i -= step_size )
         {

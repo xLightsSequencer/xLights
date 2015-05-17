@@ -3860,7 +3860,6 @@
 																<object class="wxSlider" name="ID_SLIDER_Morph_Repeat_Skip" variable="Slider_Morph_Repeat_Skip" member="no">
 																	<value>1</value>
 																	<min>1</min>
-																	<max>25</max>
 																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3891,6 +3890,46 @@
 																<border>5</border>
 																<option>1</option>
 															</object>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT157" variable="StaticText173" member="yes">
+																	<label>Stagger:</label>
+																</object>
+																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_Morph_Stagger" variable="Slider_Morph_Stagger" member="no">
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Stagger" variable="TextCtrl_Morph_Stagger" member="no">
+																	<value>0</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<style>wxTE_CENTRE</style>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Stagger" variable="BitmapButton_Morph_Stagger" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -3909,46 +3948,6 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart" variable="BitmapButton_ShowHeadAtStart" member="yes">
-																	<bitmap code="padlock16x16_blue_xpm" />
-																	<size>13,13</size>
-																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_MorphUseHeadStartColor" variable="CheckBox_MorphUseHeadStartColor" member="yes">
-																	<label>Use Head Start Color for Tail Start</label>
-																</object>
-																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MorphUseHeadStartColor" variable="BitmapButton_MorphUseHeadStartColor" member="yes">
-																	<bitmap code="padlock16x16_blue_xpm" />
-																	<size>13,13</size>
-																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_MorphUseHeadEndColor" variable="CheckBox_MorphUseHeadEndColor" member="yes">
-																	<label>Use Head End Color for Tail End</label>
-																</object>
-																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MorphUseHeadEndColor" variable="BitmapButton_MorphUseHeadEndColor" member="yes">
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

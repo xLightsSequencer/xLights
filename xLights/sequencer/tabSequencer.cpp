@@ -946,6 +946,8 @@ public:
         data["E_TEXTCTRL_Pictures_GifSpeed"] = "";
         data["E_TEXTCTRL_PicturesXC"] = "";
         data["E_TEXTCTRL_PicturesYC"] = "";
+        data["E_CHECKBOX_MorphUseHeadStartColor"] = "";
+        data["E_CHECKBOX_MorphUseHeadEndColor"] = "";
 
         data["E_NOTEBOOK_Text1"] = "";
         data["E_TEXTCTRL_Pictures_Filename"] = "E_FILEPICKER_Pictures_Filename";
@@ -1310,7 +1312,7 @@ bool isOnLine(int x1, int y1, int x2, int y2, int x3, int y3) {
     double diffy = y2 - y1;
     double b = y1 - diffy/diffx*x1;
     double ye1 = diffy/diffx*x3 + b;
-    
+
     return (y3 + 1) >= ye1
         && (y3 - 1) <= ye1;
 }
@@ -1322,7 +1324,7 @@ bool isOnLineColor(const xlColor &v1, const xlColor &v2, const xlColor &v3,
     && isOnLine(x, v1.Blue(), x2, v2.Blue(), x3, v3.Blue());
 }
 int RampLenColor(int start, std::vector<xlColor> &colors) {
-    
+
     for (int s = start + 2; s < colors.size(); s++) {
         if (!isOnLineColor(colors[start], colors[s-1], colors[s],
                       start, s-1, s)) {
@@ -1336,12 +1338,12 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
     colors.push_back(xlBLACK);
     int startTime = 0;
     xlColor lastColor(xlBLACK);
-    
+
     for (int x = 0; x < colors.size()-3; x++) {
         if (colors[x] != colors[x + 1]) {
             int len = RampLenColor(x, colors);
             if (len >= 3) {
-                
+
                 int stime = x * frameTime;
                 int etime = (x+len)*frameTime;
                 if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK) {
@@ -1351,7 +1353,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
                     }
                     c.value = 1.0;
                     xlColor c2(c);
-                    
+
                     int i = colors[x].asHSV().value * 100.0;
                     int i2 = colors[x + len - 1].asHSV().value * 100.0;
                     wxString settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2)
@@ -1362,19 +1364,19 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
                         + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
                         + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                    
+
                     layer->AddEffect(0, "On", settings, palette, stime / 1000.0, etime / 1000.0, false, false);
                 } else {
-                    
+
                     wxString settings = _("E_CHECKBOX_ColorWash_EntireModel=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,")
                         + "E_SLIDER_ColorWash_Count=1,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                         + "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
-                    
+
                     wxString palette = "C_BUTTON_Palette1=" + colors[x] + ",C_CHECKBOX_Palette1=1,"
                         + "C_BUTTON_Palette2=" + colors[x + len - 1] + ",C_CHECKBOX_Palette2=1,"
                         + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                    
+
                     layer->AddEffect(0, "Color Wash", settings, palette, stime / 1000.0, etime / 1000.0, false, false);
                 }
                 for (int z = 0; z < len; z++) {
@@ -1384,7 +1386,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
             }
         }
     }
-    
+
     wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
         + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
         + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
@@ -1397,7 +1399,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
                 + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
                 + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                 + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                
+
                 if (time != startTime) {
                     layer->AddEffect(0, "On", settings, palette, startTime / 1000.0, time / 1000.0, false, false);
                 }

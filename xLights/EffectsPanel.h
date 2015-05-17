@@ -70,7 +70,6 @@ public:
     wxNotebook* Notebook1;
     wxBitmapButton* BitmapButton_SpiralsGrow;
     wxChoice* Choice_SingleStrand_Colors;
-    wxBitmapButton* BitmapButton_MorphUseHeadEndColor;
     wxBitmapButton* BitmapButton_Piano_MapFilename;
     wxBitmapButton* BitmapButton_NumberStrobes;
     wxStaticText* StaticText4;
@@ -117,7 +116,6 @@ public:
     wxStaticText* StaticText30;
     wxPanel* Panel1;
     wxButton* Button_Piano_ShapeFilename;
-    wxCheckBox* CheckBox_MorphUseHeadStartColor;
     wxStaticText* StaticText106;
     wxScrolledWindow* Panel1_Circles;
     wxPanel* Panel_Text4;
@@ -136,7 +134,7 @@ public:
     wxStaticText* StaticText116;
     wxStaticText* StaticText48;
     wxScrolledWindow* Panel1_Faces;
-    wxBitmapButton* BitmapButton_MorphUseHeadStartColor;
+    wxStaticText* StaticText173;
     wxStaticText* StaticText37;
     wxCheckBox* CheckBox_Spirlas_Shrink;
     wxChoice* Choice_Butterfly_Colors;
@@ -184,7 +182,6 @@ public:
     wxScrolledWindow* Panel1_Snowflakes;
     wxStaticText* StaticText149;
     wxStaticText* StaticText24;
-    wxCheckBox* CheckBox_MorphUseHeadEndColor;
     wxStaticText* StaticText104;
     wxSlider* Slider_Snowflakes_Count;
     wxBitmapButton* BitmapButton_Wave_MirrorWave;
@@ -504,6 +501,7 @@ public:
     wxSlider* Slider_Life_Seed;
     wxBitmapButton* BitmapButton_Piano_CueFilename;
     wxBitmapButton* BitmapButton_Ripple_Object_To_Draw;
+    wxBitmapButton* BitmapButton_Morph_Stagger;
     wxBitmapButton* BitmapButton_CirclesBounce;
     wxChoice* Choice_CoroFaces_Phoneme;
     wxStaticText* StaticText80;
@@ -930,12 +928,12 @@ protected:
     static const long ID_SLIDER_Morph_Repeat_Skip;
     static const long IDD_TEXTCTRL_Morph_Repeat_Skip;
     static const long ID_BITMAPBUTTON_SLIDER_Morph_Repeat_Skip;
+    static const long ID_STATICTEXT157;
+    static const long ID_SLIDER_Morph_Stagger;
+    static const long IDD_TEXTCTRL_Morph_Stagger;
+    static const long ID_BITMAPBUTTON_SLIDER_Morph_Stagger;
     static const long ID_CHECKBOX_ShowHeadAtStart;
     static const long ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart;
-    static const long ID_CHECKBOX_MorphUseHeadStartColor;
-    static const long ID_BITMAPBUTTON_MorphUseHeadStartColor;
-    static const long ID_CHECKBOX_MorphUseHeadEndColor;
-    static const long ID_BITMAPBUTTON_MorphUseHeadEndColor;
     static const long ID_PANEL30;
     static const long ID_NOTEBOOK_Morph;
     static const long ID_PANEL_Morph;
