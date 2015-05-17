@@ -708,6 +708,28 @@ wxString FindHLSStrandName(const wxString &ccrName, int node, const wxArrayStrin
     }
     return "";
 }
+int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
+
+void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
+                              std::vector<unsigned char> &data,
+                              int frameTime,
+                              int numFrames,
+                              int channel,
+                              wxColor color,
+                              ModelClass &mc) {
+    if (channel == wxNOT_FOUND) {
+        return;
+    }
+    xlColorVector colors(numFrames);
+    xlColor c(color.Red(), color.Green(), color.Blue());
+    wxImage::HSVValue hsv = c.asHSV();
+    for (int x = 0; x < numFrames; x++) {
+        hsv.value = ((double)data[x + numFrames * channel]) / 255.0;
+        colors[x] = hsv;
+    }
+    xlights->ConvertDataRowToEffects(layer, colors, frameTime);
+}
+
 void xLightsFrame::ImportVix(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
 
@@ -722,18 +744,91 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     LMSImportChannelMapDialog dlg(this);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
+    
+    std::vector<unsigned char> data;
+    wxArrayString unsortedChannels;
 
     int time = 0;
     int frameTime = 0;
-    wxXmlNode *totalUniverses = nullptr;
     for (wxXmlNode* tuniv=input_xml.GetRoot()->GetChildren(); tuniv!=NULL; tuniv=tuniv->GetNext()) {
         if (tuniv->GetName() == "Time") {
             time = wxAtoi(tuniv->GetChildren()->GetContent());
         } else if (tuniv->GetName() == "EventPeriodInMilliseconds") {
             frameTime = wxAtoi(tuniv->GetChildren()->GetContent());
         } else if (tuniv->GetName() == "Channels") {
+            for (wxXmlNode* ch=tuniv->GetChildren(); ch!=NULL; ch = ch->GetNext()) {
+                if (ch->GetName() == "Channel") {
+                    wxString name = ch->GetChildren()->GetContent();
+                    unsigned int color = (wxAtoi(ch->GetAttribute("color")) & 0xFFFFFF);
+                    dlg.channelNames.push_back(name);
+                    dlg.channelColors[name] = xlColor(color);
+                    unsortedChannels.push_back(name);
+                }
+            }
+        } else if (tuniv->GetName() == "EventValues") {
+            wxString vals = tuniv->GetChildren()->GetContent();
+            base64_decode(vals, data);
+        }
+
+    }
+    int numFrames = time / frameTime;
+    
+    dlg.ccrNames.Sort();
+    dlg.ccrNames.Insert("", 0);
+    
+    dlg.channelNames.Sort();
+    dlg.channelNames.Insert("", 0);
+    
+    dlg.MapByStrand->Hide();
+    dlg.Init();
+    
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+    
+    int row = 0;
+    for (int m = 0; m < dlg.modelNames.size(); m++) {
+        wxString modelName = dlg.modelNames[m];
+        ModelClass &mc = GetModelClass(modelName);
+        Element * model = nullptr;
+        for (int i=0;i<mSequenceElements.GetElementCount();i++) {
+            if (mSequenceElements.GetElement(i)->GetType() == "model"
+                && modelName == mSequenceElements.GetElement(i)->GetName()) {
+                model = mSequenceElements.GetElement(i);
+            }
+        }
+        MapVixChannelInformation(this, model->GetEffectLayer(0),
+                                 data, frameTime, numFrames,
+                                 unsortedChannels.Index(dlg.ChannelMapGrid->GetCellValue(row, 3)),
+                                 dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
+                                 mc);
+        row++;
+        
+        for (int str = 0; str < mc.GetNumStrands(); str++) {
+            StrandLayer *sl = model->GetStrandLayer(str);
+            
+            if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                    MapVixChannelInformation(this, sl,
+                                             data, frameTime, numFrames,
+                                             unsortedChannels.Index(dlg.ChannelMapGrid->GetCellValue(row, 3)),
+                                             dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), mc);
+            }
+            row++;
+            for (int n = 0; n < mc.GetStrandLength(str); n++) {
+                if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                    MapVixChannelInformation(this, sl->GetNodeLayer(n),
+                                             data, frameTime, numFrames,
+                                             unsortedChannels.Index(dlg.ChannelMapGrid->GetCellValue(row, 3)),
+                                             dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), mc);
+                }
+                row++;
+            }
         }
     }
+    
+
+    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 
 void xLightsFrame::ImportHLS(const wxFileName &filename)

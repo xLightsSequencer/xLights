@@ -13,6 +13,12 @@ public:
         red = green = blue = 0;
         alpha = 255;
     }
+    xlColor(unsigned int rgb) {
+        red = rgb & 0xff;
+        green = (rgb >> 8) & 0xff;
+        blue = (rgb >> 16) & 0xff;
+        alpha = 255;
+    }
     xlColor(unsigned char r, unsigned char g, unsigned char b) {
         red = r;
         green = g;

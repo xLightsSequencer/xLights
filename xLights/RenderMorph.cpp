@@ -129,7 +129,7 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     double stagger_pct = 0.0;
     if( repeat_count > 0 )
     {
-        if( (std::abs(delta_xa) + std::abs(delta_xb)) < (std::abs(delta_ya) + std::abs(delta_yb)) )
+        if( (std::abs((float)delta_xa) + std::abs((float)delta_xb)) < (std::abs((float)delta_ya) + std::abs((float)delta_yb)) )
         {
             repeat_x = repeat_skip;
         }

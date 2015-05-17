@@ -6,6 +6,10 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Add Vixen 2.x to import capability
+    -- enh(dkulp) Add hlsIdata to import capability
+    -- enh(dkulp) Move Import capbability to new Import menu 
+    -- enh(dkulp) Add abiltiy to play audio sequences at 3/4, 1/2, and 1/4 speed
     -- enh(gil) Morph update.  Improved position calculation. Added support for up to 4 tail colors.
                 Added repeat and skip count options. Added choice to quickly create 8 different morph types.
                 Removed Use Head Start Color for Tail Start and Use Head End Color for Tail End.
