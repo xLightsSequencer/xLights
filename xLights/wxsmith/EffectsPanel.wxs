@@ -3900,8 +3900,7 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxSlider" name="ID_SLIDER_Morph_Stagger" variable="Slider_Morph_Stagger" member="no">
-																	<min>-50</min>
-																	<max>50</max>
+																	<min>-100</min>
 																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
