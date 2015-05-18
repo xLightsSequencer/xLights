@@ -461,9 +461,9 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     wxImage::HSVValue hsv;
     int curStep, fadeInSteps, fadeOutSteps;
 
-    double fadeInFactor=1, fadeOutFactor=1;
 
     for(int ii=0; ii < numLayers; ii++) {
+        double fadeInFactor=1, fadeOutFactor=1;
         fadeFactor[ii] = 1.0;
         effects[ii].GetFadeSteps( fadeInSteps, fadeOutSteps);
         if( fadeInSteps > 0 || fadeOutSteps > 0) {

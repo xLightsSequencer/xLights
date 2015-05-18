@@ -104,7 +104,8 @@ void EffectListDialog::OnButton_RenameClick(wxCommandEvent& event)
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
     e->DeleteAttribute("name");
     e->AddAttribute("name",NewName);
-    ListBox1->SetString(sel,NewName);
+    ListBox1->Delete(sel);
+    ListBox1->Append(NewName, e);
 }
 
 void EffectListDialog::OnButton_DeleteClick(wxCommandEvent& event)

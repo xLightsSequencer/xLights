@@ -1828,14 +1828,41 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     bool isPartOfModel = IsPartOfModel(element, num_rows, num_columns, isFull, rect);
 
                     if (isPartOfModel && isFull) {
-                        //Every pixel in the model is specified, we can use a color wash instead of images
+                        //Every pixel in the model is specified, we can use a color wash or on instead of images
+                        
+                        
                         wxString palette = _("C_BUTTON_Palette1=") + startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + endc
                             + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                        wxString settings = _("T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
-                            + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_SLIDER_ColorWash_Count=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
-                            + "E_CHECKBOX_ColorWash_EntireModel=1";
-                        layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
+                        
+                        
+                        if (startc == endc) {
+                            wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
+                                + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
+                                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                            layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
+                        } else if (startc == xlBLACK) {
+                            wxString palette = _("C_BUTTON_Palette1=") + endc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + startc
+                                + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                                + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                            wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0")
+                                + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
+                                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                            layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
+                        } else if (endc == xlBLACK) {
+                            wxString settings = _("E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100")
+                                + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
+                                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                            layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
+                        } else {
+                            wxString settings = _("T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
+                                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_SLIDER_ColorWash_Count=1,E_CHECKBOX_ColorWash_HFade=0,"
+                                + "E_CHECKBOX_ColorWash_VFade=0,E_CHECKBOX_ColorWash_EntireModel=1";
+                            layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
+                        }
                     } else if (isPartOfModel && rect.x != -1) {
                         //forms a simple rectangle, we can use a ColorWash affect for this with a partial rectangle
                         wxString palette = _("C_BUTTON_Palette1=") + startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + endc
@@ -1856,8 +1883,6 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         CalcPercentage(val, num_rows, true, y_offset);
                         settings += ",E_SLIDER_ColorWash_Y2=" + val;
 
-                        printf("scene:  %s     %d %d %d %d\n    %s\n", (const char *)element->GetAttribute("savedIndex"), rect.x, rect.y, rect.width, rect.height,
-                               (const char *)settings);
                         settings = _("T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
                             + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_SLIDER_ColorWash_Count=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
                             + "E_CHECKBOX_ColorWash_EntireModel=0" + settings;

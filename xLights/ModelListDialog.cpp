@@ -228,9 +228,19 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
     while (DlgResult == wxID_OK && !ok);
     if (DlgResult != wxID_OK) return;
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
+    
+    wxString attr;
+    e->GetAttribute("name", &attr);
+
+    Element* elem_to_rename = mSequenceElements->GetElement(attr);
+    if( elem_to_rename != NULL )
+    {
+        elem_to_rename->SetName(NewName);
+    }
     e->DeleteAttribute("name");
     e->AddAttribute("name",NewName);
-    ListBox1->SetString(sel,NewName);
+    ListBox1->Delete(sel);
+    ListBox1->Append(NewName, e);
 }
 
 void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)

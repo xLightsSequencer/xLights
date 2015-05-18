@@ -118,7 +118,11 @@ ModelClass &xLightsFrame::GetModelClass(const wxString& name) {
             model = CreateModelNodeFromGroup(name);
         }
         cls = new ModelClass();
-        cls->SetFromXml(model);
+        if (model == nullptr) {
+            wxMessageBox("Could not find a model or group named " + name);
+        } else {
+            cls->SetFromXml(model);
+        }
         AllModels[name].reset(cls);
     }
     return *cls;

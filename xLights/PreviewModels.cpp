@@ -239,12 +239,14 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
                 ModelsInGroup += ListBoxModelsInGroup->GetString(i);
             }
         }
-        ListBoxModelGroups->SetString(ListBoxModelGroups->GetSelection(),TextModelGroupName->GetValue());
+        
         e=(wxXmlNode*)(ListBoxModelGroups->GetClientData(ListBoxModelGroups->GetSelection()));
         e->DeleteAttribute("name");
         e->AddAttribute("name",TextModelGroupName->GetValue());
         e->DeleteAttribute("models");
         e->AddAttribute("models",ModelsInGroup);
+        ListBoxModelGroups->Delete(ListBoxModelGroups->GetSelection());
+        ListBoxModelGroups->Append(TextModelGroupName->GetValue(), e);
     }
 }
 
