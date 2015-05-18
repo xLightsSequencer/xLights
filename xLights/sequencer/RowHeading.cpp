@@ -7,14 +7,9 @@
 
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
-//EVT_MOTION(RowHeading::mouseMoved)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
-//EVT_LEFT_UP(RowHeading::mouseLeftUp)
-//EVT_LEAVE_WINDOW(RowHeading::mouseLeftWindow)
 EVT_RIGHT_DOWN(RowHeading::rightClick)
-//EVT_KEY_DOWN(RowHeading::keyPressed)
-//EVT_KEY_UP(RowHeading::keyReleased)
-//EVT_MOUSEWHEEL(RowHeading::mouseWheelMoved)
+EVT_LEFT_DCLICK(RowHeading::leftDoubleClick)
 EVT_PAINT(RowHeading::render)
 END_EVENT_TABLE()
 
@@ -89,7 +84,39 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
         }
     }
 }
+void RowHeading::leftDoubleClick(wxMouseEvent& event)
+{
+    mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
+    if (mSelectedRow >= mSequenceElements->GetRowInformationSize()) {
+        return;
+    }
+    Row_Information_Struct *ri =  mSequenceElements->GetRowInformation(mSelectedRow);
+    Element* element = ri->element;
 
+    if (element->GetType()=="model") {
+        if (ri->strandIndex == -1) {
+            //dbl click on model
+            if (element->getStrandLayerCount() == 1) {
+                element->GetStrandLayer(0)->ShowNodes(true);
+                element->ShowStrands(!element->ShowStrands());
+            } else {
+                element->ShowStrands(!element->ShowStrands());
+            }
+        } else if (ri->nodeIndex >= 0) {
+            //dbl click on node
+            if (element->getStrandLayerCount() == 1) {
+                element->ShowStrands(!element->ShowStrands());
+            } else {
+                element->GetStrandLayer(ri->strandIndex)->ShowNodes(!element->GetStrandLayer(ri->strandIndex)->ShowNodes());
+            }
+        } else {
+            //dbl click on strand
+            element->GetStrandLayer(ri->strandIndex)->ShowNodes(!element->GetStrandLayer(ri->strandIndex)->ShowNodes());
+        }
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    }
+}
 void RowHeading::rightClick( wxMouseEvent& event)
 {
     wxMenu *mnuLayer;

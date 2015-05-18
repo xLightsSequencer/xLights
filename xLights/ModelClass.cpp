@@ -839,7 +839,10 @@ void ModelClass::InitStar() {
             if (!SingleNode) {
                 n = start + cnt;
             } else {
-                n = 0;
+                n = cur;
+                if (n >= Nodes.size()) {
+                    n = Nodes.size() - 1;
+                }
             }
             if (Nodes[n]->StringNum != LastStringNum) {
                 LastStringNum=Nodes[n]->StringNum;

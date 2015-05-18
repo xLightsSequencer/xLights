@@ -39,6 +39,7 @@ class RowHeading : public wxWindow
         void render( wxPaintEvent& event );
         void mouseLeftDown( wxMouseEvent& event);
         void rightClick( wxMouseEvent& event);
+        void leftDoubleClick(wxMouseEvent &event);
         void OnLayerPopup(wxCommandEvent& event);
         void DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row);
         bool HitTestCollapseExpand(int row,int x, bool* IsCollapsed);
