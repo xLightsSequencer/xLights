@@ -47,6 +47,8 @@ class LMSImportChannelMapDialog: public wxDialog
 		static const long ID_BUTTON_ADDMODEL;
 		static const long ID_CHECKBOX1;
 		static const long ID_GRID1;
+		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
 		//*)
 
 	private:
@@ -61,6 +63,8 @@ class LMSImportChannelMapDialog: public wxDialog
 		void OnChannelMapGridCellLeftDClick(wxGridEvent& event);
 		void OnChannelMapGridEditorShown(wxGridEvent& event);
 		void OnChannelMapGridEditorHidden(wxGridEvent& event);
+		void LoadMapping(wxCommandEvent& event);
+		void SaveMapping(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

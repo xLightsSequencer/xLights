@@ -137,7 +137,7 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         {
             repeat_y = repeat_skip;
         }
-        double stagger_val = (double)(std::abs(stagger))/200.0;
+        double stagger_val = (double)(std::abs((double)stagger))/200.0;
         effect_pct = 1.0 / (1 + stagger_val * repeat_count);
         stagger_pct = effect_pct * stagger_val;
     }

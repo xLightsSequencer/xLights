@@ -3,6 +3,9 @@
 #include "xLightsMain.h"
 #include "ModelClass.h"
 
+#include <wx/wfstream.h>
+#include <wx/txtstrm.h>
+
 //(*InternalHeaders(LMSImportChannelMapDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -13,6 +16,8 @@ const long LMSImportChannelMapDialog::ID_CHOICE1 = wxNewId();
 const long LMSImportChannelMapDialog::ID_BUTTON_ADDMODEL = wxNewId();
 const long LMSImportChannelMapDialog::ID_CHECKBOX1 = wxNewId();
 const long LMSImportChannelMapDialog::ID_GRID1 = wxNewId();
+const long LMSImportChannelMapDialog::ID_BUTTON1 = wxNewId();
+const long LMSImportChannelMapDialog::ID_BUTTON2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(LMSImportChannelMapDialog,wxDialog)
@@ -24,6 +29,9 @@ END_EVENT_TABLE()
 LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(LMSImportChannelMapDialog)
+	wxButton* Button1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxButton* Button2;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
@@ -54,11 +62,19 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	ChannelMapGrid->SetDefaultCellFont( ChannelMapGrid->GetFont() );
 	ChannelMapGrid->SetDefaultCellTextColour( ChannelMapGrid->GetForegroundColour() );
 	Sizer->Add(ChannelMapGrid, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 5, 0, 0);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
 	StdDialogButtonSizer1->Realize();
-	Sizer->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button1 = new wxButton(this, ID_BUTTON1, _("Load Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer2->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button2 = new wxButton(this, ID_BUTTON2, _("Save Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer2->Add(Button2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(Sizer);
 	Sizer->Fit(this);
 	Sizer->SetSizeHints(this);
@@ -69,6 +85,8 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridCellChange);
 	Connect(ID_GRID1,wxEVT_GRID_EDITOR_HIDDEN,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridEditorHidden);
 	Connect(ID_GRID1,wxEVT_GRID_EDITOR_SHOWN,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridEditorShown);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LMSImportChannelMapDialog::LoadMapping);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LMSImportChannelMapDialog::SaveMapping);
 	//*)
 }
 
@@ -99,14 +117,18 @@ void LMSImportChannelMapDialog::Init() {
 
 void LMSImportChannelMapDialog::SetupByNode() {
     MapByStrand->SetValue(false);
-    ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
+    if (ChannelMapGrid->GetNumberRows()) {
+        ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
+    }
     for (int x = 0; x < modelNames.size(); x++) {
         AddModel(xlights->GetModelClass(modelNames[x]));
     }
 }
 void LMSImportChannelMapDialog::SetupByStrand() {
     MapByStrand->SetValue(true);
-    ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
+    if (ChannelMapGrid->GetNumberRows()) {
+        ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
+    }
     for (int x = 0; x < modelNames.size(); x++) {
         AddModel(xlights->GetModelClass(modelNames[x]));
     }
@@ -185,7 +207,7 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
     int row = event.GetRow();
     int col = event.GetCol();
     wxString s = ChannelMapGrid->GetCellValue(row, col);
-    ChannelMapGrid->SetCellBackgroundColour(channelColors[s].asWxColor(), row, col + 1);
+    ChannelMapGrid->SetCellBackgroundColour(channelColors[s].asWxColor(), row, 4);
     MapByStrand->Enable(false);
     ChannelMapGrid->Refresh();
 }
@@ -215,4 +237,96 @@ void LMSImportChannelMapDialog::OnChannelMapGridEditorHidden(wxGridEvent& event)
     ModelsChoice->Enable(true);
     AddModelButton->Enable(true);
     MapByStrand->Enable(true);
+}
+
+wxString FindTab(wxString &line) {
+    for (int x = 0; x < line.size(); x++) {
+        if (line[x] == '\t') {
+            wxString first = line.SubString(0, x - 1);
+            line = line.SubString(x+1, line.size());
+            return first;
+        }
+    }
+    return line;
+}
+void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
+{
+    wxFileDialog dlg(this);
+    if (dlg.ShowModal() == wxID_OK) {
+        for (int x = 0; x <  modelNames.size(); x++) {
+            ModelsChoice->Append(modelNames[x]);
+        }
+        wxFileInputStream input(dlg.GetPath());
+        wxTextInputStream text(input, "\t");
+        MapByStrand->SetValue("true" == text.ReadLine());
+        int count = wxAtoi(text.ReadLine());
+        modelNames.clear();
+        for (int x = 0; x < count; x++) {
+            wxString mn = text.ReadLine();
+            int idx = ModelsChoice->FindString(mn);
+            if (idx == wxNOT_FOUND) {
+                wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model.", "", wxICON_WARNING | wxOK , this);
+            } else {
+                ModelsChoice->Delete(idx);
+                modelNames.push_back(mn);
+            }
+        }
+        if (MapByStrand->GetValue()) {
+            SetupByStrand();
+        } else {
+            SetupByNode();
+        }
+        wxString line = text.ReadLine();
+        int r = 0;
+        while (line != "") {
+            
+            wxString model = FindTab(line);
+            wxString strand = FindTab(line);
+            wxString node = FindTab(line);
+            wxString mapping = FindTab(line);
+            xlColor color(FindTab(line));
+            
+            if (modelNames.Index(model) != wxNOT_FOUND) {
+                while (model != ChannelMapGrid->GetCellValue(r, 0)
+                       && r < ChannelMapGrid->GetRows()) {
+                    r++;
+                }
+                
+                if (model != ChannelMapGrid->GetCellValue(r, 0)
+                    || strand != ChannelMapGrid->GetCellValue(r, 1)
+                    || node !=  ChannelMapGrid->GetCellValue(r, 2)) {
+                    wxMessageBox(model + "/"+strand+"/"+node+ " not found.  Has the models changed?", "", wxICON_WARNING | wxOK , this);
+                } else {
+                    ChannelMapGrid->SetCellValue(r, 3, mapping);
+                    ChannelMapGrid->SetCellBackgroundColour(r, 4, color.asWxColor());
+                }
+                r++;
+            }
+            line = text.ReadLine();
+        }
+    }
+}
+
+void LMSImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
+{
+    wxFileDialog dlg(this, wxFileSelectorPromptStr, wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (dlg.ShowModal() == wxID_OK) {
+        wxFileOutputStream output(dlg.GetPath());
+        wxTextOutputStream text(output);
+        text.WriteString(MapByStrand->GetValue()?"true\n":"false\n");
+        text.WriteString(wxString::Format("%d\n", modelNames.size()));
+        for (int x = 0; x <  modelNames.size(); x++) {
+            text.WriteString(modelNames[x] + "\n");
+        }
+        for (int x = 0; x < ChannelMapGrid->GetRows(); x++) {
+            wxColor wxc = ChannelMapGrid->GetCellBackgroundColour(x, 4);
+            xlColor c(wxc.GetRGB());
+            text.WriteString(ChannelMapGrid->GetCellValue(x, 0)
+                             + "\t" + ChannelMapGrid->GetCellValue(x, 1)
+                             + "\t" + ChannelMapGrid->GetCellValue(x, 2)
+                             + "\t" + ChannelMapGrid->GetCellValue(x, 3)
+                             + "\t" + c + "\n");
+        }
+        
+    }
 }
