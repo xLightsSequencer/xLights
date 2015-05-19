@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.32  May 19, 2015
     -- bug(dkulp) Rename the element in the loaded sequence on model rename.  Fixes #223
     -- bug(dkulp) Fix problem with overlapping effects that both specify fadein or outs causing interference
     -- enh(dkulp) Use On effect for scenes when possible instead of colorwash
@@ -22,6 +23,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
                 Added repeat and skip count options. Added choice to quickly create 8 different morph types.
                 Removed Use Head Start Color for Tail Start and Use Head End Color for Tail End.
                 Added stagger option to allow morph repeats to each have a delay.
+	-- enh(gil) Morph: * Finer resolution for stagger option. * Allow negative stagger for morph.
 4.0.31  May 14, 2015
 	-- bug (sean) The songs directories were not being included in the current releases. 37 song directories are now under
 		the songs subdirectory. Remember this directory is located in your "C:\Program Files (x86)\xLights\songs" directory
