@@ -1516,7 +1516,7 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
     }
     int numPeriods=f.Length()/16384;
 
-    params.seq_data.init(params.seq_data.NumChannels(),numPeriods,50);
+    params.seq_data.init(16384, numPeriods, 50);
     while (f.Read(row,16384) == 16384)
     {
         wxYield();
@@ -1595,7 +1595,8 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
         params.xLightsParent->SetMediaFilename(mf);
     }
 
-    falconPeriods = (f.Length() - dataOffset) / numChannels;
+    falconPeriods = 0;
+    if (numChannels > 0) falconPeriods = (f.Length() - dataOffset) / numChannels;
     if( params.data_layer != nullptr )
     {
         params.data_layer->SetNumFrames(falconPeriods);

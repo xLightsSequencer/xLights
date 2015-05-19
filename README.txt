@@ -6,6 +6,14 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(dkulp) Rename the element in the loaded sequence on model rename.  Fixes #223
+    -- bug(dkulp) Fix problem with overlapping effects that both specify fadein or outs causing interference
+    -- enh(dkulp) Use On effect for scenes when possible instead of colorwash
+    -- bug(dkulp) Don't call SetString on a sorted listbox.  Fixes #217
+    -- bug(dkulp) Fix an issue with multi level stars with Single Channel types
+    -- enh(dkulp) Add double-click to row headering for expand/collapse strand/nodes
+    -- bug(dkulp) Fix RGBW
+    -- bug(dkulp) Fix crash on import of Conductor file.  Fixes #226
     -- enh(dkulp) Add Vixen 2.x to import capability
     -- enh(dkulp) Add hlsIdata to import capability
     -- enh(dkulp) Move Import capbability to new Import menu 

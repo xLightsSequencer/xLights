@@ -310,9 +310,10 @@ private:
             } else {
                 for (int x = 0; x < 3; x++) {
                     if (offsets[x] != 255) {
-                        c[x] = buf[offsets[x]];
+                        buf[offsets[x]] = c[x];
                     }
                 }
+                buf[3] = 0;
             }
         }
         virtual wxString GetNodeType() {

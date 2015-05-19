@@ -6,9 +6,10 @@ namespace DrawGLUtils
 
     void DrawCircle(const xlColor &color, double x, double y, double r, int ctransparency = 0, int etransparency = 0);
 
-    void StartPoints(const xlColor &color, int transparency = 0);
-    void AddPoint(wxDouble x, wxDouble y);
-    void EndPoints();
+    /* Methods to hold vertex informaton (x, y, color) in an array until End is called where they are all
+       draw out to the context in very few calls) */
+    void AddVertex(wxDouble x, wxDouble y, const xlColor &c, int transparency = 0);
+    void End(int type, bool reset = true);
 
     void DrawLine(const xlColor &color, wxByte alpha,int x1, int y1,int x2, int y2,float width);
     void DrawRectangle(const xlColor &color, bool dashed, int x1, int y1,int x2, int y2);

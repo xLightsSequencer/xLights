@@ -29,6 +29,8 @@
 #include "TimeLine.h"
 #include <wx/file.h>
 
+#include "DrawGLUtils.h"
+
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(Waveform, xlGLCanvas)
@@ -398,7 +400,6 @@ void Waveform::renderGL( wxPaintEvent& event )
 
 void Waveform::DrawWaveView(const WaveView &wv)
 {
-    int y1,y2,y1_2,y2_2;
     int index;
     glColor3ub(212,208,200);
     glBegin(GL_QUADS);
@@ -448,8 +449,8 @@ void Waveform::DrawWaveView(const WaveView &wv)
         
         glPointSize( translateToBacking(1.1) );
         glLineWidth( 1 );
-        glColor3ub(130,178,207);
-        glBegin(GL_TRIANGLE_STRIP);
+        xlColor c(130,178,207,255);
+        
         std::vector<double> vertexes;
         vertexes.resize(mWindowWidth * 2);
 
@@ -460,27 +461,25 @@ void Waveform::DrawWaveView(const WaveView &wv)
             {
                 double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
                 double y2 = ((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                glVertex2f(x,y1);
-                glVertex2f(x,y2);
+                DrawGLUtils::AddVertex(x, y1, c);
+                DrawGLUtils::AddVertex(x, y2, c);
                 vertexes[x * 2] = y1;
                 vertexes[x * 2 + 1] = y2;
             }
         }
-        glEnd();
-
-        glBegin(GL_LINE_STRIP);
-        glColor3ub(255,255,255);
+        DrawGLUtils::End(GL_TRIANGLE_STRIP);
+        
         for(int x=0;x<mWindowWidth-1 && (x)<wv.MinMaxs.size();x++)
         {
-            glVertex2f(x, vertexes[x * 2]);
+            DrawGLUtils::AddVertex(x, vertexes[x * 2], xlWHITE);
         }
         for(int x=mWindowWidth;x >= 0 ; x--)
         {
             if (x<wv.MinMaxs.size()) {
-                glVertex2f(x, vertexes[x * 2 + 1]);
+                DrawGLUtils::AddVertex(x, vertexes[x * 2 + 1], xlWHITE);
             }
         }
-        glEnd();
+        DrawGLUtils::End(GL_LINE_STRIP);
     }
 
     // draw selection line if not a range

@@ -1565,7 +1565,6 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
     int h1 = int(offsetYpct*h);
 
     bool started = false;
-    xlColor lastColor;
 
     int first = 0; int last = NodeCount;
     int buffFirst = -1; int buffLast = -1;
@@ -1594,18 +1593,6 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         if (c == NULL) {
             Nodes[n]->GetColor(color);
         }
-        if (pixelStyle < 2 && (!started || lastColor != color)) {
-             if (started) {
-                 DrawGLUtils::EndPoints();
-             }
-             if (color == xlBLACK) {
-                 DrawGLUtils::StartPoints(color, blackTransparency);
-             } else {
-                 DrawGLUtils::StartPoints(color, transparency);
-             }
-            started = true;
-            lastColor = color;
-        }
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
             // draw node on screen
@@ -1614,7 +1601,8 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
             sx = (sx*scalex)+w1;
             sy = (sy*scaley)+h1;
             if (pixelStyle < 2) {
-                DrawGLUtils::AddPoint(sx,sy);
+                started = true;
+                DrawGLUtils::AddVertex(sx,sy,color, color == xlBLACK ? blackTransparency : transparency);
             } else {
                 int trans = transparency;
                 if (color == xlBLACK) {
@@ -1626,7 +1614,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         }
     }
     if (started) {
-        DrawGLUtils::EndPoints();
+        DrawGLUtils::End(GL_POINTS);
     }
     if (pixelStyle == 1) {
         glDisable(GL_POINT_SMOOTH);
@@ -1720,7 +1708,6 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
         // layer calculation and map to output
         size_t NodeCount=Nodes.size();
         double sx,sy;
-        xlColor lastColor;
         bool started = false;
         int first = 0; int last = NodeCount;
         int buffFirst = -1; int buffLast = -1;
@@ -1748,18 +1735,6 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
             }
 
             Nodes[n]->GetColor(color);
-            if (pixelStyle < 2 && (!started || lastColor != color)) {
-                if (started) {
-                    DrawGLUtils::EndPoints();
-                }
-                if (color == xlBLACK) {
-                    DrawGLUtils::StartPoints(color, blackTransparency);
-                } else {
-                    DrawGLUtils::StartPoints(color, transparency);
-                }
-                started = true;
-                lastColor = color;
-            }
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++) {
                 // draw node on screen
@@ -1768,7 +1743,8 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
                 
                 double newsy = ((sy*scale)+(h/2));
                 if (pixelStyle < 2) {
-                    DrawGLUtils::AddPoint((sx*scale)+(w/2), newsy);
+                    DrawGLUtils::AddVertex((sx*scale)+(w/2), newsy, color, color == xlBLACK ? blackTransparency : transparency);
+                    started = true;
                 } else {
                     int trans = transparency;
                     if (color == xlBLACK) {
@@ -1780,7 +1756,7 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
             }
         }
         if (started) {
-            DrawGLUtils::EndPoints();
+            DrawGLUtils::End(GL_POINTS);
         }
         preview->EndDrawing();
     }
