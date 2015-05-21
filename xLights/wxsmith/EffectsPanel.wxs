@@ -150,6 +150,14 @@
 									<border>2</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_On_Shimmer" variable="CheckBox2" member="no">
+										<label>Shimmer</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>On</label>
@@ -983,12 +991,28 @@
 										<cols>1</cols>
 										<growablecols>0</growablecols>
 										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_EntireModel" variable="ColorWashEntireModelCheckbox" member="no">
-												<label>Entire Model</label>
-												<checked>1</checked>
-												<handler function="OnColorWashEntireModelClicked" entry="EVT_CHECKBOX" />
+											<object class="wxFlexGridSizer" variable="FlexGridSizer124" member="no">
+												<cols>3</cols>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_EntireModel" variable="ColorWashEntireModelCheckbox" member="no">
+														<label>Entire Model</label>
+														<checked>1</checked>
+														<handler function="OnColorWashEntireModelClicked" entry="EVT_CHECKBOX" />
+													</object>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_Shimmer" variable="CheckBox3" member="no">
+														<label>Shimmer</label>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
 											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>

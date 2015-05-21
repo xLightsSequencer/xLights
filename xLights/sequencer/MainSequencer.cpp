@@ -416,7 +416,7 @@ void MainSequencer::InsertTimingMarkFromRange()
         {
             Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
             EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
-            int index,result;
+            int index;
             if(!el->HitTestEffectByTime(t1,index) && !el->HitTestEffectByTime(t2,index))
             {
                 wxString name,settings;
@@ -433,7 +433,7 @@ void MainSequencer::InsertTimingMarkFromRange()
             // x1 and x2 are the same. Insert from end time of timing to the left to x2
             Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
             EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
-            int index,result;
+            int index;
             if(!el->HitTestEffectByTime(t2,index))
             {
                 // if there is an effect to left
@@ -480,7 +480,7 @@ void MainSequencer::SplitTimingMark()
     {
         Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
         EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
-        int index1,index2,result;
+        int index1,index2;
         double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(x1);
         double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
         if(el->HitTestEffectByTime(t1,index1) && el->HitTestEffectByTime(t2,index2))

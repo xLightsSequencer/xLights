@@ -29,12 +29,21 @@
 #include "RgbEffects.h"
 
 void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
-                                 bool EntireModel, int x1, int y1, int x2, int y2)
+                                 bool EntireModel, int x1, int y1, int x2, int y2,
+                                 bool shimmer)
 {
     static const int SpeedFactor=200;
+    
+    if (shimmer) {
+        int tot = curPeriod - curEffStartPer;
+        if (tot % 2) {
+            return;
+        }
+    }
     int x,y;
     xlColour color, orig;
     size_t colorcnt=GetColorCount();
+
 
     if (!fitToTime)
     {

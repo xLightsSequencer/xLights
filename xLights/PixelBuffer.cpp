@@ -126,6 +126,7 @@ void PixelBufferClass::InitStrandBuffer(const ModelClass &pbc, int strand, int t
     SingleNode = pbc.SingleNode;
     SingleChannel = pbc.SingleChannel;
     IsLtoR = pbc.IsLtoR;
+    customColor = pbc.customColor;
 
     stringStartChan.resize(parm1);
     for (int x = 0; x < parm1; x++) {
@@ -145,6 +146,7 @@ void PixelBufferClass::InitNodeBuffer(const ModelClass &pbc, int strand, int nod
     SingleChannel = pbc.SingleChannel;
     IsLtoR = pbc.IsLtoR;
     stringStartChan.resize(1);
+    customColor = pbc.customColor;
     stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, node));
     InitLine();
 
@@ -491,7 +493,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     for(size_t i = 0; i < NodeCount; i++) {
         if (!Nodes[i]->IsVisible()) {
             // unmapped pixel - set to black
-            Nodes[i]->SetColor(0,0,0);
+            Nodes[i]->SetColor(xlBLACK);
         } else {
             // get blend of two effects
             GetMixedColor(Nodes[i]->Coords[0].bufX, Nodes[i]->Coords[0].bufY, color, validLayers);
@@ -552,8 +554,8 @@ void PixelBufferClass::RenderOff(void) {
     effects[CurrentLayer].RenderOff();
 }
 
-void PixelBufferClass::RenderOn(int start, int end) {
-    effects[CurrentLayer].RenderOn(start, end);
+void PixelBufferClass::RenderOn(int start, int end, bool shimmer) {
+    effects[CurrentLayer].RenderOn(start, end, shimmer);
 }
 
 void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D) {
@@ -570,9 +572,9 @@ void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool co
 }
 
 void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
-                                       bool EntireModel, int x1, int y1, int x2, int y2) {
+                                       bool EntireModel, int x1, int y1, int x2, int y2, bool shimmer) {
     effects[CurrentLayer].RenderColorWash(HorizFade,VertFade,RepeatCount,
-                                          EntireModel, x1, y1, x2, y2);
+                                          EntireModel, x1, y1, x2, y2, shimmer);
 }
 
 void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat) {

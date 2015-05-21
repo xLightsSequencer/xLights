@@ -188,6 +188,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
     } else {
         isBotToTop=true;
     }
+    customColor = xlColor(ModelNode->GetAttribute("CustomColor", "#000000"));
 
     long n;
     tempstr=ModelNode->GetAttribute("Antialias","0");
@@ -1047,6 +1048,8 @@ ModelClass::NodeBaseClass* ModelClass::createNode(int ns, const wxString &String
         return new NodeClassBlue(ns,NodesPerString);
     } else if (StringType=="Single Color White" || StringType == "W") {
         return new NodeClassWhite(ns,NodesPerString);
+    } else if (StringType.StartsWith("#")) {
+        return new NodeClassCustom(ns,NodesPerString, xlColor(StringType));
     } else if (StringType=="Strobes White 3fps") {
         return new NodeClassWhite(ns,NodesPerString);
     } else if (StringType=="4 Channel RGBW" || StringType == "RGBW") {
@@ -1080,6 +1083,9 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString, const wx
             StrobeRate=7;  // 1 out of every 7 frames
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString, GetNextName())));
+        } else if (StringType=="Single Color Custom") {
+            for(n=0; n<NumStrings; n++)
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassCustom(n,NodesPerString, customColor, GetNextName())));
         } else if (StringType=="4 Channel RGBW") {
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n,NodesPerString, GetNextName())));

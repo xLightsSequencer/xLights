@@ -714,63 +714,177 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
                               std::vector<unsigned char> &data,
                               int frameTime,
                               int numFrames,
-                              int channel,
+                              const wxString & channelName,
+                              const wxArrayString &channels,
                               wxColor color,
                               ModelClass &mc) {
-    if (channel == wxNOT_FOUND) {
+    if (channelName == "") {
         return;
     }
+    int channel = channels.Index(channelName);
     xlColorVector colors(numFrames);
-    xlColor c(color.Red(), color.Green(), color.Blue());
-    wxImage::HSVValue hsv = c.asHSV();
-    for (int x = 0; x < numFrames; x++) {
-        hsv.value = ((double)data[x + numFrames * channel]) / 255.0;
-        colors[x] = hsv;
+    if (channel == wxNOT_FOUND) {
+        int rchannel = channels.Index(channelName + "Red");
+        int gchannel = channels.Index(channelName + "Green");
+        int bchannel = channels.Index(channelName + "Blue");
+        if (rchannel == wxNOT_FOUND || gchannel == wxNOT_FOUND || bchannel == wxNOT_FOUND) {
+            return;
+        }
+        for (int x = 0; x < numFrames; x++) {
+            colors[x].Set(data[x + numFrames * rchannel], data[x + numFrames * gchannel], data[x + numFrames * bchannel]);
+        }
+    } else {
+        xlColor c(color.Red(), color.Green(), color.Blue());
+        wxImage::HSVValue hsv = c.asHSV();
+        for (int x = 0; x < numFrames; x++) {
+            hsv.value = ((double)data[x + numFrames * channel]) / 255.0;
+            colors[x] = hsv;
+        }
     }
     xlights->ConvertDataRowToEffects(layer, colors, frameTime);
 }
 
+// xml
+#include "../include/spxml-0.5/spxmlparser.hpp"
+#include "../include/spxml-0.5/spxmlevent.hpp"
+#ifndef MAX_READ_BLOCK_SIZE
+#define MAX_READ_BLOCK_SIZE 4096 * 1024
+#endif
+
 void xLightsFrame::ImportVix(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
+    
+    wxString NodeName,NodeValue,msg;
+    std::vector<unsigned char> VixSeqData;
+    long cnt = 0;
+    wxArrayString context;
+    long MaxIntensity = 255;
+    
+    int time = 0;
+    int frameTime = 0;
 
-    wxFileName xml_file(filename);
-    wxXmlDocument input_xml;
-    wxString xml_doc = xml_file.GetFullPath();
-    wxFileInputStream fin(xml_doc);
-    FixXMLInputStream bufIn(fin);
-
-    if( !input_xml.Load(bufIn) )  return;
-
+    
     LMSImportChannelMapDialog dlg(this);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
+
+
+    SP_XmlPullParser *parser = new SP_XmlPullParser();
+    parser->setMaxTextSize(MAX_READ_BLOCK_SIZE / 2);
+    wxFile file(filename.GetFullPath());
+    char *bytes = new char[MAX_READ_BLOCK_SIZE];
+    size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
+    parser->append(bytes, read);
+    wxString carryOver;
     
-    std::vector<unsigned char> data;
     wxArrayString unsortedChannels;
 
-    int time = 0;
-    int frameTime = 0;
-    for (wxXmlNode* tuniv=input_xml.GetRoot()->GetChildren(); tuniv!=NULL; tuniv=tuniv->GetNext()) {
-        if (tuniv->GetName() == "Time") {
-            time = wxAtoi(tuniv->GetChildren()->GetContent());
-        } else if (tuniv->GetName() == "EventPeriodInMilliseconds") {
-            frameTime = wxAtoi(tuniv->GetChildren()->GetContent());
-        } else if (tuniv->GetName() == "Channels") {
-            for (wxXmlNode* ch=tuniv->GetChildren(); ch!=NULL; ch = ch->GetNext()) {
-                if (ch->GetName() == "Channel") {
-                    wxString name = ch->GetChildren()->GetContent();
-                    unsigned int color = (wxAtoi(ch->GetAttribute("color")) & 0xFFFFFF);
-                    dlg.channelNames.push_back(name);
-                    dlg.channelColors[name] = xlColor(color);
-                    unsortedChannels.push_back(name);
-                }
+    int chanColor = -1;
+    
+    //pass 1, read the length, determine number of networks, units/network, channels per unit
+    SP_XmlPullEvent * event = parser->getNext();
+    int done = 0;
+    while (!done) {
+        if (!event) {
+            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
+            if (read == 0) {
+                done = true;
+            } else {
+                parser->append(bytes, read);
             }
-        } else if (tuniv->GetName() == "EventValues") {
-            wxString vals = tuniv->GetChildren()->GetContent();
-            base64_decode(vals, data);
+        } else {
+            switch(event -> getEventType()) {
+                case SP_XmlPullEvent::eEndDocument:
+                    done = true;
+                    break;
+                case SP_XmlPullEvent::eStartTag:
+                {
+                    SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
+                    NodeName = stagEvent->getName();
+                    context.push_back(NodeName);
+                    cnt++;
+                    if (cnt > 1 && context[1] == wxString("Channels") && NodeName == wxString("Channel")) {
+                        chanColor = wxAtoi(stagEvent -> getAttrValue("color")) & 0xFFFFFF;
+                    }
+                }
+                break;
+                case SP_XmlPullEvent::eCData:
+                {
+                    SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
+                    if (cnt >= 2) {
+                        NodeValue = stagEvent->getText();
+                        if (context[1] == wxString("MaximumLevel")) {
+                            MaxIntensity = wxAtoi(NodeValue);
+                        } else if (context[1] == wxString("EventPeriodInMilliseconds")) {
+                            frameTime = wxAtoi(NodeValue);
+                        } else if (context[1] == wxString("Time")) {
+                            time = wxAtoi(NodeValue);
+                        } else if (context[1] == wxString("EventValues")) {
+                            //AppendConvertStatus(string_format(wxString("Chunk Size=%d\n"), NodeValue.size()));
+                            if (carryOver.size() > 0) {
+                                NodeValue.insert(0, carryOver);
+                            }
+                            int i = base64_decode(NodeValue, VixSeqData);
+                            if (i != 0) {
+                                int start = NodeValue.size() - i - 1;
+                                carryOver = NodeValue.substr(start, start + i);
+                            } else {
+                                carryOver.clear();
+                            }
+                        } else if (context[1] == wxString("Channels") && context[2] == wxString("Channel")) {
+                            dlg.channelNames.push_back(NodeValue);
+                            unsortedChannels.push_back(NodeValue);
+                            xlColor c(chanColor);
+                            bool addRGB = false;
+                            wxString base;
+                            if (NodeValue.EndsWith("Red")) {
+                                c = xlRED;
+                                base = NodeValue.SubString(0, NodeValue.size() - 4);
+                                if (dlg.channelNames.Index(base + "Blue") != wxNOT_FOUND
+                                    && dlg.channelNames.Index(base + "Green") != wxNOT_FOUND) {
+                                    addRGB = true;
+                                }
+                            } else if (NodeValue.EndsWith("Blue")) {
+                                c = xlBLUE;
+                                base = NodeValue.SubString(0, NodeValue.size() - 5);
+                                if (dlg.channelNames.Index(base + "Red") != wxNOT_FOUND
+                                    && dlg.channelNames.Index(base + "Green") != wxNOT_FOUND) {
+                                    addRGB = true;
+                                }
+                            } else if (NodeValue.EndsWith("Green")) {
+                                c = xlGREEN;
+                                base = NodeValue.SubString(0, NodeValue.size() - 6);
+                                if (dlg.channelNames.Index(base + "Blue") != wxNOT_FOUND
+                                    && dlg.channelNames.Index(base + "Red") != wxNOT_FOUND) {
+                                    addRGB = true;
+                                }
+                            }
+                            dlg.channelColors[NodeValue] = c;
+                            if (addRGB) {
+                                dlg.channelColors[base] = xlBLACK;
+                                dlg.channelNames.push_back(base);
+                            }
+                        }
+                    }
+                    break;
+                }
+                case SP_XmlPullEvent::eEndTag:
+                    if (cnt > 0) {
+                        context.RemoveAt(cnt-1);
+                    }
+                    cnt = context.size();
+                    break;
+            }
+            delete event;
         }
-
+        if (!done) {
+            event = parser->getNext();
+        }
     }
+    delete [] bytes;
+    delete parser;
+    file.Close();
+    
     int numFrames = time / frameTime;
     
     dlg.ccrNames.Sort();
@@ -798,8 +912,9 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
             }
         }
         MapVixChannelInformation(this, model->GetEffectLayer(0),
-                                 data, frameTime, numFrames,
-                                 unsortedChannels.Index(dlg.ChannelMapGrid->GetCellValue(row, 3)),
+                                 VixSeqData, frameTime, numFrames,
+                                 dlg.ChannelMapGrid->GetCellValue(row, 3),
+                                 unsortedChannels,
                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
                                  mc);
         row++;
@@ -809,16 +924,18 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
             
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                     MapVixChannelInformation(this, sl,
-                                             data, frameTime, numFrames,
-                                             unsortedChannels.Index(dlg.ChannelMapGrid->GetCellValue(row, 3)),
+                                             VixSeqData, frameTime, numFrames,
+                                             dlg.ChannelMapGrid->GetCellValue(row, 3),
+                                             unsortedChannels,
                                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), mc);
             }
             row++;
             for (int n = 0; n < mc.GetStrandLength(str); n++) {
                 if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                     MapVixChannelInformation(this, sl->GetNodeLayer(n),
-                                             data, frameTime, numFrames,
-                                             unsortedChannels.Index(dlg.ChannelMapGrid->GetCellValue(row, 3)),
+                                             VixSeqData, frameTime, numFrames,
+                                             dlg.ChannelMapGrid->GetCellValue(row, 3),
+                                             unsortedChannels,
                                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), mc);
                 }
                 row++;
@@ -839,9 +956,8 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
     wxXmlDocument input_xml;
     wxString xml_doc = xml_file.GetFullPath();
     wxFileInputStream fin(xml_doc);
-    FixXMLInputStream bufIn(fin);
-
-    if( !input_xml.Load(bufIn) )  return;
+    
+    if( !input_xml.Load(fin) )  return;
 
     LMSImportChannelMapDialog dlg(this);
     dlg.mSequenceElements = &mSequenceElements;
@@ -990,9 +1106,8 @@ void xLightsFrame::ImportLMS(const wxFileName &filename) {
     wxXmlDocument input_xml;
     wxString xml_doc = xml_file.GetFullPath();
     wxFileInputStream fin(xml_doc);
-    FixXMLInputStream bufIn(fin);
 
-    if( !input_xml.Load(bufIn) )  return;
+    if( !input_xml.Load(fin) )  return;
     ImportLMS(input_xml);
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -1146,7 +1261,6 @@ void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel,
     while (be != nullptr && "effect" != be->GetName()) be = be->GetNext();
 
     int cwIndex = Effect::GetEffectIndex("Color Wash");
-    int shimmerIndex = Effect::GetEffectIndex("Shimmer");
     int onIndex = Effect::GetEffectIndex("On");
 
     while (re != nullptr || ge != nullptr || be != nullptr) {
@@ -1160,22 +1274,29 @@ void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel,
             + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
-        if (isShimmer && sc == ec) {
-            wxString settings = _("E_CHECKBOX_Shimmer_Blink_Timing=0,E_CHECKBOX_Shimmer_Use_All_Colors=0,E_SLIDER_Shimmer_Blinks_Per_Row=1,")
-                + "E_SLIDER_Shimmer_Duty_Factor=60,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=30,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
-            layer->AddEffect(0, shimmerIndex, "Shimmer", settings, palette, starttime, endtime, false, false);
-        //} else if (isShimmer) {  //what to do with a color wash with a shimmer?
-        } else if (ec == sc) {
+        if (ec == sc) {
             wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
                 + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                 + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
-                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
+            layer->AddEffect(0, onIndex, "On", settings, palette, starttime, endtime, false, false);
+        } else if (sc == xlBLACK) {
+            wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0")
+                + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
+                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
+            layer->AddEffect(0, onIndex, "On", settings, palette, starttime, endtime, false, false);
+        } else if (ec == xlBLACK) {
+            wxString settings = _("E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=0")
+                + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
+                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
             layer->AddEffect(0, onIndex, "On", settings, palette, starttime, endtime, false, false);
         } else {
             wxString settings = _("E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,E_SLIDER_ColorWash_Count=1,T_CHECKBOX_FitToTime=1,")
                 + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,"
-                + "T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                + "T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00"
+                + ",E_CHECKBOX_ColorWash_Shimmer=" + (isShimmer ? "1" : "0");
             layer->AddEffect(0, cwIndex, "Color Wash", settings, palette, starttime, endtime, false, false);
         }
     }
@@ -1192,7 +1313,6 @@ void MapOnEffects(EffectLayer *layer, wxXmlNode *channel, int chancountpernode, 
             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
     }
     int on_index = Effect::GetEffectIndex("On");
-    int shimmer_index = Effect::GetEffectIndex("Shimmer");
 
     for (wxXmlNode* ch=channel->GetChildren(); ch!=NULL; ch=ch->GetNext()) {
         if (ch->GetName() == "effect") {
@@ -1206,19 +1326,16 @@ void MapOnEffects(EffectLayer *layer, wxXmlNode *channel, int chancountpernode, 
             } else {
                 starti = endi = intensity;
             }
+            wxString settings = "E_TEXTCTRL_Eff_On_End=" + endi +",E_TEXTCTRL_Eff_On_Start=" + starti
+                + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
+                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,";
             if ("intensity" == ch->GetAttribute("type")) {
-                wxString settings = "E_TEXTCTRL_Eff_On_End=" + endi +",E_TEXTCTRL_Eff_On_Start=" + starti
-                    + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                    + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
-                    + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
-                layer->AddEffect(0, on_index, "On", settings, palette, starttime, endtime, false, false);
-            } else if ("shimmer" == ch->GetAttribute("type")) {
-                //FIXME - our shimmer doesn't really match  :(
-                wxString settings = _("E_CHECKBOX_Shimmer_Blink_Timing=0,E_CHECKBOX_Shimmer_Use_All_Colors=0,E_SLIDER_Shimmer_Blinks_Per_Row=1,")
-                    + "E_SLIDER_Shimmer_Duty_Factor=60,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                    + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=30,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
-                layer->AddEffect(0, shimmer_index, "Shimmer", settings, palette, starttime, endtime, false, false);
+                settings += "E_CHECKBOX_On_Shimmer=0";
+            } else {
+                settings += "E_CHECKBOX_On_Shimmer=1";
             }
+            layer->AddEffect(0, on_index, "On", settings, palette, starttime, endtime, false, false);
         }
     }
 }

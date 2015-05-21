@@ -23,9 +23,15 @@
 
 #include "RgbEffects.h"
 
-void RgbEffects::RenderOn(int start, int end)
+void RgbEffects::RenderOn(int start, int end, bool shimmer)
 {
     int x,y;
+    if (shimmer) {
+        int tot = curPeriod - curEffStartPer;
+        if (tot % 2) {
+            return;
+        }
+    }
 
     xlColor color;
     if (start == 100 && end == 100) {

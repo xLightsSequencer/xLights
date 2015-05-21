@@ -55,7 +55,7 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
             {
             case 1:
 //  http://mathworld.wolfram.com/ButterflyFunction.html
-                n = abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(BufferHt+BufferWi))));
+                n = std::abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(BufferHt+BufferWi))));
                 d = x*x + y*y;
 
                 //  This section is to fix the colors on pixels at {0,1} and {1,0}
@@ -63,12 +63,12 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 y0=y+1;
                 if((x==0 && y==1))
                 {
-                    n = abs((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(BufferHt+BufferWi))));
+                    n = std::abs((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(BufferHt+BufferWi))));
                     d = x*x + y0*y0;
                 }
                 if((x==1 && y==0))
                 {
-                    n = abs((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(BufferHt+BufferWi))));
+                    n = std::abs((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(BufferHt+BufferWi))));
                     d = x0*x0 + y*y;
                 }
                 // end of fix
@@ -119,7 +119,7 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
 
             case 5:
                 //  http://mathworld.wolfram.com/ButterflyFunction.html
-                n = abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(BufferHt*BufferWi))));
+                    n = std::abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(BufferHt*BufferWi))));
                 d = x*x + y*y;
 
                 //  This section is to fix the colors on pixels at {0,1} and {1,0}
@@ -127,12 +127,12 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 y0=y+1;
                 if((x==0 && y==1))
                 {
-                    n = abs((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(BufferHt*BufferWi))));
+                    n = std::abs((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(BufferHt*BufferWi))));
                     d = x*x + y0*y0;
                 }
                 if((x==1 && y==0))
                 {
-                    n = abs((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(BufferHt*BufferWi))));
+                    n = std::abs((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(BufferHt*BufferWi))));
                     d = x0*x0 + y*y;
                 }
                 // end of fix

@@ -17,6 +17,7 @@
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/clrpicker.h>
 //*)
 
 class ModelDialog: public wxDialog
@@ -34,6 +35,7 @@ public:
     //(*Declarations(ModelDialog)
     wxStaticText* StaticText9;
     wxSpinCtrl* SpinCtrl_parm2;
+    wxColourPickerCtrl* ColorPicker;
     wxSpinCtrl* SpinCtrl_parm1;
     wxStaticText* StaticText_Strings;
     wxTextCtrl* TextCtrl_Name;
@@ -83,6 +85,7 @@ protected:
     static const long ID_CHOICE_DisplayAs;
     static const long ID_STATICTEXT12;
     static const long ID_CHOICE_STRING_TYPE;
+    static const long ID_COLOURPICKERCTRL1;
     static const long ID_STATICTEXT2;
     static const long ID_SPINCTRL1;
     static const long ID_STATICTEXT3;

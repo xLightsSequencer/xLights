@@ -523,7 +523,6 @@ int TimeLine::GetMaxZoomLevel()
 {
     int i;
     float width = (float)GetSize().x;
-    float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
     for(i=0;i<=MAX_ZOOM_OUT_INDEX;i++)
     {
         float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
@@ -624,10 +623,7 @@ void TimeLine::render( wxPaintEvent& event )
             minutes = t/60000;
             seconds = (t-(minutes*60000))/1000;
             subsecs = t - (minutes*60000 + seconds*1000);
-            if (subsecs%5!=0)
-            {
-                int h=0;
-            }
+            
             if(minutes > 0)
             {
                 if(mFrequency>=40)

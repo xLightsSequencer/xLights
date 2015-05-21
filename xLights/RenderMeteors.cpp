@@ -458,7 +458,7 @@ public:
     // operator() is what's called when you do MeteorHasExpired()
     bool operator()(const MeteorRadialClass& obj)
     {
-        return (abs(obj.y - cy) < 2) && (abs(obj.x - cx) < 2);
+        return (std::abs(obj.y - cy) < 2) && (std::abs(obj.x - cx) < 2);
     }
 };
 

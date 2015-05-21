@@ -603,6 +603,7 @@ protected:
     static const long ID_TEXTCTRL_Eff_On_Start;
     static const long IDD_SLIDER_Eff_On_End;
     static const long ID_TEXTCTRL_Eff_On_End;
+    static const long ID_CHECKBOX_On_Shimmer;
     static const long ID_PANEL25;
     static const long ID_STATICTEXT25;
     static const long ID_SLIDER_Bars_BarCount;
@@ -669,6 +670,7 @@ protected:
     static const long ID_CHECKBOX_ColorWash_HFade;
     static const long ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade;
     static const long ID_CHECKBOX_ColorWash_EntireModel;
+    static const long ID_CHECKBOX_ColorWash_Shimmer;
     static const long ID_SLIDER_ColorWash_X1;
     static const long IDD_TEXTCTRL_ColorWash_X1;
     static const long IDD_TEXTCTRL_ColorWash_Y1;

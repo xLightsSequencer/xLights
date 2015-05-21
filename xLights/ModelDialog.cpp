@@ -21,6 +21,7 @@ const long ModelDialog::ID_STATICTEXT5 = wxNewId();
 const long ModelDialog::ID_CHOICE_DisplayAs = wxNewId();
 const long ModelDialog::ID_STATICTEXT12 = wxNewId();
 const long ModelDialog::ID_CHOICE_STRING_TYPE = wxNewId();
+const long ModelDialog::ID_COLOURPICKERCTRL1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT2 = wxNewId();
 const long ModelDialog::ID_SPINCTRL1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT3 = wxNewId();
@@ -76,6 +77,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer6;
     wxStdDialogButtonSizer* StdDialogButtonSizer2;
+    wxFlexGridSizer* FlexGridSizer1;
 
     Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     SetHelpText(_("Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical."));
@@ -111,6 +113,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     LeftGridSizer->Add(Choice_DisplayAs, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText9 = new wxStaticText(this, ID_STATICTEXT12, _("Type of String"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
     LeftGridSizer->Add(StaticText9, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer1->AddGrowableCol(0);
     Choice_StringType = new wxChoice(this, ID_CHOICE_STRING_TYPE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_STRING_TYPE"));
     Choice_StringType->SetSelection( Choice_StringType->Append(_("RGB Nodes")) );
     Choice_StringType->Append(_("RBG Nodes"));
@@ -124,8 +128,12 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_StringType->Append(_("Single Color Green"));
     Choice_StringType->Append(_("Single Color Blue"));
     Choice_StringType->Append(_("Single Color White"));
+    Choice_StringType->Append(_("Single Color Custom"));
     Choice_StringType->Append(_("Strobes White 3fps"));
-    LeftGridSizer->Add(Choice_StringType, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(Choice_StringType, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    ColorPicker = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL1, wxColour(255,0,255), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL1"));
+    FlexGridSizer1->Add(ColorPicker, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    LeftGridSizer->Add(FlexGridSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     StaticText_Strings = new wxStaticText(this, ID_STATICTEXT2, _("Actual # of Strings"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     LeftGridSizer->Add(StaticText_Strings, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_parm1 = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(35,-1)), 0, 1, 1000, 1, _T("ID_SPINCTRL1"));
@@ -182,12 +190,12 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     LeftGridSizer->Add(FlexGridSizer6, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ExtraParameterLabel = new wxStaticText(this, ID_STATICTEXT15, _("Star Sizes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
     LeftGridSizer->Add(ExtraParameterLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer10 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
     TreeFirstStringForExport = new wxSpinCtrl(this, ID_SPINCTRL5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 1, 1000, 0, _T("ID_SPINCTRL5"));
-    FlexGridSizer10->Add(TreeFirstStringForExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer10->Add(TreeFirstStringForExport, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StarSizes = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
     FlexGridSizer10->Add(StarSizes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(FlexGridSizer10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    LeftGridSizer->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -435,6 +443,14 @@ void ModelDialog::UpdateLabels()
     ExtraParameterLabel->Hide();
     StarSizes->Hide();
     TreeFirstStringForExport->Hide();
+    
+    if (StringType == "Single Color Custom") {
+        ColorPicker->Enable(true);
+        ColorPicker->Show();
+    } else {
+        ColorPicker->Enable(false);
+        ColorPicker->Hide();
+    }
 
     if (DisplayAs == "Arches")
     {
@@ -729,6 +745,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     if (e->HasAttribute("StartSide")) e->DeleteAttribute("StartSide");
     e->DeleteAttribute("DisplayAs");
     e->DeleteAttribute("StringType");
+    e->DeleteAttribute("CustomColor");
     e->DeleteAttribute("parm1");
     e->DeleteAttribute("parm2");
     e->DeleteAttribute("parm3");
@@ -767,6 +784,10 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     else
         e->AddAttribute("Dir","R");
 
+    
+    if (ColorPicker->IsEnabled()) {
+        e->AddAttribute("CustomColor", xlColor(ColorPicker->GetColour().GetRGB()));
+    }
     e->AddAttribute("Antialias", wxString::Format("%d", pixelStyle));
     e->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));
     e->AddAttribute("Transparency", wxString::Format("%d", transparency));
@@ -805,6 +826,10 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
         TreeFirstStringForExport->SetValue("1");
     } else {
         TreeFirstStringForExport->SetValue(e->GetAttribute("exportFirstStrand"));
+    }
+    if (e->GetAttribute("CustomColor") != "") {
+        xlColor c(e->GetAttribute("CustomColor"));
+        ColorPicker->SetColour(c.asWxColor());
     }
     //Choice_Order->SetStringSelection(e->GetAttribute("Order"));
     tempStr=e->GetAttribute("Antialias","0");

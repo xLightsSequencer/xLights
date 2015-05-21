@@ -120,18 +120,11 @@ private:
             Coords.push_back(c);
         }
 
-        void SetColor(const xlColor& color)
+        virtual void SetColor(const xlColor& color)
         {
             c[0]=color.red;
             c[1]=color.green;
             c[2]=color.blue;
-        }
-
-        void SetColor(uint8_t r,uint8_t g,uint8_t b)
-        {
-            c[0]=r;
-            c[1]=g;
-            c[2]=b;
         }
 
         virtual void SetFromChannels(const unsigned char *buf) {
@@ -259,6 +252,44 @@ private:
             return "B";
         }
     };
+    class NodeClassCustom : public NodeBaseClass
+    {
+    public:
+        NodeClassCustom(int StringNumber, size_t NodesPerString, const xlColor &c, const wxString &n = "") : NodeBaseClass(StringNumber,NodesPerString)
+        {
+            chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
+            offsets[0] = 0;
+            offsets[1] = offsets[2] = 255;
+            SetName(n);
+            hsv = c.asHSV();
+        }
+        virtual void GetColor(xlColor& color)
+        {
+            wxImage::HSVValue hsv2 = hsv;
+            hsv2.value=c[0];
+            hsv2.value /= 255.0;
+            color = hsv2;
+        }
+        virtual wxString GetNodeType() {
+            return xlColor(hsv);
+        }
+        virtual void SetColor(const xlColor& color)
+        {
+            wxImage::HSVValue hsv2 = color.asHSV();
+            
+            if (std::abs(hsv2.hue - hsv.hue) < 0.01) {
+                //in the right hue
+                c[0]=hsv2.value * 255.0;
+            } else if (hsv2.hue < 0.01 && hsv2.saturation < 0.01) {
+                //white/black
+                c[0]=hsv2.value * 255.0;
+            } else {
+                c[0] = 0;
+            }
+        }
+    private:
+        wxImage::HSVValue hsv;
+    };
 
     class NodeClassWhite : public NodeBaseClass
     {
@@ -374,9 +405,9 @@ private:
     int mDragMode;
     int mLastResizeX;
     wxXmlNode* ModelXml;
-
 protected:
 
+    xlColor customColor;
     std::vector<NodeBaseClassPtr> Nodes;
     std::vector<wxString> strandNames;
     std::vector<wxString> nodeNames;

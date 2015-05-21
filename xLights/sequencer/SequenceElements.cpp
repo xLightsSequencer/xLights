@@ -599,6 +599,9 @@ void SequenceElements::PopulateVisibleRowInformation()
         }
     }
 
+    if (mFirstVisibleModelRow >= mRowInformation.size()) {
+        mFirstVisibleModelRow = 0;
+    }
     for(;row<mMaxRowsDisplayed && row+mFirstVisibleModelRow<mRowInformation.size();row++)
     {
         mRowInformation[row+mFirstVisibleModelRow].RowNumber = row;

@@ -669,7 +669,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
         buffer.RenderOff();
     } else if (effect == "On") {
         buffer.RenderOn(wxAtoi(SettingsMap.Get("TEXTCTRL_Eff_On_Start", "100")),
-                        wxAtoi(SettingsMap.Get("TEXTCTRL_Eff_On_End", "100")));
+                        wxAtoi(SettingsMap.Get("TEXTCTRL_Eff_On_End", "100")),
+                        wxAtoi(SettingsMap.Get("CHECKBOX_On_Shimmer", "0")));
     } else if (effect == "Bars") {
         buffer.RenderBars(wxAtoi(SettingsMap["SLIDER_Bars_BarCount"]),
                           BarEffectDirections.Index(SettingsMap["CHOICE_Bars_Direction"]),
@@ -703,7 +704,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                                wxAtoi(SettingsMap.Get("SLIDER_ColorWash_X1", "-50")),
                                wxAtoi(SettingsMap.Get("SLIDER_ColorWash_Y1", "-50")),
                                wxAtoi(SettingsMap.Get("SLIDER_ColorWash_X2", "50")),
-                               wxAtoi(SettingsMap.Get("SLIDER_ColorWash_Y2", "50"))
+                               wxAtoi(SettingsMap.Get("SLIDER_ColorWash_Y2", "50")),
+                               wxAtoi(SettingsMap.Get("CHECKBOX_ColorWash_Shimmer", "0"))
                                );
     } else if (effect == "Curtain") {
         buffer.RenderCurtain(CurtainEdge.Index(SettingsMap["CHOICE_Curtain_Edge"]),

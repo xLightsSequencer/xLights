@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Add "Single Color Custom" string type that allows custom color selection
+    -- enh(dkulp) Change Vixen import to use streaming xml parser to handle bigger files
 4.0.32  May 19, 2015
     -- bug(dkulp) Rename the element in the loaded sequence on model rename.  Fixes #223
     -- bug(dkulp) Fix problem with overlapping effects that both specify fadein or outs causing interference
