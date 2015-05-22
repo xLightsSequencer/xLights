@@ -142,12 +142,12 @@ void Element::IncrementChangeCount(int sms, int ems)
     changeCount++;
 }
 
-void Element::InitStrands(wxXmlNode *node) {
+void Element::InitStrands(wxXmlNode *node, NetInfoClass &netInfo) {
     if (node == NULL) {
         return;
     }
     ModelClass model;
-    model.SetFromXml(node);
+    model.SetFromXml(node, netInfo);
     int ns = model.GetNumStrands();
     for (int x = 0; x < ns; x++) {
         GetStrandLayer(x, true)->InitFromModel(model);

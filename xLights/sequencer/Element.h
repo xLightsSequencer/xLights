@@ -14,6 +14,8 @@ enum ElementType
     ELEMENT_TYPE_TIMING
 };
 
+class NetInfoClass;
+
 class Element
 {
     public:
@@ -51,7 +53,7 @@ class Element
 
         StrandLayer* GetStrandLayer(int index, bool create = false);
         int getStrandLayerCount();
-        void InitStrands(wxXmlNode *node);
+        void InitStrands(wxXmlNode *node, NetInfoClass &netInfo);
         bool ShowStrands() { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
 

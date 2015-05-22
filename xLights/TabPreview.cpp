@@ -421,7 +421,7 @@ void xLightsFrame::ShowModelProperties()
     int DlgResult;
     bool ok;
     ModelDialog *dialog = new ModelDialog(this);
-    dialog->SetFromXml(e);
+    dialog->SetFromXml(e, &NetInfo);
     dialog->TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
     do
     {

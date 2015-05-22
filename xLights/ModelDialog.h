@@ -20,6 +20,8 @@
 #include <wx/clrpicker.h>
 //*)
 
+class NetInfoClass;
+
 class ModelDialog: public wxDialog
 {
 public:
@@ -29,7 +31,7 @@ public:
     void UpdateLabels();
     void SetCustomGridData(const wxString& customChannelData);
     wxString GetCustomGridData();
-    void SetFromXml(wxXmlNode* e, const wxString& NameSuffix=wxEmptyString);
+    void SetFromXml(wxXmlNode* e, NetInfoClass *netInfo, const wxString& NameSuffix=wxEmptyString);
     void UpdateXml(wxXmlNode* e);
 
     //(*Declarations(ModelDialog)
@@ -68,12 +70,14 @@ public:
     wxGrid* gridStartChannels;
     wxBitmapButton* BitmapButtonCustomCut;
     wxChoice* Choice_DisplayAs;
+    wxStaticText* StaticText4;
     wxButton* Button_CustomModelZoomOut;
     wxRadioButton* RadioButton_BotRight;
     wxSpinCtrl* SpinCtrl_StartChannel;
     wxRadioButton* RadioButton_TopRight;
     wxStaticText* StaticText_Strands;
     wxStaticText* StaticText_Nodes;
+    wxSpinCtrl* OutputSpinCtrl;
     //*)
 
 protected:
@@ -94,6 +98,8 @@ protected:
     static const long ID_SPINCTRL3;
     static const long ID_STATICTEXT6;
     static const long ID_SPINCTRL4;
+    static const long ID_STATICTEXT9;
+    static const long ID_SPINCTRL6;
     static const long ID_STATICTEXT8;
     static const long ID_RADIOBUTTON1;
     static const long ID_RADIOBUTTON2;
@@ -162,7 +168,7 @@ private:
 
     DECLARE_EVENT_TABLE()
     
-    
+    NetInfoClass *netInfo;
     int pixelStyle = 0;
     int pixelSize = 2;
     int transparency = 0;

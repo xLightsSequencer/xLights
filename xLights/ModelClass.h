@@ -42,12 +42,14 @@
 
 
 typedef std::vector<long> StartChannelVector_t;
+class NetInfoClass;
 
 #define NODE_RGB_CHAN_CNT           3
 #define NODE_RGBW_CHAN_CNT          4
 #define NODE_SINGLE_COLOR_CHAN_CNT  1
 #define RECT_HANDLE_WIDTH           6
 #define BOUNDING_RECT_OFFSET        8
+
 
 class ModelClass
 {
@@ -435,7 +437,7 @@ public:
     long ModelBrightness;   // Value from -100 to +100 indicates an adjustment to brightness for this model
     bool Selected=false;
     bool GroupSelected=false;
-    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
+    void SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBased=false);
     size_t GetNodeCount() const;
     int GetChanCount() const;
     int GetChanCountPerNode() const;

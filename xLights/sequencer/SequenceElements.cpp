@@ -94,9 +94,10 @@ void SequenceElements::SetViewsNode(wxXmlNode* viewsNode)
     mViewsNode = viewsNode;
 }
 
-void SequenceElements::SetModelsNode(wxXmlNode* node)
+void SequenceElements::SetModelsNode(wxXmlNode* node, NetInfoClass *ni)
 {
     mModelsNode = node;
+    netInfo = ni;
 }
 wxString SequenceElements::GetViewModels(wxString viewName)
 {
@@ -470,7 +471,7 @@ void SequenceElements::PopulateRowInformation()
                     ri.Index = rowIndex++;
                     mRowInformation.push_back(ri);
                 }
-                mElements[i]->InitStrands(GetModelNode(mModelsNode, mElements[i]->GetName()));
+                mElements[i]->InitStrands(GetModelNode(mModelsNode, mElements[i]->GetName()), *netInfo);
                 if (mElements[i]->ShowStrands()) {
                     for (int s = 0; s < mElements[i]->getStrandLayerCount(); s++) {
                         StrandLayer * sl = mElements[i]->GetStrandLayer(s);

@@ -154,7 +154,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     int DlgResult;
     bool ok;
     ModelDialog *dialog = new ModelDialog(this);
-    dialog->SetFromXml(e);
+    dialog->SetFromXml(e, netInfo);
     dialog->TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
     do
     {
@@ -256,7 +256,7 @@ void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
     int DlgResult;
     bool ok;
     ModelDialog dialog(this);
-    dialog.SetFromXml(e,_(" - Copy"));
+    dialog.SetFromXml(e, netInfo, _(" - Copy"));
     do
     {
         ok=true;
@@ -289,7 +289,7 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
     }
     wxXmlNode* ModelNode=(wxXmlNode*)ListBox1->GetClientData(sel);
     ModelClass model;
-    model.SetFromXml(ModelNode);
+    model.SetFromXml(ModelNode, *netInfo);
     wxString html=model.ChannelLayoutHtml();
 
     ChannelLayoutDialog dialog(this);
@@ -334,7 +334,7 @@ brightness
     {
         wxXmlNode* node = (wxXmlNode*)ListBox1->GetClientData(i);
         ModelClass model;
-        model.SetFromXml(node);
+        model.SetFromXml(node, *netInfo);
         wxString stch = node->GetAttribute("StartChannel", wxString::Format("%d?", model.NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %d, %d\n", model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), stch, /*WRONG:*/ model.NodeStartChannel(0) / model.NodesPerString() + 1, model.MyDisplay, model.ModelBrightness));
 //no worky        f.Flush(); //paranoid: write out data in case model loop crashes

@@ -876,7 +876,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
         buffer.RenderSpirograph(wxAtoi(SettingsMap["SLIDER_Spirograph_R"]),
                                 wxAtoi(SettingsMap["SLIDER_Spirograph_r"]),
                                 wxAtoi(SettingsMap["SLIDER_Spirograph_d"]),
-                                wxAtoi(SettingsMap["SLIDER_Spirograph_Animate"]));
+                                wxAtoi(SettingsMap["CHECKBOX_Spirograph_Animate"]));
     } else if (effect == "Strobe") {
         buffer.RenderStrobe(wxAtoi(SettingsMap["SLIDER_Number_Strobes"]),
                             wxAtoi(SettingsMap["SLIDER_Strobe_Duration"]),

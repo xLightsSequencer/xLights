@@ -6,6 +6,10 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Allow start channel to be specified in #:# notation where first part is the output and the second is the offset from the start of that output.  So 3:1 is the first channel of the third output.
+    -- bug(dkulp) Copy/Paste models from LibreOffice on Mac not working due to cr/lf issues
+    -- bug(dkulp) Fix #205 - Spriograph D animation not working
+    -- enh(dkulp) Add Shimmer option to On and ColorWash
     -- enh(dkulp) Add "Single Color Custom" string type that allows custom color selection
     -- enh(dkulp) Change Vixen import to use streaming xml parser to handle bigger files
 4.0.32  May 19, 2015

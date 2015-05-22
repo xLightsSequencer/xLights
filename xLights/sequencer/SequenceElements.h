@@ -43,6 +43,7 @@ struct EventPlayEffectArgs
 
 class wxXmlNode;
 class EffectLayer;
+class NetInfoClass;
 
 class SequenceElements
 {
@@ -90,7 +91,7 @@ class SequenceElements
         bool ElementExists(wxString elementName);
 
         void SetViewsNode(wxXmlNode* viewsNode);
-        void SetModelsNode(wxXmlNode *modelsNode);
+        void SetModelsNode(wxXmlNode *modelsNode, NetInfoClass *ni);
         wxString GetViewModels(wxString viewName);
 
         void SortElements();
@@ -134,6 +135,7 @@ class SequenceElements
         int mSelectedTimingRow;
         wxXmlNode* mViewsNode;
         wxXmlNode* mModelsNode;
+        NetInfoClass *netInfo;
         double mFrequency;
         int mTimingRowCount;
         int mMaxRowsDisplayed;

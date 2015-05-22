@@ -82,7 +82,7 @@ private:
 public:
     PixelBufferClass();
     virtual ~PixelBufferClass();
-    void InitBuffer(wxXmlNode* ModelNode, int layers, int timing, bool zeroBased=false);
+    void InitBuffer(wxXmlNode* ModelNode, int layers, int timing, NetInfoClass &netInfo, bool zeroBased=false);
     void InitStrandBuffer(const ModelClass &pbc, int strand, int timing);
     void InitNodeBuffer(const ModelClass &pbc, int strand, int node, int timing);
     

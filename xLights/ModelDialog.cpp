@@ -13,6 +13,7 @@
 
 #include "PixelAppearanceDlg.h"
 #include "StrandNodeNamesDialog.h"
+#include "NetInfo.h"
 
 //(*IdInit(ModelDialog)
 const long ModelDialog::ID_STATICTEXT1 = wxNewId();
@@ -30,6 +31,8 @@ const long ModelDialog::ID_STATICTEXT4 = wxNewId();
 const long ModelDialog::ID_SPINCTRL3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT6 = wxNewId();
 const long ModelDialog::ID_SPINCTRL4 = wxNewId();
+const long ModelDialog::ID_STATICTEXT9 = wxNewId();
+const long ModelDialog::ID_SPINCTRL6 = wxNewId();
 const long ModelDialog::ID_STATICTEXT8 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON1 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON2 = wxNewId();
@@ -63,14 +66,18 @@ BEGIN_EVENT_TABLE(ModelDialog,wxDialog)
     //*)
 END_EVENT_TABLE()
 
+
 ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 {
+    netInfo = nullptr;
+
     //(*Initialize(ModelDialog)
     wxFlexGridSizer* FlexGridSizer4;
     wxButton* Button4;
     wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer5;
+    wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer7;
     wxButton* Button3;
@@ -152,9 +159,17 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     LeftGridSizer->Add(SpinCtrl_parm3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Start Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
     LeftGridSizer->Add(StaticText6, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer2->AddGrowableCol(1);
     SpinCtrl_StartChannel = new wxSpinCtrl(this, ID_SPINCTRL4, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(55,-1)), 0, 1, 99999, 1, _T("ID_SPINCTRL4"));
     SpinCtrl_StartChannel->SetValue(_T("1"));
-    LeftGridSizer->Add(SpinCtrl_StartChannel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(SpinCtrl_StartChannel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText4 = new wxStaticText(this, ID_STATICTEXT9, _("From Output:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+    FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    OutputSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL6, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(45,-1)), 0, 1, 255, 1, _T("ID_SPINCTRL6"));
+    OutputSpinCtrl->SetValue(_T("1"));
+    FlexGridSizer2->Add(OutputSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    LeftGridSizer->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT8, _("Starting Corner"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
     StaticText3->SetHelpText(_("The point at which pixels in your model start."));
     LeftGridSizer->Add(StaticText3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -183,11 +198,11 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer6->AddGrowableCol(0);
     Slider_Model_Brightness = new wxSlider(this, ID_Slider_Model_Brightness, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_Slider_Model_Brightness"));
-    FlexGridSizer6->Add(Slider_Model_Brightness, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(Slider_Model_Brightness, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     SpinCtrlModelBrightness = new wxSpinCtrl(this, ID_SPINCTRLMODELBRIGHTNESS, _T("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(35,-1)), 0, -100, 100, 0, _T("ID_SPINCTRLMODELBRIGHTNESS"));
     SpinCtrlModelBrightness->SetValue(_T("0"));
     FlexGridSizer6->Add(SpinCtrlModelBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(FlexGridSizer6, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    LeftGridSizer->Add(FlexGridSizer6, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     ExtraParameterLabel = new wxStaticText(this, ID_STATICTEXT15, _("Star Sizes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
     LeftGridSizer->Add(ExtraParameterLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -195,7 +210,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer10->Add(TreeFirstStringForExport, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StarSizes = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
     FlexGridSizer10->Add(StarSizes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    LeftGridSizer->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -275,6 +290,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
     Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm3Change);
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
+    Connect(ID_SPINCTRL6,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
     Connect(ID_Slider_Model_Brightness,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ModelDialog::OnSlider_Model_BrightnessCmdScroll);
     Connect(ID_Slider_Model_Brightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSlider_Model_BrightnessCmdScroll);
     Connect(ID_SPINCTRLMODELBRIGHTNESS,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrlModelBrightnessChange);
@@ -290,8 +306,14 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_CustomModelZoomOut,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButton_CustomModelZoomOutClick);
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OnGridCustomCellChange);
     //*)
+ 
+    wxGridCellTextEditor *editor = new wxGridCellTextEditor();
+    wxString filter("0123456789:");
+    wxTextValidator validator(wxFILTER_INCLUDE_CHAR_LIST);
+    validator.SetCharIncludes(filter);
 
-    gridStartChannels->SetDefaultEditor(new wxGridCellNumberEditor());
+    editor->SetValidator(validator);
+    gridStartChannels->SetDefaultEditor(editor);
     GridCustom->SetDefaultEditor(new wxGridCellNumberEditor());
     HasCustomData = false;
 }
@@ -443,7 +465,7 @@ void ModelDialog::UpdateLabels()
     ExtraParameterLabel->Hide();
     StarSizes->Hide();
     TreeFirstStringForExport->Hide();
-    
+
     if (StringType == "Single Color Custom") {
         ColorPicker->Enable(true);
         ColorPicker->Show();
@@ -615,28 +637,43 @@ void ModelDialog::UpdateStartChannels()
     // update grid
     if(cbIndividualStartNumbers->IsChecked())
     {
+        SpinCtrl_StartChannel->Enable(false);
+        OutputSpinCtrl->Enable(false);
+
         // update end channel numbers only
         for (int stringnum=0; stringnum<StringCnt; stringnum++)
         {
             tmpStr = gridStartChannels->GetCellValue(stringnum,0);
+            wxString pfx = "";
+            if (tmpStr.Contains(":")) {
+                pfx = tmpStr.SubString(0, tmpStr.Find(":"));
+                tmpStr = tmpStr.SubString(tmpStr.Find(":") + 1, tmpStr.size());
+            }
             if (tmpStr.ToLong(&StringStartChanLong) && StringStartChanLong > 0)
             {
                 StringEndChan=StringStartChanLong + ChannelsPerString - 1;
-                gridStartChannels->SetCellValue(stringnum,1, wxString::Format("%i",StringEndChan));
+                gridStartChannels->SetCellValue(stringnum,1, pfx + wxString::Format("%i",StringEndChan));
             }
         }
         SetReadOnly(false);
     }
     else
     {
+        SpinCtrl_StartChannel->Enable(true);
+        OutputSpinCtrl->Enable(true);
+
         // update start and end channel numbers
         int startchan = SpinCtrl_StartChannel->GetValue();
+        wxString pfx = "";
+        if (OutputSpinCtrl->GetValue() > 1) {
+            pfx = wxString::Format("%d:", OutputSpinCtrl->GetValue());
+        }
         for (int stringnum=0; stringnum<StringCnt; stringnum++)
         {
             StringStartChan=startchan + (stringnum*ChannelsPerString);
             StringEndChan=StringStartChan + ChannelsPerString - 1;
-            gridStartChannels->SetCellValue(stringnum,0, wxString::Format("%i",StringStartChan));
-            gridStartChannels->SetCellValue(stringnum,1, wxString::Format("%i",StringEndChan));
+            gridStartChannels->SetCellValue(stringnum,0, pfx + wxString::Format("%i",StringStartChan));
+            gridStartChannels->SetCellValue(stringnum,1, pfx + wxString::Format("%i",StringEndChan));
         }
         SetReadOnly(true);
     }
@@ -693,23 +730,10 @@ void ModelDialog::OnSpinCtrlModelBrightnessChange(wxSpinEvent& event)
 
 void ModelDialog::OngridStartChannelsCellChange(wxGridEvent& event)
 {
-    int row = event.GetRow(),
-        col = event.GetCol();
-    wxString tmpStr;
-    long val;
-
+    int col = event.GetCol();
     if (col==0)
     {
-        tmpStr = gridStartChannels->GetCellValue(row,col);
-        if ( (!tmpStr.ToLong(&val) || val <= 0) )
-        {
-            wxMessageBox(_("Cell value must be a positive numeric value"));
-            gridStartChannels->SetCellValue(row,col,"1");
-        }
-        else
-        {
-            UpdateStartChannels();
-        }
+        UpdateStartChannels();
     }
     event.Skip();
 }
@@ -773,7 +797,11 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->AddAttribute("parm1", wxString::Format("%d",SpinCtrl_parm1->GetValue()));
     e->AddAttribute("parm2", wxString::Format("%d",SpinCtrl_parm2->GetValue()));
     e->AddAttribute("parm3", wxString::Format("%d",SpinCtrl_parm3->GetValue()));
-    e->AddAttribute("StartChannel", wxString::Format("%d",SpinCtrl_StartChannel->GetValue()));
+    wxString stch = wxString::Format("%d",SpinCtrl_StartChannel->GetValue());
+    if (OutputSpinCtrl->GetValue() > 1) {
+        stch = wxString::Format("%d:",OutputSpinCtrl->GetValue()) + stch;
+    }
+    e->AddAttribute("StartChannel", stch);
     //e->AddAttribute("Order", Choice_Order->GetStringSelection());
     if (RadioButton_TopLeft->GetValue() || RadioButton_TopRight->GetValue() )
         e->AddAttribute("StartSide","T");
@@ -784,7 +812,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     else
         e->AddAttribute("Dir","R");
 
-    
+
     if (ColorPicker->IsEnabled()) {
         e->AddAttribute("CustomColor", xlColor(ColorPicker->GetColour().GetRGB()));
     }
@@ -809,8 +837,9 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     ModelClass::SetMyDisplay(e,CheckBox_MyDisplay->GetValue());
 }
 
-void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
+void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& NameSuffix)
 {
+    netInfo = ni;
     long n;
     wxString name, direction, startSide, tempStr;
     name=e->GetAttribute("name") + NameSuffix;
@@ -821,7 +850,19 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     SpinCtrl_parm2->SetValue(e->GetAttribute("parm2"));
     SpinCtrl_parm3->SetValue(e->GetAttribute("parm3"));
     StarSizes->SetValue(e->GetAttribute("starSizes"));
-    SpinCtrl_StartChannel->SetValue(e->GetAttribute("StartChannel"));
+
+    SpinCtrl_StartChannel->Enable(true);
+    OutputSpinCtrl->Enable(true);
+
+    wxString stch = e->GetAttribute("StartChannel");
+    if (stch.Contains(":")) {
+        wxString o = stch.SubString(0, stch.Find(":")-1);
+        OutputSpinCtrl->SetValue(o);
+        stch = stch.SubString(stch.Find(":") + 1, stch.size());
+    } else {
+        OutputSpinCtrl->SetValue(1);
+    }
+    SpinCtrl_StartChannel->SetValue(stch);
     if (e->GetAttribute("exportFirstStrand") == "") {
         TreeFirstStringForExport->SetValue("1");
     } else {
@@ -865,6 +906,8 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     if(e->HasAttribute("Advanced"))
     {
         cbIndividualStartNumbers->SetValue(true);
+        SpinCtrl_StartChannel->Enable(false);
+        OutputSpinCtrl->Enable(false);
         tempStr = e->GetAttribute("parm1");
         tempStr.ToLong(&n);  // number of strings
         for(int ii=0; ii < n; ii++)
@@ -966,6 +1009,8 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     wxString errdetails; //-DJ
 
     copy_data.Replace("\r\r", "\n");
+    copy_data.Replace("\r\n", "\n");
+    copy_data.Replace("\r", "\n");
 
     do
     {
@@ -1148,7 +1193,7 @@ void ModelDialog::OnNamesButtonClick(wxCommandEvent& event)
     wxXmlNode xml;
     UpdateXml(&xml);
     ModelClass md;
-    md.SetFromXml(&xml);
+    md.SetFromXml(&xml, *netInfo);
 
     StrandNodeNamesDialog dlg(this);
     std::vector<wxString> strands;

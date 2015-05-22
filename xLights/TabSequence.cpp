@@ -251,6 +251,7 @@ void xLightsFrame::ShowModelsDialog()
     }
     dialog.HtmlEasyPrint=HtmlEasyPrint;
     dialog.SetSequenceElements(&mSequenceElements);
+    dialog.SetNetInfo(&NetInfo);
     dialog.ShowModal();
 
     // append any new models to the main xml structure
@@ -300,7 +301,7 @@ void xLightsFrame::UpdateModelsList()
             if (!name.IsEmpty())
             {
                 model=new ModelClass;
-                model->SetFromXml(e);
+                model->SetFromXml(e, NetInfo);
 
                 if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
                     msg += wxString::Format("%s - last channel: %u\n",name, model->GetLastChannel());

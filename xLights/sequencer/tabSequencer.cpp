@@ -121,7 +121,7 @@ ModelClass &xLightsFrame::GetModelClass(const wxString& name) {
         if (model == nullptr) {
             wxMessageBox("Could not find a model or group named " + name);
         } else {
-            cls->SetFromXml(model);
+            cls->SetFromXml(model, NetInfo);
         }
         AllModels[name].reset(cls);
     }
@@ -135,10 +135,10 @@ bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &
         if (model == NULL) {
             return false;
         }
-        buffer.InitBuffer(model, layerCount, SeqData.FrameTime(), zeroBased);
+        buffer.InitBuffer(model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
         delete model;
     } else {
-        buffer.InitBuffer(model, layerCount, SeqData.FrameTime(), zeroBased);
+        buffer.InitBuffer(model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
     }
     return true;
 }
@@ -258,7 +258,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
     SetFrequency(xml_file.GetFrequency());
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
-    mSequenceElements.SetModelsNode(ModelsNode);
+    mSequenceElements.SetModelsNode(ModelsNode, &NetInfo);
     mSequenceElements.LoadSequencerFile(xml_file);
     mSequenceElements.PopulateRowInformation();
 
@@ -268,7 +268,6 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     {
         MenuItemRenderEraseMode->Check(false);
         MenuItemRenderCanvasMode->Check(true);
-
     }
     else
     {

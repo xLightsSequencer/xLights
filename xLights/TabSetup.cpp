@@ -288,7 +288,7 @@ void xLightsFrame::UpdateChannelNames()
         {
             if (e->GetName() == "model" && ModelClass::IsMyDisplay(e))
             {
-                model.SetFromXml(e);
+                model.SetFromXml(e, NetInfo);
                 NodeCount=model.GetNodeCount();
                 ChanPerNode = model.ChannelsPerNode();
                 FormatSpec = "Ch %d: "+model.name+" #%d";

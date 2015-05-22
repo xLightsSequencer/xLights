@@ -89,10 +89,23 @@ wxXmlNode* ModelClass::GetModelXml() {
     return this->ModelXml;
 }
 
-void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
+int GetStartChannel(wxString sc, NetInfoClass &netInfo) {
+    int output = 1;
+    if (sc.Contains(":")) {
+        output = wxAtoi(sc.SubString(0, sc.Find(":") - 1));
+        sc = sc.SubString(sc.Find(":") + 1, sc.size());
+    }
+    int startChannel = wxAtoi(sc);
+    if (output > 1) {
+        startChannel = netInfo.CalcAbsChannel(output - 1, startChannel - 1) + 1;
+    }
+    return startChannel;
+}
+
+void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBased) {
     wxString tempstr,channelstr;
     wxString customModel,WholeHouseData;
-    long degrees, StartChannel, channel;
+    long degrees, StartChannel;
     size_t i;
     long i2;
 
@@ -174,8 +187,8 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
         nodeNames.push_back(t2);
     }
 
-    tempstr=ModelNode->GetAttribute("StartChannel","1");
-    tempstr.ToLong(&StartChannel);
+    StartChannel = GetStartChannel(ModelNode->GetAttribute("StartChannel","1"),
+                                   netInfo);
     if (ModelNode->HasAttribute("ModelBrightness")) {
         tempstr=ModelNode->GetAttribute("ModelBrightness");
         tempstr.ToLong(&ModelBrightness);
@@ -257,9 +270,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
     for (i=0; i<NumberOfStrings; i++) {
         tempstr=StartChanAttrName(i);
         if (!zeroBased && HasIndividualStartChans && ModelNode->HasAttribute(tempstr)) {
-            ModelNode->GetAttribute(tempstr, &channelstr);
-            channelstr.ToLong(&channel);
-            stringStartChan[i] = channel-1;
+            stringStartChan[i] = GetStartChannel(ModelNode->GetAttribute(tempstr, "1"), netInfo)-1;
         } else {
             stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + i*ChannelsPerString;
         }

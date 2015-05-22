@@ -112,8 +112,8 @@ void PixelBufferClass::reset(int layers, int timing) {
 }
 
 
-void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, bool zeroBased) {
-    SetFromXml(ModelNode, zeroBased);
+void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, NetInfoClass &netInfo, bool zeroBased) {
+    SetFromXml(ModelNode, netInfo, zeroBased);
     SetModelBrightness(wxAtoi(ModelNode->GetAttribute("ModelBrightness","0")));
     reset(layers, timing);
 }

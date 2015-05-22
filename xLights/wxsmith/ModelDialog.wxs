@@ -182,15 +182,43 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL4" variable="SpinCtrl_StartChannel" member="yes">
-							<value>1</value>
-							<min>1</min>
-							<max>99999</max>
-							<size>55,-1d</size>
-							<handler function="OnSpinCtrl_StartChannelChange" entry="EVT_SPINCTRL" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>3</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxSpinCtrl" name="ID_SPINCTRL4" variable="SpinCtrl_StartChannel" member="yes">
+									<value>1</value>
+									<min>1</min>
+									<max>99999</max>
+									<size>55,-1d</size>
+									<handler function="OnSpinCtrl_StartChannelChange" entry="EVT_SPINCTRL" />
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText4" member="yes">
+									<label>From Output:</label>
+								</object>
+								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSpinCtrl" name="ID_SPINCTRL6" variable="OutputSpinCtrl" member="yes">
+									<value>1</value>
+									<min>1</min>
+									<max>255</max>
+									<size>45,-1d</size>
+									<handler function="OnSpinCtrl_StartChannelChange" entry="EVT_SPINCTRL" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -293,7 +321,7 @@
 									<handler function="OnSlider_Model_BrightnessCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -309,7 +337,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -341,7 +368,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="spacer">

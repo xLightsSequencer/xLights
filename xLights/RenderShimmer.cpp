@@ -99,7 +99,7 @@ void RgbEffects::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Ti
     }
     else
     {
-        int minx,miny,maxx,maxy;
+        int minx,miny;
         int x1,y1;
         int maxRandomx = BufferWi/2;
         if(maxRandomx<1) maxRandomx=1;

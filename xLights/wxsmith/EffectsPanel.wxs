@@ -6410,12 +6410,33 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Spirograph_R" variable="Slider_Spirograph_R" member="yes">
-										<value>20</value>
-										<min>1</min>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer125" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Spirograph_R" variable="Slider_Spirograph_R" member="no">
+												<value>20</value>
+												<min>1</min>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Spirograph_R" variable="TextCtrl21" member="no">
+												<value>20</value>
+												<maxlength>3</maxlength>
+												<size>25,-1d</size>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -6440,12 +6461,33 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Spirograph_r" variable="Slider_Spirograph_r" member="yes">
-										<value>10</value>
-										<min>1</min>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer126" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Spirograph_r" variable="Slider_Spirograph_r" member="no">
+												<value>10</value>
+												<min>1</min>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Spirograph_r" variable="TextCtrl22" member="no">
+												<value>10</value>
+												<maxlength>3</maxlength>
+												<size>25,-1d</size>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -6470,12 +6512,33 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Spirograph_d" variable="Slider_Spirograph_d" member="yes">
-										<value>30</value>
-										<min>1</min>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer127" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Spirograph_d" variable="Slider_Spirograph_d" member="no">
+												<value>30</value>
+												<min>1</min>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Spirograph_d" variable="TextCtrl23" member="no">
+												<value>30</value>
+												<maxlength>3</maxlength>
+												<size>25,-1d</size>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">

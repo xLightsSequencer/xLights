@@ -91,7 +91,6 @@ public:
     wxTextCtrl* TextCtrl_Morph_Start_Y2;
     wxPanel* Panel_Text2;
     wxChoice* Choice_Curtain_Edge;
-    wxSlider* Slider_Spirograph_d;
     wxBitmapButton* BitmapButton_Galaxy_End_Radius;
     wxChoice* Choice_Wave_Type;
     wxStaticText* StaticText91;
@@ -258,7 +257,6 @@ public:
     wxBitmapButton* BitmapButton8;
     wxBitmapButton* BitmapButton_SnowstormCount;
     wxCheckBox* CheckBox_Fan_Blend_Edges;
-    wxSlider* Slider_Spirograph_R;
     wxBitmapButton* BitmapButton_SpiralsShrink;
     wxStaticText* StaticText39;
     wxStaticText* StaticText124;
@@ -375,7 +373,6 @@ public:
     wxStaticText* StaticText54;
     wxTextCtrl* TextCtrl_Piano_CueFilename;
     wxStaticText* StaticText107;
-    wxSlider* Slider_Spirograph_r;
     wxStaticText* StaticText7;
     wxScrolledWindow* Panel1_Galaxy;
     wxBitmapButton* BitmapButton_CurtainEffect;
@@ -1151,12 +1148,15 @@ protected:
     static const long ID_PANEL26;
     static const long ID_STATICTEXT88;
     static const long ID_SLIDER_Spirograph_R;
+    static const long IDD_TEXTCTRL_Spirograph_R;
     static const long ID_BITMAPBUTTON_SLIDER_Spirograph_R;
     static const long ID_STATICTEXT89;
     static const long ID_SLIDER_Spirograph_r;
+    static const long IDD_TEXTCTRL_Spirograph_r;
     static const long ID_BITMAPBUTTON_SLIDER_Spirograph_r;
     static const long ID_STATICTEXT90;
     static const long ID_SLIDER_Spirograph_d;
+    static const long IDD_TEXTCTRL_Spirograph_d;
     static const long ID_BITMAPBUTTON_SLIDER_Spirograph_d;
     static const long ID_STATICTEXT93;
     static const long ID_CHECKBOX_Spirograph_Animate;
