@@ -26,19 +26,23 @@
 void RgbEffects::RenderOn(int start, int end, bool shimmer)
 {
     int x,y;
+    int cidx = 0;
     if (shimmer) {
         int tot = curPeriod - curEffStartPer;
         if (tot % 2) {
-            return;
+            if (palette.Size() <= 1) {
+                return;
+            }
+            cidx = 1;
         }
     }
 
     xlColor color;
     if (start == 100 && end == 100) {
-        palette.GetColor(0, color);
+        palette.GetColor(cidx, color);
     } else {
         wxImage::HSVValue hsv;
-        palette.GetHSV(0,hsv);
+        palette.GetHSV(cidx,hsv);
         double d;
         if (!fitToTime) {
             d = state/200.0;
