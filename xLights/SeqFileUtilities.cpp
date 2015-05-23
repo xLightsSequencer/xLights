@@ -366,7 +366,8 @@ static bool CalcPercentage(wxString& value, double base, bool reverse, int offse
     val -= offset;
     val %= (int)base;
     if( val < 0 ) return false;
-    double percent = (double)val/(base-1)*100.0;
+    double half_width = 1.0/base*50.0;
+    double percent = (double)val/base*100.0 + half_width;
     if( reverse )
     {
         percent = 100.0 - percent;
