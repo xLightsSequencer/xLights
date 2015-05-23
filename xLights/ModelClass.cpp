@@ -1609,6 +1609,12 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         }
         if (c == NULL) {
             Nodes[n]->GetColor(color);
+            if (StrobeRate) {
+                int r = rand() % 5;
+                if (r != 0) {
+                    color = xlBLACK;
+                }
+            }
         }
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
@@ -1752,6 +1758,12 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
             }
 
             Nodes[n]->GetColor(color);
+            if (StrobeRate) {
+                int r = rand() % 5;
+                if (r != 0) {
+                    color = xlBLACK;
+                }
+            }
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++) {
                 // draw node on screen

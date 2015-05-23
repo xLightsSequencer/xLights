@@ -371,7 +371,9 @@ void xLightsXmlFile::AddEffect( wxXmlNode* node,
     effect->AddAttribute("name", name);
     effect->AddAttribute("protected", protection);
     effect->AddAttribute("selected", selected);
-    effect->AddAttribute("id", id);
+    if (id != "0") {
+        effect->AddAttribute("id", id);
+    }
     effect->AddAttribute("startTime", start_time);
     effect->AddAttribute("endTime", end_time);
     effect->AddAttribute("palette", string_format("%d", p));
@@ -1393,7 +1395,9 @@ void xLightsXmlFile::WriteEffects(EffectLayer *layer,
         if (effect->GetSelected()) {
             effect_node->AddAttribute("selected", "1");
         }
-        effect_node->AddAttribute("id", string_format("%d", effect->GetID()));
+        if (effect->GetID()) {
+            effect_node->AddAttribute("id", string_format("%d", effect->GetID()));
+        }
         effect_node->AddAttribute("startTime", string_format("%f", effect->GetStartTime()));
         effect_node->AddAttribute("endTime", string_format("%f", effect->GetEndTime()));
         wxString palette = effect->GetPaletteAsString();
@@ -1542,6 +1546,9 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                     if (layer->GetEffectCount() != 0) {
                         effect_layer_node = AddChildXmlNode(element_effects_node, "Strand");
                         effect_layer_node->AddAttribute("index", string_format("%d", layer->GetStrand()));
+                        if (layer->GetName() != "") {
+                            effect_layer_node->AddAttribute("name", layer->GetName());
+                        }
                         WriteEffects(layer, effect_layer_node, colorPalettes,
                                      colorPalette_node,
                                      effectStrings,
@@ -1549,16 +1556,22 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                     }
 
                     for (int n = 0; n < layer->GetNodeLayerCount(); n++) {
-                        EffectLayer* nlayer = layer->GetNodeLayer(n);
+                        NodeLayer* nlayer = layer->GetNodeLayer(n);
                         if (nlayer->GetEffectCount() == 0) {
                             continue;
                         }
                         if (effect_layer_node == nullptr) {
                             effect_layer_node = AddChildXmlNode(element_effects_node, "Strand");
                             effect_layer_node->AddAttribute("index", string_format("%d", layer->GetStrand()));
+                            if (layer->GetName() != "") {
+                                effect_layer_node->AddAttribute("name", layer->GetName());
+                            }
                         }
                         wxXmlNode* neffect_layer_node = AddChildXmlNode(effect_layer_node, "Node");
                         neffect_layer_node->AddAttribute("index", string_format("%d", n));
+                        if (nlayer->GetName() != "") {
+                            neffect_layer_node->AddAttribute("name", nlayer->GetName());
+                        }
                         WriteEffects(nlayer, neffect_layer_node, colorPalettes,
                                      colorPalette_node,
                                      effectStrings,

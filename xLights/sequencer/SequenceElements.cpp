@@ -241,7 +241,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                 effectName = effect->GetAttribute("name");
                 effectIndex = Effect::GetEffectIndex(effectName);
                 // ID
-                id = wxAtoi(effect->GetAttribute("id"));
+                id = wxAtoi(effect->GetAttribute("id", "0"));
                 if (effect->GetAttribute("ref") != "") {
                     settings = effectStrings[wxAtoi(effect->GetAttribute("ref"))];
                 } else {
