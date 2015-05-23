@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.33  May 19, 2015
+		Developers notes:
     -- enh(dkulp) Update the "Strobe" strand type to actually strobe in the preview
     -- bug (gil)  SuperStar import updates. Fix morph default values to match recent changes. Subtract offset before doing mod.
                   Add option to flip Y for visualization imports.
@@ -15,6 +17,48 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh(dkulp) Add Shimmer option to On and ColorWash
     -- enh(dkulp) Add "Single Color Custom" string type that allows custom color selection
     -- enh(dkulp) Change Vixen import to use streaming xml parser to handle bigger files
+	
+	The following are the Open issues that have been closed over the last 5 days.
+	We now have Steve Giron working triaging the bugs. He has gone through all open bugs (>90) and
+	closed bugs where the 
+		1) problem is now fixed, 
+		2) closed the bugs if they were trivial (with the original users input), or
+		3) we actually know we fixed the bug (you would see dan or gil as commenting on bug) or
+		4) We document that it is not a bug but is performing as it was designed. 
+		5) Bug closed because it is a duplicate of another bug
+	If you see an issue closed that you think is still an issue, please re-open the issue.
+	
+	
+	Issues closed since release 4.0.32:
+	-----------------------------------
+	Spirograph - distance animation option does not work #205
+	Release 27 Models disappearing while sequencing #221
+	ENHANCEMENT: Add additional single line colors to Model Selection #130
+	Message when clicking on a effect #227
+	Release 4.0.31 crashes #228
+	Deleting models causes erroneous messages to appear #85
+	in sequencer single strand lights will only show up in model windows if they are red. white,green blue will not show. #191
+	File Names not preserving Case when saving sequences. #149
+	Data Layer import of a conductor file crashes Nutcracker #226
+	Panel Layout/Perspectives - not allowing saving without sequence active. #153
+	If you cancel while creating new sequence, xLights hangs (crashed once but can't repeat) #119
+	Crash on trying to load Steve Gase's 6,000 effects xml #120
+	Papagayo xml not displaying correctly in sequencer grid (xl4.0.23) #214
+	Renaming models crashes app #223
+	Model Group Crash #217
+	Export models to HLS #224
+	Bars effect - Speed bug ? #99
+	When I move from sequencer to preview popups remain #140
+	Feature Request: Drag effects between layers #154
+	Crash with no folder set 4.0.20 #207
+	xl 4.0.7 crashes #117
+	Model Channel Grid odd behaviour with Individual Start Chans check box. #186
+	Enhancement: Ability to play/stop sequence with spacebar (or other key in keybindings file) #194
+	Playback on sequencer tab will not stop with stop button randomly #192
+	Effect Settings Update (F5) #189
+	App will crash when importing duplicate timing tracks. #208
+	
+	
 4.0.32  May 19, 2015
     -- bug(dkulp) Rename the element in the loaded sequence on model rename.  Fixes #223
     -- bug(dkulp) Fix problem with overlapping effects that both specify fadein or outs causing interference
