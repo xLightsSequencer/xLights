@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/gbsizer.h>
 #include <wx/dialog.h>
@@ -18,6 +19,7 @@ class SuperStarImportDialog: public wxDialog
 		virtual ~SuperStarImportDialog();
 
 		//(*Declarations(SuperStarImportDialog)
+		wxCheckBox* CheckBox_SS_FlipY;
 		wxTextCtrl* TextCtrl_SS_Y_Size;
 		wxStaticText* StaticText37;
 		wxStaticText* StaticText40;
@@ -45,6 +47,7 @@ class SuperStarImportDialog: public wxDialog
 		static const long ID_TEXTCTRL_SS_X_Size;
 		static const long ID_STATICTEXT41;
 		static const long ID_TEXTCTRL_SS_Y_Size;
+		static const long ID_CHECKBOX_SS_FlipY;
 		//*)
 
 	private:

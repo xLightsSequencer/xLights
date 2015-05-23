@@ -360,18 +360,19 @@ void xLightsFrame::SetSequenceEnd(int ms)
 
 
 
-static void CalcPercentage(wxString& value, double base, bool reverse, int offset)
+static bool CalcPercentage(wxString& value, double base, bool reverse, int offset)
 {
     int val = wxAtoi(value);
-    val %= (int)base;
     val -= offset;
-    if( val < 0 ) val = 0;
+    val %= (int)base;
+    if( val < 0 ) return false;
     double percent = (double)val/(base-1)*100.0;
     if( reverse )
     {
         percent = 100.0 - percent;
     }
     value = wxString::Format("%d",(int)percent);
+    return true;
 }
 
 static xlColor GetColor(const wxString& sRed, const wxString& sGreen, const wxString& sBlue)
@@ -753,17 +754,17 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
 
 void xLightsFrame::ImportVix(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
-    
+
     wxString NodeName,NodeValue,msg;
     std::vector<unsigned char> VixSeqData;
     long cnt = 0;
     wxArrayString context;
     long MaxIntensity = 255;
-    
+
     int time = 0;
     int frameTime = 0;
 
-    
+
     LMSImportChannelMapDialog dlg(this);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
@@ -776,11 +777,11 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
     parser->append(bytes, read);
     wxString carryOver;
-    
+
     wxArrayString unsortedChannels;
 
     int chanColor = -1;
-    
+
     //pass 1, read the length, determine number of networks, units/network, channels per unit
     SP_XmlPullEvent * event = parser->getNext();
     int done = 0;
@@ -884,22 +885,22 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     delete [] bytes;
     delete parser;
     file.Close();
-    
+
     int numFrames = time / frameTime;
-    
+
     dlg.ccrNames.Sort();
     dlg.ccrNames.Insert("", 0);
-    
+
     dlg.channelNames.Sort();
     dlg.channelNames.Insert("", 0);
-    
+
     dlg.MapByStrand->Hide();
     dlg.Init();
-    
+
     if (dlg.ShowModal() != wxID_OK) {
         return;
     }
-    
+
     int row = 0;
     for (int m = 0; m < dlg.modelNames.size(); m++) {
         wxString modelName = dlg.modelNames[m];
@@ -918,10 +919,10 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
                                  mc);
         row++;
-        
+
         for (int str = 0; str < mc.GetNumStrands(); str++) {
             StrandLayer *sl = model->GetStrandLayer(str);
-            
+
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                     MapVixChannelInformation(this, sl,
                                              VixSeqData, frameTime, numFrames,
@@ -942,7 +943,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
             }
         }
     }
-    
+
 
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -956,7 +957,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
     wxXmlDocument input_xml;
     wxString xml_doc = xml_file.GetFullPath();
     wxFileInputStream fin(xml_doc);
-    
+
     if( !input_xml.Load(fin) )  return;
 
     LMSImportChannelMapDialog dlg(this);
@@ -1160,7 +1161,8 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         int y_size = wxAtoi(dlg.TextCtrl_SS_Y_Size->GetValue());
         int x_offset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
         int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
-        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset);
+        bool flip_y = dlg.CheckBox_SS_FlipY->GetValue();
+        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, flip_y);
     }
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -1496,7 +1498,7 @@ public:
 
 wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
                           wxXmlNode *element, int numCols,
-                          int numRows, bool reverse, const xlColor &color) {
+                          int numRows, bool reverse, const xlColor &color, int y_offset) {
     wxImage i;
     i.Create(numCols, numRows);
     i.InitAlpha();
@@ -1508,8 +1510,8 @@ wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
     for(wxXmlNode* e=element->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "element") {
             int x = wxAtoi(e->GetAttribute("ribbonIndex"));
-            int y = wxAtoi(e->GetAttribute("pixelIndex"));
-            if (x < numCols) {
+            int y = wxAtoi(e->GetAttribute("pixelIndex")) - y_offset;
+            if (x < numCols && y >=0 && y < numRows) {
                 i.SetRGB(x, y, color.Red(), color.Green(), color.Blue());
                 i.SetAlpha(x, y, wxALPHA_OPAQUE);
             }
@@ -1563,7 +1565,7 @@ bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFu
     return true;
 }
 
-bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int x_size, int y_size, int x_offset, int y_offset)
+bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int x_size, int y_size, int x_offset, int y_offset, bool flip_y)
 {
     double num_rows = 1.0;
     double num_columns = 1.0;
@@ -1617,7 +1619,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 num_columns = (double)x_size;
             }
             element->GetAttribute("controllerLocation", &attr);
-            if( attr == "bottom" )
+            if( attr == "bottom" || flip_y )
             {
                 reverse_rows = true;
             }
@@ -1657,7 +1659,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 ramp_time /= 100.0;
                 end_time += ramp_time;
                 double head_duration = (1.0 - ramp_time/(end_time-start_time)) * 100.0;
-                wxString settings = "E_CHECKBOX_MorphUseHeadEndColor=0,E_CHECKBOX_MorphUseHeadStartColor=0,E_CHECKBOX_Morph_End_Link=0,E_CHECKBOX_Morph_Start_Link=0,E_CHECKBOX_ShowHeadAtStart=0,E_NOTEBOOK_Morph=Start,E_SLIDER_MorphAccel=";
+                wxString settings = "E_CHECKBOX_Morph_End_Link=0,E_CHECKBOX_Morph_Start_Link=0,E_CHECKBOX_ShowHeadAtStart=0,E_NOTEBOOK_Morph=Start,E_SLIDER_MorphAccel=0,E_SLIDER_Morph_Repeat_Count=0,E_SLIDER_Morph_Repeat_Skip=1,E_SLIDER_Morph_Stagger=0";
                 settings += acceleration + ",";
                 wxString duration = wxString::Format("E_SLIDER_MorphDuration=%d,",(int)head_duration);
                 settings += duration;
@@ -1666,28 +1668,28 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 state1->GetAttribute("trailLen", &attr);
                 settings += "E_SLIDER_MorphStartLength=" + attr + ",";
                 state2->GetAttribute("x1", &attr);
-                CalcPercentage(attr, num_columns, false, x_offset);
+                if( !CalcPercentage(attr, num_columns, false, x_offset) ) continue;
                 settings += "E_SLIDER_Morph_End_X1=" + attr + ",";
                 state2->GetAttribute("x2", &attr);
-                CalcPercentage(attr, num_columns, false, x_offset);
+                if( !CalcPercentage(attr, num_columns, false, x_offset) ) continue;
                 settings += "E_SLIDER_Morph_End_X2=" + attr + ",";
                 state2->GetAttribute("y1", &attr);
-                CalcPercentage(attr, num_rows, reverse_rows, y_offset);
+                if( !CalcPercentage(attr, num_rows, reverse_rows, y_offset) ) continue;
                 settings += "E_SLIDER_Morph_End_Y1=" + attr + ",";
                 state2->GetAttribute("y2", &attr);
-                CalcPercentage(attr, num_rows, reverse_rows, y_offset);
+                if( !CalcPercentage(attr, num_rows, reverse_rows, y_offset) ) continue;
                 settings += "E_SLIDER_Morph_End_Y2=" + attr + ",";
                 state1->GetAttribute("x1", &attr);
-                CalcPercentage(attr, num_columns, false, x_offset);
+                if( !CalcPercentage(attr, num_columns, false, x_offset) ) continue;
                 settings += "E_SLIDER_Morph_Start_X1=" + attr + ",";
                 state1->GetAttribute("x2", &attr);
-                CalcPercentage(attr, num_columns, false, x_offset);
+                if( !CalcPercentage(attr, num_columns, false, x_offset) ) continue;
                 settings += "E_SLIDER_Morph_Start_X2=" + attr + ",";
                 state1->GetAttribute("y1", &attr);
-                CalcPercentage(attr, num_rows, reverse_rows, y_offset);
+                if( !CalcPercentage(attr, num_rows, reverse_rows, y_offset) ) continue;
                 settings += "E_SLIDER_Morph_Start_Y1=" + attr + ",";
                 state1->GetAttribute("y2", &attr);
-                CalcPercentage(attr, num_rows, reverse_rows, y_offset);
+                if( !CalcPercentage(attr, num_rows, reverse_rows, y_offset) ) continue;
                 settings += "E_SLIDER_Morph_Start_Y2=" + attr + ",";
                 wxString sRed, sGreen, sBlue,color;
                 state1->GetAttribute("red", &sRed);
@@ -1825,9 +1827,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     int layer_index = wxAtoi(element->GetAttribute("layer"));
                     int acceleration = wxAtoi(element->GetAttribute("acceleration"));
                     element->GetAttribute("centerX", &centerX);
-                    CalcPercentage(centerX, num_columns, false, x_offset);
+                    if( !CalcPercentage(centerX, num_columns, false, x_offset) ) continue;
                     element->GetAttribute("centerY", &centerY);
-                    CalcPercentage(centerY, num_rows, reverse_rows, y_offset);
+                    if( !CalcPercentage(centerY, num_rows, reverse_rows, y_offset) ) continue;
                     int startAngle = wxAtoi(element->GetAttribute("startAngle"));
                     int endAngle = wxAtoi(element->GetAttribute("endAngle"));
                     int revolutions = std::abs(endAngle-startAngle);
@@ -1946,13 +1948,13 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
 
                     if (isPartOfModel && isFull) {
                         //Every pixel in the model is specified, we can use a color wash or on instead of images
-                        
-                        
+
+
                         wxString palette = _("C_BUTTON_Palette1=") + startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + endc
                             + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                        
-                        
+
+
                         if (startc == endc) {
                             wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
                                 + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
@@ -1988,16 +1990,16 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
 
                         wxString settings = "";
                         wxString val = wxString::Format("%d", rect.x);
-                        CalcPercentage(val, num_columns, false, x_offset);
+                        if( !CalcPercentage(val, num_columns, false, x_offset) ) continue;
                         settings += ",E_SLIDER_ColorWash_X1=" + val;
                         val = wxString::Format("%d", rect.width);
-                        CalcPercentage(val, num_columns, false, x_offset);
+                        if( !CalcPercentage(val, num_columns, false, x_offset) ) continue;
                         settings += ",E_SLIDER_ColorWash_X2=" + val;
                         val = wxString::Format("%d", rect.y);
-                        CalcPercentage(val, num_rows, true, y_offset);
+                        if( !CalcPercentage(val, num_rows, true, y_offset) ) continue;
                         settings += ",E_SLIDER_ColorWash_Y1=" + val;
                         val = wxString::Format("%d", rect.height);
-                        CalcPercentage(val, num_rows, true, y_offset);
+                        if( !CalcPercentage(val, num_rows, true, y_offset) ) continue;
                         settings += ",E_SLIDER_ColorWash_Y2=" + val;
 
                         settings = _("T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_CHECKBOX_FitToTime=1,")
@@ -2008,7 +2010,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                     } else if (isPartOfModel) {
                         if (startc == xlBLACK || endc == xlBLACK || endc == startc) {
-                            imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, reverse_rows, (startc == xlBLACK) ? endc : startc);
+                            imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, reverse_rows, (startc == xlBLACK) ? endc : startc, y_offset);
                             wxString ramp = wxString::Format("%lf", (end_time - start_time));
                             if (endc == xlBLACK) {
                                 rd = ramp;
@@ -2029,7 +2031,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                 wxString s = CreateSceneImage(imagePfx, wxString::Format("-%d", x+1),
                                                               element,
                                                               num_columns, num_rows, reverse_rows,
-                                                              color);
+                                                              color, y_offset);
                                 if (x == 0) {
                                     imageName = s;
                                 }

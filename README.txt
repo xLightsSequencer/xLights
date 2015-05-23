@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug (gil)  SuperStar import updates. Fix morph default values to match recent changes. Subtract offset before doing mod.
+                  Add option to flip Y for visualization imports.
     -- enh(dkulp) Allow start channel to be specified in #:# notation where first part is the output and the second is the offset from the start of that output.  So 3:1 is the first channel of the third output.
     -- bug(dkulp) Copy/Paste models from LibreOffice on Mac not working due to cr/lf issues
     -- bug(dkulp) Fix #205 - Spriograph D animation not working
@@ -23,7 +25,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- bug(dkulp) Fix crash on import of Conductor file.  Fixes #226
     -- enh(dkulp) Add Vixen 2.x to import capability
     -- enh(dkulp) Add hlsIdata to import capability
-    -- enh(dkulp) Move Import capbability to new Import menu 
+    -- enh(dkulp) Move Import capbability to new Import menu
     -- enh(dkulp) Add abiltiy to play audio sequences at 3/4, 1/2, and 1/4 speed
     -- enh(gil) Morph update.  Improved position calculation. Added support for up to 4 tail colors.
                 Added repeat and skip count options. Added choice to quickly create 8 different morph types.
