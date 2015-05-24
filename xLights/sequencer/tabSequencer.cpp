@@ -474,10 +474,12 @@ void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 }
 
 void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
-    playType = PLAY_TYPE_STOPPED;
-    playStartTime = -1;
-    playEndTime = -1;
-    playStartMS = -1;
+    if (playType != PLAY_TYPE_MODEL) {
+        playType = PLAY_TYPE_STOPPED;
+        playStartTime = -1;
+        playEndTime = -1;
+        playStartMS = -1;
+    }
     selectedEffect = NULL;
     selectedEffectString = "";
     selectedEffectPalette = "";

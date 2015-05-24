@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil)   Prevent dropping an effect during model playback from stopping the sequence.
 4.0.33  May 19, 2015
 		Developers notes:
     -- enh(dkulp) Update the "Strobe" strand type to actually strobe in the preview
