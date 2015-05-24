@@ -1848,12 +1848,14 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     int startAngle = wxAtoi(element->GetAttribute("startAngle"));
                     int endAngle = wxAtoi(element->GetAttribute("endAngle"));
                     int revolutions = std::abs(endAngle-startAngle);
+                    if( revolutions == 0 ) revolutions = 3;  // algorithm needs non-zero value until we figure out better way to draw effect
                     int startRadius = wxAtoi(element->GetAttribute("startRadius"));
                     int endRadius = wxAtoi(element->GetAttribute("endRadius"));
                     layer = FindOpenLayer(model, layer_index, startms / 1000.0, endms / 1000.0, reserved);
                     if( type == "Spiral" )
                     {
                         double tailms = wxAtoi(element->GetAttribute("tailTimeLength")) * 10;
+                        endms += tailms;
                         double duration = (1.0 - tailms/(endms-startms)) * 100.0;
                         int startWidth = wxAtoi(element->GetAttribute("startDotSize"));
                         int endWidth = wxAtoi(element->GetAttribute("endDotSize"));

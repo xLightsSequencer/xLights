@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil)   Fix effect duration for importing SuperStar Spiral into Galaxy effect.  Fix endless hang on Save when Galaxy rev's was set to 0.
     -- bug(gil)   Prevent dropping an effect during model playback from stopping the sequence.
 4.0.33  May 19, 2015
 		Developers notes:
@@ -18,18 +19,18 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh(dkulp) Add Shimmer option to On and ColorWash
     -- enh(dkulp) Add "Single Color Custom" string type that allows custom color selection
     -- enh(dkulp) Change Vixen import to use streaming xml parser to handle bigger files
-	
+
 	The following are the Open issues that have been closed over the last 5 days.
 	We now have Steve Giron working triaging the bugs. He has gone through all open bugs (>90) and
-	closed bugs where the 
-		1) problem is now fixed, 
+	closed bugs where the
+		1) problem is now fixed,
 		2) closed the bugs if they were trivial (with the original users input), or
 		3) we actually know we fixed the bug (you would see dan or gil as commenting on bug) or
-		4) We document that it is not a bug but is performing as it was designed. 
+		4) We document that it is not a bug but is performing as it was designed.
 		5) Bug closed because it is a duplicate of another bug
 	If you see an issue closed that you think is still an issue, please re-open the issue.
-	
-	
+
+
 	Issues closed since release 4.0.32:
 	-----------------------------------
 	Spirograph - distance animation option does not work #205
@@ -58,8 +59,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	Playback on sequencer tab will not stop with stop button randomly #192
 	Effect Settings Update (F5) #189
 	App will crash when importing duplicate timing tracks. #208
-	
-	
+
+
 4.0.32  May 19, 2015
     -- bug(dkulp) Rename the element in the loaded sequence on model rename.  Fixes #223
     -- bug(dkulp) Fix problem with overlapping effects that both specify fadein or outs causing interference
