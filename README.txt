@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil)   Load perspectives when show directory is changed.  Fixes #96.
     -- bug(gil)   Fix effect duration for importing SuperStar Spiral into Galaxy effect.  Fix endless hang on Save when Galaxy rev's was set to 0.
     -- bug(gil)   Prevent dropping an effect during model playback from stopping the sequence.
 4.0.33  May 19, 2015

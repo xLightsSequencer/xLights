@@ -146,10 +146,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     mBackgroundImage = GetXmlSetting("backgroundImage","");
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     Slider_BackgroundBrightness->SetValue(mBackgroundBrightness);
-    
+
     mScaleBackgroundImage = wxAtoi(GetXmlSetting("scaleImage","0"));
     ScaleImageCheckbox->SetValue(mScaleBackgroundImage);
-    
+
     return effectsFile.GetFullPath();
 }
 
@@ -175,6 +175,8 @@ void xLightsFrame::LoadEffectsFile()
 
     UpdateModelsList();
     displayElementsPanel->SetSequenceElementsModelsViews(&mSequenceElements,ModelsNode, ModelGroupsNode, ViewsNode);
+    CheckForAndCreateDefaultPerpective();
+    perspectivePanel->SetPerspectives(PerspectivesNode);
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     StatusBar1->SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
 }
@@ -222,7 +224,7 @@ wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const wxString &name) {
                 wxArrayString modelNames = wxSplit(modelString, ',');
                 for (int x = 0; x < modelNames.size(); x++) {
                     ModelClass &c = GetModelClass(modelNames[x]);
-                   
+
                     models.push_back(&c);
                 }
             }

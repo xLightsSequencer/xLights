@@ -102,10 +102,7 @@ void xLightsFrame::InitSequencer()
     {
         return;
     }
-    // Load perspectives
     mSequencerInitialize = true;
-    CheckForAndCreateDefaultPerpective();
-    perspectivePanel->SetPerspectives(PerspectivesNode);
     sPreview2->InitializePreview(mBackgroundImage,mBackgroundBrightness);
     sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
