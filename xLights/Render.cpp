@@ -140,6 +140,77 @@ public:
             delete mainBuffer;
         }
     }
+    void SetGenericStatus(const wxString &msg, int frame) {
+        statusType = 4;
+        statusMsg = msg;
+        statusFrame = frame;
+    }
+    void SetGenericStatus(const wxString &msg, int frame, int layer) {
+        statusType = 5;
+        statusMsg = msg;
+        statusFrame = frame;
+        statusLayer = layer;
+    }
+    void SetRenderingStatus(int frame, SettingsMap*map, int layer, int strand = -1, int node = -1) {
+        statusType = 2;
+        statusFrame = frame;
+        statusLayer = layer;
+        statusStrand = strand;
+        statusNode = node;
+        statusMap = map;
+    }
+    void SetCalOutputStatus(int frame, int strand = -1, int node = -1) {
+        statusType = 3;
+        statusFrame = frame;
+        statusStrand = strand;
+        statusNode = node;
+    }
+    void SetInializingStatus(int frame, int layer, int strand = -1, int node = -1) {
+        statusType = 1;
+        statusFrame = frame;
+        statusLayer = layer;
+        statusStrand = strand;
+        statusNode = node;
+    }
+    void SetStatus(const wxString &st) {
+        statusMsg = st;
+        statusType = 0;
+    }
+    wxString GetStatus() {
+        switch (statusType) {
+        case 0:
+            return statusMsg;
+        case 1:
+            if (statusStrand == -1) {
+                return wxString::Format("Initializing effect at frame %d for %s, layer %d.\n    ", statusFrame, name, statusLayer);
+            } else if (statusNode == -1) {
+                return wxString::Format("Initializing strand effect at frame %d for %s, strand %d.\n    ", statusFrame, name, statusStrand);
+            } else {
+                return wxString::Format("Initializing node effect at frame %d for %s, strand %d, node %d.\n    ", statusFrame, name, statusStrand, statusNode);
+            }
+        case 2:
+            if (statusStrand == -1) {
+                return wxString::Format("Rendering layer effect for frame %d of %s, layer %d.\n    ", statusFrame, name, statusLayer) + statusMap->AsString();
+            } else if (statusNode == -1) {
+                return wxString::Format("Rendering strand effect for frame %d of %s, strand %d.\n    ", statusFrame, name, statusStrand) + statusMap->AsString();
+            } else {
+                return wxString::Format("Rendering node effect for frame %d of %s, strand %d, node %d.\n    ", statusFrame, name, statusLayer, statusNode) + statusMap->AsString();
+            }
+        case 3:
+            if (statusStrand == -1) {
+                return wxString::Format("Calculating output at frame %d for %s.\n    ", statusFrame, name);
+            } else if (statusNode == -1) {
+                return wxString::Format("Calculating output at frame %d for %s, strand %d.\n    ", statusFrame, name, statusStrand);
+            } else {
+                return wxString::Format("Calculating output at frame %d for %s, strand %d, node %d.\n    ", statusFrame, name, statusStrand, statusNode);
+            }
+        case 4:
+            return wxString::Format(statusMsg, name, statusFrame);
+        case 5:
+            return wxString::Format(statusMsg, name, statusFrame, statusLayer);
+        }
+        return statusMsg;
+    }
     SequenceData *createExportBuffer() {
         SequenceData *sb = new SequenceData();
         sb->init(mainBuffer->GetChanCount(), seqData->NumFrames(), seqData->FrameTime());
@@ -156,6 +227,7 @@ public:
     }
 
     virtual void Process() {
+        SetGenericStatus("Initializing rendering thread for %s\n", 0);
         //printf("Starting rendering %lx (no next)\n", (unsigned long)this);
         int maxFrameBeforeCheck = -1;
         int origChangeCount;
@@ -198,12 +270,16 @@ public:
         }
 
         for (int layer = 0; layer < numLayers; layer++) {
+            SetStatus(wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame));
             currentEffects[layer] = findEffectForFrame(layer, startFrame);
+            SetStatus(wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame));
             initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer], mainBuffer);
             effectStates[layer] = true;
         }
 
         for (int frame = startFrame; frame < endFrame; frame++) {
+            SetGenericStatus("%s: Starting frame %d\n", frame);
+
             if (next == nullptr && origChangeCount != rowToRender->getChangeCount()) {
                 //we're bailing out but make sure this range is reconsidered
                 rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
@@ -215,9 +291,11 @@ public:
             }
             bool effectsToUpdate = false;
             for (int layer = 0; layer < numLayers; layer++) {
+                SetGenericStatus("%s: Starting frame %d, layer %d\n", frame, layer);
                 Effect *el = findEffectForFrame(layer, frame);
                 if (el != currentEffects[layer]) {
                     currentEffects[layer] = el;
+                    SetInializingStatus(frame, layer);
                     initialize(layer, frame, el, settingsMaps[layer], mainBuffer);
                     effectStates[layer] = true;
                 }
@@ -225,7 +303,7 @@ public:
                 if (!persist || "None" == settingsMaps[layer]["Effect"]) {
                     mainBuffer->Clear(layer);
                 }
-
+                SetRenderingStatus(frame, &settingsMaps[layer], layer);
                 bool b = effectStates[layer];
                 validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *mainBuffer, b, true, &renderEvent);
                 effectStates[layer] = b;
@@ -236,6 +314,7 @@ public:
                 effectsToUpdate = true;
             }
             if (effectsToUpdate) {
+                SetCalOutputStatus(frame);
                 mainBuffer->CalcOutput(frame, validLayers);
                 size_t nodeCnt = mainBuffer->GetNodeCount();
                 for(size_t n = 0; n < nodeCnt; n++) {
@@ -251,6 +330,7 @@ public:
                     Effect *el = findEffectForFrame(slayer, frame);
                     if (el != strandEffects[strand] || frame == startFrame) {
                         strandEffects[strand] = el;
+                        SetInializingStatus(frame, -1, strand);
                         initialize(0, frame, el, strandSettingsMaps[strand], buffer);
                         strandEffectStates[strand] = true;
                     }
@@ -258,10 +338,12 @@ public:
                     if (!persist || "None" == strandSettingsMaps[strand]["Effect"]) {
                         buffer->Clear(0);
                     }
+                    SetRenderingStatus(frame, &strandSettingsMaps[strand], -1, strand);
 
                     if (xLights->RenderEffectFromMap(0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
                         //copy to output
                         std::vector<bool> valid(2, true);
+                        SetCalOutputStatus(frame, strand);
                         buffer->SetColors(1, &((*seqData)[frame][0]));
                         buffer->CalcOutput(frame, valid);
                         size_t nodeCnt = buffer->GetNodeCount();
@@ -283,6 +365,7 @@ public:
                     Effect *el = findEffectForFrame(nlayer, frame);
                     if (el != nodeEffects[node] || frame == startFrame) {
                         nodeEffects[node] = el;
+                        SetInializingStatus(frame, -1, strand, inode);
                         initialize(0, frame, el, nodeSettingsMaps[node], buffer);
                         nodeEffectStates[node] = true;
                     }
@@ -291,7 +374,9 @@ public:
                         buffer->Clear(0);
                     }
 
+                    SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, strand, inode);
                     if (xLights->RenderEffectFromMap(0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
+                        SetCalOutputStatus(frame, strand, inode);
                         //copy to output
                         std::vector<bool> valid(2, true);
                         buffer->SetColors(1, &((*seqData)[frame][0]));
@@ -305,6 +390,7 @@ public:
                 }
             }
             if (next) {
+                SetGenericStatus("%s: Notifying next renderer of frame %d done\n", frame);
                 next->setPreviousFrameDone(frame);
             }
         }
@@ -428,6 +514,15 @@ private:
     SequenceData *seqData;
     bool clearAllFrames;
     RenderEvent renderEvent;
+    
+    //stuff for handling the status;
+    wxString statusMsg;
+    int statusType;
+    int statusFrame;
+    SettingsMap *statusMap;
+    int statusLayer;
+    int statusStrand;
+    int statusNode;
 
     std::map<int, PixelBufferClassPtr> strandBuffers;
     std::map<int, PixelBufferClassPtr> nodeBuffers;

@@ -1005,7 +1005,7 @@ void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlC
     end_t = e->GetPalette()[tcole];
 }
 
-int EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
+int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, PixelBufferClass *pb, const Effect *e, int x1, int y1, int x2, int y2) {
     if (e->GetPalette().size() == 0) {
         //if there are no colors selected, none of the "backgrounds" make sense.  Don't draw
         //the background and instead make sure the icon is displayed to the user knows they
@@ -1105,6 +1105,47 @@ int EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, i
             return 0;
         }
         break;
+        case BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND: {
+            if (e->GetSettings()["E_NOTEBOOK_SSEFFECT_TYPE"] == "Skips" && ri->nodeIndex == -1) {
+                int cnt = wxAtoi(e->GetSettings().Get("E_SLIDER_Skips_SkipSize", "1"))
+                    + wxAtoi(e->GetSettings().Get("E_SLIDER_Skips_BandSize", "1"));
+                
+                std::vector<xlColor> colors;
+                std::vector<double> xs;
+                if (cnt > pb->GetNodeCount()) {
+                    cnt = pb->GetNodeCount();
+                }
+                int startf = e->GetStartTime() * 1000 / seqData->FrameTime();
+                int endf = e->GetEndTime() * 1000 / seqData->FrameTime();
+                xlColor lastColor;
+                double lasty = y1;
+                for (int nd = 0;  nd < cnt; nd++) {
+                    double y2new = (y2 - y1) * (nd + 1) / cnt + y1;
+                    colors.clear();
+                    xs.clear();
+                    for (int f = startf; f <= endf; f++) {
+                        pb->SetNodeChannelValues(nd, (*seqData)[f][pb->NodeStartChannel(nd)]);
+                        xlColor c = pb->GetNodeColor(nd);
+                        if (f == startf) {
+                            colors.push_back(c);
+                            lastColor = c;
+                        } else if (c != lastColor) {
+                            colors.push_back(c);
+                            lastColor = c;
+                            int timems = f * seqData->FrameTime();
+                            xs.push_back(mTimeline->GetPositionFromTimeMS(timems));
+                        }
+                    }
+                    int timems = e->GetEndTime() * 1000;
+                    xs.push_back(mTimeline->GetPositionFromTimeMS(timems));
+                    DrawGLUtils::DrawRectangleArray(lasty,
+                                                    y2new,
+                                                    x1, xs, colors, nd == (cnt-1));
+                    lasty = y2new;
+                }
+                return 2;
+            }
+        }
         default: {}
     }
     return 1;
@@ -1146,6 +1187,12 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                                         ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-3,
                                         mTimeline->GetPositionFromTimeMS(0), xs, colors);
     }
+    PixelBufferClass ncls;
+    if (ri->strandIndex == -1) {
+        ncls.InitStrandBuffer(xlights->GetModelClass(ri->element->GetName()), 0, seqData->FrameTime());
+    } else {
+        ncls.InitStrandBuffer(xlights->GetModelClass(ri->element->GetName()), ri->strandIndex, seqData->FrameTime());
+    }
 
     for(int effectIndex=0;effectIndex < effectLayer->GetEffectCount();effectIndex++)
     {
@@ -1166,7 +1213,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
         int drawIcon = 1;
         if(mGridIconBackgrounds && (ri->nodeIndex == -1 || !mGridNodeValues))
         {
-            drawIcon = DrawEffectBackground(e, x3, y1, x4, y2);
+            drawIcon = DrawEffectBackground(ri, &ncls, e, x3, y1, x4, y2);
         }
         if (mGridNodeValues && ri->nodeIndex != -1) {
             drawIcon = 2;

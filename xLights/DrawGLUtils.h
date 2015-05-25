@@ -22,6 +22,6 @@ namespace DrawGLUtils
                                const wxBitmap &bmp16,
                                GLuint* texture);
 
-    void DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors);
+    void DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors, bool flush = true);
 }
 

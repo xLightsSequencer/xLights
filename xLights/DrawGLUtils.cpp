@@ -248,9 +248,9 @@ void DrawGLUtils::DrawFillRectangle(const xlColor &color, wxByte alpha, int x, i
     glEnd();
 }
 
-void DrawGLUtils::DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors) {
+void DrawGLUtils::DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors, bool flush) {
     // each rect is 6 vertices (using GL_TRIANGLES) of x/y
-    glCache.resize(colors.size() * 6);
+    glCache.resize(glCache.curCount + colors.size() * 6);
     for (int n = 0; n < xs.size(); n++) {
         int x2 = xs[n];
         glCache.add(x, y1, colors[n]);
@@ -262,7 +262,9 @@ void DrawGLUtils::DrawRectangleArray(double y1, double y2, double x, std::vector
         glCache.add(x2, y1, colors[n]);
         x = x2;
     }
-    glCache.flush(GL_TRIANGLES, true);
+    if (flush) {
+        glCache.flush(GL_TRIANGLES, true);
+    }
 }
 
 

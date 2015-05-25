@@ -129,7 +129,7 @@ void handleCrash(void *data) {
             report->AddFile(topFrame->GetSeqXmlFileName(), fn.GetName());
         }
     }
-    wxString trace;
+    wxString trace = wxString::Format("Crashed thread id: %X\n", wxThread::GetCurrentId());
 #ifndef __WXMSW__
     void* callstack[128];
     int i, frames = backtrace(callstack, 128);
@@ -142,16 +142,20 @@ void handleCrash(void *data) {
 #else
     trace = windows_get_stacktrace(data);
 #endif
+    trace += topFrame->GetThreadStatusReport();
+    
     if (!trace.IsEmpty()) {
         report->AddText("backtrace.txt", trace, "Backtrace");
     }
     if (!wxThread::IsMain() && topFrame != nullptr) {
         topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report);
         wxSleep(600000);
-    } else if (wxDebugReportPreviewStd().Show(*report)) {
-        report->Process();
-        delete report;
+    } else {
+        topFrame->CreateDebugReport(report);
     }
+}
+wxString xLightsFrame::GetThreadStatusReport() {
+    return jobPool.GetThreadStatus();
 }
 
 void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {

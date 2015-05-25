@@ -16,6 +16,7 @@ public:
     Job() {}
     virtual ~Job() {};
     virtual void Process() = 0;
+    virtual wxString GetStatus() = 0;
 };
 
 
@@ -39,6 +40,8 @@ public:
     
     virtual void Start(size_t poolSize = 1, int priority = WXTHREAD_DEFAULT_PRIORITY);
     virtual void Stop();
+    
+    virtual wxString GetThreadStatus();
 };
 
 

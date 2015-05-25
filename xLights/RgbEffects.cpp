@@ -441,7 +441,7 @@ void RgbEffects::SetState(int period, int NewSpeed, bool ResetState, const wxStr
     speed=NewSpeed;
     lastperiod=curPeriod=period;
     cur_model = model_name;
-    cur_period = period;
+    curPeriod = period;
 }
 void RgbEffects::ClearTempBuf()
 {

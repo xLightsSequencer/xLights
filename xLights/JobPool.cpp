@@ -4,7 +4,7 @@
 
 
 #include "JobPool.h"
-
+#include "wx/string.h"
 
 class JobPoolWorker : public wxThread
 {
@@ -13,6 +13,8 @@ class JobPoolWorker : public wxThread
     volatile int &idleThreads;
     volatile int &numThreads;
     std::deque<Job*> *queue;
+    
+    Job *currentJob;
     
 public:
     JobPoolWorker(wxMutex *l,
@@ -24,16 +26,17 @@ public:
     
     void Stop();
     void Start(int priority = WXTHREAD_DEFAULT_PRIORITY);
-    virtual void* Entry();
+    void* Entry();
     
     Job *GetJob();
     
-    virtual void ProcessJob(Job *job);
+    void ProcessJob(Job *job);
+    wxString GetStatus();
 };
 
 JobPoolWorker::JobPoolWorker(wxMutex *l, wxCondition *s, std::deque<Job*> *queue,
                              volatile int &idleThreadPtr, volatile int &numThreadsPtr)
-: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr), numThreads(numThreadsPtr)
+: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr), numThreads(numThreadsPtr), currentJob(nullptr)
 {
 }
 
@@ -41,6 +44,16 @@ JobPoolWorker::~JobPoolWorker()
 {
 }
 
+wxString JobPoolWorker::GetStatus()
+{
+    wxString ret = wxString::Format("Thread: %X\n    ", GetId());
+    if (currentJob != nullptr) {
+        ret += currentJob->GetStatus();
+    } else {
+        ret += "<idle>";
+    }
+    return ret;
+}
 void JobPoolWorker::Stop()
 {
     if ( IsAlive() )
@@ -102,7 +115,9 @@ void* JobPoolWorker::Entry()
 void JobPoolWorker::ProcessJob(Job *job)
 {
     if (job) {
+        currentJob = job;
         job->Process();
+        currentJob = nullptr;
     }
 }
 
@@ -155,5 +170,15 @@ void JobPool::Stop()
         delete worker;
     }
     threads.clear();
+}
+
+wxString JobPool::GetThreadStatus() {
+    wxString ret = "\n";
+    for(size_t i=0; i<threads.size(); i++){
+        JobPoolWorker *worker = threads.at(i);
+        ret += worker->GetStatus();
+        ret += "\n\n";
+    }
+    return ret;
 }
 

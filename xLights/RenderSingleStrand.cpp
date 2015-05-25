@@ -43,10 +43,10 @@ int mapX(int x, int max, int direction, int &second) {
 
 int mapDirection(const wxString & d) {
     if ("Left" == d) {
-        return 0;
+        return 1;
     }
     if ("Right" == d) {
-        return 1;
+        return 0;
     }
     if ("From Middle" == d) {
         return 2;
@@ -73,7 +73,7 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
 
     size_t colorcnt = GetColorCount();
     if (fitToTime) {
-        int position = (GetEffectTimeIntervalPosition() * speed);
+        int position = GetEffectTimeIntervalPosition() * (speed - 0.01);
         x += position * Skips_BandSize;
     } else if (speed > 1) {
         int cur = state / 10;
@@ -85,6 +85,8 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
 
     int firstX = x;
     int colorIdx = 0;
+
+    //printf("%d   %d\n", curPeriod, x);
 
     while (x < max) {
         palette.GetColor(colorIdx, color);

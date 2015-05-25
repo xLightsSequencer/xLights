@@ -192,7 +192,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
 //xLightsFrame contains a PixelBufferClass member named buffer, which is derived from ModelClass and gives the name of the model currently being used
 //therefore we can access the model info by going to parent object's buffer member
 //    wxString model_name = "???";
-    if (!cur_period) model_xy.clear(); //flush cache once at start of each effect
+    if (!curPeriod) model_xy.clear(); //flush cache once at start of each effect
     debug(10, "RenderCoroFaces: frame %d (%7.3f sec), state %d, model '%s', mouth/phoneme '%s', eyes '%s', face outline? %d", cur_period, cur_period * 0.05, state, (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)eyes.c_str(), face_outline);
 //    if (prev_model != cur_model) get_elements(CheckListBox_CoroFaceElements, curmodel); //update choice list
 

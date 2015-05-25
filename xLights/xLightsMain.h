@@ -355,6 +355,7 @@ public:
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
     void CreateDebugReport(wxDebugReportCompress *report);
+    wxString GetThreadStatusReport();
 
 
     void ImportSuperStar(const wxFileName &filename);

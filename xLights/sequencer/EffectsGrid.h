@@ -32,6 +32,7 @@ wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 struct EffectDropData;
 
 class MainSequencer;
+class PixelBufferClass;
 
 class EffectsGrid : public xlGLCanvas
 {
@@ -62,6 +63,7 @@ public:
     }
 protected:
     virtual void InitializeGLCanvas();
+    
 
 private:
     void sendRenderEvent(const wxString &model, double start, double end, bool clear = true);
@@ -83,7 +85,9 @@ private:
     void DrawHorizontalLines();
     void DrawVerticalLines();
     void DrawModelOrViewEffects(int row);
-    int DrawEffectBackground(const Effect *effect, int x1, int y1, int x2, int y2);
+
+    int DrawEffectBackground(const Row_Information_Struct* ri, PixelBufferClass *pb, const Effect *effect, int x1, int y1, int x2, int y2);
+    
     void DrawTimingEffects(int row);
     void DrawEffects();
     void DrawTimings();

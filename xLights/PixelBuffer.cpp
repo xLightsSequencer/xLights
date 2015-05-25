@@ -387,6 +387,25 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
     for (int layer = numLayers - 1; layer >= 0; layer--) {
         if (validLayers[layer]) {
             effects[layer].GetPixel(x, y, color);
+            if (brightness[layer] != 100 || contrast[layer] != 0) {
+                hsv = color.asHSV();
+                hsv.value = hsv.value * ((double)brightness[layer]/(double)100);
+                
+                // Apply Contrast
+                if (hsv.value< 0.5) {
+                    // reduce brightness when below 0.5 in the V value or increase if > 0.5
+                    hsv.value = hsv.value - (hsv.value* ((double)contrast[layer]/(double)100));
+                } else {
+                    hsv.value = hsv.value + (hsv.value* ((double)contrast[layer]/(double)100));
+                }
+                
+                if (hsv.value < 0.0) hsv.value=0.0;
+                if (hsv.value > 1.0) hsv.value=1.0;
+                unsigned char alpha = color.Alpha();
+                color = wxImage::HSVtoRGB(hsv);
+                color.alpha = alpha;
+            }
+            
             if (MixTypeHandlesAlpha(mixType[layer])) {
                 c = mixColors(x, y, color, c, layer);
             } else {
@@ -521,23 +540,14 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                 Nodes[i]->sparkle++;
             }
             // Apply brightness
-            if (ModelBrightness != 0 || brightness[0] != 100 || contrast[0] != 0) {
+            if (ModelBrightness != 0) {
                 wxImage::RGBValue rgb(color.Red(), color.Green(), color.Blue());
                 hsv = wxImage::RGBtoHSV(rgb);
 
                 float fModelBrightness=((float)ModelBrightness/100) + 1.0;
-                hsv.value = hsv.value * ((double)brightness[0]/(double)100)*fModelBrightness;
-
+                hsv.value = hsv.value * fModelBrightness;
 
                 // Apply Contrast
-
-                if (hsv.value< 0.5) {
-                    // reduce brightness when below 0.5 in the V value or increase if > 0.5
-                    hsv.value = hsv.value - (hsv.value* ((double)contrast[0]/(double)100));
-                } else {
-                    hsv.value = hsv.value + (hsv.value* ((double)contrast[0]/(double)100));
-                }
-
                 if (hsv.value < 0.0) hsv.value=0.0;
                 if (hsv.value > 1.0) hsv.value=1.0;
 
