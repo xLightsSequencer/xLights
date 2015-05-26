@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Add ability to import effects from xLights XML files
     -- enh(dkulp) Gather more information about threads for crash dump including what frame they are on and what effects they are rendering.
     -- bug(dkulp) Fix minor issues in SingleStrandSkips (direction and an extra placement)
     -- bug(dkulp) Fix problem of Brightness and contrast only apply to the first layer

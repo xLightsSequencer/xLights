@@ -14,6 +14,7 @@ SequenceElements::SequenceElements()
     mTimingRowCount = 0;
     mMaxRowsDisplayed = 0;
     mFirstVisibleModelRow = 0;
+    mModelsNode = nullptr;
 }
 
 SequenceElements::~SequenceElements()
@@ -264,6 +265,10 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                                    startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
         } else if (effect->GetName() == "Node" && effectLayerNode->GetName() == "Strand") {
             EffectLayer* neffectLayer = ((StrandLayer*)effectLayer)->GetNodeLayer(wxAtoi(effect->GetAttribute("index")), true);
+            if (effect->GetAttribute("name", "") != "") {
+                ((NodeLayer*)neffectLayer)->SetName(effect->GetAttribute("name"));
+            }
+
             LoadEffects(neffectLayer, type, effect, effectStrings, colorPalettes);
         }
     }
@@ -381,6 +386,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                         effectLayer = element->AddEffectLayer();
                                     } else {
                                         effectLayer = element->GetStrandLayer(wxAtoi(effectLayerNode->GetAttribute("index")), true);
+                                        if (effectLayerNode->GetAttribute("name", "") != "") {
+                                            ((StrandLayer*)effectLayer)->SetName(effectLayerNode->GetAttribute("name"));
+                                        }
                                     }
                                     LoadEffects(effectLayer, elementNode->GetAttribute("type"), effectLayerNode, effectStrings, colorPalettes);
                                 }
@@ -391,7 +399,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
             }
         }
     }
-    PopulateRowInformation();
+    if (mModelsNode != nullptr) {
+        PopulateRowInformation();
+    }
     // Set to the first model/view
     mFirstVisibleModelRow = 0;
     return true;

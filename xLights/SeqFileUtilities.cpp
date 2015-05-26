@@ -536,7 +536,9 @@ private:
 void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 {
     wxFileDialog file(this, "Choose file to import", "", "",
-                      _("SuperStar File (*.sup)|*.sup|\nLOR Music Sequences (*.lms)|*.lms")
+                      _("SuperStar File (*.sup)|*.sup")
+                      + "|\nLOR Music Sequences (*.lms)|*.lms"
+                      + "|\nxLights Sequence (*.xml)|*.xml"
                       + "|\nHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"
                       + "|\nVixen 2.x Sequence(*.vix)|*.vix");
     if (file.ShowModal() == wxID_OK) {
@@ -552,11 +554,135 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
             ImportSuperStar(fn);
         } else if (fn.GetExt() == "vix") {
             ImportVix(fn);
+        } else if (fn.GetExt() == "xml") {
+            ImportXLights(fn);
         }
         mainSequencer->PanelEffectGrid->Refresh();
     }
 }
 
+void MapXLightsEffects(EffectLayer *target, EffectLayer *src) {
+    for (int x = 0; x < src->GetEffectCount(); x++) {
+        Effect *ef = src->GetEffect(x);
+        target->AddEffect(0, ef->GetEffectName(), ef->GetSettingsAsString(), ef->GetPaletteAsString(),
+                          ef->GetStartTime(), ef->GetEndTime(), 0, 0);
+    }
+}
+void MapXLightsEffects(EffectLayer *target, wxString name, std::map<wxString, EffectLayer *> &layerMap) {
+    EffectLayer *src = layerMap[name];
+    MapXLightsEffects(target, src);
+}
+void MapXLightsEffects(Element *target, wxString name, SequenceElements &seqEl, std::map<wxString, EffectLayer *> &layerMap) {
+    EffectLayer *src = layerMap[name];
+    if (src != nullptr) {
+        MapXLightsEffects(target->GetEffectLayer(0), src);
+    } else {
+        Element * srcEl = seqEl.GetElement(name);
+        while (target->GetEffectLayerCount() < srcEl->GetEffectLayerCount()) {
+            target->AddEffectLayer();
+        }
+        for (int x = 0; x < srcEl->GetEffectLayerCount(); x++) {
+            MapXLightsEffects(target->GetEffectLayer(x), srcEl->GetEffectLayer(x));
+        }
+    }
+}
+
+void xLightsFrame::ImportXLights(const wxFileName &filename) {
+    wxStopWatch sw; // start a stopwatch timer
+    std::map<wxString, EffectLayer *> layerMap;
+    
+    LMSImportChannelMapDialog dlg(this);
+    dlg.mSequenceElements = &mSequenceElements;
+    dlg.xlights = this;
+    
+    xLightsXmlFile xlf(filename);
+    xlf.Open();
+    SequenceElements se;
+    se.SetFrequency(mSequenceElements.GetFrequency());
+    se.LoadSequencerFile(xlf);
+    for (int e = 0; e < se.GetElementCount(); e++) {
+        Element *el = se.GetElement(e);
+        bool hasEffects = false;
+        for (int l = 0; l < el->GetEffectLayerCount(); l++) {
+            hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
+        }
+        if (hasEffects) {
+            dlg.channelNames.push_back(el->GetName());
+        }
+        for (int s = 0; s < el->getStrandLayerCount(); s++) {
+            StrandLayer *sl = el->GetStrandLayer(s);
+            wxString strandName = sl->GetName();
+            if (strandName == "") {
+                strandName = wxString::Format("Strand %d", (s + 1));
+            }
+            if (sl->GetEffectCount() > 0) {
+                wxString name = sl->GetName();
+                dlg.channelNames.push_back(el->GetName() + "/" + strandName);
+                layerMap[el->GetName() + "/" + strandName] = sl;
+            }
+            for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
+                NodeLayer *nl = sl->GetNodeLayer(n);
+                if (nl->GetEffectCount() > 0) {
+                    wxString nodeName = nl->GetName();
+                    if (nodeName == "") {
+                        nodeName = wxString::Format("Node %d", (n + 1));
+                    }
+                    dlg.channelNames.push_back(el->GetName() + "/" + strandName + "/" + nodeName);
+                    layerMap[el->GetName() + "/" + strandName + "/" + nodeName] = nl;
+                }
+            }
+        }
+    }
+    
+    dlg.channelNames.Sort();
+    dlg.channelNames.Insert("", 0);
+    
+    dlg.MapByStrand->Hide();
+    dlg.Init();
+    // no color colum so remove it and expand the 3rd colum into its space
+    dlg.ChannelMapGrid->SetColSize(3, dlg.ChannelMapGrid->GetColSize(3) + dlg.ChannelMapGrid->GetColSize(4));
+    dlg.ChannelMapGrid->DeleteCols(4, 1);
+
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+    int row = 0;
+    for (int m = 0; m < dlg.modelNames.size(); m++) {
+        wxString modelName = dlg.modelNames[m];
+        ModelClass &mc = GetModelClass(modelName);
+        Element * model = nullptr;
+        for (int i=0;i<mSequenceElements.GetElementCount();i++) {
+            if (mSequenceElements.GetElement(i)->GetType() == "model"
+                && modelName == mSequenceElements.GetElement(i)->GetName()) {
+                model = mSequenceElements.GetElement(i);
+            }
+        }
+        if (dlg.ChannelMapGrid->GetCellValue(row, 3) != "") {
+            MapXLightsEffects(model, dlg.ChannelMapGrid->GetCellValue(row, 3), se, layerMap);
+        }
+        row++;
+
+        for (int str = 0; str < mc.GetNumStrands(); str++) {
+            StrandLayer *sl = model->GetStrandLayer(str);
+            
+            if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                MapXLightsEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap);
+            }
+            row++;
+            for (int n = 0; n < mc.GetStrandLength(str); n++) {
+                if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                    NodeLayer *nl = sl->GetNodeLayer(n);
+                    MapXLightsEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap);
+                }
+                row++;
+            }
+        }
+    }
+    
+    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    
+}
 
 void MapToStrandName(const wxString &name, wxArrayString &strands) {
     if (name.Contains("_")) {
