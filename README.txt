@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.34  May 26, 2015
     -- enh(dkulp) Add ability to import effects from xLights XML files
     -- enh(dkulp) Gather more information about threads for crash dump including what frame they are on and what effects they are rendering.
     -- bug(dkulp) Fix minor issues in SingleStrandSkips (direction and an extra placement)
@@ -14,7 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- bug(gil)   Load perspectives when show directory is changed.  Fixes #96.
     -- bug(gil)   Fix effect duration for importing SuperStar Spiral into Galaxy effect.  Fix endless hang on Save when Galaxy rev's was set to 0.
     -- bug(gil)   Prevent dropping an effect during model playback from stopping the sequence.
-4.0.33  May 19, 2015
+4.0.33  May 23, 2015
 		Developers notes:
     -- enh(dkulp) Update the "Strobe" strand type to actually strobe in the preview
     -- bug (gil)  SuperStar import updates. Fix morph default values to match recent changes. Subtract offset before doing mod.
