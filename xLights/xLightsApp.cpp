@@ -161,6 +161,7 @@ wxString xLightsFrame::GetThreadStatusReport() {
 void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
     if (wxDebugReportPreviewStd().Show(*report)) {
         report->Process();
+        wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
     }
     delete report;
     exit(1);
