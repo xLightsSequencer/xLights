@@ -210,8 +210,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
         //  build the next filename. the frame counter is incrementing through all frames
 
 
-        if(state==0) // only once, try 10000 files to find how high is frame count
-        {
+        if(curPeriod == curEffStartPer) { // only once, try 10000 files to find how high is frame count
             maxmovieframes = 1;
             sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
             for (frame=1; frame<=9999; frame++)

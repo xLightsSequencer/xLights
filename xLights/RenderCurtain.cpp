@@ -25,7 +25,7 @@
 
 // edge: 0=left, 1=center, 2=right
 // effect: 0=open, 1=close, 2=open then close, 3=close then open
-void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat)
+void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat, int curtainSpeed)
 {
     double a;
     wxImage::HSVValue hsv;
@@ -40,30 +40,27 @@ void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat)
             SwagArray.Add(int(a*x*x));
         }
     }
-    if (effect < E_CURTAIN_OPEN_CLOSE) {
-        if(fitToTime)
-        {
-            xlimit=position * BufferWi;
-            ylimit=position * BufferHt;
-        }
-        else
-        {
-            xlimit=repeat || state < 200 ? (state % 200) * BufferWi / 199 : BufferWi;
-            ylimit=repeat || state < 200 ? (state % 200) * BufferHt / 199 : BufferHt;
-        }
-    } else {
-        if(fitToTime)
-        {
-            xlimit= position <= .5 ? position * 2 * BufferWi: (position -.5) * 2 * BufferWi ;
-            ylimit= position <= .5 ? position * 2 * BufferHt: (position -.5) * 2 * BufferHt ;
-        }
-        else
-        {
-            xlimit=repeat || state < 400 ? (state % 200) * BufferWi / 199 : 0;
-            ylimit=repeat || state < 400 ? (state % 200) * BufferHt / 199 : 0;
+    
+    //cycles is 0 - 200 representing repeat count of 0 - 20
+    if (curtainSpeed > 0) {
+        position *= curtainSpeed / 10.0;
+        if (repeat) {
+            while (position > 1.0) {
+                position -= 1.0;
+            }
+        } else if (position > 1.0) {
+            position = 1.0;
         }
     }
-    if (state == 0 || effect < E_CURTAIN_OPEN_CLOSE) {
+    
+    if (effect < E_CURTAIN_OPEN_CLOSE) {
+        xlimit=position * BufferWi;
+        ylimit=position * BufferHt;
+    } else {
+        xlimit= position <= .5 ? position * 2 * BufferWi: (position -.5) * 2 * BufferWi ;
+        ylimit= position <= .5 ? position * 2 * BufferHt: (position -.5) * 2 * BufferHt ;
+    }
+    if (curPeriod == curEffStartPer || effect < E_CURTAIN_OPEN_CLOSE) {
         CurtainDir=effect % 2;
     } else if (xlimit < LastCurtainLimit) {
         CurtainDir=1-LastCurtainDir;

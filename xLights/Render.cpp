@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 
+#define END_OF_RENDER_FRAME INT_MAX
 
 class RenderEvent
 {
@@ -67,13 +68,12 @@ protected:
 
 class AggregatorRenderer: public NextRenderer {
 public:
-    AggregatorRenderer(int numFrames) : NextRenderer() {
+    AggregatorRenderer(int numFrames) : NextRenderer(), finalFrame(numFrames + 19){
         data = new int[numFrames + 20];
         for (int x = 0; x < (numFrames + 20); x++) {
             data[x] = 0;
         }
         max = 0;
-        maxFrameSoFar = 0;
     }
     virtual ~AggregatorRenderer() {
         delete [] data;
@@ -81,26 +81,28 @@ public:
     void incNumAggregated() {
         max++;
     }
-    virtual void setPreviousFrameDone(int i) {
-        if (i % 10 != 0 && i < maxFrameSoFar) {
-            return;
+    virtual void setPreviousFrameDone(int frame) {
+        int idx = frame;
+        if (idx == END_OF_RENDER_FRAME) {
+            idx = finalFrame;
         }
-        wxMutexLocker lock(nextLock);
-        if (i > maxFrameSoFar) {
-            maxFrameSoFar = i;
-        }
-        data[i]++;
-        if (data[i] == max) {
-            previousFrameDone = i;
-            if (next != NULL) {
-                next->setPreviousFrameDone(previousFrameDone);
+        if (idx % 10 == 0 || idx == finalFrame) {
+            //only record every 10th frame and the final frame to
+            //avoid a lot of lock contention
+            wxMutexLocker lock(nextLock);
+            data[idx]++;
+            if (data[idx] == max) {
+                previousFrameDone = frame;
+                if (next != NULL) {
+                    next->setPreviousFrameDone(previousFrameDone);
+                }
             }
         }
     }
 private:
     int *data;
     int max;
-    int maxFrameSoFar;
+    const int finalFrame;
 };
 
 class RenderJob: public Job, public NextRenderer {
@@ -395,8 +397,15 @@ public:
             }
         }
         if (next) {
-            next->setPreviousFrameDone(endFrame);
+            //let the next know we're done
+            SetGenericStatus("%s: Notifying next renderer of final frame\n", 0);
+            next->setPreviousFrameDone(END_OF_RENDER_FRAME);
+            //make sure the previous has told us we're at the end.  If we return before waiting, the previous
+            //may try sending the END_OF_RENDER_FRAME to us and we'll have been deleted
+            SetGenericStatus("%s: Waiting on previous renderer for final frame\n", 0);
+            waitForFrame(END_OF_RENDER_FRAME);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
+            
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
@@ -594,7 +603,7 @@ void xLightsFrame::RenderGridToSeqData() {
                 //speed with no waits
                 noDepJobs[noDepsCount] = job;
                 noDepsCount++;
-                job->setPreviousFrameDone(SeqData.NumFrames());
+                job->setPreviousFrameDone(END_OF_RENDER_FRAME);
                 job->setNext(&aggregator);
                 aggregator.incNumAggregated();
             } else {
@@ -653,7 +662,7 @@ void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int 
             endframe = SeqData.NumFrames() - 1;
         }
         job->setRenderRange(startframe, endframe);
-        job->setPreviousFrameDone(SeqData.NumFrames() + 1);
+        job->setPreviousFrameDone(END_OF_RENDER_FRAME);
         jobPool.PushJob(job);
     }
 }
@@ -702,7 +711,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     RenderJob *job = new RenderJob(el, SeqData, this, true);
     SequenceData *data = job->createExportBuffer();
     job->setRenderRange(0, SeqData.NumFrames());
-    job->setPreviousFrameDone(SeqData.NumFrames() + 1);
+    job->setPreviousFrameDone(END_OF_RENDER_FRAME);
     job->setNext(&wait);
     int cpn = job->getBuffer()->GetChanCountPerNode();
     jobPool.PushJob(job);
@@ -765,18 +774,21 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
     } else if (effect == "On") {
         buffer.RenderOn(wxAtoi(SettingsMap.Get("TEXTCTRL_Eff_On_Start", "100")),
                         wxAtoi(SettingsMap.Get("TEXTCTRL_Eff_On_End", "100")),
-                        wxAtoi(SettingsMap.Get("CHECKBOX_On_Shimmer", "0")));
+                        wxAtoi(SettingsMap.Get("CHECKBOX_On_Shimmer", "0")),
+                        wxAtoi(SettingsMap.Get("SLIDER_On_Cycles", "10")));
     } else if (effect == "Bars") {
         buffer.RenderBars(wxAtoi(SettingsMap["SLIDER_Bars_BarCount"]),
                           BarEffectDirections.Index(SettingsMap["CHOICE_Bars_Direction"]),
                           SettingsMap["CHECKBOX_Bars_Highlight"]=="1",
-                          SettingsMap["CHECKBOX_Bars_3D"]=="1");
+                          SettingsMap["CHECKBOX_Bars_3D"]=="1",
+                          wxAtoi(SettingsMap.Get("SLIDER_Bars_Cycles", "10")));
     } else if (effect == "Butterfly") {
         buffer.RenderButterfly(ButterflyEffectColors.Index(SettingsMap["CHOICE_Butterfly_Colors"]),
                                wxAtoi(SettingsMap["SLIDER_Butterfly_Style"]),
                                wxAtoi(SettingsMap["SLIDER_Butterfly_Chunks"]),
                                wxAtoi(SettingsMap["SLIDER_Butterfly_Skip"]),
-                               ButterflyDirection.Index(SettingsMap["CHOICE_Butterfly_Direction"]));
+                               ButterflyDirection.Index(SettingsMap["CHOICE_Butterfly_Direction"]),
+                               wxAtoi(SettingsMap.Get("SLIDER_Butterfly_Speed", "10")));
     } else if (effect == "Circles") {
         buffer.RenderCircles(wxAtoi(SettingsMap["SLIDER_Circles_Count"]),
                              wxAtoi(SettingsMap["SLIDER_Circles_Size"]),
@@ -788,25 +800,28 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                              SettingsMap["CHECKBOX_Circles_Bubbles"]=="1",
                              buffer.BufferWi/2, buffer.BufferHt/2,
                              SettingsMap["CHECKBOX_Circles_Plasma"]=="1",
-                             SettingsMap["CHECKBOX_Circles_Linear_Fade"]=="1"
+                             SettingsMap["CHECKBOX_Circles_Linear_Fade"]=="1",
+                             wxAtoi(SettingsMap.Get("SLIDER_Circles_Speed", "10"))
                              );
 
     } else if (effect == "Color Wash") {
         buffer.RenderColorWash(SettingsMap["CHECKBOX_ColorWash_HFade"]=="1",
                                SettingsMap["CHECKBOX_ColorWash_VFade"]=="1",
-                               wxAtoi(SettingsMap["SLIDER_ColorWash_Count"]),
+                               wxAtoi(SettingsMap["SLIDER_ColorWash_Cycles"]),
                                wxAtoi(SettingsMap.Get("CHECKBOX_ColorWash_EntireModel", "1")),
                                wxAtoi(SettingsMap.Get("SLIDER_ColorWash_X1", "-50")),
                                wxAtoi(SettingsMap.Get("SLIDER_ColorWash_Y1", "-50")),
                                wxAtoi(SettingsMap.Get("SLIDER_ColorWash_X2", "50")),
                                wxAtoi(SettingsMap.Get("SLIDER_ColorWash_Y2", "50")),
-                               wxAtoi(SettingsMap.Get("CHECKBOX_ColorWash_Shimmer", "0"))
+                               wxAtoi(SettingsMap.Get("CHECKBOX_ColorWash_Shimmer", "0")),
+                               wxAtoi(SettingsMap.Get("CHECKBOX_ColorWash_CircularPalette", "0"))
                                );
     } else if (effect == "Curtain") {
         buffer.RenderCurtain(CurtainEdge.Index(SettingsMap["CHOICE_Curtain_Edge"]),
                              CurtainEffect.Index(SettingsMap["CHOICE_Curtain_Effect"]),
                              wxAtoi(SettingsMap["SLIDER_Curtain_Swag"]),
-                             SettingsMap["CHECKBOX_Curtain_Repeat"]=="1");
+                             SettingsMap["CHECKBOX_Curtain_Repeat"]=="1",
+                             wxAtoi(SettingsMap.Get("SLIDER_Curtain_Speed", "10")));
     } else if (effect == "Faces") {
         buffer.RenderFaces(FacesPhoneme.Index(SettingsMap["CHOICE_Faces_Phoneme"]));
     } else if (effect == "CoroFaces") {
@@ -832,9 +847,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
     } else if (effect == "Fire") {
         buffer.RenderFire(wxAtoi(SettingsMap["SLIDER_Fire_Height"]),
                           wxAtoi(SettingsMap["SLIDER_Fire_HueShift"]),
-                          SettingsMap["CHECKBOX_Fire_GrowFire"]=="1");
+                          wxAtoi(SettingsMap.Get("SLIDER_Fire_GrowthCycles", "0")));
     } else if (effect == "Fireworks") {
-        buffer.RenderFireworks(wxAtoi(SettingsMap["SLIDER_Fireworks_Number_Explosions"]),
+        buffer.RenderFireworks(wxAtoi(SettingsMap["SLIDER_Fireworks_Explosions"]),
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Count"]),
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Velocity"]),
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Fade"]));
@@ -859,7 +874,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
         buffer.RenderGlediator(SettingsMap["TEXTCTRL_Glediator_Filename"]);
     } else if (effect == "Life") {
         buffer.RenderLife(wxAtoi(SettingsMap["SLIDER_Life_Count"]),
-                          wxAtoi(SettingsMap["SLIDER_Life_Seed"]));
+                          wxAtoi(SettingsMap["SLIDER_Life_Seed"]),
+                          wxAtoi(SettingsMap.Get("SLIDER_Life_Speed", "10")));
     } else if (effect == "Meteors") {
         buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap["CHOICE_Meteors_Type"]),
                              wxAtoi(SettingsMap["SLIDER_Meteors_Count"]),
@@ -919,7 +935,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
         buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap["CHOICE_Ripple_Object_To_Draw"]),
                             RippleMovement.Index(SettingsMap["CHOICE_Ripple_Movement"]),
                             wxAtoi(SettingsMap["SLIDER_Ripple_Thickness"]),
-                            SettingsMap["CHECKBOX_Ripple3D"] == "1" );
+                            SettingsMap["CHECKBOX_Ripple3D"] == "1" ,
+                            wxAtoi(SettingsMap.Get("SLIDER_Ripple_Cycles", "10")));
     } else if (effect == "Shimmer") {
         buffer.RenderShimmer(wxAtoi(SettingsMap["SLIDER_Shimmer_Duty_Factor"]),
                              SettingsMap["CHECKBOX_Shimmer_Use_All_Colors"]=="1",
@@ -959,7 +976,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                                wxAtoi(SettingsMap["SLIDER_Snowstorm_Length"]));
     } else if (effect == "Spirals") {
         buffer.RenderSpirals(wxAtoi(SettingsMap["SLIDER_Spirals_Count"]),
-                             wxAtoi(SettingsMap["SLIDER_Spirals_Direction"]),
+                             wxAtoi(SettingsMap["SLIDER_Spirals_Movement"]),
                              wxAtoi(SettingsMap["SLIDER_Spirals_Rotation"]),
                              wxAtoi(SettingsMap["SLIDER_Spirals_Thickness"]),
                              SettingsMap["CHECKBOX_Spirals_Blend"]=="1",

@@ -23,7 +23,7 @@
 
 #include "RgbEffects.h"
 
-void RgbEffects::RenderOn(int start, int end, bool shimmer)
+void RgbEffects::RenderOn(int start, int end, bool shimmer, int cycles)
 {
     int x,y;
     int cidx = 0;
@@ -37,28 +37,29 @@ void RgbEffects::RenderOn(int start, int end, bool shimmer)
         }
     }
 
+    double adjust = GetEffectTimeIntervalPosition();
+    //cycles is 0 - 200 representing repeat count of 0 - 20
+    if (cycles > 0) {
+        adjust *= cycles / 10.0;
+        while (adjust > 1.0) {
+            adjust -= 1.0;
+        }
+    }
+    
     xlColor color;
     if (start == 100 && end == 100) {
         palette.GetColor(cidx, color);
     } else {
         wxImage::HSVValue hsv;
         palette.GetHSV(cidx,hsv);
-        double d;
-        if (!fitToTime) {
-            d = state/200.0;
-            while (d > 1.0) {
-                d -= 1.0;
-            }
-        } else {
-            d = GetEffectTimeIntervalPosition();
-        }
+        double d = adjust;
         d = start + (end - start) * d;
         d = d / 100.0;
         hsv.value = hsv.value * d;
         color = hsv;
     }
 
-    //Every Node, every frame set to selected color
+    //Every Node set to selected color
     for (x=0; x<BufferWi; x++)
     {
         for (y=0; y<BufferHt; y++)

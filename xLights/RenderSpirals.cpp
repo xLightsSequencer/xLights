@@ -23,7 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
+void RgbEffects::RenderSpirals(int PaletteRepeat, int Movement, int Rotation, int Thickness,
                                bool Blend, bool Show3D, bool grow, bool shrink)
 {
     int strand_base,strand,thick,x,y,ColorIdx;
@@ -36,42 +36,35 @@ void RgbEffects::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, i
     int SpiralThickness=(deltaStrands * Thickness / 100) + 1;
     int spiralGap = deltaStrands - SpiralThickness;
     long SpiralState;
-    long ThicknessState = state/10;
+    long ThicknessState = 0;
     wxImage::HSVValue hsv;
     xlColour color;
 
-
-    if (fitToTime)
-    {
-        double position = GetEffectTimeIntervalPosition();
-        if (grow&&shrink)
-        {
-            ThicknessState = position <= 0.5?spiralGap*(position*2):spiralGap*((1-position) * 2);
+    int Direction = Movement > 0.001 ? 1 : (Movement < -0.001 ? -1 : 0);
+    double position = GetEffectTimeIntervalPosition();
+    //movement is -200 - 200 representing rrotations of 0 - 20, left/right
+    if (position > 0) {
+        position *= std::abs(Movement / 10.0);
+        while (position > 1.0) {
+            position -= 1.0;
         }
-        else if (grow)
-        {
-                ThicknessState = spiralGap *position;
-        }
-        else if (shrink)
-        {
-            ThicknessState = spiralGap * (1-position);
-        }
-        SpiralState = position*BufferWi*10*Direction;
     }
-    else
+    if (grow && shrink)
     {
-        SpiralState=state*Direction;
+        ThicknessState = position <= 0.5?spiralGap*(position*2):spiralGap*((1-position) * 2);
     }
+    else if (grow)
+    {
+        ThicknessState = spiralGap * position;
+    }
+    else if (shrink)
+    {
+        ThicknessState = spiralGap * (1.0-position);
+    }
+    SpiralState = position*BufferWi*10*Direction;
 
     spiralGap += (spiralGap==0);
-    if (grow && (!shrink || ((ThicknessState/spiralGap)%2)==0))
-    {
-        SpiralThickness += ThicknessState%(spiralGap);
-    }
-    else if (shrink && (!grow || ((ThicknessState/spiralGap)%2)==1))
-    {
-        SpiralThickness +=spiralGap-ThicknessState%(spiralGap);
-    }
+    SpiralThickness += ThicknessState;
 
     for(int ns=0; ns < SpiralCount; ns++)
     {

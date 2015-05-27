@@ -145,8 +145,9 @@ protected:
         bool _bActive;
         int _cycles;
         wxImage::HSVValue _hsv;
+        int startPeriod;
 
-        void Reset(int x, int y, bool active, float velocity, wxImage::HSVValue hsv)
+        void Reset(int x, int y, bool active, float velocity, wxImage::HSVValue hsv, int start)
         {
             _x       = x;
             _y       = y;
@@ -154,9 +155,10 @@ protected:
             angle    = 2*M_PI*rand()/RAND_MAX;
             _dx      = vel*cos(angle);
             _dy      = vel*sin(angle);
-            _bActive = active;
+            _bActive = false;
             _cycles  = 0;
             _hsv     = hsv;
+            startPeriod = start;
         }
     protected:
     private:
@@ -554,6 +556,7 @@ protected:
     int LastCurtainDir;
     int LastCurtainLimit;
     long state;
+    long effectState;
     long LastLifeState;
     int speed;
     int lastperiod, curPeriod;
@@ -584,7 +587,7 @@ public:
 
 private:
     void RenderRadial(int start_x,int start_y,int radius,int colorCnt, int number, bool radial_3D);
-    void RenderCirclesUpdate(int number, RgbBalls* effObjs);
+    void RenderCirclesUpdate(int number, RgbBalls* effObjs, int circleSpeed);
     void ProcessPixel(int x_pos, int y_pos, const xlColour &color, bool wrap_x, int width);
 };
 

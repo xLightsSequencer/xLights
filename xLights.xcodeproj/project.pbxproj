@@ -388,6 +388,7 @@
 				67A619EC17B51C0F008E95BB /* RenderTree.cpp */,
 				67A619ED17B51C0F008E95BB /* RenderTwinkle.cpp */,
 				674D34C61918238E00A993C7 /* RenderWave.cpp */,
+				67A619EF17B51C0F008E95BB /* RgbEffects.cpp */,
 			);
 			name = EffectRendering;
 			sourceTree = "<group>";
@@ -493,7 +494,6 @@
 				67A619DA17B51C0F008E95BB /* PlayerFrame.cpp */,
 				67694F191A069BBE0030D020 /* PreviewModels.cpp */,
 				677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */,
-				67A619EF17B51C0F008E95BB /* RgbEffects.cpp */,
 				6784F9241A5653670018EC0C /* RowHeading.cpp */,
 				67A619F217B51C0F008E95BB /* SeqElementMismatchDialog.cpp */,
 				67A619F417B51C0F008E95BB /* SeqExportDialog.cpp */,

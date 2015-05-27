@@ -28,12 +28,11 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
+void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int cycles,
                                  bool EntireModel, int x1, int y1, int x2, int y2,
-                                 bool shimmer)
+                                 bool shimmer,
+                                 bool circularPalette)
 {
-    static const int SpeedFactor=200;
-    
     if (shimmer) {
         int tot = curPeriod - curEffStartPer;
         if (tot % 2) {
@@ -42,26 +41,15 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
     }
     int x,y;
     xlColour color, orig;
-    size_t colorcnt=GetColorCount();
-
-
-    if (!fitToTime)
-    {
-        int CycleLen=colorcnt*SpeedFactor;
-        if (state > (colorcnt-1)*SpeedFactor*RepeatCount && RepeatCount < 10)
-        {
-            GetMultiColorBlend(double(RepeatCount%2), false, color);
-        }
-        else
-        {
-            GetMultiColorBlend(double(state % CycleLen) / double(CycleLen), true, color);
+    
+    double position = GetEffectTimeIntervalPosition();
+    if (cycles > 0) {
+        position *= cycles / 10.0;
+        while (position > 1.0) {
+            position -= 1.0;
         }
     }
-    else
-    {
-        double position = GetEffectTimeIntervalPosition();
-        GetMultiColorBlend(position, false, color);
-    }
+    GetMultiColorBlend(position, circularPalette, color);
 
     int startX = 0;
     int startY = 0;

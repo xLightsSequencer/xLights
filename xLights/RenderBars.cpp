@@ -39,14 +39,22 @@
     BarEffectDirections.Add("Alternate Right"); // 11
 */
 
-void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
+void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, int cycles)
 {
     int x,y,n,ColorIdx;
     wxImage::HSVValue hsv;
     size_t colorcnt=GetColorCount();
     int BarCount = PaletteRepeat * colorcnt;
     double position = GetEffectTimeIntervalPosition();
-    if(BarCount<1) BarCount=1;
+    //cycles is 0 - 300 representing repeat count of 0 - 30
+    if (cycles > 0) {
+        position *= cycles / 10.0;
+        while (position > 1.0) {
+            position -= 1.0;
+        }
+    }
+    
+    if (BarCount<1) BarCount=1;
 
     xlColor color;
 
@@ -57,8 +65,11 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
         int HalfHt = BufferHt/2;
         int BlockHt=colorcnt * BarHt;
         if(BlockHt<1) BlockHt=1;
-        int f_offset = (fitToTime)?position*BlockHt: state/4 % BlockHt;
-        f_offset = Direction == 8 || Direction == 9 ? (state/20)*BarHt: f_offset;
+        
+        int f_offset = position*BlockHt;
+        if (Direction == 8 || Direction == 9) {
+            f_offset = floor(position*BarCount) * BarHt;
+        }
         Direction = Direction > 4?Direction-8:Direction;
 
         for (y=0; y<BufferHt; y++)
@@ -122,8 +133,11 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
         int HalfWi = BufferWi/2;
         int BlockWi=colorcnt * BarWi;
         if(BlockWi<1) BlockWi=1;
-        int f_offset = (fitToTime)?position*BlockWi:state/4 % BlockWi;
-        f_offset = Direction > 9 ? (state/20)*BarWi: f_offset;
+        int f_offset = position*BlockWi;
+        if (Direction > 9) {
+            f_offset = floor(position*BarCount) * BarWi;
+        }
+        
         Direction = Direction > 9?Direction-6:Direction;
         for (x=0; x<BufferWi; x++)
         {

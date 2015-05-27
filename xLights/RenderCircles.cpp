@@ -26,7 +26,8 @@
 static const int MAX_RGB_BALLS = 20;
 
 void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade)
+                               bool radial, bool radial_3D, bool bubbles, int start_x, int start_y,
+                               bool plasma, bool fade, int circleSpeed)
 {
 
     int ii=0;
@@ -39,6 +40,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     if (number > MAX_RGB_BALLS) {
         number = MAX_RGB_BALLS;
     }
+    effectState = (curPeriod-curEffStartPer) * circleSpeed * frameTimeInMs / 50;
 
     if(plasma)
     {
@@ -61,7 +63,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         return; //radial is the easiest case so just get out.
     }
 
-    if ( 0 == state || radius != effectObjects[ii]._radius || number != numBalls || metaType != plasma)
+    if ( 0 == effectState || radius != effectObjects[ii]._radius || number != numBalls || metaType != plasma)
     {
         numBalls = number;
         for(ii=0; ii<number; ii++)
@@ -85,7 +87,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     }
     else
     {
-        RenderCirclesUpdate(number, effectObjects);
+        RenderCirclesUpdate(number, effectObjects, circleSpeed);
     }
 
     if (bounce)
@@ -122,12 +124,12 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     }
 }
 
-void RgbEffects::RenderCirclesUpdate(int ballCnt, RgbBalls* effObjs)
+void RgbEffects::RenderCirclesUpdate(int ballCnt, RgbBalls* effObjs, int circleSpeed)
 {
     int ii;
     for (ii=0; ii <ballCnt; ii++)
     {
-        effObjs[ii].updatePosition((float)speed/4.0, BufferWi, BufferHt);
+        effObjs[ii].updatePosition((float)circleSpeed*frameTimeInMs/200.0, BufferWi, BufferHt);
     }
 }
 
@@ -138,9 +140,9 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int numbe
     int colorIdx;
     int barht = BufferHt/(thickness+1);
     if(barht<1) barht=1;
-    int maxRadius = state>BufferHt?BufferHt: state/2 + thickness;
+    int maxRadius = effectState>BufferHt?BufferHt: effectState/2 + thickness;
     int blockHt   = colorCnt*barht;
-    int f_offset  = state/4 % (blockHt+1);
+    int f_offset  = effectState/4 % (blockHt+1);
 
 //  int curEffStartPer, curEffEndPer, nextEffTimePeriod;
 
@@ -156,7 +158,7 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int numbe
 
         if(radial_3D)
         {
-            hsv.hue = 1.0*(ii+state)/(maxRadius/number);
+            hsv.hue = 1.0*(ii+effectState)/(maxRadius/number);
             if(hsv.hue>1.0) hsv.hue=hsv.hue-(long)hsv.hue;
             hsv.saturation=1.0;
             hsv.value=1.0;

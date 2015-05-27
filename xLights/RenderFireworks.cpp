@@ -24,13 +24,13 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-static const int maxFlakes = 1000;
+//Max of 50 explosions * 100 particals
+static const int maxFlakes = 5000;
 
 void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade)
 {
-    int idxFlakes=0;
-    int i=0,mod100;
-    int x25,x75,y25,y75,stateChunk,denom;
+    int i=0;
+    int x25,x75,y25,y75;
     //float velocity = 3.5;
     int startX;
     int startY,ColorIdx;
@@ -42,75 +42,51 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
         fireworkBursts = new RgbFireworks[maxFlakes];
     }
 
-    if(state==0)
-        for(i=0; i<maxFlakes; i++)
-        {
+    if (curPeriod == curEffStartPer) {
+        for(i=0; i<maxFlakes; i++) {
             fireworkBursts[i]._bActive = false;
         }
-    denom = (101-Number_Explosions)*100;
-    if(denom<1) denom=1;
-    stateChunk = (int)state/denom;
-    if(stateChunk<1) stateChunk=1;
-
-
-    mod100 = state%((101-Number_Explosions)*20);
-//        mod100 = (int)(state/stateChunk);
-//        mod100 = mod100%10;
-    if(mod100 == 0)
-    {
-
-        x25=(int)BufferWi*0.25;
-        x75=(int)BufferWi*0.75;
-        y25=(int)BufferHt*0.25;
-        y75=(int)BufferHt*0.75;
-        startX=(int)BufferWi/2;
-        startY=(int)BufferHt/2;
-        if((x75-x25)>0) startX = x25 + rand()%(x75-x25); else startX=0;
-        if((y75-y25)>0) startY = y25 + rand()%(y75-y25); else startY=0;
-
-        // Create a new burst
-        ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-        palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-        for(i=0; i<Count; i++)
-        {
-            do
-            {
-                idxFlakes = (idxFlakes + 1) % maxFlakes;
-            }
-            while (fireworkBursts[idxFlakes]._bActive);
-            fireworkBursts[idxFlakes].Reset(startX, startY, true, Velocity, hsv);
-        }
-    }
-//    else if (mod100<10)
-//    {
-//        Color2HSV(color,hsv);
-//        y=(int)(startY-startY*(1.0/(mod100+1)));
-//        SetPixel(startX,y,hsv);
-//    }
-    else
-    {
-        for (i=0; i<maxFlakes; i++)
-        {
-            // ... active flakes:
-            if (fireworkBursts[i]._bActive)
-            {
-                // Update position
-                fireworkBursts[i]._x += fireworkBursts[i]._dx;
-                fireworkBursts[i]._y += (-fireworkBursts[i]._dy - fireworkBursts[i]._cycles*fireworkBursts[i]._cycles/10000000.0);
-                // If this flake run for more than maxCycle or this flake is out of bounds, time to switch it off
-                fireworkBursts[i]._cycles+=20;
-                if (fireworkBursts[i]._cycles >= 10000 || fireworkBursts[i]._y >= BufferHt ||
-                    fireworkBursts[i]._x < 0. || fireworkBursts[i]._x >= BufferWi)
-                {
-                    fireworkBursts[i]._bActive = false;
-                    continue;
-                }
+        for (int x = 0; x < Number_Explosions; x++) {
+            double start = curEffStartPer + rand01() * (curEffEndPer - curEffStartPer);
+            
+            x25=(int)BufferWi*0.25;
+            x75=(int)BufferWi*0.75;
+            y25=(int)BufferHt*0.25;
+            y75=(int)BufferHt*0.75;
+            startX=(int)BufferWi/2;
+            startY=(int)BufferHt/2;
+            if((x75-x25)>0) startX = x25 + rand()%(x75-x25); else startX=0;
+            if((y75-y25)>0) startY = y25 + rand()%(y75-y25); else startY=0;
+            
+            // Create a new burst
+            ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+            palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+            for(i=0; i<Count; i++) {
+                fireworkBursts[x * Count + i].Reset(startX, startY, false, Velocity, hsv, start);
             }
         }
     }
 
-    for(i=0; i < 1000; i++)
-    {
+    for (i=0; i<(Count*Number_Explosions); i++) {
+        if (fireworkBursts[i].startPeriod == curPeriod) {
+            fireworkBursts[i]._bActive = true;
+        }
+        
+        // ... active flakes:
+        if (fireworkBursts[i]._bActive)
+        {
+            // Update position
+            fireworkBursts[i]._x += fireworkBursts[i]._dx;
+            fireworkBursts[i]._y += (-fireworkBursts[i]._dy - fireworkBursts[i]._cycles*fireworkBursts[i]._cycles/10000000.0);
+            // If this flake run for more than maxCycle or this flake is out of bounds, time to switch it off
+            fireworkBursts[i]._cycles+=20;
+            if (fireworkBursts[i]._cycles >= 10000 || fireworkBursts[i]._y >= BufferHt ||
+                fireworkBursts[i]._x < 0. || fireworkBursts[i]._x >= BufferWi)
+            {
+                fireworkBursts[i]._bActive = false;
+                continue;
+            }
+        }
         if(fireworkBursts[i]._bActive == true)
         {
             v = ((Fade*10.0)-fireworkBursts[i]._cycles)/(Fade*10.0);

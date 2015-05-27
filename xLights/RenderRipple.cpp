@@ -51,7 +51,7 @@
 
 
 
-void RgbEffects::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D)
+void RgbEffects::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, int cycles)
 {
 
     int i,ColorIdx;
@@ -68,28 +68,23 @@ void RgbEffects::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thick
     else srand(1); // else always have the same random numbers for each frame (state)
 #endif
 
-        wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
-        size_t colorcnt=GetColorCount();
+    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+    size_t colorcnt=GetColorCount();
 
-        i=0;
-        double position = GetEffectTimeIntervalPosition(); // how far are we into the row> value is 0.0 to 1.0
-        int slices=200;
-        if (position > 1)
-        {
-            position =(state%slices)/(slices*1.0);
-            }
-    float rx;
-    xc = BufferWi/2;
-    yc=BufferHt/2;
-
-    if (fitToTime)
-{
-    rx=position;
-}
-else
-{
-    rx=(state%slices)/(slices*1.0);
+    i=0;
+    double position = GetEffectTimeIntervalPosition(); // how far are we into the row> value is 0.0 to 1.0
+    //cycles is 0 - 200 representing repeat count of 0 - 20
+    if (position > 0) {
+        position *= cycles / 10.0;
+        while (position > 1.0) {
+            position -= 1.0;
+        }
     }
+    
+    float rx = position;
+    xc = BufferWi/2;
+    yc = BufferHt/2;
+
     ColorIdx=(int)(rx * colorcnt);
     if(ColorIdx==colorcnt) ColorIdx--; // ColorIdx goes from 0-3 when colorcnt goes from 1-4. Make sure that is true
 

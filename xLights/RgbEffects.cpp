@@ -59,7 +59,8 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
     WaveBuffer0.resize(NumPixels);
     WaveBuffer1.resize(NumPixels);
     WaveBuffer2.resize(NumPixels);
-    state=0;
+    state = 0;
+    effectState = 0;
 }
 
 void RgbEffects::Clear(const xlColour& bgColor)
@@ -430,7 +431,8 @@ void RgbEffects::SetState(int period, int NewSpeed, bool ResetState, const wxStr
 {
     if (ResetState)
     {
-        state=0;
+        state = 0;
+        effectState = 0;
     }
     else
     {

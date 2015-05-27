@@ -1,25 +1,29 @@
-void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D);
+void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, int cycles);
 void RenderOff(void);
-void RenderOn(int start, int end, bool shimmer);
-void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection);
+void RenderOn(int start, int end, bool shimmer, int cycles);
+void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip,
+                     int ButterflyDirection, int butterFlySpeed);
 void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                   bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade);
-void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
-                     bool EntireModel, int x1, int y1, int x2, int y2, bool shimmer);
-void RenderCurtain(int edge, int effect, int swag, bool repeat);
+                   bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade,
+                   int circleSpeed);
+void RenderColorWash(bool HorizFade, bool VertFade, int cycles,
+                     bool EntireModel, int x1, int y1, int x2, int y2,
+                     bool shimmer,
+                     bool circularPalette);
+void RenderCurtain(int edge, int effect, int swag, bool repeat, int curtainSpeed);
 void RenderFaces(int Phoneme);
 //void RenderCoroFaces( int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/);
 void RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline);
 void RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                int duration, int acceleration, bool reverse_dir, bool blend_edges,
                int num_blades, int blade_width, int blade_angle, int num_elements, int element_width );
-void RenderFire(int HeightPct,int HueShift,bool GrowFire);
+void RenderFire(int HeightPct,int HueShift,int GrowCycles);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                   int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward );
 void RenderGarlands(int GarlandType, int Spacing);
 void RenderGlediator(const wxString& NewPictureName);
-void RenderLife(int Count, int Type);
+void RenderLife(int Count, int Type, int lifeSpeed);
 void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
 void RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2,
                  int end_x1,   int end_y1,   int end_x2,   int end_y2,
@@ -36,7 +40,7 @@ void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness
 void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,
               int xc_adj, int yc_adj);
 
-void RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D);
+void RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, int cycles);
 void Drawsquare(int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,wxImage::HSVValue hsv);
 void Drawcircle(int Movement, int xc,int yc,double radius, wxImage::HSVValue hsv, int Ripple_Thickness,int CheckBox_Ripple3D);
 

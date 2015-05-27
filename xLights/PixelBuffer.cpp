@@ -565,31 +565,32 @@ void PixelBufferClass::RenderOff(void) {
     effects[CurrentLayer].RenderOff();
 }
 
-void PixelBufferClass::RenderOn(int start, int end, bool shimmer) {
-    effects[CurrentLayer].RenderOn(start, end, shimmer);
+void PixelBufferClass::RenderOn(int start, int end, bool shimmer, int repeat) {
+    effects[CurrentLayer].RenderOn(start, end, shimmer, repeat);
 }
 
-void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D) {
-    effects[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D);
+void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, int cycles) {
+    effects[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D,cycles);
 }
 
-void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection) {
-    effects[CurrentLayer].RenderButterfly(ColorScheme,Style,Chunks,Skip, ButterflyDirection);
+void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection, int butterFlySpeed) {
+    effects[CurrentLayer].RenderButterfly(ColorScheme,Style,Chunks,Skip, ButterflyDirection, butterFlySpeed);
 }
 
 void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                                     bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade) {
-    effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma, fade);
+                                     bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade, int circleSpeed) {
+    effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma, fade, circleSpeed);
 }
 
-void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount,
-                                       bool EntireModel, int x1, int y1, int x2, int y2, bool shimmer) {
-    effects[CurrentLayer].RenderColorWash(HorizFade,VertFade,RepeatCount,
-                                          EntireModel, x1, y1, x2, y2, shimmer);
+void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int cycles,
+                                       bool EntireModel, int x1, int y1, int x2, int y2, bool shimmer, bool circular) {
+    effects[CurrentLayer].RenderColorWash(HorizFade,VertFade,cycles,
+                                          EntireModel, x1, y1, x2, y2,
+                                          shimmer, circular);
 }
 
-void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat) {
-    effects[CurrentLayer].RenderCurtain(edge,effect,swag,repeat);
+void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat, int cspeed) {
+    effects[CurrentLayer].RenderCurtain(edge,effect,swag,repeat, cspeed);
 }
 
 void PixelBufferClass::RenderFaces(int Phoneme) {
@@ -610,8 +611,8 @@ void PixelBufferClass::RenderFan(int center_x, int center_y, int start_radius, i
                                      num_blades, blade_width, blade_angle, num_elements, element_width );
 }
 
-void PixelBufferClass::RenderFire(int HeightPct,int HueShift,bool GrowFire) {
-    effects[CurrentLayer].RenderFire(HeightPct,HueShift,GrowFire);
+void PixelBufferClass::RenderFire(int HeightPct,int HueShift,int GrowCycles) {
+    effects[CurrentLayer].RenderFire(HeightPct,HueShift,GrowCycles);
 }
 
 void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade) {
@@ -633,8 +634,8 @@ void PixelBufferClass::RenderGlediator( const wxString& NewPictureName) {
 }
 
 
-void PixelBufferClass::RenderLife(int Count, int Seed) {
-    effects[CurrentLayer].RenderLife(Count,Seed);
+void PixelBufferClass::RenderLife(int Count, int Seed, int lspeed) {
+    effects[CurrentLayer].RenderLife(Count,Seed, lspeed);
 }
 
 void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity) {
@@ -662,8 +663,8 @@ void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int p
     effects[CurrentLayer].RenderPinwheel(pinwheel_arms,pinwheel_twist,
                                          pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,pinwheel_armsize);
 }
-void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D) {
-    effects[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D);
+void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, int cycles) {
+    effects[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D, cycles );
 }
 void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row) {
     effects[CurrentLayer].RenderShimmer(Duty_Factor,Use_All_Colors,Blink_Timing,Blinks_Per_Row );

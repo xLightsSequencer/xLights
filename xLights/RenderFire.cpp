@@ -124,27 +124,36 @@ int RgbEffects::GetWaveBuffer2(int x, int y)
 }
 
 // 10 <= HeightPct <= 100
-void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
+void RgbEffects::RenderFire(int HeightPct,int HueShift,int cycles)
 {
     int x,y,i,r,v1,v2,v3,v4,n,new_index;
     wxImage::HSVValue hsv;
 
-    if(GrowFire) HeightPct+=(state%500)/10;
-    if(HeightPct<1) HeightPct=1;
-    if(BufferHt<1) BufferHt=1;
+    //cycles is 0 - 200 representing growth cycle count of 0 - 20
+    if (cycles > 0) {
+        double adjust = GetEffectTimeIntervalPosition();
+        adjust *= cycles / 10.0;
+        while (adjust > 1.0) {
+            adjust -= 1.0;
+        }
+        adjust = 0.5 - std::abs(adjust - 0.5);
+        HeightPct += adjust * 100;
+    }
+    
+    if (HeightPct<1) HeightPct=1;
+    if (BufferHt<1) BufferHt=1;
 
-    if (state == 0)
-    {
-        for (i=0; i < FireBuffer.size(); i++)
-        {
+    float mod_state = 4.0;
+    if (curPeriod == curEffStartPer) {
+        for (i=0; i < FireBuffer.size(); i++) {
             FireBuffer[i]=0;
         }
+    } else {
+        mod_state = 4 / (curPeriod%4+1);
     }
     // build fire
-    for (x=0; x<BufferWi; x++)
-    {
+    for (x=0; x<BufferWi; x++) {
         r=x%2==0 ? 190+(rand() % 10) : 100+(rand() % 50);
-        // r=x%2==0 ? 190+((state+rand()) % 10) : 100+((state+rand()) % 50);
         SetFireBuffer(x,0,r);
     }
     int step=255*100/BufferHt/HeightPct;
@@ -192,8 +201,6 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
 
     //  Now play fire
     float rx,ry;
-    float mod_state;
-    mod_state = 4 / (state%4+1);
     ry = 1.0 / mod_state;
     for (y=0; y<BufferHt; y++)
     {

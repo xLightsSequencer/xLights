@@ -930,48 +930,6 @@ void xLightsFrame::SetEffectControls(const wxString &effectName, const SettingsM
     SetEffectControls(palette);
 }
 
-class ControlRenameMap {
-public:
-    ControlRenameMap() {
-        data["E_TEXTCTRL_Morph_Start_X1"] = "";
-        data["E_TEXTCTRL_Morph_Start_Y1"] = "";
-        data["E_TEXTCTRL_Morph_Start_X2"] = "";
-        data["E_TEXTCTRL_Morph_Start_Y2"] = "";
-        data["E_TEXTCTRL_MorphStartLength"] = "";
-        data["E_TEXTCTRL_Morph_End_X1"] = "";
-        data["E_TEXTCTRL_Morph_End_Y1"] = "";
-        data["E_TEXTCTRL_Morph_End_X2"] = "";
-        data["E_TEXTCTRL_Morph_End_Y2"] = "";
-        data["E_TEXTCTRL_MorphEndLength"] = "";
-        data["E_TEXTCTRL_MorphDuration"] = "";
-        data["E_TEXTCTRL_MorphAccel"] = "";
-        data["E_TEXTCTRL_Pictures_GifSpeed"] = "";
-        data["E_TEXTCTRL_PicturesXC"] = "";
-        data["E_TEXTCTRL_PicturesYC"] = "";
-        data["E_CHECKBOX_MorphUseHeadStartColor"] = "";
-        data["E_CHECKBOX_MorphUseHeadEndColor"] = "";
-
-        data["E_NOTEBOOK_Text1"] = "";
-        data["E_TEXTCTRL_Pictures_Filename"] = "E_FILEPICKER_Pictures_Filename";
-        data["E_TEXTCTRL_Text_Font1"] = "E_FONTPICKER_Text_Font1";
-        data["E_TEXTCTRL_Text_Font2"] = "E_FONTPICKER_Text_Font2";
-        data["E_TEXTCTRL_Text_Font3"] = "E_FONTPICKER_Text_Font3";
-        data["E_TEXTCTRL_Text_Font4"] = "E_FONTPICKER_Text_Font4";
-    }
-    const void map(wxString &n) const {
-        wxStringToStringHashMap::const_iterator it = data.find(n);
-        if (it != data.end()) {
-            n = it->second;
-        }
-    }
-private:
-    wxStringToStringHashMap data;
-} Remaps;
-
-void SettingsMap::RemapChangedSettingKey(wxString &n,  wxString &value) {
-    Remaps.map(n);
-}
-
 void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     long TempLong;
     wxColour color;

@@ -43,14 +43,14 @@ int RgbEffects::Life_CountNeighbors(int x0, int y0)
 }
 
 // use tempbuf for calculations
-void RgbEffects::RenderLife(int Count, int Type)
+void RgbEffects::RenderLife(int Count, int Type, int lspeed)
 {
     int i,x,y,cnt;
     bool isLive;
     xlColour color;
     if(BufferHt<1) BufferHt=1;
     Count=BufferWi * BufferHt * Count / 200 + 1;
-    if (state == 0 || Count != LastLifeCount || Type != LastLifeType)
+    if (curPeriod == curEffStartPer || Count != LastLifeCount || Type != LastLifeType)
     {
         // seed tempbuf
         LastLifeCount=Count;
@@ -64,7 +64,9 @@ void RgbEffects::RenderLife(int Count, int Type)
             SetTempPixel(x,y,color);
         }
     }
-    long TempState=state % 400 / 20;
+    effectState = (curPeriod-curEffStartPer) * lspeed * frameTimeInMs / 50;
+
+    long TempState=effectState % 400 / 20;
     if (TempState == LastLifeState)
     {
         pixels=tempbuf;

@@ -32,7 +32,7 @@
 	(06) cos(abs(x)+abs(y))*(abs(x)+abs(y))
 */
 
-void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection)
+void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection, int butterFlySpeed)
 {
     int x,y,d,xc,yc,x0,y0;
     double n,x1,y1,f;
@@ -42,8 +42,12 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
     xlColour color;
     wxImage::HSVValue hsv;
     int maxframe=BufferHt*2;
-    int frame=(BufferHt * state / 200)%maxframe;
-    double offset=double(state)/200.0;
+    
+    int curState = (curPeriod - curEffStartPer) * butterFlySpeed * frameTimeInMs / 50;
+    int frame=(BufferHt * curState / 200)%maxframe;
+    double offset=double(curState)/200.0;
+    
+    
     if(ButterflyDirection==1) offset = -offset;
     xc=BufferWi/2;
     yc=BufferHt/2;
