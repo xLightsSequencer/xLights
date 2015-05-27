@@ -379,7 +379,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
 }
 
 
-void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, const std::vector<bool> & validLayers) {
+void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, const std::vector<bool> & validLayers, int &sparkle) {
     wxImage::HSVValue hsv;
     int cnt = 0;
     xlColor color;
@@ -387,6 +387,29 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
     for (int layer = numLayers - 1; layer >= 0; layer--) {
         if (validLayers[layer]) {
             effects[layer].GetPixel(x, y, color);
+
+            // add sparkles
+            if (sparkle_count[layer] > 0 && color.GetRGB() != 0) {
+                switch (sparkle % (208 - sparkle_count[layer])) {
+                    case 1:
+                    case 7:
+                        // too dim
+                        //color.Set("#444444");
+                        break;
+                    case 2:
+                    case 6:
+                        color.Set(0x88, 0x88, 0x88);
+                        break;
+                    case 3:
+                    case 5:
+                        color.Set(0xbb, 0xbb, 0xbb);
+                        break;
+                    case 4:
+                        color.Set(255, 255, 255);
+                        break;
+                }
+                sparkle++;
+            }
             if (brightness[layer] != 100 || contrast[layer] != 0) {
                 hsv = color.asHSV();
                 hsv.value = hsv.value * ((double)brightness[layer]/(double)100);
@@ -515,30 +538,8 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             Nodes[i]->SetColor(xlBLACK);
         } else {
             // get blend of two effects
-            GetMixedColor(Nodes[i]->Coords[0].bufX, Nodes[i]->Coords[0].bufY, color, validLayers);
+            GetMixedColor(Nodes[i]->Coords[0].bufX, Nodes[i]->Coords[0].bufY, color, validLayers, Nodes[i]->sparkle);
 
-            // add sparkles
-            if (sparkle_count[0] > 0 && color.GetRGB() != 0) {
-                switch (Nodes[i]->sparkle % (208 - sparkle_count[0])) {
-                case 1:
-                case 7:
-                    // too dim
-                    //color.Set("#444444");
-                    break;
-                case 2:
-                case 6:
-                    color.Set(0x88, 0x88, 0x88);
-                    break;
-                case 3:
-                case 5:
-                    color.Set(0xbb, 0xbb, 0xbb);
-                    break;
-                case 4:
-                    color.Set(255, 255, 255);
-                    break;
-                }
-                Nodes[i]->sparkle++;
-            }
             // Apply brightness
             if (ModelBrightness != 0) {
                 wxImage::RGBValue rgb(color.Red(), color.Green(), color.Blue());
