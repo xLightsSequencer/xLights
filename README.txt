@@ -3,9 +3,14 @@ LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers
 Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches.
 
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
+Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.35  May 26, 2015
+	-- bug (dkulp) fix for crash that occurred in Whole House Models
+	-- (dkulp) * Popup location of crash report.   Fixes #239
+	-- (dkulp) * Sparkles are only working on the top most layer.
 4.0.34  May 26, 2015
     -- enh(dkulp) Add ability to import effects from xLights XML files
     -- enh(dkulp) Gather more information about threads for crash dump including what frame they are on and what effects they are rendering.
