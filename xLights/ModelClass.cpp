@@ -2011,6 +2011,9 @@ int ModelClass::MapToNodeIndex(int strand, int node) const {
     } else if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix")) && SingleChannel) {
         return node;
     }
+    if (GetNumStrands() == 1) {
+        return node;
+    }
     return (strand * parm2 / parm3) + node;
 }
 

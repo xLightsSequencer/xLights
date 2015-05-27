@@ -931,7 +931,7 @@ void xLightsFrame::SetModelAsPartOfDisplay(wxString& model)
 
 void xLightsFrame::OnButtonSetBackgroundImageClick(wxCommandEvent& event)
 {
-    wxString filename = wxFileSelector( "Choose Background Image", CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
+    wxString filename = wxFileSelector( "Choose Background Image", CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN | wxFD_FILE_MUST_EXIST );
     if (!filename.IsEmpty())
     {
         mBackgroundImage = filename;

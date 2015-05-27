@@ -144,6 +144,18 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     SetPreviewSize(previewWidth,previewHeight);
 
     mBackgroundImage = GetXmlSetting("backgroundImage","");
+    if (mBackgroundImage != "" && !wxFileExists(mBackgroundImage)) {
+        //image doesn't exist there, lets look for it in show directory and media directory
+        wxFileName name(mBackgroundImage);
+        name.SetPath(CurrentDir);
+        if (!name.Exists()) {
+            name.SetPath(mediaDirectory);
+        }
+        if (name.Exists()) {
+            mBackgroundImage = name.GetFullPath();
+        }
+    }
+    
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     Slider_BackgroundBrightness->SetValue(mBackgroundBrightness);
 
