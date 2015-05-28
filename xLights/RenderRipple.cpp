@@ -57,17 +57,6 @@ void RgbEffects::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thick
     int i,ColorIdx;
     int xc,yc;
 
-#if 0
-    if(step<1) step=1;
-    1) Normal - threaded
-    2) Normal + Fast Save - threaded but only rendering the stuff that has changed
-    3) Threading disabled (settings menu) - all rendering is on the main thread, one column at a time.
-    4) Threading disabled + fast save - all rendering is on the main thread, one column at a time, but starting with the top left most changed cell.
-
-    if(Use_All_Colors) srand (time(NULL)); // for Use_All_Colors effect, make lights be random
-    else srand(1); // else always have the same random numbers for each frame (state)
-#endif
-
     wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
     size_t colorcnt=GetColorCount();
 

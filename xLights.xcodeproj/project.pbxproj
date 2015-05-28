@@ -389,6 +389,7 @@
 				67A619ED17B51C0F008E95BB /* RenderTwinkle.cpp */,
 				674D34C61918238E00A993C7 /* RenderWave.cpp */,
 				67A619EF17B51C0F008E95BB /* RgbEffects.cpp */,
+				67A619D617B51C0F008E95BB /* PixelBuffer.cpp */,
 			);
 			name = EffectRendering;
 			sourceTree = "<group>";
@@ -489,7 +490,6 @@
 				67A619D417B51C0F008E95BB /* PaletteMgmtDialog.cpp */,
 				67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */,
 				6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */,
-				67A619D617B51C0F008E95BB /* PixelBuffer.cpp */,
 				67A619D817B51C0F008E95BB /* PlaybackOptionsDialog.cpp */,
 				67A619DA17B51C0F008E95BB /* PlayerFrame.cpp */,
 				67694F191A069BBE0030D020 /* PreviewModels.cpp */,

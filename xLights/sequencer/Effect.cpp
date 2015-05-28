@@ -23,6 +23,7 @@ public:
         data["E_TEXTCTRL_PicturesYC"] = "";
         data["E_CHECKBOX_MorphUseHeadStartColor"] = "";
         data["E_CHECKBOX_MorphUseHeadEndColor"] = "";
+        data["E_SLIDER_Chase_Spacing1"] = "";
         
         data["E_NOTEBOOK_Text1"] = "";
         data["E_TEXTCTRL_Pictures_Filename"] = "E_FILEPICKER_Pictures_Filename";
@@ -191,17 +192,37 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             }
             break;
         //these all need code updated and new sliders and such before we can map them
+            //these have fitToTime requirements
+        case BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND:
+            if ("Skips" == settings["E_NOTEBOOK_SSEFFECT_TYPE"]) {
+                if (settings.Get("E_SLIDER_Skips_Advance", "") == "") {
+                    int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                    settings["E_SLIDER_Skips_Advance"] = wxString::Format("%d", speed - 1);
+                }
+            } else {
+                if (settings.Get("E_SLIDER_Chase_Rotations", "") == "") {
+                    int cycles = 10;
+                    if (!ftt) {
+                        int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                        int totalTime = endMS - startMS;
+                        int maxState = totalTime * speed / 50;
+                        cycles = maxState / 25.0;
+                    }
+                    settings["E_SLIDER_Chase_Rotations"] = wxString::Format("%d", cycles);
+                }
+            }
+            break;
+        case BitmapCache::RGB_EFFECTS_e::eff_PICTURES:
+            //these all have state/speed requirements
+        case BitmapCache::RGB_EFFECTS_e::eff_TEXT:
         case BitmapCache::RGB_EFFECTS_e::eff_GARLANDS:
         case BitmapCache::RGB_EFFECTS_e::eff_METEORS:
         case BitmapCache::RGB_EFFECTS_e::eff_PIANO:
-        case BitmapCache::RGB_EFFECTS_e::eff_PICTURES:
         case BitmapCache::RGB_EFFECTS_e::eff_PINWHEEL:
         case BitmapCache::RGB_EFFECTS_e::eff_SHIMMER:
-        case BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND:
         case BitmapCache::RGB_EFFECTS_e::eff_SNOWFLAKES:
         case BitmapCache::RGB_EFFECTS_e::eff_SNOWSTORM:
         case BitmapCache::RGB_EFFECTS_e::eff_STROBE:
-        case BitmapCache::RGB_EFFECTS_e::eff_TEXT:
         case BitmapCache::RGB_EFFECTS_e::eff_TREE:
         case BitmapCache::RGB_EFFECTS_e::eff_TWINKLE:
         case BitmapCache::RGB_EFFECTS_e::eff_WAVE:

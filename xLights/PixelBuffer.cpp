@@ -675,12 +675,12 @@ void PixelBufferClass::RenderShockwave(int center_x, int center_y, int start_rad
     effects[CurrentLayer].RenderShockwave( center_x, center_y, start_radius, end_radius, start_width, end_width, acceleration, blend_edges );
 }
 void PixelBufferClass::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int Color_Mix1,
-        int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All) {
+        int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All, int chaseSpeed) {
     effects[CurrentLayer].RenderSingleStrandChase( ColorScheme,Number_Chases, Color_Mix1,
-            Chase_Spacing1,Chase_Type1, Chase_3dFade1,Chase_Group_All);
+            Chase_Type1, Chase_3dFade1,Chase_Group_All, chaseSpeed);
 }
-void PixelBufferClass::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString &Skips_Direction) {
-    effects[CurrentLayer].RenderSingleStrandSkips(Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction);
+void PixelBufferClass::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString &Skips_Direction, int advances) {
+    effects[CurrentLayer].RenderSingleStrandSkips(Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction, advances);
 }
 
 void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType) {

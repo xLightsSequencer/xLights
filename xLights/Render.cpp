@@ -953,20 +953,19 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                                SettingsMap["CHECKBOX_Shockwave_Blend_Edges"]=="1");
     } else if (effect == "SingleStrand") {
         if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
-            buffer.RenderSingleStrandSkips(
-                                           wxAtoi(SettingsMap["SLIDER_Skips_BandSize"]),
+            buffer.RenderSingleStrandSkips(wxAtoi(SettingsMap["SLIDER_Skips_BandSize"]),
                                            wxAtoi(SettingsMap["SLIDER_Skips_SkipSize"]),
                                            wxAtoi(SettingsMap["SLIDER_Skips_StartPos"]),
-                                           SettingsMap["CHOICE_Skips_Direction"]);
+                                           SettingsMap["CHOICE_Skips_Direction"],
+                                           wxAtoi(SettingsMap.Get("SLIDER_Skips_Advance", "0")));
         } else {
-            buffer.RenderSingleStrandChase(
-                                           SingleStrandColors.Index(SettingsMap["CHOICE_SingleStrand_Colors"]),
+            buffer.RenderSingleStrandChase(SingleStrandColors.Index(SettingsMap["CHOICE_SingleStrand_Colors"]),
                                            wxAtoi(SettingsMap["SLIDER_Number_Chases"]),
                                            wxAtoi(SettingsMap["SLIDER_Color_Mix1"]),
-                                           wxAtoi(SettingsMap["SLIDER_Chase_Spacing1"]),
                                            SingleStrandTypes.Index(SettingsMap["CHOICE_Chase_Type1"]),
                                            SettingsMap["CHECKBOX_Chase_3dFade1"]=="1",
-                                           SettingsMap["CHECKBOX_Chase_Group_All"]=="1");
+                                           SettingsMap["CHECKBOX_Chase_Group_All"]=="1",
+                                           wxAtoi(SettingsMap.Get("SLIDER_Chase_Rotations", "10")));
         }
     } else if (effect == "Snowflakes") {
         buffer.RenderSnowflakes(wxAtoi(SettingsMap["SLIDER_Snowflakes_Count"]),
