@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil) Fix conductor file import to support LSP conversions. Fixes #232.
 4.0.35  May 26, 2015
 	-- bug (dkulp) fix for crash that occurred in Whole House Models
 	-- (dkulp) * Popup location of crash report.   Fixes #239

@@ -1256,7 +1256,7 @@ void FRAMECLASS ReadConductorFile(const wxString& FileName)
     }
     int numPeriods=f.Length()/16384;
 
-    SeqData.init(SeqData.NumChannels(),numPeriods,50);
+    SeqData.init(NetInfo.GetTotChannels(),numPeriods,50);
     while (f.Read(row,16384) == 16384)
     {
         wxYield();
