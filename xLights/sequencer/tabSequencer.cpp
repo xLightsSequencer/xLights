@@ -1317,9 +1317,9 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
                     int i = colors[x].asHSV().value * 100.0;
                     int i2 = colors[x + len - 1].asHSV().value * 100.0;
                     wxString settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2)
-                        + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                        + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,E_TEXTCTRL_On_Cycles=1.0,"
                         + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
-                        + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                        + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_CircularPalette=0,E_TEXTCTRL_ColorWash_Cycles=1.0";
                     wxString palette = "C_BUTTON_Palette1=" + c2 + ",C_CHECKBOX_Palette1=1,"
                         + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
                         + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
@@ -1329,7 +1329,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
                 } else {
 
                     wxString settings = _("E_CHECKBOX_ColorWash_EntireModel=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,")
-                        + "E_SLIDER_ColorWash_Count=1,T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                        + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                         + "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
 
                     wxString palette = "C_BUTTON_Palette1=" + colors[x] + ",C_CHECKBOX_Palette1=1,"
@@ -1348,7 +1348,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
     }
 
     wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
-        + ",T_CHECKBOX_FitToTime=1,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+        + ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
         + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_Speed=10,"
         + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
     for (int x = 0; x < colors.size(); x++) {

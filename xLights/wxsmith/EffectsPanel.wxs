@@ -4709,38 +4709,36 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="wxID_ANY" variable="StaticText96" member="no">
-												<label>Anim Gif Speed</label>
+											<object class="wxStaticText" name="ID_STATICTEXT27" variable="StaticText68" member="yes">
+												<label>Movement Speed</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Pictures_GifSpeed" variable="Slider_Pictures_GifSpeed" member="no">
-												<value>20</value>
-												<min>1</min>
-												<max>20</max>
-												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											<object class="wxSlider" name="IDD_SLIDER_Pictures_Speed" variable="Slider18" member="no">
+												<value>10</value>
+												<max>200</max>
+												<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pictures_GifSpeed" variable="TextCtrl_Pictures_GifSpeed" member="no">
-												<value>20</value>
-												<maxlength>3</maxlength>
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_Speed" variable="TextCtrl48" member="no">
+												<value>1.0</value>
+												<maxlength>4</maxlength>
 												<size>20,-1d</size>
-												<style>wxTE_CENTRE</style>
-												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+												<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed" variable="BitmapButton_PicturesSpeed" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON25" variable="BitmapButton6" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>13,13</size>
@@ -4749,30 +4747,40 @@
 												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
+											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-												<label>Movie is 20 FPS</label>
+											<object class="wxStaticText" name="wxID_ANY" variable="StaticText96" member="no">
+												<label>Frame Rate Adj</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_MovieIs20FPS" variable="CheckBox_Pictures_Is20FPS" member="yes" />
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<object class="wxSlider" name="IDD_SLIDER_Pictures_FrameRateAdj" variable="Slider_Pictures_FR" member="no">
+												<value>10</value>
+												<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
-										<object class="spacer">
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_FrameRateAdj" variable="TextCtrl_Pictures_FR" member="no">
+												<value>1.0</value>
+												<maxlength>4</maxlength>
+												<size>20,-1d</size>
+												<style>wxTE_CENTRE</style>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS" variable="BitmapButton_MovieIs20FPS" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed" variable="BitmapButton_PicturesSpeed" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>13,13</size>

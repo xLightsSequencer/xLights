@@ -108,7 +108,6 @@ public:
 
     void SetFadeTimes(float fadeIn, float fadeOut );
     void SetEffectDuration(int startMsec, int endMsec);
-    void SetFitToTime(bool fit);
 
     void GetFadeSteps( int& fadeInSteps, int& fadeOutSteps);
     void GetEffectPeriods( int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
@@ -563,7 +562,6 @@ protected:
     RgbFireworks *fireworkBursts;
 
     long timer_countdown[4]; // was  long timer_countdown[1];
-    bool fitToTime;
 
 
     //circles

@@ -27,7 +27,6 @@ class TimingPanel: public wxPanel
 		//(*Declarations(TimingPanel)
 		wxStaticText* StaticText2;
 		wxPanel* Panel_Sizer;
-		wxBitmapButton* BitmapButton_FitToTime;
 		wxTextCtrl* TextCtrl_Fadein;
 		wxTextCtrl* TextCtrl_Speed;
 		wxBitmapButton* BitmapButton_OverlayBkg;
@@ -47,7 +46,6 @@ class TimingPanel: public wxPanel
 		wxCheckBox* CheckBox_OverlayBkg;
 		wxStaticText* StaticText59;
 		wxTextCtrl* txtCtlEffectMix;
-		wxCheckBox* CheckBox_FitToTime;
 		//*)
 
 	protected:
@@ -70,8 +68,6 @@ class TimingPanel: public wxPanel
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL_Fadeout;
 		static const long ID_BITMAPBUTTON_TEXTCTRL_Fadeout;
-		static const long ID_CHECKBOX_FitToTime;
-		static const long ID_BITMAPBUTTON_CHECKBOX_FitToTime;
 		static const long ID_CHECKBOX_OverlayBkg;
 		static const long ID_BITMAPBUTTON_OverlayBkg;
 		static const long ID_SCROLLEDWINDOW1;
@@ -82,11 +78,9 @@ class TimingPanel: public wxPanel
 
 		//(*Handlers(TimingPanel)
 		void OnSlider_SpeedCmdScroll(wxScrollEvent& event);
-		void OnCheckBox_FitToTimeClick(wxCommandEvent& event);
 		void OnCheckBox_OverlayBkgClick(wxCommandEvent& event);
 		void OnBitmapButton_FadeOutClick(wxCommandEvent& event);
 		void OnBitmapButton_FadeInClick(wxCommandEvent& event);
-		void OnBitmapButton_FitToTimeClick(wxCommandEvent& event);
 		void OnBitmapButton_OverlayBkgClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnLeftDClick(wxMouseEvent& event);

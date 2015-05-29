@@ -71,7 +71,6 @@ public:
     wxChoice* Choice_SingleStrand_Colors;
     wxBitmapButton* BitmapButton_Piano_MapFilename;
     wxBitmapButton* BitmapButton_NumberStrobes;
-    wxStaticText* StaticText4;
     wxStaticText* StaticText38;
     wxStaticText* StaticText86;
     wxStaticText* StaticText42;
@@ -281,7 +280,6 @@ public:
     wxSlider* Slider_Bars_BarCount;
     wxCheckBox* CheckBox_Morph_End_Link;
     wxBitmapButton* BitmapButton_Morph_Repeat_Skip;
-    wxBitmapButton* BitmapButton_MovieIs20FPS;
     wxStaticText* StaticText127;
     wxBitmapButton* BitmapButton_Morph_End_Y2;
     wxBitmapButton* BitmapButton_Pinwheel3D;
@@ -375,6 +373,7 @@ public:
     wxSlider* Slider_Twinkle_Count;
     wxBitmapButton* BitmapButton_TextFont4;
     wxSlider* Slider_Color_Mix1;
+    wxBitmapButton* BitmapButton6;
     wxCheckBox* CheckBox4;
     wxCheckBox* CheckBox_Galaxy_Reverse;
     wxCheckBox* CheckBox_ColorWash_HFade;
@@ -401,11 +400,11 @@ public:
     wxBitmapButton* BitmapButton_NumberWaves;
     wxScrolledWindow* Panel1_Life;
     wxStaticText* StaticText_Piano_NumKeys;
+    wxStaticText* StaticText68;
     wxBitmapButton* BitmapButton_Shockwave_CenterY;
     wxStaticText* StaticText141;
     wxTextCtrl* TextCtrl_Glediator_Filename;
     wxStaticText* StaticText97;
-    wxCheckBox* CheckBox_Pictures_Is20FPS;
     wxStaticText* StaticText71;
     wxStaticText* StaticText43;
     wxStaticText* StaticText151;
@@ -962,12 +961,13 @@ protected:
     static const long ID_STATICTEXT46;
     static const long ID_CHOICE_Pictures_Direction;
     static const long ID_BITMAPBUTTON_CHOICE_Pictures_Direction;
-    static const long ID_SLIDER_Pictures_GifSpeed;
-    static const long IDD_TEXTCTRL_Pictures_GifSpeed;
+    static const long ID_STATICTEXT27;
+    static const long IDD_SLIDER_Pictures_Speed;
+    static const long ID_TEXTCTRL_Pictures_Speed;
+    static const long ID_BITMAPBUTTON25;
+    static const long IDD_SLIDER_Pictures_FrameRateAdj;
+    static const long ID_TEXTCTRL_Pictures_FrameRateAdj;
     static const long ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed;
-    static const long ID_STATICTEXT4;
-    static const long ID_CHECKBOX_MovieIs20FPS;
-    static const long ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS;
     static const long ID_CHECKBOX_Pictures_PixelOffsets;
     static const long ID_SLIDER_PicturesXC;
     static const long ID_CHECKBOX_Pictures_WrapX;

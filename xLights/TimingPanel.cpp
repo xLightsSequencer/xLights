@@ -30,8 +30,6 @@ const long TimingPanel::ID_BITMAPBUTTON_TEXTCTRL_Fadein = wxNewId();
 const long TimingPanel::ID_STATICTEXT3 = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadeout = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_TEXTCTRL_Fadeout = wxNewId();
-const long TimingPanel::ID_CHECKBOX_FitToTime = wxNewId();
-const long TimingPanel::ID_BITMAPBUTTON_CHECKBOX_FitToTime = wxNewId();
 const long TimingPanel::ID_CHECKBOX_OverlayBkg = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_OverlayBkg = wxNewId();
 const long TimingPanel::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -143,15 +141,6 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BitmapButton_FadeIn->SetDefault();
 	BitmapButton_FadeIn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer2->Add(BitmapButton_FadeIn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	CheckBox_FitToTime = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_FitToTime, _("Fit to time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FitToTime"));
-	CheckBox_FitToTime->SetValue(true);
-	FlexGridSizer2->Add(CheckBox_FitToTime, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	BitmapButton_FitToTime = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_CHECKBOX_FitToTime, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_FitToTime"));
-	BitmapButton_FitToTime->SetDefault();
-	BitmapButton_FitToTime->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	FlexGridSizer2->Add(BitmapButton_FitToTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	CheckBox_OverlayBkg = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_OverlayBkg, _("Persistent"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OverlayBkg"));
 	CheckBox_OverlayBkg->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_OverlayBkg, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -182,8 +171,6 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(ID_SLIDER_EffectLayerMix,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::OnSlider_EffectLayerMixCmdScroll);
 	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadein,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnBitmapButton_FadeOutClick);
 	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadeout,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnBitmapButton_FadeInClick);
-	Connect(ID_CHECKBOX_FitToTime,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_FitToTimeClick);
-	Connect(ID_BITMAPBUTTON_CHECKBOX_FitToTime,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnBitmapButton_FitToTimeClick);
 	Connect(ID_CHECKBOX_OverlayBkg,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_OverlayBkgClick);
 	Connect(ID_BITMAPBUTTON_OverlayBkg,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnBitmapButton_OverlayBkgClick);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
@@ -213,9 +200,6 @@ void TimingPanel::UpdateEffectLayerMix()
 }
 
 
-void TimingPanel::OnCheckBox_FitToTimeClick(wxCommandEvent& event)
-{
-}
 
 void TimingPanel::OnCheckBox_OverlayBkgClick(wxCommandEvent& event)
 {
@@ -226,10 +210,6 @@ void TimingPanel::OnBitmapButton_FadeOutClick(wxCommandEvent& event)
 }
 
 void TimingPanel::OnBitmapButton_FadeInClick(wxCommandEvent& event)
-{
-}
-
-void TimingPanel::OnBitmapButton_FitToTimeClick(wxCommandEvent& event)
 {
 }
 
@@ -270,8 +250,6 @@ wxString TimingPanel::GetTimingString()
     s+="T_TEXTCTRL_Fadein="+TextCtrl_Fadein->GetValue() + ",";
     // Fade Out
     s+="T_TEXTCTRL_Fadeout="+TextCtrl_Fadeout->GetValue() + ",";
-    // Fit to time
-    s+=wxString::Format("T_CHECKBOX_FitToTime=%d",CheckBox_FitToTime->GetValue()?1:0) + ",";
     // Fit to time
     s+=wxString::Format("T_CHECKBOX_OverlayBkg=%d",CheckBox_OverlayBkg->GetValue()?1:0);
     return s;

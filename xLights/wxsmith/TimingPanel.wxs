@@ -263,39 +263,6 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxCheckBox" name="ID_CHECKBOX_FitToTime" variable="CheckBox_FitToTime" member="yes">
-															<label>Fit to time</label>
-															<checked>1</checked>
-															<handler function="OnCheckBox_FitToTimeClick" entry="EVT_CHECKBOX" />
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_FitToTime" variable="BitmapButton_FitToTime" member="yes">
-															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
-															<size>13,13</size>
-															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_FitToTimeClick" entry="EVT_BUTTON" />
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
 														<object class="wxCheckBox" name="ID_CHECKBOX_OverlayBkg" variable="CheckBox_OverlayBkg" member="yes">
 															<label>Persistent</label>
 															<handler function="OnCheckBox_OverlayBkgClick" entry="EVT_CHECKBOX" />

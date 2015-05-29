@@ -425,7 +425,6 @@ private:
         }
         updateBufferPaletteFromMap(layer, settingsMap, buffer);
         updateBufferFadesFromMap(layer, settingsMap, buffer);
-        updateFitToTimeFromMap(layer, settingsMap, buffer);
 
         if (el != NULL) {
             buffer->SetTimes(layer, el->GetStartTime() * 1000, el->GetEndTime() * 1000);
@@ -468,11 +467,6 @@ private:
         tmpStr.ToDouble(&fadeOut);
 
         buffer->SetFadeTimes(layer, fadeIn, fadeOut);
-    }
-
-    void updateFitToTimeFromMap(int layer, SettingsMap& settingsMap, PixelBufferClass *buffer) {
-        bool fitToTime = settingsMap["CHECKBOX_FitToTime"] == "1";
-        buffer->SetFitToTime(layer, fitToTime);
     }
 
     Effect *findEffectForFrame(EffectLayer* layer, int frame) {
@@ -913,8 +907,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
     } else if (effect == "Pictures") {
         buffer.RenderPictures(PictureEffectDirections.Index(SettingsMap["CHOICE_Pictures_Direction"]),
                               SettingsMap["FILEPICKER_Pictures_Filename"],
-                              wxAtoi(SettingsMap["SLIDER_Pictures_GifSpeed"]),
-                              SettingsMap["CHECKBOX_MovieIs20FPS"] == "1",
+                              wxAtof(SettingsMap.Get("TEXTCTRL_Pictures_Speed", "1.0")),
+                              wxAtof(SettingsMap.Get("TEXTCTRL_Pictures_FrameRateAdj", "1.0")),
                               wxAtoi(SettingsMap["SLIDER_PicturesXC"]),
                               wxAtoi(SettingsMap["SLIDER_PicturesYC"]),
                               wxAtoi(SettingsMap["SLIDER_PicturesEndXC"]),

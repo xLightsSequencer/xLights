@@ -92,7 +92,6 @@ public:
     void SetPalette(int layer, xlColourVector& newcolors);
     void SetLayer(int newlayer, int period, int speed, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
-    void SetFitToTime(int layer, bool fit);
     void SetFadeTimes(int layer, float inTime, float outTime);
     void SetSparkle(int layer, int freq);
     void SetBrightness(int layer, int value);

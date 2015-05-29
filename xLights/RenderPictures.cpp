@@ -165,30 +165,16 @@ void RgbEffects::ProcessPixel(int x_pos, int y_pos, const xlColour &color, bool 
     SetPixel(x_value,y_pos,color);
 }
 
-//#define WANT_DEBUG_IMPL
-//#define WANT_DEBUG 100
-//#include "djdebug.cpp"
-
 void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
-                                int GifSpeed, bool is20fps,
+                                float movementSpeed, float frameRateAdj,
                                 int xc_adj, int yc_adj,
                                 int xce_adj, int yce_adj,
                                 bool pixelOffsets, bool wrap_x)
 {
-    const int speedfactor=4;
+    double position = GetEffectTimeIntervalPosition(movementSpeed);
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
-    wxString filename = "RenderPictures.log";
-
-	// --------------
-	// doesn't work when creating DLL (MHB 26 Jan 2014)
-	//int createlog= xLightsApp::WantDebug; // use command-line switch to log variables to a log file. this is becaus debug in wxWidgets doesnt display strings
-	//  -------------
-
+    
     wxFile f;
-#define debug f //shim; need to rework debug
-//#undef wrdebug
-//#define wrdebug(x)
-
     if(NewPictureName2.length()==0) return;
 
 //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
@@ -200,17 +186,14 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
 //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
     sPicture = NewPictureName2;
-    suffix = NewPictureName2.substr (NewPictureName2.length()-6,2);
-    extension = NewPictureName2.substr (NewPictureName2.length()-3,3);
-    if( suffix =="-1") // do we have a movie file?
-    {
+    suffix = NewPictureName2.substr(NewPictureName2.length()-6,2);
+    extension = NewPictureName2.substr(NewPictureName2.length()-3,3);
+    if (suffix == "-1")  {// do we have a movie file?
         //    yes
-        BasePicture= NewPictureName2.substr (0,NewPictureName2.length()-6) ;
+        BasePicture= NewPictureName2.substr(0,NewPictureName2.length()-6) ;
 
         //  build the next filename. the frame counter is incrementing through all frames
-
-
-        if(curPeriod == curEffStartPer) { // only once, try 10000 files to find how high is frame count
+        if (curPeriod == curEffStartPer) { // only once, try 10000 files to find how high is frame count
             maxmovieframes = 1;
             sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
             for (frame=1; frame<=9999; frame++)
@@ -223,10 +206,8 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                 }
             }
             frame=1;
-        } else if (is20fps) {
-            frame++;
         } else {
-            frame = (state / 10) % maxmovieframes;  //10 is "normal" speed.  < 10 is slow.  > 10 is fast.
+            frame = floor((double(curPeriod - curEffStartPer)) * frameRateAdj) + 1;
         }
         if (frame > maxmovieframes) {
             return;
@@ -239,11 +220,10 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
     if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
     {
         LoadPixelsFromTextFile(f, NewPictureName);
-        wrdebug(wxString::Format("vix remap render: frame %d vs. %d", state, PixelsByFrame.size()));
+        int idx = curPeriod - curEffStartPer;
         if (state < PixelsByFrame.size()) //TODO: wrap?
-            for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[state].begin(); it != PixelsByFrame[state].end(); ++it)
+            for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it)
             {
-                wrdebug(wxString::Format("set pixel (%d, %d) to color [%d. %d. %d]", it->first.x, it->first.y, it->second.Red(), it->second.Green(), it->second.Blue()));
                 SetPixel(it->first.x, it->first.y, it->second);
             }
         return;
@@ -263,22 +243,11 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
         if (!image.IsOk())
             return;
     }
-    if(imageCount>1)
-    {
-        // The 10 could be animation speed. I did notice that state is jumping numbers
-        // so state%someNumber == 0 may not hit every time. There could be a better way.
-        if(state%(21-GifSpeed)==0)  // change 1-20 in Gimspeed to be 20 to 1. This makes right hand slider fastest
-        {
-            if(imageIndex == imageCount-1)
-            {
-                imageIndex = 0;
-            }
-            else
-            {
-                imageIndex++;
-            }
-
-
+    if(imageCount > 1) {
+        //animated Gif,
+        int ii = imageCount * GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
+        if (ii != imageIndex) {
+            imageIndex = ii;
             if (!image.LoadFile(PictureName,wxBITMAP_TYPE_ANY,imageIndex))
             {
                 //wxMessageBox("Error loading image file: "+NewPictureName);
@@ -294,7 +263,6 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
     int yoffset =(BufferHt+imght)/2; //centered if sizes don't match
     int xoffset =(imgwidth-BufferWi)/2; //centered if sizes don't match
     int waveX, waveY, waveW, waveN; //location of first wave, height adjust, width, wave# -DJ
-    wrdebug(wxString::Format("pic: state %d, img w/h %d/%d, buf w/h %d/%d, x/y ofs %d/%d", state, imgwidth, imght, BufferWi, BufferHt, xoffset, yoffset));
     float xscale, yscale;
     switch (dir) //prep
     {
@@ -309,64 +277,50 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
         case RENDER_PICTURE_ZOOMIN: //src <- dest scale factor -DJ
             xscale = (imgwidth > 1)? (float)BufferWi / imgwidth: 1;
             yscale = (imght > 1)? (float)BufferHt / imght: 1;
-            if (dir == 12) //zoom in/explode -DJ
-            {
-                xscale += .001 * state * speedfactor;
-                yscale += .001 * state * speedfactor;
-//              xscale = log(xscale); xscale *= state * speedfactor / 4; xscale = exp(xscale); //raise to power
-//              yscale = log(yscale); yscale *= state * speedfactor / 4; yscale = exp(yscale);
-//              wrdebug(1, "zoom: state %d, speed %d, scale %f %f", state, speedfactor, xscale, yscale);
-            }
+            xscale *= position;
+            yscale *= position;
             break;
         case RENDER_PICTURE_PEEKABOO_0: //up+down 1x -DJ
         case RENDER_PICTURE_PEEKABOO_180: //up+down 1x -DJ
-            yoffset = state / speedfactor - BufferHt; // * speedfactor; //draw_at = (state < BufferHt)? state
+            yoffset = (-BufferHt) * (1.0 - position*2.0);
             if (yoffset > 10) yoffset = -yoffset + 10; //reverse direction
             else if (yoffset > 0) yoffset = 0; //pause in middle
-//            wrdebug(1, "peekaboo: state %d, speed %d, draw at %d", state, speedfactor, yoffset);
-            break;
-        case RENDER_PICTURE_WIGGLE: //wiggle left-right -DJ
-            xoffset = state % (BufferWi / 4 * speedfactor);
-            if (xoffset > BufferWi / 8 * speedfactor) xoffset = BufferWi / 4 * speedfactor - xoffset; //reverse direction
-            xoffset -= BufferWi / 4; //* speedfactor; //center it on mid value
-            xoffset += (imgwidth-BufferWi) / 2; //add in original xoffset from above
             break;
         case RENDER_PICTURE_PEEKABOO_90: //peekaboo 90
         case RENDER_PICTURE_PEEKABOO_270: //peekaboo 270
             yoffset = (imght - BufferWi) / 2; //adjust offsets for other axis
-//            xoffset = (imgwidth - BufferHt) / 2;
-            xoffset = state / speedfactor - BufferHt; // * speedfactor; //draw_at = (state < BufferHt)? state
+            xoffset =  (-BufferHt) * (1.0-position*2.0); // * speedfactor; //draw_at = (state < BufferHt)? state
             if (xoffset > 10) xoffset = -xoffset + 10; //reverse direction
             else if (xoffset > 0) xoffset = 0; //pause in middle
             break;
+        case RENDER_PICTURE_UPONCE:
+        case RENDER_PICTURE_DOWNONCE:
+            position = GetEffectTimeIntervalPosition() * movementSpeed;
+            if (position > 1.0) {
+                position = 1.0;
+            }
+            break;
+        case RENDER_PICTURE_WIGGLE: //wiggle left-right -DJ
+            if (position >= 0.5) {
+                xoffset += BufferWi * ((1.0 - position)*2.0 - 0.5);
+            } else {
+                xoffset += BufferWi * (position * 2.0 - 0.5);
+            }
+            break;
         case RENDER_PICTURE_FLAGWAVE: //flag wave -DJ
-            if (!GifSpeed) GifSpeed = 3; //KLUDGE: GifSpeed broken during Scheduler Playback, so default to reasonable value
-            waveW = GifSpeed? BufferWi / GifSpeed: BufferWi; //avoid /0; re-use slider as wave count
-            if (waveW < 2) waveW = BufferWi; //too many waves
-//            waveW += BufferWi / 10; //leave a little gap between waves
-            waveX = state / speedfactor; // % (2 * BufferWi) + 1; //location of first wave
+            waveW = BufferWi;
+            waveX = position * 200;
             waveN = waveX / waveW;
-//            if (waveX > BufferWi) waveX = BufferWi - waveX; //alternate: 1..W,-1..-W
-//            debug(1, "wave: gifsp %d, bufwi %d => wavew %d => %d, wavex %d, wave# %d", GifSpeed, BufferWi, GifSpeed? BufferWi / GifSpeed: -1, waveW, waveX, waveN);
             break;
     }
-//    if (state < 4) wrdebug(1, "pic: state %d, style %d, img (%d, %d), wnd (%d, %d)", state, dir, imgwidth, imght, BufferWi, BufferHt);
-//    if (state < 4) wxMessageBox(xLightsApp::WantDebug? "DEBUG ON": "debug off");
-
+    
     int xoffset_adj = xc_adj;
     int yoffset_adj = yc_adj;
     if (dir == RENDER_PICTURE_VECTOR) {
         //adjust the picture offset
         dir = RENDER_PICTURE_NONE;
-        if (fitToTime) {
-            xoffset_adj = std::round(GetEffectTimeIntervalPosition() * double(xce_adj - xc_adj)) + xc_adj;
-            yoffset_adj = std::round(GetEffectTimeIntervalPosition() * double(yce_adj - yc_adj)) + yc_adj;
-        } else {
-            int steps = std::max(std::abs((float)(xce_adj - xc_adj)), std::abs((float)(yce_adj - yc_adj)));
-            
-            xoffset_adj = ((state / 10) % steps) * (xce_adj - xc_adj) / steps + xc_adj;
-            yoffset_adj = ((state / 10) % steps) * (yce_adj - yc_adj) / steps + yc_adj;
-        }
+        xoffset_adj = std::round(position * double(xce_adj - xc_adj)) + xc_adj;
+        yoffset_adj = std::round(position * double(yce_adj - yc_adj)) + yc_adj;
     }
     if (!pixelOffsets) {
         xoffset_adj = (xoffset_adj*BufferWi)/100.0; // xc_adj is from -100 to 100
@@ -374,7 +328,6 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
     }
     // copy image to buffer
     xlColour c;
-    int debug_count = 0;
     bool hasAlpha = image.HasAlpha();
     for(int x=0; x<imgwidth; x++)
     {
@@ -391,48 +344,40 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                 switch (dir)
                 {
                 case RENDER_PICTURE_LEFT: //0:
-                    ProcessPixel(x+BufferWi-(state % ((imgwidth+BufferWi+xoffset_adj)*speedfactor)) / speedfactor,yoffset-y-yoffset_adj,c, wrap_x, imgwidth);
+                    ProcessPixel(x+BufferWi-((imgwidth+BufferWi+xoffset_adj)*position),yoffset-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // left
                 case RENDER_PICTURE_RIGHT: //1:
-                    ProcessPixel(x+(state % ((imgwidth+BufferWi+xoffset_adj)*speedfactor)) / speedfactor-imgwidth,yoffset-y-yoffset_adj,c, wrap_x, imgwidth);
+                    ProcessPixel(x+((imgwidth+BufferWi+xoffset_adj)*position)-imgwidth,yoffset-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // right
                 case RENDER_PICTURE_UP: //2:
-                    ProcessPixel(x-xoffset+xoffset_adj,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y-yoffset_adj,c, wrap_x, imgwidth);
-                    break; // up
                 case RENDER_PICTURE_UPONCE: //18
-                    ProcessPixel(x - xoffset+xoffset_adj, state / speedfactor - y, c, wrap_x, imgwidth);
+                    ProcessPixel(x-xoffset+xoffset_adj,((imght+BufferHt)*position)-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // up
                 case RENDER_PICTURE_DOWN: //3:
-                    ProcessPixel(x-xoffset+xoffset_adj,BufferHt+imght-y-yoffset_adj-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c, wrap_x, imgwidth);
-                    break; // down
                 case RENDER_PICTURE_DOWNONCE: //19
-                    ProcessPixel(x - xoffset+xoffset_adj, BufferHt + imght - y - yoffset_adj - state / speedfactor, c, wrap_x, imgwidth);
+                    ProcessPixel(x-xoffset+xoffset_adj,BufferHt+imght-y-yoffset_adj-((imght+BufferHt)*position),c, wrap_x, imgwidth);
                     break; // down
                 case RENDER_PICTURE_UPLEFT: //5:
-                    ProcessPixel(x+xoffset_adj+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y-yoffset_adj,c, wrap_x, imgwidth);
+                    ProcessPixel(x+xoffset_adj+BufferWi-((imgwidth+BufferWi)*position),((imght+BufferHt)*position)-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // up-left
                 case RENDER_PICTURE_DOWNLEFT: //6:
-                    ProcessPixel(x+xoffset_adj+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,BufferHt+imght-y-yoffset_adj-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c, wrap_x, imgwidth);
+                    ProcessPixel(x+xoffset_adj+BufferWi-((imgwidth+BufferWi)*position),BufferHt+imght-y-yoffset_adj-((imght+BufferHt)*position),c, wrap_x, imgwidth);
                     break; // down-left
                 case RENDER_PICTURE_UPRIGHT: //7:
-                    ProcessPixel(x+xoffset_adj+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y-yoffset_adj,c, wrap_x, imgwidth);
+                    ProcessPixel(x+xoffset_adj+((imgwidth+BufferWi)*position)-imgwidth,((imght+BufferHt)*position)-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // up-right
                 case RENDER_PICTURE_DOWNRIGHT: //8:
-                    ProcessPixel(x+xoffset_adj+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,BufferHt+imght-y-yoffset_adj-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c, wrap_x, imgwidth);
+                    ProcessPixel(x+xoffset_adj+((imgwidth+BufferWi)*position)-imgwidth,BufferHt+imght-y-yoffset_adj-((imght+BufferHt)*position),c, wrap_x, imgwidth);
                     break; // down-right
+ 
                 case RENDER_PICTURE_PEEKABOO_0: //10: //up+down 1x (peekaboo) -DJ
                     ProcessPixel(x - xoffset+xoffset_adj, BufferHt + yoffset - y - yoffset_adj, c, wrap_x, imgwidth); // - BufferHt, c);
-                    break;
-                case RENDER_PICTURE_WIGGLE: //11: //back+forth a little (wiggle) -DJ
-                    ProcessPixel(x + xoffset+xoffset_adj, yoffset - y - yoffset_adj, c, wrap_x, imgwidth);
                     break;
                 case RENDER_PICTURE_ZOOMIN: //12: //zoom in (explode) -DJ
 //TODO: use rescale or resize?
                     ProcessPixel((x+xoffset_adj) * xscale, (BufferHt - 1 - y - yoffset_adj) * yscale, c, wrap_x, imgwidth); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
                     break;
-//NOTE: a Rotation option should probably be added to all effects rather than just doing it here -DJ
                 case RENDER_PICTURE_PEEKABOO_90: //13: //peekaboo 90 -DJ
-//                    wrdebug(1, "peeka 90[%d] xofs %d, yofs %d, (x, y) (%d, %d) of (%d, %d) -> wnd (%d, %d) of (%d, %d), color 0x%x", state, xoffset, yoffset, x, y, imgwidth, imght, BufferWi + xoffset - y, x - yoffset, BufferWi, BufferHt, c.GetRGB());
                     ProcessPixel(BufferWi + xoffset - y + xoffset_adj, x - yoffset - yoffset_adj, c, wrap_x, imgwidth);
                     break;
                 case RENDER_PICTURE_PEEKABOO_180: //14: //peekaboo 180 -DJ
@@ -440,29 +385,24 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                     break;
                 case RENDER_PICTURE_PEEKABOO_270: //15: //peekabo 270 -DJ
                     ProcessPixel(y - xoffset+xoffset_adj, BufferHt + yoffset + yoffset_adj - x, c, wrap_x, imgwidth);
-//                    SetPixel(y - yoffset - BufferHt, x - xoffset, c);
                     break;
                 case RENDER_PICTURE_FLAGWAVE: //17: //flag wave in wind -DJ
-//                    if (!x) rippleY = 0; //flag pole edge never moves?
-//                    else if (x < abs(rippleX)) rippleY = (rippleX > 0)? +1: -1;
-//                    else
                     if (BufferHt < 20) //small grid => small waves
                     {
                         waveN = (x - waveX) / waveW;
                         waveY = !x? 0: (waveN & 1)? -1: 0;
-//                        waveN = (x - waveX) / (waveW / 2); //use half-wave to skew waves more down than up
-//                        waveY = !x? 0: (waveN & 3)? 0: -1;
                     }
                     else //larger grid => larger waves
                     {
                         waveY = !x? 0: (waveN & 1)? 0: (waveN & 2)? -1: +1;
                         if (waveX < 0) waveY *= -1;
                     }
-//                    if (y == 5) debug(1, "draw: x %d, wavex %d => wave# %d, wavey %d", x, waveX, waveN, waveY);
                     ProcessPixel(x - xoffset+xoffset_adj, yoffset - y - yoffset_adj + waveY - 1, c, wrap_x, imgwidth);
                     break;
+                case RENDER_PICTURE_WIGGLE: //11: //back+forth a little (wiggle) -DJ
+//                    ProcessPixel(x + xoffset+xoffset_adj, yoffset - y - yoffset_adj, c, wrap_x, imgwidth);
+//                    break;
                 default:
-                    if (debug_count++ < 2100) wrdebug(wxString::Format("pic: c 0x%2x%2x%2x (%d,%d) -> (%d,%d)", c.Red(), c.Green(), c.Blue(), x, y, x-xoffset, yoffset-y - 1)); //NOTE: xlColor is BGR internally
                     ProcessPixel(x-xoffset+xoffset_adj,yoffset+yoffset_adj-y - 1,c, wrap_x, imgwidth);
                     break; // no movement - centered
                 }

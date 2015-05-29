@@ -485,9 +485,6 @@ void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime) {
 void PixelBufferClass::SetTimes(int layer, int startTime, int endTime) {
     effects[layer].SetEffectDuration(startTime, endTime);
 }
-void PixelBufferClass::SetFitToTime(int layer, bool fit) {
-    effects[layer].SetFitToTime(fit);
-}
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata) {
     for (int n = 0; n < Nodes.size(); n++) {
         int start = NodeStartChannel(n);
@@ -655,8 +652,11 @@ void PixelBufferClass::RenderPiano(int Style, int NumKeys, int NumRows, int Draw
     effects[CurrentLayer].RenderPiano(Style, NumKeys, NumRows, DrawMode, Clipping, CueFilename, MapFilename, ShapeFilename);
 }
 
-void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool is20FPS, int xc_adj, int yc_adj, int xce_adj, int yce_adj, bool pixelOffsets, bool wrap_x) {
-    effects[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed, is20FPS, xc_adj, yc_adj, xce_adj, yce_adj, pixelOffsets, wrap_x);
+void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,
+                                      float moveSpeed, float frameRateAdj,
+                                      int xc_adj, int yc_adj, int xce_adj, int yce_adj,
+                                      bool pixelOffsets, bool wrap_x) {
+    effects[CurrentLayer].RenderPictures(dir,NewPictureName,moveSpeed, frameRateAdj, xc_adj, yc_adj, xce_adj, yce_adj, pixelOffsets, wrap_x);
 }
 void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int pinwheel_thickness,
                                       bool pinwheel_rotation,const wxString & pinwheel_3D,int xc_adj, int yc_adj, int pinwheel_armsize) {

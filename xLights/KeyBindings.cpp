@@ -14,8 +14,8 @@ void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding('-', KEY_ZOOM_OUT));
     bindings.push_back(KeyBinding('R', RANDOM_EFFECT));
     bindings.push_back(KeyBinding('o', "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100"));
-    bindings.push_back(KeyBinding('u', "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0,T_CHECKBOX_FitToTime=1"));
-    bindings.push_back(KeyBinding('d', "On", "E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100,T_CHECKBOX_FitToTime=1"));
+    bindings.push_back(KeyBinding('u', "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0"));
+    bindings.push_back(KeyBinding('d', "On", "E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100"));
     bindings.push_back(KeyBinding('m', "Morph", ""));
     bindings.push_back(KeyBinding('c', "Curtain", ""));
     bindings.push_back(KeyBinding('i', "Circles", ""));
@@ -26,8 +26,8 @@ void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding('p', "Pinwheel", ""));
     bindings.push_back(KeyBinding('r', "Ripple", ""));
     bindings.push_back(KeyBinding('x', "Text", ""));
-    bindings.push_back(KeyBinding('s', "Spirals", ""));    
-    bindings.push_back(KeyBinding('w', "Color Wash", "T_CHECKBOX_FitToTime=1"));
+    bindings.push_back(KeyBinding('S', "Spirals", ""));
+    bindings.push_back(KeyBinding('w', "Color Wash", ""));
     bindings.push_back(KeyBinding('n', "Snowflakes", ""));
 }
 

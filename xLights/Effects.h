@@ -32,7 +32,7 @@ void RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2,
                  bool showEntireHeadAtStart, int repeat_count, int repeat_skip, int stagger );
 void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Clipping,
                  const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
-void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool is20fps,
+void RenderPictures(int dir, const wxString& NewPictureName,float moveSpeed, float frameRateAdj,
                     int xc_adj, int yc_adj, int xce_adj, int yce_adj,
                     bool pixelOffsets, bool wrap_x);
 void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,

@@ -486,10 +486,6 @@ void RgbEffects::SetFadeTimes(float fadeInDuration, float fadeOutDuration )
     fadeinsteps = (int)(fadeInDuration*1000)/frameTimeInMs;
     fadeoutsteps = (int)(fadeOutDuration*1000)/frameTimeInMs;
 }
-void RgbEffects::SetFitToTime(bool fit)
-{
-    fitToTime = fit;
-}
 void RgbEffects::GetFadeSteps( int& fadeInSteps, int& fadeOutSteps)
 {
     fadeInSteps = fadeinsteps;

@@ -226,7 +226,23 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_PICTURES:
-            
+            if (settings.Get("E_TEXTCTRL_Pictures_FrameRateAdj", "") == "") {
+                if (settings.Get("E_CHECKBOX_MovieIs20FPS", "") == "1") {
+                    settings["E_TEXTCTRL_Pictures_FrameRateAdj"] = "1.0";
+                } else if (settings.Get("E_SLIDER_Pictures_GifSpeed", "") == "0") {
+                    settings["E_TEXTCTRL_Pictures_FrameRateAdj"] = "0.0";
+                } else if (!ftt) {
+                    int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                    int totalTime = endMS - startMS;
+                    int maxState = totalTime * speed / 50;
+                    double cycles = maxState / 300.0;
+                    settings["E_TEXTCTRL_Pictures_Speed"] = wxString::Format("%0.2f", cycles);
+                }
+
+                settings.erase("E_CHECKBOX_MovieIs20FPS");
+                settings.erase("E_SLIDER_Pictures_GifSpeed");
+            }
+            break;
             //these all have state/speed requirements
         case BitmapCache::RGB_EFFECTS_e::eff_TEXT:
         case BitmapCache::RGB_EFFECTS_e::eff_GARLANDS:
@@ -239,6 +255,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
         case BitmapCache::RGB_EFFECTS_e::eff_WAVE:
             break;
     }
+    settings.erase("T_CHECKBOX_FitToTime");
 }
 
 Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
