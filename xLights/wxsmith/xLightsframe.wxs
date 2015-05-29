@@ -717,13 +717,14 @@
 										<label>Directories</label>
 										<orient>wxVERTICAL</orient>
 										<object class="sizeritem">
-											<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-												<cols>3</cols>
+											<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
 												<object class="sizeritem">
 													<object class="wxStaticText" name="wxID_ANY" variable="StaticText38" member="no">
 														<label>Show Directory:</label>
 													</object>
-													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<col>0</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -732,6 +733,8 @@
 														<label>Change</label>
 														<handler function="OnMenuOpenFolderSelected" entry="EVT_BUTTON" />
 													</object>
+													<col>1</col>
+													<row>0</row>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
@@ -740,6 +743,8 @@
 													<object class="wxStaticText" name="ID_STATICTEXT4" variable="ShowDirectoryLabel" member="yes">
 														<label>{Show Directory not set}</label>
 													</object>
+													<col>2</col>
+													<row>0</row>
 													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
@@ -748,15 +753,19 @@
 													<object class="wxStaticText" name="wxID_ANY" variable="StaticText28" member="no">
 														<label>Media Directory:</label>
 													</object>
+													<col>0</col>
+													<row>1</row>
 													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
+													<object class="wxButton" name="ID_BUTTON_CHANGE_MEDIA_DIR" variable="Button_Change_Media_Dir" member="yes">
 														<label>Change</label>
 														<handler function="ChangeMediaDirectory" entry="EVT_BUTTON" />
 													</object>
+													<col>1</col>
+													<row>1</row>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
@@ -765,7 +774,22 @@
 													<object class="wxStaticText" name="ID_ANY" variable="MediaDirectoryLabel" member="yes">
 														<label>{Media Directory not set}</label>
 													</object>
+													<col>2</col>
+													<row>1</row>
 													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Link_Dirs" variable="BitmapButton_Link_Dirs" member="yes">
+														<bitmap stock_id="xlART_UNLINK" stock_client="wxART_OTHER" />
+														<tooltip>Link Directories</tooltip>
+														<handler function="OnBitmapButton_Link_DirsClick" entry="EVT_BUTTON" />
+													</object>
+													<rowspan>2</rowspan>
+													<col>3</col>
+													<row>0</row>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>

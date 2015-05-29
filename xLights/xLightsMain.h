@@ -32,6 +32,7 @@
 #include <wx/filedlg.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
+#include <wx/gbsizer.h>
 #include <wx/button.h>
 #include <wx/dirdlg.h>
 #include <wx/frame.h>
@@ -565,6 +566,7 @@ private:
     void OnSetGridNodeValues(wxCommandEvent& event);
     void OnMenuItemImportEffects(wxCommandEvent& event);
     void SetPlaySpeed(wxCommandEvent& event);
+    void OnBitmapButton_Link_DirsClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -644,8 +646,9 @@ private:
     static const long ID_AUIEFFECTSTOOLBAR;
     static const long ID_BUTTON3;
     static const long ID_STATICTEXT4;
-    static const long ID_BUTTON1;
+    static const long ID_BUTTON_CHANGE_MEDIA_DIR;
     static const long ID_ANY;
+    static const long ID_BITMAPBUTTON_Link_Dirs;
     static const long ID_BUTTON_SAVE_SETUP;
     static const long ID_BUTTON_ADD_DONGLE;
     static const long ID_BUTTON_ADD_E131;
@@ -1064,6 +1067,7 @@ private:
     wxStaticText* StaticText20;
     wxButton* ButtonStartPapagayo;
     DragEffectBitmapButton* BitmapButton21;
+    wxButton* Button_Change_Media_Dir;
     wxTextCtrl* TextCtrl_pgo_filename;
     wxCheckBox* CheckBox_CoroEyesRandomBlink;
     wxRadioButton* RadioButtonRgbCycle4;
@@ -1111,6 +1115,7 @@ private:
     wxSlider* SliderFgColorA;
     wxCheckBox* CheckBoxOffAtEnd;
     wxSlider* SliderRgbCycleSpeed;
+    wxBitmapButton* BitmapButton_Link_Dirs;
     wxButton* ButtonNetworkDelete;
     DragEffectBitmapButton* BitmapButton5;
     wxMenuItem* Menu_Settings_Sequence;

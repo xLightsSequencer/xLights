@@ -17,7 +17,7 @@
 #include <wx/persist.h>
 #include <wx/persist/toplevel.h>
 #include <wx/valnum.h>
-
+#include <wx/artprov.h>
 
 // dialogs
 #include "SerialPortWithRate.h"
@@ -133,6 +133,21 @@ void xLightsFrame::SetDir(const wxString& newdir)
     CurrentDir=newdir;
     showDirectory=newdir;
     UnsavedChanges=false;
+
+    long LinkFlag=0;
+    config->Read(_("LinkFlag"), &LinkFlag);
+    if( LinkFlag ) {
+        BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LINK")),wxART_OTHER));
+        Button_Change_Media_Dir->Enable(false);
+        mediaDirectory = CurrentDir;
+        config->Write(_("MediaDir"), mediaDirectory);
+        MediaDirectoryLabel->SetLabel(mediaDirectory);
+        MediaDirectoryLabel->GetParent()->Layout();
+    } else {
+        BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_UNLINK")),wxART_OTHER));
+        Button_Change_Media_Dir->Enable(true);
+    }
+
     TextCtrlLog->Clear();
     while (Notebook1->GetPageCount() > FixedPages)
     {

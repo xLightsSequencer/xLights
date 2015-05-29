@@ -227,6 +227,8 @@
 #include "../include/backward-24.xpm"
 #include "../include/backward-24_off.xpm"
 
+#include "../include/link-48.xpm"
+#include "../include/unlink-48.xpm"
 
 #include "wx/artprov.h"
 
@@ -396,6 +398,10 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, replay_24_xpm, replay_24_xpm, replay_24_xpm, replay_24_xpm, replay_24_xpm);
     } else if ("xlART_STOP" == id) {
         return effectBitmaps.get(24, false, id, stop_24_xpm, stop_24_xpm, stop_24_xpm, stop_24_xpm, stop_24_xpm);
+    } else if ("xlART_LINK" == id) {
+        return effectBitmaps.get(48, false, id, link_48_xpm, link_48_xpm, link_48_xpm, link_48_xpm, link_48_xpm);
+    } else if ("xlART_UNLINK" == id) {
+        return effectBitmaps.get(48, false, id, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm);
 #ifndef __WXOSX__
     //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
     } else if ("xlART_RENDER_ALL" == id) {
