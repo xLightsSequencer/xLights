@@ -23,7 +23,7 @@
 
 #include "RgbEffects.h"
 
-void RgbEffects::RenderOn(int start, int end, bool shimmer, int cycles)
+void RgbEffects::RenderOn(int start, int end, bool shimmer, float cycles)
 {
     int x,y;
     int cidx = 0;
@@ -37,14 +37,7 @@ void RgbEffects::RenderOn(int start, int end, bool shimmer, int cycles)
         }
     }
 
-    double adjust = GetEffectTimeIntervalPosition();
-    //cycles is 0 - 200 representing repeat count of 0 - 20
-    if (cycles > 0) {
-        adjust *= cycles / 10.0;
-        while (adjust > 1.0) {
-            adjust -= 1.0;
-        }
-    }
+    double adjust = GetEffectTimeIntervalPosition(cycles);
     
     xlColor color;
     if (start == 100 && end == 100) {

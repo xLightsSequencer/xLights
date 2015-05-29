@@ -132,7 +132,7 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
 }
 void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int Color_Mix1,
                                     int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All,
-                                    int chaseSpeed)
+                                    float chaseSpeed)
 {
 
     int x,x1,y,i,chases,width,slow_state;
@@ -153,13 +153,7 @@ void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int 
     int curEffStartPer, curEffEndPer;
 
     GetEffectPeriods( curEffStartPer, curEffEndPer);
-    double rtval = GetEffectTimeIntervalPosition();
-    if (chaseSpeed > 0) {
-        rtval *= chaseSpeed / 10.0;
-        while (rtval > 1.0) {
-            rtval -= 1.0;
-        }
-    }
+    double rtval = GetEffectTimeIntervalPosition(chaseSpeed);
     rtval *= 0.99;
 
     if(Chase_Group_All || Chase_Type1==3) MaxNodes= BufferWi*BufferHt;

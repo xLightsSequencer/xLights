@@ -565,11 +565,11 @@ void PixelBufferClass::RenderOff(void) {
     effects[CurrentLayer].RenderOff();
 }
 
-void PixelBufferClass::RenderOn(int start, int end, bool shimmer, int repeat) {
+void PixelBufferClass::RenderOn(int start, int end, bool shimmer, float repeat) {
     effects[CurrentLayer].RenderOn(start, end, shimmer, repeat);
 }
 
-void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, int cycles) {
+void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, float cycles) {
     effects[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D,cycles);
 }
 
@@ -582,7 +582,7 @@ void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool co
     effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma, fade, circleSpeed);
 }
 
-void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int cycles,
+void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, float cycles,
                                        bool EntireModel, int x1, int y1, int x2, int y2, bool shimmer, bool circular) {
     effects[CurrentLayer].RenderColorWash(HorizFade,VertFade,cycles,
                                           EntireModel, x1, y1, x2, y2,
@@ -611,7 +611,7 @@ void PixelBufferClass::RenderFan(int center_x, int center_y, int start_radius, i
                                      num_blades, blade_width, blade_angle, num_elements, element_width );
 }
 
-void PixelBufferClass::RenderFire(int HeightPct,int HueShift,int GrowCycles) {
+void PixelBufferClass::RenderFire(int HeightPct,int HueShift,float GrowCycles) {
     effects[CurrentLayer].RenderFire(HeightPct,HueShift,GrowCycles);
 }
 
@@ -663,11 +663,11 @@ void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int p
     effects[CurrentLayer].RenderPinwheel(pinwheel_arms,pinwheel_twist,
                                          pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,pinwheel_armsize);
 }
-void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, int cycles) {
+void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles) {
     effects[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D, cycles );
 }
-void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row) {
-    effects[CurrentLayer].RenderShimmer(Duty_Factor,Use_All_Colors,Blink_Timing,Blinks_Per_Row );
+void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,float cycles) {
+    effects[CurrentLayer].RenderShimmer(Duty_Factor,Use_All_Colors,cycles );
 }
 void PixelBufferClass::RenderShockwave(int center_x, int center_y, int start_radius, int end_radius,
                                        int start_width, int end_width, int acceleration, bool blend_edges )
@@ -675,7 +675,7 @@ void PixelBufferClass::RenderShockwave(int center_x, int center_y, int start_rad
     effects[CurrentLayer].RenderShockwave( center_x, center_y, start_radius, end_radius, start_width, end_width, acceleration, blend_edges );
 }
 void PixelBufferClass::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int Color_Mix1,
-        int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All, int chaseSpeed) {
+        int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All, float chaseSpeed) {
     effects[CurrentLayer].RenderSingleStrandChase( ColorScheme,Number_Chases, Color_Mix1,
             Chase_Type1, Chase_3dFade1,Chase_Group_All, chaseSpeed);
 }
@@ -691,7 +691,7 @@ void PixelBufferClass::RenderSnowstorm(int Count, int Length) {
     effects[CurrentLayer].RenderSnowstorm(Count,Length);
 }
 
-void PixelBufferClass::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
+void PixelBufferClass::RenderSpirals(int PaletteRepeat, float Direction, int Rotation, int Thickness,
                                      bool Blend, bool Show3D, bool grow, bool shrink) {
     effects[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D,grow,shrink);
 }

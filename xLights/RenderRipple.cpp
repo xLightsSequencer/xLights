@@ -51,7 +51,7 @@
 
 
 
-void RgbEffects::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, int cycles)
+void RgbEffects::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles)
 {
 
     int i,ColorIdx;
@@ -61,14 +61,7 @@ void RgbEffects::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thick
     size_t colorcnt=GetColorCount();
 
     i=0;
-    double position = GetEffectTimeIntervalPosition(); // how far are we into the row> value is 0.0 to 1.0
-    //cycles is 0 - 200 representing repeat count of 0 - 20
-    if (position > 0) {
-        position *= cycles / 10.0;
-        while (position > 1.0) {
-            position -= 1.0;
-        }
-    }
+    double position = GetEffectTimeIntervalPosition(cycles); // how far are we into the row> value is 0.0 to 1.0
     
     float rx = position;
     xc = BufferWi/2;

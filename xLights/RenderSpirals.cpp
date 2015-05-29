@@ -23,7 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSpirals(int PaletteRepeat, int Movement, int Rotation, int Thickness,
+void RgbEffects::RenderSpirals(int PaletteRepeat, float Movement, int Rotation, int Thickness,
                                bool Blend, bool Show3D, bool grow, bool shrink)
 {
     int strand_base,strand,thick,x,y,ColorIdx;
@@ -41,14 +41,7 @@ void RgbEffects::RenderSpirals(int PaletteRepeat, int Movement, int Rotation, in
     xlColour color;
 
     int Direction = Movement > 0.001 ? 1 : (Movement < -0.001 ? -1 : 0);
-    double position = GetEffectTimeIntervalPosition();
-    //movement is -200 - 200 representing rrotations of 0 - 20, left/right
-    if (position > 0) {
-        position *= std::abs(Movement / 10.0);
-        while (position > 1.0) {
-            position -= 1.0;
-        }
-    }
+    double position = GetEffectTimeIntervalPosition(std::abs(Movement));
     if (grow && shrink)
     {
         ThicknessState = position <= 0.5?spiralGap*(position*2):spiralGap*((1-position) * 2);

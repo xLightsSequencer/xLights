@@ -260,7 +260,7 @@
 										<cols>2</cols>
 										<growablecols>0</growablecols>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Bars_Cycles" variable="Slider13" member="no">
+											<object class="wxSlider" name="IDD_SLIDER_Bars_Cycles" variable="Slider13" member="no">
 												<value>10</value>
 												<max>300</max>
 												<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -270,7 +270,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Bars_Cycles" variable="TextCtrl35" member="no">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Bars_Cycles" variable="TextCtrl35" member="no">
 												<value>1.0</value>
 												<maxlength>4</maxlength>
 												<size>20,-1d</size>
@@ -1048,7 +1048,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_ColorWash_Cycles" variable="Slider_ColorWash_Count" member="no">
+											<object class="wxSlider" name="IDD_SLIDER_ColorWash_Cycles" variable="Slider_ColorWash_Count" member="no">
 												<value>10</value>
 												<min>1</min>
 												<max>200</max>
@@ -1059,7 +1059,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_ColorWash_Cycles" variable="TextCtrl10" member="no">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_ColorWash_Cycles" variable="TextCtrl10" member="no">
 												<value>1.0</value>
 												<maxlength>3</maxlength>
 												<size>20,-1d</size>
@@ -1603,7 +1603,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Curtain_Speed" variable="Slider14" member="no">
+											<object class="wxSlider" name="IDD_SLIDER_Curtain_Speed" variable="Slider14" member="no">
 												<value>10</value>
 												<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
@@ -1612,7 +1612,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Curtain_Speed" variable="TextCtrl41" member="no">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Curtain_Speed" variable="TextCtrl41" member="no">
 												<value>1.0</value>
 												<maxlength>4</maxlength>
 												<size>25,-1d</size>
@@ -2430,7 +2430,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fire_GrowthCycles" variable="Slider9" member="no">
+									<object class="wxSlider" name="IDD_SLIDER_Fire_GrowthCycles" variable="Slider9" member="no">
 										<max>200</max>
 										<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -2439,7 +2439,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fire_GrowthCycles" variable="TextCtrl26" member="no">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Fire_GrowthCycles" variable="TextCtrl26" member="no">
 										<value>0.0</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
@@ -5416,7 +5416,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Ripple_Cycles" variable="Slider12" member="no">
+									<object class="wxSlider" name="IDD_SLIDER_Ripple_Cycles" variable="Slider12" member="no">
 										<value>10</value>
 										<max>300</max>
 										<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -5426,7 +5426,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Cycles" variable="TextCtrl34" member="no">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Cycles" variable="TextCtrl34" member="no">
 										<value>1.0</value>
 										<maxlength>4</maxlength>
 										<size>20,-1d</size>
@@ -5478,7 +5478,7 @@
 						<object class="wxScrolledWindow" name="ID_PANELShimmer" variable="Panel1_Shimmer" member="yes">
 							<pos>39,6</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer56" member="no">
-								<cols>3</cols>
+								<cols>4</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT68" variable="StaticText66" member="yes">
@@ -5489,11 +5489,23 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shimmer_Duty_Factor" variable="Slider_Shimmer_Duty_Factor" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Shimmer_Duty_Factor" variable="Slider_Shimmer_Duty_Factor" member="no">
 										<value>50</value>
 										<min>1</min>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shimmer_Duty_Factor" variable="TextCtrl46" member="no">
+										<value>50</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -5502,6 +5514,45 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText65" member="yes">
+										<label>Cycle Count</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="IDD_SLIDER_Shimmer_Cycles" variable="Slider17" member="no">
+										<value>10</value>
+										<max>300</max>
+										<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Shimmer_Cycles" variable="TextCtrl47" member="no">
+										<value>1.0</value>
+										<maxlength>4</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON24" variable="BitmapButton5" member="yes">
+										<bitmap code="padlock16x16_blue_xpm" />
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+										<minsize>13,13</minsize>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -5524,71 +5575,19 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_ShimmerUseAllColors" variable="BitmapButton_Shimmer_Use_All_Colors" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<minsize>21,21</minsize>
+										<minsize>13,13</minsize>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT70" variable="StaticText68" member="yes">
-										<label>Use Blink Timing</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Shimmer_Blink_Timing" variable="CheckBox_Shimmer_Blink_Timing" member="yes">
-										<label>Yes</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Shimmer_Blink_Timing" variable="BitmapButton_Shimmer_Blink_Timing" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT67" variable="StaticText65" member="yes">
-										<label>Blinks per Row</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shimmer_Blinks_Per_Row" variable="Slider_Shimmer_Blinks_Per_Row" member="yes">
-										<value>4</value>
-										<min>1</min>
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BlinksPerRow" variable="BitmapButton_Shimmer_Blinks_Per_Row" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<pos>-1,-1</pos>
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
 									<option>1</option>
 								</object>
 							</object>
@@ -6068,7 +6067,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Chase_Rotations" variable="Slider16" member="no">
+														<object class="wxSlider" name="IDD_SLIDER_Chase_Rotations" variable="Slider16" member="no">
 															<value>10</value>
 															<min>1</min>
 															<max>200</max>
@@ -6079,7 +6078,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Chase_Rotations" variable="TextCtrl43" member="no">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Chase_Rotations" variable="TextCtrl43" member="no">
 															<value>1.0</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
@@ -6742,7 +6741,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Spirals_Movement" variable="Slider_Spirals_Direction" member="no">
+											<object class="wxSlider" name="IDD_SLIDER_Spirals_Movement" variable="Slider_Spirals_Direction" member="no">
 												<value>10</value>
 												<min>-200</min>
 												<max>200</max>
@@ -6753,7 +6752,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Spirals_Movement" variable="TextCtrl39" member="no">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirals_Movement" variable="TextCtrl39" member="no">
 												<value>1.0</value>
 												<maxlength>4</maxlength>
 												<size>25,-1d</size>

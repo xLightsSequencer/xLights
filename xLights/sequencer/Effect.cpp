@@ -24,6 +24,8 @@ public:
         data["E_CHECKBOX_MorphUseHeadStartColor"] = "";
         data["E_CHECKBOX_MorphUseHeadEndColor"] = "";
         data["E_SLIDER_Chase_Spacing1"] = "";
+        data["E_CHECKBOX_Shimmer_Blink_Timing"] = "";
+        data["E_SLIDER_Shimmer_Blinks_Per_Row"] = "";
         
         data["E_NOTEBOOK_Text1"] = "";
         data["E_TEXTCTRL_Pictures_Filename"] = "E_FILEPICKER_Pictures_Filename";
@@ -46,10 +48,10 @@ void SettingsMap::RemapChangedSettingKey(wxString &n,  wxString &value) {
     Remaps.map(n);
 }
 
-void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS) {
+void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors) {
     int ftt = wxAtoi(settings.Get("T_CHECKBOX_FitToTime", "1"));
     switch (effectIdx) {
-        //these effects have never used the FitToTime or speed settings, nothing to do
+        //these effects have never used the FitToTime or speed settings, nothing to do 
         case BitmapCache::RGB_EFFECTS_e::eff_OFF:
         case BitmapCache::RGB_EFFECTS_e::eff_GALAXY:
         case BitmapCache::RGB_EFFECTS_e::eff_FAN:
@@ -58,20 +60,22 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
         case BitmapCache::RGB_EFFECTS_e::eff_SHOCKWAVE:
         case BitmapCache::RGB_EFFECTS_e::eff_GLEDIATOR:
         case BitmapCache::RGB_EFFECTS_e::eff_FACES:
+        case BitmapCache::RGB_EFFECTS_e::eff_STROBE:
+        case BitmapCache::RGB_EFFECTS_e::eff_TWINKLE:
             break;
         
         //these effects have been updated to have a dedicated repeat or speed or other control
         //and now ignore the FitToTime and Speed sliders, but the settings need adjusting
         case BitmapCache::RGB_EFFECTS_e::eff_ON:
-            if (settings.Get("E_SLIDER_On_Cycles", "") == "") {
-                int cycles = 10;
+            if (settings.Get("E_TEXTCTRL_On_Cycles", "") == "") {
+                float cycles = 1.0;
                 if (!ftt) {
                     int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
-                    cycles = maxState / 20.0;
+                    cycles = maxState / 200;
                 }
-                settings["E_SLIDER_On_Cycles"] = wxString::Format("%d", cycles);
+                settings["E_TEXTCTRL_On_Cycles"] = wxString::Format("%0.2f", cycles);
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_BUTTERFLY:
@@ -93,20 +97,20 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH:
-            if (settings.Get("E_SLIDER_ColorWash_Cycles", "") == "") {
-                int count = wxAtoi(settings.Get("E_SLIDER_ColorWash_Count", "1"));
+            if (settings.Get("E_TEXTCTRL_ColorWash_Cycles", "") == "") {
+                double count = wxAtoi(settings.Get("E_SLIDER_ColorWash_Count", "1"));
                 settings.erase("E_SLIDER_ColorWash_Count");
                 if (settings["T_CHECKBOX_FitToTime"] == "1") {
-                    count = 1;
+                    count = 1.0;
                     settings["E_CHECKBOX_ColorWash_CircularPalette"] = "0";
                 } else {
                     settings["E_CHECKBOX_ColorWash_CircularPalette"] = "1";
                 }
-                settings["E_SLIDER_ColorWash_Cycles"] = wxString::Format("%d", count * 10);
+                settings["E_TEXTCTRL_ColorWash_Cycles"] = wxString::Format("%0.2f", count);
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_FIRE:
-            if (settings.Get("E_CHECKBOX_Fire_GrowFire", "") != "") {
+            if (settings.Get("E_TEXTCTRL_Fire_GrowthCycles", "") == "") {
                 bool grow = settings["E_CHECKBOX_Fire_GrowFire"] == "1";
                 settings.erase("E_CHECKBOX_Fire_GrowFire");
                 if (grow) {
@@ -114,10 +118,9 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
                     int totalTime = endMS - startMS;
                     double maxState = totalTime * speed / 50;
                     double cycles = maxState / 500.0;
-                    int icycles = cycles * 10;
-                    settings["E_SLIDER_Fire_GrowthCycles"] = wxString::Format("%d", icycles);
+                    settings["E_TEXTCTRL_Fire_GrowthCycles"] = wxString::Format("%0.2f", cycles);
                 } else {
-                    settings["E_SLIDER_Fire_GrowthCycles"] = "0";
+                    settings["E_TEXTCTRL_Fire_GrowthCycles"] = "0.0";
                 }
             }
             break;
@@ -137,58 +140,58 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_RIPPLE:
-            if (settings.Get("E_SLIDER_Ripple_Cycles", "") == "") {
+            if (settings.Get("E_TEXTCTRL_Ripple_Cycles", "") == "") {
                 int cycles = 10;
                 if (!ftt) {
                     int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
-                    cycles = maxState / 20.0;
+                    cycles = maxState / 200;
                 }
-                settings["E_SLIDER_Ripple_Cycles"] = wxString::Format("%d", cycles);
+                settings["E_TEXTCTRL_Ripple_Cycles"] = wxString::Format("%0.2f", cycles);
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_BARS:
-            if (settings.Get("E_SLIDER_Bars_Cycles", "") == "") {
-                int cycles = 10;
+            if (settings.Get("E_TEXTCTRL_Bars_Cycles", "") == "") {
+                float cycles = 1.0;
                 wxString dir = settings["E_CHOICE_Bars_Direction"];
                 if (!ftt) {
                     int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
                     if (dir.Contains("Altern")) {
-                        cycles = maxState / 5.0;
+                        cycles = maxState * 2;
                     } else {
-                        cycles = maxState / 20.0;
+                        cycles = maxState / 200;
                     }
                 }
-                settings["E_SLIDER_Bars_Cycles"] = wxString::Format("%d", cycles);
+                settings["E_TEXTCTRL_Bars_Cycles"] = wxString::Format("%0.2f", cycles);
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_SPIRALS:
-            if (settings.Get("E_SLIDER_Spirals_Movement", "") == "") {
-                int cycles = 10;
+            if (settings.Get("E_TEXTCTRL_Spirals_Movement", "") == "") {
+                float cycles = 1.0;
                 int dir = wxAtoi(settings["E_SLIDER_Spirals_Direction"]);
                 settings.erase("E_SLIDER_Spirals_Direction");
                 if (!ftt) {
                     int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
-                    cycles = maxState / 60.0;
+                    cycles = maxState / 600;
                 }
-                settings["E_SLIDER_Spirals_Movement"] = wxString::Format("%d", dir * cycles);
+                settings["E_TEXTCTRL_Spirals_Movement"] = wxString::Format("%0.2f", dir * cycles);
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_CURTAIN:
-            if (settings.Get("E_SLIDER_Curtain_Speed", "") == "") {
-                int cycles = 10;
+            if (settings.Get("E_TEXTCTRL_Curtain_Speed", "") == "") {
+                float cycles = 1.0;
                 if (!ftt) {
                     int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
-                    cycles = maxState / 20.0;
+                    cycles = maxState / 200;
                 }
-                settings["E_SLIDER_Curtain_Speed"] = wxString::Format("%d", cycles);
+                settings["E_TEXTCTRL_Curtain_Speed"] = wxString::Format("%0.2f", cycles);
             }
             break;
         //these all need code updated and new sliders and such before we can map them
@@ -200,31 +203,39 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
                     settings["E_SLIDER_Skips_Advance"] = wxString::Format("%d", speed - 1);
                 }
             } else {
-                if (settings.Get("E_SLIDER_Chase_Rotations", "") == "") {
-                    int cycles = 10;
+                if (settings.Get("E_TEXTCTRL_Chase_Rotations", "") == "") {
+                    float cycles = 1.0;
                     if (!ftt) {
                         int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
                         int totalTime = endMS - startMS;
                         int maxState = totalTime * speed / 50;
-                        cycles = maxState / 25.0;
+                        cycles = maxState / 250.0;
                     }
-                    settings["E_SLIDER_Chase_Rotations"] = wxString::Format("%d", cycles);
+                    settings["E_TEXTCTRL_Chase_Rotations"] = wxString::Format("%0.2f", cycles);
                 }
             }
             break;
+        case BitmapCache::RGB_EFFECTS_e::eff_SHIMMER:
+            if (settings.Get("E_TEXTCTRL_Shimmer_Cycles", "") == "") {
+                float cycles = 1.0;
+                int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                int totalTime = endMS - startMS;
+                int maxState = totalTime * speed / 50;
+                cycles = maxState / (100.0 * colors.size());
+                settings["E_TEXTCTRL_Shimmer_Cycles"] = wxString::Format("%0.2f", cycles);
+            }
+            break;
         case BitmapCache::RGB_EFFECTS_e::eff_PICTURES:
+            
             //these all have state/speed requirements
         case BitmapCache::RGB_EFFECTS_e::eff_TEXT:
         case BitmapCache::RGB_EFFECTS_e::eff_GARLANDS:
         case BitmapCache::RGB_EFFECTS_e::eff_METEORS:
         case BitmapCache::RGB_EFFECTS_e::eff_PIANO:
         case BitmapCache::RGB_EFFECTS_e::eff_PINWHEEL:
-        case BitmapCache::RGB_EFFECTS_e::eff_SHIMMER:
         case BitmapCache::RGB_EFFECTS_e::eff_SNOWFLAKES:
         case BitmapCache::RGB_EFFECTS_e::eff_SNOWSTORM:
-        case BitmapCache::RGB_EFFECTS_e::eff_STROBE:
         case BitmapCache::RGB_EFFECTS_e::eff_TREE:
-        case BitmapCache::RGB_EFFECTS_e::eff_TWINKLE:
         case BitmapCache::RGB_EFFECTS_e::eff_WAVE:
             break;
     }
@@ -237,7 +248,6 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString &name
     changeCount(0)
 {
     mSettings.Parse(settings);
-    AdjustSettingsToBeFitToTime(mEffectIndex, mSettings, mStartTime * 1000.0, mEndTime * 1000.0);
     mPaletteMap.Parse(palette);
     mColors.clear();
     if (!mPaletteMap.empty()) {
@@ -247,6 +257,7 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString &name
             }
         }
     }
+    AdjustSettingsToBeFitToTime(mEffectIndex, mSettings, mStartTime * 1000.0, mEndTime * 1000.0, mColors);
 }
 
 

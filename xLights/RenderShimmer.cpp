@@ -43,95 +43,32 @@
 
 
 
-void RgbEffects::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row)
+void RgbEffects::RenderShimmer(int Duty_Factor, bool Use_All_Colors, float cycles)
 {
+    int colorcnt=GetColorCount();
+    
+    double position = GetEffectTimeIntervalPosition(cycles);
 
-    int x,y,i,ColorIdx;
-
-
-#if 0
-    if(step<1) step=1;
-    if(Use_All_Colors) srand (time(NULL)); // for Use_All_Colors effect, make lights be random
-    else srand(1); // else always have the same random numbers for each frame (state)
-#endif
-
-    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
-    srand (time(NULL));
-    size_t colorcnt=GetColorCount();
-
-    i=0;
-
-    int slices=100;
-    int istate=state/slices; // istate will be a counter every slices units of state. each istate is a square wave
-    int imod=(state/(slices/10))%10; // divide this square
-    int icolor=istate%colorcnt;
-    wxString TimeNow =wxNow();
-    int choice=1;
-    if(choice==1)
-    {
-
-
-        debug(10, "%s:%6d istate=%4d imod=%4d icolor=%1d", (const char*)TimeNow,state,istate,imod,icolor);
-        for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
-        {
-            for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
-            {
-                i++;
-                if(Use_All_Colors) // Should we randomly assign colors from palette or cycle thru sequentially?
-                {
-                    ColorIdx=rand()% colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-                    palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-                }
-                else
-                    palette.GetHSV(icolor, hsv); // Now go and get the hsv value for this ColorIdx
-                if(imod<=(Duty_Factor/10))  // Should we draw a light?
-                {
-                    // Yes, use HSV value calculated above
-                }
-                else
-                {
-                    hsv.value=0.0; // No, this is the off cycle for a light so set to BLACK
-                    hsv.saturation=1.0;
-                }
-                SetPixel(x,y,hsv); // Turn pixel
-            }
-        }
+    double ColorIdx = round(position * 0.999 * (double)colorcnt);
+    
+    double pos2 = position * colorcnt;
+    while (pos2 > 1.0) {
+        pos2 -= 1.0;
     }
-    else
-    {
-        int minx,miny;
-        int x1,y1;
-        int maxRandomx = BufferWi/2;
-        if(maxRandomx<1) maxRandomx=1;
-        int maxRandomy = BufferHt/2;
-        if(maxRandomy<1) maxRandomy=1;
-// maybe not.    srand(time(NULL)); // get random numbers to be different every call
-        minx = 2+rand()%maxRandomx;
-        miny = 2+rand()%maxRandomy;
-        if(minx==maxRandomx) minx=0;
-        if(miny==maxRandomy) miny=0;
-        for (y=miny; y<maxRandomy; y++) // For my 20x120 megatree, BufferHt=120
-        {
-            for (x=minx; x<maxRandomx; x++) // BufferWi=20 in the above example
-            {
-                 for(y1=y; y1<=y+3; y1++)
-                   for(x1=x; x1<=x+3; x1++)
-                {
-                    if(Use_All_Colors) // Should we randomly assign colors from palette or cycle thru sequentially?
-                    {
-                        ColorIdx=rand()% colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-                        palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-                    }
-                    else
-                    {
-                        palette.GetHSV(icolor, hsv); // Now go and get the hsv value for this ColorIdx
-                    }
-                    // if(x1>=0 and x1<BufferWi and y1>=0 and y1<BufferHt)
-                    {
-                        SetPixel(x,y,hsv); // Turn pixel
-                    }
-                }
+    if (pos2 * 100 > Duty_Factor) {
+        return;
+    }
+    
+    xlColor color;
+    palette.GetColor(ColorIdx, color);
+    for (int y=0; y<BufferHt; y++) {
+        for (int x=0; x<BufferWi; x++) {
+            if(Use_All_Colors) { // Should we randomly assign colors from palette or cycle thru sequentially?
+                ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+                palette.GetColor(ColorIdx, color); // Now go and get the hsv value for this ColorIdx
             }
+
+            SetPixel(x,y,color); // Turn pixel
         }
     }
 }

@@ -39,20 +39,13 @@
     BarEffectDirections.Add("Alternate Right"); // 11
 */
 
-void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, int cycles)
+void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, float cycles)
 {
     int x,y,n,ColorIdx;
     wxImage::HSVValue hsv;
     size_t colorcnt=GetColorCount();
     int BarCount = PaletteRepeat * colorcnt;
-    double position = GetEffectTimeIntervalPosition();
-    //cycles is 0 - 300 representing repeat count of 0 - 30
-    if (cycles > 0) {
-        position *= cycles / 10.0;
-        while (position > 1.0) {
-            position -= 1.0;
-        }
-    }
+    double position = GetEffectTimeIntervalPosition(cycles);
     
     if (BarCount<1) BarCount=1;
 

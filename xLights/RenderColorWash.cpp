@@ -28,7 +28,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int cycles,
+void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, float cycles,
                                  bool EntireModel, int x1, int y1, int x2, int y2,
                                  bool shimmer,
                                  bool circularPalette)
@@ -42,13 +42,7 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int cycles,
     int x,y;
     xlColour color, orig;
     
-    double position = GetEffectTimeIntervalPosition();
-    if (cycles > 0) {
-        position *= cycles / 10.0;
-        while (position > 1.0) {
-            position -= 1.0;
-        }
-    }
+    double position = GetEffectTimeIntervalPosition(cycles);
     GetMultiColorBlend(position, circularPalette, color);
 
     int startX = 0;

@@ -775,13 +775,13 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
         buffer.RenderOn(wxAtoi(SettingsMap.Get("TEXTCTRL_Eff_On_Start", "100")),
                         wxAtoi(SettingsMap.Get("TEXTCTRL_Eff_On_End", "100")),
                         wxAtoi(SettingsMap.Get("CHECKBOX_On_Shimmer", "0")),
-                        wxAtoi(SettingsMap.Get("SLIDER_On_Cycles", "10")));
+                        wxAtof(SettingsMap.Get("TEXTCTRL_On_Cycles", "1.0")));
     } else if (effect == "Bars") {
         buffer.RenderBars(wxAtoi(SettingsMap["SLIDER_Bars_BarCount"]),
                           BarEffectDirections.Index(SettingsMap["CHOICE_Bars_Direction"]),
                           SettingsMap["CHECKBOX_Bars_Highlight"]=="1",
                           SettingsMap["CHECKBOX_Bars_3D"]=="1",
-                          wxAtoi(SettingsMap.Get("SLIDER_Bars_Cycles", "10")));
+                          wxAtoi(SettingsMap.Get("TEXTCTRL_Bars_Cycles", "1.0")));
     } else if (effect == "Butterfly") {
         buffer.RenderButterfly(ButterflyEffectColors.Index(SettingsMap["CHOICE_Butterfly_Colors"]),
                                wxAtoi(SettingsMap["SLIDER_Butterfly_Style"]),
@@ -807,7 +807,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
     } else if (effect == "Color Wash") {
         buffer.RenderColorWash(SettingsMap["CHECKBOX_ColorWash_HFade"]=="1",
                                SettingsMap["CHECKBOX_ColorWash_VFade"]=="1",
-                               wxAtoi(SettingsMap["SLIDER_ColorWash_Cycles"]),
+                               wxAtof(SettingsMap.Get("TEXTCTRL_ColorWash_Cycles", "1.0")),
                                wxAtoi(SettingsMap.Get("CHECKBOX_ColorWash_EntireModel", "1")),
                                wxAtoi(SettingsMap.Get("SLIDER_ColorWash_X1", "-50")),
                                wxAtoi(SettingsMap.Get("SLIDER_ColorWash_Y1", "-50")),
@@ -821,7 +821,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                              CurtainEffect.Index(SettingsMap["CHOICE_Curtain_Effect"]),
                              wxAtoi(SettingsMap["SLIDER_Curtain_Swag"]),
                              SettingsMap["CHECKBOX_Curtain_Repeat"]=="1",
-                             wxAtoi(SettingsMap.Get("SLIDER_Curtain_Speed", "10")));
+                             wxAtof(SettingsMap.Get("TEXTCTRL_Curtain_Speed", "1.0")));
     } else if (effect == "Faces") {
         buffer.RenderFaces(FacesPhoneme.Index(SettingsMap["CHOICE_Faces_Phoneme"]));
     } else if (effect == "CoroFaces") {
@@ -847,7 +847,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
     } else if (effect == "Fire") {
         buffer.RenderFire(wxAtoi(SettingsMap["SLIDER_Fire_Height"]),
                           wxAtoi(SettingsMap["SLIDER_Fire_HueShift"]),
-                          wxAtoi(SettingsMap.Get("SLIDER_Fire_GrowthCycles", "0")));
+                          wxAtof(SettingsMap.Get("TEXTCTRL_Fire_GrowthCycles", "0.0")));
     } else if (effect == "Fireworks") {
         buffer.RenderFireworks(wxAtoi(SettingsMap["SLIDER_Fireworks_Explosions"]),
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Count"]),
@@ -936,12 +936,11 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                             RippleMovement.Index(SettingsMap["CHOICE_Ripple_Movement"]),
                             wxAtoi(SettingsMap["SLIDER_Ripple_Thickness"]),
                             SettingsMap["CHECKBOX_Ripple3D"] == "1" ,
-                            wxAtoi(SettingsMap.Get("SLIDER_Ripple_Cycles", "10")));
+                            wxAtof(SettingsMap.Get("TEXTCTRL_Ripple_Cycles", "1.0")));
     } else if (effect == "Shimmer") {
         buffer.RenderShimmer(wxAtoi(SettingsMap["SLIDER_Shimmer_Duty_Factor"]),
                              SettingsMap["CHECKBOX_Shimmer_Use_All_Colors"]=="1",
-                             SettingsMap["CHECKBOX_Shimmer_Blink_Timing"]=="1",
-                             wxAtoi(SettingsMap["SLIDER_Shimmer_Blinks_Per_Row"]));
+                             wxAtof(SettingsMap.Get("TEXTCTRL_Shimmer_Cycles", "1.0")));
     } else if (effect == "Shockwave") {
         buffer.RenderShockwave(wxAtoi(SettingsMap["SLIDER_Shockwave_CenterX"]),
                                wxAtoi(SettingsMap["SLIDER_Shockwave_CenterY"]),
@@ -965,7 +964,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                                            SingleStrandTypes.Index(SettingsMap["CHOICE_Chase_Type1"]),
                                            SettingsMap["CHECKBOX_Chase_3dFade1"]=="1",
                                            SettingsMap["CHECKBOX_Chase_Group_All"]=="1",
-                                           wxAtoi(SettingsMap.Get("SLIDER_Chase_Rotations", "10")));
+                                           wxAtof(SettingsMap.Get("TEXTCTRL_Chase_Rotations", "1.0")));
         }
     } else if (effect == "Snowflakes") {
         buffer.RenderSnowflakes(wxAtoi(SettingsMap["SLIDER_Snowflakes_Count"]),
@@ -975,7 +974,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                                wxAtoi(SettingsMap["SLIDER_Snowstorm_Length"]));
     } else if (effect == "Spirals") {
         buffer.RenderSpirals(wxAtoi(SettingsMap["SLIDER_Spirals_Count"]),
-                             wxAtoi(SettingsMap["SLIDER_Spirals_Movement"]),
+                             wxAtof(SettingsMap.Get("TEXTCTRL_Spirals_Movement", "1.0")),
                              wxAtoi(SettingsMap["SLIDER_Spirals_Rotation"]),
                              wxAtoi(SettingsMap["SLIDER_Spirals_Thickness"]),
                              SettingsMap["CHECKBOX_Spirals_Blend"]=="1",

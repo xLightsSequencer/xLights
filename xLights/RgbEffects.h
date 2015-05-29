@@ -584,6 +584,7 @@ protected:
 
 public:
     double GetEffectTimeIntervalPosition();
+    double GetEffectTimeIntervalPosition(float cycles);
 
 private:
     void RenderRadial(int start_x,int start_y,int radius,int colorCnt, int number, bool radial_3D);

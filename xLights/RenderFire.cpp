@@ -124,18 +124,14 @@ int RgbEffects::GetWaveBuffer2(int x, int y)
 }
 
 // 10 <= HeightPct <= 100
-void RgbEffects::RenderFire(int HeightPct,int HueShift,int cycles)
+void RgbEffects::RenderFire(int HeightPct,int HueShift,float cycles)
 {
     int x,y,i,r,v1,v2,v3,v4,n,new_index;
     wxImage::HSVValue hsv;
 
     //cycles is 0 - 200 representing growth cycle count of 0 - 20
     if (cycles > 0) {
-        double adjust = GetEffectTimeIntervalPosition();
-        adjust *= cycles / 10.0;
-        while (adjust > 1.0) {
-            adjust -= 1.0;
-        }
+        double adjust = GetEffectTimeIntervalPosition(cycles);
         adjust = 0.5 - std::abs(adjust - 0.5);
         HeightPct += adjust * 100;
     }

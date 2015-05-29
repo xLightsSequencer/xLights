@@ -1,12 +1,12 @@
-void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, int cycles);
+void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, float cycles);
 void RenderOff(void);
-void RenderOn(int start, int end, bool shimmer, int cycles);
+void RenderOn(int start, int end, bool shimmer, float cycles);
 void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip,
                      int ButterflyDirection, int butterFlySpeed);
 void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
                    bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade,
                    int circleSpeed);
-void RenderColorWash(bool HorizFade, bool VertFade, int cycles,
+void RenderColorWash(bool HorizFade, bool VertFade, float cycles,
                      bool EntireModel, int x1, int y1, int x2, int y2,
                      bool shimmer,
                      bool circularPalette);
@@ -17,7 +17,7 @@ void RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_ou
 void RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                int duration, int acceleration, bool reverse_dir, bool blend_edges,
                int num_blades, int blade_width, int blade_angle, int num_elements, int element_width );
-void RenderFire(int HeightPct,int HueShift,int GrowCycles);
+void RenderFire(int HeightPct,int HueShift,float GrowCycles);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                   int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward );
@@ -40,13 +40,13 @@ void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness
 void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,
               int xc_adj, int yc_adj);
 
-void RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, int cycles);
+void RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles);
 void Drawsquare(int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,wxImage::HSVValue hsv);
 void Drawcircle(int Movement, int xc,int yc,double radius, wxImage::HSVValue hsv, int Ripple_Thickness,int CheckBox_Ripple3D);
 
 
 
-void RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row);
+void RenderShimmer(int Duty_Factor,bool Use_All_Colors, float cycles);
 void RenderShockwave(int center_x, int center_y, int start_radius, int end_radius,
                      int start_width, int end_width, int acceleration, bool blend_edges );
 void RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_Type);
@@ -55,7 +55,7 @@ void RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_Type);
 
 void RenderSingleStrandChase(int ColorScheme,int Number_Chases,int Color_Mix1,int Chase_Type1,
                              bool Chase_3dFade1, bool Chase_Group_All,
-                             int chaseSpeed);
+                             float chaseSpeed);
 
 void RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString& Skips_Direction, int advances);
 void draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,int Number_Chases,int width,bool R_TO_L1,
@@ -63,7 +63,7 @@ void draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,int Number_Cha
 
 void RenderSnowflakes(int Count, int SnowflakeType);
 void RenderSnowstorm(int Count, int Length);
-void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
+void RenderSpirals(int PaletteRepeat, float Movement, int Rotation, int Thickness,
                    bool Blend, bool Show3D, bool grow, bool shrink);
 void RenderSpirograph(int R, int r, int d,bool Animate);
 

@@ -452,7 +452,14 @@ void RgbEffects::ClearTempBuf()
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }
-
+double RgbEffects::GetEffectTimeIntervalPosition(float cycles) {
+    double retval = (double)(curPeriod-curEffStartPer)/(double)(curEffEndPer-curEffStartPer);
+    retval *= cycles;
+    while (retval > 1.0) {
+        retval -= 1.0;
+    }
+    return retval;
+}
 double RgbEffects::GetEffectTimeIntervalPosition()
 {
     double retval = (double)(curPeriod-curEffStartPer)/(double)(curEffEndPer-curEffStartPer);
