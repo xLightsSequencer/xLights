@@ -186,6 +186,14 @@
 						</object>
 						<label>House Preview</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM6" variable="AuiToolBarItemModels" member="no">
+							<bitmap stock_id="xlART_MODELS" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Models</shorthelp>
+							<handler function="OnAuiToolBarItemModelsClick" entry="EVT_TOOL" />
+						</object>
+						<label>Models</label>
+					</object>
 				</object>
 				<name>Windows Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>

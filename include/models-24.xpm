@@ -1,7 +1,7 @@
 /* XPM */
-static const char *models_24[] = {
+static const char *models_24_xpm[] = {
 /* width height num_colors chars_per_pixel */
-"24 24 165 2", 
+"24 24 165 2",
 /* colors */
 "   c None",
 ".  c None",

@@ -567,6 +567,7 @@ private:
     void OnMenuItemImportEffects(wxCommandEvent& event);
     void SetPlaySpeed(wxCommandEvent& event);
     void OnBitmapButton_Link_DirsClick(wxCommandEvent& event);
+    void OnAuiToolBarItemModelsClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -598,6 +599,7 @@ private:
     static const long ID_AUITOOLBARITEM3;
     static const long ID_AUITOOLBARITEM1;
     static const long ID_AUITOOLBARITEM4;
+    static const long ID_AUITOOLBARITEM6;
     static const long ID_AUIWINDOWTOOLBAR;
     static const long ID_AUITOOLBARITEM_ZOOM_IN;
     static const long ID_AUITOOLBARITEM_ZOOM_OUT;

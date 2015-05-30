@@ -229,6 +229,11 @@
 
 #include "../include/link-48.xpm"
 #include "../include/unlink-48.xpm"
+#include "../include/models-16.xpm"
+#include "../include/models-24.xpm"
+#include "../include/models-32.xpm"
+#include "../include/models-48.xpm"
+#include "../include/models-64.xpm"
 
 #include "wx/artprov.h"
 
@@ -402,6 +407,8 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(48, false, id, link_48_xpm, link_48_xpm, link_48_xpm, link_48_xpm, link_48_xpm);
     } else if ("xlART_UNLINK" == id) {
         return effectBitmaps.get(48, false, id, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm);
+    } else if ("xlART_MODELS" == id) {
+        return effectBitmaps.get(24, false, id, models_16_xpm, models_24_xpm, models_32_xpm, models_48_xpm, models_64_xpm);
 #ifndef __WXOSX__
     //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
     } else if ("xlART_RENDER_ALL" == id) {
