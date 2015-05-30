@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil) Add grid right-click copy/paste/delete options.
     -- enh(gil) Add ability to drag effects in a chase fashion using the Alt key.
     -- enh(gil) Add ability to select range of cells and paste effect with key bindings.
     -- enh(gil) Add ability to link show and media directories.
