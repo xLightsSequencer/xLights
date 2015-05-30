@@ -30,13 +30,17 @@ EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
 EVT_LEFT_DOWN(EffectsGrid::mouseDown)
 EVT_LEFT_UP(EffectsGrid::mouseReleased)
 EVT_MOUSE_CAPTURE_LOST(EffectsGrid::OnLostMouseCapture)
-//EVT_RIGHT_DOWN(EffectsGrid::rightClick)
+EVT_RIGHT_DOWN(EffectsGrid::rightClick)
 //EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
 //EVT_KEY_DOWN(EffectsGrid::keyPressed)
 //EVT_KEY_UP(EffectsGrid::keyReleased)
 EVT_PAINT(EffectsGrid::render)
 END_EVENT_TABLE()
-// some useful events to use
+
+// Menu constants
+const long EffectsGrid::ID_GRID_MNU_COPY = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_PASTE = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_DELETE = wxNewId();
 
 
 EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
@@ -75,7 +79,42 @@ EffectsGrid::~EffectsGrid()
 	delete mSelectionColor;
 }
 
-void EffectsGrid::rightClick(wxMouseEvent& event) {}
+void EffectsGrid::rightClick(wxMouseEvent& event)
+{
+    wxMenu *mnuLayer;
+    mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
+    if (mSelectedRow >= mSequenceElements->GetRowInformationSize()) {
+        return;
+    }
+
+    Row_Information_Struct *ri =  mSequenceElements->GetRowInformation(mSelectedRow);
+    Element* element = ri->element;
+    if (element->GetType()=="model")
+    {
+        mnuLayer = new wxMenu();
+        wxMenuItem* menu_copy = mnuLayer->Append(ID_GRID_MNU_COPY,"Copy");
+        wxMenuItem* menu_paste = mnuLayer->Append(ID_GRID_MNU_PASTE,"Paste");
+        wxMenuItem* menu_delete = mnuLayer->Append(ID_GRID_MNU_DELETE,"Delete");
+        if( mSelectedEffect == nullptr && !MultipleEffectsSelected() ) {
+            menu_copy->Enable(false);
+            menu_delete->Enable(false);
+        }
+        if( !mEmptyCellSelected ) {
+            menu_paste->Enable(false);
+        }
+
+    }
+    else if (element->GetType()=="timing")
+    {
+        mnuLayer = new wxMenu();
+    }
+
+    //mnuLayer->AppendSeparator();
+    mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
+    Draw();
+    PopupMenu(mnuLayer);
+}
+
 void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
 void EffectsGrid::keyReleased(wxKeyEvent& event){}
 void EffectsGrid::keyPressed(wxKeyEvent& event){}
@@ -83,6 +122,28 @@ void EffectsGrid::keyPressed(wxKeyEvent& event){}
 void EffectsGrid::sendRenderEvent(const wxString &model, double start, double end, bool clear) {
     RenderCommandEvent event(model, start, end, clear, false);
     wxPostEvent(mParent, event);
+}
+
+void EffectsGrid::OnGridPopup(wxCommandEvent& event)
+{
+    Row_Information_Struct *ri = mSequenceElements->GetRowInformation(mSelectedRow);
+    Element* element = ri->element;
+    int layer_index = ri->layerIndex;
+    int id = event.GetId();
+    if(id == ID_GRID_MNU_COPY)
+    {
+        ((MainSequencer*)mParent)->CopySelectedEffects();
+    }
+    else if(id == ID_GRID_MNU_PASTE)
+    {
+        ((MainSequencer*)mParent)->Paste();
+    }
+    else if(id == ID_GRID_MNU_DELETE)
+    {
+        ((MainSequencer*)mParent)->DeleteAllSelectedEffects();
+    }
+
+    Refresh();
 }
 
 void EffectsGrid::ProcessDroppedEffect(Effect* effect)

@@ -107,6 +107,7 @@ private:
     void GetRangeOfMovementForSelectedEffects(double &toLeft, double &toRight);
     void MoveAllSelectedEffects(double delta, bool offset);
     int GetRow(int y);
+    void OnGridPopup(wxCommandEvent& event);
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mGridIconBackgrounds;
@@ -161,6 +162,10 @@ private:
     bool mCellRangeSelected;
     int mSelectedTimingIndex;
     int mSelectedTimingRow;
+
+    static const long ID_GRID_MNU_COPY;
+    static const long ID_GRID_MNU_PASTE;
+    static const long ID_GRID_MNU_DELETE;
 
     EventPlayEffectArgs* playArgs;
 
