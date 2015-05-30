@@ -896,6 +896,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
             selectedEffect->SetSettings(effectText);
             selectedEffect->SetPalette(palette);
+            mainSequencer->PanelEffectGrid->SetCurrentPalette(selectedEffectPalette);
 
             selectedEffectString = effectText;
             selectedEffectPalette = palette;

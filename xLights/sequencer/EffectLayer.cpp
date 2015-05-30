@@ -576,6 +576,17 @@ int EffectLayer::GetSelectedEffectCount()
     return count;
 }
 
+void EffectLayer::UpdateAllSelectedEffects(const wxString& palette)
+{
+    for(int i=0; i<mEffects.size();i++)
+    {
+        if(mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED )
+        {
+            mEffects[i]->SetPalette(palette);
+        }
+    }
+}
+
 void EffectLayer::MoveAllSelectedEffects(double delta)
 {
     for(int i=0; i<mEffects.size();i++)

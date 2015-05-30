@@ -55,6 +55,7 @@ public:
     void MoveSelectedEffectUp();
     void MoveSelectedEffectDown();
     void ProcessDroppedEffect(Effect* effect);
+    void SetCurrentPalette(const wxString& palette);
 
     void Paste(const wxString &data);
 
@@ -161,6 +162,8 @@ private:
     bool mCellRangeSelected;
     int mSelectedTimingIndex;
     int mSelectedTimingRow;
+
+    wxString current_palette;
 
     EventPlayEffectArgs* playArgs;
 

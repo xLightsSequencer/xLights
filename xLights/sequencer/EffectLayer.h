@@ -65,6 +65,7 @@ class EffectLayer
         void DeleteSelectedEffects();
         static bool ShouldDeleteSelected(Effect *eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
+        void UpdateAllSelectedEffects(const wxString& palette);
 
         void IncrementChangeCount(int startMS, int endMS);
         int getChangeCount() const { return changeCount; }
@@ -87,7 +88,7 @@ class NodeLayer: public EffectLayer {
 public:
     NodeLayer(Element *parent, const wxString &n) : EffectLayer(parent), name(n) {}
     virtual ~NodeLayer() {};
-    
+
     const wxString GetName() const {
         return name;
     }
@@ -104,14 +105,14 @@ class StrandLayer: public EffectLayer
 public:
     StrandLayer(Element *parent, int s) : EffectLayer(parent), strand(s) {}
     virtual ~StrandLayer() {}
-    
+
     int GetStrand() { return strand;}
-    
+
     bool ShowNodes() { return mShowNodes;}
     void ShowNodes(bool b) { mShowNodes = b;}
-    
+
     void InitFromModel(ModelClass &model);
-    
+
     NodeLayer *GetNodeLayer(int n, bool create = false);
     int GetNodeLayerCount() {
         return mNodeLayers.size();
