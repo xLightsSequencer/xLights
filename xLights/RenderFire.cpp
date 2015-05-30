@@ -140,7 +140,8 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,float cycles)
     if (BufferHt<1) BufferHt=1;
 
     float mod_state = 4.0;
-    if (curPeriod == curEffStartPer) {
+    if (needToInit) {
+        needToInit = false;
         for (i=0; i < FireBuffer.size(); i++) {
             FireBuffer[i]=0;
         }

@@ -65,6 +65,10 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     palette.GetHSV(0,hsv0);
     palette.GetHSV(1,hsv1);
     static std::vector<int> ybranch;
+    
+    if (NumberWaves == 0) {
+        NumberWaves = 1;
+    }
 
     yc = BufferHt/2.0;
     r=yc;

@@ -3,6 +3,7 @@
 
 #include "wx/wx.h"
 #include <vector>
+#include <mutex>
 #include "../UtilClasses.h"
 #include "../Color.h"
 
@@ -81,17 +82,19 @@ class Effect
         int getChangeCount() const { return changeCount; }
 
     
-        wxString GetSettingsAsString() const {
-            return mSettings.AsString();
-        }
-        const SettingsMap &GetSettings() const {
-            return mSettings;
-        }
+        wxString GetSettingsAsString() const;
         void SetSettings(const wxString &settings);
 
+        /* Do NOT call these on any thread other than the main thread */
+        const SettingsMap &GetSettings() const { return mSettings;}
         const xlColorVector GetPalette() const { return mColors;}
         const SettingsMap &GetPaletteMap() const { return mPaletteMap;}
-        wxString GetPaletteAsString() const { return mPaletteMap.AsString();}
+    
+        void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
+        void CopyPaletteMap(SettingsMap &target, bool stripPfx = false) const;
+    
+    
+        wxString GetPaletteAsString() const;
         void SetPalette(const wxString& i);
 
     protected:
@@ -109,6 +112,7 @@ class Effect
         bool mDirty;
         EffectLayer* mParentLayer;
     
+        mutable std::mutex settingsLock;
         SettingsMap mSettings;
         SettingsMap mPaletteMap;
         xlColorVector mColors;

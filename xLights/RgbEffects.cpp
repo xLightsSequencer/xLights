@@ -433,6 +433,7 @@ void RgbEffects::SetState(int period, int NewSpeed, bool ResetState, const wxStr
     {
         state = 0;
         effectState = 0;
+        needToInit = true;
     }
     else
     {

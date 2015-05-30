@@ -42,7 +42,8 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
         fireworkBursts = new RgbFireworks[maxFlakes];
     }
 
-    if (curPeriod == curEffStartPer) {
+    if (needToInit) {
+        needToInit = false;
         for(i=0; i<maxFlakes; i++) {
             fireworkBursts[i]._bActive = false;
         }

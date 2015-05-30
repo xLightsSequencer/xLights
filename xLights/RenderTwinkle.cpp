@@ -40,7 +40,8 @@ void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
 
     size_t colorcnt=GetColorCount();
     i = 0;
-    if (curPeriod == curEffStartPer) {
+    if (needToInit) {
+        needToInit = false;
         strobe.clear();
         for (int y=0; y < BufferHt; y++) {
             for (int x=0; x < BufferWi; x++) {

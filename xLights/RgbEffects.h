@@ -558,6 +558,7 @@ protected:
     int LastCurtainLimit;
     long state;
     long effectState;
+    bool needToInit;
     long LastLifeState;
     int speed;
     int lastperiod, curPeriod;

@@ -171,12 +171,14 @@ void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int 
 
 
     int AutoReverse=0;
-    if(curPeriod==curEffStartPer) ChaseDirection=0; // initialize it once at the beggining of this sequence.
+    if (needToInit) {
+        needToInit = false;
+        ChaseDirection = Chase_Type1 == 0; // initialize it once at the beggining of this sequence.
+    }
     switch (Chase_Type1)
     {
     case 0: // "Normal. L-R"
         R_TO_L1=1;
-        if(curPeriod==curEffStartPer) ChaseDirection=1; // initialize it once at the beggining of this sequence.
         break;
 
     case 1: // "Normal. R-L"

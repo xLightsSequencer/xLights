@@ -42,13 +42,17 @@ public:
 
 void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_Type)
 {
-    if (curPeriod == curEffStartPer) {
+    if (StrobeDuration == 0) {
+        StrobeDuration = 1;
+    }
+    if (needToInit) {
+        needToInit = false;
         strobe.resize(StrobeDuration * Number_Strobes);
         for (int x = 0; x < strobe.size(); x++) {
             strobe[x].duration = -1;
         }
     }
-    int offset = ((curEffStartPer - curPeriod) % StrobeDuration) * Number_Strobes;
+    int offset = ((curPeriod-curEffStartPer) % StrobeDuration) * Number_Strobes;
 
     int ColorIdx;
     StrobeClass m;

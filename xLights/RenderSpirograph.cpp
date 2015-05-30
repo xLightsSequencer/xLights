@@ -7,7 +7,7 @@ void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
 {
     int i,x,y,xc,yc,ColorIdx;
     int mod1440,state360,d_mod;
-    srand(1);
+    //srand(1);
     float R,r,d,d_orig,t;
     double hyp,x2,y2;
     wxImage::HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"

@@ -107,8 +107,9 @@ void RgbEffects::RenderSnowstorm(int Count, int TailLength, int sSpeed)
         TailLength = 1;
     }
 
-    if (curPeriod == curEffStartPer || Count != LastSnowstormCount)
+    if (needToInit || Count != LastSnowstormCount)
     {
+        needToInit = false;
         // create snowstorm elements
         LastSnowstormCount=Count;
         SnowstormItems.clear();

@@ -29,9 +29,10 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed)
     xlColour color1,color2;
     effectState = (curPeriod - curEffStartPer) * sSpeed * frameTimeInMs / 50;
     
-    if (curPeriod == curEffStartPer || Count != LastSnowflakeCount || SnowflakeType != LastSnowflakeType)
+    if (needToInit || Count != LastSnowflakeCount || SnowflakeType != LastSnowflakeType)
     {
         // initialize
+        needToInit = false;
         LastSnowflakeCount=Count;
         LastSnowflakeType=SnowflakeType;
         palette.GetColor(0,color1);

@@ -419,8 +419,7 @@ private:
             settingsMap["Effect"]="None";
         } else {
             loadSettingsMap(el->GetEffectName(),
-                            el->GetSettings(),
-                            el->GetPaletteMap(),
+                            el,
                             settingsMap);
         }
         updateBufferPaletteFromMap(layer, settingsMap, buffer);
@@ -485,26 +484,13 @@ private:
         return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame);
     }
     void loadSettingsMap(const wxString &effectName,
-                         const SettingsMap &settings,
-                         const SettingsMap &colorPalette,
+                         Effect *effect,
                          SettingsMap& settingsMap) {
         settingsMap.clear();
         settingsMap["Effect"]=effectName;
-
-        for (std::map<wxString,wxString>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
-            wxString name = it->first;
-            if (name[1] == '_') {
-                name = name.AfterFirst('_');
-            }
-            settingsMap[name] = it->second;
-        }
-        for (std::map<wxString,wxString>::const_iterator it=colorPalette.begin(); it!=colorPalette.end(); ++it) {
-            wxString name = it->first;
-            if (name[1] == '_') {
-                name = name.AfterFirst('_');
-            }
-            settingsMap[name] = it->second;
-        }
+        
+        effect->CopySettingsMap(settingsMap, true);
+        effect->CopyPaletteMap(settingsMap, true);
     }
 
 

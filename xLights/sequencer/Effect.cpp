@@ -305,16 +305,46 @@ void Effect::SetID(int id)
     mID = id;
 }
 
+void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const {
+    std::lock_guard<std::mutex> lock(settingsLock);
+    
+    
+    for (std::map<wxString,wxString>::const_iterator it=mSettings.begin(); it!=mSettings.end(); ++it) {
+        wxString name = it->first;
+        if (stripPfx && name[1] == '_') {
+            name = name.AfterFirst('_');
+        }
+        target[name] = it->second;
+    }
+}
+void Effect::CopyPaletteMap(SettingsMap &target, bool stripPfx) const {
+    std::lock_guard<std::mutex> lock(settingsLock);
+    for (std::map<wxString,wxString>::const_iterator it=mPaletteMap.begin(); it!=mPaletteMap.end(); ++it) {
+        wxString name = it->first;
+        if (stripPfx && name[1] == '_') {
+            name = name.AfterFirst('_');
+        }
+        target[name] = it->second;
+    }
+}
 
 void Effect::SetSettings(const wxString &settings)
 {
+    std::lock_guard<std::mutex> lock(settingsLock);
     mSettings.Parse(settings);
     IncrementChangeCount();
     mDirty = true;
 }
 
+wxString Effect::GetSettingsAsString() const
+{
+    std::lock_guard<std::mutex> lock(settingsLock);
+    return mSettings.AsString();
+}
+
 void Effect::SetPalette(const wxString& i)
 {
+    std::lock_guard<std::mutex> lock(settingsLock);
     mPaletteMap.Parse(i);
     mColors.clear();
     IncrementChangeCount();
@@ -328,6 +358,12 @@ void Effect::SetPalette(const wxString& i)
         }
     }
 }
+
+wxString Effect::GetPaletteAsString() const {
+    std::lock_guard<std::mutex> lock(settingsLock);
+    return mPaletteMap.AsString();
+}
+
 
 
 wxString Effect::GetEffectName() const

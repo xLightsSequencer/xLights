@@ -50,8 +50,9 @@ void RgbEffects::RenderLife(int Count, int Type, int lspeed)
     xlColour color;
     if(BufferHt<1) BufferHt=1;
     Count=BufferWi * BufferHt * Count / 200 + 1;
-    if (curPeriod == curEffStartPer || Count != LastLifeCount || Type != LastLifeType)
+    if (needToInit || Count != LastLifeCount || Type != LastLifeType)
     {
+        needToInit = false;
         // seed tempbuf
         LastLifeCount=Count;
         LastLifeType=Type;
