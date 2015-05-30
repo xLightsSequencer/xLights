@@ -23,11 +23,13 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType)
+void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed)
 {
     int i,n,x,y0,y,check,delta_y;
     xlColour color1,color2;
-    if (state == 0 || Count != LastSnowflakeCount || SnowflakeType != LastSnowflakeType)
+    effectState = (curPeriod - curEffStartPer) * sSpeed * frameTimeInMs / 50;
+    
+    if (curPeriod == curEffStartPer || Count != LastSnowflakeCount || SnowflakeType != LastSnowflakeType)
     {
         // initialize
         LastSnowflakeCount=Count;
@@ -134,12 +136,12 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType)
     int new_x,new_y,new_x2,new_y2;
     for (x=0; x<BufferWi; x++)
     {
-        new_x = (x+state/20) % BufferWi; // CW
-        new_x2 = (x-state/20) % BufferWi; // CCW
+        new_x = (x+effectState/20) % BufferWi; // CW
+        new_x2 = (x-effectState/20) % BufferWi; // CCW
         if (new_x2 < 0) new_x2+=BufferWi;
         for (y=0; y<BufferHt; y++)
         {
-            new_y = (y+state/10) % BufferHt;
+            new_y = (y+effectState/10) % BufferHt;
             new_y2 = (new_y + BufferHt/2) % BufferHt;
             GetTempPixel(new_x,new_y,color1);
             if (color1.GetRGB() == 0) GetTempPixel(new_x2,new_y2,color1);

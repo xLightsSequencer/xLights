@@ -39,28 +39,41 @@
 
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
-void RgbEffects::RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
+void RgbEffects::RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mSpeed)
 {
+    if (curPeriod == curEffStartPer) {
+        meteors.clear();
+        meteorsRadial.clear();
+        effectState = mSpeed * frameTimeInMs / 50;
+    } else {
+        effectState += mSpeed * frameTimeInMs / 50;
+    }
+    //wierd calculation, but adds a slight abmount of jitter to the speed
+    //example: if mSpeed is 10, the speeds for the first few frames would be:  2, 3, 2...
+    int mspeed = effectState / 4;
+    effectState -= mspeed * 4;
+    
     switch (MeteorsEffect) {
         case METEORS_DOWN: //0:
         case METEORS_UP: //1:
-            RenderMeteorsVertical(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
+            RenderMeteorsVertical(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity, mspeed);
             break;
         case METEORS_LEFT: //2:
         case METEORS_RIGHT: //3:
-            RenderMeteorsHorizontal(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
+            RenderMeteorsHorizontal(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity, mspeed);
             break;
         case METEORS_IMPLODE: //4:
-            RenderMeteorsImplode(ColorScheme, Count, Length, SwirlIntensity);
+            RenderMeteorsImplode(ColorScheme, Count, Length, SwirlIntensity, mspeed);
             break;
         case METEORS_EXPLODE: //5:
-            RenderMeteorsExplode(ColorScheme, Count, Length, SwirlIntensity);
+            RenderMeteorsExplode(ColorScheme, Count, Length, SwirlIntensity, mspeed);
             break;
         case METEORS_ICICLES: //6
-            RenderIcicleDrip(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
+            RenderIcicleDrip(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity, mspeed);
             break;
         case METEORS_ICICLES_BKG: //7
-            RenderIcicleDrip(ColorScheme, Count, -Length, MeteorsEffect, SwirlIntensity);
+            RenderIcicleDrip(ColorScheme, Count, -Length, MeteorsEffect, SwirlIntensity, mspeed);
+            break;
     }
 }
 
@@ -85,11 +98,8 @@ public:
     }
 };
 
-void RgbEffects::RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
+void RgbEffects::RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed)
 {
-    if (state == 0) meteors.clear();
-    int mspeed=state/4;
-    state-=mspeed*4;
     double swirl_phase;
 
     MeteorClass m;
@@ -195,11 +205,8 @@ public:
 //bool end_of_icicle(const MeteorClass& obj) { return obj.y > obj.h; }
 
 
-void RgbEffects::RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
+void RgbEffects::RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed)
 {
-    if (state == 0) meteors.clear();
-    int mspeed=state/4;
-    state-=mspeed*4; //what does this do?
     double swirl_phase;
 
     MeteorClass m;
@@ -281,11 +288,8 @@ void RgbEffects::RenderMeteorsVertical(int ColorScheme, int Count, int Length, i
 //#include "djdebug.cpp"
 
 //icicle drip effect, based on RenderMeteorsVertical: -DJ
-void RgbEffects::RenderIcicleDrip(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
+void RgbEffects::RenderIcicleDrip(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed)
 {
-    if (state == 0) meteors.clear();
-    int mspeed=state/4;
-    state-=mspeed*4; //what does this do?
     double swirl_phase;
     bool want_bkg = (Length < 0);
     if (want_bkg) Length = -Length; //kludge; too lazy to add another parameter ;)
@@ -380,67 +384,6 @@ void RgbEffects::RenderIcicleDrip(int ColorScheme, int Count, int Length, int Me
 //    meteors.remove_if(MeteorHasExpiredY(TailLength));
     meteors.remove_if(IcicleHasExpired());
 }
-#if 0
-
-            switch (ColorScheme)
-            {
-            case 1:
-                SetRangeColor(hsv0,hsv1,m.hsv);
-                break;
-            case 2:
-                palette.GetHSV(rand()%colorcnt, m.hsv);
-                break;
-            }
-//            debug(1, "cre icicle[%d]: x %d, y %d, h %d, hsv %f,%f,%f", state, m.x, m.y, m.h, m.hsv.hue, m.hsv.saturation, m.hsv.value);
-            meteors.push_back(m);
-        }
-    }
-
-    // render meteors
-
-    int x,y,dx,n=0;
-    for (MeteorList::iterator it=meteors.begin(); it!=meteors.end(); ++it)
-    {
-        n++;
-        for(int ph=0; ph<=/*TailLength*/ it->h; ph++)
-        {
-            switch (/*ColorScheme*/ 99)
-            {
-            case 0:
-                hsv.hue=double(rand() % 1000) / 1000.0;
-                hsv.saturation=1.0;
-                hsv.value=1.0;
-                break;
-            case 99: //white icicle, colored tail -DJ
-                if (ph < it->h)
-                {
-                    hsv.hue = hsv.saturation = 0; //not too bright
-                    hsv.value = .4; //((ph + it->x)& 1)? 0: 0.4; //staggered, alternating to look more like incand icicles
-                }
-                else if (ph == it->h) hsv = m.hsv;
-                else hsv.value = 0; //variable length -DJ
-//                debug(1, "render icicle[%d]: ph %d/%d, where %d", /*it - meteors.begin()*/ n, ph, TailLength, (ph < it->h - 1)? 1: (ph == it->h - 1)? 2: 3);
-                break;
-            default:
-                hsv=it->hsv;
-                break;
-            }
-//            hsv.value*= 1.0 - double(ph)/TailLength;
-
-            // we adjust x axis with some sine function if swirl1 or swirl2
-            // swirling more than 25% of the buffer width doesn't look good
-            swirl_phase=double(it->y)/5.0+double(n)/100.0;
-            dx=int(double(SwirlIntensity*BufferWi)/80.0*sin(swirl_phase));
-
-            x=it->x+dx;
-            y=it->y+ ph;
-            if (MeteorsEffect==1) y=BufferHt-y;
-            SetPixel(x,y,hsv);
-        }
-
-        it->y -= mspeed;
-    }
-#endif
 
 /*
  * *************************************************************
@@ -462,11 +405,8 @@ public:
     }
 };
 
-void RgbEffects::RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity)
+void RgbEffects::RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed)
 {
-    if (state == 0) meteorsRadial.clear();
-    double mspeed=state/4;
-    state-=int(mspeed)*4;
     double angle;
     int halfdiag=DiagLen/2; // 1/2 the length of the diagonal
     int centerX=BufferWi/2;
@@ -578,11 +518,8 @@ public:
     }
 };
 
-void RgbEffects::RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity)
+void RgbEffects::RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed)
 {
-    if (state == 0) meteorsRadial.clear();
-    double mspeed=state/4;
-    state-=int(mspeed)*4;
     double angle;
     int halfdiag=DiagLen/2; // 1/2 the length of the diagonal
 
@@ -612,7 +549,7 @@ void RgbEffects::RenderMeteorsExplode(int ColorScheme, int Count, int Length, in
             }
             m.dx=cos(angle);
             m.dy=sin(angle);
-
+            
             switch (ColorScheme)
             {
             case 1:
@@ -634,7 +571,7 @@ void RgbEffects::RenderMeteorsExplode(int ColorScheme, int Count, int Length, in
         n++;
         for(int ph=0; ph<=TailLength; ph++)
         {
-            if (ph >= it->cnt) continue;
+            //if (ph >= it->cnt) continue;
             switch (ColorScheme)
             {
             case 0:
@@ -672,37 +609,3 @@ void RgbEffects::RenderMeteorsExplode(int ColorScheme, int Count, int Length, in
     meteorsRadial.remove_if(MeteorHasExpiredExplode(BufferHt,BufferWi));
 }
 
-
-                /*
-                if(ph == 0)
-                {
-                    // we are at the head of meteor, decide if we will draw with something other than a point
-                    // 1=plus 1 pixel, 2= plus 2 pixel, 3 = cross
-                    switch (MeteorHeadType)
-                    {
-                    case 1: // plus 1 pixel
-                        SetPixel(x+1,y,hsv);
-                        SetPixel(x-1,y,hsv);
-                        SetPixel(x,y+1,hsv);
-                        SetPixel(x,y-1,hsv);
-                        break;
-                    case 2: // plus 2 pixel
-                        SetPixel(x+1,y,hsv);
-                        SetPixel(x-1,y,hsv);
-                        SetPixel(x,y+1,hsv);
-                        SetPixel(x,y-1,hsv);
-
-                        SetPixel(x+2,y,hsv);
-                        SetPixel(x-2,y,hsv);
-                        SetPixel(x,y+2,hsv);
-                        SetPixel(x,y-2,hsv);
-                        break;
-                    case 3: // cross 1 pixel
-                        SetPixel(x+1,y+1,hsv);
-                        SetPixel(x-1,y-1,hsv);
-                        SetPixel(x-1,y+1,hsv);
-                        SetPixel(x+1,y-1,hsv);
-                        break;
-                    }
-                }
-                */

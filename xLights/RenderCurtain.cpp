@@ -25,14 +25,13 @@
 
 // edge: 0=left, 1=center, 2=right
 // effect: 0=open, 1=close, 2=open then close, 3=close then open
-void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat, int curtainSpeed)
+void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat, float curtainSpeed)
 {
     double a;
     wxImage::HSVValue hsv;
     wxArrayInt SwagArray;
     int CurtainDir,xlimit,middle, ylimit;
     int swaglen=BufferHt > 1 ? swag * BufferWi / 40 : 0;
-    double position = GetEffectTimeIntervalPosition();
 
     if (swaglen > 0) {
         a=double(BufferHt - 1) / (swaglen * swaglen);
@@ -41,14 +40,10 @@ void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat, int 
         }
     }
     
-    //cycles is 0 - 200 representing repeat count of 0 - 20
-    if (curtainSpeed > 0) {
-        position *= curtainSpeed / 10.0;
-        if (repeat) {
-            while (position > 1.0) {
-                position -= 1.0;
-            }
-        } else if (position > 1.0) {
+    double position = GetEffectTimeIntervalPosition(curtainSpeed);
+    if (!repeat) {
+        position = GetEffectTimeIntervalPosition() * curtainSpeed;
+        if (position > 1.0) {
             position = 1.0;
         }
     }

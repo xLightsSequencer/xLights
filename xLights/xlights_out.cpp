@@ -800,7 +800,6 @@ public:
 // It contains references to all of the networks
 xOutput::xOutput()
 {
-    srand((unsigned)time(NULL));
 }
 
 xOutput::~xOutput()

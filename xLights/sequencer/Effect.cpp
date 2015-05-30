@@ -78,22 +78,39 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
                 settings["E_TEXTCTRL_On_Cycles"] = wxString::Format("%0.2f", cycles);
             }
             break;
+        case BitmapCache::RGB_EFFECTS_e::eff_SNOWSTORM:
+            if (settings.Get("E_SLIDER_Snowstorm_Speed", "") == "") {
+                settings["E_SLIDER_Snowstorm_Speed"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            break;
+        case BitmapCache::RGB_EFFECTS_e::eff_SNOWFLAKES:
+            if (settings.Get("E_SLIDER_Snowflakes_Speed", "") == "") {
+                settings["E_SLIDER_Snowflakes_Speed"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            break;
         case BitmapCache::RGB_EFFECTS_e::eff_BUTTERFLY:
             if (settings.Get("E_SLIDER_Butterfly_Speed", "") == "") {
-                //Butterfly never used the FitToTime, just speed
                 settings["E_SLIDER_Butterfly_Speed"] = settings.Get("T_SLIDER_Speed", "10");
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_CIRCLES:
             if (settings.Get("E_SLIDER_Circles_Speed", "") == "") {
-                //Circles never used the FitToTime, just speed
                 settings["E_SLIDER_Circles_Speed"] = settings.Get("T_SLIDER_Speed", "10");
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_LIFE:
             if (settings.Get("E_SLIDER_Life_Speed", "") == "") {
-                //Life never used the FitToTime, just speed
                 settings["E_SLIDER_Life_Speed"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            break;
+        case BitmapCache::RGB_EFFECTS_e::eff_METEORS:
+            if (settings.Get("E_SLIDER_Meteors_Speed", "") == "") {
+                settings["E_SLIDER_Meteors_Speed"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            break;
+        case BitmapCache::RGB_EFFECTS_e::eff_TREE:
+            if (settings.Get("E_SLIDER_Tree_Speed", "") == "") {
+                settings["E_SLIDER_Tree_Speed"] = settings.Get("T_SLIDER_Speed", "10");
             }
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH:
@@ -246,12 +263,8 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             //these all have state/speed requirements
         case BitmapCache::RGB_EFFECTS_e::eff_TEXT:
         case BitmapCache::RGB_EFFECTS_e::eff_GARLANDS:
-        case BitmapCache::RGB_EFFECTS_e::eff_METEORS:
         case BitmapCache::RGB_EFFECTS_e::eff_PIANO:
         case BitmapCache::RGB_EFFECTS_e::eff_PINWHEEL:
-        case BitmapCache::RGB_EFFECTS_e::eff_SNOWFLAKES:
-        case BitmapCache::RGB_EFFECTS_e::eff_SNOWSTORM:
-        case BitmapCache::RGB_EFFECTS_e::eff_TREE:
         case BitmapCache::RGB_EFFECTS_e::eff_WAVE:
             break;
     }

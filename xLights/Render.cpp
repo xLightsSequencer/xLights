@@ -875,7 +875,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                              wxAtoi(SettingsMap["SLIDER_Meteors_Count"]),
                              wxAtoi(SettingsMap["SLIDER_Meteors_Length"]),
                              MeteorsEffect.Index(SettingsMap["CHOICE_Meteors_Effect"]),
-                             wxAtoi(SettingsMap["SLIDER_Meteors_Swirl_Intensity"]));
+                             wxAtoi(SettingsMap["SLIDER_Meteors_Swirl_Intensity"]),
+                             wxAtoi(SettingsMap.Get("SLIDER_Meteors_Speed", "10")));
     } else if (effect == "Morph") {
         buffer.RenderMorph( wxAtoi(SettingsMap["SLIDER_Morph_Start_X1"]),
                             wxAtoi(SettingsMap["SLIDER_Morph_Start_Y1"]),
@@ -962,10 +963,12 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
         }
     } else if (effect == "Snowflakes") {
         buffer.RenderSnowflakes(wxAtoi(SettingsMap["SLIDER_Snowflakes_Count"]),
-                                wxAtoi(SettingsMap["SLIDER_Snowflakes_Type"]));
+                                wxAtoi(SettingsMap["SLIDER_Snowflakes_Type"]),
+                                wxAtoi(SettingsMap.Get("SLIDER_Snowflakes_Speed", "10")));
     } else if (effect == "Snowstorm") {
         buffer.RenderSnowstorm(wxAtoi(SettingsMap["SLIDER_Snowstorm_Count"]),
-                               wxAtoi(SettingsMap["SLIDER_Snowstorm_Length"]));
+                               wxAtoi(SettingsMap["SLIDER_Snowstorm_Length"]),
+                               wxAtoi(SettingsMap.Get("SLIDER_Snowstorm_Speed", "10")));
     } else if (effect == "Spirals") {
         buffer.RenderSpirals(wxAtoi(SettingsMap["SLIDER_Spirals_Count"]),
                              wxAtof(SettingsMap.Get("TEXTCTRL_Spirals_Movement", "1.0")),
@@ -1035,7 +1038,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                               TextCountDown.Index(SettingsMap["CHOICE_Text_Count4"]));
         }
     } else if (effect == "Tree") {
-        buffer.RenderTree(wxAtoi(SettingsMap["SLIDER_Tree_Branches"]));
+        buffer.RenderTree(wxAtoi(SettingsMap["SLIDER_Tree_Branches"]),
+                          wxAtoi(SettingsMap.Get("SLIDER_Tree_Speed", "10")));
     } else if (effect == "Twinkle") {
         buffer.RenderTwinkle(wxAtoi(SettingsMap["SLIDER_Twinkle_Count"]),
                              wxAtoi(SettingsMap["SLIDER_Twinkle_Steps"]),

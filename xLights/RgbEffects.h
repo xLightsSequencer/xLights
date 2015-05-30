@@ -504,12 +504,14 @@ protected:
     void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
     void RenderTextLine(DrawingContext* dc, int idx, int Position, const wxString& Line, int dir, bool center, int Effect, int Countdown, bool WantRender);
-    void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
-    void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
-    void RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
-    void RenderIcicleDrip(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
+    
+    void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
+    void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
+    void RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed);
+    void RenderIcicleDrip(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
+    void RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed);
+    
     HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
-    void RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
     void RenderMetaBalls(int numBalls);
     void DrawCurtain(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
     void DrawCurtainVertical(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);

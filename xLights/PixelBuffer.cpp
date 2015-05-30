@@ -586,7 +586,7 @@ void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, float cycl
                                           shimmer, circular);
 }
 
-void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat, int cspeed) {
+void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat, float cspeed) {
     effects[CurrentLayer].RenderCurtain(edge,effect,swag,repeat, cspeed);
 }
 
@@ -635,8 +635,8 @@ void PixelBufferClass::RenderLife(int Count, int Seed, int lspeed) {
     effects[CurrentLayer].RenderLife(Count,Seed, lspeed);
 }
 
-void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity) {
-    effects[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity);
+void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed) {
+    effects[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity, MSpeed);
 }
 
 void PixelBufferClass::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2,
@@ -683,12 +683,12 @@ void PixelBufferClass::RenderSingleStrandSkips(int Skips_BandSize, int Skips_Ski
     effects[CurrentLayer].RenderSingleStrandSkips(Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction, advances);
 }
 
-void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType) {
-    effects[CurrentLayer].RenderSnowflakes(Count,SnowflakeType);
+void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType, int sspeed) {
+    effects[CurrentLayer].RenderSnowflakes(Count,SnowflakeType, sspeed);
 }
 
-void PixelBufferClass::RenderSnowstorm(int Count, int Length) {
-    effects[CurrentLayer].RenderSnowstorm(Count,Length);
+void PixelBufferClass::RenderSnowstorm(int Count, int Length, int sSpeed) {
+    effects[CurrentLayer].RenderSnowstorm(Count,Length, sSpeed);
 }
 
 void PixelBufferClass::RenderSpirals(int PaletteRepeat, float Direction, int Rotation, int Thickness,
@@ -713,8 +713,8 @@ void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wx
                                      Position4,Line4,FontString4,dir4,center4,Effect4,Countdown4);
 }
 
-void PixelBufferClass::RenderTree(int Branches) {
-    effects[CurrentLayer].RenderTree(Branches);
+void PixelBufferClass::RenderTree(int Branches, int tspeed) {
+    effects[CurrentLayer].RenderTree(Branches, tspeed);
 }
 
 void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe) {

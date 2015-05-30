@@ -94,7 +94,7 @@ void RgbEffects::SnowstormAdvance(SnowstormClass& ssItem)
     ssItem.points.push_back(xy);
 }
 
-void RgbEffects::RenderSnowstorm(int Count, int TailLength)
+void RgbEffects::RenderSnowstorm(int Count, int TailLength, int sSpeed)
 {
     // create new meteors
     wxImage::HSVValue hsv,hsv0,hsv1;
@@ -107,7 +107,7 @@ void RgbEffects::RenderSnowstorm(int Count, int TailLength)
         TailLength = 1;
     }
 
-    if (state == 0 || Count != LastSnowstormCount)
+    if (curPeriod == curEffStartPer || Count != LastSnowstormCount)
     {
         // create snowstorm elements
         LastSnowstormCount=Count;
@@ -151,7 +151,7 @@ void RgbEffects::RenderSnowstorm(int Count, int TailLength)
                 it->points.clear();  // start over
                 it->ssDecay=0;
             }
-            else if (rand() % 20 < speed)
+            else if (rand() % 20 < sSpeed)
             {
                 it->ssDecay++;
             }
@@ -162,7 +162,7 @@ void RgbEffects::RenderSnowstorm(int Count, int TailLength)
             xy.y=rand() % BufferHt;
             it->points.push_back(xy);
         }
-        else if (rand() % 20 < speed)
+        else if (rand() % 20 < sSpeed)
         {
             SnowstormAdvance(*it);
         }

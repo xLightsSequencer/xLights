@@ -10,7 +10,7 @@ void RenderColorWash(bool HorizFade, bool VertFade, float cycles,
                      bool EntireModel, int x1, int y1, int x2, int y2,
                      bool shimmer,
                      bool circularPalette);
-void RenderCurtain(int edge, int effect, int swag, bool repeat, int curtainSpeed);
+void RenderCurtain(int edge, int effect, int swag, bool repeat, float curtainSpeed);
 void RenderFaces(int Phoneme);
 //void RenderCoroFaces( int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/);
 void RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline);
@@ -24,7 +24,7 @@ void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, 
 void RenderGarlands(int GarlandType, int Spacing);
 void RenderGlediator(const wxString& NewPictureName);
 void RenderLife(int Count, int Type, int lifeSpeed);
-void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
+void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed);
 void RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2,
                  int end_x1,   int end_y1,   int end_x2,   int end_y2,
                  int start_length, int end_length, bool start_linked, bool end_linked,
@@ -61,8 +61,8 @@ void RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_S
 void draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,int Number_Chases,int width,bool R_TO_L1,
                 int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection);
 
-void RenderSnowflakes(int Count, int SnowflakeType);
-void RenderSnowstorm(int Count, int Length);
+void RenderSnowflakes(int Count, int SnowflakeType, int sSpeed);
+void RenderSnowstorm(int Count, int Length, int sSpeed);
 void RenderSpirals(int PaletteRepeat, float Movement, int Rotation, int Thickness,
                    bool Blend, bool Show3D, bool grow, bool shrink);
 void RenderSpirograph(int R, int r, int d,bool Animate);
@@ -72,6 +72,6 @@ void RenderText(int Position1, const wxString& Line1, const wxString& FontString
                 int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int TextRotation2,int Effect2,
                 int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int TextRotation3,int Effect3,
                 int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int TextRotation4,int Effect4);
-void RenderTree(int Branches);
+void RenderTree(int Branches, int tspeed);
 void RenderTwinkle(int Count,int Steps,bool Strobe);
 void RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection);

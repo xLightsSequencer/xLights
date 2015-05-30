@@ -23,24 +23,24 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderTree(int Branches)
+void RgbEffects::RenderTree(int Branches, int tspeed)
 {
 
+    effectState = (curPeriod - curEffStartPer) * tspeed * frameTimeInMs / 50;
+    
     int x,y,i,r,ColorIdx,pixels_per_branch;
     int maxFrame,mod,branch,row,b,f_mod,m,frame;
     int number_garlands,f_mod_odd,s_odd_row,odd_even;
     float V,H;
 
     number_garlands=1;
-    srand(1); // always have the same random numbers for each frame (state)
     xlColor color;
     if(Branches<1)  Branches=1;
     pixels_per_branch=(int)(0.5+BufferHt/Branches);
     if(pixels_per_branch<1) pixels_per_branch=1;
 
     maxFrame=(Branches+1) *BufferWi;
-    size_t colorcnt=GetColorCount();
-    if(state>0 && maxFrame>0) frame = (state/4)%maxFrame;
+    if(effectState>0 && maxFrame>0) frame = (effectState/4)%maxFrame;
     else frame=1;
 
     i=0;
@@ -55,7 +55,6 @@ void RgbEffects::RenderTree(int Branches)
             V=1-(1.0*mod/pixels_per_branch)*0.70;
             i++;
 
-            ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
             ColorIdx=0;
             palette.GetColor(ColorIdx, color); // Now go and get the hsv value for this ColorIdx
             if (allowAlpha) {
@@ -76,12 +75,12 @@ void RgbEffects::RenderTree(int Branches)
             //
             //	row = 0, the $p is in the bottom row of tree
             //	row =1, the $p is in second row from bottom
-            b = (int) ((state)/BufferWi)%Branches; // what branch we are on based on frame #
+            b = (int) ((effectState)/BufferWi)%Branches; // what branch we are on based on frame #
             //
             //	b = 0, we are on bottomow row of tree during frames 1 to BufferWi
             //	b = 1, we are on second row from bottom, frames = BufferWi+1 to 2*BufferWi
             //	b = 2, we are on third row from bottome, frames - 2*BufferWi+1 to 3*BufferWi
-            f_mod = (state/4)%BufferWi;
+            f_mod = (effectState/4)%BufferWi;
             //   if(f_mod==0) f_mod=BufferWi;
             //	f_mod is  to BufferWi-1 on each row
             //	f_mod == 0, left strand of this row
