@@ -51,7 +51,6 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mDropStartX = 0;
     mDropEndX = 0;
     mCellRangeSelected = false;
-    current_palette = "";
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
@@ -80,24 +79,6 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {}
 void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
 void EffectsGrid::keyReleased(wxKeyEvent& event){}
 void EffectsGrid::keyPressed(wxKeyEvent& event){}
-
-void EffectsGrid::SetCurrentPalette(const wxString& palette)
-{
-    current_palette = palette;
-    if( mCellRangeSelected )
-    {
-        int row1 = GetRow(mRangeStartY);
-        int row2 = GetRow(mRangeEndY);
-        for( int row = row1; row <= row2; row++ )
-        {
-            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-            el->UpdateAllSelectedEffects(palette);
-            sendRenderEvent(el->GetParentElement()->GetName(),
-                            mRangeStartTime,
-                            mRangeEndTime, true);
-        }
-    }
-}
 
 void EffectsGrid::sendRenderEvent(const wxString &model, double start, double end, bool clear) {
     RenderCommandEvent event(model, start, end, clear, false);
