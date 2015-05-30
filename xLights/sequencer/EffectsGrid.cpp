@@ -1695,7 +1695,11 @@ void EffectsGrid::MoveAllSelectedEffects(double delta, bool offset)
         for(int row=start_row;row<=end_row;row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-            el->MoveAllSelectedEffects(delta_step*(double)(row-start_row));
+            if( mResizingMode == EFFECT_RESIZE_RIGHT ) {
+                el->MoveAllSelectedEffects(delta_step*(double)(row-start_row));
+            } else {
+                el->MoveAllSelectedEffects(delta_step*(double)(end_row-row));
+            }
         }
     }
 }
