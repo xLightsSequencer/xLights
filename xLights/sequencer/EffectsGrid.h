@@ -63,7 +63,7 @@ public:
     }
 protected:
     virtual void InitializeGLCanvas();
-    
+
 
 private:
     void sendRenderEvent(const wxString &model, double start, double end, bool clear = true);
@@ -85,9 +85,10 @@ private:
     void DrawHorizontalLines();
     void DrawVerticalLines();
     void DrawModelOrViewEffects(int row);
+    void DrawSelectedCells();
 
     int DrawEffectBackground(const Row_Information_Struct* ri, PixelBufferClass *pb, const Effect *effect, int x1, int y1, int x2, int y2);
-    
+
     void DrawTimingEffects(int row);
     void DrawEffects();
     void DrawTimings();
@@ -138,6 +139,12 @@ private:
     int mDragStartY;
     int mDragEndX;
     int mDragEndY;
+    int mRangeStartX;
+    int mRangeStartY;
+    int mRangeEndX;
+    int mRangeEndY;
+    double mRangeStartTime;
+    double mRangeEndTime;
 
     EffectLayer* mEffectLayer;
     int mResizeEffectIndex;
@@ -151,6 +158,7 @@ private:
     double mDropEndTime;
 
     bool mEmptyCellSelected;
+    bool mCellRangeSelected;
     int mSelectedTimingIndex;
     int mSelectedTimingRow;
 

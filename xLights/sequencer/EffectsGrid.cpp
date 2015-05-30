@@ -50,6 +50,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mDragDropping = false;
     mDropStartX = 0;
     mDropEndX = 0;
+    mCellRangeSelected = false;
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
@@ -273,8 +274,9 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
-    if (mEmptyCellSelected) {
+    if (mEmptyCellSelected || mCellRangeSelected) {
         mEmptyCellSelected = false;
+        mCellRangeSelected = false;
         Refresh();
     }
     if (mSequenceElements == NULL) {
@@ -681,6 +683,44 @@ void EffectsGrid::Paste(const wxString &data) {
             }
         }
     }
+    else if (mCellRangeSelected) {
+        wxArrayString all_efdata = wxSplit(data, '\n');
+        if (all_efdata.size() == 0) {
+            return;
+        }
+        if( all_efdata.size() <= 2 )  // only single effect paste allowed for range
+        {
+            wxArrayString efdata = wxSplit(all_efdata[0], '\t');
+            if (efdata.size() < 3) {
+                return;
+            }
+            int row1 = GetRow(mRangeStartY);
+            int row2 = GetRow(mRangeEndY);
+            for( int row = row1; row <= row2; row++ )
+            {
+                EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+                if( el->GetRangeIsClear(mRangeStartTime, mRangeEndTime) )
+                {
+                    int effectIndex = Effect::GetEffectIndex(efdata[0]);
+                    if (effectIndex >= 0) {
+                        Effect* ef = el->AddEffect(0,
+                                      effectIndex,
+                                      efdata[0],
+                                      efdata[1],
+                                      efdata[2],
+                                      mRangeStartTime,
+                                      mRangeEndTime,
+                                      EFFECT_SELECTED,
+                                      false);
+                        RaiseSelectedEffectChanged(ef);
+                        mSelectedEffect = ef;
+                     }
+                }
+            }
+            mCellRangeSelected = false;
+        }
+    }
+
     Refresh();
 }
 
@@ -1109,7 +1149,7 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, PixelBuf
             if (e->GetSettings()["E_NOTEBOOK_SSEFFECT_TYPE"] == "Skips" && ri->nodeIndex == -1) {
                 int cnt = wxAtoi(e->GetSettings().Get("E_SLIDER_Skips_SkipSize", "1"))
                     + wxAtoi(e->GetSettings().Get("E_SLIDER_Skips_BandSize", "1"));
-                
+
                 std::vector<xlColor> colors;
                 std::vector<double> xs;
                 if (cnt > pb->GetNodeCount()) {
@@ -1428,7 +1468,17 @@ void EffectsGrid::Draw()
         DrawEffects();
         DrawTimings();
     }
-    if(mDragging)
+
+    if(mDragging || mCellRangeSelected)
+    {
+        int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
+        if (selectedTimingIndex >= 0 ) {
+            DrawSelectedCells();
+        } else {
+            mCellRangeSelected = false;
+        }
+    }
+    if(mDragging && !mCellRangeSelected)
     {
         DrawGLUtils::DrawRectangle(xlYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);
     }
@@ -1437,6 +1487,42 @@ void EffectsGrid::Draw()
     SwapBuffers();
 }
 
+void EffectsGrid::DrawSelectedCells()
+{
+    int row1 = GetRow(mDragStartY);
+    int row2 = GetRow(mDragEndY);
+    if( row1 > row2 ) {
+        std::swap(row1, row2);
+    }
+    int selected_timing_row = mSequenceElements->GetSelectedTimingRow();
+    if (selected_timing_row >= 0 &&
+        row1 < mSequenceElements->GetRowInformationSize() &&
+        row2 < mSequenceElements->GetRowInformationSize() ) {
+        EffectLayer* tel = mSequenceElements->GetEffectLayer(selected_timing_row);
+        int selectionType;
+        int start_x = mDragStartX;
+        int end_x = mDragEndX;
+        if( start_x > end_x ) {
+            std::swap(start_x, end_x);
+        }
+        int timingIndex1 = tel->GetEffectIndexThatContainsPosition(start_x,selectionType);
+        int timingIndex2 = tel->GetEffectIndexThatContainsPosition(end_x,selectionType);
+        if (timingIndex1 != -1 && timingIndex2 != -1) {
+            mRangeStartX = tel->GetEffect(timingIndex1)->GetStartPosition();
+            mRangeEndX = tel->GetEffect(timingIndex2)->GetEndPosition();
+            mRangeStartY = row1*DEFAULT_ROW_HEADING_HEIGHT;
+            mRangeEndY = row2*DEFAULT_ROW_HEADING_HEIGHT;
+            mRangeStartTime = tel->GetEffect(timingIndex1)->GetStartTime();
+            mRangeEndTime = tel->GetEffect(timingIndex2)->GetEndTime();
+            xlColor highlight_color;
+            highlight_color = *RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(selected_timing_row)->colorIndex);
+            glEnable(GL_BLEND);
+            DrawGLUtils::DrawFillRectangle(highlight_color,80,mRangeStartX,mRangeStartY,mRangeEndX-mRangeStartX,mRangeEndY-mRangeStartY+DEFAULT_ROW_HEADING_HEIGHT);
+            glDisable(GL_BLEND);
+            mCellRangeSelected = true;
+        }
+    }
+}
 
 void EffectsGrid::DrawEffectIcon(GLuint* texture,double x, double y, double x2, double y2)
 {

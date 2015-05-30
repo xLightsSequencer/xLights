@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil) Add ability to select range of cells and paste effect with key bindings.
     -- enh(gil) Add ability to link show and media directories.
     -- bug(gil) Fix conductor file import to support LSP conversions. Fixes #232.
 4.0.35  May 26, 2015
