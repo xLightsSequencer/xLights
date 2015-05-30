@@ -9,7 +9,6 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
 {
     int a,xc,ColorIdx,base_degrees;
     float t,tmax;
-    srand(1);
     float radius;
     wxImage::HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
     size_t colorcnt=GetColorCount();
@@ -21,16 +20,12 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
     //  phi = a +b*phi
     radius = xc/100.0;
 
-    ColorIdx=rand()% colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-    palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-
 
     int degrees_per_arm=1;
     if(pinwheel_arms>0) degrees_per_arm= 360/pinwheel_arms;
     float armsize = (pinwheel_armsize/100.0);
     for(a=1; a<=pinwheel_arms; a++)
     {
-
         ColorIdx=a%colorcnt;
         palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
         if(pinwheel_rotation==1) // do we have CW rotation

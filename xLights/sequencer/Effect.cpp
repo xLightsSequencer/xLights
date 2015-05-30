@@ -143,7 +143,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_FIREWORKS:
             if (settings.Get("E_SLIDER_Fireworks_Number_Explosions", "") != "") {
-                int cnt = wxAtoi(settings["E_SLIDER_Fireworks_Number_Explosions"]);
+                int cnt = wxAtoi(settings.Get("E_SLIDER_Fireworks_Number_Explosions", "10"));
                 settings.erase("E_SLIDER_Fireworks_Number_Explosions");
                 int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
                 int total = (speed * cnt) / 50;
@@ -158,7 +158,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             break;
         case BitmapCache::RGB_EFFECTS_e::eff_RIPPLE:
             if (settings.Get("E_TEXTCTRL_Ripple_Cycles", "") == "") {
-                int cycles = 10;
+                float cycles = 1.0;
                 if (!ftt) {
                     int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
                     int totalTime = endMS - startMS;

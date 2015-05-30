@@ -408,7 +408,7 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     } else if ("xlART_UNLINK" == id) {
         return effectBitmaps.get(48, false, id, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm);
     } else if ("xlART_MODELS" == id) {
-        return effectBitmaps.get(24, false, id, models_16_xpm, models_24_xpm, models_32_xpm, models_48_xpm, models_64_xpm);
+        return effectBitmaps.get(24, true, id, models_16_xpm, models_24_xpm, models_32_xpm, models_48_xpm, models_64_xpm);
 #ifndef __WXOSX__
     //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
     } else if ("xlART_RENDER_ALL" == id) {
@@ -430,7 +430,7 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return wxArtProvider::GetBitmap(id, wxART_OTHER);
 #endif
     }
-    printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
+    //printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
     return wxNullBitmap;
 }
 wxIconBundle xlArtProvider::CreateIconBundle(const wxArtID& id,
