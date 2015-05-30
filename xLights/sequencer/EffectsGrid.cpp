@@ -208,7 +208,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
     if(mResizing)
     {
-        Resize(event.GetX());
+        Resize(event.GetX(), event.AltDown());
         Refresh(false);
         Update();
     }
@@ -216,7 +216,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     {
         mDragEndX = event.GetX();
         mDragEndY = event.GetY();
-        if (!(event.ControlDown() || event.ShiftDown()))
+        if (!(event.ControlDown() || event.ShiftDown() || event.AltDown()))
         {
             mSequenceElements->UnSelectAllEffects();
         }
@@ -283,7 +283,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         return;
     }
     SetFocus();
-    if(!(event.ShiftDown() || event.ControlDown()) && mResizingMode == EFFECT_RESIZE_NO)
+    if(!(event.ShiftDown() || event.ControlDown() || event.AltDown()) && mResizingMode == EFFECT_RESIZE_NO)
     {
         mSequenceElements->UnSelectAllEffects();
     }
@@ -315,7 +315,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             CaptureMouse();
             mEffectDragging = true;
         }
-        if(selectedEffect->GetSelected() != selectionType && !(event.ShiftDown() || event.ControlDown()))
+        if(selectedEffect->GetSelected() != selectionType && !(event.ShiftDown() || event.ControlDown() || event.AltDown()))
         {
             mSequenceElements->UnSelectAllEffects();
             selectedEffect->SetSelected(selectionType);
@@ -488,11 +488,11 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
     Refresh(false);
 }
 
-void EffectsGrid::Resize(int position)
+void EffectsGrid::Resize(int position, bool offset)
 {
     if(MultipleEffectsSelected())
     {
-        ResizeMoveMultipleEffects(position);
+        ResizeMoveMultipleEffects(position, offset);
     }
     else
     {
@@ -725,7 +725,7 @@ void EffectsGrid::Paste(const wxString &data) {
 }
 
 
-void EffectsGrid::ResizeMoveMultipleEffects(int position)
+void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
 {
     double deltaTime = 0;
     double toLeft,toRight;
@@ -743,14 +743,14 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position)
     {
         if (std::abs(deltaTime)< toLeft)
         {
-            MoveAllSelectedEffects(deltaTime);
+            MoveAllSelectedEffects(deltaTime, offset);
         }
     }
     else
     {
         if (deltaTime< toRight)
         {
-            MoveAllSelectedEffects(deltaTime);
+            MoveAllSelectedEffects(deltaTime, offset);
         }
     }
 }
@@ -1667,12 +1667,36 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(double &toLeft, double &t
     }
 }
 
-void EffectsGrid::MoveAllSelectedEffects(double delta)
+void EffectsGrid::MoveAllSelectedEffects(double delta, bool offset)
 {
-    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
-    {
-        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-        el->MoveAllSelectedEffects(delta);
+    if( !offset ) {
+        for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
+        {
+            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+            el->MoveAllSelectedEffects(delta);
+        }
+    } else {
+        int num_rows_with_selections = 0;
+        int start_row = -1;
+        int end_row = -1;
+        for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
+        {
+            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+            if( el->GetSelectedEffectCount() > 0 ) {
+                num_rows_with_selections++;
+                if( start_row == -1 ) {
+                    start_row = row;
+                } else {
+                    end_row = row;
+                }
+            }
+        }
+        double delta_step = delta / double(end_row-start_row);
+        for(int row=start_row;row<=end_row;row++)
+        {
+            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+            el->MoveAllSelectedEffects(delta_step*(double)(row-start_row));
+        }
     }
 }
 

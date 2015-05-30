@@ -93,7 +93,7 @@ private:
     void DrawEffects();
     void DrawTimings();
     void AdjustDropLocations(int x, EffectLayer* el);
-    void Resize(int position);
+    void Resize(int position, bool offset);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
     void UpdateTimePosition(int time);
     void CheckForSelectionRectangle();
@@ -103,9 +103,9 @@ private:
     Element* GetActiveTimingElement();
     bool MultipleEffectsSelected();
     void ResizeSingleEffect(int position);
-    void ResizeMoveMultipleEffects(int position);
+    void ResizeMoveMultipleEffects(int position, bool offset);
     void GetRangeOfMovementForSelectedEffects(double &toLeft, double &toRight);
-    void MoveAllSelectedEffects(double delta);
+    void MoveAllSelectedEffects(double delta, bool offset);
     int GetRow(int y);
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
