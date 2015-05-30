@@ -2,8 +2,8 @@
 #define EFFECT_H
 
 #include "wx/wx.h"
+#include <wx/thread.h>
 #include <vector>
-#include <mutex>
 #include "../UtilClasses.h"
 #include "../Color.h"
 
@@ -112,7 +112,7 @@ class Effect
         bool mDirty;
         EffectLayer* mParentLayer;
     
-        mutable std::mutex settingsLock;
+        mutable wxMutex settingsLock;
         SettingsMap mSettings;
         SettingsMap mPaletteMap;
         xlColorVector mColors;
