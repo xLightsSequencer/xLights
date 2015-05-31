@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil) Add random effects generation to grid right-click menu.
     -- enh(gil) Add ability to move highlighted cell with arrow keys and to expand/contract it with shift modifier.
     -- enh(gil) Add grid right-click copy/paste/delete options.
     -- enh(gil) Add ability to drag effects in a chase fashion using the Alt key.

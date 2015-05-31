@@ -41,7 +41,7 @@ END_EVENT_TABLE()
 const long EffectsGrid::ID_GRID_MNU_COPY = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PASTE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DELETE = wxNewId();
-
+const long EffectsGrid::ID_GRID_MNU_RANDOM_EFFECTS = wxNewId();
 
 EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                        long style, const wxString &name)
@@ -102,14 +102,14 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         if( !mEmptyCellSelected ) {
             menu_paste->Enable(false);
         }
-
+        mnuLayer->AppendSeparator();
+        wxMenuItem* menu_random = mnuLayer->Append(ID_GRID_MNU_RANDOM_EFFECTS,"Create Random Effects");
     }
     else if (element->GetType()=="timing")
     {
         mnuLayer = new wxMenu();
     }
 
-    //mnuLayer->AppendSeparator();
     mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
     Draw();
     PopupMenu(mnuLayer);
@@ -141,6 +141,53 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_DELETE)
     {
         ((MainSequencer*)mParent)->DeleteAllSelectedEffects();
+    }
+    else if(id == ID_GRID_MNU_RANDOM_EFFECTS)
+    {
+        int row1 = GetRow(mDragStartY);
+        int row2 = GetRow(mDragEndY);
+        if( row1 > row2 ) {
+            std::swap(row1, row2);
+        }
+        int selected_timing_row = mSequenceElements->GetSelectedTimingRow();
+        if (selected_timing_row >= 0 &&
+            row1 < mSequenceElements->GetRowInformationSize() &&
+            row2 < mSequenceElements->GetRowInformationSize() ) {
+            EffectLayer* tel = mSequenceElements->GetEffectLayer(selected_timing_row);
+            int selectionType;
+            int start_x = mDragStartX;
+            int end_x = mDragEndX;
+            if( start_x > end_x ) {
+                std::swap(start_x, end_x);
+            }
+            int timingIndex1 = tel->GetEffectIndexThatContainsPosition(start_x,selectionType);
+            int timingIndex2 = tel->GetEffectIndexThatContainsPosition(end_x,selectionType);
+            if (timingIndex1 != -1 && timingIndex2 != -1) {
+                for( int row = row1; row <= row2; row++)
+                {
+                    EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(row);
+                    for(int i = timingIndex1; i <= timingIndex2; i++)
+                    {
+                        Effect* eff = tel->GetEffect(i);
+                        if( effectLayer->GetRangeIsClear(eff->GetStartTime(), eff->GetEndTime()) )
+                        {
+                            Effect* ef = effectLayer->AddEffect(0,
+                                                      0,
+                                                      "Random",
+                                                      "",
+                                                      "",
+                                                      eff->GetStartTime(),
+                                                      eff->GetEndTime(),
+                                                      EFFECT_SELECTED,
+                                                      false);
+                            RaiseSelectedEffectChanged(ef);
+                            mSelectedEffect = ef;
+                        }
+                    }
+                }
+                mCellRangeSelected = false;
+            }
+        }
     }
 
     Refresh();

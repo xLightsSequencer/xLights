@@ -168,6 +168,7 @@ private:
     static const long ID_GRID_MNU_COPY;
     static const long ID_GRID_MNU_PASTE;
     static const long ID_GRID_MNU_DELETE;
+    static const long ID_GRID_MNU_RANDOM_EFFECTS;
 
     EventPlayEffectArgs* playArgs;
 
