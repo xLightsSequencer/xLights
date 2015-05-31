@@ -52,8 +52,10 @@ public:
     void ForceRefresh();
     void SetEffectIconBackground(bool mode) {mGridIconBackgrounds = mode;}
     void SetEffectNodeValues(bool mode) {mGridNodeValues = mode;}
-    void MoveSelectedEffectUp();
-    void MoveSelectedEffectDown();
+    void MoveSelectedEffectUp(bool shift);
+    void MoveSelectedEffectDown(bool shift);
+    void MoveSelectedEffectLeft(bool shift);
+    void MoveSelectedEffectRight(bool shift);
     void ProcessDroppedEffect(Effect* effect);
 
     void Paste(const wxString &data);

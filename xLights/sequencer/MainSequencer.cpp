@@ -251,11 +251,19 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
             event.StopPropagation();
             break;
         case WXK_UP:
-            PanelEffectGrid->MoveSelectedEffectUp();
+            PanelEffectGrid->MoveSelectedEffectUp(event.ShiftDown());
             event.StopPropagation();
             break;
         case WXK_DOWN:
-            PanelEffectGrid->MoveSelectedEffectDown();
+            PanelEffectGrid->MoveSelectedEffectDown(event.ShiftDown());
+            event.StopPropagation();
+            break;
+        case WXK_LEFT:
+            PanelEffectGrid->MoveSelectedEffectLeft(event.ShiftDown());
+            event.StopPropagation();
+            break;
+        case WXK_RIGHT:
+            PanelEffectGrid->MoveSelectedEffectRight(event.ShiftDown());
             event.StopPropagation();
             break;
         default:
