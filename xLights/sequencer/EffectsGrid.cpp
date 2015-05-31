@@ -283,7 +283,6 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
         }
         CheckForSelectionRectangle();
         Refresh(false);
-
     }
     else if( mEffectDragging )
     {
@@ -335,7 +334,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
-    if (mEmptyCellSelected || mCellRangeSelected) {
+    if (!event.ShiftDown() && (mEmptyCellSelected || mCellRangeSelected)) {
         mEmptyCellSelected = false;
         mCellRangeSelected = false;
         Refresh();
@@ -409,9 +408,20 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     {
         if( !mDragging && !mEffectDragging)
         {
+            if( !event.ShiftDown() )
+            {
+                mDragStartX = event.GetX();
+                mDragStartY = event.GetY();
+            }
+            else
+            {
+                if( mEmptyCellSelected )
+                {
+                    mEmptyCellSelected = false;
+                    mCellRangeSelected = true;
+                }
+            }
             mDragging = true;
-            mDragStartX = event.GetX();
-            mDragStartY = event.GetY();
             mDragEndX = event.GetX();
             mDragEndY = event.GetY();
             CaptureMouse();
