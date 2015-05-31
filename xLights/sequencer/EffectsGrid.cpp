@@ -789,10 +789,10 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
                             Effect* eff = tel->GetEffect(timingIndex2+1);
                             if( eff != nullptr )
                             {
-                                if( mDragEndX > mDragStartX ) {
-                                    mDragEndX = eff->GetEndPosition();
-                                } else {
+                                if( mDragStartX > mDragEndX ) {
                                     mDragStartX = eff->GetEndPosition();
+                                } else {
+                                    mDragEndX = eff->GetEndPosition();
                                 }
                             }
                         }
@@ -874,10 +874,10 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
                             Effect* eff = tel->GetEffect(timingIndex2-1);
                             if( eff != nullptr )
                             {
-                                if( mDragEndX > mDragStartX ) {
-                                    mDragEndX = eff->GetEndPosition();
-                                } else {
+                                if( mDragStartX > mDragEndX ) {
                                     mDragStartX = eff->GetEndPosition();
+                                } else {
+                                    mDragEndX = eff->GetEndPosition();
                                 }
                             }
                         }
