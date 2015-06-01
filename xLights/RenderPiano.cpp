@@ -427,7 +427,8 @@ void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement,
 //    static /*std::*/deque</*std::*/vector<int>> history; //cached history
     static int prev_update;
     static unsigned int cached_state = -1;
-    int curframe = state/speed; //units of 50 msec
+    int curframe = curPeriod - curEffStartPer; //units of 50 msec
+    int state = curframe;
     debug(2, "RenderPiano[%d -> %d] speed %d, frame %d, %f sec, empty? %d", cached_state, state, speed, curframe, (float)curframe*50/1000, CuesByStart.empty());
     if (Style != PIANO_STYLE_ANIMAGE) InhibitClear = true; //allow canvas to be persistent so we don't need to keep redrawing it
 
@@ -487,7 +488,7 @@ void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement,
 //        if (history.size() > NumRows) history.pop_front(); //drop oldest row
 //    }
 
-    if (speed && WantHistory(Style) && (state - prev_update >= 1000/50)) //time to scroll; speed == #times/sec
+    if (WantHistory(Style) && (state - prev_update >= 1000/50)) //time to scroll; speed == #times/sec
     {
         Piano_update_bkg(Style, BufferWH_octave, keywh.y); //scrolling
         prev_update = state;

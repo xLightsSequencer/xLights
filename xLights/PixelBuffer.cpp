@@ -475,9 +475,9 @@ void PixelBufferClass::SetMixThreshold(int layer, int value, bool varies) {
     effectMixVaries[layer] = varies;
 }
 
-void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool resetState) {
+void PixelBufferClass::SetLayer(int newlayer, int period, bool resetState) {
     CurrentLayer=newlayer;
-    effects[CurrentLayer].SetState(period, speed, resetState, name);
+    effects[CurrentLayer].SetState(period, resetState, name);
 }
 void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime) {
     effects[layer].SetFadeTimes(inTime, outTime);
@@ -659,9 +659,11 @@ void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,
     effects[CurrentLayer].RenderPictures(dir,NewPictureName,moveSpeed, frameRateAdj, xc_adj, yc_adj, xce_adj, yce_adj, pixelOffsets, wrap_x);
 }
 void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int pinwheel_thickness,
-                                      bool pinwheel_rotation,const wxString & pinwheel_3D,int xc_adj, int yc_adj, int pinwheel_armsize) {
+                                      bool pinwheel_rotation,const wxString & pinwheel_3D,int xc_adj, int yc_adj,
+                                      int pinwheel_armsize, int pspeed) {
     effects[CurrentLayer].RenderPinwheel(pinwheel_arms,pinwheel_twist,
-                                         pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,pinwheel_armsize);
+                                         pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,
+                                         pinwheel_armsize, pspeed);
 }
 void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles) {
     effects[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D, cycles );
@@ -696,21 +698,21 @@ void PixelBufferClass::RenderSpirals(int PaletteRepeat, float Direction, int Rot
     effects[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D,grow,shrink);
 }
 
-void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate) {
-    effects[CurrentLayer].RenderSpirograph( R,  r,  d, Animate);
+void PixelBufferClass::RenderSpirograph(int R, int r, int d, int Animate, int speed, int length) {
+    effects[CurrentLayer].RenderSpirograph( R,  r,  d, Animate, speed, length);
 }
 void PixelBufferClass::RenderStrobe(int Number_Strobes,int StrobeDuration,int Strobe_Type) {
     effects[CurrentLayer].RenderStrobe(Number_Strobes,StrobeDuration,Strobe_Type);
 }
 
-void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1,
-                                  int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int Effect2,int Countdown2,
-                                  int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int Effect3,int Countdown3,
-                                  int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4) {
-    effects[CurrentLayer].RenderText(Position1,Line1,FontString1,dir1,center1,Effect1,Countdown1,
-                                     Position2,Line2,FontString2,dir2,center2,Effect2,Countdown2,
-                                     Position3,Line3,FontString3,dir3,center3,Effect3,Countdown3,
-                                     Position4,Line4,FontString4,dir4,center4,Effect4,Countdown4);
+void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1, int speed1,
+                                  int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int Effect2,int Countdown2, int speed2,
+                                  int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int Effect3,int Countdown3, int speed3,
+                                  int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4, int speed4) {
+    effects[CurrentLayer].RenderText(Position1,Line1,FontString1,dir1,center1,Effect1,Countdown1,speed1,
+                                     Position2,Line2,FontString2,dir2,center2,Effect2,Countdown2,speed2,
+                                     Position3,Line3,FontString3,dir3,center3,Effect3,Countdown3,speed3,
+                                     Position4,Line4,FontString4,dir4,center4,Effect4,Countdown4,speed4);
 }
 
 void PixelBufferClass::RenderTree(int Branches, int tspeed) {
@@ -722,6 +724,6 @@ void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe) {
 }
 
 void PixelBufferClass::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,
-                                  int WaveHeight, int WaveDirection) {
-    effects[CurrentLayer].RenderWave(WaveType, FillColor, MirrorWave, NumberWaves, ThicknessWave, WaveHeight, WaveDirection);
+                                  int WaveHeight, int WaveDirection, int wspeed) {
+    effects[CurrentLayer].RenderWave(WaveType, FillColor, MirrorWave, NumberWaves, ThicknessWave, WaveHeight, WaveDirection, wspeed);
 }

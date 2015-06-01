@@ -20,7 +20,6 @@ class TimingPanel: public wxPanel
 		TimingPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~TimingPanel();
 
-        void UpdateSpeedText();
         void UpdateEffectLayerMix();
         wxString GetTimingString();
 
@@ -28,13 +27,11 @@ class TimingPanel: public wxPanel
 		wxStaticText* StaticText2;
 		wxPanel* Panel_Sizer;
 		wxTextCtrl* TextCtrl_Fadein;
-		wxTextCtrl* TextCtrl_Speed;
 		wxBitmapButton* BitmapButton_OverlayBkg;
 		wxStaticText* StaticText1;
 		wxSlider* Slider_EffectLayerMix;
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_FadeOut;
-		wxBitmapButton* BitmapButton_Speed;
 		wxBitmapButton* BitmapButton_FadeIn;
 		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_LayerMorph;
@@ -42,19 +39,13 @@ class TimingPanel: public wxPanel
 		wxBitmapButton* BitmapButton_EffectLayerMix;
 		wxTextCtrl* TextCtrl_Fadeout;
 		wxScrolledWindow* ScrolledWindowTiming;
-		wxSlider* Slider_Speed;
 		wxCheckBox* CheckBox_OverlayBkg;
-		wxStaticText* StaticText59;
 		wxTextCtrl* txtCtlEffectMix;
 		//*)
 
 	protected:
 
 		//(*Identifiers(TimingPanel)
-		static const long ID_STATICTEXT1;
-		static const long ID_SLIDER_Speed;
-		static const long ID_TEXTCTRL_Speed;
-		static const long ID_BITMAPBUTTON_SLIDER_Speed;
 		static const long ID_STATICTEXT4;
 		static const long ID_CHECKBOX_LayerMorph;
 		static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
@@ -77,7 +68,6 @@ class TimingPanel: public wxPanel
 	private:
 
 		//(*Handlers(TimingPanel)
-		void OnSlider_SpeedCmdScroll(wxScrollEvent& event);
 		void OnCheckBox_OverlayBkgClick(wxCommandEvent& event);
 		void OnBitmapButton_FadeOutClick(wxCommandEvent& event);
 		void OnBitmapButton_FadeInClick(wxCommandEvent& event);

@@ -743,8 +743,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                                        bool bgThread, RenderEvent *event) {
     bool retval=true;
 
-    wxString SpeedStr=SettingsMap["SLIDER_Speed"];
-    buffer.SetLayer(layer, period, wxAtoi(SpeedStr), resetEffectState);
+    buffer.SetLayer(layer, period, resetEffectState);
     resetEffectState = false;
     wxString effect=SettingsMap["Effect"];
     if (effect == "None") {
@@ -912,7 +911,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                               SettingsMap["CHOICE_Pinwheel_3D"],
                               wxAtoi(SettingsMap["SLIDER_PinwheelXC"]),
                               wxAtoi(SettingsMap["SLIDER_PinwheelYC"]),
-                              wxAtoi(SettingsMap["SLIDER_Pinwheel_ArmSize"]));
+                              wxAtoi(SettingsMap["SLIDER_Pinwheel_ArmSize"]),
+                              wxAtoi(SettingsMap["TEXTCTRL_Pinwheel_Speed"]));
     } else if (effect == "Ripple") {
         buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap["CHOICE_Ripple_Object_To_Draw"]),
                             RippleMovement.Index(SettingsMap["CHOICE_Ripple_Movement"]),
@@ -970,7 +970,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
         buffer.RenderSpirograph(wxAtoi(SettingsMap["SLIDER_Spirograph_R"]),
                                 wxAtoi(SettingsMap["SLIDER_Spirograph_r"]),
                                 wxAtoi(SettingsMap["SLIDER_Spirograph_d"]),
-                                wxAtoi(SettingsMap["CHECKBOX_Spirograph_Animate"]));
+                                wxAtoi(SettingsMap.Get("TEXTCTRL_Spirograph_Animate", "0")),
+                                wxAtoi(SettingsMap.Get("TEXTCTRL_Spirograph_Speed", "10")),
+                                wxAtoi(SettingsMap.Get("TEXTCTRL_Spirograph_Length", "20")));
     } else if (effect == "Strobe") {
         buffer.RenderStrobe(wxAtoi(SettingsMap["SLIDER_Number_Strobes"]),
                             wxAtoi(SettingsMap["SLIDER_Strobe_Duration"]),
@@ -999,6 +1001,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                               wxAtoi(SettingsMap["CHECKBOX_TextToCenter1"]) != 0,
                               TextEffects.Index(SettingsMap["CHOICE_Text_Effect1"]),
                               TextCountDown.Index(SettingsMap["CHOICE_Text_Count1"]),
+                              wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed1", "10")),
                               //
                               wxAtoi(SettingsMap["SLIDER_Text_Position2"]),
                               SettingsMap["TEXTCTRL_Text_Line2"],
@@ -1007,6 +1010,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                               wxAtoi(SettingsMap["CHECKBOX_TextToCenter2"]) != 0,
                               TextEffects.Index(SettingsMap["CHOICE_Text_Effect2"]),
                               TextCountDown.Index(SettingsMap["CHOICE_Text_Count2"]),
+                              wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed2", "10")),
                               //
                               wxAtoi(SettingsMap["SLIDER_Text_Position3"]),
                               SettingsMap["TEXTCTRL_Text_Line3"],
@@ -1015,6 +1019,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                               wxAtoi(SettingsMap["CHECKBOX_TextToCenter3"]) != 0,
                               TextEffects.Index(SettingsMap["CHOICE_Text_Effect3"]),
                               TextCountDown.Index(SettingsMap["CHOICE_Text_Count3"]),
+                              wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed3", "10")),
                               //
                               wxAtoi(SettingsMap["SLIDER_Text_Position4"]),
                               SettingsMap["TEXTCTRL_Text_Line4"],
@@ -1022,7 +1027,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                               TextEffectDirections.Index(SettingsMap["CHOICE_Text_Dir4"]),
                               wxAtoi(SettingsMap["CHECKBOX_TextToCenter4"]) != 0,
                               TextEffects.Index(SettingsMap["CHOICE_Text_Effect4"]),
-                              TextCountDown.Index(SettingsMap["CHOICE_Text_Count4"]));
+                              TextCountDown.Index(SettingsMap["CHOICE_Text_Count4"]),
+                              wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed4", "10"))
+                              );
         }
     } else if (effect == "Tree") {
         buffer.RenderTree(wxAtoi(SettingsMap["SLIDER_Tree_Branches"]),
@@ -1038,7 +1045,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                           wxAtoi(SettingsMap["SLIDER_Number_Waves"]),
                           wxAtoi(SettingsMap["SLIDER_Thickness_Percentage"]),
                           wxAtoi(SettingsMap["SLIDER_Wave_Height"]),
-                          WaveDirection.Index(SettingsMap["CHOICE_Wave_Direction"]));
+                          WaveDirection.Index(SettingsMap["CHOICE_Wave_Direction"]),
+                          wxAtoi(SettingsMap.Get("TEXTCTRL_Wave_Speed", "10")));
     }
 
     return retval;

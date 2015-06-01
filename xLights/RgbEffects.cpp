@@ -59,7 +59,6 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
     WaveBuffer0.resize(NumPixels);
     WaveBuffer1.resize(NumPixels);
     WaveBuffer2.resize(NumPixels);
-    state = 0;
     effectState = 0;
 }
 
@@ -427,21 +426,13 @@ wxUint32 RgbEffects::GetTempPixelRGB(int x, int y)
     return 0;
 }
 
-void RgbEffects::SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name)
+void RgbEffects::SetState(int period, bool ResetState, const wxString& model_name)
 {
     if (ResetState)
     {
-        state = 0;
         effectState = 0;
         needToInit = true;
     }
-    else
-    {
-        //xLights effect speeds are set on 50ms, this scales appropriately so the speed stays
-        //visually the same for 25ms and others
-        state+=(period-lastperiod) * NewSpeed * frameTimeInMs / 50;
-    }
-    speed=NewSpeed;
     lastperiod=curPeriod=period;
     cur_model = model_name;
     curPeriod = period;

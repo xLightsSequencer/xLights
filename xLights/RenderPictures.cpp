@@ -222,7 +222,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
     {
         LoadPixelsFromTextFile(f, NewPictureName);
         int idx = curPeriod - curEffStartPer;
-        if (state < PixelsByFrame.size()) //TODO: wrap?
+        if (idx < PixelsByFrame.size()) //TODO: wrap?
             for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it)
             {
                 SetPixel(it->first.x, it->first.y, it->second);

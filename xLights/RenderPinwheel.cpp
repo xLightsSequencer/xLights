@@ -5,7 +5,8 @@
 
 void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
                                 int pinwheel_thickness,bool pinwheel_rotation,
-                                const wxString &pinwheel_3d, int xc_adj, int yc_adj,int pinwheel_armsize)
+                                const wxString &pinwheel_3d, int xc_adj, int yc_adj,
+                                int pinwheel_armsize, int pspeed)
 {
     int a,xc,ColorIdx,base_degrees;
     float t,tmax;
@@ -14,12 +15,11 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
     size_t colorcnt=GetColorCount();
 
     xc= (int)(std::max(BufferWi, BufferHt)/2);
-
-
     //
     //  phi = a +b*phi
     radius = xc/100.0;
-
+    
+    double pos = (curPeriod - curEffStartPer) * pspeed * frameTimeInMs / 50;
 
     int degrees_per_arm=1;
     if(pinwheel_arms>0) degrees_per_arm= 360/pinwheel_arms;
@@ -30,11 +30,11 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
         palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
         if(pinwheel_rotation==1) // do we have CW rotation
         {
-            base_degrees = (a-1)*degrees_per_arm + state; // yes
+            base_degrees = (a-1)*degrees_per_arm + pos; // yes
         }
         else
         {
-            base_degrees = (a-1)*degrees_per_arm - state; // no, we are CCW
+            base_degrees = (a-1)*degrees_per_arm - pos; // no, we are CCW
         }
         Draw_arm( base_degrees, xc*armsize, pinwheel_twist,hsv,xc_adj,yc_adj);
         if(pinwheel_thickness>0)

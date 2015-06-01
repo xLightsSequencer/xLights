@@ -2239,7 +2239,7 @@
 								</object>
 							</object>
 						</object>
-						<label>Preview</label>
+						<label>Layout</label>
 					</object>
 					<object class="AuiNotebookPage">
 						<object class="wxPanel" name="ID_PANEL_CAL" variable="PanelCal" member="yes">

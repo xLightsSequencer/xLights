@@ -164,10 +164,10 @@ void SetFont(wxFont &font,  const wxString& FontString) {
 // Effect is 0: normal, 1: vertical text down, 2: vertical text up,
 //           3: timer in seconds, where Line is the starting value in seconds
 //           4: timer in days, hours, minute, seconds, where Line is the target date as YYYYMMDD
-void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1,
-                            int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int Effect2,int Countdown2,
-                            int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int Effect3,int Countdown3,
-                            int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4)
+void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1, int speed1,
+                            int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int Effect2,int Countdown2, int speed2,
+                            int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int Effect3,int Countdown3, int speed3,
+                            int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4, int speed4)
 {
     xlColour c;
     DrawingContext *dc = new DrawingContext(BufferWi,BufferHt);
@@ -194,28 +194,28 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         size_t colorcnt=GetColorCount();
         palette.GetColor(0,c);
         dc->SetFont(Font1, c);
-        RenderTextLine(dc,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass);
+        RenderTextLine(dc,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass, speed1);
 
         if(colorcnt>1)
         {
             palette.GetColor(1,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
         dc->SetFont(Font2,c);
-        RenderTextLine(dc,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass);
+        RenderTextLine(dc,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass, speed2);
 
         if(colorcnt>2)
         {
             palette.GetColor(2,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
         dc->SetFont(Font3, c);
-        RenderTextLine(dc,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass);
+        RenderTextLine(dc,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass, speed3);
 
         if(colorcnt>3)
         {
             palette.GetColor(3,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
         dc->SetFont(Font4, c);
-        RenderTextLine(dc,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass);
+        RenderTextLine(dc,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass, speed4);
     }
 
     wxImage * i = dc->FlushAndGetImage();
@@ -463,7 +463,8 @@ static wxString StripRight(wxString str, wxString pattern)
     return str;
 }
 
-void RgbEffects::RenderTextLine(DrawingContext* dc, int idx, int Position, const wxString& Line_orig, int dir, bool center, int Effect, int Countdown, bool WantRender)
+void RgbEffects::RenderTextLine(DrawingContext* dc, int idx, int Position, const wxString& Line_orig, int dir,
+                                bool center, int Effect, int Countdown, bool WantRender, int tspeed)
 {
     long tempLong,longsecs;
     wxString msg,tempmsg;
@@ -474,6 +475,8 @@ void RgbEffects::RenderTextLine(DrawingContext* dc, int idx, int Position, const
     wxString fmt, Line = Line_orig; //make copy so it can be modified -DJ
     wxChar delim;
     if (Line.IsEmpty()) return;
+    
+    int state = (curPeriod - curEffStartPer) * tspeed * frameTimeInMs / 50;
 
     switch(Countdown)
     {

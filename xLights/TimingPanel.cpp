@@ -13,10 +13,6 @@
 //*)
 
 //(*IdInit(TimingPanel)
-const long TimingPanel::ID_STATICTEXT1 = wxNewId();
-const long TimingPanel::ID_SLIDER_Speed = wxNewId();
-const long TimingPanel::ID_TEXTCTRL_Speed = wxNewId();
-const long TimingPanel::ID_BITMAPBUTTON_SLIDER_Speed = wxNewId();
 const long TimingPanel::ID_STATICTEXT4 = wxNewId();
 const long TimingPanel::ID_CHECKBOX_LayerMorph = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_CHECKBOX_LayerMorph = wxNewId();
@@ -66,16 +62,6 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableCol(2);
-	StaticText59 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT1, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer2->Add(StaticText59, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Speed = new wxSlider(ScrolledWindowTiming, ID_SLIDER_Speed, 10, 1, 30, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL, wxDefaultValidator, _T("ID_SLIDER_Speed"));
-	FlexGridSizer2->Add(Slider_Speed, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	TextCtrl_Speed = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Speed"));
-	FlexGridSizer2->Add(TextCtrl_Speed, 1, wxBOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Speed = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Speed"));
-	BitmapButton_Speed->SetDefault();
-	BitmapButton_Speed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	FlexGridSizer2->Add(BitmapButton_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText1 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT4, _("Blending:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	wxFont StaticText1Font(10,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	StaticText1->SetFont(StaticText1Font);
@@ -165,8 +151,6 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	SetSizer(FlexGridSizer3);
 	Layout();
 
-	Connect(ID_SLIDER_Speed,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&TimingPanel::OnSlider_SpeedCmdScroll);
-	Connect(ID_SLIDER_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::OnSlider_SpeedCmdScroll);
 	Connect(ID_SLIDER_EffectLayerMix,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&TimingPanel::OnSlider_EffectLayerMixCmdScroll);
 	Connect(ID_SLIDER_EffectLayerMix,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::OnSlider_EffectLayerMixCmdScroll);
 	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadein,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnBitmapButton_FadeOutClick);
@@ -181,17 +165,6 @@ TimingPanel::~TimingPanel()
 {
 	//(*Destroy(TimingPanel)
 	//*)
-}
-
-
-void TimingPanel::OnSlider_SpeedCmdScroll(wxScrollEvent& event)
-{
-    UpdateSpeedText();
-}
-
-void TimingPanel::UpdateSpeedText()
-{
-    TextCtrl_Speed->SetValue(wxString::Format("%d",Slider_Speed->GetValue()));
 }
 
 void TimingPanel::UpdateEffectLayerMix()
@@ -237,8 +210,6 @@ void TimingPanel::OnResize(wxSizeEvent& event)
 wxString TimingPanel::GetTimingString()
 {
     wxString s,ChildName,AttrName;
-    // Speed
-    s=wxString::Format("T_SLIDER_Speed=%d",Slider_Speed->GetValue()) + ",";
     // Layer Morph
     s+=wxString::Format("T_CHECKBOX_LayerMorph=%d",CheckBox_LayerMorph->IsChecked()?1:0) + ",";
     // Layer Method

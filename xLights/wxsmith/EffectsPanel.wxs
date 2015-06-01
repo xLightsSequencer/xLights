@@ -5165,9 +5165,12 @@
 						<object class="wxScrolledWindow" name="ID_PANEL_Pinwheel" variable="Panel1_Pinwheel" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer55" member="no">
 								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<growablerows>2</growablerows>
 								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer63" member="no">
-										<cols>3</cols>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer128" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT65" variable="StaticText63" member="yes">
 												<label>#Arms</label>
@@ -5182,9 +5185,22 @@
 												<min>1</min>
 												<max>20</max>
 												<size>80,20</size>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pinwheel_Arms" variable="TextCtrl64" member="no">
+												<value>3</value>
+												<maxlength>3</maxlength>
+												<size>20,-1d</size>
+												<style>wxTE_CENTRE</style>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
@@ -5196,23 +5212,15 @@
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
 											<option>1</option>
 										</object>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer64" member="no">
-										<cols>3</cols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT98" variable="StaticText84" member="yes">
 												<label>Size</label>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -5221,9 +5229,22 @@
 												<value>100</value>
 												<max>400</max>
 												<size>80,20</size>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pinwheel_ArmSize" variable="TextCtrl65" member="no">
+												<value>100</value>
+												<maxlength>3</maxlength>
+												<size>20,-1d</size>
+												<style>wxTE_CENTRE</style>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
@@ -5231,20 +5252,13 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<border>1</border>
 											<option>1</option>
 										</object>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer66" member="no">
-										<cols>3</cols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT76" variable="StaticText74" member="yes">
 												<label>Twist</label>
@@ -5258,9 +5272,22 @@
 												<min>-360</min>
 												<max>360</max>
 												<size>80,20</size>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pinwheel_Twist" variable="TextCtrl66" member="no">
+												<value>0</value>
+												<maxlength>4</maxlength>
+												<size>20,-1d</size>
+												<style>wxTE_CENTRE</style>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
@@ -5268,20 +5295,12 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<option>1</option>
 										</object>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer67" member="no">
-										<cols>3</cols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT77" variable="StaticText75" member="yes">
 												<label>Thick</label>
@@ -5293,9 +5312,22 @@
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_Pinwheel_Thickness" variable="Slider_Pinwheel_Thickness" member="yes">
 												<size>80,20</size>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pinwheel_Thickness" variable="TextCtrl67" member="no">
+												<value>0</value>
+												<maxlength>3</maxlength>
+												<size>20,-1d</size>
+												<style>wxTE_CENTRE</style>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
@@ -5303,142 +5335,241 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>13,13</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer59" member="no">
-										<cols>4</cols>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT78" variable="StaticText76" member="yes">
-												<label>Rotation</label>
-											</object>
-											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_Pinwheel_Rotation" variable="CheckBox_Pinwheel_Rotation" member="yes">
-												<label>CCW</label>
-												<checked>1</checked>
+											<object class="wxStaticText" name="wxID_ANY" variable="StaticText184" member="no">
+												<label>Speed</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON19" variable="BitmapButton_PinwheelRotation" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<size>13,13</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer61" member="no">
-										<cols>3</cols>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT82" variable="StaticText77" member="yes">
-												<label>3D</label>
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxChoice" name="ID_CHOICE_Pinwheel_3D" variable="Choice_Pinwheel_3D" member="yes">
-												<content>
-													<item>None</item>
-													<item>3D</item>
-													<item>3D Inverted</item>
-												</content>
-												<selection>0</selection>
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Pinwheel3D" variable="BitmapButton_Pinwheel3D" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<size>13,13</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer62" member="no">
-										<cols>3</cols>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT85" variable="StaticText82" member="yes">
-												<label>X-axis Center</label>
-											</object>
-											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_PinwheelXC" variable="Slider_PinwheelXC" member="yes">
-												<min>-100</min>
+											<object class="wxSlider" name="IDD_SLIDER_Pinwheel_Speed" variable="Slider24" member="no">
+												<value>10</value>
+												<max>50</max>
 												<size>80,20</size>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Pinwheel_Speed" variable="TextCtrl70" member="no">
+												<value>10</value>
+												<maxlength>3</maxlength>
+												<size>20,-1d</size>
+												<style>wxTE_CENTRE</style>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON26" variable="BitmapButton7" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<size>13,13</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer68" member="no">
-										<cols>3</cols>
+									<object class="wxBoxSizer" variable="BoxSizer1" member="no">
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT83" variable="StaticText81" member="yes">
-												<label>Y-axis center</label>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer59" member="no">
+												<cols>4</cols>
+												<object class="sizeritem">
+													<object class="wxStaticText" name="ID_STATICTEXT78" variable="StaticText76" member="yes">
+														<label>Rotation</label>
+													</object>
+													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOX_Pinwheel_Rotation" variable="CheckBox_Pinwheel_Rotation" member="yes">
+														<label>CCW</label>
+														<checked>1</checked>
+													</object>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxBitmapButton" name="ID_BITMAPBUTTON19" variable="BitmapButton_PinwheelRotation" member="yes">
+														<bitmap code="padlock16x16_blue_xpm" />
+														<size>13,13</size>
+														<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+														<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+														<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_PinwheelYC" variable="Slider_PinwheelYC" member="yes">
-												<min>-100</min>
-												<size>20,80</size>
-												<style>wxSL_VERTICAL|wxSL_INVERSE</style>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer61" member="no">
+												<cols>3</cols>
+												<object class="sizeritem">
+													<object class="wxStaticText" name="ID_STATICTEXT82" variable="StaticText77" member="yes">
+														<label>3D</label>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxChoice" name="ID_CHOICE_Pinwheel_3D" variable="Choice_Pinwheel_3D" member="yes">
+														<content>
+															<item>None</item>
+															<item>3D</item>
+															<item>3D Inverted</item>
+														</content>
+														<selection>0</selection>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Pinwheel3D" variable="BitmapButton_Pinwheel3D" member="yes">
+														<bitmap code="padlock16x16_blue_xpm" />
+														<size>13,13</size>
+														<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+														<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+														<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer63" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<growablerows>0</growablerows>
+										<object class="sizeritem">
+											<object class="wxFlexGridSizer" variable="FlexGridSizer62" member="no">
+												<cols>2</cols>
+												<growablecols>1</growablecols>
+												<object class="sizeritem">
+													<object class="wxStaticText" name="ID_STATICTEXT85" variable="StaticText82" member="yes">
+														<label>X-axis Center</label>
+													</object>
+													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxSlider" name="ID_SLIDER_PinwheelXC" variable="Slider_PinwheelXC" member="yes">
+														<min>-100</min>
+														<size>80,20</size>
+														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+													</object>
+													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="spacer">
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PinwheelXC" variable="TextCtrl68" member="no">
+														<value>0</value>
+														<maxlength>4</maxlength>
+														<size>20,-1d</size>
+														<style>wxTE_CENTRE</style>
+														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxFlexGridSizer" variable="FlexGridSizer68" member="no">
+												<cols>3</cols>
+												<growablerows>0</growablerows>
+												<object class="sizeritem">
+													<object class="wxFlexGridSizer" variable="FlexGridSizer64" member="no">
+														<cols>1</cols>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT83" variable="StaticText81" member="yes">
+																<label>Y-axis center</label>
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxTextCtrl" name="IDD_TEXTCTRL_PinwheelYC" variable="TextCtrl69" member="no">
+																<value>0</value>
+																<maxlength>4</maxlength>
+																<size>20,-1d</size>
+																<style>wxTE_CENTRE</style>
+																<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>1</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxSlider" name="ID_SLIDER_PinwheelYC" variable="Slider_PinwheelYC" member="yes">
+														<min>-100</min>
+														<size>20,80</size>
+														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
+														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+													</object>
+													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<option>1</option>
 								</object>
 							</object>
@@ -7146,6 +7277,57 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT33" variable="StaticText190" member="yes">
+										<label>Speed</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer132" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="IDD_SLIDER_Spirograph_Speed" variable="Slider30" member="no">
+												<value>10</value>
+												<max>50</max>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirograph_Speed" variable="TextCtrl81" member="no">
+												<value>10</value>
+												<maxlength>3</maxlength>
+												<size>25,-1d</size>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON32" variable="BitmapButton14" member="yes">
+										<bitmap code="padlock16x16_blue_xpm" />
+										<default>1</default>
+										<size>13,13</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT88" variable="StaticText87" member="yes">
 										<label>R - Radius of outer circle</label>
 									</object>
@@ -7180,7 +7362,7 @@
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -7231,7 +7413,7 @@
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -7282,7 +7464,7 @@
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -7299,18 +7481,40 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT93" variable="StaticText92" member="yes">
-										<label>Should distance&#x0A;be animated?</label>
+									<object class="wxStaticText" name="wxID_ANY" variable="StaticText92" member="no">
+										<label>d - Animation</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Spirograph_Animate" variable="CheckBox_Spirograph_Animate" member="yes">
-										<label>Yes</label>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer133" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="IDD_SLIDER_Spirograph_Animate" variable="Slider31" member="no">
+												<min>-50</min>
+												<max>50</max>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirograph_Animate" variable="TextCtrl82" member="no">
+												<value>0</value>
+												<maxlength>3</maxlength>
+												<size>25,-1d</size>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -7325,6 +7529,57 @@
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="wxID_ANY" variable="StaticText191" member="no">
+										<label>Length</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer134" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="IDD_SLIDER_Spirograph_Length" variable="Slider32" member="no">
+												<value>20</value>
+												<max>50</max>
+												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirograph_Length" variable="TextCtrl83" member="no">
+												<value>20</value>
+												<maxlength>3</maxlength>
+												<size>25,-1d</size>
+												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON33" variable="BitmapButton15" member="yes">
+										<bitmap code="padlock16x16_blue_xpm" />
+										<default>1</default>
+										<size>13,13</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -7467,83 +7722,6 @@
 								<cols>1</cols>
 								<growablecols>0</growablecols>
 								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer65" member="no">
-										<cols>2</cols>
-										<growablecols>1</growablecols>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT53" variable="StaticText53" member="yes">
-												<label>Line 1</label>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line1" variable="TextCtrl_Text_Line1" member="yes">
-												<maxlength>256</maxlength>
-												<style>wxTE_PROCESS_ENTER</style>
-											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT54" variable="StaticText54" member="yes">
-												<label>Line 2</label>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line2" variable="TextCtrl_Text_Line2" member="yes">
-												<maxlength>256</maxlength>
-												<style>wxTE_PROCESS_ENTER</style>
-											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT22" variable="StaticText19" member="yes">
-												<label>Line 3</label>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line3" variable="TextCtrl_Text_Line3" member="yes">
-												<maxlength>256</maxlength>
-												<style>wxTE_PROCESS_ENTER</style>
-											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT23" variable="StaticText20" member="yes">
-												<label>Line 4</label>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line4" variable="TextCtrl_Text_Line4" member="yes">
-												<maxlength>256</maxlength>
-												<style>wxTE_PROCESS_ENTER</style>
-											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxBOTTOM|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
 									<object class="wxNotebook" name="IDD_NOTEBOOK_Text" variable="Notebook_Text1" member="no">
 										<bg>wxSYS_COLOUR_SCROLLBAR</bg>
 										<object class="notebookpage">
@@ -7552,11 +7730,33 @@
 													<cols>3</cols>
 													<growablecols>1</growablecols>
 													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT53" variable="StaticText53" member="yes">
+															<label>Text</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line1" variable="TextCtrl_Text_Line1" member="yes">
+															<maxlength>256</maxlength>
+															<style>wxTE_PROCESS_ENTER</style>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
 														<object class="wxStaticText" name="wxID_ANY" variable="StaticText162" member="no">
 															<label>Font</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -7638,6 +7838,57 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT28" variable="StaticText186" member="yes">
+															<label>Speed</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizer66" member="no">
+															<cols>2</cols>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxSlider" name="IDD_SLIDER_Text_Speed1" variable="Slider26" member="no">
+																	<value>10</value>
+																	<max>50</max>
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>1</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Speed1" variable="TextCtrl72" member="no">
+																	<value>10</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON30" variable="BitmapButton12" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<default>1</default>
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT108" variable="StaticText107" member="yes">
 															<label>Effect</label>
 														</object>
@@ -7709,7 +7960,7 @@
 																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>2</border>
+																<border>1</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
@@ -7725,7 +7976,7 @@
 															</object>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -7743,7 +7994,7 @@
 													</object>
 												</object>
 											</object>
-											<label>Line1 Font</label>
+											<label>Line1</label>
 										</object>
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL_Text2" variable="Panel_Text2" member="yes">
@@ -7751,11 +8002,33 @@
 													<cols>3</cols>
 													<growablecols>1</growablecols>
 													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT54" variable="StaticText54" member="yes">
+															<label>Text</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line2" variable="TextCtrl_Text_Line2" member="yes">
+															<maxlength>256</maxlength>
+															<style>wxTE_PROCESS_ENTER</style>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
 														<object class="wxStaticText" name="wxID_ANY" variable="StaticText163" member="no">
 															<label>Font</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -7825,6 +8098,57 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Text2Center2" variable="BitmapButton_TextToCenter2" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<default>1</default>
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT30" variable="StaticText187" member="yes">
+															<label>Speed</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizer67" member="no">
+															<cols>2</cols>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxSlider" name="IDD_SLIDER_Text_Speed2" variable="Slider27" member="no">
+																	<value>10</value>
+																	<max>50</max>
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>1</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Speed2" variable="TextCtrl73" member="no">
+																	<value>10</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON29" variable="BitmapButton11" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>13,13</size>
@@ -7908,7 +8232,7 @@
 																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>2</border>
+																<border>1</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
@@ -7924,7 +8248,7 @@
 															</object>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -7942,7 +8266,7 @@
 													</object>
 												</object>
 											</object>
-											<label>Line2 Font</label>
+											<label>Line2</label>
 										</object>
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL_Text3" variable="Panel_Text3" member="yes">
@@ -7950,11 +8274,33 @@
 													<cols>3</cols>
 													<growablecols>1</growablecols>
 													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT22" variable="StaticText19" member="yes">
+															<label>Text</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line3" variable="TextCtrl_Text_Line3" member="yes">
+															<maxlength>256</maxlength>
+															<style>wxTE_PROCESS_ENTER</style>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
 														<object class="wxStaticText" name="wxID_ANY" variable="StaticText164" member="no">
 															<label>Font</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -8022,6 +8368,57 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TextToCenter3" variable="BitmapButton_TextToCenter3" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<default>1</default>
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText185" member="yes">
+															<label>Speed</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizer65" member="no">
+															<cols>2</cols>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxSlider" name="IDD_SLIDER_Text_Speed3" variable="Slider25" member="no">
+																	<value>10</value>
+																	<max>50</max>
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>1</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Speed3" variable="TextCtrl71" member="no">
+																	<value>10</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON27" variable="BitmapButton9" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>13,13</size>
@@ -8122,7 +8519,7 @@
 															</object>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -8140,7 +8537,7 @@
 													</object>
 												</object>
 											</object>
-											<label>Line3 Font</label>
+											<label>Line3</label>
 										</object>
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL_Text4" variable="Panel_Text4" member="yes">
@@ -8148,11 +8545,33 @@
 													<cols>3</cols>
 													<growablecols>1</growablecols>
 													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT23" variable="StaticText20" member="yes">
+															<label>Text</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line4" variable="TextCtrl_Text_Line4" member="yes">
+															<maxlength>256</maxlength>
+															<style>wxTE_PROCESS_ENTER</style>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
 														<object class="wxStaticText" name="wxID_ANY" variable="StaticText165" member="no">
 															<label>Font</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -8218,6 +8637,57 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TextToCenter4" variable="BitmapButton_TextToCenter4" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<default>1</default>
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText188" member="yes">
+															<label>Speed</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizer131" member="no">
+															<cols>2</cols>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxSlider" name="IDD_SLIDER_Text_Speed4" variable="Slider28" member="no">
+																	<value>10</value>
+																	<max>50</max>
+																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>1</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Speed4" variable="TextCtrl74" member="no">
+																	<value>10</value>
+																	<maxlength>3</maxlength>
+																	<size>20,-1d</size>
+																	<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON28" variable="BitmapButton10" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>13,13</size>
@@ -8317,7 +8787,7 @@
 															</object>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -8335,7 +8805,7 @@
 													</object>
 												</object>
 											</object>
-											<label>Line4 Font</label>
+											<label>Line4</label>
 										</object>
 									</object>
 									<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
@@ -8429,7 +8899,7 @@
 					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL33" variable="Panel1_Twinkle" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-								<cols>3</cols>
+								<cols>4</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT86" variable="StaticText85" member="yes">
@@ -8444,8 +8914,20 @@
 										<value>3</value>
 										<min>2</min>
 										<size>117,24</size>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Twinkle_Count" variable="TextCtrl79" member="no">
+										<value>3</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -8476,8 +8958,20 @@
 										<min>2</min>
 										<max>200</max>
 										<size>119,24</size>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Twinkle_Steps" variable="TextCtrl80" member="no">
+										<value>30</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -8528,7 +9022,7 @@
 						<object class="wxScrolledWindow" name="ID_PANEL15" variable="Panel1_Wave" member="yes">
 							<pos>184,10</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer51" member="no">
-								<cols>3</cols>
+								<cols>4</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT49" variable="StaticText47" member="yes">
@@ -8542,6 +9036,11 @@
 									<object class="wxChoice" name="ID_CHOICE_Wave_Type" variable="Choice_Wave_Type" member="yes" />
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -8569,6 +9068,11 @@
 									<border>2</border>
 									<option>1</option>
 								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButton_Wave_FillColors" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
@@ -8591,6 +9095,11 @@
 								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX_Mirror_Wave" variable="CheckBox_Mirror_Wave" member="yes" />
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -8618,9 +9127,21 @@
 										<value>900</value>
 										<min>180</min>
 										<max>3600</max>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Number_Waves" variable="TextCtrl75" member="no">
+										<value>900</value>
+										<maxlength>4</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -8645,9 +9166,21 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Thickness_Percentage" variable="Slider_Thickness_Percentage" member="yes">
 										<value>5</value>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Thickness_Percentage" variable="TextCtrl76" member="no">
+										<value>5</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -8672,9 +9205,21 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Wave_Height" variable="Slider_Wave_Height" member="yes">
 										<value>50</value>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Wave_Height" variable="TextCtrl77" member="no">
+										<value>50</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -8689,6 +9234,46 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT32" variable="StaticText189" member="yes">
+										<label>Speed</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="IDD_SLIDER_Wave_Speed" variable="Slider29" member="no">
+										<value>10</value>
+										<max>50</max>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Wave_Speed" variable="TextCtrl78" member="no">
+										<value>10</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON31" variable="BitmapButton13" member="yes">
+										<bitmap code="padlock16x16_blue_xpm" />
+										<size>13,13</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT59" variable="StaticText56" member="yes">
 										<label>Wave Direction</label>
 									</object>
@@ -8700,6 +9285,11 @@
 									<object class="wxChoice" name="ID_CHOICE_Wave_Direction" variable="Choice_Wave_Direction" member="yes" />
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">

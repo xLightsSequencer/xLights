@@ -42,7 +42,7 @@
 
 
 
-void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection)
+void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection, int wspeed)
 {
     /*
     WaveType.Add("Sine");       // 0
@@ -55,7 +55,6 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     FillColors.Add("Palette");  // 2
     */
 
-    debug(10, "wave: type %d, fill %d, #waves %d, height %d, state %d", WaveType, FillColor, NumberWaves, WaveHeight, state);
     int x,y,y1,y2,y1mirror,y2mirror,ystart,dy,modx,modx2;
     double a,r,yc,deltay;
     double degree,radian,degree_per_x;
@@ -64,11 +63,11 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     wxImage::HSVValue hsv,hsv0,hsv1;
     palette.GetHSV(0,hsv0);
     palette.GetHSV(1,hsv1);
-    static std::vector<int> ybranch;
     
     if (NumberWaves == 0) {
         NumberWaves = 1;
     }
+    int state = (curPeriod - curEffStartPer) * wspeed * frameTimeInMs / 50;
 
     yc = BufferHt/2.0;
     r=yc;
@@ -78,17 +77,17 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
         if (r < 0) r = 0; //turn into straight line; don't completely disappear
     }
     else if (WaveType == WAVETYPE_IVYFRACTAL) //generate branches at start of effect
-        if (!state || (ybranch.size() != NumberWaves * BufferWi)) {
+        if (!needToInit || (WaveBuffer0.size() != NumberWaves * BufferWi)) {
             r = 0;
             debug(10, "regen wave path, state %d", state);
             int delay = 0, delta; //next branch length, angle
-            ybranch.resize(NumberWaves * BufferWi);
+            WaveBuffer0.resize(NumberWaves * BufferWi);
             for (int x = 0; x < NumberWaves * BufferWi; ++x) {
 //                if (delay < 1) angle = (rand() % 45) - 22.5;
 //                int xx = WaveDirection? NumberWaves * BufferWi - x - 1: x;
-                ybranch[x] = (delay-- > 0)? ybranch[x - 1] + delta: 2 * yc;
-                if (ybranch[x] >= 2 * BufferHt) { delta = -2; ybranch[x] = 2 * BufferHt - 1; if (delay > 1) delay = 1; }
-                if (ybranch[x] < 0) { delta = 2; ybranch[x] = 0; if (delay > 1) delay = 1; }
+                WaveBuffer0[x] = (delay-- > 0)? WaveBuffer0[x - 1] + delta: 2 * yc;
+                if (WaveBuffer0[x] >= 2 * BufferHt) { delta = -2; WaveBuffer0[x] = 2 * BufferHt - 1; if (delay > 1) delay = 1; }
+                if (WaveBuffer0[x] < 0) { delta = 2; WaveBuffer0[x] = 0; if (delay > 1) delay = 1; }
                 if (delay < 1) {
                     delta = (rand() % 7) - 3;
                     delay = 2 + (rand() % 3);
@@ -142,19 +141,15 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
 
             //  if( sin(radian)<0.0) ystart=-ystart;
         } else if (WaveType == WAVETYPE_IVYFRACTAL) {
-//            int xx = WaveDirection? NumberWaves * BufferWi - x - 1: x;
             int eff_x = (WaveDirection? x: BufferWi - x - 1) + BufferWi * (state / 2 / BufferWi); //effective x before wrap
             if (eff_x >= NumberWaves * BufferWi) break;
             if (!WaveDirection) eff_x = NumberWaves * BufferWi - eff_x - 1;
             bool ok = WaveDirection? (eff_x <= state/2): (eff_x >= NumberWaves * BufferWi - state/2 - 1); //ivy "grows"
-            debug(10, "x %d, eff_x %d, dir %d, bufw %d, #wav %d, state %d, keep? %d, ystart %d, bufh %d", x, eff_x, WaveDirection, BufferWi, NumberWaves, state, ok, ybranch[eff_x] / 2, BufferHt);
             if (!ok) continue;
-            ystart = ybranch[eff_x] / 2;
+            ystart = WaveBuffer0[eff_x] / 2;
         } else {
             ystart = (int) (r*(WaveHeight/100.0) * sin(radian) +yc);
         }
-//        x=r * cos(t);
-//        y=r * sin(t);
 
         if(x>=0 && x<BufferWi && ystart>=0 && ystart <BufferHt) {
             //  SetPixel(x,ystart,hsv0);  // just leading edge
@@ -215,8 +210,7 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
                 }
             }
 
-            if(MirrorWave) {
-
+            if (MirrorWave) {
                 if(y1mirror<y2mirror) {
                     y1=y1mirror;
                     y2=y2mirror;

@@ -29,49 +29,6 @@
 													<cols>4</cols>
 													<growablecols>1,2</growablecols>
 													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText59" member="yes">
-															<label>Speed</label>
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Speed" variable="Slider_Speed" member="yes">
-															<value>10</value>
-															<min>1</min>
-															<max>30</max>
-															<style>wxSL_HORIZONTAL</style>
-															<handler function="OnSlider_SpeedCmdScroll" entry="EVT_COMMAND_SCROLL" />
-															<handler function="OnSlider_SpeedCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
-														</object>
-														<flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Speed" variable="TextCtrl_Speed" member="yes">
-															<value>10</value>
-															<size>20,-1d</size>
-															<style>wxTE_READONLY</style>
-														</object>
-														<flag>wxBOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Speed" variable="BitmapButton_Speed" member="yes">
-															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
-															<size>13,13</size>
-															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText1" member="yes">
 															<label>Blending:</label>
 															<font>

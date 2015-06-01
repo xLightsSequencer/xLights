@@ -36,7 +36,8 @@ void RenderPictures(int dir, const wxString& NewPictureName,float moveSpeed, flo
                     int xc_adj, int yc_adj, int xce_adj, int yce_adj,
                     bool pixelOffsets, bool wrap_x);
 void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,
-                    bool pinwheel_rotation,const wxString &pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize);
+                    bool pinwheel_rotation,const wxString &pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize,
+                    int pspeed);
 void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,
               int xc_adj, int yc_adj);
 
@@ -65,13 +66,13 @@ void RenderSnowflakes(int Count, int SnowflakeType, int sSpeed);
 void RenderSnowstorm(int Count, int Length, int sSpeed);
 void RenderSpirals(int PaletteRepeat, float Movement, int Rotation, int Thickness,
                    bool Blend, bool Show3D, bool grow, bool shrink);
-void RenderSpirograph(int R, int r, int d,bool Animate);
+void RenderSpirograph(int R, int r, int d, int Animate, int speed, int length);
 
 
-void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int TextRotation1,int Effect1,
-                int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int TextRotation2,int Effect2,
-                int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int TextRotation3,int Effect3,
-                int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int TextRotation4,int Effect4);
+void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int TextRotation1,int Effect1, int Speed1,
+                int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int TextRotation2,int Effect2, int Speed2,
+                int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int TextRotation3,int Effect3, int Speed3,
+                int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int TextRotation4,int Effect4, int Speed4);
 void RenderTree(int Branches, int tspeed);
 void RenderTwinkle(int Count,int Steps,bool Strobe);
-void RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection);
+void RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection, int wspeed);

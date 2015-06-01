@@ -90,7 +90,7 @@ public:
     // not used: size_t GetColorCount(int layer);
     void SetMixType(int layer, const wxString& MixName);
     void SetPalette(int layer, xlColourVector& newcolors);
-    void SetLayer(int newlayer, int period, int speed, bool ResetState);
+    void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
     void SetFadeTimes(int layer, float inTime, float outTime);
     void SetSparkle(int layer, int freq);

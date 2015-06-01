@@ -7,6 +7,11 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(dkulp) Fix several crashes due to rendering just part of an effect
+    -- bug(dkulp) Fix several crashes related to multi-threaded rendering
+    -- enh(dkulp) Spirograph given a few new options for length, animation speed, etc..
+    -- enh(dkulp) Update text to allow a different speed for each line
+    -- enh(dkulp) Remove the "Speed" and "Fit To Time" options.  Add speed/cycle settings to effects that would use it.
     -- enh(gil) Add random effects generation to grid right-click menu.
     -- enh(gil) Add ability to move highlighted cell with arrow keys and to expand/contract it with shift modifier.
     -- enh(gil) Add grid right-click copy/paste/delete options.

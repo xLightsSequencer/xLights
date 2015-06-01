@@ -1540,7 +1540,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Notebook1->AddPage(PanelSetup, _("Setup"), true);
     Notebook1->AddPage(PanelTest, _("Test"));
     Notebook1->AddPage(PanelConvert, _("Convert"));
-    Notebook1->AddPage(PanelPreview, _("Preview"));
+    Notebook1->AddPage(PanelPreview, _("Layout"));
     Notebook1->AddPage(PanelCal, _("Schedule"));
     Notebook1->AddPage(PanelPapagayo, _("Papagayo"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));

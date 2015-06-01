@@ -56,7 +56,6 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
         case BitmapCache::RGB_EFFECTS_e::eff_GALAXY:
         case BitmapCache::RGB_EFFECTS_e::eff_FAN:
         case BitmapCache::RGB_EFFECTS_e::eff_MORPH:
-        case BitmapCache::RGB_EFFECTS_e::eff_SPIROGRAPH:
         case BitmapCache::RGB_EFFECTS_e::eff_SHOCKWAVE:
         case BitmapCache::RGB_EFFECTS_e::eff_GLEDIATOR:
         case BitmapCache::RGB_EFFECTS_e::eff_FACES:
@@ -113,6 +112,41 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
                 settings["E_SLIDER_Tree_Speed"] = settings.Get("T_SLIDER_Speed", "10");
             }
             break;
+        case BitmapCache::RGB_EFFECTS_e::eff_PINWHEEL:
+            if (settings.Get("E_TEXTCTRL_Pinwheel_Speed", "") == "") {
+                settings["E_TEXTCTRL_Pinwheel_Speed"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            break;
+        case BitmapCache::RGB_EFFECTS_e::eff_TEXT:
+            if (settings.Get("E_TEXTCTRL_Text_Speed1", "") == "") {
+                settings["E_TEXTCTRL_Text_Speed1"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            if (settings.Get("E_TEXTCTRL_Text_Speed2", "") == "") {
+                settings["E_TEXTCTRL_Text_Speed2"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            if (settings.Get("E_TEXTCTRL_Text_Speed3", "") == "") {
+                settings["E_TEXTCTRL_Text_Speed3"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            if (settings.Get("E_TEXTCTRL_Text_Speed4", "") == "") {
+                settings["E_TEXTCTRL_Text_Speed4"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            break;
+        case BitmapCache::RGB_EFFECTS_e::eff_WAVE:
+            if (settings.Get("E_TEXTCTRL_Wave_Speed", "") == "") {
+                settings["E_TEXTCTRL_Wave_Speed"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            break;
+        case BitmapCache::RGB_EFFECTS_e::eff_SPIROGRAPH:
+            if (settings.Get("E_TEXTCTRL_Spirograph_Speed", "") == "") {
+                settings["E_TEXTCTRL_Spirograph_Speed"] = settings.Get("T_SLIDER_Speed", "10");
+            }
+            if (settings.Get("E_CHECKBOX_Spirograph_Animate", "") != "") {
+                int i = wxAtoi(settings.Get("E_CHECKBOX_Spirograph_Animate", "0"));
+                settings["E_TEXTCTRL_Spirograph_Animate"] = (i == 0 ? "0" : "10");
+                settings.erase("E_CHECKBOX_Spirograph_Animate");
+            }
+            break;
+
         case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH:
             if (settings.Get("E_TEXTCTRL_ColorWash_Cycles", "") == "") {
                 double count = wxAtoi(settings.Get("E_SLIDER_ColorWash_Count", "1"));
@@ -258,16 +292,19 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
                 settings.erase("E_SLIDER_Pictures_GifSpeed");
             }
             break;
+        case BitmapCache::RGB_EFFECTS_e::eff_GARLANDS:
+            //Don't attempt to map the Garlands speed settings.  In v3, the Garland speed depended on the Speed setting, the
+            //Spacing setting as well as the height of the model.  We don't have the height of the model here so really
+            //no way to figure out the speed or an appropriate mapping
+            break;
+            
             //these all need code updated and new sliders and such before we can map them
             //these all have state/speed requirements
-        case BitmapCache::RGB_EFFECTS_e::eff_TEXT:
-        case BitmapCache::RGB_EFFECTS_e::eff_GARLANDS:
         case BitmapCache::RGB_EFFECTS_e::eff_PIANO:
-        case BitmapCache::RGB_EFFECTS_e::eff_PINWHEEL:
-        case BitmapCache::RGB_EFFECTS_e::eff_WAVE:
             break;
     }
     settings.erase("T_CHECKBOX_FitToTime");
+    settings.erase("T_SLIDER_Speed");
 }
 
 Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,

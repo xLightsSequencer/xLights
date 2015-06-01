@@ -3,16 +3,19 @@
 #include "RgbEffects.h"
 
 
-void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
+void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d, int Animate, int sspeed, int length)
 {
     int i,x,y,xc,yc,ColorIdx;
-    int mod1440,state360,d_mod;
-    //srand(1);
+    int mod1440,d_mod;
     float R,r,d,d_orig,t;
     double hyp,x2,y2;
     wxImage::HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
     size_t colorcnt=GetColorCount();
-
+    
+    int state = (curPeriod - curEffStartPer) * sspeed * frameTimeInMs / 50;
+    double animateState = double((curPeriod - curEffStartPer) * Animate * frameTimeInMs) / 5000.0;
+    
+    length = length * 18;
 
     xc= (int)(BufferWi/2); // 20x100 flex strips with 2 fols per strip = 40x50
     yc= (int)(BufferHt/2);
@@ -32,11 +35,10 @@ void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
     //y(t) = (R-r) * sin t + d*sin ((R-r/r)*t);
 
     mod1440  = state%1440;
-    state360 = state%360;
     d_orig=d;
-    for(i=1; i<=360; i++)
+    if (Animate) d = d_orig + animateState * d_orig; // should we modify the distance variable each pass through?
+    for(i=1; i<=length; i++)
     {
-        if(Animate) d = (int)(d_orig+state/2)%100; // should we modify the distance variable each pass through?
         t = (i+mod1440)*M_PI/180;
         x = (R-r) * cos (t) + d*cos (((R-r)/r)*t) + xc;
         y = (R-r) * sin (t) + d*sin (((R-r)/r)*t) + yc;

@@ -103,7 +103,7 @@ public:
     void InitBuffer(int newBufferHt, int newBufferWi);
     void Clear(const xlColor& bgColor);
     void SetPalette(xlColourVector& newcolors);
-    void SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name);
+    void SetState(int period, bool reset, const wxString& model_name);
     void SetAllowAlphaChannel(bool a) {allowAlpha = a;};
 
     void SetFadeTimes(float fadeIn, float fadeOut );
@@ -503,7 +503,9 @@ protected:
     void ClearWaveBuffer1();
     void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
-    void RenderTextLine(DrawingContext* dc, int idx, int Position, const wxString& Line, int dir, bool center, int Effect, int Countdown, bool WantRender);
+    void RenderTextLine(DrawingContext* dc, int idx, int Position,
+                        const wxString& Line, int dir, bool center, int Effect,
+                        int Countdown, bool WantRender, int tspeed);
     
     void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
     void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
@@ -556,11 +558,10 @@ protected:
     int LastLifeType;
     int LastCurtainDir;
     int LastCurtainLimit;
-    long state;
+
     long effectState;
     bool needToInit;
     long LastLifeState;
-    int speed;
     int lastperiod, curPeriod;
     RgbFireworks *fireworkBursts;
 
