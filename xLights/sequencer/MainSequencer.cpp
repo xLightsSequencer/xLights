@@ -313,6 +313,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case WXK_CONTROL_C:
             if (event.CmdDown() || event.ControlDown()) {
                 CopySelectedEffects();
+                PanelEffectGrid->SetCanPaste();
                 event.StopPropagation();
             }
             break;

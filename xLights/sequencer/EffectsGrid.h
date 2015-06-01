@@ -59,6 +59,7 @@ public:
     void ProcessDroppedEffect(Effect* effect);
 
     void Paste(const wxString &data);
+    void SetCanPaste() { mCanPaste = true; }
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         xlights = xl;  seqData = data;
@@ -94,11 +95,13 @@ private:
     void DrawTimingEffects(int row);
     void DrawEffects();
     void DrawTimings();
-    void AdjustDropLocations(int x, EffectLayer* el);
+    bool AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position, bool offset);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
     void UpdateTimePosition(int time);
     void CheckForSelectionRectangle();
+    void HighlightSelectionRectangle();
+    void CheckForPartialCell(int x_pos);
     void RaiseSelectedEffectChanged(Effect* effect);
     void RaiseEffectDropped(int x, int y);
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect);
@@ -110,10 +113,13 @@ private:
     void MoveAllSelectedEffects(double delta, bool offset);
     int GetRow(int y);
     void OnGridPopup(wxCommandEvent& event);
+    void FillRandomEffects();
+    bool OneCellSelected();
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mGridIconBackgrounds;
     bool mGridNodeValues = true;
+    bool mCanPaste;
 
     //~ Need to see why I cannot access xLightsFrame::GB_EFFECTS_e from xLightsMain.h
     // for effect count
@@ -137,17 +143,11 @@ private:
     bool mDragging;
     bool mEffectDragging;
     int mDragStartX;
-    int mDragStartX1;
-    int mDragStartX2;
     int mDragStartY;
     int mDragEndX;
     int mDragEndY;
-    int mRangeStartX;
-    int mRangeStartY;
-    int mRangeEndX;
-    int mRangeEndY;
-    double mRangeStartTime;
-    double mRangeEndTime;
+    int mEffectDragStartX;
+    int mEffectDragEndX;
 
     EffectLayer* mEffectLayer;
     int mResizeEffectIndex;
@@ -160,10 +160,12 @@ private:
     double mDropStartTime;
     double mDropEndTime;
 
-    bool mEmptyCellSelected;
     bool mCellRangeSelected;
-    int mSelectedTimingIndex;
-    int mSelectedTimingRow;
+    bool mPartialCellSelected;
+    int mRangeStartCol;
+    int mRangeEndCol;
+    int mRangeStartRow;
+    int mRangeEndRow;
 
     static const long ID_GRID_MNU_COPY;
     static const long ID_GRID_MNU_PASTE;
