@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.1.0  Jun 1, 2015
     -- bug(dkulp) Fix several crashes due to rendering just part of an effect
     -- bug(dkulp) Fix several crashes related to multi-threaded rendering
     -- enh(dkulp) Spirograph given a few new options for length, animation speed, etc..
