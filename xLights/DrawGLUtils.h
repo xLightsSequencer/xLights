@@ -1,7 +1,28 @@
+
+#ifndef __XL_DRAWGLUTILS
+#define __XL_DRAWGLUTILS
+
+#include <wx/thread.h>
+#include "wx/glcanvas.h"
 #include "Color.h"
 
 namespace DrawGLUtils
 {
+    class DisplayListItem {
+    public:
+        DisplayListItem() : valid(true), usage(GL_POINT), x(0.0), y(0.0) {};
+        bool valid;
+        int usage;  //POINT, TRIANGLE, QUAD, ETC...
+        xlColor color;
+        double x, y;
+    };
+    class xlDisplayList : public std::vector<DisplayListItem> {
+    public:
+        xlDisplayList() : iconSize(2) {};
+        int iconSize;
+        mutable wxMutex lock;
+    };
+    
     void DrawPoint(const xlColor &color, double x, double y);
 
     void DrawCircle(const xlColor &color, double x, double y, double r, int ctransparency = 0, int etransparency = 0);
@@ -23,5 +44,10 @@ namespace DrawGLUtils
                                GLuint* texture);
 
     void DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors, bool flush = true);
+    
+    void DrawDisplayList(double xOffset, double yOffset,
+                         double width, double height,
+                         const xlDisplayList & dl);
 }
 
+#endif

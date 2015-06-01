@@ -72,62 +72,44 @@ static const FirePaletteClass FirePalette;
 
 // 0 <= x < BufferWi
 // 0 <= y < BufferHt
-void RgbEffects::SetFireBuffer(int x, int y, int PaletteIdx)
+void SetFireBuffer(int x, int y, int PaletteIdx, std::vector<int> &FireBuffer, int maxWi, int maxHi)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    if (x >= 0 && x < maxWi && y >= 0 && y < maxHi)
     {
-        FireBuffer[y*BufferWi+x] = PaletteIdx;
+        FireBuffer[y*maxWi+x] = PaletteIdx;
     }
 }
 
 // 0 <= x < BufferWi
 // 0 <= y < BufferHt
-int RgbEffects::GetFireBuffer(int x, int y)
+int GetFireBuffer(int x, int y, std::vector<int> &FireBuffer, int maxWi, int maxHi)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    if (x >= 0 && x < maxWi && y >= 0 && y < maxHi)
     {
-        return FireBuffer[y*BufferWi+x];
+        return FireBuffer[y*maxWi+x];
     }
     return -1;
 }
 
-void RgbEffects::SetWaveBuffer1(int x, int y, int value)
-{
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
-    {
-        WaveBuffer1[y*BufferWi+x] = value;
+int GetLocation(const wxString &location) {
+    if (location == "Bottom") {
+        return 0;
+    } else if (location == "Top") {
+        return 1;
+    } else if (location == "Left") {
+        return 2;
+    } else if (location == "Right") {
+        return 3;
     }
-}
-void RgbEffects::SetWaveBuffer2(int x, int y, int value)
-{
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
-    {
-        WaveBuffer2[y*BufferWi+x] = value;
-    }
-}
-
-int RgbEffects::GetWaveBuffer1(int x, int y)
-{
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
-    {
-        return WaveBuffer1[y*BufferWi+x];
-    }
-    return -1;
-}
-int RgbEffects::GetWaveBuffer2(int x, int y)
-{
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
-    {
-        return WaveBuffer2[y*BufferWi+x];
-    }
-    return -1;
+    return 0;
 }
 
 // 10 <= HeightPct <= 100
-void RgbEffects::RenderFire(int HeightPct,int HueShift,float cycles)
+void RgbEffects::RenderFire(int HeightPct,int HueShift,float cycles, const wxString &location)
 {
     int x,y,i,r,v1,v2,v3,v4,n,new_index;
     wxImage::HSVValue hsv;
+    int loc = GetLocation(location);
 
     //cycles is 0 - 200 representing growth cycle count of 0 - 20
     if (cycles > 0) {
@@ -137,8 +119,16 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,float cycles)
     }
     
     if (HeightPct<1) HeightPct=1;
-    if (BufferHt<1) BufferHt=1;
-
+    
+    
+    int maxHt = BufferHt;
+    int maxWi = BufferWi;
+    if (loc == 2 || loc == 3) {
+        maxHt = BufferWi;
+        maxWi = BufferHt;
+    }
+    
+    if (maxHt<1) maxHt=1;
     float mod_state = 4.0;
     if (needToInit) {
         needToInit = false;
@@ -149,20 +139,20 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,float cycles)
         mod_state = 4 / (curPeriod%4+1);
     }
     // build fire
-    for (x=0; x<BufferWi; x++) {
+    for (x=0; x<maxWi; x++) {
         r=x%2==0 ? 190+(rand() % 10) : 100+(rand() % 50);
-        SetFireBuffer(x,0,r);
+        SetFireBuffer(x,0,r, FireBuffer, maxWi, maxHt);
     }
-    int step=255*100/BufferHt/HeightPct;
+    int step=255*100/maxHt/HeightPct;
     int sum;
-    for (y=1; y<BufferHt; y++)
+    for (y=1; y<maxHt; y++)
     {
-        for (x=0; x<BufferWi; x++)
+        for (x=0; x<maxWi; x++)
         {
-            v1=GetFireBuffer(x-1,y-1);
-            v2=GetFireBuffer(x+1,y-1);
-            v3=GetFireBuffer(x,y-1);
-            v4=GetFireBuffer(x,y-1);
+            v1=GetFireBuffer(x-1,y-1, FireBuffer, maxWi, maxHt);
+            v2=GetFireBuffer(x+1,y-1, FireBuffer, maxWi, maxHt);
+            v3=GetFireBuffer(x,y-1, FireBuffer, maxWi, maxHt);
+            v4=GetFireBuffer(x,y-1, FireBuffer, maxWi, maxHt);
             n=0;
             sum=0;
             if(v1>=0)
@@ -192,39 +182,41 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,float cycles)
                 if (new_index < 0) new_index=0;
                 if (new_index >= FirePalette.size()) new_index = FirePalette.size()-1;
             }
-            SetFireBuffer(x,y,new_index);
+            SetFireBuffer(x,y,new_index, FireBuffer, maxWi, maxHt);
         }
     }
 
     //  Now play fire
-    float rx,ry;
-    ry = 1.0 / mod_state;
-    for (y=0; y<BufferHt; y++)
+    for (y=0; y<maxHt; y++)
     {
-        //y=(int)ry;
-        for (x=0; x<BufferWi; x++)
+        for (x=0; x<maxWi; x++)
         {
-            rx = 1.0 / mod_state;
-           // x=(int)rx;
-            //SetPixel(x,y,FirePalette[y]);
-            //  first get the calculated color fo normal fire.
-
+            int xp = x;
+            int yp = y;
+            if (loc == 1 || loc == 3) {
+                yp = maxHt - y - 1;
+            }
+            if (loc == 2 || loc == 3) {
+                int t = xp;
+                xp = yp;
+                yp = t;
+            }
             if (HueShift>0) {
-                hsv = FirePalette[GetFireBuffer(x,y)];
+                hsv = FirePalette[GetFireBuffer(x,y, FireBuffer, maxWi, maxHt)];
                 hsv.hue = hsv.hue +(HueShift/100.0);
                 if (hsv.hue>1.0) hsv.hue=1.0;
                 if (allowAlpha) {
                     xlColor c(hsv);
-                    c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x,y)).Alpha();
-                    SetPixel(x, y, c);
+                    c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x,y, FireBuffer, maxWi, maxHt)).Alpha();
+                    SetPixel(xp, yp, c);
                 } else {
-                    SetPixel(x, y, hsv);
+                    SetPixel(xp, yp, hsv);
                 }
             } else {
                 if (allowAlpha) {
-                    SetPixel(x, y, FirePalette.asAlphaColor(GetFireBuffer(x,y)));
+                    SetPixel(xp, yp, FirePalette.asAlphaColor(GetFireBuffer(x,y, FireBuffer, maxWi, maxHt)));
                 } else {
-                    SetPixel(x, y, FirePalette.asColor(GetFireBuffer(x,y)));
+                    SetPixel(xp, yp, FirePalette.asColor(GetFireBuffer(x,y, FireBuffer, maxWi, maxHt)));
                 }
             }
         }

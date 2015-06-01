@@ -233,6 +233,7 @@ public:
     wxStaticText* StaticText15;
     wxSlider* Slider_Ripple_Thickness;
     wxSlider* Slider_Spirals_Count;
+    wxStaticText* StaticText192;
     wxSlider* Slider_Piano_NumRows;
     wxChoice* Choice_Text_Dir4;
     wxBitmapButton* BitmapButton_TextToCenter3;
@@ -768,6 +769,7 @@ protected:
     static const long IDD_SLIDER_Fire_GrowthCycles;
     static const long ID_TEXTCTRL_Fire_GrowthCycles;
     static const long ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire;
+    static const long ID_CHOICE_Fire_Location;
     static const long ID_PANEL12;
     static const long ID_STATICTEXT95;
     static const long ID_SLIDER_Fireworks_Explosions;
@@ -839,6 +841,8 @@ protected:
     static const long ID_BITMAPBUTTON_SLIDER_Garlands_Spacing;
     static const long IDD_SLIDER_Garlands_Cycles;
     static const long ID_TEXTCTRL_Garlands_Cycles;
+    static const long ID_STATICTEXT40;
+    static const long ID_CHOICE_Garlands_Direction;
     static const long ID_PANEL14;
     static const long ID_BUTTON_GLED_FILE;
     static const long ID_BITMAPBUTTON10;

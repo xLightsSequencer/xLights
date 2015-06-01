@@ -452,7 +452,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
         xlColor c(130,178,207,255);
         
         std::vector<double> vertexes;
-        vertexes.resize(mWindowWidth * 2);
+        vertexes.resize((mWindowWidth + 2) * 2);
 
         for (int x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
         {

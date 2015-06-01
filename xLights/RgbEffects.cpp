@@ -22,7 +22,7 @@
 **************************************************************/
 #include <cmath>
 #include "RgbEffects.h"
-
+#include "Effect.h"
 
 
 RgbEffects::RgbEffects()
@@ -494,5 +494,44 @@ void RgbEffects::GetEffectPeriods( int& start, int& endp)
 {
     start = curEffStartPer;
     endp = curEffEndPer;
+}
+
+
+void RgbEffects::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex) {
+    wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
+    int count = curEffEndPer - curEffStartPer + 1;
+    
+    
+    int total = curEffEndPer - curEffStartPer + 1;
+    double x = double(curPeriod - curEffStartPer) / double(total);
+    double x2 = (curPeriod - curEffStartPer + 1.0) / double(total);
+    xlColor c;
+    
+    for (int p = sx; p <= ex; p++) {
+        double y = double(p - sx) / double(ex - sx + 1.0);
+        double y2 = double(p - sx + 1.0) / double(ex - sx + 1.0);
+        GetPixel(p, row, c);
+        
+        int idx = (p - sx) * count + (curPeriod - curEffStartPer);
+        
+        eff->GetBackgroundDisplayList()[idx*4].color = c;
+        eff->GetBackgroundDisplayList()[idx*4+1].color = c;
+        eff->GetBackgroundDisplayList()[idx*4+2].color = c;
+        eff->GetBackgroundDisplayList()[idx*4+3].color = c;
+        eff->GetBackgroundDisplayList()[idx*4].x = x;
+        eff->GetBackgroundDisplayList()[idx*4+1].x = x;
+        eff->GetBackgroundDisplayList()[idx*4+2].x = x2;
+        eff->GetBackgroundDisplayList()[idx*4+3].x = x2;
+        
+        eff->GetBackgroundDisplayList()[idx*4].y = y;
+        eff->GetBackgroundDisplayList()[idx*4+1].y = y2;
+        eff->GetBackgroundDisplayList()[idx*4+2].y = y2;
+        eff->GetBackgroundDisplayList()[idx*4+3].y = y;
+        
+        eff->GetBackgroundDisplayList()[idx*4].usage = GL_QUADS;
+        eff->GetBackgroundDisplayList()[idx*4+1].usage = GL_QUADS;
+        eff->GetBackgroundDisplayList()[idx*4+2].usage = GL_QUADS;
+        eff->GetBackgroundDisplayList()[idx*4+3].usage = GL_QUADS;
+    }
 }
 

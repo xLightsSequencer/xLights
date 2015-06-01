@@ -93,6 +93,7 @@ typedef enum
 #endif
 
 class DrawingContext;
+class Effect;
 
 class NCCDLLEXPORT RgbEffects
 {
@@ -120,6 +121,9 @@ public:
 #include "Effects.h"
 
 protected:
+    
+    void CopyPixelsToDisplayListX(Effect *eff, int y, int sx, int ex);
+    
     // was public, but not used external to this class
     size_t GetColorCount();
 
@@ -481,13 +485,6 @@ protected:
     void DrawThickLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction );
 
     wxUint32 GetTempPixelRGB(int x, int y);
-    void SetFireBuffer(int x, int y, int PaletteIdx);
-    int GetFireBuffer(int x, int y);
-    void SetWaveBuffer1(int x, int y, int value);
-    int GetWaveBuffer1(int x, int y);
-    void SetWaveBuffer2(int x, int y, int value);
-    int GetWaveBuffer2(int x, int y);
-
 
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);

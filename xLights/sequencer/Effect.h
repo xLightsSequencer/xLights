@@ -6,6 +6,7 @@
 #include <vector>
 #include "../UtilClasses.h"
 #include "../Color.h"
+#include "../DrawGLUtils.h"
 
 #define EFFECT_BARS         0
 #define EFFECT_BUTTERFLY    1
@@ -97,6 +98,16 @@ class Effect
         wxString GetPaletteAsString() const;
         void SetPalette(const wxString& i);
 
+        DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() {
+            return background;
+        }
+        const DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() const {
+            return background;
+        }
+        bool HasBackgroundDisplayList() const {
+            wxMutexLocker (background.lock);
+            return !background.empty();
+        }
     protected:
     private:
         volatile int changeCount;
@@ -116,6 +127,8 @@ class Effect
         SettingsMap mSettings;
         SettingsMap mPaletteMap;
         xlColorVector mColors;
+    
+        DrawGLUtils::xlDisplayList background;
 };
 
 bool operator<(const Effect &e1, const Effect &e2);

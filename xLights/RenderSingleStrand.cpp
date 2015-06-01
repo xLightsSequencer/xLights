@@ -23,6 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
+#include "Effect.h"
 
 int mapX(int x, int max, int direction, int &second) {
     second = -1;
@@ -58,7 +59,8 @@ int mapDirection(const wxString & d) {
     return 0;
 }
 
-void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString & Skips_Direction, int advances)
+void RgbEffects::RenderSingleStrandSkips(Effect *eff, int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos,
+                                         const wxString & Skips_Direction, int advances)
 {
     int x = Skips_StartPos - 1;
     xlColour color;
@@ -76,11 +78,15 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
     while (x > max) {
         x -= (Skips_BandSize +  Skips_SkipSize) * colorcnt;
     }
+    
+    if (needToInit) {
+        wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
+        int rects = (Skips_SkipSize + Skips_BandSize) * (curEffEndPer - curEffStartPer + 1);
+        eff->GetBackgroundDisplayList().resize(rects * 4);
+    }
 
     int firstX = x;
     int colorIdx = 0;
-
-    //printf("%d   %d\n", curPeriod, x);
 
     while (x < max) {
         palette.GetColor(colorIdx, color);
@@ -129,6 +135,12 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
             x--;
         }
     }
+    
+    max = Skips_SkipSize + Skips_BandSize - 1;
+    if (max >=  BufferWi) {
+        max = BufferWi - 1;
+    }
+    CopyPixelsToDisplayListX(eff, 0, 0, max);
 }
 void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int Color_Mix1,
                                     int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All,

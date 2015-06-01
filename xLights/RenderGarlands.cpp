@@ -23,7 +23,29 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderGarlands(int GarlandType, int Spacing, float cycles)
+int GetDirection(const wxString &direction) {
+    if ("Up" == direction) {
+        return 0;
+    } else if ("Down" == direction) {
+        return 1;
+    } else if ("Left" == direction) {
+        return 2;
+    } else if ("Right" == direction) {
+        return 3;
+    } else if ("Up then Down" == direction) {
+        return 4;
+    } else if ("Down then Up" == direction) {
+        return 5;
+    } else if ("Left then Right" == direction) {
+        return 6;
+    } else if ("Right then Left" == direction) {
+        return 7;
+    }
+    
+    return 0;
+}
+
+void RgbEffects::RenderGarlands(int GarlandType, int Spacing, float cycles, const wxString &direction)
 {
     if (Spacing < 1) {
         Spacing = 1;
@@ -31,26 +53,39 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing, float cycles)
     int x,y,yadj,ylimit,ring;
     double ratio;
     xlColour color;
-    
-    double PixelSpacing=Spacing*BufferHt/100.0;
+    int dir = GetDirection(direction);
+    double position = GetEffectTimeIntervalPosition(cycles);
+    if (dir > 3) {
+        dir -= 4;
+        if (position > 0.5) {
+            position = (1.0 - position) * 2.0;
+        } else {
+            position *= 2.0;
+        }
+    }
+    int buffMax = BufferHt;
+    int garlandWid = BufferWi;
+    if (dir > 1) {
+        buffMax = BufferWi;
+        garlandWid = BufferHt;
+    }
+    double PixelSpacing=Spacing*buffMax/100.0;
     if (PixelSpacing < 2.0) PixelSpacing=2.0;
     
-    double position = GetEffectTimeIntervalPosition(cycles);
-    int up=1;
     
-    double total = BufferHt * PixelSpacing - BufferHt + 1;
+    double total = buffMax * PixelSpacing - buffMax + 1;
     double positionOffset = total * position;
     
-    for (ring = 0; ring < BufferHt; ring++)
+    for (ring = 0; ring < buffMax; ring++)
     {
-        ratio=double(BufferHt-ring-1)/double(BufferHt);
+        ratio=double(buffMax-ring-1)/double(buffMax);
         GetMultiColorBlend(ratio, false, color);
         
         y = 1.0 + ring*PixelSpacing - positionOffset;
 
         
-        ylimit=ring; // BufferHt-ring-1;
-        for (x=0; x<BufferWi; x++)
+        ylimit=ring;
+        for (x=0; x<garlandWid; x++)
         {
             yadj=y;
             switch (GarlandType)
@@ -59,13 +94,11 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing, float cycles)
                 switch (x%5)
                 {
                 case 2:
-                    if(up==1) yadj-=2;
-                    else yadj+=2;
+                    yadj-=2;
                     break;
                 case 1:
                 case 3:
-                    if(up==1)yadj-=1;
-                    else yadj+=1;
+                    yadj-=1;
                     break;
                 }
                 break;
@@ -73,13 +106,11 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing, float cycles)
                 switch (x%5)
                 {
                 case 2:
-                    if(up==1)yadj-=4;
-                    else yadj+=4;
+                    yadj-=4;
                     break;
                 case 1:
                 case 3:
-                    if(up==1)yadj-=2;
-                    else yadj+=2;
+                    yadj-=2;
                     break;
                 }
                 break;
@@ -87,18 +118,15 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing, float cycles)
                 switch (x%6)
                 {
                 case 3:
-                    if(up==1)yadj-=6;
-                    else yadj+=6;
+                    yadj-=6;
                     break;
                 case 2:
                 case 4:
-                    if(up==1)yadj-=4;
-                    else yadj+=4;
+                    yadj-=4;
                     break;
                 case 1:
                 case 5:
-                    if(up==1)yadj-=2;
-                    else yadj+=2;
+                    yadj-=2;
                     break;
                 }
                 break;
@@ -107,14 +135,22 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing, float cycles)
                 {
                 case 1:
                 case 3:
-                    if(up==1)yadj-=2;
-                    else yadj+=2;
+                    yadj-=2;
                     break;
                 }
                 break;
             }
             if (yadj < ylimit) yadj=ylimit;
-            if (yadj < BufferHt) SetPixel(x,yadj,color);
+            if (yadj < buffMax) {
+                if (dir == 1 || dir == 2) {
+                    yadj = buffMax - yadj - 1;
+                }
+                if (dir > 1) {
+                    SetPixel(yadj,x,color);
+                } else {
+                    SetPixel(x,yadj,color);
+                }
+            }
         }
     }
 }

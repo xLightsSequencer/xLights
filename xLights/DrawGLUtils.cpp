@@ -50,7 +50,7 @@ public:
         }
     }
     
-    void add(double x, double y, xlColor &c) {
+    void add(double x, double y, const xlColor &c) {
         resize(curCount + 1);
         vertices[curCount * 2] = x;
         vertices[curCount * 2 + 1] = y;
@@ -335,3 +335,25 @@ void DrawGLUtils::CreateOrUpdateTexture(const wxBitmap &bmp48,
     addMipMap(texture, bmp16.ConvertToImage().Rescale(2, 2, wxIMAGE_QUALITY_HIGH), level);
     addMipMap(texture, bmp16.ConvertToImage().Rescale(1, 1, wxIMAGE_QUALITY_HIGH), level);
 }
+
+void DrawGLUtils::DrawDisplayList(double xOffset, double yOffset,
+                                  double width, double height,
+                                  const DrawGLUtils::xlDisplayList & dl) {
+    wxMutexLocker lock(dl.lock);
+    if (dl.empty()) {
+        return;
+    }
+    int lastUsage = dl[0].usage;
+    for (int idx = 0; idx < dl.size(); idx++) {
+        const DisplayListItem &item = dl[idx];
+        if (item.valid) {
+            if (item.usage != lastUsage) {
+                glCache.flush(lastUsage, true);
+            }
+            lastUsage = item.usage;
+            glCache.add(xOffset + item.x * width, yOffset + item.y * height, item.color);
+        }
+    }
+    glCache.flush(lastUsage, true);
+}
+

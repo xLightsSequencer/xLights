@@ -23,6 +23,7 @@ public:
 
     int layer;
     int period;
+    Effect *effect;
     const SettingsMap *settingsMap;
     PixelBufferClass *buffer;
     bool *ResetEffectState;
@@ -307,7 +308,7 @@ public:
                 }
                 SetRenderingStatus(frame, &settingsMaps[layer], layer);
                 bool b = effectStates[layer];
-                validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *mainBuffer, b, true, &renderEvent);
+                validLayers[layer] = xLights->RenderEffectFromMap(el, layer, frame, settingsMaps[layer], *mainBuffer, b, true, &renderEvent);
                 effectStates[layer] = b;
                 effectsToUpdate |= validLayers[layer];
             }
@@ -342,7 +343,7 @@ public:
                     }
                     SetRenderingStatus(frame, &strandSettingsMaps[strand], -1, strand);
 
-                    if (xLights->RenderEffectFromMap(0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
+                    if (xLights->RenderEffectFromMap(el, 0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
                         //copy to output
                         std::vector<bool> valid(2, true);
                         SetCalOutputStatus(frame, strand);
@@ -377,7 +378,7 @@ public:
                     }
 
                     SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, strand, inode);
-                    if (xLights->RenderEffectFromMap(0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
+                    if (xLights->RenderEffectFromMap(el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                         SetCalOutputStatus(frame, strand, inode);
                         //copy to output
                         std::vector<bool> valid(2, true);
@@ -528,7 +529,9 @@ void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
 }
 
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
-    ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
+    ev->returnVal = RenderEffectFromMap(ev->effect,
+                                        ev->layer,
+                                        ev->period,
                                         *ev->settingsMap,
                                         *ev->buffer, *ev->ResetEffectState, false, ev);
     ev->signal.Broadcast();
@@ -738,7 +741,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 }
 
 
-bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap& SettingsMap,
+bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period, const SettingsMap& SettingsMap,
                                        PixelBufferClass &buffer, bool &resetEffectState,
                                        bool bgThread, RenderEvent *event) {
     bool retval=true;
@@ -826,7 +829,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
     } else if (effect == "Fire") {
         buffer.RenderFire(wxAtoi(SettingsMap["SLIDER_Fire_Height"]),
                           wxAtoi(SettingsMap["SLIDER_Fire_HueShift"]),
-                          wxAtof(SettingsMap.Get("TEXTCTRL_Fire_GrowthCycles", "0.0")));
+                          wxAtof(SettingsMap.Get("TEXTCTRL_Fire_GrowthCycles", "0.0")),
+                          SettingsMap.Get("CHOICE_Fire_Location", "Bottom"));
     } else if (effect == "Fireworks") {
         buffer.RenderFireworks(wxAtoi(SettingsMap["SLIDER_Fireworks_Explosions"]),
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Count"]),
@@ -849,7 +853,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
     } else if (effect == "Garlands") {
         buffer.RenderGarlands(wxAtoi(SettingsMap["SLIDER_Garlands_Type"]),
                               wxAtoi(SettingsMap["SLIDER_Garlands_Spacing"]),
-                              wxAtof(SettingsMap.Get("TEXTCTRL_Garlands_Cycles", "1.0")));
+                              wxAtof(SettingsMap.Get("TEXTCTRL_Garlands_Cycles", "1.0")),
+                              SettingsMap.Get("CHOICE_Garlands_Direction", "Up"));
     } else if (effect == "Glediator") {
         buffer.RenderGlediator(SettingsMap["TEXTCTRL_Glediator_Filename"]);
     } else if (effect == "Life") {
@@ -934,7 +939,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                                SettingsMap["CHECKBOX_Shockwave_Blend_Edges"]=="1");
     } else if (effect == "SingleStrand") {
         if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
-            buffer.RenderSingleStrandSkips(wxAtoi(SettingsMap["SLIDER_Skips_BandSize"]),
+            buffer.RenderSingleStrandSkips(effectObj,
+                                           wxAtoi(SettingsMap["SLIDER_Skips_BandSize"]),
                                            wxAtoi(SettingsMap["SLIDER_Skips_SkipSize"]),
                                            wxAtoi(SettingsMap["SLIDER_Skips_StartPos"]),
                                            SettingsMap["CHOICE_Skips_Direction"],
@@ -980,6 +986,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
     } else if (effect == "Text") {
         // this needs to be on the primary thread due to GDI calls
         if (bgThread) {
+            event->effect = effectObj;
             event->layer = layer;
             event->period = period;
             event->settingsMap = &SettingsMap;

@@ -52,7 +52,7 @@ enum MixTypes
     Mix_Shadow_2on1 /**< Take value and saturation from Effect 3 and put them onto effect 2, leave hue alone on effect 1 */
 
 };
-
+class Effect;
 
 class PixelBufferClass : public ModelClass
 {

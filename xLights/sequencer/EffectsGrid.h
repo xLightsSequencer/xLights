@@ -90,7 +90,7 @@ private:
     void DrawModelOrViewEffects(int row);
     void DrawSelectedCells();
 
-    int DrawEffectBackground(const Row_Information_Struct* ri, PixelBufferClass *pb, const Effect *effect, int x1, int y1, int x2, int y2);
+    int DrawEffectBackground(const Row_Information_Struct* ri, const Effect *effect, int x1, int y1, int x2, int y2);
 
     void DrawTimingEffects(int row);
     void DrawEffects();

@@ -7,6 +7,7 @@
 #include "SuperStarImportDialog.h"
 
 #include <wx/wfstream.h>
+#include <wx/zipstrm.h>
 
 void xLightsFrame::NewSequence()
 {
@@ -540,7 +541,8 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
                       + "|\nLOR Music Sequences (*.lms)|*.lms"
                       + "|\nxLights Sequence (*.xml)|*.xml"
                       + "|\nHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"
-                      + "|\nVixen 2.x Sequence(*.vix)|*.vix");
+                      + "|\nVixen 2.x Sequence(*.vix)|*.vix"
+                      + "|\nLSP 2.x Sequence(*.msq)|*.msq");
     if (file.ShowModal() == wxID_OK) {
         wxFileName fn = file.GetPath();
         if (!fn.Exists()) {
@@ -556,6 +558,8 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
             ImportVix(fn);
         } else if (fn.GetExt() == "xml") {
             ImportXLights(fn);
+        } else if (fn.GetExt() == "msq") {
+            ImportLSP(fn);
         }
         mainSequencer->PanelEffectGrid->Refresh();
     }
@@ -2307,3 +2311,161 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
     }
     return true;
 }
+
+void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int eff) {
+    wxString palette = _("C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=#000000")
+        + ",C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+        + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+    
+    wxString settings = wxString::Format("E_TEXTCTRL_Eff_On_End=%d,E_TEXTCTRL_Eff_On_Start=%d", out, in)
+        + ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+        + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+        + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+    double start_time = pos * 50.0 / 4410.0 / 1000;
+    double end_time = epos * 50.0 / 4410.0 / 1000;
+    
+    switch (eff) {
+        case 4:  //off
+            return;
+        case 5: //twinkle
+        case 6: //shimmer
+            settings += ",E_CHECKBOX_On_Shimmer=1";
+        case 3: //on
+        case 1: //up
+        case 2: //down
+            layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
+            break;
+        default:
+            break;
+    }
+}
+void MapLSPEffects(EffectLayer *layer, wxXmlNode *node) {
+    if (node == nullptr) {
+        return;
+    }
+    int eff = -1;
+    int in, out, pos;
+
+    
+    for (wxXmlNode *cnd = node->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
+        if (cnd->GetName() == "Tracks") {
+            for (wxXmlNode *cnnd = cnd->GetChildren(); cnnd != nullptr; cnnd = cnnd->GetNext()) {
+                if (cnnd->GetName() == "Track") {
+                    for (wxXmlNode *ind = cnnd->GetChildren(); ind != nullptr; ind = ind->GetNext()) {
+                        if (ind->GetName() == "Intervals") {
+                            for (wxXmlNode *ti = ind->GetChildren(); ti != nullptr; ti = ti->GetNext()) {
+                                if (ti->GetName() == "TimeInterval") {
+                                    int neff = wxAtoi(ti->GetAttribute("eff", "4"));
+                                    if (eff != -1 && neff != 7) {
+                                        int npos = wxAtoi(ti->GetAttribute("pos", "1"));
+                                        AddLSPEffect(layer, pos, npos, in, out, eff);
+                                    }
+                                    if (neff != 7) {
+                                        pos = wxAtoi(ti->GetAttribute("pos", "1"));
+                                        eff = neff;
+                                        in = wxAtoi(ti->GetAttribute("in", "1"));
+                                        out = wxAtoi(ti->GetAttribute("out", "1"));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void xLightsFrame::ImportLSP(const wxFileName &filename) {
+    wxStopWatch sw; // start a stopwatch timer
+    
+    LMSImportChannelMapDialog dlg(this);
+    dlg.mSequenceElements = &mSequenceElements;
+    dlg.xlights = this;
+    
+    
+    wxFileName msq_file(filename);
+    wxString msq_doc = msq_file.GetFullPath();
+    wxFileInputStream fin(msq_doc);
+    wxZipInputStream zin(fin);
+    wxZipEntry *ent = zin.GetNextEntry();
+
+    
+    wxXmlDocument seq_xml;
+    std::map<wxString, wxXmlDocument> cont_xml;
+    std::map<wxString, wxXmlNode *> nodes;
+
+    while (ent != nullptr) {
+        if (ent->GetName() == "Sequence") {
+            seq_xml.Load(zin);
+        } else {
+            wxXmlDocument &doc =  cont_xml[ent->GetName()];
+            doc.Load(zin);
+            
+            for (wxXmlNode *nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
+                if (nd->GetName() == "Channels") {
+                    for (wxXmlNode *cnd = nd->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
+                        if (cnd->GetName() == "Channel") {
+                            for (wxXmlNode *cnnd = cnd->GetChildren(); cnnd != nullptr; cnnd = cnnd->GetNext()) {
+                                if (cnnd->GetName() == "Name") {
+                                    wxString cname = cnnd->GetChildren()->GetContent();
+                                    nodes[cname] = cnd;
+                                    dlg.channelNames.push_back(cname);
+                                    dlg.channelColors[cname] = xlWHITE;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ent = zin.GetNextEntry();
+    }
+    
+    dlg.channelNames.Sort();
+    dlg.channelNames.Insert("", 0);
+    
+    dlg.MapByStrand->Hide();
+    dlg.Init();
+    
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+    
+    int row = 0;
+    for (int m = 0; m < dlg.modelNames.size(); m++) {
+        wxString modelName = dlg.modelNames[m];
+        ModelClass &mc = GetModelClass(modelName);
+        Element * model = nullptr;
+        for (int i=0;i<mSequenceElements.GetElementCount();i++) {
+            if (mSequenceElements.GetElement(i)->GetType() == "model"
+                && modelName == mSequenceElements.GetElement(i)->GetName()) {
+                model = mSequenceElements.GetElement(i);
+            }
+        }
+        if (dlg.ChannelMapGrid->GetCellValue(row, 3) != "") {
+            MapLSPEffects(model->GetEffectLayer(0), nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)]);
+        }
+        row++;
+        
+        for (int str = 0; str < mc.GetNumStrands(); str++) {
+            StrandLayer *sl = model->GetStrandLayer(str);
+            
+            if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                MapLSPEffects(sl, nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)]);
+            }
+            row++;
+            for (int n = 0; n < mc.GetStrandLength(str); n++) {
+                if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                    NodeLayer *nl = sl->GetNodeLayer(n);
+                    MapLSPEffects(nl, nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)]);
+                }
+                row++;
+            }
+        }
+    }
+    
+    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+}
+

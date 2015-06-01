@@ -1,3 +1,4 @@
+
 void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, float cycles);
 void RenderOff(void);
 void RenderOn(int start, int end, bool shimmer, float cycles);
@@ -17,11 +18,11 @@ void RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_ou
 void RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                int duration, int acceleration, bool reverse_dir, bool blend_edges,
                int num_blades, int blade_width, int blade_angle, int num_elements, int element_width );
-void RenderFire(int HeightPct,int HueShift,float GrowCycles);
+void RenderFire(int HeightPct,int HueShift,float GrowCycles, const wxString &location);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                   int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward );
-void RenderGarlands(int GarlandType, int Spacing, float cycles);
+void RenderGarlands(int GarlandType, int Spacing, float cycles, const wxString &direction);
 void RenderGlediator(const wxString& NewPictureName);
 void RenderLife(int Count, int Type, int lifeSpeed);
 void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed);
@@ -58,7 +59,7 @@ void RenderSingleStrandChase(int ColorScheme,int Number_Chases,int Color_Mix1,in
                              bool Chase_3dFade1, bool Chase_Group_All,
                              float chaseSpeed);
 
-void RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString& Skips_Direction, int advances);
+void RenderSingleStrandSkips(Effect *eff, int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString& Skips_Direction, int advances);
 void draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,int Number_Chases,int width,bool R_TO_L1,
                 int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection);
 

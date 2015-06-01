@@ -2462,6 +2462,28 @@
 									<border>1</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="wxID_ANY" variable="StaticText193" member="no">
+										<label>Location</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE_Fire_Location" variable="Choice2" member="no">
+										<content>
+											<item>Bottom</item>
+											<item>Top</item>
+											<item>Left</item>
+											<item>Right</item>
+										</content>
+										<selection>0</selection>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Fire</label>
@@ -3244,6 +3266,37 @@
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT40" variable="StaticText192" member="yes">
+										<label>Stack Direction</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE_Garlands_Direction" variable="Choice1" member="no">
+										<content>
+											<item>Up</item>
+											<item>Down</item>
+											<item>Left</item>
+											<item>Right</item>
+											<item>Up then Down</item>
+											<item>Down then Up</item>
+											<item>Left then Right</item>
+											<item>Right then Left</item>
+										</content>
+										<selection>0</selection>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 							</object>

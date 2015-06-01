@@ -608,8 +608,8 @@ void PixelBufferClass::RenderFan(int center_x, int center_y, int start_radius, i
                                      num_blades, blade_width, blade_angle, num_elements, element_width );
 }
 
-void PixelBufferClass::RenderFire(int HeightPct,int HueShift,float GrowCycles) {
-    effects[CurrentLayer].RenderFire(HeightPct,HueShift,GrowCycles);
+void PixelBufferClass::RenderFire(int HeightPct,int HueShift,float GrowCycles, const wxString &location) {
+    effects[CurrentLayer].RenderFire(HeightPct,HueShift,GrowCycles, location);
 }
 
 void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade) {
@@ -622,8 +622,8 @@ void PixelBufferClass::RenderGalaxy(int center_x, int center_y, int start_radius
                                        start_width, end_width, duration, acceleration, reverse_dir, blend_edges, inward );
 }
 
-void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing, float cycles) {
-    effects[CurrentLayer].RenderGarlands(GarlandType, Spacing, cycles);
+void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing, float cycles, const wxString &direction) {
+    effects[CurrentLayer].RenderGarlands(GarlandType, Spacing, cycles, direction);
 }
 
 void PixelBufferClass::RenderGlediator( const wxString& NewPictureName) {
@@ -681,8 +681,8 @@ void PixelBufferClass::RenderSingleStrandChase(int ColorScheme,int Number_Chases
     effects[CurrentLayer].RenderSingleStrandChase( ColorScheme,Number_Chases, Color_Mix1,
             Chase_Type1, Chase_3dFade1,Chase_Group_All, chaseSpeed);
 }
-void PixelBufferClass::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString &Skips_Direction, int advances) {
-    effects[CurrentLayer].RenderSingleStrandSkips(Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction, advances);
+void PixelBufferClass::RenderSingleStrandSkips(Effect *eff, int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString &Skips_Direction, int advances) {
+    effects[CurrentLayer].RenderSingleStrandSkips(eff, Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction, advances);
 }
 
 void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType, int sspeed) {

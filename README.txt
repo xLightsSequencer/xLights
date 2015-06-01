@@ -7,6 +7,10 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Start work on Import of channels from LSP msq files
+    -- enh(dkulp) Allow Fire to be from top/left/right/bottom   Fixes #245 (kind of)
+    -- enh(dkulp) Allow effects to provide a "pre-rendered" background for display on the grid.  Update "SKips" effect to use it.  (provides scroll performance enhancement)
+    -- enh(dkulp) Add ability for Garland effect to go Up/Down/Up+Down/Down+Up/Left/Right/Left+Right/Right+Left
 4.1.0  Jun 1, 2015
     -- bug(dkulp) Fix several crashes due to rendering just part of an effect
     -- bug(dkulp) Fix several crashes related to multi-threaded rendering

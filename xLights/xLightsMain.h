@@ -364,6 +364,7 @@ public:
     void ImportHLS(const wxFileName &filename);
     void ImportVix(const wxFileName &filename);
     void ImportXLights(const wxFileName &filename);
+    void ImportLSP(const wxFileName &filename);
 
 private:
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size, int x_offset, int y_offset, bool flip_y);
@@ -1384,7 +1385,7 @@ public:
     bool InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     ModelClass &GetModelClass(const wxString& name);
     void RenderGridToSeqData();
-    bool RenderEffectFromMap(int layer, int period, const SettingsMap& SettingsMap,
+    bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false, RenderEvent *event = NULL);
     void RenderEffectOnMainThread(RenderEvent *evt);
