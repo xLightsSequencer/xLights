@@ -211,8 +211,6 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
                 settings["E_TEXTCTRL_Curtain_Speed"] = wxString::Format("%0.2f", cycles);
             }
             break;
-        //these all need code updated and new sliders and such before we can map them
-            //these have fitToTime requirements
         case BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND:
             if ("Skips" == settings["E_NOTEBOOK_SSEFFECT_TYPE"]) {
                 if (settings.Get("E_SLIDER_Skips_Advance", "") == "") {
@@ -260,6 +258,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
                 settings.erase("E_SLIDER_Pictures_GifSpeed");
             }
             break;
+            //these all need code updated and new sliders and such before we can map them
             //these all have state/speed requirements
         case BitmapCache::RGB_EFFECTS_e::eff_TEXT:
         case BitmapCache::RGB_EFFECTS_e::eff_GARLANDS:

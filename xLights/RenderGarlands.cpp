@@ -23,24 +23,33 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderGarlands(int GarlandType, int Spacing)
+void RgbEffects::RenderGarlands(int GarlandType, int Spacing, float cycles)
 {
+    if (Spacing < 1) {
+        Spacing = 1;
+    }
     int x,y,yadj,ylimit,ring;
     double ratio;
     xlColour color;
-    int PixelSpacing=Spacing*BufferHt/100+3;
-    if(PixelSpacing<1) PixelSpacing=1;
-    int limit=BufferHt*PixelSpacing*4;
-    if(limit<1) limit=1;
-    int GarlandsState=(limit - (state % limit))/4;
-    // ring=0 is the top ring
+    
+    double PixelSpacing=Spacing*BufferHt/100.0;
+    if (PixelSpacing < 2.0) PixelSpacing=2.0;
+    
+    double position = GetEffectTimeIntervalPosition(cycles);
     int up=1;
-    for (ring=0; ring<BufferHt; ring++)
+    
+    double total = BufferHt * PixelSpacing - BufferHt + 1;
+    double positionOffset = total * position;
+    
+    for (ring = 0; ring < BufferHt; ring++)
     {
-        ratio=double(ring)/double(BufferHt);
+        ratio=double(BufferHt-ring-1)/double(BufferHt);
         GetMultiColorBlend(ratio, false, color);
-        y=GarlandsState - ring*PixelSpacing;
-        ylimit=BufferHt-ring-1;
+        
+        y = 1.0 + ring*PixelSpacing - positionOffset;
+
+        
+        ylimit=ring; // BufferHt-ring-1;
         for (x=0; x<BufferWi; x++)
         {
             yadj=y;

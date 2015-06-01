@@ -849,7 +849,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const SettingsMap&
                             SettingsMap["CHECKBOX_Galaxy_Inward"]=="1");
     } else if (effect == "Garlands") {
         buffer.RenderGarlands(wxAtoi(SettingsMap["SLIDER_Garlands_Type"]),
-                              wxAtoi(SettingsMap["SLIDER_Garlands_Spacing"]));
+                              wxAtoi(SettingsMap["SLIDER_Garlands_Spacing"]),
+                              wxAtof(SettingsMap.Get("TEXTCTRL_Garlands_Cycles", "1.0")));
     } else if (effect == "Glediator") {
         buffer.RenderGlediator(SettingsMap["TEXTCTRL_Glediator_Filename"]);
     } else if (effect == "Life") {

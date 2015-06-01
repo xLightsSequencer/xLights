@@ -819,10 +819,14 @@ protected:
     static const long ID_SCROLLEDWINDOW1;
     static const long ID_STATICTEXT34;
     static const long ID_SLIDER_Garlands_Type;
+    static const long IDD_TEXTCTRL_Garlands_Type;
     static const long ID_BITMAPBUTTON_SLIDER_Garlands_Type;
     static const long ID_STATICTEXT35;
     static const long ID_SLIDER_Garlands_Spacing;
+    static const long IDD_TEXTCTRL_Garlands_Spacing;
     static const long ID_BITMAPBUTTON_SLIDER_Garlands_Spacing;
+    static const long IDD_SLIDER_Garlands_Cycles;
+    static const long ID_TEXTCTRL_Garlands_Cycles;
     static const long ID_PANEL14;
     static const long ID_BUTTON_GLED_FILE;
     static const long ID_BITMAPBUTTON10;

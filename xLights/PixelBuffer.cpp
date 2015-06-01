@@ -622,8 +622,8 @@ void PixelBufferClass::RenderGalaxy(int center_x, int center_y, int start_radius
                                        start_width, end_width, duration, acceleration, reverse_dir, blend_edges, inward );
 }
 
-void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing) {
-    effects[CurrentLayer].RenderGarlands(GarlandType,Spacing);
+void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing, float cycles) {
+    effects[CurrentLayer].RenderGarlands(GarlandType, Spacing, cycles);
 }
 
 void PixelBufferClass::RenderGlediator( const wxString& NewPictureName) {

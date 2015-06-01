@@ -21,7 +21,7 @@ void RenderFire(int HeightPct,int HueShift,float GrowCycles);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                   int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward );
-void RenderGarlands(int GarlandType, int Spacing);
+void RenderGarlands(int GarlandType, int Spacing, float cycles);
 void RenderGlediator(const wxString& NewPictureName);
 void RenderLife(int Count, int Type, int lifeSpeed);
 void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed);

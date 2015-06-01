@@ -3129,7 +3129,7 @@
 					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL14" variable="Panel1_Garlands" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer39" member="no">
-								<cols>3</cols>
+								<cols>4</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT34" variable="StaticText32" member="yes">
@@ -3142,8 +3142,21 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Garlands_Type" variable="Slider_Garlands_Type" member="yes">
 										<max>4</max>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Garlands_Type" variable="TextCtrl61" member="no">
+										<value>0</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<style>wxTE_CENTRE</style>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -3169,8 +3182,24 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Garlands_Spacing" variable="Slider_Garlands_Spacing" member="yes" />
+									<object class="wxSlider" name="ID_SLIDER_Garlands_Spacing" variable="Slider_Garlands_Spacing" member="yes">
+										<value>10</value>
+										<min>1</min>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Garlands_Spacing" variable="TextCtrl62" member="no">
+										<value>10</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<style>wxTE_CENTRE</style>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -3185,6 +3214,36 @@
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="wxID_ANY" variable="StaticText183" member="no">
+										<label>Cycles</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="IDD_SLIDER_Garlands_Cycles" variable="Slider23" member="no">
+										<value>10</value>
+										<max>200</max>
+										<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Garlands_Cycles" variable="TextCtrl63" member="no">
+										<value>1.0</value>
+										<maxlength>4</maxlength>
+										<size>20,-1d</size>
+										<style>wxTE_CENTRE</style>
+										<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
 									<option>1</option>
 								</object>
 							</object>
