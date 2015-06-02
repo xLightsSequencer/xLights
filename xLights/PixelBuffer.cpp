@@ -562,8 +562,8 @@ void PixelBufferClass::RenderOff(void) {
     effects[CurrentLayer].RenderOff();
 }
 
-void PixelBufferClass::RenderOn(int start, int end, bool shimmer, float repeat) {
-    effects[CurrentLayer].RenderOn(start, end, shimmer, repeat);
+void PixelBufferClass::RenderOn(Effect *eff, int start, int end, bool shimmer, float repeat) {
+    effects[CurrentLayer].RenderOn(eff, start, end, shimmer, repeat);
 }
 
 void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, float cycles) {
@@ -579,9 +579,9 @@ void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool co
     effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma, fade, circleSpeed);
 }
 
-void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, float cycles,
+void PixelBufferClass::RenderColorWash(Effect *eff, bool HorizFade, bool VertFade, float cycles,
                                        bool EntireModel, int x1, int y1, int x2, int y2, bool shimmer, bool circular) {
-    effects[CurrentLayer].RenderColorWash(HorizFade,VertFade,cycles,
+    effects[CurrentLayer].RenderColorWash(eff, HorizFade,VertFade,cycles,
                                           EntireModel, x1, y1, x2, y2,
                                           shimmer, circular);
 }

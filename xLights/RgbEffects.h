@@ -123,6 +123,9 @@ public:
 protected:
     
     void CopyPixelsToDisplayListX(Effect *eff, int y, int sx, int ex);
+    // must hold the lock and be sized appropriately
+    void SetDisplayListRect(Effect *eff, int startIdx, double x1, double y1, double x2, double y2,
+                            const xlColor &c1, const xlColor &c2);
     
     // was public, but not used external to this class
     size_t GetColorCount();

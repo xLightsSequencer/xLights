@@ -222,7 +222,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
         case BitmapCache::RGB_EFFECTS_e::eff_SPIRALS:
             if (settings.Get("E_TEXTCTRL_Spirals_Movement", "") == "") {
                 float cycles = 1.0;
-                int dir = wxAtoi(settings["E_SLIDER_Spirals_Direction"]);
+                int dir = wxAtoi(settings.Get("E_SLIDER_Spirals_Direction", "1"));
                 settings.erase("E_SLIDER_Spirals_Direction");
                 if (!ftt) {
                     int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));

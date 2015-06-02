@@ -588,8 +588,8 @@ protected:
     static const long ID_TEXTCTRL_Eff_On_Start;
     static const long IDD_SLIDER_Eff_On_End;
     static const long ID_TEXTCTRL_Eff_On_End;
-    static const long ID_SLIDER_On_Cycles;
-    static const long IDD_TEXTCTRL_On_Cycles;
+    static const long IDD_SLIDER_On_Cycles;
+    static const long ID_TEXTCTRL_On_Cycles;
     static const long ID_CHECKBOX_On_Shimmer;
     static const long ID_PANEL25;
     static const long ID_STATICTEXT25;

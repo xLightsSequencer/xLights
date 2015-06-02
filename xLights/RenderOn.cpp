@@ -22,8 +22,9 @@
 **************************************************************/
 
 #include "RgbEffects.h"
+#include "Effect.h"
 
-void RgbEffects::RenderOn(int start, int end, bool shimmer, float cycles)
+void RgbEffects::RenderOn(Effect *eff, int start, int end, bool shimmer, float cycles)
 {
     int x,y;
     int cidx = 0;
@@ -59,5 +60,27 @@ void RgbEffects::RenderOn(int start, int end, bool shimmer, float cycles)
         {
             SetPixel(x,y,color);
         }
+    }
+    if (shimmer || cycles != 1.0) {
+        wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
+        eff->GetBackgroundDisplayList().resize((curEffEndPer - curEffStartPer + 1) * 4);
+        CopyPixelsToDisplayListX(eff, 0, 0, 0);
+    } else if (needToInit) {
+        wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
+        eff->GetBackgroundDisplayList().resize(4);
+        if (start == 100 && end == 100) {
+            palette.GetColor(0, color);
+            SetDisplayListRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, color);
+        } else {
+            wxImage::HSVValue hsv;
+            palette.GetHSV(cidx,hsv);
+            hsv.value = hsv.value * start / 100.0;
+            color = hsv;
+        
+            palette.GetHSV(cidx,hsv);
+            hsv.value = hsv.value * end / 100.0;
+            SetDisplayListRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, xlColor(hsv));
+        }
+        needToInit = false;
     }
 }

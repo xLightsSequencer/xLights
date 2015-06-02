@@ -27,18 +27,14 @@
 **************************************************************/
 #include <cmath>
 #include "RgbEffects.h"
+#include "Effect.h"
 
-void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, float cycles,
+void RgbEffects::RenderColorWash(Effect *eff,
+                                 bool HorizFade, bool VertFade, float cycles,
                                  bool EntireModel, int x1, int y1, int x2, int y2,
                                  bool shimmer,
                                  bool circularPalette)
 {
-    if (shimmer) {
-        int tot = curPeriod - curEffStartPer;
-        if (tot % 2) {
-            return;
-        }
-    }
     int x,y;
     xlColour color, orig;
     
@@ -64,34 +60,40 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, float cycles,
         startY = std::max(startY, 0);
         endY = std::min(endY, BufferHt - 1);
     }
-    
-    double HalfHt=double(endY - startY)/2.0;
-    double HalfWi=double(endX - startX)/2.0;
-    
-    orig = color;
-    wxImage::HSVValue hsvOrig = color.asHSV();
-    for (x=startX; x <= endX; x++)
-    {
-        wxImage::HSVValue hsv = hsvOrig;
-        if (HorizFade) {
-            if (allowAlpha) {
-                color.alpha = (double)orig.alpha*(1.0-std::abs(HalfWi-x-startX)/HalfWi);
-            } else {
-                hsv.value*=1.0-std::abs(HalfWi-x-startX)/HalfWi;
-                color = hsv;
-            }
-        }
-        for (y=startY; y<=endY; y++)
+    int tot = curPeriod - curEffStartPer;
+    if (!shimmer || (tot % 2) == 0) {
+        double HalfHt=double(endY - startY)/2.0;
+        double HalfWi=double(endX - startX)/2.0;
+        
+        orig = color;
+        wxImage::HSVValue hsvOrig = color.asHSV();
+        for (x=startX; x <= endX; x++)
         {
-            if (VertFade) {
+            wxImage::HSVValue hsv = hsvOrig;
+            if (HorizFade) {
                 if (allowAlpha) {
-                    color.alpha = (double)orig.alpha*(1.0-std::abs(HalfHt-(y-startY))/HalfHt);
+                    color.alpha = (double)orig.alpha*(1.0-std::abs(HalfWi-x-startX)/HalfWi);
                 } else {
-                    hsv.value*=1.0-std::abs(HalfHt-y-startY)/HalfHt;
+                    hsv.value*=1.0-std::abs(HalfWi-x-startX)/HalfWi;
                     color = hsv;
                 }
             }
-            SetPixel(x, y, color);
+            for (y=startY; y<=endY; y++)
+            {
+                if (VertFade) {
+                    if (allowAlpha) {
+                        color.alpha = (double)orig.alpha*(1.0-std::abs(HalfHt-(y-startY))/HalfHt);
+                    } else {
+                        hsv.value*=1.0-std::abs(HalfHt-y-startY)/HalfHt;
+                        color = hsv;
+                    }
+                }
+                SetPixel(x, y, color);
+            }
         }
     }
+    
+    wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
+    eff->GetBackgroundDisplayList().resize((curEffEndPer - curEffStartPer + 1) * 4);
+    CopyPixelsToDisplayListX(eff, startY, startX, startX);
 }

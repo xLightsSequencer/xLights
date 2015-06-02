@@ -1,13 +1,14 @@
 
 void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, float cycles);
 void RenderOff(void);
-void RenderOn(int start, int end, bool shimmer, float cycles);
+void RenderOn(Effect *eff, int start, int end, bool shimmer, float cycles);
 void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip,
                      int ButterflyDirection, int butterFlySpeed);
 void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
                    bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade,
                    int circleSpeed);
-void RenderColorWash(bool HorizFade, bool VertFade, float cycles,
+void RenderColorWash(Effect *eff,
+                     bool HorizFade, bool VertFade, float cycles,
                      bool EntireModel, int x1, int y1, int x2, int y2,
                      bool shimmer,
                      bool circularPalette);

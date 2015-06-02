@@ -397,6 +397,9 @@ int ModelClass::GetPreviewRotation() {
 // parm3=StrandsPerString
 void ModelClass::InitVMatrix(int firstExportStrand) {
     int y,x,idx,stringnum,segmentnum,yincr;
+    if (parm3 > parm2) {
+        parm3 = parm2;
+    }
     int NumStrands=parm1*parm3;
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;
@@ -502,6 +505,9 @@ void ModelClass::SetArchCoord() {
 // parm3=StrandsPerString
 void ModelClass::InitHMatrix() {
     int y,x,idx,stringnum,segmentnum,xincr;
+    if (parm3 > parm2) {
+        parm3 = parm2;
+    }
     int NumStrands=parm1*parm3;
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;

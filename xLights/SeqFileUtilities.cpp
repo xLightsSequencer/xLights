@@ -2378,7 +2378,7 @@ void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int ef
         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
     
     double start_time = pos * 50.0 / 4410.0 / 1000;
-    double end_time = epos * 50.0 / 4410.0 / 1000;
+    double end_time = (epos - 1) * 50.0 / 4410.0 / 1000;
     layer->AddEffect(0, effect, settings, palette, start_time, end_time, false, false);
 }
 void MapLSPEffects(EffectLayer *layer, wxXmlNode *node, const wxColor &c) {
@@ -2445,21 +2445,37 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
         if (ent->GetName() == "Sequence") {
             seq_xml.Load(zin);
         } else {
+            wxString id("1");
             wxXmlDocument &doc =  cont_xml[ent->GetName()];
             doc.Load(zin);
-            
+            for (wxXmlNode *nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
+                if (nd->GetName() == "ControllerID") {
+                    id = nd->GetChildren()->GetContent();
+                }
+            }
             for (wxXmlNode *nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
                 if (nd->GetName() == "Channels") {
                     for (wxXmlNode *cnd = nd->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
                         if (cnd->GetName() == "Channel") {
+                            wxString cname;
+                            wxString id;
+                            wxString ord;
+                            
                             for (wxXmlNode *cnnd = cnd->GetChildren(); cnnd != nullptr; cnnd = cnnd->GetNext()) {
                                 if (cnnd->GetName() == "Name") {
-                                    wxString cname = cnnd->GetChildren()->GetContent();
-                                    nodes[cname] = cnd;
-                                    dlg.channelNames.push_back(cname);
-                                    dlg.channelColors[cname] = xlWHITE;
+                                    cname = cnnd->GetChildren()->GetContent();
+                                }
+                                if (cnnd->GetName() == "ChannelID") {
+                                    id = cnnd->GetChildren()->GetContent();
+                                }
+                                if (cnnd->GetName() == "ChannelOrdinal") {
+                                    ord = cnnd->GetChildren()->GetContent();
                                 }
                             }
+                            cname = id + "-" + ord + ": " + cname;
+                            nodes[cname] = cnd;
+                            dlg.channelNames.push_back(cname);
+                            dlg.channelColors[cname] = xlWHITE;
                         }
                     }
                 }

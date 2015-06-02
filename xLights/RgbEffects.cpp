@@ -496,7 +496,27 @@ void RgbEffects::GetEffectPeriods( int& start, int& endp)
     endp = curEffEndPer;
 }
 
-
+void RgbEffects::SetDisplayListRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
+                                    const xlColor &c1, const xlColor &c2) {
+    eff->GetBackgroundDisplayList()[idx].color = c1;
+    eff->GetBackgroundDisplayList()[idx+1].color = c1;
+    eff->GetBackgroundDisplayList()[idx+2].color = c2;
+    eff->GetBackgroundDisplayList()[idx+3].color = c2;
+    eff->GetBackgroundDisplayList()[idx].x = x1;
+    eff->GetBackgroundDisplayList()[idx+1].x = x1;
+    eff->GetBackgroundDisplayList()[idx+2].x = x2;
+    eff->GetBackgroundDisplayList()[idx+3].x = x2;
+    
+    eff->GetBackgroundDisplayList()[idx].y = y1;
+    eff->GetBackgroundDisplayList()[idx+1].y = y2;
+    eff->GetBackgroundDisplayList()[idx+2].y = y2;
+    eff->GetBackgroundDisplayList()[idx+3].y = y1;
+    
+    eff->GetBackgroundDisplayList()[idx].usage = GL_QUADS;
+    eff->GetBackgroundDisplayList()[idx+1].usage = GL_QUADS;
+    eff->GetBackgroundDisplayList()[idx+2].usage = GL_QUADS;
+    eff->GetBackgroundDisplayList()[idx+3].usage = GL_QUADS;
+}
 void RgbEffects::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex) {
     wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
     int count = curEffEndPer - curEffStartPer + 1;
@@ -513,25 +533,7 @@ void RgbEffects::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex) 
         GetPixel(p, row, c);
         
         int idx = (p - sx) * count + (curPeriod - curEffStartPer);
-        
-        eff->GetBackgroundDisplayList()[idx*4].color = c;
-        eff->GetBackgroundDisplayList()[idx*4+1].color = c;
-        eff->GetBackgroundDisplayList()[idx*4+2].color = c;
-        eff->GetBackgroundDisplayList()[idx*4+3].color = c;
-        eff->GetBackgroundDisplayList()[idx*4].x = x;
-        eff->GetBackgroundDisplayList()[idx*4+1].x = x;
-        eff->GetBackgroundDisplayList()[idx*4+2].x = x2;
-        eff->GetBackgroundDisplayList()[idx*4+3].x = x2;
-        
-        eff->GetBackgroundDisplayList()[idx*4].y = y;
-        eff->GetBackgroundDisplayList()[idx*4+1].y = y2;
-        eff->GetBackgroundDisplayList()[idx*4+2].y = y2;
-        eff->GetBackgroundDisplayList()[idx*4+3].y = y;
-        
-        eff->GetBackgroundDisplayList()[idx*4].usage = GL_QUADS;
-        eff->GetBackgroundDisplayList()[idx*4+1].usage = GL_QUADS;
-        eff->GetBackgroundDisplayList()[idx*4+2].usage = GL_QUADS;
-        eff->GetBackgroundDisplayList()[idx*4+3].usage = GL_QUADS;
+        SetDisplayListRect(eff, idx*4, x, y, x2, y2, c, c);
     }
 }
 

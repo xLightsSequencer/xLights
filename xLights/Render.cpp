@@ -754,7 +754,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     } else if (effect == "Off") {
         buffer.RenderOff();
     } else if (effect == "On") {
-        buffer.RenderOn(wxAtoi(SettingsMap.Get("TEXTCTRL_Eff_On_Start", "100")),
+        buffer.RenderOn(effectObj,
+                        wxAtoi(SettingsMap.Get("TEXTCTRL_Eff_On_Start", "100")),
                         wxAtoi(SettingsMap.Get("TEXTCTRL_Eff_On_End", "100")),
                         wxAtoi(SettingsMap.Get("CHECKBOX_On_Shimmer", "0")),
                         wxAtof(SettingsMap.Get("TEXTCTRL_On_Cycles", "1.0")));
@@ -763,7 +764,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                           BarEffectDirections.Index(SettingsMap["CHOICE_Bars_Direction"]),
                           SettingsMap["CHECKBOX_Bars_Highlight"]=="1",
                           SettingsMap["CHECKBOX_Bars_3D"]=="1",
-                          wxAtoi(SettingsMap.Get("TEXTCTRL_Bars_Cycles", "1.0")));
+                          wxAtof(SettingsMap.Get("TEXTCTRL_Bars_Cycles", "1.0")));
     } else if (effect == "Butterfly") {
         buffer.RenderButterfly(ButterflyEffectColors.Index(SettingsMap["CHOICE_Butterfly_Colors"]),
                                wxAtoi(SettingsMap["SLIDER_Butterfly_Style"]),
@@ -787,7 +788,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                              );
 
     } else if (effect == "Color Wash") {
-        buffer.RenderColorWash(SettingsMap["CHECKBOX_ColorWash_HFade"]=="1",
+        buffer.RenderColorWash(effectObj,
+                               SettingsMap["CHECKBOX_ColorWash_HFade"]=="1",
                                SettingsMap["CHECKBOX_ColorWash_VFade"]=="1",
                                wxAtof(SettingsMap.Get("TEXTCTRL_ColorWash_Cycles", "1.0")),
                                wxAtoi(SettingsMap.Get("CHECKBOX_ColorWash_EntireModel", "1")),

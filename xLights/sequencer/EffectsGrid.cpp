@@ -1322,7 +1322,20 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
         //need to make some decisions about the colors to be used.
         return 1;
     }
+    
+    //some effects might have pre-rendered display lists.  Use those before dropping to the generic routines
+    switch (e->GetEffectIndex()) {
+        case BitmapCache::RGB_EFFECTS_e::eff_ON:
+        case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH:
+        case BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND: {
+            if (e->HasBackgroundDisplayList()) {
+                DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList());
+                return e->GetBackgroundDisplayList().iconSize;
+            }
+        }
+    }
 
+    //haven't rendered an effect background yet, use a default redering mechanism
     switch (e->GetEffectIndex()) {
         case BitmapCache::RGB_EFFECTS_e::eff_ON: {
             xlColor start;
@@ -1415,12 +1428,6 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
             return 0;
         }
         break;
-        case BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND: {
-            if (e->HasBackgroundDisplayList()) {
-                DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList());
-                return e->GetBackgroundDisplayList().iconSize;
-            }
-        }
         default: {}
     }
     return 1;
