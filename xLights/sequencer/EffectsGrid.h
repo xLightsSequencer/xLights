@@ -22,6 +22,7 @@
 #define EFFECT_RESIZE_NO                    0
 #define EFFECT_RESIZE_LEFT                  1
 #define EFFECT_RESIZE_RIGHT                 2
+#define EFFECT_RESIZE_MOVE                  3
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
@@ -141,13 +142,10 @@ private:
     int mStartResizeTime;
     bool mResizing;
     bool mDragging;
-    bool mEffectDragging;
     int mDragStartX;
     int mDragStartY;
     int mDragEndX;
     int mDragEndY;
-    int mEffectDragStartX;
-    int mEffectDragEndX;
 
     EffectLayer* mEffectLayer;
     int mResizeEffectIndex;

@@ -156,19 +156,25 @@ bool EffectLayer::HitTestEffect(int position,int &index, int &result)
         if (position >= mEffects[i]->GetStartPosition() &&
             position <= mEffects[i]->GetEndPosition())
         {
-            isHit = true;
             index = i;
             if(position < mEffects[i]->GetStartPosition() + 5)
             {
+                isHit = true;
                 result = HIT_TEST_EFFECT_LT;
             }
             else if(position > mEffects[i]->GetEndPosition() - 5)
             {
+                isHit = true;
                 result = HIT_TEST_EFFECT_RT;
             }
             else
             {
-                result = HIT_TEST_EFFECT_CTR;
+                int midpoint = mEffects[i]->GetStartPosition() + (mEffects[i]->GetEndPosition()-mEffects[i]->GetStartPosition())/2;
+                if( std::abs(position - midpoint) <= 7 )
+                {
+                    isHit = true;
+                    result = HIT_TEST_EFFECT_CTR;
+                }
             }
             break;
         }

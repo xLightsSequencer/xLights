@@ -49,7 +49,6 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
 {
     mParent = parent;
     mDragging = false;
-    mEffectDragging = false;
     mResizing = false;
     mDragDropping = false;
     mDropStartX = 0;
@@ -213,7 +212,6 @@ void EffectsGrid::ProcessDroppedEffect(Effect* effect)
 void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
 {
     mDragging = false;
-    mEffectDragging = false;
     mResizing = false;
     mDragDropping = false;
     mResizingMode = EFFECT_RESIZE_NO;
@@ -346,41 +344,6 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
         CheckForSelectionRectangle();
         Refresh(false);
     }
-    else if( mEffectDragging )
-    {
-        int offset = event.GetX() - mDragStartX;
-        int new_start_pos = mEffectDragStartX + offset;
-        int new_end_pos = mEffectDragEndX + offset;
-        if( new_start_pos >= 0 )
-        {
-            bool ok_to_move = false;
-            double t1 = mTimeline->GetAbsoluteTimefromPosition(new_start_pos);
-            double t2 = mTimeline->GetAbsoluteTimefromPosition(new_end_pos);
-            EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
-            if( new_start_pos < mSelectedEffect->GetStartPosition() )
-            {
-                double t3 = mSelectedEffect->GetStartTime();
-                if( el->GetRangeIsClear(t1, t3) ) {
-                    ok_to_move = true;
-                }
-            }
-            else if( new_start_pos > mSelectedEffect->GetStartPosition() )
-            {
-                double t3 = mSelectedEffect->GetEndTime();
-                if( el->GetRangeIsClear(t3, t2) ) {
-                    ok_to_move = true;
-                }
-            }
-            if( ok_to_move )
-            {
-                mSelectedEffect->SetStartPosition(new_start_pos);
-                mSelectedEffect->SetEndPosition(new_end_pos);
-                mSelectedEffect->SetStartTime(t1);
-                mSelectedEffect->SetEndTime(t2);
-                Refresh(false);
-            }
-        }
-    }
     else
     {
         if(!out_of_bounds)
@@ -429,19 +392,19 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         {
             selected_time = (int)(selectedEffect->GetEndTime()*1000.0);
         }
-        else if( selectionType == EFFECT_SELECTED )
+        else if( mResizingMode == EFFECT_RESIZE_MOVE )
         {
-            mDragStartX = event.GetX();
-            mEffectDragStartX = selectedEffect->GetStartPosition();
-            mEffectDragEndX = selectedEffect->GetEndPosition();
-            mDragStartY = event.GetY();
-            CaptureMouse();
-            mEffectDragging = true;
+            int midpoint = selectedEffect->GetStartPosition() + (selectedEffect->GetEndPosition()-selectedEffect->GetStartPosition())/2;
+            selected_time = (int)(midpoint*1000.0);
         }
-        if(selectedEffect->GetSelected() != selectionType && !(event.ShiftDown() || event.ControlDown() || event.AltDown()))
+        //if(selectedEffect->GetSelected() != selectionType && !(event.ShiftDown() || event.ControlDown() || event.AltDown()))
+        if(!(event.ShiftDown() || event.ControlDown() || event.AltDown()))
         {
             mSequenceElements->UnSelectAllEffects();
-            selectedEffect->SetSelected(selectionType);
+            if(( selectionType != EFFECT_SELECTED ) || ((selectionType == EFFECT_SELECTED) && ( mResizingMode == EFFECT_RESIZE_MOVE )))
+            {
+                selectedEffect->SetSelected(selectionType);
+            }
         }
 
         mEffectLayer = mSequenceElements->GetEffectLayer(row);
@@ -469,7 +432,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     }
     else
     {
-        if( !mDragging && !mEffectDragging)
+        if( !mDragging)
         {
             if( !event.ShiftDown() || (mDragStartX == -1) )
             {
@@ -555,13 +518,6 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
             && mDragStartY == event.GetY()) {
             checkForEmptyCell = true;
         }
-
-    } else if (mEffectDragging) {
-        sendRenderEvent(mSelectedEffect->GetParentEffectLayer()->GetParentElement()->GetName(),
-                        mSelectedEffect->GetStartTime(),
-                        mSelectedEffect->GetEndTime());
-        ReleaseMouse();
-        mEffectDragging = false;
     } else {
         checkForEmptyCell = true;
     }
@@ -630,7 +586,7 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
 
 void EffectsGrid::Resize(int position, bool offset)
 {
-    if(MultipleEffectsSelected())
+    if(MultipleEffectsSelected() || mResizingMode == EFFECT_RESIZE_MOVE)
     {
         ResizeMoveMultipleEffects(position, offset);
     }
@@ -1003,16 +959,24 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
     {
         deltaTime = time - mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTime();
     }
-    if(deltaTime<0)
+    else if(mResizingMode == EFFECT_RESIZE_MOVE)
     {
-        if (std::abs(deltaTime)< toLeft)
+        double midpoint = mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTime() +
+                            (mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTime() - mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTime())/2.0;
+        deltaTime = time - midpoint;
+    }
+    if(deltaTime < 0.0)
+    {
+        deltaTime = std::max(deltaTime, -toLeft);
+        if( deltaTime < 0.0 )
         {
-            MoveAllSelectedEffects(deltaTime, offset);
+             MoveAllSelectedEffects(deltaTime, offset);
         }
     }
     else
     {
-        if (deltaTime< toRight)
+        deltaTime = std::min(deltaTime, toRight);
+        if (deltaTime > 0.0)
         {
             MoveAllSelectedEffects(deltaTime, offset);
         }
@@ -1097,6 +1061,11 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
         {
             SetCursor(wxCURSOR_SIZEWE);
             mResizingMode = EFFECT_RESIZE_RIGHT;
+        }
+        else if (result == HIT_TEST_EFFECT_CTR)
+        {
+            SetCursor(wxCURSOR_HAND);
+            mResizingMode = EFFECT_RESIZE_MOVE;
         }
         else
         {
@@ -1929,7 +1898,7 @@ void EffectsGrid::MoveAllSelectedEffects(double delta, bool offset)
         for(int row=start_row;row<=end_row;row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-            if( mResizingMode == EFFECT_RESIZE_RIGHT ) {
+            if( mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_MOVE) {
                 el->MoveAllSelectedEffects(delta_step*(double)(row-start_row));
             } else {
                 el->MoveAllSelectedEffects(delta_step*(double)(end_row-row));
