@@ -320,7 +320,7 @@ void LMSImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
         }
         for (int x = 0; x < ChannelMapGrid->GetRows(); x++) {
             wxColor wxc = ChannelMapGrid->GetCellBackgroundColour(x, 4);
-            xlColor c(wxc.GetRGB());
+            xlColor c(wxc);
             text.WriteString(ChannelMapGrid->GetCellValue(x, 0)
                              + "\t" + ChannelMapGrid->GetCellValue(x, 1)
                              + "\t" + ChannelMapGrid->GetCellValue(x, 2)

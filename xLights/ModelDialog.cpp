@@ -814,7 +814,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
 
 
     if (ColorPicker->IsEnabled()) {
-        e->AddAttribute("CustomColor", xlColor(ColorPicker->GetColour().GetRGB()));
+        e->AddAttribute("CustomColor", xlColor(ColorPicker->GetColour()));
     }
     e->AddAttribute("Antialias", wxString::Format("%d", pixelStyle));
     e->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));

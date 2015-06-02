@@ -37,7 +37,7 @@ int RgbEffects::Life_CountNeighbors(int x0, int y0)
         y=(y0+n_y[i]) % BufferHt;
         if (x < 0) x+=BufferWi;
         if (y < 0) y+=BufferHt;
-        if (GetTempPixelRGB(x,y) != 0) cnt++;
+        if (GetTempPixelRGB(x,y) != xlBLACK) cnt++;
     }
     return cnt;
 }
@@ -82,7 +82,7 @@ void RgbEffects::RenderLife(int Count, int Type, int lspeed)
         for (y=0; y < BufferHt; y++)
         {
             GetTempPixel(x,y,color);
-            isLive=(color.GetRGB() != 0);
+            isLive = color != xlBLACK;
             cnt=Life_CountNeighbors(x,y);
             switch (Type)
             {

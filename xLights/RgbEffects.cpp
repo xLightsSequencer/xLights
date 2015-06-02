@@ -417,13 +417,13 @@ void RgbEffects::GetTempPixel(int x, int y, xlColour &color)
     }
 }
 
-wxUint32 RgbEffects::GetTempPixelRGB(int x, int y)
+const xlColor& RgbEffects::GetTempPixelRGB(int x, int y)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
-        return tempbuf[y*BufferWi+x].GetRGB();
+        return tempbuf[y*BufferWi+x];
     }
-    return 0;
+    return xlBLACK;
 }
 
 void RgbEffects::SetState(int period, bool ResetState, const wxString& model_name)

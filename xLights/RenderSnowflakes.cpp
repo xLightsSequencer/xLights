@@ -51,7 +51,7 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed)
             {
                 x=rand() % BufferWi;
                 y=y0 + (rand() % delta_y);
-                if (GetTempPixelRGB(x,y) == 0) break;
+                if (GetTempPixelRGB(x,y) == xlBLACK) break;
             }
             // draw flake, SnowflakeType=0 is random type
             switch (SnowflakeType == 0 ? rand() % 5 : SnowflakeType-1)
@@ -145,7 +145,7 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed)
             new_y = (y+effectState/10) % BufferHt;
             new_y2 = (new_y + BufferHt/2) % BufferHt;
             GetTempPixel(new_x,new_y,color1);
-            if (color1.GetRGB() == 0) GetTempPixel(new_x2,new_y2,color1);
+            if (color1 == xlBLACK) GetTempPixel(new_x2,new_y2,color1);
             SetPixel(x,y,color1);
         }
     }

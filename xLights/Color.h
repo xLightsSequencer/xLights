@@ -13,12 +13,25 @@ public:
         red = green = blue = 0;
         alpha = 255;
     }
-    xlColor(unsigned int rgb) {
-        red = rgb & 0xff;
-        green = (rgb >> 8) & 0xff;
-        blue = (rgb >> 16) & 0xff;
+    xlColor(unsigned int rgb, bool BBGGRR = false) {
+        if (BBGGRR) {
+            red = rgb & 0xff;
+            green = (rgb >> 8) & 0xff;
+            blue = (rgb >> 16) & 0xff;
+        } else {
+            blue = rgb & 0xff;
+            green = (rgb >> 8) & 0xff;
+            red = (rgb >> 16) & 0xff;
+        }
         alpha = 255;
     }
+    xlColor(const wxColor &c) {
+        red = c.Red();
+        green = c.Green();
+        blue = c.Blue();
+        alpha = 255;
+    }
+    
     xlColor(unsigned char r, unsigned char g, unsigned char b) {
         red = r;
         green = g;
@@ -101,9 +114,14 @@ public:
     wxImage::HSVValue asHSV() const {
         return wxImage::RGBtoHSV(*this);
     }
-    wxUint32 GetRGB() const
-    { return Red() | (Green() << 8) | (Blue() << 16); }
-
+    wxUint32 GetRGB(bool BBGGRR = true) const
+    {
+        if (BBGGRR) {
+            return Red() | (Green() << 8) | (Blue() << 16);
+        } else {
+            return Blue() | (Green() << 8) | (Red() << 16);
+        }
+    }
     operator wxString() const {
         return wxString::Format("#%02x%02x%02x", red, green, blue);
     }

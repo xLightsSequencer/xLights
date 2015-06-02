@@ -349,9 +349,9 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         break;
     case Mix_Average:
         // only average when both colors are non-black
-        if (c0.GetRGB() == 0) {
+        if (c0 == xlBLACK) {
             c=c1;
-        } else if (c1.GetRGB() == 0) {
+        } else if (c1 == xlBLACK) {
             c=c0;
         } else {
             c.Set( (c0.Red()+c1.Red())/2, (c0.Green()+c1.Green())/2, (c0.Blue()+c1.Blue())/2 );
@@ -389,7 +389,7 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
             effects[layer].GetPixel(x, y, color);
 
             // add sparkles
-            if (sparkle_count[layer] > 0 && color.GetRGB() != 0) {
+            if (sparkle_count[layer] > 0 && color != xlBLACK) {
                 switch (sparkle % (208 - sparkle_count[layer])) {
                     case 1:
                     case 7:

@@ -484,7 +484,7 @@ protected:
     void DrawLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color );
     void DrawThickLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction );
 
-    wxUint32 GetTempPixelRGB(int x, int y);
+    const xlColor &GetTempPixelRGB(int x, int y);
 
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
