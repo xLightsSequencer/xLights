@@ -1183,6 +1183,7 @@ private:
     long DragRowIdx;
     wxListCtrl* DragListBox;
     bool UnsavedChanges;
+    int mSavedChangeCount;
     wxDateTime starttime;
     play_modes play_mode;
     NetInfoClass NetInfo;
@@ -1419,7 +1420,7 @@ protected:
     void NewSequence();
     void OpenSequence();
     void SaveSequence();
-    void CloseSequence();
+    bool CloseSequence();
     void RenderAll();
     void InsertRow();
     void UpdatePreview();
@@ -1500,10 +1501,6 @@ protected:
 
     wxString lastPlayEffect;
     double mPointSize = 2.0;
-
-    // fast save support
-    int changedColumn;
-    int changedRow;
 
 //    std::vector<ModelClassPtr> PreviewModels;
     wxHtmlEasyPrinting* HtmlEasyPrint;

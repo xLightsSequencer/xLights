@@ -1,6 +1,6 @@
 #include "Element.h"
 #include "ModelClass.h"
-Element::Element(wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected)
+Element::Element(ChangeLister *l, wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected)
 :   mEffectLayers(),
     mName(name),
     mElementType(type),
@@ -8,7 +8,8 @@ Element::Element(wxString &name, wxString &type,bool visible,bool collapsed, boo
     mCollapsed(collapsed),
     mActive(active),
     mSelected(selected),
-    mFixed(0)
+    mFixed(0),
+    listener(l)
 {
 }
 
@@ -140,6 +141,8 @@ void Element::IncrementChangeCount(int sms, int ems)
 {
     SetDirtyRange(sms, ems);
     changeCount++;
+    
+    listener->IncrementChangeCount();
 }
 
 void Element::InitStrands(wxXmlNode *node, NetInfoClass &netInfo) {

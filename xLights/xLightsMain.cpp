@@ -1909,6 +1909,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     effGridPrevX = 0;
     effGridPrevY = 0;
     m_creating_bound_rect = false;
+    mSavedChangeCount = 0;
 
     // Load headings into network list
     wxListItem itemCol;
@@ -2746,15 +2747,15 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
-    selectedEffect = NULL;
-
-    StopNow();
     wxLogDebug("xLightsFrame::OnClose");
-    if (UnsavedChanges && wxNO == wxMessageBox("Quit without saving?",
-            "Unsaved Changes", wxICON_QUESTION | wxYES_NO))
-    {
+    
+    if (!CloseSequence()) {
+        event.Veto();
         return;
     }
+    selectedEffect = NULL;
+    
+    StopNow();
 
     heartbeat("exit", true); //tell fido about graceful exit -DJ
     //ScrolledWindow1->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);

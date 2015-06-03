@@ -16,10 +16,15 @@ enum ElementType
 
 class NetInfoClass;
 
+class ChangeLister {
+public:
+    virtual void IncrementChangeCount() = 0;
+};
+
 class Element
 {
     public:
-        Element(wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected);
+        Element(ChangeLister *l, wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected);
         virtual ~Element();
 
         wxString GetName();
@@ -106,6 +111,7 @@ class Element
         std::vector<EffectLayer*> mEffectLayers;
         std::vector<StrandLayer*> mStrandLayers;
     
+        ChangeLister *listener;
         volatile int changeCount = 0;
         volatile int dirtyStart = -1;
         volatile int dirtyEnd = -1;

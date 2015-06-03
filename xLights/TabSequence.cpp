@@ -392,6 +392,7 @@ void xLightsFrame::SaveSequence()
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
     CallAfter(&xLightsFrame::SetStatusText, displayBuff);
     EnableSequenceControls(true);
+    mSavedChangeCount = mSequenceElements.GetChangeCount();
 }
 
 void xLightsFrame::RenderAll()

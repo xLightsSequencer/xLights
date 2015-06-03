@@ -15,6 +15,7 @@ SequenceElements::SequenceElements()
     mMaxRowsDisplayed = 0;
     mFirstVisibleModelRow = 0;
     mModelsNode = nullptr;
+    mChangeCount = 0;
 }
 
 SequenceElements::~SequenceElements()
@@ -36,6 +37,7 @@ void SequenceElements::Clear() {
     mSelectedTimingRow = -1;
     mTimingRowCount = 0;
     mFirstVisibleModelRow = 0;
+    mChangeCount = 0;
 }
 
 EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
@@ -57,7 +59,8 @@ Element* SequenceElements::AddElement(wxString &name,wxString &type,bool visible
 {
     if(!ElementExists(name))
     {
-        mElements.push_back(new Element(name,type,visible,collapsed,active,selected));
+        mElements.push_back(new Element(this, name,type,visible,collapsed,active,selected));
+        IncrementChangeCount();
         return mElements[mElements.size()-1];
     }
     return NULL;
@@ -67,7 +70,8 @@ Element* SequenceElements::AddElement(int index,wxString &name,wxString &type,bo
 {
     if(!ElementExists(name) && index <= mElements.size())
     {
-        mElements.insert(mElements.begin()+index,new Element(name,type,visible,collapsed,active,selected));
+        mElements.insert(mElements.begin()+index,new Element(this, name,type,visible,collapsed,active,selected));
+        IncrementChangeCount();
         return mElements[index];
     }
     return NULL;
@@ -147,6 +151,7 @@ void SequenceElements::DeleteElement(const wxString &name)
         {
             Element *e = mElements[i];
             mElements.erase(mElements.begin()+i);
+            IncrementChangeCount();
             delete e;
         }
     }
@@ -190,6 +195,7 @@ void SequenceElements::SortElements()
 
 void SequenceElements::MoveElement(int index,int destinationIndex)
 {
+    IncrementChangeCount();
     if(index<destinationIndex)
     {
         mElements[index]->Index = destinationIndex;
@@ -788,6 +794,8 @@ void SequenceElements::SetVisibilityForAllModels(bool visibility)
 
 void SequenceElements::MoveSequenceElement(int index, int dest)
 {
+    IncrementChangeCount();
+
     if(index<mElements.size() && dest<mElements.size())
     {
         Element* e = mElements[index];
@@ -805,6 +813,8 @@ void SequenceElements::MoveSequenceElement(int index, int dest)
 
 void SequenceElements::MoveElementUp(const wxString &name)
 {
+    IncrementChangeCount();
+
     for(int i=0;i<mElements.size();i++)
     {
         if(name == mElements[i]->GetName())
@@ -821,6 +831,8 @@ void SequenceElements::MoveElementUp(const wxString &name)
 
 void SequenceElements::MoveElementDown(const wxString &name)
 {
+    IncrementChangeCount();
+
     for(int i=0;i<mElements.size();i++)
     {
         if(name == mElements[i]->GetName())

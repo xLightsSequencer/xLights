@@ -285,6 +285,8 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     sPreview1->Refresh();
     sPreview2->Refresh();
     m_mgr->Update();
+    
+    mSavedChangeCount = mSequenceElements.GetChangeCount();
 }
 
 void xLightsFrame::EffectsResize(wxSizeEvent& event)

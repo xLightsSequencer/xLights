@@ -12,7 +12,9 @@
 void xLightsFrame::NewSequence()
 {
     // close any open sequences
-    CloseSequence();
+    if (!CloseSequence()) {
+        return;
+    }
 
     // assign global xml file object
     wxFileName xml_file;
@@ -77,7 +79,9 @@ void xLightsFrame::OpenSequence()
     if ( !filename.empty() )
     {
         // close any open sequences
-        CloseSequence();
+        if (!CloseSequence()) {
+            return;
+        }
 
         wxStopWatch sw; // start a stopwatch timer
 
@@ -241,12 +245,12 @@ void xLightsFrame::OpenSequence()
     }
 }
 
-void xLightsFrame::CloseSequence()
+bool xLightsFrame::CloseSequence()
 {
-    if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
+    if (mSavedChangeCount !=  mSequenceElements.GetChangeCount() && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
                                                "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
     {
-        return;
+        return false;
     }
 
     // clear everything to prepare for new sequence
@@ -255,8 +259,6 @@ void xLightsFrame::CloseSequence()
     previewLoaded = false;
     previewPlaying = false;
     ResetTimer(NO_SEQ);
-    changedRow = 99999;
-    changedColumn = 99999;
     playType = 0;
     selectedEffect = NULL;
     if( CurrentSeqXmlFile )
@@ -265,12 +267,14 @@ void xLightsFrame::CloseSequence()
         CurrentSeqXmlFile = NULL;
     }
     mSequenceElements.Clear();
+    mSavedChangeCount = mSequenceElements.GetChangeCount();
 
     mainSequencer->PanelWaveForm->CloseMediaFile();
 
     EnableSequenceControls(true);  // let it re-evaluate menu state
     MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, false);
     Menu_Settings_Sequence->Enable(false);
+    return true;
 }
 
 bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)

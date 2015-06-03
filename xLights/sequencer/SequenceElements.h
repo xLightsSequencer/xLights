@@ -45,7 +45,7 @@ class wxXmlNode;
 class EffectLayer;
 class NetInfoClass;
 
-class SequenceElements
+class SequenceElements : public ChangeLister
 {
     public:
         SequenceElements();
@@ -108,6 +108,8 @@ class SequenceElements
         EffectLayer* GetEffectLayer(Row_Information_Struct *s);
         EffectLayer* GetEffectLayer(int row);
 
+        virtual void IncrementChangeCount() {mChangeCount++;}
+        int GetChangeCount() { return mChangeCount;}
     protected:
     private:
         void LoadEffects(EffectLayer *layer,
@@ -142,6 +144,7 @@ class SequenceElements
 
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
         int mFirstVisibleModelRow;
+        int mChangeCount;
 };
 
 

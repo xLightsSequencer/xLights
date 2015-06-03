@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Prompt if changes before close or open of new file.  Fixes #247
     -- enh(dkulp) Start work on Import of channels from LSP msq files
     -- enh(dkulp) Allow Fire to be from top/left/right/bottom   Fixes #245 (kind of)
     -- enh(dkulp) Allow effects to provide a "pre-rendered" background for display on the grid.  Update "SKips" effect to use it.  (provides scroll performance enhancement)
