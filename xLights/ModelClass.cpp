@@ -1997,7 +1997,7 @@ int ModelClass::GetStrandLength(int strand) const {
     if ("Custom" == DisplayAs) {
         return Nodes.size();
     } else if ("Star" == DisplayAs) {
-        return GetStarSize(strand);
+        return SingleNode ? 1 : GetStarSize(strand);
     }
     return GetNodeCount() / GetNumStrands();
 }
