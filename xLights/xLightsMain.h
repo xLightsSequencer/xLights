@@ -569,6 +569,7 @@ private:
     void SetPlaySpeed(wxCommandEvent& event);
     void OnBitmapButton_Link_DirsClick(wxCommandEvent& event);
     void OnAuiToolBarItemModelsClick(wxCommandEvent& event);
+    void OnMenuItemRenderOnSave(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -857,6 +858,7 @@ private:
     static const long ID_PLAY_1_4;
     static const long ID_IMPORT_EFFECTS;
     static const long ID_SEQ_SETTINGS;
+    static const long ID_RENDER_ON_SAVE;
     static const long ID_MENUITEM_ICON_SMALL;
     static const long ID_MENUITEM_ICON_MEDIUM;
     static const long ID_MENUITEM_ICON_LARGE;
@@ -935,7 +937,6 @@ private:
     wxButton* ButtonTestSelectAll;
     wxButton* ButtonSaveSchedule;
     wxRadioButton* RadioButtonRgbTwinkle50;
-    wxMenu* MenuItem16;
     wxStaticText* StaticText27;
     DragEffectBitmapButton* BitmapButton13;
     DragEffectBitmapButton* BitmapButton4;
@@ -996,6 +997,7 @@ private:
     wxSlider* Slider_BackgroundBrightness;
     wxPanel* PreviewGLPanel;
     wxStaticText* StaticText10;
+    wxMenuItem* mRenderOnSaveMenuItem;
     wxButton* ButtonBuildWholeHouseModel;
     wxTextCtrl* TextCtrlPreviewElementSize;
     wxStaticText* StaticText35;
@@ -1033,6 +1035,7 @@ private:
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
     DragEffectBitmapButton* BitmapButton30;
+    wxMenu* ToolIconSizeMenu;
     wxStaticText* StaticText_PgoOutputType;
     wxMenu* MenuItem1;
     wxMenuItem* MenuItemGridIconBackgroundOff;
@@ -1160,6 +1163,7 @@ private:
     wxButton* ButtonNetworkChange;
     wxCheckBox* CheckBox_CoroEyesRandomLR;
     wxTextCtrl* TextCtrlPreviewTime;
+    wxMenu* GridSpacingMenu;
     DragEffectBitmapButton* BitmapButton11;
     wxRadioButton* RadioButtonRgbCycle3;
     wxSlider* SliderBgColorA;
@@ -1482,6 +1486,7 @@ protected:
     bool SeqChanCtrlColor;
 
     bool mResetToolbars;
+    bool mRenderOnSave;
     int mIconSize;
     int mGridSpacing;
     bool mGridIconBackgrounds;
@@ -1521,8 +1526,6 @@ protected:
     wxArrayString PianoKeyPlacement;
     wxArrayString RippleObjectToDraw;
     wxArrayString RippleMovement;
-    wxArrayString SingleStrandTypes;
-    wxArrayString SingleStrandColors;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
     wxArrayString WaveType;

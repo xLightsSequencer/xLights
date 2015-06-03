@@ -948,10 +948,10 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                            SettingsMap["CHOICE_Skips_Direction"],
                                            wxAtoi(SettingsMap.Get("SLIDER_Skips_Advance", "0")));
         } else {
-            buffer.RenderSingleStrandChase(SingleStrandColors.Index(SettingsMap["CHOICE_SingleStrand_Colors"]),
+            buffer.RenderSingleStrandChase(SettingsMap.Get("CHOICE_SingleStrand_Colors", "Palette"),
                                            wxAtoi(SettingsMap["SLIDER_Number_Chases"]),
                                            wxAtoi(SettingsMap["SLIDER_Color_Mix1"]),
-                                           SingleStrandTypes.Index(SettingsMap["CHOICE_Chase_Type1"]),
+                                           SettingsMap.Get("CHOICE_Chase_Type1", "Left-Right"),
                                            SettingsMap["CHECKBOX_Chase_3dFade1"]=="1",
                                            SettingsMap["CHECKBOX_Chase_Group_All"]=="1",
                                            wxAtof(SettingsMap.Get("TEXTCTRL_Chase_Rotations", "1.0")));

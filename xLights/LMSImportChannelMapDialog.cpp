@@ -189,6 +189,9 @@ void LMSImportChannelMapDialog::AddModel(ModelClass &cls) {
 void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
 {
     wxString name = ModelsChoice->GetStringSelection();
+    if (name == "") {
+        return;
+    }
     ModelsChoice->Delete(ModelsChoice->GetSelection());
     Element * model = nullptr;
     for (int i=0;i<mSequenceElements->GetElementCount();i++) {
@@ -196,6 +199,9 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
             && name == mSequenceElements->GetElement(i)->GetName()) {
             model = mSequenceElements->GetElement(i);
         }
+    }
+    if (model == nullptr) {
+        return;
     }
     modelNames.push_back(name);
     ModelClass &cls = xlights->GetModelClass(name);

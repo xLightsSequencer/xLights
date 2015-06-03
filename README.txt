@@ -9,6 +9,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
     --bug(gil)    Add protection around calling cell selection logic with uninitialized values to prevent crashes.
     --enh(gil)    Grey out the Create Random effects option if there is no selection.
+    -- enh(dkulp) Add setting for Render at save.   Turning off will save the fseq in it's current state.
+    -- bug/enh (dkulp) Lots of work on SingleStrand Chase effect to get it to work better with small models and single color models and grouped arches.
 4.01.01  Jun 1, 2015
     -- enh(gil)   Improve selection logic so it shows a hand when near center of effect to allow drag but also allow selecting the cell underneath
                   if clicking between the center and the edge.  Also fixed the group move so it works with the hand and doesn't incorrectly

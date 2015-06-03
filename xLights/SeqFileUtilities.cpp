@@ -248,7 +248,7 @@ void xLightsFrame::OpenSequence()
 bool xLightsFrame::CloseSequence()
 {
     if (mSavedChangeCount !=  mSequenceElements.GetChangeCount() && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
-                                               "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
+                                               "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
     {
         return false;
     }
