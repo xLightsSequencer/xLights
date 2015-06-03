@@ -339,6 +339,15 @@ void MainSequencer::OnChar(wxKeyEvent& event)
 }
 void MainSequencer::CopySelectedEffects() {
     wxString copy_data;
+    int start_column = PanelEffectGrid->GetStartColumn();
+    double column_start_time = -1.0;
+    EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    if( tel != nullptr && start_column != -1) {
+        Effect* eff = tel->GetEffect(start_column);
+        if( eff != nullptr ) {
+            column_start_time = eff->GetStartTime();
+        }
+    }
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
         int row_number = mSequenceElements->GetRowInformation(i)->RowNumber;
@@ -349,7 +358,9 @@ void MainSequencer::CopySelectedEffects() {
                 wxString start_time = wxString::Format("%f",ef->GetStartTime());
                 wxString end_time = wxString::Format("%f",ef->GetEndTime());
                 wxString index = wxString::Format("%d",row_number);
-                copy_data += ef->GetEffectName() + "\t" + ef->GetSettingsAsString() + "\t" + ef->GetPaletteAsString() + "\t" + start_time + "\t" + end_time + "\t" + index + "\n";
+                wxString column_start = wxString::Format("%f",column_start_time);
+                copy_data += ef->GetEffectName() + "\t" + ef->GetSettingsAsString() + "\t" + ef->GetPaletteAsString() +
+                            "\t" + start_time + "\t" + end_time + "\t" + index + "\t" + column_start + "\n";
             }
         }
     }

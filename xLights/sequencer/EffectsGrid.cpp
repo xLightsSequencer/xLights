@@ -811,16 +811,25 @@ void EffectsGrid::Paste(const wxString &data) {
         if( all_efdata.size() > 2 )  // multi-effect paste
         {
             wxArrayString eff1data = wxSplit(all_efdata[0], '\t');
-            double drop_time_offset, new_start_time, new_end_time;
+            double drop_time_offset, new_start_time, new_end_time, column_start_time;
+            eff1data[6].ToDouble(&column_start_time);
             eff1data[3].ToDouble(&drop_time_offset);
-            drop_time_offset = mDropStartTime - drop_time_offset;
+            EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if( column_start_time < 0 || tel == nullptr)
+            {
+                drop_time_offset = mDropStartTime - drop_time_offset;
+            }
+            else
+            {
+                drop_time_offset = mDropStartTime - column_start_time;
+            }
             int drop_row = mSequenceElements->GetRowInformation(mDropRow)->RowNumber;
             int start_row = wxAtoi(eff1data[5]);
             int drop_row_offset = drop_row - start_row;
             for( int i = 0; i < all_efdata.size()-1; i++ )
             {
                 wxArrayString efdata = wxSplit(all_efdata[i], '\t');
-                if (efdata.size() < 6) {
+                if (efdata.size() < 7) {
                     break;
                 }
                 efdata[3].ToDouble(&new_start_time);
@@ -868,7 +877,7 @@ void EffectsGrid::Paste(const wxString &data) {
             int effectIndex = Effect::GetEffectIndex(efdata[0]);
             if (effectIndex >= 0) {
                 double end_time = mDropEndTime;
-                if( (efdata.size() == 6) && GetActiveTimingElement() == nullptr )  // use original effect length if no timing track is active
+                if( (efdata.size() == 7) && GetActiveTimingElement() == nullptr )  // use original effect length if no timing track is active
                 {
                     double drop_time_offset;
                     efdata[3].ToDouble(&drop_time_offset);

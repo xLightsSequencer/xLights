@@ -7,6 +7,11 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Improve selection logic so it shows a hand when near center of effect to allow drag but also allow selecting the cell underneath
+                  if clicking between the center and the edge.  Also fixed the group move so it works with the hand and doesn't incorrectly
+                  only move one effect when multiple are selected.
+    -- bug(gil)   Fix a couple crashes when clicking in grid without timing track active.
+    -- bug(gil)   Fix paste so it offsets within the selected cell if needed.
     -- enh(dkulp) Prompt if changes before close or open of new file.  Fixes #247
     -- enh(dkulp) Start work on Import of channels from LSP msq files
     -- enh(dkulp) Allow Fire to be from top/left/right/bottom   Fixes #245 (kind of)

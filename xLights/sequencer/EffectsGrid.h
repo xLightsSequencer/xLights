@@ -61,6 +61,7 @@ public:
 
     void Paste(const wxString &data);
     void SetCanPaste() { mCanPaste = true; }
+    int GetStartColumn() { return mRangeStartCol; }
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         xlights = xl;  seqData = data;

@@ -41,7 +41,7 @@ void SequenceElements::Clear() {
 }
 
 EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
-    
+
     Element* e = s->element;
     if (s->strandIndex == -1) {
         return e->GetEffectLayer(s->layerIndex);
@@ -52,6 +52,7 @@ EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
     }
 }
 EffectLayer* SequenceElements::GetEffectLayer(int row) {
+    if(row==-1) return nullptr;
     return GetEffectLayer(GetRowInformation(row));
 }
 
@@ -231,7 +232,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
             int effectIndex = 0;
             long palette = -1;
             bool bProtected=false;
-            
+
             // Start time
             double startTime;
             effect->GetAttribute("startTime").ToDouble(&startTime);
@@ -254,7 +255,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                 } else {
                     settings = effect->GetNodeContent();
                 }
-                
+
                 wxString tmp;
                 if (effect->GetAttribute("palette", &tmp)) {
                     tmp.ToLong(&palette);
@@ -264,7 +265,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
             {
                 // store timing labels in name attribute
                 effectName = effect->GetAttribute("label");
-                
+
             }
             effectLayer->AddEffect(id,effectIndex,effectName,settings,
                                    palette == -1 ? "" : colorPalettes[palette],
@@ -505,7 +506,7 @@ void SequenceElements::PopulateRowInformation()
                             ri.strandIndex = s;
                             mRowInformation.push_back(ri);
                         }
-                        
+
                         if (sl->ShowNodes()) {
                             for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                                 Row_Information_Struct ri;
@@ -523,7 +524,7 @@ void SequenceElements::PopulateRowInformation()
                             }
                         }
                     }
-                    
+
                 }
             }
             else if (mElements[i]->GetType()=="timing")
