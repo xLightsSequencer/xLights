@@ -59,6 +59,10 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mDragStartY = -1;
     mCanPaste = false;
     mSelectedEffect = nullptr;
+    mRangeStartRow = -1;
+    mRangeEndRow = -2;
+    mRangeStartCol = -1;
+    mRangeEndCol = -2;
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
@@ -1046,6 +1050,7 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
     int effectIndex;
     int result;
 
+    wxLogDebug("EffectsGrid::RunMouseOverHitTests");
     EffectLayer* layer = mSequenceElements->GetEffectLayer(rowIndex);
     bool isHit = layer->HitTestEffect(x,effectIndex,result);
     if(isHit)
@@ -1469,7 +1474,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                                         ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-3,
                                         mTimeline->GetPositionFromTimeMS(0), xs, colors);
     }
-    
+
     for(int effectIndex=0;effectIndex < effectLayer->GetEffectCount();effectIndex++)
     {
         Effect* e = effectLayer->GetEffect(effectIndex);
@@ -1707,7 +1712,7 @@ void EffectsGrid::Draw()
 
     if((mDragging || mCellRangeSelected) && !mPartialCellSelected)
     {
-        if (mSequenceElements->GetSelectedTimingRow() >= 0 ) {
+        if (mSequenceElements->GetSelectedTimingRow() >= 0 && mRangeStartCol > 0) {
             DrawSelectedCells();
         }
     }
@@ -1723,15 +1728,18 @@ void EffectsGrid::Draw()
 void EffectsGrid::DrawSelectedCells()
 {
     EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
-    int start_x = tel->GetEffect(mRangeStartCol)->GetStartPosition()+1;
-    int end_x = tel->GetEffect(mRangeEndCol)->GetEndPosition()-1;
-    int start_y = mRangeStartRow*DEFAULT_ROW_HEADING_HEIGHT;
-    int end_y = mRangeEndRow*DEFAULT_ROW_HEADING_HEIGHT;
-    xlColor highlight_color;
-    highlight_color = *RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
-    glEnable(GL_BLEND);
-    DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
-    glDisable(GL_BLEND);
+    if( tel->GetEffectCount() > 0 )
+    {
+        int start_x = tel->GetEffect(mRangeStartCol)->GetStartPosition()+1;
+        int end_x = tel->GetEffect(mRangeEndCol)->GetEndPosition()-1;
+        int start_y = mRangeStartRow*DEFAULT_ROW_HEADING_HEIGHT;
+        int end_y = mRangeEndRow*DEFAULT_ROW_HEADING_HEIGHT;
+        xlColor highlight_color;
+        highlight_color = *RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
+        glEnable(GL_BLEND);
+        DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
+        glDisable(GL_BLEND);
+    }
 }
 
 void EffectsGrid::DrawEffectIcon(GLuint* texture,double x, double y, double x2, double y2)
