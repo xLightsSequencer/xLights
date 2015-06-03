@@ -60,9 +60,9 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mCanPaste = false;
     mSelectedEffect = nullptr;
     mRangeStartRow = -1;
-    mRangeEndRow = -2;
+    mRangeEndRow = -1;
     mRangeStartCol = -1;
-    mRangeEndCol = -2;
+    mRangeEndCol = -1;
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
@@ -367,6 +367,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     // if no shift key clear any cell range selections
     if (!event.ShiftDown()) {
         mCellRangeSelected = false;
+        mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
         Refresh();
     }
     if (mSequenceElements == NULL) {
@@ -566,7 +567,7 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
 {
     mPartialCellSelected = false;
     // check for only single cell selection
-    if( mRangeStartRow == mRangeEndRow && mRangeStartCol == mRangeEndCol )
+    if( mRangeStartRow == mRangeEndRow && mRangeStartCol == mRangeEndCol && mRangeStartRow > 0)
     {
         EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
         EffectLayer* el = mSequenceElements->GetEffectLayer(mRangeStartRow);
@@ -1327,7 +1328,7 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
         //need to make some decisions about the colors to be used.
         return 1;
     }
-    
+
     //some effects might have pre-rendered display lists.  Use those before dropping to the generic routines
     switch (e->GetEffectIndex()) {
         case BitmapCache::RGB_EFFECTS_e::eff_ON:
