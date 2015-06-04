@@ -61,7 +61,7 @@ public:
 
     void Paste(const wxString &data);
     void SetCanPaste() { mCanPaste = true; }
-    int GetStartColumn() { return mRangeStartCol; }
+    int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         xlights = xl;  seqData = data;
@@ -101,8 +101,9 @@ private:
     void Resize(int position, bool offset);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
     void UpdateTimePosition(int time);
-    void CheckForSelectionRectangle();
-    void HighlightSelectionRectangle();
+    void EstablishSelectionRectangle();
+    void UpdateSelectionRectangle();
+    void UpdateSelectedEffects();
     void CheckForPartialCell(int x_pos);
     void RaiseSelectedEffectChanged(Effect* effect);
     void RaiseEffectDropped(int x, int y);
