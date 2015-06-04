@@ -363,6 +363,7 @@ const long xLightsFrame::ID_PLAY_1_2 = wxNewId();
 const long xLightsFrame::ID_PLAY_1_4 = wxNewId();
 const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
+const long xLightsFrame::ID_RENDER_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_SMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_LARGE = wxNewId();
@@ -536,7 +537,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenu* MenuItem_Grid_Icon_Backgrounds;
     wxStaticText* StaticText21;
     wxFlexGridSizer* FlexGridSizer55;
-    wxMenu* MenuItem7;
     wxMenuItem* MenuItemDelList;
     wxMenuItem* MenuItem12;
     wxMenuItem* MenuItem24;
@@ -1636,26 +1636,29 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuSettings = new wxMenu();
     Menu_Settings_Sequence = new wxMenuItem(MenuSettings, ID_SEQ_SETTINGS, _("Sequence Settings"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(Menu_Settings_Sequence);
-    MenuItem7 = new wxMenu();
-    MenuItem10 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_SMALL, _("Small\tALT-1"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem7->Append(MenuItem10);
-    MenuItem11 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_MEDIUM, _("Medium\tALT-2"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem7->Append(MenuItem11);
-    MenuItem12 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_LARGE, _("Large\tALT-3"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem7->Append(MenuItem12);
-    MenuItem14 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_XLARGE, _("Extra Large\tALT-4"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem7->Append(MenuItem14);
-    MenuSettings->Append(ID_MENUITEM4, _("Tool Icon Size"), MenuItem7, wxEmptyString);
-    MenuItem16 = new wxMenu();
-    MenuItem17 = new wxMenuItem(MenuItem16, ID_MENUITEM_GRID_ICON_SMALL, _("Small\tCTRL-1"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem16->Append(MenuItem17);
-    MenuItem19 = new wxMenuItem(MenuItem16, ID_MENUITEM_GRID_ICON_MEDIUM, _("Medium\tCTRL-2"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem16->Append(MenuItem19);
-    MenuItem27 = new wxMenuItem(MenuItem16, ID_MENUITEM_GRID_ICON_LARGE, _("Large\tCTRL-3"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem16->Append(MenuItem27);
-    MenuItem28 = new wxMenuItem(MenuItem16, ID_MENUITEM_GRID_ICON_XLARGE, _("Extra Large\tCTRL-4"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem16->Append(MenuItem28);
-    MenuSettings->Append(ID_MENUITEM6, _("Grid Spacing"), MenuItem16, wxEmptyString);
+    mRenderOnSaveMenuItem = new wxMenuItem(MenuSettings, ID_RENDER_ON_SAVE, _("Render On Save"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(mRenderOnSaveMenuItem);
+    mRenderOnSaveMenuItem->Check(true);
+    ToolIconSizeMenu = new wxMenu();
+    MenuItem10 = new wxMenuItem(ToolIconSizeMenu, ID_MENUITEM_ICON_SMALL, _("Small\tALT-1"), wxEmptyString, wxITEM_RADIO);
+    ToolIconSizeMenu->Append(MenuItem10);
+    MenuItem11 = new wxMenuItem(ToolIconSizeMenu, ID_MENUITEM_ICON_MEDIUM, _("Medium\tALT-2"), wxEmptyString, wxITEM_RADIO);
+    ToolIconSizeMenu->Append(MenuItem11);
+    MenuItem12 = new wxMenuItem(ToolIconSizeMenu, ID_MENUITEM_ICON_LARGE, _("Large\tALT-3"), wxEmptyString, wxITEM_RADIO);
+    ToolIconSizeMenu->Append(MenuItem12);
+    MenuItem14 = new wxMenuItem(ToolIconSizeMenu, ID_MENUITEM_ICON_XLARGE, _("Extra Large\tALT-4"), wxEmptyString, wxITEM_RADIO);
+    ToolIconSizeMenu->Append(MenuItem14);
+    MenuSettings->Append(ID_MENUITEM4, _("Tool Icon Size"), ToolIconSizeMenu, wxEmptyString);
+    GridSpacingMenu = new wxMenu();
+    MenuItem17 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_SMALL, _("Small\tCTRL-1"), wxEmptyString, wxITEM_RADIO);
+    GridSpacingMenu->Append(MenuItem17);
+    MenuItem19 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_MEDIUM, _("Medium\tCTRL-2"), wxEmptyString, wxITEM_RADIO);
+    GridSpacingMenu->Append(MenuItem19);
+    MenuItem27 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_LARGE, _("Large\tCTRL-3"), wxEmptyString, wxITEM_RADIO);
+    GridSpacingMenu->Append(MenuItem27);
+    MenuItem28 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XLARGE, _("Extra Large\tCTRL-4"), wxEmptyString, wxITEM_RADIO);
+    GridSpacingMenu->Append(MenuItem28);
+    MenuSettings->Append(ID_MENUITEM6, _("Grid Spacing"), GridSpacingMenu, wxEmptyString);
     MenuItem_Grid_Icon_Backgrounds = new wxMenu();
     MenuItemGridIconBackgroundOn = new wxMenuItem(MenuItem_Grid_Icon_Backgrounds, ID_MENUITEM_GRID_ICON_BACKGROUND_ON, _("On"), wxEmptyString, wxITEM_CHECK);
     MenuItem_Grid_Icon_Backgrounds->Append(MenuItemGridIconBackgroundOn);
@@ -1847,6 +1850,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_PLAY_1_4,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
     Connect(ID_IMPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemImportEffects);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
+    Connect(ID_RENDER_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderOnSave);
     Connect(ID_MENUITEM_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
@@ -1876,6 +1880,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
 
     mResetToolbars = false;
+    mRenderOnSave = true;
     mIconSize = 16;
 
     selectedEffectPalette = "";
@@ -1977,6 +1982,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
         MainAuiManager->LoadPerspective(tbData.Right(tbData.size() - 5));
     }
+    config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
+    mRenderOnSaveMenuItem->Check(mRenderOnSave);
     config->Read("xLightsIconSize", &mIconSize, 16);
     if (mIconSize != 16) {
         int id = ID_MENUITEM_ICON_MEDIUM;
@@ -2171,15 +2178,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 //~    EffectsPanel2->Choice_Piano_Style->SetSelection(2); //keyboard
 
     //  single strand
-//    ButterflyEffectColors.Add("Rainbow");
-//    ButterflyEffectColors.Add("Palette");
-    SingleStrandColors.Add("Rainbow");
-    SingleStrandColors.Add("Palette");
-    SingleStrandTypes.Add("Left-Right");  // 0
-    SingleStrandTypes.Add("Right-Left");  // 1
-    SingleStrandTypes.Add("Auto reverse");  // 2
-    SingleStrandTypes.Add("Bounce");  //3
-    SingleStrandTypes.Add("Pacman");  //3
 
     TextEffects.Add("normal");
     TextEffects.Add("vert text up");
@@ -2276,6 +2274,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsGridSpacing", mGridSpacing);
     config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
     config->Write("xLightsGridNodeValues", mGridNodeValues);
+    config->Write("xLightsRenderOnSave", mRenderOnSave);
 
     config->Flush();
 
@@ -2363,11 +2362,6 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Text_Count4->SetSelection(0);
 
     panel->CurrentDir = &CurrentDir;
-    panel->Choice_SingleStrand_Colors->Set(SingleStrandColors);
-    panel->Choice_SingleStrand_Colors->SetSelection(1); // Set Rainbow as default
-    panel->Choice_Chase_Type1->Set(SingleStrandTypes);
-    panel->Choice_Chase_Type1->SetSelection(1); // Set R-L as default
-
     panel->Choice_Faces_Phoneme->Set(FacesPhoneme);
     panel->Choice_Faces_Phoneme->SetSelection(0);
 
@@ -2748,13 +2742,13 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     wxLogDebug("xLightsFrame::OnClose");
-    
+
     if (!CloseSequence()) {
         event.Veto();
         return;
     }
     selectedEffect = NULL;
-    
+
     StopNow();
 
     heartbeat("exit", true); //tell fido about graceful exit -DJ
@@ -3172,6 +3166,7 @@ void xLightsFrame::SetIconSize(wxCommandEvent& event)
     DEFAULT_ROW_HEADING_HEIGHT = size + 6;
     mainSequencer->PanelRowHeadings->Refresh();
     mainSequencer->PanelEffectGrid->Refresh();
+    GridSpacingMenu->Check(event.GetId(), true);
 }
 
 void xLightsFrame::ResetToolbarLocations(wxCommandEvent& event)
@@ -3190,6 +3185,7 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
     } else if (event.GetId() == ID_MENUITEM_ICON_LARGE) {
         size = 32;
     }
+    
     mIconSize = size;
     for (int x = 0; x < EffectsToolBar->GetToolCount(); x++) {
         EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
@@ -3208,6 +3204,7 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
         lst[x]->SetSizeHints(size, size, size, size);
     }
     effectPalettePanel->Layout();
+    ToolIconSizeMenu->Check(event.GetId(), true);
 }
 
 void xLightsFrame::OnMenuItemRenderEraseModeSelected(wxCommandEvent& event)
@@ -3312,4 +3309,9 @@ void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)
 void xLightsFrame::OnAuiToolBarItemModelsClick(wxCommandEvent& event)
 {
     ShowModelsDialog();
+}
+
+void xLightsFrame::OnMenuItemRenderOnSave(wxCommandEvent& event)
+{
+    mRenderOnSave = event.IsChecked();
 }

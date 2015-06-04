@@ -56,13 +56,14 @@ void RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_Type);
 
 
 
-void RenderSingleStrandChase(int ColorScheme,int Number_Chases,int Color_Mix1,int Chase_Type1,
+void RenderSingleStrandChase(const wxString &ColorScheme,int Number_Chases,int chaseSize,
+                             const wxString &Chase_Type1,
                              bool Chase_3dFade1, bool Chase_Group_All,
                              float chaseSpeed);
 
 void RenderSingleStrandSkips(Effect *eff, int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString& Skips_Direction, int advances);
-void draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,int Number_Chases,int width,bool R_TO_L1,
-                int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection);
+void draw_chase(int x, bool group, int ColorScheme,int Number_Chases,bool autoReverse,int width,
+                int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection, bool mirror);
 
 void RenderSnowflakes(int Count, int SnowflakeType, int sSpeed);
 void RenderSnowstorm(int Count, int Length, int sSpeed);

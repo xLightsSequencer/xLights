@@ -112,6 +112,9 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         }
         mnuLayer->AppendSeparator();
         wxMenuItem* menu_random = mnuLayer->Append(ID_GRID_MNU_RANDOM_EFFECTS,"Create Random Effects");
+        if( !(mCellRangeSelected || mPartialCellSelected) ) {
+            menu_random->Enable(false);
+        }
     }
     else if (element->GetType()=="timing")
     {
@@ -566,24 +569,28 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 void EffectsGrid::CheckForPartialCell(int x_pos)
 {
     mPartialCellSelected = false;
-    // check for only single cell selection
-    if( mRangeStartRow == mRangeEndRow && mRangeStartCol == mRangeEndCol && mRangeStartRow > 0)
+    // make sure a valid row and column is selected
+    if( mRangeStartCol > 0 && mRangeStartRow > 0 )
     {
-        EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
-        EffectLayer* el = mSequenceElements->GetEffectLayer(mRangeStartRow);
-
-        int selectionType;
-        int effectIndex = el->GetEffectIndexThatContainsPosition(x_pos,selectionType);
-        if( effectIndex == -1 )
+        // check for only single cell selection
+        if( mRangeStartRow == mRangeEndRow && mRangeStartCol == mRangeEndCol )
         {
-            Effect* eff = tel->GetEffect(mRangeStartCol);
-            mDropStartX = eff->GetStartPosition();
-            mDropEndX = eff->GetEndPosition();
-            mDropStartTime = eff->GetStartTime();
-            mDropEndTime = eff->GetEndTime();
-            mDropRow = mRangeStartRow;
-            if( AdjustDropLocations(x_pos, el) ) {
-                mPartialCellSelected = true;
+            EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            EffectLayer* el = mSequenceElements->GetEffectLayer(mRangeStartRow);
+
+            int selectionType;
+            int effectIndex = el->GetEffectIndexThatContainsPosition(x_pos,selectionType);
+            if( effectIndex == -1 )
+            {
+                Effect* eff = tel->GetEffect(mRangeStartCol);
+                mDropStartX = eff->GetStartPosition();
+                mDropEndX = eff->GetEndPosition();
+                mDropStartTime = eff->GetStartTime();
+                mDropEndTime = eff->GetEndTime();
+                mDropRow = mRangeStartRow;
+                if( AdjustDropLocations(x_pos, el) ) {
+                    mPartialCellSelected = true;
+                }
             }
         }
     }

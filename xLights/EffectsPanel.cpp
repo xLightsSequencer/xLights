@@ -1307,6 +1307,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer91;
     wxFlexGridSizer* FlexGridSizer18;
     wxSlider* Slider_Galaxy_End_Radius;
+    wxChoice* Choice_Chase_Type1;
     wxTextCtrl* TextCtrl_Galaxy_Accel;
     wxTextCtrl* TextCtrl29;
     wxSlider* Slider_Galaxy_CenterX;
@@ -3186,6 +3187,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     StaticText61 = new wxStaticText(Panel1, ID_STATICTEXT63, _("Colors  "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT63"));
     FlexGridSizer24->Add(StaticText61, 1, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_SingleStrand_Colors = new wxChoice(Panel1, ID_CHOICE_SingleStrand_Colors, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_SingleStrand_Colors"));
+    Choice_SingleStrand_Colors->Append(_("Rainbow"));
+    Choice_SingleStrand_Colors->SetSelection( Choice_SingleStrand_Colors->Append(_("Palette")) );
     FlexGridSizer24->Add(Choice_SingleStrand_Colors, 1, wxALIGN_LEFT|wxALIGN_TOP, 5);
     FlexGridSizer24->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_SingleStrand_Colors = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_SingleStrand_Colors, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SingleStrand_Colors"));
@@ -3213,7 +3216,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_Color_Mix1->SetDefault();
     BitmapButton_Color_Mix1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer24->Add(BitmapButton_Color_Mix1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText10 = new wxStaticText(Panel1, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    StaticText10 = new wxStaticText(Panel1, wxID_ANY, _("Cycles"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer24->Add(StaticText10, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider16 = new wxSlider(Panel1, IDD_SLIDER_Chase_Rotations, 10, 1, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Chase_Rotations"));
     FlexGridSizer24->Add(Slider16, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -3227,6 +3230,13 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     StaticText11 = new wxStaticText(Panel1, ID_STATICTEXT10, _("Chase Types"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
     FlexGridSizer24->Add(StaticText11, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Chase_Type1 = new wxChoice(Panel1, ID_CHOICE_Chase_Type1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Chase_Type1"));
+    Choice_Chase_Type1->SetSelection( Choice_Chase_Type1->Append(_("Left-Right")) );
+    Choice_Chase_Type1->Append(_("Right-Left"));
+    Choice_Chase_Type1->Append(_("Bounce from Left"));
+    Choice_Chase_Type1->Append(_("Bounce from Right"));
+    Choice_Chase_Type1->Append(_("Dual Bounce"));
+    Choice_Chase_Type1->Append(_("From Middle"));
+    Choice_Chase_Type1->Append(_("To Middle"));
     FlexGridSizer24->Add(Choice_Chase_Type1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer24->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Chase_Type1 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_CHOICE_Chase_Type1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Chase_Type1"));

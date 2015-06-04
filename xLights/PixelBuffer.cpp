@@ -676,8 +676,8 @@ void PixelBufferClass::RenderShockwave(int center_x, int center_y, int start_rad
 {
     effects[CurrentLayer].RenderShockwave( center_x, center_y, start_radius, end_radius, start_width, end_width, acceleration, blend_edges );
 }
-void PixelBufferClass::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int Color_Mix1,
-        int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All, float chaseSpeed) {
+void PixelBufferClass::RenderSingleStrandChase(const wxString &ColorScheme,int Number_Chases, int Color_Mix1,
+        const wxString &Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All, float chaseSpeed) {
     effects[CurrentLayer].RenderSingleStrandChase( ColorScheme,Number_Chases, Color_Mix1,
             Chase_Type1, Chase_3dFade1,Chase_Group_All, chaseSpeed);
 }

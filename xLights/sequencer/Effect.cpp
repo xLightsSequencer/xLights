@@ -252,6 +252,14 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
                     settings["E_SLIDER_Skips_Advance"] = wxString::Format("%d", speed - 1);
                 }
             } else {
+                wxString type = settings.Get("E_CHOICE_Chase_Type1", "Left-Right");
+                if (type == "Auto reverse") {
+                    type = "Bounce from Left";
+                    settings["E_CHOICE_Chase_Type1"] = type;
+                } else if (type == "Bounce" || type == "Pacman") {
+                    type = "Dual Bounce";
+                    settings["E_CHOICE_Chase_Type1"] = type;
+                }
                 if (settings.Get("E_TEXTCTRL_Chase_Rotations", "") == "") {
                     float cycles = 1.0;
                     if (!ftt) {

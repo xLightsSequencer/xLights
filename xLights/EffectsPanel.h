@@ -536,7 +536,6 @@ public:
     wxCheckBox* CheckBox_Curtain_Repeat;
     wxStaticText* StaticText155;
     wxBitmapButton* BitmapButton_FireWidth;
-    wxChoice* Choice_Chase_Type1;
     wxStaticText* StaticText16;
     wxChoice* Choice_Skips_Direction;
     wxScrolledWindow* Panel1_On;

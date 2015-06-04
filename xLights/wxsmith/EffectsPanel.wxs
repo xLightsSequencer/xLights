@@ -6284,7 +6284,13 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_SingleStrand_Colors" variable="Choice_SingleStrand_Colors" member="yes" />
+														<object class="wxChoice" name="ID_CHOICE_SingleStrand_Colors" variable="Choice_SingleStrand_Colors" member="yes">
+															<content>
+																<item>Rainbow</item>
+																<item>Palette</item>
+															</content>
+															<selection>1</selection>
+														</object>
 														<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														<border>5</border>
 														<option>1</option>
@@ -6392,7 +6398,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="wxID_ANY" variable="StaticText10" member="no">
-															<label>Speed</label>
+															<label>Cycles</label>
 														</object>
 														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -6442,7 +6448,18 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="yes" />
+														<object class="wxChoice" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="no">
+															<content>
+																<item>Left-Right</item>
+																<item>Right-Left</item>
+																<item>Bounce from Left</item>
+																<item>Bounce from Right</item>
+																<item>Dual Bounce</item>
+																<item>From Middle</item>
+																<item>To Middle</item>
+															</content>
+															<selection>0</selection>
+														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
