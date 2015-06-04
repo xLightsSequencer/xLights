@@ -93,7 +93,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON1" variable="Button1" member="no">
+						<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
 							<label>Load Mapping</label>
 							<handler function="LoadMapping" entry="EVT_BUTTON" />
 						</object>
@@ -102,7 +102,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON2" variable="Button2" member="no">
+						<object class="wxButton" name="ID_BUTTON2" variable="Button02" member="no">
 							<label>Save Mapping</label>
 							<handler function="SaveMapping" entry="EVT_BUTTON" />
 						</object>
