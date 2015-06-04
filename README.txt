@@ -7,12 +7,13 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.1.2  Jun 4, 2015
     -- enh(gil)   Lots of improvements to cell selection...still need to fix issue with off screen effect selection.
     -- bug(gil)   Add protection around calling cell selection logic with uninitialized values to prevent crashes.
     -- enh(gil)   Grey out the Create Random effects option if there is no selection.
     -- enh(dkulp) Add setting for Render at save.   Turning off will save the fseq in it's current state.
     -- bug/enh (dkulp) Lots of work on SingleStrand Chase effect to get it to work better with small models and single color models and grouped arches.
-4.01.01  Jun 1, 2015
+4.1.1  Jun 1, 2015
     -- enh(gil)   Improve selection logic so it shows a hand when near center of effect to allow drag but also allow selecting the cell underneath
                   if clicking between the center and the edge.  Also fixed the group move so it works with the hand and doesn't incorrectly
                   only move one effect when multiple are selected.
@@ -23,7 +24,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh(dkulp) Allow Fire to be from top/left/right/bottom   Fixes #245 (kind of)
     -- enh(dkulp) Allow effects to provide a "pre-rendered" background for display on the grid.  Update "SKips" effect to use it.  (provides scroll performance enhancement)
     -- enh(dkulp) Add ability for Garland effect to go Up/Down/Up+Down/Down+Up/Left/Right/Left+Right/Right+Left
-4.01.00  Jun 1, 2015
+4.1.0  Jun 1, 2015
     -- bug(dkulp) Fix several crashes due to rendering just part of an effect
     -- bug(dkulp) Fix several crashes related to multi-threaded rendering
     -- enh(dkulp) Spirograph given a few new options for length, animation speed, etc..
@@ -36,11 +37,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh(gil) Add ability to select range of cells and paste effect with key bindings.
     -- enh(gil) Add ability to link show and media directories.
     -- bug(gil) Fix conductor file import to support LSP conversions. Fixes #232.
-4.00.35  May 26, 2015
+4.0.35  May 26, 2015
 	-- bug (dkulp) fix for crash that occurred in Whole House Models
 	-- (dkulp) * Popup location of crash report.   Fixes #239
 	-- (dkulp) * Sparkles are only working on the top most layer.
-4.00.34  May 26, 2015
+4.0.34  May 26, 2015
     -- enh(dkulp) Add ability to import effects from xLights XML files
     -- enh(dkulp) Gather more information about threads for crash dump including what frame they are on and what effects they are rendering.
     -- bug(dkulp) Fix minor issues in SingleStrandSkips (direction and an extra placement)
@@ -49,7 +50,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- bug(gil)   Load perspectives when show directory is changed.  Fixes #96.
     -- bug(gil)   Fix effect duration for importing SuperStar Spiral into Galaxy effect.  Fix endless hang on Save when Galaxy rev's was set to 0.
     -- bug(gil)   Prevent dropping an effect during model playback from stopping the sequence.
-4.00.33  May 23, 2015
+4.0.33  May 23, 2015
 		Developers notes:
     -- enh(dkulp) Update the "Strobe" strand type to actually strobe in the preview
     -- bug (gil)  SuperStar import updates. Fix morph default values to match recent changes. Subtract offset before doing mod.
@@ -72,13 +73,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	If you see an issue closed that you think is still an issue, please re-open the issue.
 
 
-	Issues closed since release 4.00.32:
+	Issues closed since release 4.0.32:
 	-----------------------------------
 	Spirograph - distance animation option does not work #205
 	Release 27 Models disappearing while sequencing #221
 	ENHANCEMENT: Add additional single line colors to Model Selection #130
 	Message when clicking on a effect #227
-	Release 4.00.31 crashes #228
+	Release 4.0.31 crashes #228
 	Deleting models causes erroneous messages to appear #85
 	in sequencer single strand lights will only show up in model windows if they are red. white,green blue will not show. #191
 	File Names not preserving Case when saving sequences. #149
@@ -86,15 +87,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	Panel Layout/Perspectives - not allowing saving without sequence active. #153
 	If you cancel while creating new sequence, xLights hangs (crashed once but can't repeat) #119
 	Crash on trying to load Steve Gase's 6,000 effects xml #120
-	Papagayo xml not displaying correctly in sequencer grid (xl4.00.23) #214
+	Papagayo xml not displaying correctly in sequencer grid (xl4.0.23) #214
 	Renaming models crashes app #223
 	Model Group Crash #217
 	Export models to HLS #224
 	Bars effect - Speed bug ? #99
 	When I move from sequencer to preview popups remain #140
 	Feature Request: Drag effects between layers #154
-	Crash with no folder set 4.00.20 #207
-	xl 4.00.7 crashes #117
+	Crash with no folder set 4.0.20 #207
+	xl 4.0.7 crashes #117
 	Model Channel Grid odd behaviour with Individual Start Chans check box. #186
 	Enhancement: Ability to play/stop sequence with spacebar (or other key in keybindings file) #194
 	Playback on sequencer tab will not stop with stop button randomly #192
@@ -102,7 +103,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	App will crash when importing duplicate timing tracks. #208
 
 
-4.00.32  May 19, 2015
+4.0.32  May 19, 2015
     -- bug(dkulp) Rename the element in the loaded sequence on model rename.  Fixes #223
     -- bug(dkulp) Fix problem with overlapping effects that both specify fadein or outs causing interference
     -- enh(dkulp) Use On effect for scenes when possible instead of colorwash
@@ -120,7 +121,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
                 Removed Use Head Start Color for Tail Start and Use Head End Color for Tail End.
                 Added stagger option to allow morph repeats to each have a delay.
 	-- enh(gil) Morph: * Finer resolution for stagger option. * Allow negative stagger for morph.
-4.00.31  May 14, 2015
+4.0.31  May 14, 2015
 	-- bug (sean) The songs directories were not being included in the current releases. 37 song directories are now under
 		the songs subdirectory. Remember this directory is located in your "C:\Program Files (x86)\xLights\songs" directory
 		if you are  on Windows
@@ -129,7 +130,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- bug (dkulp Fix pinwheel 3d flags.
 	-- bug (dkulp) Fix ColorWash fades when not on full matrix
 
-4.00.30  May 13, 2015
+4.0.30  May 13, 2015
   NOTES FROM DEVELOPMENT
 	(Dkulp) * Detect ramp up/down when converting to effects
 	(Dkulp) * IF the effects panels are disabled (for example, while rendering and saving),
@@ -140,17 +141,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	(dkulp) * Add the alpha channel handling to text effect
 	(dkulp) * Re-render range when effect moves
 	(dkulp) * More slider<->text updates. Dan is adding text boxes to all effects that have sliders. This allows entering exact values
-  ISSUES CLOSED in 4.00.29 and 4.00.30. See https://github.com/smeighan/xLights/issues
-		-- 4.00.30  May 13, 2015
+  ISSUES CLOSED in 4.0.29 and 4.0.30. See https://github.com/smeighan/xLights/issues
+		-- 4.0.30  May 13, 2015
 		-- Three channels in Custom Model when selecting 4 Channel RGBW #216
-		-- 4.00.2x Tall custom model causes Ok, Cancel Appearance buttons to move out of view, clickable area #213
+		-- 4.0.2x Tall custom model causes Ok, Cancel Appearance buttons to move out of view, clickable area #213
 		-- Unable to change model on lengthy models #202
 		-- Nutcracker Timing Mark Import Failure #225
 		-- Enhancement - Models - Arches - single color #136
 		-- fseq Save Directory doesn't save to location specified. #190
-		-- Test tab requires that XL4 be restarted to see the new network configuration in 4.00.18 #211
+		-- Test tab requires that XL4 be restarted to see the new network configuration in 4.0.18 #211
 
-4.00.29  May 09, 2015
+4.0.29  May 09, 2015
     -- enh (gil) Allow effects to be moved up or down between layers with the arrow keys
     -- Keep track of "dirty" ranges and render the whole range.   Should reduce artifacts and need to re-render as oftern
     -- For Effects that display a background and Node layers where seeing the background colors is important, use smaller icons
@@ -176,21 +177,21 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- Fixed crash with strand/nodes on custom models
     -- Smaller icons displayed on effects with backgrounds and node lines so background colors are not obscured
     -- Fix crashes with Fan/Galaxy/Shockwave when used on WholeHouseModels
-4.00.28  Apr 29, 2015
+4.0.28  Apr 29, 2015
     -- enh (dkulp) Allow specifying number of segments and lights per segment for arches
     -- bug (dkulp) "3 Channel RGB" string types not working correctly
     -- bug (dkulp) #213/202 Issues with the Model Dialog losing the buttons if too big of a model is loaded
     -- bug (dkulp) #216 Start channels are wrong if using RGBW with custom models
-4.00.27  Apr 28, 2015
+4.0.27  Apr 28, 2015
     -- bug (dkulp) Fix for custom models when expanding a model into strands.
-4.00.26  Apr 28, 2015
+4.0.26  Apr 28, 2015
     -- enh (dkulp) New ability to add effects to individual stands and nodes
     -- enh (dkulp) Ability to see current colors/status of individual nodes
     -- bug (dkulp) Disable "Quit" during rendering as that causes a crash
     -- enh (dkulp) Widen the top of the tree a little bit
     -- enh (dkulp) Add ability to specify the display names for strands and nodes
     --
-4.00.25  Apr 28, 2015
+4.0.25  Apr 28, 2015
     -- enh (gil) New Efffect: Shockwave
     -- enh (gil) Allow a single effect to be selected and moved with both endpoints.
     -- enh (gil) Switch spacebar back to work like Audacity which is Stop instead of pausing.  Only deviation is I do unpause
@@ -198,43 +199,43 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
                  focus to allow spacebar to work.
     -- enh (gil) Allow selection in empty area when no timing is active.  Provides a paste target without timing marks.
     -- bug (gil) Store media directory and fseq directory in global config instead of networks file. Fixes #173.
-4.00.24  Apr 23, 2015
+4.0.24  Apr 23, 2015
     -- enh (gil) Clicking on effect while model play is paused will restart effect play.  I believe this will remove some confusion
                  for one case where you click on an effect and it doesn't appear to do anything.
     -- enh (gil) Spacebar always turns on/off model play.  Use pause button to pause effect play.
     -- enh (gil) Always trigger selected effect even if already selected since it may have been paused.
     -- bug (gil) Unpausing from spacebar should restart from pause point.
     -- bug (gil) Fan effect not working correctly when radius2 > radius1
-4.00.23  Apr 20, 2015
+4.0.23  Apr 20, 2015
     -- enh (gil) Add text fields to the Morph effect.
     -- enh (gil) New Effect: Fan
     -- enh (gil) Created macros for handling slider and text control events
     -- enh (gil) Add linear fade option to Circles effect
     -- enh (gil) Add text field to Pictures effect and inverse Pictures Y position slider.
     -- enh (gil) Galaxy effect update.  New options for edge blending and spiral inwards.
-4.00.22  Apr 15, 2015
+4.0.22  Apr 15, 2015
     -- bug  (gil) Marking timing marks with "t" does not create start time and end time #212
 	-- bug (dkulp) crashes when add timing mark to sequencer, then click delete #210
 	-- enh (sean) Include two icon files. xlights_nutcracker.ico and xlights_orig.ico. By default the xlights_nutcracker.ico is used.
 		This icon (Nutcracker) matches the icon used on the wiki page. http://www.nutcracker123.com/wk/index.php?title=Main_Page
 		to change icon to the original xLights icon. Copy xlights_orig.icon on top of xlights.ico. You will find these icon files
 		in the installation directory. On my Windows 7 machine that would be C:\Program Files (x86)\xLights
-4.00.21  Apr 14, 2015
+4.0.21  Apr 14, 2015
 	-- bug (dkulp) App will crash when importing duplicate timing tracks. #208
 	-- bug (dkulp) Crash after export #201
-4.00.20  Apr 14, 2015
+4.0.20  Apr 14, 2015
     -- enh (gil) Remove multipliers from Galaxy effect and add text fields.
-	-- bug (dkulp) 4.00.19 ignores xlights_keybindings.xml file #203
+	-- bug (dkulp) 4.0.19 ignores xlights_keybindings.xml file #203
 	-- enh (dkulp) Model Groups can be added to the sequence grid and have effects
 			and layer associated with them directly. No need to create Whole House Models from the groups.
-4.00.19  Apr 12, 2015
+4.0.19  Apr 12, 2015
     -- enh (gil) Copy/Paste for multiple effect selection.
     -- enh (gil) Added settings option to toggle between showing effect icons and backgrounds.
     -- enh (gil) New effect: Galaxy (similar to SuperStar Spiral effect)
     -- bug (gil) Prevent timings from being inserted over other timings due to rounding of position to time conversion.
     -- bug (gil) Fix Model dialogues issues caused by sorting.
     -- bug (gil) Allow 25ms and 100ms sequences and limit which timings are available to be added.  Fixes #198.
-4.00.18  Apr 10, 2015
+4.0.18  Apr 10, 2015
     -- enh (gil) Provide 2 render modes. Erase mode clears canvas then renders. Canvas mode renders over old data. #141
     -- bug (gil) Display sequence duration cutoff on Timeline and honor it during playback. Fixes #193.
     -- bug (gil) Fix adding timing sections to open sequence. Fixes #195.
@@ -246,29 +247,29 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh (dkulp) add updates to Model dialog to allow controlling pixel rendering.
                   Includes transparency of pixels, size of pixels, and "type" of rendering (point, smooth point, circle, blended circle)
 	-- bug () Incoming file conversion not correct #80
-4.00.17  Apr 8, 2015
+4.0.17  Apr 8, 2015
     -- enh (dkulp) Add changes to support older graphics cards. This code fixes white boxes seen in the sequencer grid.
     -- bug (Gil) Delete model and effects from Sequencer when model is deleted from Preview page. #178
     -- bug (Gil) Fix Vixen import issue.
     -- bug (dkulp) You can't use a comma in text effect. :-) #188
     -- bug () Drag and drop crash #161
-    -- bug () 4.00.14 Hot keys for O, D, U inconsistent #171
-4.00.16  Apr 7, 2015
+    -- bug () 4.0.14 Hot keys for O, D, U inconsistent #171
+4.0.16  Apr 7, 2015
 	-- enh (sean) Added new icons (16,24,32,48 bit sizes) for pictures, text, spirograph, twinkle,wave,tree,snowflakes,snowstorm
     -- enh (Gil) Add SuperStar import function (Morphs only).
 	-- enh (dkulp) ctl-1 thru ctl-4 and alt-1 thru alt-4 now select the icon sizes for sequencer area and tools area respectively
 	-- enh (dkulp) Bunches of size/position adjustments to try and get things to display better on HiDPI screens
 	-- bug (dkulp) Fix potential crash when change to Preview tab.
 	-- bug (gil) Models window Alphabetizing? #167
-	-- bug (dkulp) 4.00.14 Fade Up, Fade down have improper timing #172
+	-- bug (dkulp) 4.0.14 Fade Up, Fade down have improper timing #172
 	-- enh (gil) Application allows multiple simultaneous instances to be launched #74. We will continue to allow multiple instances to be launched.
 	-- enh (dkulp) Enhancement request: Effect icon sizes #162
-4.00.15  Apr 6, 2015
+4.0.15  Apr 6, 2015
     -- enh (dkulp) Add more key bindings.  Save/Load them to xlights_keybindings.xml.
     -- enh (dkulp) Add support for different icon sizes
     -- enh (sean) create dozens of new icons in 16x16, 24x24, 32x32 and 48x48 to support dan's new icon size  chooser
     -- enh (dkulp) Add ability to reset the toolbar locations back to default
-4.00.14  Apr 4, 2015
+4.0.14  Apr 4, 2015
     -- enh (dkulp) New keys bound as short-cuts for dropping effects. Do this instead of dragging effects.
     -- enh (gil) Allow timings to be added while model playback is paused. This is like xltap. Press play and use the "t" key to create timing marks
     -- bug (gil) Disallow effect play while paused in model playback.
@@ -276,7 +277,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh (gil) Ability to add timing marks while sequence is playing
     -- bug (gil) Dropping or Control-V pasting into an empty area with a partial effect consumes the effect #160
     -- enh (gil)  When dragging effects, do not require timing track to be active #143
-4.00.13  Apr 3, 2015
+4.0.13  Apr 3, 2015
 	-- bug (gil) When dropping in effect on top of another, original timing marks should be used #159
 	-- enh (dkulp) Implement a simple copy/paste (single "cell" only, only into empty cells). Gil made Windows version work.
 	-- bug (dkulp) Send the correct event so the effect panel updates
@@ -286,7 +287,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- bug (gil) Don't allow dropping effect past last timing cell on right
     -- enh (gil) Improve efficiency of effect background render on grid.  Let OpenGL do the clipping.
     -- enh (gil) Improve morph acceleration option and add deceleration option
-4.00.12  Apr 2, 2015
+4.0.12  Apr 2, 2015
 	-- enh (gil) Render Morph effect into background of effect layer. This follows on ON and COLORWASH
 	-- bug () Add show directory to SETUP tab #156
 	-- bug () Undocking panels for first time - not showing complete panel #147
@@ -297,71 +298,71 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 		I was able to code up the Morph in about 10 minutes.  I'm currently not handling when they clip on the
 		window edges so I'm try to fix that and then check it in.  Most of these I used white for the head except
 		for 2 in the middle you can see the head color transition."
-4.00.11  Apr 1, 2015
+4.0.11  Apr 1, 2015
 	-- bug (gil) Fix convert error where E1 or E2 color values were changed. Example #E1987C was being changed into #E987C
 	-- enh (dkulp) ON effect now paints the sequence grid with the actual color of the On
 	-- enh (dkulp) COLORWASH now draws on sequencer area actual colors of effect
 	-- enh (dkulp) STOP lights now, STOP gracefully, output to lights are now icons
 	-- bug (dkulp) Edit Display Elements window not full view #129
 	-- bug (gil) Not able to delete models in sequencer #122
-	-- bug (sean) House preview screen in the sequencer tab version 4.00.10 #121
+	-- bug (sean) House preview screen in the sequencer tab version 4.0.10 #121
 	-- bug (dkulp) Model assigning incorrect number of channels #126
 
-4.00.10  Mar 31, 2015
+4.0.10  Mar 31, 2015
 	Gill added ability to position a picture in the X & Y direction
 	-- bug (gil) Deleting a timing mark crashes X/Lights #118
 	-- bug (gil) Enhancement: Picture Position #14
 	-- bug (gil) Fade across timing marks not working correctly #56
 	-- bug (sean) Fixed the Life, Pictures and Shimmer icons for effects.
-4.00.9  Mar 31, 2015
+4.0.9  Mar 31, 2015
 	-- bug (gil) Move multiple elements at once using Render Position (move up/move down) in Sequence Elements Frame #114
 	-- bug (dpitts) modified move model up and down in the Sequence Elements screen to keep the moving model in the screen
 	-- bug ()	Fade across timing marks not working correctly #56
 	-- bug ()	Tabs can be moved (like moving frames from the Sequence tab around) #57
 	-- bug ()	Changing default perspective causes uncaptured crash on exit #64
 	-- bug ()	dragging the main window larger (repeat of closed #69) #70
-	-- bug ()	4.00.6 Hard Crash on opening subsequent sequence #110 (Just a retest to make sure still good)
-4.00.8  Mar 28, 2015
+	-- bug ()	4.0.6 Hard Crash on opening subsequent sequence #110 (Just a retest to make sure still good)
+4.0.8  Mar 28, 2015
 		Gil Jones has been busy on this Saturday, Mar 28th
 	-- bug (gil) Error message when audio file missing #116
 	-- bug (gil) Drawing and selection issues in EffectsGrid #115
 	-- bug (gil) Move multiple elements at once using Render Position (move up/move down) in Sequence Elements Frame #114
 	-- bug (gil) Purple effect highlight in grid is not moving with the mouse click to next effect. #113
-	-- bug (sean) Title bar says 4.00.67 versus 4.00.7 #112
-	-- bug (gil) 4.00.6 File, New sequence does not scrub screen from previous sequence #111
-	-- bug (gil) 4.00.6 Hard Crash on opening subsequent sequence #110
+	-- bug (sean) Title bar says 4.0.67 versus 4.0.7 #112
+	-- bug (gil) 4.0.6 File, New sequence does not scrub screen from previous sequence #111
+	-- bug (gil) 4.0.6 Hard Crash on opening subsequent sequence #110
 	-- bug (gil) Can't cancel New Sequence #76
 	-- bug (gil) Ability to close the current open sequence #37
 	-- bug (gil) Dragging selection of effects similar to #59 #79
 	-- enh (sean) Created "House Preview" icon to be used on tool bar. This will cycle display on/off
 
-4.00.7  Mar 27, 2015
+4.0.7  Mar 27, 2015
 	-- enh (dkulp) Whole House Preview is now part of SEQUENCER tab. This was a major code rewrite!
 	-- bug (gil) Unable to delete models from the Sequence Element Screen #101
 	-- bug (gil) Timing insert when near an endpoint causes overlapping timings. #100
 	-- bug (gil) Adding and deleting models #54
 	-- bug (gil) Waveform showing as black window #58
-4.00.6  Mar 26, 2015
+4.0.6  Mar 26, 2015
 	A number of fixes from both Dan and Gil
-	-- bug () Load Background image in 4.00.5 just gives a gray screen #107
-	-- bug () 4.00.4 3-24 Crash every time I save this sequence #106
+	-- bug () Load Background image in 4.0.5 just gives a gray screen #107
+	-- bug () 4.0.4 3-24 Crash every time I save this sequence #106
 	-- bug () Win 7/8.1 issue #102
 	-- bug () Model Preview does not display under Sequencer tab #95
 	-- bug () Setup TAB - Directories my observed issue #93
 	-- bug () No Icon displayed #109
-4.00.5  Mar 25, 2015
+4.0.5  Mar 25, 2015
 	-- bug (dkulp) Move more items back into opengl. The preview window in the Sequencer tab is now updated
 	-- enh (sean) Created windows icons for xlights to be higher resolution
-4.00.4  Mar 24, 2015
+4.0.4  Mar 24, 2015
 	-- bug (dkulp) Dan has fixed it so aero and non-aero now work on both windows 7 and 8!
-4.00.3	Mar 24,2015
+4.0.3	Mar 24,2015
 	-- bug (gil) Fix animation playback in effect grid. Also noticed this fixed something I hadn't noticed where the pause/play wasn't restarting the render in the proper spot. Fixes #78.
 	-- bug (dkulp) Fill out the pinwheel to the edges of a model. Use the max of the buffer width or height as basis for pinwheel arm length
 	-- enh (dkulp) Experiment with different OpenGL setup for Windows. This seems to improve Windows 8 display
-4.00.2	Mar 23,2015
+4.0.2	Mar 23,2015
 	-- bug (dkulp) Only RED shows when outputting from the SEQUENCER tab #92
 	-- bug (gil) Waveform does not respond to mouse wheel zooming unless effect grid has focus. #90
-4.00.1	Mar 21,2015
+4.0.1	Mar 21,2015
 		Many bugs fixed. Go here to see closed bugs. https://github.com/smeighan/xLights/issues?q=is%3Aissue+is%3Aclosed
 		-bug (Gil) Must click in EffectGrid or timing marks can't be added/modified #89
 		-enh (Gil) Add ability to split timing marks #88
@@ -373,7 +374,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 
 			Some new features: Click in the waveform and the type "s", the current timing mark will be split in half. This complements the "t" command that creates timing marks.
 			Double clicking in the waveform will zoom in. Ctl-double click in the waveform will zoom out
-4.00.0	Mar 20,2015
+4.0.0	Mar 20,2015
     First Beta release of xLights 4. Dan Kulp, Dave Pitts, Gil Jones, Sean
 	-- There are still bugs in this release. Go to https://github.com/smeighan/xLights/issues to see current bugs and enhancements
         -- You need to run Windows 7 and 8 in non-aero mode.
@@ -485,7 +486,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 		with very large files that display a lot of messages.
 3.6.5	Nov 20, 2014
 	-enh (sean) New effect class , Strobe.
-	-enh (sean) Icons on top of each effect improved. This icons will be what you drag and drop effects in xLights 4.00. This early introduction
+	-enh (sean) Icons on top of each effect improved. This icons will be what you drag and drop effects in xLights 4.0. This early introduction
 		is to help familiarize users with the icons to an effect.
 	-bug (frankr) Non music sequences would freeze preview play. fixed
 	-enh (djulien) Add Papagayo option for scaled vs. fixed picture mode
