@@ -7,8 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-    --bug(gil)    Add protection around calling cell selection logic with uninitialized values to prevent crashes.
-    --enh(gil)    Grey out the Create Random effects option if there is no selection.
+    -- enh(gil)   Lots of improvements to cell selection...still need to fix issue with off screen effect selection.
+    -- bug(gil)   Add protection around calling cell selection logic with uninitialized values to prevent crashes.
+    -- enh(gil)   Grey out the Create Random effects option if there is no selection.
     -- enh(dkulp) Add setting for Render at save.   Turning off will save the fseq in it's current state.
     -- bug/enh (dkulp) Lots of work on SingleStrand Chase effect to get it to work better with small models and single color models and grouped arches.
 4.01.01  Jun 1, 2015

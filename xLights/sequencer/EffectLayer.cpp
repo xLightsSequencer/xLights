@@ -357,10 +357,8 @@ bool EffectLayer::GetRangeIsClear(double start_time, double end_time)
 
 
 
-void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected)
+void EffectLayer::SelectEffectsInPositionRange(int startX,int endX)
 {
-    bool FirstSelectedFound = false;
-    FirstSelected = -1;
     for(int i=0;i<mEffects.size();i++)
     {
         if(mEffects[i]->GetStartPosition() < 0 &&
@@ -378,15 +376,6 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
             if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
             {
                 mEffects[i]->SetSelected(EFFECT_SELECTED);
-                if(!FirstSelectedFound)
-                {
-                    FirstSelectedFound = true;
-                    FirstSelected = i;
-                }
-            }
-            else
-            {
-                mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
             }
         }
         else if (startX<squareLeft && endX > squareRight)
@@ -394,15 +383,6 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
             if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
             {
                 mEffects[i]->SetSelected(EFFECT_SELECTED);
-                if(!FirstSelectedFound)
-                {
-                    FirstSelectedFound = true;
-                    FirstSelected = i;
-                }
-            }
-            else
-            {
-                mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
             }
         }
         // If selection on left side
@@ -411,15 +391,6 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
             if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
             {
                 mEffects[i]->SetSelected(EFFECT_LT_SELECTED);
-                if(!FirstSelectedFound)
-                {
-                    FirstSelectedFound = true;
-                    FirstSelected = i;
-                }
-            }
-            else
-            {
-                mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
             }
         }
         // If selection on right side
@@ -428,15 +399,6 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
             if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
             {
                 mEffects[i]->SetSelected(EFFECT_RT_SELECTED);
-                if(!FirstSelectedFound)
-                {
-                    FirstSelectedFound = true;
-                    FirstSelected = i;
-                }
-            }
-            else
-            {
-                mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
             }
         }
     }

@@ -54,7 +54,7 @@ class EffectLayer
         Effect* GetEffectAfterEmptySpace(int position);
 
         void GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,double &toRight);
-        void SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected);
+        void SelectEffectsInPositionRange(int startX,int endX);
         void SelectEffectsInTimeRange(double startTime,int endTime);
         void UnSelectAllEffects();
 

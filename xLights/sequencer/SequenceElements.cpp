@@ -682,7 +682,7 @@ void SequenceElements::DeactivateAllTimingElements()
     }
 }
 
-void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX, int &FirstSelected)
+void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX)
 {
     if(startRow<mVisibleRowInformation.size())
     {
@@ -693,7 +693,34 @@ void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endR
         for(int i=startRow;i<=endRow;i++)
         {
             EffectLayer* effectLayer = GetEffectLayer(&mVisibleRowInformation[i]);
-            effectLayer->SelectEffectsInPositionRange(startX,endX,FirstSelected);
+            effectLayer->SelectEffectsInPositionRange(startX,endX);
+        }
+    }
+}
+
+void SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol)
+{
+    if(startRow < mRowInformation.size())
+    {
+        if(endRow >= mRowInformation.size())
+        {
+            endRow = mRowInformation.size()-1;
+        }
+        EffectLayer* tel = GetEffectLayer(GetSelectedTimingRow());
+        if( tel != nullptr )
+        {
+            Effect* eff1 = tel->GetEffect(startCol);
+            Effect* eff2 = tel->GetEffect(endCol);
+            if( eff1 != nullptr && eff2 != nullptr )
+            {
+                int start_x = eff1->GetStartPosition();
+                int end_x = eff2->GetEndPosition();
+                for(int i=startRow;i <= endRow;i++)
+                {
+                    EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
+                    effectLayer->SelectEffectsInPositionRange(start_x,end_x);
+                }
+            }
         }
     }
 }
