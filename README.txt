@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    --bug(gil)    Add protection around calling cell selection logic with uninitialized values to prevent crashes.
+    --enh(gil)    Grey out the Create Random effects option if there is no selection.
 4.01.01  Jun 1, 2015
     -- enh(gil)   Improve selection logic so it shows a hand when near center of effect to allow drag but also allow selecting the cell underneath
                   if clicking between the center and the edge.  Also fixed the group move so it works with the hand and doesn't incorrectly
