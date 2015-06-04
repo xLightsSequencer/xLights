@@ -63,7 +63,7 @@ void RenderSingleStrandChase(const wxString &ColorScheme,int Number_Chases,int c
 
 void RenderSingleStrandSkips(Effect *eff, int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString& Skips_Direction, int advances);
 void draw_chase(int x, bool group, int ColorScheme,int Number_Chases,bool autoReverse,int width,
-                int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection);
+                int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection, bool mirror);
 
 void RenderSnowflakes(int Count, int SnowflakeType, int sSpeed);
 void RenderSnowstorm(int Count, int Length, int sSpeed);

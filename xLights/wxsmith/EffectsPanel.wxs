@@ -6455,6 +6455,8 @@
 																<item>Bounce from Left</item>
 																<item>Bounce from Right</item>
 																<item>Dual Bounce</item>
+																<item>From Middle</item>
+																<item>To Middle</item>
 															</content>
 															<selection>0</selection>
 														</object>

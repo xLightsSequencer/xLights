@@ -159,6 +159,12 @@ int mapChaseType(const wxString &Chase_Type) {
     if ("Dual Bounce" == Chase_Type) {
         return 4;
     }
+    if ("From Middle" == Chase_Type) {
+        return 5;
+    }
+    if ("To Middle" == Chase_Type) {
+        return 6;
+    }
     return 0;
 }
 void RgbEffects::RenderSingleStrandChase(const wxString & ColorSchemeName,int Number_Chases, int chaseSize,
@@ -195,17 +201,21 @@ void RgbEffects::RenderSingleStrandChase(const wxString & ColorSchemeName,int Nu
     int nodes_per_color = int(MaxChase/colorcnt);
     if(nodes_per_color<1)  nodes_per_color=1;    //  fill chase buffer
 
-
+    int Mirror = 0;
     int AutoReverse=0;
     if (needToInit) {
         needToInit = false;
-        ChaseDirection = chaseType == 0 || chaseType == 2; // initialize it once at the beggining of this sequence.
+        ChaseDirection = chaseType == 0 || chaseType == 2 || chaseType == 6; // initialize it once at the beggining of this sequence.
     }
     switch (chaseType)
     {
+    case 6:
+        Mirror = 1;
     case 0: // "Normal. L-R"
         R_TO_L1=1;
         break;
+    case 5:
+        Mirror = 1;
     case 1: // "Normal. R-L"
         R_TO_L1=0;
         break;
@@ -226,6 +236,9 @@ void RgbEffects::RenderSingleStrandChase(const wxString & ColorSchemeName,int Nu
         width=MaxNodes;
     } else {
         width=BufferWi;
+    }
+    if (Mirror) {
+        width /= 2;
     }
     double chaseOffset = width * chaseSize / 100.0 - 1;
 
@@ -272,9 +285,9 @@ void RgbEffects::RenderSingleStrandChase(const wxString & ColorSchemeName,int Nu
             x = std::round(x1);
         }
         
-        draw_chase(x, Chase_Group_All, ColorScheme,Number_Chases,AutoReverse, width,chaseSize,Chase_Fade3d1,ChaseDirection); // Turn pixel on
+        draw_chase(x, Chase_Group_All, ColorScheme,Number_Chases,AutoReverse, width,chaseSize,Chase_Fade3d1,ChaseDirection, Mirror); // Turn pixel on
         if(Dual_Chases) {
-            draw_chase(x, Chase_Group_All,ColorScheme,Number_Chases,AutoReverse,width,chaseSize,Chase_Fade3d1,!ChaseDirection); //
+            draw_chase(x, Chase_Group_All,ColorScheme,Number_Chases,AutoReverse,width,chaseSize,Chase_Fade3d1,!ChaseDirection, Mirror); //
         }
     }
 }
@@ -286,7 +299,8 @@ void RgbEffects::draw_chase(int x, bool GroupAll,
                             int width,
                             int Chase_Width,
                             bool Chase_Fade3d1,
-                            int ChaseDirection)
+                            int ChaseDirection,
+                            bool mirror)
 {
     float  orig_v;
     int new_x,i,max_chase_width,pixels_per_chase;
@@ -397,35 +411,48 @@ void RgbEffects::draw_chase(int x, bool GroupAll,
                 if (ChaseDirection == 0) {// are we going R-L?
                     new_x = width - new_x - 1;
                 }
-                if (GroupAll) {
-                    int y = 0;
-                    while (new_x > BufferWi) {
-                        y++;
-                        new_x -= BufferWi;
-                    }
-                    if (Chase_Fade3d1) {
-                        xlColor c;
-                        GetPixel(new_x, y, c);
-                        if (c != xlBLACK) {
-                            int a = color.alpha;
-                            color = color.AlphaBlend(c);
-                            color.alpha = c.alpha > a ? c.alpha : a;
+                if (new_x >= 0 && new_x <= width) {
+                    if (GroupAll) {
+                        int y = 0;
+                        int mirrorx = BufferWi*BufferHt - new_x - 1;
+                        int mirrory = 0;
+                        while (new_x > BufferWi) {
+                            y++;
+                            new_x -= BufferWi;
                         }
-                    }
-                    SetPixel(new_x,y,color); // Turn pixel on
-                } else {
-                    if (Chase_Fade3d1) {
-                        xlColor c;
-                        GetPixel(new_x, 0, c);
-                        if (c != xlBLACK) {
-                            int a = color.alpha;
-                            color = color.AlphaBlend(c);
-                            color.alpha = c.alpha > a ? c.alpha : a;
+                        while (mirrorx > BufferWi) {
+                            mirrory++;
+                            mirrorx -= BufferWi;
                         }
-                    }
-                    
-                    for (int y=0; y<BufferHt; y++) {
+                        if (Chase_Fade3d1) {
+                            xlColor c;
+                            GetPixel(new_x, y, c);
+                            if (c != xlBLACK) {
+                                int a = color.alpha;
+                                color = color.AlphaBlend(c);
+                                color.alpha = c.alpha > a ? c.alpha : a;
+                            }
+                        }
                         SetPixel(new_x,y,color); // Turn pixel on
+                        if (mirror) {
+                            SetPixel(mirrorx,mirrory,color); // Turn pixel on
+                        }
+                    } else {
+                        if (Chase_Fade3d1) {
+                            xlColor c;
+                            GetPixel(new_x, 0, c);
+                            if (c != xlBLACK) {
+                                int a = color.alpha;
+                                color = color.AlphaBlend(c);
+                                color.alpha = c.alpha > a ? c.alpha : a;
+                            }
+                        }
+                        for (int y=0; y<BufferHt; y++) {
+                            SetPixel(new_x,y,color); // Turn pixel on
+                            if (mirror) {
+                                SetPixel(BufferWi - new_x - 1,y,color); // Turn pixel on
+                            }
+                        }
                     }
                 }
 

@@ -3235,6 +3235,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Choice_Chase_Type1->Append(_("Bounce from Left"));
     Choice_Chase_Type1->Append(_("Bounce from Right"));
     Choice_Chase_Type1->Append(_("Dual Bounce"));
+    Choice_Chase_Type1->Append(_("From Middle"));
+    Choice_Chase_Type1->Append(_("To Middle"));
     FlexGridSizer24->Add(Choice_Chase_Type1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer24->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Chase_Type1 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_CHOICE_Chase_Type1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Chase_Type1"));
