@@ -36,7 +36,7 @@ int mapX(int x, int max, int direction, int &second) {
             second = max + x;
             return max - x - 1;
         case 3:
-            second = max * 2 - x;
+            second = max * 2 - x - 1;
             return x;
     }
     return -1;
@@ -72,9 +72,9 @@ void RgbEffects::RenderSingleStrandSkips(Effect *eff, int Skips_BandSize, int Sk
     }
 
     size_t colorcnt = GetColorCount();
-    double position = GetEffectTimeIntervalPosition();
-    position = position * (advances + 0.99);
-    x += position * Skips_BandSize;
+    double position = GetEffectTimeIntervalPosition() * (advances + 1.0) * 0.99;
+    
+    x += int(position) * Skips_BandSize;
     while (x > max) {
         x -= (Skips_BandSize +  Skips_SkipSize) * colorcnt;
     }

@@ -445,6 +445,9 @@ void RgbEffects::ClearTempBuf()
     }
 }
 double RgbEffects::GetEffectTimeIntervalPosition(float cycles) {
+    if (curEffEndPer == curEffStartPer) {
+        return 0.0;
+    }
     double retval = (double)(curPeriod-curEffStartPer)/(double)(curEffEndPer-curEffStartPer);
     retval *= cycles;
     while (retval > 1.0) {
@@ -454,6 +457,9 @@ double RgbEffects::GetEffectTimeIntervalPosition(float cycles) {
 }
 double RgbEffects::GetEffectTimeIntervalPosition()
 {
+    if (curEffEndPer == curEffStartPer) {
+        return 0.0;
+    }
     double retval = (double)(curPeriod-curEffStartPer)/(double)(curEffEndPer-curEffStartPer);
 //    debug(10, "GetEffTiIntPos(fr last? %d): (cur %d - curst %d)/(curend %d - curst) = %f, (cur - curst)/(next %d - curst) = %f, (cur - prev %d)/(curend - prev) = %f", from_last, curPeriod, curEffStartPer, curEffEndPer, GetEffectPeriodPosition(), nextEffTimePeriod, (double)(curPeriod-curEffStartPer)/(nextEffTimePeriod-curEffStartPer), prevNonBlankStartPeriod, (double)(curPeriod - prevNonBlankStartPeriod) / (curEffEndPer - prevNonBlankStartPeriod));
     return retval;
