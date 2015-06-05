@@ -607,7 +607,7 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
         if( mRangeStartRow == mRangeEndRow && mRangeStartCol == mRangeEndCol )
         {
             EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
-            EffectLayer* el = mSequenceElements->GetEffectLayer(mRangeStartRow);
+            EffectLayer* el = mSequenceElements->GetEffectLayer(mRangeStartRow - mSequenceElements->GetFirstVisibleModelRow());
 
             int selectionType;
             int effectIndex = el->GetEffectIndexThatContainsPosition(x_pos,selectionType);
@@ -618,7 +618,7 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
                 mDropEndX = eff->GetEndPosition();
                 mDropStartTime = eff->GetStartTime();
                 mDropEndTime = eff->GetEndTime();
-                mDropRow = mRangeStartRow;
+                mDropRow = mRangeStartRow - mSequenceElements->GetFirstVisibleModelRow();
                 if( AdjustDropLocations(x_pos, el) ) {
                     mPartialCellSelected = true;
                 }
@@ -682,7 +682,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
         }
         else
         {
-            if( mRangeStartRow > mSequenceElements->GetNumberOfTimingRows() ) {
+            if( mRangeStartRow > mSequenceElements->GetNumberOfTimingRows()+ mSequenceElements->GetFirstVisibleModelRow()) {
                 mRangeStartRow--;
                 mRangeEndRow--;
             }
@@ -694,6 +694,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
 
 void EffectsGrid::MoveSelectedEffectDown(bool shift)
 {
+    int first_row = mSequenceElements->GetFirstVisibleModelRow();
     if( !MultipleEffectsSelected() && mSelectedEffect != nullptr )
     {
         Row_Information_Struct *ri = mSequenceElements->GetRowInformation(mSelectedRow);
@@ -729,14 +730,14 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
     {
         if( shift )
         {
-            if( mRangeEndRow < mSequenceElements->GetRowInformationSize()-1 )
+            if( mRangeEndRow < mSequenceElements->GetRowInformationSize()+first_row-1 )
             {
                 mRangeEndRow++;
             }
         }
         else
         {
-            if( mRangeStartRow < mSequenceElements->GetRowInformationSize() ) {
+            if( mRangeStartRow < mSequenceElements->GetRowInformationSize()+first_row-1 ) {
                 mRangeStartRow++;
                 mRangeEndRow++;
             }
@@ -811,6 +812,7 @@ bool EffectsGrid::OneCellSelected()
 {
     if( mCellRangeSelected ) {
         if( mRangeStartCol == mRangeEndCol && mRangeStartRow == mRangeEndRow ) {
+            mDropRow = mRangeStartRow - mSequenceElements->GetFirstVisibleModelRow();
             return true;
         }
     }
@@ -1136,9 +1138,7 @@ void EffectsGrid::EstablishSelectionRectangle()
         std::swap(start_x, end_x);
     }
 
-    if( mSequenceElements->GetSelectedTimingRow() >= 0 &&
-        row1 < mSequenceElements->GetRowInformationSize() &&
-        row2 < mSequenceElements->GetRowInformationSize() )
+    if( mSequenceElements->GetSelectedTimingRow() >= 0 )
     {
         EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
         int selectionType;
@@ -1148,6 +1148,7 @@ void EffectsGrid::EstablishSelectionRectangle()
         {
             mRangeStartCol = timingIndex1;
             mRangeEndCol = timingIndex2;
+            mDropStartTime = tel->GetEffect(mRangeStartCol)->GetStartTime();  // set for paste
         }
     }
 
@@ -1158,7 +1159,7 @@ void EffectsGrid::EstablishSelectionRectangle()
     else
     {
         mSequenceElements->UnSelectAllEffects();
-        mSequenceElements->SelectEffectsInRowAndPositionRange(row1,row2,start_x,end_x);
+        mSequenceElements->SelectEffectsInRowAndPositionRange(row1-first_row,row2-first_row,start_x,end_x);
     }
 }
 
