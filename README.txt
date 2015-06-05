@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.1.3  Jun 5, 2015
     -- bug(gil)   Fix several selection and copy/paste errors when grid has been vertically scrolled
     -- bug(dkulp) An effect of length 1 frame results in a "position" of NaN which can really mess up a lot of effects.
 4.1.2  Jun 4, 2015
