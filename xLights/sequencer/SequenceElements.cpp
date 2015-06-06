@@ -713,12 +713,12 @@ void SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow
             Effect* eff2 = tel->GetEffect(endCol);
             if( eff1 != nullptr && eff2 != nullptr )
             {
-                int start_x = eff1->GetStartPosition();
-                int end_x = eff2->GetEndPosition();
+                double start_time = eff1->GetStartTime();
+                double end_time = eff2->GetEndTime();
                 for(int i=startRow;i <= endRow;i++)
                 {
                     EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
-                    effectLayer->SelectEffectsInPositionRange(start_x,end_x);
+                    effectLayer->SelectEffectsInTimeRange(start_time,end_time);
                 }
             }
         }
