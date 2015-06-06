@@ -589,7 +589,7 @@ void EffectLayer::DeleteEffect(double startTime)
 {
     for(int i=0; i<mEffects.size();i++)
     {
-        if(startTime >= mEffects[i]->GetStartTime())
+        if(startTime >= mEffects[i]->GetStartTime() && startTime <= mEffects[i]->GetEndTime())
         {
            mEffects.erase(mEffects.begin()+i);
            break;

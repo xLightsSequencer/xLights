@@ -198,6 +198,7 @@ void EffectsGrid::FillRandomEffects()
         int timingIndex1 = tel->GetEffectIndexThatContainsPosition(start_x,selectionType);
         int timingIndex2 = tel->GetEffectIndexThatContainsPosition(end_x,selectionType);
         if (timingIndex1 != -1 && timingIndex2 != -1) {
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
             for( int row = row1; row <= row2; row++)
             {
                 EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(row);
@@ -215,6 +216,7 @@ void EffectsGrid::FillRandomEffects()
                                                   eff->GetEndTime(),
                                                   EFFECT_SELECTED,
                                                   false);
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetName(), effectLayer->GetIndex(), ef->GetStartTime() );
                         RaiseSelectedEffectChanged(ef);
                         mSelectedEffect = ef;
                     }
@@ -862,6 +864,7 @@ void EffectsGrid::Paste(const wxString &data) {
             int drop_row = mSequenceElements->GetVisibleRowInformation(mDropRow)->RowNumber;
             int start_row = wxAtoi(eff1data[5]);
             int drop_row_offset = drop_row - start_row;
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
             for( int i = 0; i < all_efdata.size()-1; i++ )
             {
                 wxArrayString efdata = wxSplit(all_efdata[i], '\t');
@@ -893,6 +896,7 @@ void EffectsGrid::Paste(const wxString &data) {
                                       new_end_time,
                                       EFFECT_NOT_SELECTED,
                                       false);
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetStartTime() );
                         if (!ef->GetPaletteMap().empty()) {
                             sendRenderEvent(el->GetParentElement()->GetName(),
                                             new_start_time,
@@ -932,6 +936,8 @@ void EffectsGrid::Paste(const wxString &data) {
                                   end_time,
                                   EFFECT_SELECTED,
                                   false);
+                    mSequenceElements->get_undo_mgr().CreateUndoStep();
+                    mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetStartTime() );
                     if (!ef->GetPaletteMap().empty()) {
                         sendRenderEvent(el->GetParentElement()->GetName(),
                                         mDropStartTime,
@@ -962,6 +968,7 @@ void EffectsGrid::Paste(const wxString &data) {
             else
             {
                 double start_time, end_time;
+                mSequenceElements->get_undo_mgr().CreateUndoStep();
                 for( int row = mRangeStartRow; row <= mRangeEndRow; row++ )
                 {
                     EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -981,6 +988,7 @@ void EffectsGrid::Paste(const wxString &data) {
                                       end_time,
                                       EFFECT_SELECTED,
                                       false);
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetStartTime() );
                             RaiseSelectedEffectChanged(ef);
                             mSelectedEffect = ef;
                          }
