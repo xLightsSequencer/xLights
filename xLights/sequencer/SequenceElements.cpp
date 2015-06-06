@@ -9,6 +9,7 @@
 
 
 SequenceElements::SequenceElements()
+: undo_mgr(this)
 {
     mSelectedTimingRow = -1;
     mTimingRowCount = 0;
@@ -53,7 +54,7 @@ EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
 }
 EffectLayer* SequenceElements::GetEffectLayer(int row) {
     if(row==-1) return nullptr;
-    return GetEffectLayer(GetRowInformation(row));
+    return GetEffectLayer(GetVisibleRowInformation(row));
 }
 
 Element* SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed,bool active, bool selected)
@@ -159,7 +160,7 @@ void SequenceElements::DeleteElement(const wxString &name)
     PopulateRowInformation();
 }
 
-Row_Information_Struct* SequenceElements::GetRowInformation(int index)
+Row_Information_Struct* SequenceElements::GetVisibleRowInformation(int index)
 {
     if(index < mVisibleRowInformation.size())
     {
@@ -171,7 +172,7 @@ Row_Information_Struct* SequenceElements::GetRowInformation(int index)
     }
 }
 
-Row_Information_Struct* SequenceElements::GetRowInformationFromRow(int row_number)
+Row_Information_Struct* SequenceElements::GetVisibleRowInformationFromRow(int row_number)
 {
     for(int i=0;i<mVisibleRowInformation.size();i++)
     {
@@ -183,9 +184,38 @@ Row_Information_Struct* SequenceElements::GetRowInformationFromRow(int row_numbe
     return NULL;
 }
 
-int SequenceElements::GetRowInformationSize()
+int SequenceElements::GetVisibleRowInformationSize()
 {
     return mVisibleRowInformation.size();
+}
+
+Row_Information_Struct* SequenceElements::GetRowInformation(int index)
+{
+    if(index < mRowInformation.size())
+    {
+        return &mRowInformation[index];
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+Row_Information_Struct* SequenceElements::GetRowInformationFromRow(int row_number)
+{
+    for(int i=0;i<mRowInformation.size();i++)
+    {
+        if(row_number == mRowInformation[i].RowNumber)
+        {
+            return &mRowInformation[i];
+        }
+    }
+    return NULL;
+}
+
+int SequenceElements::GetRowInformationSize()
+{
+    return mRowInformation.size();
 }
 
 void SequenceElements::SortElements()

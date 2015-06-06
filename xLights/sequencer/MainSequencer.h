@@ -10,7 +10,6 @@
 #include "Waveform.h"
 #include "../KeyBindings.h"
 
-
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
@@ -78,6 +77,7 @@ class MainSequencer: public wxPanel
         wxWindow *mParent;
         SequenceElements* mSequenceElements;
         int mPlayType;
+        bool mCanUndo;
 };
 
 #endif

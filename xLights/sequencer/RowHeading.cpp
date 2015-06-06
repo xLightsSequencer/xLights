@@ -53,10 +53,10 @@ RowHeading::~RowHeading()
 void RowHeading::mouseLeftDown( wxMouseEvent& event)
 {
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
-    if(mSelectedRow < mSequenceElements->GetRowInformationSize())
+    if(mSelectedRow < mSequenceElements->GetVisibleRowInformationSize())
     {
         bool result;
-        Element* e = mSequenceElements->GetRowInformation(mSelectedRow)->element;
+        Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
         if(e->GetType()=="model")
         {
             mSequenceElements->UnSelectAllElements();
@@ -87,10 +87,10 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
 void RowHeading::leftDoubleClick(wxMouseEvent& event)
 {
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
-    if (mSelectedRow >= mSequenceElements->GetRowInformationSize()) {
+    if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
         return;
     }
-    Row_Information_Struct *ri =  mSequenceElements->GetRowInformation(mSelectedRow);
+    Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
 
     if (element->GetType()=="model") {
@@ -121,11 +121,11 @@ void RowHeading::rightClick( wxMouseEvent& event)
 {
     wxMenu *mnuLayer;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
-    if (mSelectedRow >= mSequenceElements->GetRowInformationSize()) {
+    if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
         return;
     }
 
-    Row_Information_Struct *ri =  mSequenceElements->GetRowInformation(mSelectedRow);
+    Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
     if (element->GetType()=="model" || element->GetType()=="view")
     {
@@ -181,7 +181,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
 {
-    Row_Information_Struct *ri = mSequenceElements->GetRowInformation(mSelectedRow);
+    Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
     int layer_index = ri->layerIndex;
     int id = event.GetId();
@@ -206,7 +206,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if(id == ID_ROW_MNU_DELETE_LAYER)
     {
-        int layerIndex = mSequenceElements->GetRowInformation(mSelectedRow)->layerIndex;
+        int layerIndex = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex;
         wxString prompt = wxString::Format("Delete 'Layer %d' of '%s'?",
                                       layerIndex+1,element->GetName());
         wxString caption = "Confirm Layer Deletion";
@@ -265,7 +265,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_TOGGLE_NODES) {
-        if (mSequenceElements->GetRowInformation(mSelectedRow)->strandIndex == -1) {
+        if (mSequenceElements->GetVisibleRowInformation(mSelectedRow)->strandIndex == -1) {
             element->GetStrandLayer(0)->ShowNodes(true);
             element->ShowStrands(!element->ShowStrands());
         } else {
@@ -289,10 +289,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
 bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 {
-    if(mSequenceElements->GetRowInformation(row)->element->GetType() != "timing" &&
+    if(mSequenceElements->GetVisibleRowInformation(row)->element->GetType() != "timing" &&
        x<DEFAULT_ROW_HEADING_MARGIN)
     {
-        *IsCollapsed = mSequenceElements->GetRowInformation(row)->Collapsed;
+        *IsCollapsed = mSequenceElements->GetVisibleRowInformation(row)->Collapsed;
         return true;
     }
     else
@@ -303,10 +303,10 @@ bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 
 bool RowHeading::HitTestTimingActive(int row,int x, bool* IsActive)
 {
-    if(mSequenceElements->GetRowInformation(row)->element->GetType() == "timing" &&
+    if(mSequenceElements->GetVisibleRowInformation(row)->element->GetType() == "timing" &&
        x<DEFAULT_ROW_HEADING_MARGIN)
     {
-        *IsActive = mSequenceElements->GetRowInformation(row)->Active;
+        *IsActive = mSequenceElements->GetVisibleRowInformation(row)->Active;
         return true;
     }
     else
@@ -339,33 +339,33 @@ void RowHeading::Draw()
     dc.SetPen(penOutline);
     int row=0;
     int startY = 0,endY = 0;
-    for(int i =0;i< mSequenceElements->GetRowInformationSize();i++)
+    for(int i =0;i< mSequenceElements->GetVisibleRowInformationSize();i++)
     {
-        wxBrush brush(GetHeaderColor(mSequenceElements->GetRowInformation(i))->asWxColor(),wxBRUSHSTYLE_SOLID);
+        wxBrush brush(GetHeaderColor(mSequenceElements->GetVisibleRowInformation(i))->asWxColor(),wxBRUSHSTYLE_SOLID);
         dc.SetBrush(brush);
         startY = DEFAULT_ROW_HEADING_HEIGHT*row;
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);
-        if(mSequenceElements->GetRowInformation(i)->layerIndex>0
-           || mSequenceElements->GetRowInformation(i)->strandIndex >= 0)   // If effect layer = 0
+        if(mSequenceElements->GetVisibleRowInformation(i)->layerIndex>0
+           || mSequenceElements->GetVisibleRowInformation(i)->strandIndex >= 0)   // If effect layer = 0
         {
             dc.SetPen(*wxLIGHT_GREY_PEN);
             dc.DrawLine(1,startY,w-1,startY);
             dc.DrawLine(1,startY-1,w-1,startY-1);
             dc.SetPen(*wxBLACK_PEN);
-            if (mSequenceElements->GetRowInformation(i)->strandIndex >= 0) {
+            if (mSequenceElements->GetVisibleRowInformation(i)->strandIndex >= 0) {
                 wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
-                wxString name = mSequenceElements->GetRowInformation(i)->displayName;
+                wxString name = mSequenceElements->GetVisibleRowInformation(i)->displayName;
                 if (name == "") {
-                    if (mSequenceElements->GetRowInformation(i)->nodeIndex >= 0) {
-                        name = wxString::Format("Node %d", mSequenceElements->GetRowInformation(i)->nodeIndex + 1);
+                    if (mSequenceElements->GetVisibleRowInformation(i)->nodeIndex >= 0) {
+                        name = wxString::Format("Node %d", mSequenceElements->GetVisibleRowInformation(i)->nodeIndex + 1);
                     } else {
-                        name = wxString::Format("Strand %d", mSequenceElements->GetRowInformation(i)->strandIndex + 1);
+                        name = wxString::Format("Strand %d", mSequenceElements->GetVisibleRowInformation(i)->strandIndex + 1);
                     }
 
                 }
-                if (mSequenceElements->GetRowInformation(i)->nodeIndex >= 0) {
+                if (mSequenceElements->GetVisibleRowInformation(i)->nodeIndex >= 0) {
                     dc.DrawLabel("     " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else {
                     dc.DrawLabel("  " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
@@ -374,42 +374,42 @@ void RowHeading::Draw()
         }
         else        // Draw label
         {
-            if(mSequenceElements->GetRowInformation(i)->PartOfView)
+            if(mSequenceElements->GetVisibleRowInformation(i)->PartOfView)
             {
                 wxRect r(INDENT_ROW_HEADING_MARGIN,startY,w-(INDENT_ROW_HEADING_MARGIN),22);
-                dc.DrawLabel(mSequenceElements->GetRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                dc.DrawLabel(mSequenceElements->GetVisibleRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
             }
             else
             {
                 wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
-                dc.DrawLabel(mSequenceElements->GetRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                dc.DrawLabel(mSequenceElements->GetVisibleRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
             }
         }
 
-        if(mSequenceElements->GetRowInformation(i)->element->GetType()=="view")
+        if(mSequenceElements->GetVisibleRowInformation(i)->element->GetType()=="view")
         {
             dc.SetBrush(*wxWHITE_BRUSH);
             dc.SetPen(*wxBLACK_PEN);
             dc.DrawRectangle(2,startY+7,9,9);
             dc.DrawLine(4,startY+11,9,startY+11);
-            if(mSequenceElements->GetRowInformation(i)->Collapsed)
+            if(mSequenceElements->GetVisibleRowInformation(i)->Collapsed)
             {
                 dc.DrawLine(6,startY+9,6,startY+14);
             }
             dc.SetPen(penOutline);
             dc.SetBrush(brush);
         }
-        else if (mSequenceElements->GetRowInformation(i)->element->GetType()=="model")
+        else if (mSequenceElements->GetVisibleRowInformation(i)->element->GetType()=="model")
         {
-            if(mSequenceElements->GetRowInformation(i)->element->GetEffectLayerCount() > 1 &&
-               mSequenceElements->GetRowInformation(i)->layerIndex == 0 &&
-               mSequenceElements->GetRowInformation(i)->strandIndex == -1)
+            if(mSequenceElements->GetVisibleRowInformation(i)->element->GetEffectLayerCount() > 1 &&
+               mSequenceElements->GetVisibleRowInformation(i)->layerIndex == 0 &&
+               mSequenceElements->GetVisibleRowInformation(i)->strandIndex == -1)
             {
                 dc.SetBrush(*wxWHITE_BRUSH);
                 dc.SetPen(*wxBLACK_PEN);
                 dc.DrawRectangle(2,startY+7,9,9);
                 dc.DrawLine(4,startY+11,9,startY+11);
-                if(mSequenceElements->GetRowInformation(i)->Collapsed)
+                if(mSequenceElements->GetVisibleRowInformation(i)->Collapsed)
                 {
                     dc.DrawLine(6,startY+9,6,startY+14);
                 }
@@ -417,10 +417,10 @@ void RowHeading::Draw()
                 dc.SetBrush(brush);
             }
         }
-        else if(mSequenceElements->GetRowInformation(i)->element->GetType()=="timing")
+        else if(mSequenceElements->GetVisibleRowInformation(i)->element->GetType()=="timing")
         {
             dc.SetPen(*wxBLACK_PEN);
-            if(mSequenceElements->GetRowInformation(i)->Active)
+            if(mSequenceElements->GetVisibleRowInformation(i)->Active)
             {
                 dc.SetBrush(*wxWHITE_BRUSH);
                 dc.DrawCircle(7,startY+11,5);

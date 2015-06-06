@@ -129,6 +129,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     mPlayType = 0;
     SetHandlers(this);
     keyBindings.LoadDefaults();
+    mCanUndo = false;
 }
 
 MainSequencer::~MainSequencer()
@@ -348,9 +349,9 @@ void MainSequencer::CopySelectedEffects() {
             column_start_time = eff->GetStartTime();
         }
     }
-    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
+    for(int i=0;i<mSequenceElements->GetVisibleRowInformationSize();i++)
     {
-        int row_number = mSequenceElements->GetRowInformation(i)->RowNumber;
+        int row_number = mSequenceElements->GetVisibleRowInformation(i)->RowNumber;
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
@@ -384,9 +385,10 @@ void MainSequencer::Paste() {
 
 void MainSequencer::DeleteAllSelectedEffects()
 {
-    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    for(int i=0;i<mSequenceElements->GetVisibleRowInformationSize();i++)
     {
-        Element* element = mSequenceElements->GetRowInformation(i)->element;
+        Element* element = mSequenceElements->GetVisibleRowInformation(i)->element;
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         double start = 99999999;
         double end = -1;
@@ -404,7 +406,7 @@ void MainSequencer::DeleteAllSelectedEffects()
         if (end > 0) {
             RenderCommandEvent event(element->GetName(), start, end, true, true);
             wxPostEvent(mParent, event);
-            el->DeleteSelectedEffects();
+            el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         }
     }
     PanelEffectGrid->ForceRefresh();
@@ -434,8 +436,8 @@ void MainSequencer::InsertTimingMarkFromRange()
         double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
         if(is_range)
         {
-            Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
-            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
+            Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
+            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
             int index;
             if(!el->HitTestEffectByTime(t1,index) && !el->HitTestEffectByTime(t2,index))
             {
@@ -451,8 +453,8 @@ void MainSequencer::InsertTimingMarkFromRange()
         else
         {
             // x1 and x2 are the same. Insert from end time of timing to the left to x2
-            Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
-            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
+            Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
+            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
             int index;
             if(!el->HitTestEffectByTime(t2,index))
             {
@@ -498,8 +500,8 @@ void MainSequencer::SplitTimingMark()
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
     if(selectedTiming >= 0)
     {
-        Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
-        EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
+        Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
+        EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
         int index1,index2;
         double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(x1);
         double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);

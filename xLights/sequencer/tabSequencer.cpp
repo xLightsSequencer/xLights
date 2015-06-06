@@ -285,7 +285,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     sPreview1->Refresh();
     sPreview2->Refresh();
     m_mgr->Update();
-    
+
     mSavedChangeCount = mSequenceElements.GetChangeCount();
 }
 
@@ -560,6 +560,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     wxString settings = GetEffectTextFromWindows(palette);
     selectedEffect = NULL;
 
+    mSequenceElements.get_undo_mgr().CreateUndoStep();
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
@@ -569,12 +570,14 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         // Delete Effects that are in same time range as dropped effect
         el->SelectEffectsInTimeRange(mSequenceElements.GetSelectedRange(i)->StartTime,
                                      mSequenceElements.GetSelectedRange(i)->EndTime);
-        el->DeleteSelectedEffects();
+        el->DeleteSelectedEffects(mSequenceElements.get_undo_mgr());
         // Add dropped effect
         Effect* effect = el->AddEffect(0,effectIndex,name,settings,palette,
                                        mSequenceElements.GetSelectedRange(i)->StartTime,
                                        mSequenceElements.GetSelectedRange(i)->EndTime,
                                        EFFECT_SELECTED,false);
+
+        mSequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), effect->GetStartTime() );
 
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
@@ -785,9 +788,9 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
     wxString effectName = EffectsPanel1->EffectChoicebook->GetPageText(EffectsPanel1->EffectChoicebook->GetSelection());
 
-    for(int i=0;i<mSequenceElements.GetRowInformationSize();i++)
+    for(int i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
     {
-        Element* element = mSequenceElements.GetRowInformation(i)->element;
+        Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
         if(element->GetType() == "model" || element->GetType() == "timing")
         {
             EffectLayer* el = mSequenceElements.GetEffectLayer(i);

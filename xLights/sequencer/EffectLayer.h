@@ -2,6 +2,7 @@
 #define EFFECTLAYER_H
 #include "wx/wx.h"
 #include "Effect.h"
+#include "UndoManager.h"
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -62,7 +63,8 @@ class EffectLayer
         void SetParentElement(Element* parent);
         int GetSelectedEffectCount();
         void MoveAllSelectedEffects(double delta);
-        void DeleteSelectedEffects();
+        void DeleteSelectedEffects(UndoManager& undo_mgr);
+        void DeleteEffect(double startTime);
         static bool ShouldDeleteSelected(Effect *eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
         void UpdateAllSelectedEffects(const wxString& palette);

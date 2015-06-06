@@ -7,6 +7,7 @@
 #include "wx/wx.h"
 #include <vector>
 #include "wx/xml/xml.h"
+#include "UndoManager.h"
 
 class xLightsXmlFile;  // forward declaration needed due to circular dependency
 
@@ -58,6 +59,9 @@ class SequenceElements : public ChangeLister
         Element* GetElement(const wxString &name);
         Element* GetElement(int index);
         int GetElementCount();
+        Row_Information_Struct* GetVisibleRowInformation(int index);
+        Row_Information_Struct* GetVisibleRowInformationFromRow(int row_number);
+        int GetVisibleRowInformationSize();
         Row_Information_Struct* GetRowInformation(int index);
         Row_Information_Struct* GetRowInformationFromRow(int row_number);
         int GetRowInformationSize();
@@ -111,6 +115,8 @@ class SequenceElements : public ChangeLister
 
         virtual void IncrementChangeCount() {mChangeCount++;}
         int GetChangeCount() { return mChangeCount;}
+        UndoManager& get_undo_mgr() { return undo_mgr; }
+
     protected:
     private:
         void LoadEffects(EffectLayer *layer,
@@ -146,6 +152,7 @@ class SequenceElements : public ChangeLister
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
         int mFirstVisibleModelRow;
         int mChangeCount;
+        UndoManager undo_mgr;
 };
 
 

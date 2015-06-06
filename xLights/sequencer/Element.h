@@ -55,6 +55,7 @@ class Element
         EffectLayer* AddEffectLayer();
         void RemoveEffectLayer(int index);
         EffectLayer* InsertEffectLayer(int index);
+        void ReIndexLayers();
 
         StrandLayer* GetStrandLayer(int index, bool create = false);
         int getStrandLayerCount();
@@ -69,7 +70,7 @@ class Element
 
         void IncrementChangeCount(int startMs, int endMS);
         int getChangeCount() const { return changeCount; }
-    
+
         void GetDirtyRange(int &startMs, int &endMs) {
             startMs = dirtyStart;
             endMs = dirtyEnd;
@@ -110,7 +111,7 @@ class Element
         int mFixed;
         std::vector<EffectLayer*> mEffectLayers;
         std::vector<StrandLayer*> mStrandLayers;
-    
+
         ChangeLister *listener;
         volatile int changeCount = 0;
         volatile int dirtyStart = -1;

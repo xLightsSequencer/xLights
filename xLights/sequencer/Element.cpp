@@ -109,7 +109,9 @@ EffectLayer* Element::GetEffectLayer(int index)
 
 EffectLayer* Element::AddEffectLayer()
 {
+    int index = mEffectLayers.size();
     EffectLayer* new_layer = new EffectLayer(this);
+    new_layer->SetIndex(index);
     mEffectLayers.push_back(new_layer);
     IncrementChangeCount(-1, -1);
     return new_layer;
@@ -119,6 +121,7 @@ EffectLayer* Element::InsertEffectLayer(int index)
 {
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.insert(mEffectLayers.begin()+index, new_layer);
+    ReIndexLayers();
     IncrementChangeCount(-1, -1);
     return new_layer;
 }
@@ -128,6 +131,7 @@ void Element::RemoveEffectLayer(int index)
     EffectLayer *l = GetEffectLayer(index);
     mEffectLayers.erase(mEffectLayers.begin()+index);
     delete l;
+    ReIndexLayers();
     IncrementChangeCount(-1, -1);
 }
 
@@ -136,12 +140,19 @@ int Element::GetEffectLayerCount()
     return mEffectLayers.size();
 }
 
+void Element::ReIndexLayers()
+{
+    for( int i = 0; i < mEffectLayers.size(); i++ )
+    {
+        mEffectLayers[i]->SetIndex(i);
+    }
+}
 
 void Element::IncrementChangeCount(int sms, int ems)
 {
     SetDirtyRange(sms, ems);
     changeCount++;
-    
+
     listener->IncrementChangeCount();
 }
 

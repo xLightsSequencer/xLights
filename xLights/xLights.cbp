@@ -544,6 +544,8 @@
 		<Unit filename="sequencer/SequenceElements.h" />
 		<Unit filename="sequencer/TimeLine.cpp" />
 		<Unit filename="sequencer/TimeLine.h" />
+		<Unit filename="sequencer/UndoManager.cpp" />
+		<Unit filename="sequencer/UndoManager.h" />
 		<Unit filename="sequencer/Waveform.cpp" />
 		<Unit filename="sequencer/Waveform.h" />
 		<Unit filename="sequencer/tabSequencer.cpp" />

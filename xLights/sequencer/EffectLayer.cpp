@@ -571,14 +571,30 @@ void EffectLayer::MoveAllSelectedEffects(double delta)
     }
 }
 
-void EffectLayer::DeleteSelectedEffects()
+void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
 {
     for (std::vector<Effect*>::iterator it = mEffects.begin(); it != mEffects.end(); it++) {
         if ((*it)->GetSelected() != EFFECT_NOT_SELECTED) {
              IncrementChangeCount((*it)->GetStartTime() * 1000, (*it)->GetEndTime() * 1000);
+            undo_mgr.CaptureEffectToBeDeleted( mParentElement->GetName(), mIndex, (*it)->GetEffectName(),
+                                               (*it)->GetSettingsAsString(), (*it)->GetPaletteAsString(),
+                                               (*it)->GetStartTime(), (*it)->GetEndTime(),
+                                               (*it)->GetSelected(), (*it)->GetProtected() );
         }
     }
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDeleteSelected),mEffects.end());
+}
+
+void EffectLayer::DeleteEffect(double startTime)
+{
+    for(int i=0; i<mEffects.size();i++)
+    {
+        if(startTime >= mEffects[i]->GetStartTime())
+        {
+           mEffects.erase(mEffects.begin()+i);
+           break;
+        }
+    }
 }
 
 bool EffectLayer::ShouldDeleteSelected(Effect *eff)
