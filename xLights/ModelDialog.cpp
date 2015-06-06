@@ -73,18 +73,18 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 
     //(*Initialize(ModelDialog)
     wxFlexGridSizer* FlexGridSizer4;
-    wxButton* Button04;
     wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer3;
+    wxButton* Button04;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer7;
-    wxButton* Button03;
     wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer6;
     wxStdDialogButtonSizer* StdDialogButtonSizer2;
     wxFlexGridSizer* FlexGridSizer1;
+    wxButton* Button03;
 
     Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     SetHelpText(_("Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical."));

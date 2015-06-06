@@ -27,7 +27,7 @@ ModelViewSelector::ModelViewSelector(wxWindow* parent,wxWindowID id,const wxPoin
 	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, id, _("Add Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
-	SetClientSize(wxSize(223,252));
+	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	SetMinSize(wxSize(200,250));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -37,7 +37,7 @@ ModelViewSelector::ModelViewSelector(wxWindow* parent,wxWindowID id,const wxPoin
 	StaticTextType = new wxStaticText(this, ID_STATICTEXT_TYPE, _("Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_TYPE"));
 	FlexGridSizer2->Add(StaticTextType, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ListBoxElements = new wxListBox(this, ID_LISTBOX_ELEMENTS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxLB_SORT|wxVSCROLL, wxDefaultValidator, _T("ID_LISTBOX_ELEMENTS"));
-	ListBoxElements->SetMinSize(wxSize(150,150));
+	ListBoxElements->SetMinSize(wxDLG_UNIT(this,wxSize(150,150)));
 	FlexGridSizer2->Add(ListBoxElements, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -54,8 +54,8 @@ ModelViewSelector::ModelViewSelector(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer3->Add(ButtonClose, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	SetSizer(FlexGridSizer1);
-	Layout();
+	FlexGridSizer1->Fit(this);
+	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON_ADD,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelViewSelector::OnButtonAddClick);
 	Connect(ID_BUTTON_CLOSE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelViewSelector::OnButtonCloseClick);

@@ -367,8 +367,6 @@
 		<Unit filename="BitmapCache.cpp" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />
-		<Unit filename="ChannelMapDialog.cpp" />
-		<Unit filename="ChannelMapDialog.h" />
 		<Unit filename="ColorPanel.cpp" />
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="CurrentPreviewModels.cpp" />
@@ -568,7 +566,6 @@
 		<Unit filename="wxCheckedListCtrl.cpp" />
 		<Unit filename="wxCheckedListCtrl.h" />
 		<Unit filename="wx_pch.h" />
-		<Unit filename="wxsmith/ChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
 		<Unit filename="wxsmith/DisplayElementsPanel.wxs" />
@@ -630,7 +627,6 @@
 					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ChannelLayoutDialog.cpp" hdr="ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" fwddecl="0" i18n="1" name="PaletteMgmtDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ChannelMapDialog.wxs" src="ChannelMapDialog.cpp" hdr="ChannelMapDialog.h" fwddecl="0" i18n="1" name="ChannelMapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqElementMismatchDialog.wxs" src="SeqElementMismatchDialog.cpp" hdr="SeqElementMismatchDialog.h" fwddecl="0" i18n="1" name="SeqElementMismatchDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqExportDialog.wxs" src="SeqExportDialog.cpp" hdr="SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectsPanel.wxs" src="EffectsPanel.cpp" hdr="EffectsPanel.h" fwddecl="0" i18n="1" name="EffectsPanel" language="CPP" />

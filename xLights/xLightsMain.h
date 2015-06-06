@@ -71,7 +71,6 @@
 #include "PlaybackOptionsDialog.h"
 #include "ModelListDialog.h"
 #include "EffectListDialog.h"
-#include "ChannelMapDialog.h"
 #include "SeqExportDialog.h"
 #include "ViewsDialog.h"
 #include "SeqElementMismatchDialog.h"

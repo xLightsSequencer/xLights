@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxDialog" name="ModelViewSelector">
 		<title>Add Models</title>
-		<size>223,252</size>
 		<minsize>200,250</minsize>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
@@ -24,7 +23,7 @@
 					<object class="sizeritem">
 						<object class="wxListBox" name="ID_LISTBOX_ELEMENTS" variable="ListBoxElements" member="yes">
 							<default>-1</default>
-							<minsize>150,150</minsize>
+							<minsize>150,150d</minsize>
 							<style>wxLB_MULTIPLE|wxLB_SORT|wxVSCROLL</style>
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
