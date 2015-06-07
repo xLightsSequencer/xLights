@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Update Undo to be able to undo moved effects.
     -- enh(gil)   Update Undo to be able to undo added effects.
     -- enh(gil)   Add beginning Undo functionality.  Currently only works for restoring deleted effects and effects moved between layers.
     -- enh(gil)   Select effects based on time to allow off screen block selections to work.

@@ -45,6 +45,19 @@ Effect* EffectLayer::GetEffect(int index)
     }
 }
 
+Effect* EffectLayer::GetEffectFromID(int id)
+{
+    Effect* eff = nullptr;
+    for (int x = 0; x < mEffects.size(); x++) {
+        if( mEffects[x]->GetID() == id )
+        {
+            eff = mEffects[x];
+            break;
+        }
+    }
+    return eff;
+}
+
 void EffectLayer::RemoveEffect(int index)
 {
     if(index<mEffects.size())
@@ -76,6 +89,9 @@ Effect* EffectLayer::AddEffect(int id, int effectIndex, const wxString &name, co
 void EffectLayer::SortEffects()
 {
     std::sort(mEffects.begin(),mEffects.end(),SortEffectByStartTime);
+    for (int x = 0; x < mEffects.size(); x++) {
+        mEffects[x]->SetID(x);
+    }
 }
 
 bool EffectLayer::IsStartTimeLinked(int index)
@@ -555,17 +571,33 @@ void EffectLayer::UpdateAllSelectedEffects(const wxString& palette)
     }
 }
 
-void EffectLayer::MoveAllSelectedEffects(double delta)
+void EffectLayer::MoveAllSelectedEffects(double delta, UndoManager& undo_mgr)
 {
     for(int i=0; i<mEffects.size();i++)
     {
-        if(mEffects[i]->GetSelected() == EFFECT_LT_SELECTED || mEffects[i]->GetSelected() == EFFECT_SELECTED)
+        if(mEffects[i]->GetSelected() == EFFECT_LT_SELECTED)
         {
+            if( undo_mgr.GetCaptureUndo() ) {
+                undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
+                                                 mEffects[i]->GetStartTime(), mEffects[i]->GetEndTime() );
+            }
             mEffects[i]->SetStartTime( mEffects[i]->GetStartTime()+ delta);
         }
-
-        if(mEffects[i]->GetSelected() == EFFECT_RT_SELECTED || mEffects[i]->GetSelected() == EFFECT_SELECTED)
+        else if(mEffects[i]->GetSelected() == EFFECT_RT_SELECTED)
         {
+            if( undo_mgr.GetCaptureUndo() ) {
+                undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
+                                                 mEffects[i]->GetStartTime(), mEffects[i]->GetEndTime() );
+            }
+            mEffects[i]->SetEndTime( mEffects[i]->GetEndTime()+ delta);
+        }
+        else if(mEffects[i]->GetSelected() == EFFECT_SELECTED)
+        {
+            if( undo_mgr.GetCaptureUndo() ) {
+                undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
+                                                 mEffects[i]->GetStartTime(), mEffects[i]->GetEndTime() );
+            }
+            mEffects[i]->SetStartTime( mEffects[i]->GetStartTime()+ delta);
             mEffects[i]->SetEndTime( mEffects[i]->GetEndTime()+ delta);
         }
     }
@@ -585,11 +617,11 @@ void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDeleteSelected),mEffects.end());
 }
 
-void EffectLayer::DeleteEffect(double startTime)
+void EffectLayer::DeleteEffect(int id)
 {
     for(int i=0; i<mEffects.size();i++)
     {
-        if(startTime >= mEffects[i]->GetStartTime() && startTime <= mEffects[i]->GetEndTime())
+        if(mEffects[i]->GetID() == id)
         {
            mEffects.erase(mEffects.begin()+i);
            break;

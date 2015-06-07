@@ -9,8 +9,13 @@ DeletedEffectInfo::DeletedEffectInfo( const wxString &element_name_, int layer_i
 {
 }
 
-AddedEffectInfo::AddedEffectInfo( const wxString &element_name_, int layer_index_, double startTime_ )
-: element_name(element_name_), layer_index(layer_index_), startTime(startTime_)
+AddedEffectInfo::AddedEffectInfo( const wxString &element_name_, int layer_index_, int id_ )
+: element_name(element_name_), layer_index(layer_index_), id(id_)
+{
+}
+
+MovedEffectInfo::MovedEffectInfo( const wxString &element_name_, int layer_index_, int id_, double &startTime_, double &endTime_ )
+: element_name(element_name_), layer_index(layer_index_), id(id_), startTime(startTime_), endTime(endTime_)
 {
 }
 
@@ -31,8 +36,14 @@ UndoStep::UndoStep( UNDO_ACTIONS action, AddedEffectInfo* effect_info )
     added_effect_info.push_back(effect_info);
 }
 
+UndoStep::UndoStep( UNDO_ACTIONS action, MovedEffectInfo* effect_info )
+: undo_action(action)
+{
+    moved_effect_info.push_back(effect_info);
+}
+
 UndoManager::UndoManager(SequenceElements* parent)
-: mParentSequence(parent)
+: mParentSequence(parent), mCaptureUndo(false)
 {
 }
 
@@ -42,6 +53,11 @@ UndoManager::~UndoManager()
     {
         delete mUndoSteps[i];
     }
+}
+
+void UndoManager::SetCaptureUndo( bool value )
+{
+    mCaptureUndo = value;
 }
 
 void UndoManager::RemoveUnusedMarkers()
@@ -55,7 +71,6 @@ void UndoManager::RemoveUnusedMarkers()
             mUndoSteps.pop_back();
         }
     }
-
 }
 
 bool UndoManager::CanUndo()
@@ -79,10 +94,17 @@ void UndoManager::CaptureEffectToBeDeleted( const wxString &element_name, int la
     mUndoSteps.push_back(action);
 }
 
-void UndoManager::CaptureAddedEffect( const wxString &element_name, int layer_index, double startTime )
+void UndoManager::CaptureAddedEffect( const wxString &element_name, int layer_index, int id )
 {
-    AddedEffectInfo* effect_undo_action = new AddedEffectInfo( element_name, layer_index, startTime + 0.005 );
+    AddedEffectInfo* effect_undo_action = new AddedEffectInfo( element_name, layer_index, id );
     UndoStep* action = new UndoStep(UNDO_EFFECT_ADDED, effect_undo_action);
+    mUndoSteps.push_back(action);
+}
+
+void UndoManager::CaptureEffectToBeMoved( const wxString &element_name, int layer_index, int id, double startTime, double endTime )
+{
+    MovedEffectInfo* effect_undo_action = new MovedEffectInfo( element_name, layer_index, id, startTime, endTime );
+    UndoStep* action = new UndoStep(UNDO_EFFECT_MOVED, effect_undo_action);
     mUndoSteps.push_back(action);
 }
 
@@ -115,7 +137,16 @@ void UndoManager::UndoLastStep()
             {
             Element* element = mParentSequence->GetElement(next_action->added_effect_info[0]->element_name);
             EffectLayer* el = element->GetEffectLayer(next_action->added_effect_info[0]->layer_index);
-            el->DeleteEffect(next_action->added_effect_info[0]->startTime);
+            el->DeleteEffect(next_action->added_effect_info[0]->id);
+            }
+            break;
+        case UNDO_EFFECT_MOVED:
+            {
+            Element* element = mParentSequence->GetElement(next_action->moved_effect_info[0]->element_name);
+            EffectLayer* el = element->GetEffectLayer(next_action->moved_effect_info[0]->layer_index);
+            Effect* eff = el->GetEffectFromID(next_action->moved_effect_info[0]->id);
+            eff->SetStartTime(next_action->moved_effect_info[0]->startTime);
+            eff->SetEndTime(next_action->moved_effect_info[0]->endTime);
             }
             break;
         }

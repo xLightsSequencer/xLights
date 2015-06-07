@@ -29,6 +29,7 @@ class EffectLayer
         Effect *AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
                           double startTime, double endTime, int Selected, bool Protected);
         Effect* GetEffect(int index);
+        Effect* GetEffectFromID(int id);
         void RemoveEffect(int index);
 
         int GetIndex();
@@ -62,9 +63,9 @@ class EffectLayer
         Element* GetParentElement();
         void SetParentElement(Element* parent);
         int GetSelectedEffectCount();
-        void MoveAllSelectedEffects(double delta);
+        void MoveAllSelectedEffects(double delta, UndoManager& undo_mgr);
         void DeleteSelectedEffects(UndoManager& undo_mgr);
-        void DeleteEffect(double startTime);
+        void DeleteEffect(int id);
         static bool ShouldDeleteSelected(Effect *eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
         void UpdateAllSelectedEffects(const wxString& palette);

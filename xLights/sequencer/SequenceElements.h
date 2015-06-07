@@ -115,6 +115,7 @@ class SequenceElements : public ChangeLister
 
         virtual void IncrementChangeCount() {mChangeCount++;}
         int GetChangeCount() { return mChangeCount;}
+
         UndoManager& get_undo_mgr() { return undo_mgr; }
 
     protected:

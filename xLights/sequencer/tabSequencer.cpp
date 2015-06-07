@@ -572,7 +572,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                                        mSequenceElements.GetSelectedRange(i)->EndTime,
                                        EFFECT_SELECTED,false);
 
-        mSequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), effect->GetStartTime() );
+        mSequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), effect->GetID() );
 
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
