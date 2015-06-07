@@ -35,8 +35,6 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->SetSequenceElements(&mSequenceElements);
 
     mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
-    mainSequencer->PanelPlayControls->SetSize(wxSize(175,100));
-    mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
 
     mainSequencer->PanelRowHeadings->SetSequenceElements(&mSequenceElements);
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
@@ -447,9 +445,6 @@ void xLightsFrame::ResizeAndMakeEffectsScroll()
 
 void xLightsFrame::ResizeMainSequencer()
 {
-    //Play Controls
-    mainSequencer->PanelPlayControls->SetSize(wxSize(175,100));
-    mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
 
     // Set max rows to determine correct row information size
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());

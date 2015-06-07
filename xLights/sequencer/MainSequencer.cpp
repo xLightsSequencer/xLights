@@ -12,7 +12,6 @@
 
 //(*IdInit(MainSequencer)
 const long MainSequencer::ID_STATICTEXT_Time = wxNewId();
-const long MainSequencer::ID_PANEL5 = wxNewId();
 const long MainSequencer::ID_PANEL1 = wxNewId();
 const long MainSequencer::ID_PANEL3 = wxNewId();
 const long MainSequencer::ID_PANEL6 = wxNewId();
@@ -67,29 +66,33 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 {
 	//(*Initialize(MainSequencer)
 	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(3, 3, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
 	FlexGridSizer1->AddGrowableRow(1);
-	PanelPlayControls = new wxPanel(this, ID_PANEL5, wxDefaultPosition, wxSize(175,100), wxTAB_TRAVERSAL, _T("ID_PANEL5"));
-	StaticText_SeqTime = new wxStaticText(PanelPlayControls, ID_STATICTEXT_Time, _("Time:"), wxPoint(80,64), wxDefaultSize, 0, _T("ID_STATICTEXT_Time"));
-	FlexGridSizer1->Add(PanelPlayControls, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	StaticText_SeqTime = new wxStaticText(this, ID_STATICTEXT_Time, _("Time:"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(60,20)), 0, _T("ID_STATICTEXT_Time"));
+	FlexGridSizer2->Add(StaticText_SeqTime, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
+	FlexGridSizer1->Add(FlexGridSizer2, 0, wxALIGN_RIGHT|wxALIGN_BOTTOM, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
 	FlexGridSizer4->AddGrowableRow(1);
-	PanelTimeLine = new TimeLine(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	PanelTimeLine->SetMinSize(wxSize(-1,25));
-	PanelTimeLine->SetMaxSize(wxSize(-1,25));
+	PanelTimeLine = new TimeLine(this, ID_PANEL1, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,15)), wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	PanelTimeLine->SetMinSize(wxDLG_UNIT(this,wxSize(-1,15)));
+	PanelTimeLine->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,15)));
 	FlexGridSizer4->Add(PanelTimeLine, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
-	PanelWaveForm = new Waveform(this, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
-	PanelWaveForm->SetMinSize(wxSize(-1,75));
-	PanelWaveForm->SetMaxSize(wxSize(-1,75));
+	PanelWaveForm = new Waveform(this, ID_PANEL3, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,40)), wxTAB_TRAVERSAL, _T("ID_PANEL3"));
+	PanelWaveForm->SetMinSize(wxDLG_UNIT(this,wxSize(-1,40)));
+	PanelWaveForm->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,40)));
 	FlexGridSizer4->Add(PanelWaveForm, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	PanelRowHeadings = new RowHeading(this, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+	PanelRowHeadings = new RowHeading(this, ID_PANEL6, wxDefaultPosition, wxDLG_UNIT(this,wxSize(90,-1)), wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+	PanelRowHeadings->SetMinSize(wxDLG_UNIT(this,wxSize(90,-1)));
+	PanelRowHeadings->SetMaxSize(wxDLG_UNIT(this,wxSize(90,-1)));
 	FlexGridSizer1->Add(PanelRowHeadings, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
 	PanelEffectGrid = new EffectsGrid(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL2"));
 	FlexGridSizer1->Add(PanelEffectGrid, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);

@@ -576,7 +576,7 @@ void TimeLine::render( wxPaintEvent& event )
     float t;
     int labelCount=0;
     wxPaintDC dc(this);
-    wxPen pen(wxColor(128,128,128), .5);
+    wxPen pen(wxColor(128,128,128));
     const wxPen* pen_black = wxBLACK_PEN;
     const wxPen* pen_green = wxGREEN_PEN;
     const wxPen* pen_transparent = wxTRANSPARENT_PEN;
@@ -601,6 +601,7 @@ void TimeLine::render( wxPaintEvent& event )
         dc.DrawRectangle(left_pos, 0, right_pos - left_pos + 1, h);
     }
 
+    dc.SetBrush(brush);
     dc.SetPen(pen);
     wxString format;
     int minutes=0;
@@ -613,13 +614,13 @@ void TimeLine::render( wxPaintEvent& event )
         // Draw hash marks
         if ((x+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH/2)==0)
         {
-            dc.DrawLine(x,20,x,h-1);
+            dc.DrawLine(x,h - 10,x,h-1);
         }
         // Draw time label
         if((x+mStartPixelOffset)%PIXELS_PER_MAJOR_HASH==0)
         {
             t = GetTimeMSfromPosition(x+mStartPixelOffset);
-            wxRect r(x-25,h-20,50,12);
+            wxRect r(x-25,h/2-10,50,12);
             minutes = t/60000;
             seconds = (t-(minutes*60000))/1000;
             subsecs = t - (minutes*60000 + seconds*1000);

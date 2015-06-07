@@ -9,15 +9,17 @@
 			<growablecols>1</growablecols>
 			<growablerows>1</growablerows>
 			<object class="sizeritem">
-				<object class="wxPanel" name="ID_PANEL5" variable="PanelPlayControls" member="yes">
-					<size>175,100</size>
-					<object class="wxStaticText" name="ID_STATICTEXT_Time" variable="StaticText_SeqTime" member="yes">
-						<label>Time:</label>
-						<pos>80,64</pos>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>3</cols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT_Time" variable="StaticText_SeqTime" member="yes">
+							<label>Time:</label>
+							<size>60,20d</size>
+						</object>
+						<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
-				<option>1</option>
+				<flag>wxALIGN_RIGHT|wxALIGN_BOTTOM</flag>
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
@@ -26,16 +28,18 @@
 					<growablerows>1</growablerows>
 					<object class="sizeritem">
 						<object class="wxPanel" name="ID_PANEL1" subclass="TimeLine" variable="PanelTimeLine" member="yes">
-							<minsize>-1,25</minsize>
-							<maxsize>-1,25</maxsize>
+							<size>-1,15d</size>
+							<minsize>-1,15d</minsize>
+							<maxsize>-1,15d</maxsize>
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
 						<object class="wxPanel" name="ID_PANEL3" subclass="Waveform" variable="PanelWaveForm" member="yes">
-							<minsize>-1,75</minsize>
-							<maxsize>-1,75</maxsize>
+							<size>-1,40d</size>
+							<minsize>-1,40d</minsize>
+							<maxsize>-1,40d</maxsize>
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<option>1</option>
@@ -50,7 +54,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxPanel" name="ID_PANEL6" subclass="RowHeading" variable="PanelRowHeadings" member="yes" />
+				<object class="wxPanel" name="ID_PANEL6" subclass="RowHeading" variable="PanelRowHeadings" member="yes">
+					<size>90,-1d</size>
+					<minsize>90,-1d</minsize>
+					<maxsize>90,-1d</maxsize>
+				</object>
 				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<option>1</option>
 			</object>

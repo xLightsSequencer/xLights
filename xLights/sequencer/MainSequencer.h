@@ -34,7 +34,6 @@ class MainSequencer: public wxPanel
 		EffectsGrid* PanelEffectGrid;
 		wxStaticText* StaticText_SeqTime;
 		RowHeading* PanelRowHeadings;
-		wxPanel* PanelPlayControls;
 		Waveform* PanelWaveForm;
 		TimeLine* PanelTimeLine;
 		//*)
@@ -45,7 +44,6 @@ class MainSequencer: public wxPanel
 
 		//(*Identifiers(MainSequencer)
 		static const long ID_STATICTEXT_Time;
-		static const long ID_PANEL5;
 		static const long ID_PANEL1;
 		static const long ID_PANEL3;
 		static const long ID_PANEL6;
