@@ -113,21 +113,25 @@ public:
         if (row != NULL) {
             name = row->GetName();
             mainBuffer = new PixelBufferClass();
-            xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), zeroBased);
+            if (xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), zeroBased)) {
 
-            for (int x = 0; x < row->getStrandLayerCount(); x++) {
-                StrandLayer *sl = row->GetStrandLayer(x);
-                if (sl -> GetEffectCount() > 0) {
-                    strandBuffers[x].reset(new PixelBufferClass());
-                    strandBuffers[x]->InitStrandBuffer(*mainBuffer, x, data.FrameTime());
-                }
-                for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                    EffectLayer *nl = sl->GetNodeLayer(n);
-                    if (nl -> GetEffectCount() > 0) {
-                        nodeBuffers[x * mainBuffer->GetNodeCount() + n].reset(new PixelBufferClass());
-                        nodeBuffers[x * mainBuffer->GetNodeCount() + n]->InitNodeBuffer(*mainBuffer, x, n, data.FrameTime());
+                for (int x = 0; x < row->getStrandLayerCount(); x++) {
+                    StrandLayer *sl = row->GetStrandLayer(x);
+                    if (sl -> GetEffectCount() > 0) {
+                        strandBuffers[x].reset(new PixelBufferClass());
+                        strandBuffers[x]->InitStrandBuffer(*mainBuffer, x, data.FrameTime());
+                    }
+                    for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
+                        EffectLayer *nl = sl->GetNodeLayer(n);
+                        if (nl -> GetEffectCount() > 0) {
+                            nodeBuffers[x * mainBuffer->GetNodeCount() + n].reset(new PixelBufferClass());
+                            nodeBuffers[x * mainBuffer->GetNodeCount() + n]->InitNodeBuffer(*mainBuffer, x, n, data.FrameTime());
+                        }
                     }
                 }
+            } else {
+                delete mainBuffer;
+                mainBuffer = nullptr;
             }
         } else {
             mainBuffer = NULL;
@@ -567,6 +571,10 @@ void xLightsFrame::RenderGridToSeqData() {
 
             bool hasDep = false;
             PixelBufferClass *buffer = job->getBuffer();
+            if (buffer == nullptr) {
+                delete job;
+                continue;
+            }
             size_t cn = buffer->ChannelsPerNode();
             for (int node = 0; node < buffer->GetNodeCount(); node++) {
                 int start = buffer->NodeStartChannel(node);
@@ -634,6 +642,10 @@ void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int 
     if( el->GetType() != "timing")
     {
         job = new RenderJob(el, SeqData, this, false, clear);
+        if (job->getBuffer() == nullptr) {
+            delete job;
+            return;
+        }
 
         //account for some rounding by rendering before/after
         int startframe = startms / SeqData.FrameTime() - 1;
