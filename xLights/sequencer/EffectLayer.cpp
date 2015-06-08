@@ -420,7 +420,7 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX)
     }
 }
 
-void EffectLayer::SelectEffectsInTimeRange(double startTime,int endTime)
+void EffectLayer::SelectEffectsInTimeRange(double startTime,double endTime)
 {
     for(int i=0;i<mEffects.size();i++)
     {

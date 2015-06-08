@@ -57,7 +57,7 @@ class EffectLayer
 
         void GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,double &toRight);
         void SelectEffectsInPositionRange(int startX,int endX);
-        void SelectEffectsInTimeRange(double startTime,int endTime);
+        void SelectEffectsInTimeRange(double startTime,double endTime);
         void UnSelectAllEffects();
 
         Element* GetParentElement();
