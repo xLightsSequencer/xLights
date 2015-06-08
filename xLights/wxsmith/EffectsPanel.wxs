@@ -701,6 +701,7 @@
 														<value>5</value>
 														<min>1</min>
 														<max>20</max>
+														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>2</border>
@@ -711,6 +712,7 @@
 														<value>5</value>
 														<maxlength>2</maxlength>
 														<size>20,-1d</size>
+														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>2</border>

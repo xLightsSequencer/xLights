@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil)   Link the slider and text control for the Circles effect
+    -- enh(gil)   Select position by time function had int instead of double parameter which was causing small divisions to not be selectable.
     -- enh(gil)   Update Undo to be able to undo moved effects.
     -- enh(gil)   Update Undo to be able to undo added effects.
     -- enh(gil)   Add beginning Undo functionality.  Currently only works for restoring deleted effects and effects moved between layers.
