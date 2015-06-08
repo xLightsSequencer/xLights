@@ -10,6 +10,7 @@
 const long PerspectivesPanel::ID_BUTTON_ADD_PERSPECTIVE = wxNewId();
 const long PerspectivesPanel::D_BUTTON_DELETE_PERSPECTIVE = wxNewId();
 const long PerspectivesPanel::ID_BUTTON_RENAME_PERSPECTIVE = wxNewId();
+const long PerspectivesPanel::ID_BUTTON_SAVE_PERSPECTIVE = wxNewId();
 const long PerspectivesPanel::ID_LISTBOX_PERSPECTIVES = wxNewId();
 const long PerspectivesPanel::ID_STATICTEXT1 = wxNewId();
 //*)
@@ -31,7 +32,7 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(1);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 5, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 6, 0, 0);
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonAddPerspective = new wxButton(this, ID_BUTTON_ADD_PERSPECTIVE, _("+"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_ADD_PERSPECTIVE"));
 	ButtonAddPerspective->SetToolTip(_("Add Perspective"));
@@ -42,6 +43,9 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	ButtonRenamePerspective = new wxButton(this, ID_BUTTON_RENAME_PERSPECTIVE, _("Rename"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_RENAME_PERSPECTIVE"));
 	ButtonRenamePerspective->SetToolTip(_("Rename Perspective"));
 	FlexGridSizer3->Add(ButtonRenamePerspective, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	ButtonSavePerspective = new wxButton(this, ID_BUTTON_SAVE_PERSPECTIVE, _("Save"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_SAVE_PERSPECTIVE"));
+	ButtonSavePerspective->SetToolTip(_("Save Perspective"));
+	FlexGridSizer3->Add(ButtonSavePerspective, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -59,7 +63,9 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON_ADD_PERSPECTIVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnButtonAddPerspectiveClick);
+	Connect(D_BUTTON_DELETE_PERSPECTIVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnButtonDeletePerspectiveClick);
 	Connect(ID_BUTTON_RENAME_PERSPECTIVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnButtonRenamePerspectiveClick);
+	Connect(ID_BUTTON_SAVE_PERSPECTIVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnButtonSavePerspectiveClick);
 	Connect(ID_LISTBOX_PERSPECTIVES,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnListBoxPerspectivesDClick);
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&PerspectivesPanel::OnPaint);
 	//*)
@@ -77,9 +83,8 @@ PerspectivesPanel::~PerspectivesPanel()
 void PerspectivesPanel::OnButtonAddPerspectiveClick(wxCommandEvent& event)
 {
     wxString name = wxGetTextFromUser("Enter name of perspective","Perspective Name");
-    if(name.size()>0)
+    if(name.size()>0 && !CheckForDuplicates(name))
     {
-
         wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
         p->AddAttribute("name", name);
         p->AddAttribute("settings","");
@@ -87,7 +92,6 @@ void PerspectivesPanel::OnButtonAddPerspectiveClick(wxCommandEvent& event)
         ListBoxPerspectives->Append(name,p);
         wxCommandEvent eventPerspectivesChanged(EVT_PERSPECTIVES_CHANGED);
         wxPostEvent(GetParent(), eventPerspectivesChanged);
-
     }
 }
 
@@ -113,30 +117,76 @@ void PerspectivesPanel::SetPerspectives(wxXmlNode* perspectivesNode)
             }
         }
     }
-
 }
 
 void PerspectivesPanel::OnListBoxPerspectivesDClick(wxCommandEvent& event)
 {
-    wxCommandEvent eventLoadPerspective(EVT_LOAD_PERSPECTIVE);
-    wxXmlNode* p = (wxXmlNode*)(ListBoxPerspectives->GetClientData(ListBoxPerspectives->GetSelection()));
-
-    eventLoadPerspective.SetClientData(p);
-    wxPostEvent(GetParent(), eventLoadPerspective);
+    int selection_index = ListBoxPerspectives->GetSelection();
+    wxXmlNode* p = (wxXmlNode*)(ListBoxPerspectives->GetClientData(selection_index));
+    if( p != nullptr )
+    {
+        wxCommandEvent eventLoadPerspective(EVT_LOAD_PERSPECTIVE);
+        eventLoadPerspective.SetClientData(p);
+        wxPostEvent(GetParent(), eventLoadPerspective);
+    }
 }
 
 void PerspectivesPanel::OnButtonRenamePerspectiveClick(wxCommandEvent& event)
 {
-    wxString name = wxGetTextFromUser("Enter new name for perspective","Rename Perspective ");
-    if(name.size()>0)
+    int selection_index = ListBoxPerspectives->GetSelection();
+    if( selection_index >= 0 )
     {
-        wxXmlNode* p = (wxXmlNode*)(ListBoxPerspectives->GetClientData(ListBoxPerspectives->GetSelection()));
-        p->DeleteAttribute("name");
-        p->AddAttribute("name", name);
-        ListBoxPerspectives->SetString(ListBoxPerspectives->GetSelection(),name);
+        wxXmlNode* p = (wxXmlNode*)(ListBoxPerspectives->GetClientData(selection_index));
+        if( p != nullptr )
+        {
+            wxString name = wxGetTextFromUser("Enter new name for perspective","Rename Perspective ");
+            if(name.size()>0 && !CheckForDuplicates(name))
+            {
+                p->DeleteAttribute("name");
+                p->AddAttribute("name", name);
+                ListBoxPerspectives->SetString(ListBoxPerspectives->GetSelection(),name);
 
-        wxCommandEvent eventPerspectivesChanged(EVT_PERSPECTIVES_CHANGED);
-        wxPostEvent(GetParent(), eventPerspectivesChanged);
-
+                wxCommandEvent eventPerspectivesChanged(EVT_PERSPECTIVES_CHANGED);
+                wxPostEvent(GetParent(), eventPerspectivesChanged);
+            }
+        }
     }
+}
+
+void PerspectivesPanel::OnButtonDeletePerspectiveClick(wxCommandEvent& event)
+{
+    int selection_index = ListBoxPerspectives->GetSelection();
+    if( selection_index >= 0 )
+    {
+        wxXmlNode* p = (wxXmlNode*)(ListBoxPerspectives->GetClientData(selection_index));
+        if( p != nullptr )
+        {
+            mPerspectivesNode->RemoveChild(p);
+            ListBoxPerspectives->Delete(selection_index);
+        }
+        wxCommandEvent eventPerspectives(EVT_PERSPECTIVES_CHANGED);
+        wxPostEvent(GetParent(), eventPerspectives);
+    }
+}
+
+void PerspectivesPanel::OnButtonSavePerspectiveClick(wxCommandEvent& event)
+{
+    wxCommandEvent eventSavePerspectives(EVT_SAVE_PERSPECTIVES);
+    wxPostEvent(GetParent(), eventSavePerspectives);
+}
+
+bool PerspectivesPanel::CheckForDuplicates(const wxString& perspective_name)
+{
+    for(wxXmlNode* p=mPerspectivesNode->GetChildren(); p!=NULL; p=p->GetNext() )
+    {
+        if (p->GetName() == "perspective")
+        {
+            wxString name=p->GetAttribute("name");
+            if (name == perspective_name)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
 }

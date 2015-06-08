@@ -9,7 +9,7 @@
 			<growablerows>1</growablerows>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-					<cols>5</cols>
+					<cols>6</cols>
 					<object class="spacer">
 						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -31,6 +31,7 @@
 							<label>-</label>
 							<tooltip>Delete Perspective</tooltip>
 							<style>wxBU_EXACTFIT</style>
+							<handler function="OnButtonDeletePerspectiveClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -45,6 +46,17 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_SAVE_PERSPECTIVE" variable="ButtonSavePerspective" member="yes">
+							<label>Save</label>
+							<tooltip>Save Perspective</tooltip>
+							<style>wxBU_EXACTFIT</style>
+							<handler function="OnButtonSavePerspectiveClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="spacer">

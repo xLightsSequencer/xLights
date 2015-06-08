@@ -432,6 +432,7 @@ wxDEFINE_EVENT(EVT_EFFECT_UPDATED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SAVE_PERSPECTIVES, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
@@ -464,6 +465,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_UPDATED, xLightsFrame::UpdateEffect)
     EVT_COMMAND(wxID_ANY, EVT_FORCE_SEQUENCER_REFRESH, xLightsFrame::ForceSequencerRefresh)
     EVT_COMMAND(wxID_ANY, EVT_LOAD_PERSPECTIVE, xLightsFrame::LoadPerspective)
+    EVT_COMMAND(wxID_ANY, EVT_SAVE_PERSPECTIVES, xLightsFrame::OnMenuItemViewSavePerspectiveSelected)
     EVT_COMMAND(wxID_ANY, EVT_PERSPECTIVES_CHANGED, xLightsFrame::PerspectivesChanged)
     EVT_COMMAND(wxID_ANY, EVT_EXPORT_MODEL, xLightsFrame::ExportModel)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL, xLightsFrame::PlayModel)
@@ -2492,10 +2494,27 @@ void xLightsFrame::AllLightsOff()
     if (xout) xout->alloff();
 }
 
+void xLightsFrame::HideAllSequencerWindows()
+{
+    m_mgr->GetPane("DisplayElements").Hide();
+    m_mgr->GetPane("Effect").Hide();
+    m_mgr->GetPane("Color").Hide();
+    m_mgr->GetPane("LayerTiming").Hide();
+    m_mgr->GetPane("ModelPreview").Hide();
+    m_mgr->GetPane("HousePreview").Hide();
+    m_mgr->GetPane("EffectDropper").Hide();
+    m_mgr->GetPane("Perspectives").Hide();
+    m_mgr->Update();
+}
+
 void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 {
     heartbeat("tab change", true); //tell fido to stop watching -DJ
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
+    if (pagenum != NEWSEQUENCER)
+    {
+        HideAllSequencerWindows();
+    }
     if (pagenum == TESTTAB && !xout)
     {
         StatusBar1->SetStatusText(_("Testing disabled - Output to Lights is not checked"));
@@ -2742,6 +2761,8 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     wxLogDebug("xLightsFrame::OnClose");
+
+    HideAllSequencerWindows();
 
     if (!CloseSequence()) {
         event.Veto();
@@ -3185,7 +3206,7 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
     } else if (event.GetId() == ID_MENUITEM_ICON_LARGE) {
         size = 32;
     }
-    
+
     mIconSize = size;
     for (int x = 0; x < EffectsToolBar->GetToolCount(); x++) {
         EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));

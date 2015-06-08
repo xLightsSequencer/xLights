@@ -148,6 +148,7 @@ wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SAVE_PERSPECTIVES, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
@@ -578,6 +579,8 @@ private:
     void ProtectSelectedEffects(wxCommandEvent& evt);
     void CopyEffectAcrossRow(wxCommandEvent& evt); //-DJ
     void ClearEffectRow(wxCommandEvent& evt); //-DJ
+    void HideAllSequencerWindows();
+
 //    void ConnectOnChar(wxWindow* pclComponent);
 
     //(*Identifiers(xLightsFrame)

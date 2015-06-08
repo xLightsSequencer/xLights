@@ -14,6 +14,7 @@
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SAVE_PERSPECTIVES, wxCommandEvent);
 
 class PerspectivesPanel: public wxPanel
 {
@@ -29,6 +30,7 @@ class PerspectivesPanel: public wxPanel
 		wxStaticText* StaticText1;
 		wxButton* ButtonRenamePerspective;
 		wxButton* ButtonDeletePerspective;
+		wxButton* ButtonSavePerspective;
 		//*)
 
 	protected:
@@ -37,6 +39,7 @@ class PerspectivesPanel: public wxPanel
 		static const long ID_BUTTON_ADD_PERSPECTIVE;
 		static const long D_BUTTON_DELETE_PERSPECTIVE;
 		static const long ID_BUTTON_RENAME_PERSPECTIVE;
+		static const long ID_BUTTON_SAVE_PERSPECTIVE;
 		static const long ID_LISTBOX_PERSPECTIVES;
 		static const long ID_STATICTEXT1;
 		//*)
@@ -48,7 +51,11 @@ class PerspectivesPanel: public wxPanel
 		void OnPaint(wxPaintEvent& event);
 		void OnListBoxPerspectivesDClick(wxCommandEvent& event);
 		void OnButtonRenamePerspectiveClick(wxCommandEvent& event);
+		void OnButtonDeletePerspectiveClick(wxCommandEvent& event);
+		void OnButtonSavePerspectiveClick(wxCommandEvent& event);
 		//*)
+
+		bool CheckForDuplicates(const wxString& perspective_name);
 
 		DECLARE_EVENT_TABLE()
 

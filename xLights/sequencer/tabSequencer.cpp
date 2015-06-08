@@ -96,7 +96,16 @@ void xLightsFrame::CreateSequencer()
 
 void xLightsFrame::InitSequencer()
 {
-    if(mSequencerInitialize || EffectsPanel1 == NULL || timingPanel == NULL)
+    if(EffectsPanel1 == NULL || timingPanel == NULL)
+    {
+        return;
+    }
+    if(mCurrentPerpective!=NULL)
+    {
+        wxString settings = mCurrentPerpective->GetAttribute("settings");
+        m_mgr->LoadPerspective(settings);
+    }
+    if(mSequencerInitialize)
     {
         return;
     }
@@ -170,12 +179,6 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
                 }
             }
         }
-    }
-
-    if(mCurrentPerpective!=NULL)
-    {
-        wxString settings = mCurrentPerpective->GetAttribute("settings");
-        m_mgr->LoadPerspective(settings);
     }
 }
 
