@@ -55,6 +55,8 @@ PlayerFrame::PlayerFrame(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     // On XP, users were getting WMP 6.4 without this
     MediaBackend = wxMEDIABACKEND_WMP10;
 #endif
+    
+    playbackSpeed = 1.0;
 
     //  Make sure creation was successful
     bool bOK = MediaCtrl->Create(this, wxID_MEDIACTRL, wxEmptyString,
@@ -76,9 +78,9 @@ PlayerFrame::~PlayerFrame()
     //*)
 }
 
-bool PlayerFrame::Load(const wxString& filename)
+bool PlayerFrame::Load(const wxString& filename, bool play)
 {
-    PlayAfterLoad=false;
+    PlayAfterLoad=play;
     return MediaCtrl->Load(filename);
 }
 
@@ -91,7 +93,7 @@ bool PlayerFrame::Play(const wxString& filename)
 
 void PlayerFrame::OnMediaLoaded(wxMediaEvent& WXUNUSED(evt))
 {
-    if (PlayAfterLoad) MediaCtrl->Play();
+    if (PlayAfterLoad) Play();
     PlayAfterLoad=false;
 }
 
@@ -99,4 +101,36 @@ void PlayerFrame::OnClose(wxCloseEvent& event)
 {
     MediaCtrl->Stop();
     this->Show(false);
+}
+
+
+void PlayerFrame::Stop() {
+    MediaCtrl->Stop();
+}
+void PlayerFrame::Pause() {
+    MediaCtrl->Pause();
+}
+void PlayerFrame::Seek(int ms) {
+    MediaCtrl->Seek(ms);
+}
+int PlayerFrame::Tell() {
+    return MediaCtrl->Tell();
+}
+void PlayerFrame::Play() {
+    MediaCtrl->Play();
+    MediaCtrl->SetPlaybackRate(playbackSpeed);
+}
+int PlayerFrame::GetState() {
+    return MediaCtrl->GetState();
+}
+
+void PlayerFrame::SetPlaybackRate(double playSpeed) {
+    this->playbackSpeed = playSpeed;
+    if (MediaCtrl->GetState() == wxMEDIASTATE_PLAYING) {
+        MediaCtrl->SetPlaybackRate(playSpeed);
+    }
+}
+
+bool PlayerFrame::ShowPlayerControls(wxMediaCtrlPlayerControls f) {
+    return MediaCtrl->ShowPlayerControls(f);
 }

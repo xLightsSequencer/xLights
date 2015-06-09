@@ -703,7 +703,7 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
     switch (SeqPlayerState)
     {
     case PAUSE_SEQ:
-        PlayerDlg->MediaCtrl->Play();
+        PlayerDlg->Play();
         break;
     case PAUSE_SEQ_ANIM:
         ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * SeqData.FrameTime());
@@ -731,7 +731,7 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         }
         else
         {
-            PlayerDlg->MediaCtrl->Pause();
+            PlayerDlg->Pause();
 
         }
         heartbeat("playback preview", true); //tell fido to start watching -DJ
@@ -759,8 +759,8 @@ void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
 void xLightsFrame::StopPreviewPlayback()
 {
     bbPlayPause->SetBitmap(playIcon);
-    PlayerDlg->MediaCtrl->Pause();
-    PlayerDlg->MediaCtrl->Seek(0);
+    PlayerDlg->Pause();
+    PlayerDlg->Seek(0);
     previewPlaying = false;
     SliderPreviewTime->SetValue(0);
     ShowPreviewTime(0);
@@ -796,7 +796,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
     }
     else
     {
-        PlayerDlg->MediaCtrl->Seek(msec);
+        PlayerDlg->Seek(msec);
         ShowPreviewTime(msec);
         //PreviewOutput(newperiod);
     }

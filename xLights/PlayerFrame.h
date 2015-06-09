@@ -13,13 +13,21 @@ public:
 
     PlayerFrame(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
     virtual ~PlayerFrame();
-    wxMediaCtrl* MediaCtrl;
-    bool Load(const wxString& filename);
+    bool Load(const wxString& filename, bool play=false);
     bool Play(const wxString& filename);
 
     //(*Declarations(PlayerFrame)
     //*)
 
+    void Stop();
+    void Pause();
+    void Seek(int ms);
+    int Tell();
+    void Play();
+    int GetState();
+    void SetPlaybackRate(double playSpeed);
+    
+    bool ShowPlayerControls(wxMediaCtrlPlayerControls flags = wxMEDIACTRLPLAYERCONTROLS_DEFAULT);
 protected:
 
     //(*Identifiers(PlayerFrame)
@@ -35,6 +43,9 @@ private:
     bool PlayAfterLoad;
     void OnMediaLoaded(wxMediaEvent& event);
 
+    wxMediaCtrl* MediaCtrl;
+    double playbackSpeed;
+    
     DECLARE_EVENT_TABLE()
 };
 

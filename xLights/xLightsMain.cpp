@@ -2691,7 +2691,7 @@ void xLightsFrame::StopNow(void)
         StopPreviewPlayback();
         return;
     }
-    PlayerDlg->MediaCtrl->Stop();
+    PlayerDlg->Stop();
     if (play_mode == play_sched)
     {
         CheckBoxRunSchedule->SetValue(false);
@@ -3303,7 +3303,7 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
     } else if (event.GetId() == ID_PLAY_1_4) {
         playSpeed = 0.25;
     }
-    PlayerDlg->MediaCtrl->SetPlaybackRate(playSpeed);
+    PlayerDlg->SetPlaybackRate(playSpeed);
 }
 
 void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)

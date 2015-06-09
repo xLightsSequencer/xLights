@@ -52,7 +52,7 @@ void xLightsFrame::StartScript(const char *scriptname)
 void xLightsFrame::EndScript(const char *scriptname)
 {
     //AuiToolBar1->EnableTool(ID_AUITOOLBARITEM_STOP, false);
-    PlayerDlg->MediaCtrl->Stop();
+    PlayerDlg->Stop();
     ResetTimer(NO_SEQ);
     PlayerDlg->Show(false);
     if (xout) xout->alloff();
@@ -512,17 +512,17 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         }
         break;
     case STARTING_MEDIA:
-        if(PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
+        if(PlayerDlg->GetState() == wxMEDIASTATE_PLAYING)
         {
             ResetTimer(PLAYING_MEDIA);
         }
         else
         {
-            PlayerDlg->MediaCtrl->Play();
+            PlayerDlg->Play();
         }
         break;
     case PLAYING_MEDIA:
-        if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
+        if (PlayerDlg->GetState() != wxMEDIASTATE_PLAYING)
         {
             ResetTimer(basic.IsRunning() ? DELAY_AFTER_PLAY : NO_SEQ);
         }
@@ -553,17 +553,17 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         }
         break;
     case STARTING_SEQ:
-        if(PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
+        if(PlayerDlg->GetState() == wxMEDIASTATE_PLAYING)
         {
             ResetTimer(PLAYING_SEQ);
         }
         else
         {
-            PlayerDlg->MediaCtrl->Play();
+            PlayerDlg->Play();
         }
         break;
     case PLAYING_SEQ:
-        if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
+        if (PlayerDlg->GetState() != wxMEDIASTATE_PLAYING)
         {
             ResetTimer(basic.IsRunning() ? DELAY_AFTER_PLAY : PAUSE_SEQ);
             return;
@@ -574,7 +574,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
             TxOverflowTotal += xout->TxNonEmptyCount(); //show how much -DJ
 //            break; //keep going; might catch up -DJ
         }
-        msec = PlayerDlg->MediaCtrl->Tell();
+        msec = PlayerDlg->Tell();
         period = msec / SeqData.FrameTime();
         if (period < SeqData.NumFrames())
         {
@@ -586,7 +586,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         }
         break;
     case PAUSE_SEQ:
-        if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
+        if (PlayerDlg->GetState() == wxMEDIASTATE_PLAYING)
         {
             ResetTimer(PLAYING_SEQ);
         } else if (ShowPreview && previewPlaying)
@@ -764,7 +764,7 @@ void xLightsFrame::OnButtonPlayItemClick(wxCommandEvent& event)
     if (Play(filename,0))
     {
         StatusBar1->SetStatusText(_("Playing: ") + filename);
-        PlayerDlg->MediaCtrl->ShowPlayerControls(wxMEDIACTRLPLAYERCONTROLS_DEFAULT);
+        PlayerDlg->ShowPlayerControls(wxMEDIACTRLPLAYERCONTROLS_DEFAULT);
         PlayerDlg->ShowFullScreen(false, 0);
         PlayerDlg->Show();
     }
@@ -803,7 +803,7 @@ bool xLightsFrame::PlayCurrentXlightsFile()
     {
         PlayerError(_("Cannot locate media file:\n") + mediaFilename + _("\n\nMake sure your media files are in the same directory as your sequences."));
     }
-    else if (!PlayerDlg->MediaCtrl->Load(mediaFilename))
+    else if (!PlayerDlg->Load(mediaFilename, true))
     {
         PlayerError(_("Unable to play media file:\n")+mediaFilename);
     }
@@ -826,7 +826,7 @@ bool xLightsFrame::Play(wxString& filename, long delay)
     {
     case 'a':
     case 'v':
-        if (wxFile::Exists(fullpath) && PlayerDlg->MediaCtrl->Load(fullpath))
+        if (wxFile::Exists(fullpath) && PlayerDlg->Load(fullpath))
         {
             ResetTimer(STARTING_MEDIA);
             return true;
@@ -1275,7 +1275,7 @@ void xLightsFrame::RunPlaylist(int nbidx, wxString& script)
         basic.run();
         if (MovieMode->GetValue())
         {
-            PlayerDlg->MediaCtrl->ShowPlayerControls(wxMEDIACTRLPLAYERCONTROLS_NONE);
+            PlayerDlg->ShowPlayerControls(wxMEDIACTRLPLAYERCONTROLS_NONE);
             PlayerDlg->Show();
             PlayerDlg->ShowFullScreen(true, wxFULLSCREEN_ALL);
         }
