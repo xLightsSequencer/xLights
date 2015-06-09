@@ -420,20 +420,23 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX)
     }
 }
 
-void EffectLayer::SelectEffectsInTimeRange(double startTime,double endTime)
+int EffectLayer::SelectEffectsInTimeRange(double startTime,double endTime)
 {
+    int num_selected = 0;
     for(int i=0;i<mEffects.size();i++)
     {
         if(mEffects[i]->GetStartTime() >= startTime &&  mEffects[i]->GetStartTime() < endTime)
         {
             mEffects[i]->SetSelected(EFFECT_SELECTED);
+            num_selected++;
         }
-
-        if(mEffects[i]->GetEndTime() <= endTime &&  mEffects[i]->GetEndTime() > startTime)
+        else if(mEffects[i]->GetEndTime() <= endTime &&  mEffects[i]->GetEndTime() > startTime)
         {
             mEffects[i]->SetSelected(EFFECT_SELECTED);
+            num_selected++;
         }
     }
+    return num_selected;
 }
 
 

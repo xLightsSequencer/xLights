@@ -728,8 +728,9 @@ void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endR
     }
 }
 
-void SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol)
+int SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol)
 {
+    int num_selected = 0;
     if(startRow < mRowInformation.size())
     {
         if(endRow >= mRowInformation.size())
@@ -748,11 +749,12 @@ void SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow
                 for(int i=startRow;i <= endRow;i++)
                 {
                     EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
-                    effectLayer->SelectEffectsInTimeRange(start_time,end_time);
+                    num_selected += effectLayer->SelectEffectsInTimeRange(start_time,end_time);
                 }
             }
         }
     }
+    return num_selected;
 }
 
 Effect* SequenceElements::GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType)

@@ -6,6 +6,8 @@
 
 class SequenceElements;
 
+wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+
 enum UNDO_ACTIONS
 {
     UNDO_MARKER,   // use this to mark the beginning of a group of actions that should be undone together
@@ -51,6 +53,17 @@ public:
     MovedEffectInfo( const wxString &element_name_, int layer_index_, int id_, double &startTime_, double &endTime_ );
 };
 
+class ModifiedEffectInfo
+{
+public:
+    wxString element_name;
+    int layer_index;
+    int id;
+    wxString settings;
+    wxString palette;
+    ModifiedEffectInfo( const wxString &element_name_, int layer_index_, int id_, const wxString &settings_, const wxString &palette_ );
+};
+
 class UndoStep
 {
 public:
@@ -58,11 +71,13 @@ public:
     UndoStep( UNDO_ACTIONS action, DeletedEffectInfo* effect_info );
     UndoStep( UNDO_ACTIONS action, AddedEffectInfo* effect_info );
     UndoStep( UNDO_ACTIONS action, MovedEffectInfo* effect_info );
+    UndoStep( UNDO_ACTIONS action, ModifiedEffectInfo* effect_info );
 
     UNDO_ACTIONS undo_action;
     std::vector<DeletedEffectInfo*> deleted_effect_info;
     std::vector<AddedEffectInfo*> added_effect_info;
     std::vector<MovedEffectInfo*> moved_effect_info;
+    std::vector<ModifiedEffectInfo*> modified_effect_info;
 };
 
 class UndoManager
@@ -72,11 +87,13 @@ class UndoManager
         virtual ~UndoManager();
 
         void RemoveUnusedMarkers();
+        bool ChangeCaptured();
         void UndoLastStep();
         void CreateUndoStep();
         bool CanUndo();
         void SetCaptureUndo( bool value );
         bool GetCaptureUndo() { return mCaptureUndo; }
+        wxString GetUndoString();
 
         void CaptureEffectToBeDeleted( const wxString &element_name, int layer_index, const wxString &name, const wxString &settings,
                                        const wxString &palette, double startTime, double endTime, int Selected, bool Protected );
@@ -84,6 +101,8 @@ class UndoManager
         void CaptureAddedEffect( const wxString &element_name, int layer_index, int id );
 
         void CaptureEffectToBeMoved( const wxString &element_name, int layer_index, int id, double startTime, double endTime );
+        void CaptureModifiedEffect( const wxString &element_name, int layer_index, int id, const wxString &settings, const wxString &palette );
+
     protected:
 
     private:

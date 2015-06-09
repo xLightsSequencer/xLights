@@ -112,7 +112,8 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_paste->Enable(false);
         }
         mnuLayer->AppendSeparator();
-        wxMenuItem* menu_undo = mnuLayer->Append(ID_GRID_MNU_UNDO,"Undo");
+        wxString undo_string = mSequenceElements->get_undo_mgr().GetUndoString();
+        wxMenuItem* menu_undo = mnuLayer->Append(ID_GRID_MNU_UNDO,undo_string);
         if( !mSequenceElements->get_undo_mgr().CanUndo() ) {
             menu_undo->Enable(false);
         }
@@ -658,7 +659,10 @@ void EffectsGrid::Resize(int position, bool offset)
     {
         ResizeSingleEffect(position);
     }
-    mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
+    if( mSequenceElements->get_undo_mgr().ChangeCaptured() )
+    {
+        mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
+    }
 }
 
 void EffectsGrid::MoveSelectedEffectUp(bool shift)
@@ -1061,9 +1065,19 @@ void EffectsGrid::ResizeSingleEffect(int position)
         {
             if(mEffectLayer->IsStartTimeLinked(mResizeEffectIndex))
             {
-                mEffectLayer->GetEffect(mResizeEffectIndex-1)->SetEndTime(time);
+                Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex-1);
+                if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetName(), mEffectLayer->GetIndex(), eff->GetID(),
+                                                                              eff->GetStartTime(), eff->GetEndTime() );
+                }
+                eff->SetEndTime(time);
             }
-            mEffectLayer->GetEffect(mResizeEffectIndex)->SetStartTime(time);
+            Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
+            if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
+                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetName(), mEffectLayer->GetIndex(), eff->GetID(),
+                                                                          eff->GetStartTime(), eff->GetEndTime() );
+            }
+            eff->SetStartTime(time);
         }
         else
         {
@@ -1090,9 +1104,19 @@ void EffectsGrid::ResizeSingleEffect(int position)
         {
             if(mEffectLayer->IsEndTimeLinked(mResizeEffectIndex))
             {
-                mEffectLayer->GetEffect(mResizeEffectIndex+1)->SetStartTime(time);
+                Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex+1);
+                if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetName(), mEffectLayer->GetIndex(), eff->GetID(),
+                                                                              eff->GetStartTime(), eff->GetEndTime() );
+                }
+                eff->SetStartTime(time);
             }
-            mEffectLayer->GetEffect(mResizeEffectIndex)->SetEndTime(time);
+            Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
+            if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
+                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( mEffectLayer->GetParentElement()->GetName(), mEffectLayer->GetIndex(), eff->GetID(),
+                                                                          eff->GetStartTime(), eff->GetEndTime() );
+            }
+            eff->SetEndTime(time);
         }
         else
         {
@@ -1238,7 +1262,12 @@ void EffectsGrid::UpdateSelectedEffects()
         if( start_col > end_col ) {
             std::swap( start_col, end_col );
         }
-        mSequenceElements->SelectEffectsInRowAndColumnRange(start_row,end_row,start_col,end_col);
+        int num_selected = mSequenceElements->SelectEffectsInRowAndColumnRange(start_row,end_row,start_col,end_col);
+        if( num_selected != 1 )  // we don't know what to preview unless only 1 effect is selected
+        {
+            wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
+            wxPostEvent(mParent, eventUnSelected);
+        }
     }
 }
 

@@ -1502,6 +1502,7 @@ protected:
     int playEndTime;
     bool replaySection;
 
+    wxString selectedEffectName;
     wxString selectedEffectString;
     wxString selectedEffectPalette;
     Effect *selectedEffect;

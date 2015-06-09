@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Update Undo to be able to undo modified effects.  Fix a few cases where moved effects weren't tracked.  Right-click menu will now
+                  show the type of Undo that is about to be performed.
     -- bug/enh(gil) Updates/fixes to the perspectives.  Windows now hide when switching to other tabs.  Delete now works.  Added a Save button so you
                     don't need to always goto the menus.  All windows are hidden before app closes.  Prevent duplicate names. Fixes #105. Fixes #87.
     -- bug(gil)   Link the slider and text control for the Circles effect

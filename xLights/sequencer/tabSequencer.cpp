@@ -478,6 +478,7 @@ void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
         playStartMS = -1;
     }
     selectedEffect = NULL;
+    selectedEffectName = "";
     selectedEffectString = "";
     selectedEffectPalette = "";
     sPreview1->Refresh();
@@ -897,18 +898,28 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 selectedEffect->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
             }
 
+            EffectLayer* el = selectedEffect->GetParentEffectLayer();
+            Element *elem = el->GetParentElement();
+
+            //check for undo capture
+            if( selectedEffectName != selectedEffect->GetEffectName() )
+            {
+                mSequenceElements.get_undo_mgr().CreateUndoStep();
+                mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetName(), el->GetIndex(), selectedEffect->GetID(), selectedEffectString, selectedEffectPalette );
+            }
+
             selectedEffect->SetSettings(effectText);
             selectedEffect->SetPalette(palette);
 
+            selectedEffectName = selectedEffect->GetEffectName();
             selectedEffectString = effectText;
             selectedEffectPalette = palette;
 
-            Element *el = selectedEffect->GetParentEffectLayer()->GetParentElement();
             playStartTime = (int)(selectedEffect->GetStartTime() * 1000);
             playEndTime = (int)(selectedEffect->GetEndTime() * 1000);
             playStartMS = -1;
 
-            RenderEffectForModel(el->GetName(),playStartTime,playEndTime);
+            RenderEffectForModel(elem->GetName(),playStartTime,playEndTime);
             mainSequencer->PanelEffectGrid->ForceRefresh();
             return;
         }

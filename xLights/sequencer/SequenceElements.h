@@ -105,7 +105,7 @@ class SequenceElements : public ChangeLister
         void SetFrequency(double frequency);
         double GetFrequency();
         void SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX);
-        void SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol);
+        int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol);
         Effect* GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType);
         void UnSelectAllEffects();
         void UnSelectAllElements();
