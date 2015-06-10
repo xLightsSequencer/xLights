@@ -2762,13 +2762,13 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     wxLogDebug("xLightsFrame::OnClose");
 
-    HideAllSequencerWindows();
-
     if (!CloseSequence()) {
         event.Veto();
         return;
     }
     selectedEffect = NULL;
+
+    HideAllSequencerWindows();
 
     StopNow();
 
