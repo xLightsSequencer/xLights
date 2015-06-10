@@ -2385,6 +2385,7 @@ void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int ef
     double end_time = (epos - 1) * 50.0 / 4410.0 / 1000;
     layer->AddEffect(0, effect, settings, palette, start_time, end_time, false, false);
 }
+
 void MapLSPEffects(EffectLayer *layer, wxXmlNode *node, const wxColor &c) {
     if (node == nullptr) {
         return;
@@ -2426,6 +2427,24 @@ void MapLSPEffects(EffectLayer *layer, wxXmlNode *node, const wxColor &c) {
     }
 }
 
+void MapLSPStrand(StrandLayer *layer, wxXmlNode *node, const wxColor &c) {
+    int nodeNum = 0;
+    for (wxXmlNode *nd = node->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
+        if (nd->GetName() == "Channels") {
+            for (wxXmlNode *cnd = nd->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
+                if (cnd->GetName() == "Channel") {
+                    EffectLayer *el = layer->GetNodeLayer(nodeNum);
+                    MapLSPEffects(el, cnd, c);
+                    nodeNum++;
+                    if (nodeNum >= layer->GetNodeLayerCount()) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void xLightsFrame::ImportLSP(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
     
@@ -2444,6 +2463,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
     wxXmlDocument seq_xml;
     std::map<wxString, wxXmlDocument> cont_xml;
     std::map<wxString, wxXmlNode *> nodes;
+    std::map<wxString, wxXmlNode *> strandNodes;
 
     while (ent != nullptr) {
         if (ent->GetName() == "Sequence") {
@@ -2453,30 +2473,31 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
             wxXmlDocument &doc =  cont_xml[ent->GetName()];
             doc.Load(zin);
             for (wxXmlNode *nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
-                if (nd->GetName() == "ControllerID") {
+                if (nd->GetName() == "ControllerName") {
                     id = nd->GetChildren()->GetContent();
                 }
             }
+            strandNodes[id] = doc.GetRoot();
+            dlg.ccrNames.push_back(id);
             for (wxXmlNode *nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
                 if (nd->GetName() == "Channels") {
                     for (wxXmlNode *cnd = nd->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
                         if (cnd->GetName() == "Channel") {
                             wxString cname;
-                            wxString id;
-                            wxString ord;
-                            
                             for (wxXmlNode *cnnd = cnd->GetChildren(); cnnd != nullptr; cnnd = cnnd->GetNext()) {
-                                if (cnnd->GetName() == "Name") {
-                                    cname = cnnd->GetChildren()->GetContent();
-                                }
-                                if (cnnd->GetName() == "ChannelID") {
-                                    id = cnnd->GetChildren()->GetContent();
-                                }
-                                if (cnnd->GetName() == "ChannelOrdinal") {
-                                    ord = cnnd->GetChildren()->GetContent();
+                                if (cnnd->GetName() == "Tracks") {
+                                    for (wxXmlNode *tnd = cnnd->GetChildren(); tnd != nullptr; tnd = tnd->GetNext()) {
+                                        if (tnd->GetName() == "Track") {
+                                            for (wxXmlNode *tnd2 = tnd->GetChildren(); tnd2 != nullptr; tnd2 = tnd2->GetNext()) {
+                                                if (tnd2->GetName() == "Name") {
+                                                    cname = tnd2->GetChildren()->GetContent();
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                            cname = id + "-" + ord + ": " + cname;
+                            cname = id + "/" + cname;
                             nodes[cname] = cnd;
                             dlg.channelNames.push_back(cname);
                             dlg.channelColors[cname] = xlWHITE;
@@ -2490,8 +2511,9 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
     
     dlg.channelNames.Sort();
     dlg.channelNames.Insert("", 0);
+    dlg.ccrNames.Sort();
+    dlg.ccrNames.Insert("", 0);
     
-    dlg.MapByStrand->Hide();
     dlg.Init();
     
     if (dlg.ShowModal() != wxID_OK) {
@@ -2509,7 +2531,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
                 model = mSequenceElements.GetElement(i);
             }
         }
-        if (dlg.ChannelMapGrid->GetCellValue(row, 3) != "") {
+        if (dlg.ChannelMapGrid->GetCellValue(row, 3) != "" && !dlg.MapByStrand->IsChecked()) {
             MapLSPEffects(model->GetEffectLayer(0), nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
                           dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
         }
@@ -2519,17 +2541,24 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
             StrandLayer *sl = model->GetStrandLayer(str);
             
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                MapLSPEffects(sl, nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
-                              dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
-            }
-            row++;
-            for (int n = 0; n < mc.GetStrandLength(str); n++) {
-                if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                    NodeLayer *nl = sl->GetNodeLayer(n);
-                    MapLSPEffects(nl, nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
+                if (dlg.MapByStrand->IsChecked()) {
+                    MapLSPStrand(sl, strandNodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
+                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
+                } else {
+                    MapLSPEffects(sl, nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
                                   dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
                 }
-                row++;
+            }
+            row++;
+            if (!dlg.MapByStrand->IsChecked()) {
+                for (int n = 0; n < mc.GetStrandLength(str); n++) {
+                    if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                        NodeLayer *nl = sl->GetNodeLayer(n);
+                        MapLSPEffects(nl, nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
+                                      dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
+                    }
+                    row++;
+                }
             }
         }
     }

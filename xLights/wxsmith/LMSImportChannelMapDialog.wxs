@@ -42,7 +42,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxGrid" name="ID_GRID1" variable="ChannelMapGrid" member="yes">
-					<cols>7</cols>
+					<cols>9</cols>
 					<rows>18</rows>
 					<collabels>
 						<item>Model</item>

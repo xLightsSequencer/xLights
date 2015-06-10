@@ -50,7 +50,7 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	MapByStrand->SetValue(false);
 	Sizer->Add(MapByStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ChannelMapGrid = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID1"));
-	ChannelMapGrid->CreateGrid(18,7);
+	ChannelMapGrid->CreateGrid(18,9);
 	ChannelMapGrid->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,440)));
 	ChannelMapGrid->EnableEditing(true);
 	ChannelMapGrid->EnableGridLines(true);
@@ -103,11 +103,11 @@ void LMSImportChannelMapDialog::Init() {
         }
     }
     int sz = ChannelMapGrid->GetColSize(3);
-    ChannelMapGrid->DeleteCols(5, 2);
+    ChannelMapGrid->DeleteCols(5, 4);
     ChannelMapGrid->SetColSize(0, sz * 1.5);
     ChannelMapGrid->SetColSize(1, sz * 1.5);
     ChannelMapGrid->SetColSize(2, sz * 1.5);
-    ChannelMapGrid->SetColSize(3, sz * 2.5);
+    ChannelMapGrid->SetColSize(3, sz * 4.5);
     ChannelMapGrid->SetColSize(4, sz / 2);
     ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     ChannelMapGrid->SetRowLabelSize(0);
