@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.1.4  Jun 9, 2015
     -- bug(gil)   Fix v3 import to delete effect2 if Effect1:mix0 or Effect2:mix100 and delete effect1 if Effect1:mix100 or Effect2:mix0. Fixes #144.
     -- enh(gil)   Update Undo to be able to undo modified effects.  Fix a few cases where moved effects weren't tracked.  Right-click menu will now
                   show the type of Undo that is about to be performed.
@@ -18,7 +19,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh(gil)   Update Undo to be able to undo added effects.
     -- enh(gil)   Add beginning Undo functionality.  Currently only works for restoring deleted effects and effects moved between layers.
     -- enh(gil)   Select effects based on time to allow off screen block selections to work.
-
+	-- enh(dkulp) * Don't render model groups that don't have any models
+	-- bug(dkulp) * More fixes for HiDPI screens.  Fixes #259
+	-- enh(dkulp) * Don't render model groups that don't have any models
+	-- bug(dkulp) Fix different MAC playback speeds
+	-- enh(dkulp) * Updates for the LSP import
 4.1.3  Jun 5, 2015
     -- bug(gil)   Fix several selection and copy/paste errors when grid has been vertically scrolled
     -- bug(dkulp) An effect of length 1 frame results in a "position" of NaN which can really mess up a lot of effects.

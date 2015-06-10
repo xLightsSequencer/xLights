@@ -42,8 +42,8 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
      3) Some users have reported that their path variable was too long, which confused the wx buld.
         If so, try: SET Path=C:\Windows\system32;C:\Windows;C:\Program Files (x86)\CodeBlocks\MinGW\bin
 
-     4) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=debug
-     5) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=release
+     4) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++11" BUILD=debug
+     5) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++11" BUILD=release
      6) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
         then you need to update your path environment variable to include C:\wxWidgets-3.0.0\lib\gcc_dll
         (assuming C:\wxWidgets-3.0.0 is your wxWidgets base directory).
