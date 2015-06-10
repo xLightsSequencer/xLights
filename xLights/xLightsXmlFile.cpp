@@ -1143,12 +1143,14 @@ void xLightsXmlFile::CleanUpEffects()
             wxString morph = GetSetting("T_CHECKBOX_LayerMorph", content1);
             wxString mix = GetSetting("T_SLIDER_EffectLayerMix", content1);
 
-            if( combine == "Effect 1" && morph == "0" && mix == "0" )
+            if( (combine == "Effect 1" && morph == "0" && mix == "0") ||
+                (combine == "Effect 2" && morph == "0" && mix == "100"))
             {
                 layer2->RemoveChild(effect2);
                 delete effect2;
             }
-            else if( combine == "Effect 2" && morph == "0" && mix == "100" )
+            else if( (combine == "Effect 2" && morph == "0" && mix == "0") ||
+                     (combine == "Effect 1" && morph == "0" && mix == "100"))
             {
                 layer1->RemoveChild(effect1);
                 delete effect1;
