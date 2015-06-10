@@ -802,10 +802,12 @@ bool xLightsFrame::PlayCurrentXlightsFile()
     else if (!wxFile::Exists(mediaFilename))
     {
         PlayerError(_("Cannot locate media file:\n") + mediaFilename + _("\n\nMake sure your media files are in the same directory as your sequences."));
+        ResetTimer(DELAY_AFTER_PLAY);
     }
     else if (!PlayerDlg->Load(mediaFilename, true))
     {
         PlayerError(_("Unable to play media file:\n")+mediaFilename);
+        ResetTimer(DELAY_AFTER_PLAY);
     }
     else
     {
