@@ -269,7 +269,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             element->GetStrandLayer(0)->ShowNodes(true);
             element->ShowStrands(!element->ShowStrands());
         } else {
-            ((StrandLayer*)mSequenceElements->GetEffectLayer(mSelectedRow))->ShowNodes(!((StrandLayer*)mSequenceElements->GetEffectLayer(mSelectedRow))->ShowNodes());
+            ((StrandLayer*)mSequenceElements->GetVisibleEffectLayer(mSelectedRow))->ShowNodes(!((StrandLayer*)mSequenceElements->GetVisibleEffectLayer(mSelectedRow))->ShowNodes());
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);

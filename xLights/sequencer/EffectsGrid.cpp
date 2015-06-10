@@ -180,24 +180,19 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
 
 void EffectsGrid::FillRandomEffects()
 {
-    int row1 = GetRow(mDragStartY);
-    int row2 = GetRow(mDragEndY);
+    int row1 = mRangeStartRow;
+    int row2 = mRangeEndRow;
     if( row1 > row2 ) {
         std::swap(row1, row2);
     }
     int selected_timing_row = mSequenceElements->GetSelectedTimingRow();
-    if (selected_timing_row >= 0 &&
-        row1 < mSequenceElements->GetVisibleRowInformationSize() &&
-        row2 < mSequenceElements->GetVisibleRowInformationSize() ) {
-        EffectLayer* tel = mSequenceElements->GetEffectLayer(selected_timing_row);
-        int selectionType;
-        int start_x = mDragStartX;
-        int end_x = mDragEndX;
-        if( start_x > end_x ) {
-            std::swap(start_x, end_x);
+    if (selected_timing_row >= 0 ) {
+        EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(selected_timing_row);
+        int timingIndex1 = mRangeStartCol;
+        int timingIndex2 = mRangeEndCol;
+        if( timingIndex1 > timingIndex2 ) {
+            std::swap(timingIndex1, timingIndex2);
         }
-        int timingIndex1 = tel->GetEffectIndexThatContainsPosition(start_x,selectionType);
-        int timingIndex2 = tel->GetEffectIndexThatContainsPosition(end_x,selectionType);
         if (timingIndex1 != -1 && timingIndex2 != -1) {
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             for( int row = row1; row <= row2; row++)
@@ -293,12 +288,12 @@ bool EffectsGrid::DragOver(int x, int y)
             int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
             if(selectedTimingIndex >= 0)
             {
-                EffectLayer* tel = mSequenceElements->GetEffectLayer(selectedTimingIndex);
+                EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(selectedTimingIndex);
                 int selectionType;
                 int timingIndex = tel->GetEffectIndexThatContainsPosition(x,selectionType);
                 if(timingIndex >=0)
                 {
-                    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+                    EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
                     if( el != nullptr )
                     {
                         mDropStartX = tel->GetEffect(timingIndex)->GetStartPosition();
@@ -313,7 +308,7 @@ bool EffectsGrid::DragOver(int x, int y)
             }
             else
             {
-                EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+                EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
                 if( el != nullptr )
                 {
                     mDropStartTime = mTimeline->GetAbsoluteTimefromPosition(x);
@@ -453,7 +448,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
 
         if( selectedEffect != nullptr )
         {
-            mEffectLayer = mSequenceElements->GetEffectLayer(row);
+            mEffectLayer = mSequenceElements->GetVisibleEffectLayer(row);
             Element* element = mEffectLayer->GetParentElement();
 
             mSelectedEffect = selectedEffect;
@@ -628,8 +623,8 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
         // check for only single cell selection
         if( mRangeStartRow == mRangeEndRow && mRangeStartCol == mRangeEndCol )
         {
-            EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
-            EffectLayer* el = mSequenceElements->GetEffectLayer(mRangeStartRow - mSequenceElements->GetFirstVisibleModelRow());
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mRangeStartRow - mSequenceElements->GetFirstVisibleModelRow());
 
             int selectionType;
             int effectIndex = el->GetEffectIndexThatContainsPosition(x_pos,selectionType);
@@ -675,7 +670,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
         int layer_index = ri->layerIndex;
         while( layer_index > 0 )
         {
-            EffectLayer* new_el = mSequenceElements->GetEffectLayer(row);
+            EffectLayer* new_el = mSequenceElements->GetVisibleEffectLayer(row);
             if( new_el->GetRangeIsClear( mSelectedEffect->GetStartTime(), mSelectedEffect->GetEndTime()))
             {
                 mSequenceElements->get_undo_mgr().CreateUndoStep();
@@ -732,7 +727,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
         int layer_index = ri->layerIndex;
         while( layer_index < element->GetEffectLayerCount()-1 )
         {
-            EffectLayer* new_el = mSequenceElements->GetEffectLayer(row);
+            EffectLayer* new_el = mSequenceElements->GetVisibleEffectLayer(row);
             if( new_el->GetRangeIsClear( mSelectedEffect->GetStartTime(), mSelectedEffect->GetEndTime()))
             {
                 mSequenceElements->get_undo_mgr().CreateUndoStep();
@@ -781,7 +776,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
 {
     if( mCellRangeSelected )
     {
-        EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
+        EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
         Effect* eff1 = tel->GetEffect(mRangeStartCol+1);
         Effect* eff2 = tel->GetEffect(mRangeEndCol+1);
         if( eff1 != nullptr && eff2 != nullptr )
@@ -801,7 +796,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
 {
     if( mCellRangeSelected )
     {
-        EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
+        EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
         Effect* eff = tel->GetEffect(mRangeEndCol-1);
         if( eff != nullptr )
         {
@@ -828,7 +823,7 @@ bool EffectsGrid::MultipleEffectsSelected()
     int count=0;
     for(int i=0;i<mSequenceElements->GetVisibleRowInformationSize();i++)
     {
-        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
+        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(i);
         count+= el->GetSelectedEffectCount();
         if(count > 1)
         {
@@ -861,7 +856,7 @@ void EffectsGrid::Paste(const wxString &data) {
             double drop_time_offset, new_start_time, new_end_time, column_start_time;
             eff1data[6].ToDouble(&column_start_time);
             eff1data[3].ToDouble(&drop_time_offset);
-            EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
             if( column_start_time < 0 || tel == nullptr)
             {
                 drop_time_offset = mDropStartTime - drop_time_offset;
@@ -870,7 +865,7 @@ void EffectsGrid::Paste(const wxString &data) {
             {
                 drop_time_offset = mDropStartTime - column_start_time;
             }
-            int drop_row = mSequenceElements->GetVisibleRowInformation(mDropRow)->RowNumber;
+            int drop_row = mDropRow;
             int start_row = wxAtoi(eff1data[5]);
             int drop_row_offset = drop_row - start_row;
             mSequenceElements->get_undo_mgr().CreateUndoStep();
@@ -886,7 +881,7 @@ void EffectsGrid::Paste(const wxString &data) {
                 new_end_time += drop_time_offset;
                 int eff_row = wxAtoi(efdata[5]);
                 drop_row = eff_row + drop_row_offset;
-                Row_Information_Struct* row_info = mSequenceElements->GetVisibleRowInformationFromRow(drop_row);
+                Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
                 if( row_info == nullptr ) break;
                 Element* elem = row_info->element;
                 if( elem == nullptr ) break;
@@ -922,7 +917,7 @@ void EffectsGrid::Paste(const wxString &data) {
             if (efdata.size() < 3) {
                 return;
             }
-            EffectLayer* el = mSequenceElements->GetEffectLayer(mDropRow);
+            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
             int effectIndex = Effect::GetEffectIndex(efdata[0]);
             if (effectIndex >= 0) {
                 double end_time = mDropEndTime;
@@ -978,11 +973,21 @@ void EffectsGrid::Paste(const wxString &data) {
             {
                 double start_time, end_time;
                 mSequenceElements->get_undo_mgr().CreateUndoStep();
-                for( int row = mRangeStartRow; row <= mRangeEndRow; row++ )
+                int row1 = mRangeStartRow;
+                int row2 = mRangeEndRow;
+                if( row1 > row2 ) {
+                    std::swap(row1, row2);
+                }
+                int col1 = mRangeStartCol;
+                int col2 = mRangeEndCol;
+                if( col1 > col2 ) {
+                    std::swap(col1, col2);
+                }
+                for( int row = row1; row <= row2; row++ )
                 {
-                    EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
-                    start_time = tel->GetEffect(mRangeStartCol)->GetStartTime();
-                    end_time = tel->GetEffect(mRangeEndCol)->GetEndTime();
+                    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                    start_time = tel->GetEffect(col1)->GetStartTime();
+                    end_time = tel->GetEffect(col2)->GetEndTime();
                     EffectLayer* el = mSequenceElements->GetEffectLayer(row);
                     if( el->GetRangeIsClear(start_time, end_time) )
                     {
@@ -1144,7 +1149,7 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
     int result;
 
     wxLogDebug("EffectsGrid::RunMouseOverHitTests");
-    EffectLayer* layer = mSequenceElements->GetEffectLayer(rowIndex);
+    EffectLayer* layer = mSequenceElements->GetVisibleEffectLayer(rowIndex);
     bool isHit = layer->HitTestEffect(x,effectIndex,result);
     if(isHit)
     {
@@ -1206,7 +1211,7 @@ void EffectsGrid::EstablishSelectionRectangle()
 
     if( mSequenceElements->GetSelectedTimingRow() >= 0 )
     {
-        EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
+        EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
         int selectionType;
         int timingIndex1 = tel->GetEffectIndexThatContainsPosition(start_x,selectionType);
         int timingIndex2 = tel->GetEffectIndexThatContainsPosition(end_x,selectionType);
@@ -1236,7 +1241,7 @@ void EffectsGrid::UpdateSelectionRectangle()
 
     if( mSequenceElements->GetSelectedTimingRow() >= 0 )
     {
-        EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
+        EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
         int selectionType;
         int timingIndex = tel->GetEffectIndexThatContainsPosition(mDragEndX,selectionType);
         if(timingIndex != -1)
@@ -1723,7 +1728,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
 void EffectsGrid::DrawTimingEffects(int row)
 {
     Element* element =mSequenceElements->GetVisibleRowInformation(row)->element;
-    EffectLayer* effectLayer=mSequenceElements->GetEffectLayer(row);
+    EffectLayer* effectLayer=mSequenceElements->GetVisibleEffectLayer(row);
     xlColor* mEffectColorRight;
     xlColor* mEffectColorLeft;
     xlColor* mEffectColorCenter;
@@ -1853,7 +1858,7 @@ void EffectsGrid::Draw()
 
 void EffectsGrid::DrawSelectedCells()
 {
-    EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
     if( tel->GetEffectCount() > 0 )
     {
         int start_row = mRangeStartRow;
@@ -1979,7 +1984,7 @@ void EffectsGrid::RaiseEffectDropped(int x, int y)
     if (row >= mSequenceElements->GetVisibleRowInformationSize()) {
         return;
     }
-    EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(row);
+    EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
 
     mSequenceElements->ClearSelectedRanges();
     EffectRange effectRange;
@@ -2015,7 +2020,7 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(double &toLeft, double &t
     toRight = 1000;
     for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
     {
-        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
         el->GetMaximumRangeOfMovementForSelectedEffects(left,right);
         toLeft = toLeft<left?toLeft:left;
         toRight = toRight<right?toRight:right;
@@ -2027,7 +2032,7 @@ void EffectsGrid::MoveAllSelectedEffects(double delta, bool offset)
     if( !offset ) {
         for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
         {
-            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
             el->MoveAllSelectedEffects(delta, mSequenceElements->get_undo_mgr());
         }
     } else {
@@ -2036,7 +2041,7 @@ void EffectsGrid::MoveAllSelectedEffects(double delta, bool offset)
         int end_row = -1;
         for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
         {
-            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
             if( el->GetSelectedEffectCount() > 0 ) {
                 num_rows_with_selections++;
                 if( start_row == -1 ) {
@@ -2049,7 +2054,7 @@ void EffectsGrid::MoveAllSelectedEffects(double delta, bool offset)
         double delta_step = delta / double(end_row-start_row);
         for(int row=start_row;row<=end_row;row++)
         {
-            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
             if( mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_MOVE) {
                 el->MoveAllSelectedEffects(delta_step*(double)(row-start_row), mSequenceElements->get_undo_mgr());
             } else {

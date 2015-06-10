@@ -792,7 +792,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
         if(element->GetType() == "model" || element->GetType() == "timing")
         {
-            EffectLayer* el = mSequenceElements.GetEffectLayer(i);
+            EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
             for(int j=0;j< el->GetEffectCount();j++)
             {
                 if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)

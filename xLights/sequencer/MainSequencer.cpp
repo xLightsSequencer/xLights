@@ -345,26 +345,26 @@ void MainSequencer::CopySelectedEffects() {
     wxString copy_data;
     int start_column = PanelEffectGrid->GetStartColumn();
     double column_start_time = -1.0;
-    EffectLayer* tel = mSequenceElements->GetEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
     if( tel != nullptr && start_column != -1) {
         Effect* eff = tel->GetEffect(start_column);
         if( eff != nullptr ) {
             column_start_time = eff->GetStartTime();
         }
     }
-    for(int i=0;i<mSequenceElements->GetVisibleRowInformationSize();i++)
+    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
-        int row_number = mSequenceElements->GetVisibleRowInformation(i)->RowNumber;
+        int row_number = mSequenceElements->GetRowInformation(i)->Index-mSequenceElements->GetFirstVisibleModelRow();
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
             if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
                 wxString start_time = wxString::Format("%f",ef->GetStartTime());
                 wxString end_time = wxString::Format("%f",ef->GetEndTime());
-                wxString index = wxString::Format("%d",row_number);
+                wxString row = wxString::Format("%d",row_number);
                 wxString column_start = wxString::Format("%f",column_start_time);
                 copy_data += ef->GetEffectName() + "\t" + ef->GetSettingsAsString() + "\t" + ef->GetPaletteAsString() +
-                            "\t" + start_time + "\t" + end_time + "\t" + index + "\t" + column_start + "\n";
+                            "\t" + start_time + "\t" + end_time + "\t" + row + "\t" + column_start + "\n";
             }
         }
     }
@@ -389,9 +389,9 @@ void MainSequencer::Paste() {
 void MainSequencer::DeleteAllSelectedEffects()
 {
     mSequenceElements->get_undo_mgr().CreateUndoStep();
-    for(int i=0;i<mSequenceElements->GetVisibleRowInformationSize();i++)
+    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
-        Element* element = mSequenceElements->GetVisibleRowInformation(i)->element;
+        Element* element = mSequenceElements->GetRowInformation(i)->element;
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         double start = 99999999;
         double end = -1;

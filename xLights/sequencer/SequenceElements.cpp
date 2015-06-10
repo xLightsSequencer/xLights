@@ -52,7 +52,13 @@ EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
         return e->GetStrandLayer(s->strandIndex)->GetNodeLayer(s->nodeIndex);
     }
 }
+
 EffectLayer* SequenceElements::GetEffectLayer(int row) {
+    if(row==-1) return nullptr;
+    return GetEffectLayer(GetRowInformation(row));
+}
+
+EffectLayer* SequenceElements::GetVisibleEffectLayer(int row) {
     if(row==-1) return nullptr;
     return GetEffectLayer(GetVisibleRowInformation(row));
 }
@@ -205,7 +211,7 @@ Row_Information_Struct* SequenceElements::GetRowInformationFromRow(int row_numbe
 {
     for(int i=0;i<mRowInformation.size();i++)
     {
-        if(row_number == mRowInformation[i].RowNumber)
+        if(row_number == mRowInformation[i].Index - GetFirstVisibleModelRow())
         {
             return &mRowInformation[i];
         }
@@ -737,7 +743,7 @@ int SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow,
         {
             endRow = mRowInformation.size()-1;
         }
-        EffectLayer* tel = GetEffectLayer(GetSelectedTimingRow());
+        EffectLayer* tel = GetVisibleEffectLayer(GetSelectedTimingRow());
         if( tel != nullptr )
         {
             Effect* eff1 = tel->GetEffect(startCol);

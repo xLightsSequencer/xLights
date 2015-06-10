@@ -112,6 +112,7 @@ class SequenceElements : public ChangeLister
 
         EffectLayer* GetEffectLayer(Row_Information_Struct *s);
         EffectLayer* GetEffectLayer(int row);
+        EffectLayer* GetVisibleEffectLayer(int row);
 
         virtual void IncrementChangeCount() {mChangeCount++;}
         int GetChangeCount() { return mChangeCount;}
