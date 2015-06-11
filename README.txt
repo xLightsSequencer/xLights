@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(dkulp) If the LSP XML file is corrupt, display parse error, but don't crash.
     -- enh(gil)   While playing a show don't halt if media cannot be found...log the error and move on to the next song. Fixes #262.
 4.1.4  Jun 9, 2015
     -- bug(gil)   Fix v3 import to delete effect2 if Effect1:mix0 or Effect2:mix100 and delete effect1 if Effect1:mix100 or Effect2:mix0. Fixes #144.

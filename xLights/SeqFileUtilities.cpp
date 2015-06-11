@@ -2471,39 +2471,43 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
         } else {
             wxString id("1");
             wxXmlDocument &doc =  cont_xml[ent->GetName()];
-            doc.Load(zin);
-            for (wxXmlNode *nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
-                if (nd->GetName() == "ControllerName") {
-                    id = nd->GetChildren()->GetContent();
+            
+            if (doc.Load(zin)) {
+                for (wxXmlNode *nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
+                    if (nd->GetName() == "ControllerName") {
+                        id = nd->GetChildren()->GetContent();
+                    }
                 }
-            }
-            strandNodes[id] = doc.GetRoot();
-            dlg.ccrNames.push_back(id);
-            for (wxXmlNode *nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
-                if (nd->GetName() == "Channels") {
-                    for (wxXmlNode *cnd = nd->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
-                        if (cnd->GetName() == "Channel") {
-                            wxString cname;
-                            for (wxXmlNode *cnnd = cnd->GetChildren(); cnnd != nullptr; cnnd = cnnd->GetNext()) {
-                                if (cnnd->GetName() == "Tracks") {
-                                    for (wxXmlNode *tnd = cnnd->GetChildren(); tnd != nullptr; tnd = tnd->GetNext()) {
-                                        if (tnd->GetName() == "Track") {
-                                            for (wxXmlNode *tnd2 = tnd->GetChildren(); tnd2 != nullptr; tnd2 = tnd2->GetNext()) {
-                                                if (tnd2->GetName() == "Name") {
-                                                    cname = tnd2->GetChildren()->GetContent();
+                strandNodes[id] = doc.GetRoot();
+                dlg.ccrNames.push_back(id);
+                for (wxXmlNode *nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
+                    if (nd->GetName() == "Channels") {
+                        for (wxXmlNode *cnd = nd->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
+                            if (cnd->GetName() == "Channel") {
+                                wxString cname;
+                                for (wxXmlNode *cnnd = cnd->GetChildren(); cnnd != nullptr; cnnd = cnnd->GetNext()) {
+                                    if (cnnd->GetName() == "Tracks") {
+                                        for (wxXmlNode *tnd = cnnd->GetChildren(); tnd != nullptr; tnd = tnd->GetNext()) {
+                                            if (tnd->GetName() == "Track") {
+                                                for (wxXmlNode *tnd2 = tnd->GetChildren(); tnd2 != nullptr; tnd2 = tnd2->GetNext()) {
+                                                    if (tnd2->GetName() == "Name") {
+                                                        cname = tnd2->GetChildren()->GetContent();
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
+                                cname = id + "/" + cname;
+                                nodes[cname] = cnd;
+                                dlg.channelNames.push_back(cname);
+                                dlg.channelColors[cname] = xlWHITE;
                             }
-                            cname = id + "/" + cname;
-                            nodes[cname] = cnd;
-                            dlg.channelNames.push_back(cname);
-                            dlg.channelColors[cname] = xlWHITE;
                         }
                     }
                 }
+            } else {
+                wxLogError("Could not parse XML file %s", (const char *)ent->GetName());
             }
         }
         ent = zin.GetNextEntry();
