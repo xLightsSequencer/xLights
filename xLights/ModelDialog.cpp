@@ -780,6 +780,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute("Antialias");
     e->DeleteAttribute("PixelSize");
     e->DeleteAttribute("BlackTransparency");
+    e->DeleteAttribute("PreviewBrightness");
     e->DeleteAttribute("Transparency");
     e->DeleteAttribute("starSizes");
     e->DeleteAttribute("exportFirstStrand");
@@ -821,6 +822,9 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->AddAttribute("Transparency", wxString::Format("%d", transparency));
     if (blackTransparency > 0) {
         e->AddAttribute("BlackTransparency", wxString::Format("%d", blackTransparency));
+    }
+    if (previewBrightness != 100) {
+        e->AddAttribute("PreviewBrightness", wxString::Format("%d", previewBrightness));
     }
 
     e->AddAttribute("ModelBrightness", wxString::Format("%d",Slider_Model_Brightness->GetValue()));
@@ -883,6 +887,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
     tempStr.ToLong(&n);
     transparency = n;
     blackTransparency = wxAtoi(e->GetAttribute("BlackTransparency", "0"));
+    previewBrightness = wxAtoi(e->GetAttribute("PreviewBrightness", "100"));
 
     nodeNames = e->GetAttribute("NodeNames");
     strandNames = e->GetAttribute("StrandNames");
@@ -1179,11 +1184,18 @@ void ModelDialog::OnAppearanceButtonClicked(wxCommandEvent& event)
     dlg.TransparencySlider->SetValue(transparency);
     dlg.PixelSizeSpinner->SetValue(pixelSize);
     dlg.BlackTransparency->SetValue(blackTransparency);
+    dlg.Brightness->SetValue(previewBrightness);
+    
+    dlg.TransparencyText->SetValue(wxString::Format("%d", transparency));
+    dlg.BlackTransparencyText->SetValue(wxString::Format("%d", blackTransparency));
+    dlg.BrightnessText->SetValue(wxString::Format("%d", previewBrightness));
+
     if (dlg.ShowModal() == wxID_OK) {
         pixelStyle = dlg.PixelStyleBox->GetSelection();
         transparency = dlg.TransparencySlider->GetValue();
         pixelSize = dlg.PixelSizeSpinner->GetValue();
         blackTransparency = dlg.BlackTransparency->GetValue();
+        previewBrightness = dlg.Brightness->GetValue();
     }
 
 }

@@ -4,6 +4,7 @@
 		<title>Map Channels</title>
 		<maxsize>-1,500d</maxsize>
 		<id_arg>0</id_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="Sizer" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
