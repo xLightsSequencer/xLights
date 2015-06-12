@@ -341,8 +341,8 @@ void MainSequencer::OnChar(wxKeyEvent& event)
 
     }
 }
-void MainSequencer::CopySelectedEffects() {
-    wxString copy_data;
+
+void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
     int start_column = PanelEffectGrid->GetStartColumn();
     double column_start_time = -1.0;
     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -368,6 +368,11 @@ void MainSequencer::CopySelectedEffects() {
             }
         }
     }
+}
+
+void MainSequencer::CopySelectedEffects() {
+    wxString copy_data;
+    GetSelectedEffectsData(copy_data);
     if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
             wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
@@ -375,6 +380,7 @@ void MainSequencer::CopySelectedEffects() {
         wxTheClipboard->Close();
     }
 }
+
 void MainSequencer::Paste() {
     wxTextDataObject data;
     if (wxTheClipboard->Open()) {

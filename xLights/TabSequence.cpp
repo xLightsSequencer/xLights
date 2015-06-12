@@ -155,7 +155,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
             mBackgroundImage = name.GetFullPath();
         }
     }
-    
+
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     Slider_BackgroundBrightness->SetValue(mBackgroundBrightness);
 
@@ -181,6 +181,10 @@ void xLightsFrame::LoadEffectsFile()
         // update version
         EffectsNode->DeleteAttribute("version");
         EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
+
+        // fix effect presets
+        xLightsXmlFile::FixEffectPresets(EffectsNode);
+
         // re-save
         EffectsXml.Save( filename );
     }

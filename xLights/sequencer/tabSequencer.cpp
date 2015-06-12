@@ -257,6 +257,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     SetFrequency(xml_file.GetFrequency());
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     mSequenceElements.SetModelsNode(ModelsNode, &NetInfo);
+    mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file);
     mSequenceElements.PopulateRowInformation();
 
@@ -1400,6 +1401,21 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
         colors.push_back(c);
     }
     ConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
+}
+
+wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
+{
+    wxXmlNode* NewXml=new wxXmlNode(wxXML_ELEMENT_NODE, "effect");
+    NewXml->AddAttribute("name", name);
+    wxString copy_data;
+    mainSequencer->GetSelectedEffectsData(copy_data);
+    NewXml->AddAttribute("settings", copy_data);
+    return NewXml;
+}
+
+void xLightsFrame::ApplyEffectsPreset(wxString& data)
+{
+    mainSequencer->PanelEffectGrid->Paste(data);
 }
 
 

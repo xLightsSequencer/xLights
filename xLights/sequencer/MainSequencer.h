@@ -24,6 +24,7 @@ class MainSequencer: public wxPanel
         void UpdateEffectGridVerticalScrollBar();
         void UpdateTimeDisplay(int time_ms);
         void SetPlayStatus(int play_type);
+        void GetSelectedEffectsData(wxString& copy_data);
         void CopySelectedEffects();
         void Paste();
         void DeleteAllSelectedEffects();

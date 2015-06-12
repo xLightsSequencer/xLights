@@ -358,7 +358,6 @@ public:
     void CreateDebugReport(wxDebugReportCompress *report);
     wxString GetThreadStatusReport();
 
-
     void ImportSuperStar(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
@@ -1410,6 +1409,8 @@ public:
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void ConvertDataRowToEffects(wxCommandEvent &command);
     void ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime);
+    wxXmlNode* CreateEffectNode(wxString& name);
+    void ApplyEffectsPreset(wxString& data);
 
     void SetSequenceEnd(int ms);
     void UpdateRenderMode();
@@ -1539,7 +1540,6 @@ protected:
     wxArrayString CurtainEdge;
     wxArrayString CurtainEffect;
     wxGridCellCoords *curCell;
-    EffectTreeDialog *EffectTreeDlg;
     int PlaybackPeriod; //used to be able to record the frame being played in an animation preview
 
     bool m_dragging;
@@ -1639,6 +1639,9 @@ public:
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
 
     wxString GetSeqXmlFileName();
+
+    EffectTreeDialog *EffectTreeDlg;
+
 };
 
 #endif // XLIGHTSMAIN_H

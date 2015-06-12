@@ -112,6 +112,12 @@ void SequenceElements::SetModelsNode(wxXmlNode* node, NetInfoClass *ni)
     mModelsNode = node;
     netInfo = ni;
 }
+
+void SequenceElements::SetEffectsNode(wxXmlNode* effectsNode)
+{
+    mEffectsNode = effectsNode;
+}
+
 wxString SequenceElements::GetViewModels(wxString viewName)
 {
     wxString result="";

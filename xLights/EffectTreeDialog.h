@@ -9,9 +9,10 @@
 //*)
 #include <wx/xml/xml.h>
 #include <wx/filename.h>
-#include "xLightsMain.h"
 
 #define NCCOM_FILE wxT("nutcracker_com_effects.xml")
+
+class xLightsFrame;
 
 class EffectTreeDialog : public wxDialog
 {
@@ -27,6 +28,7 @@ class EffectTreeDialog : public wxDialog
 		wxButton* btUpdate;
 		wxButton* btApply;
 		wxButton* btRename;
+		wxButton* btImport;
 		wxTreeCtrl* TreeCtrl1;
 		wxButton* btDelete;
 		//*)
@@ -46,6 +48,7 @@ class EffectTreeDialog : public wxDialog
 		static const long ID_BUTTON7;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
+		static const long ID_BUTTON8;
 		//*)
 
 	private:
@@ -60,11 +63,15 @@ class EffectTreeDialog : public wxDialog
 		void OnbtAddGroupClick(wxCommandEvent& event);
 		void OnTreeCtrl1ItemActivated(wxTreeEvent& event);
 		void OnButton_OKClick(wxCommandEvent& event);
+		void OnTreeCtrl1BeginDrag(wxTreeEvent& event);
+		void OnTreeCtrl1EndDrag(wxTreeEvent& event);
+		void OnbtImportClick(wxCommandEvent& event);
 		//*)
-        wxWindow* xLightParent;
+        xLightsFrame* xLightParent;
 		wxXmlNode *NcEffectsNode;
 		wxXmlNode *XrgbEffectsNode;
 		wxXmlDocument NcEffectsXml;
+        wxTreeItemId m_draggedItem;
         void AddNCcomEffects();
         void AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID);
         void UpdateNcEffectsList();
@@ -72,6 +79,7 @@ class EffectTreeDialog : public wxDialog
         wxXmlNode* CreateEffectGroupNode(wxString& name);
         void FixupEffectsPresets(wxXmlNode *UserGroupNode);
         void ApplyEffect(bool dblClick=false);
+        void AddImportedItemsRecursively(wxXmlNode* effects_node, wxTreeItemId curGroupID);
         void SaveEffectsFile();
 
 		DECLARE_EVENT_TABLE()

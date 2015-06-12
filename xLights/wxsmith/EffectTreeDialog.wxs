@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxDialog" name="EffectTreeDialog">
+		<title>Effect Presets</title>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
-			<growablecols>1</growablecols>
+			<growablecols>0</growablecols>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>2</cols>
@@ -23,6 +25,8 @@
 							</items_text>
 							<minsize>80,-1d</minsize>
 							<style>wxTR_HIDE_ROOT|wxTR_DEFAULT_STYLE</style>
+							<handler function="OnTreeCtrl1BeginDrag" entry="EVT_TREE_BEGIN_DRAG" />
+							<handler function="OnTreeCtrl1EndDrag" entry="EVT_TREE_END_DRAG" />
 							<handler function="OnTreeCtrl1ItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -102,13 +106,23 @@
 								<border>5</border>
 								<option>1</option>
 							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON8" variable="btImport" member="yes">
+									<label>&amp;Import</label>
+									<tooltip>Import presets from another file.</tooltip>
+									<handler function="OnbtImportClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

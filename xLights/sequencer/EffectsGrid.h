@@ -15,7 +15,7 @@
 #include "EffectLayer.h"
 #include "Effect.h"
 #include "Element.h"
-
+#include "EffectTreeDialog.h"
 
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 
@@ -172,6 +172,7 @@ private:
     static const long ID_GRID_MNU_DELETE;
     static const long ID_GRID_MNU_RANDOM_EFFECTS;
     static const long ID_GRID_MNU_UNDO;
+    static const long ID_GRID_MNU_PRESETS;
 
     EventPlayEffectArgs* playArgs;
 

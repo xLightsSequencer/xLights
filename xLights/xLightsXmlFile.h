@@ -102,6 +102,7 @@ class xLightsXmlFile : public wxFileName
 
         // static methods
         static void FixVersionDifferences(const wxString& filename);
+        static void FixEffectPresets(wxXmlNode* effects_node);
         static bool IsXmlSequence(wxFileName &fname);
 
     protected:
@@ -158,9 +159,9 @@ class xLightsXmlFile : public wxFileName
         void SetSequenceDuration(const wxString& length, wxXmlNode* node);
 
         static wxString InsertMissing(wxString str, wxString missing_array, bool INSERT);
-    
+
     void WriteEffects(EffectLayer *layer,
-                      wxXmlNode *effect_layer_node,                      
+                      wxXmlNode *effect_layer_node,
                       StringIntMap &colorPalettes,
                       wxXmlNode* colorPalette_node,
                       StringIntMap &effectStrings,

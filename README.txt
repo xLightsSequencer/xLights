@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Add Effect Presets dialog back into the program.
     -- enh(dkulp) Add ability to set a brightness that is applied to the preview
     -- bug(dkulp) If the LSP XML file is corrupt, display parse error, but don't crash.
     -- enh(gil)   While playing a show don't halt if media cannot be found...log the error and move on to the next song. Fixes #262.

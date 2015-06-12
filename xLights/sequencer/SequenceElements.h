@@ -97,6 +97,8 @@ class SequenceElements : public ChangeLister
         void SetViewsNode(wxXmlNode* viewsNode);
         void SetModelsNode(wxXmlNode *modelsNode, NetInfoClass *ni);
         wxString GetViewModels(wxString viewName);
+        void SetEffectsNode(wxXmlNode* effectsNode);
+        wxXmlNode* GetEffectsNode() { return mEffectsNode; }
 
         void SortElements();
         void MoveElement(int index,int destinationIndex);
@@ -146,6 +148,7 @@ class SequenceElements : public ChangeLister
         int mSelectedTimingRow;
         wxXmlNode* mViewsNode;
         wxXmlNode* mModelsNode;
+        wxXmlNode* mEffectsNode;
         NetInfoClass *netInfo;
         double mFrequency;
         int mTimingRowCount;

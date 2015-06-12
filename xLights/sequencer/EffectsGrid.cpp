@@ -43,6 +43,7 @@ const long EffectsGrid::ID_GRID_MNU_PASTE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DELETE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RANDOM_EFFECTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
 
 EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                        long style, const wxString &name)
@@ -118,6 +119,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_undo->Enable(false);
         }
         mnuLayer->AppendSeparator();
+        wxMenuItem* menu_presets = mnuLayer->Append(ID_GRID_MNU_PRESETS,"Effect Presets");
         wxMenuItem* menu_random = mnuLayer->Append(ID_GRID_MNU_RANDOM_EFFECTS,"Create Random Effects");
         if( !(mCellRangeSelected || mPartialCellSelected) ) {
             menu_random->Enable(false);
@@ -173,7 +175,15 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     {
         mSequenceElements->get_undo_mgr().UndoLastStep();
     }
-
+    else if(id == ID_GRID_MNU_PRESETS)
+    {
+        if( xlights->EffectTreeDlg==NULL )
+        {
+            xlights->EffectTreeDlg = new EffectTreeDialog(xlights);
+            xlights->EffectTreeDlg->InitItems(mSequenceElements->GetEffectsNode());
+        }
+        xlights->EffectTreeDlg->Show();
+    }
 
     Refresh();
 }

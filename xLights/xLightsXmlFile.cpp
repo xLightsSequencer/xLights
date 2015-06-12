@@ -2195,3 +2195,72 @@ void xLightsXmlFile::FixVersionDifferences(const wxString& filename)
     wxRemoveFile(fileout); // get rid of temporary file
 }
 
+void xLightsXmlFile::FixEffectPresets(wxXmlNode* effects_node)
+{
+    for(wxXmlNode* ele=effects_node->GetChildren(); ele!=NULL; ele=ele->GetNext() )
+    {
+        if (ele->GetName() == "effect")
+        {
+            wxString version = ele->GetAttribute("version", "0000");
+            if (version < "0003")
+            {
+                wxString settings=ele->GetAttribute("settings");
+
+                wxString eff1, eff2, prefix;
+                wxString effect1, effect2;
+                wxString before,after;
+                int cnt=0;
+                while (!settings.IsEmpty()) {
+                    before=settings.BeforeFirst(',');
+                    switch (cnt)
+                    {
+                    case 0:
+                        effect1 = before;
+                        break;
+                    case 1:
+                        effect2 = before;
+                        break;
+                    case 2:
+                        prefix = before;
+                        break;
+                    default:
+                        if (before.StartsWith("E1_")) {
+                            eff1 += "," + remapV3Value(before);
+                        } else if (before.StartsWith("E2_")) {
+                            eff2 += "," + remapV3Value(before);
+                        } else {
+                            prefix += "," + remapV3Value(before);
+                        }
+                        break;
+                    }
+                    settings=settings.AfterFirst(',');
+                    cnt++;
+                }
+
+                wxString data1 = SubstituteV3toV4tags(prefix + eff1);
+                wxString data2 = SubstituteV3toV4tags(prefix + eff2);
+                data1 = AdjustV3Effect(effect1, data1);
+                data2 = AdjustV3Effect(effect2, data2);
+                wxString palette1 = SplitPalette(data1);
+                wxString palette2 = SplitPalette(data2);
+
+                wxString start_time = wxString::Format("%f",1.0);
+                wxString end_time = wxString::Format("%f",4.0);
+                wxString row1 = wxString::Format("%d",1);
+                wxString row2 = wxString::Format("%d",2);
+                wxString column_start = wxString::Format("%f",1.0);
+                wxString eff_data = effect1 + "\t" + data1 + "\t" + palette1 + "\t" + start_time + "\t" + end_time + "\t" + row1 + "\t" + column_start + "\n";
+                         eff_data += effect2 + "\t" + data2 + "\t" + palette2 + "\t" + start_time + "\t" + end_time + "\t" + row2 + "\t" + column_start + "\n";
+
+                ele->DeleteAttribute("settings");
+                ele->AddAttribute("settings", eff_data);
+                ele->DeleteAttribute("version");
+                ele->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
+            }
+        }
+        else if (ele->GetName() == "effectGroup")
+        {
+            FixEffectPresets(ele);
+        }
+    }
+}
