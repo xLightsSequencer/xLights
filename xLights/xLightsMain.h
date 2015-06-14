@@ -166,8 +166,8 @@ wxDECLARE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 
 
 static const wxString xlights_base_name       = "xLights 4 BETA";
-static const wxString xlights_version_string  = "4.1.4";
-static const wxString xlights_build_date      = "Jun 9, 2015";
+static const wxString xlights_version_string  = "4.1.5";
+static const wxString xlights_build_date      = "Jun 14, 2015";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 static wxCriticalSection gs_xoutCriticalSection;

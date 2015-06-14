@@ -7,16 +7,18 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.1.5  Jun 14, 2015
     -- enh(gil)   Add Effect Presets dialog back into the program.
     -- enh(dkulp) Add ability to set a brightness that is applied to the preview
     -- bug(dkulp) If the LSP XML file is corrupt, display parse error, but don't crash.
     -- enh(gil)   While playing a show don't halt if media cannot be found...log the error and move on to the next song. Fixes #262.
+	-- Add model icon on toolbar. This allows goign directly to models without having to go to the LAYOUT tab
 4.1.4  Jun 9, 2015
     -- bug(gil)   Fix v3 import to delete effect2 if Effect1:mix0 or Effect2:mix100 and delete effect1 if Effect1:mix100 or Effect2:mix0. Fixes #144.
     -- enh(gil)   Update Undo to be able to undo modified effects.  Fix a few cases where moved effects weren't tracked.  Right-click menu will now
                   show the type of Undo that is about to be performed.
     -- bug/enh(gil) Updates/fixes to the perspectives.  Windows now hide when switching to other tabs.  Delete now works.  Added a Save button so you
-                    don't need to always goto the menus.  All windows are hidden before app closes.  Prevent duplicate names. Fixes #105. Fixes #87.
+                    don't need to always go to the menus.  All windows are hidden before app closes.  Prevent duplicate names. Fixes #105. Fixes #87.
     -- bug(gil)   Link the slider and text control for the Circles effect
     -- enh(gil)   Select position by time function had int instead of double parameter which was causing small divisions to not be selectable.
     -- enh(gil)   Update Undo to be able to undo moved effects.
