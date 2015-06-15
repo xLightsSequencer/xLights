@@ -315,12 +315,16 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
     settings.erase("T_SLIDER_Speed");
 }
 
-Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
+Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & name, const wxString &settings, const wxString &palette,
        double startTime,double endTime, int Selected, bool Protected)
-    : mParentLayer(parent), mID(id), mEffectIndex(effectIndex), mName(name),
+    : mParentLayer(parent), mID(id), mEffectIndex(effectIndex), mName(nullptr),
       mStartTime(startTime), mEndTime(endTime), mSelected(Selected), mProtected(Protected),
     changeCount(0)
 {
+    int i = GetEffectIndex(name);
+    if (i == -1) {
+        mName = new wxString(name);
+    }
     mSettings.Parse(settings);
     mPaletteMap.Parse(palette);
     mColors.clear();
@@ -337,18 +341,18 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString &name
 
 Effect::~Effect()
 {
+    if (mName != nullptr) {
+        delete mName;
+    }
 }
 
-int Effect::GetID() const
-{
+
+int Effect::GetID() const {
     return mID;
 }
-
-void Effect::SetID(int id)
-{
+void Effect::SetID(int id) {
     mID = id;
 }
-
 void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const {
     wxMutexLocker lock(settingsLock);
     
@@ -376,7 +380,6 @@ void Effect::SetSettings(const wxString &settings)
     wxMutexLocker lock(settingsLock);
     mSettings.Parse(settings);
     IncrementChangeCount();
-    mDirty = true;
 }
 
 wxString Effect::GetSettingsAsString() const
@@ -391,7 +394,6 @@ void Effect::SetPalette(const wxString& i)
     mPaletteMap.Parse(i);
     mColors.clear();
     IncrementChangeCount();
-    mDirty = true;
     if (mPaletteMap.empty()) {
         return;
     }
@@ -407,17 +409,28 @@ wxString Effect::GetPaletteAsString() const {
     return mPaletteMap.AsString();
 }
 
-
-
-wxString Effect::GetEffectName() const
+const wxString &Effect::GetEffectName() const
 {
-    return mName;
+    if (mName != nullptr) {
+        return *mName;
+    }
+    return GetEffectName(mEffectIndex);
 }
 
 void Effect::SetEffectName(const wxString & name)
 {
-    mName = name;
-    IncrementChangeCount();
+    int idx = GetEffectIndex(name);
+    if (mEffectIndex != idx || mEffectIndex == -1) {
+        mEffectIndex = idx;
+        if (mName != nullptr) {
+            delete mName;
+            mName = nullptr;
+        }
+        if (mEffectIndex == -1) {
+            mName = new wxString(name);
+        }
+        IncrementChangeCount();
+    }
 }
 
 int Effect::GetEffectIndex() const
@@ -427,8 +440,10 @@ int Effect::GetEffectIndex() const
 
 void Effect::SetEffectIndex(int effectIndex)
 {
-    mEffectIndex = effectIndex;
-    mDirty = true;
+    if (mEffectIndex != effectIndex) {
+        mEffectIndex = effectIndex;
+        IncrementChangeCount();
+    }
 }
 
 
@@ -446,7 +461,6 @@ void Effect::SetStartTime(double startTime)
         mStartTime = startTime;
         IncrementChangeCount();
     }
-    mDirty = true;
 }
 
 double Effect::GetEndTime() const
@@ -463,7 +477,6 @@ void Effect::SetEndTime(double endTime)
         mEndTime = endTime;
         IncrementChangeCount();
     }
-    mDirty = true;
 }
 
 
@@ -506,16 +519,6 @@ void Effect::SetEndPosition(int position)
     mEndPosition = position;
 }
 
-bool Effect::IsDirty()
-{
-    return mDirty;
-}
-
-void Effect::SetDirty(bool dirty)
-{
-    mDirty = dirty;
-}
-
 bool operator<(const Effect &e1, const Effect &e2){
     if(e1.GetStartTime() < e2.GetStartTime())
         return true;
@@ -523,42 +526,60 @@ bool operator<(const Effect &e1, const Effect &e2){
         return false;
 }
 
-int Effect::GetEffectIndex(wxString effectName)
+class EffectMap: public std::vector<wxString> {
+public:
+    EffectMap() {
+        resize(BitmapCache::RGB_EFFECTS_e::eff_LASTEFFECT);
+        at(BitmapCache::RGB_EFFECTS_e::eff_OFF) = "Off";
+        at(BitmapCache::RGB_EFFECTS_e::eff_ON) = "On";
+        at(BitmapCache::RGB_EFFECTS_e::eff_BARS) = "Bars";
+        at(BitmapCache::RGB_EFFECTS_e::eff_BUTTERFLY) = "Butterfly";
+        at(BitmapCache::RGB_EFFECTS_e::eff_CIRCLES) = "Circles";
+        at(BitmapCache::RGB_EFFECTS_e::eff_COLORWASH) = "Color Wash";
+        at(BitmapCache::RGB_EFFECTS_e::eff_COROFACES) = "CoroFaces";
+        at(BitmapCache::RGB_EFFECTS_e::eff_CURTAIN) = "Curtain";
+        at(BitmapCache::RGB_EFFECTS_e::eff_FACES) = "Faces";
+        at(BitmapCache::RGB_EFFECTS_e::eff_FAN) = "Fan";
+        at(BitmapCache::RGB_EFFECTS_e::eff_FIRE) = "Fire";
+        at(BitmapCache::RGB_EFFECTS_e::eff_FIREWORKS) = "Fireworks";
+        at(BitmapCache::RGB_EFFECTS_e::eff_GALAXY) = "Galaxy";
+        at(BitmapCache::RGB_EFFECTS_e::eff_GARLANDS) = "Garlands";
+        at(BitmapCache::RGB_EFFECTS_e::eff_GLEDIATOR) = "Glediator";
+        at(BitmapCache::RGB_EFFECTS_e::eff_LIFE) = "Life";
+        at(BitmapCache::RGB_EFFECTS_e::eff_METEORS) = "Meteors";
+        at(BitmapCache::RGB_EFFECTS_e::eff_MORPH) = "Morph";
+        at(BitmapCache::RGB_EFFECTS_e::eff_PIANO) = "Piano";
+        at(BitmapCache::RGB_EFFECTS_e::eff_PICTURES) = "Pictures";
+        at(BitmapCache::RGB_EFFECTS_e::eff_PINWHEEL) = "Pinwheel";
+        at(BitmapCache::RGB_EFFECTS_e::eff_RIPPLE) = "Ripple";
+        at(BitmapCache::RGB_EFFECTS_e::eff_SHIMMER) = "Shimmer";
+        at(BitmapCache::RGB_EFFECTS_e::eff_SHOCKWAVE) = "Shockwave";
+        at(BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND) = "SingleStrand";
+        at(BitmapCache::RGB_EFFECTS_e::eff_SNOWFLAKES) = "Snowflakes";
+        at(BitmapCache::RGB_EFFECTS_e::eff_SNOWSTORM) = "Snowstorm";
+        at(BitmapCache::RGB_EFFECTS_e::eff_SPIRALS) = "Spirals";
+        at(BitmapCache::RGB_EFFECTS_e::eff_SPIROGRAPH) = "Spirograph";
+        at(BitmapCache::RGB_EFFECTS_e::eff_STROBE) = "Strobe";
+        at(BitmapCache::RGB_EFFECTS_e::eff_TEXT) = "Text";
+        at(BitmapCache::RGB_EFFECTS_e::eff_TREE) = "Tree";
+        at(BitmapCache::RGB_EFFECTS_e::eff_TWINKLE) = "Twinkle";
+        at(BitmapCache::RGB_EFFECTS_e::eff_WAVE) = "Wave";
+    }
+    
+} effectMap;
+
+const wxString &Effect::GetEffectName(int idx) {
+    return effectMap[idx];
+}
+
+int Effect::GetEffectIndex(const wxString &effectName)
 {
-    if(effectName=="Off"){return BitmapCache::RGB_EFFECTS_e::eff_OFF;}
-    else if(effectName=="On"){return BitmapCache::RGB_EFFECTS_e::eff_ON;}
-    else if(effectName=="Bars"){return BitmapCache::RGB_EFFECTS_e::eff_BARS;}
-    else if(effectName=="Butterfly"){return BitmapCache::RGB_EFFECTS_e::eff_BUTTERFLY;}
-    else if(effectName=="Circles"){return BitmapCache::RGB_EFFECTS_e::eff_CIRCLES;}
-    else if(effectName=="Color Wash"){return BitmapCache::RGB_EFFECTS_e::eff_COLORWASH;}
-    else if(effectName=="Curtain"){return BitmapCache::RGB_EFFECTS_e::eff_CURTAIN;}
-    else if(effectName=="Faces"){return BitmapCache::RGB_EFFECTS_e::eff_FACES;}
-    else if(effectName=="Fan"){return BitmapCache::RGB_EFFECTS_e::eff_FAN;}
-    else if(effectName=="Fire"){return BitmapCache::RGB_EFFECTS_e::eff_FIRE;}
-    else if(effectName=="Fireworks"){return BitmapCache::RGB_EFFECTS_e::eff_FIREWORKS;}
-    else if(effectName=="Galaxy"){return BitmapCache::RGB_EFFECTS_e::eff_GALAXY;}
-    else if(effectName=="Garlands"){return BitmapCache::RGB_EFFECTS_e::eff_GARLANDS;}
-    else if(effectName=="Glediator"){return BitmapCache::RGB_EFFECTS_e::eff_GLEDIATOR;}
-    else if(effectName=="Life"){return BitmapCache::RGB_EFFECTS_e::eff_LIFE;}
-    else if(effectName=="Meteors"){return BitmapCache::RGB_EFFECTS_e::eff_METEORS;}
-    else if(effectName=="Morph"){return BitmapCache::RGB_EFFECTS_e::eff_MORPH;}
-    else if(effectName=="Piano"){return BitmapCache::RGB_EFFECTS_e::eff_PIANO;}
-    else if(effectName=="Pictures"){return BitmapCache::RGB_EFFECTS_e::eff_PICTURES;}
-    else if(effectName=="Pinwheel"){return BitmapCache::RGB_EFFECTS_e::eff_PINWHEEL;}
-    else if(effectName=="Ripple"){return BitmapCache::RGB_EFFECTS_e::eff_RIPPLE;}
-    else if(effectName=="Shimmer"){return BitmapCache::RGB_EFFECTS_e::eff_SHIMMER;}
-    else if(effectName=="Shockwave"){return BitmapCache::RGB_EFFECTS_e::eff_SHOCKWAVE;}
-    else if(effectName=="SingleStrand"){return BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND;}
-    else if(effectName=="Snowflakes"){return BitmapCache::RGB_EFFECTS_e::eff_SNOWFLAKES;}
-    else if(effectName=="Snowstorm"){return BitmapCache::RGB_EFFECTS_e::eff_SNOWSTORM;}
-    else if(effectName=="Spirals"){return BitmapCache::RGB_EFFECTS_e::eff_SPIRALS;}
-    else if(effectName=="Spirograph"){return BitmapCache::RGB_EFFECTS_e::eff_SPIROGRAPH;}
-    else if(effectName=="Strobe"){return BitmapCache::RGB_EFFECTS_e::eff_STROBE;}
-    else if(effectName=="Text"){return BitmapCache::RGB_EFFECTS_e::eff_TEXT;}
-    else if(effectName=="Tree"){return BitmapCache::RGB_EFFECTS_e::eff_TREE;}
-    else if(effectName=="Twinkle"){return BitmapCache::RGB_EFFECTS_e::eff_TWINKLE;}
-    else if(effectName=="Wave"){return BitmapCache::RGB_EFFECTS_e::eff_WAVE;}
-    else{return BitmapCache::RGB_EFFECTS_e::eff_OFF;}
+    for (int x = 0; x < effectMap.size(); x++) {
+        if (effectMap[x] == effectName) {
+            return x;
+        }
+    }
+    return -1;
 }
 
 EffectLayer* Effect::GetParentEffectLayer()

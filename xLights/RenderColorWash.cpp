@@ -67,6 +67,7 @@ void RgbEffects::RenderColorWash(Effect *eff,
         
         orig = color;
         wxImage::HSVValue hsvOrig = color.asHSV();
+        xlColor color2 = color;
         for (x=startX; x <= endX; x++)
         {
             wxImage::HSVValue hsv = hsvOrig;
@@ -78,14 +79,15 @@ void RgbEffects::RenderColorWash(Effect *eff,
                     color = hsv;
                 }
             }
-            for (y=startY; y<=endY; y++)
-            {
+            color2.alpha = color.alpha;
+            for (y=startY; y<=endY; y++) {
                 if (VertFade) {
                     if (allowAlpha) {
-                        color.alpha = (double)orig.alpha*(1.0-std::abs(HalfHt-(y-startY))/HalfHt);
+                        color.alpha = (double)color2.alpha*(1.0-std::abs(HalfHt-(y-startY))/HalfHt);
                     } else {
-                        hsv.value*=1.0-std::abs(HalfHt-y-startY)/HalfHt;
-                        color = hsv;
+                        wxImage::HSVValue hsv2 = hsv;
+                        hsv2.value*=1.0-std::abs(HalfHt-(y-startY))/HalfHt;
+                        color = hsv2;
                     }
                 }
                 SetPixel(x, y, color);

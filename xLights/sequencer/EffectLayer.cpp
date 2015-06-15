@@ -76,7 +76,7 @@ Effect* EffectLayer::AddEffect(int id, const wxString &name, const wxString &set
     return AddEffect(id, Effect::GetEffectIndex(name), name, settings, palette, startTime, endTime, Selected, Protected);
 }
 Effect* EffectLayer::AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
-                               double startTime,double endTime, int Selected, bool Protected)
+                               double startTime, double endTime, int Selected, bool Protected)
 {
     Effect *e = new Effect(this, id, effectIndex, name, settings, palette, startTime, endTime, Selected, Protected);
     mEffects.push_back(e);

@@ -40,17 +40,17 @@ class Effect
         Effect();  //don't allow default or copy constructor
         Effect(const Effect &e);
     public:
-        Effect(EffectLayer* parent,int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
-               double startTime,double endTime, int Selected, bool Protected);
+        Effect(EffectLayer* parent, int id, int effectIndex, const wxString & name, const wxString &settings, const wxString &palette,
+               double startTime, double endTime, int Selected, bool Protected);
         virtual ~Effect();
 
         int GetID() const;
-        void SetID(int id);
-
+        void SetID(int i);
+    
         int GetEffectIndex() const;
         void SetEffectIndex(int effectIndex);
 
-        wxString GetEffectName() const;
+        const wxString &GetEffectName() const;
         void SetEffectName(const wxString & name);
 
         double GetStartTime() const;
@@ -65,16 +65,14 @@ class Effect
         bool GetProtected();
         void SetProtected(bool Protected);
 
-        bool IsDirty();
-        void SetDirty(bool dirty);
-
         int GetStartPosition();
         void SetStartPosition(int position);
 
         int GetEndPosition();
         void SetEndPosition(int position);
 
-        static int GetEffectIndex(wxString effectName);
+        static int GetEffectIndex(const wxString &effectName);
+        static const wxString &GetEffectName(int idx);
 
         EffectLayer* GetParentEffectLayer();
         void SetParentEffectLayer(EffectLayer* parent);
@@ -111,16 +109,15 @@ class Effect
     protected:
     private:
         volatile int changeCount;
-        int mID;
         int mEffectIndex;
-        wxString mName;
         double mStartTime;
         double mEndTime;
         int mSelected;
+        int mID;
+        wxString *mName;
         bool mProtected;
         int mStartPosition;
         int mEndPosition;
-        bool mDirty;
         EffectLayer* mParentLayer;
     
         mutable wxMutex settingsLock;
