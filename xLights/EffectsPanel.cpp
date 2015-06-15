@@ -4675,14 +4675,6 @@ void EffectsPanel::SetDefaultEffectValues(const wxString &name) {
 }
 
 
-
-// returns ",E1_" or ",E2_"
-wxString EffectsPanel::GetAttrPrefix()
-{
-    wxString WinName=this->GetName();
-    return ",E" + WinName.Right(1) + "_";
-}
-
 //#define WANT_DEBUG_IMPL
 //#define WANT_DEBUG  -99 //unbuffered in case app crashes
 //#include "djdebug.cpp"
@@ -4774,7 +4766,10 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
 
 int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
 {
-    return isRandom(slider)? rand() % (slider->GetMax()-slider->GetMin()) + slider->GetMin(): slider->GetValue(); //want random? -DJ
+    if (isRandom(slider)) {
+        return rand() % (slider->GetMax()-slider->GetMin()) + slider->GetMin();
+    }
+    return slider->GetValue();
 }
 
 wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxString &prefix) {
@@ -4788,16 +4783,23 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
 
         if (ChildName.StartsWith("ID_SLIDER")) {
             wxSlider* ctrl=(wxSlider*)ChildWin;
-            if (ChildName.Contains("Spirograph_r"))
-            {
+            if (ChildName.Contains("Spirograph_r")) {
                 // always set little radius, r, to its minimum value
                 s += AttrName + wxString::Format("%d", 0);
-            }
-            else
-            {
+            } else {
                 s += AttrName + wxString::Format("%d", GetRandomSliderValue(ctrl));
             }
         } else if (ChildName.StartsWith("ID_TEXTCTRL")) {
+
+            wxSlider * slider = (wxSlider*)w->FindWindowByName("IDD_SLIDER_" + ChildName.SubString(12, ChildName.size()));
+            if (slider != nullptr) {
+                int i = GetRandomSliderValue(slider);
+                slider->SetValue(i);
+                wxScrollEvent event(wxEVT_SLIDER, slider->GetId());
+                event.SetEventObject(slider);
+                event.SetInt(i);
+                slider->ProcessWindowEvent(event);
+            }
             wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
             wxString v = ctrl->GetValue();
             v.Replace("&", "&amp;", true);
@@ -4812,7 +4814,8 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
                 s+=AttrName+wxString::Format("%d", 1 );
             } else {
                 wxCheckBox* ctrl = (wxCheckBox*)ChildWin;
-                wxString v = (isRandom(ctrl)? (rand()%2): ctrl->GetValue())? "1" : "0"; //want random? -DJ
+                int i = isRandom(ctrl)? (rand()%2): ctrl->GetValue();
+                wxString v = i ? "1" : "0"; //want random? -DJ
                 s += AttrName + v;
             }
         } else if (ChildName.StartsWith("ID_NOTEBOOK")) {
@@ -4831,7 +4834,7 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
 wxString EffectsPanel::GetRandomEffectString(int effidx)
 {
     wxString s,ChildName,AttrName;
-    wxString prefix=GetAttrPrefix();
+    wxString prefix=",E_";
 
 //    djdebug("GetRandomEffectString: %s rnd? %d", (const char*)Slider_Speed->GetName().c_str(), isRandom(Slider_Speed));
 
@@ -4846,28 +4849,6 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
 }
 
 
-wxString EffectsPanel::GetEffectString()
-{
-    wxString s,ChildName,AttrName;
-    wxString prefix=GetAttrPrefix();
-
-    // get effect controls
-    s+=GetEffectStringFromWindow(EffectChoicebook->GetCurrentPage());
-
-    // get palette
-    wxColour color;
-    for (int i=1; i<=PALETTE_SIZE; i++)
-    {
-//~        color=GetPaletteColor(i);
-        AttrName.Printf("BUTTON_Palette%d=",i);
-        s+=prefix+AttrName+color.GetAsString(wxC2S_HTML_SYNTAX);
-        AttrName.Printf("CHECKBOX_Palette%d",i);
-        wxCheckBox* ctrl=(wxCheckBox*)wxWindow::FindWindowByName("ID_"+AttrName,this);
-        wxString v=(ctrl->IsChecked()) ? "1" : "0";
-        s+=prefix+AttrName+"="+v;
-    }
-    return s;
-}
 
 //selectable clear canvas before render: -DJ
 //this allows multiple effects to be overlayed for composite models

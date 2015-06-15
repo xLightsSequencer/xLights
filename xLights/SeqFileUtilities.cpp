@@ -2374,7 +2374,6 @@ void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int ef
                 + "T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00"
                 + ",E_CHECKBOX_ColorWash_Shimmer=" + (isShimmer ? "1" : "0");
         }
-        printf("%X  %X      %X  %X\n", bst, ben, color.GetRGB(), color2.GetRGB());
     }
     
     wxString palette = _("C_BUTTON_Palette1=" + color + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=") + color2

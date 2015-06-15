@@ -36,7 +36,6 @@ public:
     bool EffectChanged;
     void SetDefaultPalette();
     wxString* CurrentDir;
-    wxString GetEffectString();
     void SetDefaultEffectValues(const wxString &name);
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
@@ -1424,7 +1423,6 @@ private:
     //*)
 
     int GetRandomSliderValue(wxSlider* slider);
-    wxString GetAttrPrefix();
     wxString GetRandomEffectStringFromWindow(wxWindow *ParentWin, const wxString &prefix);
 
 //add lock/unlock/random state flags -DJ
