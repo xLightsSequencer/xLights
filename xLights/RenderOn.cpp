@@ -70,7 +70,7 @@ void RgbEffects::RenderOn(Effect *eff, int start, int end, bool shimmer, float c
         eff->GetBackgroundDisplayList().resize(4);
         if (start == 100 && end == 100) {
             palette.GetColor(0, color);
-            SetDisplayListRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, color);
+            SetDisplayListHRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, color);
         } else {
             wxImage::HSVValue hsv;
             palette.GetHSV(cidx,hsv);
@@ -79,7 +79,7 @@ void RgbEffects::RenderOn(Effect *eff, int start, int end, bool shimmer, float c
         
             palette.GetHSV(cidx,hsv);
             hsv.value = hsv.value * end / 100.0;
-            SetDisplayListRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, xlColor(hsv));
+            SetDisplayListHRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, xlColor(hsv));
         }
         needToInit = false;
     }

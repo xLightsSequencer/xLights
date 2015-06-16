@@ -163,6 +163,7 @@ wxDECLARE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 
 
 static const wxString xlights_base_name       = "xLights 4 BETA";
@@ -1409,6 +1410,8 @@ public:
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void ConvertDataRowToEffects(wxCommandEvent &command);
     void ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime);
+    void PromoteEffects(wxCommandEvent &command);
+    void PromoteEffects(Element *element);
     wxXmlNode* CreateEffectNode(wxString& name);
     void ApplyEffectsPreset(wxString& data);
 

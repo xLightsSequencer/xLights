@@ -58,6 +58,7 @@ class EffectLayer
         void GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,double &toRight);
         void SelectEffectsInPositionRange(int startX,int endX);
         int SelectEffectsInTimeRange(double startTime,double endTime);
+        bool HasEffectsInTimeRange(double startTime,double endTime);
         void UnSelectAllEffects();
 
         Element* GetParentElement();
@@ -66,6 +67,7 @@ class EffectLayer
         void MoveAllSelectedEffects(double delta, UndoManager& undo_mgr);
         void DeleteSelectedEffects(UndoManager& undo_mgr);
         void DeleteEffect(int id);
+        void DeleteEffectByIndex(int idx);
         static bool ShouldDeleteSelected(Effect *eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
         void UpdateAllSelectedEffects(const wxString& palette);
@@ -107,7 +109,7 @@ class StrandLayer: public EffectLayer
 {
 public:
     StrandLayer(Element *parent, int s) : EffectLayer(parent), strand(s) {}
-    virtual ~StrandLayer() {}
+    virtual ~StrandLayer();
 
     int GetStrand() { return strand;}
 

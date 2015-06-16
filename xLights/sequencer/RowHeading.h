@@ -63,6 +63,7 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_TOGGLE_STRANDS;
         static const long ID_ROW_MNU_TOGGLE_NODES;
         static const long ID_ROW_MNU_CONVERT_TO_EFFECTS;
+        static const long ID_ROW_MNU_PROMOTE_EFFECTS;
 
 
         static const long ID_ROW_MNU_ADD_TIMING_TRACK;

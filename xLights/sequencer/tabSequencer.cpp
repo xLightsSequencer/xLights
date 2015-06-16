@@ -1309,6 +1309,7 @@ int RampLenColor(int start, std::vector<xlColor> &colors) {
     return 0;
 }
 
+
 void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime) {
     colors.push_back(xlBLACK);
     int startTime = 0;
@@ -1417,5 +1418,121 @@ void xLightsFrame::ApplyEffectsPreset(wxString& data)
 {
     mainSequencer->PanelEffectGrid->Paste(data);
 }
+void xLightsFrame::PromoteEffects(wxCommandEvent &command) {
+    Element *el = (Element*)command.GetClientData();
+    PromoteEffects(el);
+}
+
+bool equals(Effect *e, Effect *e2, const wxString &pal, const wxString &set) {
+    if (e->GetEffectIndex() != e2->GetEffectIndex()
+        || e->GetStartTime() != e2->GetStartTime()
+        || e->GetEndTime() != e2->GetEndTime()) {
+        return false;
+    }
+    if (pal != e2->GetPaletteAsString()
+        || set != e2->GetSettingsAsString()) {
+        return false;
+    }
+    return true;
+}
+void xLightsFrame::PromoteEffects(Element *element) {
+    //first promote from nodes to strands
+    for (int x = 0;  x < element->getStrandLayerCount(); x++) {
+        StrandLayer *layer = element->GetStrandLayer(x);
+        EffectLayer *target = layer;
+        if (element->getStrandLayerCount() <= 1) {
+            if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
+                element->InsertEffectLayer(0);
+            }
+            target = element->GetEffectLayer(0);
+        }
+        if (layer->GetNodeLayerCount() > 0) {
+            NodeLayer *base = layer->GetNodeLayer(0);
+            for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
+                Effect *eff = base->GetEffect(e);
+                const wxString &name = eff->GetEffectName();
+                
+                if (layer->HasEffectsInTimeRange(eff->GetStartTime(), eff->GetEndTime())) {
+                    //cannot promote, already and effect there
+                    continue;
+                }
+                if (name == "On" || name == "Color Wash") {
+                    const wxString pal = eff->GetPaletteAsString();
+                    const wxString set = eff->GetSettingsAsString();
+                    double mp = (eff->GetStartTime() + eff->GetEndTime()) / 2.0;
+                    bool collapse = true;
+                    
+                    for (int n = 1; n < layer->GetNodeLayerCount() && collapse; n++) {
+                        NodeLayer *node = layer->GetNodeLayer(n);
+                        int nodeIndex = 0;
+                        if (node->HitTestEffectByTime(mp, nodeIndex)) {
+                            Effect *nf = node->GetEffect(nodeIndex);
+                            if (!equals(eff, nf, pal, set)) {
+                                collapse = false;
+                            }
+                        } else {
+                            collapse = false;
+                        }
+                    }
+                    if (collapse) {
+                        target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTime(), eff->GetEndTime(), false, false);
+                        for (int n = 0; n < layer->GetNodeLayerCount() && collapse; n++) {
+                            NodeLayer *node = layer->GetNodeLayer(n);
+                            int nodeIndex = 0;
+                            if (node->HitTestEffectByTime(mp, nodeIndex)) {
+                                node->DeleteEffectByIndex(nodeIndex);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (element->getStrandLayerCount() <= 1) {
+        return;
+    }
+    //OK, we're now promoted to strand level effects, try and promote to Model level
+    StrandLayer *base = element->GetStrandLayer(0);
+    if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
+        element->InsertEffectLayer(0);
+    }
+    EffectLayer *target = element->GetEffectLayer(0);
+    for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
+        Effect *eff = base->GetEffect(e);
+        const wxString &name = eff->GetEffectName();
+        
+        if (name == "On" || name == "Color Wash") {
+            const wxString pal = eff->GetPaletteAsString();
+            const wxString set = eff->GetSettingsAsString();
+            double mp = (eff->GetStartTime() + eff->GetEndTime()) / 2.0;
+            bool collapse = true;
+            
+            for (int n = 1; n < element->getStrandLayerCount() && collapse; n++) {
+                StrandLayer *node = element->GetStrandLayer(n);
+                int nodeIndex = 0;
+                if (node->HitTestEffectByTime(mp, nodeIndex)) {
+                    Effect *nf = node->GetEffect(nodeIndex);
+                    if (!equals(eff, nf, pal, set)) {
+                        collapse = false;
+                    }
+                } else {
+                    collapse = false;
+                }
+            }
+            if (collapse) {
+                target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTime(), eff->GetEndTime(), false, false);
+                for (int n = 0; n < element->getStrandLayerCount() && collapse; n++) {
+                    StrandLayer *node = element->GetStrandLayer(n);
+                    int nodeIndex = 0;
+                    if (node->HitTestEffectByTime(mp, nodeIndex)) {
+                        node->DeleteEffectByIndex(nodeIndex);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 
 

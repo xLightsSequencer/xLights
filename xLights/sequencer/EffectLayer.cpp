@@ -419,6 +419,20 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX)
         }
     }
 }
+bool EffectLayer::HasEffectsInTimeRange(double startTime,double endTime) {
+    for(int i=0;i<mEffects.size();i++)
+    {
+        if(mEffects[i]->GetStartTime() >= startTime &&  mEffects[i]->GetStartTime() < endTime)
+        {
+            return true;
+        }
+        else if(mEffects[i]->GetEndTime() <= endTime &&  mEffects[i]->GetEndTime() > startTime)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 int EffectLayer::SelectEffectsInTimeRange(double startTime,double endTime)
 {
@@ -619,7 +633,9 @@ void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
     }
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDeleteSelected),mEffects.end());
 }
-
+void EffectLayer::DeleteEffectByIndex(int idx) {
+    mEffects.erase(mEffects.begin()+idx);
+}
 void EffectLayer::DeleteEffect(int id)
 {
     for(int i=0; i<mEffects.size();i++)
@@ -647,6 +663,14 @@ void EffectLayer::IncrementChangeCount(int startMS, int endMS)
     mParentElement->IncrementChangeCount(startMS, endMS);
     changeCount++;
 }
+
+
+StrandLayer::~StrandLayer() {
+    for (int x = 0; x < mNodeLayers.size(); x++) {
+        delete mNodeLayers[x];
+    }
+}
+
 NodeLayer *StrandLayer::GetNodeLayer(int n, bool create) {
     while (create && n >= mNodeLayers.size()) {
         mNodeLayers.push_back(new NodeLayer(GetParentElement(),""));

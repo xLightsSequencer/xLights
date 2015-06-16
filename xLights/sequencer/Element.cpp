@@ -18,6 +18,9 @@ Element::~Element()
     for (int x = 0; x < mEffectLayers.size(); x++) {
         delete mEffectLayers[x];
     }
+    for (int x = 0; x < mStrandLayers.size(); x++) {
+        delete mStrandLayers[x];
+    }
 }
 
 

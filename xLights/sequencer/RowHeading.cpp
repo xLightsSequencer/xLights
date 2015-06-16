@@ -24,6 +24,7 @@ const long RowHeading::ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_STRANDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
 const long RowHeading::ID_ROW_MNU_CONVERT_TO_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
@@ -151,9 +152,12 @@ void RowHeading::rightClick( wxMouseEvent& event)
             mnuLayer->Append(ID_ROW_MNU_PLAY_MODEL,"Play Model");
             mnuLayer->Append(ID_ROW_MNU_EXPORT_MODEL,"Export Model");
             mnuLayer->AppendSeparator();
+            bool canPromote = false;
             if (element->getStrandLayerCount() == 1) {
                 mnuLayer->Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
+                canPromote = true;
             } else if (element->getStrandLayerCount() > 1) {
+                canPromote = true;
                 mnuLayer->Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Strands");
                 if (ri->strandIndex >= 0) {
                     mnuLayer->Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
@@ -161,6 +165,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
             }
             if (ri->nodeIndex > -1 && element->GetStrandLayer(ri->strandIndex)->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
                 mnuLayer->Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
+            }
+            if (canPromote) {
+                mnuLayer->Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
             }
         }
     }
@@ -278,6 +285,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         evt.SetClientData(element);
         int i = ((ri->strandIndex << 16) & 0xFFFF0000) + ri->nodeIndex;
         evt.SetInt(i);
+        wxPostEvent(GetParent(), evt);
+    } else if (id == ID_ROW_MNU_PROMOTE_EFFECTS) {
+        wxCommandEvent evt(EVT_PROMOTE_EFFECTS);
+        evt.SetClientData(element);
         wxPostEvent(GetParent(), evt);
     }
 

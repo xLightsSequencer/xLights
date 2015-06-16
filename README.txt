@@ -7,6 +7,10 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(dkulp) Fix Random effects not being random
+    -- bug(dkulp) Fix memory leak on "close sequence"
+    -- bug(dkulp) Fix rendering of Color Wash with fades
+    -- enh(dkulp) Add a "Promote Node Effects" option to model popup to search for effects on the nodes that can be promoted up.
 4.1.5  Jun 14, 2015
     -- enh(gil)   Add Effect Presets dialog back into the program.
     -- enh(dkulp) Add ability to set a brightness that is applied to the preview

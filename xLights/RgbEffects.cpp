@@ -502,12 +502,21 @@ void RgbEffects::GetEffectPeriods( int& start, int& endp)
     endp = curEffEndPer;
 }
 
+void RgbEffects::SetDisplayListHRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
+                                     const xlColor &c1, const xlColor &c2) {
+    SetDisplayListRect(eff, idx, x1, y1, x2, y2, c1, c1, c2, c2);
+}
+void RgbEffects::SetDisplayListVRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
+                                     const xlColor &c1, const xlColor &c2) {
+    SetDisplayListRect(eff, idx, x1, y1, x2, y2, c1, c2, c1, c2);
+}
 void RgbEffects::SetDisplayListRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
-                                    const xlColor &c1, const xlColor &c2) {
-    eff->GetBackgroundDisplayList()[idx].color = c1;
-    eff->GetBackgroundDisplayList()[idx+1].color = c1;
-    eff->GetBackgroundDisplayList()[idx+2].color = c2;
-    eff->GetBackgroundDisplayList()[idx+3].color = c2;
+                                    const xlColor &cx1y1, const xlColor &cx1y2,
+                                    const xlColor &cx2y1, const xlColor &cx2y2) {
+    eff->GetBackgroundDisplayList()[idx].color = cx1y1;
+    eff->GetBackgroundDisplayList()[idx+1].color = cx1y2;
+    eff->GetBackgroundDisplayList()[idx+2].color = cx2y2;
+    eff->GetBackgroundDisplayList()[idx+3].color = cx2y1;
     eff->GetBackgroundDisplayList()[idx].x = x1;
     eff->GetBackgroundDisplayList()[idx+1].x = x1;
     eff->GetBackgroundDisplayList()[idx+2].x = x2;
@@ -523,7 +532,7 @@ void RgbEffects::SetDisplayListRect(Effect *eff, int idx, double x1, double y1, 
     eff->GetBackgroundDisplayList()[idx+2].usage = GL_QUADS;
     eff->GetBackgroundDisplayList()[idx+3].usage = GL_QUADS;
 }
-void RgbEffects::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex) {
+void RgbEffects::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex, int inc) {
     wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
     int count = curEffEndPer - curEffStartPer + 1;
     
@@ -533,13 +542,15 @@ void RgbEffects::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex) 
     double x2 = (curPeriod - curEffStartPer + 1.0) / double(total);
     xlColor c;
     
-    for (int p = sx; p <= ex; p++) {
+    int cur = 0;
+    for (int p = sx; p <= ex; p += inc) {
         double y = double(p - sx) / double(ex - sx + 1.0);
         double y2 = double(p - sx + 1.0) / double(ex - sx + 1.0);
         GetPixel(p, row, c);
         
-        int idx = (p - sx) * count + (curPeriod - curEffStartPer);
-        SetDisplayListRect(eff, idx*4, x, y, x2, y2, c, c);
+        int idx = cur * count + (curPeriod - curEffStartPer);
+        cur++;
+        SetDisplayListHRect(eff, idx*4, x, y, x2, y2, c, c);
     }
 }
 

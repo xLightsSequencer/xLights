@@ -93,9 +93,24 @@ void RgbEffects::RenderColorWash(Effect *eff,
                 SetPixel(x, y, color);
             }
         }
+    } else {
+        orig = xlBLACK;
     }
-    
     wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
-    eff->GetBackgroundDisplayList().resize((curEffEndPer - curEffStartPer + 1) * 4);
-    CopyPixelsToDisplayListX(eff, startY, startX, startX);
+    if (VertFade || HorizFade) {
+        eff->GetBackgroundDisplayList().resize((curEffEndPer - curEffStartPer + 1) * 4 * 2);
+        int total = curEffEndPer - curEffStartPer + 1;
+        double x1 = double(curPeriod - curEffStartPer) / double(total);
+        double x2 = (curPeriod - curEffStartPer + 1.0) / double(total);
+        int idx = (curPeriod - curEffStartPer) * 8;
+        SetDisplayListVRect(eff, idx, x1, 0.0, x2, 0.5,
+                           xlBLACK, orig);
+        SetDisplayListVRect(eff, idx + 4, x1, 0.5, x2, 1.0,
+                           orig, xlBLACK);
+    } else {
+        eff->GetBackgroundDisplayList().resize((curEffEndPer - curEffStartPer + 1) * 4);
+        int midX = (startX + endX) / 2;
+        int midY = (startY + endY) / 2;
+        CopyPixelsToDisplayListX(eff, midY, midX, midX);
+    }
 }
