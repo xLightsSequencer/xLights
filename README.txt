@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.1.6  Jun 16, 2015
     -- bug(dkulp) Fix Random effects not being random
     -- bug(dkulp) Fix memory leak on "close sequence"
     -- bug(dkulp) Fix rendering of Color Wash with fades
