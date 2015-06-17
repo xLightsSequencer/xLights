@@ -48,6 +48,7 @@ class Element
         wxString GetType();
         void SetType(wxString &type);
 
+        EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
         EffectLayer* GetEffectLayer(int index);
         int GetEffectLayerCount();
 
@@ -55,7 +56,6 @@ class Element
         EffectLayer* AddEffectLayer();
         void RemoveEffectLayer(int index);
         EffectLayer* InsertEffectLayer(int index);
-        void ReIndexLayers();
 
         StrandLayer* GetStrandLayer(int index, bool create = false);
         int getStrandLayerCount();

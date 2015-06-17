@@ -153,7 +153,7 @@ void UndoManager::UndoLastStep()
         case UNDO_EFFECT_DELETED:
             {
             Element* element = mParentSequence->GetElement(next_action->deleted_effect_info[0]->element_name);
-            EffectLayer* el = element->GetEffectLayer(next_action->deleted_effect_info[0]->layer_index);
+            EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->deleted_effect_info[0]->layer_index);
             Effect* ef = el->AddEffect(0,
                                        next_action->deleted_effect_info[0]->name,
                                        next_action->deleted_effect_info[0]->settings,
@@ -167,14 +167,14 @@ void UndoManager::UndoLastStep()
         case UNDO_EFFECT_ADDED:
             {
             Element* element = mParentSequence->GetElement(next_action->added_effect_info[0]->element_name);
-            EffectLayer* el = element->GetEffectLayer(next_action->added_effect_info[0]->layer_index);
+            EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->added_effect_info[0]->layer_index);
             el->DeleteEffect(next_action->added_effect_info[0]->id);
             }
             break;
         case UNDO_EFFECT_MOVED:
             {
             Element* element = mParentSequence->GetElement(next_action->moved_effect_info[0]->element_name);
-            EffectLayer* el = element->GetEffectLayer(next_action->moved_effect_info[0]->layer_index);
+            EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->moved_effect_info[0]->layer_index);
             Effect* eff = el->GetEffectFromID(next_action->moved_effect_info[0]->id);
             eff->SetStartTime(next_action->moved_effect_info[0]->startTime);
             eff->SetEndTime(next_action->moved_effect_info[0]->endTime);
@@ -183,7 +183,7 @@ void UndoManager::UndoLastStep()
         case UNDO_EFFECT_MODIFIED:
             {
             Element* element = mParentSequence->GetElement(next_action->modified_effect_info[0]->element_name);
-            EffectLayer* el = element->GetEffectLayer(next_action->modified_effect_info[0]->layer_index);
+            EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->modified_effect_info[0]->layer_index);
             Effect* eff = el->GetEffectFromID(next_action->modified_effect_info[0]->id);
             eff->SetSettings(next_action->modified_effect_info[0]->settings);
             eff->SetPalette(next_action->modified_effect_info[0]->palette);

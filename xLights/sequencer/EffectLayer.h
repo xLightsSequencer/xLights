@@ -34,7 +34,6 @@ class EffectLayer
 
         int GetIndex();
         int GetEffectCount();
-        void SetIndex(int index);
         void SortEffects();
 
         bool IsStartTimeLinked(int index);
@@ -78,6 +77,7 @@ class EffectLayer
     protected:
     private:
         volatile int changeCount;
+        static int exclusive_index;
 
         int EffectToLeftEndTime(int index);
         int EffectToRightStartTime(int index);

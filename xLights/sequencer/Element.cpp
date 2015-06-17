@@ -104,6 +104,29 @@ void Element::SetIndex(int index)
     mIndex = index;
 }
 
+EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
+{
+    for( int i = 0; i < mEffectLayers.size(); i++ )
+    {
+        if( mEffectLayers[i]->GetIndex() == index )
+            return mEffectLayers[i];
+    }
+
+    for( int j = 0; j < mStrandLayers.size(); j++ )
+    {
+        if( mStrandLayers[j]->GetIndex() == index )
+            return mStrandLayers[j];
+
+        for( int k = 0; k < mStrandLayers[j]->GetNodeLayerCount(); k++ )
+        {
+            if( mStrandLayers[j]->GetNodeLayer(k,false)->GetIndex() == index )
+                return mStrandLayers[j]->GetNodeLayer(k,false);
+        }
+    }
+
+    return nullptr;
+}
+
 EffectLayer* Element::GetEffectLayer(int index)
 {
     if( index >= mEffectLayers.size() ) return nullptr;
@@ -114,7 +137,6 @@ EffectLayer* Element::AddEffectLayer()
 {
     int index = mEffectLayers.size();
     EffectLayer* new_layer = new EffectLayer(this);
-    new_layer->SetIndex(index);
     mEffectLayers.push_back(new_layer);
     IncrementChangeCount(-1, -1);
     return new_layer;
@@ -124,7 +146,6 @@ EffectLayer* Element::InsertEffectLayer(int index)
 {
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.insert(mEffectLayers.begin()+index, new_layer);
-    ReIndexLayers();
     IncrementChangeCount(-1, -1);
     return new_layer;
 }
@@ -134,21 +155,12 @@ void Element::RemoveEffectLayer(int index)
     EffectLayer *l = GetEffectLayer(index);
     mEffectLayers.erase(mEffectLayers.begin()+index);
     delete l;
-    ReIndexLayers();
     IncrementChangeCount(-1, -1);
 }
 
 int Element::GetEffectLayerCount()
 {
     return mEffectLayers.size();
-}
-
-void Element::ReIndexLayers()
-{
-    for( int i = 0; i < mEffectLayers.size(); i++ )
-    {
-        mEffectLayers[i]->SetIndex(i);
-    }
 }
 
 void Element::IncrementChangeCount(int sms, int ems)

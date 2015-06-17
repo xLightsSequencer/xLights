@@ -7,16 +7,16 @@
 #include "ModelClass.h"
 
 
+int EffectLayer::exclusive_index = 0;
 
 EffectLayer::EffectLayer(Element* parent)
 {
     mParentElement = parent;
+    mIndex = exclusive_index++;
 }
 
 EffectLayer::~EffectLayer()
 {
-    // Place at bottom of stack
-    mIndex = 1000;
     for (int x = 0; x < mEffects.size(); x++) {
         delete mEffects[x];
     }
@@ -26,12 +26,6 @@ int EffectLayer::GetIndex()
 {
     return mIndex;
 }
-
-void EffectLayer::SetIndex(int index)
-{
-    mIndex = index;
-}
-
 
 Effect* EffectLayer::GetEffect(int index)
 {

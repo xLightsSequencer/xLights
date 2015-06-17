@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil)   Add exclusive index to layers so that Undo will work on strands and nodes as well as normal layers.
 4.1.6  Jun 16, 2015
     -- bug(dkulp) Fix Random effects not being random
     -- bug(dkulp) Fix memory leak on "close sequence"
