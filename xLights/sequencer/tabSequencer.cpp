@@ -517,8 +517,8 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             effect->SetPalette(selectedEffectPalette);
             effect->SetSettings(selectedEffectString);
             RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
-                                 effect->GetStartTime() * 1000,
-                                 effect->GetEndTime() * 1000);
+                                 effect->GetStartTimeMS(),
+                                 effect->GetEndTimeMS());
         }
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
@@ -529,8 +529,8 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 
         if (playType != PLAY_TYPE_MODEL) {
             playType = PLAY_TYPE_EFFECT;
-            playStartTime = effect->GetStartTime() * 1000;
-            playEndTime = effect->GetEndTime() * 1000;
+            playStartTime = effect->GetStartTimeMS();
+            playEndTime = effect->GetEndTimeMS();
             playStartMS = -1;
 
             InitPixelBuffer(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
@@ -770,8 +770,8 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
     {
         EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
         playType = PLAY_TYPE_EFFECT;
-        playStartTime = (int)(args->effect->GetStartTime() * 1000);
-        playEndTime = (int)(args->effect->GetEndTime() * 1000);
+        playStartTime = (int)(args->effect->GetStartTimeMS());
+        playEndTime = (int)(args->effect->GetEndTimeMS());
         if(args->renderEffect)
         {
             RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
@@ -806,8 +806,8 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                     if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
                     {
                         playType = PLAY_TYPE_EFFECT;
-                        playStartTime = (int)(el->GetEffect(j)->GetStartTime() * 1000);
-                        playEndTime = (int)(el->GetEffect(j)->GetEndTime() * 1000);
+                        playStartTime = (int)(el->GetEffect(j)->GetStartTimeMS());
+                        playEndTime = (int)(el->GetEffect(j)->GetEndTimeMS());
                         playStartMS = -1;
                         RenderEffectForModel(element->GetName(),playStartTime,playEndTime);
                     }
@@ -916,8 +916,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
             selectedEffectString = effectText;
             selectedEffectPalette = palette;
 
-            playStartTime = (int)(selectedEffect->GetStartTime() * 1000);
-            playEndTime = (int)(selectedEffect->GetEndTime() * 1000);
+            playStartTime = selectedEffect->GetStartTimeMS();
+            playEndTime = selectedEffect->GetEndTimeMS();
             playStartMS = -1;
 
             RenderEffectForModel(elem->GetName(),playStartTime,playEndTime);
@@ -1425,8 +1425,8 @@ void xLightsFrame::PromoteEffects(wxCommandEvent &command) {
 
 bool equals(Effect *e, Effect *e2, const wxString &pal, const wxString &set) {
     if (e->GetEffectIndex() != e2->GetEffectIndex()
-        || e->GetStartTime() != e2->GetStartTime()
-        || e->GetEndTime() != e2->GetEndTime()) {
+        || e->GetStartTimeMS() != e2->GetStartTimeMS()
+        || e->GetEndTimeMS() != e2->GetEndTimeMS()) {
         return false;
     }
     if (pal != e2->GetPaletteAsString()

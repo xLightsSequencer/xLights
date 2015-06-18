@@ -16,8 +16,8 @@ class RenderCommandEvent : public wxCommandEvent {
 public:
     RenderCommandEvent() :  wxCommandEvent(EVT_RENDER_RANGE) {}
     RenderCommandEvent(const wxString &name,
-                       double s,
-                       double e,
+                       int s,
+                       int e,
                        bool c = true,
                        bool d = false)
         : wxCommandEvent(EVT_RENDER_RANGE),
@@ -35,7 +35,7 @@ public:
     wxCommandEvent* Clone() const {return new RenderCommandEvent(*this);}
     
     
-    double start, end;
+    int start, end;
     wxString model;
     bool clear;
     bool deleted;

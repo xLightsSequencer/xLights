@@ -71,7 +71,7 @@ protected:
 
 
 private:
-    void sendRenderEvent(const wxString &model, double start, double end, bool clear = true);
+    void sendRenderEvent(const wxString &model, int start, int end, bool clear = true);
     void render(wxPaintEvent& evt);
 	void mouseMoved(wxMouseEvent& event);
 	void mouseDown(wxMouseEvent& event);

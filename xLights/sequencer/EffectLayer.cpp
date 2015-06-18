@@ -8,6 +8,7 @@
 
 
 int EffectLayer::exclusive_index = 0;
+const wxString NamedLayer::NO_NAME("");
 
 EffectLayer::EffectLayer(Element* parent)
 {
@@ -58,7 +59,7 @@ void EffectLayer::RemoveEffect(int index)
     {
         Effect *e = mEffects[index];
         mEffects.erase(mEffects.begin()+index);
-        IncrementChangeCount(e->GetStartTime() * 1000, e->GetEndTime() * 1000);
+        IncrementChangeCount(e->GetStartTimeMS(), e->GetEndTimeMS());
         delete e;
     }
 }
@@ -92,7 +93,7 @@ bool EffectLayer::IsStartTimeLinked(int index)
 {
     if(index < mEffects.size() && index > 0)
     {
-        return mEffects[index-1]->GetEndTime() == mEffects[index]->GetStartTime();
+        return mEffects[index-1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS();
     }
     else
     {
@@ -104,7 +105,7 @@ bool EffectLayer::IsEndTimeLinked(int index)
 {
     if(index < mEffects.size()-1)
     {
-        return mEffects[index]->GetEndTime() == mEffects[index+1]->GetStartTime();
+        return mEffects[index]->GetEndTimeMS() == mEffects[index+1]->GetStartTimeMS();
     }
     else
     {
@@ -120,7 +121,7 @@ float EffectLayer::GetMaximumEndTime(int index)
     }
     else
     {
-        if(mEffects[index]->GetEndTime() == mEffects[index+1]->GetStartTime())
+        if(mEffects[index]->GetEndTimeMS() == mEffects[index+1]->GetStartTimeMS())
         {
             return mEffects[index+1]->GetEndTime();
         }
@@ -139,7 +140,7 @@ float EffectLayer::GetMinimumStartTime(int index)
     }
     else
     {
-        if(mEffects[index-1]->GetEndTime() == mEffects[index]->GetStartTime())
+        if(mEffects[index-1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS())
         {
             return mEffects[index-1]->GetStartTime();
         }
@@ -618,7 +619,7 @@ void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
 {
     for (std::vector<Effect*>::iterator it = mEffects.begin(); it != mEffects.end(); it++) {
         if ((*it)->GetSelected() != EFFECT_NOT_SELECTED) {
-             IncrementChangeCount((*it)->GetStartTime() * 1000, (*it)->GetEndTime() * 1000);
+            IncrementChangeCount((*it)->GetStartTimeMS(), (*it)->GetEndTimeMS());
             undo_mgr.CaptureEffectToBeDeleted( mParentElement->GetName(), mIndex, (*it)->GetEffectName(),
                                                (*it)->GetSettingsAsString(), (*it)->GetPaletteAsString(),
                                                (*it)->GetStartTime(), (*it)->GetEndTime(),
@@ -649,13 +650,12 @@ bool EffectLayer::ShouldDeleteSelected(Effect *eff)
 
 bool EffectLayer::SortEffectByStartTime(Effect *e1,Effect *e2)
 {
-    return e1->GetStartTime() < e2->GetStartTime();
+    return e1->GetStartTimeMS() < e2->GetStartTimeMS();
 }
 
 void EffectLayer::IncrementChangeCount(int startMS, int endMS)
 {
     mParentElement->IncrementChangeCount(startMS, endMS);
-    changeCount++;
 }
 
 
@@ -667,7 +667,7 @@ StrandLayer::~StrandLayer() {
 
 NodeLayer *StrandLayer::GetNodeLayer(int n, bool create) {
     while (create && n >= mNodeLayers.size()) {
-        mNodeLayers.push_back(new NodeLayer(GetParentElement(),""));
+        mNodeLayers.push_back(new NodeLayer(GetParentElement()));
     }
     if (n < mNodeLayers.size()) {
         return mNodeLayers[n];
@@ -676,7 +676,7 @@ NodeLayer *StrandLayer::GetNodeLayer(int n, bool create) {
 }
 void StrandLayer::InitFromModel(ModelClass &model) {
     int nc = model.GetStrandLength(strand);
-    name = model.GetStrandName(strand);
+    SetName(model.GetStrandName(strand));
     for (int x = 0; x < mNodeLayers.size(); x++) {
         mNodeLayers[x]->SetName(model.GetNodeName(x));
     }

@@ -399,16 +399,16 @@ void MainSequencer::DeleteAllSelectedEffects()
     {
         Element* element = mSequenceElements->GetRowInformation(i)->element;
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
-        double start = 99999999;
-        double end = -1;
+        int start = 99999999;
+        int end = -1;
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
             if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
-                if (ef->GetStartTime() < start) {
-                    start = ef->GetStartTime();
+                if (ef->GetStartTimeMS() < start) {
+                    start = ef->GetStartTimeMS();
                 }
-                if (ef->GetEndTime() > end) {
-                    end = ef->GetEndTime();
+                if (ef->GetEndTimeMS() > end) {
+                    end = ef->GetEndTimeMS();
                 }
             }
         }

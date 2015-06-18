@@ -318,8 +318,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
 Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & name, const wxString &settings, const wxString &palette,
        double startTime,double endTime, int Selected, bool Protected)
     : mParentLayer(parent), mID(id), mEffectIndex(effectIndex), mName(nullptr),
-      mStartTime(startTime), mEndTime(endTime), mSelected(Selected), mProtected(Protected),
-    changeCount(0)
+      mStartTime(startTime * 1000.0), mEndTime(endTime * 1000.0), mSelected(Selected), mProtected(Protected)
 {
     int i = GetEffectIndex(name);
     if (i == -1) {
@@ -449,11 +448,16 @@ void Effect::SetEffectIndex(int effectIndex)
 
 double Effect::GetStartTime() const
 {
+    return double(mStartTime) / 1000.0;
+}
+int Effect::GetStartTimeMS() const
+{
     return mStartTime;
 }
 
-void Effect::SetStartTime(double startTime)
+void Effect::SetStartTime(double startTimeD)
 {
+    int startTime = startTimeD * 1000.0;
     if (startTime > mStartTime) {
         IncrementChangeCount();
         mStartTime = startTime;
@@ -462,14 +466,19 @@ void Effect::SetStartTime(double startTime)
         IncrementChangeCount();
     }
 }
-
-double Effect::GetEndTime() const
+int Effect::GetEndTimeMS() const
 {
     return mEndTime;
 }
 
-void Effect::SetEndTime(double endTime)
+double Effect::GetEndTime() const
 {
+    return double(mEndTime) / 1000.0;
+}
+
+void Effect::SetEndTime(double endTimeD)
+{
+    int endTime = endTimeD * 1000.0;
     if (endTime < mEndTime) {
         IncrementChangeCount();
         mEndTime = endTime;
@@ -520,7 +529,7 @@ void Effect::SetEndPosition(int position)
 }
 
 bool operator<(const Effect &e1, const Effect &e2){
-    if(e1.GetStartTime() < e2.GetStartTime())
+    if(e1.GetStartTimeMS() < e2.GetStartTimeMS())
         return true;
     else
         return false;
@@ -594,8 +603,7 @@ void Effect::SetParentEffectLayer(EffectLayer* parent)
 
 void Effect::IncrementChangeCount()
 {
-    mParentLayer->IncrementChangeCount(GetStartTime() * 1000, GetEndTime() * 1000);
-    changeCount++;
+    mParentLayer->IncrementChangeCount(GetStartTimeMS(), GetEndTimeMS());
 }
 
 

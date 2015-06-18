@@ -72,11 +72,9 @@ class EffectLayer
         void UpdateAllSelectedEffects(const wxString& palette);
 
         void IncrementChangeCount(int startMS, int endMS);
-        int getChangeCount() const { return changeCount; }
 
     protected:
     private:
-        volatile int changeCount;
         static int exclusive_index;
 
         int EffectToLeftEndTime(int index);
@@ -89,26 +87,50 @@ class EffectLayer
         Element* mParentElement;
 };
 
-class NodeLayer: public EffectLayer {
+class NamedLayer: public EffectLayer {
 public:
-    NodeLayer(Element *parent, const wxString &n) : EffectLayer(parent), name(n) {}
-    virtual ~NodeLayer() {};
-
-    const wxString GetName() const {
-        return name;
+    NamedLayer(Element *parent) : EffectLayer(parent), name(nullptr) {}
+    NamedLayer(Element *parent, const wxString &n) : EffectLayer(parent) {
+        if ("" == n) {
+            name = nullptr;
+        } else {
+            name = new wxString(n);
+        }
+    }
+    virtual ~NamedLayer() { if (name != nullptr) delete name;}
+    const wxString &GetName() const {
+        if (name == nullptr) {
+            return NO_NAME;
+        }
+        return *name;
     }
     void SetName(const wxString &n) {
-        name = n;
+        if (name != nullptr) {
+            delete name;
+            name = nullptr;
+        }
+        if ("" != n) {
+            name = new wxString(n);
+        }
     }
 private:
-    wxString name;
+    wxString *name;
+    static const wxString NO_NAME;
+};
+
+class NodeLayer: public NamedLayer {
+public:
+    NodeLayer(Element *parent) : NamedLayer(parent) {}
+    NodeLayer(Element *parent, const wxString &n) : NamedLayer(parent, n) {}
+    virtual ~NodeLayer() {};
+private:
 };
 
 class ModelClass;
-class StrandLayer: public EffectLayer
+class StrandLayer: public NamedLayer
 {
 public:
-    StrandLayer(Element *parent, int s) : EffectLayer(parent), strand(s) {}
+    StrandLayer(Element *parent, int s) : NamedLayer(parent), strand(s) {}
     virtual ~StrandLayer();
 
     int GetStrand() { return strand;}
@@ -122,14 +144,7 @@ public:
     int GetNodeLayerCount() {
         return mNodeLayers.size();
     }
-    const wxString GetName() const {
-        return name;
-    }
-    void SetName(const wxString &n) {
-        name = n;
-    }
 private:
-    wxString name;
     int strand;
     bool mShowNodes = false;
     std::vector<NodeLayer*> mNodeLayers;

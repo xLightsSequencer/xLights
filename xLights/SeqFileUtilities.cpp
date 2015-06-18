@@ -2376,6 +2376,11 @@ void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int ef
         }
     }
     
+    if (xlBLACK == color && xlBLACK == color2) {
+        //nutcracker or other effects imported into LSP generate "BLACK" effects in the sequence.  Don't import them.
+        return;
+    }
+    
     wxString palette = _("C_BUTTON_Palette1=" + color + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=") + color2
         + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";

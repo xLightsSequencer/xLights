@@ -357,7 +357,7 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     wxTreeItemId parentID;
     MyTreeItemData *parentData, *itemData;
 
-    if ( itemID != treeFavoritesGroupID && itemID != treeUserGroupID && !CheckValidOperation(itemID))
+    if ( itemID != treeFavoritesGroupID && itemID != treeUserGroupID && itemID.IsOk() && !CheckValidOperation(itemID))
     {
         wxMessageBox(_("A preset cannot be added at the currently selected location"), _("ERROR"));
         return;

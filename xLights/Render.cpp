@@ -431,7 +431,7 @@ private:
         updateBufferFadesFromMap(layer, settingsMap, buffer);
 
         if (el != NULL) {
-            buffer->SetTimes(layer, el->GetStartTime() * 1000, el->GetEndTime() * 1000);
+            buffer->SetTimes(layer, el->GetStartTimeMS(), el->GetEndTimeMS());
         }
 
         int freq=wxAtoi(settingsMap["SLIDER_SparkleFrequency"]);
@@ -477,8 +477,8 @@ private:
         int time = frame * seqData->FrameTime();
         for (int e = 0; e < layer->GetEffectCount(); e++) {
             Effect *effect = layer->GetEffect(e);
-            int st = effect->GetStartTime() * 1000;
-            int et = effect->GetEndTime() * 1000;
+            int st = effect->GetStartTimeMS();
+            int et = effect->GetEndTimeMS();
             if (et > time && st <= time) {
                 return effect;
             }
@@ -529,7 +529,7 @@ void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
     if (evt.deleted) {
         selectedEffect = 0;
     }
-    RenderEffectForModel(evt.model, evt.start * 1000,  evt.end * 1000, evt.clear);
+    RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
 }
 
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {

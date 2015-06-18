@@ -12,7 +12,7 @@ public:
     virtual ~MapStringString() {}
     
     const wxString &operator[](const wxString &key) const {
-        return Get(key, notFound);
+        return Get(key, "");
     }
     wxString &operator[](const wxString &key) {
         return std::map<wxString, wxString>::operator[](key);
@@ -63,7 +63,6 @@ public:
     
     
 private:
-    wxString notFound;
 };
 
 class SettingsMap: public MapStringString {

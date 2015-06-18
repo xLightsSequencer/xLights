@@ -33,7 +33,6 @@
 
 class EffectLayer;
 
-
 class Effect
 {
     private:
@@ -54,9 +53,11 @@ class Effect
         void SetEffectName(const wxString & name);
 
         double GetStartTime() const;
+        int GetStartTimeMS() const;
         void SetStartTime(double startTime);
 
         double GetEndTime() const;
+        int GetEndTimeMS() const;
         void SetEndTime(double endTime);
 
         int GetSelected();
@@ -78,8 +79,6 @@ class Effect
         void SetParentEffectLayer(EffectLayer* parent);
 
         void IncrementChangeCount();
-        int getChangeCount() const { return changeCount; }
-
     
         wxString GetSettingsAsString() const;
         void SetSettings(const wxString &settings);
@@ -108,13 +107,12 @@ class Effect
         }
     protected:
     private:
-        volatile int changeCount;
-        int mEffectIndex;
-        double mStartTime;
-        double mEndTime;
+        int mStartTime;
+        int mEndTime;
         int mSelected;
         int mID;
         wxString *mName;
+        short mEffectIndex;
         bool mProtected;
         int mStartPosition;
         int mEndPosition;
@@ -127,7 +125,6 @@ class Effect
     
         DrawGLUtils::xlDisplayList background;
 };
-
 bool operator<(const Effect &e1, const Effect &e2);
 
 

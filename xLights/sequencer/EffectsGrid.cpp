@@ -139,7 +139,7 @@ void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
 void EffectsGrid::keyReleased(wxKeyEvent& event){}
 void EffectsGrid::keyPressed(wxKeyEvent& event){}
 
-void EffectsGrid::sendRenderEvent(const wxString &model, double start, double end, bool clear) {
+void EffectsGrid::sendRenderEvent(const wxString &model, int start, int end, bool clear) {
     RenderCommandEvent event(model, start, end, clear, false);
     wxPostEvent(mParent, event);
 }
@@ -554,7 +554,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                     adjust(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTime(), min, max);
                 }
 
-                sendRenderEvent(mEffectLayer->GetParentElement()->GetName(), min, max);
+                sendRenderEvent(mEffectLayer->GetParentElement()->GetName(), min * 1000.0, max * 1000.0);
                 RaisePlayModelEffect(mEffectLayer->GetParentElement(),effect,true);
             }
         }
@@ -913,8 +913,8 @@ void EffectsGrid::Paste(const wxString &data) {
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
                         if (!ef->GetPaletteMap().empty()) {
                             sendRenderEvent(el->GetParentElement()->GetName(),
-                                            new_start_time,
-                                            new_end_time, true);
+                                            new_start_time * 1000.0,
+                                            new_end_time * 1000.0, true);
                         }
                     }
                 }
@@ -954,8 +954,8 @@ void EffectsGrid::Paste(const wxString &data) {
                     mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
                     if (!ef->GetPaletteMap().empty()) {
                         sendRenderEvent(el->GetParentElement()->GetName(),
-                                        mDropStartTime,
-                                        mDropEndTime, true);
+                                        mDropStartTime * 1000.0,
+                                        mDropEndTime * 1000.0, true);
                     }
                     RaiseSelectedEffectChanged(ef);
                     mSelectedEffect = ef;
