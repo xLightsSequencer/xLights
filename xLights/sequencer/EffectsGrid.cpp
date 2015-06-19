@@ -1869,18 +1869,18 @@ void EffectsGrid::Draw()
 void EffectsGrid::DrawSelectedCells()
 {
     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-    if( tel->GetEffectCount() > 0 )
+    int start_row = mRangeStartRow;
+    int end_row = mRangeEndRow;
+    int start_col = mRangeStartCol;
+    int end_col = mRangeEndCol;
+    if( start_row > end_row ) {
+        std::swap( start_row, end_row );
+    }
+    if( start_col > end_col ) {
+        std::swap( start_col, end_col );
+    }
+    if( tel->GetEffectCount() > 0 && end_col < tel->GetEffectCount() )
     {
-        int start_row = mRangeStartRow;
-        int end_row = mRangeEndRow;
-        int start_col = mRangeStartCol;
-        int end_col = mRangeEndCol;
-        if( start_row > end_row ) {
-            std::swap( start_row, end_row );
-        }
-        if( start_col > end_col ) {
-            std::swap( start_col, end_col );
-        }
         int first_row = mSequenceElements->GetFirstVisibleModelRow();
         int start_x = tel->GetEffect(start_col)->GetStartPosition()+1;
         int end_x = tel->GetEffect(end_col)->GetEndPosition()-1;
