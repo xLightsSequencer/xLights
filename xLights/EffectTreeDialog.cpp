@@ -370,9 +370,12 @@ void EffectTreeDialog::OnButton_OKClick(wxCommandEvent& event)
 void EffectTreeDialog::OnTreeCtrl1BeginDrag(wxTreeEvent& event)
 {
     wxTreeItemId itemID = event.GetItem();
-    MyTreeItemData *itemData=(MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
-    m_draggedItem = event.GetItem();
-    event.Allow();
+    if( !TreeCtrl1->ItemHasChildren(itemID) )
+    {
+        MyTreeItemData *itemData=(MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
+        m_draggedItem = event.GetItem();
+        event.Allow();
+    }
 }
 
 void EffectTreeDialog::OnTreeCtrl1EndDrag(wxTreeEvent& event)
