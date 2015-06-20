@@ -1254,25 +1254,30 @@ void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {
     ImportTimingElement();
 }
 
-wxArrayString xLightsFrame::ImportTimingElement()
+void xLightsFrame::ImportTimingElement()
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Audacity timing file(s)", wxEmptyString, wxEmptyString, "Text files (*.txt)|*.txt", wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
+    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString, "Text files (*.txt)|*.txt|LOR Files (*.lms)|*.lms", wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     wxString fDir;
-    wxArrayString new_timings;
     if (OpenDialog->ShowModal() == wxID_OK)
     {
         fDir =	OpenDialog->GetDirectory();
         wxArrayString filenames;
         OpenDialog->GetFilenames(filenames);
-        CurrentSeqXmlFile->ProcessAudacityTimingFiles(fDir, filenames, this);
-        for(int i = 0; i < filenames.GetCount(); ++i)
+        if(filenames.size() > 0)
         {
-            new_timings.push_back(filenames[i]);
+            wxFileName file1(filenames[0]);
+            if( file1.GetExt().Lower() == "lms" )
+            {
+                CurrentSeqXmlFile->ProcessLorTiming(fDir, filenames, this);
+            }
+            else
+            {
+                CurrentSeqXmlFile->ProcessAudacityTimingFiles(fDir, filenames, this);
+            }
         }
     }
 
     OpenDialog->Destroy();
-    return new_timings;
 }
 
 void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)

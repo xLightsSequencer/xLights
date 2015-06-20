@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Add ability to import timing grids from LOR files.
     -- bug/enh(gil) Modify the presets so that user has full control over group creation and deletion.  Remove Add to Favorites button.
                     Fix dragging effects causing deletions.
 4.1.7  Jun 19, 2015

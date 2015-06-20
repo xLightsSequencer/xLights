@@ -88,6 +88,7 @@ class xLightsXmlFile : public wxFileName
         wxArrayString GetTimingList() { return timing_list; }
         wxArrayString GetTimingList(SequenceElements& seq_elements);
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
+        void ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
 
         bool IsOpen() { return is_open; }
         bool HasAudioMedia() { return has_audio_media; }

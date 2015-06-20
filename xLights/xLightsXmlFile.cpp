@@ -1,6 +1,9 @@
 #include "xLightsXmlFile.h"
 #include "xLightsMain.h"
 #include <wx/tokenzr.h>
+#include "OptionChooser.h"
+#include "../include/spxml-0.5/spxmlparser.hpp"
+#include "../include/spxml-0.5/spxmlevent.hpp"
 
 #define string_format wxString::Format
 
@@ -1342,6 +1345,146 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             else
             {
                 AddTimingEffect(layer, labels[k], "0", "0", string_format("%f", startTime), string_format("%f", endTime));
+            }
+        }
+    }
+}
+
+void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+{
+    wxTextFile f;
+    wxString line;
+    double time;
+    int r;
+
+    for( int i = 0; i < filenames.Count(); ++i )
+    {
+        wxFileName next_file(filenames[i]);
+        next_file.SetPath(dir);
+
+        if (!f.Open(next_file.GetFullPath().c_str()))
+        {
+            wxMessageBox("Failed to open file: " + next_file.GetFullPath());
+            return;
+        }
+
+        wxString filename = next_file.GetName();
+
+        wxArrayString grid_times;
+        wxArrayString timing_options;
+
+        wxXmlDocument input_xml;
+        if( !input_xml.Load(next_file.GetFullPath()) )
+        {
+            wxMessageBox("Failed to load XML file: " + next_file.GetFullPath());
+            return;
+        }
+
+        wxXmlNode* input_root=input_xml.GetRoot();
+
+        for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext() )
+        {
+            if (e->GetName() == "timingGrids")
+            {
+                for(wxXmlNode* grids=e->GetChildren(); grids!=NULL; grids=grids->GetNext() )
+                {
+                    if (grids->GetName() == "timingGrid")
+                    {
+                        wxString grid_type = grids->GetAttribute("type");
+                        if( grid_type == "freeform" )
+                        {
+                            wxString grid_name = grids->GetAttribute("name");
+                            wxString grid_id = grids->GetAttribute("saveID");
+                            if( grid_name == "" )
+                            {
+                                grid_name = "Unnamed" + grid_id;
+                            }
+                            timing_options.push_back(grid_name);
+                        }
+                    }
+                }
+            }
+        }
+
+        OptionChooser opt_dialog(xLightsParent);
+        opt_dialog.SetInstructionText("Choose Timing Grid to use for timing import:");
+        opt_dialog.SetOptions(timing_options);
+        wxArrayString timing_grids;
+        if (opt_dialog.ShowModal() == wxID_OK)
+        {
+            opt_dialog.GetSelectedOptions(timing_grids);
+        }
+        else
+        {
+            return;
+        }
+
+        for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext() )
+        {
+            if (e->GetName() == "timingGrids")
+            {
+                for(wxXmlNode* grids=e->GetChildren(); grids!=NULL; grids=grids->GetNext() )
+                {
+                    if (grids->GetName() == "timingGrid")
+                    {
+                        wxString grid_name = grids->GetAttribute("name");
+                        wxString grid_id = grids->GetAttribute("saveID");
+                        if( grid_name == "" )
+                        {
+                            grid_name = "Unnamed" + grid_id;
+                        }
+                        for( int i = 0; i < timing_grids.GetCount(); i++ )
+                        {
+                            if( grid_name == timing_grids[i] )
+                            {
+                                wxString new_timing_name = filename + ": " + grid_name;
+                                Element* element;
+                                EffectLayer* effectLayer;
+                                wxXmlNode* layer;
+                                if( sequence_loaded )
+                                {
+                                    element = xLightsParent->AddTimingElement(new_timing_name);
+                                    effectLayer = element->GetEffectLayer(0);
+                                }
+                                else
+                                {
+                                    AddTimingDisplayElement(new_timing_name, "1", "0" );
+                                    wxXmlNode*  node = AddElement( new_timing_name, "timing" );
+                                    layer = AddChildXmlNode(node, "EffectLayer");
+                                }
+
+                                grid_times.Clear();
+                                for(wxXmlNode* effect=grids->GetChildren(); effect!=NULL; effect=effect->GetNext() )
+                                {
+                                    wxString t1 = effect->GetAttribute("centisecond");
+                                    t1.ToDouble(&time);
+                                    time /= 100.0;
+                                    t1 = string_format("%3f",time);
+                                    grid_times.push_back(t1);
+                                }
+
+                                // process the new timings
+                                double startTime, endTime;
+                                int iTime1, iTime2;
+                                for( int k = 0; k < grid_times.GetCount()-1; ++k )
+                                {
+                                    grid_times[k].ToDouble(&time);
+                                    startTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+                                    grid_times[k+1].ToDouble(&time);
+                                    endTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+                                    if( sequence_loaded )
+                                    {
+                                        effectLayer->AddEffect(0,0,"",wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                                    }
+                                    else
+                                    {
+                                        AddTimingEffect(layer, "", "0", "0", string_format("%f", startTime), string_format("%f", endTime));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

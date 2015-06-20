@@ -421,6 +421,8 @@
 		<Unit filename="NetInfo.h" />
 		<Unit filename="NewTimingDialog.cpp" />
 		<Unit filename="NewTimingDialog.h" />
+		<Unit filename="OptionChooser.cpp" />
+		<Unit filename="OptionChooser.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="PerspectivesPanel.cpp" />
@@ -582,6 +584,7 @@
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/ModelViewSelector.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
+		<Unit filename="wxsmith/OptionChooser.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PerspectivesPanel.wxs" />
 		<Unit filename="wxsmith/PixelAppearanceDlg.wxs" />
@@ -654,6 +657,7 @@
 					<wxDialog wxs="wxsmith/PixelAppearanceDlg.wxs" src="PixelAppearanceDlg.cpp" hdr="PixelAppearanceDlg.h" fwddecl="0" i18n="1" name="PixelAppearanceDlg" language="CPP" />
 					<wxDialog wxs="wxsmith/LMSImportChannelMapDialog.wxs" src="LMSImportChannelMapDialog.cpp" hdr="LMSImportChannelMapDialog.h" fwddecl="0" i18n="1" name="LMSImportChannelMapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SuperStarImportDialog.wxs" src="SuperStarImportDialog.cpp" hdr="SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/OptionChooser.wxs" src="OptionChooser.cpp" hdr="OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

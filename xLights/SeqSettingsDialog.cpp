@@ -696,11 +696,10 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
 {
-    wxArrayString new_timings = xLightsParent->ImportTimingElement();
-    for(int i = 0; i < new_timings.GetCount(); ++i)
-    {
-        AddTimingCell(new_timings[i]);
-    }
+    xLightsParent->ImportTimingElement();
+    int num_rows = Grid_Timing->GetNumberRows();
+	Grid_Timing->DeleteRows(0, num_rows);
+    PopulateTimingGrid();
 }
 
 void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)

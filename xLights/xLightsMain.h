@@ -1406,7 +1406,7 @@ public:
     Element* AddTimingElement(wxString& name);
     void DeleteTimingElement(wxString& name);
     void RenameTimingElement(wxString& old_name, wxString& new_name);
-    wxArrayString ImportTimingElement();
+    void ImportTimingElement();
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void ConvertDataRowToEffects(wxCommandEvent &command);
     void ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime);
