@@ -24,7 +24,6 @@
 								<item2>&lt;none&gt;</item2>
 							</items_text>
 							<minsize>80,-1d</minsize>
-							<style>wxTR_HIDE_ROOT|wxTR_DEFAULT_STYLE</style>
 							<handler function="OnTreeCtrl1BeginDrag" entry="EVT_TREE_BEGIN_DRAG" />
 							<handler function="OnTreeCtrl1EndDrag" entry="EVT_TREE_END_DRAG" />
 							<handler function="OnTreeCtrl1ItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
@@ -61,16 +60,6 @@
 									<label>&amp;Update Preset</label>
 									<tooltip>Update the selected effect preset to reflect current effect settings.</tooltip>
 									<handler function="OnbtUpdateClick" entry="EVT_BUTTON" />
-								</object>
-								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxButton" name="ID_BUTTON5" variable="btFavorite" member="yes">
-									<label>Add To &amp;Favorites</label>
-									<tooltip>Copy effect into favorites group.</tooltip>
-									<handler function="OnbtFavoriteClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>

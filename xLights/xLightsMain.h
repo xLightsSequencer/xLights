@@ -1413,6 +1413,7 @@ public:
     void PromoteEffects(wxCommandEvent &command);
     void PromoteEffects(Element *element);
     wxXmlNode* CreateEffectNode(wxString& name);
+    void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data);
 
     void SetSequenceEnd(int ms);

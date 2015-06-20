@@ -1414,6 +1414,13 @@ wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
     return NewXml;
 }
 
+void xLightsFrame::UpdateEffectNode(wxXmlNode* node)
+{
+    wxString copy_data;
+    mainSequencer->GetSelectedEffectsData(copy_data);
+    node->AddAttribute("settings", copy_data);
+}
+
 void xLightsFrame::ApplyEffectsPreset(wxString& data)
 {
     mainSequencer->PanelEffectGrid->Paste(data);
@@ -1451,7 +1458,7 @@ void xLightsFrame::PromoteEffects(Element *element) {
             for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
                 Effect *eff = base->GetEffect(e);
                 const wxString &name = eff->GetEffectName();
-                
+
                 if (layer->HasEffectsInTimeRange(eff->GetStartTime(), eff->GetEndTime())) {
                     //cannot promote, already and effect there
                     continue;
@@ -1461,7 +1468,7 @@ void xLightsFrame::PromoteEffects(Element *element) {
                     const wxString set = eff->GetSettingsAsString();
                     double mp = (eff->GetStartTime() + eff->GetEndTime()) / 2.0;
                     bool collapse = true;
-                    
+
                     for (int n = 1; n < layer->GetNodeLayerCount() && collapse; n++) {
                         NodeLayer *node = layer->GetNodeLayer(n);
                         int nodeIndex = 0;
@@ -1500,13 +1507,13 @@ void xLightsFrame::PromoteEffects(Element *element) {
     for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
         Effect *eff = base->GetEffect(e);
         const wxString &name = eff->GetEffectName();
-        
+
         if (name == "On" || name == "Color Wash") {
             const wxString pal = eff->GetPaletteAsString();
             const wxString set = eff->GetSettingsAsString();
             double mp = (eff->GetStartTime() + eff->GetEndTime()) / 2.0;
             bool collapse = true;
-            
+
             for (int n = 1; n < element->getStrandLayerCount() && collapse; n++) {
                 StrandLayer *node = element->GetStrandLayer(n);
                 int nodeIndex = 0;

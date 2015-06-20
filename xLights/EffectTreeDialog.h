@@ -10,8 +10,6 @@
 #include <wx/xml/xml.h>
 #include <wx/filename.h>
 
-#define NCCOM_FILE wxT("nutcracker_com_effects.xml")
-
 class xLightsFrame;
 
 class EffectTreeDialog : public wxDialog
@@ -23,7 +21,6 @@ class EffectTreeDialog : public wxDialog
 
 		//(*Declarations(EffectTreeDialog)
 		wxButton* btNewPreset;
-		wxButton* btFavorite;
 		wxButton* btAddGroup;
 		wxButton* btUpdate;
 		wxButton* btApply;
@@ -33,10 +30,8 @@ class EffectTreeDialog : public wxDialog
 		wxButton* btDelete;
 		//*)
         wxTreeItemId treeRootID;
-        wxTreeItemId treeFavoritesGroupID;
-        wxTreeItemId treeUserGroupID;
-        wxTreeItemId treeNCcomGroupID;
         void InitItems(wxXmlNode *e);
+
 	protected:
 
 		//(*Identifiers(EffectTreeDialog)
@@ -44,7 +39,6 @@ class EffectTreeDialog : public wxDialog
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
-		static const long ID_BUTTON5;
 		static const long ID_BUTTON7;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
@@ -57,7 +51,6 @@ class EffectTreeDialog : public wxDialog
 		void OnbtApplyClick(wxCommandEvent& event);
 		void OnbtNewPresetClick(wxCommandEvent& event);
 		void OnbtUpdateClick(wxCommandEvent& event);
-		void OnbtFavoriteClick(wxCommandEvent& event);
 		void OnbtRenameClick(wxCommandEvent& event);
 		void OnbtDeleteClick(wxCommandEvent& event);
 		void OnbtAddGroupClick(wxCommandEvent& event);
@@ -67,17 +60,12 @@ class EffectTreeDialog : public wxDialog
 		void OnTreeCtrl1EndDrag(wxTreeEvent& event);
 		void OnbtImportClick(wxCommandEvent& event);
 		//*)
+
         xLightsFrame* xLightParent;
-		wxXmlNode *NcEffectsNode;
 		wxXmlNode *XrgbEffectsNode;
-		wxXmlDocument NcEffectsXml;
         wxTreeItemId m_draggedItem;
-        void AddNCcomEffects();
         void AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID);
-        void UpdateNcEffectsList();
-        bool CheckValidOperation(wxTreeItemId itemID);
         wxXmlNode* CreateEffectGroupNode(wxString& name);
-        void FixupEffectsPresets(wxXmlNode *UserGroupNode);
         void ApplyEffect(bool dblClick=false);
         void AddImportedItemsRecursively(wxXmlNode* effects_node, wxTreeItemId curGroupID);
         void SaveEffectsFile();
