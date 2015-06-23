@@ -2039,6 +2039,9 @@ int ModelClass::MapToNodeIndex(int strand, int node) const {
     if (GetNumStrands() == 1) {
         return node;
     }
+    if (SingleNode) {
+        return strand;
+    }
     return (strand * parm2 / parm3) + node;
 }
 

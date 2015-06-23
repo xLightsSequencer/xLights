@@ -37,6 +37,7 @@
 		677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D81A6A8FBE0082DA5B /* EffectIconPanel.cpp */; };
 		677421DB1A6A8FBE0082DA5B /* NewTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */; };
 		677421DD1A6A8FF30082DA5B /* RenameTextDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */; };
+		677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677674481B38E7F70018E14B /* OptionChooser.cpp */; };
 		6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E31A601CA7008C2086 /* Effect.cpp */; };
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
 		677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */; };
@@ -196,6 +197,7 @@
 		677421D81A6A8FBE0082DA5B /* EffectIconPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectIconPanel.cpp; sourceTree = "<group>"; };
 		677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NewTimingDialog.cpp; sourceTree = "<group>"; };
 		677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenameTextDialog.cpp; sourceTree = "<group>"; };
+		677674481B38E7F70018E14B /* OptionChooser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OptionChooser.cpp; sourceTree = "<group>"; };
 		6778F3E31A601CA7008C2086 /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = sequencer/Effect.cpp; sourceTree = "<group>"; };
 		6778F3E41A601CA7008C2086 /* EffectLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectLayer.cpp; path = sequencer/EffectLayer.cpp; sourceTree = "<group>"; };
 		677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPinwheel.cpp; sourceTree = "<group>"; };
@@ -449,7 +451,6 @@
 			children = (
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67623E721AD2BF3F0022667B /* BitmapCache.cpp */,
-				67D7DD031B23C586007A3F20 /* UndoManager.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
 				67B797171A5AE343008D5921 /* ColorPanel.cpp */,
 				67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */,
@@ -486,6 +487,7 @@
 				67B845021A9C0E7500564051 /* ModelViewSelector.cpp */,
 				67A619D217B51C0F008E95BB /* NetInfo.cpp */,
 				677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */,
+				677674481B38E7F70018E14B /* OptionChooser.cpp */,
 				67A619D417B51C0F008E95BB /* PaletteMgmtDialog.cpp */,
 				67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */,
 				6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */,
@@ -515,6 +517,7 @@
 				67B797181A5AE343008D5921 /* TimingPanel.cpp */,
 				67D678FC1A7E628400421B05 /* tmGridCell.cpp */,
 				67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */,
+				67D7DD031B23C586007A3F20 /* UndoManager.cpp */,
 				67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */,
 				6784F9281A5653670018EC0C /* Waveform.cpp */,
 				67A543FD1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp */,
@@ -697,6 +700,7 @@
 				67B845071A9C0E7500564051 /* ModelViewSelector.cpp in Sources */,
 				671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */,
 				67A61A2F17B51C0F008E95BB /* ModelDialog.cpp in Sources */,
+				677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */,
 				671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */,
 				67A61A3017B51C0F008E95BB /* ModelListDialog.cpp in Sources */,
 				67A61A3117B51C0F008E95BB /* NetInfo.cpp in Sources */,
