@@ -1380,73 +1380,152 @@ void GetIntensities(wxXmlNode *re, int &starti, int &endi) {
         starti = endi = wxAtoi(intensity);
     }
 }
-bool GetRGBEffectData(wxXmlNode* &re, wxXmlNode* &ge, wxXmlNode* &be, int &startms, int &endms, xlColor &sc, xlColor &ec) {
-    int starts[3];
-    int ends[3];
-    bool isShimmer = false;
-    wxXmlNode *nodes[3] = {re,ge,be};
-    GetRGBTimes(re, starts[0], ends[0]);
-    GetRGBTimes(ge, starts[1], ends[1]);
-    GetRGBTimes(be, starts[2], ends[2]);
-    startms = std::min(starts[0], std::min(starts[1], starts[2]));
-    endms = 99999999;
-    unsigned char startColor[3] = {0,0,0};
-    unsigned char endColor[3] = {0,0,0};
-    for (int x = 0; x < 3; x++) {
-        if (startms == starts[x]) {
-            endms = std::min(endms, ends[x]);
-            int starti, endi;
-            GetIntensities(nodes[x], starti, endi);
-            isShimmer = nodes[x]->GetAttribute("type") == "shimmer";
-            startColor[x] = starti * 255 / 100;
-            endColor[x] = endi * 255 / 100;
-            switch (x) {
-                case 0:
-                    re = re->GetNext();
-                    break;
-                case 1:
-                    ge = ge->GetNext();
-                    break;
-                case 2:
-                    be = be->GetNext();
-                    break;
-            }
-        }
+
+class RGBData {
+public:
+    int startms, endms;
+    int starti, endi;
+    bool shimmer;
+};
+
+void FillData(wxXmlNode *nd, RGBData &data) {
+    GetIntensities(nd, data.starti, data.endi);
+    GetRGBTimes(nd, data.startms, data.endms);
+    data.shimmer = nd->GetAttribute("type") == "shimmer";
+}
+void Insert(int x, std::vector<RGBData> &v, int startms) {
+    v.insert(v.begin() + x, 1, RGBData());
+    v[x].startms = startms;
+    v[x].endms = v[x + 1].startms;
+    v[x].endi = v[x].starti = 0;
+    v[x].shimmer = false;
+}
+void Split(int x, std::vector<RGBData> &v, int endms) {
+    v.insert(v.begin() + x, 1, RGBData());
+    v[x].startms = v[x + 1].startms;
+    v[x].endms = endms;
+    v[x + 1].startms = endms;
+    v[x].shimmer = v[x + 1].shimmer;
+    v[x].starti = v[x + 1].starti;
+    double d = endms - v[x].startms;
+    d = d / double(v[x + 1].endms - v[x].startms);
+    double newi = (v[x + 1].endi - v[x].starti) * d + v[x].starti;
+    v[x].endi = v[x + 1].starti = newi;
+}
+#define MAXMS 99999999
+int GetStartMS(int x,  std::vector<RGBData> &v) {
+    if (x < v.size()) {
+        return v[x].startms;
     }
-    sc.Set(startColor[0], startColor[1], startColor[2]);
-    ec.Set(endColor[0], endColor[1], endColor[2]);
-    return isShimmer;
+    return MAXMS;
+}
+int GetEndMS(int x,  std::vector<RGBData> &v) {
+    if (x < v.size()) {
+        return v[x].endms;
+    }
+    return MAXMS;
+}
+void Resize(int x,
+            std::vector<RGBData> &v, int startms) {
+    while (x >= v.size()) {
+        int i = v.size();
+        v.push_back(RGBData());
+        v[i].endms = MAXMS;
+        v[i].startms = startms;
+        v[i].starti = v[i].endi = 0;
+        v[i].shimmer = false;
+    }
+}
+            
+void UnifyData(int x,
+               std::vector<RGBData> &red,
+               std::vector<RGBData> &green,
+               std::vector<RGBData> &blue) {
+    int min = std::min(GetStartMS(x, red), std::min(GetStartMS(x, green), GetStartMS(x ,blue)));
+    Resize(x, red, min);
+    Resize(x, green, min);
+    Resize(x, blue, min);
+    if (red[x].startms != min) {
+        Insert(x, red, min);
+    }
+    if (green[x].startms != min) {
+        Insert(x, green, min);
+    }
+    if (blue[x].startms != min) {
+        Insert(x, blue, min);
+    }
+    min = std::min(GetEndMS(x, red), std::min(GetEndMS(x, green), GetEndMS(x ,blue)));
+    if (min == MAXMS) {
+        return;
+    }
+    if (red[x].endms != min) {
+        Split(x, red, min);
+    }
+    if (green[x].endms != min) {
+        Split(x, green, min);
+    }
+    if (blue[x].endms != min) {
+        Split(x, blue, min);
+    }
+    
+}
+bool GetRGBEffectData(RGBData &red, RGBData &green, RGBData &blue, xlColor &sc, xlColor &ec) {
+
+    sc.red = red.starti * 255 / 100;
+    sc.green = green.starti * 255 / 100;
+    sc.blue = blue.starti * 255 / 100;
+
+    ec.red = red.endi * 255 / 100;
+    ec.green = green.endi * 255 / 100;
+    ec.blue = blue.endi * 255 / 100;
+
+    return red.shimmer | blue.shimmer | green.shimmer;
 }
 
-void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, wxXmlNode *bchannel) {
-    wxXmlNode* re=rchannel->GetChildren();
-    while (re != nullptr && "effect" != re->GetName()) re = re->GetNext();
-    wxXmlNode* ge=gchannel->GetChildren();
-    while (ge != nullptr && "effect" != ge->GetName()) ge = ge->GetNext();
-    wxXmlNode* be=bchannel->GetChildren();
-    while (be != nullptr && "effect" != be->GetName()) be = be->GetNext();
-
+void LoadRGBData(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, wxXmlNode *bchannel) {
+    std::vector<RGBData> red, green, blue;
+    while (rchannel != nullptr) {
+        red.resize(red.size() + 1);
+        FillData(rchannel, red[red.size() - 1]);
+        rchannel = rchannel->GetNext();
+    }
+    while (gchannel != nullptr) {
+        green.resize(green.size() + 1);
+        FillData(gchannel, green[green.size() - 1]);
+        gchannel = gchannel->GetNext();
+    }
+    while (bchannel != nullptr) {
+        blue.resize(blue.size() + 1);
+        FillData(bchannel, blue[blue.size() - 1]);
+        bchannel = bchannel->GetNext();
+    }
+    //have the data, now need to split it so common start/end times
+    for (int x = 0; x < red.size() || x < green.size() || x < blue.size(); x++) {
+        UnifyData(x, red, green, blue);
+    }
+    
     int cwIndex = Effect::GetEffectIndex("Color Wash");
     int onIndex = Effect::GetEffectIndex("On");
-
-    while (re != nullptr || ge != nullptr || be != nullptr) {
-        int start, end;
+    for (int x = 0; x < red.size() || x < green.size() || x < blue.size(); x++) {
         xlColor sc, ec;
-        bool isShimmer = GetRGBEffectData(re, ge, be, start, end, sc, ec);
-        double starttime = ((double)start) / 1000.0;
-        double endtime = ((double)end) / 1000.0;
-
+        bool isShimmer = GetRGBEffectData(red[x], green[x], blue[x], sc, ec);
+        
+        double starttime = ((double)red[x].startms) / 1000.0;
+        double endtime = ((double)red[x].endms) / 1000.0;
+            
         if (ec == sc) {
-            wxString palette = "C_BUTTON_Palette1=" + sc + ",C_CHECKBOX_Palette1=1,"
-                + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
-                + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-
-            wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
-                + ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
-            layer->AddEffect(0, onIndex, "On", settings, palette, starttime, endtime, false, false);
+            if (ec != xlBLACK) {
+                wxString palette = "C_BUTTON_Palette1=" + sc + ",C_CHECKBOX_Palette1=1,"
+                    + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
+                    + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                    + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                
+                wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
+                    + ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                    + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                    + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
+                layer->AddEffect(0, onIndex, "On", settings, palette, starttime, endtime, false, false);
+            }
         } else if (sc == xlBLACK) {
             wxString palette = "C_BUTTON_Palette1=" + ec + ",C_CHECKBOX_Palette1=1,"
                 + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
@@ -1462,7 +1541,7 @@ void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel,
                 + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
                 + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                 + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-            wxString settings = _("E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=0")
+            wxString settings = _("E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100")
                 + ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                 + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
                 + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
@@ -1472,7 +1551,7 @@ void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel,
                 + "C_BUTTON_Palette2=" + ec + ",C_CHECKBOX_Palette2=1,"
                 + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                 + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-
+            
             wxString settings = _("E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,E_TEXTCTRL_ColorWash_Cycles=1.00,")
                 + "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
                 + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,"
@@ -1481,6 +1560,16 @@ void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel,
             layer->AddEffect(0, cwIndex, "Color Wash", settings, palette, starttime, endtime, false, false);
         }
     }
+}
+
+void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, wxXmlNode *bchannel) {
+    wxXmlNode* re=rchannel->GetChildren();
+    while (re != nullptr && "effect" != re->GetName()) re = re->GetNext();
+    wxXmlNode* ge=gchannel->GetChildren();
+    while (ge != nullptr && "effect" != ge->GetName()) ge = ge->GetNext();
+    wxXmlNode* be=bchannel->GetChildren();
+    while (be != nullptr && "effect" != be->GetName()) be = be->GetNext();
+    LoadRGBData(layer, re, ge, be);
 }
 void MapOnEffects(EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
     wxString palette = _("C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1,")
@@ -1553,6 +1642,7 @@ bool MapChannelInformation(EffectLayer *layer, wxXmlDocument &input_xml, const w
     }
     return true;
 }
+
 bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
 {
     LMSImportChannelMapDialog dlg(this);
@@ -1572,11 +1662,18 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                     }
 
                     dlg.channelNames.push_back(name);
-                    if (chan->GetName() == "rgbChannel" && name.Contains("-P")) {
-                        int i = wxAtoi(name.SubString(name.Find("-P") + 2, name.size()));
-                        if (i > 0
-                            && (dlg.ccrNames.size() == 0 || dlg.ccrNames.back() != name.SubString(0, name.Find("-P") - 1))) {
-                            dlg.ccrNames.push_back(name.SubString(0, name.Find("-P") - 1));
+                    if (chan->GetName() == "rgbChannel") {
+                        int idxDP = name.Find("-P");
+                        int idxSP = name.Find(" p");
+                        if (idxDP > idxSP) {
+                            idxSP = idxDP;
+                        }
+                        if (idxSP != wxNOT_FOUND) {
+                            int i = wxAtoi(name.SubString(idxSP + 2, name.size()));
+                            if (i > 0
+                                && (dlg.ccrNames.size() == 0 || dlg.ccrNames.back() != name.SubString(0, idxSP - 1))) {
+                                dlg.ccrNames.push_back(name.SubString(0, idxSP - 1));
+                            }
                         }
                     }
                 }
@@ -1624,14 +1721,20 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                     for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                         EffectLayer *layer = sl->GetNodeLayer(n);
                         wxString nm = ccrName + wxString::Format("-P%02d", (n + 1));
+                        if (dlg.channelNames.Index(nm) == wxNOT_FOUND) {
+                            nm = ccrName + wxString::Format(" p%02d", (n + 1));
+                        }
+                        if (dlg.channelNames.Index(nm) == wxNOT_FOUND) {
+                            nm = ccrName + wxString::Format("-P%d", (n + 1));
+                        }
+                        if (dlg.channelNames.Index(nm) == wxNOT_FOUND) {
+                            nm = ccrName + wxString::Format(" p%d", (n + 1));
+                        }
                         MapChannelInformation(layer,
                                               input_xml,
                                               nm,
                                               dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
                                               mc);
-
-
-
                     }
                 }
             }

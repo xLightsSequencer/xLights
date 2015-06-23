@@ -7,6 +7,10 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(dkulp) OSX crashes if toggling back and forth between Sequencer and other tabs and there are floating windows
+    -- enh(dkulp) Allow "-P#", "-P##", " p#", and " p##" for detecting CCR/CCBs in LMS import
+    -- bug(dkulp) LMS import fails to convert RGB elements if the effects on the three individual channels don't have the exact start/end times
+    -- bug(dkulp) LMS import sets start and end intensity to 0 for ramp downs.
     -- enh(gil)   Changing the active model groups no longer modifies the "Part of my display" attribute.  That can only be modified in model properties.
     -- enh(gil)   Add ability to import timing grids from LOR files.
     -- bug/enh(gil) Modify the presets so that user has full control over group creation and deletion.  Remove Add to Favorites button.
