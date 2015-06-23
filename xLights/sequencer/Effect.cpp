@@ -44,6 +44,8 @@ private:
     wxStringToStringHashMap data;
 } Remaps;
 
+const wxString MapStringString::EMPTY_STRING;
+
 void SettingsMap::RemapChangedSettingKey(wxString &n,  wxString &value) {
     Remaps.map(n);
 }
