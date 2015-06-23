@@ -1824,6 +1824,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
     PanelSequencer->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint,0,this);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
+    Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanging);
     Connect(ID_NEW_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
     Connect(ID_OPEN_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Open_SequenceSelected);
     Connect(IS_SAVE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Save_SequenceSelected);
@@ -2496,27 +2497,46 @@ void xLightsFrame::AllLightsOff()
     if (xout) xout->alloff();
 }
 
-void xLightsFrame::HideAllSequencerWindows()
+void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
-    m_mgr->GetPane("DisplayElements").Hide();
-    m_mgr->GetPane("Effect").Hide();
-    m_mgr->GetPane("Color").Hide();
-    m_mgr->GetPane("LayerTiming").Hide();
-    m_mgr->GetPane("ModelPreview").Hide();
-    m_mgr->GetPane("HousePreview").Hide();
-    m_mgr->GetPane("EffectDropper").Hide();
-    m_mgr->GetPane("Perspectives").Hide();
-    m_mgr->Update();
+    wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
+    bool update = false;
+    if (show) {
+        for (int x = 0; x < info.size(); x++) {
+            if (x < savedPaneShown.size() && info[x].IsFloating() && !info[x].IsShown()
+                && savedPaneShown[x]) {
+                info[x].Show();
+                savedPaneShown[x] = true;
+                update = true;
+            }
+        }
+    } else {
+        savedPaneShown.resize(info.size());
+        for (int x = 0; x < info.size(); x++) {
+            savedPaneShown[x] = info[x].IsShown();
+            if (info[x].IsFloating() && info[x].IsShown()) {
+                info[x].Hide();
+                update = true;
+            }
+        }
+    }
+    if (update) {
+        m_mgr->Update();
+    }
+}
+
+
+void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
+{
+    if (event.GetOldSelection() == NEWSEQUENCER) {
+        ShowHideAllSequencerWindows(false);
+    }
 }
 
 void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 {
     heartbeat("tab change", true); //tell fido to stop watching -DJ
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
-    if (pagenum != NEWSEQUENCER)
-    {
-        HideAllSequencerWindows();
-    }
     if (pagenum == TESTTAB && !xout)
     {
         StatusBar1->SetStatusText(_("Testing disabled - Output to Lights is not checked"));
@@ -2529,6 +2549,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     else if (pagenum == NEWSEQUENCER)
     {
         InitSequencer();
+        ShowHideAllSequencerWindows(true);
     }
     else if (pagenum == CONVERTTAB)
     {
@@ -2770,7 +2791,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     }
     selectedEffect = NULL;
 
-    HideAllSequencerWindows();
+    ShowHideAllSequencerWindows(false);
 
     StopNow();
 
@@ -3338,3 +3359,4 @@ void xLightsFrame::OnMenuItemRenderOnSave(wxCommandEvent& event)
 {
     mRenderOnSave = event.IsChecked();
 }
+

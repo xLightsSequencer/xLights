@@ -570,6 +570,7 @@ private:
     void OnBitmapButton_Link_DirsClick(wxCommandEvent& event);
     void OnAuiToolBarItemModelsClick(wxCommandEvent& event);
     void OnMenuItemRenderOnSave(wxCommandEvent& event);
+    void OnNotebook1PageChanging(wxAuiNotebookEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -579,7 +580,7 @@ private:
     void ProtectSelectedEffects(wxCommandEvent& evt);
     void CopyEffectAcrossRow(wxCommandEvent& evt); //-DJ
     void ClearEffectRow(wxCommandEvent& evt); //-DJ
-    void HideAllSequencerWindows();
+    void ShowHideAllSequencerWindows(bool show);
 
 //    void ConnectOnChar(wxWindow* pclComponent);
 
@@ -1557,6 +1558,7 @@ protected:
     int m_over_handle;
     int m_previous_mouse_x, m_previous_mouse_y;
     wxXmlNode* mCurrentPerpective;
+    std::vector<bool> savedPaneShown;
 
     // New Sequencer variables and methods
     SequenceElements mSequenceElements;

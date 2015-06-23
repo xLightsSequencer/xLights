@@ -714,6 +714,7 @@
 				<object class="wxAuiNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
 					<style>wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER</style>
 					<handler function="OnNotebook1PageChanged1" entry="EVT_AUINOTEBOOK_PAGE_CHANGED" />
+					<handler function="OnNotebook1PageChanging" entry="EVT_AUINOTEBOOK_PAGE_CHANGING" />
 					<object class="AuiNotebookPage">
 						<object class="wxPanel" name="ID_PANEL_SETUP" variable="PanelSetup" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizerSetup" member="no">

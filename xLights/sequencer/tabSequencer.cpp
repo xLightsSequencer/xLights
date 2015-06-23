@@ -100,14 +100,14 @@ void xLightsFrame::InitSequencer()
     {
         return;
     }
+    if(mSequencerInitialize)
+    {
+        return;
+    }
     if(mCurrentPerpective!=NULL)
     {
         wxString settings = mCurrentPerpective->GetAttribute("settings");
         m_mgr->LoadPerspective(settings);
-    }
-    if(mSequencerInitialize)
-    {
-        return;
     }
     mSequencerInitialize = true;
     sPreview2->InitializePreview(mBackgroundImage,mBackgroundBrightness);
