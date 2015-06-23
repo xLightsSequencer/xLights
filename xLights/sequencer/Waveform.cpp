@@ -112,10 +112,10 @@ void Waveform::UpdatePlayMarker()
 
 void Waveform::CheckNeedToScroll()
 {
-    double StartTime;
-    double EndTime;
+    int StartTime;
+    int EndTime;
     mTimeline->GetViewableTimeRange(StartTime, EndTime);
-    int scroll_point = mTimeline->GetPositionFromTime(EndTime) * 0.99;
+    int scroll_point = mTimeline->GetPositionFromTimeMS(EndTime) * 0.99;
     if(mTimeline->GetPlayMarker() > scroll_point)
     {
         wxCommandEvent eventScroll(EVT_SCROLL_RIGHT);
@@ -446,11 +446,11 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     if( mAudioIsLoaded )
     {
-        
+
         glPointSize( translateToBacking(1.1) );
         glLineWidth( 1 );
         xlColor c(130,178,207,255);
-        
+
         std::vector<double> vertexes;
         vertexes.resize((mWindowWidth + 2) * 2);
 
@@ -468,7 +468,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
             }
         }
         DrawGLUtils::End(GL_TRIANGLE_STRIP);
-        
+
         for(int x=0;x<mWindowWidth-1 && (x)<wv.MinMaxs.size();x++)
         {
             DrawGLUtils::AddVertex(x, vertexes[x * 2], xlWHITE);

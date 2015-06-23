@@ -3,9 +3,9 @@
 #include "SequenceElements.h"
 
 DeletedEffectInfo::DeletedEffectInfo( const wxString &element_name_, int layer_index_, const wxString &name_, const wxString &settings_,
-                                      const wxString &palette_, double &startTime_, double &endTime_, int Selected_, bool Protected_ )
+                                      const wxString &palette_, int &startTimeMS_, int &endTimeMS_, int Selected_, bool Protected_ )
 : element_name(element_name_), layer_index(layer_index_), name(name_), settings(settings_),
-  palette(palette_), startTime(startTime_), endTime(endTime_), Selected(Selected_), Protected(Protected_)
+  palette(palette_), startTimeMS(startTimeMS_), endTimeMS(endTimeMS_), Selected(Selected_), Protected(Protected_)
 {
 }
 
@@ -14,8 +14,8 @@ AddedEffectInfo::AddedEffectInfo( const wxString &element_name_, int layer_index
 {
 }
 
-MovedEffectInfo::MovedEffectInfo( const wxString &element_name_, int layer_index_, int id_, double &startTime_, double &endTime_ )
-: element_name(element_name_), layer_index(layer_index_), id(id_), startTime(startTime_), endTime(endTime_)
+MovedEffectInfo::MovedEffectInfo( const wxString &element_name_, int layer_index_, int id_, int &startTimeMS_, int &endTimeMS_ )
+: element_name(element_name_), layer_index(layer_index_), id(id_), startTimeMS(startTimeMS_), endTimeMS(endTimeMS_)
 {
 }
 
@@ -111,9 +111,9 @@ void UndoManager::CreateUndoStep()
 }
 
 void UndoManager::CaptureEffectToBeDeleted( const wxString &element_name, int layer_index, const wxString &name, const wxString &settings,
-                                            const wxString &palette, double startTime, double endTime, int Selected, bool Protected )
+                                            const wxString &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected )
 {
-    DeletedEffectInfo* effect_undo_action = new DeletedEffectInfo( element_name, layer_index, name, settings, palette, startTime, endTime, Selected, Protected );
+    DeletedEffectInfo* effect_undo_action = new DeletedEffectInfo( element_name, layer_index, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected );
     UndoStep* action = new UndoStep(UNDO_EFFECT_DELETED, effect_undo_action);
     mUndoSteps.push_back(action);
 }
@@ -125,9 +125,9 @@ void UndoManager::CaptureAddedEffect( const wxString &element_name, int layer_in
     mUndoSteps.push_back(action);
 }
 
-void UndoManager::CaptureEffectToBeMoved( const wxString &element_name, int layer_index, int id, double startTime, double endTime )
+void UndoManager::CaptureEffectToBeMoved( const wxString &element_name, int layer_index, int id, int startTimeMS, int endTimeMS )
 {
-    MovedEffectInfo* effect_undo_action = new MovedEffectInfo( element_name, layer_index, id, startTime, endTime );
+    MovedEffectInfo* effect_undo_action = new MovedEffectInfo( element_name, layer_index, id, startTimeMS, endTimeMS );
     UndoStep* action = new UndoStep(UNDO_EFFECT_MOVED, effect_undo_action);
     mUndoSteps.push_back(action);
 }
@@ -158,8 +158,8 @@ void UndoManager::UndoLastStep()
                                        next_action->deleted_effect_info[0]->name,
                                        next_action->deleted_effect_info[0]->settings,
                                        next_action->deleted_effect_info[0]->palette,
-                                       next_action->deleted_effect_info[0]->startTime,
-                                       next_action->deleted_effect_info[0]->endTime,
+                                       next_action->deleted_effect_info[0]->startTimeMS,
+                                       next_action->deleted_effect_info[0]->endTimeMS,
                                        next_action->deleted_effect_info[0]->Selected,
                                        next_action->deleted_effect_info[0]->Protected);
             }
@@ -176,8 +176,8 @@ void UndoManager::UndoLastStep()
             Element* element = mParentSequence->GetElement(next_action->moved_effect_info[0]->element_name);
             EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->moved_effect_info[0]->layer_index);
             Effect* eff = el->GetEffectFromID(next_action->moved_effect_info[0]->id);
-            eff->SetStartTime(next_action->moved_effect_info[0]->startTime);
-            eff->SetEndTime(next_action->moved_effect_info[0]->endTime);
+            eff->SetStartTimeMS(next_action->moved_effect_info[0]->startTimeMS);
+            eff->SetEndTimeMS(next_action->moved_effect_info[0]->endTimeMS);
             }
             break;
         case UNDO_EFFECT_MODIFIED:

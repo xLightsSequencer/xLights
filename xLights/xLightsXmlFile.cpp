@@ -101,9 +101,8 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
 
 int xLightsXmlFile::GetFrequency()
 {
-    double freq_ms;
-    seq_timing.ToDouble(&freq_ms);
-    return (int)(1000.0/freq_ms);
+    int freq_ms = wxAtoi(seq_timing);
+    return (int)(1000/freq_ms);
 }
 
 void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
@@ -835,8 +834,8 @@ bool xLightsXmlFile::LoadV3Sequence()
     if( !models_defined )  return false;  // no <tr> tag was found
 
     wxString end_time;
-    wxString last_time = "0.0";
-    double time1, time2;
+    wxString last_time = "0";
+    double time1;
 
     // load the XML file
     AddTimingDisplayElement( "Imported Timing", "1", "1" );
@@ -851,15 +850,21 @@ bool xLightsXmlFile::LoadV3Sequence()
     wxXmlNode* child;
     StringIntMap paletteCache;
 
+    for( int j = 0; j < num_effects; j++ )
+    {
+        timing[j].ToDouble(&time1);
+        timing[j] = string_format("%d", (int)(time1 * 1000.0));
+    }
+
     for(int i = 0; i < models.GetCount(); ++i)
     {
         child = AddElement( models[i], "model" );
         wxXmlNode* layer1 = AddChildXmlNode(child, "EffectLayer");
         wxXmlNode* layer2 = AddChildXmlNode(child, "EffectLayer");
 
-        timing[num_effects-1].ToDouble(&time1);
-        time1 += 0.05;
-        last_time = string_format("%.3f", time1);
+        int time2 = wxAtoi(timing[num_effects-1]);
+        time2 += 50;
+        last_time = string_format("%d", time2);
         for(int j = 0; j < num_effects; ++j)
         {
             int next_effect = i+(j*models.GetCount());
@@ -915,7 +920,7 @@ bool xLightsXmlFile::LoadV3Sequence()
 
     if( seq_duration <= 0 )
     {
-        SetSequenceDuration(last_time);
+        SetSequenceDurationMS(wxAtoi(last_time));
     }
 
     CleanUpEffects();
@@ -1315,26 +1320,29 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
         }
 
-        double time, startTime, endTime;
-        int iTime1, iTime2;
+        double time1;
+        for( int j = 0; j < start_times.GetCount(); j++ )
+        {
+            start_times[j].ToDouble(&time1);
+            start_times[j] = string_format("%d", (int)(time1 * 1000.0));
+            end_times[j].ToDouble(&time1);
+            end_times[j] = string_format("%d", (int)(time1 * 1000.0));
+        }
+
+        int startTime, endTime;
         for( int k = 0; k < start_times.GetCount(); ++k )
         {
-            start_times[k].ToDouble(&time);
-            startTime = TimeLine::RoundToMultipleOfPeriod(time,GetFrequency());
-            end_times[k].ToDouble(&time);
-            endTime = TimeLine::RoundToMultipleOfPeriod(time,GetFrequency());
-            iTime1 = (int)(startTime * 1000);
-            iTime2 = (int)(endTime * 1000);
-            if( iTime1 == iTime2 )
+            startTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(start_times[k]),GetFrequency());
+            endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(end_times[k]),GetFrequency());
+            if( startTime == endTime )
             {
                 if( k == start_times.GetCount()-1 ) // last timing mark
                 {
-                    endTime = startTime + GetFrequency() / 1000.0;
+                    endTime = startTime + GetFrequency();
                 }
                 else
                 {
-                    start_times[k+1].ToDouble(&time);
-                    endTime = TimeLine::RoundToMultipleOfPeriod(time,GetFrequency());
+                    endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(start_times[k+1]),GetFrequency());
                 }
             }
 
@@ -1354,7 +1362,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
 {
     wxTextFile f;
     wxString line;
-    double time;
+    int time;
     int r;
 
     for( int i = 0; i < filenames.Count(); ++i )
@@ -1457,28 +1465,25 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
                                 for(wxXmlNode* effect=grids->GetChildren(); effect!=NULL; effect=effect->GetNext() )
                                 {
                                     wxString t1 = effect->GetAttribute("centisecond");
-                                    t1.ToDouble(&time);
-                                    time /= 100.0;
-                                    t1 = string_format("%3f",time);
+                                    time = wxAtoi(t1) * 10;
+                                    t1 = string_format("%d",time);
                                     grid_times.push_back(t1);
                                 }
 
                                 // process the new timings
-                                double startTime, endTime;
+                                int startTime, endTime;
                                 int iTime1, iTime2;
                                 for( int k = 0; k < grid_times.GetCount()-1; ++k )
                                 {
-                                    grid_times[k].ToDouble(&time);
-                                    startTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
-                                    grid_times[k+1].ToDouble(&time);
-                                    endTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+                                    startTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k]),xLightsParent->GetSequenceElements().GetFrequency());
+                                    endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k+1]),xLightsParent->GetSequenceElements().GetFrequency());
                                     if( sequence_loaded )
                                     {
                                         effectLayer->AddEffect(0,0,"",wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
                                     }
                                     else
                                     {
-                                        AddTimingEffect(layer, "", "0", "0", string_format("%f", startTime), string_format("%f", endTime));
+                                        AddTimingEffect(layer, "", "0", "0", string_format("%d", startTime), string_format("%d", endTime));
                                     }
                                 }
                             }
@@ -1543,8 +1548,8 @@ void xLightsXmlFile::WriteEffects(EffectLayer *layer,
         if (effect->GetID()) {
             effect_node->AddAttribute("id", string_format("%d", effect->GetID()));
         }
-        effect_node->AddAttribute("startTime", string_format("%f", effect->GetStartTime()));
-        effect_node->AddAttribute("endTime", string_format("%f", effect->GetEndTime()));
+        effect_node->AddAttribute("startTimeMS", string_format("%d", effect->GetStartTimeMS()));
+        effect_node->AddAttribute("endTimeMS", string_format("%d", effect->GetEndTimeMS()));
         wxString palette = effect->GetPaletteAsString();
         if (palette != "") {
             size = colorPalettes.size();
@@ -1666,8 +1671,8 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                         if (effect->GetSelected()) {
                             effect_node->AddAttribute("selected", "1");
                         }
-                        effect_node->AddAttribute("startTime", string_format("%f", effect->GetStartTime()));
-                        effect_node->AddAttribute("endTime", string_format("%f", effect->GetEndTime()));
+                        effect_node->AddAttribute("startTime", string_format("%d", effect->GetStartTimeMS()));
+                        effect_node->AddAttribute("endTime", string_format("%d", effect->GetEndTimeMS()));
                     }
                 }
                 else if( element->GetType() == "view" )
@@ -1778,17 +1783,15 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame*
     }
     else
     {
-        int ms = wxAtoi(interval_name);;
-        double interval = ms;
+        int interval = wxAtoi(interval_name);;
         if( sequence_loaded )
         {
             Element* element = xLightsParent->AddTimingElement(interval_name);
-            element->SetFixedTiming((int)interval);
-            interval /= 1000.0;
+            element->SetFixedTiming(interval);
             EffectLayer* effectLayer = element->GetEffectLayer(0);
-            double time = 0.0;
-            double end_time = GetSequenceDurationDouble();
-            double startTime, endTime, next_time;
+            int time = 0;
+            int end_time = GetSequenceDurationMS();
+            int startTime, endTime, next_time;
             while( time <= end_time )
             {
                 next_time = (time + interval <= end_time) ? time + interval : end_time;
@@ -1798,7 +1801,7 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame*
                 time += interval;
             }
         }
-        node = AddFixedTiming( interval_name, string_format("%d",ms) );
+        node = AddFixedTiming( interval_name, string_format("%d",interval) );
     }
 
     AddChildXmlNode(node, "EffectLayer");

@@ -112,8 +112,8 @@ private:
     bool MultipleEffectsSelected();
     void ResizeSingleEffect(int position);
     void ResizeMoveMultipleEffects(int position, bool offset);
-    void GetRangeOfMovementForSelectedEffects(double &toLeft, double &toRight);
-    void MoveAllSelectedEffects(double delta, bool offset);
+    void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight);
+    void MoveAllSelectedEffects(int deltaMS, bool offset);
     int GetRow(int y);
     void OnGridPopup(wxCommandEvent& event);
     void FillRandomEffects();
@@ -141,7 +141,7 @@ private:
     Effect* mSelectedEffect;
 
     int mResizingMode;
-    int mStartResizeTime;
+    int mStartResizeTimeMS;
     bool mResizing;
     bool mDragging;
     int mDragStartX;
@@ -157,8 +157,8 @@ private:
     int mDropStartX;
     int mDropEndX;
     int mDropRow;
-    double mDropStartTime;
-    double mDropEndTime;
+    int mDropStartTimeMS;
+    int mDropEndTimeMS;
 
     bool mCellRangeSelected;
     bool mPartialCellSelected;

@@ -63,19 +63,17 @@ class TimeLine : public wxWindow
         void ZoomOut();
 
         int TimePerMajorTickInMS();
-        void GetViewableTimeRange(double &StartTime, double &EndTime);
+        void GetViewableTimeRange(int &StartTime, int &EndTime);
 
-        void GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2, int& x3, int& x4);
-        int GetPositionFromTime(double time);
-        double GetPositionFromTimeMS(int time);
+        void GetPositionsFromTimeRange(int startTimeMS,int endTimeMS,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2, int& x3, int& x4);
+        int GetPositionFromTimeMS(int timeMS);
 
         void SetSequenceEnd(int ms);
 
         int GetTimeMSfromPosition(int position);
         int GetAbsoluteTimeMSfromPosition(int position);
-        double GetAbsoluteTimefromPosition(int position);
 
-        static double RoundToMultipleOfPeriod(double number,double period);
+        static int RoundToMultipleOfPeriod(int number,double period);
 
         struct TIME_LINE_CHANGED_ARGS
         {
@@ -106,8 +104,6 @@ class TimeLine : public wxWindow
         int mStartTimeMS;
         int mEndTimeMS;
         int mEndPos;
-        double mStartTime;
-        double mEndTime;
 
         int mStartPixelOffset;
         int mFrequency;

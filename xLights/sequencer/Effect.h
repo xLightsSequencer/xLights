@@ -40,25 +40,23 @@ class Effect
         Effect(const Effect &e);
     public:
         Effect(EffectLayer* parent, int id, int effectIndex, const wxString & name, const wxString &settings, const wxString &palette,
-               double startTime, double endTime, int Selected, bool Protected);
+               int startTimeMS, int endTimeMS, int Selected, bool Protected);
         virtual ~Effect();
 
         int GetID() const;
         void SetID(int i);
-    
+
         int GetEffectIndex() const;
         void SetEffectIndex(int effectIndex);
 
         const wxString &GetEffectName() const;
         void SetEffectName(const wxString & name);
 
-        double GetStartTime() const;
         int GetStartTimeMS() const;
-        void SetStartTime(double startTime);
+        void SetStartTimeMS(int startTimeMS);
 
-        double GetEndTime() const;
         int GetEndTimeMS() const;
-        void SetEndTime(double endTime);
+        void SetEndTimeMS(int endTimeMS);
 
         int GetSelected();
         void SetSelected(int selected);
@@ -79,7 +77,7 @@ class Effect
         void SetParentEffectLayer(EffectLayer* parent);
 
         void IncrementChangeCount();
-    
+
         wxString GetSettingsAsString() const;
         void SetSettings(const wxString &settings);
 
@@ -87,11 +85,11 @@ class Effect
         const SettingsMap &GetSettings() const { return mSettings;}
         const xlColorVector GetPalette() const { return mColors;}
         const SettingsMap &GetPaletteMap() const { return mPaletteMap;}
-    
+
         void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
         void CopyPaletteMap(SettingsMap &target, bool stripPfx = false) const;
-    
-    
+
+
         wxString GetPaletteAsString() const;
         void SetPalette(const wxString& i);
 
@@ -117,12 +115,12 @@ class Effect
         int mStartPosition;
         int mEndPosition;
         EffectLayer* mParentLayer;
-    
+
         mutable wxMutex settingsLock;
         SettingsMap mSettings;
         SettingsMap mPaletteMap;
         xlColorVector mColors;
-    
+
         DrawGLUtils::xlDisplayList background;
 };
 bool operator<(const Effect &e1, const Effect &e2);

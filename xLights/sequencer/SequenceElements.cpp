@@ -402,19 +402,18 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                     if (element !=NULL)
                     {
                         // check for fixed timing interval
-                        double interval = 0.0;
+                        int interval = 0;
                         if( elementNode->GetAttribute("type") == "timing" )
                         {
-                            elementNode->GetAttribute("fixed").ToDouble(&interval);
+                            interval = wxAtoi(elementNode->GetAttribute("fixed"));
                         }
-                        if( interval > 0.0 )
+                        if( interval > 0 )
                         {
-                            element->SetFixedTiming((int)interval);
-                            interval /= 1000.0;
+                            element->SetFixedTiming(interval);
                             EffectLayer* effectLayer = element->AddEffectLayer();
-                            double time = 0.0;
-                            double end_time = xml_file.GetSequenceDurationDouble();
-                            double startTime, endTime, next_time;
+                            int time = 0;
+                            int end_time = xml_file.GetSequenceDurationMS();
+                            int startTime, endTime, next_time;
                             while( time <= end_time )
                             {
                                 next_time = (time + interval <= end_time) ? time + interval : end_time;
@@ -756,8 +755,8 @@ int SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow,
             Effect* eff2 = tel->GetEffect(endCol);
             if( eff1 != nullptr && eff2 != nullptr )
             {
-                double start_time = eff1->GetStartTime();
-                double end_time = eff2->GetEndTime();
+                int start_time = eff1->GetStartTimeMS();
+                int end_time = eff2->GetEndTimeMS();
                 for(int i=startRow;i <= endRow;i++)
                 {
                     EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);

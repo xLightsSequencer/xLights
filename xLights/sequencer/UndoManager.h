@@ -25,12 +25,12 @@ public:
     wxString name;
     wxString settings;
     wxString palette;
-    double startTime;
-    double endTime;
+    int startTimeMS;
+    int endTimeMS;
     int Selected;
     bool Protected;
     DeletedEffectInfo( const wxString &element_name_, int layer_index_, const wxString &name_, const wxString &settings_,
-                       const wxString &palette_, double &startTime_, double &endTime_, int Selected_, bool Protected_ );
+                       const wxString &palette_, int &startTimeMS_, int &endTimeMS_, int Selected_, bool Protected_ );
 };
 
 class AddedEffectInfo
@@ -48,9 +48,9 @@ public:
     wxString element_name;
     int layer_index;
     int id;
-    double startTime;
-    double endTime;
-    MovedEffectInfo( const wxString &element_name_, int layer_index_, int id_, double &startTime_, double &endTime_ );
+    int startTimeMS;
+    int endTimeMS;
+    MovedEffectInfo( const wxString &element_name_, int layer_index_, int id_, int &startTimeMS_, int &endTimeMS_ );
 };
 
 class ModifiedEffectInfo
@@ -96,11 +96,11 @@ class UndoManager
         wxString GetUndoString();
 
         void CaptureEffectToBeDeleted( const wxString &element_name, int layer_index, const wxString &name, const wxString &settings,
-                                       const wxString &palette, double startTime, double endTime, int Selected, bool Protected );
+                                       const wxString &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected );
 
         void CaptureAddedEffect( const wxString &element_name, int layer_index, int id );
 
-        void CaptureEffectToBeMoved( const wxString &element_name, int layer_index, int id, double startTime, double endTime );
+        void CaptureEffectToBeMoved( const wxString &element_name, int layer_index, int id, int startTimeMS, int endTimeMS );
         void CaptureModifiedEffect( const wxString &element_name, int layer_index, int id, const wxString &settings, const wxString &palette );
 
     protected:

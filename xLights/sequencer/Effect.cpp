@@ -26,7 +26,7 @@ public:
         data["E_SLIDER_Chase_Spacing1"] = "";
         data["E_CHECKBOX_Shimmer_Blink_Timing"] = "";
         data["E_SLIDER_Shimmer_Blinks_Per_Row"] = "";
-        
+
         data["E_NOTEBOOK_Text1"] = "";
         data["E_TEXTCTRL_Pictures_Filename"] = "E_FILEPICKER_Pictures_Filename";
         data["E_TEXTCTRL_Text_Font1"] = "E_FONTPICKER_Text_Font1";
@@ -53,7 +53,7 @@ void SettingsMap::RemapChangedSettingKey(wxString &n,  wxString &value) {
 void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors) {
     int ftt = wxAtoi(settings.Get("T_CHECKBOX_FitToTime", "1"));
     switch (effectIdx) {
-        //these effects have never used the FitToTime or speed settings, nothing to do 
+        //these effects have never used the FitToTime or speed settings, nothing to do
         case BitmapCache::RGB_EFFECTS_e::eff_OFF:
         case BitmapCache::RGB_EFFECTS_e::eff_GALAXY:
         case BitmapCache::RGB_EFFECTS_e::eff_FAN:
@@ -64,7 +64,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
         case BitmapCache::RGB_EFFECTS_e::eff_STROBE:
         case BitmapCache::RGB_EFFECTS_e::eff_TWINKLE:
             break;
-        
+
         //these effects have been updated to have a dedicated repeat or speed or other control
         //and now ignore the FitToTime and Speed sliders, but the settings need adjusting
         case BitmapCache::RGB_EFFECTS_e::eff_ON:
@@ -307,7 +307,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             //Spacing setting as well as the height of the model.  We don't have the height of the model here so really
             //no way to figure out the speed or an appropriate mapping
             break;
-            
+
             //these all need code updated and new sliders and such before we can map them
             //these all have state/speed requirements
         case BitmapCache::RGB_EFFECTS_e::eff_PIANO:
@@ -318,9 +318,9 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
 }
 
 Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & name, const wxString &settings, const wxString &palette,
-       double startTime,double endTime, int Selected, bool Protected)
+       int startTimeMS, int endTimeMS, int Selected, bool Protected)
     : mParentLayer(parent), mID(id), mEffectIndex(effectIndex), mName(nullptr),
-      mStartTime(startTime * 1000.0), mEndTime(endTime * 1000.0), mSelected(Selected), mProtected(Protected)
+      mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mProtected(Protected)
 {
     int i = GetEffectIndex(name);
     if (i == -1) {
@@ -336,7 +336,7 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & nam
             }
         }
     }
-    AdjustSettingsToBeFitToTime(mEffectIndex, mSettings, mStartTime * 1000.0, mEndTime * 1000.0, mColors);
+    AdjustSettingsToBeFitToTime(mEffectIndex, mSettings, mStartTime, mEndTime, mColors);
 }
 
 
@@ -356,7 +356,7 @@ void Effect::SetID(int id) {
 }
 void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const {
     wxMutexLocker lock(settingsLock);
-    
+
     for (std::map<wxString,wxString>::const_iterator it=mSettings.begin(); it!=mSettings.end(); ++it) {
         wxString name = it->first;
         if (stripPfx && name[1] == '_') {
@@ -447,24 +447,18 @@ void Effect::SetEffectIndex(int effectIndex)
     }
 }
 
-
-double Effect::GetStartTime() const
-{
-    return double(mStartTime) / 1000.0;
-}
 int Effect::GetStartTimeMS() const
 {
     return mStartTime;
 }
 
-void Effect::SetStartTime(double startTimeD)
+void Effect::SetStartTimeMS(int startTimeMS)
 {
-    int startTime = startTimeD * 1000.0;
-    if (startTime > mStartTime) {
+    if (startTimeMS > mStartTime) {
         IncrementChangeCount();
-        mStartTime = startTime;
+        mStartTime = startTimeMS;
     } else {
-        mStartTime = startTime;
+        mStartTime = startTimeMS;
         IncrementChangeCount();
     }
 }
@@ -473,19 +467,13 @@ int Effect::GetEndTimeMS() const
     return mEndTime;
 }
 
-double Effect::GetEndTime() const
+void Effect::SetEndTimeMS(int endTimeMS)
 {
-    return double(mEndTime) / 1000.0;
-}
-
-void Effect::SetEndTime(double endTimeD)
-{
-    int endTime = endTimeD * 1000.0;
-    if (endTime < mEndTime) {
+    if (endTimeMS < mEndTime) {
         IncrementChangeCount();
-        mEndTime = endTime;
+        mEndTime = endTimeMS;
     } else {
-        mEndTime = endTime;
+        mEndTime = endTimeMS;
         IncrementChangeCount();
     }
 }
@@ -576,7 +564,7 @@ public:
         at(BitmapCache::RGB_EFFECTS_e::eff_TWINKLE) = "Twinkle";
         at(BitmapCache::RGB_EFFECTS_e::eff_WAVE) = "Wave";
     }
-    
+
 } effectMap;
 
 const wxString &Effect::GetEffectName(int idx) {

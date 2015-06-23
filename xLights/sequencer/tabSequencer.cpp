@@ -381,15 +381,15 @@ void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
     }
     else
     {
-        double startTime;
-        double endTime;
+        int startTime;
+        int endTime;
         int range = mainSequencer->PanelTimeLine->GetTimeLength();
         mainSequencer->PanelTimeLine->GetViewableTimeRange(startTime,endTime);
 
-        double diff = endTime - startTime;
-        int thumbSize = (int)(diff*(double)1000);
+        int diff = endTime - startTime;
+        int thumbSize = diff;
         int pageSize = thumbSize;
-        int position = (int)(startTime * (double)1000);
+        int position = startTime;
         mainSequencer->ScrollBarEffectsHorizontal->SetScrollbar(position,thumbSize,range,pageSize);
     }
 
@@ -1346,7 +1346,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
                         + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
-                    layer->AddEffect(0, "On", settings, palette, stime / 1000.0, etime / 1000.0, false, false);
+                    layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
                 } else {
 
                     wxString settings = _("E_CHECKBOX_ColorWash_EntireModel=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,")
@@ -1359,7 +1359,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
                         + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
-                    layer->AddEffect(0, "Color Wash", settings, palette, stime / 1000.0, etime / 1000.0, false, false);
+                    layer->AddEffect(0, "Color Wash", settings, palette, stime, etime, false, false);
                 }
                 for (int z = 0; z < len; z++) {
                     //clear it
@@ -1383,7 +1383,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
                 + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
                 if (time != startTime) {
-                    layer->AddEffect(0, "On", settings, palette, startTime / 1000.0, time / 1000.0, false, false);
+                    layer->AddEffect(0, "On", settings, palette, startTime, time, false, false);
                 }
             }
             startTime = time;
@@ -1464,14 +1464,14 @@ void xLightsFrame::PromoteEffects(Element *element) {
                 Effect *eff = base->GetEffect(e);
                 const wxString &name = eff->GetEffectName();
 
-                if (layer->HasEffectsInTimeRange(eff->GetStartTime(), eff->GetEndTime())) {
-                    //cannot promote, already and effect there
+                if (layer->HasEffectsInTimeRange(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
+                    //cannot promote, already an effect there
                     continue;
                 }
                 if (name == "On" || name == "Color Wash") {
                     const wxString pal = eff->GetPaletteAsString();
                     const wxString set = eff->GetSettingsAsString();
-                    double mp = (eff->GetStartTime() + eff->GetEndTime()) / 2.0;
+                    int mp = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
                     bool collapse = true;
 
                     for (int n = 1; n < layer->GetNodeLayerCount() && collapse; n++) {
@@ -1487,7 +1487,7 @@ void xLightsFrame::PromoteEffects(Element *element) {
                         }
                     }
                     if (collapse) {
-                        target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTime(), eff->GetEndTime(), false, false);
+                        target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
                         for (int n = 0; n < layer->GetNodeLayerCount() && collapse; n++) {
                             NodeLayer *node = layer->GetNodeLayer(n);
                             int nodeIndex = 0;
@@ -1516,7 +1516,7 @@ void xLightsFrame::PromoteEffects(Element *element) {
         if (name == "On" || name == "Color Wash") {
             const wxString pal = eff->GetPaletteAsString();
             const wxString set = eff->GetSettingsAsString();
-            double mp = (eff->GetStartTime() + eff->GetEndTime()) / 2.0;
+            int mp = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
             bool collapse = true;
 
             for (int n = 1; n < element->getStrandLayerCount() && collapse; n++) {
@@ -1532,7 +1532,7 @@ void xLightsFrame::PromoteEffects(Element *element) {
                 }
             }
             if (collapse) {
-                target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTime(), eff->GetEndTime(), false, false);
+                target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
                 for (int n = 0; n < element->getStrandLayerCount() && collapse; n++) {
                     StrandLayer *node = element->GetStrandLayer(n);
                     int nodeIndex = 0;

@@ -15,7 +15,7 @@
 #define HIT_TEST_EFFECT_RT      1
 #define HIT_TEST_EFFECT_CTR     2
 
-#define NO_MAX                  1000
+#define NO_MAX                  1000000
 class Element;
 
 class EffectLayer
@@ -25,9 +25,9 @@ class EffectLayer
         virtual ~EffectLayer();
 
         Effect *AddEffect(int id, const wxString &name, const wxString &settings, const wxString &palette,
-                          double startTime, double endTime, int Selected, bool Protected);
+                          int startTimeMS, int endTimeMS, int Selected, bool Protected);
         Effect *AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
-                          double startTime, double endTime, int Selected, bool Protected);
+                          int startTimeMS, int endTimeMS, int Selected, bool Protected);
         Effect* GetEffect(int index);
         Effect* GetEffectFromID(int id);
         void RemoveEffect(int index);
@@ -38,32 +38,32 @@ class EffectLayer
 
         bool IsStartTimeLinked(int index);
         bool IsEndTimeLinked(int index);
-        bool IsEffectStartTimeInRange(int index, float startTime,float endTime);
-        bool IsEffectEndTimeInRange(int index, float startTime,float endTime);
+        bool IsEffectStartTimeInRange(int index, int startTimeMS, int endTimeMS);
+        bool IsEffectEndTimeInRange(int index, int startTimeMS, int endTimeMS);
 
-        float GetMaximumEndTime(int index);
-        float GetMinimumStartTime(int index);
+        int GetMaximumEndTimeMS(int index);
+        int GetMinimumStartTimeMS(int index);
 
         bool HitTestEffect(int position,int &index, int &result);
-        bool HitTestEffectByTime(double time,int &index);
+        bool HitTestEffectByTime(int timeMS,int &index);
         int GetEffectIndexThatContainsPosition(int position,int &selectionType);
         Effect* GetEffectBeforePosition(int position);
         Effect* GetEffectAfterPosition(int position);
-        bool GetRangeIsClear(int startX, int endX);
-        bool GetRangeIsClear(double start_time, double end_time);
+        bool GetRangeIsClearPos(int startX, int endX);
+        bool GetRangeIsClearMS(int startTimeMS, int endTimeMS);
         Effect* GetEffectBeforeEmptySpace(int position);
         Effect* GetEffectAfterEmptySpace(int position);
 
-        void GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,double &toRight);
+        void GetMaximumRangeOfMovementForSelectedEffects(int &toLeft,int &toRight);
         void SelectEffectsInPositionRange(int startX,int endX);
-        int SelectEffectsInTimeRange(double startTime,double endTime);
-        bool HasEffectsInTimeRange(double startTime,double endTime);
+        int SelectEffectsInTimeRange(int startTimeMS, int endTimeMS);
+        bool HasEffectsInTimeRange(int startTimeMS, int endTimeMS);
         void UnSelectAllEffects();
 
         Element* GetParentElement();
         void SetParentElement(Element* parent);
         int GetSelectedEffectCount();
-        void MoveAllSelectedEffects(double delta, UndoManager& undo_mgr);
+        void MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr);
         void DeleteSelectedEffects(UndoManager& undo_mgr);
         void DeleteEffect(int id);
         void DeleteEffectByIndex(int idx);
@@ -79,9 +79,9 @@ class EffectLayer
 
         int EffectToLeftEndTime(int index);
         int EffectToRightStartTime(int index);
-        void GetMaximumRangeOfMovementForEffect(int index, double &toLeft, double &toRight);
-        void GetMaximumRangeWithLeftMovement(int index, double &toLeft, double &toRight);
-        void GetMaximumRangeWithRightMovement(int index, double &toLeft, double &toRight);
+        void GetMaximumRangeOfMovementForEffect(int index, int &toLeft, int &toRight);
+        void GetMaximumRangeWithLeftMovement(int index, int &toLeft, int &toRight);
+        void GetMaximumRangeWithRightMovement(int index, int &toLeft, int &toRight);
         std::vector<Effect*> mEffects;
         int mIndex;
         Element* mParentElement;

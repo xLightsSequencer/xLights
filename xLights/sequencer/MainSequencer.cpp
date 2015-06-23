@@ -344,12 +344,12 @@ void MainSequencer::OnChar(wxKeyEvent& event)
 
 void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
     int start_column = PanelEffectGrid->GetStartColumn();
-    double column_start_time = -1.0;
+    int column_start_time = -1000;
     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
     if( tel != nullptr && start_column != -1) {
         Effect* eff = tel->GetEffect(start_column);
         if( eff != nullptr ) {
-            column_start_time = eff->GetStartTime();
+            column_start_time = eff->GetStartTimeMS();
         }
     }
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
@@ -359,10 +359,10 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
             if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
-                wxString start_time = wxString::Format("%f",ef->GetStartTime());
-                wxString end_time = wxString::Format("%f",ef->GetEndTime());
+                wxString start_time = wxString::Format("%d",ef->GetStartTimeMS());
+                wxString end_time = wxString::Format("%d",ef->GetEndTimeMS());
                 wxString row = wxString::Format("%d",row_number);
-                wxString column_start = wxString::Format("%f",column_start_time);
+                wxString column_start = wxString::Format("%d",column_start_time);
                 copy_data += ef->GetEffectName() + "\t" + ef->GetSettingsAsString() + "\t" + ef->GetPaletteAsString() +
                             "\t" + start_time + "\t" + end_time + "\t" + row + "\t" + column_start + "\n";
             }
@@ -441,8 +441,8 @@ void MainSequencer::InsertTimingMarkFromRange()
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
     if(selectedTiming >= 0)
     {
-        double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(x1);
-        double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
+        int t1 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x1);
+        int t2 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x2);
         if(is_range)
         {
             Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
@@ -472,13 +472,13 @@ void MainSequencer::InsertTimingMarkFromRange()
                 Effect* effect = el->GetEffectBeforePosition(x2);
                 if(effect!=nullptr)
                 {
-                    double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(effect->GetEndPosition());
+                    int t1 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(effect->GetEndPosition());
                     el->AddEffect(0,0,name,settings,"",t1,t2,false,false);
                 }
                 // No effect to left start at time = 0
                 else
                 {
-                    double t1 = 0;
+                    int t1 = 0;
                     el->AddEffect(0,0,name,settings,"",t1,t2,false,false);
                 }
                 PanelEffectGrid->ForceRefresh();
@@ -512,17 +512,17 @@ void MainSequencer::SplitTimingMark()
         Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
         EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
         int index1,index2;
-        double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(x1);
-        double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
+        int t1 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x1);
+        int t2 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(x2);
         if(el->HitTestEffectByTime(t1,index1) && el->HitTestEffectByTime(t2,index2))
         {
             if( index1 == index2 )
             {
                 Effect* eff1 = el->GetEffect(index1);
-                double old_end_time = eff1->GetEndTime();
-                if( t1 != t2 || ((t1 == t2) && t1 != eff1->GetStartTime() && t1 != eff1->GetEndTime()) )
+                int old_end_time = eff1->GetEndTimeMS();
+                if( t1 != t2 || ((t1 == t2) && t1 != eff1->GetStartTimeMS() && t1 != eff1->GetEndTimeMS()) )
                 {
-                    eff1->SetEndTime(t1);
+                    eff1->SetEndTimeMS(t1);
                     wxString name,settings;
                     el->AddEffect(0,0,name,settings,"",t2,old_end_time,false,false);
                     PanelEffectGrid->ForceRefresh();
