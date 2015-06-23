@@ -306,30 +306,87 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 void xLightsFrame::UpdateModelsList()
 {
     wxString name;
+    wxArrayString model_names;
     ModelClass *model;
     ListBoxElementList->Clear();
     PreviewModels.clear();
     AllModels.clear();
     wxString msg;
-    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "model")
-        {
-            name=e->GetAttribute("name");
-            if (!name.IsEmpty())
-            {
-                model=new ModelClass;
-                model->SetFromXml(e, NetInfo);
+    int num_group_models = 0;
 
-                if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
-                    msg += wxString::Format("%s - last channel: %u\n",name, model->GetLastChannel());
-                }
-                if (ModelClass::IsMyDisplay(e))
+    // Set models in selected modelgroups as part of display.
+    for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "modelGroup")
+        {
+            if(e->GetAttribute("selected") == "1")
+            {
+                wxArrayString ModelsInGroup=wxSplit(e->GetAttribute("models"),',');
+                for(int i=0;i<ModelsInGroup.size();i++)
                 {
-                    ListBoxElementList->Append(name,model);
-                    PreviewModels.push_back(model);
+                    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+                    {
+                        if (e->GetName() == "model")
+                        {
+                            name=e->GetAttribute("name");
+                            if (name == ModelsInGroup[i])
+                            {
+                                bool model_already_added = false;
+                                for(int k = 0; k < model_names.size(); k++)
+                                {
+                                    if( model_names[k] == name )
+                                    {
+                                        model_already_added = true;
+                                        break;
+                                    }
+                                }
+                                if( !model_already_added )
+                                {
+                                    model=new ModelClass;
+                                    model->SetFromXml(e, NetInfo);
+
+                                    if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
+                                        msg += wxString::Format("%s - last channel: %u\n",name, model->GetLastChannel());
+                                    }
+                                    if (ModelClass::IsMyDisplay(e))
+                                    {
+                                        ListBoxElementList->Append(name,model);
+                                        PreviewModels.push_back(model);
+                                    }
+                                    AllModels[name].reset(model);
+                                    model_names.push_back(name);
+                                    num_group_models++;
+                                }
+                            }
+                        }
+                    }
                 }
-                AllModels[name].reset(model);
+            }
+        }
+    }
+
+    if( num_group_models == 0 )
+    {
+        for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+        {
+            if (e->GetName() == "model")
+            {
+                name=e->GetAttribute("name");
+                if (!name.IsEmpty())
+                {
+                    model=new ModelClass;
+                    model->SetFromXml(e, NetInfo);
+
+                    if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
+                        msg += wxString::Format("%s - last channel: %u\n",name, model->GetLastChannel());
+                    }
+                    if (ModelClass::IsMyDisplay(e))
+                    {
+                        ListBoxElementList->Append(name,model);
+                        PreviewModels.push_back(model);
+                    }
+                    AllModels[name].reset(model);
+                }
             }
         }
     }

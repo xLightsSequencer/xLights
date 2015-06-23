@@ -59,7 +59,7 @@ void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
     if(modelName.Length()> 0)
     {
         wxXmlNode *e = BuildWholeHouseModel(modelName, PreviewModels);
-        
+
         // Delete exisiting wholehouse model with same name
         for(wxXmlNode* n=ModelsNode->GetChildren(); n!=NULL; n=n->GetNext() )
         {
@@ -885,33 +885,8 @@ void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
 
 void xLightsFrame::ShowSelectedModelGroups()
 {
-    // Remove all models from display
-    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "model")
-        {
-            e->DeleteAttribute("MyDisplay");
-            e->AddAttribute("MyDisplay","0");
-        }
-    }
-    // Set models in selected modelgroups as part of display.
-    for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "modelGroup")
-        {
-            if(e->GetAttribute("selected") == "1")
-            {
-                wxArrayString ModelsInGroup=wxSplit(e->GetAttribute("models"),',');
-                for(int i=0;i<ModelsInGroup.size();i++)
-                {
-                    SetModelAsPartOfDisplay(ModelsInGroup[i]);
-                }
-            }
-        }
-    }
     UpdateModelsList();
     UpdatePreview();
-
 }
 
 void xLightsFrame::SetModelAsPartOfDisplay(wxString& model)
