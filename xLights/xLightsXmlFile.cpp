@@ -969,6 +969,29 @@ bool xLightsXmlFile::LoadV3Sequence()
     return is_open;
 }
 
+void ConvertAllChildrenToFixedPointTiming(wxXmlNode *node) {
+    while (node != nullptr) {
+        if (node->GetName() == "Effect")
+        {
+            wxString start_time, end_time;
+            int new_start_time, new_end_time;
+            double t1, t2;
+            node->GetAttribute("startTime", &start_time);
+            node->GetAttribute("endTime", &end_time);
+            start_time.ToDouble(&t1);
+            end_time.ToDouble(&t2);
+            new_start_time = (int)(t1 * 1000.0);
+            new_end_time = (int)(t2 * 1000.0);
+            node->DeleteAttribute("startTime");
+            node->DeleteAttribute("endTime");
+            node->AddAttribute("startTime", wxString::Format("%d", new_start_time));
+            node->AddAttribute("endTime", wxString::Format("%d", new_end_time));
+        } else {
+            ConvertAllChildrenToFixedPointTiming(node->GetChildren());
+        }
+        node = node->GetNext();
+    }
+}
 void xLightsXmlFile::ConvertToFixedPointTiming()
 {
     wxXmlNode* root=seqDocument.GetRoot();
@@ -977,37 +1000,7 @@ void xLightsXmlFile::ConvertToFixedPointTiming()
     {
         if (e->GetName() == "ElementEffects")
         {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
-            {
-                if (element->GetName() == "Element")
-                {
-                    for( wxXmlNode* layer=element->GetChildren(); layer!=NULL; layer=layer->GetNext() )
-                    {
-                        if (layer->GetName() == "EffectLayer")
-                        {
-                            for( wxXmlNode* effect=layer->GetChildren(); effect!=NULL; effect=effect->GetNext() )
-                            {
-                                if (effect->GetName() == "Effect")
-                                {
-                                    wxString start_time, end_time;
-                                    int new_start_time, new_end_time;
-                                    double t1, t2;
-                                    effect->GetAttribute("startTime", &start_time);
-                                    effect->GetAttribute("endTime", &end_time);
-                                    start_time.ToDouble(&t1);
-                                    end_time.ToDouble(&t2);
-                                    new_start_time = (int)(t1 * 1000.0);
-                                    new_end_time = (int)(t2 * 1000.0);
-                                    effect->DeleteAttribute("startTime");
-                                    effect->DeleteAttribute("endTime");
-                                    effect->AddAttribute("startTime", wxString::Format("%d", new_start_time));
-                                    effect->AddAttribute("endTime", wxString::Format("%d", new_end_time));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            ConvertAllChildrenToFixedPointTiming(e->GetChildren());
         }
     }
 }
