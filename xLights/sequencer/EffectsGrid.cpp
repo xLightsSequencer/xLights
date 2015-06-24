@@ -1409,6 +1409,16 @@ void EffectsGrid::DrawTimings()
     }
 }
 
+void EffectsGrid::DrawPlayMarker()
+{
+    xlColor play_line = xlRED;
+    int play_pos = mTimeline->GetPlayMarker();
+    if( play_pos > 0 )
+    {
+        DrawGLUtils::DrawLine(play_line,255,play_pos,0,play_pos,GetSize().y,.2);
+    }
+}
+
 void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
     int starti = wxAtoi(e->GetSettings().Get("E_TEXTCTRL_Eff_On_Start", "100"));
     int endi = wxAtoi(e->GetSettings().Get("E_TEXTCTRL_Eff_On_End", "100"));
@@ -1851,6 +1861,7 @@ void EffectsGrid::Draw()
         DrawVerticalLines();
         DrawEffects();
         DrawTimings();
+        DrawPlayMarker();
     }
 
     if((mDragging || mCellRangeSelected) && !mPartialCellSelected)

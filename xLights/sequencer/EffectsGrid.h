@@ -97,6 +97,7 @@ private:
     void DrawTimingEffects(int row);
     void DrawEffects();
     void DrawTimings();
+    void DrawPlayMarker();
     bool AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position, bool offset);
     void RunMouseOverHitTests(int rowIndex, int x,int y);

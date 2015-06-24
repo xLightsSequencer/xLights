@@ -525,6 +525,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             mainSequencer->PanelTimeLine->PlayStopped();
             mainSequencer->PanelWaveForm->UpdatePlayMarker();
             mainSequencer->UpdateTimeDisplay(playStartTime);
+            mainSequencer->PanelEffectGrid->ForceRefresh();
         }
 
         if (playType != PLAY_TYPE_MODEL) {
@@ -584,6 +585,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
             mainSequencer->PanelTimeLine->PlayStopped();
             mainSequencer->PanelWaveForm->UpdatePlayMarker();
+            mainSequencer->PanelEffectGrid->ForceRefresh();
             mainSequencer->UpdateTimeDisplay(playStartTime);
         }
 
@@ -716,6 +718,7 @@ void xLightsFrame::StopSequence(wxCommandEvent& event)
         }
         mainSequencer->PanelTimeLine->PlayStopped();
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
+        mainSequencer->PanelEffectGrid->ForceRefresh();
         mainSequencer->UpdateTimeDisplay(playStartTime);
     }
     playType = PLAY_TYPE_STOPPED;
@@ -742,6 +745,7 @@ void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
 
         mainSequencer->PanelTimeLine->ResetMarkers(0);
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
+        mainSequencer->PanelEffectGrid->ForceRefresh();
         mainSequencer->UpdateTimeDisplay(0);
     }
 }
@@ -756,6 +760,7 @@ void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
     int end_ms = CurrentSeqXmlFile->GetSequenceDurationMS();
     mainSequencer->PanelTimeLine->ResetMarkers(end_ms);
     mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->PanelEffectGrid->ForceRefresh();
     mainSequencer->UpdateTimeDisplay(end_ms);
 }
 
@@ -883,6 +888,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time);
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
         mainSequencer->PanelWaveForm->CheckNeedToScroll();
+        mainSequencer->PanelEffectGrid->ForceRefresh();
         mainSequencer->UpdateTimeDisplay(current_play_time);
     }
 

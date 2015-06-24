@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Add a play scrub line.
+    -- enh(gil)   Use fixed point integers for all effect position calculation.
     -- bug(dkulp) OSX crashes if toggling back and forth between Sequencer and other tabs and there are floating windows
     -- enh(dkulp) Allow "-P#", "-P##", " p#", and " p##" for detecting CCR/CCBs in LMS import
     -- bug(dkulp) LMS import fails to convert RGB elements if the effects on the three individual channels don't have the exact start/end times
