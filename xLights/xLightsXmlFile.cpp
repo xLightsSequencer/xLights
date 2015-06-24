@@ -62,6 +62,19 @@ bool xLightsXmlFile::IsV3Sequence()
     return false;
 }
 
+bool xLightsXmlFile::NeedsTimesCorrected()
+{
+    char buf[1024];
+    wxFile file(GetFullPath());
+    int i = file.Read(buf, 1024);
+    file.Close();
+    if( (wxString(buf, i).Contains("<xsequence")) &&
+        (wxString(buf, i).Contains("FixedPointTiming"))) {
+        return false;
+    }
+    return true;
+}
+
 bool xLightsXmlFile::SaveCopy()
 {
     wxString archive_dir = xLightsFrame::CurrentDir + GetPathSeparators() + "ArchiveV3";
@@ -733,6 +746,7 @@ void xLightsXmlFile::CreateNew()
     root->AddAttribute("BaseChannel","0");
     root->AddAttribute("ChanCtrlBasic","0");
     root->AddAttribute("ChanCtrlColor","0");
+    root->AddAttribute("FixedPointTiming","1");
     seqDocument.SetRoot(root);
 
     wxXmlNode* node;
@@ -955,6 +969,49 @@ bool xLightsXmlFile::LoadV3Sequence()
     return is_open;
 }
 
+void xLightsXmlFile::ConvertToFixedPointTiming()
+{
+    wxXmlNode* root=seqDocument.GetRoot();
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "ElementEffects")
+        {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            {
+                if (element->GetName() == "Element")
+                {
+                    for( wxXmlNode* layer=element->GetChildren(); layer!=NULL; layer=layer->GetNext() )
+                    {
+                        if (layer->GetName() == "EffectLayer")
+                        {
+                            for( wxXmlNode* effect=layer->GetChildren(); effect!=NULL; effect=effect->GetNext() )
+                            {
+                                if (effect->GetName() == "Effect")
+                                {
+                                    wxString start_time, end_time;
+                                    int new_start_time, new_end_time;
+                                    double t1, t2;
+                                    effect->GetAttribute("startTime", &start_time);
+                                    effect->GetAttribute("endTime", &end_time);
+                                    start_time.ToDouble(&t1);
+                                    end_time.ToDouble(&t2);
+                                    new_start_time = (int)(t1 * 1000.0);
+                                    new_end_time = (int)(t2 * 1000.0);
+                                    effect->DeleteAttribute("startTime");
+                                    effect->DeleteAttribute("endTime");
+                                    effect->AddAttribute("startTime", wxString::Format("%d", new_start_time));
+                                    effect->AddAttribute("endTime", wxString::Format("%d", new_end_time));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 bool xLightsXmlFile::LoadSequence()
 {
     if( !seqDocument.Load(GetFullPath())) return false;
@@ -962,6 +1019,13 @@ bool xLightsXmlFile::LoadSequence()
     is_open = true;
 
     wxXmlNode* root=seqDocument.GetRoot();
+
+    if( NeedsTimesCorrected() )
+    {
+        ConvertToFixedPointTiming();
+        root->AddAttribute("FixedPointTiming","1");
+    }
+
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -1250,6 +1314,27 @@ void xLightsXmlFile::SetSequenceDuration(const wxString& length)
        }
     }
 }
+
+void xLightsXmlFile::UpdateVersion()
+{
+    wxXmlNode* root=seqDocument.GetRoot();
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+       if (e->GetName() == "head")
+       {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            {
+                if( element->GetName() == "version")
+                {
+                    SetNodeContent(element, xlights_version_string);
+                    return;
+                }
+            }
+       }
+    }
+}
+
 void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     wxTextFile f;
@@ -1512,6 +1597,7 @@ wxArrayString xLightsXmlFile::GetTimingList(SequenceElements& seq_elements)
 
 bool xLightsXmlFile::Save()
 {
+    UpdateVersion();
     return seqDocument.Save(GetFullPath());
 }
 
@@ -1548,8 +1634,8 @@ void xLightsXmlFile::WriteEffects(EffectLayer *layer,
         if (effect->GetID()) {
             effect_node->AddAttribute("id", string_format("%d", effect->GetID()));
         }
-        effect_node->AddAttribute("startTimeMS", string_format("%d", effect->GetStartTimeMS()));
-        effect_node->AddAttribute("endTimeMS", string_format("%d", effect->GetEndTimeMS()));
+        effect_node->AddAttribute("startTime", string_format("%d", effect->GetStartTimeMS()));
+        effect_node->AddAttribute("endTime", string_format("%d", effect->GetEndTimeMS()));
         wxString palette = effect->GetPaletteAsString();
         if (palette != "") {
             size = colorPalettes.size();
@@ -1731,6 +1817,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
             }
         }
     }
+    UpdateVersion();
     seqDocument.Save(GetFullPath());
 }
 
@@ -2390,16 +2477,41 @@ void xLightsXmlFile::FixEffectPresets(wxXmlNode* effects_node)
                 wxString palette1 = SplitPalette(data1);
                 wxString palette2 = SplitPalette(data2);
 
-                wxString start_time = wxString::Format("%f",1.0);
-                wxString end_time = wxString::Format("%f",4.0);
+                wxString start_time = wxString::Format("%d",1000);
+                wxString end_time = wxString::Format("%d",4000);
                 wxString row1 = wxString::Format("%d",1);
                 wxString row2 = wxString::Format("%d",2);
-                wxString column_start = wxString::Format("%f",1.0);
+                wxString column_start = wxString::Format("%d",1000);
                 wxString eff_data = effect1 + "\t" + data1 + "\t" + palette1 + "\t" + start_time + "\t" + end_time + "\t" + row1 + "\t" + column_start + "\n";
                          eff_data += effect2 + "\t" + data2 + "\t" + palette2 + "\t" + start_time + "\t" + end_time + "\t" + row2 + "\t" + column_start + "\n";
 
                 ele->DeleteAttribute("settings");
                 ele->AddAttribute("settings", eff_data);
+                ele->DeleteAttribute("version");
+                ele->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
+            }
+            else if( version < "0004" )
+            {
+                wxString settings=ele->GetAttribute("settings");
+                wxArrayString all_efdata = wxSplit(settings, '\n');
+                for( int i = 0; i < all_efdata.size()-1; i++ )
+                {
+                    wxArrayString efdata = wxSplit(all_efdata[i], '\t');
+                    double time;
+                    efdata[3].ToDouble(&time);
+                    int new_start_time = (int)(time * 1000.0);
+                    efdata[4].ToDouble(&time);
+                    int new_end_time = (int)(time * 1000.0);
+                    efdata[6].ToDouble(&time);
+                    int column_start_time = (int)(time * 1000.0);
+                    efdata[3] = wxString::Format("%d",new_start_time);
+                    efdata[4] = wxString::Format("%d",new_end_time);
+                    efdata[6] = wxString::Format("%d",column_start_time);
+                    all_efdata[i] = wxJoin(efdata, '\t');
+                }
+                settings = wxJoin(all_efdata, '\n');
+                ele->DeleteAttribute("settings");
+                ele->AddAttribute("settings", settings);
                 ele->DeleteAttribute("version");
                 ele->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
             }

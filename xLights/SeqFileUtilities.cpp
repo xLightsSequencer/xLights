@@ -1816,7 +1816,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 wxString name_attr;
                 wxString acceleration;
                 wxString state1_time, state2_time, ramp_time_ext, attr;
-                double start_time, end_time, ramp_time;
+                int start_time, end_time, ramp_time;
                 element->GetAttribute("name", &name_attr);
                 element->GetAttribute("acceleration", &acceleration);
                 element->GetAttribute("layer", &attr);
@@ -1828,14 +1828,11 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 state1->GetAttribute("time", &state1_time);
                 state2->GetAttribute("time", &state2_time);
                 ramp->GetAttribute("timeExt", &ramp_time_ext);
-                state1_time.ToDouble(&start_time);
-                state2_time.ToDouble(&end_time);
-                ramp_time_ext.ToDouble(&ramp_time);
-                start_time /= 100.0;
-                end_time /= 100.0;
-                ramp_time /= 100.0;
+                start_time = wxAtoi(state1_time) * 10;
+                end_time = wxAtoi(state2_time) * 10;
+                ramp_time = wxAtoi(ramp_time_ext) * 10;
                 end_time += ramp_time;
-                double head_duration = (1.0 - ramp_time/(end_time-start_time)) * 100.0;
+                double head_duration = (1.0 - (double)ramp_time/((double)end_time-(double)start_time)) * 100.0;
                 wxString settings = "E_CHECKBOX_Morph_End_Link=0,E_CHECKBOX_Morph_Start_Link=0,E_CHECKBOX_ShowHeadAtStart=0,E_NOTEBOOK_Morph=Start,E_SLIDER_MorphAccel=0,E_SLIDER_Morph_Repeat_Count=0,E_SLIDER_Morph_Repeat_Skip=1,E_SLIDER_Morph_Stagger=0";
                 settings += acceleration + ",";
                 wxString duration = wxString::Format("E_SLIDER_MorphDuration=%d,",(int)head_duration);
@@ -1970,8 +1967,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
                 if ("flowy" == element->GetName()) {
                     wxString centerX, centerY;
-                    double startms = wxAtoi(element->GetAttribute("startTime")) * 10;
-                    double endms = wxAtoi(element->GetAttribute("endTime")) * 10;
+                    int startms = wxAtoi(element->GetAttribute("startTime")) * 10;
+                    int endms = wxAtoi(element->GetAttribute("endTime")) * 10;
                     wxString type = element->GetAttribute("flowyType");
                     wxString color_string = element->GetAttribute("Colors");
                     wxString sRed, sGreen, sBlue, color;
@@ -2013,12 +2010,12 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     if( revolutions == 0 ) revolutions = 3;  // algorithm needs non-zero value until we figure out better way to draw effect
                     int startRadius = wxAtoi(element->GetAttribute("startRadius"));
                     int endRadius = wxAtoi(element->GetAttribute("endRadius"));
-                    layer = FindOpenLayer(model, layer_index, (int)startms, (int)endms, reserved);
+                    layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                     if( type == "Spiral" )
                     {
-                        double tailms = wxAtoi(element->GetAttribute("tailTimeLength")) * 10;
+                        int tailms = wxAtoi(element->GetAttribute("tailTimeLength")) * 10;
                         endms += tailms;
-                        double duration = (1.0 - tailms/(endms-startms)) * 100.0;
+                        double duration = (1.0 - (double)tailms/((double)endms-(double)startms)) * 100.0;
                         int startWidth = wxAtoi(element->GetAttribute("startDotSize"));
                         int endWidth = wxAtoi(element->GetAttribute("endDotSize"));
                         wxString settings = "E_CHECKBOX_Galaxy_Reverse=" + wxString::Format("%d", startAngle < endAngle)
@@ -2037,7 +2034,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                                             + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00"
                                             + ",T_TEXTCTRL_Fadeout=0.00";
-                        layer->AddEffect(0, galaxy_index, "Galaxy", settings, palette, (int)startms, (int)endms, false, false);
+                        layer->AddEffect(0, galaxy_index, "Galaxy", settings, palette, startms, endms, false, false);
                     }
                     else if( type == "Shockwave" )
                     {
@@ -2054,7 +2051,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                                             + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00"
                                             + ",T_TEXTCTRL_Fadeout=0.00";
-                        layer->AddEffect(0, shockwave_index, "Shockwave", settings, palette, (int)startms, (int)endms, false, false);
+                        layer->AddEffect(0, shockwave_index, "Shockwave", settings, palette, startms, endms, false, false);
                     }
                     else if( type == "Fan" )
                     {
@@ -2075,13 +2072,13 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Fan_Num_Blades=" + wxString::Format("%d", blades)
                                             + ",E_SLIDER_Fan_Num_Elements=" + wxString::Format("%d", (int)(360.0/(double)blades*(double)blade_width/100.0/(double)elementStepAngle))
                                             + ",E_SLIDER_Fan_End_Radius=" + wxString::Format("%d", endRadius)
-                                            + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond*((endms-startms)/1000.0)*3.6))
+                                            + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond*((double)(endms-startms)/1000.0)*3.6))
                                             + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle)
                                             + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius)
                                             + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                                             + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00"
                                             + ",T_TEXTCTRL_Fadeout=0.00";
-                        layer->AddEffect(0, fan_index, "Fan", settings, palette, (int)startms, (int)endms, false, false);
+                        layer->AddEffect(0, fan_index, "Fan", settings, palette, startms, endms, false, false);
                     }
                 }
             }

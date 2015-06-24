@@ -89,6 +89,7 @@ class xLightsXmlFile : public wxFileName
         wxArrayString GetTimingList(SequenceElements& seq_elements);
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
+        void UpdateVersion();
 
         bool IsOpen() { return is_open; }
         bool HasAudioMedia() { return has_audio_media; }
@@ -96,6 +97,8 @@ class xLightsXmlFile : public wxFileName
         bool WasConverted() { return was_converted; }
         void AcknowledgeConversion() { was_converted = false; }  // called to turn off conversion warning
         bool IsV3Sequence();
+        bool NeedsTimesCorrected();
+        void ConvertToFixedPointTiming();
         bool ExtractMetaTagsFromMP3(wxString filename);
 
         void SetRenderMode(const wxString& mode);
