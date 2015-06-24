@@ -2204,8 +2204,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         model->AddEffectLayer();
                     }
 
-                    int start_time = wxAtoi(startms) * 10;
-                    int end_time = wxAtoi(endms) * 10;
+                    int start_time = wxAtoi(startms);
+                    int end_time = wxAtoi(endms);
                     layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
                     if ("" == imagePfx) {
                         wxFileDialog fd(this,
@@ -2294,7 +2294,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     } else if (isPartOfModel) {
                         if (startc == xlBLACK || endc == xlBLACK || endc == startc) {
                             imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, reverse_rows, (startc == xlBLACK) ? endc : startc, y_offset);
-                            wxString ramp = wxString::Format("%lf", (end_time - start_time));
+                            wxString ramp = wxString::Format("%lf", (double)(end_time - start_time) / 1000.0);
                             if (endc == xlBLACK) {
                                 rd = ramp;
                             }
@@ -2351,8 +2351,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     //  preRampTime="0" rampTime="0" fadeToBright="0" fadeFromBright="0" imageIndex="5" savedIndex="0">
 
                     int idx = wxAtoi(element->GetAttribute("imageIndex"));
-                    double startms = wxAtoi(element->GetAttribute("startCentisecond")) * 10;
-                    double endms = wxAtoi(element->GetAttribute("endCentisecond")) * 10;
+                    int startms = wxAtoi(element->GetAttribute("startCentisecond")) * 10;
+                    int endms = wxAtoi(element->GetAttribute("endCentisecond")) * 10;
                     int layer_index = wxAtoi(element->GetAttribute("layer"));
                     int rampDownTime = wxAtoi(element->GetAttribute("rampTime")) * 10;
                     int rampUpTime = wxAtoi(element->GetAttribute("preRampTime")) * 10;
@@ -2485,8 +2485,8 @@ void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int ef
         + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
-    double start_time = pos * 50.0 / 4410.0 / 1000;
-    double end_time = (epos - 1) * 50.0 / 4410.0 / 1000;
+    int start_time = (int)(pos * 50.0 / 4410.0);
+    int end_time = (int)((epos - 1) * 50.0 / 4410.0);
     layer->AddEffect(0, effect, settings, palette, start_time, end_time, false, false);
 }
 
