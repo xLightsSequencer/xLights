@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.1.8  Jun 24, 2015
     -- enh(gil)   Only allow effect endpoints to be dragged to positions that align with sequence timing.
     -- enh(gil)   Add a play scrub line.
     -- enh(gil)   Use fixed point integers for all effect position calculation.
