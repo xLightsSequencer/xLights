@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Only allow effect endpoints to be dragged to positions that align with sequence timing.
     -- enh(gil)   Add a play scrub line.
     -- enh(gil)   Use fixed point integers for all effect position calculation.
     -- bug(dkulp) OSX crashes if toggling back and forth between Sequencer and other tabs and there are floating windows

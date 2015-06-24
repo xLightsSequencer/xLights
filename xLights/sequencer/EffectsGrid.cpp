@@ -1045,6 +1045,7 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
                             (mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS() - mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS()) / 2;
         deltaTime = time - midpoint;
     }
+    deltaTime = mTimeline->RoundToMultipleOfPeriod(deltaTime, mSequenceElements->GetFrequency());
     if(deltaTime < 0.0)
     {
         deltaTime = std::max(deltaTime, -toLeft);
@@ -1066,6 +1067,7 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
 void EffectsGrid::ResizeSingleEffect(int position)
 {
     int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
+    time = mTimeline->RoundToMultipleOfPeriod(time, mSequenceElements->GetFrequency());
     if(mResizingMode==EFFECT_RESIZE_LEFT)
     {
         int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex);
@@ -1146,8 +1148,7 @@ void EffectsGrid::ResizeSingleEffect(int position)
     }
     Refresh(false);
     // Move time line and waveform to new position
-    int selected_time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
-    UpdateTimePosition(selected_time);
+    UpdateTimePosition(time);
 }
 
 
@@ -2075,6 +2076,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
             }
         }
         int delta_step = deltaMS / (end_row-start_row);
+        delta_step = mTimeline->RoundToMultipleOfPeriod(delta_step, mSequenceElements->GetFrequency());
         for(int row=start_row;row<=end_row;row++)
         {
             EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
