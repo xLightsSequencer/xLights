@@ -78,6 +78,7 @@ private:
 	void mouseWheelMoved(wxMouseEvent& event);
 	void mouseReleased(wxMouseEvent& event);
 	void rightClick(wxMouseEvent& event);
+	void mouseLeftDClick(wxMouseEvent& event);
 	void mouseLeftWindow(wxMouseEvent& event);
     void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
 	void keyPressed(wxKeyEvent& event);
@@ -102,6 +103,7 @@ private:
     void Resize(int position, bool offset);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
     void UpdateTimePosition(int time);
+    void UpdateZoomPosition(int time);
     void EstablishSelectionRectangle();
     void UpdateSelectionRectangle();
     void UpdateSelectedEffects();

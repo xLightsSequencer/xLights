@@ -17,6 +17,12 @@ wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 
 class TimeLine;
 
+enum DRAG_MODE {
+    DRAG_NORMAL,
+    DRAG_LEFT_EDGE,
+    DRAG_RIGHT_EDGE
+};
+
 class Waveform : public xlGLCanvas
 {
     public:
@@ -79,6 +85,7 @@ class Waveform : public xlGLCanvas
         int m_channels;
         bool mPointSize;
         bool m_dragging;
+        DRAG_MODE m_drag_mode;
         float* m_left_data;
         float* m_right_data;
 

@@ -31,6 +31,7 @@ EVT_LEFT_DOWN(EffectsGrid::mouseDown)
 EVT_LEFT_UP(EffectsGrid::mouseReleased)
 EVT_MOUSE_CAPTURE_LOST(EffectsGrid::OnLostMouseCapture)
 EVT_RIGHT_DOWN(EffectsGrid::rightClick)
+EVT_LEFT_DCLICK(EffectsGrid::mouseLeftDClick)
 //EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
 //EVT_KEY_DOWN(EffectsGrid::keyPressed)
 //EVT_KEY_UP(EffectsGrid::keyReleased)
@@ -87,6 +88,12 @@ EffectsGrid::~EffectsGrid()
 	delete mTimingColor;
 	delete mTimingVerticalLine;
 	delete mSelectionColor;
+}
+
+void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
+{
+    int selectedTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+    UpdateTimePosition(selectedTimeMS);
 }
 
 void EffectsGrid::rightClick(wxMouseEvent& event)
@@ -427,7 +434,8 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         }
         else if( mResizingMode == EFFECT_RESIZE_MOVE )
         {
-            selectedTimeMS = selectedEffect->GetStartPosition() + (selectedEffect->GetEndPosition()-selectedEffect->GetStartPosition())/2;
+            int selected_pos = selectedEffect->GetStartPosition() + (selectedEffect->GetEndPosition()-selectedEffect->GetStartPosition())/2;
+            selectedTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(selected_pos);
         }
         if(!(event.ShiftDown() || event.ControlDown() || event.AltDown()))
         {
@@ -510,7 +518,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             Refresh(false);
         }
     }
-    UpdateTimePosition(selectedTimeMS);
+    UpdateZoomPosition(selectedTimeMS);
 }
 
 void adjustMS(int timeMS, int &min, int &max) {
@@ -563,12 +571,12 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED )
         {
             int selected_time = (int)(mSelectedEffect->GetStartTimeMS());
-            UpdateTimePosition(selected_time);
+            UpdateZoomPosition(selected_time);
         }
         else if( mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED )
         {
             int selected_time = (int)(mSelectedEffect->GetEndTimeMS());
-            UpdateTimePosition(selected_time);
+            UpdateZoomPosition(selected_time);
         }
     } else if (mDragging) {
         ReleaseMouse();
@@ -1148,7 +1156,7 @@ void EffectsGrid::ResizeSingleEffect(int position)
     }
     Refresh(false);
     // Move time line and waveform to new position
-    UpdateTimePosition(time);
+    UpdateZoomPosition(time);
 }
 
 
@@ -1198,6 +1206,11 @@ void EffectsGrid::UpdateTimePosition(int time)
     wxCommandEvent eventTimeSelected(EVT_TIME_SELECTED);
     eventTimeSelected.SetInt(time);
     wxPostEvent(mParent, eventTimeSelected);
+}
+
+void EffectsGrid::UpdateZoomPosition(int time)
+{
+    mTimeline->SetZoomMarkerMS(time);
 }
 
 void EffectsGrid::EstablishSelectionRectangle()

@@ -7,6 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Clicking effects in grid does not alter play position in waveform.  Allows a selected play range to stay active.
+                  If you want to move the play start location use a double-click or click in the waveform.
+                  Now you can adjust the waveform play range by putting cursor near the edges of the selected range.
 4.1.8  Jun 24, 2015
     -- enh(gil)   Only allow effect endpoints to be dragged to positions that align with sequence timing.
     -- enh(gil)   Add a play scrub line.

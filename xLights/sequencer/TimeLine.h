@@ -36,7 +36,9 @@ class TimeLine : public wxWindow
         void SetPlayMarkerMS(int ms);
         int GetPlayMarker();
 
-        void SetSelectedPositionStart(int pos);
+        void SetZoomMarkerMS(int ms);
+
+        void SetSelectedPositionStart(int pos, bool reset_end = true);
         void SetSelectedPositionStartMS(int time);
         void SetSelectedPositionEnd(int pos);
         int GetSelectedPositionStart() { return mSelectedPlayMarkerStart; }
@@ -122,6 +124,7 @@ class TimeLine : public wxWindow
         int mCurrentPlayMarkerMS;
         int mSequenceEndMarker;
         int mSequenceEndMarkerMS;
+        int mZoomMarkerMS;
         bool m_dragging;
         bool timeline_initiated_play;
 

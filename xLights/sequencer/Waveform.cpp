@@ -53,6 +53,7 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     m_right_data = NULL;
     mAudioIsLoaded = false;
     m_dragging = false;
+    m_drag_mode = DRAG_NORMAL;
     mParent = parent;
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     mZoomLevel=0;
@@ -131,7 +132,10 @@ void Waveform::mouseLeftDown( wxMouseEvent& event)
         m_dragging = true;
         CaptureMouse();
     }
-    mTimeline->SetSelectedPositionStart(event.GetX());
+    if( m_drag_mode == DRAG_NORMAL )
+    {
+        mTimeline->SetSelectedPositionStart(event.GetX());
+    }
     SetFocus();
     Refresh(false);
 }
@@ -154,8 +158,35 @@ void Waveform::mouseMoved( wxMouseEvent& event)
     if(!mIsInitialized){return;}
     if (m_dragging)
     {
-        mTimeline->SetSelectedPositionEnd(event.GetX());
+        if( m_drag_mode == DRAG_LEFT_EDGE )
+        {
+            mTimeline->SetSelectedPositionStart(event.GetX(), false);
+        }
+        else
+        {
+            mTimeline->SetSelectedPositionEnd(event.GetX());
+        }
         Refresh(false);
+    }
+    else
+    {
+        int selected_x1 = mTimeline->GetSelectedPositionStart();
+        int selected_x2 = mTimeline->GetSelectedPositionEnd();
+        if( event.GetX() >= selected_x1 && event.GetX() < selected_x1+6 )
+        {
+            SetCursor(wxCURSOR_POINT_LEFT);
+            m_drag_mode = DRAG_LEFT_EDGE;
+        }
+        else if( event.GetX() > selected_x2-6 && event.GetX() <= selected_x2 )
+        {
+            SetCursor(wxCURSOR_POINT_RIGHT);
+            m_drag_mode = DRAG_RIGHT_EDGE;
+        }
+        else
+        {
+            SetCursor(wxCURSOR_ARROW);
+            m_drag_mode = DRAG_NORMAL;
+        }
     }
 }
 

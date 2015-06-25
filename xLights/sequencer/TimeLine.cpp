@@ -135,17 +135,26 @@ void TimeLine::SetPlayMarkerMS(int ms)
     Refresh(false);
 }
 
+void TimeLine::SetZoomMarkerMS(int ms)
+{
+    mZoomMarkerMS = ms;
+}
+
 int TimeLine::GetPlayMarker()
 {
     return mCurrentPlayMarker;
 }
 
-void TimeLine::SetSelectedPositionStart(int pos)
+void TimeLine::SetSelectedPositionStart(int pos, bool reset_end)
 {
     mSelectedPlayMarkerStart = GetPositionFromSelection(pos);
     mSelectedPlayMarkerStartMS = GetAbsoluteTimeMSfromPosition(mSelectedPlayMarkerStart);
-    mSelectedPlayMarkerEnd = -1;
-    mSelectedPlayMarkerEndMS = -1;
+    if( reset_end )
+    {
+        mSelectedPlayMarkerEnd = -1;
+        mSelectedPlayMarkerEndMS = -1;
+    }
+    mZoomMarkerMS = mSelectedPlayMarkerStartMS;
     Refresh(false);
 }
 
@@ -155,6 +164,7 @@ void TimeLine::SetSelectedPositionStartMS(int time)
     mSelectedPlayMarkerStart = GetPositionFromTimeMS(mSelectedPlayMarkerStartMS);
     mSelectedPlayMarkerEnd = -1;
     mSelectedPlayMarkerEndMS = -1;
+    mZoomMarkerMS = mSelectedPlayMarkerStartMS;
     Refresh(false);
 }
 
@@ -271,6 +281,7 @@ void TimeLine::ResetMarkers(int ms)
     mCurrentPlayMarkerMS = -1;
     mCurrentPlayMarkerStart = mSelectedPlayMarkerStart;
     mCurrentPlayMarkerStartMS = mSelectedPlayMarkerStartMS;
+    mZoomMarkerMS = mStartTimeMS + (mEndTimeMS - mStartTimeMS)/2;
 }
 
 int TimeLine::GetStartPixelOffset()
@@ -303,11 +314,11 @@ int TimeLine::GetTimeFrequency()
 void TimeLine::SetZoomLevel(int level)
 {
     mZoomLevel = level;
-    if( (mSelectedPlayMarkerStartMS != -1) && ((mEndTimeMS - mStartTimeMS) > 0) )
+    if( (mZoomMarkerMS != -1) && ((mEndTimeMS - mStartTimeMS) > 0) )
     {
-        float marker_ratio = (double)(mSelectedPlayMarkerStartMS - mStartTimeMS) / (double)(mEndTimeMS - mStartTimeMS);
+        float marker_ratio = (double)(mZoomMarkerMS - mStartTimeMS) / (double)(mEndTimeMS - mStartTimeMS);
         int total_ms = GetTotalViewableTimeMS();
-        mStartTimeMS = mSelectedPlayMarkerStartMS - marker_ratio * total_ms;
+        mStartTimeMS = mZoomMarkerMS - marker_ratio * total_ms;
         if( mStartTimeMS < 0 )
         {
             mStartTimeMS = 0;
