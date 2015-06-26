@@ -3,6 +3,7 @@
 
 //(*Headers(DisplayElementsPanel)
 #include <wx/listctrl.h>
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/panel.h>
@@ -36,9 +37,11 @@ class DisplayElementsPanel: public wxPanel
 		wxButton* ButtonAddModels;
 		wxStaticText* StaticText2;
 		wxButton* ButtonShowAll;
+		wxPanel* Panel_Sizer;
 		wxButton* ButtonMoveDown;
 		wxStaticText* StaticText3;
 		wxCheckedListCtrl* ListCtrlModels;
+		wxScrolledWindow* ScrolledWindowDisplayElements;
 		wxButton* ButtonDeleteModels;
 		wxCheckedListCtrl* ListCtrlViews;
 		wxButton* ButtonAddViews;
@@ -62,6 +65,8 @@ class DisplayElementsPanel: public wxPanel
 		static const long ID_STATICTEXT3;
 		static const long ID_BUTTON_MOVE_UP;
 		static const long ID_BUTTON_MOVE_DOWN;
+		static const long ID_SCROLLED_Display_Elements;
+		static const long ID_PANEL1;
 		//*)
 
 	private:
@@ -88,6 +93,7 @@ class DisplayElementsPanel: public wxPanel
 		void OnButtonMoveUpClick(wxCommandEvent& event);
 		void OnButtonDeleteModelsClick(wxCommandEvent& event);
 		void OnButtonMoveDownClick(wxCommandEvent& event);
+		void OnResize(wxSizeEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
