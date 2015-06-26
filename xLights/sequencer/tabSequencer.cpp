@@ -1262,7 +1262,7 @@ void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {
 
 void xLightsFrame::ImportTimingElement()
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString, "Text files (*.txt)|*.txt|LOR Files (*.lms)|*.lms", wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
+    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString, "Text files (*.txt)|*.txt|LOR (*.lms)|*.lms|LOR (*.las)|*.las", wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     wxString fDir;
     if (OpenDialog->ShowModal() == wxID_OK)
     {
@@ -1272,7 +1272,7 @@ void xLightsFrame::ImportTimingElement()
         if(filenames.size() > 0)
         {
             wxFileName file1(filenames[0]);
-            if( file1.GetExt().Lower() == "lms" )
+            if( file1.GetExt().Lower() == "lms"|| file1.GetExt().Lower() == "las" )
             {
                 CurrentSeqXmlFile->ProcessLorTiming(fDir, filenames, this);
             }
