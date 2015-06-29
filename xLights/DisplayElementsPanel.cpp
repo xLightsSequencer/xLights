@@ -159,6 +159,13 @@ void DisplayElementsPanel::Initialize()
     PopulateModels();
 }
 
+void DisplayElementsPanel::UpdateViews()
+{
+    PopulateViews();
+    PopulateModels();
+    SelectView("Master View");
+}
+
 void DisplayElementsPanel::AddViewToList(const wxString& viewName, bool isChecked)
 {
     wxListItem li;
@@ -259,7 +266,10 @@ void DisplayElementsPanel::PopulateModels()
         for(int i = 0; i < mSequenceElements->GetElementCount(); i++)
         {
             Element* elem = mSequenceElements->GetElement(i);
-            AddModelToList(elem);
+            if( elem->GetType() == "model" )
+            {
+                AddModelToList(elem);
+            }
         }
     }
 }
