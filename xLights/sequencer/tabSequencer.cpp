@@ -287,7 +287,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     sPreview1->Refresh();
     sPreview2->Refresh();
     m_mgr->Update();
-    displayElementsPanel->UpdateViews();
+    displayElementsPanel->Initialize();
 
     mSavedChangeCount = mSequenceElements.GetChangeCount();
 }

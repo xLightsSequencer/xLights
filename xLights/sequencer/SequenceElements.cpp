@@ -476,7 +476,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
             }
         }
     }
-    // Set current view models as visible
+
+    // Select view and set current view models as visible
+    int last_view = xml_file.GetLastView();
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
     {
         wxString viewName = view->GetAttribute("name");
@@ -484,9 +486,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
         std::vector <Element*> new_view;
         mAllViews.push_back(new_view);
         int view_index = mAllViews.size()-1;
-
-        bool isChecked = view->GetAttribute("selected")=="1"?true:false;
-        if( isChecked )
+        if( view_index == last_view )
         {
             AddMissingModelsToSequence(models);
             PopulateView(models, view_index);
@@ -524,7 +524,7 @@ void SequenceElements::AddMissingModelsToSequence(const wxString &models)
             if(!ElementExists(modelName))
             {
                wxString elementType = "model";
-               Element* elem = AddElement(modelName,elementType,false,false,false,false);
+               Element* elem = AddElement(modelName,elementType,true,false,false,false);
                elem->AddEffectLayer();
             }
         }

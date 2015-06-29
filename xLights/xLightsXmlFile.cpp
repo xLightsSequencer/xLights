@@ -75,6 +75,21 @@ bool xLightsXmlFile::NeedsTimesCorrected()
     return true;
 }
 
+int xLightsXmlFile::GetLastView()
+{
+    wxXmlNode* root=seqDocument.GetRoot();
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+       if (e->GetName() == "lastView")
+       {
+            wxString last_view_string = e->GetNodeContent();
+            return wxAtoi(last_view_string);
+       }
+    }
+    return 0;
+}
+
 bool xLightsXmlFile::SaveCopy()
 {
     wxString archive_dir = xLightsFrame::CurrentDir + GetPathSeparators() + "ArchiveV3";
@@ -1655,7 +1670,8 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
             e->GetName() == "ElementEffects"  ||
             e->GetName() == "DataLayers" ||
             e->GetName() == "ColorPalettes" ||
-            e->GetName() == "EffectDB")
+            e->GetName() == "EffectDB" ||
+            e->GetName() == "lastView")
         {
             wxXmlNode* node_to_delete = e;
             e = e->GetNext();
@@ -1677,6 +1693,9 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     wxXmlNode* data_layer = AddChildXmlNode(root, "DataLayers");
     wxXmlNode* display_node = AddChildXmlNode(root, "DisplayElements");
     wxXmlNode* elements_node = AddChildXmlNode(root, "ElementEffects");
+    wxXmlNode* last_view_node = AddChildXmlNode(root, "lastView");
+
+    SetNodeContent(last_view_node, wxString::Format("%d", seq_elements.GetCurrentView()));
 
     int num_data_layers = mDataLayers.GetNumLayers();
     for(int i = 0; i < num_data_layers; ++i )

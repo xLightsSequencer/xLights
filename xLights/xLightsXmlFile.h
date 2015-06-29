@@ -104,6 +104,8 @@ class xLightsXmlFile : public wxFileName
         void SetRenderMode(const wxString& mode);
         wxString GetRenderMode();
 
+        int GetLastView();
+
         // static methods
         static void FixVersionDifferences(const wxString& filename);
         static void FixEffectPresets(wxXmlNode* effects_node);

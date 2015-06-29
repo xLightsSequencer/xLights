@@ -29,7 +29,6 @@ class DisplayElementsPanel: public wxPanel
                                         wxXmlNode* modelGroups,
                                         wxXmlNode* views);
         void Initialize();
-        void UpdateViews();
         void SelectView(const wxString& name);
         void AddMissingModelsOfView(wxString view);
 		//(*Declarations(DisplayElementsPanel)

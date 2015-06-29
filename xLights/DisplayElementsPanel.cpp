@@ -158,13 +158,6 @@ void DisplayElementsPanel::Initialize()
     PopulateModels();
 }
 
-void DisplayElementsPanel::UpdateViews()
-{
-    PopulateViews();
-    PopulateModels();
-    SelectView("Master View");
-}
-
 void DisplayElementsPanel::AddViewToList(const wxString& viewName, bool isChecked)
 {
     wxListItem li;
@@ -207,15 +200,17 @@ void DisplayElementsPanel::PopulateViews()
 
     mNumViews = 0;
     AddViewToList("Master View", true);
+    int view_index = 1;
     for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
     {
         wxString viewName = view->GetAttribute("name");
-        bool isChecked = view->GetAttribute("selected")=="1"?true:false;
+        bool isChecked = (view_index == mSequenceElements->GetCurrentView());
         AddViewToList(viewName, isChecked);
         if( isChecked )
         {
             ListCtrlViews->SetChecked(0,false);
         }
+        view_index++;
     }
 }
 
@@ -238,10 +233,11 @@ void DisplayElementsPanel::PopulateModels()
     mNumModels=0;
     if( mSequenceElements->GetCurrentView() > 0 )
     {
+        int view_index = 1;
         for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
         {
             wxString viewName = view->GetAttribute("name");
-            bool isChecked = view->GetAttribute("selected")=="1"?true:false;
+            bool isChecked = (view_index == mSequenceElements->GetCurrentView());
             if( isChecked )
             {
                 wxString models = view->GetAttribute("models");
@@ -258,6 +254,7 @@ void DisplayElementsPanel::PopulateModels()
                     }
                 }
             }
+            view_index++;
         }
     }
     else
@@ -289,7 +286,6 @@ void DisplayElementsPanel::OnButtonAddViewsClick(wxCommandEvent& event)
 
     wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "view");
     new_node->AddAttribute("name", viewName);
-    new_node->AddAttribute("selected", "1");
     new_node->AddAttribute("models", "");
     mViews->AddChild(new_node);
 
@@ -320,11 +316,11 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
         }
         else
         {
+            int view_index = 1;
             for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
             {
                 wxString viewName = view->GetAttribute("name");
-                bool isChecked = view->GetAttribute("selected")=="1"?true:false;
-                if( isChecked )
+                if( view_index == mSequenceElements->GetCurrentView() )
                 {
                     wxString models = view->GetAttribute("models");
                     for(int i=0;i<dialog.ElementsToAdd.size();i++)
@@ -351,6 +347,7 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
                     mSequenceElements->PopulateView(modelsString, current_view);
                     break;
                 }
+                view_index++;
             }
         }
 
@@ -621,21 +618,16 @@ void DisplayElementsPanel::OnListCtrlViewsItemSelect(wxListEvent& event)
 void DisplayElementsPanel::SelectView(const wxString& name)
 {
     ListCtrlViews->SetChecked(mSequenceElements->GetCurrentView(),false);
-    int j = 0;
+    int view_index = 1;
     int selected_view = 0;
     for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
     {
-        j++;
-        view->DeleteAttribute("selected");
         if( view->GetAttribute("name") == name )
         {
-            view->AddAttribute("selected", "1");
-            selected_view = j;
+            selected_view = view_index;
+            break;
         }
-        else
-        {
-            view->AddAttribute("selected", "0");
-        }
+        view_index++;
     }
     if( selected_view > 0 )
     {

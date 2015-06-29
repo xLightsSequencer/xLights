@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Each sequence will now save the last view that was active so it can be restored.
     -- enh(gil)   Add Views capability.
     -- enh(gil)   Make the display elements window a scrolled window.
     -- enh(steve) Add LOR *.LAS file type to selection for timing imports.
