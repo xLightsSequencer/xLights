@@ -11,6 +11,9 @@
 
 class xLightsXmlFile;  // forward declaration needed due to circular dependency
 
+#define CURRENT_VIEW -1
+#define MASTER_VIEW 0
+
 class Row_Information_Struct
 {
 public:
@@ -57,8 +60,8 @@ class SequenceElements : public ChangeLister
         Element* AddElement(wxString &name, wxString &type,bool visible,bool collapsed,bool active, bool selected);
         Element* AddElement(int index,wxString &name, wxString &type,bool visible,bool collapsed,bool active, bool selected);
         Element* GetElement(const wxString &name);
-        Element* GetElement(int index);
-        int GetElementCount();
+        Element* GetElement(int index, int view = MASTER_VIEW);
+        int GetElementCount(int view = MASTER_VIEW);
         Row_Information_Struct* GetVisibleRowInformation(int index);
         Row_Information_Struct* GetVisibleRowInformationFromRow(int row_number);
         int GetVisibleRowInformationSize();
@@ -67,16 +70,21 @@ class SequenceElements : public ChangeLister
         int GetRowInformationSize();
         int GetMaxModelsDisplayed();
         int GetFirstVisibleModelRow();
-        int GetLastViewIndex();
         int GetTotalNumberOfModelRows();
         void SetMaxRowsDisplayed(int maxRows);
         void SetVisibilityForAllModels(bool visibility);
-        void MoveSequenceElement(int index, int dest);
-        void MoveElementUp(const wxString &name);
-        void MoveElementDown(const wxString &name);
+        void MoveSequenceElement(int index, int dest, int view);
+        void MoveElementUp(const wxString &name, int view);
+        void MoveElementDown(const wxString &name, int view);
         void SetFirstVisibleModelRow(int row);
+        void SetCurrentView(int view);
+        void AddMissingModelsToSequence(const wxString &models);
+        int GetCurrentView() {return mCurrentView;}
+        void PopulateView(const wxString &models, int view);
+        void AddView(const wxString &viewName);
 
         void DeleteElement(const wxString &name);
+        void DeleteElementFromView(const wxString &name, int view);
 
         void PopulateRowInformation();
         void PopulateVisibleRowInformation();
@@ -92,7 +100,7 @@ class SequenceElements : public ChangeLister
         void SetSelectedTimingRow(int row);
 
         int GetNumberOfTimingRows();
-        bool ElementExists(wxString elementName);
+        bool ElementExists(wxString elementName, int view = MASTER_VIEW);
 
         void SetViewsNode(wxXmlNode* viewsNode);
         void SetModelsNode(wxXmlNode *modelsNode, NetInfoClass *ni);
@@ -133,7 +141,8 @@ class SequenceElements : public ChangeLister
             return (element1->Index<element2->Index);
         }
 
-        std::vector<Element*> mElements;
+        void ClearAllViews();
+        std::vector<std::vector <Element*> > mAllViews;
 
         // A vector of all the visible elements that may not be on screen
         // because they all do not fit. The timing elements will always
@@ -153,6 +162,7 @@ class SequenceElements : public ChangeLister
         double mFrequency;
         int mTimingRowCount;
         int mMaxRowsDisplayed;
+        int mCurrentView;
 
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
         int mFirstVisibleModelRow;

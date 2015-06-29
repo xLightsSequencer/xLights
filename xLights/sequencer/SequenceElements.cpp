@@ -17,20 +17,30 @@ SequenceElements::SequenceElements()
     mFirstVisibleModelRow = 0;
     mModelsNode = nullptr;
     mChangeCount = 0;
+    mCurrentView = 0;
+    std::vector <Element*> master_view;
+    mAllViews.push_back(master_view);  // first view must remain as master view that determines render order
 }
 
 SequenceElements::~SequenceElements()
 {
-    for (int x = 0; x < mElements.size(); x++) {
-        delete mElements[x];
+    ClearAllViews();
+}
+
+void SequenceElements::ClearAllViews()
+{
+    for (int y = 0; y < mAllViews[MASTER_VIEW].size(); y++) {
+        delete mAllViews[MASTER_VIEW][y];
     }
+
+    for (int x = 0; x < mAllViews.size(); x++) {
+        mAllViews[x].clear();
+    }
+    mAllViews.clear();
 }
 
 void SequenceElements::Clear() {
-    for (int x = 0; x < mElements.size(); x++) {
-        delete mElements[x];
-    }
-    mElements.clear();
+    ClearAllViews();
     mVisibleRowInformation.clear();
     mRowInformation.clear();
     mSelectedRanges.clear();
@@ -39,6 +49,9 @@ void SequenceElements::Clear() {
     mTimingRowCount = 0;
     mFirstVisibleModelRow = 0;
     mChangeCount = 0;
+    mCurrentView = 0;
+    std::vector <Element*> master_view;
+    mAllViews.push_back(master_view);
 }
 
 EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
@@ -67,34 +80,34 @@ Element* SequenceElements::AddElement(wxString &name,wxString &type,bool visible
 {
     if(!ElementExists(name))
     {
-        mElements.push_back(new Element(this, name,type,visible,collapsed,active,selected));
+        mAllViews[MASTER_VIEW].push_back(new Element(this, name,type,visible,collapsed,active,selected));
         IncrementChangeCount();
-        return mElements[mElements.size()-1];
+        return mAllViews[MASTER_VIEW][mAllViews[MASTER_VIEW].size()-1];
     }
     return NULL;
 }
 
 Element* SequenceElements::AddElement(int index,wxString &name,wxString &type,bool visible,bool collapsed,bool active, bool selected)
 {
-    if(!ElementExists(name) && index <= mElements.size())
+    if(!ElementExists(name) && index <= mAllViews[MASTER_VIEW].size())
     {
-        mElements.insert(mElements.begin()+index,new Element(this, name,type,visible,collapsed,active,selected));
+        mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin()+index,new Element(this, name,type,visible,collapsed,active,selected));
         IncrementChangeCount();
-        return mElements[index];
+        return mAllViews[MASTER_VIEW][index];
     }
     return NULL;
 }
 
-int SequenceElements::GetElementCount()
+int SequenceElements::GetElementCount(int view)
 {
-    return mElements.size();
+    return mAllViews[view].size();
 }
 
-bool SequenceElements::ElementExists(wxString elementName)
+bool SequenceElements::ElementExists(wxString elementName, int view)
 {
-    for(int i=0;i<mElements.size();i++)
+    for(int i=0;i<mAllViews[view].size();i++)
     {
-        if(mElements[i]->GetName() == elementName)
+        if(mAllViews[view][i]->GetName() == elementName)
         {
             return true;
         }
@@ -134,21 +147,21 @@ wxString SequenceElements::GetViewModels(wxString viewName)
 
 Element* SequenceElements::GetElement(const wxString &name)
 {
-    for(int i=0;i<mElements.size();i++)
+    for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
-        if(name == mElements[i]->GetName())
+        if(name == mAllViews[MASTER_VIEW][i]->GetName())
         {
-            return mElements[i];
+            return mAllViews[MASTER_VIEW][i];
         }
     }
     return NULL;
 }
 
-Element* SequenceElements::GetElement(int index)
+Element* SequenceElements::GetElement(int index, int view)
 {
-    if(index < mElements.size())
+    if(index < mAllViews[view].size())
     {
-        return mElements[index];
+        return mAllViews[view][index];
     }
     else
     {
@@ -159,16 +172,48 @@ Element* SequenceElements::GetElement(int index)
 
 void SequenceElements::DeleteElement(const wxString &name)
 {
-    for(int i=0;i<mElements.size();i++)
+    // delete element pointer from all views
+    for(int i=0;i<mAllViews.size();i++)
     {
-        if(name == mElements[i]->GetName())
+        for(int j=0;j<mAllViews[i].size();j++)
         {
-            Element *e = mElements[i];
-            mElements.erase(mElements.begin()+i);
-            IncrementChangeCount();
-            delete e;
+            if(name == mAllViews[i][j]->GetName())
+            {
+                Element *e = mAllViews[i][j];
+                mAllViews[i].erase(mAllViews[i].begin()+j);
+                IncrementChangeCount();
+                break;
+            }
         }
     }
+
+    // delete contents of pointer
+    for(int j=0;j<mAllViews[MASTER_VIEW].size();j++)
+    {
+        wxLogDebug(wxString::Format("DeleteElement: %d   %d", mAllViews[MASTER_VIEW].size()));
+        if(name == mAllViews[MASTER_VIEW][j]->GetName())
+        {
+            Element *e = mAllViews[MASTER_VIEW][j];
+            delete e;
+            break;
+        }
+    }
+    PopulateRowInformation();
+}
+
+void SequenceElements::DeleteElementFromView(const wxString &name, int view)
+{
+    // delete element pointer from all views
+    for(int j=0;j<mAllViews[view].size();j++)
+    {
+        if(name == mAllViews[view][j]->GetName())
+        {
+            Element *e = mAllViews[view][j];
+            mAllViews[view].erase(mAllViews[view].begin()+j);
+            break;
+        }
+    }
+
     PopulateRowInformation();
 }
 
@@ -232,8 +277,8 @@ int SequenceElements::GetRowInformationSize()
 
 void SequenceElements::SortElements()
 {
-    if (mElements.size()>1)
-        std::sort(mElements.begin(),mElements.end(),SortElementsByIndex);
+    if (mAllViews[mCurrentView].size()>1)
+        std::sort(mAllViews[mCurrentView].begin(),mAllViews[mCurrentView].end(),SortElementsByIndex);
 }
 
 void SequenceElements::MoveElement(int index,int destinationIndex)
@@ -241,22 +286,21 @@ void SequenceElements::MoveElement(int index,int destinationIndex)
     IncrementChangeCount();
     if(index<destinationIndex)
     {
-        mElements[index]->Index = destinationIndex;
+        mAllViews[mCurrentView][index]->Index = destinationIndex;
         for(int i=index+1;i<destinationIndex;i++)
         {
-            mElements[i]->Index = i-1;
+            mAllViews[mCurrentView][i]->Index = i-1;
         }
     }
     else
     {
-        mElements[index]->Index = destinationIndex;
+        mAllViews[mCurrentView][index]->Index = destinationIndex;
         for(int i=destinationIndex;i<index;i++)
         {
-            mElements[i]->Index = i+1;
+            mAllViews[mCurrentView][i]->Index = i+1;
         }
     }
     SortElements();
-
 }
 
 void SequenceElements::LoadEffects(EffectLayer *effectLayer,
@@ -330,7 +374,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
     wxXmlNode* root=seqDocument.GetRoot();
     std::vector<wxString> effectStrings;
     std::vector<wxString> colorPalettes;
-    mElements.clear();
+    Clear();
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
        if (e->GetName() == "DisplayElements")
@@ -353,21 +397,6 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                     collapsed = element->GetAttribute("collapsed")=='1'?true:false;
                 }
                 AddElement(name,type,visible,collapsed,active,selected);
-                // Add models for each view
-                if(type=="view")
-                {
-                    wxString models = GetViewModels(name);
-                    if(models.length()> 0)
-                    {
-                        wxArrayString model=wxSplit(models,',');
-                        for(int m=0;m<model.size();m++)
-                        {
-                           wxString modelName =  model[m];
-                           wxString elementType = "model";
-                           AddElement(modelName,elementType,false,false,false,false);
-                        }
-                    }
-                }
             }
        }
        else if (e->GetName() == "EffectDB")
@@ -447,12 +476,83 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
             }
         }
     }
+    // Set current view models as visible
+    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
+    {
+        wxString viewName = view->GetAttribute("name");
+        wxString models = view->GetAttribute("models");
+        std::vector <Element*> new_view;
+        mAllViews.push_back(new_view);
+        int view_index = mAllViews.size()-1;
+
+        bool isChecked = view->GetAttribute("selected")=="1"?true:false;
+        if( isChecked )
+        {
+            AddMissingModelsToSequence(models);
+            PopulateView(models, view_index);
+            SetCurrentView(view_index);
+        }
+    }
+
     if (mModelsNode != nullptr) {
         PopulateRowInformation();
     }
     // Set to the first model/view
     mFirstVisibleModelRow = 0;
     return true;
+}
+
+void SequenceElements::AddView(const wxString &viewName)
+{
+    std::vector <Element*> new_view;
+    mAllViews.push_back(new_view);
+}
+
+void SequenceElements::SetCurrentView(int view)
+{
+    mCurrentView = view;
+}
+
+void SequenceElements::AddMissingModelsToSequence(const wxString &models)
+{
+    if(models.length()> 0)
+    {
+        wxArrayString model=wxSplit(models,',');
+        for(int m=0;m<model.size();m++)
+        {
+            wxString modelName = model[m];
+            if(!ElementExists(modelName))
+            {
+               wxString elementType = "model";
+               Element* elem = AddElement(modelName,elementType,false,false,false,false);
+               elem->AddEffectLayer();
+            }
+        }
+    }
+}
+
+void SequenceElements::PopulateView(const wxString &models, int view)
+{
+    mAllViews[view].clear();
+
+    for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    {
+        if(mAllViews[MASTER_VIEW][i]->GetType() == "timing")
+        {
+            mAllViews[view].push_back(mAllViews[MASTER_VIEW][i]);
+        }
+    }
+
+    if(models.length()> 0)
+    {
+        wxArrayString model=wxSplit(models,',');
+        for(int m=0;m<model.size();m++)
+        {
+            wxString modelName = model[m];
+            Element* elem = GetElement(modelName);
+            mAllViews[view].push_back(elem);
+        }
+    }
 }
 
 void SequenceElements::SetFrequency(double frequency)
@@ -494,21 +594,21 @@ void SequenceElements::PopulateRowInformation()
     mSelectedTimingRow = -1;
     mRowInformation.clear();
     mTimingRowCount = 0;
-    for(int i=0;i<mElements.size();i++)
+    for(int i=0;i<mAllViews[mCurrentView].size();i++)
     {
-        if(mElements[i]->GetVisible())
+        if(mAllViews[mCurrentView][i]->GetVisible())
         {
-            if (mElements[i]->GetType()=="model")
+            if (mAllViews[mCurrentView][i]->GetType()=="model")
             {
-                if(!mElements[i]->GetCollapsed())
+                if(!mAllViews[mCurrentView][i]->GetCollapsed())
                 {
-                    for(int j =0; j<mElements[i]->GetEffectLayerCount();j++)
+                    for(int j =0; j<mAllViews[mCurrentView][i]->GetEffectLayerCount();j++)
                     {
                         Row_Information_Struct ri;
-                        ri.element = mElements[i];
-                        ri.displayName = mElements[i]->GetName();
-                        ri.Collapsed = mElements[i]->GetCollapsed();
-                        ri.Active = mElements[i]->GetActive();
+                        ri.element = mAllViews[mCurrentView][i];
+                        ri.displayName = mAllViews[mCurrentView][i]->GetName();
+                        ri.Collapsed = mAllViews[mCurrentView][i]->GetCollapsed();
+                        ri.Active = mAllViews[mCurrentView][i]->GetActive();
                         ri.PartOfView = false;
                         ri.colorIndex = 0;
                         ri.layerIndex = j;
@@ -519,25 +619,25 @@ void SequenceElements::PopulateRowInformation()
                 else
                 {
                     Row_Information_Struct ri;
-                    ri.element = mElements[i];
-                    ri.Collapsed = mElements[i]->GetCollapsed();
-                    ri.displayName = mElements[i]->GetName();
-                    ri.Active = mElements[i]->GetActive();
+                    ri.element = mAllViews[mCurrentView][i];
+                    ri.Collapsed = mAllViews[mCurrentView][i]->GetCollapsed();
+                    ri.displayName = mAllViews[mCurrentView][i]->GetName();
+                    ri.Active = mAllViews[mCurrentView][i]->GetActive();
                     ri.PartOfView = false;
                     ri.colorIndex = 0;
                     ri.layerIndex = 0;
                     ri.Index = rowIndex++;
                     mRowInformation.push_back(ri);
                 }
-                mElements[i]->InitStrands(GetModelNode(mModelsNode, mElements[i]->GetName()), *netInfo);
-                if (mElements[i]->ShowStrands()) {
-                    for (int s = 0; s < mElements[i]->getStrandLayerCount(); s++) {
-                        StrandLayer * sl = mElements[i]->GetStrandLayer(s);
-                        if (mElements[i]->getStrandLayerCount() > 1) {
+                mAllViews[mCurrentView][i]->InitStrands(GetModelNode(mModelsNode, mAllViews[mCurrentView][i]->GetName()), *netInfo);
+                if (mAllViews[mCurrentView][i]->ShowStrands()) {
+                    for (int s = 0; s < mAllViews[mCurrentView][i]->getStrandLayerCount(); s++) {
+                        StrandLayer * sl = mAllViews[mCurrentView][i]->GetStrandLayer(s);
+                        if (mAllViews[mCurrentView][i]->getStrandLayerCount() > 1) {
                             Row_Information_Struct ri;
-                            ri.element = mElements[i];
-                            ri.Collapsed = !mElements[i]->ShowStrands();
-                            ri.Active = mElements[i]->GetActive();
+                            ri.element = mAllViews[mCurrentView][i];
+                            ri.Collapsed = !mAllViews[mCurrentView][i]->ShowStrands();
+                            ri.Active = mAllViews[mCurrentView][i]->GetActive();
                             ri.displayName = sl->GetName();
 
                             ri.PartOfView = false;
@@ -551,9 +651,9 @@ void SequenceElements::PopulateRowInformation()
                         if (sl->ShowNodes()) {
                             for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                                 Row_Information_Struct ri;
-                                ri.element = mElements[i];
+                                ri.element = mAllViews[mCurrentView][i];
                                 ri.Collapsed = sl->ShowNodes();
-                                ri.Active = !mElements[i]->GetActive();
+                                ri.Active = !mAllViews[mCurrentView][i]->GetActive();
                                 ri.displayName = sl->GetNodeLayer(n)->GetName();
                                 ri.PartOfView = false;
                                 ri.colorIndex = 0;
@@ -568,12 +668,12 @@ void SequenceElements::PopulateRowInformation()
 
                 }
             }
-            else if (mElements[i]->GetType()=="timing")
+            else if (mAllViews[mCurrentView][i]->GetType()=="timing")
             {
                 Row_Information_Struct ri;
-                ri.element = mElements[i];
-                ri.Collapsed = mElements[i]->GetCollapsed();
-                ri.Active = mElements[i]->GetActive();
+                ri.element = mAllViews[mCurrentView][i];
+                ri.Collapsed = mAllViews[mCurrentView][i]->GetCollapsed();
+                ri.Active = mAllViews[mCurrentView][i]->GetActive();
                 ri.PartOfView = false;
                 ri.colorIndex = timingColorIndex;
                 ri.layerIndex = 0;
@@ -590,18 +690,18 @@ void SequenceElements::PopulateRowInformation()
             else        // View
             {
                 Row_Information_Struct ri;
-                ri.element = mElements[i];
-                ri.Collapsed = mElements[i]->GetCollapsed();
-                ri.Active = mElements[i]->GetActive();
+                ri.element = mAllViews[mCurrentView][i];
+                ri.Collapsed = mAllViews[mCurrentView][i]->GetCollapsed();
+                ri.Active = mAllViews[mCurrentView][i]->GetActive();
                 ri.PartOfView = false;
                 ri.colorIndex = 0;
                 ri.layerIndex = 0;
                 ri.Index = rowIndex++;
                 mRowInformation.push_back(ri);
-                if(!mElements[i]->GetCollapsed())
+                if(!mAllViews[mCurrentView][i]->GetCollapsed())
                 {
                     // Add models/effect layers in view
-                    wxString models = GetViewModels(mElements[i]->GetName());
+                    wxString models = GetViewModels(mAllViews[mCurrentView][i]->GetName());
                     if(models.length()> 0)
                     {
                         wxArrayString model=wxSplit(models,',');
@@ -615,7 +715,7 @@ void SequenceElements::PopulateRowInformation()
                                     Row_Information_Struct r;
                                     r.element = element;
                                     r.Collapsed = element->GetCollapsed();
-                                    r.Active = mElements[i]->GetActive();
+                                    r.Active = mAllViews[mCurrentView][i]->GetActive();
                                     r.PartOfView = false;
                                     r.colorIndex = 0;
                                     r.layerIndex = j;
@@ -628,7 +728,7 @@ void SequenceElements::PopulateRowInformation()
                                 Row_Information_Struct r;
                                 r.element = element;
                                 r.Collapsed = element->GetCollapsed();
-                                r.Active = mElements[i]->GetActive();
+                                r.Active = mAllViews[mCurrentView][i]->GetActive();
                                 r.PartOfView = false;
                                 r.colorIndex = 0;
                                 r.layerIndex = 0;
@@ -698,27 +798,13 @@ int SequenceElements::GetNumberOfTimingRows()
     return mTimingRowCount;
 }
 
-// Returns the last view index or if no views in vector
-// the last timing index or if no timing in vector returns 0
-int SequenceElements::GetLastViewIndex()
-{
-    for(int i=0;i<mElements.size();i++)
-    {
-        if(mElements[i]->GetType() != "view" && mElements[i]->GetType() != "timing")
-        {
-            return i;
-        }
-    }
-    return 0;
-}
-
 void SequenceElements::DeactivateAllTimingElements()
 {
-    for(int i=0;i<mElements.size();i++)
+    for(int i=0;i<mAllViews[mCurrentView].size();i++)
     {
-        if(mElements[i]->GetType()=="timing")
+        if(mAllViews[mCurrentView][i]->GetType()=="timing")
         {
-            mElements[i]->SetActive(false);
+            mAllViews[mCurrentView][i]->SetActive(false);
         }
     }
 }
@@ -796,9 +882,9 @@ void SequenceElements::UnSelectAllEffects()
 
 void SequenceElements::UnSelectAllElements()
 {
-    for(int i=0;i<mElements.size();i++)
+    for(int i=0;i<mAllViews[mCurrentView].size();i++)
     {
-        mElements[i]->SetSelected(false);
+        mAllViews[mCurrentView][i]->SetSelected(false);
     }
 }
 
@@ -863,55 +949,55 @@ void SequenceElements::SetVisibilityForAllModels(bool visibility)
     }
 }
 
-void SequenceElements::MoveSequenceElement(int index, int dest)
+void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 {
     IncrementChangeCount();
 
-    if(index<mElements.size() && dest<mElements.size())
+    if(index<mAllViews[view].size() && dest<mAllViews[view].size())
     {
-        Element* e = mElements[index];
-        mElements.erase(mElements.begin()+index);
+        Element* e = mAllViews[view][index];
+        mAllViews[view].erase(mAllViews[view].begin()+index);
         if(index >= dest)
         {
-            mElements.insert(mElements.begin()+dest,e);
+            mAllViews[view].insert(mAllViews[view].begin()+dest,e);
         }
         else
         {
-            mElements.insert(mElements.begin()+(dest-1),e);
+            mAllViews[view].insert(mAllViews[view].begin()+(dest-1),e);
         }
     }
 }
 
-void SequenceElements::MoveElementUp(const wxString &name)
+void SequenceElements::MoveElementUp(const wxString &name, int view)
 {
     IncrementChangeCount();
 
-    for(int i=0;i<mElements.size();i++)
+    for(int i=0;i<mAllViews[view].size();i++)
     {
-        if(name == mElements[i]->GetName())
+        if(name == mAllViews[view][i]->GetName())
         {
             // found element
             if( i > 0 )
             {
-                MoveSequenceElement(i, i-1);
+                MoveSequenceElement(i, i-1, view);
             }
             break;
         }
     }
 }
 
-void SequenceElements::MoveElementDown(const wxString &name)
+void SequenceElements::MoveElementDown(const wxString &name, int view)
 {
     IncrementChangeCount();
 
-    for(int i=0;i<mElements.size();i++)
+    for(int i=0;i<mAllViews[view].size();i++)
     {
-        if(name == mElements[i]->GetName())
+        if(name == mAllViews[view][i]->GetName())
         {
             // found element
-            if( i < mElements.size()-1 )
+            if( i < mAllViews[view].size()-1 )
             {
-                MoveSequenceElement(i+1, i);
+                MoveSequenceElement(i+1, i, view);
             }
             break;
         }

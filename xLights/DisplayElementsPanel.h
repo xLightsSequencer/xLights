@@ -29,7 +29,7 @@ class DisplayElementsPanel: public wxPanel
                                         wxXmlNode* modelGroups,
                                         wxXmlNode* views);
         void Initialize();
-        void AddElements(wxString type);
+        void SelectView(const wxString& name);
         void AddMissingModelsOfView(wxString view);
 		//(*Declarations(DisplayElementsPanel)
 		wxButton* ButtonDeleteView;
@@ -78,7 +78,14 @@ class DisplayElementsPanel: public wxPanel
         wxXmlNode* mModels;
         wxXmlNode* mViews;
         wxXmlNode* mModelGroups;
+        int mNumViews;
+        int mNumModels;
+
+        void AddViewToList(const wxString& viewName, bool isChecked);
+        void AddModelToList(Element* model);
         void ListItemChecked(wxCommandEvent& event);
+        void UpdateModelsForSelectedView();
+
 		//(*Handlers(DisplayElementsPanel)
 		void OnMouseLeave(wxMouseEvent& event);
 		void OnKillFocus(wxFocusEvent& event);
@@ -94,6 +101,7 @@ class DisplayElementsPanel: public wxPanel
 		void OnButtonDeleteModelsClick(wxCommandEvent& event);
 		void OnButtonMoveDownClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
+		void OnListCtrlViewsItemSelect(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

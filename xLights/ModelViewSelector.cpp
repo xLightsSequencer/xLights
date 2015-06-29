@@ -108,7 +108,7 @@ void ModelViewSelector::PopulateModelsToAdd()
         if (e->GetName() == "model")
         {
             wxString name=e->GetAttribute("name");
-            if (!mSequenceElements->ElementExists(name))
+            if (!mSequenceElements->ElementExists(name, mWhichView))
             {
                 ListBoxElements->Append(name,e);
             }
@@ -119,7 +119,7 @@ void ModelViewSelector::PopulateModelsToAdd()
         if (e->GetName() == "modelGroup")
         {
             wxString name=e->GetAttribute("name");
-            if (!mSequenceElements->ElementExists(name))
+            if (!mSequenceElements->ElementExists(name, mWhichView))
             {
                 ListBoxElements->Append(name,e);
             }
@@ -129,12 +129,13 @@ void ModelViewSelector::PopulateModelsToAdd()
 
 
 
-void ModelViewSelector::SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models,wxXmlNode* modelGroups, wxXmlNode* views)
+void ModelViewSelector::SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models,wxXmlNode* modelGroups, wxXmlNode* views, int which_view)
 {
     mSequenceElements = elements;
     mModelGroups = modelGroups;
     mModels = models;
     mViews = views;
+    mWhichView = which_view;
 }
 
 

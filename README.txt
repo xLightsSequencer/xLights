@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Add Views capability.
     -- enh(gil)   Make the display elements window a scrolled window.
     -- enh(steve) Add LOR *.LAS file type to selection for timing imports.
     -- enh(gil)   Clicking effects in grid does not alter play position in waveform.  Allows a selected play range to stay active.

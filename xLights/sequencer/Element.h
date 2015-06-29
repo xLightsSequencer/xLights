@@ -10,7 +10,6 @@
 enum ElementType
 {
     ELEMENT_TYPE_MODEL,
-    ELEMENT_TYPE_VIEW,
     ELEMENT_TYPE_TIMING
 };
 

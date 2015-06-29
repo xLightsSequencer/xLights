@@ -1349,6 +1349,7 @@ private:
 //    void OnCheckBox_PaletteClick(wxCommandEvent& event);
     void PresetsSelect();
     void LoadEffectsFile();
+    void BackupEffectsFile();
     wxString LoadEffectsFileNoCheck();
     void CreateDefaultEffectsXml();
     void UpdateEffectsList();

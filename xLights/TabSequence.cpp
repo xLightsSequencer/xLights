@@ -3,6 +3,7 @@
 #include <wx/clipbrd.h>
 #include "xLightsMain.h"
 #include "heartbeat.h"
+#include <wx/filefn.h>
 
 #include "SeqSettingsDialog.h"
 #include "xLightsXmlFile.h"
@@ -165,6 +166,18 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     return effectsFile.GetFullPath();
 }
 
+void xLightsFrame::BackupEffectsFile()
+{
+    wxFileName effectsFile;
+    effectsFile.AssignDir( CurrentDir );
+    effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+    wxString from_name = effectsFile.GetFullPath();
+    wxString full_name = effectsFile.GetName() + "_backup." + effectsFile.GetExt();
+    effectsFile.SetFullName(full_name);
+    wxString to_name = effectsFile.GetFullPath();
+    wxCopyFile(from_name, to_name);
+}
+
 void xLightsFrame::LoadEffectsFile()
 {
     wxStopWatch sw; // start a stopwatch timer
@@ -186,6 +199,7 @@ void xLightsFrame::LoadEffectsFile()
         xLightsXmlFile::FixEffectPresets(EffectsNode);
 
         // re-save
+        BackupEffectsFile();
         EffectsXml.Save( filename );
     }
 
@@ -200,6 +214,7 @@ void xLightsFrame::LoadEffectsFile()
 // returns true on success
 bool xLightsFrame::SaveEffectsFile()
 {
+    BackupEffectsFile();
     wxFileName effectsFile;
     effectsFile.AssignDir( CurrentDir );
     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));

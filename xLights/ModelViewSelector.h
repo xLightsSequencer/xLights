@@ -21,7 +21,7 @@ class ModelViewSelector: public wxDialog
 		wxArrayString ElementsToAdd;
 
 
-		void SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models, wxXmlNode *modelGroups, wxXmlNode* views);
+		void SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models, wxXmlNode *modelGroups, wxXmlNode* views, int which_view = MASTER_VIEW);
         void Initialize(wxString type);
 
 		//(*Declarations(ModelViewSelector)
@@ -47,6 +47,7 @@ class ModelViewSelector: public wxDialog
        wxXmlNode* mModels;
        wxXmlNode* mViews;
        wxXmlNode *mModelGroups;
+       int mWhichView;
 
         void PopulateViewsToAdd();
         void PopulateModelsToAdd();

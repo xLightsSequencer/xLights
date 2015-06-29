@@ -37,6 +37,7 @@
 														<object class="wxListCtrl" name="ID_LISTCTRL_VIEWS" subclass="wxCheckedListCtrl" variable="ListCtrlViews" member="yes">
 															<minsize>100,50d</minsize>
 															<style>wxLC_REPORT</style>
+															<handler function="OnListCtrlViewsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -52,7 +53,6 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_ADD_VIEWS" variable="ButtonAddViews" member="yes">
 															<label>Add Views</label>
-															<enabled>0</enabled>
 															<handler function="OnButtonAddViewsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

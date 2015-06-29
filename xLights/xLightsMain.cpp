@@ -2790,6 +2790,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
         return;
     }
     selectedEffect = NULL;
+    SaveEffectsFile();
 
     ShowHideAllSequencerWindows(false);
 
