@@ -571,6 +571,7 @@ private:
     void OnAuiToolBarItemModelsClick(wxCommandEvent& event);
     void OnMenuItemRenderOnSave(wxCommandEvent& event);
     void OnNotebook1PageChanging(wxAuiNotebookEvent& event);
+    void OnButtonAddNullClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -659,6 +660,7 @@ private:
     static const long ID_BUTTON_SAVE_SETUP;
     static const long ID_BUTTON_ADD_DONGLE;
     static const long ID_BUTTON_ADD_E131;
+    static const long ID_BUTTON1;
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
@@ -1008,6 +1010,7 @@ private:
     wxChoice* ChoiceOutputFormat;
     DragEffectBitmapButton* BitmapButton12;
     wxDirDialog* DirDialog1;
+    wxButton* ButtonAddNull;
     wxCheckListBox* CheckListBoxTestChannels;
     wxStaticText* StaticText33;
     wxStaticText* StaticText23;
@@ -1219,6 +1222,7 @@ private:
     void OnGridNetworkDragEnd(wxMouseEvent& event);
     void SetupDongle(wxXmlNode* e);
     void SetupE131(wxXmlNode* e);
+    void SetupNullOutput(wxXmlNode* e);
 
     // test
     void SetTestCheckboxes(bool NewValue);

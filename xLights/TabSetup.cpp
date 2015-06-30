@@ -22,6 +22,7 @@
 // dialogs
 #include "SerialPortWithRate.h"
 #include "E131Dialog.h"
+#include "NullOutputDialog.h"
 
 // Process Setup Panel Events
 
@@ -418,6 +419,10 @@ void xLightsFrame::OnButtonNetworkChangeClick(wxCommandEvent& event)
                 {
                     SetupE131(e);
                 }
+                else if (e->GetAttribute("NetworkType") == "NULL")
+                {
+                    SetupNullOutput(e);
+                }
                 else
                 {
                     SetupDongle(e);
@@ -552,6 +557,38 @@ void xLightsFrame::OnGridNetworkBeginDrag(wxListEvent& event)
 void xLightsFrame::OnButtonAddE131Click(wxCommandEvent& event)
 {
     SetupE131(0);
+}
+
+
+void xLightsFrame::OnButtonAddNullClick(wxCommandEvent& event)
+{
+    SetupNullOutput(nullptr);
+}
+
+void xLightsFrame::SetupNullOutput(wxXmlNode* e) {
+    wxString NetName=_("NULL");
+
+    int numChannels = 512;
+    if (e != nullptr) {
+        numChannels = wxAtoi(e->GetAttribute("MaxChannels", "512"));
+    }
+    NullOutputDialog dlg(this);
+    dlg.NumChannelsSpinCtrl->SetValue(numChannels);
+    
+    if (dlg.ShowModal() == wxID_OK) {
+        numChannels = dlg.NumChannelsSpinCtrl->GetValue();
+        if (e == nullptr) {
+            e = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+            e->AddAttribute("NetworkType", NetName);
+            NetworkXML.GetRoot()->AddChild(e);
+        } else {
+            e->DeleteAttribute("MaxChannels");
+        }
+        wxString LastChannelStr = wxString::Format("%d", numChannels);
+        e->AddAttribute("MaxChannels", LastChannelStr);
+        UpdateNetworkList();
+        UnsavedChanges=true;
+    }
 }
 
 void xLightsFrame::SetupE131(wxXmlNode* e)

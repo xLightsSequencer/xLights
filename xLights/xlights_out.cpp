@@ -82,6 +82,18 @@ void xNetwork::ResetTimer()
 {
 }
 
+class xNullNetwork : public xNetwork {
+public:
+    xNullNetwork() {};
+    virtual ~xNullNetwork() {};
+    
+    virtual bool TxEmpty() {return true;};
+    virtual size_t TxNonEmptyCount() {return 0;};
+    virtual void SetChannelCount(size_t numchannels) {num_channels = numchannels;};
+    virtual void TimerEnd() {}
+    virtual void SetIntensity (size_t chindex, wxByte intensity) {}
+    
+};
 
 // ***************************************************************************************
 // * This is the base class for all serial port (and virtual com port) driven protocols
@@ -847,6 +859,10 @@ size_t xOutput::addnetwork (const wxString& NetworkType, int chcount, const wxSt
     else if (nettype3 == "E13")
     {
         netobj = new xNetwork_E131();
+    }
+    else if (nettype3 == "NUL")
+    {
+        netobj = new xNullNetwork();
     }
     else
     {
