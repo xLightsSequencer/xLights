@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Update wizard timing buttons to be more clear as to what they are defining.
     -- bug(gil)   Bug presets were not getting the version attribute.
     -- enh(gil)   Each sequence will now save the last view that was active so it can be restored.
     -- enh(gil)   Add Views capability.

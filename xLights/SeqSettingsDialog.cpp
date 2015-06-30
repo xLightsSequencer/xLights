@@ -64,6 +64,7 @@ const long SeqSettingsDialog::ID_BUTTON_Reimport = wxNewId();
 const long SeqSettingsDialog::ID_PANEL4 = wxNewId();
 const long SeqSettingsDialog::ID_NOTEBOOK_Seq_Settings = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Warning = wxNewId();
+const long SeqSettingsDialog::ID_STATICTEXT_Info = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Warn_No_Media = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_CANCEL = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Close = wxNewId();
@@ -304,6 +305,12 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     wxFont StaticText_WarningFont(wxDEFAULT,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText_Warning->SetFont(StaticText_WarningFont);
     FlexGridSizer1->Add(StaticText_Warning, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_Info = new wxStaticText(this, ID_STATICTEXT_Info, _("Show Info Here"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Info"));
+    StaticText_Info->Hide();
+    StaticText_Info->SetForegroundColour(wxColour(43,149,213));
+    wxFont StaticText_InfoFont(wxDEFAULT,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+    StaticText_Info->SetFont(StaticText_InfoFont);
+    FlexGridSizer1->Add(StaticText_Info, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Warn_No_Media = new wxStaticText(this, ID_STATICTEXT_Warn_No_Media, _("Media File must be selected or change to animation!"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Warn_No_Media"));
     StaticText_Warn_No_Media->Hide();
     StaticText_Warn_No_Media->SetForegroundColour(wxColour(255,0,0));
@@ -479,6 +486,11 @@ void SeqSettingsDialog::WizardPage2()
     Connect(ID_BITMAPBUTTON_25ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_25msClick);
     Connect(ID_BITMAPBUTTON_50ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_50msClick);
     Connect(ID_BITMAPBUTTON_100ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_100msClick);
+
+    StaticText_Info->SetLabelText("This option defines the smallest division in the sequence. \nHigher FPS options result in larger file sizes.  If you're not sure choose 20fps.");
+    StaticText_Info->Show();
+    Fit();
+    Refresh();
 }
 
 void SeqSettingsDialog::WizardPage3()
@@ -519,6 +531,7 @@ void SeqSettingsDialog::WizardPage3()
     Connect(ID_BITMAPBUTTON_lynx,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_lynxClick);
     Connect(ID_BITMAPBUTTON_xlights,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_xlightsClick);
     Connect(ID_BUTTON_skip_import,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_skip_importClick);
+    StaticText_Info->Hide();
     Fit();
     Refresh();
 }
