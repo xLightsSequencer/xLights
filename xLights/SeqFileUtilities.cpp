@@ -1664,7 +1664,11 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                     dlg.channelNames.push_back(name);
                     if (chan->GetName() == "rgbChannel") {
                         int idxDP = name.Find("-P");
+                        int idxUP = name.Find(" P");
                         int idxSP = name.Find(" p");
+                        if (idxUP > idxSP) {
+                            idxSP = idxUP;
+                        }
                         if (idxDP > idxSP) {
                             idxSP = idxDP;
                         }
@@ -1729,6 +1733,9 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                         }
                         if (dlg.channelNames.Index(nm) == wxNOT_FOUND) {
                             nm = ccrName + wxString::Format(" p%d", (n + 1));
+                        }
+                        if (dlg.channelNames.Index(nm) == wxNOT_FOUND) {
+                            nm = ccrName + wxString::Format(" P %02d", (n + 1));
                         }
                         MapChannelInformation(layer,
                                               input_xml,
