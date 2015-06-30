@@ -1423,6 +1423,7 @@ wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
     wxString copy_data;
     mainSequencer->GetSelectedEffectsData(copy_data);
     NewXml->AddAttribute("settings", copy_data);
+    NewXml->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
     return NewXml;
 }
 

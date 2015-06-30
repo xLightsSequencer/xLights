@@ -2442,12 +2442,17 @@ void xLightsXmlFile::FixVersionDifferences(const wxString& filename)
 
 void xLightsXmlFile::FixEffectPresets(wxXmlNode* effects_node)
 {
+    wxString main_version = effects_node->GetAttribute("version", "0000");
     for(wxXmlNode* ele=effects_node->GetChildren(); ele!=NULL; ele=ele->GetNext() )
     {
         if (ele->GetName() == "effect")
         {
             wxString version = ele->GetAttribute("version", "0000");
-            if (version < "0003")
+            if( version == "0000" )
+            {
+                version = main_version;
+            }
+            if (version < "0003" )
             {
                 wxString settings=ele->GetAttribute("settings");
 
@@ -2502,7 +2507,7 @@ void xLightsXmlFile::FixEffectPresets(wxXmlNode* effects_node)
                 ele->DeleteAttribute("version");
                 ele->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
             }
-            else if( version < "0004" )
+            else if( version == "0003" )
             {
                 wxString settings=ele->GetAttribute("settings");
                 wxArrayString all_efdata = wxSplit(settings, '\n');

@@ -438,6 +438,8 @@ void EffectTreeDialog::AddImportedItemsRecursively(wxXmlNode* effects_node, wxTr
                 wxXmlNode *newNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effect");
                 newNode->AddAttribute("name", name);
                 newNode->AddAttribute("settings", settings);
+                newNode->AddAttribute("version", version);
+
                 node->AddChild(newNode);
                 TreeCtrl1->AppendItem(curGroupID, name, -1,-1, new MyTreeItemData(newNode));
             }
