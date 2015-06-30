@@ -182,7 +182,7 @@ void RgbEffects::Piano_load_shapes(const wxString& filename)
 
 
 //find first color in sprite:
-static xlColor& find_color(wxImage& Shapes, std::hash_map</*xlColor*/ wxUint32, xlColor>& ColorMap, wxPoint xy, wxSize wh, const char* which)
+static xlColor find_color(wxImage& Shapes, std::hash_map</*xlColor*/ wxUint32, xlColor>& ColorMap, wxPoint xy, wxSize wh, const char* which)
 {
     xlColor color;
     for (int y = xy.y; y < xy.y + wh.y; ++y) //bottom->top
@@ -251,7 +251,7 @@ void RgbEffects::Piano_load_sprite_map(const wxString& filename) //, int BufferW
 
 //		if (!clip) { spr.destxy.x %= BufferWi; spr.destxy.y %= BufferWi; } //wrap
 //		else if ((spr.destxy.x >= BufferWi) || (spr.destxy.y >= BufferHi) || (spr.destxy.x + keyw < 0) || (spr.destxy.y + keyh < 0)) continue; //outside of visible rect
-		if ((srcx_off != srcx_off) || (srcy_off != srcy_on)) //need to draw when off also
+		if ((srcx_off != srcx_on) || (srcy_off != srcy_on)) //need to draw when off also
 		{
 			if ((srcx_off < 0) || (srcx_off + spr.wh.x > Shapes.GetWidth()) || (srcy_off < 0) || (srcy_off + spr.wh.y > Shapes.GetHeight())) { debug_more(10, ": NO1"); ++numbad; continue; } //ignore invalid sprites
 			spr.xy.push_back(wxPoint(srcx_off, srcy_off)); //state 0 == key off/up
@@ -553,7 +553,7 @@ void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement,
 //#undef push
 
 //TODO: fix repaint logic
-    if ((Style == PIANO_STYLE_ANIMAGE) )//&& repaint) //repaint all now
+    if (Style == PIANO_STYLE_ANIMAGE)//&& repaint) //repaint all now
         for (auto it = AllSprites.begin(); it != AllSprites.end(); ++it) //draw all sprites in their initial state
             if (it->second.ani_state) //redraw active sprites
                 Piano_RenderKey(&it->second, drawn, Style, BufferWH_octave, keywh, Placement, Clipping);

@@ -98,7 +98,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 
 void EffectsGrid::rightClick(wxMouseEvent& event)
 {
-    wxMenu *mnuLayer;
+    wxMenu *mnuLayer = nullptr;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
         return;
@@ -126,7 +126,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_undo->Enable(false);
         }
         mnuLayer->AppendSeparator();
-        wxMenuItem* menu_presets = mnuLayer->Append(ID_GRID_MNU_PRESETS,"Effect Presets");
+        mnuLayer->Append(ID_GRID_MNU_PRESETS,"Effect Presets");
         wxMenuItem* menu_random = mnuLayer->Append(ID_GRID_MNU_RANDOM_EFFECTS,"Create Random Effects");
         if( !(mCellRangeSelected || mPartialCellSelected) ) {
             menu_random->Enable(false);
@@ -137,9 +137,11 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         mnuLayer = new wxMenu();
     }
 
-    mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
-    Draw();
-    PopupMenu(mnuLayer);
+    if (mnuLayer != nullptr) {
+        mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, NULL, this);
+        Draw();
+        PopupMenu(mnuLayer);
+    }
 }
 
 void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
@@ -153,9 +155,6 @@ void EffectsGrid::sendRenderEvent(const wxString &model, int start, int end, boo
 
 void EffectsGrid::OnGridPopup(wxCommandEvent& event)
 {
-    Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
-    Element* element = ri->element;
-    int layer_index = ri->layerIndex;
     int id = event.GetId();
     if(id == ID_GRID_MNU_COPY)
     {
@@ -1497,9 +1496,9 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
 
     //some effects might have pre-rendered display lists.  Use those before dropping to the generic routines
     switch (e->GetEffectIndex()) {
-        case BitmapCache::RGB_EFFECTS_e::eff_ON:
-        case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH:
-        case BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND: {
+        case BitmapCache::eff_ON:
+        case BitmapCache::eff_COLORWASH:
+        case BitmapCache::eff_SINGLESTRAND: {
             if (e->HasBackgroundDisplayList()) {
                 DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList());
                 return e->GetBackgroundDisplayList().iconSize;
@@ -1509,7 +1508,7 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
 
     //haven't rendered an effect background yet, use a default redering mechanism
     switch (e->GetEffectIndex()) {
-        case BitmapCache::RGB_EFFECTS_e::eff_ON: {
+        case BitmapCache::eff_ON: {
             xlColor start;
             xlColor end;
             GetOnEffectColors(e, start, end);
@@ -1517,13 +1516,13 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
             return 2;
         }
         break;
-        case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH:
-        case BitmapCache::RGB_EFFECTS_e::eff_SHOCKWAVE: {
+        case BitmapCache::eff_COLORWASH:
+        case BitmapCache::eff_SHOCKWAVE: {
             DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
             return 2;
         }
         break;
-        case BitmapCache::RGB_EFFECTS_e::eff_MORPH: {
+        case BitmapCache::eff_MORPH: {
             int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_MorphDuration", "20"));
             xlColor start_h;
             xlColor end_h;
@@ -1541,7 +1540,7 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
             return 0;
         }
         break;
-        case BitmapCache::RGB_EFFECTS_e::eff_GALAXY: {
+        case BitmapCache::eff_GALAXY: {
             int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_Galaxy_Duration", "20"));
             int num_colors = e->GetPalette().size();
             xlColor head_color = e->GetPalette()[0];
@@ -1565,7 +1564,7 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
             }
             return 0;
         }
-        case BitmapCache::RGB_EFFECTS_e::eff_FAN: {
+        case BitmapCache::eff_FAN: {
             int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_Fan_Duration", "50"));
             int num_colors = e->GetPalette().size();
             xlColor head_color = e->GetPalette()[0];
@@ -1947,7 +1946,7 @@ void EffectsGrid::DrawEffectIcon(GLuint* texture,double x, double y, double x2, 
 
 void EffectsGrid::CreateEffectIconTextures()
 {
-    for(int effectID=0;effectID<BitmapCache::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
+    for(int effectID=0;effectID<BitmapCache::eff_LASTEFFECT;effectID++)
     {
         wxString tooltip;
         DrawGLUtils::CreateOrUpdateTexture(BitmapCache::GetEffectIcon(effectID, tooltip, 64, true),
@@ -1959,7 +1958,7 @@ void EffectsGrid::CreateEffectIconTextures()
 
 void EffectsGrid::DeleteEffectIconTextures()
 {
-    for(int effectID=0;effectID<BitmapCache::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
+    for(int effectID=0;effectID<BitmapCache::eff_LASTEFFECT;effectID++)
     {
         glDeleteTextures(1,&m_EffectTextures[effectID]);
     }

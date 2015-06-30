@@ -179,7 +179,6 @@ void SequenceElements::DeleteElement(const wxString &name)
         {
             if(name == mAllViews[i][j]->GetName())
             {
-                Element *e = mAllViews[i][j];
                 mAllViews[i].erase(mAllViews[i].begin()+j);
                 IncrementChangeCount();
                 break;
@@ -208,7 +207,6 @@ void SequenceElements::DeleteElementFromView(const wxString &name, int view)
     {
         if(name == mAllViews[view][j]->GetName())
         {
-            Element *e = mAllViews[view][j];
             mAllViews[view].erase(mAllViews[view].begin()+j);
             break;
         }

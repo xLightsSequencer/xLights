@@ -126,7 +126,7 @@ void heartbeat(const wxString& msg, bool always)
     append(linebuf);
 
     wxFile f;
-    if (f.Open(cfg.logpath,wxFile::OpenMode::write))
+    if (f.Open(cfg.logpath,wxFile::write))
     {
         f.Write(state.fifo);
         f.Close();

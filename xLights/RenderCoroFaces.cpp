@@ -123,7 +123,7 @@ static wxString NoInactive(wxString name)
 //static const char* parts[] = {"Outline", "AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ", "Open", "Closed", "Left", "Right", "Up", "Down"};
 
 //cached model info:
-static std::unordered_map<std::string, std::unordered_map<std::string, /*wxPoint*/ std::string>> model_xy;
+static std::unordered_map<std::string, std::unordered_map<std::string, /*wxPoint*/ std::string> > model_xy;
 //static std::unordered_map<std::string, wxXmlNode*> model_xy; //since (X,Y) info is already in settings file, just re-use it
 
 static bool parse_model(const wxString& want_model)
@@ -207,6 +207,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         return;
     }
 
+    __attribute__((unused)) bool ok;
 //    wxColour color;
     wxImage::HSVValue hsv;
 //    int maxframe=BufferHt*2;
@@ -255,14 +256,14 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
 //            eyes.clear();
 //            if (!state && !EffectTreeDialog::PromptForName(NULL, &info, wxT("Enter @(x, y) to turn on"), wxT("Need (X, Y) for test"))) return;
 //            info = wxT("@F2"); //TextCtrl_CoroTest->GetValue();
-            bool ok = ModelClass::ParseFaceElement(info, first_xy);
+            ok = ModelClass::ParseFaceElement(info, first_xy);
             debug(10, "model '%s', state %d, test '%s', turn on? %d", (const char*)cur_model.c_str(), state, (const char*)info.c_str(), ok);
         }
         if (!Phoneme.empty())
         {
             wxString info = map[(const char*)Phoneme.c_str()];
 //            if (xy_info) info = xy_info->GetAttribute(Phoneme);
-            bool ok = ModelClass::ParseFaceElement(info, first_xy);
+              ok = ModelClass::ParseFaceElement(info, first_xy);
 //            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
             debug(10, "model '%s', phoneme '%s', parsed info '%s', turn on? %d", (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)info.c_str(), ok);
         }
@@ -270,7 +271,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         {
             wxString info = map[(const char*)wxString::Format(wxT("Eyes_%s"), eyes.Lower()).c_str()];
 //            if (xy_info) info = xy_info->GetAttribute(eyes);
-            bool ok = ModelClass::ParseFaceElement(info, first_xy);
+            ok = ModelClass::ParseFaceElement(info, first_xy);
 //            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
             debug(10, "model '%s', eyes '%s', parsed info '%s', turn on? %d", (const char*)cur_model.c_str(), (const char*)eyes.c_str(), (const char*)info.c_str(), ok);
         }
@@ -278,7 +279,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         {
             wxString info = map["Outline"];
 //            if (xy_info) info = xy_info->GetAttribute("Outline");
-            bool ok = ModelClass::ParseFaceElement(info, first_xy);
+            ok = ModelClass::ParseFaceElement(info, first_xy);
 //            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
             debug(10, "model '%s', outline, parsed info '%s', turn on? %d", (const char*)cur_model.c_str(), (const char*)info.c_str(), ok);
         }

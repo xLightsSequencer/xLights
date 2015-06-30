@@ -154,14 +154,14 @@ void UndoManager::UndoLastStep()
             {
             Element* element = mParentSequence->GetElement(next_action->deleted_effect_info[0]->element_name);
             EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->deleted_effect_info[0]->layer_index);
-            Effect* ef = el->AddEffect(0,
-                                       next_action->deleted_effect_info[0]->name,
-                                       next_action->deleted_effect_info[0]->settings,
-                                       next_action->deleted_effect_info[0]->palette,
-                                       next_action->deleted_effect_info[0]->startTimeMS,
-                                       next_action->deleted_effect_info[0]->endTimeMS,
-                                       next_action->deleted_effect_info[0]->Selected,
-                                       next_action->deleted_effect_info[0]->Protected);
+            el->AddEffect(0,
+                          next_action->deleted_effect_info[0]->name,
+                          next_action->deleted_effect_info[0]->settings,
+                          next_action->deleted_effect_info[0]->palette,
+                          next_action->deleted_effect_info[0]->startTimeMS,
+                          next_action->deleted_effect_info[0]->endTimeMS,
+                          next_action->deleted_effect_info[0]->Selected,
+                          next_action->deleted_effect_info[0]->Protected);
             }
             break;
         case UNDO_EFFECT_ADDED:
@@ -214,6 +214,8 @@ wxString UndoManager::GetUndoString()
             break;
         case UNDO_EFFECT_MODIFIED:
             undo_string = "Undo: Effect(s) Modified";
+            break;
+        case UNDO_MARKER:
             break;
         }
     }

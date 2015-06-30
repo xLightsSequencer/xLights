@@ -515,8 +515,7 @@ protected:
 
 void myGridCellChoiceEditor::StartingClick(void)
 {
-    bool was_dropped = Combo()->IsShown();
-    debug(10, "starting click, list vis? %d", was_dropped);
+    debug(10, "starting click, list vis? %d", (bool)Combo()->IsShown());
 }
 
 myGridCellChoiceEditor::myGridCellChoiceEditor(const wxArrayString& choices,
@@ -630,9 +629,9 @@ void myGridCellChoiceEditor::SetSize(const wxRect& rect)
 
     // Check that the height is not too small to fit the combobox.
     wxRect rectTallEnough = rect;
-    const wxSize bestSize = m_control->GetBestSize();
-    const wxCoord diffY = bestSize.GetHeight() - rectTallEnough.GetHeight();
-    debug(10, "cell editor: best size %d x %d vs. rte (x %d, y %d, w %d, h %d)", bestSize.x, bestSize.y, rect.x, rect.y, rect.width, rect.height);
+    //const wxSize bestSize = m_control->GetBestSize();
+    //const wxCoord diffY = bestSize.GetHeight() - rectTallEnough.GetHeight();
+    //debug(10, "cell editor: best size %d x %d vs. rte (x %d, y %d, w %d, h %d)", bestSize.x, bestSize.y, rect.x, rect.y, rect.width, rect.height);
 //    if ( diffY > 0 )
 //    {
         // Do make it tall enough.
@@ -989,7 +988,7 @@ public:
     bool NeedFade; //set Morph option if next frame is > auto-fade delay for this voice
 //    bool NeedRest; //refers to space between phonemes, not programmer 8P
 };
-std::vector<std::pair<int, InfoChain>> phonemes_by_start_frame;
+std::vector< std::pair<int, InfoChain> > phonemes_by_start_frame;
 
 static int fade_delay, rest_min_delay, rest_max_delay, eyes_delay; //auto-fade, auto-rest or eye movement frame counts
 static bool pic_scaled;
@@ -1199,7 +1198,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
     eof.second.w = 0; //&voices[0].phrases[0].words[0];
     eof.second.q = 0; //&voices[0].phrases[0].words[0].phonemes[0];
     phonemes_by_start_frame.push_back(eof);
-    int prev_frame = -1, err_frame = -1;
+    int prev_frame = -1;
 //TODO: do we need to keep end_frame?
     size_t numfr = 0;
     wxString frame_desc, shorter_desc;
@@ -1237,7 +1236,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
 #endif // 0
     std::vector<int> prev_voice_frame(voices.size());
     std::vector<bool> want_voice(voices.size()), discarded(voices.size()), want_fade(voices.size()); //multiple faces might be fading at same time so use an array
-    std::vector<std::unordered_map<std::string, std::string>> img_lkup(voices.size());
+    std::vector< std::unordered_map<std::string, std::string> > img_lkup(voices.size());
     for (int cc = 0; cc < voices.size(); ++cc)
     {
         int c = voices[cc].gridcol;
@@ -2477,7 +2476,7 @@ void myGridCellChoiceEditor::GetChoices(wxArrayString& choices, int row, int col
 //    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
             else //put them in sorted order
             {
-                std::vector<std::pair<int, int>> byvalue(choices.size());
+                std::vector< std::pair<int, int> > byvalue(choices.size());
                 for (int i = 0; i < choices.size(); ++i)
                 {
                     long val;
@@ -2508,7 +2507,7 @@ void myGridCellChoiceEditor::GetChoices(wxArrayString& choices, int row, int col
     if (choices.size() < 1) choices.Add(NoneHint); //tell user there are none to choose from
 //        else choices.Insert(SelectionHint, 0); //not needed
 //    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
-    std::vector<std::pair<std::string, int>> byname(choices.size());
+    std::vector< std::pair<std::string, int> > byname(choices.size());
     for (int i = 0; i < choices.size(); ++i)
     {
         byname[i].first = choices[i].c_str();
@@ -2648,7 +2647,7 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
 #ifdef GRID_EDIT_KLUDGE
     PgoGridCellSelect(GridCoroFaces->GetCursorRow(), GridCoroFaces->GetCursorColumn(), __LINE__); //force cell update if edit in progress
 #endif //def GRID_EDIT_KLUDGE
-    int num_saved = -1, num_deleted = 0;
+    int num_saved = -1;
     wxString warnings;
     wxDateTime now = wxDateTime::Now(); //NOTE: now.Format("%F %T") seems to be broken
     debug(10, "SaveCoroGroupClick: save group '%s' to xmldoc, timestamp '%s %s'", (const char*)grpname.c_str(), (const char*)now.FormatDate().c_str(), (const char*)now.FormatTime().c_str()); //Format(wxT("%F %T")).c_str());

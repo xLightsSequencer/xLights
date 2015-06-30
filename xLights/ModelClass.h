@@ -279,7 +279,7 @@ private:
         {
             wxImage::HSVValue hsv2 = color.asHSV();
             
-            if (std::abs(hsv2.hue - hsv.hue) < 0.01) {
+            if (fabs((double)(hsv2.hue - hsv.hue)) < 0.01) {
                 //in the right hue
                 c[0]=hsv2.value * 255.0;
             } else if (hsv2.hue < 0.01 && hsv2.saturation < 0.01) {

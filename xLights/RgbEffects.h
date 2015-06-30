@@ -415,7 +415,7 @@ protected:
 //cached list of pixels to turn on, indexed by frame (timestamp):
 //this is the required output after applying the effect in Nutcracker
 //xLights will then remap these pixels thru the custom or built-in model back to xLights channels
-    typedef std::vector<std::pair<wxPoint, xlColor>> PixelVector;
+    typedef std::vector< std::pair<wxPoint, xlColor> > PixelVector;
     std::vector<PixelVector> PixelsByFrame; //list of pixels and their associated values, indexed by frame#
 //remapped Vixen channels for Picture effect: -DJ
     void LoadPixelsFromTextFile(wxFile& debug, const wxString& filename);

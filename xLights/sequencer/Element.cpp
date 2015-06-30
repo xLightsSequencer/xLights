@@ -135,7 +135,6 @@ EffectLayer* Element::GetEffectLayer(int index)
 
 EffectLayer* Element::AddEffectLayer()
 {
-    int index = mEffectLayers.size();
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.push_back(new_layer);
     IncrementChangeCount(-1, -1);

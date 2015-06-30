@@ -255,7 +255,6 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
 void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
 {
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
-    wxTreeItemId parentID;
     wxString name(TreeCtrl1->GetItemText(itemID));
 
     if ( TreeCtrl1->HasChildren(itemID))
@@ -263,10 +262,6 @@ void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
         wxMessageBox(_("You cannot store an effect on the selected item."), _("ERROR"));
         return;
     }
-    parentID = TreeCtrl1->GetItemParent(itemID);
-    MyTreeItemData *parentData=(MyTreeItemData *)TreeCtrl1->GetItemData(parentID);
-    wxXmlNode *pnode=parentData->GetElement();
-
     MyTreeItemData *selData = (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
     wxXmlNode *xml_node=selData->GetElement();
 
@@ -372,7 +367,6 @@ void EffectTreeDialog::OnTreeCtrl1BeginDrag(wxTreeEvent& event)
     wxTreeItemId itemID = event.GetItem();
     if( !TreeCtrl1->ItemHasChildren(itemID) )
     {
-        MyTreeItemData *itemData=(MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
         m_draggedItem = event.GetItem();
         event.Allow();
     }
@@ -422,7 +416,7 @@ void EffectTreeDialog::AddImportedItemsRecursively(wxXmlNode* effects_node, wxTr
 {
     wxString name, settings, version;
     wxTreeItemId nextGroupID;
-    MyTreeItemData *parentData, *itemData;
+    MyTreeItemData *parentData;
 
     for(wxXmlNode *ele = effects_node->GetChildren(); ele!=NULL; ele=ele->GetNext() )
     {

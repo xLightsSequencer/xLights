@@ -382,7 +382,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Grid_Timing->DisableDragRowSize();
 	Grid_Timing->DisableDragColSize();
     Grid_Timing->CreateGrid(0, 2);
-	int total_width = Grid_Timing->GetSize().GetWidth();
+    Grid_Timing->GetSize().GetWidth();
 	Grid_Timing->HideRowLabels();
 	Grid_Timing->SetDefaultRowSize(25, true);
 
@@ -915,7 +915,6 @@ void SeqSettingsDialog::UpdateDataLayer()
     Button_Move_Up->Enable(false);
     Button_Move_Down->Enable(false);
     wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
-    int num_layers = TreeCtrl_Data_Layers->GetChildrenCount(root, false);
     selected_branch = TreeCtrl_Data_Layers->GetFocusedItem();
     if( !selected_branch.IsOk() ) return;
     wxTreeItemIdValue cookie;

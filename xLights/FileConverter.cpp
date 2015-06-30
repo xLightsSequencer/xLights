@@ -205,7 +205,7 @@ public:
 typedef std::map<int, LORInfo> LORInfoMap;
 
 
-void mapLORInfo(const LORInfo &info, std::vector<std::vector<int>> *unitSizes)
+void mapLORInfo(const LORInfo &info, std::vector< std::vector<int> > *unitSizes)
 {
     int unit = info.unit;
     if (unit < 0)
@@ -248,9 +248,9 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     int EffectCnt = 0;
     int network,chindex = -1;
     long cnt = 0;
-    std::vector<std::vector<int>> noNetworkUnitSizes;
-    std::vector<std::vector<int>> lorUnitSizes;
-    std::vector<std::vector<int>> dmxUnitSizes;
+    std::vector< std::vector<int> > noNetworkUnitSizes;
+    std::vector< std::vector<int> > lorUnitSizes;
+    std::vector< std::vector<int> > dmxUnitSizes;
     LORInfoMap rgbChannels;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
@@ -346,7 +346,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
                     if (rgbChannels[savedIndex].empty == true)
                     {
-                        std::vector<std::vector<int>> *unitSizes;
+                        std::vector< std::vector<int> > *unitSizes;
                         if (Left(rgbChannels[savedIndex].deviceType, 3) == "DMX")
                         {
                             unitSizes = &dmxUnitSizes;
@@ -366,7 +366,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
             case SP_XmlPullEvent::eEndTag:
                 if (cnt == 3 && context[1] == wxString("channels") && context[2] == wxString("channel") && !rgbChannels[savedIndex].empty)
                 {
-                    std::vector<std::vector<int>> *unitSizes;
+                    std::vector< std::vector<int> > *unitSizes;
                     if (Left(rgbChannels[savedIndex].deviceType, 3) == "DMX") {
                         unitSizes = &dmxUnitSizes;
                     } else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
