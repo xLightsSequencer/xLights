@@ -1,9 +1,13 @@
 #include "DisplayElementsPanel.h"
+#include "../include/model-16.xpm"
+#include "../include/timing-16.xpm"
 #include "../include/eye-16.xpm"
 #include "../include/eye-16_gray.xpm"
 #include "ModelViewSelector.h"
 #include "sequencer/Element.h"
 
+#define TIMING_IMAGE 2
+#define MODEL_IMAGE 3
 
 //(*InternalHeaders(DisplayElementsPanel)
 #include <wx/intl.h>
@@ -80,7 +84,7 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer7->AddGrowableCol(0);
 	FlexGridSizer7->AddGrowableRow(1);
-	StaticText2 = new wxStaticText(ScrolledWindowDisplayElements, ID_STATICTEXT2, _("Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	StaticText2 = new wxStaticText(ScrolledWindowDisplayElements, ID_STATICTEXT2, _("Timings / Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer7->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	ListCtrlModels = new wxCheckedListCtrl(ScrolledWindowDisplayElements, ID_LISTCTRL_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_MODELS"));
 	ListCtrlModels->SetMinSize(wxDLG_UNIT(ScrolledWindowDisplayElements,wxSize(75,85)));
@@ -93,11 +97,11 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	FlexGridSizer7->Add(FlexGridSizer10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer9->Add(FlexGridSizer7, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
-	ButtonAddModels = new wxButton(ScrolledWindowDisplayElements, ID_BUTTONADD_MODELS, _("Add Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONADD_MODELS"));
+	ButtonAddModels = new wxButton(ScrolledWindowDisplayElements, ID_BUTTONADD_MODELS, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONADD_MODELS"));
 	FlexGridSizer4->Add(ButtonAddModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonDeleteModels = new wxButton(ScrolledWindowDisplayElements, ID_BUTTON_DELETE_MODELS, _("Delete Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DELETE_MODELS"));
+	ButtonDeleteModels = new wxButton(ScrolledWindowDisplayElements, ID_BUTTON_DELETE_MODELS, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DELETE_MODELS"));
 	FlexGridSizer4->Add(ButtonDeleteModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText3 = new wxStaticText(ScrolledWindowDisplayElements, ID_STATICTEXT3, _("Render Position:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	StaticText3 = new wxStaticText(ScrolledWindowDisplayElements, ID_STATICTEXT3, _("Position:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonMoveUp = new wxButton(ScrolledWindowDisplayElements, ID_BUTTON_MOVE_UP, _("Move Up"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MOVE_UP"));
 	FlexGridSizer4->Add(ButtonMoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -131,6 +135,8 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 
 	ListCtrlViews->SetImages((char**)eye_16,(char**)eye_16_gray);
 	ListCtrlModels->SetImages((char**)eye_16,(char**)eye_16_gray);
+	ListCtrlModels->AddImage((char**)timing_16);
+	ListCtrlModels->AddImage((char**)model_16);
 	mNumViews = 0;
 	mNumModels = 0;
 }
@@ -176,8 +182,24 @@ void DisplayElementsPanel::AddModelToList(Element* model)
         li.SetId(mNumModels);
         ListCtrlModels->InsertItem(li);
         ListCtrlModels->SetItemPtrData(mNumModels,(wxUIntPtr)model);
-        ListCtrlModels->SetItem(mNumModels,1,model->GetName());
+        ListCtrlModels->SetItem(mNumModels,2,model->GetName());
         ListCtrlModels->SetChecked(mNumModels,model->GetVisible());
+        ListCtrlModels->SetItemColumnImage(mNumModels, 1, MODEL_IMAGE);
+        mNumModels++;
+    }
+}
+
+void DisplayElementsPanel::AddTimingToList(Element* timing)
+{
+    if( timing != nullptr )
+    {
+        wxListItem li;
+        li.SetId(mNumModels);
+        ListCtrlModels->InsertItem(li);
+        ListCtrlModels->SetItemPtrData(mNumModels,(wxUIntPtr)timing);
+        ListCtrlModels->SetItem(mNumModels,2,timing->GetName());
+        ListCtrlModels->SetChecked(mNumModels,timing->GetVisible());
+        ListCtrlModels->SetItemColumnImage(mNumModels, 1, TIMING_IMAGE);
         mNumModels++;
     }
 }
@@ -221,23 +243,42 @@ void DisplayElementsPanel::PopulateModels()
 	wxListItem col0;
 	col0.SetId(0);
 	col0.SetText( _("") );
-	col0.SetWidth(30);
+	col0.SetWidth(28);
 	ListCtrlModels->InsertColumn(0, col0);
 
 	wxListItem col1;
 	col1.SetId(1);
-	col1.SetText( _("Model") );
-	col1.SetWidth(130);
+	col1.SetText( _("") );
+	col1.SetWidth(22);
 	ListCtrlModels->InsertColumn(1, col1);
 
-    mNumModels=0;
-    if( mSequenceElements->GetCurrentView() > 0 )
+	wxListItem col2;
+	col2.SetId(2);
+	col2.SetText( _("Timing/Model") );
+	col2.SetWidth(130);
+	ListCtrlModels->InsertColumn(2, col2);
+
+    mNumModels = 0;
+    int current_view = mSequenceElements->GetCurrentView();
+    for(int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* elem = mSequenceElements->GetElement(i);
+        if( elem->GetType() == "timing" )
+        {
+            if( current_view == MASTER_VIEW || mSequenceElements->TimingIsPartOfView(elem, current_view) )
+            {
+                AddTimingToList(elem);
+            }
+        }
+    }
+
+    if(current_view > 0 )
     {
         int view_index = 1;
         for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
         {
             wxString viewName = view->GetAttribute("name");
-            bool isChecked = (view_index == mSequenceElements->GetCurrentView());
+            bool isChecked = (view_index == current_view);
             if( isChecked )
             {
                 wxString models = view->GetAttribute("models");
@@ -268,6 +309,22 @@ void DisplayElementsPanel::PopulateModels()
             }
         }
     }
+}
+
+int DisplayElementsPanel::GetViewIndex(const wxString& name)
+{
+    int view_index = 1;
+    int selected_view = 0;
+    for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
+    {
+        if( view->GetAttribute("name") == name )
+        {
+            selected_view = view_index;
+            break;
+        }
+        view_index++;
+    }
+    return selected_view;
 }
 
 void DisplayElementsPanel::OnLeftUp(wxMouseEvent& event)
@@ -301,16 +358,16 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
     dialog.SetSequenceElementsModelsViews(mSequenceElements,mModels,mModelGroups,mViews, mSequenceElements->GetCurrentView());
     wxString type = "model";
     int current_view = mSequenceElements->GetCurrentView();
-    dialog.Initialize(type);
+    dialog.Initialize();
     dialog.CenterOnParent();
     int DlgResult = dialog.ShowModal();
     if(DlgResult==wxID_OK)
     {
         if( current_view == MASTER_VIEW )
         {
-            for(int i=0;i<dialog.ElementsToAdd.size();i++)
+            for(int i=0;i<dialog.ModelsToAdd.size();i++)
             {
-                Element* e = mSequenceElements->AddElement(dialog.ElementsToAdd[i],type,true,false,false,false);
+                Element* e = mSequenceElements->AddElement(dialog.ModelsToAdd[i],type,true,false,false,false);
                 e->AddEffectLayer();
             }
         }
@@ -320,21 +377,21 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
             for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
             {
                 wxString viewName = view->GetAttribute("name");
-                if( view_index == mSequenceElements->GetCurrentView() )
+                if( view_index == current_view )
                 {
                     wxString models = view->GetAttribute("models");
-                    for(int i=0;i<dialog.ElementsToAdd.size();i++)
+                    for(int i=0;i<dialog.ModelsToAdd.size();i++)
                     {
                         if( models != "" )
                         {
                             models += ",";
                         }
-                        models += dialog.ElementsToAdd[i];
+                        models += dialog.ModelsToAdd[i];
                     }
                     mSequenceElements->AddMissingModelsToSequence(models);
-                    for(int i=0;i<dialog.ElementsToAdd.size();i++)
+                    for(int i=0;i<dialog.ModelsToAdd.size();i++)
                     {
-                        wxString modelName = dialog.ElementsToAdd[i];
+                        wxString modelName = dialog.ModelsToAdd[i];
                         Element* elem = mSequenceElements->GetElement(modelName);
                         if( elem != nullptr )
                         {
@@ -345,6 +402,8 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
                     view->AddAttribute("models", models);
                     wxString modelsString = mSequenceElements->GetViewModels(viewName);
                     mSequenceElements->PopulateView(modelsString, current_view);
+                    mSequenceElements->AddViewToTimings(dialog.TimingsToAdd, viewName);
+                    mSequenceElements->SetTimingVisibility(viewName);
                     break;
                 }
                 view_index++;
@@ -388,7 +447,7 @@ void DisplayElementsPanel::ListItemChecked(wxCommandEvent& event)
 
 void DisplayElementsPanel::OnButtonShowAllClick(wxCommandEvent& event)
 {
-    mSequenceElements->SetVisibilityForAllModels(true);
+    mSequenceElements->SetVisibilityForAllModels(true, mSequenceElements->GetCurrentView());
     PopulateModels();
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
@@ -396,7 +455,7 @@ void DisplayElementsPanel::OnButtonShowAllClick(wxCommandEvent& event)
 
 void DisplayElementsPanel::OnButtonHideAllClick(wxCommandEvent& event)
 {
-    mSequenceElements->SetVisibilityForAllModels(false);
+    mSequenceElements->SetVisibilityForAllModels(false, mSequenceElements->GetCurrentView());
     PopulateModels();
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
@@ -442,7 +501,15 @@ void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
 
             // Got a selected item so handle it
             Element* e = (Element*)ListCtrlModels->GetItemData(itemIndex);
-            mSequenceElements->DeleteElementFromView(e->GetName(), mSequenceElements->GetCurrentView());
+            if( e->GetType() == "model" )
+            {
+                mSequenceElements->DeleteElementFromView(e->GetName(), mSequenceElements->GetCurrentView());
+            }
+            else
+            {
+                mSequenceElements->DeleteTimingFromView(e->GetName(), mSequenceElements->GetCurrentView());
+                mSequenceElements->SetTimingVisibility(mSequenceElements->GetViewName(mSequenceElements->GetCurrentView()));
+            }
             ListCtrlModels->DeleteItem(itemIndex);
             itemIndex = -1; // reset to delete next item which may have same index
         }
@@ -452,6 +519,19 @@ void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
     }
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
+}
+
+int DisplayElementsPanel::GetFirstModelIndex()
+{
+    for(int i = 0; i < ListCtrlModels->GetItemCount(); i++)
+    {
+        Element* e = (Element*)ListCtrlModels->GetItemData(i);
+        if( e->GetType() == "model" )
+        {
+            return i;
+        }
+    }
+    return 0;
 }
 
 void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
@@ -476,13 +556,17 @@ void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
         selected_list.push_back(itemIndex);
     }
 
-    if( selected_list[0] != 0 )  // don't let item or group move up if top item is selected
+    int first_model = GetFirstModelIndex();
+    if( selected_list[0] != 0 && selected_list[0] != first_model )  // don't let item or group move up if top item is selected
     {
-        items_moved = true;
-        for( long i = 0; i < selected_list.size(); i++ )
+        if( selected_list[0] > first_model || (selected_list[0] < first_model && selected_list.size() == 1 ) )
         {
-            Element* e = (Element*)ListCtrlModels->GetItemData(selected_list[i]);
-            mSequenceElements->MoveElementUp(e->GetName(), mSequenceElements->GetCurrentView());
+            items_moved = true;
+            for( long i = 0; i < selected_list.size(); i++ )
+            {
+                Element* e = (Element*)ListCtrlModels->GetItemData(selected_list[i]);
+                mSequenceElements->MoveElementUp(e->GetName(), mSequenceElements->GetCurrentView());
+            }
         }
     }
     ListCtrlModels->Thaw();  // free up the list
@@ -528,13 +612,17 @@ void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
         selected_list.push_back(itemIndex);
     }
 
-    if( selected_list.back() < num_items-1 )  // don't let item or group move down if bottom item is selected
+    int first_model = GetFirstModelIndex();
+    if( selected_list.back() < num_items-1 && selected_list[0] != first_model-1 )  // don't let item or group move up if top item is selected
     {
-        items_moved = true;
-        for( long i = selected_list.size()-1; i >= 0; i-- )
+        if( selected_list[0] >= first_model || (selected_list[0] < first_model && selected_list.size() == 1 ) )
         {
-            Element* e = (Element*)ListCtrlModels->GetItemData(selected_list[i]);
-            mSequenceElements->MoveElementDown(e->GetName(), mSequenceElements->GetCurrentView());
+            items_moved = true;
+            for( long i = selected_list.size()-1; i >= 0; i-- )
+            {
+                Element* e = (Element*)ListCtrlModels->GetItemData(selected_list[i]);
+                mSequenceElements->MoveElementDown(e->GetName(), mSequenceElements->GetCurrentView());
+            }
         }
     }
     ListCtrlModels->Thaw();  // free up the list
@@ -618,17 +706,7 @@ void DisplayElementsPanel::OnListCtrlViewsItemSelect(wxListEvent& event)
 void DisplayElementsPanel::SelectView(const wxString& name)
 {
     ListCtrlViews->SetChecked(mSequenceElements->GetCurrentView(),false);
-    int view_index = 1;
-    int selected_view = 0;
-    for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
-    {
-        if( view->GetAttribute("name") == name )
-        {
-            selected_view = view_index;
-            break;
-        }
-        view_index++;
-    }
+    int selected_view = GetViewIndex(name);
     if( selected_view > 0 )
     {
         wxString modelsString = mSequenceElements->GetViewModels(name);
@@ -636,6 +714,7 @@ void DisplayElementsPanel::SelectView(const wxString& name)
         mSequenceElements->PopulateView(modelsString, selected_view);
     }
     mSequenceElements->SetCurrentView(selected_view);
+    mSequenceElements->SetTimingVisibility(name);
     PopulateModels();
     ListCtrlViews->SetChecked(mSequenceElements->GetCurrentView(),true);
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);

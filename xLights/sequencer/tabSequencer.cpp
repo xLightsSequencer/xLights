@@ -400,6 +400,7 @@ void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {
     mSequenceElements.PopulateRowInformation();
+    displayElementsPanel->Initialize();
     ResizeMainSequencer();
 }
 

@@ -64,6 +64,13 @@ void wxCheckedListCtrl::SetImages( char** ImageCheckedXPM,char** ImageUncheckedX
    m_imageList.Add(bitmapChecked);
 }
 
+void wxCheckedListCtrl::AddImage( char** ImageXPM)
+{
+   wxImage imageNew(ImageXPM);
+   wxBitmap bitmapNew(imageNew);
+   m_imageList.Add(bitmapNew);
+}
+
 bool wxCheckedListCtrl::IsChecked(long item) const
 {
    wxListItem info;

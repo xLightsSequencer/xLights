@@ -47,6 +47,9 @@ class Element
         wxString GetType();
         void SetType(wxString &type);
 
+        wxString GetViews();
+        void SetViews(wxString &views);
+
         EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
         EffectLayer* GetEffectLayer(int index);
         int GetEffectLayerCount();
@@ -102,6 +105,7 @@ class Element
         int mIndex;
         wxString mName;
         wxString mElementType;
+        wxString mViews;
         bool mVisible;
         bool mCollapsed;
         bool mStrandsVisible = false;

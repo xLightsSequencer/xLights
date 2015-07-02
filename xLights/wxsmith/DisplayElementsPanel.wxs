@@ -89,7 +89,7 @@
 													<growablerows>1</growablerows>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-															<label>Models:</label>
+															<label>Timings / Models:</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<option>1</option>
@@ -137,7 +137,7 @@
 													<cols>1</cols>
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTONADD_MODELS" variable="ButtonAddModels" member="yes">
-															<label>Add Models</label>
+															<label>Add</label>
 															<handler function="OnButtonAddModelsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -146,7 +146,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_DELETE_MODELS" variable="ButtonDeleteModels" member="yes">
-															<label>Delete Model</label>
+															<label>Delete</label>
 															<handler function="OnButtonDeleteModelsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -155,7 +155,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-															<label>Render Position:</label>
+															<label>Position:</label>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>

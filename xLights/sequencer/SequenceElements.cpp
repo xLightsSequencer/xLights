@@ -115,6 +115,37 @@ bool SequenceElements::ElementExists(wxString elementName, int view)
     return false;
 }
 
+bool SequenceElements::TimingIsPartOfView(Element* timing, int view)
+{
+    wxString view_name = GetViewName(view);
+    wxArrayString views = wxSplit(timing->GetViews(),',');
+    for(int v=0;v<views.size();v++)
+    {
+        wxString viewName = views[v];
+        if( view_name == viewName )
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+wxString SequenceElements::GetViewName(int which_view)
+{
+    wxString view_name = "Master View";
+    int view_index = 1;
+    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
+    {
+        if( view_index == which_view )
+        {
+            view_name = view->GetAttribute("name");
+            break;
+        }
+        view_index++;
+    }
+    return view_name;
+}
+
 void SequenceElements::SetViewsNode(wxXmlNode* viewsNode)
 {
     mViewsNode = viewsNode;
@@ -189,7 +220,6 @@ void SequenceElements::DeleteElement(const wxString &name)
     // delete contents of pointer
     for(int j=0;j<mAllViews[MASTER_VIEW].size();j++)
     {
-        wxLogDebug(wxString::Format("DeleteElement: %d   %d", mAllViews[MASTER_VIEW].size()));
         if(name == mAllViews[MASTER_VIEW][j]->GetName())
         {
             Element *e = mAllViews[MASTER_VIEW][j];
@@ -213,6 +243,32 @@ void SequenceElements::DeleteElementFromView(const wxString &name, int view)
     }
 
     PopulateRowInformation();
+}
+
+void SequenceElements::DeleteTimingFromView(const wxString &name, int view)
+{
+    wxString viewName = GetViewName(view);
+    Element* elem = GetElement(name);
+    if( elem != nullptr && elem->GetType() == "timing" )
+    {
+        wxString views = elem->GetViews();
+        wxArrayString all_views = wxSplit(views,',');
+        int found = -1;
+        for( int j = 0; j < all_views.size(); j++ )
+        {
+            if( all_views[j] == viewName )
+            {
+                found = j;
+                break;
+            }
+        }
+        if( found != -1 )
+        {
+            all_views.erase(all_views.begin() + found);
+            views = wxJoin(all_views, ',');
+            elem->SetViews(views);
+        }
+    }
 }
 
 Row_Information_Struct* SequenceElements::GetVisibleRowInformation(int index)
@@ -394,7 +450,12 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                 {
                     collapsed = element->GetAttribute("collapsed")=='1'?true:false;
                 }
-                AddElement(name,type,visible,collapsed,active,selected);
+                Element* elem = AddElement(name,type,visible,collapsed,active,selected);
+                if (type=="timing")
+                {
+                    wxString views = element->GetAttribute("views", "");
+                    elem->SetViews(views);
+                }
             }
        }
        else if (e->GetName() == "EffectDB")
@@ -529,17 +590,67 @@ void SequenceElements::AddMissingModelsToSequence(const wxString &models)
     }
 }
 
+void SequenceElements::SetTimingVisibility(const wxString& name)
+{
+    for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    {
+        Element* elem = mAllViews[MASTER_VIEW][i];
+        if( elem->GetType() == "model" )
+        {
+            break;
+        }
+        if( name == "Master View" )
+        {
+            elem->SetVisible(true);
+        }
+        else
+        {
+            elem->SetVisible(false);
+            wxArrayString views = wxSplit(elem->GetViews(),',');
+            for(int v=0;v<views.size();v++)
+            {
+                wxString viewName = views[v];
+                if( name == viewName )
+                {
+                    elem->SetVisible(true);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void SequenceElements::AddViewToTimings(wxArrayString& timings, const wxString& name)
+{
+    for( int i = 0; i < timings.size(); i++ )
+    {
+        Element* elem = GetElement(timings[i]);
+        if( elem != nullptr && elem->GetType() == "timing" )
+        {
+            wxString views = elem->GetViews();
+            wxArrayString all_views = wxSplit(views,',');
+            bool found = false;
+            for( int j = 0; j < all_views.size(); j++ )
+            {
+                if( all_views[j] == name )
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if( !found )
+            {
+                all_views.push_back(name);
+                views = wxJoin(all_views, ',');
+                elem->SetViews(views);
+            }
+        }
+    }
+}
+
 void SequenceElements::PopulateView(const wxString &models, int view)
 {
     mAllViews[view].clear();
-
-    for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
-    {
-        if(mAllViews[MASTER_VIEW][i]->GetType() == "timing")
-        {
-            mAllViews[view].push_back(mAllViews[MASTER_VIEW][i]);
-        }
-    }
 
     if(models.length()> 0)
     {
@@ -592,21 +703,50 @@ void SequenceElements::PopulateRowInformation()
     mSelectedTimingRow = -1;
     mRowInformation.clear();
     mTimingRowCount = 0;
+
+    for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    {
+        Element* elem = mAllViews[MASTER_VIEW][i];
+        if(elem->GetType()=="timing")
+        {
+            if( mCurrentView == MASTER_VIEW || TimingIsPartOfView(elem, mCurrentView))
+            {
+                Row_Information_Struct ri;
+                ri.element = elem;
+                ri.Collapsed = elem->GetCollapsed();
+                ri.Active = elem->GetActive();
+                ri.PartOfView = false;
+                ri.colorIndex = timingColorIndex;
+                ri.layerIndex = 0;
+                if(mSelectedTimingRow<0)
+                {
+                    mSelectedTimingRow = ri.Active?rowIndex:-1;
+                }
+
+                ri.Index = rowIndex++;
+                mRowInformation.push_back(ri);
+                timingColorIndex++;
+                mTimingRowCount++;
+            }
+        }
+    }
+
     for(int i=0;i<mAllViews[mCurrentView].size();i++)
     {
-        if(mAllViews[mCurrentView][i]->GetVisible())
+        Element* elem = mAllViews[mCurrentView][i];
+        if(elem->GetVisible())
         {
-            if (mAllViews[mCurrentView][i]->GetType()=="model")
+            if (elem->GetType()=="model")
             {
-                if(!mAllViews[mCurrentView][i]->GetCollapsed())
+                if(!elem->GetCollapsed())
                 {
-                    for(int j =0; j<mAllViews[mCurrentView][i]->GetEffectLayerCount();j++)
+                    for(int j =0; j<elem->GetEffectLayerCount();j++)
                     {
                         Row_Information_Struct ri;
-                        ri.element = mAllViews[mCurrentView][i];
-                        ri.displayName = mAllViews[mCurrentView][i]->GetName();
-                        ri.Collapsed = mAllViews[mCurrentView][i]->GetCollapsed();
-                        ri.Active = mAllViews[mCurrentView][i]->GetActive();
+                        ri.element = elem;
+                        ri.displayName = elem->GetName();
+                        ri.Collapsed = elem->GetCollapsed();
+                        ri.Active = elem->GetActive();
                         ri.PartOfView = false;
                         ri.colorIndex = 0;
                         ri.layerIndex = j;
@@ -617,25 +757,25 @@ void SequenceElements::PopulateRowInformation()
                 else
                 {
                     Row_Information_Struct ri;
-                    ri.element = mAllViews[mCurrentView][i];
-                    ri.Collapsed = mAllViews[mCurrentView][i]->GetCollapsed();
-                    ri.displayName = mAllViews[mCurrentView][i]->GetName();
-                    ri.Active = mAllViews[mCurrentView][i]->GetActive();
+                    ri.element = elem;
+                    ri.Collapsed = elem->GetCollapsed();
+                    ri.displayName = elem->GetName();
+                    ri.Active = elem->GetActive();
                     ri.PartOfView = false;
                     ri.colorIndex = 0;
                     ri.layerIndex = 0;
                     ri.Index = rowIndex++;
                     mRowInformation.push_back(ri);
                 }
-                mAllViews[mCurrentView][i]->InitStrands(GetModelNode(mModelsNode, mAllViews[mCurrentView][i]->GetName()), *netInfo);
-                if (mAllViews[mCurrentView][i]->ShowStrands()) {
-                    for (int s = 0; s < mAllViews[mCurrentView][i]->getStrandLayerCount(); s++) {
-                        StrandLayer * sl = mAllViews[mCurrentView][i]->GetStrandLayer(s);
-                        if (mAllViews[mCurrentView][i]->getStrandLayerCount() > 1) {
+                elem->InitStrands(GetModelNode(mModelsNode, elem->GetName()), *netInfo);
+                if (elem->ShowStrands()) {
+                    for (int s = 0; s < elem->getStrandLayerCount(); s++) {
+                        StrandLayer * sl = elem->GetStrandLayer(s);
+                        if (elem->getStrandLayerCount() > 1) {
                             Row_Information_Struct ri;
-                            ri.element = mAllViews[mCurrentView][i];
-                            ri.Collapsed = !mAllViews[mCurrentView][i]->ShowStrands();
-                            ri.Active = mAllViews[mCurrentView][i]->GetActive();
+                            ri.element = elem;
+                            ri.Collapsed = !elem->ShowStrands();
+                            ri.Active = elem->GetActive();
                             ri.displayName = sl->GetName();
 
                             ri.PartOfView = false;
@@ -649,9 +789,9 @@ void SequenceElements::PopulateRowInformation()
                         if (sl->ShowNodes()) {
                             for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                                 Row_Information_Struct ri;
-                                ri.element = mAllViews[mCurrentView][i];
+                                ri.element = elem;
                                 ri.Collapsed = sl->ShowNodes();
-                                ri.Active = !mAllViews[mCurrentView][i]->GetActive();
+                                ri.Active = !elem->GetActive();
                                 ri.displayName = sl->GetNodeLayer(n)->GetName();
                                 ri.PartOfView = false;
                                 ri.colorIndex = 0;
@@ -666,77 +806,6 @@ void SequenceElements::PopulateRowInformation()
 
                 }
             }
-            else if (mAllViews[mCurrentView][i]->GetType()=="timing")
-            {
-                Row_Information_Struct ri;
-                ri.element = mAllViews[mCurrentView][i];
-                ri.Collapsed = mAllViews[mCurrentView][i]->GetCollapsed();
-                ri.Active = mAllViews[mCurrentView][i]->GetActive();
-                ri.PartOfView = false;
-                ri.colorIndex = timingColorIndex;
-                ri.layerIndex = 0;
-                if(mSelectedTimingRow<0)
-                {
-                    mSelectedTimingRow = ri.Active?rowIndex:-1;
-                }
-
-                ri.Index = rowIndex++;
-                mRowInformation.push_back(ri);
-                timingColorIndex++;
-                mTimingRowCount++;
-            }
-            else        // View
-            {
-                Row_Information_Struct ri;
-                ri.element = mAllViews[mCurrentView][i];
-                ri.Collapsed = mAllViews[mCurrentView][i]->GetCollapsed();
-                ri.Active = mAllViews[mCurrentView][i]->GetActive();
-                ri.PartOfView = false;
-                ri.colorIndex = 0;
-                ri.layerIndex = 0;
-                ri.Index = rowIndex++;
-                mRowInformation.push_back(ri);
-                if(!mAllViews[mCurrentView][i]->GetCollapsed())
-                {
-                    // Add models/effect layers in view
-                    wxString models = GetViewModels(mAllViews[mCurrentView][i]->GetName());
-                    if(models.length()> 0)
-                    {
-                        wxArrayString model=wxSplit(models,',');
-                        for(int m=0;m<model.size();m++)
-                        {
-                            Element* element = GetElement(model[m]);
-                            if(element->GetCollapsed())
-                            {
-                                for(int j=0;element->GetEffectLayerCount();j++)
-                                {
-                                    Row_Information_Struct r;
-                                    r.element = element;
-                                    r.Collapsed = element->GetCollapsed();
-                                    r.Active = mAllViews[mCurrentView][i]->GetActive();
-                                    r.PartOfView = false;
-                                    r.colorIndex = 0;
-                                    r.layerIndex = j;
-                                    r.Index = rowIndex++;
-                                    mRowInformation.push_back(r);
-                                }
-                            }
-                            else
-                            {
-                                Row_Information_Struct r;
-                                r.element = element;
-                                r.Collapsed = element->GetCollapsed();
-                                r.Active = mAllViews[mCurrentView][i]->GetActive();
-                                r.PartOfView = false;
-                                r.colorIndex = 0;
-                                r.layerIndex = 0;
-                                r.Index = rowIndex++;
-                                mRowInformation.push_back(r);
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
     PopulateVisibleRowInformation();
@@ -744,10 +813,10 @@ void SequenceElements::PopulateRowInformation()
 
 void SequenceElements::PopulateVisibleRowInformation()
 {
-    if(mRowInformation.size()==0){return;}
-    int row=0;
     mVisibleRowInformation.clear();
+    if(mRowInformation.size()==0){return;}
     // Add all timing element rows. They should always be first in the list
+    int row=0;
     for(row=0;row<mTimingRowCount;row++)
     {
         if(row<mMaxRowsDisplayed)
@@ -935,15 +1004,12 @@ int SequenceElements::GetFirstVisibleModelRow()
     return mFirstVisibleModelRow;
 }
 
-void SequenceElements::SetVisibilityForAllModels(bool visibility)
+void SequenceElements::SetVisibilityForAllModels(bool visibility, int view)
 {
-    for(int i=0;i<GetElementCount();i++)
+    for(int i=0;i<GetElementCount(view);i++)
     {
-        Element * e = GetElement(i);
-        if(e->GetType() == "model")
-        {
-            e->SetVisible(visibility);
-        }
+        Element * e = GetElement(i, view);
+        e->SetVisible(visibility);
     }
 }
 

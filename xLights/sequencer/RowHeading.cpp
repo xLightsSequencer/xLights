@@ -229,7 +229,11 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     else if(id == ID_ROW_MNU_ADD_TIMING_TRACK)
     {
         wxString name = wxGetTextFromUser("What is name of new timing track?", "Timing Track Name");
-        if(name.size()>0)
+        if( mSequenceElements->ElementExists(name) )
+        {
+            wxMessageBox("Timing name already exists in sequence as a model or another timing.", "ERROR");
+        }
+        else if(name.size()>0)
         {
             // Deactivate active timing mark so new one is selected;
             mSequenceElements->DeactivateAllTimingElements();
@@ -237,8 +241,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxString type = "timing";
             Element* e = mSequenceElements->AddElement(timingCount,name,type,true,false,true,false);
             e->AddEffectLayer();
+            wxArrayString timings;
+            timings.push_back(name);
+            mSequenceElements->AddViewToTimings(timings, mSequenceElements->GetViewName(mSequenceElements->GetCurrentView()));
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
+            timings.clear();
         }
     }
     else if(id == ID_ROW_MNU_DELETE_TIMING_TRACK)

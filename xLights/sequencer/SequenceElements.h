@@ -72,7 +72,7 @@ class SequenceElements : public ChangeLister
         int GetFirstVisibleModelRow();
         int GetTotalNumberOfModelRows();
         void SetMaxRowsDisplayed(int maxRows);
-        void SetVisibilityForAllModels(bool visibility);
+        void SetVisibilityForAllModels(bool visibility, int view = MASTER_VIEW);
         void MoveSequenceElement(int index, int dest, int view);
         void MoveElementUp(const wxString &name, int view);
         void MoveElementDown(const wxString &name, int view);
@@ -80,11 +80,14 @@ class SequenceElements : public ChangeLister
         void SetCurrentView(int view);
         void AddMissingModelsToSequence(const wxString &models);
         int GetCurrentView() {return mCurrentView;}
+        void SetTimingVisibility(const wxString& name);
         void PopulateView(const wxString &models, int view);
         void AddView(const wxString &viewName);
+        void AddViewToTimings(wxArrayString& timings, const wxString& name);
 
         void DeleteElement(const wxString &name);
         void DeleteElementFromView(const wxString &name, int view);
+        void DeleteTimingFromView(const wxString &name, int view);
 
         void PopulateRowInformation();
         void PopulateVisibleRowInformation();
@@ -101,6 +104,8 @@ class SequenceElements : public ChangeLister
 
         int GetNumberOfTimingRows();
         bool ElementExists(wxString elementName, int view = MASTER_VIEW);
+        bool TimingIsPartOfView(Element* timing, int view);
+        wxString GetViewName(int view);
 
         void SetViewsNode(wxXmlNode* viewsNode);
         void SetModelsNode(wxXmlNode *modelsNode, NetInfoClass *ni);

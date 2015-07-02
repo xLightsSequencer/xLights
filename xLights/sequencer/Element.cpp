@@ -94,6 +94,16 @@ void Element::SetType(wxString &type)
     mElementType = type;
 }
 
+wxString Element::GetViews()
+{
+    return mViews;
+}
+
+void Element::SetViews(wxString &views)
+{
+    mViews = views;
+}
+
 int Element::GetIndex()
 {
     return mIndex;

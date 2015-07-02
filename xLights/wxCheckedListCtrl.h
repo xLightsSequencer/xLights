@@ -20,6 +20,7 @@ class wxCheckedListCtrl : public wxListCtrl
         bool IsChecked(long item) const;
         void SetChecked(long item, bool checked);
         void SetImages( char** ImageChecked,char** ImageUnchecked);
+        void AddImage( char** ImageXPM);
 
     protected:
     private:

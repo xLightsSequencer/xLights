@@ -6,6 +6,8 @@
 //*)
 
 //(*IdInit(ModelViewSelector)
+const long ModelViewSelector::ID_STATICTEXT2 = wxNewId();
+const long ModelViewSelector::ID_LISTBOX_TIMINGS = wxNewId();
 const long ModelViewSelector::ID_STATICTEXT_TYPE = wxNewId();
 const long ModelViewSelector::ID_LISTBOX_ELEMENTS = wxNewId();
 const long ModelViewSelector::ID_STATICTEXT1 = wxNewId();
@@ -23,15 +25,22 @@ ModelViewSelector::ModelViewSelector(wxWindow* parent,wxWindowID id,const wxPoin
 	//(*Initialize(ModelViewSelector)
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, id, _("Add Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
-	SetClientSize(wxDefaultSize);
-	Move(wxDefaultPosition);
+	Create(parent, wxID_ANY, _("Add Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	SetMinSize(wxSize(200,250));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer5->AddGrowableCol(0);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Timings:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer5->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	ListBoxTimings = new wxListBox(this, ID_LISTBOX_TIMINGS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxLB_SORT|wxVSCROLL, wxDefaultValidator, _T("ID_LISTBOX_TIMINGS"));
+	ListBoxTimings->SetMinSize(wxDLG_UNIT(this,wxSize(150,50)));
+	FlexGridSizer5->Add(ListBoxTimings, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	StaticTextType = new wxStaticText(this, ID_STATICTEXT_TYPE, _("Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_TYPE"));
@@ -68,41 +77,29 @@ ModelViewSelector::~ModelViewSelector()
 	//*)
 }
 
-void ModelViewSelector::Initialize(wxString type)
+void ModelViewSelector::Initialize()
 {
-    if(type == "view")
-    {
-        SetLabel("Add Views");
-        StaticTextType->SetLabel("Views:");
-        PopulateViewsToAdd();
-    }
-    else
-    {
-        SetLabel("Add Models");
-        StaticTextType->SetLabel("Models:");
-        PopulateModelsToAdd();
-    }
-}
-
-void ModelViewSelector::PopulateViewsToAdd()
-{
-    ListBoxElements->Clear();
-    for(wxXmlNode* e=mViews->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "view")
-        {
-            wxString name=e->GetAttribute("name");
-            if (!mSequenceElements->ElementExists(name))
-            {
-                ListBoxElements->Append(name,e);
-            }
-        }
-    }
+    SetLabel("Add Timings/Models");
+    StaticTextType->SetLabel("Timings/Models:");
+    PopulateModelsToAdd();
 }
 
 void ModelViewSelector::PopulateModelsToAdd()
 {
     ListBoxElements->Clear();
+    ListBoxTimings->Clear();
+    for(int i = 0; i < mSequenceElements->GetElementCount(); i++ )
+    {
+        Element* elem = mSequenceElements->GetElement(i);
+        if (elem->GetType() == "timing")
+        {
+            wxString name=elem->GetName();
+            if (!mSequenceElements->TimingIsPartOfView(elem, mWhichView))
+            {
+                ListBoxTimings->Append(name,elem);
+            }
+        }
+    }
     for(wxXmlNode* e=mModels->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == "model")
@@ -142,11 +139,18 @@ void ModelViewSelector::SetSequenceElementsModelsViews(SequenceElements* element
 
 void ModelViewSelector::OnButtonAddClick(wxCommandEvent& eevent)
 {
+    for(int i=0;i<ListBoxTimings->GetCount();i++)
+    {
+        if (ListBoxTimings->IsSelected(i))
+        {
+            TimingsToAdd.push_back(ListBoxTimings->GetString(i));
+        }
+    }
     for(int i=0;i<ListBoxElements->GetCount();i++)
     {
         if (ListBoxElements->IsSelected(i))
         {
-            ElementsToAdd.push_back(ListBoxElements->GetString(i));
+            ModelsToAdd.push_back(ListBoxElements->GetString(i));
         }
     }
     this->EndModal(wxID_OK);

@@ -1721,6 +1721,10 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         display_element_node->AddAttribute("name", element->GetName());
         display_element_node->AddAttribute("visible", string_format("%d", element->GetVisible()));
         display_element_node->AddAttribute("active", string_format("%d", element->GetActive()));
+        if( element->GetType() == "timing" )
+        {
+            display_element_node->AddAttribute("views", element->GetViews());
+        }
 
         // Add element node to ElementEffects
         wxXmlNode* element_effects_node = AddChildXmlNode(elements_node, "Element");

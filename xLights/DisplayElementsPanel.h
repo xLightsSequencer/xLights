@@ -83,8 +83,11 @@ class DisplayElementsPanel: public wxPanel
 
         void AddViewToList(const wxString& viewName, bool isChecked);
         void AddModelToList(Element* model);
+        void AddTimingToList(Element* timing);
         void ListItemChecked(wxCommandEvent& event);
         void UpdateModelsForSelectedView();
+        int GetFirstModelIndex();
+        int GetViewIndex(const wxString& name);
 
 		//(*Handlers(DisplayElementsPanel)
 		void OnMouseLeave(wxMouseEvent& event);

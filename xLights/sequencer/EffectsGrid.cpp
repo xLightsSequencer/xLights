@@ -92,6 +92,9 @@ EffectsGrid::~EffectsGrid()
 
 void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 {
+    if (mSequenceElements == NULL) {
+        return;
+    }
     int selectedTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
     UpdateTimePosition(selectedTimeMS);
 }
@@ -1164,7 +1167,6 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
     int effectIndex;
     int result;
 
-    wxLogDebug("EffectsGrid::RunMouseOverHitTests");
     EffectLayer* layer = mSequenceElements->GetVisibleEffectLayer(rowIndex);
     bool isHit = layer->HitTestEffect(x,effectIndex,result);
     if(isHit)
