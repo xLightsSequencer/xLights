@@ -259,6 +259,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mSequenceElements.SetModelsNode(ModelsNode, &NetInfo);
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file);
+    xml_file.CheckUpdateMorphPositions(mSequenceElements, this);
     mSequenceElements.PopulateRowInformation();
 
     Menu_Settings_Sequence->Enable(true);

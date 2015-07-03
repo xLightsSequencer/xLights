@@ -90,6 +90,8 @@ class xLightsXmlFile : public wxFileName
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void UpdateVersion();
+        bool IsVersionOlder(const wxString& compare, const wxString& version);
+        void CheckUpdateMorphPositions(SequenceElements& elements, xLightsFrame* xLightsParent);
 
         bool IsOpen() { return is_open; }
         bool HasAudioMedia() { return has_audio_media; }
