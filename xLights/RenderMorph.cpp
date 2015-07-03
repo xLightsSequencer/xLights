@@ -53,6 +53,12 @@ double RgbEffects::calcAccel(double ratio, double accel)
     else return (1 - std::pow(1 - ratio, -accel));
 }
 
+static int calcPosition(int value, int base)
+{
+    double band = 101.0 / (double)base;
+    return (int)((double)value / band);
+}
+
 void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2,
                              int start_length, int end_length, bool start_linked, bool end_linked, int duration, int acceleration,
                              bool showEntireHeadAtStart, int repeat_count, int repeat_skip, int stagger )
@@ -86,10 +92,10 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
             break;
     }
 
-    int x1a = (BufferWi-1) * (start_x1/100.0);
-    int y1a = (BufferHt-1) * (start_y1/100.0);
-    int x2a = (BufferWi-1) * (end_x1/100.0);
-    int y2a = (BufferHt-1) * (end_y1/100.0);
+    int x1a = calcPosition(start_x1, BufferWi);
+    int y1a = calcPosition(start_y1, BufferHt);
+    int x2a = calcPosition(end_x1, BufferWi);
+    int y2a = calcPosition(end_y1, BufferHt);
 
     int x1b, x2b, y1b, y2b;
 
@@ -100,8 +106,8 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     }
     else
     {
-        x1b = (BufferWi-1) * (start_x2/100.0);
-        y1b = (BufferHt-1) * (start_y2/100.0);
+        x1b = calcPosition(start_x2, BufferWi);
+        y1b = calcPosition(start_y2, BufferHt);
     }
 
     if( end_linked )
@@ -111,8 +117,8 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     }
     else
     {
-        x2b = (BufferWi-1) * (end_x2/100.0);
-        y2b = (BufferHt-1) * (end_y2/100.0);
+        x2b = calcPosition(end_x2, BufferWi);
+        y2b = calcPosition(end_y2, BufferHt);
     }
 
     xlColor head_color, tail_color, test_color;
