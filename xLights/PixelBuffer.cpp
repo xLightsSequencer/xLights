@@ -413,7 +413,7 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
             if (brightness[layer] != 100 || contrast[layer] != 0) {
                 hsv = color.asHSV();
                 hsv.value = hsv.value * ((double)brightness[layer]/(double)100);
-                
+
                 // Apply Contrast
                 if (hsv.value< 0.5) {
                     // reduce brightness when below 0.5 in the V value or increase if > 0.5
@@ -421,14 +421,14 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
                 } else {
                     hsv.value = hsv.value + (hsv.value* ((double)contrast[layer]/(double)100));
                 }
-                
+
                 if (hsv.value < 0.0) hsv.value=0.0;
                 if (hsv.value > 1.0) hsv.value=1.0;
                 unsigned char alpha = color.Alpha();
                 color = wxImage::HSVtoRGB(hsv);
                 color.alpha = alpha;
             }
-            
+
             if (MixTypeHandlesAlpha(mixType[layer])) {
                 c = mixColors(x, y, color, c, layer);
             } else {
@@ -685,8 +685,8 @@ void PixelBufferClass::RenderSingleStrandSkips(Effect *eff, int Skips_BandSize, 
     effects[CurrentLayer].RenderSingleStrandSkips(eff, Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction, advances);
 }
 
-void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType, int sspeed) {
-    effects[CurrentLayer].RenderSnowflakes(Count,SnowflakeType, sspeed);
+void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType, int sspeed, bool accumulate) {
+    effects[CurrentLayer].RenderSnowflakes(Count,SnowflakeType, sspeed, accumulate);
 }
 
 void PixelBufferClass::RenderSnowstorm(int Count, int Length, int sSpeed) {
