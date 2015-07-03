@@ -424,6 +424,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     TreeCtrl_Data_Layers->Expand(root);
 
     UpdateDataLayer();
+    needs_render = false;
 }
 
 SeqSettingsDialog::~SeqSettingsDialog()
@@ -761,7 +762,11 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
 {
-    ImportDataLayer(strSupportedFileTypes);
+    bool modified = ImportDataLayer(strSupportedFileTypes);
+    if( modified )
+    {
+        needs_render = true;
+    }
 }
 
 bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes)
@@ -963,6 +968,7 @@ void SeqSettingsDialog::OnButton_Layer_DeleteClick(wxCommandEvent& event)
     data_layers.RemoveDataLayer(selected_branch_index);
     TreeCtrl_Data_Layers->Delete(selected_branch);
     UpdateDataLayer();
+    needs_render = true;
 }
 
 void SeqSettingsDialog::OnButton_Move_UpClick(wxCommandEvent& event)
@@ -983,6 +989,7 @@ void SeqSettingsDialog::OnButton_Move_UpClick(wxCommandEvent& event)
     DataLayerSet& data_layers = xml_file->GetDataLayers();
     data_layers.MoveLayerUp(selected_branch_index);
     UpdateDataLayer();
+    needs_render = true;
 }
 
 void SeqSettingsDialog::OnButton_Move_DownClick(wxCommandEvent& event)
@@ -1003,6 +1010,7 @@ void SeqSettingsDialog::OnButton_Move_DownClick(wxCommandEvent& event)
     DataLayerSet& data_layers = xml_file->GetDataLayers();
     data_layers.MoveLayerDown(selected_branch_index);
     UpdateDataLayer();
+    needs_render = true;
 }
 
 void SeqSettingsDialog::OnTreeCtrl_Data_LayersSelectionChanged(wxTreeEvent& event)
@@ -1013,6 +1021,10 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersSelectionChanged(wxTreeEvent& even
 void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
 {
     EndModal(wxID_OK);
+    if( needs_render )
+    {
+        xLightsParent->RenderAll();
+    }
 }
 
 void SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event)

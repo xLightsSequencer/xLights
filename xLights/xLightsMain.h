@@ -1425,6 +1425,7 @@ public:
     void SetSequenceEnd(int ms);
     void UpdateRenderMode();
     void SetFrequency(int frequency);
+    void RenderAll();
 
 protected:
     void ClearEffectWindow();
@@ -1438,7 +1439,6 @@ protected:
     void OpenSequence();
     void SaveSequence();
     bool CloseSequence();
-    void RenderAll();
     void InsertRow();
     void UpdatePreview();
     wxXmlNode *BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClass*> &models);

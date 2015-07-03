@@ -247,6 +247,7 @@ class SeqSettingsDialog: public wxDialog
         xLightsFrame* xLightsParent;
         int selected_branch_index;
         wxTreeItemId selected_branch;
+        bool needs_render;
         bool wizard_active;
         wxBitmap music_seq;
         wxBitmap music_seq_pressed;
