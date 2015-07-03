@@ -74,7 +74,6 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	ButtonAddViews = new wxButton(ScrolledWindowDisplayElements, ID_BUTTON_ADD_VIEWS, _("Add Views"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_VIEWS"));
 	FlexGridSizer3->Add(ButtonAddViews, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonDeleteView = new wxButton(ScrolledWindowDisplayElements, ID_BUTTON_DELETE_VIEW, _("Delete View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DELETE_VIEW"));
-	ButtonDeleteView->Disable();
 	FlexGridSizer3->Add(ButtonDeleteView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer8->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer5->Add(FlexGridSizer8, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -123,6 +122,7 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&DisplayElementsPanel::OnListCtrlViewsItemSelect);
 	Connect(ID_BUTTON_ADD_VIEWS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonAddViewsClick);
+	Connect(ID_BUTTON_DELETE_VIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonDeleteViewClick);
 	Connect(ID_BUTTON_SHOW_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonShowAllClick);
 	Connect(ID_BUTTON_HIDE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonHideAllClick);
 	Connect(ID_BUTTONADD_MODELS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonAddModelsClick);
@@ -349,6 +349,49 @@ void DisplayElementsPanel::OnButtonAddViewsClick(wxCommandEvent& event)
     AddViewToList(viewName, true);
     mSequenceElements->AddView(viewName);
     SelectView(viewName);
+    PopulateViews();
+}
+
+void DisplayElementsPanel::OnButtonDeleteViewClick(wxCommandEvent& event)
+{
+    int result = wxMessageBox("Are you sure you want to delete this View?", "Confirm Deletion", wxOK | wxCANCEL | wxCENTER);
+    if (result != wxOK) return;
+
+    ListCtrlViews->Freeze();
+    long itemIndex = -1;
+
+    for (;;) {
+        itemIndex = ListCtrlViews->GetNextItem(itemIndex,
+                                               wxLIST_NEXT_ALL,
+                                               wxLIST_STATE_SELECTED);
+
+        if (itemIndex == -1) break;
+
+        // Got a selected item so handle it
+        if( itemIndex > 0 )  // don't delete master view
+        {
+            mSequenceElements->RemoveView(itemIndex);
+            wxString name = mSequenceElements->GetViewName(itemIndex);
+            for(wxXmlNode* view=mViews->GetChildren(); view!=NULL; view=view->GetNext() )
+            {
+                if( view->GetAttribute("name") == name )
+                {
+                    mViews->RemoveChild(view);
+                    delete view;
+                    break;
+                }
+            }
+
+            ListCtrlViews->DeleteItem(itemIndex);
+            mNumViews--;
+            break;
+        }
+        itemIndex = -1; // reset to delete next item which may have same index
+    }
+    ListCtrlViews->Thaw();
+    ListCtrlViews->Refresh();
+    mSequenceElements->SetCurrentView(MASTER_VIEW);
+    SelectView("Master View");
     PopulateViews();
 }
 

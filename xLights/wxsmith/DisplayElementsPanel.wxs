@@ -62,7 +62,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_DELETE_VIEW" variable="ButtonDeleteView" member="yes">
 															<label>Delete View</label>
-															<enabled>0</enabled>
+															<handler function="OnButtonDeleteViewClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>

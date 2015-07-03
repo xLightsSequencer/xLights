@@ -105,6 +105,7 @@ class DisplayElementsPanel: public wxPanel
 		void OnButtonMoveDownClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnListCtrlViewsItemSelect(wxListEvent& event);
+		void OnButtonDeleteViewClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

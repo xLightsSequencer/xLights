@@ -567,6 +567,12 @@ void SequenceElements::AddView(const wxString &viewName)
     mAllViews.push_back(new_view);
 }
 
+void SequenceElements::RemoveView(int view_index)
+{
+    mAllViews[view_index].clear();
+    mAllViews.erase(mAllViews.begin() + view_index);
+}
+
 void SequenceElements::SetCurrentView(int view)
 {
     mCurrentView = view;

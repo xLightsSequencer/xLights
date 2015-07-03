@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Add ability to Delete Views.
     -- enh(gil)   Allow timings to be added/removed from views.  This info remains local to each sequence not stored as part of the view
                   since not all sequences have the same timing names.
 4.1.9  Jun 30, 2015
