@@ -555,7 +555,6 @@ private:
     void OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event);
     void OnResize(wxSizeEvent& event);
     void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
-    void OnMenuItemSequenceElementsSelected(wxCommandEvent& event);
     void OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event);
     void OnAuiToolBarFirstFrameClick(wxCommandEvent& event);
     void OnAuiToolBarLastFrameClick(wxCommandEvent& event);
@@ -584,6 +583,9 @@ private:
     void OnMenuItemEffectAssistAlwaysOnSelected(wxCommandEvent& event);
     void OnMenuItemEffectAssistAlwaysOffSelected(wxCommandEvent& event);
     void OnMenuItemEffectAssistToggleModeSelected(wxCommandEvent& event);
+    void ShowHidePerspectivesWindow(wxCommandEvent& event);
+    void ShowHideDisplayElementsWindow(wxCommandEvent& event);
+    void ShowHideEffectAssistWindow(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -861,14 +863,14 @@ private:
     static const long ID_MENUITEM_SAVE_PERSPECTIVE;
     static const long ID_MENUITEM_LOAD_PERSPECTIVE;
     static const long ID_MENUITEM7;
-    static const long ID_MENUITEM_SEQUENCE_ELEMENTS;
+    static const long ID_MENUITEM_DISPLAY_ELEMENTS;
     static const long ID_MENUITEM12;
     static const long ID_MENUITEM3;
-    static const long ID_MENUITEM13;
     static const long ID_MENUITEM14;
     static const long ID_MENUITEM15;
     static const long ID_MENUITEM16;
     static const long ID_MENUITEM17;
+    static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM10;
     static const long ID_PLAY_FULL;
@@ -1146,6 +1148,7 @@ private:
     wxStaticText* StaticText30;
     wxStaticText* StaticText29;
     wxSlider* SliderFgColorA;
+    wxMenuItem* MenuItemEffectAssistWindow;
     wxCheckBox* CheckBoxOffAtEnd;
     wxSlider* SliderRgbCycleSpeed;
     wxBitmapButton* BitmapButton_Link_Dirs;

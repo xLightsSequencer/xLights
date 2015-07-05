@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Update View -> Windows so that Perspectives, and Display Elements windows work and add Effect Assist Window.
     -- enh(gil)   Add settings options for how the effect assist window behaves.
     -- enh(gil)   Added new panel to help in defining Morph positions.  Will be expanded for other uses later.
     -- enh(gil)   Automatically initiate Render All after adding or modifying data layers when dialog is closed to remove confusion.

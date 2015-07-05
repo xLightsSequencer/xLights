@@ -204,7 +204,7 @@ void xLightsFrame::LoadEffectsFile()
     }
 
     UpdateModelsList();
-    displayElementsPanel->SetSequenceElementsModelsViews(&mSequenceElements,ModelsNode, ModelGroupsNode, ViewsNode);
+    displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements,ModelsNode, ModelGroupsNode, ViewsNode);
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
     float elapsedTime = sw.Time()/1000.0; //msec => sec

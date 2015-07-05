@@ -54,7 +54,7 @@ void xLightsFrame::CreateSequencer()
 
     sSceneEditor = new SceneEditor(PanelSequencer, this);
     sSceneEditor->SetSize(wxSize(200,200));
-    m_mgr->AddPane(sSceneEditor,wxAuiPaneInfo().Name(wxT("SceneEditor")).Caption(wxT("Scene Editor")).BestSize(wxSize(200,200)).Left());
+    m_mgr->AddPane(sSceneEditor,wxAuiPaneInfo().Name(wxT("SceneEditor")).Caption(wxT("Effect Assist")).BestSize(wxSize(200,200)).Left());
     sSceneEditor->Layout();
 
     wxScrolledWindow* w;
@@ -75,7 +75,7 @@ void xLightsFrame::CreateSequencer()
     // DisplayElements Panel
     displayElementsPanel = new DisplayElementsPanel(PanelSequencer);
 
-    m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Sequence Elements"))
+    m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements"))
                    .Float());
     // Hide the panel on start.
     m_mgr->GetPane("DisplayElements").Hide();
@@ -1197,6 +1197,16 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     m_mgr->Update();
 }
 
+void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("DisplayElements").IsShown();
+    if (visible) {
+        m_mgr->GetPane("DisplayElements").Hide();
+    } else {
+        m_mgr->GetPane("DisplayElements").Show();
+    }
+    m_mgr->Update();
+}
 
 void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
 {
@@ -1265,7 +1275,35 @@ void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
     m_mgr->Update();
 }
 
+void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("Perspectives").IsShown();
+    if (visible) {
+        m_mgr->GetPane("Perspectives").Hide();
+    } else {
+        m_mgr->GetPane("Perspectives").Show();
+    }
+    m_mgr->Update();
+}
 
+void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("SceneEditor").IsShown();
+    if (visible) {
+        m_mgr->GetPane("SceneEditor").Hide();
+        mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
+        MenuItemEffectAssistAlwaysOn->Check(false);
+        MenuItemEffectAssistAlwaysOff->Check(true);
+        MenuItemEffectAssistToggleMode->Check(false);
+    } else {
+        m_mgr->GetPane("SceneEditor").Show();
+        mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
+        MenuItemEffectAssistAlwaysOn->Check(true);
+        MenuItemEffectAssistAlwaysOff->Check(false);
+        MenuItemEffectAssistToggleMode->Check(false);
+    }
+    m_mgr->Update();
+}
 
 Element* xLightsFrame::AddTimingElement(wxString& name)
 {

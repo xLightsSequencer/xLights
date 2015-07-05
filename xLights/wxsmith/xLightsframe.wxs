@@ -3128,9 +3128,9 @@
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM10" variable="MenuItem18" member="yes">
 					<label>Windows</label>
-					<object class="wxMenuItem" name="ID_MENUITEM_SEQUENCE_ELEMENTS" variable="MenuItemSequenceElements" member="no">
-						<label>Sequence Elements</label>
-						<handler function="OnMenuItemSequenceElementsSelected" entry="EVT_MENU" />
+					<object class="wxMenuItem" name="ID_MENUITEM_DISPLAY_ELEMENTS" variable="MenuItemDisplayElements" member="no">
+						<label>Display Elements</label>
+						<handler function="ShowHideDisplayElementsWindow" entry="EVT_MENU" />
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM12" variable="MenuItem20" member="no">
 						<label>Model Preview</label>
@@ -3139,9 +3139,6 @@
 					<object class="wxMenuItem" name="ID_MENUITEM3" variable="MenuItem6" member="no">
 						<label>House Preview</label>
 						<handler function="ShowHideHousePreview" entry="EVT_MENU" />
-					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM13" variable="MenuItem21" member="no">
-						<label>Views</label>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM14" variable="MenuItem22" member="no">
 						<label>Effect Settings</label>
@@ -3159,9 +3156,14 @@
 						<label>Effect Dropper</label>
 						<handler function="ShowHideEffectDropper" entry="EVT_MENU" />
 					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_EFFECT_ASSIST_WINDOW" variable="MenuItemEffectAssistWindow" member="yes">
+						<label>Effect Assist</label>
+						<handler function="ShowHideEffectAssistWindow" entry="EVT_MENU" />
+					</object>
 					<object class="separator" />
 					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_PERSPECTIVE" variable="MenuItem26" member="no">
 						<label>Perspectives</label>
+						<handler function="ShowHidePerspectivesWindow" entry="EVT_MENU" />
 					</object>
 				</object>
 			</object>

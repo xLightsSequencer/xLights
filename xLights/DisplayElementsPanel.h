@@ -13,7 +13,7 @@
 #include "wx/xml/xml.h"
 #include "wxCheckedListCtrl.h"
 #include "sequencer/SequenceElements.h"
-
+#include "SequenceData.h"
 
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
@@ -25,9 +25,10 @@ class DisplayElementsPanel: public wxPanel
 		DisplayElementsPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~DisplayElementsPanel();
 
-        void SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models,
-                                        wxXmlNode* modelGroups,
-                                        wxXmlNode* views);
+        void SetSequenceElementsModelsViews(SequenceData* seq_data,
+                                            SequenceElements* elements,wxXmlNode* models,
+                                            wxXmlNode* modelGroups,
+                                            wxXmlNode* views);
         void Initialize();
         void SelectView(const wxString& name);
         void AddMissingModelsOfView(wxString view);
@@ -73,7 +74,7 @@ class DisplayElementsPanel: public wxPanel
         void PopulateViews();
         void PopulateModels();
 
-
+        SequenceData* mSeqData;
         SequenceElements* mSequenceElements;
         wxXmlNode* mModels;
         wxXmlNode* mViews;

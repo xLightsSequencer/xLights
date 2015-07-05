@@ -139,6 +139,7 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	ListCtrlModels->AddImage((char**)model_16);
 	mNumViews = 0;
 	mNumModels = 0;
+	mSequenceElements = NULL;
 }
 
 DisplayElementsPanel::~DisplayElementsPanel()
@@ -147,12 +148,14 @@ DisplayElementsPanel::~DisplayElementsPanel()
 	//*)
 }
 
-void DisplayElementsPanel::SetSequenceElementsModelsViews(SequenceElements* elements,
+void DisplayElementsPanel::SetSequenceElementsModelsViews(SequenceData* seq_data,
+                                                          SequenceElements* elements,
                                                           wxXmlNode* models,
                                                           wxXmlNode* modelGroups,
                                                           wxXmlNode* views)
 {
     mSequenceElements = elements;
+    mSeqData = seq_data;
     mModels = models;
     mViews = views;
     mModelGroups = modelGroups;
@@ -160,6 +163,7 @@ void DisplayElementsPanel::SetSequenceElementsModelsViews(SequenceElements* elem
 
 void DisplayElementsPanel::Initialize()
 {
+    if (mSeqData->NumFrames() == 0) return;
     PopulateViews();
     PopulateModels();
 }
@@ -335,6 +339,7 @@ void DisplayElementsPanel::OnLeftUp(wxMouseEvent& event)
 
 void DisplayElementsPanel::OnButtonAddViewsClick(wxCommandEvent& event)
 {
+    if (mSeqData->NumFrames() == 0) return;
     wxTextEntryDialog dialog(this,_("Enter Name for View"),_("Create View"));
     int DlgResult=dialog.ShowModal();;
     if (DlgResult != wxID_OK) return;
@@ -354,6 +359,7 @@ void DisplayElementsPanel::OnButtonAddViewsClick(wxCommandEvent& event)
 
 void DisplayElementsPanel::OnButtonDeleteViewClick(wxCommandEvent& event)
 {
+    if (mSeqData->NumFrames() == 0) return;
     int result = wxMessageBox("Are you sure you want to delete this View?", "Confirm Deletion", wxOK | wxCANCEL | wxCENTER);
     if (result != wxOK) return;
 
@@ -397,6 +403,7 @@ void DisplayElementsPanel::OnButtonDeleteViewClick(wxCommandEvent& event)
 
 void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
 {
+    if (mSeqData->NumFrames() == 0) return;
     ModelViewSelector dialog(this);
     dialog.SetSequenceElementsModelsViews(mSequenceElements,mModels,mModelGroups,mViews, mSequenceElements->GetCurrentView());
     wxString type = "model";
@@ -463,6 +470,7 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
 
 void DisplayElementsPanel::AddMissingModelsOfView(wxString view)
 {
+    if (mSeqData->NumFrames() == 0) return;
     wxString modelsString = mSequenceElements->GetViewModels(view);
     mSequenceElements->AddMissingModelsToSequence(modelsString);
 }
@@ -490,6 +498,7 @@ void DisplayElementsPanel::ListItemChecked(wxCommandEvent& event)
 
 void DisplayElementsPanel::OnButtonShowAllClick(wxCommandEvent& event)
 {
+    if (mSeqData->NumFrames() == 0) return;
     mSequenceElements->SetVisibilityForAllModels(true, mSequenceElements->GetCurrentView());
     PopulateModels();
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
@@ -498,6 +507,7 @@ void DisplayElementsPanel::OnButtonShowAllClick(wxCommandEvent& event)
 
 void DisplayElementsPanel::OnButtonHideAllClick(wxCommandEvent& event)
 {
+    if (mSeqData->NumFrames() == 0) return;
     mSequenceElements->SetVisibilityForAllModels(false, mSequenceElements->GetCurrentView());
     PopulateModels();
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
@@ -506,6 +516,7 @@ void DisplayElementsPanel::OnButtonHideAllClick(wxCommandEvent& event)
 
 void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
 {
+    if (mSeqData->NumFrames() == 0) return;
     if( mSequenceElements->GetCurrentView() == MASTER_VIEW )
     {
         if( wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES )
@@ -579,6 +590,7 @@ int DisplayElementsPanel::GetFirstModelIndex()
 
 void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
 {
+    if (mSeqData->NumFrames() == 0) return;
     ListCtrlModels->Freeze();  // prevent list changes while we work on it
     bool items_moved = false;
     std::vector<long> selected_list;
@@ -633,6 +645,7 @@ void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
 
 void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
 {
+    if (mSeqData->NumFrames() == 0) return;
     ListCtrlModels->Freeze();  // prevent list changes while we work on it
     bool items_moved = false;
     std::vector<long> selected_list;
@@ -748,6 +761,7 @@ void DisplayElementsPanel::OnListCtrlViewsItemSelect(wxListEvent& event)
 
 void DisplayElementsPanel::SelectView(const wxString& name)
 {
+    if (mSeqData->NumFrames() == 0) return;
     ListCtrlViews->SetChecked(mSequenceElements->GetCurrentView(),false);
     int selected_view = GetViewIndex(name);
     if( selected_view > 0 )

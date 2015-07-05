@@ -348,14 +348,14 @@ const long xLightsFrame::ID_MENUITEM_VIEW_ZOOM_OUT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM7 = wxNewId();
-const long xLightsFrame::ID_MENUITEM_SEQUENCE_ELEMENTS = wxNewId();
+const long xLightsFrame::ID_MENUITEM_DISPLAY_ELEMENTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM12 = wxNewId();
 const long xLightsFrame::ID_MENUITEM3 = wxNewId();
-const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM14 = wxNewId();
 const long xLightsFrame::ID_MENUITEM15 = wxNewId();
 const long xLightsFrame::ID_MENUITEM16 = wxNewId();
 const long xLightsFrame::ID_MENUITEM17 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM10 = wxNewId();
 const long xLightsFrame::ID_PLAY_FULL = wxNewId();
@@ -562,7 +562,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer15;
     wxFlexGridSizer* FlexGridSizer18;
     wxFlexGridSizer* FlexGridSizer8;
-    wxMenuItem* MenuItemSequenceElements;
+    wxMenuItem* MenuItemDisplayElements;
     wxFlexGridSizer* FlexGridSizer21;
     wxMenuItem* MenuItem6;
     wxFlexGridSizer* FlexGridSizer14;
@@ -578,7 +578,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer36;
     wxFlexGridSizer* FlexGridSizer6;
     wxStaticBoxSizer* StaticBoxSizer1;
-    wxMenuItem* MenuItem21;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizerConvert;
     wxFlexGridSizer* FlexGridSizer43;
@@ -1611,14 +1610,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem15->Append(MenuItemLoadEditPerspective);
     Menu5->Append(ID_MENUITEM7, _("Perspectives"), MenuItem15, wxEmptyString);
     MenuItem18 = new wxMenu();
-    MenuItemSequenceElements = new wxMenuItem(MenuItem18, ID_MENUITEM_SEQUENCE_ELEMENTS, _("Sequence Elements"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItemSequenceElements);
+    MenuItemDisplayElements = new wxMenuItem(MenuItem18, ID_MENUITEM_DISPLAY_ELEMENTS, _("Display Elements"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItemDisplayElements);
     MenuItem20 = new wxMenuItem(MenuItem18, ID_MENUITEM12, _("Model Preview"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem20);
     MenuItem6 = new wxMenuItem(MenuItem18, ID_MENUITEM3, _("House Preview"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem6);
-    MenuItem21 = new wxMenuItem(MenuItem18, ID_MENUITEM13, _("Views"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem21);
     MenuItem22 = new wxMenuItem(MenuItem18, ID_MENUITEM14, _("Effect Settings"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem22);
     MenuItem23 = new wxMenuItem(MenuItem18, ID_MENUITEM15, _("Colors"), wxEmptyString, wxITEM_NORMAL);
@@ -1627,6 +1624,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem18->Append(MenuItem24);
     MenuItem25 = new wxMenuItem(MenuItem18, ID_MENUITEM17, _("Effect Dropper"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem25);
+    MenuItemEffectAssistWindow = new wxMenuItem(MenuItem18, ID_MENUITEM_EFFECT_ASSIST_WINDOW, _("Effect Assist"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItemEffectAssistWindow);
     MenuItem18->AppendSeparator();
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem26);
@@ -1861,13 +1860,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_VIEW_ZOOM_OUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
-    Connect(ID_MENUITEM_SEQUENCE_ELEMENTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSequenceElementsSelected);
+    Connect(ID_MENUITEM_DISPLAY_ELEMENTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideDisplayElementsWindow);
     Connect(ID_MENUITEM12,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
     Connect(ID_MENUITEM3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
     Connect(ID_MENUITEM14,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
     Connect(ID_MENUITEM15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_MENUITEM16,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
     Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
+    Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
+    Connect(ID_MENUITEM_WINDOWS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePerspectivesWindow);
     Connect(ID_PLAY_FULL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
     Connect(ID_PLAY_3_4,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
     Connect(ID_PLAY_1_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
@@ -1904,7 +1905,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonGracefulStop = new AUIToolbarButtonWrapper(OutputToolBar, ID_BUTTON_GRACEFUL_STOP);
-
 
     mResetToolbars = false;
     mRenderOnSave = true;
@@ -3204,15 +3204,6 @@ void xLightsFrame::OnResize(wxSizeEvent& event)
 void xLightsFrame::OnAuiToolBarItemRenderAllClick(wxCommandEvent& event)
 {
     RenderAll();
-}
-
-void xLightsFrame::OnMenuItemSequenceElementsSelected(wxCommandEvent& event)
-{
-    if( xLightsFrame::CurrentSeqXmlFile == NULL ) return;
-    {
-        wxCommandEvent displayElementEvent(EVT_SHOW_DISPLAY_ELEMENTS);
-        wxPostEvent(this, displayElementEvent);
-    }
 }
 
 bool AUIToolbarButtonWrapper::IsChecked() {
