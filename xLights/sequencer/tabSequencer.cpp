@@ -1155,11 +1155,21 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
     m_mgr->LoadPerspective(settings,true);
     sPreview1->Refresh(false);
     sPreview2->Refresh(false);
+    m_mgr->Update();
+
     if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF )
     {
         SetEffectAssistWindowState(false);
     }
-    m_mgr->Update();
+    else if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON )
+    {
+        bool visible = m_mgr->GetPane("SceneEditor").IsShown();
+        if( !visible )
+        {
+            mEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
+            MenuItemEffectAssistAlwaysOn->Check(false);
+        }
+    }
 }
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)

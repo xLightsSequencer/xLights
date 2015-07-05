@@ -343,7 +343,8 @@ public:
     {
         EFFECT_ASSIST_ALWAYS_ON,
         EFFECT_ASSIST_ALWAYS_OFF,
-        EFFECT_ASSIST_TOGGLE_MODE
+        EFFECT_ASSIST_TOGGLE_MODE,
+        EFFECT_ASSIST_NOT_IN_PERSPECTIVE
     };
 
     wxArrayString EffectNames;
