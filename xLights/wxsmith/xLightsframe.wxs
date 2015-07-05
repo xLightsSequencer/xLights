@@ -3051,6 +3051,10 @@
 					<bitmap stock_id="wxART_FILE_SAVE" />
 					<handler function="OnMenuItem_File_Save_SequenceSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_SAVE_AS_SEQUENCE" variable="MenuItem_File_SaveAs_Sequence" member="yes">
+					<label>Save As Sequence</label>
+					<handler function="OnMenuItem_File_SaveAs_SequenceSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_CLOSE_SEQ" variable="MenuItem_File_Close_Sequence" member="yes">
 					<label>Close Sequence</label>
 					<enabled>0</enabled>

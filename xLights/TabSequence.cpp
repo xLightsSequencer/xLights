@@ -473,6 +473,43 @@ void xLightsFrame::SaveSequence()
     mSavedChangeCount = mSequenceElements.GetChangeCount();
 }
 
+void xLightsFrame::SaveAsSequence()
+{
+   if (SeqData.NumFrames() == 0)
+    {
+        wxMessageBox("You must open a sequence first!", "Error");
+        return;
+    }
+    wxString NewFilename;
+    wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
+    bool ok;
+    do
+    {
+        if (dialog.ShowModal() != wxID_OK)
+        {
+            return;
+        }
+        // validate inputs
+        NewFilename=dialog.GetValue();
+        NewFilename.Trim();
+        ok=true;
+        if (NewFilename.IsEmpty())
+        {
+            ok=false;
+            wxMessageBox(_("File name cannot be empty"), _("ERROR"));
+        }
+    }
+    while (!ok);
+    wxFileName oName(NewFilename);
+    oName.SetPath( CurrentDir );
+    oName.SetExt("fseq");
+    DisplayXlightsFilename(oName.GetFullPath());
+
+    oName.SetExt("xml");
+    CurrentSeqXmlFile->SetFullName(oName.GetFullName());
+    SaveSequence();
+}
+
 void xLightsFrame::RenderAll()
 {
     EnableSequenceControls(false);

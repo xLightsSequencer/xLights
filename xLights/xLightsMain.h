@@ -586,6 +586,7 @@ private:
     void ShowHidePerspectivesWindow(wxCommandEvent& event);
     void ShowHideDisplayElementsWindow(wxCommandEvent& event);
     void ShowHideEffectAssistWindow(wxCommandEvent& event);
+    void OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -849,6 +850,7 @@ private:
     static const long ID_NEW_SEQUENCE;
     static const long ID_OPEN_SEQUENCE;
     static const long IS_SAVE_SEQ;
+    static const long ID_SAVE_AS_SEQUENCE;
     static const long ID_CLOSE_SEQ;
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
@@ -1070,6 +1072,7 @@ private:
     wxButton* ButtonSaveLog;
     wxPanel* PanelSetup;
     DragEffectBitmapButton* BitmapButton1;
+    wxMenuItem* MenuItem_File_SaveAs_Sequence;
     DragEffectBitmapButton* BitmapButton25;
     wxStaticText* StaticText43;
     wxStaticText* StaticText24;
@@ -1463,6 +1466,7 @@ protected:
     void NewSequence();
     void OpenSequence();
     void SaveSequence();
+    void SaveAsSequence();
     bool CloseSequence();
     void InsertRow();
     void UpdatePreview();

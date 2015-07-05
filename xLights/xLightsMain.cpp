@@ -334,6 +334,7 @@ const long xLightsFrame::ID_NOTEBOOK1 = wxNewId();
 const long xLightsFrame::ID_NEW_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_OPEN_SEQUENCE = wxNewId();
 const long xLightsFrame::IS_SAVE_SEQ = wxNewId();
+const long xLightsFrame::ID_SAVE_AS_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_CLOSE_SEQ = wxNewId();
 const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
@@ -1569,6 +1570,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem_File_Save_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_Save_Sequence);
     MenuItem_File_Save_Sequence->Enable(false);
+    MenuItem_File_SaveAs_Sequence = new wxMenuItem(MenuFile, ID_SAVE_AS_SEQUENCE, _("Save As Sequence"), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(MenuItem_File_SaveAs_Sequence);
     MenuItem_File_Close_Sequence = new wxMenuItem(MenuFile, ID_CLOSE_SEQ, _("Close Sequence"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Close_Sequence);
     MenuItem_File_Close_Sequence->Enable(false);
@@ -1846,6 +1849,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_NEW_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
     Connect(ID_OPEN_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Open_SequenceSelected);
     Connect(IS_SAVE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Save_SequenceSelected);
+    Connect(ID_SAVE_AS_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected);
     Connect(ID_CLOSE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Close_SequenceSelected);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
@@ -3045,39 +3049,7 @@ wxString xLightsFrame::GetXmlSetting(const wxString& settingName,const wxString&
 
 void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
 {
-    if (SeqData.NumFrames() == 0)
-    {
-        wxMessageBox("You must open a sequence first!", "Error");
-        return;
-    }
-    wxString NewFilename;
-    wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
-    bool ok;
-    do
-    {
-        if (dialog.ShowModal() != wxID_OK)
-        {
-            return;
-        }
-        // validate inputs
-        NewFilename=dialog.GetValue();
-        NewFilename.Trim();
-        ok=true;
-        if (NewFilename.IsEmpty())
-        {
-            ok=false;
-            wxMessageBox(_("File name cannot be empty"), _("ERROR"));
-        }
-    }
-    while (!ok);
-    wxFileName oName(NewFilename);
-    oName.SetPath( CurrentDir );
-    oName.SetExt("fseq");
-    DisplayXlightsFilename(oName.GetFullPath());
-
-    oName.SetExt("xml");
-    CurrentSeqXmlFile->SetFullName(oName.GetFullName());
-    SaveSequence();
+    SaveAsSequence();
 }
 
 wxString xLightsFrame::GetSeqXmlFileName() {
@@ -3185,6 +3157,11 @@ void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event)
 {
     SaveSequence();
+}
+
+void xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event)
+{
+    SaveAsSequence();
 }
 
 void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
