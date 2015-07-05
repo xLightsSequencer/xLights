@@ -384,6 +384,10 @@ const long xLightsFrame::ID_MENUITEM8 = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_ERASE_MODE = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_CANVAS_MODE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_RENDER_MODE = wxNewId();
+const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON = wxNewId();
+const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF = wxNewId();
+const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_TOGGLE = wxNewId();
+const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
@@ -1689,6 +1693,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItemRenderCanvasMode = new wxMenuItem(MenuItemRenderMode, ID_MENU_CANVAS_CANVAS_MODE, _("Canvas Mode"), wxEmptyString, wxITEM_CHECK);
     MenuItemRenderMode->Append(MenuItemRenderCanvasMode);
     MenuSettings->Append(ID_MENUITEM_RENDER_MODE, _("Render Mode"), MenuItemRenderMode, wxEmptyString)->Enable(false);
+    MenuItem7 = new wxMenu();
+    MenuItemEffectAssistAlwaysOn = new wxMenuItem(MenuItem7, ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON, _("Always On"), _("Effect Assist Window will always be active if member of perspective."), wxITEM_CHECK);
+    MenuItem7->Append(MenuItemEffectAssistAlwaysOn);
+    MenuItemEffectAssistAlwaysOff = new wxMenuItem(MenuItem7, ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF, _("Always Off"), _("Effect Assist Window will always be inactive."), wxITEM_CHECK);
+    MenuItem7->Append(MenuItemEffectAssistAlwaysOff);
+    MenuItemEffectAssistToggleMode = new wxMenuItem(MenuItem7, ID_MENUITEM_EFFECT_ASSIST_TOGGLE, _("Toggle Mode"), _("Effect Assist Window will show only when a supported effect is selected."), wxITEM_CHECK);
+    MenuItem7->Append(MenuItemEffectAssistToggleMode);
+    MenuItemEffectAssistToggleMode->Check(true);
+    MenuSettings->Append(ID_MENUITEM_EFFECT_ASSIST, _("Effect Assist Window"), MenuItem7, wxEmptyString);
     MenuItem13 = new wxMenuItem(MenuSettings, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItem13);
     MenuBar->Append(MenuSettings, _("&Settings"));
@@ -1876,6 +1889,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_GRID_NODE_VALUES_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
     Connect(ID_MENU_CANVAS_ERASE_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderEraseModeSelected);
     Connect(ID_MENU_CANVAS_CANVAS_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderCanvasModeSelected);
+    Connect(ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistAlwaysOnSelected);
+    Connect(ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistAlwaysOffSelected);
+    Connect(ID_MENUITEM_EFFECT_ASSIST_TOGGLE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistToggleModeSelected);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
@@ -2029,6 +2045,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         wxCommandEvent event(wxEVT_NULL, id);
         OnSetGridNodeValues(event);
     }
+    config->Read("xLightsEffectAssistMode", &mEffectAssistMode, EFFECT_ASSIST_TOGGLE_MODE);
+    MenuItemEffectAssistAlwaysOn->Check(mEffectAssistMode==EFFECT_ASSIST_ALWAYS_ON);
+    MenuItemEffectAssistAlwaysOff->Check(mEffectAssistMode==EFFECT_ASSIST_ALWAYS_OFF);
+    MenuItemEffectAssistToggleMode->Check(mEffectAssistMode==EFFECT_ASSIST_TOGGLE_MODE);
+
     // initialize all effect wxChoice lists
 
     BarEffectDirections.Add("up");          // 0
@@ -2286,6 +2307,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
     config->Write("xLightsGridNodeValues", mGridNodeValues);
     config->Write("xLightsRenderOnSave", mRenderOnSave);
+    config->Write("xLightsEffectAssistMode", mEffectAssistMode);
 
     config->Flush();
 
@@ -3368,4 +3390,72 @@ void xLightsFrame::OnMenuItemRenderOnSave(wxCommandEvent& event)
     mRenderOnSave = event.IsChecked();
 }
 
+void xLightsFrame::OnMenuItemEffectAssistAlwaysOnSelected(wxCommandEvent& event)
+{
+    MenuItemEffectAssistAlwaysOn->Check(true);
+    MenuItemEffectAssistAlwaysOff->Check(false);
+    MenuItemEffectAssistToggleMode->Check(false);
+    mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
+    SetEffectAssistWindowState(true);
+}
 
+void xLightsFrame::OnMenuItemEffectAssistAlwaysOffSelected(wxCommandEvent& event)
+{
+    MenuItemEffectAssistAlwaysOn->Check(false);
+    MenuItemEffectAssistAlwaysOff->Check(true);
+    MenuItemEffectAssistToggleMode->Check(false);
+    mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
+    SetEffectAssistWindowState(false);
+}
+
+void xLightsFrame::OnMenuItemEffectAssistToggleModeSelected(wxCommandEvent& event)
+{
+    MenuItemEffectAssistAlwaysOn->Check(false);
+    MenuItemEffectAssistAlwaysOff->Check(false);
+    MenuItemEffectAssistToggleMode->Check(true);
+    mEffectAssistMode = EFFECT_ASSIST_TOGGLE_MODE;
+}
+
+void xLightsFrame::SetEffectAssistWindowState(bool show)
+{
+    bool visible = m_mgr->GetPane("SceneEditor").IsShown();
+    if (visible && !show) {
+        m_mgr->GetPane("SceneEditor").Hide();
+        m_mgr->Update();
+    } else if(!visible && show) {
+        m_mgr->GetPane("SceneEditor").Show();
+        m_mgr->Update();
+    }
+}
+
+void xLightsFrame::UpdateEffectAssistWindow(Effect* effect)
+{
+    if( effect == NULL )
+    {
+        sSceneEditor->SetEffect(NULL);
+        return;
+    }
+
+    bool effect_is_supported = (effect->GetEffectName() == "Morph");
+
+    if( mEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE )
+    {
+        if( effect_is_supported )
+        {
+            SetEffectAssistWindowState(true);
+        }
+        else
+        {
+            SetEffectAssistWindowState(false);
+        }
+    }
+
+    if( effect_is_supported )
+    {
+        sSceneEditor->SetEffect(effect);
+    }
+    else
+    {
+        sSceneEditor->SetEffect(NULL);
+    }
+}

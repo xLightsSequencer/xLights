@@ -67,13 +67,16 @@ void SceneEditor::ForceRefresh()
 void SceneEditor::SetEffect(Effect* effect_)
 {
     mEffect = effect_;
-    EffectLayer* layer = mEffect->GetParentEffectLayer();
-    Element* elem = layer->GetParentElement();
-    wxString model_name = elem->GetName();
-    ModelClass &cls = mxLightsParent->GetModelClass(model_name);
-    PanelSceneEditor->SetModelClass(&cls);
-    PanelSceneEditor->SetNumColumns(cls.BufferWi);
-    PanelSceneEditor->SetNumRows(cls.BufferHt);
+    if( mEffect != NULL )
+    {
+        EffectLayer* layer = mEffect->GetParentEffectLayer();
+        Element* elem = layer->GetParentElement();
+        wxString model_name = elem->GetName();
+        ModelClass &cls = mxLightsParent->GetModelClass(model_name);
+        PanelSceneEditor->SetModelClass(&cls);
+        PanelSceneEditor->SetNumColumns(cls.BufferWi);
+        PanelSceneEditor->SetNumRows(cls.BufferHt);
+    }
     PanelSceneEditor->SetEffect(mEffect);
 
     wxSizeEvent dummy;

@@ -80,6 +80,7 @@ int xlGridCanvas::CheckForCornerHit(int x, int y)
 
 void xlGridCanvas::mouseDown(wxMouseEvent& event)
 {
+    if( mEffect == NULL ) return;
     if( mEffect->GetEffectIndex() == BitmapCache::eff_MORPH )
     {
         mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
@@ -95,6 +96,7 @@ void xlGridCanvas::mouseDown(wxMouseEvent& event)
 
 void xlGridCanvas::mouseMoved(wxMouseEvent& event)
 {
+    if( mEffect == NULL ) return;
     if( mEffect->GetEffectIndex() == BitmapCache::eff_MORPH )
     {
         if( !mDragging )
@@ -119,6 +121,7 @@ void xlGridCanvas::mouseMoved(wxMouseEvent& event)
 
 void xlGridCanvas::mouseReleased(wxMouseEvent& event)
 {
+    if( mEffect == NULL ) return;
     if( mDragging )
     {
         if( mEffect->GetEffectIndex() == BitmapCache::eff_MORPH )

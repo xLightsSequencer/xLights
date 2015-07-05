@@ -326,9 +326,7 @@ public:
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);
 
-
-
-   enum LAYER_OPTIONS_e
+    enum LAYER_OPTIONS_e
     {
         EFFECT1,
         EFFECT2,
@@ -340,6 +338,14 @@ public:
         EFFAVERAGED,
         LASTLAYER
     };
+
+    enum EFFECT_ASSIST_MODES
+    {
+        EFFECT_ASSIST_ALWAYS_ON,
+        EFFECT_ASSIST_ALWAYS_OFF,
+        EFFECT_ASSIST_TOGGLE_MODE
+    };
+
     wxArrayString EffectNames;
     wxArrayString EffectLayerOptions;
     static wxString CurrentDir; //expose current folder name -DJ
@@ -574,6 +580,9 @@ private:
     void OnMenuItemRenderOnSave(wxCommandEvent& event);
     void OnNotebook1PageChanging(wxAuiNotebookEvent& event);
     void OnButtonAddNullClick(wxCommandEvent& event);
+    void OnMenuItemEffectAssistAlwaysOnSelected(wxCommandEvent& event);
+    void OnMenuItemEffectAssistAlwaysOffSelected(wxCommandEvent& event);
+    void OnMenuItemEffectAssistToggleModeSelected(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -584,6 +593,8 @@ private:
     void CopyEffectAcrossRow(wxCommandEvent& evt); //-DJ
     void ClearEffectRow(wxCommandEvent& evt); //-DJ
     void ShowHideAllSequencerWindows(bool show);
+    void SetEffectAssistWindowState(bool show);
+    void UpdateEffectAssistWindow(Effect* effect);
 
 //    void ConnectOnChar(wxWindow* pclComponent);
 
@@ -885,6 +896,10 @@ private:
     static const long ID_MENU_CANVAS_ERASE_MODE;
     static const long ID_MENU_CANVAS_CANVAS_MODE;
     static const long ID_MENUITEM_RENDER_MODE;
+    static const long ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON;
+    static const long ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF;
+    static const long ID_MENUITEM_EFFECT_ASSIST_TOGGLE;
+    static const long ID_MENUITEM_EFFECT_ASSIST;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_STATUSBAR1;
@@ -1034,7 +1049,9 @@ private:
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
     wxRadioButton* RadioButtonDim;
+    wxMenuItem* MenuItemEffectAssistAlwaysOff;
     wxMenu* MenuItem15;
+    wxMenuItem* MenuItemEffectAssistToggleMode;
     wxButton* ButtonUpdateShow;
     wxStaticText* ShowDirectoryLabel;
     wxStaticText* StaticText7;
@@ -1062,6 +1079,7 @@ private:
     wxStaticText* StaticText34;
     wxSlider* SliderBgColorC;
     wxStatusBar* StatusBar1;
+    wxMenu* MenuItem7;
     wxTextCtrl* TextCtrlModelRotationDegrees;
     wxCheckBox* CheckBox_PgoAutoRest;
     wxPanel* Panel3;
@@ -1162,6 +1180,7 @@ private:
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
+    wxMenuItem* MenuItemEffectAssistAlwaysOn;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
     wxStaticText* StaticText9;
@@ -1506,6 +1525,7 @@ protected:
     int mGridSpacing;
     bool mGridIconBackgrounds;
     bool mGridNodeValues;
+    int mEffectAssistMode;
 
     PixelBufferClass playBuffer;
     int playType;

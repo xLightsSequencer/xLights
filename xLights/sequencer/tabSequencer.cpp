@@ -559,16 +559,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,false);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_REPLAY_SECTION,false);
         }
-        if( effect->GetEffectName() == "Morph" )
-        {
-            m_mgr->GetPane("SceneEditor").Show();
-            sSceneEditor->SetEffect(effect);
-        }
-        else
-        {
-            m_mgr->GetPane("SceneEditor").Hide();
-        }
-        m_mgr->Update();
+        UpdateEffectAssistWindow(effect);
     }
     wxString tooltip;
     effectsPnl->SetDragIconBuffer(BitmapCache::GetEffectIcon(EffectsPanel1->EffectChoicebook->GetSelection(), tooltip));
@@ -584,6 +575,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     wxString palette;
     wxString settings = GetEffectTextFromWindows(palette);
     selectedEffect = NULL;
+    Effect* last_effect_created = NULL;
 
     mSequenceElements.get_undo_mgr().CreateUndoStep();
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
@@ -601,6 +593,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                                        mSequenceElements.GetSelectedRange(i)->StartTime,
                                        mSequenceElements.GetSelectedRange(i)->EndTime,
                                        EFFECT_SELECTED,false);
+        last_effect_created = effect;
 
         mSequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), effect->GetID() );
 
@@ -630,6 +623,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_REPLAY_SECTION,false);
         }
     }
+
+    UpdateEffectAssistWindow(last_effect_created);
 
     mainSequencer->PanelEffectGrid->Refresh(false);
 }
@@ -1160,6 +1155,10 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
     m_mgr->LoadPerspective(settings,true);
     sPreview1->Refresh(false);
     sPreview2->Refresh(false);
+    if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF )
+    {
+        SetEffectAssistWindowState(false);
+    }
     m_mgr->Update();
 }
 

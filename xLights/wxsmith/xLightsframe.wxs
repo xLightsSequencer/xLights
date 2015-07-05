@@ -3304,6 +3304,28 @@
 						<checkable>1</checkable>
 					</object>
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM_EFFECT_ASSIST" variable="MenuItem7" member="yes">
+					<label>Effect Assist Window</label>
+					<object class="wxMenuItem" name="ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON" variable="MenuItemEffectAssistAlwaysOn" member="yes">
+						<label>Always On</label>
+						<help>Effect Assist Window will always be active if member of perspective.</help>
+						<handler function="OnMenuItemEffectAssistAlwaysOnSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF" variable="MenuItemEffectAssistAlwaysOff" member="yes">
+						<label>Always Off</label>
+						<help>Effect Assist Window will always be inactive.</help>
+						<handler function="OnMenuItemEffectAssistAlwaysOffSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_EFFECT_ASSIST_TOGGLE" variable="MenuItemEffectAssistToggleMode" member="yes">
+						<label>Toggle Mode</label>
+						<help>Effect Assist Window will show only when a supported effect is selected.</help>
+						<checked>1</checked>
+						<handler function="OnMenuItemEffectAssistToggleModeSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
 					<label>Reset Toolbars</label>
 					<handler function="ResetToolbarLocations" entry="EVT_MENU" />
