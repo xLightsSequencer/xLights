@@ -22,7 +22,7 @@ namespace DrawGLUtils
         int iconSize;
         mutable wxMutex lock;
     };
-    
+
     void DrawPoint(const xlColor &color, double x, double y);
 
     void DrawCircle(const xlColor &color, double x, double y, double r, int ctransparency = 0, int etransparency = 0);
@@ -42,9 +42,10 @@ namespace DrawGLUtils
                                const wxBitmap &bmp32,
                                const wxBitmap &bmp16,
                                GLuint* texture);
+    void DrawTexture(GLuint* texture,double x, double y, double x2, double y2);
 
     void DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors, bool flush = true);
-    
+
     void DrawDisplayList(double xOffset, double yOffset,
                          double width, double height,
                          const xlDisplayList & dl);

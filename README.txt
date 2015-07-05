@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Added new panel to help in defining Morph positions.
     -- enh(gil)   Automatically initiate Render All after adding or modifying data layers when dialog is closed to remove confusion.
     -- enh(gil)   Add ability to Delete Views.
     -- enh(gil)   Allow timings to be added/removed from views.  This info remains local to each sequence not stored as part of the view

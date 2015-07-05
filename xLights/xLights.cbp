@@ -479,6 +479,8 @@
 		<Unit filename="RgbEffects.cpp" />
 		<Unit filename="RgbEffects.h" />
 		<Unit filename="SOIL.h" />
+		<Unit filename="SceneEditor.cpp" />
+		<Unit filename="SceneEditor.h" />
 		<Unit filename="SeqElementMismatchDialog.cpp" />
 		<Unit filename="SeqElementMismatchDialog.h" />
 		<Unit filename="SeqExportDialog.cpp" />
@@ -594,6 +596,7 @@
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
+		<Unit filename="wxsmith/SceneEditor.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
@@ -616,6 +619,8 @@
 		<Unit filename="xLightsXmlFile.h" />
 		<Unit filename="xlGLCanvas.cpp" />
 		<Unit filename="xlGLCanvas.h" />
+		<Unit filename="xlGridCanvas.cpp" />
+		<Unit filename="xlGridCanvas.h" />
 		<Unit filename="xlights_out.cpp" />
 		<Unit filename="xlights_out.h" />
 		<Extensions>
@@ -660,6 +665,7 @@
 					<wxDialog wxs="wxsmith/LMSImportChannelMapDialog.wxs" src="LMSImportChannelMapDialog.cpp" hdr="LMSImportChannelMapDialog.h" fwddecl="0" i18n="1" name="LMSImportChannelMapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SuperStarImportDialog.wxs" src="SuperStarImportDialog.cpp" hdr="SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/OptionChooser.wxs" src="OptionChooser.cpp" hdr="OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
+					<wxDialog wxs="wxsmith/SceneEditor.wxs" src="SceneEditor.cpp" hdr="SceneEditor.h" fwddecl="0" i18n="1" name="SceneEditor" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

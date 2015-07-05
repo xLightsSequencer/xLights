@@ -52,6 +52,11 @@ void xLightsFrame::CreateSequencer()
     EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
     effectsPnl->Refresh();
 
+    sSceneEditor = new SceneEditor(PanelSequencer, this);
+    sSceneEditor->SetSize(wxSize(200,200));
+    m_mgr->AddPane(sSceneEditor,wxAuiPaneInfo().Name(wxT("SceneEditor")).Caption(wxT("Scene Editor")).BestSize(wxSize(200,200)).Left());
+    sSceneEditor->Layout();
+
     wxScrolledWindow* w;
     for(int i =0;i<EffectsPanel1->EffectChoicebook->GetPageCount();i++)
     {
@@ -488,6 +493,13 @@ void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
     sPreview1->Refresh();
     sPreview2->Refresh();
 }
+
+void xLightsFrame::EffectChanged(wxCommandEvent& event)
+{
+    Effect* effect = (Effect*)event.GetClientData();
+    SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
+}
+
 void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 {
     bool OnlyChoiceBookPage = event.GetClientData()==nullptr?true:false;
@@ -547,7 +559,16 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,false);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_REPLAY_SECTION,false);
         }
-
+        if( effect->GetEffectName() == "Morph" )
+        {
+            m_mgr->GetPane("SceneEditor").Show();
+            sSceneEditor->SetEffect(effect);
+        }
+        else
+        {
+            m_mgr->GetPane("SceneEditor").Hide();
+        }
+        m_mgr->Update();
     }
     wxString tooltip;
     effectsPnl->SetDragIconBuffer(BitmapCache::GetEffectIcon(EffectsPanel1->EffectChoicebook->GetSelection(), tooltip));
@@ -900,6 +921,12 @@ void xLightsFrame::TimerRgbSeq(long msec)
         wxString effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette) {
+
+            // Update if effect has been modified
+            if( m_mgr->GetPane("SceneEditor").IsShown() )
+            {
+                sSceneEditor->ForceRefresh();
+            }
 
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);

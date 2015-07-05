@@ -11,14 +11,14 @@
 #include "DrawGLUtils.h"
 
 
-/* holds a large pre-allocated buffer for the vertices and colors to avoid having to hit the memory 
+/* holds a large pre-allocated buffer for the vertices and colors to avoid having to hit the memory
    every time we need to draw stuff.   Since we only use this on the main thread, safe to do */
 class GLVertexCache {
 public:
     int max;
     unsigned char *colors;
     double *vertices;
-    
+
     int curCount;
 
     GLVertexCache() {
@@ -31,7 +31,7 @@ public:
         delete [] colors;
         delete [] vertices;
     }
-    
+
     void resize(int size) {
         if (size > max) {
             unsigned char *tmp = new unsigned char[size * 4];
@@ -49,7 +49,7 @@ public:
             max = size;
         }
     }
-    
+
     void add(double x, double y, const xlColor &c) {
         resize(curCount + 1);
         vertices[curCount * 2] = x;
@@ -63,11 +63,11 @@ public:
     void flush(int type, bool reset) {
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
-        
+
         glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors);
         glVertexPointer(2, GL_DOUBLE, 0, vertices);
         glDrawArrays(type, 0, curCount);
-        
+
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
         if (reset) {
@@ -256,7 +256,7 @@ void DrawGLUtils::DrawRectangleArray(double y1, double y2, double x, std::vector
         glCache.add(x, y1, colors[n]);
         glCache.add(x, y2, colors[n]);
         glCache.add(x2, y2, colors[n]);
-        
+
         glCache.add(x, y1, colors[n]);
         glCache.add(x2, y2, colors[n]);
         glCache.add(x2, y1, colors[n]);
@@ -357,3 +357,26 @@ void DrawGLUtils::DrawDisplayList(double xOffset, double yOffset,
     glCache.flush(lastUsage, true);
 }
 
+void DrawGLUtils::DrawTexture(GLuint* texture,double x, double y, double x2, double y2)
+{
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBindTexture(GL_TEXTURE_2D,*texture);
+    glPushMatrix();
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+
+    glVertex2f(x-0.4, y);
+
+    glTexCoord2f(1,0);
+    glVertex2f(x2-0.4,y);
+
+    glTexCoord2f(1,1);
+    glVertex2f(x2-0.4,y2);
+
+    glTexCoord2f(0,1);
+    glVertex2f(x-0.4,y2);
+    glEnd();
+    glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+}

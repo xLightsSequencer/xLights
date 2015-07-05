@@ -85,7 +85,6 @@ private:
 	void keyReleased(wxKeyEvent& event);
 	void Draw();
 
-    void DrawEffectIcon(GLuint* texture,double x, double y, double x2, double y2);
     void CreateEffectIconTextures();
     void DeleteEffectIconTextures();
     void DrawHorizontalLines();

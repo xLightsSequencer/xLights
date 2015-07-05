@@ -278,7 +278,7 @@ private:
         virtual void SetColor(const xlColor& color)
         {
             wxImage::HSVValue hsv2 = color.asHSV();
-            
+
             if (fabs((double)(hsv2.hue - hsv.hue)) < 0.01) {
                 //in the right hue
                 c[0]=hsv2.value * 255.0;
@@ -383,9 +383,9 @@ private:
     long toDegrees(double radians);
     wxString GetNextName();
 
-    
+
     std::vector<int> starSizes;
-    
+
     int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
     int pixelSize = 2;
     int transparency = 0;
@@ -430,7 +430,7 @@ protected:
 public:
     ModelClass() {}
     virtual ~ModelClass() {}
-    
+
     wxString name;       // user-designated model name
     int BufferHt,BufferWi;  // size of the buffer
     int RenderHt,RenderWi;  // size of the rendered output
@@ -503,6 +503,9 @@ public:
     float GetHcenterOffset();
     float GetVcenterOffset();
 
+    bool GetIsLtoR() {return IsLtoR;}
+    bool GetIsBtoT() {return isBotToTop;}
+
     int GetStrandLength(int strand) const;
 
     long GetNumArches() const
@@ -520,7 +523,7 @@ public:
         else
             return 0;
     }
-    
+
     int GetNumStrands() const {
         wxStringTokenizer tkz(DisplayAs, " ");
         wxString token = tkz.GetNextToken();

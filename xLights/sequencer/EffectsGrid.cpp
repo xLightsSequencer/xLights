@@ -1719,9 +1719,9 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
 
                         double xl = (x1+x2)/2.0-sz;
                         double xr = (x1+x2)/2.0+sz;
-                        DrawEffectIcon(&m_EffectTextures[e->GetEffectIndex()],
-                                       xl,y-sz,
-                                       xr,y+sz);
+                        DrawGLUtils::DrawTexture(&m_EffectTextures[e->GetEffectIndex()],
+                                                 xl,y-sz,
+                                                 xr,y+sz);
                         DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,(x1+x2)/2.0-sz,y,1);
                         DrawGLUtils::DrawLine(*mEffectColorRight,255,(x1+x2)/2.0+sz,y,x2,y,1);
                         DrawGLUtils::DrawRectangle(*mEffectColor,false,
@@ -1920,30 +1920,6 @@ void EffectsGrid::DrawSelectedCells()
         DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
         glDisable(GL_BLEND);
     }
-}
-
-void EffectsGrid::DrawEffectIcon(GLuint* texture,double x, double y, double x2, double y2)
-{
-    glEnable(GL_TEXTURE_2D);
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glBindTexture(GL_TEXTURE_2D,*texture);
-    glPushMatrix();
-    glBegin(GL_QUADS);
-    glTexCoord2f(0, 0);
-
-    glVertex2f(x-0.4, y);
-
-    glTexCoord2f(1,0);
-    glVertex2f(x2-0.4,y);
-
-    glTexCoord2f(1,1);
-    glVertex2f(x2-0.4,y2);
-
-    glTexCoord2f(0,1);
-    glVertex2f(x-0.4,y2);
-    glEnd();
-    glPopMatrix();
-    glDisable(GL_TEXTURE_2D);
 }
 
 void EffectsGrid::CreateEffectIconTextures()

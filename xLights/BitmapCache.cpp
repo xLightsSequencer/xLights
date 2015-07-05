@@ -235,6 +235,11 @@
 #include "../include/models-48.xpm"
 #include "../include/models-64.xpm"
 
+#include "../include/point_1a-64.xpm"
+#include "../include/point_1b-64.xpm"
+#include "../include/point_2a-64.xpm"
+#include "../include/point_2b-64.xpm"
+
 #include "wx/artprov.h"
 
 #ifdef __WXOSX__
@@ -559,3 +564,22 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
     return effectBitmaps.get(size, exact, "Off", Off, Off, Off, Off, Off);
 }
 
+const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int size, bool exact) {
+    switch(position)
+    {
+        case 0:
+            toolTip = "Corner 1a";
+            return effectBitmaps.get(size, exact, "Corner1a", point_1a_64, point_1a_64, point_1a_64, point_1a_64, point_1a_64);
+        case 1:
+            toolTip = "Corner 1b";
+            return effectBitmaps.get(size, exact, "Corner1b", point_1b_64, point_1b_64, point_1b_64, point_1b_64, point_1b_64);
+        case 2:
+            toolTip = "Corner 2a";
+            return effectBitmaps.get(size, exact, "Corner2a", point_2a_64, point_2a_64, point_2a_64, point_2a_64, point_2a_64);
+        case 3:
+            toolTip = "Corner 2b";
+            return effectBitmaps.get(size, exact, "Corner2b", point_2b_64, point_2b_64, point_2b_64, point_2b_64, point_2b_64);
+        default:
+            break;
+    }
+}

@@ -83,6 +83,7 @@
 #include "CurrentPreviewModels.h"
 #include "PreviewModels.h"
 #include "ModelPreview.h"
+#include "SceneEditor.h"
 #include "dlgPreviewSize.h"
 #include "SequenceData.h"
 #include "UtilClasses.h"
@@ -142,6 +143,7 @@ wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UNSELECTED_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
@@ -167,7 +169,7 @@ wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 
 
 static const wxString xlights_base_name       = "xLights 4 BETA";
-static const wxString xlights_version_string  = "4.1.9";
+static const wxString xlights_version_string  = "4.1.10";
 static const wxString xlights_build_date      = "Jun 30, 2015";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
@@ -1572,6 +1574,7 @@ protected:
     MainSequencer* mainSequencer;
     ModelPreview * sPreview1;
     ModelPreview * sPreview2;
+    SceneEditor* sSceneEditor;
     ColorPanel* colorPanel;
     TimingPanel* timingPanel;
     PerspectivesPanel* perspectivePanel;
@@ -1593,6 +1596,7 @@ protected:
     void VerticalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
+    void EffectChanged( wxCommandEvent& event);
     void UnselectedEffect( wxCommandEvent& event);
     void EffectDroppedOnGrid(wxCommandEvent& event);
     void PlayModelEffect(wxCommandEvent& event);
