@@ -608,8 +608,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         if (playType != PLAY_TYPE_MODEL) {
             playType = PLAY_TYPE_EFFECT;
-            playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime * 1000;
-            playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
+            playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime;
+            playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime;
             playStartMS = -1;
             RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
 
@@ -626,6 +626,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
     if (playType != PLAY_TYPE_MODEL && last_effect_created != NULL)
     {
+        SetEffectControls(last_effect_created->GetEffectName(), last_effect_created->GetSettings(), last_effect_created->GetPaletteMap());
+        selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = last_effect_created;
     }
 
