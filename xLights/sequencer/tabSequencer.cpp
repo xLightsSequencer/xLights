@@ -624,6 +624,11 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         }
     }
 
+    if (playType != PLAY_TYPE_MODEL && last_effect_created != NULL)
+    {
+        selectedEffect = last_effect_created;
+    }
+
     UpdateEffectAssistWindow(last_effect_created);
 
     mainSequencer->PanelEffectGrid->Refresh(false);
