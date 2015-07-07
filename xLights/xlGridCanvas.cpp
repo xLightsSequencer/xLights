@@ -47,13 +47,119 @@ xlGridCanvas::xlGridCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, 
       y2a(0),
       y2b(0),
       mSelectedCorner(CORNER_NOT_SELECTED),
-      mDragging(false)
+      mDragging(false),
+      use_ping(true),
+      scaleh(0.0),
+      scalew(0.0),
+      img_mode(IMAGE_NONE),
+      imageGL_ping(NULL),
+      imageGL_pong(NULL),
+      sprite(NULL)
 {
 }
 
 xlGridCanvas::~xlGridCanvas()
 {
     delete mGridlineColor;
+}
+
+void xlGridCanvas::ForceRefresh()
+{
+    if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
+    {
+        NewPictureName = GetImageFilename();
+        Refresh(false);
+    }
+}
+
+void xlGridCanvas::SetEffect(Effect* effect_)
+{
+    mEffect = effect_;
+
+    if( mEffect == NULL ) return;
+
+    if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
+    {
+        NewPictureName = GetImageFilename();
+
+        //if( NewPictureName == "" ) return;
+
+        // initialize image file
+        /*if ( NewPictureName != PictureName )
+        {
+            wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
+            imageCount = wxImage::GetImageCount(NewPictureName);
+            imageIndex = 0;
+            if (!image.LoadFile(NewPictureName,wxBITMAP_TYPE_ANY,0))
+            {
+                image.Create(5, 5, true);
+            }
+            PictureName=NewPictureName;
+            if (!image.IsOk())
+                return;
+        }*/
+
+        /*if(imageCount > 1) {
+            //animated Gif,
+            int ii = imageCount * GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
+            if (ii != imageIndex) {
+                imageIndex = ii;
+                if (!image.LoadFile(PictureName,wxBITMAP_TYPE_ANY,imageIndex))
+                {
+                    image.Clear();
+                }
+                if (!image.IsOk())
+                    return;
+            }
+        }*/
+/*
+        imageWidth = image.GetWidth();
+        imageHeight = image.GetHeight();
+
+        if( imageWidth > mColumns || imageHeight > mRows )
+        {
+            if( imageCount > 1 )
+            {
+                img_mode = IMAGE_MULTIPLE_OVERSIZED;
+            }
+            else
+            {
+                img_mode = IMAGE_SINGLE_OVERSIZED;
+            }
+        }
+        else
+        {
+            if( imageCount > 1 )
+            {
+                img_mode = IMAGE_MULTIPLE_FITS;
+            }
+            else
+            {
+                img_mode = IMAGE_SINGLE_FITS;
+            }
+        }
+        if( imageGL != NULL )
+            delete imageGL;
+        if( sprite != NULL )
+            delete sprite;*/
+        //imageGL = new Image(GetImageFilename());
+        //sprite = new xLightsDrawable(imageGL);
+    }
+}
+
+wxString xlGridCanvas::GetImageFilename()
+{
+    wxString settings = mEffect->GetSettingsAsString();
+    wxArrayString all_settings = wxSplit(settings, ',');
+    for( int s = 0; s < all_settings.size(); s++ )
+    {
+        wxArrayString parts = wxSplit(all_settings[s], '=');
+        if( parts[0] == "E_FILEPICKER_Pictures_Filename" ) {
+            return parts[1];
+        }
+
+    }
+    return "";
 }
 
 int xlGridCanvas::CheckForCornerHit(int x, int y)
@@ -269,8 +375,15 @@ void xlGridCanvas::render( wxPaintEvent& event )
 
     if( mEffect != nullptr )
     {
-        DrawBaseGrid();
+        if( mEffect->GetEffectIndex() == BitmapCache::eff_MORPH )
+        {
+            DrawBaseGrid();
+        }
         DrawEffect();
+        if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
+        {
+            DrawBaseGrid();
+        }
     }
 
     glFlush();
@@ -402,6 +515,62 @@ void xlGridCanvas::DrawEffect()
         DrawGLUtils::DrawTexture(&mCornerTextures[2], x2a-mCellSize/2, y2a-mCellSize/2, x2a+mCellSize/2, y2a+mCellSize/2);
         DrawGLUtils::DrawTexture(&mCornerTextures[1], x1b-mCellSize/2, y1b-mCellSize/2, x1b+mCellSize/2, y1b+mCellSize/2);
         DrawGLUtils::DrawTexture(&mCornerTextures[0], x1a-mCellSize/2, y1a-mCellSize/2, x1a+mCellSize/2, y1a+mCellSize/2);
+    }
+    else if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
+    {
+        if( NewPictureName == "" ) return;
+        if( NewPictureName != PictureName )
+        {
+            if( sprite != NULL ) {
+                delete sprite;
+            }
+            if( use_ping )
+            {
+                imageGL_ping = new Image(NewPictureName);
+                sprite = new xLightsDrawable(imageGL_ping);
+                imageWidth = imageGL_ping->width;
+                imageHeight = imageGL_ping->height;
+            }
+            else
+            {
+                imageGL_pong = new Image(NewPictureName);
+                sprite = new xLightsDrawable(imageGL_pong);
+                imageWidth = imageGL_pong->width;
+                imageHeight = imageGL_pong->height;
+            }
+            sprite->setFlip(false, false);
+        }
+        scaleh= float(mCellSize*mRows) / float(imageHeight);
+        scalew = float(mCellSize*mColumns) / float(imageWidth);
+        sprite->scale(scalew, scaleh);
+        sprite->setHotspot(-(float)mCellSize/scalew, -(float)mCellSize/scaleh);
+
+        glPushMatrix();
+
+        //glScalef(scalew, scaleh, 1.0);
+
+        glColor3f(1.0f, 1.0f, 1.0f);
+        glEnable(GL_TEXTURE_2D);   // textures
+        sprite->render();
+        glDisable(GL_TEXTURE_2D);   // textures
+        glPopMatrix();
+
+        if( NewPictureName != PictureName )
+        {
+            if( use_ping ) {
+                if( imageGL_pong != NULL ) {
+                    delete imageGL_pong;
+                }
+                use_ping = false;
+            } else {
+                if( imageGL_ping != NULL ) {
+                    delete imageGL_ping;
+                }
+                use_ping = true;
+            }
+            PictureName = NewPictureName;
+        }
+
     }
 }
 

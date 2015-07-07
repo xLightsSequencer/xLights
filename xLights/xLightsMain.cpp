@@ -3396,6 +3396,16 @@ void xLightsFrame::SetEffectAssistWindowState(bool show)
     }
 }
 
+bool xLightsFrame::EffectAssistSupported(Effect* effect)
+{
+    wxString name = effect->GetEffectName();
+    if( name == "Morph" || name == "Pictures" )
+    {
+        return true;
+    }
+    return false;
+}
+
 void xLightsFrame::UpdateEffectAssistWindow(Effect* effect)
 {
     if( effect == NULL )
@@ -3404,7 +3414,7 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect)
         return;
     }
 
-    bool effect_is_supported = (effect->GetEffectName() == "Morph");
+    bool effect_is_supported = EffectAssistSupported(effect);
 
     if( mEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE )
     {

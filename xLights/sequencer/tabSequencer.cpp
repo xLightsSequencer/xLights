@@ -924,12 +924,6 @@ void xLightsFrame::TimerRgbSeq(long msec)
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette) {
 
-            // Update if effect has been modified
-            if( m_mgr->GetPane("SceneEditor").IsShown() )
-            {
-                sSceneEditor->ForceRefresh();
-            }
-
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
             if (name !=  selectedEffect->GetEffectName()) {
@@ -957,6 +951,12 @@ void xLightsFrame::TimerRgbSeq(long msec)
             playStartTime = selectedEffect->GetStartTimeMS();
             playEndTime = selectedEffect->GetEndTimeMS();
             playStartMS = -1;
+
+            // Update if effect has been modified
+            if( m_mgr->GetPane("SceneEditor").IsShown() )
+            {
+                sSceneEditor->ForceRefresh();
+            }
 
             RenderEffectForModel(elem->GetName(),playStartTime,playEndTime);
             mainSequencer->PanelEffectGrid->ForceRefresh();

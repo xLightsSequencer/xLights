@@ -6,7 +6,8 @@
 class xLightsDrawable
 {
 public:
-    int x,y, angle, hotspotX, hotspotY;
+    int x,y, angle;
+    float hotspotX, hotspotY;
     float xscale, yscale;
     Image* image;
     bool xflip, yflip;
@@ -14,7 +15,7 @@ public:
     xLightsDrawable(Image* image=(Image*)0);
     void setFlip(bool x, bool y);
     void move(int x, int y);
-    void setHotspot(int x, int y);
+    void setHotspot(float x, float y);
     void scale(float x, float y);
     void scale(float k);
     void setImage(Image* image);

@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Add preview of image to the Effect Assist window for Pictures effect.  More to come for this effect.
     -- bug(gil)   Selecting a single cell with any drag movement of the mouse was causing invalid effect end time when placed.
     -- enh(gil)   Add SaveAs to the File menu.
     -- bug(gil)   Fixed effects dropped on grid were not previewing.

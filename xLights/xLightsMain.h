@@ -598,6 +598,7 @@ private:
     void ClearEffectRow(wxCommandEvent& evt); //-DJ
     void ShowHideAllSequencerWindows(bool show);
     void SetEffectAssistWindowState(bool show);
+    bool EffectAssistSupported(Effect* effect);
     void UpdateEffectAssistWindow(Effect* effect);
 
 //    void ConnectOnChar(wxWindow* pclComponent);

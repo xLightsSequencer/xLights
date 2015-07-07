@@ -18,8 +18,8 @@ xLightsDrawable::xLightsDrawable(Image* image_arg)
 
     x=0;
     y=0;
-    hotspotX=0;
-    hotspotY=0;
+    hotspotX=0.0;
+    hotspotY=0.0;
     angle=0;
 
     xscale=1;
@@ -38,7 +38,7 @@ void xLightsDrawable::setFlip(bool x, bool y)
     yflip=y;
 }
 
-void xLightsDrawable::setHotspot(int x, int y)
+void xLightsDrawable::setHotspot(float x, float y)
 {
     hotspotX=x;
     hotspotY=y;

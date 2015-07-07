@@ -62,6 +62,7 @@ void SceneEditor::ForceRefresh()
     PanelSceneEditor->Refresh();
     PanelSceneEditor->Update();
     ScrolledWindowSceneEditor->Refresh();
+    PanelSceneEditor->ForceRefresh();
 }
 
 void SceneEditor::SetEffect(Effect* effect_)
