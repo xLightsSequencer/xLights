@@ -2,7 +2,7 @@
 #define XLGRIDCANVAS_H
 
 #include "wx/wx.h"
-#include <xlGLCanvas.h>
+#include "xlGLCanvas.h"
 #include "Effect.h"
 
 class ModelClass;  // forward declaration

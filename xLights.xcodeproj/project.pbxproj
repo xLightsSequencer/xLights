@@ -15,6 +15,8 @@
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
 		671E7DFA1AED4FFD0034C6DF /* RenderFan.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */; };
 		671E7DFB1AED4FFD0034C6DF /* RenderShockwave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */; };
+		672E7C611B4B6B3700409549 /* SceneEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5D1B4B6B3700409549 /* SceneEditor.cpp */; };
+		672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		6730E4D21ADB54E8005DECF0 /* RenderGalaxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
@@ -145,6 +147,11 @@
 		671D814A1A6723CF005819EA /* EffectDropTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectDropTarget.cpp; path = sequencer/EffectDropTarget.cpp; sourceTree = "<group>"; };
 		671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFan.cpp; sourceTree = "<group>"; };
 		671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShockwave.cpp; sourceTree = "<group>"; };
+		672E7C5C1B4B6B3700409549 /* xlGridCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvas.h; sourceTree = "<group>"; };
+		672E7C5D1B4B6B3700409549 /* SceneEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SceneEditor.cpp; sourceTree = "<group>"; };
+		672E7C5E1B4B6B3700409549 /* SceneEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SceneEditor.h; sourceTree = "<group>"; };
+		672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvas.cpp; sourceTree = "<group>"; };
+		672E7C601B4B6B3700409549 /* OptionChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionChooser.h; sourceTree = "<group>"; };
 		672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = SeqSettingsDialog.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		672F950E1A7A6619005FF8BF /* SeqSettingsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = SeqSettingsDialog.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		672F950F1A7A6619005FF8BF /* xLightsXmlFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsXmlFile.h; sourceTree = "<group>"; };
@@ -452,7 +459,6 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				67402E851B4230360047EDC1 /* NullOutputDialog.cpp */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67623E721AD2BF3F0022667B /* BitmapCache.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
@@ -491,6 +497,7 @@
 				67B845021A9C0E7500564051 /* ModelViewSelector.cpp */,
 				67A619D217B51C0F008E95BB /* NetInfo.cpp */,
 				677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */,
+				67402E851B4230360047EDC1 /* NullOutputDialog.cpp */,
 				677674481B38E7F70018E14B /* OptionChooser.cpp */,
 				67A619D417B51C0F008E95BB /* PaletteMgmtDialog.cpp */,
 				67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */,
@@ -500,6 +507,7 @@
 				67694F191A069BBE0030D020 /* PreviewModels.cpp */,
 				677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */,
 				6784F9241A5653670018EC0C /* RowHeading.cpp */,
+				672E7C5D1B4B6B3700409549 /* SceneEditor.cpp */,
 				67A619F217B51C0F008E95BB /* SeqElementMismatchDialog.cpp */,
 				67A619F417B51C0F008E95BB /* SeqExportDialog.cpp */,
 				67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */,
@@ -527,6 +535,7 @@
 				67A543FD1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp */,
 				67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */,
 				67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */,
+				672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */,
 				67A61A1D17B51C0F008E95BB /* xlights_out.cpp */,
 				67A61A2117B51C0F008E95BB /* xLightsApp.cpp */,
 				67F4C6151A097A35003E978F /* XlightsDrawable.cpp */,
@@ -540,7 +549,6 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				67402E861B4230360047EDC1 /* NullOutputDialog.h */,
 				67A619BD17B51C0F008E95BB /* AddShowDialog.h */,
 				671B331D1AD6071600C9F215 /* BitmapCache.h */,
 				67A619BF17B51C0F008E95BB /* ChannelLayoutDialog.h */,
@@ -574,6 +582,8 @@
 				67B845031A9C0E7500564051 /* ModelViewSelector.h */,
 				67A619D317B51C0F008E95BB /* NetInfo.h */,
 				672F951A1A7A6619005FF8BF /* NewTimingDialog.h */,
+				67402E861B4230360047EDC1 /* NullOutputDialog.h */,
+				672E7C601B4B6B3700409549 /* OptionChooser.h */,
 				67A619D517B51C0F008E95BB /* PaletteMgmtDialog.h */,
 				672F95111A7A6619005FF8BF /* PerspectivesPanel.h */,
 				6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */,
@@ -585,6 +595,7 @@
 				679BEF1B1A9FCB1D00C37BB4 /* RenderCommandEvent.h */,
 				67A619EE17B51C0F008E95BB /* resource.rc */,
 				67A619F017B51C0F008E95BB /* RgbEffects.h */,
+				672E7C5E1B4B6B3700409549 /* SceneEditor.h */,
 				67A619F317B51C0F008E95BB /* SeqElementMismatchDialog.h */,
 				67A619F517B51C0F008E95BB /* SeqExportDialog.h */,
 				672F950E1A7A6619005FF8BF /* SeqSettingsDialog.h */,
@@ -605,6 +616,7 @@
 				67A61A0817B51C0F008E95BB /* wininet.h */,
 				67B845051A9C0E7500564051 /* wxCheckedListCtrl.h */,
 				67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */,
+				672E7C5C1B4B6B3700409549 /* xlGridCanvas.h */,
 				67A61A1E17B51C0F008E95BB /* xlights_out.h */,
 				67E7087817B51AB400A22034 /* xLights-Info.plist */,
 				67A61A2217B51C0F008E95BB /* xLightsApp.h */,
@@ -759,6 +771,7 @@
 				67A61A4617B51C0F008E95BB /* RenderTree.cpp in Sources */,
 				67BC91031A3FD22F00905A53 /* RenderOn.cpp in Sources */,
 				67A61A4717B51C0F008E95BB /* RenderTwinkle.cpp in Sources */,
+				672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */,
 				67623E711AD07E320022667B /* KeyBindings.cpp in Sources */,
 				67A61A4917B51C0F008E95BB /* RgbEffects.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
@@ -773,6 +786,7 @@
 				67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */,
 				67A61A5217B51C0F008E95BB /* serial.cpp in Sources */,
 				6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */,
+				672E7C611B4B6B3700409549 /* SceneEditor.cpp in Sources */,
 				6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */,
 				6784F92D1A5653670018EC0C /* RowHeading.cpp in Sources */,
 				6784F9311A5653670018EC0C /* Waveform.cpp in Sources */,

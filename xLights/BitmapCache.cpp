@@ -577,9 +577,8 @@ const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int 
             toolTip = "Corner 2a";
             return effectBitmaps.get(size, exact, "Corner2a", point_2a_64, point_2a_64, point_2a_64, point_2a_64, point_2a_64);
         case 3:
+        default:
             toolTip = "Corner 2b";
             return effectBitmaps.get(size, exact, "Corner2b", point_2b_64, point_2b_64, point_2b_64, point_2b_64, point_2b_64);
-        default:
-            break;
     }
 }
