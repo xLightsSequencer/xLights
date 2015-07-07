@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil)   Selecting a single cell with any drag movement of the mouse was causing invalid effect end time when placed.
     -- enh(gil)   Add SaveAs to the File menu.
     -- bug(gil)   Fixed effects dropped on grid were not previewing.
     -- enh(gil)   Update View -> Windows so that Perspectives, and Display Elements windows work and add Effect Assist Window.
