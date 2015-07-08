@@ -5,7 +5,7 @@
 #include "xlGLCanvas.h"
 #include "Effect.h"
 #include "Image.h"
-#include "xLightsDrawable.h"
+#include "XlightsDrawable.h"
 
 class ModelClass;  // forward declaration
 

@@ -15,7 +15,7 @@ These instructions have been tested on the following distributions:
 
   - Linux Mint 12
   - Ubuntu 12.10
-  - Fedora 20
+  - Fedora 21
 
 Instructions for other Linux distributions will vary. 
 
@@ -27,6 +27,10 @@ Instructions for other Linux distributions will vary.
      libgtk2.0-dev
      libgstreamer0.10-dev
      libgstreamer-plugins-base0.10-dev
+
+     Fedora 21 packages required for wxWidgets build
+
+     sudo yum install freeglut-devel libjpeg-turbo-devel gstreamer-plugins-base-devel gstreamer-plugins-ugly gstreamer-plugins-bad-free gstreamer1-plugins-base gstreamer1-plugins-good gstreamer-plugins-base gstreamer-plugins-bad gstreamer-tools gstreamer-plugins-good gstreamer-plugins-espeak gstreamer gstreamer1 gstreamer-devel gtk2-devel mesa-libGLU-devel libmpg123-devel
 
   b) Build wxWidgets 3.0.1
 
