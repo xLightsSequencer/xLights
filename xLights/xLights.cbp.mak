@@ -840,7 +840,7 @@ PaletteMgmtDialog.h: EffectsPanel.h
 
 SceneEditor.h: xlGridCanvas.h sequencer/Effect.h
 
-xlGridCanvas.h: xlGLCanvas.h sequencer/Effect.h Image.h
+xlGridCanvas.h: xlGLCanvas.h sequencer/Effect.h Image.h XlightsDrawable.h
 
 sequencer/EffectsGrid.h: xlGLCanvas.h Color.h sequencer/SequenceElements.h sequencer/TimeLine.h sequencer/EffectLayer.h sequencer/Effect.h sequencer/Element.h EffectTreeDialog.h
 
