@@ -132,6 +132,7 @@ public:
     wxChoice* Choice_Butterfly_Colors;
     wxBitmapButton* BitmapButton_MeteorsLength;
     wxStaticText* StaticText188;
+    wxCheckBox* CheckBox5;
     wxStaticText* StaticText1;
     wxBitmapButton* BitmapButton_TextToCenter4;
     wxStaticText* StaticText22;
@@ -504,6 +505,7 @@ public:
     wxBitmapButton* BitmapButton_SpirographR;
     wxBitmapButton* BitmapButton_MeteorsEffect;
     wxChoice* Choice_Text_Count3;
+    wxBitmapButton* BitmapButton16;
     wxBitmapButton* BitmapButton_Skips_StartingPosition;
     wxCheckBox* CheckBox_Circles_Linear_Fade;
     wxChoicebook* EffectChoicebook;
@@ -1146,6 +1148,8 @@ protected:
     static const long ID_BITMAPBUTTON_SLIDER_Snowflakes_Type;
     static const long ID_SLIDER_Snowflakes_Speed;
     static const long IDD_TEXTCTRL_Snowflakes_Speed;
+    static const long ID_BITMAPBUTTON34;
+    static const long ID_CHECKBOX_Snowflakes_Accumulate;
     static const long ID_PANEL22;
     static const long ID_STATICTEXT45;
     static const long ID_SLIDER_Snowstorm_Count;
