@@ -68,8 +68,10 @@ class xlGridCanvas : public xlGLCanvas
         int x1a, x1b, x2a, x2b, y1a, y1b, y2a, y2b;
         int mSelectedCorner;
         bool mDragging;
+        bool mMorphStartLinked;
+        bool mMorphEndLinked;
         wxBitmap corner_1a, corner_1b, corner_2a, corner_2b;
-        GLuint mCornerTextures[4];
+        GLuint mCornerTextures[6];
 
         // picture effect support
         wxString GetImageFilename();

@@ -47,6 +47,8 @@ xlGridCanvas::xlGridCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, 
       y2a(0),
       y2b(0),
       mSelectedCorner(CORNER_NOT_SELECTED),
+      mMorphStartLinked(false),
+      mMorphEndLinked(false),
       mDragging(false),
       use_ping(true),
       scaleh(0.0),
@@ -254,6 +256,11 @@ void xlGridCanvas::UpdateSelectedMorphCorner(int x, int y)
     {
         x1a = x_pos;
         y1a = y_pos;
+        if( mMorphStartLinked )
+        {
+            x1b = x_pos;
+            y1b = y_pos;
+        }
     }
     else if( mSelectedCorner == CORNER_1B_SELECTED )
     {
@@ -264,6 +271,11 @@ void xlGridCanvas::UpdateSelectedMorphCorner(int x, int y)
     {
         x2a = x_pos;
         y2a = y_pos;
+        if( mMorphEndLinked )
+        {
+            x2b = x_pos;
+            y2b = y_pos;
+        }
     }
     else if( mSelectedCorner == CORNER_2B_SELECTED )
     {
@@ -284,25 +296,25 @@ void xlGridCanvas::StoreUpdatedMorphPositions()
         if( parts[0] == "E_SLIDER_Morph_Start_X1" && mSelectedCorner == CORNER_1A_SELECTED ) {
             percent = SetColumnCenter(x1a);
         }
-        else if( parts[0] == "E_SLIDER_Morph_Start_X2" && mSelectedCorner == CORNER_1B_SELECTED ) {
+        else if( parts[0] == "E_SLIDER_Morph_Start_X2" && mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked ) {
             percent = SetColumnCenter(x1b);
         }
         else if( parts[0] == "E_SLIDER_Morph_Start_Y1" && mSelectedCorner == CORNER_1A_SELECTED ) {
             percent = SetRowCenter(y1a);
         }
-        else if( parts[0] == "E_SLIDER_Morph_Start_Y2" && mSelectedCorner == CORNER_1B_SELECTED ) {
+        else if( parts[0] == "E_SLIDER_Morph_Start_Y2" && mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked ) {
             percent = SetRowCenter(y1b);
         }
         else if( parts[0] == "E_SLIDER_Morph_End_X1" && mSelectedCorner == CORNER_2A_SELECTED ) {
             percent = SetColumnCenter(x2a);
         }
-        else if( parts[0] == "E_SLIDER_Morph_End_X2" && mSelectedCorner == CORNER_2B_SELECTED ) {
+        else if( parts[0] == "E_SLIDER_Morph_End_X2" && mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked ) {
             percent = SetColumnCenter(x2b);
         }
         else if( parts[0] == "E_SLIDER_Morph_End_Y1" && mSelectedCorner == CORNER_2A_SELECTED ) {
             percent = SetRowCenter(y2a);
         }
-        else if( parts[0] == "E_SLIDER_Morph_End_Y2" && mSelectedCorner == CORNER_2B_SELECTED ) {
+        else if( parts[0] == "E_SLIDER_Morph_End_Y2" && mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked ) {
             percent = SetRowCenter(y2b);
         }
         parts[1] = wxString::Format("%d", percent);
@@ -319,7 +331,7 @@ void xlGridCanvas::StoreUpdatedMorphPositions()
 void xlGridCanvas::CreateCornerTextures()
 {
     wxString tooltip;
-    for( int i = 0; i < 4; i++ )
+    for( int i = 0; i < 6; i++ )
     {
         DrawGLUtils::CreateOrUpdateTexture(BitmapCache::GetCornerIcon(i, tooltip, 64, true),
                                            BitmapCache::GetCornerIcon(i, tooltip, 32, true),
@@ -490,6 +502,22 @@ void xlGridCanvas::UpdateMorphPositionsFromEffect()
         else if( parts[0] == "E_SLIDER_Morph_End_Y2" ) {
             y2b = GetRowCenter(wxAtoi(parts[1]));
         }
+        else if( parts[0] == "E_CHECKBOX_Morph_Start_Link" ) {
+            mMorphStartLinked = wxAtoi(parts[1]) > 0;
+        }
+        else if( parts[0] == "E_CHECKBOX_Morph_End_Link" ) {
+            mMorphEndLinked = wxAtoi(parts[1]) > 0;
+        }
+    }
+    if( mMorphStartLinked )
+    {
+        x1b = x1a;
+        y1b = y1a;
+    }
+    if( mMorphEndLinked )
+    {
+        x2b = x2a;
+        y2b = y2a;
     }
 }
 
@@ -504,17 +532,37 @@ void xlGridCanvas::DrawEffect()
         xlColor yellowLine = xlYELLOW;
         xlColor redLine = xlRED;
         glEnable(GL_BLEND);
-        DrawGLUtils::DrawLine(redLine,255,x1a,y1a,x1b,y1b,0.5);
-        DrawGLUtils::DrawLine(redLine,255,x2a,y2a,x2b,y2b,0.5);
+        if( !mMorphStartLinked )
+        {
+            DrawGLUtils::DrawLine(redLine,255,x1a,y1a,x1b,y1b,0.5);
+        }
+        if( !mMorphEndLinked )
+        {
+            DrawGLUtils::DrawLine(redLine,255,x2a,y2a,x2b,y2b,0.5);
+        }
         DrawGLUtils::DrawLine(yellowLine,255,x1a,y1a,x2a,y2a,0.5);
         DrawGLUtils::DrawLine(yellowLine,255,x1b,y1b,x2b,y2b,0.5);
         glDisable(GL_BLEND);
 
         // draw the corners
-        DrawGLUtils::DrawTexture(&mCornerTextures[3], x2b-mCellSize/2, y2b-mCellSize/2, x2b+mCellSize/2, y2b+mCellSize/2);
-        DrawGLUtils::DrawTexture(&mCornerTextures[2], x2a-mCellSize/2, y2a-mCellSize/2, x2a+mCellSize/2, y2a+mCellSize/2);
-        DrawGLUtils::DrawTexture(&mCornerTextures[1], x1b-mCellSize/2, y1b-mCellSize/2, x1b+mCellSize/2, y1b+mCellSize/2);
-        DrawGLUtils::DrawTexture(&mCornerTextures[0], x1a-mCellSize/2, y1a-mCellSize/2, x1a+mCellSize/2, y1a+mCellSize/2);
+        if( mMorphEndLinked )
+        {
+            DrawGLUtils::DrawTexture(&mCornerTextures[5], x2a-mCellSize/2, y2a-mCellSize/2, x2a+mCellSize/2, y2a+mCellSize/2);
+        }
+        else
+        {
+            DrawGLUtils::DrawTexture(&mCornerTextures[3], x2b-mCellSize/2, y2b-mCellSize/2, x2b+mCellSize/2, y2b+mCellSize/2);
+            DrawGLUtils::DrawTexture(&mCornerTextures[2], x2a-mCellSize/2, y2a-mCellSize/2, x2a+mCellSize/2, y2a+mCellSize/2);
+        }
+        if( mMorphStartLinked )
+        {
+            DrawGLUtils::DrawTexture(&mCornerTextures[4], x1a-mCellSize/2, y1a-mCellSize/2, x1a+mCellSize/2, y1a+mCellSize/2);
+        }
+        else
+        {
+            DrawGLUtils::DrawTexture(&mCornerTextures[1], x1b-mCellSize/2, y1b-mCellSize/2, x1b+mCellSize/2, y1b+mCellSize/2);
+            DrawGLUtils::DrawTexture(&mCornerTextures[0], x1a-mCellSize/2, y1a-mCellSize/2, x1a+mCellSize/2, y1a+mCellSize/2);
+        }
     }
     else if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
     {

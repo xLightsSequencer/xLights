@@ -239,6 +239,8 @@
 #include "../include/point_1b-64.xpm"
 #include "../include/point_2a-64.xpm"
 #include "../include/point_2b-64.xpm"
+#include "../include/point_1ab-64.xpm"
+#include "../include/point_2ab-64.xpm"
 
 #include "wx/artprov.h"
 
@@ -577,8 +579,14 @@ const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int 
             toolTip = "Corner 2a";
             return effectBitmaps.get(size, exact, "Corner2a", point_2a_64, point_2a_64, point_2a_64, point_2a_64, point_2a_64);
         case 3:
-        default:
             toolTip = "Corner 2b";
-            return effectBitmaps.get(size, exact, "Corner2b", point_2b_64, point_2b_64, point_2b_64, point_2b_64, point_2b_64);
+            return effectBitmaps.get(size, exact, "Corner2a", point_2a_64, point_2a_64, point_2a_64, point_2a_64, point_2a_64);
+        case 4:
+            toolTip = "Corner 1ab";
+            return effectBitmaps.get(size, exact, "Corner1ab", point_1ab_64, point_1ab_64, point_1ab_64, point_1ab_64, point_1ab_64);
+        case 5:
+        default:
+            toolTip = "Corner 2ab";
+            return effectBitmaps.get(size, exact, "Corner2ab", point_2ab_64, point_2ab_64, point_2ab_64, point_2ab_64, point_2ab_64);
     }
 }
