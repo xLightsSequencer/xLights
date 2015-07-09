@@ -7,6 +7,10 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Add options for how the ModelGroup internal buffer is constructed including:
+                   a) grid size - the old 400x400 is now configurable
+                   b) Horizontal and Vertical "by model" where each model is a row or column and the nodes for that
+                      model go the other direction.
 4.1.10  Jul 8, 2015
     -- enh(gil)   Add preview of image to the Effect Assist window for Pictures effect.  More to come for this effect.
     -- bug(gil)   Selecting a single cell with any drag movement of the mouse was causing invalid effect end time when placed.

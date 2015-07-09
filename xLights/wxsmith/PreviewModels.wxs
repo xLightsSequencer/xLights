@@ -12,10 +12,12 @@
 							<label>Model Groups:</label>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-									<cols>3</cols>
+									<cols>2</cols>
+									<growablecols>1</growablecols>
+									<growablerows>0</growablerows>
 									<object class="sizeritem">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
-											<cols>3</cols>
+											<cols>1</cols>
 											<object class="sizeritem">
 												<object class="wxButton" name="ID_BT_ADD_MODEL_GROUP" variable="ButtonAddModelGroup" member="yes">
 													<label>Add Group</label>
@@ -40,31 +42,23 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-											<cols>3</cols>
-											<object class="sizeritem">
-												<object class="wxListBox" name="ID_LISTBOX_MODEL_GROUPS" variable="ListBoxModelGroups" member="yes">
-													<default>-1</default>
-													<minsize>120,100</minsize>
-													<style>wxLB_SORT</style>
-													<handler function="OnListBoxModelGroupsSelect" entry="EVT_LISTBOX" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
+										<object class="wxListBox" name="ID_LISTBOX_MODEL_GROUPS" variable="ListBoxModelGroups" member="yes">
+											<default>-1</default>
+											<minsize>120,100</minsize>
+											<style>wxLB_SORT</style>
+											<handler function="OnListBoxModelGroupsSelect" entry="EVT_LISTBOX" />
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -96,6 +90,75 @@
 														<border>5</border>
 														<option>1</option>
 													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticText4" member="no">
+															<label>Layout Mode:</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxChoice" name="ID_CHOICE1" variable="ChoiceModelLayoutType" member="yes">
+															<content>
+																<item>Grid as per preview</item>
+																<item>Horizontal per model</item>
+																<item>Vertical per model</item>
+															</content>
+															<selection>0</selection>
+															<handler function="OnChoiceModelLayoutTypeSelect" entry="EVT_CHOICE" />
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT4" variable="GridSizeLabel" member="yes">
+															<label>Grid Size</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="GridSizeSizer" member="yes">
+															<cols>4</cols>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+																	<label>W:</label>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="WidthSpinCtrl" member="yes">
+																	<value>400</value>
+																	<min>10</min>
+																	<max>2000</max>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+																	<label>H:</label>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="HeightSpinCtrl" member="yes">
+																	<value>400</value>
+																	<min>10</min>
+																	<max>2000</max>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<option>1</option>
+													</object>
 												</object>
 												<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -109,9 +172,13 @@
 									<object class="sizeritem">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
 											<cols>3</cols>
+											<rows>1</rows>
+											<growablerows>0</growablerows>
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
 													<cols>1</cols>
+													<rows>2</rows>
+													<growablerows>1</growablerows>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
 															<label>Add to Group:</label>
@@ -123,7 +190,6 @@
 													<object class="sizeritem">
 														<object class="wxListBox" name="ID_LISTBOX_ADD_TO_MODEL_GROUP" variable="ListBoxAddToModelGroup" member="yes">
 															<default>-1</default>
-															<size>100,63</size>
 															<minsize>120,100</minsize>
 															<style>wxLB_SORT|wxVSCROLL</style>
 														</object>
@@ -132,7 +198,7 @@
 														<option>1</option>
 													</object>
 												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
@@ -140,22 +206,43 @@
 												<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
 													<cols>1</cols>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_ADD_TO_MODEL_GROUP" variable="ButtonAddToModelGroup" member="yes">
-															<label>-&gt;</label>
-															<size>44,23</size>
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButton4" member="no">
+															<bitmap stock_id="wxART_GO_FORWARD" stock_client="wxART_CMN_DIALOG" />
 															<handler function="OnButtonAddToModelGroupClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_REMOVE_FROM_MODEL_GROUP" variable="ButtonRemoveFromModelGroup" member="yes">
-															<label>&lt;-</label>
-															<size>36,23</size>
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButton3" member="no">
+															<bitmap stock_id="wxART_GO_BACK" stock_client="wxART_CMN_DIALOG" />
 															<handler function="OnButtonRemoveFromModelGroupClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton1" member="no">
+															<bitmap stock_id="wxART_GO_UP" stock_client="wxART_CMN_DIALOG" />
+															<handler function="OnButtonUpClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="BitmapButton2" member="no">
+															<bitmap stock_id="wxART_GO_DOWN" stock_client="wxART_CMN_DIALOG" />
+															<handler function="OnButtonDownClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -167,6 +254,7 @@
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 													<cols>1</cols>
+													<growablerows>1</growablerows>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
 															<label>Models in Group:</label>
@@ -178,21 +266,19 @@
 													<object class="sizeritem">
 														<object class="wxListBox" name="ID_LISTBOX_MODELS_IN_GROUP" variable="ListBoxModelsInGroup" member="yes">
 															<default>-1</default>
-															<size>100,0</size>
 															<minsize>120,100</minsize>
-															<style>wxLB_SORT</style>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
@@ -224,12 +310,12 @@
 									</object>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>1</border>
 								<option>1</option>
 							</object>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>1</border>
 						<option>1</option>
 					</object>
 				</object>

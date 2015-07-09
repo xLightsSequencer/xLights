@@ -6,6 +6,9 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/listbox.h>
+#include <wx/spinctrl.h>
+#include <wx/choice.h>
+#include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
@@ -24,13 +27,18 @@ class PreviewModels: public wxDialog
 		wxButton* ButtonUpdateGroup;
 		wxButton* ButtonClose;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText6;
 		wxListBox* ListBoxModelGroups;
+		wxChoice* ChoiceModelLayoutType;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
-		wxButton* ButtonAddToModelGroup;
+		wxStaticText* GridSizeLabel;
+		wxFlexGridSizer* GridSizeSizer;
+		wxStaticText* StaticText5;
+		wxSpinCtrl* WidthSpinCtrl;
 		wxButton* ButtonRemoveModelGroup;
-		wxButton* ButtonRemoveFromModelGroup;
 		wxListBox* ListBoxModelsInGroup;
+		wxSpinCtrl* HeightSpinCtrl;
 		wxListBox* ListBoxAddToModelGroup;
 		wxButton* ButtonAddModelGroup;
 		//*)
@@ -43,10 +51,18 @@ class PreviewModels: public wxDialog
 		static const long ID_LISTBOX_MODEL_GROUPS;
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL_MODEL_GROUP_NAME;
+		static const long ID_CHOICE1;
+		static const long ID_STATICTEXT4;
+		static const long ID_STATICTEXT6;
+		static const long ID_SPINCTRL1;
+		static const long ID_STATICTEXT5;
+		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT3;
 		static const long ID_LISTBOX_ADD_TO_MODEL_GROUP;
-		static const long ID_BUTTON_ADD_TO_MODEL_GROUP;
-		static const long ID_BUTTON_REMOVE_FROM_MODEL_GROUP;
+		static const long ID_BITMAPBUTTON4;
+		static const long ID_BITMAPBUTTON3;
+		static const long ID_BITMAPBUTTON1;
+		static const long ID_BITMAPBUTTON2;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTBOX_MODELS_IN_GROUP;
 		static const long ID_BUTTON_UPDATE_GROUP;
@@ -67,6 +83,9 @@ class PreviewModels: public wxDialog
 		void OnButtonRemoveModelGroupClick(wxCommandEvent& event);
 		void OnButtonAddModelGroupClick(wxCommandEvent& event);
 		void OnButtonCloseClick(wxCommandEvent& event);
+		void OnButtonUpClick(wxCommandEvent& event);
+		void OnButtonDownClick(wxCommandEvent& event);
+		void OnChoiceModelLayoutTypeSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

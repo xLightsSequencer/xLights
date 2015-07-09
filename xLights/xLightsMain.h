@@ -1471,7 +1471,7 @@ protected:
     bool CloseSequence();
     void InsertRow();
     void UpdatePreview();
-    wxXmlNode *BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClass*> &models);
+    wxXmlNode *BuildWholeHouseModel(const wxString &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models);
     void ShowModelsDialog();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);

@@ -1053,6 +1053,9 @@ int ModelClass::NodeStartChannel(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->ActChan: 0; //avoid memory access error if no nods -DJ
 }
 
+wxString ModelClass::NodeType(size_t nodenum) const {
+    return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType(): "RGB"; //avoid memory access error if no nods -DJ
+}
 int ModelClass::ChannelsPerNode() {
     return SingleChannel ? 1 : 3;
 }

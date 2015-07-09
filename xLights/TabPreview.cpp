@@ -58,13 +58,11 @@ void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
     wxString modelName = whDialog.Text_WholehouseModelName->GetValue();
     if(modelName.Length()> 0)
     {
-        wxXmlNode *e = BuildWholeHouseModel(modelName, PreviewModels);
+        wxXmlNode *e = BuildWholeHouseModel(modelName, nullptr, PreviewModels);
 
         // Delete exisiting wholehouse model with same name
-        for(wxXmlNode* n=ModelsNode->GetChildren(); n!=NULL; n=n->GetNext() )
-        {
-            if (n->GetAttribute("name") == modelName)
-            {
+        for(wxXmlNode* n = ModelsNode->GetChildren(); n != NULL; n = n->GetNext()) {
+            if (n->GetAttribute("name") == modelName) {
                 ModelsNode->RemoveChild(n);
                 // No break, remove them all if more than one
             }
@@ -80,12 +78,11 @@ void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
     }
 }
 
-wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClass*> &models)
+wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models)
 {
     size_t numberOfNodes=0;
-    int w,h,wScaled,hScaled;
+    int w,h;
     size_t index=0;
-    float scale=0;
     wxString WholeHouseData="";
 
     for (int i=0; i<models.size(); i++)
@@ -96,37 +93,72 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, std::ve
     std::vector<int> yPos;
     std::vector<int> actChannel;
     std::vector<wxString> nodeType;
-
-    modelPreview->GetVirtualCanvasSize(w, h);
-
-    // Add node position and channel number to arrays
-    for (int i=0; i<models.size(); i++)
-    {
-        models[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel,nodeType);
-        index+=models[i]->GetNodeCount();
-    }
-
-    // Add WholeHouseData attribute
-    if(w>h){scale = (float)400/(float)w;}
-    else{scale = (float)400/(float)h;}
-    wScaled = (int)(scale*w);
-    hScaled = (int)(scale*h);
-    // Create a new model node
+    
+    
     wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
     e->AddAttribute("name", modelName);
     e->AddAttribute("DisplayAs", "WholeHouse");
     e->AddAttribute("StringType", "RGB Nodes");
-    e->AddAttribute("parm1", wxString::Format(wxT("%i"), wScaled));
-    e->AddAttribute("parm2", wxString::Format(wxT("%i"), hScaled));
 
-    for(int i=0;i<xPos.size();i++)
-    {
-        xPos[i] = (int)(scale*(float)xPos[i]);
-        yPos[i] = (int)((scale*(float)yPos[i]));
-        WholeHouseData += wxString::Format(wxT("%i,%i,%i,%s"),actChannel[i],xPos[i],yPos[i],(const char *)nodeType[i].c_str());
-        if(i!=xPos.size()-1)
+    wxString layout = node == nullptr ? "grid" : node->GetAttribute("layout", "grid");
+    if (layout == "grid") {
+        modelPreview->GetVirtualCanvasSize(w, h);
+        
+        // Add node position and channel number to arrays
+        for (int i=0; i<models.size(); i++)
         {
-            WholeHouseData+=";";
+            models[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel,nodeType);
+            index+=models[i]->GetNodeCount();
+        }
+        int wScaled = node == nullptr ? 400 : wxAtoi(node->GetAttribute("GridWidth", "400"));
+        int hScaled = node == nullptr ? 400 : wxAtoi(node->GetAttribute("GridHeight", "400"));
+        // Add WholeHouseData attribute
+        
+        double hscale = (double)hScaled / (double)h;
+        double wscale = (double)wScaled / (double)w;
+        // Create a new model node
+        e->AddAttribute("parm1", wxString::Format(wxT("%i"), wScaled));
+        e->AddAttribute("parm2", wxString::Format(wxT("%i"), hScaled));
+        
+        for(int i=0;i<xPos.size();i++)
+        {
+            xPos[i] = (int)(wscale*(double)xPos[i]);
+            yPos[i] = (int)((hscale*(double)yPos[i]));
+            WholeHouseData += wxString::Format(wxT("%i,%i,%i,%s"),actChannel[i],xPos[i],yPos[i],(const char *)nodeType[i].c_str());
+            if(i!=xPos.size()-1)
+            {
+                WholeHouseData+=";";
+            }
+        }
+    } else {
+        int max = 0;
+        for (int i=0; i<models.size(); i++) {
+            if (models[i] ->GetNodeCount() > max) {
+                max = models[i]->GetNodeCount();
+            }
+        }
+        for (int i=0; i<models.size(); i++) {
+            for (int x = 0; x < models[i]->GetNodeCount(); x++) {
+                xPos.push_back(x);
+                yPos.push_back(i);
+                actChannel.push_back(models[i]->NodeStartChannel(x));
+                nodeType.push_back(models[i]->NodeType(x));
+            }
+        }
+        bool hor = layout == "horizontal";
+        
+        for(int i=0;i<xPos.size();i++) {
+            e->AddAttribute("parm2", wxString::Format(wxT("%i"), hor ? max : models.size()));
+            e->AddAttribute("parm1", wxString::Format(wxT("%i"), hor ? models.size() : max));
+            
+            WholeHouseData += wxString::Format(wxT("%i,%i,%i,%s"),
+                                               actChannel[i],
+                                               hor ? yPos[i] : xPos[i],
+                                               hor ? xPos[i] : yPos[i],
+                                               (const char *)nodeType[i].c_str());
+            if (i != xPos.size()-1) {
+                WholeHouseData+=";";
+            }
         }
     }
 
