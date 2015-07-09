@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(dkulp) Fix the Align/Distribute menu items on the Layout tab
     -- enh(dkulp) Add options for how the ModelGroup internal buffer is constructed including:
                    a) grid size - the old 400x400 is now configurable
                    b) Horizontal and Vertical "by model" where each model is a row or column and the nodes for that

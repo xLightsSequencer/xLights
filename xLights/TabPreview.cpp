@@ -277,10 +277,12 @@ void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
         mnuAlign->Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
         mnuAlign->Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
         mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
+        mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
 
         mnuDistribute = new wxMenu();
         mnuDistribute->Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
         mnuDistribute->Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
+        mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
 
         mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", mnuAlign,"");
         mnu.Append(ID_PREVIEW_DISTRIBUTE,"Distribute", mnuDistribute,"");
@@ -291,7 +293,8 @@ void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
         return;
     }
     mnu.Append(ID_PREVIEW_MODEL_PROPERTIES,"Model Properties");
-    mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
     PopupMenu(&mnu);
 }
 
