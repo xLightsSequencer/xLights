@@ -27,18 +27,14 @@ class PreviewModels: public wxDialog
 		wxButton* ButtonUpdateGroup;
 		wxButton* ButtonClose;
 		wxStaticText* StaticText2;
-		wxStaticText* StaticText6;
 		wxListBox* ListBoxModelGroups;
 		wxChoice* ChoiceModelLayoutType;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxStaticText* GridSizeLabel;
-		wxFlexGridSizer* GridSizeSizer;
-		wxStaticText* StaticText5;
-		wxSpinCtrl* WidthSpinCtrl;
+		wxSpinCtrl* SizeSpinCtrl;
 		wxButton* ButtonRemoveModelGroup;
 		wxListBox* ListBoxModelsInGroup;
-		wxSpinCtrl* HeightSpinCtrl;
 		wxListBox* ListBoxAddToModelGroup;
 		wxButton* ButtonAddModelGroup;
 		//*)
@@ -53,10 +49,7 @@ class PreviewModels: public wxDialog
 		static const long ID_TEXTCTRL_MODEL_GROUP_NAME;
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT4;
-		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL1;
-		static const long ID_STATICTEXT5;
-		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT3;
 		static const long ID_LISTBOX_ADD_TO_MODEL_GROUP;
 		static const long ID_BITMAPBUTTON4;

@@ -110,12 +110,20 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
             models[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel,nodeType);
             index+=models[i]->GetNodeCount();
         }
-        int wScaled = node == nullptr ? 400 : wxAtoi(node->GetAttribute("GridWidth", "400"));
-        int hScaled = node == nullptr ? 400 : wxAtoi(node->GetAttribute("GridHeight", "400"));
+        int wScaled = node == nullptr ? 400 : wxAtoi(node->GetAttribute("GridSize", "400"));
+        int hScaled = wScaled;
         // Add WholeHouseData attribute
         
         double hscale = (double)hScaled / (double)h;
         double wscale = (double)wScaled / (double)w;
+        
+        if (hscale > wscale) {
+            hscale = wscale;
+            hScaled = wscale * h + 1;
+        } else {
+            wscale = hscale;
+            wScaled = hscale * w + 1;
+        }
         // Create a new model node
         e->AddAttribute("parm1", wxString::Format(wxT("%i"), wScaled));
         e->AddAttribute("parm2", wxString::Format(wxT("%i"), hScaled));

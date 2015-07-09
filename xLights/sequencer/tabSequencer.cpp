@@ -138,17 +138,8 @@ ModelClass &xLightsFrame::GetModelClass(const wxString& name) {
 }
 
 bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
-    wxXmlNode *model = GetModelNode(modelName);
-    if (model == NULL) {
-        model = CreateModelNodeFromGroup(modelName);
-        if (model == NULL) {
-            return false;
-        }
-        buffer.InitBuffer(model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
-        delete model;
-    } else {
-        buffer.InitBuffer(model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
-    }
+    ModelClass &model = GetModelClass(modelName);
+    buffer.InitBuffer(model.GetModelXml(), layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
     return true;
 }
 
