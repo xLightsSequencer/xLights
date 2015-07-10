@@ -22,12 +22,12 @@ public:
     int RowNumber;
     bool Collapsed;
     bool Active;
-    bool PartOfView;
     int colorIndex;
     int layerIndex;
     int strandIndex = -1;
     int nodeIndex = -1;
     wxString displayName;
+    bool submodel = false;
 };
 
 struct EffectRange
@@ -47,7 +47,7 @@ struct EventPlayEffectArgs
 
 class wxXmlNode;
 class EffectLayer;
-class NetInfoClass;
+class xLightsFrame;
 
 class SequenceElements : public ChangeLister
 {
@@ -78,7 +78,7 @@ class SequenceElements : public ChangeLister
         void MoveElementDown(const wxString &name, int view);
         void SetFirstVisibleModelRow(int row);
         void SetCurrentView(int view);
-        void AddMissingModelsToSequence(const wxString &models);
+        void AddMissingModelsToSequence(const wxString &models, bool visible = true);
         int GetCurrentView() {return mCurrentView;}
         void SetTimingVisibility(const wxString& name);
         void PopulateView(const wxString &models, int view);
@@ -109,7 +109,7 @@ class SequenceElements : public ChangeLister
         wxString GetViewName(int view);
 
         void SetViewsNode(wxXmlNode* viewsNode);
-        void SetModelsNode(wxXmlNode *modelsNode, NetInfoClass *ni);
+        void SetModelsNode(wxXmlNode *modelsNode, xLightsFrame *frame);
         wxString GetViewModels(wxString viewName);
         void SetEffectsNode(wxXmlNode* effectsNode);
         wxXmlNode* GetEffectsNode() { return mEffectsNode; }
@@ -164,7 +164,7 @@ class SequenceElements : public ChangeLister
         wxXmlNode* mViewsNode;
         wxXmlNode* mModelsNode;
         wxXmlNode* mEffectsNode;
-        NetInfoClass *netInfo;
+        xLightsFrame *xframe;
         double mFrequency;
         int mTimingRowCount;
         int mMaxRowsDisplayed;

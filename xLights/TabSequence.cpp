@@ -248,11 +248,12 @@ wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
 wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const wxString &name) {
     wxXmlNode* element;
     std::vector<ModelClass*> models;
+    wxString modelString;
     for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
         if (e->GetName() == "modelGroup") {
             if (name == e->GetAttribute("name")) {
                 element = e;
-                wxString modelString = e->GetAttribute("models");
+                modelString = e->GetAttribute("models");
                 wxArrayString modelNames = wxSplit(modelString, ',');
                 for (int x = 0; x < modelNames.size(); x++) {
                     ModelClass &c = GetModelClass(modelNames[x]);
@@ -265,7 +266,9 @@ wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const wxString &name) {
     if (models.size() == 0) {
         return NULL;
     }
-    return BuildWholeHouseModel(name, element, models);
+    wxXmlNode * ret = BuildWholeHouseModel(name, element, models);
+    ret->AddAttribute("models", modelString);
+    return ret;
 }
 void xLightsFrame::ShowModelsDialog()
 {

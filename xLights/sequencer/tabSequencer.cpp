@@ -252,7 +252,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
     SetFrequency(xml_file.GetFrequency());
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
-    mSequenceElements.SetModelsNode(ModelsNode, &NetInfo);
+    mSequenceElements.SetModelsNode(ModelsNode, this);
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file);
     xml_file.CheckUpdateMorphPositions(mSequenceElements, this);
@@ -396,6 +396,17 @@ void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
 
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {
+    wxString s = event.GetString();
+    if ("" != s) {
+        for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
+            if (e->GetName() == "modelGroup") {
+                if (s == e->GetAttribute("name")) {
+                    wxString modelString = e->GetAttribute("models");
+                    mSequenceElements.AddMissingModelsToSequence(modelString, false);
+                }
+            }
+        }
+    }
     mSequenceElements.PopulateRowInformation();
     displayElementsPanel->Initialize();
     ResizeMainSequencer();

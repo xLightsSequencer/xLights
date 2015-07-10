@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Add ability to "expand" a ModelGroup on row headings to expand out the models.
     -- bug(dkulp) Fix the Align/Distribute menu items on the Layout tab
     -- enh(dkulp) Add options for how the ModelGroup internal buffer is constructed including:
                    a) grid size - the old 400x400 is now configurable

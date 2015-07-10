@@ -6,6 +6,7 @@
 
 #include "SequenceElements.h"
 #include "TimeLine.h"
+#include "xLightsMain.h"
 
 
 SequenceElements::SequenceElements()
@@ -20,6 +21,7 @@ SequenceElements::SequenceElements()
     mCurrentView = 0;
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);  // first view must remain as master view that determines render order
+    xframe = nullptr;
 }
 
 SequenceElements::~SequenceElements()
@@ -151,10 +153,10 @@ void SequenceElements::SetViewsNode(wxXmlNode* viewsNode)
     mViewsNode = viewsNode;
 }
 
-void SequenceElements::SetModelsNode(wxXmlNode* node, NetInfoClass *ni)
+void SequenceElements::SetModelsNode(wxXmlNode* node, xLightsFrame *f)
 {
     mModelsNode = node;
-    netInfo = ni;
+    xframe = f;
 }
 
 void SequenceElements::SetEffectsNode(wxXmlNode* effectsNode)
@@ -578,7 +580,7 @@ void SequenceElements::SetCurrentView(int view)
     mCurrentView = view;
 }
 
-void SequenceElements::AddMissingModelsToSequence(const wxString &models)
+void SequenceElements::AddMissingModelsToSequence(const wxString &models, bool visible)
 {
     if(models.length()> 0)
     {
@@ -589,7 +591,7 @@ void SequenceElements::AddMissingModelsToSequence(const wxString &models)
             if(!ElementExists(modelName))
             {
                wxString elementType = "model";
-               Element* elem = AddElement(modelName,elementType,true,false,false,false);
+               Element* elem = AddElement(modelName,elementType,visible,false,false,false);
                elem->AddEffectLayer();
             }
         }
@@ -702,6 +704,90 @@ wxXmlNode *GetModelNode(wxXmlNode *root, const wxString & name) {
     }
     return NULL;
 }
+
+void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInformation,
+                     int &rowIndex, xLightsFrame *xframe,
+                     std::vector <Element*> &elements,
+                     bool submodel) {
+    if(!elem->GetCollapsed())
+    {
+        for(int j =0; j<elem->GetEffectLayerCount();j++)
+        {
+            Row_Information_Struct ri;
+            ri.element = elem;
+            ri.displayName = elem->GetName();
+            ri.Collapsed = elem->GetCollapsed();
+            ri.Active = elem->GetActive();
+            ri.colorIndex = 0;
+            ri.layerIndex = j;
+            ri.Index = rowIndex++;
+            ri.submodel = submodel;
+            mRowInformation.push_back(ri);
+        }
+    }
+    else
+    {
+        Row_Information_Struct ri;
+        ri.element = elem;
+        ri.Collapsed = elem->GetCollapsed();
+        ri.displayName = elem->GetName();
+        ri.Active = elem->GetActive();
+        ri.colorIndex = 0;
+        ri.layerIndex = 0;
+        ri.Index = rowIndex++;
+        ri.submodel = submodel;
+        mRowInformation.push_back(ri);
+    }
+    ModelClass &cls = xframe->GetModelClass(elem->GetName());
+    elem->InitStrands(cls);
+    if (cls.GetDisplayAs() == "WholeHouse" && elem->ShowStrands()) {
+        wxString models = cls.GetModelXml()->GetAttribute("models");
+        wxArrayString model=wxSplit(models,',');
+        for(int m=0;m<model.size();m++) {
+            for (int x = 0; x < elements.size(); x++) {
+                if (elements[x]->GetName() == model[m]) {
+                    addModelElement(elements[x], mRowInformation, rowIndex, xframe, elements, true);
+                }
+            }
+        }
+    } else if (elem->ShowStrands()) {
+        for (int s = 0; s < elem->getStrandLayerCount(); s++) {
+            StrandLayer * sl = elem->GetStrandLayer(s);
+            if (elem->getStrandLayerCount() > 1) {
+                Row_Information_Struct ri;
+                ri.element = elem;
+                ri.Collapsed = !elem->ShowStrands();
+                ri.Active = elem->GetActive();
+                ri.displayName = sl->GetName();
+                
+                ri.colorIndex = 0;
+                ri.layerIndex = 0;
+                ri.Index = rowIndex++;
+                ri.strandIndex = s;
+                ri.submodel = submodel;
+                mRowInformation.push_back(ri);
+            }
+            
+            if (sl->ShowNodes()) {
+                for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
+                    Row_Information_Struct ri;
+                    ri.element = elem;
+                    ri.Collapsed = sl->ShowNodes();
+                    ri.Active = !elem->GetActive();
+                    ri.displayName = sl->GetNodeLayer(n)->GetName();
+                    ri.colorIndex = 0;
+                    ri.layerIndex = 0;
+                    ri.Index = rowIndex++;
+                    ri.strandIndex = s;
+                    ri.nodeIndex = n;
+                    ri.submodel = submodel;
+                    mRowInformation.push_back(ri);
+                }
+            }
+        }
+    }
+}
+
 void SequenceElements::PopulateRowInformation()
 {
     int rowIndex=0;
@@ -721,7 +807,6 @@ void SequenceElements::PopulateRowInformation()
                 ri.element = elem;
                 ri.Collapsed = elem->GetCollapsed();
                 ri.Active = elem->GetActive();
-                ri.PartOfView = false;
                 ri.colorIndex = timingColorIndex;
                 ri.layerIndex = 0;
                 if(mSelectedTimingRow<0)
@@ -744,73 +829,7 @@ void SequenceElements::PopulateRowInformation()
         {
             if (elem->GetType()=="model")
             {
-                if(!elem->GetCollapsed())
-                {
-                    for(int j =0; j<elem->GetEffectLayerCount();j++)
-                    {
-                        Row_Information_Struct ri;
-                        ri.element = elem;
-                        ri.displayName = elem->GetName();
-                        ri.Collapsed = elem->GetCollapsed();
-                        ri.Active = elem->GetActive();
-                        ri.PartOfView = false;
-                        ri.colorIndex = 0;
-                        ri.layerIndex = j;
-                        ri.Index = rowIndex++;
-                        mRowInformation.push_back(ri);
-                    }
-                }
-                else
-                {
-                    Row_Information_Struct ri;
-                    ri.element = elem;
-                    ri.Collapsed = elem->GetCollapsed();
-                    ri.displayName = elem->GetName();
-                    ri.Active = elem->GetActive();
-                    ri.PartOfView = false;
-                    ri.colorIndex = 0;
-                    ri.layerIndex = 0;
-                    ri.Index = rowIndex++;
-                    mRowInformation.push_back(ri);
-                }
-                elem->InitStrands(GetModelNode(mModelsNode, elem->GetName()), *netInfo);
-                if (elem->ShowStrands()) {
-                    for (int s = 0; s < elem->getStrandLayerCount(); s++) {
-                        StrandLayer * sl = elem->GetStrandLayer(s);
-                        if (elem->getStrandLayerCount() > 1) {
-                            Row_Information_Struct ri;
-                            ri.element = elem;
-                            ri.Collapsed = !elem->ShowStrands();
-                            ri.Active = elem->GetActive();
-                            ri.displayName = sl->GetName();
-
-                            ri.PartOfView = false;
-                            ri.colorIndex = 0;
-                            ri.layerIndex = 0;
-                            ri.Index = rowIndex++;
-                            ri.strandIndex = s;
-                            mRowInformation.push_back(ri);
-                        }
-
-                        if (sl->ShowNodes()) {
-                            for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                                Row_Information_Struct ri;
-                                ri.element = elem;
-                                ri.Collapsed = sl->ShowNodes();
-                                ri.Active = !elem->GetActive();
-                                ri.displayName = sl->GetNodeLayer(n)->GetName();
-                                ri.PartOfView = false;
-                                ri.colorIndex = 0;
-                                ri.layerIndex = 0;
-                                ri.Index = rowIndex++;
-                                ri.strandIndex = s;
-                                ri.nodeIndex = n;
-                                mRowInformation.push_back(ri);
-                            }
-                        }
-                    }
-
-                }
+                addModelElement(elem, mRowInformation, rowIndex, xframe, mAllViews[MASTER_VIEW], false);
             }
         }
     }
