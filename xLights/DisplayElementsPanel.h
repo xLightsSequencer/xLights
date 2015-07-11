@@ -15,6 +15,8 @@
 #include "sequencer/SequenceElements.h"
 #include "SequenceData.h"
 
+class wxChoice;
+
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
@@ -24,6 +26,8 @@ class DisplayElementsPanel: public wxPanel
 
 		DisplayElementsPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~DisplayElementsPanel();
+    
+        void SetViewChoice(wxChoice *ch);
 
         void SetSequenceElementsModelsViews(SequenceData* seq_data,
                                             SequenceElements* elements,wxXmlNode* models,
@@ -50,6 +54,8 @@ class DisplayElementsPanel: public wxPanel
 		wxButton* ButtonHideAll;
 		//*)
 
+    
+         wxChoice *MainViewsChoice;
 	protected:
 
 		//(*Identifiers(DisplayElementsPanel)
@@ -107,6 +113,7 @@ class DisplayElementsPanel: public wxPanel
 		void OnResize(wxSizeEvent& event);
 		void OnListCtrlViewsItemSelect(wxListEvent& event);
 		void OnButtonDeleteViewClick(wxCommandEvent& event);
+        void OnViewSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

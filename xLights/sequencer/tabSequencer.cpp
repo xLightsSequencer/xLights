@@ -74,6 +74,7 @@ void xLightsFrame::CreateSequencer()
 
     // DisplayElements Panel
     displayElementsPanel = new DisplayElementsPanel(PanelSequencer);
+    displayElementsPanel->SetViewChoice(mainSequencer->ViewChoice);
 
     m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements"))
                    .Float());
