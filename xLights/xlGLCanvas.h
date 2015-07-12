@@ -30,7 +30,7 @@ class xlGLCanvas
 
         int getWidth() { return mWindowWidth; }
         int getHeight() { return mWindowHeight; }
-    
+
         double translateToBacking(double x);
 
 #ifdef __WXMSW__

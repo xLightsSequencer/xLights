@@ -4,6 +4,7 @@
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "tmGridCell.h"
+#include "FlickerFreeBitmapButton.h"
 
 //(*Headers(SeqSettingsDialog)
 #include <wx/treectrl.h>
@@ -19,22 +20,6 @@
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
-
-// create derived wxBitmapButton class to fix flickering issue
-class FlickerFreeBitmapButtonCtrl : public wxBitmapButton {
-  public:
-         FlickerFreeBitmapButtonCtrl(wxWindow* parent,
-                                     wxWindowID id,
-                                     const wxBitmap& bitmap,
-                                     const wxPoint& pos,
-                                     const wxSize& size = wxDefaultSize,
-                                     long style = 0,
-                                     const wxValidator& validator = wxDefaultValidator,
-                                     const wxString& name = "ButtonName" ):
-         wxBitmapButton(parent,id,bitmap,pos,size,style,validator,name){};
-    void OnEraseBackGround(wxEraseEvent& event) {};
-         DECLARE_EVENT_TABLE()
-};
 
 class SeqSettingsDialog: public wxDialog
 {
@@ -99,17 +84,17 @@ class SeqSettingsDialog: public wxDialog
 		wxPanel* Panel_Wizard;
         wxGridBagSizer* GridBagSizerWizard;
         wxGridSizer* GridSizerWizButtons;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_Wiz_Music;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_Wiz_Anim;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_25ms;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_50ms;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_100ms;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_lor;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_vixen;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_gled;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_hls;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_lynx;
-		FlickerFreeBitmapButtonCtrl* BitmapButton_xlights;
+		FlickerFreeBitmapButton* BitmapButton_Wiz_Music;
+		FlickerFreeBitmapButton* BitmapButton_Wiz_Anim;
+		FlickerFreeBitmapButton* BitmapButton_25ms;
+		FlickerFreeBitmapButton* BitmapButton_50ms;
+		FlickerFreeBitmapButton* BitmapButton_100ms;
+		FlickerFreeBitmapButton* BitmapButton_lor;
+		FlickerFreeBitmapButton* BitmapButton_vixen;
+		FlickerFreeBitmapButton* BitmapButton_gled;
+		FlickerFreeBitmapButton* BitmapButton_hls;
+		FlickerFreeBitmapButton* BitmapButton_lynx;
+		FlickerFreeBitmapButton* BitmapButton_xlights;
 		wxButton* Button_SkipImport;
         wxButton* Button_EditMetadata;
         wxButton* Button_ImportTimings;

@@ -6,14 +6,14 @@
 #define GL_CLAMP_TO_EDGE 0x812F
 
 GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
-                  bool &scaledW, bool &scaledH)
+                  bool &scaledW, bool &scaledH, bool &hasAlpha)
 {
 
 	GLuint* ID=new GLuint[1];
     glEnable(GL_TEXTURE_2D);
     int maxSize = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
-   
+
 	glGenTextures( 1, &ID[0] );
 	glBindTexture( GL_TEXTURE_2D, *ID );
 
@@ -50,7 +50,7 @@ GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &texture
 
 	float power_of_two_that_gives_correct_width=std::log((float)imageWidth)/std::log(2.0);
 	float power_of_two_that_gives_correct_height=std::log((float)imageHeight)/std::log(2.0);
-    
+
     textureWidth  = imageWidth;
     textureHeight = imageHeight;
     scaledH = scaledW = false;
@@ -75,13 +75,14 @@ GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &texture
                          wxIMAGE_QUALITY_HIGH);
         }
     }
-    
+
     // note: must make a local copy before passing the data to OpenGL, as GetData() returns RGB
     // and we want the Alpha channel if it's present. Additionally OpenGL seems to interpret the
     // data upside-down so we need to compensate for that.
     GLubyte *bitmapData=img->GetData();
     GLubyte *alphaData=img->GetAlpha();
 
+    hasAlpha = img->HasAlpha();
     int bytesPerPixel = img->HasAlpha() ?  4 : 3;
 
     int imageSize = textureWidth * textureHeight * bytesPerPixel;

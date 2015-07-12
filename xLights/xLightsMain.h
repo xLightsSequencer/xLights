@@ -83,7 +83,7 @@
 #include "CurrentPreviewModels.h"
 #include "PreviewModels.h"
 #include "ModelPreview.h"
-#include "SceneEditor.h"
+#include "EffectAssist.h"
 #include "dlgPreviewSize.h"
 #include "SequenceData.h"
 #include "UtilClasses.h"
@@ -1603,7 +1603,7 @@ protected:
     MainSequencer* mainSequencer;
     ModelPreview * sPreview1;
     ModelPreview * sPreview2;
-    SceneEditor* sSceneEditor;
+    EffectAssist* sEffectAssist;
     ColorPanel* colorPanel;
     TimingPanel* timingPanel;
     PerspectivesPanel* perspectivePanel;

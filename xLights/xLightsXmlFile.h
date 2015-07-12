@@ -77,6 +77,9 @@ class xLightsXmlFile : public wxFileName
         wxString GetHeaderInfo(HEADER_INFO_TYPES node_type) { return header_info[node_type]; }
         void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);
 
+        wxString GetImageDir(wxWindow* parent);
+        void SetImageDir(const wxString& dir);
+
         void SetSequenceLoaded(bool value) { sequence_loaded = value; }
         bool GetSequenceLoaded() { return sequence_loaded; }
 
@@ -124,6 +127,7 @@ class xLightsXmlFile : public wxFileName
         wxString media_file;
         wxString seq_type;
         wxString seq_timing;
+        wxString image_dir;
         bool is_open;
         bool has_audio_media;
         bool was_converted;
@@ -168,12 +172,12 @@ class xLightsXmlFile : public wxFileName
 
         static wxString InsertMissing(wxString str, wxString missing_array, bool INSERT);
 
-    void WriteEffects(EffectLayer *layer,
-                      wxXmlNode *effect_layer_node,
-                      StringIntMap &colorPalettes,
-                      wxXmlNode* colorPalette_node,
-                      StringIntMap &effectStrings,
-                      wxXmlNode* effectDB_Node);
+        void WriteEffects(EffectLayer *layer,
+                          wxXmlNode *effect_layer_node,
+                          StringIntMap &colorPalettes,
+                          wxXmlNode* colorPalette_node,
+                          StringIntMap &effectStrings,
+                          wxXmlNode* effectDB_Node);
 };
 
 #endif // XLIGHTSXMLFILE_H

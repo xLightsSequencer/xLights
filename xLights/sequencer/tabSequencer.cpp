@@ -52,10 +52,10 @@ void xLightsFrame::CreateSequencer()
     EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
     effectsPnl->Refresh();
 
-    sSceneEditor = new SceneEditor(PanelSequencer, this);
-    sSceneEditor->SetSize(wxSize(200,200));
-    m_mgr->AddPane(sSceneEditor,wxAuiPaneInfo().Name(wxT("SceneEditor")).Caption(wxT("Effect Assist")).BestSize(wxSize(200,200)).Left());
-    sSceneEditor->Layout();
+    sEffectAssist = new EffectAssist(PanelSequencer, this);
+    sEffectAssist->SetSize(wxSize(200,200));
+    m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).BestSize(wxSize(200,200)).Left());
+    sEffectAssist->Layout();
 
     wxScrolledWindow* w;
     for(int i =0;i<EffectsPanel1->EffectChoicebook->GetPageCount();i++)
@@ -501,6 +501,7 @@ void xLightsFrame::EffectChanged(wxCommandEvent& event)
 {
     Effect* effect = (Effect*)event.GetClientData();
     SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
+    selectedEffectString = wxEmptyString;  // force update to effect rendering
 }
 
 void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
@@ -956,9 +957,9 @@ void xLightsFrame::TimerRgbSeq(long msec)
             playStartMS = -1;
 
             // Update if effect has been modified
-            if( m_mgr->GetPane("SceneEditor").IsShown() )
+            if( m_mgr->GetPane("EffectAssist").IsShown() )
             {
-                sSceneEditor->ForceRefresh();
+                sEffectAssist->ForceRefresh();
             }
 
             RenderEffectForModel(elem->GetName(),playStartTime,playEndTime);
@@ -1173,7 +1174,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
     }
     else if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON )
     {
-        bool visible = m_mgr->GetPane("SceneEditor").IsShown();
+        bool visible = m_mgr->GetPane("EffectAssist").IsShown();
         if( !visible )
         {
             mEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
@@ -1298,15 +1299,15 @@ void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
 {
-    bool visible = m_mgr->GetPane("SceneEditor").IsShown();
+    bool visible = m_mgr->GetPane("EffectAssist").IsShown();
     if (visible) {
-        m_mgr->GetPane("SceneEditor").Hide();
+        m_mgr->GetPane("EffectAssist").Hide();
         mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
         MenuItemEffectAssistAlwaysOn->Check(false);
         MenuItemEffectAssistAlwaysOff->Check(true);
         MenuItemEffectAssistToggleMode->Check(false);
     } else {
-        m_mgr->GetPane("SceneEditor").Show();
+        m_mgr->GetPane("EffectAssist").Show();
         mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
         MenuItemEffectAssistAlwaysOn->Check(true);
         MenuItemEffectAssistAlwaysOff->Check(false);

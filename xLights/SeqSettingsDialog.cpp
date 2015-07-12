@@ -92,10 +92,6 @@ const long SeqSettingsDialog::ID_BUTTON_wizard_done = wxNewId();
 wxDEFINE_EVENT(EVT_DELETE_ROW, wxCommandEvent);
 wxDEFINE_EVENT(EVT_NAME_CHANGE, wxCommandEvent);
 
-BEGIN_EVENT_TABLE(FlickerFreeBitmapButtonCtrl,wxBitmapButton)
-    EVT_ERASE_BACKGROUND(FlickerFreeBitmapButtonCtrl::OnEraseBackGround)
-END_EVENT_TABLE()
-
 BEGIN_EVENT_TABLE(SeqSettingsDialog,wxDialog)
 	//(*EventTable(SeqSettingsDialog)
 	//*)
@@ -451,10 +447,10 @@ void SeqSettingsDialog::WizardPage1()
     GridBagSizerWizard = new wxGridBagSizer(0, 1);
     GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
-    BitmapButton_Wiz_Music = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Music, music_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Music"));
+    BitmapButton_Wiz_Music = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Music, music_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Music"));
     BitmapButton_Wiz_Music->SetBitmapSelected(music_seq_pressed);
     GridSizerWizButtons->Add(BitmapButton_Wiz_Music, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Wiz_Anim = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Anim, animation_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Anim"));
+    BitmapButton_Wiz_Anim = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Anim, animation_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Anim"));
     BitmapButton_Wiz_Anim->SetBitmapSelected(animation_pressed);
     GridSizerWizButtons->Add(BitmapButton_Wiz_Anim, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -470,13 +466,13 @@ void SeqSettingsDialog::WizardPage2()
     GridBagSizerWizard->Clear(true);
     GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
-    BitmapButton_25ms = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_25ms, time_div_25ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_25ms"));
+    BitmapButton_25ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_25ms, time_div_25ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_25ms"));
     BitmapButton_25ms->SetBitmapSelected(time_div_25ms_pressed);
     GridSizerWizButtons->Add(BitmapButton_25ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_50ms = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_50ms, time_div_50ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_50ms"));
+    BitmapButton_50ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_50ms, time_div_50ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_50ms"));
     BitmapButton_50ms->SetBitmapSelected(time_div_50ms_pressed);
     GridSizerWizButtons->Add(BitmapButton_50ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_100ms = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_100ms, time_div_100ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_100ms"));
+    BitmapButton_100ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_100ms, time_div_100ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_100ms"));
     BitmapButton_100ms->SetBitmapSelected(time_div_100ms_pressed);
     GridSizerWizButtons->Add(BitmapButton_100ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -504,17 +500,17 @@ void SeqSettingsDialog::WizardPage3()
     GridSizerWizButtons = new wxGridSizer(0, 2, 5, 10);
     GridSizerWizButtons->Add(StaticText_Page3Optional, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     GridSizerWizButtons->Add(50,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    BitmapButton_lor = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_lor, lightorama, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lor"));
+    BitmapButton_lor = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_lor, lightorama, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lor"));
     GridSizerWizButtons->Add(BitmapButton_lor, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_hls = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_hls, hls, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_hls"));
+    BitmapButton_hls = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_hls, hls, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_hls"));
     GridSizerWizButtons->Add(BitmapButton_hls, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_xlights = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_xlights, xlights_logo, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_xlights"));
+    BitmapButton_xlights = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_xlights, xlights_logo, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_xlights"));
     GridSizerWizButtons->Add(BitmapButton_xlights, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_vixen = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_vixen, vixen, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_vixen"));
+    BitmapButton_vixen = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_vixen, vixen, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_vixen"));
     GridSizerWizButtons->Add(BitmapButton_vixen, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_gled = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_gled, glediator, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_gled"));
+    BitmapButton_gled = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_gled, glediator, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_gled"));
     GridSizerWizButtons->Add(BitmapButton_gled, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_lynx = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_lynx, lynx, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lynx"));
+    BitmapButton_lynx = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_lynx, lynx, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lynx"));
     GridSizerWizButtons->Add(BitmapButton_lynx, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons->Add(185,30,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_SkipImport = new wxButton(Panel_Wizard, ID_BUTTON_skip_import, _("Skip >>"), wxDefaultPosition, wxSize(185,30), 0, wxDefaultValidator, _T("ID_BUTTON_skip_import"));

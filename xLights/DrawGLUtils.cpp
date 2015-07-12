@@ -10,6 +10,7 @@
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"
 
+const double PI  =3.141592653589793238463;
 
 /* holds a large pre-allocated buffer for the vertices and colors to avoid having to hit the memory
    every time we need to draw stuff.   Since we only use this on the main thread, safe to do */
@@ -159,6 +160,18 @@ void DrawGLUtils::DrawCircle(const xlColor &color, double cx, double cy, double 
     glEnd();
 }
 
+void DrawGLUtils::DrawCircleUnfilled(const xlColor &color, double cx, double cy, double r, float width )
+{
+    static const double inc = PI / 12;
+    static const double max = 2 * PI;
+    glLineWidth(width);
+    glColor3ub(color.Red(), color.Green(),color.Blue());
+    glBegin(GL_LINE_LOOP);
+    for(double d = 0; d < max; d += inc) {
+        glVertex2f(cos(d) * r + cx, sin(d) * r + cy);
+    }
+    glEnd();
+}
 
 void DrawGLUtils::DrawLine(const xlColor &color, wxByte alpha,int x1, int y1, int x2, int y2, float width)
 {
@@ -378,5 +391,22 @@ void DrawGLUtils::DrawTexture(GLuint* texture,double x, double y, double x2, dou
     glVertex2f(x-0.4,y2);
     glEnd();
     glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+}
+
+void DrawGLUtils::UpdateTexturePixel(GLuint* texture,double x, double y, xlColor& color, bool hasAlpha)
+{
+    int bytesPerPixel = hasAlpha ?  4 : 3;
+    GLubyte *imageData=new GLubyte[bytesPerPixel];
+    imageData[0] = color.red;
+    imageData[1] = color.green;
+    imageData[2] = color.blue;
+    if( hasAlpha ) {
+        imageData[3] = color.alpha;
+    }
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D,*texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, hasAlpha ?  GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData);
+    delete [] imageData;
     glDisable(GL_TEXTURE_2D);
 }

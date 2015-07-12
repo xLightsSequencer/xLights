@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(gil)   Add ability to create/edit/draw images on models using the Pictures effect and the Effect Assist window.
     -- enh(dkulp) Add a choice to select the view in the top left corner
     -- enh(dkulp) Add ability to "expand" a ModelGroup on row headings to expand out the models.
     -- bug(dkulp) Fix the Align/Distribute menu items on the Layout tab

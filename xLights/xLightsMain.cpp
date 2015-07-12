@@ -3386,12 +3386,12 @@ void xLightsFrame::OnMenuItemEffectAssistToggleModeSelected(wxCommandEvent& even
 
 void xLightsFrame::SetEffectAssistWindowState(bool show)
 {
-    bool visible = m_mgr->GetPane("SceneEditor").IsShown();
+    bool visible = m_mgr->GetPane("EffectAssist").IsShown();
     if (visible && !show) {
-        m_mgr->GetPane("SceneEditor").Hide();
+        m_mgr->GetPane("EffectAssist").Hide();
         m_mgr->Update();
     } else if(!visible && show) {
-        m_mgr->GetPane("SceneEditor").Show();
+        m_mgr->GetPane("EffectAssist").Show();
         m_mgr->Update();
     }
 }
@@ -3410,7 +3410,7 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect)
 {
     if( effect == NULL )
     {
-        sSceneEditor->SetEffect(NULL);
+        sEffectAssist->SetEffect(NULL);
         return;
     }
 
@@ -3430,10 +3430,10 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect)
 
     if( effect_is_supported )
     {
-        sSceneEditor->SetEffect(effect);
+        sEffectAssist->SetEffect(effect);
     }
     else
     {
-        sSceneEditor->SetEffect(NULL);
+        sEffectAssist->SetEffect(NULL);
     }
 }
