@@ -18,6 +18,8 @@ const long EffectAssist::ID_BUTTON_LoadImage = wxNewId();
 const long EffectAssist::ID_BUTTON_SaveImage = wxNewId();
 const long EffectAssist::ID_BUTTON_SaveAs = wxNewId();
 const long EffectAssist::ID_STATICTEXT_CurrentImage = wxNewId();
+const long EffectAssist::ID_STATICTEXT_ImageSize = wxNewId();
+const long EffectAssist::ID_STATICTEXT_ModelSize = wxNewId();
 const long EffectAssist::ID_PANEL_RightSide = wxNewId();
 const long EffectAssist::ID_SCROLLED_EffectAssist = wxNewId();
 const long EffectAssist::ID_PANEL1 = wxNewId();
@@ -30,6 +32,7 @@ const long EffectAssist::ID_BITMAPBUTTON_Paint_Eyedropper = wxNewId();
 
 wxDEFINE_EVENT(EVT_PAINT_COLOR, wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMAGE_FILE_SELECTED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_IMAGE_SIZE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EYEDROPPER_COLOR, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(EffectAssist,wxPanel)
@@ -37,6 +40,7 @@ BEGIN_EVENT_TABLE(EffectAssist,wxPanel)
 	//*)
     EVT_COMMAND(wxID_ANY, EVT_PAINT_COLOR, EffectAssist::OnColorChange)
     EVT_COMMAND(wxID_ANY, EVT_IMAGE_FILE_SELECTED, EffectAssist::OnImageFileSelected)
+    EVT_COMMAND(wxID_ANY, EVT_IMAGE_SIZE, EffectAssist::OnImageSize)
     EVT_COMMAND(wxID_ANY, EVT_EYEDROPPER_COLOR, EffectAssist::OnEyedropperColor)
 END_EVENT_TABLE()
 
@@ -85,7 +89,11 @@ EffectAssist::EffectAssist(wxWindow* parent, xLightsFrame* xlights_parent, wxWin
 	FlexGridSizer3->Add(Button_SaveAs, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PaintFuntionsSizer->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_CurrentImage = new wxStaticText(Panel_RightSide, ID_STATICTEXT_CurrentImage, _("Current Image:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_CurrentImage"));
-	PaintFuntionsSizer->Add(StaticText_CurrentImage, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	PaintFuntionsSizer->Add(StaticText_CurrentImage, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_ImageSize = new wxStaticText(Panel_RightSide, ID_STATICTEXT_ImageSize, _("Image Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_ImageSize"));
+	PaintFuntionsSizer->Add(StaticText_ImageSize, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_ModelSize = new wxStaticText(Panel_RightSide, ID_STATICTEXT_ModelSize, _("Model Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_ModelSize"));
+	PaintFuntionsSizer->Add(StaticText_ModelSize, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer_RightSide->Add(PaintFuntionsSizer, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_RightSide->SetSizer(FlexGridSizer_RightSide);
 	FlexGridSizer_RightSide->Fit(Panel_RightSide);
@@ -191,7 +199,6 @@ void EffectAssist::SetEffect(Effect* effect_)
 
     if( mEffect != NULL )
     {
-
         EffectLayer* layer = mEffect->GetParentEffectLayer();
         Element* elem = layer->GetParentElement();
         wxString model_name = elem->GetName();
@@ -199,6 +206,7 @@ void EffectAssist::SetEffect(Effect* effect_)
         PanelEffectGrid->SetModelClass(&cls);
         PanelEffectGrid->SetNumColumns(cls.BufferWi);
         PanelEffectGrid->SetNumRows(cls.BufferHt);
+        StaticText_ModelSize->SetLabelText(wxString::Format("Model Size: %d x %d", cls.BufferWi, cls.BufferHt));
 
         if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
         {
@@ -279,6 +287,12 @@ void EffectAssist::OnImageFileSelected(wxCommandEvent& event)
 {
    wxString* name = (wxString*)event.GetClientData();
    StaticText_CurrentImage->SetLabelText( "Current Image: " + *name );
+}
+
+void EffectAssist::OnImageSize(wxCommandEvent& event)
+{
+   wxString* image_size = (wxString*)event.GetClientData();
+   StaticText_ImageSize->SetLabelText( *image_size );
 }
 
 void EffectAssist::OnButton_SaveImageClick(wxCommandEvent& event)

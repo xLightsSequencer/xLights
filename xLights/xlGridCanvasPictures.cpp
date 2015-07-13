@@ -48,6 +48,8 @@ xlGridCanvasPictures::~xlGridCanvasPictures()
 
 void xlGridCanvasPictures::ProcessNewImage()
 {
+    static wxString image_size = wxEmptyString;
+
     // process loading new image
     if( mModified )
     {
@@ -74,6 +76,12 @@ void xlGridCanvasPictures::ProcessNewImage()
 
     int imgwidth=image.GetWidth();
     int imght   =image.GetHeight();
+
+    image_size = wxString::Format("Image Size: %d x %d", imgwidth, imght);
+    wxCommandEvent eventImageSize(EVT_IMAGE_SIZE);
+    eventImageSize.SetClientData(&image_size);
+    wxPostEvent(GetParent(), eventImageSize);
+
     if( imgwidth > mColumns || imght > mRows )
     {
         if( imageCount > 1 )

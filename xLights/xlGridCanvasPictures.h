@@ -9,6 +9,7 @@
 
 wxDECLARE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMAGE_FILE_SELECTED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_IMAGE_SIZE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EYEDROPPER_COLOR, wxCommandEvent);
 
 class xlGridCanvasPictures : public xlGridCanvas

@@ -28,12 +28,14 @@ class EffectAssist: public wxPanel
 
 		//(*Declarations(EffectAssist)
 		wxButton* Button_LoadImage;
+		wxStaticText* StaticText_ImageSize;
 		wxButton* Button_NewImage;
 		wxPanel* Panel_Sizer;
 		wxScrolledWindow* ScrolledWindowEffectAssist;
 		wxStaticText* StaticText_CurrentImage;
 		wxButton* Button_SaveAs;
 		wxFlexGridSizer* FlexGridSizer_RightSide;
+		wxStaticText* StaticText_ModelSize;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxPanel* Panel_RightSide;
 		wxButton* Button_SaveImage;
@@ -52,6 +54,8 @@ class EffectAssist: public wxPanel
 		static const long ID_BUTTON_SaveImage;
 		static const long ID_BUTTON_SaveAs;
 		static const long ID_STATICTEXT_CurrentImage;
+		static const long ID_STATICTEXT_ImageSize;
+		static const long ID_STATICTEXT_ModelSize;
 		static const long ID_PANEL_RightSide;
 		static const long ID_SCROLLED_EffectAssist;
 		static const long ID_PANEL1;
@@ -84,6 +88,7 @@ class EffectAssist: public wxPanel
 		void OnBitmapButton_Paint_EyedropperClick(wxCommandEvent& event);
 		void OnColorChange(wxCommandEvent& event);
 		void OnImageFileSelected(wxCommandEvent& event);
+		void OnImageSize(wxCommandEvent& event);
 		void OnEyedropperColor(wxCommandEvent& event);
 
         xLightsFrame* mxLightsParent;
