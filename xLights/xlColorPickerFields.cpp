@@ -71,7 +71,7 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	Panel_CurrentColor = new wxPanel(this, ID_PANEL_CurrentColor, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER, _T("ID_PANEL_CurrentColor"));
 	Panel_CurrentColor->SetMinSize(wxSize(75,55));
 	GridBagSizer1->Add(Panel_CurrentColor, wxGBPosition(0, 13), wxGBSpan(3, 2), wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP, wxDLG_UNIT(this,wxSize(17,0)).GetWidth());
-	RadioButton_Hue = new wxRadioButton(this, ID_RADIOBUTTON_Hue, _("H:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Hue"));
+	RadioButton_Hue = new wxRadioButton(this, ID_RADIOBUTTON_Hue, _("H:"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON_Hue"));
 	wxFont RadioButton_HueFont(13,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	RadioButton_Hue->SetFont(RadioButton_HueFont);
 	GridBagSizer1->Add(RadioButton_Hue, wxGBPosition(4, 13), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
@@ -154,7 +154,7 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	BitmapButton_Swatch8->SetMinSize(wxSize(20,20));
 	BitmapButton_Swatch8->SetBackgroundColour(wxColour(128,0,255));
 	GridBagSizer1->Add(BitmapButton_Swatch8, wxGBPosition(11, 8), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
-	RadioButton_SwatchMarker = new wxRadioButton(this, ID_RADIOBUTTON_SwatchMarker, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_SwatchMarker"));
+	RadioButton_SwatchMarker = new wxRadioButton(this, ID_RADIOBUTTON_SwatchMarker, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON_SwatchMarker"));
 	RadioButton_SwatchMarker->SetValue(true);
 	RadioButton_SwatchMarker->Disable();
 	GridBagSizer1->Add(RadioButton_SwatchMarker, wxGBPosition(12, 1), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
@@ -449,7 +449,6 @@ void xlColorPickerFields::OnBitmapButton_SwatchClick(wxCommandEvent& event)
     name.Replace("ID_BITMAPBUTTON_Swatch", "");
     int selected_column = wxAtoi(name);
 	GridBagSizer1->SetItemPosition(RadioButton_SwatchMarker, wxGBPosition(12, selected_column));
-	RadioButton_SwatchMarker->SetValue(true);
 	GridBagSizer1->Layout();
     wxColor button_color = mActiveButton->GetBackgroundColour();
     Panel_CurrentColor->SetBackgroundColour(button_color);

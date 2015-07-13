@@ -92,6 +92,7 @@
 						<size>13</size>
 						<family>modern</family>
 					</font>
+					<style>wxRB_GROUP</style>
 					<handler function="OnRadioButton_ModeSelect" entry="EVT_RADIOBUTTON" />
 				</object>
 				<col>13</col>
@@ -374,6 +375,7 @@
 					<label></label>
 					<selected>1</selected>
 					<enabled>0</enabled>
+					<style>wxRB_GROUP</style>
 				</object>
 				<col>1</col>
 				<row>12</row>
