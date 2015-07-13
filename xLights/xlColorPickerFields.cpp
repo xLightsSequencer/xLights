@@ -449,6 +449,7 @@ void xlColorPickerFields::OnBitmapButton_SwatchClick(wxCommandEvent& event)
     name.Replace("ID_BITMAPBUTTON_Swatch", "");
     int selected_column = wxAtoi(name);
 	GridBagSizer1->SetItemPosition(RadioButton_SwatchMarker, wxGBPosition(12, selected_column));
+	RadioButton_SwatchMarker->SetValue(true);
 	GridBagSizer1->Layout();
     wxColor button_color = mActiveButton->GetBackgroundColour();
     Panel_CurrentColor->SetBackgroundColour(button_color);
