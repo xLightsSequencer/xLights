@@ -15,7 +15,6 @@
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
 		671E7DFA1AED4FFD0034C6DF /* RenderFan.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */; };
 		671E7DFB1AED4FFD0034C6DF /* RenderShockwave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */; };
-		672E7C611B4B6B3700409549 /* SceneEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5D1B4B6B3700409549 /* SceneEditor.cpp */; };
 		672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		6730E4D21ADB54E8005DECF0 /* RenderGalaxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */; };
@@ -26,6 +25,15 @@
 		674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C61918238E00A993C7 /* RenderWave.cpp */; };
 		675006781923EBBD00875D45 /* RenderGlediator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675006771923EBBD00875D45 /* RenderGlediator.cpp */; };
 		675878DB1A89297200205A75 /* DataLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675878D91A89297200205A75 /* DataLayer.cpp */; };
+		675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2551B53381800A9BB44 /* EffectAssist.cpp */; };
+		675DE2681B53381800A9BB44 /* FlickerFreeBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */; };
+		675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2591B53381800A9BB44 /* xlColorCanvas.cpp */; };
+		675DE26A1B53381800A9BB44 /* xlColorPicker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE25B1B53381800A9BB44 /* xlColorPicker.cpp */; };
+		675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE25D1B53381800A9BB44 /* xlColorPickerFields.cpp */; };
+		675DE26C1B53381800A9BB44 /* xlGridCanvasEmpty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE25F1B53381800A9BB44 /* xlGridCanvasEmpty.cpp */; };
+		675DE26D1B53381800A9BB44 /* xlGridCanvasMorph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2611B53381800A9BB44 /* xlGridCanvasMorph.cpp */; };
+		675DE26E1B53381800A9BB44 /* xlGridCanvasPictures.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2631B53381800A9BB44 /* xlGridCanvasPictures.cpp */; };
+		675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2651B53381800A9BB44 /* xlSlider.cpp */; };
 		6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6760BF121953BAD700704AEA /* TabPapagayo.cpp */; };
 		67623E711AD07E320022667B /* KeyBindings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E6F1AD07E320022667B /* KeyBindings.cpp */; };
 		67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E721AD2BF3F0022667B /* BitmapCache.cpp */; };
@@ -148,8 +156,6 @@
 		671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFan.cpp; sourceTree = "<group>"; };
 		671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShockwave.cpp; sourceTree = "<group>"; };
 		672E7C5C1B4B6B3700409549 /* xlGridCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvas.h; sourceTree = "<group>"; };
-		672E7C5D1B4B6B3700409549 /* SceneEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SceneEditor.cpp; sourceTree = "<group>"; };
-		672E7C5E1B4B6B3700409549 /* SceneEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SceneEditor.h; sourceTree = "<group>"; };
 		672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvas.cpp; sourceTree = "<group>"; };
 		672E7C601B4B6B3700409549 /* OptionChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionChooser.h; sourceTree = "<group>"; };
 		672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = SeqSettingsDialog.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -187,6 +193,24 @@
 		675006771923EBBD00875D45 /* RenderGlediator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGlediator.cpp; sourceTree = "<group>"; };
 		675878D91A89297200205A75 /* DataLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataLayer.cpp; sourceTree = "<group>"; };
 		675878DA1A89297200205A75 /* DataLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataLayer.h; sourceTree = "<group>"; };
+		675DE2551B53381800A9BB44 /* EffectAssist.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectAssist.cpp; sourceTree = "<group>"; };
+		675DE2561B53381800A9BB44 /* EffectAssist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectAssist.h; sourceTree = "<group>"; };
+		675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FlickerFreeBitmapButton.cpp; sourceTree = "<group>"; };
+		675DE2581B53381800A9BB44 /* FlickerFreeBitmapButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlickerFreeBitmapButton.h; sourceTree = "<group>"; };
+		675DE2591B53381800A9BB44 /* xlColorCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlColorCanvas.cpp; sourceTree = "<group>"; };
+		675DE25A1B53381800A9BB44 /* xlColorCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlColorCanvas.h; sourceTree = "<group>"; };
+		675DE25B1B53381800A9BB44 /* xlColorPicker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlColorPicker.cpp; sourceTree = "<group>"; };
+		675DE25C1B53381800A9BB44 /* xlColorPicker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlColorPicker.h; sourceTree = "<group>"; };
+		675DE25D1B53381800A9BB44 /* xlColorPickerFields.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlColorPickerFields.cpp; sourceTree = "<group>"; };
+		675DE25E1B53381800A9BB44 /* xlColorPickerFields.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlColorPickerFields.h; sourceTree = "<group>"; };
+		675DE25F1B53381800A9BB44 /* xlGridCanvasEmpty.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvasEmpty.cpp; sourceTree = "<group>"; };
+		675DE2601B53381800A9BB44 /* xlGridCanvasEmpty.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvasEmpty.h; sourceTree = "<group>"; };
+		675DE2611B53381800A9BB44 /* xlGridCanvasMorph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvasMorph.cpp; sourceTree = "<group>"; };
+		675DE2621B53381800A9BB44 /* xlGridCanvasMorph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvasMorph.h; sourceTree = "<group>"; };
+		675DE2631B53381800A9BB44 /* xlGridCanvasPictures.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvasPictures.cpp; sourceTree = "<group>"; };
+		675DE2641B53381800A9BB44 /* xlGridCanvasPictures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvasPictures.h; sourceTree = "<group>"; };
+		675DE2651B53381800A9BB44 /* xlSlider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlSlider.cpp; sourceTree = "<group>"; };
+		675DE2661B53381800A9BB44 /* xlSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlSlider.h; sourceTree = "<group>"; };
 		6760BF121953BAD700704AEA /* TabPapagayo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = TabPapagayo.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67623E6F1AD07E320022667B /* KeyBindings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KeyBindings.cpp; sourceTree = "<group>"; };
 		67623E701AD07E320022667B /* KeyBindings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyBindings.h; sourceTree = "<group>"; };
@@ -471,6 +495,8 @@
 				67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */,
 				67A619C417B51C0F008E95BB /* E131Dialog.cpp */,
 				6778F3E31A601CA7008C2086 /* Effect.cpp */,
+				675DE2551B53381800A9BB44 /* EffectAssist.cpp */,
+				675DE2561B53381800A9BB44 /* EffectAssist.h */,
 				671D814A1A6723CF005819EA /* EffectDropTarget.cpp */,
 				677421D81A6A8FBE0082DA5B /* EffectIconPanel.cpp */,
 				6778F3E41A601CA7008C2086 /* EffectLayer.cpp */,
@@ -482,6 +508,7 @@
 				6784F9211A5653670018EC0C /* Element.cpp */,
 				67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */,
 				676DCBF81A98E53800FBA86B /* FileConverter.cpp */,
+				675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */,
 				67CA857E18BE86B800A6268C /* heartbeat.cpp */,
 				67F4C6131A097A35003E978F /* Image_Loader.cpp */,
 				67F4C6141A097A35003E978F /* Image.cpp */,
@@ -507,7 +534,6 @@
 				67694F191A069BBE0030D020 /* PreviewModels.cpp */,
 				677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */,
 				6784F9241A5653670018EC0C /* RowHeading.cpp */,
-				672E7C5D1B4B6B3700409549 /* SceneEditor.cpp */,
 				67A619F217B51C0F008E95BB /* SeqElementMismatchDialog.cpp */,
 				67A619F417B51C0F008E95BB /* SeqExportDialog.cpp */,
 				67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */,
@@ -534,14 +560,21 @@
 				6784F9281A5653670018EC0C /* Waveform.cpp */,
 				67A543FD1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp */,
 				67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */,
+				675DE2591B53381800A9BB44 /* xlColorCanvas.cpp */,
+				675DE25B1B53381800A9BB44 /* xlColorPicker.cpp */,
+				675DE25D1B53381800A9BB44 /* xlColorPickerFields.cpp */,
 				67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */,
 				672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */,
+				675DE25F1B53381800A9BB44 /* xlGridCanvasEmpty.cpp */,
+				675DE2611B53381800A9BB44 /* xlGridCanvasMorph.cpp */,
+				675DE2631B53381800A9BB44 /* xlGridCanvasPictures.cpp */,
 				67A61A1D17B51C0F008E95BB /* xlights_out.cpp */,
 				67A61A2117B51C0F008E95BB /* xLightsApp.cpp */,
 				67F4C6151A097A35003E978F /* XlightsDrawable.cpp */,
 				67A61A2417B51C0F008E95BB /* xLightsMain.cpp */,
 				6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */,
 				679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */,
+				675DE2651B53381800A9BB44 /* xlSlider.cpp */,
 			);
 			path = xLights;
 			sourceTree = "<group>";
@@ -566,6 +599,7 @@
 				672F951E1A7A6619005FF8BF /* EffectTreeDialog.h */,
 				672F951F1A7A6619005FF8BF /* ExportModelSelect.h */,
 				676DCBF91A98E53800FBA86B /* FileConverter.h */,
+				675DE2581B53381800A9BB44 /* FlickerFreeBitmapButton.h */,
 				67CA857F18BE86B800A6268C /* heartbeat.h */,
 				672F95201A7A6619005FF8BF /* Image_Loader.h */,
 				672F95211A7A6619005FF8BF /* Image.h */,
@@ -595,7 +629,6 @@
 				679BEF1B1A9FCB1D00C37BB4 /* RenderCommandEvent.h */,
 				67A619EE17B51C0F008E95BB /* resource.rc */,
 				67A619F017B51C0F008E95BB /* RgbEffects.h */,
-				672E7C5E1B4B6B3700409549 /* SceneEditor.h */,
 				67A619F317B51C0F008E95BB /* SeqElementMismatchDialog.h */,
 				67A619F517B51C0F008E95BB /* SeqExportDialog.h */,
 				672F950E1A7A6619005FF8BF /* SeqSettingsDialog.h */,
@@ -615,14 +648,21 @@
 				672F95241A7A6619005FF8BF /* WholeHouseModelNameDialog.h */,
 				67A61A0817B51C0F008E95BB /* wininet.h */,
 				67B845051A9C0E7500564051 /* wxCheckedListCtrl.h */,
+				675DE25A1B53381800A9BB44 /* xlColorCanvas.h */,
+				675DE25C1B53381800A9BB44 /* xlColorPicker.h */,
+				675DE25E1B53381800A9BB44 /* xlColorPickerFields.h */,
 				67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */,
 				672E7C5C1B4B6B3700409549 /* xlGridCanvas.h */,
+				675DE2601B53381800A9BB44 /* xlGridCanvasEmpty.h */,
+				675DE2621B53381800A9BB44 /* xlGridCanvasMorph.h */,
+				675DE2641B53381800A9BB44 /* xlGridCanvasPictures.h */,
 				67A61A1E17B51C0F008E95BB /* xlights_out.h */,
 				67E7087817B51AB400A22034 /* xLights-Info.plist */,
 				67A61A2217B51C0F008E95BB /* xLightsApp.h */,
 				672F95251A7A6619005FF8BF /* XlightsDrawable.h */,
 				67A61A2517B51C0F008E95BB /* xLightsMain.h */,
 				672F950F1A7A6619005FF8BF /* xLightsXmlFile.h */,
+				675DE2661B53381800A9BB44 /* xlSlider.h */,
 			);
 			name = "Supporting Files";
 			path = xLights;
@@ -705,16 +745,19 @@
 				677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */,
 				67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */,
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
+				675DE26C1B53381800A9BB44 /* xlGridCanvasEmpty.cpp in Sources */,
 				67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */,
 				67B189761AA22C990082B00C /* RenderMorph.cpp in Sources */,
 				67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */,
 				67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */,
+				675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */,
 				676F58781A1556210045FA22 /* RenderOff.cpp in Sources */,
 				67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */,
 				67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */,
 				67A61A2E17B51C0F008E95BB /* ModelClass.cpp in Sources */,
 				677421DD1A6A8FF30082DA5B /* RenameTextDialog.cpp in Sources */,
 				67B845071A9C0E7500564051 /* ModelViewSelector.cpp in Sources */,
+				675DE2681B53381800A9BB44 /* FlickerFreeBitmapButton.cpp in Sources */,
 				671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */,
 				67A61A2F17B51C0F008E95BB /* ModelDialog.cpp in Sources */,
 				677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */,
@@ -726,6 +769,7 @@
 				6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */,
 				67A543FE1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp in Sources */,
 				6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */,
+				675DE26E1B53381800A9BB44 /* xlGridCanvasPictures.cpp in Sources */,
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
@@ -737,6 +781,7 @@
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,
 				67A61A3617B51C0F008E95BB /* RenderBars.cpp in Sources */,
+				675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */,
 				67A61A3717B51C0F008E95BB /* RenderButterfly.cpp in Sources */,
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
 				675878DB1A89297200205A75 /* DataLayer.cpp in Sources */,
@@ -755,11 +800,13 @@
 				67A61A3E17B51C0F008E95BB /* RenderMeteors.cpp in Sources */,
 				67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */,
 				67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */,
+				675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */,
 				67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */,
 				6784F92E1A5653670018EC0C /* SequenceElements.cpp in Sources */,
 				67A61A3F17B51C0F008E95BB /* RenderPiano.cpp in Sources */,
 				67A61A4017B51C0F008E95BB /* RenderPictures.cpp in Sources */,
 				677421DB1A6A8FBE0082DA5B /* NewTimingDialog.cpp in Sources */,
+				675DE26A1B53381800A9BB44 /* xlColorPicker.cpp in Sources */,
 				67B7971C1A5AE343008D5921 /* TopEffectsPanel.cpp in Sources */,
 				67A61A4117B51C0F008E95BB /* RenderSnowflakes.cpp in Sources */,
 				676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */,
@@ -786,7 +833,6 @@
 				67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */,
 				67A61A5217B51C0F008E95BB /* serial.cpp in Sources */,
 				6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */,
-				672E7C611B4B6B3700409549 /* SceneEditor.cpp in Sources */,
 				6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */,
 				6784F92D1A5653670018EC0C /* RowHeading.cpp in Sources */,
 				6784F9311A5653670018EC0C /* Waveform.cpp in Sources */,
@@ -797,6 +843,7 @@
 				6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */,
 				67A61A5317B51C0F008E95BB /* SerialPortWithRate.cpp in Sources */,
 				674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */,
+				675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */,
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,
 				67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */,
 				6717E3AE19FC9D3F00E94972 /* RenderRipple.cpp in Sources */,
@@ -805,6 +852,7 @@
 				67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */,
 				67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */,
 				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
+				675DE26D1B53381800A9BB44 /* xlGridCanvasMorph.cpp in Sources */,
 				6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */,
 				679E52BF1AD2F7520065E6EA /* xlMacUtils.mm in Sources */,
 				671E7DFB1AED4FFD0034C6DF /* RenderShockwave.cpp in Sources */,

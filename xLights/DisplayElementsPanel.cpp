@@ -223,6 +223,9 @@ void DisplayElementsPanel::AddTimingToList(Element* timing)
 void DisplayElementsPanel::PopulateViews()
 {
     ListCtrlViews->ClearAll();
+    if (MainViewsChoice != nullptr) {
+        MainViewsChoice->Clear();
+    }
 
 	wxListItem col0;
 	col0.SetId(0);
@@ -408,7 +411,6 @@ void DisplayElementsPanel::OnButtonDeleteViewClick(wxCommandEvent& event)
     }
     ListCtrlViews->Thaw();
     ListCtrlViews->Refresh();
-    MainViewsChoice->Clear();
     mSequenceElements->SetCurrentView(MASTER_VIEW);
     SelectView("Master View");
     PopulateViews();
