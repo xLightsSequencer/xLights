@@ -262,6 +262,8 @@ void xlGridCanvasPictures::ForceRefresh()
 
 void xlGridCanvasPictures::SetEffect(Effect* effect_)
 {
+    static wxString missing_file = wxEmptyString;
+
     mEffect = effect_;
 
     if( mEffect == NULL ) return;
@@ -270,7 +272,15 @@ void xlGridCanvasPictures::SetEffect(Effect* effect_)
 
     if( NewPictureName == "" ) return;
 
-    ProcessNewImage();
+    if( wxFile::Exists(NewPictureName)) {
+        ProcessNewImage();
+    } else {
+        missing_file = "File Not Found: " + NewPictureName;
+        wxCommandEvent eventImage(EVT_IMAGE_FILE_SELECTED);
+        eventImage.SetClientData(&missing_file);
+        wxPostEvent(GetParent(), eventImage);
+        NewPictureName = "";
+    }
 }
 
 wxString xlGridCanvasPictures::GetImageFilename()
