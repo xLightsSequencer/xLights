@@ -30,7 +30,12 @@ namespace DrawGLUtils
 
     /* Methods to hold vertex informaton (x, y, color) in an array until End is called where they are all
        draw out to the context in very few calls) */
-    void AddVertex(wxDouble x, wxDouble y, const xlColor &c, int transparency = 0);
+    void AddVertex(double x, double y, const xlColor &c, int transparency = 0);
+    /* Add four vertices to the cache list, all with the given color */
+    void PreAlloc(int verts);
+    void AddRect(double x1, double y1,
+                 double x2, double y2,
+                 const xlColor &c, int transparency = 0);
     void End(int type, bool reset = true);
 
     void DrawLine(const xlColor &color, wxByte alpha,int x1, int y1,int x2, int y2,float width);

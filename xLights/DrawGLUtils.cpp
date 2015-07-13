@@ -77,7 +77,7 @@ public:
     }
 } glCache;
 
-void DrawGLUtils::AddVertex(wxDouble x, wxDouble y, const xlColor &c, int transparency) {
+void DrawGLUtils::AddVertex(double x, double y, const xlColor &c, int transparency) {
     xlColor color(c);
     if (transparency) {
         double t = 100.0 - transparency;
@@ -87,6 +87,29 @@ void DrawGLUtils::AddVertex(wxDouble x, wxDouble y, const xlColor &c, int transp
     }
     glCache.add(x, y, color);
 }
+
+void DrawGLUtils::PreAlloc(int verts) {
+    glCache.resize(verts);
+}
+
+
+void DrawGLUtils::AddRect(double x1, double y1,
+                          double x2, double y2,
+                          const xlColor &c, int transparency) {
+    xlColor color(c);
+    if (transparency) {
+        double t = 100.0 - transparency;
+        t *= 2.55;
+        transparency = t;
+        color.alpha = transparency > 255 ? 255 : (transparency < 0 ? 0 : transparency);
+    }
+    glCache.resize(glCache.curCount + 4);
+    glCache.add(x1, y1, color);
+    glCache.add(x1, y2, color);
+    glCache.add(x2, y2, color);
+    glCache.add(x2, y1, color);
+}
+
 void DrawGLUtils::End(int type, bool reset) {
     glCache.flush(type, reset);
 }

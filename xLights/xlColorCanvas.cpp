@@ -250,19 +250,21 @@ void xlColorCanvas::DrawPalette()
     xlColor color;
     double focus_row = 0;
     double focus_col = 0;
+    
+    DrawGLUtils::PreAlloc((iXrange + 1) * (iYrange + 1) * 4);
 
     switch( mDisplayMode )
     {
     case MODE_HUE:
         hsv.hue = mHSV.hue;
-        for( int col = 0; col < iXrange; col++ )
+        for( int col = 0; col <= iXrange; col++ )
         {
             hsv.saturation = (double)col/dXrange;
-            for( int row = 0; row < iYrange; row++ )
+            for( int row = 0; row <= iYrange; row++ )
             {
                 hsv.value = (1.0 - (double)row/dYrange);
                 color = wxImage::HSVtoRGB(hsv);
-                DrawGLUtils::DrawPoint( color, col, row );
+                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = mHSV.saturation * dXrange;
@@ -270,14 +272,14 @@ void xlColorCanvas::DrawPalette()
         break;
     case MODE_SATURATION:
         hsv.saturation = mHSV.saturation;
-        for( int col = 0; col < iXrange; col++ )
+        for( int col = 0; col <= iXrange; col++ )
         {
             hsv.hue = (double)col/dXrange;
-            for( int row = 0; row < iYrange; row++ )
+            for( int row = 0; row <= iYrange; row++ )
             {
                 hsv.value = (1.0 - (double)row/dYrange);
                 color = wxImage::HSVtoRGB(hsv);
-                DrawGLUtils::DrawPoint( color, col, row );
+                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = mHSV.hue * dXrange;
@@ -285,14 +287,14 @@ void xlColorCanvas::DrawPalette()
         break;
     case MODE_BRIGHTNESS:
         hsv.value = mHSV.value;
-        for( int col = 0; col < iXrange; col++ )
+        for( int col = 0; col <= iXrange; col++ )
         {
             hsv.hue = (double)col/dXrange;
-            for( int row = 0; row < iYrange; row++ )
+            for( int row = 0; row <= iYrange; row++ )
             {
                 hsv.saturation = (1.0 - (double)row/dYrange);
                 color = wxImage::HSVtoRGB(hsv);
-                DrawGLUtils::DrawPoint( color, col, row );
+                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = mHSV.hue * dXrange;
@@ -300,13 +302,13 @@ void xlColorCanvas::DrawPalette()
         break;
     case MODE_RED:
         color.red = mRGB.red;
-        for( int col = 0; col < iXrange; col++ )
+        for( int col = 0; col <= iXrange; col++ )
         {
             color.green = GetRGBColorFromRangeValue(col, iXrange, 255, false);
-            for( int row = 0; row < iYrange; row++ )
+            for( int row = 0; row <= iYrange; row++ )
             {
                 color.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-                DrawGLUtils::DrawPoint( color, col, row );
+                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = ((double)mRGB.green / 255.0) * dXrange;
@@ -314,13 +316,13 @@ void xlColorCanvas::DrawPalette()
         break;
     case MODE_GREEN:
         color.green = mRGB.green;
-        for( int col = 0; col < iXrange; col++ )
+        for( int col = 0; col <= iXrange; col++ )
         {
             color.red = GetRGBColorFromRangeValue(col, iXrange, 255, false);
-            for( int row = 0; row < iYrange; row++ )
+            for( int row = 0; row <= iYrange; row++ )
             {
                 color.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-                DrawGLUtils::DrawPoint( color, col, row );
+                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = ((double)mRGB.red / 255.0) * dXrange;
@@ -328,19 +330,21 @@ void xlColorCanvas::DrawPalette()
         break;
     case MODE_BLUE:
         color.blue = mRGB.blue;
-        for( int col = 0; col < iXrange; col++ )
+        for( int col = 0; col <= iXrange; col++ )
         {
             color.red = GetRGBColorFromRangeValue(col, iXrange, 255, false);
-            for( int row = 0; row < iYrange; row++ )
+            for( int row = 0; row <= iYrange; row++ )
             {
                 color.green = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-                DrawGLUtils::DrawPoint( color, col, row );
+                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = ((double)mRGB.red / 255.0) * dXrange;
         focus_row = dXrange - ((double)mRGB.green / 255.0) * dXrange;
         break;
     }
+    DrawGLUtils::End(GL_QUADS);
+    
     double radius = std::max(4.0, dXrange / 40.0);
     if( mHSV.value > 0.6 )
     {
@@ -357,65 +361,64 @@ void xlColorCanvas::DrawSlider()
 {
     HSVValue hsv;
     xlColor color;
+    
     switch( mDisplayMode )
     {
-    case MODE_HUE:
-        hsv.saturation = 1.0;
-        hsv.value = 1.0;
-        for( int row = 0; row < iYrange; row++ )
-        {
-            hsv.hue = (1.0 - (double)row/dYrange);
-            color = wxImage::HSVtoRGB(hsv);
-            DrawGLUtils::DrawLine(color, 255, 0, row, mWindowWidth-1, row, 1.0);
-        }
-        break;
-    case MODE_SATURATION:
-        hsv.hue = mHSV.hue;
-        hsv.value = mHSV.value;
-        for( int row = 0; row < iYrange; row++ )
-        {
-            hsv.saturation = (1.0 - (double)row/dYrange);
-            color = wxImage::HSVtoRGB(hsv);
-            DrawGLUtils::DrawLine(color, 255, 0, row, mWindowWidth-1, row, 1.0);
-        }
-        break;
-    case MODE_BRIGHTNESS:
-        hsv.saturation = mHSV.saturation;
-        hsv.hue = mHSV.hue;
-        for( int row = 0; row < iYrange; row++ )
-        {
-            hsv.value = (1.0 - (double)row/dYrange);
-            color = wxImage::HSVtoRGB(hsv);
-            DrawGLUtils::DrawLine(color, 255, 0, row, mWindowWidth-1, row, 1.0);
-        }
-        break;
-    case MODE_RED:
-        color.green = mRGB.green;
-        color.blue = mRGB.blue;
-        for( int row = 0; row < iYrange; row++ )
-        {
-            color.red = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-            DrawGLUtils::DrawLine(color, 255, 0, row, mWindowWidth-1, row, 1.0);
-        }
-        break;
-    case MODE_GREEN:
-        color.red = mRGB.red;
-        color.blue = mRGB.blue;
-        for( int row = 0; row < iYrange; row++ )
-        {
-            color.green = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-            DrawGLUtils::DrawLine(color, 255, 0, row, mWindowWidth-1, row, 1.0);
-        }
-        break;
-    case MODE_BLUE:
-        color.red = mRGB.red;
-        color.green = mRGB.green;
-        for( int row = 0; row < iYrange; row++ )
-        {
-            color.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-            DrawGLUtils::DrawLine(color, 255, 0, row, mWindowWidth-1, row, 1.0);
-        }
-        break;
+        case MODE_HUE:
+            hsv.saturation = 1.0;
+            hsv.value = 1.0;
+            break;
+        case MODE_SATURATION:
+            hsv.hue = mHSV.hue;
+            hsv.value = mHSV.value;
+            break;
+        case MODE_BRIGHTNESS:
+            hsv.saturation = mHSV.saturation;
+            hsv.hue = mHSV.hue;
+            break;
+        case MODE_RED:
+            color.green = mRGB.green;
+            color.blue = mRGB.blue;
+            break;
+        case MODE_GREEN:
+            color.red = mRGB.red;
+            color.blue = mRGB.blue;
+            break;
+        case MODE_BLUE:
+            color.red = mRGB.red;
+            color.green = mRGB.green;
+            break;
     }
+    
+    
+    for( int row = 0; row <= iYrange; row++ )
+    {
+        switch( mDisplayMode )
+        {
+            case MODE_HUE:
+                hsv.hue = (1.0 - (double)row/dYrange);
+                color = wxImage::HSVtoRGB(hsv);
+                break;
+            case MODE_SATURATION:
+                hsv.saturation = (1.0 - (double)row/dYrange);
+                color = wxImage::HSVtoRGB(hsv);
+                break;
+            case MODE_BRIGHTNESS:
+                hsv.value = (1.0 - (double)row/dYrange);
+                color = wxImage::HSVtoRGB(hsv);
+                break;
+            case MODE_RED:
+                color.red = GetRGBColorFromRangeValue(row, iYrange, 255, true);
+                break;
+            case MODE_GREEN:
+                color.green = GetRGBColorFromRangeValue(row, iYrange, 255, true);
+                break;
+            case MODE_BLUE:
+                color.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
+                break;
+        }
+        DrawGLUtils::AddRect(0, row, mWindowWidth-1, row + 1, color, 0);
+    }
+    DrawGLUtils::End(GL_QUADS);
 }
 
