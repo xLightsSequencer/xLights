@@ -134,6 +134,7 @@ void xlGridCanvasPictures::LoadImage()
 void xlGridCanvasPictures::SaveAsImage()
 {
     wxFileName save_file(PictureName);
+    wxString save_name = PictureName;
     // prompt for new filename
     wxFileDialog fd(this,
                     "Choose filename to Save Image:",
@@ -151,16 +152,25 @@ void xlGridCanvasPictures::SaveAsImage()
     {
         file_check.SetExt("png");
     }
-    PictureName = file_check.GetFullPath();
+    save_name = file_check.GetFullPath();
 
-     if( wxFile::Exists(PictureName)) {
-        if( wxMessageBox("Are you sure you want to overwrite this image file?\n" + PictureName, "Confirm Overwrite?", wxICON_QUESTION | wxYES_NO) == wxYES )
+    if( wxFile::Exists(save_name)) {
+        if( wxMessageBox("Are you sure you want to overwrite this image file?\n" + save_name, "Confirm Overwrite?", wxICON_QUESTION | wxYES_NO) == wxYES )
         {
+            PictureName = save_name;
             SaveImageToFile();
         }
+        else
+        {
+            return;
+        }
+    }
+    else
+    {
+        PictureName = save_name;
+        SaveImageToFile();
     }
 
-    SaveImageToFile();
     mModified = true;
     NewPictureName = PictureName;
     ProcessNewImage();
@@ -168,8 +178,8 @@ void xlGridCanvasPictures::SaveAsImage()
 
 void xlGridCanvasPictures::SaveImage()
 {
-    bool reload = false;
     wxFileName save_file(PictureName);
+    wxString save_name = PictureName;
     if( save_file.GetFullName() == "NewImage.png" )
     {
         // prompt for new filename
@@ -184,28 +194,34 @@ void xlGridCanvasPictures::SaveImage()
         if( result == wxID_CANCEL || new_filename == "" ) {
             return;
         }
-        reload = true;
         wxFileName file_check(new_filename);
         if( file_check.GetExt() == "" )
         {
             file_check.SetExt("png");
         }
-        PictureName = file_check.GetFullPath();
+        save_name = file_check.GetFullPath();
+    }
+
+    if( wxFile::Exists(save_name)) {
+        if( wxMessageBox("Are you sure you want to overwrite this image file?\n" + save_name, "Confirm Overwrite?", wxICON_QUESTION | wxYES_NO) == wxYES )
+        {
+            PictureName = save_name;
+            SaveImageToFile();
+        }
+        else
+        {
+            return;
+        }
+    }
+    else
+    {
+        PictureName = save_name;
         SaveImageToFile();
     }
 
-    if( wxFile::Exists(PictureName)) {
-        if( wxMessageBox("Are you sure you want to overwrite this image file?\n" + PictureName, "Confirm Overwrite?", wxICON_QUESTION | wxYES_NO) == wxYES )
-        {
-            SaveImageToFile();
-        }
-    }
-
-    if( reload ) {
-        mModified = true;
-        NewPictureName = PictureName;
-        ProcessNewImage();
-    }
+    mModified = true;
+    NewPictureName = PictureName;
+    ProcessNewImage();
 }
 
 void xlGridCanvasPictures::SaveImageToFile()
