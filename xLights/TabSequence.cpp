@@ -3,7 +3,6 @@
 #include <wx/clipbrd.h>
 #include "xLightsMain.h"
 #include "heartbeat.h"
-#include <wx/filefn.h>
 
 #include "SeqSettingsDialog.h"
 #include "xLightsXmlFile.h"
@@ -166,18 +165,6 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     return effectsFile.GetFullPath();
 }
 
-void xLightsFrame::BackupEffectsFile()
-{
-    wxFileName effectsFile;
-    effectsFile.AssignDir( CurrentDir );
-    effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
-    wxString from_name = effectsFile.GetFullPath();
-    wxString full_name = effectsFile.GetName() + "_backup." + effectsFile.GetExt();
-    effectsFile.SetFullName(full_name);
-    wxString to_name = effectsFile.GetFullPath();
-    wxCopyFile(from_name, to_name);
-}
-
 void xLightsFrame::LoadEffectsFile()
 {
     wxStopWatch sw; // start a stopwatch timer
@@ -198,9 +185,7 @@ void xLightsFrame::LoadEffectsFile()
         // fix effect presets
         xLightsXmlFile::FixEffectPresets(EffectsNode);
 
-        // re-save
-        BackupEffectsFile();
-        EffectsXml.Save( filename );
+        UnsavedRgbEffectsChanges = true;
     }
 
     UpdateModelsList();
@@ -214,7 +199,6 @@ void xLightsFrame::LoadEffectsFile()
 // returns true on success
 bool xLightsFrame::SaveEffectsFile()
 {
-    BackupEffectsFile();
     wxFileName effectsFile;
     effectsFile.AssignDir( CurrentDir );
     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
@@ -223,7 +207,7 @@ bool xLightsFrame::SaveEffectsFile()
         wxMessageBox(_("Unable to save RGB effects file"), _("Error"));
         return false;
     }
-    UnsavedChanges=false;
+    UnsavedRgbEffectsChanges=false;
     return true;
 }
 
@@ -300,7 +284,7 @@ void xLightsFrame::ShowModelsDialog()
             ModelsNode->AddChild(e);
         }
     }
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges=true;
     UpdateModelsList();
     EnableSequenceControls(true);
 }
@@ -469,7 +453,6 @@ void xLightsFrame::SaveSequence()
     }
     WriteFalconPiFile(xlightsFilename);
     DisplayXlightsFilename(xlightsFilename);
-    UnsavedChanges = false;
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
     CallAfter(&xLightsFrame::SetStatusText, displayBuff);

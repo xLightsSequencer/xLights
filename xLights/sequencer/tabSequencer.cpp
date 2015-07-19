@@ -160,7 +160,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         p->AddAttribute("settings",m_mgr->SavePerspective());
         PerspectivesNode->AddChild(p);
         mCurrentPerpective = p;
-        SaveEffectsFile();
+        UnsavedRgbEffectsChanges=true;
     }
     else
     {
@@ -1156,7 +1156,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
     wxString settings = perspective->GetAttribute("settings");
     PerspectivesNode->DeleteAttribute("current");
     PerspectivesNode->AddAttribute("current",name);
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges=true;
     if(settings.size()==0)
     {
         settings = m_mgr->SavePerspective();
@@ -1198,7 +1198,7 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 
 void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 {
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges = true;
 }
 
 void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)

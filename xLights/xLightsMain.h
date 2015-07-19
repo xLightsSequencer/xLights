@@ -324,6 +324,8 @@ public:
     void SetEffectControls(const wxString &name, const SettingsMap &settings, const SettingsMap &palette);
     void SetEffectControls(const SettingsMap &settings);
     bool SaveEffectsFile();
+    void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }
+    void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg);
 
     enum LAYER_OPTIONS_e
@@ -1221,7 +1223,9 @@ private:
     wxXmlDocument NetworkXML;
     long DragRowIdx;
     wxListCtrl* DragListBox;
-    bool UnsavedChanges;
+    bool UnsavedRgbEffectsChanges;
+    bool UnsavedNetworkChanges;
+    bool UnsavedPlaylistChanges;
     int mSavedChangeCount;
     wxDateTime starttime;
     play_modes play_mode;
@@ -1252,6 +1256,7 @@ private:
     void SetupDongle(wxXmlNode* e);
     void SetupE131(wxXmlNode* e);
     void SetupNullOutput(wxXmlNode* e);
+    bool SaveNetworksFile();
 
     // test
     void SetTestCheckboxes(bool NewValue);

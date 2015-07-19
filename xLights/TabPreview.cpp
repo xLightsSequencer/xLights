@@ -17,14 +17,14 @@ void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
 {
-    wxArrayString SeqFiles;
-    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.fseq");
-    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");
-    if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
-            "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
+    if (mSavedChangeCount !=  mSequenceElements.GetChangeCount() && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
+                                               "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
     {
         return;
     }
+    wxArrayString SeqFiles;
+    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.fseq");
+    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");
     wxSingleChoiceDialog dialog(this,_("Select file"),_("Open xLights Sequence"),SeqFiles);
     if (dialog.ShowModal() != wxID_OK) return;
     previewLoaded = false;
@@ -69,8 +69,8 @@ void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
         }
         // Add model node to models
         ModelsNode->AddChild(e);
-        // Save models to effects file
-        SaveEffectsFile();
+        // Indicate model changes need to be saved
+        UnsavedRgbEffectsChanges=true;
         // Update List on Sequencer page
         UpdateModelsList();
         StatusBar1->SetStatusText(wxString::Format("Completed creating '%s' whole house model",modelName));
@@ -93,8 +93,8 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
     std::vector<int> yPos;
     std::vector<int> actChannel;
     std::vector<wxString> nodeType;
-    
-    
+
+
     wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
     e->AddAttribute("name", modelName);
     e->AddAttribute("DisplayAs", "WholeHouse");
@@ -103,7 +103,7 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
     wxString layout = node == nullptr ? "grid" : node->GetAttribute("layout", "grid");
     if (layout == "grid") {
         modelPreview->GetVirtualCanvasSize(w, h);
-        
+
         // Add node position and channel number to arrays
         for (int i=0; i<models.size(); i++)
         {
@@ -113,10 +113,10 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
         int wScaled = node == nullptr ? 400 : wxAtoi(node->GetAttribute("GridSize", "400"));
         int hScaled = wScaled;
         // Add WholeHouseData attribute
-        
+
         double hscale = (double)hScaled / (double)h;
         double wscale = (double)wScaled / (double)w;
-        
+
         if (hscale > wscale) {
             hscale = wscale;
             hScaled = wscale * h + 1;
@@ -127,7 +127,7 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
         // Create a new model node
         e->AddAttribute("parm1", wxString::Format(wxT("%i"), wScaled));
         e->AddAttribute("parm2", wxString::Format(wxT("%i"), hScaled));
-        
+
         for(int i=0;i<xPos.size();i++)
         {
             xPos[i] = (int)(wscale*(double)xPos[i]);
@@ -154,11 +154,11 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
             }
         }
         bool hor = layout == "horizontal";
-        
+
         for(int i=0;i<xPos.size();i++) {
             e->AddAttribute("parm2", wxString::Format(wxT("%i"), hor ? max : models.size()));
             e->AddAttribute("parm1", wxString::Format(wxT("%i"), hor ? models.size() : max));
-            
+
             WholeHouseData += wxString::Format(wxT("%i,%i,%i,%s"),
                                                actChannel[i],
                                                hor ? yPos[i] : xPos[i],
@@ -476,7 +476,7 @@ void xLightsFrame::ShowModelProperties()
             if (ok)
             {
                 dialog->UpdateXml(e);
-                SaveEffectsFile();
+                UnsavedRgbEffectsChanges=true;
                 UpdateModelsList();
 
             }
@@ -922,7 +922,7 @@ void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
 {
     CurrentPreviewModels dialog(this,ModelGroupsNode,ModelsNode);
     dialog.ShowModal();
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges=true;
     ShowSelectedModelGroups();
 }
 
@@ -956,7 +956,7 @@ void xLightsFrame::OnButtonSetBackgroundImageClick(wxCommandEvent& event)
         SetXmlSetting("backgroundImage",mBackgroundImage);
         modelPreview->SetbackgroundImage(mBackgroundImage);
         sPreview2->SetbackgroundImage(mBackgroundImage);
-        SaveEffectsFile();
+        UnsavedRgbEffectsChanges=true;
         UpdatePreview();
     }
 }
@@ -967,7 +967,7 @@ void xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& 
     SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
     modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
     sPreview2->SetBackgroundBrightness(mBackgroundBrightness);
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges=true;
     UpdatePreview();
 }
 
@@ -977,7 +977,7 @@ void xLightsFrame::OnScaleImageCheckboxClick(wxCommandEvent& event)
     SetXmlSetting("scaleImage",wxString::Format("%d",ScaleImageCheckbox->IsChecked()));
     modelPreview->SetScaleBackgroundImage(ScaleImageCheckbox->IsChecked());
     sPreview2->SetScaleBackgroundImage(ScaleImageCheckbox->IsChecked());
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges=true;
 }
 
 

@@ -1920,6 +1920,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     replaySection = false;
     playType = 0;
 
+    UnsavedRgbEffectsChanges = false;
+    UnsavedPlaylistChanges = false;
+    UnsavedNetworkChanges = false;
+
     CreateSequencer();
 
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, PreviewModels, true);
@@ -2823,7 +2827,8 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
         return;
     }
     selectedEffect = NULL;
-    SaveEffectsFile();
+
+    CheckUnsavedChanges();
 
     ShowHideAllSequencerWindows(false);
 
@@ -3002,6 +3007,7 @@ void xLightsFrame::OnButtonSetPreviewSizeClick(wxCommandEvent& event)
             if(w > 0 && h > 0)
             {
                 SetPreviewSize(w,h);
+                UnsavedRgbEffectsChanges=true;
             }
         }
     }
@@ -3011,7 +3017,6 @@ void xLightsFrame::SetPreviewSize(int width,int height)
     StaticTextCurrentPreviewSize->SetLabelText(wxString::Format("Size: %d x %d",width,height));
     SetXmlSetting("previewWidth",wxString::Format("%d",width));
     SetXmlSetting("previewHeight",wxString::Format("%d",height));
-    SaveEffectsFile();
     modelPreview->SetCanvasSize(width,height);
     modelPreview->Refresh();
     sPreview2->SetVirtualCanvasSize(width, height);
@@ -3435,5 +3440,26 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect)
     else
     {
         sEffectAssist->SetEffect(NULL);
+    }
+}
+
+void xLightsFrame::CheckUnsavedChanges()
+{
+    if ( UnsavedNetworkChanges && wxYES == wxMessageBox("Save Network Setup changes?",
+                                                        "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+    {
+        SaveNetworksFile();
+    }
+
+    if ( UnsavedPlaylistChanges && wxYES == wxMessageBox("Save Scheduler/Playlist changes?",
+                                                         "Scheduler Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+    {
+        SaveScheduleFile();
+    }
+
+    if ( UnsavedRgbEffectsChanges && wxYES == wxMessageBox("Save Models, Views, Perspectives, and Preset changes?",
+                                                           "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+    {
+        SaveEffectsFile();
     }
 }

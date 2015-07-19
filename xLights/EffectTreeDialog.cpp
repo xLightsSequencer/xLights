@@ -113,8 +113,6 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
     }
 
 	TreeCtrl1->Expand(treeRootID);
-
-    SaveEffectsFile();
 }
 
 void EffectTreeDialog::AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID)
@@ -249,7 +247,7 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     node->AddChild(newNode);
     TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode));
 
-    SaveEffectsFile();
+    EffectsFileDirty();
 }
 
 void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
@@ -268,7 +266,7 @@ void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
     xml_node->DeleteAttribute("settings");
     xLightParent->UpdateEffectNode(xml_node);
 
-    SaveEffectsFile();
+    EffectsFileDirty();
 }
 
 void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
@@ -290,7 +288,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     e->DeleteAttribute("name");
     e->AddAttribute("name",newName);
     TreeCtrl1->SetItemText(itemID, newName);
-    SaveEffectsFile();
+    EffectsFileDirty();
 }
 
 void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
@@ -313,7 +311,7 @@ void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
     pnode->RemoveChild(oldXml);
     delete oldXml;
     TreeCtrl1->Delete(itemID);
-    SaveEffectsFile();
+    EffectsFileDirty();
 }
 
 void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
@@ -344,7 +342,7 @@ void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
     node->AddChild(newNode);
     itemID = TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode, true));
     TreeCtrl1->SetItemHasChildren(itemID);
-    SaveEffectsFile();
+    EffectsFileDirty();
 }
 
 void EffectTreeDialog::OnTreeCtrl1ItemActivated(wxTreeEvent& event)
@@ -352,9 +350,9 @@ void EffectTreeDialog::OnTreeCtrl1ItemActivated(wxTreeEvent& event)
     ApplyEffect(true);
 }
 
-void EffectTreeDialog::SaveEffectsFile()
+void EffectTreeDialog::EffectsFileDirty()
 {
-    xLightParent->SaveEffectsFile();
+    xLightParent->MarkEffectsFileDirty();
 }
 
 void EffectTreeDialog::OnButton_OKClick(wxCommandEvent& event)
@@ -409,7 +407,7 @@ void EffectTreeDialog::OnTreeCtrl1EndDrag(wxTreeEvent& event)
     wxTreeItemId itemID = TreeCtrl1->AppendItem(itemDst, name, -1,-1, new MyTreeItemData(oldXml));
     TreeCtrl1->SelectItem(itemID);
 
-    SaveEffectsFile();
+    EffectsFileDirty();
 }
 
 void EffectTreeDialog::AddImportedItemsRecursively(wxXmlNode* effects_node, wxTreeItemId curGroupID)
@@ -497,6 +495,6 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
                 }
             }
         }
-        SaveEffectsFile();
+        EffectsFileDirty();
     }
 }
