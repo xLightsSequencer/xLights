@@ -178,6 +178,7 @@
 					<Add library="..\lib\windows\DbgHelp.Lib" />
 					<Add library="..\lib\windows\ImageHlp.Lib" />
 					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="..\lib\windows\glut32.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
