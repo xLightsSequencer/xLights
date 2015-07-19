@@ -1,10 +1,15 @@
 
+
+#include "wx/wx.h"
+
 #ifdef __WXMAC__
  #include "OpenGL/glu.h"
  #include "OpenGL/gl.h"
+ #include "GLUT/glut.h"
 #else
  #include <GL/glu.h>
  #include <GL/gl.h>
+ #include <GL/glut.h>
 #endif
 
 #include <wx/bitmap.h>
@@ -76,6 +81,17 @@ public:
         }
     }
 } glCache;
+
+void DrawGLUtils::DrawText(double x, double y, void *glutBitmapFont, const wxString &text) {
+    glPushMatrix();
+    glColor3f(1.0, 1.0, 1.0);
+    glRasterPos2f(x, y);
+    for (int x = 0; x  < text.length(); x++) {
+        glutBitmapCharacter(glutBitmapFont, text[x]);
+    }
+    glPopMatrix();
+}
+
 
 void DrawGLUtils::AddVertex(double x, double y, const xlColor &c, int transparency) {
     xlColor color(c);

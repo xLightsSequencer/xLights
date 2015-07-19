@@ -23,8 +23,20 @@
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
 		674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C51918238E00A993C7 /* RenderFaces.cpp */; };
 		674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C61918238E00A993C7 /* RenderWave.cpp */; };
+		674E27A51B5B37B000274B20 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674E27A41B5B37B000274B20 /* GLUT.framework */; };
 		675006781923EBBD00875D45 /* RenderGlediator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675006771923EBBD00875D45 /* RenderGlediator.cpp */; };
 		675878DB1A89297200205A75 /* DataLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675878D91A89297200205A75 /* DataLayer.cpp */; };
+		675AB4261B5ACEDA00853A28 /* PluginBufferingAdapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB40C1B5ACEDA00853A28 /* PluginBufferingAdapter.cpp */; };
+		675AB4271B5ACEDA00853A28 /* acsymbols.c in Sources */ = {isa = PBXBuildFile; fileRef = 675AB40D1B5ACEDA00853A28 /* acsymbols.c */; };
+		675AB4281B5ACEDA00853A28 /* Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB40E1B5ACEDA00853A28 /* Files.cpp */; };
+		675AB4291B5ACEDA00853A28 /* host-c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB4101B5ACEDA00853A28 /* host-c.cpp */; };
+		675AB42A1B5ACEDA00853A28 /* PluginChannelAdapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB4161B5ACEDA00853A28 /* PluginChannelAdapter.cpp */; };
+		675AB42B1B5ACEDA00853A28 /* PluginHostAdapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB4181B5ACEDA00853A28 /* PluginHostAdapter.cpp */; };
+		675AB42C1B5ACEDA00853A28 /* PluginInputDomainAdapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB41A1B5ACEDA00853A28 /* PluginInputDomainAdapter.cpp */; };
+		675AB42D1B5ACEDA00853A28 /* PluginLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB41C1B5ACEDA00853A28 /* PluginLoader.cpp */; };
+		675AB42E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB41E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp */; };
+		675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB4201B5ACEDA00853A28 /* PluginWrapper.cpp */; };
+		675AB4301B5ACEDA00853A28 /* RealTime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB4221B5ACEDA00853A28 /* RealTime.cpp */; };
 		675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2551B53381800A9BB44 /* EffectAssist.cpp */; };
 		675DE2681B53381800A9BB44 /* FlickerFreeBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */; };
 		675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2591B53381800A9BB44 /* xlColorCanvas.cpp */; };
@@ -190,9 +202,36 @@
 		6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsXmlFile.cpp; sourceTree = "<group>"; };
 		674D34C51918238E00A993C7 /* RenderFaces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFaces.cpp; sourceTree = "<group>"; };
 		674D34C61918238E00A993C7 /* RenderWave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderWave.cpp; sourceTree = "<group>"; };
+		674E27A41B5B37B000274B20 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		675006771923EBBD00875D45 /* RenderGlediator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGlediator.cpp; sourceTree = "<group>"; };
 		675878D91A89297200205A75 /* DataLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataLayer.cpp; sourceTree = "<group>"; };
 		675878DA1A89297200205A75 /* DataLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataLayer.h; sourceTree = "<group>"; };
+		675AB40C1B5ACEDA00853A28 /* PluginBufferingAdapter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PluginBufferingAdapter.cpp; path = "vamp-hostsdk/PluginBufferingAdapter.cpp"; sourceTree = "<group>"; };
+		675AB40D1B5ACEDA00853A28 /* acsymbols.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = acsymbols.c; path = "vamp-hostsdk/acsymbols.c"; sourceTree = "<group>"; };
+		675AB40E1B5ACEDA00853A28 /* Files.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Files.cpp; path = "vamp-hostsdk/Files.cpp"; sourceTree = "<group>"; };
+		675AB40F1B5ACEDA00853A28 /* Files.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Files.h; path = "vamp-hostsdk/Files.h"; sourceTree = "<group>"; };
+		675AB4101B5ACEDA00853A28 /* host-c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "host-c.cpp"; path = "vamp-hostsdk/host-c.cpp"; sourceTree = "<group>"; };
+		675AB4111B5ACEDA00853A28 /* host-c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "host-c.h"; path = "vamp-hostsdk/host-c.h"; sourceTree = "<group>"; };
+		675AB4121B5ACEDA00853A28 /* hostguard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hostguard.h; path = "vamp-hostsdk/hostguard.h"; sourceTree = "<group>"; };
+		675AB4131B5ACEDA00853A28 /* Plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Plugin.h; path = "vamp-hostsdk/Plugin.h"; sourceTree = "<group>"; };
+		675AB4141B5ACEDA00853A28 /* PluginBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginBase.h; path = "vamp-hostsdk/PluginBase.h"; sourceTree = "<group>"; };
+		675AB4151B5ACEDA00853A28 /* PluginBufferingAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginBufferingAdapter.h; path = "vamp-hostsdk/PluginBufferingAdapter.h"; sourceTree = "<group>"; };
+		675AB4161B5ACEDA00853A28 /* PluginChannelAdapter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PluginChannelAdapter.cpp; path = "vamp-hostsdk/PluginChannelAdapter.cpp"; sourceTree = "<group>"; };
+		675AB4171B5ACEDA00853A28 /* PluginChannelAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginChannelAdapter.h; path = "vamp-hostsdk/PluginChannelAdapter.h"; sourceTree = "<group>"; };
+		675AB4181B5ACEDA00853A28 /* PluginHostAdapter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PluginHostAdapter.cpp; path = "vamp-hostsdk/PluginHostAdapter.cpp"; sourceTree = "<group>"; };
+		675AB4191B5ACEDA00853A28 /* PluginHostAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginHostAdapter.h; path = "vamp-hostsdk/PluginHostAdapter.h"; sourceTree = "<group>"; };
+		675AB41A1B5ACEDA00853A28 /* PluginInputDomainAdapter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PluginInputDomainAdapter.cpp; path = "vamp-hostsdk/PluginInputDomainAdapter.cpp"; sourceTree = "<group>"; };
+		675AB41B1B5ACEDA00853A28 /* PluginInputDomainAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginInputDomainAdapter.h; path = "vamp-hostsdk/PluginInputDomainAdapter.h"; sourceTree = "<group>"; };
+		675AB41C1B5ACEDA00853A28 /* PluginLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PluginLoader.cpp; path = "vamp-hostsdk/PluginLoader.cpp"; sourceTree = "<group>"; };
+		675AB41D1B5ACEDA00853A28 /* PluginLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginLoader.h; path = "vamp-hostsdk/PluginLoader.h"; sourceTree = "<group>"; };
+		675AB41E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PluginSummarisingAdapter.cpp; path = "vamp-hostsdk/PluginSummarisingAdapter.cpp"; sourceTree = "<group>"; };
+		675AB41F1B5ACEDA00853A28 /* PluginSummarisingAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginSummarisingAdapter.h; path = "vamp-hostsdk/PluginSummarisingAdapter.h"; sourceTree = "<group>"; };
+		675AB4201B5ACEDA00853A28 /* PluginWrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PluginWrapper.cpp; path = "vamp-hostsdk/PluginWrapper.cpp"; sourceTree = "<group>"; };
+		675AB4211B5ACEDA00853A28 /* PluginWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginWrapper.h; path = "vamp-hostsdk/PluginWrapper.h"; sourceTree = "<group>"; };
+		675AB4221B5ACEDA00853A28 /* RealTime.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RealTime.cpp; path = "vamp-hostsdk/RealTime.cpp"; sourceTree = "<group>"; };
+		675AB4231B5ACEDA00853A28 /* RealTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RealTime.h; path = "vamp-hostsdk/RealTime.h"; sourceTree = "<group>"; };
+		675AB4241B5ACEDA00853A28 /* vamp-hostsdk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "vamp-hostsdk.h"; path = "vamp-hostsdk/vamp-hostsdk.h"; sourceTree = "<group>"; };
+		675AB4251B5ACEDA00853A28 /* Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Window.h; path = "vamp-hostsdk/Window.h"; sourceTree = "<group>"; };
 		675DE2551B53381800A9BB44 /* EffectAssist.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectAssist.cpp; sourceTree = "<group>"; };
 		675DE2561B53381800A9BB44 /* EffectAssist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectAssist.h; sourceTree = "<group>"; };
 		675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FlickerFreeBitmapButton.cpp; sourceTree = "<group>"; };
@@ -377,6 +416,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				674E27A51B5B37B000274B20 /* GLUT.framework in Frameworks */,
 				679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */,
 				679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */,
 			);
@@ -385,6 +425,39 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		675AB40B1B5ACEC900853A28 /* Vamp */ = {
+			isa = PBXGroup;
+			children = (
+				675AB40C1B5ACEDA00853A28 /* PluginBufferingAdapter.cpp */,
+				675AB40D1B5ACEDA00853A28 /* acsymbols.c */,
+				675AB40E1B5ACEDA00853A28 /* Files.cpp */,
+				675AB40F1B5ACEDA00853A28 /* Files.h */,
+				675AB4101B5ACEDA00853A28 /* host-c.cpp */,
+				675AB4111B5ACEDA00853A28 /* host-c.h */,
+				675AB4121B5ACEDA00853A28 /* hostguard.h */,
+				675AB4131B5ACEDA00853A28 /* Plugin.h */,
+				675AB4141B5ACEDA00853A28 /* PluginBase.h */,
+				675AB4151B5ACEDA00853A28 /* PluginBufferingAdapter.h */,
+				675AB4161B5ACEDA00853A28 /* PluginChannelAdapter.cpp */,
+				675AB4171B5ACEDA00853A28 /* PluginChannelAdapter.h */,
+				675AB4181B5ACEDA00853A28 /* PluginHostAdapter.cpp */,
+				675AB4191B5ACEDA00853A28 /* PluginHostAdapter.h */,
+				675AB41A1B5ACEDA00853A28 /* PluginInputDomainAdapter.cpp */,
+				675AB41B1B5ACEDA00853A28 /* PluginInputDomainAdapter.h */,
+				675AB41C1B5ACEDA00853A28 /* PluginLoader.cpp */,
+				675AB41D1B5ACEDA00853A28 /* PluginLoader.h */,
+				675AB41E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp */,
+				675AB41F1B5ACEDA00853A28 /* PluginSummarisingAdapter.h */,
+				675AB4201B5ACEDA00853A28 /* PluginWrapper.cpp */,
+				675AB4211B5ACEDA00853A28 /* PluginWrapper.h */,
+				675AB4221B5ACEDA00853A28 /* RealTime.cpp */,
+				675AB4231B5ACEDA00853A28 /* RealTime.h */,
+				675AB4241B5ACEDA00853A28 /* vamp-hostsdk.h */,
+				675AB4251B5ACEDA00853A28 /* Window.h */,
+			);
+			name = Vamp;
+			sourceTree = "<group>";
+		};
 		67DB87F71AD6CFD100595194 /* EffectRendering */ = {
 			isa = PBXGroup;
 			children = (
@@ -453,6 +526,7 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				674E27A41B5B37B000274B20 /* GLUT.framework */,
 				67B4C92B17B53DE70006B951 /* QTKit.framework */,
 				67B4C92C17B53DE70006B951 /* QuickTime.framework */,
 				67B4C92517B53DB50006B951 /* libiconv.2.4.0.dylib */,
@@ -483,6 +557,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				675AB40B1B5ACEC900853A28 /* Vamp */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67623E721AD2BF3F0022667B /* BitmapCache.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
@@ -773,11 +848,14 @@
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
+				675AB42A1B5ACEDA00853A28 /* PluginChannelAdapter.cpp in Sources */,
 				671E7DFA1AED4FFD0034C6DF /* RenderFan.cpp in Sources */,
 				67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */,
 				67A61A3417B51C0F008E95BB /* PlaybackOptionsDialog.cpp in Sources */,
+				675AB4301B5ACEDA00853A28 /* RealTime.cpp in Sources */,
 				67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */,
 				6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */,
+				675AB42D1B5ACEDA00853A28 /* PluginLoader.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,
 				67A61A3617B51C0F008E95BB /* RenderBars.cpp in Sources */,
@@ -787,6 +865,7 @@
 				675878DB1A89297200205A75 /* DataLayer.cpp in Sources */,
 				67A61A3817B51C0F008E95BB /* RenderCircles.cpp in Sources */,
 				677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */,
+				675AB42B1B5ACEDA00853A28 /* PluginHostAdapter.cpp in Sources */,
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,
 				67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */,
 				67A61A3917B51C0F008E95BB /* RenderColorWash.cpp in Sources */,
@@ -798,7 +877,9 @@
 				67A61A3C17B51C0F008E95BB /* RenderGarlands.cpp in Sources */,
 				67A61A3D17B51C0F008E95BB /* RenderLife.cpp in Sources */,
 				67A61A3E17B51C0F008E95BB /* RenderMeteors.cpp in Sources */,
+				675AB4281B5ACEDA00853A28 /* Files.cpp in Sources */,
 				67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */,
+				675AB4271B5ACEDA00853A28 /* acsymbols.c in Sources */,
 				67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */,
 				675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */,
 				67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */,
@@ -811,13 +892,16 @@
 				67A61A4117B51C0F008E95BB /* RenderSnowflakes.cpp in Sources */,
 				676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */,
 				677421D41A68AB3E0082DA5B /* Render.cpp in Sources */,
+				675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */,
 				67A61A4217B51C0F008E95BB /* RenderSnowstorm.cpp in Sources */,
+				675AB42C1B5ACEDA00853A28 /* PluginInputDomainAdapter.cpp in Sources */,
 				67A61A4317B51C0F008E95BB /* RenderSpirals.cpp in Sources */,
 				67A61A4417B51C0F008E95BB /* RenderSpirograph.cpp in Sources */,
 				67A61A4517B51C0F008E95BB /* RenderText.cpp in Sources */,
 				67A61A4617B51C0F008E95BB /* RenderTree.cpp in Sources */,
 				67BC91031A3FD22F00905A53 /* RenderOn.cpp in Sources */,
 				67A61A4717B51C0F008E95BB /* RenderTwinkle.cpp in Sources */,
+				675AB42E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp in Sources */,
 				672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */,
 				67623E711AD07E320022667B /* KeyBindings.cpp in Sources */,
 				67A61A4917B51C0F008E95BB /* RgbEffects.cpp in Sources */,
@@ -828,6 +912,7 @@
 				6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */,
 				6784F92A1A5653670018EC0C /* Element.cpp in Sources */,
 				67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */,
+				675AB4261B5ACEDA00853A28 /* PluginBufferingAdapter.cpp in Sources */,
 				6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */,
 				677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */,
 				67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */,
@@ -850,6 +935,7 @@
 				67A61A5417B51C0F008E95BB /* ShowDatesDialog.cpp in Sources */,
 				67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */,
 				67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */,
+				675AB4291B5ACEDA00853A28 /* host-c.cpp in Sources */,
 				67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */,
 				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
 				675DE26D1B53381800A9BB44 /* xlGridCanvasMorph.cpp in Sources */,
