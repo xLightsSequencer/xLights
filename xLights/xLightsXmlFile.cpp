@@ -1915,6 +1915,36 @@ bool xLightsXmlFile::TimingAlreadyExists(wxString section, xLightsFrame* xLights
     return false;
 }
 
+
+
+void xLightsXmlFile::AddNewTimingSection(wxString filename, xLightsFrame* xLightsParent,
+                                               std::vector<int> &starts, std::vector<int> &ends, wxArrayString &labels) {
+    Element* element;
+    EffectLayer* effectLayer;
+    wxXmlNode* layer;
+    if( sequence_loaded )
+    {
+        element = xLightsParent->AddTimingElement(filename);
+        effectLayer = element->GetEffectLayer(0);
+    }
+    else
+    {
+        AddTimingDisplayElement(filename, "1", "0" );
+        wxXmlNode*  node = AddElement( filename, "timing" );
+        layer = AddChildXmlNode(node, "EffectLayer");
+    }
+    for (int k = 0; k < starts.size(); k++) {
+        
+        if( sequence_loaded )
+        {
+            effectLayer->AddEffect(0,0,labels[k],wxEmptyString,"",starts[k],ends[k],EFFECT_NOT_SELECTED,false);
+        }
+        else
+        {
+            AddTimingEffect(layer, labels[k], "0", "0", string_format("%d", starts[k]), string_format("%d", ends[k]));
+        }
+    }
+}
 void xLightsXmlFile::AddNewTimingSection(wxString interval_name, xLightsFrame* xLightsParent)
 {
     AddTimingDisplayElement( interval_name, "1", "0" );

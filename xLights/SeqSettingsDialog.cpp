@@ -9,6 +9,9 @@
 #include <wx/treectrl.h>
 #include "Images_png.h"
 
+#include "VAMPPluginDialog.h"
+
+
 //(*InternalHeaders(SeqSettingsDialog)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -253,8 +256,10 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     FlexGridSizer_Timing_Page->SetSizeHints(Panel1);
     Panel2 = new wxPanel(Notebook_Seq_Settings, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer8->AddGrowableCol(0);
+    FlexGridSizer8->AddGrowableRow(0);
     FlexGridSizer_Timing_Grid = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer8->Add(FlexGridSizer_Timing_Grid, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8->Add(FlexGridSizer_Timing_Grid, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     Button_Xml_New_Timing = new wxButton(Panel2, ID_BUTTON_Xml_New_Timing, _("New"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_Xml_New_Timing"));
     FlexGridSizer2->Add(Button_Xml_New_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -688,10 +693,26 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     {
         dialog.RemoveChoice("50ms");
     }
+    
+    
+    VAMPPluginDialog vamp(this);
+    wxArrayString plugins;
+    if (xml_file->HasAudioMedia()) {
+        plugins = vamp.GetAvailablePlugins(xml_file->GetMediaFile());
+        for (int x = 0; x < plugins.size(); x++) {
+            dialog.Choice_New_Fixed_Timing->Append(plugins[x]);
+        }
+    }
+    
+    dialog.Fit();
+    
     if (dialog.ShowModal() == wxID_OK)
     {
         wxString selected_timing = dialog.GetTiming();
-        if( !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
+        if (plugins.Index(selected_timing) != wxNOT_FOUND) {
+            vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMediaFile());
+        }
+        else if( !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
         {
             xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
             AddTimingCell(selected_timing);

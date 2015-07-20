@@ -84,6 +84,7 @@ class xLightsXmlFile : public wxFileName
         bool GetSequenceLoaded() { return sequence_loaded; }
 
         void AddNewTimingSection(wxString interval_name, xLightsFrame* xLightsParent);
+        void AddNewTimingSection(wxString interval_name, xLightsFrame* xLightsParent, std::vector<int> &starts, std::vector<int> &ends, wxArrayString &labels);
         void AddFixedTimingSection(wxString interval_name, xLightsFrame* xLightsParent);
         void DeleteTimingSection(wxString section);
         void SetTimingSectionName(wxString section, wxString name);

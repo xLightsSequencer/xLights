@@ -215,6 +215,7 @@
 					<Add option="-s" />
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
+					<Add option="-lglut32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add library="libwxmsw30u.a" />
@@ -222,6 +223,9 @@
 					<Add library="..\lib\windows\DbgHelp.Lib" />
 					<Add library="..\lib\windows\ImageHlp.Lib" />
 					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="..\lib\windows\glut32.lib" />
+					<Add directory="lib/windows" />
+					<Add directory="../lib/windows" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -311,6 +315,7 @@
 					<Add library="..\lib\windows\DbgHelp.Lib" />
 					<Add library="..\lib\windows\ImageHlp.Lib" />
 					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="..\lib\windows\glut32.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -515,6 +520,8 @@
 		<Unit filename="TimingPanel.h" />
 		<Unit filename="TopEffectsPanel.cpp" />
 		<Unit filename="TopEffectsPanel.h" />
+		<Unit filename="VAMPPluginDialog.cpp" />
+		<Unit filename="VAMPPluginDialog.h" />
 		<Unit filename="ViewsDialog.cpp" />
 		<Unit filename="ViewsDialog.h" />
 		<Unit filename="WholeHouseModelNameDialog.cpp" />
@@ -576,6 +583,39 @@
 		</Unit>
 		<Unit filename="tmGridCell.cpp" />
 		<Unit filename="tmGridCell.h" />
+		<Unit filename="vamp-hostsdk/Files.cpp" />
+		<Unit filename="vamp-hostsdk/Files.h" />
+		<Unit filename="vamp-hostsdk/Plugin.h" />
+		<Unit filename="vamp-hostsdk/Plugin2.h" />
+		<Unit filename="vamp-hostsdk/PluginBase.h" />
+		<Unit filename="vamp-hostsdk/PluginBase2.h" />
+		<Unit filename="vamp-hostsdk/PluginBufferingAdapter.cpp" />
+		<Unit filename="vamp-hostsdk/PluginBufferingAdapter.h" />
+		<Unit filename="vamp-hostsdk/PluginChannelAdapter.cpp" />
+		<Unit filename="vamp-hostsdk/PluginChannelAdapter.h" />
+		<Unit filename="vamp-hostsdk/PluginHostAdapter.cpp" />
+		<Unit filename="vamp-hostsdk/PluginHostAdapter.h" />
+		<Unit filename="vamp-hostsdk/PluginInputDomainAdapter.cpp" />
+		<Unit filename="vamp-hostsdk/PluginInputDomainAdapter.h" />
+		<Unit filename="vamp-hostsdk/PluginLoader.cpp" />
+		<Unit filename="vamp-hostsdk/PluginLoader.h" />
+		<Unit filename="vamp-hostsdk/PluginSummarisingAdapter.cpp" />
+		<Unit filename="vamp-hostsdk/PluginSummarisingAdapter.h" />
+		<Unit filename="vamp-hostsdk/PluginWrapper.cpp" />
+		<Unit filename="vamp-hostsdk/PluginWrapper.h" />
+		<Unit filename="vamp-hostsdk/RealTime.cpp" />
+		<Unit filename="vamp-hostsdk/RealTime.h" />
+		<Unit filename="vamp-hostsdk/RealTime2.h" />
+		<Unit filename="vamp-hostsdk/Window.h" />
+		<Unit filename="vamp-hostsdk/acsymbols.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="vamp-hostsdk/host-c.cpp" />
+		<Unit filename="vamp-hostsdk/host-c.h" />
+		<Unit filename="vamp-hostsdk/hostguard.h" />
+		<Unit filename="vamp-hostsdk/plugguard.h" />
+		<Unit filename="vamp-hostsdk/vamp-hostsdk.h" />
+		<Unit filename="vamp-hostsdk/vamp.h" />
 		<Unit filename="wxCheckedListCtrl.cpp" />
 		<Unit filename="wxCheckedListCtrl.h" />
 		<Unit filename="wx_pch.h" />
@@ -606,6 +646,7 @@
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
+		<Unit filename="wxsmith/VAMPPluginDialog.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WholeHouseModelNameDialog.wxs" />
 		<Unit filename="wxsmith/dlgPreviewSize.wxs" />
@@ -685,6 +726,7 @@
 					<wxDialog wxs="wxsmith/OptionChooser.wxs" src="OptionChooser.cpp" hdr="OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
 					<wxPanel wxs="wxsmith/xlColorPickerFields.wxs" src="xlColorPickerFields.cpp" hdr="xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectAssist.wxs" src="EffectAssist.cpp" hdr="EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
+					<wxDialog wxs="wxsmith/VAMPPluginDialog.wxs" src="VAMPPluginDialog.cpp" hdr="VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
