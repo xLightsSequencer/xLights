@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (dkulp) If VAMP plugins are found, allow using them to generating timing rows
+
 4.1.11  Jul 14, 2015
 	-- enh(gil)   Add ability to create/edit/draw images on models using the Pictures effect and the Effect Assist window.
 	-- gil (bug)  Prevent crash if image file cannot be found.

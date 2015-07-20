@@ -385,7 +385,6 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Grid_Timing->CreateGrid(0, 2);
     Grid_Timing->GetSize().GetWidth();
 	Grid_Timing->HideRowLabels();
-	Grid_Timing->SetDefaultRowSize(25, true);
 
 	Grid_Timing->SetColumnWidth(0, 342);
 	Grid_Timing->SetColumnWidth(1, 25);
@@ -710,7 +709,10 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     {
         wxString selected_timing = dialog.GetTiming();
         if (plugins.Index(selected_timing) != wxNOT_FOUND) {
-            vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMediaFile());
+            wxString name = vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMediaFile());
+            if (name != "") {
+                AddTimingCell(name);
+            }
         }
         else if( !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
         {

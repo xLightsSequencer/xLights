@@ -10,7 +10,7 @@
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/slider.h>
-
+#include <wx/progdlg.h>
 
 #include "mpg123.h"
 
@@ -362,7 +362,7 @@ void processFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &star
 }
 #endif
 
-void VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLightsParent, const wxString &name, const wxString &media) {
+wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLightsParent, const wxString &name, const wxString &media) {
 #ifdef HASVAMP
     Plugin *p = plugins[name];
     Label1->SetLabel(p->getName());
@@ -452,7 +452,7 @@ void VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLi
             wxMessageBox("Timing track " + TimingName->GetValue() + " already exists");
             res = ShowModal();
             if (res != wxID_OK) {
-                return;
+                return "";
             }
         }
         std::vector<int> starts;
@@ -507,6 +507,10 @@ void VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLi
         p->initialise(channels, step, block);
         pdata[0] = data[0];
         pdata[1] = data[1];
+        
+        wxProgressDialog progress("Processing Audio", "");
+        int totalLen = len;
+        int percent = 0;
         int start = 0;
         while (len) {
             int request = block;
@@ -525,9 +529,16 @@ void VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLi
                 len = 0;
             }
             start += step;
+            
+            int newp = (start * 100) / totalLen;
+            if (newp != percent) {
+                percent = newp;
+                progress.Update(percent);
+            }
         }
         Vamp::Plugin::FeatureSet features = p->getRemainingFeatures();
         processFeatures(features[output], starts, ends, labels);
+        progress.Update(100);
 
         xml_file->AddNewTimingSection(TimingName->GetValue(), xLightsParent, starts, ends, labels);
         free(data[0]);
@@ -535,6 +546,7 @@ void VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLi
             free(data[1]);
         }
     }
+    return TimingName->GetValue();
 #endif
 }
 

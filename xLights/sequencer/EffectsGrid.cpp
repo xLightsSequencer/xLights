@@ -1849,7 +1849,11 @@ void EffectsGrid::DrawTimingEffects(int row)
                 DrawGLUtils::DrawLine(*mTimingColor,255,x1,y,x2,y,2);
             }
             if (effectLayer->GetEffect(effectIndex)->GetEffectName() != "") {
-                DrawGLUtils::DrawText(x1 + 1, y - 1, GLUT_BITMAP_HELVETICA_18, effectLayer->GetEffect(effectIndex)->GetEffectName());
+                void * font = GLUT_BITMAP_HELVETICA_12;
+                if (translateToBacking(1.0) > 1.5) {
+                    font = GLUT_BITMAP_HELVETICA_18;
+                }
+                DrawGLUtils::DrawText(x1 + 1, y - 1, font, effectLayer->GetEffect(effectIndex)->GetEffectName());
             }
         }
     }

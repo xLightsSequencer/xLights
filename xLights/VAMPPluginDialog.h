@@ -34,7 +34,7 @@ class VAMPPluginDialog: public wxDialog
 
     wxArrayString GetAvailablePlugins(const wxString &media);
 
-    void ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLightsParent,
+    wxString ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLightsParent,
                        const wxString &plugin, const wxString &media);
 
 	protected:
