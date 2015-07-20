@@ -410,7 +410,7 @@ public:
             SetGenericStatus("%s: Waiting on previous renderer for final frame\n", 0);
             waitForFrame(END_OF_RENDER_FRAME);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
-            
+
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
@@ -493,7 +493,7 @@ private:
                          SettingsMap& settingsMap) {
         settingsMap.clear();
         settingsMap["Effect"]=effectName;
-        
+
         effect->CopySettingsMap(settingsMap, true);
         effect->CopyPaletteMap(settingsMap, true);
     }
@@ -508,7 +508,7 @@ private:
     SequenceData *seqData;
     bool clearAllFrames;
     RenderEvent renderEvent;
-    
+
     //stuff for handling the status;
     wxString statusMsg;
     int statusType;
@@ -971,7 +971,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     } else if (effect == "Snowflakes") {
         buffer.RenderSnowflakes(wxAtoi(SettingsMap["SLIDER_Snowflakes_Count"]),
                                 wxAtoi(SettingsMap["SLIDER_Snowflakes_Type"]),
-                                wxAtoi(SettingsMap.Get("SLIDER_Snowflakes_Speed", "10")));
+                                wxAtoi(SettingsMap.Get("SLIDER_Snowflakes_Speed", "10")),
+                                SettingsMap["CHECKBOX_Snowflakes_Accumulate"]=="1");
     } else if (effect == "Snowstorm") {
         buffer.RenderSnowstorm(wxAtoi(SettingsMap["SLIDER_Snowstorm_Count"]),
                                wxAtoi(SettingsMap["SLIDER_Snowstorm_Length"]),

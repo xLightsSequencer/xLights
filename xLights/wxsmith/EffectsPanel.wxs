@@ -6930,6 +6930,24 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON34" variable="BitmapButton16" member="yes">
+										<default>1</default>
+										<size>13,13</size>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Snowflakes_Accumulate" variable="CheckBox5" member="yes">
+										<label>Accumulate</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Snowflakes</label>
