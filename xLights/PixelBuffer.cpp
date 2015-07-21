@@ -413,7 +413,7 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
             if (brightness[layer] != 100 || contrast[layer] != 0) {
                 hsv = color.asHSV();
                 hsv.value = hsv.value * ((double)brightness[layer]/(double)100);
-
+                
                 // Apply Contrast
                 if (hsv.value< 0.5) {
                     // reduce brightness when below 0.5 in the V value or increase if > 0.5
