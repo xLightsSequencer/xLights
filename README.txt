@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.1.12  Jul 20, 2015
     -- enh (dkulp) If VAMP plugins are found, allow using them to generating timing rows
 
 4.1.11  Jul 14, 2015
