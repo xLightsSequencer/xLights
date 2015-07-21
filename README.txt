@@ -7,6 +7,21 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.1.12  Jul 20, 2015
+    -- enh (dkulp) If VAMP plugins are found, allow using them to generating timing rows
+
+4.1.11  Jul 14, 2015
+	-- enh(gil)   Add ability to create/edit/draw images on models using the Pictures effect and the Effect Assist window.
+	-- gil (bug)  Prevent crash if image file cannot be found.
+    -- enh(dkulp) Add a choice to select the view in the top left corner
+    -- enh(dkulp) Add ability to "expand" a ModelGroup on row headings to expand out the models.
+    -- bug(dkulp) Fix the Align/Distribute menu items on the Layout tab
+    -- enh(dkulp) Add options for how the ModelGroup internal buffer is constructed including:
+                   a) grid size - the old 400x400 is now configurable
+                   b) Horizontal and Vertical "by model" where each model is a row or column and the nodes for that
+                      model go the other direction.
+	-- (cpinkham) Fix Linux build and update README.linux file. This allows someone to build a Linux xLights
+4.1.10  Jul 8, 2015
     -- enh(gil)   Add preview of image to the Effect Assist window for Pictures effect.  More to come for this effect.
     -- bug(gil)   Selecting a single cell with any drag movement of the mouse was causing invalid effect end time when placed.
     -- enh(gil)   Add SaveAs to the File menu.
@@ -18,6 +33,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh(gil)   Add ability to Delete Views.
     -- enh(gil)   Allow timings to be added/removed from views.  This info remains local to each sequence not stored as part of the view
                   since not all sequences have the same timing names.
+	-- bug (sean) Fix README.windows that got overwritten. These are instructions for compiling our code under windows
 4.1.9  Jun 30, 2015
     -- enh(gil)   Update wizard timing buttons to be more clear as to what they are defining.
     -- bug(gil)   Bug presets were not getting the version attribute.

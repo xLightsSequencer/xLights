@@ -31,7 +31,7 @@ public:
         blue = c.Blue();
         alpha = 255;
     }
-    
+
     xlColor(unsigned char r, unsigned char g, unsigned char b) {
         red = r;
         green = g;
@@ -188,6 +188,16 @@ typedef std::vector<xlColor> xlColourVector;
 typedef std::vector<wxImage::HSVValue> hsvVector;
 typedef std::vector<wxPoint> wxPointVector;
 typedef wxImage::HSVValue HSVValue;
+
+enum ColorDisplayMode
+{
+    MODE_HUE,
+    MODE_SATURATION,
+    MODE_BRIGHTNESS,
+    MODE_RED,
+    MODE_GREEN,
+    MODE_BLUE
+};
 
 #endif
 

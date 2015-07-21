@@ -23,13 +23,20 @@ namespace DrawGLUtils
         mutable wxMutex lock;
     };
 
+    void DrawText(double x, double y, void *glutBitmapFont, const wxString &text);
     void DrawPoint(const xlColor &color, double x, double y);
 
     void DrawCircle(const xlColor &color, double x, double y, double r, int ctransparency = 0, int etransparency = 0);
+    void DrawCircleUnfilled(const xlColor &color, double cx, double cy, double r, float width);
 
     /* Methods to hold vertex informaton (x, y, color) in an array until End is called where they are all
        draw out to the context in very few calls) */
-    void AddVertex(wxDouble x, wxDouble y, const xlColor &c, int transparency = 0);
+    void AddVertex(double x, double y, const xlColor &c, int transparency = 0);
+    /* Add four vertices to the cache list, all with the given color */
+    void PreAlloc(int verts);
+    void AddRect(double x1, double y1,
+                 double x2, double y2,
+                 const xlColor &c, int transparency = 0);
     void End(int type, bool reset = true);
 
     void DrawLine(const xlColor &color, wxByte alpha,int x1, int y1,int x2, int y2,float width);
@@ -43,6 +50,7 @@ namespace DrawGLUtils
                                const wxBitmap &bmp16,
                                GLuint* texture);
     void DrawTexture(GLuint* texture,double x, double y, double x2, double y2);
+    void UpdateTexturePixel(GLuint* texture,double x, double y, xlColor& color, bool hasAlpha);
 
     void DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors, bool flush = true);
 

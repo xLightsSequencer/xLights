@@ -472,6 +472,7 @@ public:
     int GetRotation();
     int ChannelsPerNode();
     int NodeStartChannel(size_t nodenum) const;
+    wxString NodeType(size_t nodenum) const;
     int MapToNodeIndex(int strand, int node) const;
 
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);

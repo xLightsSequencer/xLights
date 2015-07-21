@@ -192,7 +192,7 @@ void xLightsFrame::OnButtonTestSaveClick(wxCommandEvent& event)
 
         if (NetworkXML.Save( networkFile.GetFullPath() ))
         {
-            UnsavedChanges=false;
+            UnsavedNetworkChanges=false;
         }
         else
         {

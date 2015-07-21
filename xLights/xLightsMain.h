@@ -83,7 +83,7 @@
 #include "CurrentPreviewModels.h"
 #include "PreviewModels.h"
 #include "ModelPreview.h"
-#include "SceneEditor.h"
+#include "EffectAssist.h"
 #include "dlgPreviewSize.h"
 #include "SequenceData.h"
 #include "UtilClasses.h"
@@ -169,8 +169,8 @@ wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 
 
 static const wxString xlights_base_name       = "xLights 4 BETA";
-static const wxString xlights_version_string  = "4.1.10";
-static const wxString xlights_build_date      = "Jun 30, 2015";
+static const wxString xlights_version_string  = "4.1.12";
+static const wxString xlights_build_date      = "Jul 20, 2015";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 static wxCriticalSection gs_xoutCriticalSection;
@@ -324,6 +324,8 @@ public:
     void SetEffectControls(const wxString &name, const SettingsMap &settings, const SettingsMap &palette);
     void SetEffectControls(const SettingsMap &settings);
     bool SaveEffectsFile();
+    void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }
+    void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg);
 
     enum LAYER_OPTIONS_e
@@ -1221,7 +1223,9 @@ private:
     wxXmlDocument NetworkXML;
     long DragRowIdx;
     wxListCtrl* DragListBox;
-    bool UnsavedChanges;
+    bool UnsavedRgbEffectsChanges;
+    bool UnsavedNetworkChanges;
+    bool UnsavedPlaylistChanges;
     int mSavedChangeCount;
     wxDateTime starttime;
     play_modes play_mode;
@@ -1252,6 +1256,7 @@ private:
     void SetupDongle(wxXmlNode* e);
     void SetupE131(wxXmlNode* e);
     void SetupNullOutput(wxXmlNode* e);
+    bool SaveNetworksFile();
 
     // test
     void SetTestCheckboxes(bool NewValue);
@@ -1471,7 +1476,7 @@ protected:
     bool CloseSequence();
     void InsertRow();
     void UpdatePreview();
-    wxXmlNode *BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClass*> &models);
+    wxXmlNode *BuildWholeHouseModel(const wxString &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models);
     void ShowModelsDialog();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
@@ -1603,7 +1608,7 @@ protected:
     MainSequencer* mainSequencer;
     ModelPreview * sPreview1;
     ModelPreview * sPreview2;
-    SceneEditor* sSceneEditor;
+    EffectAssist* sEffectAssist;
     ColorPanel* colorPanel;
     TimingPanel* timingPanel;
     PerspectivesPanel* perspectivePanel;

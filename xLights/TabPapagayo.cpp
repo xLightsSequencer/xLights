@@ -2371,7 +2371,7 @@ bool xLightsFrame::SavePgoSettings(void)
         wxMessageBox(wxT("Unable to save Papagayo settings"), wxT("Error"));
         return false;
     }
-//    UnsavedChanges=false;
+
     debug(10, "SavePgoSettings: saved ok");
     return true;
 }

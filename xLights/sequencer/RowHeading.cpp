@@ -40,11 +40,9 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 {
     DOUBLE_BUFFER(this);
     mHeaderColorModel = new xlColor(212,208,200);
-    mHeaderColorView = new xlColor(159,157,152);
     mHeaderColorTiming = new xlColor(130,178,207);
     mHeaderSelectedColor = new xlColor(130,178,207);
     SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
-
 }
 
 RowHeading::~RowHeading()
@@ -115,6 +113,7 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
             element->GetStrandLayer(ri->strandIndex)->ShowNodes(!element->GetStrandLayer(ri->strandIndex)->ShowNodes());
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        eventRowHeaderChanged.SetString(element->GetName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
 }
@@ -162,6 +161,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 if (ri->strandIndex >= 0) {
                     mnuLayer->Append(ID_ROW_MNU_TOGGLE_NODES,"Toggle Nodes");
                 }
+            } else {
+                mnuLayer->Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Models");
             }
             if (ri->nodeIndex > -1 && element->GetStrandLayer(ri->strandIndex)->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
                 mnuLayer->Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
@@ -278,6 +279,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {
         element->ShowStrands(!element->ShowStrands());
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        eventRowHeaderChanged.SetString(element->GetName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_TOGGLE_NODES) {
         if (mSequenceElements->GetVisibleRowInformation(mSelectedRow)->strandIndex == -1) {
@@ -360,6 +362,10 @@ void RowHeading::Draw()
     int startY = 0,endY = 0;
     for(int i =0;i< mSequenceElements->GetVisibleRowInformationSize();i++)
     {
+        wxString prefix;
+        if (mSequenceElements->GetVisibleRowInformation(i)->submodel) {
+            prefix = "  ";
+        }
         wxBrush brush(GetHeaderColor(mSequenceElements->GetVisibleRowInformation(i))->asWxColor(),wxBRUSHSTYLE_SOLID);
         dc.SetBrush(brush);
         startY = DEFAULT_ROW_HEADING_HEIGHT*row;
@@ -385,24 +391,16 @@ void RowHeading::Draw()
 
                 }
                 if (mSequenceElements->GetVisibleRowInformation(i)->nodeIndex >= 0) {
-                    dc.DrawLabel("     " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                    dc.DrawLabel(prefix + "     " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else {
-                    dc.DrawLabel("  " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                    dc.DrawLabel(prefix + "  " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 }
             }
         }
         else        // Draw label
         {
-            if(mSequenceElements->GetVisibleRowInformation(i)->PartOfView)
-            {
-                wxRect r(INDENT_ROW_HEADING_MARGIN,startY,w-(INDENT_ROW_HEADING_MARGIN),22);
-                dc.DrawLabel(mSequenceElements->GetVisibleRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
-            }
-            else
-            {
-                wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
-                dc.DrawLabel(mSequenceElements->GetVisibleRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
-            }
+            wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
+            dc.DrawLabel(prefix + mSequenceElements->GetVisibleRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
         if(mSequenceElements->GetVisibleRowInformation(i)->element->GetType()=="view")
@@ -466,26 +464,15 @@ const xlColor* RowHeading::GetHeaderColor(Row_Information_Struct* info)
 {
     if (info->element->GetType() == "model")
     {
-        if(info->PartOfView)
+        if (info->RowNumber == mSelectedRow )
+        //if (info->element->GetSelected())
         {
-            return mHeaderColorView;
+            return  mHeaderSelectedColor;
         }
         else
         {
-            if (info->RowNumber == mSelectedRow )
-            //if (info->element->GetSelected())
-            {
-                return  mHeaderSelectedColor;
-            }
-            else
-            {
-                return mHeaderColorModel;
-            }
+            return mHeaderColorModel;
         }
-    }
-    else if (info->element->GetType() == "view")
-    {
-        return mHeaderColorView;
     }
     else
     {

@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="xlColorPickerFields">
+		<id_arg>0</id_arg>
+		<style>wxSTATIC_BORDER</style>
+		<object class="wxGridBagSizer" variable="GridBagSizer1" member="yes">
+			<object class="sizeritem">
+				<object class="wxPanel" name="ID_PANEL_Palette" subclass="xlColorCanvas" variable="Panel_Palette" member="yes">
+					<minsize>256,256</minsize>
+					<style>wxSUNKEN_BORDER|wxTAB_TRAVERSAL</style>
+				</object>
+				<colspan>10</colspan>
+				<rowspan>11</rowspan>
+				<col>0</col>
+				<row>0</row>
+				<flag>wxTOP|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>10d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxPanel" name="ID_PANEL_SLIDER" subclass="xlColorCanvas" variable="Panel_Slider" member="yes">
+					<minsize>25,256</minsize>
+					<style>wxSUNKEN_BORDER|wxTAB_TRAVERSAL</style>
+				</object>
+				<rowspan>11</rowspan>
+				<col>11</col>
+				<row>0</row>
+				<flag>wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>10d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch1" variable="BitmapButton_Swatch1" member="yes">
+					<bg>#FF0000</bg>
+					<minsize>20,20</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
+				</object>
+				<col>1</col>
+				<row>11</row>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Left" subclass="xlSlider" variable="SliderLeft" member="yes">
+					<value>255</value>
+					<max>255</max>
+					<minsize>25,277</minsize>
+					<style>wxSL_VERTICAL</style>
+					<handler function="OnSliderLeftCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				</object>
+				<rowspan>11</rowspan>
+				<col>10</col>
+				<row>0</row>
+				<flag>wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>10d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Right" subclass="xlSlider" variable="SliderRight" member="yes">
+					<value>255</value>
+					<max>255</max>
+					<minsize>25,277</minsize>
+					<style>wxSL_VERTICAL|wxSL_LEFT</style>
+					<handler function="OnSliderRightCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				</object>
+				<rowspan>11</rowspan>
+				<col>12</col>
+				<row>0</row>
+				<flag>wxTOP|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>10d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxPanel" name="ID_PANEL_CurrentColor" variable="Panel_CurrentColor" member="yes">
+					<minsize>75,55</minsize>
+					<style>wxSUNKEN_BORDER</style>
+				</object>
+				<colspan>2</colspan>
+				<rowspan>3</rowspan>
+				<col>13</col>
+				<row>0</row>
+				<flag>wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
+				<border>17d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxRadioButton" name="ID_RADIOBUTTON_Hue" variable="RadioButton_Hue" member="yes">
+					<label>H:</label>
+					<font>
+						<size>13</size>
+						<family>modern</family>
+					</font>
+					<style>wxRB_GROUP</style>
+					<handler function="OnRadioButton_ModeSelect" entry="EVT_RADIOBUTTON" />
+				</object>
+				<col>13</col>
+				<row>4</row>
+				<flag>wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxRadioButton" name="ID_RADIOBUTTON_Saturation" variable="RadioButton_Saturation" member="yes">
+					<label>S:</label>
+					<selected>1</selected>
+					<font>
+						<size>13</size>
+						<family>modern</family>
+					</font>
+					<handler function="OnRadioButton_ModeSelect" entry="EVT_RADIOBUTTON" />
+				</object>
+				<col>13</col>
+				<row>5</row>
+				<flag>wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxRadioButton" name="ID_RADIOBUTTON_Brightness" variable="RadioButton_Brightness" member="yes">
+					<label>B:</label>
+					<font>
+						<size>13</size>
+						<family>modern</family>
+					</font>
+					<handler function="OnRadioButton_ModeSelect" entry="EVT_RADIOBUTTON" />
+				</object>
+				<col>13</col>
+				<row>6</row>
+				<flag>wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxRadioButton" name="ID_RADIOBUTTON_Red" variable="RadioButton_Red" member="yes">
+					<label>R:</label>
+					<font>
+						<size>13</size>
+						<family>modern</family>
+					</font>
+					<handler function="OnRadioButton_ModeSelect" entry="EVT_RADIOBUTTON" />
+				</object>
+				<col>13</col>
+				<row>7</row>
+				<flag>wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxRadioButton" name="ID_RADIOBUTTON_Green" variable="RadioButton_Green" member="yes">
+					<label>G:</label>
+					<font>
+						<size>13</size>
+						<family>modern</family>
+					</font>
+					<handler function="OnRadioButton_ModeSelect" entry="EVT_RADIOBUTTON" />
+				</object>
+				<col>13</col>
+				<row>8</row>
+				<flag>wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxRadioButton" name="ID_RADIOBUTTON_Blue" variable="RadioButton_Blue" member="yes">
+					<label>B:</label>
+					<font>
+						<size>13</size>
+						<family>modern</family>
+					</font>
+					<handler function="OnRadioButton_ModeSelect" entry="EVT_RADIOBUTTON" />
+				</object>
+				<col>13</col>
+				<row>9</row>
+				<flag>wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Hue" variable="TextCtrl_Hue" member="yes">
+					<value>0</value>
+					<font>
+						<size>12</size>
+						<family>modern</family>
+					</font>
+					<minsize>40,23</minsize>
+					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
+				</object>
+				<col>14</col>
+				<row>4</row>
+				<flag>wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Saturation" variable="TextCtrl_Saturation" member="yes">
+					<value>100</value>
+					<font>
+						<size>12</size>
+						<family>modern</family>
+					</font>
+					<minsize>40,23</minsize>
+					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
+				</object>
+				<col>14</col>
+				<row>5</row>
+				<flag>wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Brightness" variable="TextCtrl_Brightness" member="yes">
+					<value>100</value>
+					<font>
+						<size>12</size>
+						<family>modern</family>
+					</font>
+					<minsize>40,23</minsize>
+					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
+				</object>
+				<col>14</col>
+				<row>6</row>
+				<flag>wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Red" variable="TextCtrl_Red" member="yes">
+					<value>255</value>
+					<font>
+						<size>12</size>
+						<family>modern</family>
+					</font>
+					<minsize>40,23</minsize>
+					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
+				</object>
+				<col>14</col>
+				<row>7</row>
+				<flag>wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Green" variable="TextCtrl_Green" member="yes">
+					<value>0</value>
+					<font>
+						<size>12</size>
+						<family>modern</family>
+					</font>
+					<minsize>40,23</minsize>
+					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
+				</object>
+				<col>14</col>
+				<row>8</row>
+				<flag>wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Blue" variable="TextCtrl_Blue" member="yes">
+					<value>0</value>
+					<font>
+						<size>12</size>
+						<family>modern</family>
+					</font>
+					<minsize>40,23</minsize>
+					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
+					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
+				</object>
+				<col>14</col>
+				<row>9</row>
+				<flag>wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch2" variable="BitmapButton_Swatch2" member="yes">
+					<bg>#00FF00</bg>
+					<minsize>20,20</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
+				</object>
+				<col>2</col>
+				<row>11</row>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch3" variable="BitmapButton_Swatch3" member="yes">
+					<bg>#0000FF</bg>
+					<minsize>20,20</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
+				</object>
+				<col>3</col>
+				<row>11</row>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch4" variable="BitmapButton_Swatch4" member="yes">
+					<bg>#FFFF00</bg>
+					<minsize>20,20</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
+				</object>
+				<col>4</col>
+				<row>11</row>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch5" variable="BitmapButton_Swatch5" member="yes">
+					<bg>#FF8000</bg>
+					<minsize>20,20</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
+				</object>
+				<col>5</col>
+				<row>11</row>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch6" variable="BitmapButton_Swatch6" member="yes">
+					<bg>#00FFFF</bg>
+					<minsize>20,20</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
+				</object>
+				<col>6</col>
+				<row>11</row>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch7" variable="BitmapButton_Swatch7" member="yes">
+					<bg>#FF00FF</bg>
+					<minsize>20,20</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
+				</object>
+				<col>7</col>
+				<row>11</row>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch8" variable="BitmapButton_Swatch8" member="yes">
+					<bg>#8000FF</bg>
+					<minsize>20,20</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
+				</object>
+				<col>8</col>
+				<row>11</row>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxRadioButton" name="ID_RADIOBUTTON_SwatchMarker" variable="RadioButton_SwatchMarker" member="yes">
+					<label></label>
+					<selected>1</selected>
+					<enabled>0</enabled>
+					<style>wxRB_GROUP</style>
+				</object>
+				<col>1</col>
+				<row>12</row>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5d</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

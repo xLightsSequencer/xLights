@@ -38,6 +38,9 @@ void xLightsFrame::SetDir(const wxString& newdir)
     static bool HasMenuSeparator=false;
     int idx, cnt, i;
 
+    // don't change show directories with an open sequence because models won't match
+    CloseSequence();
+
     if (newdir != CurrentDir && "" != CurrentDir) {
         wxFileName kbf;
         kbf.AssignDir(CurrentDir);
@@ -51,6 +54,9 @@ void xLightsFrame::SetDir(const wxString& newdir)
         wxMessageBox(_("Cannot change directories during playback"),_("Error"));
         return;
     }
+
+    // Check to see if any show directory files need to be saved
+    CheckUnsavedChanges();
 
     // update most recently used array
     idx=mru.Index(newdir);
@@ -133,7 +139,6 @@ void xLightsFrame::SetDir(const wxString& newdir)
     }
     CurrentDir=newdir;
     showDirectory=newdir;
-    UnsavedChanges=false;
 
     long LinkFlag=0;
     config->Read(_("LinkFlag"), &LinkFlag);
@@ -395,7 +400,7 @@ void xLightsFrame::MoveNetworkRow(int fromRow, int toRow)
         // move down
         root->InsertChildAfter(fromNode,toNode);
     }
-    UnsavedChanges=true;
+    UnsavedNetworkChanges=true;
     UpdateNetworkList();
 }
 
@@ -462,7 +467,7 @@ void xLightsFrame::OnButtonNetworkDeleteClick(wxCommandEvent& event)
             }
         }
     }
-    UnsavedChanges=true;
+    UnsavedNetworkChanges=true;
     UpdateNetworkList();
     cnt=GridNetwork->GetItemCount();
     if (cnt > 0)
@@ -479,7 +484,7 @@ void xLightsFrame::OnButtonNetworkDeleteAllClick(wxCommandEvent& event)
     {
         root->RemoveChild(e);
     }
-    UnsavedChanges=true;
+    UnsavedNetworkChanges=true;
     UpdateNetworkList();
 }
 
@@ -574,7 +579,7 @@ void xLightsFrame::SetupNullOutput(wxXmlNode* e) {
     }
     NullOutputDialog dlg(this);
     dlg.NumChannelsSpinCtrl->SetValue(numChannels);
-    
+
     if (dlg.ShowModal() == wxID_OK) {
         numChannels = dlg.NumChannelsSpinCtrl->GetValue();
         if (e == nullptr) {
@@ -587,7 +592,7 @@ void xLightsFrame::SetupNullOutput(wxXmlNode* e) {
         wxString LastChannelStr = wxString::Format("%d", numChannels);
         e->AddAttribute("MaxChannels", LastChannelStr);
         UpdateNetworkList();
-        UnsavedChanges=true;
+        UnsavedNetworkChanges=true;
     }
 }
 
@@ -659,7 +664,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
                     }
                 }
                 UpdateNetworkList();
-                UnsavedChanges=true;
+                UnsavedNetworkChanges=true;
             }
             else
             {
@@ -724,7 +729,7 @@ void xLightsFrame::SetupDongle(wxXmlNode* e)
                 e->DeleteAttribute("MaxChannels");
                 e->AddAttribute("MaxChannels",LastChannel);
                 UpdateNetworkList();
-                UnsavedChanges=true;
+                UnsavedNetworkChanges=true;
                 ok=true;
             }
         }
@@ -737,16 +742,23 @@ void xLightsFrame::OnButtonAddDongleClick(wxCommandEvent& event)
     SetupDongle(0);
 }
 
-void xLightsFrame::OnButtonSaveSetupClick(wxCommandEvent& event)
+bool xLightsFrame::SaveNetworksFile()
 {
     if (NetworkXML.Save( networkFile.GetFullPath() ))
     {
-        UnsavedChanges=false;
+        UnsavedNetworkChanges=false;
+        return true;
     }
     else
     {
         wxMessageBox(_("Unable to save network definition file"), _("Error"));
+        return false;
     }
+}
+
+void xLightsFrame::OnButtonSaveSetupClick(wxCommandEvent& event)
+{
+    SaveNetworksFile();
 }
 
 

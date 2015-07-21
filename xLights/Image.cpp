@@ -14,7 +14,7 @@ Image::Image(wxString path)
 void Image::load(wxString path)
 {
     bool scaledW, scaledH;
-    ID=loadImage(path, width, height, textureWidth, textureHeight, scaledW, scaledH);
+    ID=loadImage(path, width, height, textureWidth, textureHeight, scaledW, scaledH, mAlpha);
     if (scaledW) {
         tex_coord_x = 1.0;
     } else {
@@ -25,7 +25,6 @@ void Image::load(wxString path)
     } else {
         tex_coord_y = (float)height/(float)textureHeight;
     }
-    
 }
 
 GLuint* Image::getID()

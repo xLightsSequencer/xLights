@@ -8,9 +8,11 @@
 #ifdef __WXMAC__
  #include "OpenGL/glu.h"
  #include "OpenGL/gl.h"
+ #include <GLUT/glut.h>
 #else
  #include <GL/glu.h>
  #include <GL/gl.h>
+ #include <GL/glut.h>
 #endif
 
 #include  "RowHeading.h"
@@ -1776,7 +1778,7 @@ void EffectsGrid::DrawTimingEffects(int row)
 
         int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+4;
         int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-4;
-        int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
+        int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT * 2.0 / 3.0);
         int x1,x2,x3,x4;
 
         mTimeline->GetPositionsFromTimeRange(effectLayer->GetEffect(effectIndex)->GetStartTimeMS(),
@@ -1846,7 +1848,13 @@ void EffectsGrid::DrawTimingEffects(int row)
             {
                 DrawGLUtils::DrawLine(*mTimingColor,255,x1,y,x2,y,2);
             }
-
+            if (effectLayer->GetEffect(effectIndex)->GetEffectName() != "") {
+                void * font = GLUT_BITMAP_HELVETICA_12;
+                if (translateToBacking(1.0) > 1.5) {
+                    font = GLUT_BITMAP_HELVETICA_18;
+                }
+                DrawGLUtils::DrawText(x1 + 1, y - 1, font, effectLayer->GetEffect(effectIndex)->GetEffectName());
+            }
         }
     }
 }

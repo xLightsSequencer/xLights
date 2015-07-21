@@ -7,6 +7,6 @@
 #endif
 #include "wx/wx.h"
 
-GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight, bool &scaledW, bool &scaledH);
+GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight, bool &scaledW, bool &scaledH, bool &hasAlpha);
 
 #endif

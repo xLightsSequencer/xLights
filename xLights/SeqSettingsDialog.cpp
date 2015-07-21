@@ -9,6 +9,9 @@
 #include <wx/treectrl.h>
 #include "Images_png.h"
 
+#include "VAMPPluginDialog.h"
+
+
 //(*InternalHeaders(SeqSettingsDialog)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -91,10 +94,6 @@ const long SeqSettingsDialog::ID_BUTTON_wizard_done = wxNewId();
 
 wxDEFINE_EVENT(EVT_DELETE_ROW, wxCommandEvent);
 wxDEFINE_EVENT(EVT_NAME_CHANGE, wxCommandEvent);
-
-BEGIN_EVENT_TABLE(FlickerFreeBitmapButtonCtrl,wxBitmapButton)
-    EVT_ERASE_BACKGROUND(FlickerFreeBitmapButtonCtrl::OnEraseBackGround)
-END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(SeqSettingsDialog,wxDialog)
 	//(*EventTable(SeqSettingsDialog)
@@ -257,8 +256,10 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     FlexGridSizer_Timing_Page->SetSizeHints(Panel1);
     Panel2 = new wxPanel(Notebook_Seq_Settings, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer8->AddGrowableCol(0);
+    FlexGridSizer8->AddGrowableRow(0);
     FlexGridSizer_Timing_Grid = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer8->Add(FlexGridSizer_Timing_Grid, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8->Add(FlexGridSizer_Timing_Grid, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     Button_Xml_New_Timing = new wxButton(Panel2, ID_BUTTON_Xml_New_Timing, _("New"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_Xml_New_Timing"));
     FlexGridSizer2->Add(Button_Xml_New_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -384,7 +385,6 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Grid_Timing->CreateGrid(0, 2);
     Grid_Timing->GetSize().GetWidth();
 	Grid_Timing->HideRowLabels();
-	Grid_Timing->SetDefaultRowSize(25, true);
 
 	Grid_Timing->SetColumnWidth(0, 342);
 	Grid_Timing->SetColumnWidth(1, 25);
@@ -451,10 +451,10 @@ void SeqSettingsDialog::WizardPage1()
     GridBagSizerWizard = new wxGridBagSizer(0, 1);
     GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
-    BitmapButton_Wiz_Music = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Music, music_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Music"));
+    BitmapButton_Wiz_Music = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Music, music_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Music"));
     BitmapButton_Wiz_Music->SetBitmapSelected(music_seq_pressed);
     GridSizerWizButtons->Add(BitmapButton_Wiz_Music, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Wiz_Anim = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Anim, animation_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Anim"));
+    BitmapButton_Wiz_Anim = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Anim, animation_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Anim"));
     BitmapButton_Wiz_Anim->SetBitmapSelected(animation_pressed);
     GridSizerWizButtons->Add(BitmapButton_Wiz_Anim, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -470,13 +470,13 @@ void SeqSettingsDialog::WizardPage2()
     GridBagSizerWizard->Clear(true);
     GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
-    BitmapButton_25ms = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_25ms, time_div_25ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_25ms"));
+    BitmapButton_25ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_25ms, time_div_25ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_25ms"));
     BitmapButton_25ms->SetBitmapSelected(time_div_25ms_pressed);
     GridSizerWizButtons->Add(BitmapButton_25ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_50ms = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_50ms, time_div_50ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_50ms"));
+    BitmapButton_50ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_50ms, time_div_50ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_50ms"));
     BitmapButton_50ms->SetBitmapSelected(time_div_50ms_pressed);
     GridSizerWizButtons->Add(BitmapButton_50ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_100ms = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_100ms, time_div_100ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_100ms"));
+    BitmapButton_100ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_100ms, time_div_100ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_100ms"));
     BitmapButton_100ms->SetBitmapSelected(time_div_100ms_pressed);
     GridSizerWizButtons->Add(BitmapButton_100ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -504,17 +504,17 @@ void SeqSettingsDialog::WizardPage3()
     GridSizerWizButtons = new wxGridSizer(0, 2, 5, 10);
     GridSizerWizButtons->Add(StaticText_Page3Optional, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     GridSizerWizButtons->Add(50,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    BitmapButton_lor = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_lor, lightorama, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lor"));
+    BitmapButton_lor = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_lor, lightorama, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lor"));
     GridSizerWizButtons->Add(BitmapButton_lor, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_hls = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_hls, hls, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_hls"));
+    BitmapButton_hls = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_hls, hls, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_hls"));
     GridSizerWizButtons->Add(BitmapButton_hls, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_xlights = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_xlights, xlights_logo, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_xlights"));
+    BitmapButton_xlights = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_xlights, xlights_logo, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_xlights"));
     GridSizerWizButtons->Add(BitmapButton_xlights, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_vixen = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_vixen, vixen, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_vixen"));
+    BitmapButton_vixen = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_vixen, vixen, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_vixen"));
     GridSizerWizButtons->Add(BitmapButton_vixen, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_gled = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_gled, glediator, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_gled"));
+    BitmapButton_gled = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_gled, glediator, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_gled"));
     GridSizerWizButtons->Add(BitmapButton_gled, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_lynx = new FlickerFreeBitmapButtonCtrl(Panel_Wizard, ID_BITMAPBUTTON_lynx, lynx, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lynx"));
+    BitmapButton_lynx = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_lynx, lynx, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lynx"));
     GridSizerWizButtons->Add(BitmapButton_lynx, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons->Add(185,30,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_SkipImport = new wxButton(Panel_Wizard, ID_BUTTON_skip_import, _("Skip >>"), wxDefaultPosition, wxSize(185,30), 0, wxDefaultValidator, _T("ID_BUTTON_skip_import"));
@@ -692,10 +692,29 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     {
         dialog.RemoveChoice("50ms");
     }
+    
+    
+    VAMPPluginDialog vamp(this);
+    wxArrayString plugins;
+    if (xml_file->HasAudioMedia()) {
+        plugins = vamp.GetAvailablePlugins(xml_file->GetMediaFile());
+        for (int x = 0; x < plugins.size(); x++) {
+            dialog.Choice_New_Fixed_Timing->Append(plugins[x]);
+        }
+    }
+    
+    dialog.Fit();
+    
     if (dialog.ShowModal() == wxID_OK)
     {
         wxString selected_timing = dialog.GetTiming();
-        if( !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
+        if (plugins.Index(selected_timing) != wxNOT_FOUND) {
+            wxString name = vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMediaFile());
+            if (name != "") {
+                AddTimingCell(name);
+            }
+        }
+        else if( !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
         {
             xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
             AddTimingCell(selected_timing);

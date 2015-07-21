@@ -24,7 +24,7 @@ NewTimingDialog::NewTimingDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 
 	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Select New Fixed Timing Interval:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Select New Timing Interval:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_New_Fixed_Timing = new wxChoice(this, ID_CHOICE_New_Fixed_Timing, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_New_Fixed_Timing"));
 	Choice_New_Fixed_Timing->Append(_("25ms"));

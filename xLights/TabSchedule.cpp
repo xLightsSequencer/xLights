@@ -242,7 +242,7 @@ void xLightsFrame::OnButtonPlaylistAddClick(wxCommandEvent& event)
     long newidx = ListBoxPlay->InsertItem(ListBoxPlay->GetItemCount(), selstr);
     ListBoxPlay->SetItem(newidx,1,"0");
     ListBoxPlay->SetColumnWidth(0,wxLIST_AUTOSIZE);
-    UnsavedChanges=true;
+    UnsavedPlaylistChanges=true;
     ScanForFiles();
 }
 
@@ -261,7 +261,7 @@ void xLightsFrame::OnButtonPlaylistAddAllClick(wxCommandEvent& event)
         {
             long newidx = ListBoxPlay->InsertItem(ListBoxPlay->GetItemCount(), TreeCtrlFiles->GetItemText(item));
             ListBoxPlay->SetItem(newidx,1,"0");
-            UnsavedChanges=true;
+            UnsavedPlaylistChanges=true;
             cnt++;
         }
         item=TreeCtrlFiles->GetNextVisible(item);
@@ -283,7 +283,7 @@ void xLightsFrame::OnButtonPlaylistDeleteClick(wxCommandEvent& event)
     }
     ListBoxPlay->DeleteItem(SelectedItem);
     ListBoxPlay->SetColumnWidth(0, ListBoxPlay->GetItemCount() > 0 ? wxLIST_AUTOSIZE : wxLIST_AUTOSIZE_USEHEADER);
-    UnsavedChanges=true;
+    UnsavedPlaylistChanges=true;
     ScanForFiles();
 }
 
@@ -296,7 +296,7 @@ void xLightsFrame::OnButtonPlaylistDeleteAllClick(wxCommandEvent& event)
     {
         ListBoxPlay->DeleteAllItems();
         ListBoxPlay->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
-        UnsavedChanges=true;
+        UnsavedPlaylistChanges=true;
     }
     ScanForFiles();
 }
@@ -600,7 +600,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
 
 void xLightsFrame::OnFileTypeButtonClicked(wxCommandEvent& event)
 {
-    UnsavedChanges=true;
+    UnsavedPlaylistChanges=true;
     ScanForFiles();
 }
 
@@ -640,7 +640,7 @@ void xLightsFrame::ScanForFiles()
         if (!oName.FileExists())
         {
             ListBoxPlay->DeleteItem(i);
-            UnsavedChanges=true;
+            UnsavedPlaylistChanges=true;
             wxMessageBox(_("File ") + filenames[i] + _(" was deleted from the show directory\n\nRemoving it from playlist ") + PageName, _("Playlist Updated"));
         }
     }
@@ -738,7 +738,7 @@ void xLightsFrame::OnButtonSetDelayClick(wxCommandEvent& event)
     {
         delay = wxString::Format("%ld",NewValue);
         ListBoxPlay->SetItem(SelectedItem, 1, delay);
-        UnsavedChanges=true;
+        UnsavedPlaylistChanges=true;
     }
 }
 
@@ -920,7 +920,7 @@ void xLightsFrame::OnButtonUpClick(wxCommandEvent& event)
     ListBoxPlay->SetItem(SelectedItem,1,delay);
 #endif
     ListBoxPlay->SetItemState(SelectedItem,wxLIST_STATE_SELECTED,wxLIST_STATE_SELECTED);
-    UnsavedChanges=true;
+    UnsavedPlaylistChanges=true;
 }
 
 void xLightsFrame::OnButtonDownClick(wxCommandEvent& event)
@@ -993,7 +993,7 @@ void xLightsFrame::OnButtonDownClick(wxCommandEvent& event)
     ListBoxPlay->SetItem(SelectedItem,1,delay);
 #endif
     ListBoxPlay->SetItemState(SelectedItem,wxLIST_STATE_SELECTED,wxLIST_STATE_SELECTED);
-    UnsavedChanges=true;
+    UnsavedPlaylistChanges=true;
 }
 
 void xLightsFrame::OnMenuItemAddListSelected(wxCommandEvent& event)
@@ -1013,7 +1013,7 @@ void xLightsFrame::OnMenuItemAddListSelected(wxCommandEvent& event)
         return;
     }
     AddPlaylist(name);
-    UnsavedChanges=true;
+    UnsavedPlaylistChanges=true;
 }
 
 void xLightsFrame::OnMenuItemDelListSelected(wxCommandEvent& event)
@@ -1027,7 +1027,7 @@ void xLightsFrame::OnMenuItemDelListSelected(wxCommandEvent& event)
     int result = wxMessageBox(_("Are you sure you want to delete '") + Notebook1->GetPageText(idx) + _("'?"), _("Delete Playlist"), wxOK | wxCANCEL | wxCENTER);
     if (result != wxOK) return;
     Notebook1->DeletePage(idx);
-    UnsavedChanges=true;
+    UnsavedPlaylistChanges=true;
 }
 
 void xLightsFrame::OnMenuItemRenameListSelected(wxCommandEvent& event)
@@ -1049,7 +1049,7 @@ void xLightsFrame::OnMenuItemRenameListSelected(wxCommandEvent& event)
         return;
     }
     Notebook1->SetPageText(nbidx,NewName);
-    UnsavedChanges=true;
+    UnsavedPlaylistChanges=true;
 }
 
 void xLightsFrame::SaveScheduleFile()
@@ -1132,7 +1132,7 @@ void xLightsFrame::SaveScheduleFile()
     wxString FileName=scheduleFile.GetFullPath();
     if (doc.Save(FileName))
     {
-        UnsavedChanges=false;
+        UnsavedPlaylistChanges=false;
         StatusBar1->SetStatusText(_("File saved successfully"));
     }
     else
@@ -1646,7 +1646,7 @@ void xLightsFrame::AddShow(const wxDateTime& d, const wxString& StartStop, const
     wxString MonthDayStr = d.Format("%m%d");
     wxString SchedCode = MonthDayStr + StartStop + Playlist;
     ShowEvents.Add(SchedCode);
-    UnsavedChanges=true;
+    UnsavedPlaylistChanges=true;
 }
 
 
@@ -1735,7 +1735,7 @@ void xLightsFrame::OnButtonDeleteShowClick(wxCommandEvent& event)
     else
     {
         DisplaySchedule();
-        UnsavedChanges=true;
+        UnsavedPlaylistChanges=true;
     }
 }
 
@@ -1799,7 +1799,7 @@ void xLightsFrame::OnMenuItemCustomScriptSelected(wxCommandEvent& event)
     TextCtrlLogic->Show();
     wxButton* ButtonRemoveScript=(wxButton*)FindNotebookControl(nbIdx,REMOVE_SCRIPT_BUTTON);
     ButtonRemoveScript->Show();
-    UnsavedChanges=true;
+    UnsavedPlaylistChanges=true;
 }
 
 void xLightsFrame::OnButtonRemoveScriptClick(wxCommandEvent& event)
@@ -1812,7 +1812,7 @@ void xLightsFrame::OnButtonRemoveScriptClick(wxCommandEvent& event)
     {
         TextCtrlLogic->Hide();
         ButtonRemoveScript->Hide();
-        UnsavedChanges=true;
+        UnsavedPlaylistChanges=true;
     }
 }
 
@@ -1847,7 +1847,7 @@ void xLightsFrame::OnButtonShowDatesChangeClick(wxCommandEvent& event)
         {
             UpdateShowDates(NewStart,NewEnd);
             DisplaySchedule();
-            UnsavedChanges=true;
+            UnsavedPlaylistChanges=true;
             break;
         }
     }
@@ -1872,7 +1872,7 @@ void xLightsFrame::OnPlayListDragEnd(wxMouseEvent& event)
         DragListBox->SetItem(newidx,1,column1.GetText());
         if (newidx < DragRowIdx) DragRowIdx++;
         DragListBox->DeleteItem(DragRowIdx);
-        UnsavedChanges=true;
+        UnsavedPlaylistChanges=true;
     }
     // restore cursor
     DragListBox->SetCursor(wxCursor(*wxSTANDARD_CURSOR));

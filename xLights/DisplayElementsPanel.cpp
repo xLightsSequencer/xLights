@@ -140,12 +140,22 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	mNumViews = 0;
 	mNumModels = 0;
 	mSequenceElements = NULL;
+    MainViewsChoice = NULL;
 }
 
 DisplayElementsPanel::~DisplayElementsPanel()
 {
 	//(*Destroy(DisplayElementsPanel)
 	//*)
+}
+
+void DisplayElementsPanel::SetViewChoice(wxChoice *ch) {
+    MainViewsChoice = ch;
+    MainViewsChoice->Connect(wxEVT_CHOICE, (wxObjectEventFunction)&DisplayElementsPanel::OnViewSelect, NULL, this);
+}
+
+void DisplayElementsPanel::OnViewSelect(wxCommandEvent &event) {
+    SelectView(MainViewsChoice->GetString(MainViewsChoice->GetSelection()));
 }
 
 void DisplayElementsPanel::SetSequenceElementsModelsViews(SequenceData* seq_data,
@@ -176,6 +186,8 @@ void DisplayElementsPanel::AddViewToList(const wxString& viewName, bool isChecke
     ListCtrlViews->SetItem(mNumViews,1,viewName);
     ListCtrlViews->SetChecked(mNumViews,isChecked);
     mNumViews++;
+    
+    MainViewsChoice->Append(viewName);
 }
 
 void DisplayElementsPanel::AddModelToList(Element* model)
@@ -211,6 +223,9 @@ void DisplayElementsPanel::AddTimingToList(Element* timing)
 void DisplayElementsPanel::PopulateViews()
 {
     ListCtrlViews->ClearAll();
+    if (MainViewsChoice != nullptr) {
+        MainViewsChoice->Clear();
+    }
 
 	wxListItem col0;
 	col0.SetId(0);
@@ -774,6 +789,7 @@ void DisplayElementsPanel::SelectView(const wxString& name)
     mSequenceElements->SetTimingVisibility(name);
     PopulateModels();
     ListCtrlViews->SetChecked(mSequenceElements->GetCurrentView(),true);
+    MainViewsChoice->SetSelection(MainViewsChoice->FindString(name));
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
 }

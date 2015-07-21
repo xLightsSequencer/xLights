@@ -17,14 +17,14 @@ void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
 {
-    wxArrayString SeqFiles;
-    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.fseq");
-    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");
-    if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
-            "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
+    if (mSavedChangeCount !=  mSequenceElements.GetChangeCount() && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
+                                               "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
     {
         return;
     }
+    wxArrayString SeqFiles;
+    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.fseq");
+    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");
     wxSingleChoiceDialog dialog(this,_("Select file"),_("Open xLights Sequence"),SeqFiles);
     if (dialog.ShowModal() != wxID_OK) return;
     previewLoaded = false;
@@ -58,21 +58,19 @@ void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
     wxString modelName = whDialog.Text_WholehouseModelName->GetValue();
     if(modelName.Length()> 0)
     {
-        wxXmlNode *e = BuildWholeHouseModel(modelName, PreviewModels);
+        wxXmlNode *e = BuildWholeHouseModel(modelName, nullptr, PreviewModels);
 
         // Delete exisiting wholehouse model with same name
-        for(wxXmlNode* n=ModelsNode->GetChildren(); n!=NULL; n=n->GetNext() )
-        {
-            if (n->GetAttribute("name") == modelName)
-            {
+        for(wxXmlNode* n = ModelsNode->GetChildren(); n != NULL; n = n->GetNext()) {
+            if (n->GetAttribute("name") == modelName) {
                 ModelsNode->RemoveChild(n);
                 // No break, remove them all if more than one
             }
         }
         // Add model node to models
         ModelsNode->AddChild(e);
-        // Save models to effects file
-        SaveEffectsFile();
+        // Indicate model changes need to be saved
+        UnsavedRgbEffectsChanges=true;
         // Update List on Sequencer page
         UpdateModelsList();
         StatusBar1->SetStatusText(wxString::Format("Completed creating '%s' whole house model",modelName));
@@ -80,12 +78,11 @@ void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
     }
 }
 
-wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, std::vector<ModelClass*> &models)
+wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models)
 {
     size_t numberOfNodes=0;
-    int w,h,wScaled,hScaled;
+    int w,h;
     size_t index=0;
-    float scale=0;
     wxString WholeHouseData="";
 
     for (int i=0; i<models.size(); i++)
@@ -97,36 +94,79 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, std::ve
     std::vector<int> actChannel;
     std::vector<wxString> nodeType;
 
-    modelPreview->GetVirtualCanvasSize(w, h);
 
-    // Add node position and channel number to arrays
-    for (int i=0; i<models.size(); i++)
-    {
-        models[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel,nodeType);
-        index+=models[i]->GetNodeCount();
-    }
-
-    // Add WholeHouseData attribute
-    if(w>h){scale = (float)400/(float)w;}
-    else{scale = (float)400/(float)h;}
-    wScaled = (int)(scale*w);
-    hScaled = (int)(scale*h);
-    // Create a new model node
     wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
     e->AddAttribute("name", modelName);
     e->AddAttribute("DisplayAs", "WholeHouse");
     e->AddAttribute("StringType", "RGB Nodes");
-    e->AddAttribute("parm1", wxString::Format(wxT("%i"), wScaled));
-    e->AddAttribute("parm2", wxString::Format(wxT("%i"), hScaled));
 
-    for(int i=0;i<xPos.size();i++)
-    {
-        xPos[i] = (int)(scale*(float)xPos[i]);
-        yPos[i] = (int)((scale*(float)yPos[i]));
-        WholeHouseData += wxString::Format(wxT("%i,%i,%i,%s"),actChannel[i],xPos[i],yPos[i],(const char *)nodeType[i].c_str());
-        if(i!=xPos.size()-1)
+    wxString layout = node == nullptr ? "grid" : node->GetAttribute("layout", "grid");
+    if (layout == "grid") {
+        modelPreview->GetVirtualCanvasSize(w, h);
+
+        // Add node position and channel number to arrays
+        for (int i=0; i<models.size(); i++)
         {
-            WholeHouseData+=";";
+            models[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel,nodeType);
+            index+=models[i]->GetNodeCount();
+        }
+        int wScaled = node == nullptr ? 400 : wxAtoi(node->GetAttribute("GridSize", "400"));
+        int hScaled = wScaled;
+        // Add WholeHouseData attribute
+
+        double hscale = (double)hScaled / (double)h;
+        double wscale = (double)wScaled / (double)w;
+
+        if (hscale > wscale) {
+            hscale = wscale;
+            hScaled = wscale * h + 1;
+        } else {
+            wscale = hscale;
+            wScaled = hscale * w + 1;
+        }
+        // Create a new model node
+        e->AddAttribute("parm1", wxString::Format(wxT("%i"), wScaled));
+        e->AddAttribute("parm2", wxString::Format(wxT("%i"), hScaled));
+
+        for(int i=0;i<xPos.size();i++)
+        {
+            xPos[i] = (int)(wscale*(double)xPos[i]);
+            yPos[i] = (int)((hscale*(double)yPos[i]));
+            WholeHouseData += wxString::Format(wxT("%i,%i,%i,%s"),actChannel[i],xPos[i],yPos[i],(const char *)nodeType[i].c_str());
+            if(i!=xPos.size()-1)
+            {
+                WholeHouseData+=";";
+            }
+        }
+    } else {
+        int max = 0;
+        for (int i=0; i<models.size(); i++) {
+            if (models[i] ->GetNodeCount() > max) {
+                max = models[i]->GetNodeCount();
+            }
+        }
+        for (int i=0; i<models.size(); i++) {
+            for (int x = 0; x < models[i]->GetNodeCount(); x++) {
+                xPos.push_back(x);
+                yPos.push_back(i);
+                actChannel.push_back(models[i]->NodeStartChannel(x));
+                nodeType.push_back(models[i]->NodeType(x));
+            }
+        }
+        bool hor = layout == "horizontal";
+
+        for(int i=0;i<xPos.size();i++) {
+            e->AddAttribute("parm2", wxString::Format(wxT("%i"), hor ? max : models.size()));
+            e->AddAttribute("parm1", wxString::Format(wxT("%i"), hor ? models.size() : max));
+
+            WholeHouseData += wxString::Format(wxT("%i,%i,%i,%s"),
+                                               actChannel[i],
+                                               hor ? yPos[i] : xPos[i],
+                                               hor ? xPos[i] : yPos[i],
+                                               (const char *)nodeType[i].c_str());
+            if (i != xPos.size()-1) {
+                WholeHouseData+=";";
+            }
         }
     }
 
@@ -237,10 +277,12 @@ void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
         mnuAlign->Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
         mnuAlign->Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
         mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
+        mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
 
         mnuDistribute = new wxMenu();
         mnuDistribute->Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
         mnuDistribute->Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
+        mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
 
         mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", mnuAlign,"");
         mnu.Append(ID_PREVIEW_DISTRIBUTE,"Distribute", mnuDistribute,"");
@@ -251,7 +293,8 @@ void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
         return;
     }
     mnu.Append(ID_PREVIEW_MODEL_PROPERTIES,"Model Properties");
-    mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
     PopupMenu(&mnu);
 }
 
@@ -433,7 +476,7 @@ void xLightsFrame::ShowModelProperties()
             if (ok)
             {
                 dialog->UpdateXml(e);
-                SaveEffectsFile();
+                UnsavedRgbEffectsChanges=true;
                 UpdateModelsList();
 
             }
@@ -879,7 +922,7 @@ void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
 {
     CurrentPreviewModels dialog(this,ModelGroupsNode,ModelsNode);
     dialog.ShowModal();
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges=true;
     ShowSelectedModelGroups();
 }
 
@@ -913,7 +956,7 @@ void xLightsFrame::OnButtonSetBackgroundImageClick(wxCommandEvent& event)
         SetXmlSetting("backgroundImage",mBackgroundImage);
         modelPreview->SetbackgroundImage(mBackgroundImage);
         sPreview2->SetbackgroundImage(mBackgroundImage);
-        SaveEffectsFile();
+        UnsavedRgbEffectsChanges=true;
         UpdatePreview();
     }
 }
@@ -924,7 +967,7 @@ void xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& 
     SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
     modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
     sPreview2->SetBackgroundBrightness(mBackgroundBrightness);
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges=true;
     UpdatePreview();
 }
 
@@ -934,7 +977,7 @@ void xLightsFrame::OnScaleImageCheckboxClick(wxCommandEvent& event)
     SetXmlSetting("scaleImage",wxString::Format("%d",ScaleImageCheckbox->IsChecked()));
     modelPreview->SetScaleBackgroundImage(ScaleImageCheckbox->IsChecked());
     sPreview2->SetScaleBackgroundImage(ScaleImageCheckbox->IsChecked());
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges=true;
 }
 
 

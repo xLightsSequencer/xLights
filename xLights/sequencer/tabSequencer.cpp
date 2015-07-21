@@ -52,10 +52,10 @@ void xLightsFrame::CreateSequencer()
     EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
     effectsPnl->Refresh();
 
-    sSceneEditor = new SceneEditor(PanelSequencer, this);
-    sSceneEditor->SetSize(wxSize(200,200));
-    m_mgr->AddPane(sSceneEditor,wxAuiPaneInfo().Name(wxT("SceneEditor")).Caption(wxT("Effect Assist")).BestSize(wxSize(200,200)).Left());
-    sSceneEditor->Layout();
+    sEffectAssist = new EffectAssist(PanelSequencer, this);
+    sEffectAssist->SetSize(wxSize(200,200));
+    m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).BestSize(wxSize(200,200)).Left());
+    sEffectAssist->Layout();
 
     wxScrolledWindow* w;
     for(int i =0;i<EffectsPanel1->EffectChoicebook->GetPageCount();i++)
@@ -74,6 +74,7 @@ void xLightsFrame::CreateSequencer()
 
     // DisplayElements Panel
     displayElementsPanel = new DisplayElementsPanel(PanelSequencer);
+    displayElementsPanel->SetViewChoice(mainSequencer->ViewChoice);
 
     m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements"))
                    .Float());
@@ -138,17 +139,8 @@ ModelClass &xLightsFrame::GetModelClass(const wxString& name) {
 }
 
 bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
-    wxXmlNode *model = GetModelNode(modelName);
-    if (model == NULL) {
-        model = CreateModelNodeFromGroup(modelName);
-        if (model == NULL) {
-            return false;
-        }
-        buffer.InitBuffer(model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
-        delete model;
-    } else {
-        buffer.InitBuffer(model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
-    }
+    ModelClass &model = GetModelClass(modelName);
+    buffer.InitBuffer(model.GetModelXml(), layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
     return true;
 }
 
@@ -168,7 +160,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         p->AddAttribute("settings",m_mgr->SavePerspective());
         PerspectivesNode->AddChild(p);
         mCurrentPerpective = p;
-        SaveEffectsFile();
+        UnsavedRgbEffectsChanges=true;
     }
     else
     {
@@ -261,7 +253,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
     SetFrequency(xml_file.GetFrequency());
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
-    mSequenceElements.SetModelsNode(ModelsNode, &NetInfo);
+    mSequenceElements.SetModelsNode(ModelsNode, this);
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file);
     xml_file.CheckUpdateMorphPositions(mSequenceElements, this);
@@ -405,6 +397,17 @@ void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
 
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {
+    wxString s = event.GetString();
+    if ("" != s) {
+        for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
+            if (e->GetName() == "modelGroup") {
+                if (s == e->GetAttribute("name")) {
+                    wxString modelString = e->GetAttribute("models");
+                    mSequenceElements.AddMissingModelsToSequence(modelString, false);
+                }
+            }
+        }
+    }
     mSequenceElements.PopulateRowInformation();
     displayElementsPanel->Initialize();
     ResizeMainSequencer();
@@ -498,6 +501,7 @@ void xLightsFrame::EffectChanged(wxCommandEvent& event)
 {
     Effect* effect = (Effect*)event.GetClientData();
     SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
+    selectedEffectString = wxEmptyString;  // force update to effect rendering
 }
 
 void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
@@ -953,9 +957,9 @@ void xLightsFrame::TimerRgbSeq(long msec)
             playStartMS = -1;
 
             // Update if effect has been modified
-            if( m_mgr->GetPane("SceneEditor").IsShown() )
+            if( m_mgr->GetPane("EffectAssist").IsShown() )
             {
-                sSceneEditor->ForceRefresh();
+                sEffectAssist->ForceRefresh();
             }
 
             RenderEffectForModel(elem->GetName(),playStartTime,playEndTime);
@@ -1152,7 +1156,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
     wxString settings = perspective->GetAttribute("settings");
     PerspectivesNode->DeleteAttribute("current");
     PerspectivesNode->AddAttribute("current",name);
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges=true;
     if(settings.size()==0)
     {
         settings = m_mgr->SavePerspective();
@@ -1170,7 +1174,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
     }
     else if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON )
     {
-        bool visible = m_mgr->GetPane("SceneEditor").IsShown();
+        bool visible = m_mgr->GetPane("EffectAssist").IsShown();
         if( !visible )
         {
             mEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
@@ -1194,7 +1198,7 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 
 void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 {
-    SaveEffectsFile();
+    UnsavedRgbEffectsChanges = true;
 }
 
 void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
@@ -1295,15 +1299,15 @@ void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
 {
-    bool visible = m_mgr->GetPane("SceneEditor").IsShown();
+    bool visible = m_mgr->GetPane("EffectAssist").IsShown();
     if (visible) {
-        m_mgr->GetPane("SceneEditor").Hide();
+        m_mgr->GetPane("EffectAssist").Hide();
         mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
         MenuItemEffectAssistAlwaysOn->Check(false);
         MenuItemEffectAssistAlwaysOff->Check(true);
         MenuItemEffectAssistToggleMode->Check(false);
     } else {
-        m_mgr->GetPane("SceneEditor").Show();
+        m_mgr->GetPane("EffectAssist").Show();
         mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
         MenuItemEffectAssistAlwaysOn->Check(true);
         MenuItemEffectAssistAlwaysOff->Check(false);

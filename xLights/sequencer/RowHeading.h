@@ -10,7 +10,6 @@
 #define PIXELS_PER_MAJOR_HASH       100
 #define DEFAULT_ROW_HEADING_HEIGHT  RowHeading::rowHeadingSize
 #define DEFAULT_ROW_HEADING_MARGIN  16
-#define INDENT_ROW_HEADING_MARGIN   24
 
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
@@ -46,7 +45,6 @@ class RowHeading : public wxWindow
         bool HitTestTimingActive(int row,int x, bool* IsActive);
         const xlColor* GetHeaderColor(Row_Information_Struct* info);
         const xlColor * mHeaderColorModel;
-        const xlColor * mHeaderColorView;
         const xlColor * mHeaderColorTiming;
         const xlColor * mHeaderSelectedColor;
 

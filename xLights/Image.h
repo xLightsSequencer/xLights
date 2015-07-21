@@ -25,9 +25,11 @@ public:
 	 * to get only the image, without the black filling.
 	 */
     int width, height, textureWidth, textureHeight;
+    bool mAlpha;
     float tex_coord_x, tex_coord_y;
 
     GLuint* getID();
+    bool hasAlpha() { return mAlpha; }
     Image();
     Image(wxString path);
     ~Image();

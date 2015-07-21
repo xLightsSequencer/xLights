@@ -1,15 +1,21 @@
 
+
+#include "wx/wx.h"
+
 #ifdef __WXMAC__
  #include "OpenGL/glu.h"
  #include "OpenGL/gl.h"
+ #include "GLUT/glut.h"
 #else
  #include <GL/glu.h>
  #include <GL/gl.h>
+ #include <GL/glut.h>
 #endif
 
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"
 
+const double PI  =3.141592653589793238463;
 
 /* holds a large pre-allocated buffer for the vertices and colors to avoid having to hit the memory
    every time we need to draw stuff.   Since we only use this on the main thread, safe to do */
@@ -76,7 +82,18 @@ public:
     }
 } glCache;
 
-void DrawGLUtils::AddVertex(wxDouble x, wxDouble y, const xlColor &c, int transparency) {
+void DrawGLUtils::DrawText(double x, double y, void *glutBitmapFont, const wxString &text) {
+    glPushMatrix();
+    glColor3f(1.0, 1.0, 1.0);
+    glRasterPos2f(x, y);
+    for (int x = 0; x  < text.length(); x++) {
+        glutBitmapCharacter(glutBitmapFont, text[x]);
+    }
+    glPopMatrix();
+}
+
+
+void DrawGLUtils::AddVertex(double x, double y, const xlColor &c, int transparency) {
     xlColor color(c);
     if (transparency) {
         double t = 100.0 - transparency;
@@ -86,6 +103,29 @@ void DrawGLUtils::AddVertex(wxDouble x, wxDouble y, const xlColor &c, int transp
     }
     glCache.add(x, y, color);
 }
+
+void DrawGLUtils::PreAlloc(int verts) {
+    glCache.resize(verts);
+}
+
+
+void DrawGLUtils::AddRect(double x1, double y1,
+                          double x2, double y2,
+                          const xlColor &c, int transparency) {
+    xlColor color(c);
+    if (transparency) {
+        double t = 100.0 - transparency;
+        t *= 2.55;
+        transparency = t;
+        color.alpha = transparency > 255 ? 255 : (transparency < 0 ? 0 : transparency);
+    }
+    glCache.resize(glCache.curCount + 4);
+    glCache.add(x1, y1, color);
+    glCache.add(x1, y2, color);
+    glCache.add(x2, y2, color);
+    glCache.add(x2, y1, color);
+}
+
 void DrawGLUtils::End(int type, bool reset) {
     glCache.flush(type, reset);
 }
@@ -159,6 +199,18 @@ void DrawGLUtils::DrawCircle(const xlColor &color, double cx, double cy, double 
     glEnd();
 }
 
+void DrawGLUtils::DrawCircleUnfilled(const xlColor &color, double cx, double cy, double r, float width )
+{
+    static const double inc = PI / 12;
+    static const double max = 2 * PI;
+    glLineWidth(width);
+    glColor3ub(color.Red(), color.Green(),color.Blue());
+    glBegin(GL_LINE_LOOP);
+    for(double d = 0; d < max; d += inc) {
+        glVertex2f(cos(d) * r + cx, sin(d) * r + cy);
+    }
+    glEnd();
+}
 
 void DrawGLUtils::DrawLine(const xlColor &color, wxByte alpha,int x1, int y1, int x2, int y2, float width)
 {
@@ -378,5 +430,22 @@ void DrawGLUtils::DrawTexture(GLuint* texture,double x, double y, double x2, dou
     glVertex2f(x-0.4,y2);
     glEnd();
     glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+}
+
+void DrawGLUtils::UpdateTexturePixel(GLuint* texture,double x, double y, xlColor& color, bool hasAlpha)
+{
+    int bytesPerPixel = hasAlpha ?  4 : 3;
+    GLubyte *imageData=new GLubyte[bytesPerPixel];
+    imageData[0] = color.red;
+    imageData[1] = color.green;
+    imageData[2] = color.blue;
+    if( hasAlpha ) {
+        imageData[3] = color.alpha;
+    }
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D,*texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, hasAlpha ?  GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData);
+    delete [] imageData;
     glDisable(GL_TEXTURE_2D);
 }

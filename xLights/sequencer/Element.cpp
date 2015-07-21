@@ -179,17 +179,23 @@ void Element::IncrementChangeCount(int sms, int ems)
 
     listener->IncrementChangeCount();
 }
-
+void Element::InitStrands(ModelClass &model) {
+    if (model.GetDisplayAs() == "WholeHouse") {
+        //no strands for a whole house model
+        return;
+    }
+    int ns = model.GetNumStrands();
+    for (int x = 0; x < ns; x++) {
+        GetStrandLayer(x, true)->InitFromModel(model);
+    }
+}
 void Element::InitStrands(wxXmlNode *node, NetInfoClass &netInfo) {
     if (node == NULL) {
         return;
     }
     ModelClass model;
     model.SetFromXml(node, netInfo);
-    int ns = model.GetNumStrands();
-    for (int x = 0; x < ns; x++) {
-        GetStrandLayer(x, true)->InitFromModel(model);
-    }
+    InitStrands(model);
 }
 
 StrandLayer* Element::GetStrandLayer(int index, bool create) {

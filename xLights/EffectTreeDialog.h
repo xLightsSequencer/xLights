@@ -68,7 +68,7 @@ class EffectTreeDialog : public wxDialog
         wxXmlNode* CreateEffectGroupNode(wxString& name);
         void ApplyEffect(bool dblClick=false);
         void AddImportedItemsRecursively(wxXmlNode* effects_node, wxTreeItemId curGroupID);
-        void SaveEffectsFile();
+        void EffectsFileDirty();
 
 		DECLARE_EVENT_TABLE()
 
