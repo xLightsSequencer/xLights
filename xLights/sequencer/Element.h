@@ -100,6 +100,8 @@ class Element
         void ClearDirtyFlags() {
             dirtyStart = dirtyEnd = -1;
         }
+    
+        wxMutex &GetRenderLock() { return renderLock; }
     protected:
     private:
 
@@ -115,6 +117,8 @@ class Element
         int mFixed;
         std::vector<EffectLayer*> mEffectLayers;
         std::vector<StrandLayer*> mStrandLayers;
+    
+        wxMutex renderLock;
 
         ChangeLister *listener;
         volatile int changeCount = 0;

@@ -239,6 +239,10 @@ public:
         int maxFrameBeforeCheck = -1;
         int origChangeCount;
         int ss, es;
+        
+        wxMutexLocker lock(rowToRender->GetRenderLock());
+        SetGenericStatus("Got lock on rendering thread for %s\n", 0);
+        
         rowToRender->GetAndResetDirtyRange(origChangeCount, ss, es);
         if (ss != -1) {
             //expand to cover the whole dirty range
