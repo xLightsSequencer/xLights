@@ -380,8 +380,11 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
             }
             if (name == pname) {
                 output = x;
+                TimingName->SetValue(outputName);
             }
         }
+    } else {
+        TimingName->SetValue(p->getName());
     }
 
     PluginBase::ParameterList params = p->getParameterDescriptors();
@@ -545,8 +548,9 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
         if (data[1] != data[0]) {
             free(data[1]);
         }
+        return TimingName->GetValue();
     }
-    return TimingName->GetValue();
+    return "";
 #endif
 }
 
