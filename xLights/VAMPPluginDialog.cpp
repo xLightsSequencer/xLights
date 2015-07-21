@@ -162,7 +162,7 @@ void LoadTrackData(mpg123_handle *mh,char  * data, int maxSize)
     }
     free(buffer);
 }
-int OpenMediaFile(const char* filename, wxString& error, float *data[2], long &rate)
+int OpenMediaFile(const char* filename, wxString& error, float *data[2], long &rate, int extra)
 {
     mpg123_handle *mh = NULL;
     int err;
@@ -205,10 +205,10 @@ int OpenMediaFile(const char* filename, wxString& error, float *data[2], long &r
     char * trackData = (char*)malloc(size);
     LoadTrackData(mh,trackData, size);
     // Split data into left and right and normalize -1 to 1
-    data[0] = (float*)calloc(sizeof(float)*mMediaTrackSize + 1024, 1);
+    data[0] = (float*)calloc(sizeof(float)*(mMediaTrackSize + extra), 1);
     if( m_channels == 2 )
     {
-        data[1] = (float*)calloc(sizeof(float)*mMediaTrackSize + 1024, 1);
+        data[1] = (float*)calloc(sizeof(float)*(mMediaTrackSize + extra), 1);
         SplitTrackDataAndNormalize((signed short*)trackData,mMediaTrackSize,data[0],data[1]);
     }
     else if( m_channels == 1 )
@@ -475,7 +475,7 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
         float *pdata[2];
         wxString error;
         long rate;
-        int len = OpenMediaFile(media, error, data, rate);
+        int len = OpenMediaFile(media, error, data, rate, std::max(step, block) + 1);
 
         for (int x = 0; x < params.size(); x++) {
 
