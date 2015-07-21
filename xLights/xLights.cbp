@@ -251,7 +251,7 @@
 					<Add directory="../xLights" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lmpg123 " />
+					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 " />
 					<Add option="`wx-config --libs std,media,gl,aui`" />
 				</Linker>
 			</Target>
@@ -275,7 +275,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="-lGL -lGLU -lmpg123 " />
+					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 " />
 					<Add option="`wx-config --version=3.0 --libs std,media,gl,aui`" />
 				</Linker>
 			</Target>
