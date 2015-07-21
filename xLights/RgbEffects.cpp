@@ -416,6 +416,14 @@ void RgbEffects::GetTempPixel(int x, int y, xlColour &color)
         color=tempbuf[y*BufferWi+x];
     }
 }
+const xlColor &RgbEffects::GetTempPixel(int x, int y) {
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    {
+        return tempbuf[y*BufferWi+x];
+    }
+    return xlBLACK;
+}
+
 
 const xlColor& RgbEffects::GetTempPixelRGB(int x, int y)
 {

@@ -483,6 +483,7 @@ protected:
     void CopyPixel(int srcx, int srcy, int destx, int desty);
     void SetTempPixel(int x, int y, const xlColor &color);
     void GetTempPixel(int x, int y, xlColor &color);
+    const xlColor &GetTempPixel(int x, int y);
 
     void DrawHLine(int y, int xstart, int xend, const xlColor& color, bool wrap = false);
     void DrawVLine(int x, int ystart, int yend, const xlColor& color, bool wrap = false);
