@@ -410,7 +410,7 @@ public:
             SetGenericStatus("%s: Waiting on previous renderer for final frame\n", 0);
             waitForFrame(END_OF_RENDER_FRAME);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
-
+            
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
@@ -493,6 +493,7 @@ private:
                          SettingsMap& settingsMap) {
         settingsMap.clear();
         settingsMap["Effect"]=effectName;
+        
 
         effect->CopySettingsMap(settingsMap, true);
         effect->CopyPaletteMap(settingsMap, true);
@@ -508,7 +509,7 @@ private:
     SequenceData *seqData;
     bool clearAllFrames;
     RenderEvent renderEvent;
-
+    
     //stuff for handling the status;
     wxString statusMsg;
     int statusType;

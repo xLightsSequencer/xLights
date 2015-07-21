@@ -421,14 +421,14 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
                 } else {
                     hsv.value = hsv.value + (hsv.value* ((double)contrast[layer]/(double)100));
                 }
-
+                
                 if (hsv.value < 0.0) hsv.value=0.0;
                 if (hsv.value > 1.0) hsv.value=1.0;
                 unsigned char alpha = color.Alpha();
                 color = wxImage::HSVtoRGB(hsv);
                 color.alpha = alpha;
             }
-
+            
             if (MixTypeHandlesAlpha(mixType[layer])) {
                 c = mixColors(x, y, color, c, layer);
             } else {
