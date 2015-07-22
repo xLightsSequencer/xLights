@@ -24,6 +24,17 @@ Element::~Element()
 }
 
 
+int Element::GetWaitCount() {
+    return waitCount;
+}
+void Element::IncWaitCount() {
+    wxAtomicInc(waitCount);
+}
+void Element::DecWaitCount() {
+    wxAtomicDec(waitCount);
+}
+
+
 wxString Element::GetName()
 {
     return mName;

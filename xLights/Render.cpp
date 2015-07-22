@@ -240,7 +240,9 @@ public:
         int origChangeCount;
         int ss, es;
         
+        rowToRender->IncWaitCount();
         wxMutexLocker lock(rowToRender->GetRenderLock());
+        rowToRender->DecWaitCount();
         SetGenericStatus("Got lock on rendering thread for %s\n", 0);
         
         rowToRender->GetAndResetDirtyRange(origChangeCount, ss, es);
@@ -291,7 +293,9 @@ public:
         for (int frame = startFrame; frame < endFrame; frame++) {
             SetGenericStatus("%s: Starting frame %d\n", frame);
 
-            if (next == nullptr && origChangeCount != rowToRender->getChangeCount()) {
+            if (next == nullptr &&
+                (origChangeCount != rowToRender->getChangeCount()
+                 || rowToRender->GetWaitCount())) {
                 //we're bailing out but make sure this range is reconsidered
                 rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
                 break;
@@ -1019,6 +1023,13 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 event->mutex.Unlock();
             } else {
                 printf("HELP!!!!\n");
+            }
+            if (period % 10 == 0) {
+                //constantly putting stuff on CallAfter can result in the main
+                //dispatch thread never being able to empty the CallAfter
+                //queue and thus effectively blocking.   We'll yield periodically to
+                //allow the main thread to hopefully continue
+                wxThread::Yield();
             }
         } else {
             buffer.RenderText(wxAtoi(SettingsMap["SLIDER_Text_Position1"]),

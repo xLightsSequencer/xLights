@@ -102,6 +102,9 @@ class Element
         }
     
         wxMutex &GetRenderLock() { return renderLock; }
+        int GetWaitCount();
+        void IncWaitCount();
+        void DecWaitCount();
     protected:
     private:
 
@@ -119,6 +122,7 @@ class Element
         std::vector<StrandLayer*> mStrandLayers;
     
         wxMutex renderLock;
+        wxAtomicInt waitCount;
 
         ChangeLister *listener;
         volatile int changeCount = 0;

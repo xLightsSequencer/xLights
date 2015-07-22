@@ -28,6 +28,8 @@
 #include <wx/fontutil.h>
 #include <wx/graphics.h>
 
+#include <map>
+
 //formatting notes:
 //countdown == seconds: put a non-0 value in text line 1 to count down
 //countdown == any of the "to date" options: put "Sat, 18 Dec 1999 00:48:30 +0100" in the text line
@@ -124,38 +126,45 @@ private:
 
 #endif
 
+std::map<wxString, wxFont> FONT_MAP;
 
-void SetFont(wxFont &font,  const wxString& FontString) {
-    if (!FontString.IsEmpty())
-    {
-        font.SetNativeFontInfoUserDesc(FontString);
-        //we want "Arial 8" to be 8 pixels high and not depend on the System DPI
-        font.SetPixelSize(wxSize(0, font.GetPointSize()));
-    }
+wxFont GetFont(const wxString& FontString) {
+    if (FONT_MAP.find(FontString) == FONT_MAP.end()) {
+        wxFont font;
+        if (!FontString.IsEmpty())
+        {
+            font.SetNativeFontInfoUserDesc(FontString);
+            //we want "Arial 8" to be 8 pixels high and not depend on the System DPI
+            font.SetPixelSize(wxSize(0, font.GetPointSize()));
+        }
 #ifdef __WXMSW__
-    /*
-     Here is the format for NativeFontInfo on Windows (taken from the source)
-     We want to change lfQuality from 2 to 3 - this disables antialiasing
-     s.Printf(wxS("%d;%ld;%ld;%ld;%ld;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%s"),
-     0, // version, in case we want to change the format later
-     lf.lfHeight,
-     lf.lfWidth,
-     lf.lfEscapement,
-     lf.lfOrientation,
-     lf.lfWeight,
-     lf.lfItalic,
-     lf.lfUnderline,
-     lf.lfStrikeOut,
-     lf.lfCharSet,
-     lf.lfOutPrecision,
-     lf.lfClipPrecision,
-     lf.lfQuality,
-     lf.lfPitchAndFamily,
-     lf.lfFaceName);*/
-    wxString s = font.GetNativeFontInfoDesc();
-    s.Replace(";2;",";3;",false);
-    font.SetNativeFontInfo(s);
+        /*
+         Here is the format for NativeFontInfo on Windows (taken from the source)
+         We want to change lfQuality from 2 to 3 - this disables antialiasing
+         s.Printf(wxS("%d;%ld;%ld;%ld;%ld;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%s"),
+         0, // version, in case we want to change the format later
+         lf.lfHeight,
+         lf.lfWidth,
+         lf.lfEscapement,
+         lf.lfOrientation,
+         lf.lfWeight,
+         lf.lfItalic,
+         lf.lfUnderline,
+         lf.lfStrikeOut,
+         lf.lfCharSet,
+         lf.lfOutPrecision,
+         lf.lfClipPrecision,
+         lf.lfQuality,
+         lf.lfPitchAndFamily,
+         lf.lfFaceName);*/
+        wxString s = font.GetNativeFontInfoDesc();
+        s.Replace(";2;",";3;",false);
+        font.SetNativeFontInfo(s);
 #endif
+        FONT_MAP[FontString] = font;
+        return font;
+    }
+    return FONT_MAP[FontString];
 }
 
 // Render 4 independent strings of text
@@ -176,14 +185,10 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 //    if (DefaultPixelHt < 10) DefaultPixelHt=10; // min height
     if (DefaultPixelHt < 8) DefaultPixelHt=8; // min height; allow smaller grids -DJ
     wxSize pixelSize(0,DefaultPixelHt);
-    wxFont Font1(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
-    wxFont Font2(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
-    wxFont Font3(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
-    wxFont Font4(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
-    SetFont(Font1, FontString1);
-    SetFont(Font2, FontString2);
-    SetFont(Font3, FontString3);
-    SetFont(Font4, FontString4);
+    wxFont Font1(GetFont(FontString1));
+    wxFont Font2(GetFont(FontString2));
+    wxFont Font3(GetFont(FontString3));
+    wxFont Font4(GetFont(FontString4));
 
     for (int pass = 0; pass < 2; ++pass)
     {
