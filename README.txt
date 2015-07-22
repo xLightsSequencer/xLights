@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil)   Prevent text labels from piling up on left side when scrolling.
 4.1.12  Jul 20, 2015
     -- enh (dkulp) If VAMP plugins are found, allow using them to generating timing rows
 

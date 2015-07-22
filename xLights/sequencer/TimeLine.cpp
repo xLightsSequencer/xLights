@@ -422,7 +422,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS,int endTimeMS,EFFECT_SC
         majorHashs = (double)(endTimeMS - mStartTimeMS)/(double)TimePerMajorTickInMS();
         x4=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
     }
-    else if(startTimeMS < mStartTimeMS && endTimeMS <= mEndTimeMS)
+    else if(startTimeMS < mStartTimeMS && endTimeMS > mStartTimeMS && endTimeMS <= mEndTimeMS)
     {
         screenMode = SCREEN_R_ON;
         double majorHashs = (double)(endTimeMS - mStartTimeMS)/(double)TimePerMajorTickInMS();
@@ -432,7 +432,7 @@ void TimeLine::GetPositionsFromTimeRange(int startTimeMS,int endTimeMS,EFFECT_SC
         x3=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
         x4=x2;
     }
-    else if(startTimeMS >= mStartTimeMS && endTimeMS > mEndTimeMS)
+    else if(startTimeMS >= mStartTimeMS && startTimeMS < mEndTimeMS && endTimeMS > mEndTimeMS)
     {
         screenMode = SCREEN_L_ON;
         double majorHashs = (double)(startTimeMS - mStartTimeMS)/(double)TimePerMajorTickInMS();
