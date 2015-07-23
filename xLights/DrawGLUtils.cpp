@@ -84,12 +84,21 @@ public:
 
 void DrawGLUtils::DrawText(double x, double y, void *glutBitmapFont, const wxString &text) {
     glPushMatrix();
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3f(0, 0, 0);
     glRasterPos2f(x, y);
     for (int x = 0; x  < text.length(); x++) {
         glutBitmapCharacter(glutBitmapFont, text[x]);
     }
     glPopMatrix();
+}
+
+int DrawGLUtils::GetTextWidth(void *glutBitmapFont, const wxString &text)
+{
+    int length = 0;
+    for (int x = 0; x  < text.length(); x++) {
+        length += glutBitmapWidth(glutBitmapFont, text[x]);
+    }
+    return length;
 }
 
 

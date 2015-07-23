@@ -24,6 +24,7 @@ namespace DrawGLUtils
     };
 
     void DrawText(double x, double y, void *glutBitmapFont, const wxString &text);
+    int GetTextWidth(void *glutBitmapFont, const wxString &text);
     void DrawPoint(const xlColor &color, double x, double y);
 
     void DrawCircle(const xlColor &color, double x, double y, double r, int ctransparency = 0, int etransparency = 0);

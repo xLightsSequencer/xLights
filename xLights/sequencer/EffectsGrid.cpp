@@ -1765,6 +1765,9 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
 
 void EffectsGrid::DrawTimingEffects(int row)
 {
+    xlColor label_color(255,255,204);
+    xlColor label_outline_color(76,76,0);
+
     Element* element =mSequenceElements->GetVisibleRowInformation(row)->element;
     EffectLayer* effectLayer=mSequenceElements->GetVisibleEffectLayer(row);
     xlColor* mEffectColorRight;
@@ -1778,7 +1781,7 @@ void EffectsGrid::DrawTimingEffects(int row)
 
         int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+4;
         int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-4;
-        int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT * 2.0 / 3.0);
+        int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT / 2.0);
         int x1,x2,x3,x4;
 
         mTimeline->GetPositionsFromTimeRange(effectLayer->GetEffect(effectIndex)->GetStartTimeMS(),
@@ -1847,12 +1850,19 @@ void EffectsGrid::DrawTimingEffects(int row)
             if(mode!=SCREEN_L_R_OFF)
             {
                 DrawGLUtils::DrawLine(*mTimingColor,255,x1,y,x2,y,2);
-                if (effectLayer->GetEffect(effectIndex)->GetEffectName() != "") {
+                if (effectLayer->GetEffect(effectIndex)->GetEffectName() != "" && (x2-x1) > 20 ) {
                     void * font = GLUT_BITMAP_HELVETICA_12;
                     if (translateToBacking(1.0) > 1.5) {
                         font = GLUT_BITMAP_HELVETICA_18;
                     }
-                    DrawGLUtils::DrawText(x1 + 1, y - 1, font, effectLayer->GetEffect(effectIndex)->GetEffectName());
+                    int max_width = x2-x1-18;
+                    int text_width = DrawGLUtils::GetTextWidth(font, effectLayer->GetEffect(effectIndex)->GetEffectName()) + 8;
+                    int width = std::min(text_width, max_width);
+                    int center = x1 + (x2-x1)/2;
+                    int label_start = center - width/2;
+                    DrawGLUtils::DrawFillRectangle(label_color,80,label_start,y1-2,width,y2-y1+4);
+                    DrawGLUtils::DrawRectangle(label_outline_color,false,label_start,y1-2,label_start + width,y2+2);
+                    DrawGLUtils::DrawText( label_start + 4, y2-2, font, effectLayer->GetEffect(effectIndex)->GetEffectName());
                 }
             }
         }
