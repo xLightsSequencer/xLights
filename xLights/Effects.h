@@ -65,6 +65,7 @@ void RenderSingleStrandSkips(Effect *eff, int Skips_BandSize, int Skips_SkipSize
 void draw_chase(int x, bool group, int ColorScheme,int Number_Chases,bool autoReverse,int width,
                 int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection, bool mirror);
 
+void set_pixel_if_not_color(int x, int y, xlColor toColor, xlColor notColor, bool wrapx, bool wrapy);
 void RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool accumulate);
 void RenderSnowstorm(int Count, int Length, int sSpeed);
 void RenderSpirals(int PaletteRepeat, float Movement, int Rotation, int Thickness,
