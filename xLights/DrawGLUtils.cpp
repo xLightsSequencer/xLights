@@ -82,6 +82,30 @@ public:
     }
 } glCache;
 
+
+void DrawGLUtils::DrawStrokedText(double x, double y, float size, const wxString &text) {
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glEnable(GL_LINE_SMOOTH);
+    glLineWidth(1.0);
+    glPushMatrix();
+    glColor3f(0, 0, 0);
+    glTranslatef(x, y, 0);
+    glScalef(size / 150.0, - size / 150.0, 1.0);
+    for (int x = 0; x  < text.length(); x++) {
+        glutStrokeCharacter(GLUT_STROKE_ROMAN, text[x]);
+    }
+    glPopMatrix();
+    glDisable(GL_BLEND);
+    glDisable(GL_LINE_SMOOTH);
+}
+
+int DrawGLUtils::GetStrokedTextWidth(float size, const wxString &text) {
+    int ret = glutStrokeLength(GLUT_STROKE_ROMAN, text.c_str()) * size / 150;
+    return ret;
+}
+
+
 void DrawGLUtils::DrawText(double x, double y, void *glutBitmapFont, const wxString &text) {
     glPushMatrix();
     glColor3f(0, 0, 0);
