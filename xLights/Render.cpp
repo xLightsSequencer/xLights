@@ -1009,7 +1009,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                             wxAtoi(SettingsMap["SLIDER_Strobe_Type"]));
     } else if (effect == "Text") {
         // this needs to be on the primary thread due to GDI calls
-        if (bgThread) {
+        if (bgThread && false) {
             event->effect = effectObj;
             event->layer = layer;
             event->period = period;

@@ -126,9 +126,12 @@ private:
 
 #endif
 
+
+wxMutex FONT_MAP_LOCK;
 std::map<wxString, wxFont> FONT_MAP;
 
-wxFont GetFont(const wxString& FontString) {
+void SetFont(DrawingContext *dc, const wxString& FontString, const xlColor &color) {
+    wxMutexLocker locker(FONT_MAP_LOCK);
     if (FONT_MAP.find(FontString) == FONT_MAP.end()) {
         wxFont font;
         if (!FontString.IsEmpty())
@@ -162,9 +165,10 @@ wxFont GetFont(const wxString& FontString) {
         font.SetNativeFontInfo(s);
 #endif
         FONT_MAP[FontString] = font;
-        return font;
+        dc->SetFont(font, color);
+        return;
     }
-    return FONT_MAP[FontString];
+    dc->SetFont(FONT_MAP[FontString], color);
 }
 
 // Render 4 independent strings of text
@@ -185,10 +189,6 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 //    if (DefaultPixelHt < 10) DefaultPixelHt=10; // min height
     if (DefaultPixelHt < 8) DefaultPixelHt=8; // min height; allow smaller grids -DJ
     wxSize pixelSize(0,DefaultPixelHt);
-    wxFont Font1(GetFont(FontString1));
-    wxFont Font2(GetFont(FontString2));
-    wxFont Font3(GetFont(FontString3));
-    wxFont Font4(GetFont(FontString4));
 
     for (int pass = 0; pass < 2; ++pass)
     {
@@ -198,28 +198,28 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 
         size_t colorcnt=GetColorCount();
         palette.GetColor(0,c);
-        dc->SetFont(Font1, c);
+        SetFont(dc,FontString1,c);
         RenderTextLine(dc,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass, speed1);
 
         if(colorcnt>1)
         {
             palette.GetColor(1,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
-        dc->SetFont(Font2,c);
+        SetFont(dc,FontString2,c);
         RenderTextLine(dc,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass, speed2);
 
         if(colorcnt>2)
         {
             palette.GetColor(2,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
-        dc->SetFont(Font3, c);
+        SetFont(dc,FontString3,c);
         RenderTextLine(dc,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass, speed3);
 
         if(colorcnt>3)
         {
             palette.GetColor(3,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
-        dc->SetFont(Font4, c);
+        SetFont(dc,FontString4,c);
         RenderTextLine(dc,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass, speed4);
     }
 
