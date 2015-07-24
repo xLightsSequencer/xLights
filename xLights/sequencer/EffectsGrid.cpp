@@ -638,7 +638,7 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
 {
     mPartialCellSelected = false;
     // make sure a valid row and column is selected
-    if( mRangeStartCol > 0 && mRangeStartRow > 0 )
+    if( mRangeStartCol >= 0 && mRangeStartRow >= 0 )
     {
         // check for only single cell selection
         if( mRangeStartRow == mRangeEndRow && mRangeStartCol == mRangeEndCol )
