@@ -1851,16 +1851,16 @@ void EffectsGrid::DrawTimingEffects(int row)
             {
                 DrawGLUtils::DrawLine(*mTimingColor,255,x1,y,x2,y,2);
                 if (effectLayer->GetEffect(effectIndex)->GetEffectName() != "" && (x2-x1) > 20 ) {
-                    float fontSize = DEFAULT_ROW_HEADING_HEIGHT - 10;
-                    
+                    double fontSize = DEFAULT_ROW_HEADING_HEIGHT - 10;
+                    double factor = translateToBacking(1.0);
                     int max_width = x2-x1-18;
-                    int text_width = DrawGLUtils::GetStrokedTextWidth(fontSize, effectLayer->GetEffect(effectIndex)->GetEffectName()) + 8;
+                    int text_width = DrawGLUtils::GetTextWidth(fontSize, effectLayer->GetEffect(effectIndex)->GetEffectName(), factor) + 8;
                     int width = std::min(text_width, max_width);
                     int center = x1 + (x2-x1)/2;
                     int label_start = center - width/2;
                     DrawGLUtils::DrawFillRectangle(label_color,80,label_start,y1-2,width,y2-y1+4);
                     DrawGLUtils::DrawRectangle(label_outline_color,false,label_start,y1-2,label_start + width,y2+2);
-                    DrawGLUtils::DrawStrokedText(label_start + 4, y2-3, fontSize, effectLayer->GetEffect(effectIndex)->GetEffectName());
+                    DrawGLUtils::DrawText(label_start + 4, y2-3, fontSize, effectLayer->GetEffect(effectIndex)->GetEffectName(), factor);
                 }
             }
         }

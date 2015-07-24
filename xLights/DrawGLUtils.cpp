@@ -83,11 +83,51 @@ public:
 } glCache;
 
 
-void DrawGLUtils::DrawStrokedText(double x, double y, float size, const wxString &text) {
+void DrawGLUtils::DrawText(double x, double y, double size, const wxString &text, double factor) {
+    int tsize = size * factor;
+    void *font = nullptr;
+    switch (tsize) {
+    case 10:
+        font = GLUT_BITMAP_HELVETICA_10;
+        break;
+    case 12:
+        font = GLUT_BITMAP_HELVETICA_12;
+        break;
+    case 18:
+        font = GLUT_BITMAP_HELVETICA_18;
+        break;
+    }
+    if (font) {
+        DrawText(x, y, font, text);
+    } else {
+        DrawStrokedText(x, y, size, text);
+    }
+}
+int DrawGLUtils::GetTextWidth(double size, const wxString &text, double factor) {
+    int tsize = size * factor;
+    void *font = nullptr;
+    switch (tsize) {
+        case 10:
+            font = GLUT_BITMAP_HELVETICA_10;
+            break;
+        case 12:
+            font = GLUT_BITMAP_HELVETICA_12;
+            break;
+        case 18:
+            font = GLUT_BITMAP_HELVETICA_18;
+            break;
+    }
+    if (font) {
+        return GetTextWidth(font, text);
+    }
+    return GetStrokedTextWidth(size, text);
+}
+
+void DrawGLUtils::DrawStrokedText(double x, double y, float size, const wxString &text, double factor) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
     glEnable(GL_LINE_SMOOTH);
-    glLineWidth(1.0);
+    glLineWidth(factor * 0.9);
     glPushMatrix();
     glColor3f(0, 0, 0);
     glTranslatef(x, y, 0);
