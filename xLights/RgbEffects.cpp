@@ -408,6 +408,13 @@ void RgbEffects::SetTempPixel(int x, int y, const xlColour &color)
     }
 }
 
+void RgbEffects::SetTempPixel(int x, int y, const xlColour & color, int alpha)
+{
+    xlColor c(color.Red(), color.Green(), color.Blue(), alpha);
+
+    SetTempPixel(x, y, c);
+}
+
 // 0,0 is lower left
 void RgbEffects::GetTempPixel(int x, int y, xlColour &color)
 {
@@ -529,12 +536,12 @@ void RgbEffects::SetDisplayListRect(Effect *eff, int idx, double x1, double y1, 
     eff->GetBackgroundDisplayList()[idx+1].x = x1;
     eff->GetBackgroundDisplayList()[idx+2].x = x2;
     eff->GetBackgroundDisplayList()[idx+3].x = x2;
-    
+
     eff->GetBackgroundDisplayList()[idx].y = y1;
     eff->GetBackgroundDisplayList()[idx+1].y = y2;
     eff->GetBackgroundDisplayList()[idx+2].y = y2;
     eff->GetBackgroundDisplayList()[idx+3].y = y1;
-    
+
     eff->GetBackgroundDisplayList()[idx].usage = GL_QUADS;
     eff->GetBackgroundDisplayList()[idx+1].usage = GL_QUADS;
     eff->GetBackgroundDisplayList()[idx+2].usage = GL_QUADS;
@@ -543,19 +550,19 @@ void RgbEffects::SetDisplayListRect(Effect *eff, int idx, double x1, double y1, 
 void RgbEffects::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex, int inc) {
     wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
     int count = curEffEndPer - curEffStartPer + 1;
-    
-    
+
+
     int total = curEffEndPer - curEffStartPer + 1;
     double x = double(curPeriod - curEffStartPer) / double(total);
     double x2 = (curPeriod - curEffStartPer + 1.0) / double(total);
     xlColor c;
-    
+
     int cur = 0;
     for (int p = sx; p <= ex; p += inc) {
         double y = double(p - sx) / double(ex - sx + 1.0);
         double y2 = double(p - sx + 1.0) / double(ex - sx + 1.0);
         GetPixel(p, row, c);
-        
+
         int idx = cur * count + (curPeriod - curEffStartPer);
         cur++;
         SetDisplayListHRect(eff, idx*4, x, y, x2, y2, c, c);

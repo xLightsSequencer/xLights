@@ -20,10 +20,32 @@
     You should have received a copy of the GNU General Public License
     along with xLights.  If not, see <http://www.gnu.org/licenses/>.
 
- * 2015 Keith Westley added support for accumulation of snow for type 1 flakes only
+ * 2015 Keith Westley added support for accumulation of snow
 **************************************************************/
 #include <cmath>
 #include "RgbEffects.h"
+
+int RgbEffects::possible_downward_moves(int x, int y)
+{
+    int moves = 0;
+
+    // no moves possible from bottom row
+    if (y == 0) {
+        return 0;
+    }
+
+    if (GetTempPixel(x-1 < 0 ? x-1+BufferWi : x-1, y-1) == xlBLACK) {
+        moves += 1;
+    }
+    if (GetTempPixel(x, y-1) == xlBLACK) {
+        moves += 2;
+    }
+    if (GetTempPixel(x+1 >= BufferWi ? x+1-BufferWi : x+1, y-1) == xlBLACK) {
+        moves += 4;
+    }
+
+    return moves;
+}
 
 void RgbEffects::set_pixel_if_not_color(int x, int y, xlColor toColor, xlColor notColor, bool wrapx, bool wrapy)
 {
@@ -63,7 +85,8 @@ void RgbEffects::set_pixel_if_not_color(int x, int y, xlColor toColor, xlColor n
         }
     }
 
-    if (GetTempPixel(adjx, adjy) != notColor) {
+    // strip off alpha when comparing
+    if (GetTempPixel(adjx, adjy).GetRGB() != notColor.GetRGB()) {
         SetPixel(adjx, adjy, toColor);
     }
 }
@@ -71,7 +94,7 @@ void RgbEffects::set_pixel_if_not_color(int x, int y, xlColor toColor, xlColor n
 void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool accumulate)
 {
     int i,n,x,x0,y0,y,check,delta_y;
-    xlColour color1,color2;
+    xlColour color1,color2, color3;
     bool wrapx = false; // set to true if you want snowflakes to draw wrapped around when near edges in the accumulate effect.
 
     palette.GetColor(0, color1);
@@ -91,52 +114,66 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool
         effectState = 0;
 
         // place Count snowflakes
-        if(!accumulate)
-        {
-            for (n=0; n < Count; n++) {
+        for (n=0; n < Count; n++) {
 
-                delta_y=BufferHt/4;
-                y0=(n % 4)*delta_y;
+            delta_y=BufferHt/4;
+            y0=(n % 4)*delta_y;
 
-                if (y0+delta_y > BufferHt) delta_y = BufferHt-y0;
-                if (delta_y<1) delta_y=1;
+            if (y0+delta_y > BufferHt) delta_y = BufferHt-y0;
+            if (delta_y<1) delta_y=1;
 
-                // find unused space
-                for (check=0; check < 20; check++)
-                {
-                    x=rand() % BufferWi;
-                    y=y0 + (rand() % delta_y);
-                    if (GetTempPixel(x,y) == xlBLACK) {
-                        effectState++;
-                        break;
-                    }
-                }
-
-                // draw flake, SnowflakeType=0 is random type
-                switch (SnowflakeType == 0 ? rand() % 5 : SnowflakeType-1)
-                {
-                case 0:
-                    // single node
-                    SetTempPixel(x,y,color1);
+            // find unused space
+            for (check=0; check < 20; check++)
+            {
+                x=rand() % BufferWi;
+                y=y0 + (rand() % delta_y);
+                if (GetTempPixel(x,y) == xlBLACK) {
+                    effectState++;
                     break;
-                case 1:
-                    // 5 nodes
-                    if (x < 1) x+=1;
-                    if (y < 1) y+=1;
-                    if (x > BufferWi-2) x-=1;
-                    if (y > BufferHt-2) y-=1;
+                }
+            }
+
+            // draw flake, SnowflakeType=0 is random type
+            switch (SnowflakeType == 0 ? rand() % 5 : SnowflakeType-1)
+            {
+            case 0:
+                // single node
+                if(accumulate) {
+                    SetTempPixel(x, y, color1, 0);
+                }
+                else {
+                    SetTempPixel(x, y, color1);
+                }
+                break;
+            case 1:
+                // 5 nodes
+                if (x < 1) x+=1;
+                if (y < 1) y+=1;
+                if (x > BufferWi-2) x-=1;
+                if (y > BufferHt-2) y-=1;
+                if(accumulate) {
+                    SetTempPixel(x,y,color1, 1);
+                }
+                else {
                     SetTempPixel(x,y,color1);
                     SetTempPixel(x-1,y,color2);
                     SetTempPixel(x+1,y,color2);
                     SetTempPixel(x,y-1,color2);
                     SetTempPixel(x,y+1,color2);
-                    break;
-                case 2:
-                    // 3 nodes
-                    if (x < 1) x+=1;
-                    if (y < 1) y+=1;
-                    if (x > BufferWi-2) x-=1;
-                    if (y > BufferHt-2) y-=1;
+                }
+                break;
+            case 2:
+                // 3 nodes
+                if (x < 1) x+=1;
+                if (y < 1) y+=1;
+                if (x > BufferWi-2) x-=1;
+                if (y > BufferHt-2) y-=1;
+                if(accumulate)
+                {
+                    SetTempPixel(x,y,color1, 2);
+                }
+                else
+                {
                     SetTempPixel(x,y,color1);
                     if (rand() % 100 > 50)      // % 2 was not so random
                     {
@@ -148,14 +185,19 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool
                         SetTempPixel(x,y-1,color2);
                         SetTempPixel(x,y+1,color2);
                     }
-                    break;
-                case 3:
-                    // 9 nodes
-                    if (x < 2) x+=2;
-                    if (y < 2) y+=2;
-                    if (x > BufferWi-3) x-=2;
-                    if (y > BufferHt-3) y-=2;
-                    SetTempPixel(x,y,color1);
+                }
+                break;
+            case 3:
+                // 9 nodes
+                if (x < 2) x+=2;
+                if (y < 2) y+=2;
+                if (x > BufferWi-3) x-=2;
+                if (y > BufferHt-3) y-=2;
+                if(accumulate) {
+                    SetTempPixel(x, y, color1, 3);
+                }
+                else {
+                    SetTempPixel(x, y, color1);
                     for (i=1; i<=2; i++)
                     {
                         SetTempPixel(x-i,y,color2);
@@ -163,14 +205,19 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool
                         SetTempPixel(x,y-i,color2);
                         SetTempPixel(x,y+i,color2);
                     }
-                    break;
-                case 4:
-                    // 13 nodes
-                    if (x < 2) x+=2;
-                    if (y < 2) y+=2;
-                    if (x > BufferWi-3) x-=2;
-                    if (y > BufferHt-3) y-=2;
-                    SetTempPixel(x,y,color1);
+                }
+                break;
+            case 4:
+                // 13 nodes
+                if (x < 2) x+=2;
+                if (y < 2) y+=2;
+                if (x > BufferWi-3) x-=2;
+                if (y > BufferHt-3) y-=2;
+                if(accumulate) {
+                    SetTempPixel(x, y, color1, 4);
+                }
+                else {
+                    SetTempPixel(x, y, color1);
                     SetTempPixel(x-1,y,color2);
                     SetTempPixel(x+1,y,color2);
                     SetTempPixel(x,y-1,color2);
@@ -184,11 +231,11 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool
                     SetTempPixel(x+2,y+1,color2);
                     SetTempPixel(x-2,y-1,color2);
                     SetTempPixel(x-2,y+1,color2);
-                    break;
-                case 5:
-                    // 45 nodes (not enabled)
-                    break;
                 }
+                break;
+            case 5:
+                // 45 nodes (not enabled)
+                break;
             }
         }
     }
@@ -204,106 +251,99 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool
         for (y=starty; y<BufferHt; y++) {
             if (accumulate) {
 
-                // if there is a flake to move
-                if (GetTempPixel(x, y) != xlBLACK) {
+                // this controls the speed by skipping movement when slow
+                if (((curPeriod-curEffStartPer) * (sSpeed+1)) / 30 != ((curPeriod-curEffStartPer-1) * (sSpeed + 1)) / 30)
+                {
+                    // if there is a flake to move
+                    GetTempPixel(x, y, color3);
+                    if (color3 != xlBLACK) {
 
-                    // check where we can move to?
-                    bool moveleft = (GetTempPixel(x-1 < 0 ? x-1+BufferWi : x-1, y-1) == xlBLACK);
-                    bool movedown (GetTempPixel(x, y-1) == xlBLACK);
-                    bool moveright (GetTempPixel(x+1 >= BufferWi ? x+1-BufferWi : x+1, y-1) == xlBLACK);
-                    x0 = x;
+                        // check where we can move to?
+                        int moves = possible_downward_moves(x, y);
+                        x0 = x;
 
-                    //we have something to move
-                    // randomly move the flake left or right
-                    if (moveleft || movedown || moveright)
-                    {
-                        switch(rand() % 5)
+                        //we have something to move
+                        // randomly move the flake left or right
+                        if (moves > 0)
                         {
-                            case 0:
-                                if (moveleft) {
-                                    x0 = x - 1;
-                                }
-                                else {
-                                    if (movedown) {
-                                        x0 = x;
-                                    }
-                                    else {
-                                        x0 = x + 1;
-                                    }
-                                }
-                                break;
-                            case 1:
-                                if (moveright) {
-                                    x0 = x + 1;
-                                }
-                                else {
-                                    if (movedown) {
-                                        x0 = x;
-                                    }
-                                    else {
+                            switch(rand() % 5)
+                            {
+                                case 0:
+                                    if (moves & 1) {
                                         x0 = x - 1;
                                     }
-                                }
-                                break;
-                            default:  //down more often then left/right to look less "jittery"
-                                if (movedown) {
-                                    x0 = x;
-                                }
-                                else if (moveright && !moveleft) {
-                                    x0 = x + 1;
-                                }
-                                else if (!moveright && moveleft) {
-                                    x0 = x - 1;
-                                }
-                                else {
-                                    switch(rand() % 2)
-                                    {
-                                    case 0:
-                                        x0 = x+1;
-                                        break;
-                                    default:
-                                        x0 = x-1;
-                                        break;
+                                    else {
+                                        if (moves & 2) {
+                                            x0 = x;
+                                        }
+                                        else {
+                                            x0 = x + 1;
+                                        }
                                     }
-                                }
-                                break;
-                        }
-
-                        // handle wrap around
-                        if (x0 < 0) {
-                            x0 += BufferWi;
-                        }
-                        else if (x0 >= BufferWi) {
-                            x0 -= BufferWi;
-                        }
-
-                        // and move it down
-                        y0 = y - 1;
-
-                        // if there is already a flake there then we dont do anything
-                        //if (GetTempPixel(x0, y0) == xlBLACK)
-                        //{
-                            // move the flake down
-                            SetTempPixel(x0,y0,color1);
-                            SetTempPixel(x,y,xlBLACK);
-
-                            bool isAtBottom = true;
-                            for (int yt = 0; yt < y0; yt++) {
-                                if (GetTempPixel(x0, yt) == xlBLACK) {
-                                    isAtBottom = false;
                                     break;
-                                }
+                                case 1:
+                                    if (moves & 4) {
+                                        x0 = x + 1;
+                                    }
+                                    else {
+                                        if (moves & 2) {
+                                            x0 = x;
+                                        }
+                                        else {
+                                            x0 = x - 1;
+                                        }
+                                    }
+                                    break;
+                                default:  //down more often then left/right to look less "jittery"
+                                    if (moves & 2) {
+                                        x0 = x;
+                                    }
+                                    else if (moves & 5 == 4) {
+                                        x0 = x + 1;
+                                    }
+                                    else if (moves & 5 == 1) {
+                                        x0 = x - 1;
+                                    }
+                                    else {
+                                        switch(rand() % 2)
+                                        {
+                                        case 0:
+                                            x0 = x+1;
+                                            break;
+                                        default:
+                                            x0 = x-1;
+                                            break;
+                                        }
+                                    }
+                                    break;
                             }
 
-                            if (isAtBottom) {
+                            // handle wrap around
+                            if (x0 < 0) {
+                                x0 += BufferWi;
+                            }
+                            else if (x0 >= BufferWi) {
+                                x0 -= BufferWi;
+                            }
+
+                            // and move it down
+                            y0 = y - 1;
+
+                            // move the flake down
+                            SetTempPixel(x0, y0, color3);
+                            SetTempPixel(x, y, xlBLACK);
+
+                            int nextmoves = possible_downward_moves(x0, y0);
+                            if (nextmoves == 0) {
                                 // we cant move any further so we can add one at the top
                                 effectState--;
                             }
-                        //}
+                        }
                     }
                 }
             } else {
                 new_y = (y+movement/10) % BufferHt;
+                // strip off the alpha channel
                 SetPixel(x, y, GetTempPixel(new_x, new_y));
             }
         }
@@ -319,16 +359,10 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool
             x=rand() % BufferWi;
             if (GetTempPixel(x, BufferHt-1) == xlBLACK) {
                 effectState++;
-                SetTempPixel(x, BufferHt-1, color1);
+                SetTempPixel(x, BufferHt-1, color1, SnowflakeType == 0 ? rand() % 5 : SnowflakeType-1);
 
-                bool isAtBottom = true;
-                for (int yt = 0; yt < BufferHt-1; yt++) {
-                    if (GetTempPixel(x, yt) == xlBLACK) {
-                        isAtBottom = false;
-                        break;
-                    }
-                }
-                if (isAtBottom) {
+                int nextmoves = possible_downward_moves(x, BufferHt-1);
+                if (nextmoves == 0) {
                     //the placed pixel fills the column, make sure we note that so we can place
                     //another snowflake
                     placedFullCount++;
@@ -342,10 +376,11 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool
         for (int y=0; y < BufferHt; y++) {
             for (int x=0; x < BufferWi; x++) {
 
-                if (GetTempPixel(x, y) == color1)
+                GetTempPixel(x, y, color3);
+                if (color3 != xlBLACK)
                 {
                     // draw flake, SnowflakeType=0 is random type
-                    switch (SnowflakeType == 0 ? rand() % 5 : SnowflakeType-1)
+                    switch (color3.Alpha())
                     {
                         case 0:
                             // single node
