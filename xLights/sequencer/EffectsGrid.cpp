@@ -613,7 +613,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                 wxPostEvent(mParent, eventUnSelected);
             }
         }
-        else if (row < mSequenceElements->GetVisibleRowInformationSize()) {
+        else if (row >= 0 && row < mSequenceElements->GetVisibleRowInformationSize()) {
             EffectLayer* el = mSequenceElements->GetVisibleRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(row)->layerIndex);
             int selectionType;
             int effectIndex = el->GetEffectIndexThatContainsPosition(event.GetX(),selectionType);

@@ -25,7 +25,11 @@ void PhonemeDictionary::LoadDictionaries()
     LoadDictionary("user_dictionary");
 
     wxFileName phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
-    phonemeFile.SetFullName("phoneme_mapping");
+    phonemeFile.SetFullName("phoneme_mapping");    
+    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+        phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetResourcesDir());
+        phonemeFile.SetFullName("phoneme_mapping");
+    }
     if (!wxFile::Exists(phonemeFile.GetFullPath()))
     {
         wxMessageBox("Failed to open Phoneme Mapping file!");
@@ -57,6 +61,10 @@ void PhonemeDictionary::LoadDictionary(wxString filename)
 {
     wxFileName phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
     phonemeFile.SetFullName(filename);
+    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+        phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetResourcesDir());
+        phonemeFile.SetFullName(filename);
+    }
     if (!wxFile::Exists(phonemeFile.GetFullPath()))
     {
         wxMessageBox("Failed to open Phoneme dictionary!");

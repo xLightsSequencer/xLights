@@ -123,6 +123,11 @@
 		67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A1D17B51C0F008E95BB /* xlights_out.cpp */; };
 		67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2117B51C0F008E95BB /* xLightsApp.cpp */; };
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
+		67AAF8F21B63767B00585431 /* PhonemeDictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */; };
+		67AAF8F81B63785900585431 /* user_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F41B63785900585431 /* user_dictionary */; };
+		67AAF8F91B63785900585431 /* extended_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F51B63785900585431 /* extended_dictionary */; };
+		67AAF8FA1B63785900585431 /* phoneme_mapping in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F61B63785900585431 /* phoneme_mapping */; };
+		67AAF8FB1B63785900585431 /* standard_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F71B63785900585431 /* standard_dictionary */; };
 		67B189761AA22C990082B00C /* RenderMorph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B189751AA22C990082B00C /* RenderMorph.cpp */; };
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
 		67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797171A5AE343008D5921 /* ColorPanel.cpp */; };
@@ -359,6 +364,12 @@
 		67A61A2217B51C0F008E95BB /* xLightsApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsApp.h; sourceTree = "<group>"; };
 		67A61A2417B51C0F008E95BB /* xLightsMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = xLightsMain.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67A61A2517B51C0F008E95BB /* xLightsMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = xLightsMain.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PhonemeDictionary.cpp; sourceTree = "<group>"; };
+		67AAF8F11B63767B00585431 /* PhonemeDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhonemeDictionary.h; sourceTree = "<group>"; };
+		67AAF8F41B63785900585431 /* user_dictionary */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = user_dictionary; path = bin/user_dictionary; sourceTree = "<group>"; };
+		67AAF8F51B63785900585431 /* extended_dictionary */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = extended_dictionary; path = bin/extended_dictionary; sourceTree = "<group>"; };
+		67AAF8F61B63785900585431 /* phoneme_mapping */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = phoneme_mapping; path = bin/phoneme_mapping; sourceTree = "<group>"; };
+		67AAF8F71B63785900585431 /* standard_dictionary */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = standard_dictionary; path = bin/standard_dictionary; sourceTree = "<group>"; };
 		67B189751AA22C990082B00C /* RenderMorph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderMorph.cpp; sourceTree = "<group>"; };
 		67B30CDC1A583F7A009E23FF /* libmpg123.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpg123.0.dylib; path = lib/osx/libmpg123.0.dylib; sourceTree = "<group>"; };
 		67B4C91F17B53D960006B951 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
@@ -461,6 +472,17 @@
 			name = Vamp;
 			sourceTree = "<group>";
 		};
+		67AAF8F31B63782F00585431 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				67AAF8F41B63785900585431 /* user_dictionary */,
+				67AAF8F51B63785900585431 /* extended_dictionary */,
+				67AAF8F61B63785900585431 /* phoneme_mapping */,
+				67AAF8F71B63785900585431 /* standard_dictionary */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 		67DB87F71AD6CFD100595194 /* EffectRendering */ = {
 			isa = PBXGroup;
 			children = (
@@ -508,6 +530,7 @@
 		67E7086417B51AB400A22034 = {
 			isa = PBXGroup;
 			children = (
+				67AAF8F31B63782F00585431 /* Resources */,
 				67DB87F51AD6CA1300595194 /* wxsmith */,
 				67E7087617B51AB400A22034 /* xLights */,
 				679B1E361AD6C73200927259 /* Images.xcassets */,
@@ -605,6 +628,7 @@
 				677674481B38E7F70018E14B /* OptionChooser.cpp */,
 				67A619D417B51C0F008E95BB /* PaletteMgmtDialog.cpp */,
 				67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */,
+				67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */,
 				6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */,
 				67A619D817B51C0F008E95BB /* PlaybackOptionsDialog.cpp */,
 				67A619DA17B51C0F008E95BB /* PlayerFrame.cpp */,
@@ -699,6 +723,7 @@
 				672E7C601B4B6B3700409549 /* OptionChooser.h */,
 				67A619D517B51C0F008E95BB /* PaletteMgmtDialog.h */,
 				672F95111A7A6619005FF8BF /* PerspectivesPanel.h */,
+				67AAF8F11B63767B00585431 /* PhonemeDictionary.h */,
 				6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */,
 				67A619D717B51C0F008E95BB /* PixelBuffer.h */,
 				67A619D917B51C0F008E95BB /* PlaybackOptionsDialog.h */,
@@ -800,8 +825,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67AAF8F81B63785900585431 /* user_dictionary in Resources */,
+				67AAF8F91B63785900585431 /* extended_dictionary in Resources */,
+				67AAF8FA1B63785900585431 /* phoneme_mapping in Resources */,
 				67A61A4817B51C0F008E95BB /* resource.rc in Resources */,
 				679B1E371AD6C73200927259 /* Images.xcassets in Resources */,
+				67AAF8FB1B63785900585431 /* standard_dictionary in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -871,6 +900,7 @@
 				67A61A3817B51C0F008E95BB /* RenderCircles.cpp in Sources */,
 				677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */,
 				675AB42B1B5ACEDA00853A28 /* PluginHostAdapter.cpp in Sources */,
+				67AAF8F21B63767B00585431 /* PhonemeDictionary.cpp in Sources */,
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,
 				67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */,
 				67A61A3917B51C0F008E95BB /* RenderColorWash.cpp in Sources */,
