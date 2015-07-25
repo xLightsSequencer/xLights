@@ -279,6 +279,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
+    mainSequencer->PanelRowHeadings->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     ResizeAndMakeEffectsScroll();
     ResizeMainSequencer();
     mainSequencer->PanelEffectGrid->Refresh();

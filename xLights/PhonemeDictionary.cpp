@@ -25,7 +25,7 @@ void PhonemeDictionary::LoadDictionaries()
     LoadDictionary("user_dictionary");
 
     wxFileName phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
-    phonemeFile.SetFullName("phoneme_mapping");    
+    phonemeFile.SetFullName("phoneme_mapping");
     if (!wxFile::Exists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetResourcesDir());
         phonemeFile.SetFullName("phoneme_mapping");
@@ -121,6 +121,27 @@ void PhonemeDictionary::BreakdownWord(wxString& text, wxArrayString& phonemes)
             else
             {
                phonemes.push_back("etc");
+            }
+        }
+    }
+}
+
+void PhonemeDictionary::InsertSpacesAfterPunctuation(wxString& text)
+{
+    // make sure there is a space after all punctuation marks
+    wxString punctuation = ".,!?;";
+    bool repeatLoop = true;
+    while (repeatLoop)
+    {
+        repeatLoop = false;
+        int n = text.Length();
+        for (int i = 0; i < n - 1; i++)
+        {
+            if (punctuation.Contains(text[i]) && text[i + 1] != ' ')
+            {
+                text.insert(i + 1,	' ');
+                repeatLoop = true;
+                break;
             }
         }
     }

@@ -1849,7 +1849,7 @@ void EffectsGrid::DrawTimingEffects(int row)
             {
                 DrawGLUtils::DrawLine(*mEffectColorRight,255,x2,y1,x2,y2,2);
                 effectLayer->GetEffect(effectIndex)->SetEndPosition(x2);
-                if(element->GetActive())
+                if(element->GetActive() && ri->layerIndex == 0)
                 {
                     glEnable(GL_BLEND);
                     DrawGLUtils::DrawLine(*RowHeading::GetTimingColor(ri->colorIndex),128,x2,(row+1)*DEFAULT_ROW_HEADING_HEIGHT,x2,GetSize().y,1);

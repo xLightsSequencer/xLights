@@ -25,6 +25,7 @@ class RowHeading : public wxWindow
         virtual ~RowHeading();
 
         void SetSequenceElements(SequenceElements* elements);
+        void SetSequenceEnd(int ms);
         static const xlColor* GetTimingColor(int index);
         int getWidth();
         int getHeight();
@@ -44,11 +45,13 @@ class RowHeading : public wxWindow
         void DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row);
         bool HitTestCollapseExpand(int row,int x, bool* IsCollapsed);
         bool HitTestTimingActive(int row,int x, bool* IsActive);
-        void BreakdownTimingRow(Element* element, int layer_index);
+        void ImportLyrics(Element* element);
+        void BreakdownTimingRow(Element* element);
         const xlColor* GetHeaderColor(Row_Information_Struct* info);
         const xlColor * mHeaderColorModel;
         const xlColor * mHeaderColorTiming;
         const xlColor * mHeaderSelectedColor;
+        int mSequenceEndMS;
         wxBitmap papagayo_icon;
 
         int mSelectedRow;
@@ -72,6 +75,7 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_ADD_TIMING_TRACK;
         static const long ID_ROW_MNU_DELETE_TIMING_TRACK;
         static const long ID_ROW_MNU_IMPORT_TIMING_TRACK;
+        static const long ID_ROW_MNU_IMPORT_LYRICS;
         static const long ID_ROW_MNU_BREAKDOWN_TIMING_TRACK;
 
 };

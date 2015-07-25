@@ -5,6 +5,8 @@
 #include "../xLightsMain.h"
 #include "EffectDropTarget.h"
 #include "BitmapCache.h"
+#include "LyricsDialog.h"
+#include "TimeLine.h"
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
@@ -30,6 +32,7 @@ const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_TRACK = wxNewId();
 
 
@@ -50,6 +53,11 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 
 RowHeading::~RowHeading()
 {
+}
+
+void RowHeading::SetSequenceEnd(int ms)
+{
+    mSequenceEndMS = ms;
 }
 
 void RowHeading::mouseLeftDown( wxMouseEvent& event)
@@ -181,7 +189,12 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer->Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
         mnuLayer->Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
         mnuLayer->Append(ID_ROW_MNU_IMPORT_TIMING_TRACK,"Import Timing Track");
-        //mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_TRACK,"Breakdown Phrases");
+        mnuLayer->AppendSeparator();
+        mnuLayer->Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
+        if(element->GetEffectLayerCount() == 1)
+        {
+            //mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_TRACK,"Breakdown Phrases");
+        }
     }
 
     mnuLayer->AppendSeparator();
@@ -269,8 +282,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK) {
         wxCommandEvent playEvent(EVT_IMPORT_TIMING);
         wxPostEvent(GetParent(), playEvent);
+    } else if(id == ID_ROW_MNU_IMPORT_LYRICS) {
+        ImportLyrics(element);
     } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_TRACK) {
-        BreakdownTimingRow(element, layer_index);
+        BreakdownTimingRow(element);
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
         playEvent.SetString(element->GetName());
@@ -313,14 +328,42 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     wxPostEvent(GetParent(), eventForceRefresh);
 }
 
-void RowHeading::BreakdownTimingRow(Element* element, int layer_index)
+void RowHeading::ImportLyrics(Element* element)
+{
+    LyricsDialog* dlgLyrics = new LyricsDialog(GetParent(), wxID_ANY, wxDefaultPosition, wxDefaultSize);
+
+    if (dlgLyrics->ShowModal() == wxID_OK)
+    {
+        // remove all existing layers from timing track
+        int num_layers = element->GetEffectLayerCount();
+        for( int k = num_layers-1; k >= 0; k-- )
+        {
+            element->RemoveEffectLayer(k);
+        }
+        EffectLayer* phrase_layer = element->AddEffectLayer();
+
+        int num_phrases = dlgLyrics->TextCtrlLyrics->GetNumberOfLines();
+        int start_time = 0;
+        int end_time = mSequenceEndMS;
+        int interval_ms = (end_time-start_time) / num_phrases;
+        for( int i = 0; i < num_phrases; i++ )
+        {
+            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
+            dictionary.InsertSpacesAfterPunctuation(line);
+            end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, mSequenceElements->GetFrequency());
+            phrase_layer->AddEffect(0,0,line,wxEmptyString,"",start_time,end_time,EFFECT_NOT_SELECTED,false);
+            start_time = end_time;
+        }
+    }
+}
+
+void RowHeading::BreakdownTimingRow(Element* element)
 {
     // Deactivate active timing mark so new one is selected;
     dictionary.LoadDictionaries();
     mSequenceElements->DeactivateAllTimingElements();
     wxString type = "timing";
     wxString new_name = element->GetName() + "_Words";
-    //Element* e = mSequenceElements->AddElement(layer_index+1,new_name,type,true,false,true,false);
     EffectLayer* layer = element->GetEffectLayer(0);
     EffectLayer* word_layer = element->AddEffectLayer();
     EffectLayer* phoneme_layer = element->AddEffectLayer();
@@ -338,7 +381,12 @@ void RowHeading::BreakdownTimingRow(Element* element, int layer_index)
             int interval_ms = (end_time-start_time) / num_words;
             for( int j = 0; j < num_words; j++ )
             {
-                word_layer->AddEffect(0,0,words[j],wxEmptyString,"",start_time,start_time+interval_ms,EFFECT_NOT_SELECTED,false);
+                end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, mSequenceElements->GetFrequency());
+                if( j == num_words - 1 )
+                {
+                    end_time = effect->GetEndTimeMS();
+                }
+                word_layer->AddEffect(0,0,words[j],wxEmptyString,"",start_time,end_time,EFFECT_NOT_SELECTED,false);
                 dictionary.BreakdownWord(words[j], phonemes);
                 if( phonemes.Count() > 0 )
                 {
@@ -347,11 +395,16 @@ void RowHeading::BreakdownTimingRow(Element* element, int layer_index)
                     int phoneme_interval_ms = (phoneme_end_time-start_time) / phonemes.Count();
                     for( int k = 0; k < phonemes.Count(); k++ )
                     {
-                        phoneme_layer->AddEffect(0,0,phonemes[k],wxEmptyString,"",phoneme_start_time,phoneme_start_time+phoneme_interval_ms,EFFECT_NOT_SELECTED,false);
-                        phoneme_start_time += phoneme_interval_ms;
+                        phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(phoneme_start_time+phoneme_interval_ms, mSequenceElements->GetFrequency());
+                        if( k == phonemes.Count() - 1 )
+                        {
+                            phoneme_end_time = end_time;
+                        }
+                        phoneme_layer->AddEffect(0,0,phonemes[k],wxEmptyString,"",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
+                        phoneme_start_time = phoneme_end_time;
                     }
                 }
-                start_time += interval_ms;
+                start_time = end_time;
             }
         }
     }
