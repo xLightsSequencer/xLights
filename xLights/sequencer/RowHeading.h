@@ -5,6 +5,7 @@
 #include "SequenceElements.h"
 #include "wx/wx.h"
 #include "Color.h"
+#include "PhonemeDictionary.h"
 
 #define HORIZONTAL_PADDING          10
 #define PIXELS_PER_MAJOR_HASH       100
@@ -43,13 +44,17 @@ class RowHeading : public wxWindow
         void DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row);
         bool HitTestCollapseExpand(int row,int x, bool* IsCollapsed);
         bool HitTestTimingActive(int row,int x, bool* IsActive);
+        void BreakdownTimingRow(Element* element, int layer_index);
         const xlColor* GetHeaderColor(Row_Information_Struct* info);
         const xlColor * mHeaderColorModel;
         const xlColor * mHeaderColorTiming;
         const xlColor * mHeaderSelectedColor;
+        wxBitmap papagayo_icon;
 
         int mSelectedRow;
         SequenceElements* mSequenceElements;
+
+        PhonemeDictionary dictionary;
 
         static const long ID_ROW_MNU_INSERT_LAYER_ABOVE;
         static const long ID_ROW_MNU_INSERT_LAYER_BELOW;
@@ -67,7 +72,7 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_ADD_TIMING_TRACK;
         static const long ID_ROW_MNU_DELETE_TIMING_TRACK;
         static const long ID_ROW_MNU_IMPORT_TIMING_TRACK;
-
+        static const long ID_ROW_MNU_BREAKDOWN_TIMING_TRACK;
 
 };
 

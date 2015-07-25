@@ -113,7 +113,7 @@ bool EffectLayer::IsEndTimeLinked(int index)
     }
 }
 
-int EffectLayer::GetMaximumEndTimeMS(int index)
+int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse)
 {
     if(index+1 >= mEffects.size())
     {
@@ -121,7 +121,7 @@ int EffectLayer::GetMaximumEndTimeMS(int index)
     }
     else
     {
-        if(mEffects[index]->GetEndTimeMS() == mEffects[index+1]->GetStartTimeMS())
+        if(mEffects[index]->GetEndTimeMS() == mEffects[index+1]->GetStartTimeMS() && allow_collapse)
         {
             return mEffects[index+1]->GetEndTimeMS();
         }
@@ -132,7 +132,7 @@ int EffectLayer::GetMaximumEndTimeMS(int index)
     }
 }
 
-int EffectLayer::GetMinimumStartTimeMS(int index)
+int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse)
 {
     if(index == 0)
     {
@@ -140,7 +140,7 @@ int EffectLayer::GetMinimumStartTimeMS(int index)
     }
     else
     {
-        if(mEffects[index-1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS())
+        if(mEffects[index-1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse)
         {
             return mEffects[index-1]->GetStartTimeMS();
         }
@@ -164,23 +164,35 @@ bool EffectLayer::HitTestEffect(int position,int &index, int &result)
     bool isHit=false;
     for(int i=0;i<mEffects.size();i++)
     {
-        if (position >= mEffects[i]->GetStartPosition() &&
-            position <= mEffects[i]->GetEndPosition())
+        int start_pos = mEffects[i]->GetStartPosition();
+        int end_pos = mEffects[i]->GetEndPosition();
+        int delta = end_pos-start_pos;
+        if (position >= start_pos && position <= end_pos)
         {
             index = i;
-            if(position < mEffects[i]->GetStartPosition() + 5)
-            {
-                isHit = true;
-                result = HIT_TEST_EFFECT_LT;
-            }
-            else if(position > mEffects[i]->GetEndPosition() - 5)
+            if(position > end_pos - 6)
             {
                 isHit = true;
                 result = HIT_TEST_EFFECT_RT;
             }
+            else if(position < start_pos + 6)
+            {
+                isHit = true;
+                result = HIT_TEST_EFFECT_LT;
+            }
+            else if(position > end_pos - 10 && delta > 17)
+            {
+                isHit = true;
+                result = HIT_TEST_EFFECT_RT_EDGE;
+            }
+            else if(position < start_pos + 10 && delta > 17)
+            {
+                isHit = true;
+                result = HIT_TEST_EFFECT_LT_EDGE;
+            }
             else
             {
-                int midpoint = mEffects[i]->GetStartPosition() + (mEffects[i]->GetEndPosition()-mEffects[i]->GetStartPosition())/2;
+                int midpoint = start_pos + delta/2;
                 if( std::abs(position - midpoint) <= 7 )
                 {
                     isHit = true;

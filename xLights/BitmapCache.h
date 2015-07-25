@@ -51,6 +51,7 @@ public:
 
     static const wxBitmap &GetEffectIcon(int effectID, wxString &toolTip, int size = 16, bool exact = false);
     static const wxBitmap &GetToolbarIcon(const wxString &name, int size);
+    static const wxBitmap &GetPapgayoIcon(wxString &toolTip, int size, bool exact);
     static const wxBitmap &GetCornerIcon(int position, wxString &toolTip, int size, bool exact);
 };
 

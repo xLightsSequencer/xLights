@@ -254,6 +254,7 @@ bool xLightsFrame::CloseSequence()
     }
 
     // clear everything to prepare for new sequence
+    sEffectAssist->SetEffect(NULL);
     xlightsFilename = "";
     mediaFilename.Clear();
     previewLoaded = false;

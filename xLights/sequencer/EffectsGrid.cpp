@@ -78,6 +78,12 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mTimingVerticalLine = new xlColor(130,178,207);
     mSelectionColor = new xlColor(255,0,255);
 
+    mLabelColor = new xlColor(255,255,204);
+    mLabelOutlineColor = new xlColor(103, 103, 103);
+    mPhraseColor = new xlColor(153, 255, 153);
+    mWordColor = new xlColor(255, 218, 145);
+    mPhonemeColor = new xlColor(255, 181, 218);
+
     SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
     playArgs = new EventPlayEffectArgs();
     mSequenceElements = NULL;
@@ -1042,11 +1048,11 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
     int toLeft,toRight;
     int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
     GetRangeOfMovementForSelectedEffects(toLeft,toRight);
-    if(mResizingMode==EFFECT_RESIZE_LEFT)
+    if(mResizingMode==EFFECT_RESIZE_LEFT || mResizingMode==EFFECT_RESIZE_LEFT_EDGE)
     {
         deltaTime = time - mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS();
     }
-    else if(mResizingMode==EFFECT_RESIZE_RIGHT)
+    else if(mResizingMode==EFFECT_RESIZE_RIGHT || mResizingMode==EFFECT_RESIZE_RIGHT_EDGE)
     {
         deltaTime = time - mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS();
     }
@@ -1079,9 +1085,9 @@ void EffectsGrid::ResizeSingleEffect(int position)
 {
     int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
     time = mTimeline->RoundToMultipleOfPeriod(time, mSequenceElements->GetFrequency());
-    if(mResizingMode==EFFECT_RESIZE_LEFT)
+    if(mResizingMode==EFFECT_RESIZE_LEFT || mResizingMode==EFFECT_RESIZE_LEFT_EDGE)
     {
-        int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex);
+        int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex, mResizingMode==EFFECT_RESIZE_LEFT);
         // User has dragged left side to the right side exit
         if (time >= mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS())
         {
@@ -1089,7 +1095,7 @@ void EffectsGrid::ResizeSingleEffect(int position)
         }
         else if (time >= minimumTime  || minimumTime == NO_MIN_MAX_TIME)
         {
-            if(mEffectLayer->IsStartTimeLinked(mResizeEffectIndex))
+            if(mEffectLayer->IsStartTimeLinked(mResizeEffectIndex) && mResizingMode==EFFECT_RESIZE_LEFT)
             {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex-1);
                 if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
@@ -1118,9 +1124,9 @@ void EffectsGrid::ResizeSingleEffect(int position)
             }
         }
     }
-    else if(mResizingMode==EFFECT_RESIZE_RIGHT)
+    else if(mResizingMode==EFFECT_RESIZE_RIGHT || mResizingMode==EFFECT_RESIZE_RIGHT_EDGE)
     {
-        int maximumTime = mEffectLayer->GetMaximumEndTimeMS(mResizeEffectIndex);
+        int maximumTime = mEffectLayer->GetMaximumEndTimeMS(mResizeEffectIndex, mResizingMode==EFFECT_RESIZE_RIGHT);
         // User has dragged right side to the left side exit
         if (time <= mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS())
         {
@@ -1128,7 +1134,7 @@ void EffectsGrid::ResizeSingleEffect(int position)
         }
         else if (time <= maximumTime  || maximumTime == NO_MIN_MAX_TIME)
         {
-            if(mEffectLayer->IsEndTimeLinked(mResizeEffectIndex))
+            if(mEffectLayer->IsEndTimeLinked(mResizeEffectIndex) && mResizingMode==EFFECT_RESIZE_RIGHT)
             {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex+1);
                 if( mSequenceElements->get_undo_mgr().GetCaptureUndo() ) {
@@ -1188,6 +1194,16 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
         {
             SetCursor(wxCURSOR_HAND);
             mResizingMode = EFFECT_RESIZE_MOVE;
+        }
+        else if (result == HIT_TEST_EFFECT_RT_EDGE)
+        {
+            SetCursor(wxCURSOR_POINT_RIGHT);
+            mResizingMode = EFFECT_RESIZE_RIGHT_EDGE;
+        }
+        else if (result == HIT_TEST_EFFECT_LT_EDGE)
+        {
+            SetCursor(wxCURSOR_POINT_LEFT);
+            mResizingMode = EFFECT_RESIZE_LEFT_EDGE;
         }
         else
         {
@@ -1765,10 +1781,8 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
 
 void EffectsGrid::DrawTimingEffects(int row)
 {
-    xlColor label_color(255,255,204);
-    xlColor label_outline_color(76,76,0);
-
-    Element* element =mSequenceElements->GetVisibleRowInformation(row)->element;
+    Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(row);
+    Element* element =ri->element;
     EffectLayer* effectLayer=mSequenceElements->GetVisibleEffectLayer(row);
     xlColor* mEffectColorRight;
     xlColor* mEffectColorLeft;
@@ -1819,10 +1833,10 @@ void EffectsGrid::DrawTimingEffects(int row)
                 }
 
                 effectLayer->GetEffect(effectIndex)->SetStartPosition(x1);
-                if(element->GetActive())
+                if(element->GetActive() && ri->layerIndex == 0)
                 {
                     glEnable(GL_BLEND);
-                    DrawGLUtils::DrawLine(*RowHeading::GetTimingColor(mSequenceElements->GetVisibleRowInformation(row)->colorIndex),128,x1,(row+1)*DEFAULT_ROW_HEADING_HEIGHT,x1,GetSize().y,1);
+                    DrawGLUtils::DrawLine(*RowHeading::GetTimingColor(ri->colorIndex),128,x1,(row+1)*DEFAULT_ROW_HEADING_HEIGHT,x1,GetSize().y,1);
                     glDisable(GL_BLEND);
                 }
             }
@@ -1838,7 +1852,7 @@ void EffectsGrid::DrawTimingEffects(int row)
                 if(element->GetActive())
                 {
                     glEnable(GL_BLEND);
-                    DrawGLUtils::DrawLine(*RowHeading::GetTimingColor(mSequenceElements->GetVisibleRowInformation(row)->colorIndex),128,x2,(row+1)*DEFAULT_ROW_HEADING_HEIGHT,x2,GetSize().y,1);
+                    DrawGLUtils::DrawLine(*RowHeading::GetTimingColor(ri->colorIndex),128,x2,(row+1)*DEFAULT_ROW_HEADING_HEIGHT,x2,GetSize().y,1);
                     glDisable(GL_BLEND);
                 }
             }
@@ -1858,8 +1872,21 @@ void EffectsGrid::DrawTimingEffects(int row)
                     int width = std::min(text_width, max_width);
                     int center = x1 + (x2-x1)/2;
                     int label_start = center - width/2;
-                    DrawGLUtils::DrawFillRectangle(label_color,80,label_start,y1-2,width,y2-y1+4);
-                    DrawGLUtils::DrawRectangle(label_outline_color,false,label_start,y1-2,label_start + width,y2+2);
+                    xlColor* label_color = mLabelColor;
+                    if( ri->layerIndex == 0 && element->GetEffectLayerCount() > 1)
+                    {
+                        label_color = mPhraseColor;
+                    }
+                    else if( ri->layerIndex == 1 )
+                    {
+                        label_color = mWordColor;
+                    }
+                    else if( ri->layerIndex == 2 )
+                    {
+                        label_color = mPhonemeColor;
+                    }
+                    DrawGLUtils::DrawFillRectangle(*label_color,80,label_start,y1-2,width,y2-y1+4);
+                    DrawGLUtils::DrawRectangle(*mLabelOutlineColor,false,label_start,y1-2,label_start + width,y2+2);
                     DrawGLUtils::DrawText(label_start + 4, y2-3, fontSize, effectLayer->GetEffect(effectIndex)->GetEffectName(), factor);
                 }
             }
@@ -1943,9 +1970,9 @@ void EffectsGrid::CreateEffectIconTextures()
     {
         wxString tooltip;
         DrawGLUtils::CreateOrUpdateTexture(BitmapCache::GetEffectIcon(effectID, tooltip, 64, true),
-                                       BitmapCache::GetEffectIcon(effectID, tooltip, 32, true),
-                                       BitmapCache::GetEffectIcon(effectID, tooltip, 16, true),
-                                       &m_EffectTextures[effectID]);
+                                           BitmapCache::GetEffectIcon(effectID, tooltip, 32, true),
+                                           BitmapCache::GetEffectIcon(effectID, tooltip, 16, true),
+                                           &m_EffectTextures[effectID]);
     }
 }
 

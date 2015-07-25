@@ -23,6 +23,8 @@
 #define EFFECT_RESIZE_LEFT                  1
 #define EFFECT_RESIZE_RIGHT                 2
 #define EFFECT_RESIZE_MOVE                  3
+#define EFFECT_RESIZE_LEFT_EDGE             4
+#define EFFECT_RESIZE_RIGHT_EDGE            5
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
@@ -134,6 +136,11 @@ private:
     xlColor * mGridlineColor;
     xlColor * mTimingColor;
     xlColor * mTimingVerticalLine;
+    xlColor * mLabelColor;
+    xlColor * mLabelOutlineColor;
+    xlColor * mPhraseColor;
+    xlColor * mWordColor;
+    xlColor * mPhonemeColor;
 
     xlColor * mSelectionColor;
     wxWindow* mParent;

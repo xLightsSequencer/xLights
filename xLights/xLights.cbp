@@ -439,6 +439,8 @@
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="PerspectivesPanel.cpp" />
 		<Unit filename="PerspectivesPanel.h" />
+		<Unit filename="PhonemeDictionary.cpp" />
+		<Unit filename="PhonemeDictionary.h" />
 		<Unit filename="PixelAppearanceDlg.cpp" />
 		<Unit filename="PixelAppearanceDlg.h" />
 		<Unit filename="PixelBuffer.cpp" />

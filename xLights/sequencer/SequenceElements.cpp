@@ -759,7 +759,7 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
                 ri.Collapsed = !elem->ShowStrands();
                 ri.Active = elem->GetActive();
                 ri.displayName = sl->GetName();
-                
+
                 ri.colorIndex = 0;
                 ri.layerIndex = 0;
                 ri.Index = rowIndex++;
@@ -767,7 +767,7 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
                 ri.submodel = submodel;
                 mRowInformation.push_back(ri);
             }
-            
+
             if (sl->ShowNodes()) {
                 for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                     Row_Information_Struct ri;
@@ -788,6 +788,44 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
     }
 }
 
+void addTimingElement(Element *elem, std::vector<Row_Information_Struct> &mRowInformation,
+                      int &rowIndex, int &selectedTimingRow, int &timingRowCount, int &timingColorIndex) {
+
+    if(!elem->GetCollapsed())
+    {
+        for(int j =0; j<elem->GetEffectLayerCount();j++)
+        {
+            Row_Information_Struct ri;
+            ri.element = elem;
+            ri.Collapsed = elem->GetCollapsed();
+            ri.Active = elem->GetActive();
+            ri.colorIndex = timingColorIndex;
+            ri.layerIndex = j;
+            if(selectedTimingRow<0 && j==0)
+            {
+                selectedTimingRow = ri.Active?rowIndex:-1;
+            }
+
+            ri.Index = rowIndex++;
+            mRowInformation.push_back(ri);
+            timingRowCount++;
+        }
+        timingColorIndex++;
+    }
+    else
+    {
+        Row_Information_Struct ri;
+        ri.element = elem;
+        ri.Collapsed = elem->GetCollapsed();
+        ri.displayName = elem->GetName();
+        ri.Active = elem->GetActive();
+        ri.colorIndex = 0;
+        ri.layerIndex = 0;
+        ri.Index = rowIndex++;
+        mRowInformation.push_back(ri);
+    }
+}
+
 void SequenceElements::PopulateRowInformation()
 {
     int rowIndex=0;
@@ -803,21 +841,7 @@ void SequenceElements::PopulateRowInformation()
         {
             if( mCurrentView == MASTER_VIEW || TimingIsPartOfView(elem, mCurrentView))
             {
-                Row_Information_Struct ri;
-                ri.element = elem;
-                ri.Collapsed = elem->GetCollapsed();
-                ri.Active = elem->GetActive();
-                ri.colorIndex = timingColorIndex;
-                ri.layerIndex = 0;
-                if(mSelectedTimingRow<0)
-                {
-                    mSelectedTimingRow = ri.Active?rowIndex:-1;
-                }
-
-                ri.Index = rowIndex++;
-                mRowInformation.push_back(ri);
-                timingColorIndex++;
-                mTimingRowCount++;
+                addTimingElement(elem, mRowInformation, rowIndex, mSelectedTimingRow, mTimingRowCount, timingColorIndex);
             }
         }
     }

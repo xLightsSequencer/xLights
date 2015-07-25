@@ -242,6 +242,9 @@
 #include "../include/point_1ab-64.xpm"
 #include "../include/point_2ab-64.xpm"
 
+#include "../include/papagayo-16.xpm"
+#include "../include/papagayo-64.xpm"
+
 #include "wx/artprov.h"
 
 #ifdef __WXOSX__
@@ -564,6 +567,11 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
     }
     toolTip = "Off";
     return effectBitmaps.get(size, exact, "Off", Off, Off, Off, Off, Off);
+}
+
+const wxBitmap &BitmapCache::GetPapgayoIcon(wxString &toolTip, int size, bool exact) {
+    toolTip = "Papagayo Voice";
+    return effectBitmaps.get(size, exact, "Papagayo", papagayo_16, papagayo_64, papagayo_64, papagayo_64, papagayo_64);
 }
 
 const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int size, bool exact) {

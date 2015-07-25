@@ -4,7 +4,7 @@
 #include "wx/brush.h"
 #include "../xLightsMain.h"
 #include "EffectDropTarget.h"
-
+#include "BitmapCache.h"
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
@@ -30,6 +30,7 @@ const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_TRACK = wxNewId();
 
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
@@ -43,6 +44,8 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     mHeaderColorTiming = new xlColor(130,178,207);
     mHeaderSelectedColor = new xlColor(130,178,207);
     SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
+    wxString tooltip;
+    papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, true);
 }
 
 RowHeading::~RowHeading()
@@ -178,6 +181,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer->Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
         mnuLayer->Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
         mnuLayer->Append(ID_ROW_MNU_IMPORT_TIMING_TRACK,"Import Timing Track");
+        //mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_TRACK,"Breakdown Phrases");
     }
 
     mnuLayer->AppendSeparator();
@@ -265,6 +269,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK) {
         wxCommandEvent playEvent(EVT_IMPORT_TIMING);
         wxPostEvent(GetParent(), playEvent);
+    } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_TRACK) {
+        BreakdownTimingRow(element, layer_index);
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
         playEvent.SetString(element->GetName());
@@ -307,6 +313,55 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     wxPostEvent(GetParent(), eventForceRefresh);
 }
 
+void RowHeading::BreakdownTimingRow(Element* element, int layer_index)
+{
+    // Deactivate active timing mark so new one is selected;
+    dictionary.LoadDictionaries();
+    mSequenceElements->DeactivateAllTimingElements();
+    wxString type = "timing";
+    wxString new_name = element->GetName() + "_Words";
+    //Element* e = mSequenceElements->AddElement(layer_index+1,new_name,type,true,false,true,false);
+    EffectLayer* layer = element->GetEffectLayer(0);
+    EffectLayer* word_layer = element->AddEffectLayer();
+    EffectLayer* phoneme_layer = element->AddEffectLayer();
+    for( int i = 0; i < layer->GetEffectCount(); i++ )
+    {
+        Effect* effect = layer->GetEffect(i);
+        wxString phrase = effect->GetEffectName();
+        if( phrase != "" )
+        {
+            wxArrayString phonemes;
+            wxArrayString words = wxSplit(phrase, ' ');
+            int num_words = words.Count();
+            int start_time = effect->GetStartTimeMS();
+            int end_time = effect->GetEndTimeMS();
+            int interval_ms = (end_time-start_time) / num_words;
+            for( int j = 0; j < num_words; j++ )
+            {
+                word_layer->AddEffect(0,0,words[j],wxEmptyString,"",start_time,start_time+interval_ms,EFFECT_NOT_SELECTED,false);
+                dictionary.BreakdownWord(words[j], phonemes);
+                if( phonemes.Count() > 0 )
+                {
+                    int phoneme_start_time = start_time;
+                    int phoneme_end_time = start_time+interval_ms;
+                    int phoneme_interval_ms = (phoneme_end_time-start_time) / phonemes.Count();
+                    for( int k = 0; k < phonemes.Count(); k++ )
+                    {
+                        phoneme_layer->AddEffect(0,0,phonemes[k],wxEmptyString,"",phoneme_start_time,phoneme_start_time+phoneme_interval_ms,EFFECT_NOT_SELECTED,false);
+                        phoneme_start_time += phoneme_interval_ms;
+                    }
+                }
+                start_time += interval_ms;
+            }
+        }
+    }
+    wxArrayString timings;
+    timings.push_back(new_name);
+    mSequenceElements->AddViewToTimings(timings, mSequenceElements->GetViewName(mSequenceElements->GetCurrentView()));
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
+    timings.clear();
+}
 
 bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 {
@@ -436,22 +491,29 @@ void RowHeading::Draw()
         }
         else if(mSequenceElements->GetVisibleRowInformation(i)->element->GetType()=="timing")
         {
-            dc.SetPen(*wxBLACK_PEN);
-            if(mSequenceElements->GetVisibleRowInformation(i)->Active)
+            if( mSequenceElements->GetVisibleRowInformation(i)->layerIndex == 0 )
             {
-                dc.SetBrush(*wxWHITE_BRUSH);
-                dc.DrawCircle(7,startY+11,5);
+                dc.SetPen(*wxBLACK_PEN);
+                if(mSequenceElements->GetVisibleRowInformation(i)->Active)
+                {
+                    dc.SetBrush(*wxWHITE_BRUSH);
+                    dc.DrawCircle(7,startY+11,5);
 
-                dc.SetBrush(*wxGREY_BRUSH);
-                dc.DrawCircle(7,startY+11,2);
+                    dc.SetBrush(*wxGREY_BRUSH);
+                    dc.DrawCircle(7,startY+11,2);
+                }
+                else
+                {
+                    dc.SetBrush(*wxWHITE_BRUSH);
+                    dc.DrawCircle(7,startY+11,5);
+                }
+                dc.SetPen(penOutline);
+                dc.SetBrush(brush);
+                if(mSequenceElements->GetVisibleRowInformation(i)->element->GetEffectLayerCount() > 1)
+                {
+                    dc.DrawBitmap(papagayo_icon, getWidth()-25, startY+3, true);
+                }
             }
-            else
-            {
-                dc.SetBrush(*wxWHITE_BRUSH);
-                dc.DrawCircle(7,startY+11,5);
-            }
-            dc.SetPen(penOutline);
-            dc.SetBrush(brush);
         }
         row++;
     }

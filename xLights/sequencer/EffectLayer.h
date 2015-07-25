@@ -14,6 +14,8 @@
 #define HIT_TEST_EFFECT_LT      0
 #define HIT_TEST_EFFECT_RT      1
 #define HIT_TEST_EFFECT_CTR     2
+#define HIT_TEST_EFFECT_LT_EDGE 3
+#define HIT_TEST_EFFECT_RT_EDGE 4
 
 #define NO_MAX                  1000000
 class Element;
@@ -41,8 +43,8 @@ class EffectLayer
         bool IsEffectStartTimeInRange(int index, int startTimeMS, int endTimeMS);
         bool IsEffectEndTimeInRange(int index, int startTimeMS, int endTimeMS);
 
-        int GetMaximumEndTimeMS(int index);
-        int GetMinimumStartTimeMS(int index);
+        int GetMaximumEndTimeMS(int index, bool allow_collapse);
+        int GetMinimumStartTimeMS(int index, bool allow_collapse);
 
         bool HitTestEffect(int position,int &index, int &result);
         bool HitTestEffectByTime(int timeMS,int &index);
