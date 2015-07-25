@@ -105,6 +105,20 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     }
     int selectedTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
     UpdateTimePosition(selectedTimeMS);
+    
+    int row = GetRow(event.GetY());
+    if(row>=mSequenceElements->GetVisibleRowInformationSize() || row < 0)
+        return;
+    int effectIndex;
+    int selectionType;
+    Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,event.GetX(),effectIndex,selectionType);
+    if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == "timing") {
+        wxString label = selectedEffect->GetEffectName();
+        
+        selectedEffect->SetEffectName(wxGetTextFromUser("Edit Label", "Enter new label:", label, this));
+        Refresh();
+    }
+    
 }
 
 void EffectsGrid::rightClick(wxMouseEvent& event)
