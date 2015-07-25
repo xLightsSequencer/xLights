@@ -7,16 +7,18 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.1.13  Jul 24, 2015
+	-- enh(gil) First pass at coding a built in Papagayo into xLights. You will see 4 new dictionary files in xLights/bin
     -- bug(gil)   Column 0 wasn't working properly for pasting to single cell.
     -- enh(gil)   Change the look of the labels
     -- bug(gil)   Prevent text labels from piling up on left side when scrolling.
 4.1.12  Jul 20, 2015
     -- enh (dkulp) If VAMP plugins are found, allow using them to generating timing rows
-
 4.1.11  Jul 14, 2015
 	-- enh(gil)   Add ability to create/edit/draw images on models using the Pictures effect and the Effect Assist window.
 	-- gil (bug)  Prevent crash if image file cannot be found.
-    -- enh(dkulp) Add a choice to select the view in the top left corner
+    -- enh(dkul
+	p) Add a choice to select the view in the top left corner
     -- enh(dkulp) Add ability to "expand" a ModelGroup on row headings to expand out the models.
     -- bug(dkulp) Fix the Align/Distribute menu items on the Layout tab
     -- enh(dkulp) Add options for how the ModelGroup internal buffer is constructed including:
