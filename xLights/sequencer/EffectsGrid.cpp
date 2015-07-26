@@ -117,7 +117,10 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == "timing") {
         wxString label = selectedEffect->GetEffectName();
 
-        selectedEffect->SetEffectName(wxGetTextFromUser("Edit Label", "Enter new label:", label, this));
+        wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
+        if (dlg.ShowModal()) {
+            selectedEffect->SetEffectName(dlg.GetValue());
+        }
         Refresh();
     }
 
