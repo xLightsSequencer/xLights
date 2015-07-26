@@ -183,6 +183,8 @@ private:
     static const long ID_GRID_MNU_RANDOM_EFFECTS;
     static const long ID_GRID_MNU_UNDO;
     static const long ID_GRID_MNU_PRESETS;
+    static const long ID_GRID_MNU_BREAKDOWN_PHRASE;
+    static const long ID_GRID_MNU_BREAKDOWN_WORD;
 
     EventPlayEffectArgs* playArgs;
 

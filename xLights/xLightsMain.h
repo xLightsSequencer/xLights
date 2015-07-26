@@ -87,6 +87,7 @@
 #include "dlgPreviewSize.h"
 #include "SequenceData.h"
 #include "UtilClasses.h"
+#include "PhonemeDictionary.h"
 
 #include "sequencer/EffectsGrid.h"
 #include "sequencer/MainSequencer.h"
@@ -309,6 +310,8 @@ public:
     long SecondsRemaining, EndTimeSec;
     int TxOverflowCnt, TxOverflowTotal;
     xOutput* xout;
+
+    PhonemeDictionary dictionary;
 
     void BasicPrompt(char* prompt, char* buff, int size);
     void BasicOutput(char *msg);

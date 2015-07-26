@@ -5,7 +5,6 @@
 #include "../xLightsMain.h"
 #include "EffectDropTarget.h"
 #include "BitmapCache.h"
-#include "LyricsDialog.h"
 #include "TimeLine.h"
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
@@ -53,11 +52,6 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 
 RowHeading::~RowHeading()
 {
-}
-
-void RowHeading::SetSequenceEnd(int ms)
-{
-    mSequenceEndMS = ms;
 }
 
 void RowHeading::mouseLeftDown( wxMouseEvent& event)
@@ -203,10 +197,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer->Append(ID_ROW_MNU_IMPORT_TIMING_TRACK,"Import Timing Track");
         mnuLayer->AppendSeparator();
         mnuLayer->Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
-        if(element->GetEffectLayerCount() == 1)
-        {
-            //mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_TRACK,"Breakdown Phrases");
-        }
+        mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_TRACK,"Breakdown Phrases");
     }
 
     mnuLayer->AppendSeparator();
@@ -295,7 +286,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent playEvent(EVT_IMPORT_TIMING);
         wxPostEvent(GetParent(), playEvent);
     } else if(id == ID_ROW_MNU_IMPORT_LYRICS) {
-        ImportLyrics(element);
+        mSequenceElements->ImportLyrics(element, GetParent());
     } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_TRACK) {
         int result = wxMessageBox("Breakdown phrases into words and phonemes?", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
         if (result == wxOK) {
@@ -343,104 +334,26 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     wxPostEvent(GetParent(), eventForceRefresh);
 }
 
-void RowHeading::ImportLyrics(Element* element)
+void RowHeading::BreakdownTimingRow(Element* element)
 {
-    LyricsDialog* dlgLyrics = new LyricsDialog(GetParent(), wxID_ANY, wxDefaultPosition, wxDefaultSize);
-
-    if (dlgLyrics->ShowModal() == wxID_OK)
+    EffectLayer* layer = element->GetEffectLayer(0);
+    if( element->GetEffectLayerCount() > 1 )
     {
-        // remove all existing layers from timing track
-        int num_layers = element->GetEffectLayerCount();
-        for( int k = num_layers-1; k >= 0; k-- )
+        for( int k = element->GetEffectLayerCount()-1; k > 0; k--)
         {
             element->RemoveEffectLayer(k);
         }
-        EffectLayer* phrase_layer = element->AddEffectLayer();
-
-        int num_phrases = dlgLyrics->TextCtrlLyrics->GetNumberOfLines();
-        for( int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++ )
-        {
-            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
-            if( line == "" )
-            {
-                num_phrases--;
-            }
-        }
-        int start_time = 0;
-        int end_time = mSequenceEndMS;
-        int interval_ms = (end_time-start_time) / num_phrases;
-        for( int i = 0; i < num_phrases; i++ )
-        {
-            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
-            if( line != "" )
-            {
-                dictionary.InsertSpacesAfterPunctuation(line);
-                end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, mSequenceElements->GetFrequency());
-                phrase_layer->AddEffect(0,0,line,wxEmptyString,"",start_time,end_time,EFFECT_NOT_SELECTED,false);
-                start_time = end_time;
-            }
-        }
     }
-}
-
-void RowHeading::BreakdownTimingRow(Element* element)
-{
-    dictionary.LoadDictionaries();
-    EffectLayer* layer = element->GetEffectLayer(0);
     EffectLayer* word_layer = element->AddEffectLayer();
     EffectLayer* phoneme_layer = element->AddEffectLayer();
     for( int i = 0; i < layer->GetEffectCount(); i++ )
     {
         Effect* effect = layer->GetEffect(i);
         wxString phrase = effect->GetEffectName();
-        BreakdownPhrase(word_layer, phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase);
+        mSequenceElements->BreakdownPhrase(word_layer, phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase);
     }
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(GetParent(), eventRowHeaderChanged);
-}
-
-void RowHeading::BreakdownPhrase(EffectLayer* word_layer, EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& phrase)
-{
-    if( phrase != "" )
-    {
-        wxArrayString words = wxSplit(phrase, ' ');
-        int num_words = words.Count();
-        int word_end_time = end_time;
-        int interval_ms = (word_end_time-start_time) / num_words;
-        for( int i = 0; i < num_words; i++ )
-        {
-            int word_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, mSequenceElements->GetFrequency());
-            if( i == num_words - 1 )
-            {
-                word_end_time = end_time;
-            }
-            word_layer->AddEffect(0,0,words[i],wxEmptyString,"",start_time,word_end_time,EFFECT_NOT_SELECTED,false);
-            BreakdownWord(phoneme_layer, start_time, word_end_time, words[i]);
-            start_time = word_end_time;
-        }
-    }
-}
-
-void RowHeading::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word)
-{
-    wxArrayString phonemes;
-    dictionary.BreakdownWord(word, phonemes);
-    if( phonemes.Count() > 0 )
-    {
-        int phoneme_start_time = start_time;
-        int phoneme_end_time = end_time;
-        int phoneme_interval_ms = (phoneme_end_time-start_time) / phonemes.Count();
-        for( int i = 0; i < phonemes.Count(); i++ )
-        {
-            phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(phoneme_start_time+phoneme_interval_ms, mSequenceElements->GetFrequency());
-            if( i == phonemes.Count() - 1 )
-            {
-                phoneme_end_time = end_time;
-            }
-            phoneme_layer->AddEffect(0,0,phonemes[i],wxEmptyString,"",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
-            phoneme_start_time = phoneme_end_time;
-        }
-    }
 }
 
 bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)

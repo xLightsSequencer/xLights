@@ -5,7 +5,6 @@
 #include "SequenceElements.h"
 #include "wx/wx.h"
 #include "Color.h"
-#include "PhonemeDictionary.h"
 
 #define HORIZONTAL_PADDING          10
 #define PIXELS_PER_MAJOR_HASH       100
@@ -25,7 +24,6 @@ class RowHeading : public wxWindow
         virtual ~RowHeading();
 
         void SetSequenceElements(SequenceElements* elements);
-        void SetSequenceEnd(int ms);
         static const xlColor* GetTimingColor(int index);
         int getWidth();
         int getHeight();
@@ -45,21 +43,15 @@ class RowHeading : public wxWindow
         void DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row);
         bool HitTestCollapseExpand(int row,int x, bool* IsCollapsed);
         bool HitTestTimingActive(int row,int x, bool* IsActive);
-        void ImportLyrics(Element* element);
         void BreakdownTimingRow(Element* element);
-        void BreakdownPhrase(EffectLayer* word_layer, EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& phrase);
-        void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word);
         const xlColor* GetHeaderColor(Row_Information_Struct* info);
         const xlColor * mHeaderColorModel;
         const xlColor * mHeaderColorTiming;
         const xlColor * mHeaderSelectedColor;
-        int mSequenceEndMS;
         wxBitmap papagayo_icon;
 
         int mSelectedRow;
         SequenceElements* mSequenceElements;
-
-        PhonemeDictionary dictionary;
 
         static const long ID_ROW_MNU_INSERT_LAYER_ABOVE;
         static const long ID_ROW_MNU_INSERT_LAYER_BELOW;

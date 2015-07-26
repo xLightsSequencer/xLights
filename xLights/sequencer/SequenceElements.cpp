@@ -7,7 +7,7 @@
 #include "SequenceElements.h"
 #include "TimeLine.h"
 #include "xLightsMain.h"
-
+#include "LyricsDialog.h"
 
 SequenceElements::SequenceElements()
 : undo_mgr(this)
@@ -56,6 +56,11 @@ void SequenceElements::Clear() {
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);
     hasPapagayoTiming = false;
+}
+
+void SequenceElements::SetSequenceEnd(int ms)
+{
+    mSequenceEndMS = ms;
 }
 
 EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
@@ -1119,6 +1124,92 @@ void SequenceElements::MoveElementDown(const wxString &name, int view)
                 MoveSequenceElement(i+1, i, view);
             }
             break;
+        }
+    }
+}
+
+void SequenceElements::ImportLyrics(Element* element, wxWindow* parent)
+{
+    LyricsDialog* dlgLyrics = new LyricsDialog(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+
+    if (dlgLyrics->ShowModal() == wxID_OK)
+    {
+        // remove all existing layers from timing track
+        int num_layers = element->GetEffectLayerCount();
+        for( int k = num_layers-1; k >= 0; k-- )
+        {
+            element->RemoveEffectLayer(k);
+        }
+        EffectLayer* phrase_layer = element->AddEffectLayer();
+
+        int num_phrases = dlgLyrics->TextCtrlLyrics->GetNumberOfLines();
+        for( int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++ )
+        {
+            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
+            if( line == "" )
+            {
+                num_phrases--;
+            }
+        }
+        int start_time = 0;
+        int end_time = mSequenceEndMS;
+        int interval_ms = (end_time-start_time) / num_phrases;
+        for( int i = 0; i < num_phrases; i++ )
+        {
+            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
+            if( line != "" )
+            {
+                xframe->dictionary.InsertSpacesAfterPunctuation(line);
+                end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, GetFrequency());
+                phrase_layer->AddEffect(0,0,line,wxEmptyString,"",start_time,end_time,EFFECT_NOT_SELECTED,false);
+                start_time = end_time;
+            }
+        }
+    }
+}
+
+void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& phrase)
+{
+    if( phrase != "" )
+    {
+        xframe->dictionary.LoadDictionaries();
+        wxArrayString words = wxSplit(phrase, ' ');
+        int num_words = words.Count();
+        int word_end_time = end_time;
+        int interval_ms = (word_end_time-start_time) / num_words;
+        for( int i = 0; i < num_words; i++ )
+        {
+            int word_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, GetFrequency());
+            if( i == num_words - 1 )
+            {
+                word_end_time = end_time;
+            }
+            word_layer->AddEffect(0,0,words[i],wxEmptyString,"",start_time,word_end_time,EFFECT_NOT_SELECTED,false);
+            BreakdownWord(phoneme_layer, start_time, word_end_time, words[i]);
+            start_time = word_end_time;
+        }
+    }
+}
+
+void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word)
+{
+    xframe->dictionary.LoadDictionaries();
+    wxArrayString phonemes;
+    xframe->dictionary.BreakdownWord(word, phonemes);
+    if( phonemes.Count() > 0 )
+    {
+        int phoneme_start_time = start_time;
+        int phoneme_end_time = end_time;
+        int phoneme_interval_ms = (phoneme_end_time-start_time) / phonemes.Count();
+        for( int i = 0; i < phonemes.Count(); i++ )
+        {
+            phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(phoneme_start_time+phoneme_interval_ms, GetFrequency());
+            if( i == phonemes.Count() - 1 )
+            {
+                phoneme_end_time = end_time;
+            }
+            phoneme_layer->AddEffect(0,0,phonemes[i],wxEmptyString,"",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
+            phoneme_start_time = phoneme_end_time;
         }
     }
 }

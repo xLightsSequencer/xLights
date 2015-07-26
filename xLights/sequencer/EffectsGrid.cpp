@@ -47,6 +47,8 @@ const long EffectsGrid::ID_GRID_MNU_DELETE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RANDOM_EFFECTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASE = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORD = wxNewId();
 
 EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                        long style, const wxString &name)
@@ -160,6 +162,20 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
     else if (element->GetType()=="timing")
     {
         mnuLayer = new wxMenu();
+        int effectIndex;
+        int selectionType;
+        Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(mSelectedRow,event.GetX(),effectIndex,selectionType);
+        if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == "timing") {
+            if( ri->layerIndex == 0 )
+            {
+                mnuLayer->Append(ID_GRID_MNU_BREAKDOWN_PHRASE,"Breakdown Phrase");
+            }
+            else if( ri->layerIndex == 1 )
+            {
+                mnuLayer->Append(ID_GRID_MNU_BREAKDOWN_WORD,"Breakdown Word");
+            }
+            mSelectedEffect = selectedEffect;
+        }
     }
 
     if (mnuLayer != nullptr) {
@@ -214,6 +230,43 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
             xlights->EffectTreeDlg->InitItems(mSequenceElements->GetEffectsNode());
         }
         xlights->EffectTreeDlg->Show();
+    }
+    else if(id == ID_GRID_MNU_BREAKDOWN_PHRASE)
+    {
+        Effect* phrase_effect = mSelectedEffect;
+        EffectLayer* word_layer;
+        EffectLayer* phoneme_layer;
+        if( phrase_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount() == 1 )
+        {
+            word_layer = phrase_effect->GetParentEffectLayer()->GetParentElement()->AddEffectLayer();
+            phoneme_layer = phrase_effect->GetParentEffectLayer()->GetParentElement()->AddEffectLayer();
+        }
+        else
+        {
+            word_layer = phrase_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(1);
+            phoneme_layer = phrase_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(2);
+        }
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
+        word_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+        phoneme_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
+        phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+        mSequenceElements->BreakdownPhrase(word_layer, phoneme_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName());
+        phrase_effect->GetParentEffectLayer()->GetParentElement()->SetCollapsed(false);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(mParent, eventRowHeaderChanged);
+    }
+    else if(id == ID_GRID_MNU_BREAKDOWN_WORD)
+    {
+        Effect* word_effect = mSelectedEffect;
+        EffectLayer* phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(2);
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
+        phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+        mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
+        word_effect->GetParentEffectLayer()->GetParentElement()->SetCollapsed(false);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(mParent, eventRowHeaderChanged);
     }
 
     Refresh();

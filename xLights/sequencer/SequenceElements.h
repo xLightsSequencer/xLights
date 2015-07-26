@@ -93,6 +93,11 @@ class SequenceElements : public ChangeLister
         void PopulateRowInformation();
         void PopulateVisibleRowInformation();
 
+        void SetSequenceEnd(int ms);
+        void ImportLyrics(Element* element, wxWindow* parent);
+        void BreakdownPhrase(EffectLayer* word_layer, EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& phrase);
+        void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word);
+
         // Selected Ranges
         int GetSelectedRangeCount();
         EffectRange* GetSelectedRange(int index);
@@ -174,6 +179,7 @@ class SequenceElements : public ChangeLister
         int mMaxRowsDisplayed;
         int mCurrentView;
         bool hasPapagayoTiming;
+        int mSequenceEndMS;
 
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
         int mFirstVisibleModelRow;

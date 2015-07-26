@@ -362,7 +362,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers)
 void xLightsFrame::SetSequenceEnd(int ms)
 {
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
-    mainSequencer->PanelRowHeadings->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
+    mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
 }
 
 static bool CalcPercentage(wxString& value, double base, bool reverse, int offset)
