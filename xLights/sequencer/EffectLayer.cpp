@@ -232,13 +232,13 @@ int EffectLayer::GetEffectIndexThatContainsPosition(int position,int &selectionT
         {
             index = i;
 
-            if(position < mEffects[i]->GetStartPosition() + 5)
-            {
-                selectionType = EFFECT_LT_SELECTED;
-            }
-            else if(position > mEffects[i]->GetEndPosition() - 5)
+            if(position > mEffects[i]->GetEndPosition() - 10)
             {
                 selectionType = EFFECT_RT_SELECTED;
+            }
+            else if(position < mEffects[i]->GetStartPosition() + 10)
+            {
+                selectionType = EFFECT_LT_SELECTED;
             }
             else
             {
