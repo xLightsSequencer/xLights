@@ -105,7 +105,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     }
     int selectedTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
     UpdateTimePosition(selectedTimeMS);
-    
+
     int row = GetRow(event.GetY());
     if(row>=mSequenceElements->GetVisibleRowInformationSize() || row < 0)
         return;
@@ -114,11 +114,11 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,event.GetX(),effectIndex,selectionType);
     if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == "timing") {
         wxString label = selectedEffect->GetEffectName();
-        
+
         selectedEffect->SetEffectName(wxGetTextFromUser("Edit Label", "Enter new label:", label, this));
         Refresh();
     }
-    
+
 }
 
 void EffectsGrid::rightClick(wxMouseEvent& event)
@@ -1896,7 +1896,9 @@ void EffectsGrid::DrawTimingEffects(int row)
             // Draw horizontal
             if(mode!=SCREEN_L_R_OFF)
             {
-                DrawGLUtils::DrawLine(*mTimingColor,255,x1,y,x2,y,2);
+                int half_width = (x2-x1)/2;
+                DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,x1+half_width,y,2);
+                DrawGLUtils::DrawLine(*mEffectColorRight,255,x1+half_width,y,x2,y,2);
                 if (effectLayer->GetEffect(effectIndex)->GetEffectName() != "" && (x2-x1) > 20 ) {
                     double fontSize = DEFAULT_ROW_HEADING_HEIGHT - 10;
                     double factor = translateToBacking(1.0);
