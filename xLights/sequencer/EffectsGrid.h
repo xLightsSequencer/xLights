@@ -114,6 +114,7 @@ private:
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect);
     Element* GetActiveTimingElement();
     bool MultipleEffectsSelected();
+    bool PapagayoEffectsSelected();
     void ResizeSingleEffect(int position);
     void ResizeMoveMultipleEffects(int position, bool offset);
     void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight);

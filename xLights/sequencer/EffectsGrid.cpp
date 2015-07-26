@@ -858,6 +858,26 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
     }
 }
 
+bool EffectsGrid::PapagayoEffectsSelected()
+{
+    int count=0;
+    for(int i=0;i<mSequenceElements->GetVisibleRowInformationSize();i++)
+    {
+        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(i);
+        if( el->GetParentElement()->GetType() == "timing" )
+        {
+            if( el->GetParentElement()->GetEffectLayerCount() > 1 )
+            {
+                if(el->GetSelectedEffectCount() > 0)
+                {
+                     return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 bool EffectsGrid::MultipleEffectsSelected()
 {
     int count=0;
@@ -1054,7 +1074,6 @@ void EffectsGrid::Paste(const wxString &data) {
 
     Refresh();
 }
-
 
 void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
 {

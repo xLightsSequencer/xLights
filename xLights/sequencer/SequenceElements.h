@@ -133,6 +133,8 @@ class SequenceElements : public ChangeLister
         virtual void IncrementChangeCount() {mChangeCount++;}
         int GetChangeCount() { return mChangeCount;}
 
+        bool HasPapagayoTiming() { return hasPapagayoTiming; }
+
         UndoManager& get_undo_mgr() { return undo_mgr; }
 
     protected:
@@ -146,6 +148,8 @@ class SequenceElements : public ChangeLister
         {
             return (element1->Index<element2->Index);
         }
+        void addTimingElement(Element *elem, std::vector<Row_Information_Struct> &mRowInformation,
+                              int &rowIndex, int &selectedTimingRow, int &timingRowCount, int &timingColorIndex);
 
         void ClearAllViews();
         std::vector<std::vector <Element*> > mAllViews;
@@ -169,6 +173,7 @@ class SequenceElements : public ChangeLister
         int mTimingRowCount;
         int mMaxRowsDisplayed;
         int mCurrentView;
+        bool hasPapagayoTiming;
 
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
         int mFirstVisibleModelRow;

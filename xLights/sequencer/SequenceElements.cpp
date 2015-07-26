@@ -22,6 +22,7 @@ SequenceElements::SequenceElements()
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);  // first view must remain as master view that determines render order
     xframe = nullptr;
+    hasPapagayoTiming = false;
 }
 
 SequenceElements::~SequenceElements()
@@ -54,6 +55,7 @@ void SequenceElements::Clear() {
     mCurrentView = 0;
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);
+    hasPapagayoTiming = false;
 }
 
 EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
@@ -788,8 +790,12 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
     }
 }
 
-void addTimingElement(Element *elem, std::vector<Row_Information_Struct> &mRowInformation,
-                      int &rowIndex, int &selectedTimingRow, int &timingRowCount, int &timingColorIndex) {
+void SequenceElements::addTimingElement(Element *elem, std::vector<Row_Information_Struct> &mRowInformation,
+                                        int &rowIndex, int &selectedTimingRow, int &timingRowCount, int &timingColorIndex) {
+    if( elem->GetEffectLayerCount() > 1 )
+    {
+        hasPapagayoTiming = true;
+    }
 
     if(!elem->GetCollapsed())
     {
@@ -810,7 +816,6 @@ void addTimingElement(Element *elem, std::vector<Row_Information_Struct> &mRowIn
             mRowInformation.push_back(ri);
             timingRowCount++;
         }
-        timingColorIndex++;
     }
     else
     {
@@ -819,11 +824,12 @@ void addTimingElement(Element *elem, std::vector<Row_Information_Struct> &mRowIn
         ri.Collapsed = elem->GetCollapsed();
         ri.displayName = elem->GetName();
         ri.Active = elem->GetActive();
-        ri.colorIndex = 0;
+        ri.colorIndex = timingColorIndex;
         ri.layerIndex = 0;
         ri.Index = rowIndex++;
         mRowInformation.push_back(ri);
     }
+    timingColorIndex++;
 }
 
 void SequenceElements::PopulateRowInformation()

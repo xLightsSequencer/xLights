@@ -417,6 +417,8 @@
 		<Unit filename="LMSImportChannelMapDialog.h" />
 		<Unit filename="LorConvertDialog.cpp" />
 		<Unit filename="LorConvertDialog.h" />
+		<Unit filename="LyricsDialog.cpp" />
+		<Unit filename="LyricsDialog.h" />
 		<Unit filename="ModelClass.cpp" />
 		<Unit filename="ModelClass.h" />
 		<Unit filename="ModelDialog.cpp" />

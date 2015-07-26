@@ -127,6 +127,18 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
         eventRowHeaderChanged.SetString(element->GetName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
+    else if(element->GetType()=="timing") {
+        if(element->GetEffectLayerCount() > 1) {
+            if(element->GetCollapsed()) {
+                element->SetCollapsed(false);
+            } else {
+                element->SetCollapsed(true);
+            }
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            eventRowHeaderChanged.SetString(element->GetName());
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
+    }
 }
 void RowHeading::rightClick( wxMouseEvent& event)
 {
@@ -285,7 +297,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if(id == ID_ROW_MNU_IMPORT_LYRICS) {
         ImportLyrics(element);
     } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_TRACK) {
-        BreakdownTimingRow(element);
+        int result = wxMessageBox("Breakdown phrases into words and phonemes?", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        if (result == wxOK) {
+            BreakdownTimingRow(element);
+        }
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
         playEvent.SetString(element->GetName());
@@ -343,16 +358,27 @@ void RowHeading::ImportLyrics(Element* element)
         EffectLayer* phrase_layer = element->AddEffectLayer();
 
         int num_phrases = dlgLyrics->TextCtrlLyrics->GetNumberOfLines();
+        for( int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++ )
+        {
+            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
+            if( line == "" )
+            {
+                num_phrases--;
+            }
+        }
         int start_time = 0;
         int end_time = mSequenceEndMS;
         int interval_ms = (end_time-start_time) / num_phrases;
         for( int i = 0; i < num_phrases; i++ )
         {
             wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
-            dictionary.InsertSpacesAfterPunctuation(line);
-            end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, mSequenceElements->GetFrequency());
-            phrase_layer->AddEffect(0,0,line,wxEmptyString,"",start_time,end_time,EFFECT_NOT_SELECTED,false);
-            start_time = end_time;
+            if( line != "" )
+            {
+                dictionary.InsertSpacesAfterPunctuation(line);
+                end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, mSequenceElements->GetFrequency());
+                phrase_layer->AddEffect(0,0,line,wxEmptyString,"",start_time,end_time,EFFECT_NOT_SELECTED,false);
+                start_time = end_time;
+            }
         }
     }
 }
