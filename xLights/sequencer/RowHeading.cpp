@@ -385,11 +385,7 @@ void RowHeading::ImportLyrics(Element* element)
 
 void RowHeading::BreakdownTimingRow(Element* element)
 {
-    // Deactivate active timing mark so new one is selected;
     dictionary.LoadDictionaries();
-    mSequenceElements->DeactivateAllTimingElements();
-    wxString type = "timing";
-    wxString new_name = element->GetName() + "_Words";
     EffectLayer* layer = element->GetEffectLayer(0);
     EffectLayer* word_layer = element->AddEffectLayer();
     EffectLayer* phoneme_layer = element->AddEffectLayer();
@@ -397,49 +393,54 @@ void RowHeading::BreakdownTimingRow(Element* element)
     {
         Effect* effect = layer->GetEffect(i);
         wxString phrase = effect->GetEffectName();
-        if( phrase != "" )
-        {
-            wxArrayString phonemes;
-            wxArrayString words = wxSplit(phrase, ' ');
-            int num_words = words.Count();
-            int start_time = effect->GetStartTimeMS();
-            int end_time = effect->GetEndTimeMS();
-            int interval_ms = (end_time-start_time) / num_words;
-            for( int j = 0; j < num_words; j++ )
-            {
-                end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, mSequenceElements->GetFrequency());
-                if( j == num_words - 1 )
-                {
-                    end_time = effect->GetEndTimeMS();
-                }
-                word_layer->AddEffect(0,0,words[j],wxEmptyString,"",start_time,end_time,EFFECT_NOT_SELECTED,false);
-                dictionary.BreakdownWord(words[j], phonemes);
-                if( phonemes.Count() > 0 )
-                {
-                    int phoneme_start_time = start_time;
-                    int phoneme_end_time = start_time+interval_ms;
-                    int phoneme_interval_ms = (phoneme_end_time-start_time) / phonemes.Count();
-                    for( int k = 0; k < phonemes.Count(); k++ )
-                    {
-                        phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(phoneme_start_time+phoneme_interval_ms, mSequenceElements->GetFrequency());
-                        if( k == phonemes.Count() - 1 )
-                        {
-                            phoneme_end_time = end_time;
-                        }
-                        phoneme_layer->AddEffect(0,0,phonemes[k],wxEmptyString,"",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
-                        phoneme_start_time = phoneme_end_time;
-                    }
-                }
-                start_time = end_time;
-            }
-        }
+        BreakdownPhrase(word_layer, phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase);
     }
-    wxArrayString timings;
-    timings.push_back(new_name);
-    mSequenceElements->AddViewToTimings(timings, mSequenceElements->GetViewName(mSequenceElements->GetCurrentView()));
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(GetParent(), eventRowHeaderChanged);
-    timings.clear();
+}
+
+void RowHeading::BreakdownPhrase(EffectLayer* word_layer, EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& phrase)
+{
+    if( phrase != "" )
+    {
+        wxArrayString words = wxSplit(phrase, ' ');
+        int num_words = words.Count();
+        int word_end_time = end_time;
+        int interval_ms = (word_end_time-start_time) / num_words;
+        for( int i = 0; i < num_words; i++ )
+        {
+            int word_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, mSequenceElements->GetFrequency());
+            if( i == num_words - 1 )
+            {
+                word_end_time = end_time;
+            }
+            word_layer->AddEffect(0,0,words[i],wxEmptyString,"",start_time,word_end_time,EFFECT_NOT_SELECTED,false);
+            BreakdownWord(phoneme_layer, start_time, word_end_time, words[i]);
+            start_time = word_end_time;
+        }
+    }
+}
+
+void RowHeading::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word)
+{
+    wxArrayString phonemes;
+    dictionary.BreakdownWord(word, phonemes);
+    if( phonemes.Count() > 0 )
+    {
+        int phoneme_start_time = start_time;
+        int phoneme_end_time = end_time;
+        int phoneme_interval_ms = (phoneme_end_time-start_time) / phonemes.Count();
+        for( int i = 0; i < phonemes.Count(); i++ )
+        {
+            phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(phoneme_start_time+phoneme_interval_ms, mSequenceElements->GetFrequency());
+            if( i == phonemes.Count() - 1 )
+            {
+                phoneme_end_time = end_time;
+            }
+            phoneme_layer->AddEffect(0,0,phonemes[i],wxEmptyString,"",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
+            phoneme_start_time = phoneme_end_time;
+        }
+    }
 }
 
 bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)

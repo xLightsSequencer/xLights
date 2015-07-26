@@ -47,6 +47,8 @@ class RowHeading : public wxWindow
         bool HitTestTimingActive(int row,int x, bool* IsActive);
         void ImportLyrics(Element* element);
         void BreakdownTimingRow(Element* element);
+        void BreakdownPhrase(EffectLayer* word_layer, EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& phrase);
+        void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word);
         const xlColor* GetHeaderColor(Row_Information_Struct* info);
         const xlColor * mHeaderColorModel;
         const xlColor * mHeaderColorTiming;

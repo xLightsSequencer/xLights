@@ -90,7 +90,7 @@ void PhonemeDictionary::LoadDictionary(wxString filename)
 	}
 }
 
-void PhonemeDictionary::BreakdownWord(wxString& text, wxArrayString& phonemes)
+void PhonemeDictionary::BreakdownWord(const wxString& text, wxArrayString& phonemes)
 {
     wxString word = text;
     word.Replace("[", "");

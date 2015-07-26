@@ -14,7 +14,7 @@ class PhonemeDictionary
 
         void LoadDictionaries();
         void LoadDictionary(wxString filename);
-        void BreakdownWord(wxString& text, wxArrayString& phonemes);
+        void BreakdownWord(const wxString& text, wxArrayString& phonemes);
         void InsertSpacesAfterPunctuation(wxString& text);
 
     protected:
