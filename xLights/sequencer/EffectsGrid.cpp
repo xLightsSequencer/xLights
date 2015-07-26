@@ -916,7 +916,6 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
 
 bool EffectsGrid::PapagayoEffectsSelected()
 {
-    int count=0;
     for(int i=0;i<mSequenceElements->GetVisibleRowInformationSize();i++)
     {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(i);
