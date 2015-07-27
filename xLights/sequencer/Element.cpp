@@ -9,7 +9,8 @@ Element::Element(ChangeLister *l, wxString &name, wxString &type,bool visible,bo
     mActive(active),
     mSelected(selected),
     mFixed(0),
-    listener(l)
+    listener(l),
+    waitCount(0)
 {
 }
 
@@ -28,10 +29,10 @@ int Element::GetWaitCount() {
     return waitCount;
 }
 void Element::IncWaitCount() {
-    wxAtomicInc(waitCount);
+    waitCount++;
 }
 void Element::DecWaitCount() {
-    wxAtomicDec(waitCount);
+    waitCount--;
 }
 
 

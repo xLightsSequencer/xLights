@@ -3,6 +3,7 @@
 
 #include "wx/wx.h"
 #include <vector>
+#include <atomic>
 #include "wx/xml/xml.h"
 #include "EffectLayer.h"
 
@@ -122,7 +123,7 @@ class Element
         std::vector<StrandLayer*> mStrandLayers;
     
         wxMutex renderLock;
-        wxAtomicInt waitCount;
+        std::atomic_int waitCount;
 
         ChangeLister *listener;
         volatile int changeCount = 0;
