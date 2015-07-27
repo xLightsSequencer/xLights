@@ -228,10 +228,21 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     if(offsetYpct<0 || offsetYpct>1) {
         offsetYpct = .5;
     }
-    tempstr=ModelNode->GetAttribute("PreviewScale","0.333");
-    tempstr.ToDouble(&PreviewScale);
-    if(PreviewScale<0 || PreviewScale>1) {
-        PreviewScale = .33;
+    tempstr=ModelNode->GetAttribute("PreviewScale");
+    singleScale = false;
+    if (tempstr == "") {
+        PreviewScaleX = wxAtof(ModelNode->GetAttribute("PreviewScaleX", "0.3333"));
+        PreviewScaleY = wxAtof(ModelNode->GetAttribute("PreviewScaleY", "0.3333"));
+    } else {
+        singleScale = true;
+        tempstr.ToDouble(&PreviewScaleX);
+        tempstr.ToDouble(&PreviewScaleY);
+    }
+    if(PreviewScaleX<0 || PreviewScaleX>1) {
+        PreviewScaleX = .33;
+    }
+    if(PreviewScaleY<0 || PreviewScaleY>1) {
+        PreviewScaleY = .33;
     }
     tempstr=ModelNode->GetAttribute("PreviewRotation","0");
     tempstr.ToLong(&degrees);
@@ -381,12 +392,15 @@ void ModelClass::AddOffset(double xPct, double yPct) {
 }
 
 
-void ModelClass::SetScale(double newscale) {
-    PreviewScale=newscale;
+void ModelClass::SetScale(double x, double y) {
+    PreviewScaleX = x;
+    PreviewScaleY = y;
+    singleScale = false;
 }
 
-double ModelClass::GetScale() {
-    return PreviewScale;
+void ModelClass::GetScales(double &x, double &y) {
+    x = PreviewScaleX;
+    y = PreviewScaleY;
 }
 
 int ModelClass::GetPreviewRotation() {
@@ -1406,12 +1420,19 @@ void ModelClass::UpdateXmlWithScale() {
     ModelXml->DeleteAttribute("offsetXpct");
     ModelXml->DeleteAttribute("offsetYpct");
     ModelXml->DeleteAttribute("PreviewScale");
+    ModelXml->DeleteAttribute("PreviewScaleX");
+    ModelXml->DeleteAttribute("PreviewScaleY");
     ModelXml->DeleteAttribute("PreviewRotation");
     if (ModelXml->HasAttribute("versionNumber"))
         ModelXml->DeleteAttribute("versionNumber");
     ModelXml->AddAttribute("offsetXpct", wxString::Format("%6.4f",offsetXpct));
     ModelXml->AddAttribute("offsetYpct", wxString::Format("%6.4f",offsetYpct));
-    ModelXml->AddAttribute("PreviewScale", wxString::Format("%6.4f",PreviewScale));
+    if (singleScale) {
+        ModelXml->AddAttribute("PreviewScale", wxString::Format("%6.4f",PreviewScaleX));
+    } else {
+        ModelXml->AddAttribute("PreviewScaleX", wxString::Format("%6.4f",PreviewScaleX));
+        ModelXml->AddAttribute("PreviewScaleY", wxString::Format("%6.4f",PreviewScaleY));
+    }
     ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
     ModelXml->AddAttribute("versionNumber", wxString::Format("%d",ModelVersion));
 }
@@ -1423,7 +1444,17 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
     int w, h;
     preview->GetVirtualCanvasSize(w,h);
 
-    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+    if (singleScale) {
+        //we now have the virtual size so we can flip to non-single scale
+        singleScale = false;
+        if (RenderHt > RenderWi) {
+            PreviewScaleX = double(RenderWi) * double(h) / (double(w) * RenderHt) * PreviewScaleY;
+        } else {
+            PreviewScaleY = double(RenderHt) * double(w) / (double(h) * RenderWi) * PreviewScaleX;
+        }
+    }
+    double scalex = double(w) / RenderWi * PreviewScaleX;
+    double scaley = double(h) / RenderHt * PreviewScaleY;
 
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
@@ -1433,8 +1464,8 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
         for(size_t c=0; c < CoordCount; c++) {
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            sx = (sx*scale)+w1;
-            sy = (sy*scale)+h1;
+            sx = (sx*scalex)+w1;
+            sy = (sy*scaley)+h1;
             xPos.push_back(sx);
             yPos.push_back(sy);
             actChannel.push_back(Nodes[n]->ActChan);
@@ -1578,15 +1609,19 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         glPointSize(preview->calcPixelSize(pixelSize));
     }
     
-    double scalex=double(w) / RenderWi * PreviewScale;
-    double scaley=double(h) / RenderHt * PreviewScale;
-    if (RenderHt > RenderWi) {
-        scalex = scaley;
-    } else {
-        scaley = scalex;
+    if (singleScale) {
+        //we now have the virtual size so we can flip to non-single scale
+        singleScale = false;
+        if (RenderHt > RenderWi) {
+            PreviewScaleX = double(RenderWi) * double(h) / (double(w) * RenderHt) * PreviewScaleY;
+        } else {
+            PreviewScaleY = double(RenderHt) * double(w) / (double(h) * RenderWi) * PreviewScaleX;
+        }
     }
-    //scalex = scalex * double(w)/double(vw);
-    //scaley = scaley * double(h)/double(vh);
+    
+    double scalex=double(w) / RenderWi * PreviewScaleX;
+    double scaley=double(h) / RenderHt * PreviewScaleY;
+
     
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
@@ -1858,7 +1893,18 @@ void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
-    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+    if (singleScale) {
+        //we now have the virtual size so we can flip to non-single scale
+        singleScale = false;
+        if (RenderHt > RenderWi) {
+            PreviewScaleX = double(RenderWi) * double(h) / (double(w) * RenderHt) * PreviewScaleY;
+        } else {
+            PreviewScaleY = double(RenderHt) * double(w) / (double(h) * RenderWi) * PreviewScaleX;
+        }
+    }
+    
+    double scalex = double(w) / RenderWi * PreviewScaleX;
+    double scaley = double(h) / RenderHt * PreviewScaleY;
 
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
@@ -1873,8 +1919,8 @@ void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            sx = (sx*scale)+w1;
-            sy = (sy*scale)+h1;
+            sx = (sx*scalex)+w1;
+            sy = (sy*scaley)+h1;
             if (sx<mMinScreenX) {
                 mMinScreenX = sx;
             }
@@ -1902,25 +1948,19 @@ void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
 
 void ModelClass::ResizeWithHandles(ModelPreview* preview,int mouseX,int mouseY) {
     int w, h;
-    float newScale;
     // Get Center Point
     preview->GetVirtualCanvasSize(w, h);
-    int w1 = int(offsetXpct*w);
-    int h1 = int(offsetYpct*h);
+    double w1 = offsetXpct* double(w);
+    double h1 = offsetYpct* double(h);
     // Get mouse point in model space/ not screen space
     double sx,sy;
-    sx = mouseX-w1;
-    sy = (h-mouseY)-h1;
+    sx = double(mouseX)-w1;
+    sy = double(h-mouseY)-h1;
     double radians=-toRadians(PreviewRotation); // negative angle to reverse translation
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx = fabs(sx) - RECT_HANDLE_WIDTH;
     sy = fabs(sy) - RECT_HANDLE_WIDTH;
-    if(RenderWi >= RenderHt) {
-        newScale = (float)(sx*2)/(float)w;
-    } else {
-        newScale = (float)(sy*2)/(float)h;
-    }
-    SetScale(newScale);
+    SetScale( (double)(sx*2.0)/double(w), (double)(sy*2.0)/double(h));
 }
 
 void ModelClass::RotateWithHandles(ModelPreview* preview, bool ShiftKeyPressed, int mouseX,int mouseY) {

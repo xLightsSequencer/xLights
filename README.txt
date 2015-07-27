@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Add ability to have model sizes scaled separately for horizontal and vertical directions
     -- enh(gil) Add ability to import lyrics to a timing track.
 4.1.13  Jul 24, 2015
 	-- enh(gil) First pass at coding a built in Papagayo into xLights. You will see 4 new dictionary files in xLights/bin

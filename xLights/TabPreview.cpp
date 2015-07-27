@@ -51,33 +51,6 @@ void xLightsFrame::UpdatePreview()
     modelPreview->EndDrawing();
 }
 
-void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
-{
-    WholeHouseModelNameDialog whDialog(this);
-    if (whDialog.ShowModal() != wxID_OK) return;
-    wxString modelName = whDialog.Text_WholehouseModelName->GetValue();
-    if(modelName.Length()> 0)
-    {
-        wxXmlNode *e = BuildWholeHouseModel(modelName, nullptr, PreviewModels);
-
-        // Delete exisiting wholehouse model with same name
-        for(wxXmlNode* n = ModelsNode->GetChildren(); n != NULL; n = n->GetNext()) {
-            if (n->GetAttribute("name") == modelName) {
-                ModelsNode->RemoveChild(n);
-                // No break, remove them all if more than one
-            }
-        }
-        // Add model node to models
-        ModelsNode->AddChild(e);
-        // Indicate model changes need to be saved
-        UnsavedRgbEffectsChanges=true;
-        // Update List on Sequencer page
-        UpdateModelsList();
-        StatusBar1->SetStatusText(wxString::Format("Completed creating '%s' whole house model",modelName));
-
-    }
-}
-
 wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models)
 {
     size_t numberOfNodes=0;
@@ -190,9 +163,14 @@ void xLightsFrame::SelectModel(wxString name)
             ListBoxElementList->SetSelection(i);
             ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(i);
             m->Selected = true;
-            float newscale=m->GetScale()*100.0;
-            SliderPreviewScale->SetValue(newscale*10);
-            TextCtrlPreviewElementSize->SetValue(wxString::Format( "%.1f",newscale));
+            double newscalex, newscaley;
+            m->GetScales(newscalex, newscaley);
+            newscalex *= 100.0;
+            newscaley *= 100.0;
+            SliderPreviewScaleWidth->SetValue(newscalex*10);
+            SliderPreviewScaleHeight->SetValue(newscalex*10);
+            TextCtrlPreviewElementWidth->SetValue(wxString::Format( "%.1f",newscalex));
+            TextCtrlPreviewElementHeight->SetValue(wxString::Format( "%.1f",newscaley));
             SliderPreviewRotate->SetValue(m->GetRotation());
             TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",m->GetRotation()));
             bool canrotate=m->CanRotate();
@@ -636,7 +614,10 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
     else if(m_resizing)
     {
         m->ResizeWithHandles(modelPreview,event.GetPosition().x,y);
-        TextCtrlPreviewElementSize->SetValue(wxString::Format( "%0.1f",m->GetScale()*100.0));
+        double scalex, scaley;
+        m->GetScales(scalex, scaley);
+        TextCtrlPreviewElementWidth->SetValue(wxString::Format( "%0.1f",scalex*100.0));
+        TextCtrlPreviewElementHeight->SetValue(wxString::Format( "%0.1f",scaley*100.0));
         UpdatePreview();
     }
     else if (m_dragging && event.Dragging())
@@ -679,21 +660,24 @@ void xLightsFrame::OnScrolledWindowPreviewPaint(wxPaintEvent& event)
 }
 
 
-void xLightsFrame::PreviewScaleUpdated(float newscale)
+void xLightsFrame::PreviewScaleUpdated(float xscale, float yscale)
 {
     int sel=ListBoxElementList->GetSelection();
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
-    m->SetScale(newscale/100.0);
+    m->SetScale(xscale/100.0, yscale/100.0);
     UpdatePreview();
 }
 
 void xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated(wxScrollEvent& event)
 {
-    double newscale=SliderPreviewScale->GetValue();
-    newscale /= 10.0;
-    TextCtrlPreviewElementSize->SetValue(wxString::Format( "%.1f",newscale));
-    PreviewScaleUpdated(newscale);
+    double newscalex=SliderPreviewScaleWidth->GetValue();
+    double newscaley=SliderPreviewScaleHeight->GetValue();
+    newscalex /= 10.0;
+    newscaley /= 10.0;
+    TextCtrlPreviewElementWidth->SetValue(wxString::Format( "%.1f",newscalex));
+    TextCtrlPreviewElementHeight->SetValue(wxString::Format( "%.1f",newscaley));
+    PreviewScaleUpdated(newscalex, newscaley);
 }
 
 void xLightsFrame::PreviewRotationUpdated(int newRotation)
@@ -913,9 +897,11 @@ void xLightsFrame::OnTextCtrlModelRotationDegreesText(wxCommandEvent& event)
 
 void xLightsFrame::OnTextCtrlPreviewElementSizeText(wxCommandEvent& event)
 {
-    float newscale = wxAtof(TextCtrlPreviewElementSize->GetValue());
-    SliderPreviewScale->SetValue(newscale * 10);
-    PreviewScaleUpdated(newscale); //slider event not called automatically, so force it here
+    float newscalex = wxAtof(TextCtrlPreviewElementWidth->GetValue());
+    float newscaley = wxAtof(TextCtrlPreviewElementHeight->GetValue());
+    SliderPreviewScaleWidth->SetValue(newscalex * 10);
+    SliderPreviewScaleHeight->SetValue(newscaley * 10);
+    PreviewScaleUpdated(newscalex, newscaley); //slider event not called automatically, so force it here
 }
 
 void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)

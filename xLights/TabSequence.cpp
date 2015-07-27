@@ -178,16 +178,17 @@ void xLightsFrame::LoadEffectsFile()
 
         // load converted file
         LoadEffectsFileNoCheck();
-        // update version
-        EffectsNode->DeleteAttribute("version");
-        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
         // fix effect presets
         xLightsXmlFile::FixEffectPresets(EffectsNode);
 
+        // update version
+        EffectsNode->DeleteAttribute("version");
+        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
+
         UnsavedRgbEffectsChanges = true;
     }
-
+    
     UpdateModelsList();
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements,ModelsNode, ModelGroupsNode, ViewsNode);
     CheckForAndCreateDefaultPerpective();

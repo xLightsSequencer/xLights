@@ -396,7 +396,8 @@ private:
     bool modelv2;
     int StrobeRate;      // 0=no strobing
     double offsetXpct,offsetYpct;
-    double PreviewScale;
+    bool singleScale;
+    double PreviewScaleX, PreviewScaleY;
     int PreviewRotation;
     long ModelVersion;
 
@@ -446,8 +447,8 @@ public:
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
-    void SetScale(double newscale);
-    double GetScale();
+    void SetScale(double x, double y);
+    void GetScales(double &x, double &y);
     int GetPreviewRotation();
     int GetLastChannel();
     int GetNodeNumber(size_t nodenum);

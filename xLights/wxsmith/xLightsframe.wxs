@@ -2092,6 +2092,7 @@
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
 												<cols>1</cols>
+												<growablerows>2</growablerows>
 												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON_SELECT_MODEL_GROUPS" variable="ButtonSelectModelGroups" member="yes">
 														<label>Select Model Groups</label>
@@ -2112,7 +2113,6 @@
 												<object class="sizeritem">
 													<object class="wxListBox" name="ID_LISTBOX_ELEMENT_LIST" variable="ListBoxElementList" member="yes">
 														<default>-1</default>
-														<size>132,240</size>
 														<style>wxLB_SORT</style>
 														<handler function="OnListBoxElementListSelect" entry="EVT_LISTBOX" />
 													</object>
@@ -2139,28 +2139,19 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxButton" name="ID_BUTTON_BUILD_WHOLEHOUSE_MODEL" variable="ButtonBuildWholeHouseModel" member="yes">
-														<label>Build Model from Preview</label>
-														<handler function="OnButtonBuildWholeHouseModelClick" entry="EVT_BUTTON" />
-													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
 													<object class="wxFlexGridSizer" variable="FlexGridSizer37" member="no">
 														<cols>2</cols>
 														<growablecols>1</growablecols>
 														<object class="sizeritem">
 															<object class="wxStaticText" name="ID_STATICTEXT22" variable="StaticText23" member="yes">
-																<label>Model Size</label>
+																<label>Model Width</label>
 															</object>
 															<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
-															<object class="wxTextCtrl" name="ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE" variable="TextCtrlPreviewElementSize" member="yes">
+															<object class="wxTextCtrl" name="ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE" variable="TextCtrlPreviewElementWidth" member="yes">
 																<value>50</value>
 																<size>25,-1d</size>
 																<handler function="OnTextCtrlPreviewElementSizeText" entry="EVT_TEXT" />
@@ -2174,7 +2165,45 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_PREVIEW_SCALE" variable="SliderPreviewScale" member="yes">
+													<object class="wxSlider" name="ID_SLIDER3" variable="SliderPreviewScaleWidth" member="yes">
+														<value>50</value>
+														<min>1</min>
+														<max>700</max>
+														<handler function="OnSliderPreviewScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+														<cols>2</cols>
+														<growablecols>1</growablecols>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT24" variable="StaticText37" member="yes">
+																<label>Model Height</label>
+															</object>
+															<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrlPreviewElementHeight" member="yes">
+																<value>50</value>
+																<size>25,-1d</size>
+																<handler function="OnTextCtrlPreviewElementSizeText" entry="EVT_TEXT" />
+															</object>
+															<flag>wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxSlider" name="ID_SLIDER_PREVIEW_SCALE" variable="SliderPreviewScaleHeight" member="yes">
 														<value>50</value>
 														<min>1</min>
 														<max>700</max>

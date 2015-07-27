@@ -527,7 +527,6 @@ private:
     void OnbtEditViewsClick(wxCommandEvent& event);
     void OnChoice_ViewsSelect(wxCommandEvent& event);
     void OnButtonBuildCustomModelClick(wxCommandEvent& event);
-    void OnButtonBuildWholeHouseModelClick(wxCommandEvent& event);
     void OnTextCtrlModelRotationDegreesText(wxCommandEvent& event);
     void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
     void OnScrolledWindowPreviewPaint(wxPaintEvent& event);
@@ -786,9 +785,11 @@ private:
     static const long ID_LISTBOX_ELEMENT_LIST;
     static const long ID_BUTTON_MODELS_PREVIEW;
     static const long ID_BUTTON_SAVE_PREVIEW;
-    static const long ID_BUTTON_BUILD_WHOLEHOUSE_MODEL;
     static const long ID_STATICTEXT22;
     static const long ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE;
+    static const long ID_SLIDER3;
+    static const long ID_STATICTEXT24;
+    static const long ID_TEXTCTRL3;
     static const long ID_SLIDER_PREVIEW_SCALE;
     static const long ID_STATICTEXT25;
     static const long ID_TEXTCTRL2;
@@ -974,6 +975,7 @@ private:
     DragEffectBitmapButton* BitmapButton13;
     DragEffectBitmapButton* BitmapButton4;
     wxButton* ButtonAddE131;
+    wxTextCtrl* TextCtrlPreviewElementWidth;
     wxTextCtrl* TextCtrlFilename;
     DragEffectBitmapButton* BitmapButton2;
     wxMenuItem* MenuItemRenderEraseMode;
@@ -1031,8 +1033,6 @@ private:
     wxPanel* PreviewGLPanel;
     wxStaticText* StaticText10;
     wxMenuItem* mRenderOnSaveMenuItem;
-    wxButton* ButtonBuildWholeHouseModel;
-    wxTextCtrl* TextCtrlPreviewElementSize;
     wxStaticText* StaticText35;
     wxMenuBar* MenuBar;
     wxChoice* ChoiceOutputFormat;
@@ -1069,6 +1069,7 @@ private:
     wxMenu* MenuFile;
     DragEffectBitmapButton* BitmapButton33;
     wxButton* ButtonSetPreviewSize;
+    wxSlider* SliderPreviewScaleWidth;
     wxStaticText* StaticText16;
     DragEffectBitmapButton* BitmapButton30;
     wxMenu* ToolIconSizeMenu;
@@ -1098,8 +1099,10 @@ private:
     wxStaticText* StaticText18;
     xlAuiToolBar* EffectsToolBar;
     wxListCtrl* GridNetwork;
+    wxSlider* SliderPreviewScaleHeight;
     DragEffectBitmapButton* BitmapButton9;
     wxSlider* SliderRgbChaseSpeed;
+    wxStaticText* StaticText37;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
     wxStaticText* StaticTextPreviewRotation;
@@ -1110,6 +1113,7 @@ private:
     wxPanel* PanelTestStandard;
     wxStaticText* StaticText20;
     wxButton* ButtonStartPapagayo;
+    wxTextCtrl* TextCtrlPreviewElementHeight;
     DragEffectBitmapButton* BitmapButton21;
     wxButton* Button_Change_Media_Dir;
     wxTextCtrl* TextCtrl_pgo_filename;
@@ -1166,7 +1170,6 @@ private:
     wxMenuItem* Menu_Settings_Sequence;
     DragEffectBitmapButton* BitmapButton22;
     wxMenuItem* MenuItemGridNodeValuesOff;
-    wxSlider* SliderPreviewScale;
     wxButton* ButtonTestLoad;
     wxRadioButton* RadioButtonOff;
     DragEffectBitmapButton* BitmapButton29;
@@ -1489,14 +1492,13 @@ protected:
     void StopNow(void);
     void PlayRgbSequence(void);
     bool IsValidEffectString(wxString& s);
-    void PreviewScaleUpdated(float newscale);
+    void PreviewScaleUpdated(float xscale, float yscale);
     void LoadPapagayoFile(const wxString& filename, int frame_offset = 0);
     void InitPapagayoTab(bool tab_changed);
     bool LoadPgoSettings(void);
     bool SavePgoSettings(void);
     bool GetGroupName(wxString& grpname);
     void PgoGridCellSelect(int row, int col, int where);
-    void GetMouthNodes(const wxString& model_name);
     void PreviewRotationUpdated(int newRotation);
     int FindModelsClicked(int x,int y,wxArrayInt* found);
     void SelectModel(wxString name);
