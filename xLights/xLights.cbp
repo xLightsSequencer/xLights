@@ -247,6 +247,7 @@
 					<Add option="`wx-config --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
+					<Add option="-DLINUX" />
 					<Add option="-D__WXDEBUG__" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
@@ -270,6 +271,7 @@
 					<Add option="`wx-config --version=3.0 --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
+					<Add option="-DLINUX" />
 					<Add option="-DNDEBUG" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
