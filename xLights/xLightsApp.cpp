@@ -15,6 +15,9 @@
 #include <wx/image.h>
 //*)
 
+#ifdef LINUX
+#include <GL/glut.h>
+#endif
 
 #ifndef __WXMSW__
 #include <execinfo.h>
@@ -227,6 +230,10 @@ bool xLightsApp::OnInit()
     topFrame = (xLightsFrame* )GetTopWindow();
 
     wxImage::AddHandler(new wxPNGHandler);
+    #ifdef LINUX
+        glutInit(&(wxApp::argc), wxApp::argv);
+    #endif
+
 
     return wxsOK;
 }
