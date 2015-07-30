@@ -90,6 +90,7 @@ PreviewModels::PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode*
 	FlexGridSizer6->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoiceModelLayoutType = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	ChoiceModelLayoutType->SetSelection( ChoiceModelLayoutType->Append(_("Grid as per preview")) );
+	ChoiceModelLayoutType->Append(_("Minimal Grid"));
 	ChoiceModelLayoutType->Append(_("Horizontal per model"));
 	ChoiceModelLayoutType->Append(_("Vertical per model"));
 	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -204,10 +205,12 @@ void PreviewModels::UpdateSelectedModel()
     wxString v = e->GetAttribute("layout", "grid");
     if (v == "grid") {
         ChoiceModelLayoutType->SetSelection(0);
-    } else if (v == "horizontal") {
+    }else if (v == "minimalGrid") {
         ChoiceModelLayoutType->SetSelection(1);
-    } else if (v == "vertical") {
+    } else if (v == "horizontal") {
         ChoiceModelLayoutType->SetSelection(2);
+    } else if (v == "vertical") {
+        ChoiceModelLayoutType->SetSelection(3);
     }
     
     wxCommandEvent evt;
@@ -308,9 +311,13 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
                 e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
                 break;
             case 1:
-                e->AddAttribute("layout", "horizontal");
+                e->AddAttribute("layout", "minimalGrid");
+                e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
                 break;
             case 2:
+                e->AddAttribute("layout", "horizontal");
+                break;
+            case 3:
                 e->AddAttribute("layout", "vertical");
                 break;
         }
@@ -386,5 +393,5 @@ void PreviewModels::OnButtonDownClick(wxCommandEvent& event)
 
 void PreviewModels::OnChoiceModelLayoutTypeSelect(wxCommandEvent& event)
 {
-    SizeSpinCtrl->Enable(ChoiceModelLayoutType->GetSelection() == 0);
+    SizeSpinCtrl->Enable(ChoiceModelLayoutType->GetSelection() <= 1);
 }

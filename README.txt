@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Add a "Minimal Grid" option for model group to specify just the area of the given models
     -- enh(dkulp) Add ability to have model sizes scaled separately for horizontal and vertical directions
     -- enh(gil) Add ability to import lyrics to a timing track.
 4.1.13  Jul 24, 2015

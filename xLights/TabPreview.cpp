@@ -74,7 +74,7 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
     e->AddAttribute("StringType", "RGB Nodes");
 
     wxString layout = node == nullptr ? "grid" : node->GetAttribute("layout", "grid");
-    if (layout == "grid") {
+    if (layout == "grid" || layout == "minimalGrid") {
         modelPreview->GetVirtualCanvasSize(w, h);
 
         // Add node position and channel number to arrays
@@ -85,7 +85,33 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
         }
         int wScaled = node == nullptr ? 400 : wxAtoi(node->GetAttribute("GridSize", "400"));
         int hScaled = wScaled;
-        // Add WholeHouseData attribute
+        int xOff = 0;
+        int yOff = 0;
+        if (layout == "minimalGrid") {
+            int minx = 99999;
+            int maxx = -1;
+            int miny = 99999;
+            int maxy = -1;
+            for(int i=0;i<xPos.size();i++) {
+                if (xPos[i] > maxx) {
+                    maxx = xPos[i];
+                }
+                if (xPos[i] < minx) {
+                    minx = xPos[i];
+                }
+                if (yPos[i] > maxy) {
+                    maxy = yPos[i];
+                }
+                if (yPos[i] < miny) {
+                    miny = yPos[i];
+                }
+            }
+            xOff = minx;
+            yOff = miny;
+            
+            h = maxy - miny + 1;
+            w = maxx - minx + 1;
+        }
 
         double hscale = (double)hScaled / (double)h;
         double wscale = (double)wScaled / (double)w;
@@ -103,8 +129,8 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
 
         for(int i=0;i<xPos.size();i++)
         {
-            xPos[i] = (int)(wscale*(double)xPos[i]);
-            yPos[i] = (int)((hscale*(double)yPos[i]));
+            xPos[i] = (int)(wscale*(double)(xPos[i] - xOff));
+            yPos[i] = (int)((hscale*(double)(yPos[i] - yOff)));
             WholeHouseData += wxString::Format(wxT("%i,%i,%i,%s"),actChannel[i],xPos[i],yPos[i],(const char *)nodeType[i].c_str());
             if(i!=xPos.size()-1)
             {

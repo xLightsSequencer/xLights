@@ -100,6 +100,7 @@
 												<object class="wxChoice" name="ID_CHOICE1" variable="ChoiceModelLayoutType" member="yes">
 													<content>
 														<item>Grid as per preview</item>
+														<item>Minimal Grid</item>
 														<item>Horizontal per model</item>
 														<item>Vertical per model</item>
 													</content>
