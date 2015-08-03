@@ -1032,38 +1032,45 @@ void EffectsGrid::Paste(const wxString &data) {
             if (efdata.size() < 3) {
                 return;
             }
-            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
-            int effectIndex = Effect::GetEffectIndex(efdata[0]);
-            if (effectIndex >= 0) {
-                int end_time = mDropEndTimeMS;
-                if( (efdata.size() == 7) && GetActiveTimingElement() == nullptr )  // use original effect length if no timing track is active
-                {
-                    int drop_time_offset = wxAtoi(efdata[3]);
-                    drop_time_offset = mDropStartTimeMS - drop_time_offset;
-                    end_time = wxAtoi(efdata[4]);
-                    end_time += drop_time_offset;
-                }
-                if( el->GetRangeIsClearMS(mDropStartTimeMS, end_time) )
-                {
-                    Effect* ef = el->AddEffect(0,
-                                  effectIndex,
-                                  efdata[0],
-                                  efdata[1],
-                                  efdata[2],
-                                  mDropStartTimeMS,
-                                  end_time,
-                                  EFFECT_SELECTED,
-                                  false);
-                    mSequenceElements->get_undo_mgr().CreateUndoStep();
-                    mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
-                    if (!ef->GetPaletteMap().empty()) {
-                        sendRenderEvent(el->GetParentElement()->GetName(),
-                                        mDropStartTimeMS,
-                                        mDropEndTimeMS, true);
+            if( efdata[0] == "Random" )
+            {
+                FillRandomEffects();
+            }
+            else
+            {
+                EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
+                int effectIndex = Effect::GetEffectIndex(efdata[0]);
+                if (effectIndex >= 0) {
+                    int end_time = mDropEndTimeMS;
+                    if( (efdata.size() == 7) && GetActiveTimingElement() == nullptr )  // use original effect length if no timing track is active
+                    {
+                        int drop_time_offset = wxAtoi(efdata[3]);
+                        drop_time_offset = mDropStartTimeMS - drop_time_offset;
+                        end_time = wxAtoi(efdata[4]);
+                        end_time += drop_time_offset;
                     }
-                    RaiseSelectedEffectChanged(ef);
-                    mSelectedEffect = ef;
-                    mPartialCellSelected = false;
+                    if( el->GetRangeIsClearMS(mDropStartTimeMS, end_time) )
+                    {
+                        Effect* ef = el->AddEffect(0,
+                                      effectIndex,
+                                      efdata[0],
+                                      efdata[1],
+                                      efdata[2],
+                                      mDropStartTimeMS,
+                                      end_time,
+                                      EFFECT_SELECTED,
+                                      false);
+                        mSequenceElements->get_undo_mgr().CreateUndoStep();
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
+                        if (!ef->GetPaletteMap().empty()) {
+                            sendRenderEvent(el->GetParentElement()->GetName(),
+                                            mDropStartTimeMS,
+                                            mDropEndTimeMS, true);
+                        }
+                        RaiseSelectedEffectChanged(ef);
+                        mSelectedEffect = ef;
+                        mPartialCellSelected = false;
+                    }
                 }
             }
         }
