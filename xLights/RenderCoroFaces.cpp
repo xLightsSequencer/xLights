@@ -188,7 +188,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, Element *track, const 
         } else {
             EffectLayer *layer = track->GetEffectLayer(2);
             int idx = 0;
-            int time = curPeriod * frameTimeInMs;
+            int time = curPeriod * frameTimeInMs + 1;
             if (layer->HitTestEffectByTime(time, idx)) {
                 phoneme = layer->GetEffect(idx)->GetEffectName();
             } else {
