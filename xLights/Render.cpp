@@ -835,9 +835,9 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                           SettingsMap["CHOICE_CoroFaces_Eyes"],
                                           SettingsMap["CHECKBOX_CoroFaces_Outline"] == "1");
         } else {
-            Element *el = mSequenceElements.GetElement(SettingsMap["CHOICE_CoroFaces_TimingTrack"]);
-            buffer.RenderCoroFaces(SettingsMap["CHOICE_CoroFaces_Phoneme"],
-                                   el,
+            buffer.RenderCoroFaces(&mSequenceElements,
+                                   SettingsMap["CHOICE_CoroFaces_Phoneme"],
+                                   SettingsMap["CHOICE_CoroFaces_TimingTrack"],
                                    SettingsMap["CHOICE_CoroFaces_Eyes"],
                                    SettingsMap["CHECKBOX_CoroFaces_Outline"] == "1");
         }

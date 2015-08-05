@@ -7,7 +7,7 @@
 #include "ModelClass.h"
 
 
-int EffectLayer::exclusive_index = 0;
+std::atomic_int EffectLayer::exclusive_index(0);
 const wxString NamedLayer::NO_NAME("");
 
 EffectLayer::EffectLayer(Element* parent)
@@ -18,6 +18,7 @@ EffectLayer::EffectLayer(Element* parent)
 
 EffectLayer::~EffectLayer()
 {
+    wxMutexLocker locker(lock);
     for (int x = 0; x < mEffects.size(); x++) {
         delete mEffects[x];
     }
@@ -39,6 +40,17 @@ Effect* EffectLayer::GetEffect(int index)
         return nullptr;
     }
 }
+Effect* EffectLayer::GetEffectByTime(int timeMS) {
+    wxMutexLocker locker(lock);
+    for(std::vector<Effect*>::iterator i = mEffects.begin(); i != mEffects.end(); i++) {
+        if (timeMS >= (*i)->GetStartTimeMS() &&
+            timeMS <= (*i)->GetEndTimeMS()) {
+            return (*i);
+        }
+    }
+    return nullptr;
+}
+
 
 Effect* EffectLayer::GetEffectFromID(int id)
 {
@@ -55,6 +67,7 @@ Effect* EffectLayer::GetEffectFromID(int id)
 
 void EffectLayer::RemoveEffect(int index)
 {
+    wxMutexLocker locker(lock);
     if(index<mEffects.size())
     {
         Effect *e = mEffects[index];
@@ -73,6 +86,7 @@ Effect* EffectLayer::AddEffect(int id, const wxString &name, const wxString &set
 Effect* EffectLayer::AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
                                int startTimeMS, int endTimeMS, int Selected, bool Protected)
 {
+    wxMutexLocker locker(lock);
     Effect *e = new Effect(this, id, effectIndex, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
     mEffects.push_back(e);
     SortEffects();
@@ -598,6 +612,7 @@ void EffectLayer::UpdateAllSelectedEffects(const wxString& palette)
 
 void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
 {
+    wxMutexLocker locker(lock);
     for(int i=0; i<mEffects.size();i++)
     {
         if(mEffects[i]->GetSelected() == EFFECT_LT_SELECTED)
@@ -630,6 +645,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
 
 void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
 {
+    wxMutexLocker locker(lock);
     for (std::vector<Effect*>::iterator it = mEffects.begin(); it != mEffects.end(); it++) {
         if ((*it)->GetSelected() != EFFECT_NOT_SELECTED) {
             IncrementChangeCount((*it)->GetStartTimeMS(), (*it)->GetEndTimeMS());
@@ -642,10 +658,12 @@ void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDeleteSelected),mEffects.end());
 }
 void EffectLayer::DeleteEffectByIndex(int idx) {
+    wxMutexLocker locker(lock);
     mEffects.erase(mEffects.begin()+idx);
 }
 void EffectLayer::DeleteEffect(int id)
 {
+    wxMutexLocker locker(lock);
     for(int i=0; i<mEffects.size();i++)
     {
         if(mEffects[i]->GetID() == id)

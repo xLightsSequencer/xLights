@@ -185,6 +185,7 @@ private:
     static const long ID_GRID_MNU_PRESETS;
     static const long ID_GRID_MNU_BREAKDOWN_PHRASE;
     static const long ID_GRID_MNU_BREAKDOWN_WORD;
+    static const long ID_GRID_MNU_BREAKDOWN_WORDS;
 
     EventPlayEffectArgs* playArgs;
 

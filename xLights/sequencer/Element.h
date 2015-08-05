@@ -15,10 +15,11 @@ enum ElementType
 };
 
 class NetInfoClass;
+class Element;
 
 class ChangeLister {
 public:
-    virtual void IncrementChangeCount() = 0;
+    virtual void IncrementChangeCount(Element *el) = 0;
 };
 
 class Element
@@ -67,10 +68,11 @@ class Element
         bool ShowStrands() { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
 
-        int GetIndex();
-        void SetIndex(int index);
-
-        int Index;
+    
+        int GetIndex() const {return mIndex;}
+        void SetIndex(int index) { mIndex = index;}
+        int &Index() { return mIndex;}
+        int Index() const { return mIndex;}
 
         void IncrementChangeCount(int startMs, int endMS);
         int getChangeCount() const { return changeCount; }
@@ -108,7 +110,6 @@ class Element
         void DecWaitCount();
     protected:
     private:
-
         int mIndex;
         wxString mName;
         wxString mElementType;

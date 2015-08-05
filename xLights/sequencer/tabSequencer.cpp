@@ -857,6 +857,16 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 
 void xLightsFrame::TimerRgbSeq(long msec)
 {
+    //check if there are models that depend on timing tracks or similar that need to be rendered
+    std::vector<Element *> elsToRender;
+    if (mSequenceElements.GetElementsToRender(elsToRender)) {
+        for (std::vector<Element *>::iterator it = elsToRender.begin(); it != elsToRender.end(); it++) {
+            int ss, es;
+            (*it)->GetDirtyRange(ss, es);
+            RenderEffectForModel((*it)->GetName(), ss, es);
+        }
+    }
+    
     // Update play status so sequencer grid can allow dropping timings during playback
     mainSequencer->SetPlayStatus(playType);
 

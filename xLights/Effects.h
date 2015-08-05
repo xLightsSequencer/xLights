@@ -16,7 +16,7 @@ void RenderCurtain(int edge, int effect, int swag, bool repeat, float curtainSpe
 void RenderFaces(int Phoneme);
 
 void RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString& eyes, bool face_outline);
-void RenderCoroFaces(const wxString &Phoneme, Element *track, const wxString& eyes, bool face_outline);
+void RenderCoroFaces(SequenceElements *elements, const wxString &Phoneme, const wxString &track, const wxString& eyes, bool face_outline);
 
 void RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                int duration, int acceleration, bool reverse_dir, bool blend_edges,

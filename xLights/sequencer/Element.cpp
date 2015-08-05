@@ -16,6 +16,14 @@ Element::Element(ChangeLister *l, wxString &name, wxString &type,bool visible,bo
 
 Element::~Element()
 {
+    //make sure none of the render threads are rendering this model
+    renderLock.Lock();
+    while (waitCount > 0) {
+        renderLock.Unlock();
+        wxSleep(1);
+        renderLock.Lock();
+    }
+    
     for (int x = 0; x < mEffectLayers.size(); x++) {
         delete mEffectLayers[x];
     }
@@ -116,16 +124,6 @@ void Element::SetViews(wxString &views)
     mViews = views;
 }
 
-int Element::GetIndex()
-{
-    return mIndex;
-}
-
-void Element::SetIndex(int index)
-{
-    mIndex = index;
-}
-
 EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
 {
     for( int i = 0; i < mEffectLayers.size(); i++ )
@@ -189,7 +187,7 @@ void Element::IncrementChangeCount(int sms, int ems)
     SetDirtyRange(sms, ems);
     changeCount++;
 
-    listener->IncrementChangeCount();
+    listener->IncrementChangeCount(this);
 }
 void Element::InitStrands(ModelClass &model) {
     if (model.GetDisplayAs() == "WholeHouse") {

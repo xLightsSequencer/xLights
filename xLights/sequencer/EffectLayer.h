@@ -1,6 +1,7 @@
 #ifndef EFFECTLAYER_H
 #define EFFECTLAYER_H
 #include "wx/wx.h"
+#include <atomic>
 #include "Effect.h"
 #include "UndoManager.h"
 
@@ -31,12 +32,12 @@ class EffectLayer
         Effect *AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
                           int startTimeMS, int endTimeMS, int Selected, bool Protected);
         Effect* GetEffect(int index);
+        Effect* GetEffectByTime(int ms);
         Effect* GetEffectFromID(int id);
         void RemoveEffect(int index);
 
         int GetIndex();
         int GetEffectCount();
-        void SortEffects();
 
         bool IsStartTimeLinked(int index);
         bool IsEndTimeLinked(int index);
@@ -74,10 +75,13 @@ class EffectLayer
         void UpdateAllSelectedEffects(const wxString& palette);
 
         void IncrementChangeCount(int startMS, int endMS);
-
+    
+        wxMutex &GetLock() {return lock;}
     protected:
     private:
-        static int exclusive_index;
+        void SortEffects();
+
+        static std::atomic_int exclusive_index;
 
         int EffectToLeftEndTime(int index);
         int EffectToRightStartTime(int index);
@@ -87,6 +91,7 @@ class EffectLayer
         std::vector<Effect*> mEffects;
         int mIndex;
         Element* mParentElement;
+        wxMutex lock;
 };
 
 class NamedLayer: public EffectLayer {

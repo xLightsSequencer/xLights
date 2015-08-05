@@ -178,8 +178,22 @@ void RgbEffects::RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString&
 }
 
 
-void RgbEffects::RenderCoroFaces(const wxString& Phoneme, Element *track, const wxString& eyes, bool face_outline)
+void RgbEffects::RenderCoroFaces(SequenceElements *elements, const wxString& Phoneme, const wxString &trackName, const wxString& eyes, bool face_outline)
 {
+    
+    if (needToInit) {
+        needToInit = false;
+        elements->AddRenderDependency(trackName, cur_model);
+    }
+
+    Element *track = elements->GetElement(trackName);
+    wxMutex tmpLock;
+    wxMutex *lock = &tmpLock;
+    if (track != nullptr) {
+        lock = &track->GetRenderLock();
+    }
+    wxMutexLocker locker(*lock);
+    
     wxString phoneme = Phoneme;
     if (phoneme == "") {
         //GET Phoneme from timing track
@@ -187,12 +201,13 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, Element *track, const 
             phoneme = "rest";
         } else {
             EffectLayer *layer = track->GetEffectLayer(2);
-            int idx = 0;
+            wxMutexLocker locker(layer->GetLock());
             int time = curPeriod * frameTimeInMs + 1;
-            if (layer->HitTestEffectByTime(time, idx)) {
-                phoneme = layer->GetEffect(idx)->GetEffectName();
-            } else {
+            Effect *ef = layer->GetEffectByTime(time);
+            if (ef == nullptr) {
                 phoneme = "rest";
+            } else {
+                phoneme = ef->GetEffectName();
             }
         }
     }

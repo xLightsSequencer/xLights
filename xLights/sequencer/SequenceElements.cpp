@@ -90,8 +90,9 @@ Element* SequenceElements::AddElement(wxString &name,wxString &type,bool visible
     if(!ElementExists(name))
     {
         mAllViews[MASTER_VIEW].push_back(new Element(this, name,type,visible,collapsed,active,selected));
-        IncrementChangeCount();
-        return mAllViews[MASTER_VIEW][mAllViews[MASTER_VIEW].size()-1];
+        Element *el = mAllViews[MASTER_VIEW][mAllViews[MASTER_VIEW].size()-1];
+        IncrementChangeCount(el);
+        return el;
     }
     return NULL;
 }
@@ -101,8 +102,9 @@ Element* SequenceElements::AddElement(int index,wxString &name,wxString &type,bo
     if(!ElementExists(name) && index <= mAllViews[MASTER_VIEW].size())
     {
         mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin()+index,new Element(this, name,type,visible,collapsed,active,selected));
-        IncrementChangeCount();
-        return mAllViews[MASTER_VIEW][index];
+        Element *el = mAllViews[MASTER_VIEW][index];
+        IncrementChangeCount(el);
+        return el;
     }
     return NULL;
 }
@@ -220,7 +222,7 @@ void SequenceElements::DeleteElement(const wxString &name)
             if(name == mAllViews[i][j]->GetName())
             {
                 mAllViews[i].erase(mAllViews[i].begin()+j);
-                IncrementChangeCount();
+                IncrementChangeCount(nullptr);
                 break;
             }
         }
@@ -346,21 +348,21 @@ void SequenceElements::SortElements()
 
 void SequenceElements::MoveElement(int index,int destinationIndex)
 {
-    IncrementChangeCount();
+    IncrementChangeCount(nullptr);
     if(index<destinationIndex)
     {
-        mAllViews[mCurrentView][index]->Index = destinationIndex;
+        mAllViews[mCurrentView][index]->Index() = destinationIndex;
         for(int i=index+1;i<destinationIndex;i++)
         {
-            mAllViews[mCurrentView][i]->Index = i-1;
+            mAllViews[mCurrentView][i]->Index() = i-1;
         }
     }
     else
     {
-        mAllViews[mCurrentView][index]->Index = destinationIndex;
+        mAllViews[mCurrentView][index]->Index() = destinationIndex;
         for(int i=destinationIndex;i<index;i++)
         {
-            mAllViews[mCurrentView][i]->Index = i+1;
+            mAllViews[mCurrentView][i]->Index() = i+1;
         }
     }
     SortElements();
@@ -1075,7 +1077,7 @@ void SequenceElements::SetVisibilityForAllModels(bool visibility, int view)
 
 void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 {
-    IncrementChangeCount();
+    IncrementChangeCount(nullptr);
 
     if(index<mAllViews[view].size() && dest<mAllViews[view].size())
     {
@@ -1094,7 +1096,7 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 
 void SequenceElements::MoveElementUp(const wxString &name, int view)
 {
-    IncrementChangeCount();
+    IncrementChangeCount(nullptr);
 
     for(int i=0;i<mAllViews[view].size();i++)
     {
@@ -1112,7 +1114,7 @@ void SequenceElements::MoveElementUp(const wxString &name, int view)
 
 void SequenceElements::MoveElementDown(const wxString &name, int view)
 {
-    IncrementChangeCount();
+    IncrementChangeCount(nullptr);
 
     for(int i=0;i<mAllViews[view].size();i++)
     {
@@ -1211,5 +1213,44 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
             phoneme_start_time = phoneme_end_time;
         }
     }
+}
+
+void SequenceElements::IncrementChangeCount(Element *el) {
+    mChangeCount++;
+    if (el != nullptr && el->GetType() == "timing") {
+        //need to check if we need to have some models re-rendered due to timing being changed
+        wxMutexLocker locker(renderDepLock);
+        std::map<wxString, std::set<wxString>>::iterator it = renderDependency.find(el->GetName());
+        if (it != renderDependency.end()) {
+            int origChangeCount, ss, es;
+            el->GetAndResetDirtyRange(origChangeCount, ss, es);
+            for (std::set<wxString>::iterator sit = it->second.begin(); sit != it->second.end(); sit++) {
+                Element *el = this->GetElement(*sit);
+                if (el != nullptr) {
+                    el->IncrementChangeCount(ss, es);
+                    modelsToRender.insert(*sit);
+                }
+            }
+        }
+    }
+}
+bool SequenceElements::GetElementsToRender(std::vector<Element *> &models) {
+    wxMutexLocker locker(renderDepLock);
+    if (!modelsToRender.empty()) {
+        for (std::set<wxString>::iterator sit = modelsToRender.begin(); sit != modelsToRender.end(); sit++) {
+            Element *el = this->GetElement(*sit);
+            if (el != nullptr) {
+                models.push_back(el);
+            }
+        }
+        modelsToRender.clear();
+        return !models.empty();
+    }
+    return false;
+}
+
+void SequenceElements::AddRenderDependency(const wxString &layer, const wxString &model) {
+    wxMutexLocker locker(renderDepLock);
+    renderDependency[layer].insert(model);
 }
 

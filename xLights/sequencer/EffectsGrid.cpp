@@ -49,6 +49,7 @@ const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORD = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORDS = wxNewId();
 
 EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                        long style, const wxString &name)
@@ -176,6 +177,9 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             else if( ri->layerIndex == 1 )
             {
                 mnuLayer->Append(ID_GRID_MNU_BREAKDOWN_WORD,"Breakdown Word");
+                if (selectedEffect->GetParentEffectLayer()->GetSelectedEffectCount() > 1) {
+                    mnuLayer->Append(ID_GRID_MNU_BREAKDOWN_WORDS,"Breakdown Selected Words");
+                }
             }
             mSelectedEffect = selectedEffect;
         }
@@ -271,7 +275,30 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(mParent, eventRowHeaderChanged);
     }
-
+    else if(id == ID_GRID_MNU_BREAKDOWN_WORDS)
+    {
+        Effect* word_effect = mSelectedEffect;
+        EffectLayer* phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(2);
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
+        EffectLayer *layer = word_effect->GetParentEffectLayer();
+        for (int x = 0; x < layer->GetEffectCount(); x++) {
+            word_effect = layer->GetEffect(x);
+            if (word_effect->GetSelected() != EFFECT_NOT_SELECTED) {
+                phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
+            }
+        }
+        phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+        for (int x = 0; x < layer->GetEffectCount(); x++) {
+            word_effect = layer->GetEffect(x);
+            if (word_effect->GetSelected() != EFFECT_NOT_SELECTED) {
+                mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
+            }
+        }
+        word_effect->GetParentEffectLayer()->GetParentElement()->SetCollapsed(false);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(mParent, eventRowHeaderChanged);
+    }
     Refresh();
 }
 

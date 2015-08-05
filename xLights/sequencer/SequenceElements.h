@@ -6,6 +6,7 @@
 #include "../xLightsXmlFile.h"
 #include "wx/wx.h"
 #include <vector>
+#include <set>
 #include "wx/xml/xml.h"
 #include "UndoManager.h"
 
@@ -135,13 +136,16 @@ class SequenceElements : public ChangeLister
         EffectLayer* GetEffectLayer(int row);
         EffectLayer* GetVisibleEffectLayer(int row);
 
-        virtual void IncrementChangeCount() {mChangeCount++;}
+        virtual void IncrementChangeCount(Element *el);
         int GetChangeCount() { return mChangeCount;}
 
         bool HasPapagayoTiming() { return hasPapagayoTiming; }
 
         UndoManager& get_undo_mgr() { return undo_mgr; }
 
+    
+        void AddRenderDependency(const wxString &layer, const wxString &model);
+        bool GetElementsToRender(std::vector<Element *> &models);
     protected:
     private:
         void LoadEffects(EffectLayer *layer,
@@ -151,7 +155,7 @@ class SequenceElements : public ChangeLister
                      std::vector<wxString> colorPalettes);
         static bool SortElementsByIndex(const Element *element1,const Element *element2)
         {
-            return (element1->Index<element2->Index);
+            return (element1->GetIndex() < element2->GetIndex());
         }
         void addTimingElement(Element *elem, std::vector<Row_Information_Struct> &mRowInformation,
                               int &rowIndex, int &selectedTimingRow, int &timingRowCount, int &timingColorIndex);
@@ -185,6 +189,10 @@ class SequenceElements : public ChangeLister
         int mFirstVisibleModelRow;
         int mChangeCount;
         UndoManager undo_mgr;
+    
+        std::map<wxString, std::set<wxString>> renderDependency;
+        std::set<wxString> modelsToRender;
+        wxMutex renderDepLock;
 };
 
 
