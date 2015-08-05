@@ -902,6 +902,14 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 
     if (playType == PLAY_TYPE_MODEL) {
+
+        int current_play_time = 0;
+        if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
+            current_play_time = PlayerDlg->GetState() != wxMEDIASTATE_PLAYING ? playEndTime + 1 : PlayerDlg->Tell();
+            curt = current_play_time;
+        } else {
+            current_play_time = curt;
+        }
         // see if its time to stop model play
         if ((curt > playEndTime) || (CurrentSeqXmlFile->GetSequenceType() == "Media" && PlayerDlg->GetState() != wxMEDIASTATE_PLAYING)) {
             playStartTime = playEndTime = 0;
@@ -909,13 +917,6 @@ void xLightsFrame::TimerRgbSeq(long msec)
             wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
             wxPostEvent(this, playEvent);
             return;
-        }
-        int current_play_time = 0;
-        if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
-            current_play_time = PlayerDlg->Tell();
-            curt = current_play_time;
-        } else {
-            current_play_time = curt;
         }
         mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time);
         mainSequencer->PanelWaveForm->UpdatePlayMarker();

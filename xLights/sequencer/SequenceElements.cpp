@@ -1175,18 +1175,18 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, EffectLayer* pho
         xframe->dictionary.LoadDictionaries();
         wxArrayString words = wxSplit(phrase, ' ');
         int num_words = words.Count();
-        int word_end_time = end_time;
-        int interval_ms = (word_end_time-start_time) / num_words;
+        double interval_ms = (end_time-start_time) / num_words;
+        int word_start_time = start_time;
         for( int i = 0; i < num_words; i++ )
         {
-            int word_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, GetFrequency());
-            if( i == num_words - 1 )
+            int word_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+(interval_ms * (i + 1)), GetFrequency());
+            if( i == num_words - 1  || word_end_time > end_time)
             {
                 word_end_time = end_time;
             }
-            word_layer->AddEffect(0,0,words[i],wxEmptyString,"",start_time,word_end_time,EFFECT_NOT_SELECTED,false);
-            BreakdownWord(phoneme_layer, start_time, word_end_time, words[i]);
-            start_time = word_end_time;
+            word_layer->AddEffect(0,0,words[i],wxEmptyString,"",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
+            BreakdownWord(phoneme_layer, word_start_time, word_end_time, words[i]);
+            word_start_time = word_end_time;
         }
     }
 }
@@ -1199,12 +1199,11 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
     if( phonemes.Count() > 0 )
     {
         int phoneme_start_time = start_time;
-        int phoneme_end_time = end_time;
-        int phoneme_interval_ms = (phoneme_end_time-start_time) / phonemes.Count();
+        double phoneme_interval_ms = (end_time-start_time) / phonemes.Count();
         for( int i = 0; i < phonemes.Count(); i++ )
         {
-            phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(phoneme_start_time+phoneme_interval_ms, GetFrequency());
-            if( i == phonemes.Count() - 1 )
+            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+(phoneme_interval_ms*(i + 1)), GetFrequency());
+            if( i == phonemes.Count() - 1 || phoneme_end_time > end_time)
             {
                 phoneme_end_time = end_time;
             }
