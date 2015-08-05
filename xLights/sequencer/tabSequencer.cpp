@@ -58,6 +58,7 @@ void xLightsFrame::CreateSequencer()
     sEffectAssist->Layout();
 
     wxScrolledWindow* w;
+    EffectsPanel1->SetSequenceElements(&mSequenceElements);
     for(int i =0;i<EffectsPanel1->EffectChoicebook->GetPageCount();i++)
     {
         w = (wxScrolledWindow*)EffectsPanel1->EffectChoicebook->GetPage(i);
@@ -1047,6 +1048,16 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             }
             else if (name.StartsWith("ID_CHOICE"))
             {
+                wxString nn = "IDD_RADIOBUTTON" + name.SubString(9, name.size());
+                wxRadioButton *b = (wxRadioButton*)wxWindow::FindWindowByName(nn,ContextWin);
+                if (b != nullptr) {
+                    b->SetValue(true);
+                    wxCommandEvent evt(wxEVT_RADIOBUTTON, b->GetId());
+                    evt.SetEventObject(b);
+                    wxPostEvent(b->GetEventHandler(), evt);
+                }
+
+                
                 wxChoice* ctrl=(wxChoice*)CtrlWin;
                 ctrl->SetStringSelection(value);
 
@@ -1640,7 +1651,5 @@ void xLightsFrame::PromoteEffects(Element *element) {
         }
     }
 }
-
-
 
 

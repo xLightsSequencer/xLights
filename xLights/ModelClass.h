@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <vector>
+#include <map>
 #include <wx/xml/xml.h>
 #include <wx/gdicmn.h>
 #include <wx/colour.h>
@@ -435,6 +436,7 @@ public:
     wxString name;       // user-designated model name
     int BufferHt,BufferWi;  // size of the buffer
     int RenderHt,RenderWi;  // size of the rendered output
+    std::map<wxString, wxString> faceInfo;
     bool MyDisplay;
     long ModelBrightness;   // Value from -100 to +100 indicates an adjustment to brightness for this model
     bool Selected=false;
@@ -490,6 +492,8 @@ public:
 //    int FindChannelAtXY(int x, int y, const wxString& model);
     wxString GetNodeXY(const wxString& nodenumstr);
     wxString GetNodeXY(int nodeinx);
+    
+    void GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts);
 
     void SetTop(ModelPreview* preview,int y);
     void SetBottom(ModelPreview* preview,int y);

@@ -593,11 +593,13 @@ void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat
 void PixelBufferClass::RenderFaces(int Phoneme) {
     effects[CurrentLayer].RenderFaces(Phoneme);
 }
-//void PixelBufferClass::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/)
-void PixelBufferClass::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline) {
-//    effects[CurrentLayer].RenderCoroFaces(Phoneme,x_y,Outline_x_y,Eyes_x_y/*, parsed_xy*/);
-    effects[CurrentLayer].RenderCoroFaces(Phoneme, eyes, face_outline);
+void PixelBufferClass::RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString& eyes, bool face_outline) {
+    effects[CurrentLayer].RenderCoroFacesFromPGO(Phoneme, eyes, face_outline);
 }
+void PixelBufferClass::RenderCoroFaces(const wxString &Phoneme, Element *track, const wxString& eyes, bool face_outline) {
+    effects[CurrentLayer].RenderCoroFaces(Phoneme, track, eyes, face_outline);
+}
+
 
 void PixelBufferClass::RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                                  int duration, int acceleration, bool reverse_dir, bool blend_edges,

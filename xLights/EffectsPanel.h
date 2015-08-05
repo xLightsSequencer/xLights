@@ -9,6 +9,7 @@
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/filepicker.h>
+#include <wx/radiobut.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/choice.h>
@@ -26,6 +27,7 @@
 
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 
+class SequenceElements;
 
 class EffectsPanel: public wxPanel
 {
@@ -40,8 +42,8 @@ public:
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
     wxString GetEffectStringFromWindow(wxWindow *ParentWin);
-
-    static const int PALETTE_SIZE = 6;
+    
+    void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 
     //(*Declarations(EffectsPanel)
     wxStaticText* StaticText6;
@@ -203,7 +205,6 @@ public:
     wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
     wxStaticText* StaticText49;
     wxSlider* Slider_Snowflakes_Type;
-    wxStaticText* StaticText64;
     wxBitmapButton* BitmapButton14;
     wxSlider* Slider_Fireworks_Count;
     wxBitmapButton* BitmapButton_CurtainEdge;
@@ -414,9 +415,9 @@ public:
     wxStaticText* StaticText141;
     wxTextCtrl* TextCtrl_Glediator_Filename;
     wxStaticText* StaticText97;
-    wxStaticText* StaticText71;
     wxStaticText* StaticText43;
     wxStaticText* StaticText151;
+    wxRadioButton* PhenomeRadioButton;
     wxCheckBox* CheckBox_Circles_Random_m;
     wxBitmapButton* BitmapButton_TextEffect1;
     wxBitmapButton* BitmapButton2;
@@ -438,6 +439,7 @@ public:
     wxSlider* Slider_Tree_Branches;
     wxBitmapButton* BitmapButton10;
     wxBitmapButton* BitmapButton_Spirographd;
+    wxChoice* Choice_CoroFaces_TimingTrack;
     wxBitmapButton* BitmapButton_Ripple_Movement;
     wxBitmapButton* BitmapButton_Wave_Direction;
     wxCheckBox* CheckBox_Piano_Clipping;
@@ -573,6 +575,7 @@ public:
     wxBitmapButton* BitmapButton_TreeBranches;
     wxBitmapButton* BitmapButton_SpirographAnimate;
     wxScrolledWindow* Panel1_Tree;
+    wxRadioButton* TimingTrackRadioButton;
     wxBitmapButton* BitmapButton_Spirals3D;
     wxStaticText* StaticText159;
     //*)
@@ -674,12 +677,14 @@ protected:
     static const long ID_PANEL47;
     static const long IDD_NOTEBOOK_ColorWashRect;
     static const long ID_PANEL5;
-    static const long ID_STATICTEXT73;
+    static const long IDD_RADIOBUTTON_CoroFaces_Phoneme;
     static const long ID_CHOICE_CoroFaces_Phoneme;
+    static const long IDD_RADIOBUTTON_CoroFaces_TimingTrack;
+    static const long ID_CHOICE_CoroFaces_TimingTrack;
     static const long ID_STATICTEXT64;
     static const long ID_CHOICE_CoroFaces_Eyes;
-    static const long ID_STATICTEXT66;
     static const long ID_CHECKBOX_CoroFaces_Outline;
+    static const long ID_CHECKBOX_CoroFaces_InPapagayo;
     static const long ID_PANEL28;
     static const long ID_STATICTEXT6;
     static const long ID_CHOICE_Curtain_Edge;
@@ -1378,8 +1383,6 @@ private:
     void enableControlsByName(const wxString &name, bool enable);
 
     //(*Handlers(EffectsPanel)
-    void OnButton_pgo_filenameClick(wxCommandEvent& event);
-    //    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
     void OnButton_Glediator_FilenameClick(wxCommandEvent& event);
     void OnCheckBox_PaletteClick(wxCommandEvent& event);
     void OnButton_PaletteNumberClick(wxCommandEvent& event);
@@ -1424,8 +1427,10 @@ private:
     void OnChoice_Morph_QuickSetSelect(wxCommandEvent& event);
     void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
     void UpdateLinkedSliderFloat(wxCommandEvent& event);
+    void OnMouthMovementTypeSelected(wxCommandEvent& event);
     //*)
 
+    SequenceElements *mSequenceElements;
     int GetRandomSliderValue(wxSlider* slider);
     wxString GetRandomEffectStringFromWindow(wxWindow *ParentWin, const wxString &prefix);
 
@@ -1437,10 +1442,6 @@ private:
     bool isRandom_(wxControl* ctl, const char*debug);
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
     void setlock(wxButton* button); //, EditState& islocked);
-//friend class xLightsFrame; //debug only
-    wxCheckBox* GetPaletteCheckbox(int idx);
-    wxButton* GetPaletteButton(int idx);
-    wxColourData colorData;
 
     DECLARE_EVENT_TABLE()
 public:

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */; };
 		67043A4C1A07D17F00C09B71 /* dlgPreviewSize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67043A4B1A07D17F00C09B71 /* dlgPreviewSize.cpp */; };
+		670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
 		6717E3AE19FC9D3F00E94972 /* RenderRipple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */; };
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
@@ -165,6 +166,8 @@
 		6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelAppearanceDlg.h; sourceTree = "<group>"; };
 		67043A4B1A07D17F00C09B71 /* dlgPreviewSize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dlgPreviewSize.cpp; sourceTree = "<group>"; };
 		6708AB4B1A37F88F008313E3 /* minibasic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = minibasic.cpp; path = include/minibasic.cpp; sourceTree = SOURCE_ROOT; };
+		670B144D1B7128AA0090F1F5 /* ModelFaceDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelFaceDialog.h; sourceTree = "<group>"; };
+		670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelFaceDialog.cpp; sourceTree = "<group>"; };
 		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
 		6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderRipple.cpp; sourceTree = "<group>"; };
@@ -623,6 +626,7 @@
 				6784F9231A5653670018EC0C /* MainSequencer.cpp */,
 				67A619CC17B51C0F008E95BB /* ModelClass.cpp */,
 				67A619CE17B51C0F008E95BB /* ModelDialog.cpp */,
+				670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */,
 				67A619D017B51C0F008E95BB /* ModelListDialog.cpp */,
 				67694F1E1A0729220030D020 /* ModelPreview.cpp */,
 				67B845021A9C0E7500564051 /* ModelViewSelector.cpp */,
@@ -689,7 +693,6 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				67AAF8FE1B642E7D00585431 /* LyricsDialog.h */,
 				67A619BD17B51C0F008E95BB /* AddShowDialog.h */,
 				671B331D1AD6071600C9F215 /* BitmapCache.h */,
 				67A619BF17B51C0F008E95BB /* ChannelLayoutDialog.h */,
@@ -716,9 +719,11 @@
 				67623E701AD07E320022667B /* KeyBindings.h */,
 				6781B1D81AF407A300A75E59 /* LMSImportChannelMapDialog.h */,
 				676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */,
+				67AAF8FE1B642E7D00585431 /* LyricsDialog.h */,
 				6708AB4B1A37F88F008313E3 /* minibasic.cpp */,
 				67A619CD17B51C0F008E95BB /* ModelClass.h */,
 				67A619CF17B51C0F008E95BB /* ModelDialog.h */,
+				670B144D1B7128AA0090F1F5 /* ModelFaceDialog.h */,
 				67A619D117B51C0F008E95BB /* ModelListDialog.h */,
 				672F95191A7A6619005FF8BF /* ModelPreview.h */,
 				67B845031A9C0E7500564051 /* ModelViewSelector.h */,
@@ -970,6 +975,7 @@
 				6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */,
 				67A61A5317B51C0F008E95BB /* SerialPortWithRate.cpp in Sources */,
 				674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */,
+				670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */,
 				675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */,
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,
 				67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */,

@@ -2,7 +2,7 @@
 #define MODELDIALOG_H
 
 #include <wx/xml/xml.h>
-
+#include <map>
 
 //(*Headers(ModelDialog)
 #include <wx/sizer.h>
@@ -116,6 +116,7 @@ protected:
     static const long ID_TEXTCTRL3;
     static const long ID_BUTTON3;
     static const long ID_BUTTON4;
+    static const long ID_BUTTON1;
     static const long ID_CHECKBOX2;
     static const long ID_GRID_START_CHANNELS;
     static const long ID_STATICTEXT14;
@@ -152,6 +153,7 @@ private:
     void OnSpinCtrlModelBrightnessChange(wxSpinEvent& event);
     void OnAppearanceButtonClicked(wxCommandEvent& event);
     void OnNamesButtonClick(wxCommandEvent& event);
+    void OnFacesButtonClick(wxCommandEvent& event);
     //*)
 
     void SetReadOnly(bool);
@@ -176,6 +178,7 @@ private:
     int previewBrightness = 100;
     wxString strandNames;
     wxString nodeNames;
+    std::map<wxString,wxString> faceInfo;
 };
 
 #endif

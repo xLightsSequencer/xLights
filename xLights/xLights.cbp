@@ -427,6 +427,8 @@
 		<Unit filename="ModelClass.h" />
 		<Unit filename="ModelDialog.cpp" />
 		<Unit filename="ModelDialog.h" />
+		<Unit filename="ModelFaceDialog.cpp" />
+		<Unit filename="ModelFaceDialog.h" />
 		<Unit filename="ModelListDialog.cpp" />
 		<Unit filename="ModelListDialog.h" />
 		<Unit filename="ModelPreview.cpp" />
@@ -638,6 +640,7 @@
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
+		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelViewSelector.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/OptionChooser.wxs" />
@@ -735,6 +738,7 @@
 					<wxPanel wxs="wxsmith/xlColorPickerFields.wxs" src="xlColorPickerFields.cpp" hdr="xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectAssist.wxs" src="EffectAssist.cpp" hdr="EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
 					<wxDialog wxs="wxsmith/VAMPPluginDialog.wxs" src="VAMPPluginDialog.cpp" hdr="VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelFaceDialog.wxs" src="ModelFaceDialog.cpp" hdr="ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

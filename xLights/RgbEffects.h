@@ -94,6 +94,7 @@ typedef enum
 
 class DrawingContext;
 class Effect;
+class Element;
 
 class NCCDLLEXPORT RgbEffects
 {

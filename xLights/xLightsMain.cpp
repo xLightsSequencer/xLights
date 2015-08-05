@@ -1264,7 +1264,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer37->Add(TextCtrlPreviewElementWidth, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer35->Add(FlexGridSizer37, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     SliderPreviewScaleWidth = new wxSlider(PanelPreview, ID_SLIDER3, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER3"));
-    FlexGridSizer35->Add(SliderPreviewScaleWidth, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer35->Add(SliderPreviewScaleWidth, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer2->AddGrowableCol(1);
     StaticText37 = new wxStaticText(PanelPreview, ID_STATICTEXT24, _("Model Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));

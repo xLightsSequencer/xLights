@@ -64,7 +64,11 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
         case BitmapCache::eff_STROBE:
         case BitmapCache::eff_TWINKLE:
             break;
-
+        case BitmapCache::eff_COROFACES:
+            if (settings.Get("E_CHECKBOX_CoroFaces_InPapagayo", "") == "") {
+                settings["E_CHECKBOX_CoroFaces_InPapagayo"] = "1";
+            }
+            break;
         //these effects have been updated to have a dedicated repeat or speed or other control
         //and now ignore the FitToTime and Speed sliders, but the settings need adjusting
         case BitmapCache::eff_ON:

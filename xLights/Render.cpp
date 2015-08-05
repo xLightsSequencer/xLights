@@ -830,9 +830,17 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     } else if (effect == "Faces") {
         buffer.RenderFaces(FacesPhoneme.Index(SettingsMap["CHOICE_Faces_Phoneme"]));
     } else if (effect == "CoroFaces") {
-        buffer.RenderCoroFaces(SettingsMap["CHOICE_CoroFaces_Phoneme"],
-                               SettingsMap["CHOICE_CoroFaces_Eyes"],
-                               SettingsMap["CHECKBOX_CoroFaces_Outline"] == "1");
+        if (SettingsMap.Get("CHECKBOX_CoroFaces_InPapagayo", "1") == "1") {
+            buffer.RenderCoroFacesFromPGO(SettingsMap["CHOICE_CoroFaces_Phoneme"],
+                                          SettingsMap["CHOICE_CoroFaces_Eyes"],
+                                          SettingsMap["CHECKBOX_CoroFaces_Outline"] == "1");
+        } else {
+            Element *el = mSequenceElements.GetElement(SettingsMap["CHOICE_CoroFaces_TimingTrack"]);
+            buffer.RenderCoroFaces(SettingsMap["CHOICE_CoroFaces_Phoneme"],
+                                   el,
+                                   SettingsMap["CHOICE_CoroFaces_Eyes"],
+                                   SettingsMap["CHECKBOX_CoroFaces_Outline"] == "1");
+        }
     } else if (effect == "Fan") {
         buffer.RenderFan(wxAtoi(SettingsMap["SLIDER_Fan_CenterX"]),
                          wxAtoi(SettingsMap["SLIDER_Fan_CenterY"]),

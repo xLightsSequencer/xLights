@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="ModelFaceDialog">
+		<title>Face Definition</title>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="FaceTypeChoice" member="yes">
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL1" variable="None" member="no" />
+						<label>None</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL2" variable="Coro" member="no">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+								<cols>3</cols>
+								<object class="sizeritem">
+									<object class="wxGrid" name="ID_GRID_COROFACES" variable="GridCoroFaces" member="yes">
+										<cols>1</cols>
+										<rows>13</rows>
+										<labelrowheight>20</labelrowheight>
+										<labelcolwidth>100</labelcolwidth>
+										<defaultcolsize>180</defaultcolsize>
+										<collabels>
+											<item>Nodes</item>
+										</collabels>
+										<rowlabels>
+											<item>Face Outline</item>
+											<item>Mouth - AI</item>
+											<item>Mouth - E</item>
+											<item>Mouth - etc</item>
+											<item>Mouth - FV</item>
+											<item>Mouth - L</item>
+											<item>Mouth - MBP</item>
+											<item>Mouth - O</item>
+											<item>Mouth - rest</item>
+											<item>Mouth - U</item>
+											<item>Mouth - WQ</item>
+											<item>Eyes - Open</item>
+											<item>Eyes - Closed</item>
+										</rowlabels>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Coro Face</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL3" variable="Matrix" member="yes">
+							<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+								<label>To Be Determined....</label>
+								<pos>40,32</pos>
+								<size>104,32</size>
+							</object>
+						</object>
+						<label>Matrix</label>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
+					<object class="button">
+						<object class="wxButton" name="wxID_OK">
+							<label></label>
+						</object>
+					</object>
+					<object class="button">
+						<object class="wxButton" name="wxID_CANCEL">
+							<label></label>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

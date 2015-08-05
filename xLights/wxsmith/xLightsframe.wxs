@@ -2171,7 +2171,7 @@
 														<max>700</max>
 														<handler function="OnSliderPreviewScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>

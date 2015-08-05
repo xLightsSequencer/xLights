@@ -351,6 +351,18 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     for(size_t i=0; i<NodeCount; i++) {
         Nodes[i]->sparkle = rand() % 10000;
     }
+    
+    wxXmlNode *f = ModelNode->GetChildren();
+    while (f != nullptr) {
+        if ("faceInfo" == f->GetName()) {
+            wxXmlAttribute *att = f->GetAttributes();
+            while (att != nullptr) {
+                faceInfo[att->GetName()] = att->GetValue();
+                att = att->GetNext();
+            }
+        }
+        f = f->GetNext();
+    }
 }
 
 void ModelClass::GetNodeChannelValues(size_t nodenum, unsigned char *buf) {
@@ -1208,6 +1220,11 @@ size_t ModelClass::GetCoordCount(size_t nodenum) {
     return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
 }
 
+void ModelClass::GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts) {
+    for (int x = 0; x < Nodes[nodeidx]->Coords.size(); x++) {
+        pts.push_back(wxPoint(Nodes[nodeidx]->Coords[x].bufX, Nodes[nodeidx]->Coords[x].bufY));
+    }
+}
 
 bool ModelClass::IsCustom(void) {
     return (DisplayAs == "Custom");

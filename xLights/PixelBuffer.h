@@ -53,6 +53,7 @@ enum MixTypes
 
 };
 class Effect;
+class Element;
 
 class PixelBufferClass : public ModelClass
 {
