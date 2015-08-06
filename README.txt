@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil)  Fix channel map buttons disappearing when resizing dialog.  Fixes #313.
     -- bug(gil)  Prevent crash when doing Import Effects on xLights xml file.
     -- bug(gil)  Fix sparkles, brightness, and contrast text controls so that sliders update.  Fixes #320.
     -- bug(gil)  Fix right-click crash on grid when no sequence is loaded. Fixes #317.

@@ -30,7 +30,10 @@ class LMSImportChannelMapDialog: public wxDialog
 		wxGrid* ChannelMapGrid;
 		wxChoice* ModelsChoice;
 		wxFlexGridSizer* Sizer;
+		wxFlexGridSizer* FlexGridSizer2;
 		wxCheckBox* MapByStrand;
+		wxFlexGridSizer* FlexGridSizer1;
+		wxFlexGridSizer* SizerMap;
 		wxButton* AddModelButton;
 		//*)
 
@@ -65,6 +68,7 @@ class LMSImportChannelMapDialog: public wxDialog
 		void OnChannelMapGridEditorHidden(wxGridEvent& event);
 		void LoadMapping(wxCommandEvent& event);
 		void SaveMapping(wxCommandEvent& event);
+		void OnResize(wxSizeEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
