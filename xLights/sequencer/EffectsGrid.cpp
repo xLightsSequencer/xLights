@@ -258,7 +258,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         word_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         phoneme_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
         phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-        mSequenceElements->BreakdownPhrase(word_layer, phoneme_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName());
+        mSequenceElements->BreakdownPhrase(word_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName());
         phrase_effect->GetParentEffectLayer()->GetParentElement()->SetCollapsed(false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(mParent, eventRowHeaderChanged);

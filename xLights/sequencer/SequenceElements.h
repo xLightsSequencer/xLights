@@ -96,7 +96,7 @@ class SequenceElements : public ChangeLister
 
         void SetSequenceEnd(int ms);
         void ImportLyrics(Element* element, wxWindow* parent);
-        void BreakdownPhrase(EffectLayer* word_layer, EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& phrase);
+        void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const wxString& phrase);
         void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word);
 
         // Selected Ranges
@@ -143,7 +143,7 @@ class SequenceElements : public ChangeLister
 
         UndoManager& get_undo_mgr() { return undo_mgr; }
 
-    
+
         void AddRenderDependency(const wxString &layer, const wxString &model);
         bool GetElementsToRender(std::vector<Element *> &models);
     protected:
@@ -189,7 +189,7 @@ class SequenceElements : public ChangeLister
         int mFirstVisibleModelRow;
         int mChangeCount;
         UndoManager undo_mgr;
-    
+
         std::map<wxString, std::set<wxString>> renderDependency;
         std::set<wxString> modelsToRender;
         wxMutex renderDepLock;

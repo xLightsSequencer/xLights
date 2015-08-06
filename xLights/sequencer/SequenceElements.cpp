@@ -1170,7 +1170,7 @@ void SequenceElements::ImportLyrics(Element* element, wxWindow* parent)
     }
 }
 
-void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& phrase)
+void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const wxString& phrase)
 {
     if( phrase != "" )
     {
@@ -1187,7 +1187,6 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, EffectLayer* pho
                 word_end_time = end_time;
             }
             word_layer->AddEffect(0,0,words[i],wxEmptyString,"",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
-            BreakdownWord(phoneme_layer, word_start_time, word_end_time, words[i]);
             word_start_time = word_end_time;
         }
     }

@@ -32,7 +32,8 @@ const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
-const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
+const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_WORDS = wxNewId();
 
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
@@ -197,7 +198,11 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer->Append(ID_ROW_MNU_IMPORT_TIMING_TRACK,"Import Timing Track");
         mnuLayer->AppendSeparator();
         mnuLayer->Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
-        mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_TRACK,"Breakdown Phrases");
+        mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES,"Breakdown Phrases");
+        if( element->GetEffectLayerCount() > 1 )
+        {
+            mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS,"Breakdown Words");
+        }
     }
 
     mnuLayer->AppendSeparator();
@@ -273,7 +278,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     else if(id == ID_ROW_MNU_DELETE_TIMING_TRACK)
     {
         wxString prompt = wxString::Format("Delete 'Timing Track '%s'?",element->GetName());
-        wxString caption = "Comfirm Timing Track Deletion";
+        wxString caption = "Confirm Timing Track Deletion";
 
         int answer = wxMessageBox(prompt,caption,wxYES_NO);
         if(answer == wxYES)
@@ -287,10 +292,15 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), playEvent);
     } else if(id == ID_ROW_MNU_IMPORT_LYRICS) {
         mSequenceElements->ImportLyrics(element, GetParent());
-    } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_TRACK) {
-        int result = wxMessageBox("Breakdown phrases into words and phonemes?", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+    } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {
+        int result = wxMessageBox("Breakdown phrases? Any existing words and phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
         if (result == wxOK) {
-            BreakdownTimingRow(element);
+            BreakdownTimingPhrases(element);
+        }
+    } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_WORDS) {
+        int result = wxMessageBox("Breakdown words? Any existing phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        if (result == wxOK) {
+            BreakdownTimingWords(element);
         }
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
@@ -334,7 +344,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     wxPostEvent(GetParent(), eventForceRefresh);
 }
 
-void RowHeading::BreakdownTimingRow(Element* element)
+void RowHeading::BreakdownTimingPhrases(Element* element)
 {
     EffectLayer* layer = element->GetEffectLayer(0);
     if( element->GetEffectLayerCount() > 1 )
@@ -345,12 +355,29 @@ void RowHeading::BreakdownTimingRow(Element* element)
         }
     }
     EffectLayer* word_layer = element->AddEffectLayer();
-    EffectLayer* phoneme_layer = element->AddEffectLayer();
     for( int i = 0; i < layer->GetEffectCount(); i++ )
     {
         Effect* effect = layer->GetEffect(i);
         wxString phrase = effect->GetEffectName();
-        mSequenceElements->BreakdownPhrase(word_layer, phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase);
+        mSequenceElements->BreakdownPhrase(word_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase);
+    }
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
+}
+
+void RowHeading::BreakdownTimingWords(Element* element)
+{
+    if( element->GetEffectLayerCount() > 2 )
+    {
+        element->RemoveEffectLayer(2);
+    }
+    EffectLayer* word_layer = element->GetEffectLayer(1);
+    EffectLayer* phoneme_layer = element->AddEffectLayer();
+    for( int i = 0; i < word_layer->GetEffectCount(); i++ )
+    {
+        Effect* effect = word_layer->GetEffect(i);
+        wxString word = effect->GetEffectName();
+        mSequenceElements->BreakdownWord(phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), word);
     }
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(GetParent(), eventRowHeaderChanged);
