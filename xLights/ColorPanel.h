@@ -131,16 +131,12 @@ class ColorPanel: public wxPanel
 		void OnBitmapButton_SparkleFrequencyClick(wxCommandEvent& event);
 		void OnBitmapButton_BrightnessClick(wxCommandEvent& event);
 		void OnBitmapButton_ContrastClick(wxCommandEvent& event);
-		void OnSlider_SparkleFrequencyCmdScrollChanged(wxScrollEvent& event);
-		void OnSlider_SparkleFrequencyCmdScrollThumbTrack(wxScrollEvent& event);
-		void OnSlider_BrightnessCmdScrollThumbTrack(wxScrollEvent& event);
-		void OnSlider_ContrastCmdScrollThumbTrack(wxScrollEvent& event);
-		void OnSlider_BrightnessCmdScroll(wxScrollEvent& event);
-		void OnSlider_SparkleFrequencyCmdScroll(wxScrollEvent& event);
-		void OnSlider_ContrastCmdScroll(wxScrollEvent& event);
 		void OntxtCtlBrightnessText(wxCommandEvent& event);
 		void OntxtCtrlSparkleFreqText(wxCommandEvent& event);
 		void OntxtCtlContrastText(wxCommandEvent& event);
+		void OnSlider_SparkleFrequencyCmdSliderUpdated(wxScrollEvent& event);
+		void OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event);
+		void OnSlider_ContrastCmdSliderUpdated(wxScrollEvent& event);
 		//*)
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
@@ -152,7 +148,7 @@ class ColorPanel: public wxPanel
         #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 
 		DECLARE_EVENT_TABLE()
-    
+
 };
 
 #endif

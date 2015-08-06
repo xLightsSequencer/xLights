@@ -254,7 +254,7 @@
 											<object class="sizeritem">
 												<object class="wxSlider" name="ID_SLIDER_SparkleFrequency" variable="Slider_SparkleFrequency" member="yes">
 													<max>200</max>
-													<handler function="OnSlider_SparkleFrequencyCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+													<handler function="OnSlider_SparkleFrequencyCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 												</object>
 												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -264,7 +264,6 @@
 												<object class="wxTextCtrl" name="IDL_TEXTCTRL_SPARKLE" variable="txtCtrlSparkleFreq" member="yes">
 													<value>200</value>
 													<size>20,-1d</size>
-													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 													<handler function="OntxtCtrlSparkleFreqText" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -296,7 +295,7 @@
 												<object class="wxSlider" name="ID_SLIDER_Brightness" variable="Slider_Brightness" member="yes">
 													<value>100</value>
 													<max>400</max>
-													<handler function="OnSlider_BrightnessCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+													<handler function="OnSlider_BrightnessCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 												</object>
 												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -306,7 +305,6 @@
 												<object class="wxTextCtrl" name="IDL_TEXTCTRLBRIGHTNESS" variable="txtCtlBrightness" member="yes">
 													<value>100</value>
 													<size>20,-1d</size>
-													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 													<handler function="OntxtCtlBrightnessText" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -335,7 +333,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxSlider" name="ID_SLIDER_Contrast" variable="Slider_Contrast" member="yes">
-													<handler function="OnSlider_ContrastCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+													<handler function="OnSlider_ContrastCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 												</object>
 												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -345,7 +343,6 @@
 												<object class="wxTextCtrl" name="IDL_TEXTCTRLCONTRAST" variable="txtCtlContrast" member="yes">
 													<value>0</value>
 													<size>20,-1d</size>
-													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 													<handler function="OntxtCtlContrastText" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
