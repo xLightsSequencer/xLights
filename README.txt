@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil)  Fix right-click crash on grid when no sequence is loaded. Fixes #317.
     -- bug(dkulp) Audio at non-full speed stops too early when only playing a range
     -- enh(dkulp) Add a "Minimal Grid" option for model group to specify just the area of the given models
     -- enh(dkulp) Add ability to have model sizes scaled separately for horizontal and vertical directions

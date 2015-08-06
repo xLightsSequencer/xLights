@@ -129,6 +129,10 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 
 void EffectsGrid::rightClick(wxMouseEvent& event)
 {
+    if (mSequenceElements == NULL) {
+        return;
+    }
+
     wxMenu *mnuLayer = nullptr;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
