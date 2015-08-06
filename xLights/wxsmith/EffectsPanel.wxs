@@ -1401,8 +1401,8 @@
 												<cols>2</cols>
 												<growablecols>1</growablecols>
 												<object class="sizeritem">
-													<object class="wxRadioButton" name="IDD_RADIOBUTTON_CoroFaces_Phoneme" variable="PhenomeRadioButton" member="yes">
-														<label>Phenome</label>
+													<object class="wxRadioButton" name="IDD_RADIOBUTTON_CoroFaces_Phoneme" variable="PhonemeRadioButton" member="yes">
+														<label>Phoneme</label>
 														<selected>1</selected>
 														<handler function="OnMouthMovementTypeSelected" entry="EVT_RADIOBUTTON" />
 													</object>

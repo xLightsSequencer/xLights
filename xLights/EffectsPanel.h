@@ -417,7 +417,6 @@ public:
     wxStaticText* StaticText97;
     wxStaticText* StaticText43;
     wxStaticText* StaticText151;
-    wxRadioButton* PhenomeRadioButton;
     wxCheckBox* CheckBox_Circles_Random_m;
     wxBitmapButton* BitmapButton_TextEffect1;
     wxBitmapButton* BitmapButton2;
@@ -539,6 +538,7 @@ public:
     wxCheckBox* CheckBox_Curtain_Repeat;
     wxStaticText* StaticText155;
     wxBitmapButton* BitmapButton_FireWidth;
+    wxRadioButton* PhonemeRadioButton;
     wxStaticText* StaticText16;
     wxChoice* Choice_Skips_Direction;
     wxScrolledWindow* Panel1_On;

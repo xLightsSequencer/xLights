@@ -1783,9 +1783,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, Panel1_CoroFaces, _("Mouth Movements"));
     FlexGridSizer135 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer135->AddGrowableCol(1);
-    PhenomeRadioButton = new wxRadioButton(Panel1_CoroFaces, IDD_RADIOBUTTON_CoroFaces_Phoneme, _("Phenome"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_CoroFaces_Phoneme"));
-    PhenomeRadioButton->SetValue(true);
-    FlexGridSizer135->Add(PhenomeRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    PhonemeRadioButton = new wxRadioButton(Panel1_CoroFaces, IDD_RADIOBUTTON_CoroFaces_Phoneme, _("Phoneme"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_CoroFaces_Phoneme"));
+    PhonemeRadioButton->SetValue(true);
+    FlexGridSizer135->Add(PhonemeRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_CoroFaces_Phoneme = new wxChoice(Panel1_CoroFaces, ID_CHOICE_CoroFaces_Phoneme, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_CoroFaces_Phoneme"));
     FlexGridSizer135->Add(Choice_CoroFaces_Phoneme, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     TimingTrackRadioButton = new wxRadioButton(Panel1_CoroFaces, IDD_RADIOBUTTON_CoroFaces_TimingTrack, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_CoroFaces_TimingTrack"));
