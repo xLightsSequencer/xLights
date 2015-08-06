@@ -607,6 +607,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     xlf.Open();
     SequenceElements se;
     se.SetFrequency(mSequenceElements.GetFrequency());
+    se.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     se.LoadSequencerFile(xlf);
     for (int e = 0; e < se.GetElementCount(); e++) {
         Element *el = se.GetElement(e);
@@ -673,16 +674,18 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
         for (int str = 0; str < mc.GetNumStrands(); str++) {
             StrandLayer *sl = model->GetStrandLayer(str);
 
-            if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                MapXLightsEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap);
-            }
-            row++;
-            for (int n = 0; n < mc.GetStrandLength(str); n++) {
+            if( sl != nullptr ) {
                 if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                    NodeLayer *nl = sl->GetNodeLayer(n);
-                    MapXLightsEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap);
+                    MapXLightsEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap);
                 }
                 row++;
+                for (int n = 0; n < mc.GetStrandLength(str); n++) {
+                    if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
+                        NodeLayer *nl = sl->GetNodeLayer(n);
+                        MapXLightsEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap);
+                    }
+                    row++;
+                }
             }
         }
     }
