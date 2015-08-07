@@ -281,7 +281,11 @@ void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDef
         if (picture == "" && e == "Closed") {
             picture = model_info->faceInfo[definition][key + "Open"];
         }
-        RenderPictures(9 /*RENDER_PICTURE_SCALED*/, picture, 0, 0, 0, 0, 0, 0, 0, false);
+        int i = 9; /*RENDER_PICTURE_SCALED*/
+        if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
+            i = 4; /*RENDER_PICTURE_NONE */
+        }
+        RenderPictures(i, picture, 0, 0, 0, 0, 0, 0, 0, false);
     }
     for (int t = 0; t < todo.size(); t++) {
         wxString channels = model_info->faceInfo[definition][todo[t]];

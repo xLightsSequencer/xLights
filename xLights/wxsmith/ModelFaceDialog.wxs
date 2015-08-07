@@ -146,6 +146,35 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
+												<label>Image Placement:</label>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxChoice" name="ID_CHOICE2" variable="MatrixImagePlacementChoice" member="yes">
+												<content>
+													<item>Centered</item>
+													<item>Scaled</item>
+												</content>
+												<selection>0</selection>
+												<handler function="OnMatricImagePlacementChoiceSelect" entry="EVT_CHOICE" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxGrid" name="ID_GRID1" variable="MatrixModelsGrid" member="yes">
 										<cols>2</cols>
 										<rows>10</rows>

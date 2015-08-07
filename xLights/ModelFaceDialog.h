@@ -25,6 +25,7 @@ class ModelFaceDialog: public wxDialog
 		virtual ~ModelFaceDialog();
 
 		//(*Declarations(ModelFaceDialog)
+		wxChoice* MatrixImagePlacementChoice;
 		wxGrid* MatrixModelsGrid;
 		wxGrid* SingleNodeGrid;
 		wxStaticText* StaticText1;
@@ -49,6 +50,7 @@ class ModelFaceDialog: public wxDialog
 		static const long ID_CHOICE1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
+		static const long ID_CHOICE2;
 		static const long ID_GRID1;
 		static const long ID_PANEL3;
 		static const long ID_CHOICEBOOK1;
@@ -63,6 +65,7 @@ class ModelFaceDialog: public wxDialog
 		void OnButtonMatrixDeleteClick(wxCommandEvent& event);
 		void OnMatrixModelsGridCellLeftClick(wxGridEvent& event);
 		void OnMatrixModelsGridCellChange(wxGridEvent& event);
+		void OnMatricImagePlacementChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

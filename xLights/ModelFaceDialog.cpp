@@ -18,6 +18,7 @@ const long ModelFaceDialog::ID_STATICTEXT1 = wxNewId();
 const long ModelFaceDialog::ID_CHOICE1 = wxNewId();
 const long ModelFaceDialog::ID_BUTTON1 = wxNewId();
 const long ModelFaceDialog::ID_BUTTON2 = wxNewId();
+const long ModelFaceDialog::ID_CHOICE2 = wxNewId();
 const long ModelFaceDialog::ID_GRID1 = wxNewId();
 const long ModelFaceDialog::ID_PANEL3 = wxNewId();
 const long ModelFaceDialog::ID_CHOICEBOOK1 = wxNewId();
@@ -45,11 +46,13 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	wxFlexGridSizer* FlexGridSizer4;
 	wxPanel* None;
 	wxPanel* CoroPanel;
+	wxStaticText* StaticText2;
 	wxButton* Button1;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxPanel* NodeRangePanel;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
@@ -140,6 +143,14 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	MatrixDeleteButton = new wxButton(Matrix, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer4->Add(MatrixDeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
+	StaticText2 = new wxStaticText(Matrix, wxID_ANY, _("Image Placement:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	MatrixImagePlacementChoice = new wxChoice(Matrix, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	MatrixImagePlacementChoice->SetSelection( MatrixImagePlacementChoice->Append(_("Centered")) );
+	MatrixImagePlacementChoice->Append(_("Scaled"));
+	FlexGridSizer6->Add(MatrixImagePlacementChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	MatrixModelsGrid = new wxGrid(Matrix, ID_GRID1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID1"));
 	MatrixModelsGrid->CreateGrid(10,2);
 	MatrixModelsGrid->SetMinSize(wxDLG_UNIT(Matrix,wxSize(-1,200)));
@@ -183,6 +194,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixNameChoiceSelect);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixAddClicked);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixDeleteClick);
+	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelFaceDialog::OnMatricImagePlacementChoiceSelect);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellChange);
 	//*)
@@ -438,6 +450,7 @@ void ModelFaceDialog::SetFaceInfo(ModelClass *cls, std::map< wxString, std::map<
         MatrixNameChoice->Disable();
         MatrixModelsGrid->Disable();
         MatrixDeleteButton->Disable();
+        MatrixImagePlacementChoice->Disable();
     } else {
         MatrixNameChoice->SetSelection(0);
         FillMatrix(MatrixNameChoice->GetString(MatrixNameChoice->GetSelection()));
@@ -479,6 +492,11 @@ void ModelFaceDialog::FillMatrix(const wxString &name) {
             MatrixModelsGrid->SetCellValue(r, c, matrixData[name][key]);
         }
     }
+    wxString w = matrixData[name]["ImagePlacement"];
+    if (w == "") {
+        w = "Centered";
+    }
+    MatrixImagePlacementChoice->SetStringSelection(w);
 }
 
 
@@ -499,6 +517,7 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             MatrixNameChoice->Enable();
             MatrixModelsGrid->Enable();
             MatrixDeleteButton->Enable();
+            MatrixImagePlacementChoice->Enable();
         }
     }
 }
@@ -519,6 +538,7 @@ void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
             MatrixNameChoice->Disable();
             MatrixDeleteButton->Disable();
             MatrixModelsGrid->Disable();
+            MatrixImagePlacementChoice->Disable();
         }
     }
 }
@@ -554,3 +574,9 @@ void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
     }
 }
 
+
+void ModelFaceDialog::OnMatricImagePlacementChoiceSelect(wxCommandEvent& event)
+{
+    wxString name = MatrixNameChoice->GetString(MatrixNameChoice->GetSelection());
+    matrixData[name]["ImagePlacement"] = MatrixNameChoice->GetString(MatrixImagePlacementChoice->GetSelection());
+}

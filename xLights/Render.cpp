@@ -832,7 +832,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {
             //3.x style Faces effect
             buffer.RenderFaces(SettingsMap["CHOICE_Faces_Phoneme"], "Auto", true);
-        } else if (SettingsMap.Get("CHECKBOX_Faces_InPapagayo", "1") == "1") {
+        } else if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == XLIGHTS_PGOFACES_FILE) {
             buffer.RenderCoroFacesFromPGO(SettingsMap["CHOICE_Faces_Phoneme"],
                                           SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
                                           SettingsMap.Get("CHECKBOX_Faces_Outline", "0") == "1");

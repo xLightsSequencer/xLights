@@ -203,7 +203,6 @@ const long EffectsPanel::ID_CHOICE_Faces_FaceDefinition = wxNewId();
 const long EffectsPanel::ID_STATICTEXT66 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Faces_Eyes = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Faces_Outline = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Faces_InPapagayo = wxNewId();
 const long EffectsPanel::ID_SCROLLEDWINDOW2 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Fan_CenterX = wxNewId();
 const long EffectsPanel::IDD_TEXTCTRL_Fan_CenterX = wxNewId();
@@ -904,7 +903,6 @@ public:
 EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
 {
     //(*Initialize(EffectsPanel)
-    wxCheckBox* CheckBox7;
     wxTextCtrl* TextCtrl3;
     wxStaticText* StaticText114;
     wxStaticBoxSizer* StaticBoxSizer2;
@@ -1885,10 +1883,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     CheckBox_Faces_Outline = new wxCheckBox(Panel1_Faces, ID_CHECKBOX_Faces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Outline"));
     CheckBox_Faces_Outline->SetValue(false);
     FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox7 = new wxCheckBox(Panel1_Faces, ID_CHECKBOX_Faces_InPapagayo, _("Face Model in xlights_papagayo.xml"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_InPapagayo"));
-    CheckBox7->SetValue(false);
-    FlexGridSizer98->Add(CheckBox7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer47->Add(FlexGridSizer98, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     Panel1_Faces->SetSizer(FlexGridSizer47);
     FlexGridSizer47->Fit(Panel1_Faces);

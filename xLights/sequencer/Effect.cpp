@@ -2,6 +2,7 @@
 #include "EffectLayer.h"
 #include "../BitmapCache.h"
 
+#include "../../include/globals.h"
 
 class ControlRenameMap {
 public:
@@ -37,7 +38,8 @@ public:
         data["E_CHOICE_CoroFaces_Phoneme"] = "E_CHOICE_Faces_Phoneme";
         data["E_CHOICE_CoroFaces_Eyes"] = "E_CHOICE_Faces_Eyes";
         data["E_CHECKBOX_CoroFaces_Outline"] = "E_CHECKBOX_Faces_Outline";
-        data["E_CHECKBOX_CoroFaces_InPapagayo"] = "E_CHECKBOX_Faces_InPapagayo";
+        data["E_CHECKBOX_CoroFaces_InPapagayo"] = "";
+        data["E_CHECKBOX_Faces_InPapagayo"] = "";
         data["E_CHOICE_CoroFaces_TimingTrack"] = "E_CHOICE_Faces_TimingTrack";
         data["E_CHOICE_CoroFaces_FaceDefinition"] = "E_CHOICE_Faces_FaceDefinition";
     }
@@ -332,8 +334,10 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & nam
     int i = GetEffectIndex(name);
     mSettings.Parse(settings);
     
-    if (effectIndex == BitmapCache::eff_FACES && mSettings.Get("E_CHECKBOX_Faces_InPapagayo", "") == "") {
-        mSettings["E_CHECKBOX_Faces_InPapagayo"] = "1";
+    if (effectIndex == BitmapCache::eff_FACES
+        && mSettings.Get("E_CHOICE_Faces_FaceDefinition", "") == ""
+        && mSettings.Get("E_CHOICE_Faces_TimingTrack", "") == "") {
+        mSettings["E_CHOICE_Faces_FaceDefinition"] = XLIGHTS_PGOFACES_FILE;
     }
     if (i == -1) {
         mName = new wxString(name);

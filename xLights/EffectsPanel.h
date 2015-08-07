@@ -700,7 +700,6 @@ protected:
     static const long ID_STATICTEXT66;
     static const long ID_CHOICE_Faces_Eyes;
     static const long ID_CHECKBOX_Faces_Outline;
-    static const long ID_CHECKBOX_Faces_InPapagayo;
     static const long ID_SCROLLEDWINDOW2;
     static const long ID_SLIDER_Fan_CenterX;
     static const long IDD_TEXTCTRL_Fan_CenterX;
