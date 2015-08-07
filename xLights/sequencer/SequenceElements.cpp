@@ -1144,7 +1144,8 @@ void SequenceElements::ImportLyrics(Element* element, wxWindow* parent)
         }
         EffectLayer* phrase_layer = element->AddEffectLayer();
 
-        int num_phrases = dlgLyrics->TextCtrlLyrics->GetNumberOfLines();
+        int total_num_phrases = dlgLyrics->TextCtrlLyrics->GetNumberOfLines();
+        int num_phrases = total_num_phrases;
         for( int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++ )
         {
             wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
@@ -1156,7 +1157,7 @@ void SequenceElements::ImportLyrics(Element* element, wxWindow* parent)
         int start_time = 0;
         int end_time = mSequenceEndMS;
         int interval_ms = (end_time-start_time) / num_phrases;
-        for( int i = 0; i < num_phrases; i++ )
+        for( int i = 0; i < total_num_phrases; i++ )
         {
             wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
             if( line != "" )
