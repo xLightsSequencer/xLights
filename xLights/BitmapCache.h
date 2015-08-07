@@ -18,7 +18,6 @@ public:
         eff_BUTTERFLY,
         eff_CIRCLES,
         eff_COLORWASH,
-        eff_COROFACES,
         eff_CURTAIN,
         eff_FACES,
         eff_FAN,

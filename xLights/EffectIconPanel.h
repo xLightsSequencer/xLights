@@ -40,7 +40,6 @@ class EffectIconPanel: public wxPanel
 		DragEffectBitmapButton* BitmapButton7;
 		DragEffectBitmapButton* BitmapButton9;
 		DragEffectBitmapButton* BitmapButton17;
-		DragEffectBitmapButton* BitmapButton34;
 		DragEffectBitmapButton* BitmapButton31;
 		DragEffectBitmapButton* BitmapButton12;
 		DragEffectBitmapButton* BitmapButton19;
@@ -89,7 +88,6 @@ class EffectIconPanel: public wxPanel
 		static const long ID_BITMAPBUTTON31;
 		static const long ID_BITMAPBUTTON32;
 		static const long ID_BITMAPBUTTON36;
-		static const long ID_BITMAPBUTTON33;
 		//*)
 
 	private:

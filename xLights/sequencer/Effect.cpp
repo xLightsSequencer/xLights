@@ -33,6 +33,13 @@ public:
         data["E_TEXTCTRL_Text_Font2"] = "E_FONTPICKER_Text_Font2";
         data["E_TEXTCTRL_Text_Font3"] = "E_FONTPICKER_Text_Font3";
         data["E_TEXTCTRL_Text_Font4"] = "E_FONTPICKER_Text_Font4";
+        
+        data["E_CHOICE_CoroFaces_Phoneme"] = "E_CHOICE_Faces_Phoneme";
+        data["E_CHOICE_CoroFaces_Eyes"] = "E_CHOICE_Faces_Eyes";
+        data["E_CHECKBOX_CoroFaces_Outline"] = "E_CHECKBOX_Faces_Outline";
+        data["E_CHECKBOX_CoroFaces_InPapagayo"] = "E_CHECKBOX_Faces_InPapagayo";
+        data["E_CHOICE_CoroFaces_TimingTrack"] = "E_CHOICE_Faces_TimingTrack";
+        data["E_CHOICE_CoroFaces_FaceDefinition"] = "E_CHOICE_Faces_FaceDefinition";
     }
     const void map(wxString &n) const {
         wxStringToStringHashMap::const_iterator it = data.find(n);
@@ -61,13 +68,9 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
         case BitmapCache::eff_SHOCKWAVE:
         case BitmapCache::eff_GLEDIATOR:
         case BitmapCache::eff_FACES:
+            break;
         case BitmapCache::eff_STROBE:
         case BitmapCache::eff_TWINKLE:
-            break;
-        case BitmapCache::eff_COROFACES:
-            if (settings.Get("E_CHECKBOX_CoroFaces_InPapagayo", "") == "") {
-                settings["E_CHECKBOX_CoroFaces_InPapagayo"] = "1";
-            }
             break;
         //these effects have been updated to have a dedicated repeat or speed or other control
         //and now ignore the FitToTime and Speed sliders, but the settings need adjusting
@@ -327,10 +330,15 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & nam
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mProtected(Protected)
 {
     int i = GetEffectIndex(name);
+    mSettings.Parse(settings);
+    
+    if (effectIndex == BitmapCache::eff_FACES && mSettings.Get("E_CHECKBOX_Faces_InPapagayo", "") == "") {
+        mSettings["E_CHECKBOX_Faces_InPapagayo"] = "1";
+    }
     if (i == -1) {
         mName = new wxString(name);
     }
-    mSettings.Parse(settings);
+
     mPaletteMap.Parse(palette);
     mColors.clear();
     if (!mPaletteMap.empty()) {
@@ -539,7 +547,6 @@ public:
         at(BitmapCache::eff_BUTTERFLY) = "Butterfly";
         at(BitmapCache::eff_CIRCLES) = "Circles";
         at(BitmapCache::eff_COLORWASH) = "Color Wash";
-        at(BitmapCache::eff_COROFACES) = "CoroFaces";
         at(BitmapCache::eff_CURTAIN) = "Curtain";
         at(BitmapCache::eff_FACES) = "Faces";
         at(BitmapCache::eff_FAN) = "Fan";
@@ -581,6 +588,10 @@ int Effect::GetEffectIndex(const wxString &effectName)
         if (effectMap[x] == effectName) {
             return x;
         }
+    }
+    if (effectName == "CoroFaces") {
+        //old deprecated/removed effect.  Mapped to FACES
+        return BitmapCache::eff_FACES;
     }
     return -1;
 }

@@ -151,7 +151,6 @@ const long xLightsFrame::ID_BITMAPBUTTON30 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON35 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON36 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON37 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON38 = wxNewId();
 const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
@@ -815,11 +814,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BitmapButton33->SetMaxSize(wxSize(16,16));
     BitmapButton33->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
     BitmapButton33->SetEffectIndex(32);
-    BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON38, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
-    BitmapButton34->SetMinSize(wxSize(16,16));
-    BitmapButton34->SetMaxSize(wxSize(16,16));
-    BitmapButton34->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton34->SetEffectIndex(33);
     EffectsToolBar->AddControl(BitmapButton1, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton2, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton3, _("Item label"));
@@ -853,7 +847,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectsToolBar->AddControl(BitmapButton31, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton32, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton33, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton34, _("Item label"));
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
     Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER);
@@ -2091,30 +2084,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButterflyDirection.Add("Normal");
     ButterflyDirection.Add("Reverse");
 
-    FacesPhoneme.Add("AI");
-    FacesPhoneme.Add("E");
-    FacesPhoneme.Add("FV");
-    FacesPhoneme.Add("L");
-    FacesPhoneme.Add("MBP");
-    FacesPhoneme.Add("O");
-    FacesPhoneme.Add("U");
-    FacesPhoneme.Add("WQ");
-    FacesPhoneme.Add("etc");
-    FacesPhoneme.Add("rest");
-
-    CoroFacesPhoneme.Add("AI");
-    CoroFacesPhoneme.Add("E");
-    CoroFacesPhoneme.Add("FV");
-    CoroFacesPhoneme.Add("L");
-    CoroFacesPhoneme.Add("MBP");
-    CoroFacesPhoneme.Add("O");
-    CoroFacesPhoneme.Add("U");
-    CoroFacesPhoneme.Add("WQ");
-    CoroFacesPhoneme.Add("etc");
-    CoroFacesPhoneme.Add("rest");
-    CoroFacesPhoneme.Add("(off)"); //allow turn off mouth (ie, eyes only)
-    if (xLightsApp::WantDebug) CoroFacesPhoneme.Add("(test)"); //debug/test
-
     WaveType.Add("Sine");
     WaveType.Add("Triangle");
     WaveType.Add("Square");
@@ -2125,8 +2094,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FillColors.Add("Palette");
     WaveDirection.Add("Right to Left");
     WaveDirection.Add("Left to Right");
-
-
 
     MeteorsEffectTypes.Add("Rainbow");
     MeteorsEffectTypes.Add("Range");
@@ -2415,12 +2382,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Text_Count4->SetSelection(0);
 
     panel->CurrentDir = &CurrentDir;
-    panel->Choice_Faces_Phoneme->Set(FacesPhoneme);
-    panel->Choice_Faces_Phoneme->SetSelection(0);
-
-    panel->Choice_CoroFaces_Phoneme->Set(CoroFacesPhoneme);
-    panel->Choice_CoroFaces_Phoneme->SetSelection(0);
-
+    
     panel->Choice_Ripple_Movement->Set(RippleMovement);
     panel->Choice_Ripple_Movement->SetSelection(0);
     panel->Choice_Ripple_Object_To_Draw->Set(RippleObjectToDraw);

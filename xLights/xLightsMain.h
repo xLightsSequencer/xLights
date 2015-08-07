@@ -672,7 +672,6 @@ private:
     static const long ID_BITMAPBUTTON35;
     static const long ID_BITMAPBUTTON36;
     static const long ID_BITMAPBUTTON37;
-    static const long ID_BITMAPBUTTON38;
     static const long ID_AUIEFFECTSTOOLBAR;
     static const long ID_BUTTON3;
     static const long ID_STATICTEXT4;
@@ -1051,7 +1050,6 @@ private:
     wxRadioButton* RadioButtonTwinkle25;
     wxAuiManager* MainAuiManager;
     DragEffectBitmapButton* BitmapButton3;
-    DragEffectBitmapButton* BitmapButton34;
     DragEffectBitmapButton* BitmapButton18;
     wxSlider* SliderChaseSpeed;
     wxButton* Button_PgoCopyVoices;
@@ -1570,8 +1568,6 @@ protected:
     wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
     wxArrayString ButterflyDirection;
-    wxArrayString FacesPhoneme;
-    wxArrayString CoroFacesPhoneme;
 
     wxArrayString MeteorsEffectTypes;
     wxArrayString MeteorsEffect;

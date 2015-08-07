@@ -636,7 +636,7 @@ int xLightsFrame::ChooseRandomEffect()
         count++;
         eff=rand() % BitmapCache::eff_LASTEFFECT;
         BAD_CHOICE = (BitmapCache::eff_TEXT == eff || BitmapCache::eff_PICTURES == eff || BitmapCache::eff_PIANO == eff
-                      || BitmapCache::eff_FACES == eff || BitmapCache::eff_COROFACES == eff || BitmapCache::eff_GLEDIATOR == eff
+                      || BitmapCache::eff_FACES == eff || BitmapCache::eff_GLEDIATOR == eff
                       || BitmapCache::eff_OFF == eff || BitmapCache::eff_ON == eff);
     }
     if(count==MAX_TRIES) eff=BitmapCache::eff_OFF; // we failed to find a good effect after MAX_TRIES attempts

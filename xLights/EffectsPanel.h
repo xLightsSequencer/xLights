@@ -110,6 +110,7 @@ public:
     wxBitmapButton* BitmapButton_Fan_CenterX;
     wxStaticText* StaticText18;
     wxStaticText* StaticText131;
+    wxRadioButton* RadioButton2;
     wxPanel* Panel1;
     wxButton* Button_Piano_ShapeFilename;
     wxScrolledWindow* Panel1_Circles;
@@ -126,7 +127,6 @@ public:
     wxCheckBox* CheckBox_Shockwave_Blend_Edges;
     wxBitmapButton* BitmapButton_Morph_Start_X2;
     wxStaticText* StaticText171;
-    wxStaticText* StaticText116;
     wxStaticText* StaticText48;
     wxScrolledWindow* Panel1_Faces;
     wxStaticText* StaticText173;
@@ -171,6 +171,7 @@ public:
     wxBitmapButton* BitmapButton_CirclesCount;
     wxCheckBox* CheckBox_Mirror_Wave;
     wxBitmapButton* BitmapButton_SpiralsCount;
+    wxChoice* Face_FaceDefinitonChoice;
     wxScrolledWindow* Panel1_Snowflakes;
     wxStaticText* StaticText149;
     wxStaticText* StaticText185;
@@ -206,7 +207,6 @@ public:
     wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
     wxStaticText* StaticText49;
     wxSlider* Slider_Snowflakes_Type;
-    wxStaticText* StaticText64;
     wxBitmapButton* BitmapButton14;
     wxSlider* Slider_Fireworks_Count;
     wxBitmapButton* BitmapButton_CurtainEdge;
@@ -307,7 +307,9 @@ public:
     wxStaticText* StaticText72;
     wxBitmapButton* BitmapButton_Number_Chases;
     wxBitmapButton* BitmapButton_TextDir2;
+    wxChoice* Choice_Faces_TimingTrack;
     wxBitmapButton* BitmapButton_Fan_Start_Angle;
+    wxChoice* Choice_Faces_Eyes;
     wxChoice* Choice_Text_Dir2;
     wxStaticText* StaticText53;
     wxPanel* Panel4;
@@ -348,7 +350,6 @@ public:
     wxBitmapButton* BitmapButton_Color_Mix1;
     wxStaticText* StaticText61;
     wxBitmapButton* BitmapButton_Galaxy_Start_Radius;
-    wxStaticText* StaticText62;
     wxStaticText* StaticText150;
     wxBitmapButton* BitmapButton15;
     wxCheckBox* CheckBox_Spirals_Grow;
@@ -362,7 +363,6 @@ public:
     wxBitmapButton* BitmapButton_Morph_End_X1;
     wxBitmapButton* BitmapButton_normal;
     wxTextCtrl* TextCtrl_Text_Line4;
-    wxScrolledWindow* Panel1_CoroFaces;
     wxStaticText* StaticText187;
     wxStaticText* StaticText54;
     wxTextCtrl* TextCtrl_Piano_CueFilename;
@@ -417,6 +417,7 @@ public:
     wxStaticText* StaticText141;
     wxTextCtrl* TextCtrl_Glediator_Filename;
     wxStaticText* StaticText97;
+    wxStaticText* StaticText71;
     wxStaticText* StaticText43;
     wxStaticText* StaticText151;
     wxCheckBox* CheckBox_Circles_Random_m;
@@ -440,22 +441,20 @@ public:
     wxSlider* Slider_Tree_Branches;
     wxBitmapButton* BitmapButton10;
     wxBitmapButton* BitmapButton_Spirographd;
-    wxChoice* Choice_CoroFaces_TimingTrack;
     wxBitmapButton* BitmapButton_Ripple_Movement;
     wxBitmapButton* BitmapButton_Wave_Direction;
     wxCheckBox* CheckBox_Piano_Clipping;
     wxStaticText* StaticText139;
-    wxChoice* Choice_CoroFaces_Eyes;
     wxBitmapButton* BitmapButton_TextDir3;
     wxBitmapButton* BitmapButton_SpiralsThickness;
     wxCheckBox* CheckBox_Ripple3D;
     wxBitmapButton* BitmapButton_ColorWashCount;
     wxBitmapButton* BitmapButton_CirclesRadial3D;
+    wxCheckBox* CheckBox_Faces_Outline;
     wxStaticText* StaticText50;
     wxSlider* Slider_Text_Position2;
     wxChoice* Choice_Ripple_Object_To_Draw;
     wxStaticText* StaticText81;
-    wxChoice* CoroFace_FaceDefinitonChoice;
     wxBitmapButton* BitmapButton_TextDir1;
     wxBitmapButton* BitmapButton_CurtainRepeat;
     wxScrolledWindow* Panel1_Fireworks;
@@ -464,7 +463,6 @@ public:
     wxStaticText* StaticText17;
     wxBitmapButton* BitmapButton_Fan_Blade_Width;
     wxBitmapButton* BitmapButton_SnowstormLength;
-    wxCheckBox* CheckBox_CoroFaces_Outline;
     wxBitmapButton* BitmapButton_PicturesDirection;
     wxBitmapButton* BitmapButton_Shimmer_Duty_Factor;
     wxBitmapButton* BitmapButton_SpiralsBlend;
@@ -495,7 +493,6 @@ public:
     wxBitmapButton* BitmapButton_Ripple_Object_To_Draw;
     wxBitmapButton* BitmapButton_Morph_Stagger;
     wxBitmapButton* BitmapButton_CirclesBounce;
-    wxChoice* Choice_CoroFaces_Phoneme;
     wxStaticText* StaticText80;
     wxStaticText* StaticText126;
     wxStaticText* StaticText12;
@@ -508,6 +505,7 @@ public:
     wxChoice* Choice_Text_Effect1;
     wxBitmapButton* BitmapButton_SpirographR;
     wxBitmapButton* BitmapButton_MeteorsEffect;
+    wxRadioButton* RadioButton1;
     wxChoice* Choice_Text_Count3;
     wxBitmapButton* BitmapButton16;
     wxBitmapButton* BitmapButton_Skips_StartingPosition;
@@ -541,7 +539,6 @@ public:
     wxCheckBox* CheckBox_Curtain_Repeat;
     wxStaticText* StaticText155;
     wxBitmapButton* BitmapButton_FireWidth;
-    wxRadioButton* PhonemeRadioButton;
     wxStaticText* StaticText16;
     wxChoice* Choice_Skips_Direction;
     wxScrolledWindow* Panel1_On;
@@ -578,7 +575,6 @@ public:
     wxBitmapButton* BitmapButton_TreeBranches;
     wxBitmapButton* BitmapButton_SpirographAnimate;
     wxScrolledWindow* Panel1_Tree;
-    wxRadioButton* TimingTrackRadioButton;
     wxBitmapButton* BitmapButton_Spirals3D;
     wxStaticText* StaticText159;
     //*)
@@ -680,17 +676,6 @@ protected:
     static const long ID_PANEL47;
     static const long IDD_NOTEBOOK_ColorWashRect;
     static const long ID_PANEL5;
-    static const long IDD_RADIOBUTTON_CoroFaces_Phoneme;
-    static const long ID_CHOICE_CoroFaces_Phoneme;
-    static const long IDD_RADIOBUTTON_CoroFaces_TimingTrack;
-    static const long ID_CHOICE_CoroFaces_TimingTrack;
-    static const long ID_STATICTEXT60;
-    static const long ID_CHOICE_CoroFaces_FaceDefinition;
-    static const long ID_STATICTEXT64;
-    static const long ID_CHOICE_CoroFaces_Eyes;
-    static const long ID_CHECKBOX_CoroFaces_Outline;
-    static const long ID_CHECKBOX_CoroFaces_InPapagayo;
-    static const long ID_PANEL28;
     static const long ID_STATICTEXT6;
     static const long ID_CHOICE_Curtain_Edge;
     static const long ID_BITMAPBUTTON_CHOICE_Curtain_Edge;
@@ -706,10 +691,17 @@ protected:
     static const long ID_CHECKBOX_Curtain_Repeat;
     static const long ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat;
     static const long ID_PANEL1;
-    static const long ID_STATICTEXT118;
-    static const long ID_STATICTEXT15;
+    static const long IDD_RADIOBUTTON_Faces_Phoneme;
     static const long ID_CHOICE_Faces_Phoneme;
-    static const long ID_PANEL6;
+    static const long IDD_RADIOBUTTON_Faces_TimingTrack;
+    static const long ID_CHOICE_Faces_TimingTrack;
+    static const long ID_STATICTEXT15;
+    static const long ID_CHOICE_Faces_FaceDefinition;
+    static const long ID_STATICTEXT66;
+    static const long ID_CHOICE_Faces_Eyes;
+    static const long ID_CHECKBOX_Faces_Outline;
+    static const long ID_CHECKBOX_Faces_InPapagayo;
+    static const long ID_SCROLLEDWINDOW2;
     static const long ID_SLIDER_Fan_CenterX;
     static const long IDD_TEXTCTRL_Fan_CenterX;
     static const long ID_BITMAPBUTTON_SLIDER_Fan_CenterX;

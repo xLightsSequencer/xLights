@@ -179,17 +179,6 @@ const long EffectsPanel::ID_SLIDER_ColorWash_Y2 = wxNewId();
 const long EffectsPanel::ID_PANEL47 = wxNewId();
 const long EffectsPanel::IDD_NOTEBOOK_ColorWashRect = wxNewId();
 const long EffectsPanel::ID_PANEL5 = wxNewId();
-const long EffectsPanel::IDD_RADIOBUTTON_CoroFaces_Phoneme = wxNewId();
-const long EffectsPanel::ID_CHOICE_CoroFaces_Phoneme = wxNewId();
-const long EffectsPanel::IDD_RADIOBUTTON_CoroFaces_TimingTrack = wxNewId();
-const long EffectsPanel::ID_CHOICE_CoroFaces_TimingTrack = wxNewId();
-const long EffectsPanel::ID_STATICTEXT60 = wxNewId();
-const long EffectsPanel::ID_CHOICE_CoroFaces_FaceDefinition = wxNewId();
-const long EffectsPanel::ID_STATICTEXT64 = wxNewId();
-const long EffectsPanel::ID_CHOICE_CoroFaces_Eyes = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_CoroFaces_Outline = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_CoroFaces_InPapagayo = wxNewId();
-const long EffectsPanel::ID_PANEL28 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT6 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Curtain_Edge = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Curtain_Edge = wxNewId();
@@ -205,10 +194,17 @@ const long EffectsPanel::ID_TEXTCTRL_Curtain_Speed = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Curtain_Repeat = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat = wxNewId();
 const long EffectsPanel::ID_PANEL1 = wxNewId();
-const long EffectsPanel::ID_STATICTEXT118 = wxNewId();
-const long EffectsPanel::ID_STATICTEXT15 = wxNewId();
+const long EffectsPanel::IDD_RADIOBUTTON_Faces_Phoneme = wxNewId();
 const long EffectsPanel::ID_CHOICE_Faces_Phoneme = wxNewId();
-const long EffectsPanel::ID_PANEL6 = wxNewId();
+const long EffectsPanel::IDD_RADIOBUTTON_Faces_TimingTrack = wxNewId();
+const long EffectsPanel::ID_CHOICE_Faces_TimingTrack = wxNewId();
+const long EffectsPanel::ID_STATICTEXT15 = wxNewId();
+const long EffectsPanel::ID_CHOICE_Faces_FaceDefinition = wxNewId();
+const long EffectsPanel::ID_STATICTEXT66 = wxNewId();
+const long EffectsPanel::ID_CHOICE_Faces_Eyes = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Faces_Outline = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Faces_InPapagayo = wxNewId();
+const long EffectsPanel::ID_SCROLLEDWINDOW2 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Fan_CenterX = wxNewId();
 const long EffectsPanel::IDD_TEXTCTRL_Fan_CenterX = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Fan_CenterX = wxNewId();
@@ -908,8 +904,10 @@ public:
 EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
 {
     //(*Initialize(EffectsPanel)
+    wxCheckBox* CheckBox7;
     wxTextCtrl* TextCtrl3;
     wxStaticText* StaticText114;
+    wxStaticBoxSizer* StaticBoxSizer2;
     wxTextCtrl* TextCtrl_Shockwave_CenterY;
     wxFlexGridSizer* FlexGridSizer90;
     wxSlider* Slider11;
@@ -1132,7 +1130,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider_Galaxy_Start_Radius;
     wxFlexGridSizer* FlexGridSizer103;
     wxStaticText* StaticText154;
-    wxCheckBox* CheckBox6;
     wxFlexGridSizer* FlexGridSizer129;
     wxFlexGridSizer* FlexGridSizer131;
     wxTextCtrl* TextCtrl_Galaxy_Start_Angle;
@@ -1308,7 +1305,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider27;
     wxFlexGridSizer* GridBagSizerGalaxyOptions;
     wxSlider* Slider15;
-    wxFlexGridSizer* FlexGridSizer135;
     wxFlexGridSizer* FlexGridSizer109;
     wxSlider* Slider_Galaxy_Duration;
     wxFontPickerCtrl* FontPickerCtrl2;
@@ -1332,7 +1328,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxTextCtrl* TextCtrl73;
     wxFlexGridSizer* FlexGridSizer87;
     wxTextCtrl* TextCtrl_Shockwave_CenterX;
-    wxFlexGridSizer* FlexGridSizer23;
     wxTextCtrl* TextCtrl32;
     wxFlexGridSizer* FlexGridSizer122;
     wxFlexGridSizer* FlexGridSizer64;
@@ -1343,7 +1338,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxTextCtrl* TextCtrl59;
     wxTextCtrl* TextCtrl47;
     wxGridBagSizer* GridBagSizer1;
-    wxFlexGridSizer* FlexGridSizer58;
     wxTextCtrl* TextCtrl30;
     wxSlider* Slider_Shockwave_End_Width;
     wxTextCtrl* TextCtrl_Fan_Num_Elements;
@@ -1356,7 +1350,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxStaticText* StaticText101;
     wxFlexGridSizer* FlexGridSizer26;
     wxTextCtrl* TextCtrl_MorphDuration;
-    wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticText* StaticText162;
     wxTextCtrl* TextCtrl65;
     wxCheckBox* CheckBox2;
@@ -1780,50 +1773,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_ColorWash->SetSizer(FlexGridSizer37);
     FlexGridSizer37->Fit(Panel1_ColorWash);
     FlexGridSizer37->SetSizeHints(Panel1_ColorWash);
-    Panel1_CoroFaces = new wxScrolledWindow(EffectChoicebook, ID_PANEL28, wxPoint(202,8), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL28"));
-    FlexGridSizer58 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer58->AddGrowableCol(0);
-    StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, Panel1_CoroFaces, _("Mouth Movements"));
-    FlexGridSizer135 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer135->AddGrowableCol(1);
-    PhonemeRadioButton = new wxRadioButton(Panel1_CoroFaces, IDD_RADIOBUTTON_CoroFaces_Phoneme, _("Phoneme"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_CoroFaces_Phoneme"));
-    PhonemeRadioButton->SetValue(true);
-    FlexGridSizer135->Add(PhonemeRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_CoroFaces_Phoneme = new wxChoice(Panel1_CoroFaces, ID_CHOICE_CoroFaces_Phoneme, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_CoroFaces_Phoneme"));
-    FlexGridSizer135->Add(Choice_CoroFaces_Phoneme, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    TimingTrackRadioButton = new wxRadioButton(Panel1_CoroFaces, IDD_RADIOBUTTON_CoroFaces_TimingTrack, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_CoroFaces_TimingTrack"));
-    FlexGridSizer135->Add(TimingTrackRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_CoroFaces_TimingTrack = new wxChoice(Panel1_CoroFaces, ID_CHOICE_CoroFaces_TimingTrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_CoroFaces_TimingTrack"));
-    Choice_CoroFaces_TimingTrack->Disable();
-    FlexGridSizer135->Add(Choice_CoroFaces_TimingTrack, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticBoxSizer1->Add(FlexGridSizer135, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer58->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer23 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer23->AddGrowableCol(1);
-    StaticText64 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT60, _("Face Definition"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT60"));
-    FlexGridSizer23->Add(StaticText64, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    CoroFace_FaceDefinitonChoice = new wxChoice(Panel1_CoroFaces, ID_CHOICE_CoroFaces_FaceDefinition, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_CoroFaces_FaceDefinition"));
-    FlexGridSizer23->Add(CoroFace_FaceDefinitonChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText62 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT64, _("Eyes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT64"));
-    FlexGridSizer23->Add(StaticText62, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_CoroFaces_Eyes = new wxChoice(Panel1_CoroFaces, ID_CHOICE_CoroFaces_Eyes, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_CoroFaces_Eyes"));
-    Choice_CoroFaces_Eyes->Append(_("Open"));
-    Choice_CoroFaces_Eyes->Append(_("Closed"));
-    Choice_CoroFaces_Eyes->Append(_("Auto"));
-    Choice_CoroFaces_Eyes->Append(_("(off)"));
-    FlexGridSizer23->Add(Choice_CoroFaces_Eyes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer23->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_CoroFaces_Outline = new wxCheckBox(Panel1_CoroFaces, ID_CHECKBOX_CoroFaces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CoroFaces_Outline"));
-    CheckBox_CoroFaces_Outline->SetValue(false);
-    FlexGridSizer23->Add(CheckBox_CoroFaces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer23->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox6 = new wxCheckBox(Panel1_CoroFaces, ID_CHECKBOX_CoroFaces_InPapagayo, _("Face Model in xlights_papagayo.xml"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CoroFaces_InPapagayo"));
-    CheckBox6->SetValue(false);
-    FlexGridSizer23->Add(CheckBox6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer58->Add(FlexGridSizer23, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Panel1_CoroFaces->SetSizer(FlexGridSizer58);
-    FlexGridSizer58->Fit(Panel1_CoroFaces);
-    FlexGridSizer58->SetSizeHints(Panel1_CoroFaces);
     Panel1_Curtain = new wxScrolledWindow(EffectChoicebook, ID_PANEL1, wxPoint(150,14), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL1"));
     FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer7->AddGrowableCol(0);
@@ -1889,18 +1838,58 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Curtain->SetSizer(FlexGridSizer7);
     FlexGridSizer7->Fit(Panel1_Curtain);
     FlexGridSizer7->SetSizeHints(Panel1_Curtain);
-    Panel1_Faces = new wxScrolledWindow(EffectChoicebook, ID_PANEL6, wxPoint(141,8), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL6"));
+    Panel1_Faces = new wxScrolledWindow(EffectChoicebook, ID_SCROLLEDWINDOW2, wxPoint(202,8), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW2"));
     FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer97 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticText116 = new wxStaticText(Panel1_Faces, ID_STATICTEXT118, _("Draw a face on a Matrix or Megatree"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT118"));
-    FlexGridSizer97->Add(StaticText116, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer47->Add(FlexGridSizer97, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer98 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticText14 = new wxStaticText(Panel1_Faces, ID_STATICTEXT15, _("Phoneme"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
-    FlexGridSizer98->Add(StaticText14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->AddGrowableCol(0);
+    StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, Panel1_Faces, _("Mouth Movements"));
+    FlexGridSizer97 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer97->AddGrowableCol(1);
+    RadioButton1 = new wxRadioButton(Panel1_Faces, IDD_RADIOBUTTON_Faces_Phoneme, _("Phoneme"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_Faces_Phoneme"));
+    RadioButton1->SetValue(true);
+    FlexGridSizer97->Add(RadioButton1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Faces_Phoneme = new wxChoice(Panel1_Faces, ID_CHOICE_Faces_Phoneme, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_Phoneme"));
-    FlexGridSizer98->Add(Choice_Faces_Phoneme, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer47->Add(FlexGridSizer98, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Faces_Phoneme->SetSelection( Choice_Faces_Phoneme->Append(_("AI")) );
+    Choice_Faces_Phoneme->Append(_("E"));
+    Choice_Faces_Phoneme->Append(_("FV"));
+    Choice_Faces_Phoneme->Append(_("L"));
+    Choice_Faces_Phoneme->Append(_("MBP"));
+    Choice_Faces_Phoneme->Append(_("O"));
+    Choice_Faces_Phoneme->Append(_("U"));
+    Choice_Faces_Phoneme->Append(_("WQ"));
+    Choice_Faces_Phoneme->Append(_("etc"));
+    Choice_Faces_Phoneme->Append(_("rest"));
+    Choice_Faces_Phoneme->Append(_("(off)"));
+    FlexGridSizer97->Add(Choice_Faces_Phoneme, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    RadioButton2 = new wxRadioButton(Panel1_Faces, IDD_RADIOBUTTON_Faces_TimingTrack, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_Faces_TimingTrack"));
+    FlexGridSizer97->Add(RadioButton2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Faces_TimingTrack = new wxChoice(Panel1_Faces, ID_CHOICE_Faces_TimingTrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_TimingTrack"));
+    Choice_Faces_TimingTrack->Disable();
+    FlexGridSizer97->Add(Choice_Faces_TimingTrack, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer2->Add(FlexGridSizer97, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer47->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer98 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer98->AddGrowableCol(1);
+    StaticText14 = new wxStaticText(Panel1_Faces, ID_STATICTEXT15, _("Face Definition"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
+    FlexGridSizer98->Add(StaticText14, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Face_FaceDefinitonChoice = new wxChoice(Panel1_Faces, ID_CHOICE_Faces_FaceDefinition, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_FaceDefinition"));
+    FlexGridSizer98->Add(Face_FaceDefinitonChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText71 = new wxStaticText(Panel1_Faces, ID_STATICTEXT66, _("Eyes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT66"));
+    FlexGridSizer98->Add(StaticText71, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Faces_Eyes = new wxChoice(Panel1_Faces, ID_CHOICE_Faces_Eyes, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_Faces_Eyes"));
+    Choice_Faces_Eyes->Append(_("Open"));
+    Choice_Faces_Eyes->Append(_("Closed"));
+    Choice_Faces_Eyes->Append(_("Auto"));
+    Choice_Faces_Eyes->Append(_("(off)"));
+    FlexGridSizer98->Add(Choice_Faces_Eyes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Faces_Outline = new wxCheckBox(Panel1_Faces, ID_CHECKBOX_Faces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Outline"));
+    CheckBox_Faces_Outline->SetValue(false);
+    FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox7 = new wxCheckBox(Panel1_Faces, ID_CHECKBOX_Faces_InPapagayo, _("Face Model in xlights_papagayo.xml"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_InPapagayo"));
+    CheckBox7->SetValue(false);
+    FlexGridSizer98->Add(CheckBox7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->Add(FlexGridSizer98, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     Panel1_Faces->SetSizer(FlexGridSizer47);
     FlexGridSizer47->Fit(Panel1_Faces);
     FlexGridSizer47->SetSizeHints(Panel1_Faces);
@@ -4141,7 +4130,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     EffectChoicebook->AddPage(Panel1_Butterfly, _("Butterfly"), false);
     EffectChoicebook->AddPage(Panel1_Circles, _("Circles"), false);
     EffectChoicebook->AddPage(Panel1_ColorWash, _("Color Wash"), false);
-    EffectChoicebook->AddPage(Panel1_CoroFaces, _("CoroFaces"), false);
     EffectChoicebook->AddPage(Panel1_Curtain, _("Curtain"), false);
     EffectChoicebook->AddPage(Panel1_Faces, _("Faces"), false);
     EffectChoicebook->AddPage(Panel1_Fan, _("Fan"), false);
@@ -4251,8 +4239,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(IDD_TEXTCTRL_ColorWash_X2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(IDD_TEXTCTRL_ColorWash_Y2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(ID_SLIDER_ColorWash_Y2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
-    Connect(IDD_RADIOBUTTON_CoroFaces_Phoneme,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnMouthMovementTypeSelected);
-    Connect(IDD_RADIOBUTTON_CoroFaces_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnMouthMovementTypeSelected);
     Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Edge,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     Connect(ID_SLIDER_Curtain_Swag,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
@@ -4261,6 +4247,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(IDD_SLIDER_Curtain_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrlFloat);
     Connect(ID_TEXTCTRL_Curtain_Speed,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSliderFloat);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
+    Connect(IDD_RADIOBUTTON_Faces_Phoneme,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnMouthMovementTypeSelected);
+    Connect(IDD_RADIOBUTTON_Faces_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnMouthMovementTypeSelected);
     Connect(ID_SLIDER_Fan_CenterX,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedTextCtrl);
     Connect(IDD_TEXTCTRL_Fan_CenterX,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::UpdateLinkedSlider);
     Connect(ID_BITMAPBUTTON_SLIDER_Fan_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
@@ -4706,33 +4694,33 @@ void EffectsPanel::SetDefaultEffectValues(ModelClass *cls, const wxString &name)
         SetCheckboxValue(this, ID_CHECKBOX_TextToCenter2, false);
         SetCheckboxValue(this, ID_CHECKBOX_TextToCenter3, false);
         SetCheckboxValue(this, ID_CHECKBOX_TextToCenter4, false);
-    } else if ("Coro Faces") {
-        Choice_CoroFaces_TimingTrack->Clear();
+    } else if ("Faces" == name ) {
+        Choice_Faces_TimingTrack->Clear();
         for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
             if (mSequenceElements->GetElement(i)->GetEffectLayerCount() == 3
                 && mSequenceElements->GetElement(i)->GetType() == "timing") {
-                Choice_CoroFaces_TimingTrack->Append(mSequenceElements->GetElement(i)->GetName());
+                Choice_Faces_TimingTrack->Append(mSequenceElements->GetElement(i)->GetName());
             }
         }
     }
-    CoroFace_FaceDefinitonChoice->Clear();
+    Face_FaceDefinitonChoice->Clear();
     bool addRender = true;
     if (cls != nullptr) {
         for (std::map<wxString, std::map<wxString, wxString> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); it++) {
-            CoroFace_FaceDefinitonChoice->Append(it->first);
+            Face_FaceDefinitonChoice->Append(it->first);
             if (it->first == "Coro" || it->first == "SingleNode" || it->first == "NodeRange") {
                 addRender = false;
             }
         }
     }
-    if (CoroFace_FaceDefinitonChoice->GetCount() == 0) {
-        CoroFace_FaceDefinitonChoice->Append("Default");
+    if (Face_FaceDefinitonChoice->GetCount() == 0) {
+        Face_FaceDefinitonChoice->Append("Default");
         addRender = false;
     }
     if (addRender) {
-        CoroFace_FaceDefinitonChoice->Append("Rendered");
+        Face_FaceDefinitonChoice->Append("Rendered");
     }
-    CoroFace_FaceDefinitonChoice->SetSelection(0);
+    Face_FaceDefinitonChoice->SetSelection(0);
 }
 
 
@@ -5347,12 +5335,12 @@ void EffectsPanel::OnChoice_Morph_QuickSetSelect(wxCommandEvent& event)
 
 void EffectsPanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
 {
-    if (event.GetId() == IDD_RADIOBUTTON_CoroFaces_Phoneme) {
-        Choice_CoroFaces_Phoneme->Enable();
-        Choice_CoroFaces_TimingTrack->Disable();
+    if (event.GetId() == IDD_RADIOBUTTON_Faces_Phoneme) {
+        Choice_Faces_Phoneme->Enable();
+        Choice_Faces_TimingTrack->Disable();
     } else {
-        Choice_CoroFaces_Phoneme->Disable();
-        Choice_CoroFaces_TimingTrack->Enable();
+        Choice_Faces_Phoneme->Disable();
+        Choice_Faces_TimingTrack->Enable();
     }
 }
 

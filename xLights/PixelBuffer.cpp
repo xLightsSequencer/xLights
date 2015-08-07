@@ -596,9 +596,9 @@ void PixelBufferClass::RenderFaces(const wxString &Phoneme, const wxString &eyes
 void PixelBufferClass::RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString& eyes, bool face_outline) {
     effects[CurrentLayer].RenderCoroFacesFromPGO(Phoneme, eyes, face_outline);
 }
-void PixelBufferClass::RenderCoroFaces(SequenceElements *elements, const wxString &faceDefinition,
+void PixelBufferClass::RenderFaces(SequenceElements *elements, const wxString &faceDefinition,
                                        const wxString &Phoneme, const wxString &track, const wxString& eyes, bool face_outline) {
-    effects[CurrentLayer].RenderCoroFaces(elements, faceDefinition, Phoneme, track, eyes, face_outline);
+    effects[CurrentLayer].RenderFaces(elements, faceDefinition, Phoneme, track, eyes, face_outline);
 }
 
 

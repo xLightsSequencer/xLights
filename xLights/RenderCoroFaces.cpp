@@ -178,8 +178,8 @@ void RgbEffects::RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString&
 }
 
 
-void RgbEffects::RenderCoroFaces(SequenceElements *elements, const wxString &faceDefinition,
-                                 const wxString& Phoneme, const wxString &trackName, const wxString& eyes, bool face_outline)
+void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDefinition,
+                             const wxString& Phoneme, const wxString &trackName, const wxString& eyes, bool face_outline)
 {
     
     if (needToInit) {

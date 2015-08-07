@@ -31,7 +31,6 @@
 #include "../include/circles-64.xpm"
 
 #include "../include/ColorWash.xpm"
-#include "../include/corofaces.xpm"
 
 //#include "../include/curtain.xpm"
 #include "../include/curtain-16.xpm"
@@ -40,7 +39,9 @@
 #include "../include/curtain-48.xpm"
 #include "../include/curtain-64.xpm"
 
-#include "../include/faces.xpm"
+
+//#include "../include/faces.xpm"
+#include "../include/corofaces.xpm"
 
 // Fan Icons
 #include "../include/fan-16.xpm"
@@ -478,15 +479,12 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
         case BitmapCache::eff_COLORWASH:
             toolTip = "ColorWash";
             return effectBitmaps.get(size, exact, "ColorWash", ColorWash, ColorWash, ColorWash, ColorWash, ColorWash);
-        case BitmapCache::eff_COROFACES:
-            toolTip = "Coro Faces";
-            return effectBitmaps.get(size, exact, "Coro Faces", corofaces, corofaces, corofaces, corofaces, corofaces);
         case BitmapCache::eff_CURTAIN:
             toolTip = "Curtain";
             return effectBitmaps.get(size, exact, "Curtain", curtain_16, curtain_24, curtain_32, curtain_48, curtain_64);
         case BitmapCache::eff_FACES:
-            toolTip = "Matrix Faces";
-            return effectBitmaps.get(size, exact, "Matrix Faces", faces, faces, faces, faces, faces);
+            toolTip = "Faces";
+            return effectBitmaps.get(size, exact, "Faces", corofaces, corofaces, corofaces, corofaces, corofaces);
         case BitmapCache::eff_FAN:
             toolTip = "Fan";
             return effectBitmaps.get(size, exact, "Fan", fan_16, fan_24, fan_32, fan_48, fan_64);
