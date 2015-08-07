@@ -15,16 +15,18 @@
 						<label>None</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL2" variable="Coro" member="no">
+						<object class="wxPanel" name="ID_PANEL2" variable="CoroPanel" member="no">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-								<cols>3</cols>
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<growablerows>0</growablerows>
 								<object class="sizeritem">
-									<object class="wxGrid" name="ID_GRID_COROFACES" variable="GridCoroFaces" member="yes">
+									<object class="wxGrid" name="ID_GRID_COROFACES" variable="SingleNodeGrid" member="yes">
 										<cols>1</cols>
 										<rows>13</rows>
 										<labelrowheight>20</labelrowheight>
 										<labelcolwidth>100</labelcolwidth>
-										<defaultcolsize>180</defaultcolsize>
+										<defaultcolsize>200</defaultcolsize>
 										<collabels>
 											<item>Nodes</item>
 										</collabels>
@@ -43,6 +45,7 @@
 											<item>Eyes - Open</item>
 											<item>Eyes - Closed</item>
 										</rowlabels>
+										<minsize>-1,200d</minsize>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -50,14 +53,129 @@
 								</object>
 							</object>
 						</object>
-						<label>Coro Face</label>
+						<label>Single Nodes</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL6" variable="NodeRangePanel" member="no">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<growablerows>0</growablerows>
+								<object class="sizeritem">
+									<object class="wxGrid" name="ID_GRID3" variable="NodeRangeGrid" member="yes">
+										<cols>1</cols>
+										<rows>13</rows>
+										<labelrowheight>20</labelrowheight>
+										<labelcolwidth>100</labelcolwidth>
+										<defaultcolsize>200</defaultcolsize>
+										<collabels>
+											<item>Nodes</item>
+										</collabels>
+										<rowlabels>
+											<item>Face Outline</item>
+											<item>Mouth - AI</item>
+											<item>Mouth - E</item>
+											<item>Mouth - etc</item>
+											<item>Mouth - FV</item>
+											<item>Mouth - L</item>
+											<item>Mouth - MBP</item>
+											<item>Mouth - O</item>
+											<item>Mouth - rest</item>
+											<item>Mouth - U</item>
+											<item>Mouth - WQ</item>
+											<item>Eyes - Open</item>
+											<item>Eyes - Closed</item>
+										</rowlabels>
+										<minsize>-1,200d</minsize>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Node Ranges</label>
 					</object>
 					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL3" variable="Matrix" member="yes">
-							<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-								<label>To Be Determined....</label>
-								<pos>40,32</pos>
-								<size>104,32</size>
+							<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<growablerows>1</growablerows>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+												<label>Name:</label>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxChoice" name="ID_CHOICE1" variable="MatrixNameChoice" member="yes">
+												<handler function="OnMatrixNameChoiceSelect" entry="EVT_CHOICE" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON1" variable="Button1" member="no">
+												<label>Add</label>
+												<handler function="OnButtonMatrixAddClicked" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON2" variable="MatrixDeleteButton" member="yes">
+												<label>Delete</label>
+												<handler function="OnButtonMatrixDeleteClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxGrid" name="ID_GRID1" variable="MatrixModelsGrid" member="yes">
+										<cols>2</cols>
+										<rows>10</rows>
+										<labelrowheight>20</labelrowheight>
+										<labelcolwidth>100</labelcolwidth>
+										<defaultcolsize>200</defaultcolsize>
+										<collabels>
+											<item>Eyes Open</item>
+											<item>Eyes Closed</item>
+										</collabels>
+										<rowlabels>
+											<item>Mouth - AI</item>
+											<item>Mouth - E</item>
+											<item>Mouth - etc</item>
+											<item>Mouth - FV</item>
+											<item>Mouth - L</item>
+											<item>Mouth - MBP</item>
+											<item>Mouth - O</item>
+											<item>Mouth - rest</item>
+											<item>Mouth - U</item>
+											<item>Mouth - WQ</item>
+										</rowlabels>
+										<minsize>-1,200d</minsize>
+										<handler function="OnMatrixModelsGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
+										<handler function="OnMatrixModelsGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Matrix</label>

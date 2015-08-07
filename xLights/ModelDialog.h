@@ -178,7 +178,7 @@ private:
     int previewBrightness = 100;
     wxString strandNames;
     wxString nodeNames;
-    std::map<wxString,wxString> faceInfo;
+    std::map<wxString, std::map<wxString,wxString> > faceInfo;
 };
 
 #endif

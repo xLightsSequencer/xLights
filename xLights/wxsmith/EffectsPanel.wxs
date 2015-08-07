@@ -1450,10 +1450,24 @@
 										<cols>2</cols>
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT60" variable="StaticText64" member="yes">
+												<label>Face Definition</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxChoice" name="ID_CHOICE_CoroFaces_FaceDefinition" variable="CoroFace_FaceDefinitonChoice" member="yes" />
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT64" variable="StaticText62" member="yes">
 												<label>Eyes</label>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -1462,6 +1476,7 @@
 												<content>
 													<item>Open</item>
 													<item>Closed</item>
+													<item>Auto</item>
 													<item>(off)</item>
 												</content>
 												<style>wxCB_SORT</style>

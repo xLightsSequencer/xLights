@@ -353,11 +353,16 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     }
     
     wxXmlNode *f = ModelNode->GetChildren();
+    faceInfo.clear();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
+            wxString type = f->GetAttribute("Type", "SingleNode");
+            
             wxXmlAttribute *att = f->GetAttributes();
             while (att != nullptr) {
-                faceInfo[att->GetName()] = att->GetValue();
+                if (att->GetName() != "Type") {
+                    faceInfo[type][att->GetName()] = att->GetValue();
+                }
                 att = att->GetNext();
             }
         }

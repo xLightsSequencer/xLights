@@ -858,9 +858,13 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         }
     }
     if (!faceInfo.empty()) {
-        f = new wxXmlNode(e, wxXML_ELEMENT_NODE , "faceInfo");
-        for (std::map<wxString,wxString>::iterator it = faceInfo.begin(); it != faceInfo.end(); it++) {
-            f->AddAttribute(it->first, it->second);
+        for (std::map<wxString, std::map<wxString,wxString> >::iterator it = faceInfo.begin(); it != faceInfo.end(); it++) {
+            f = new wxXmlNode(e, wxXML_ELEMENT_NODE , "faceInfo");
+            wxString type = it->first;
+            f->AddAttribute("Type", type);
+            for (std::map<wxString,wxString>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                f->AddAttribute(it2->first, it2->second);
+            }
         }
     }
 }
@@ -982,9 +986,12 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
     wxXmlNode *f = e->GetChildren();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
+            wxString type = f->GetAttribute("Type", "SingleNode");
             wxXmlAttribute *att = f->GetAttributes();
             while (att != nullptr) {
-                faceInfo[att->GetName()] = att->GetValue();
+                if (att->GetName() != "Type") {
+                    faceInfo[type][att->GetName()] = att->GetValue();
+                }
                 att = att->GetNext();
             }
         }

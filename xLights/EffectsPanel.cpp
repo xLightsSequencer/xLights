@@ -74,6 +74,7 @@
 #include "../include/backward-24_off.xpm"
 
 #include "SequenceElements.h"
+#include "ModelClass.h"
 
 //(*InternalHeaders(EffectsPanel)
 #include <wx/bitmap.h>
@@ -182,6 +183,8 @@ const long EffectsPanel::IDD_RADIOBUTTON_CoroFaces_Phoneme = wxNewId();
 const long EffectsPanel::ID_CHOICE_CoroFaces_Phoneme = wxNewId();
 const long EffectsPanel::IDD_RADIOBUTTON_CoroFaces_TimingTrack = wxNewId();
 const long EffectsPanel::ID_CHOICE_CoroFaces_TimingTrack = wxNewId();
+const long EffectsPanel::ID_STATICTEXT60 = wxNewId();
+const long EffectsPanel::ID_CHOICE_CoroFaces_FaceDefinition = wxNewId();
 const long EffectsPanel::ID_STATICTEXT64 = wxNewId();
 const long EffectsPanel::ID_CHOICE_CoroFaces_Eyes = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_CoroFaces_Outline = wxNewId();
@@ -1797,11 +1800,16 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer58->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer23 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer23->AddGrowableCol(1);
+    StaticText64 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT60, _("Face Definition"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT60"));
+    FlexGridSizer23->Add(StaticText64, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    CoroFace_FaceDefinitonChoice = new wxChoice(Panel1_CoroFaces, ID_CHOICE_CoroFaces_FaceDefinition, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_CoroFaces_FaceDefinition"));
+    FlexGridSizer23->Add(CoroFace_FaceDefinitonChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText62 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT64, _("Eyes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT64"));
-    FlexGridSizer23->Add(StaticText62, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer23->Add(StaticText62, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_CoroFaces_Eyes = new wxChoice(Panel1_CoroFaces, ID_CHOICE_CoroFaces_Eyes, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_CoroFaces_Eyes"));
     Choice_CoroFaces_Eyes->Append(_("Open"));
     Choice_CoroFaces_Eyes->Append(_("Closed"));
+    Choice_CoroFaces_Eyes->Append(_("Auto"));
     Choice_CoroFaces_Eyes->Append(_("(off)"));
     FlexGridSizer23->Add(Choice_CoroFaces_Eyes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer23->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -4684,7 +4692,7 @@ void EnableControl(wxWindow *w, int id, bool e) {
     if (c) c->Enable(e);
 }
 
-void EffectsPanel::SetDefaultEffectValues(const wxString &name) {
+void EffectsPanel::SetDefaultEffectValues(ModelClass *cls, const wxString &name) {
     //NOTE: the settings loop after this section does not initialize controls.
     //For controls that have been added recently, an older version of the XML file will cause initial settings to be incorrect.
     //A loop needs to be added to initialize the wx controls to a predictable value.
@@ -4707,6 +4715,24 @@ void EffectsPanel::SetDefaultEffectValues(const wxString &name) {
             }
         }
     }
+    CoroFace_FaceDefinitonChoice->Clear();
+    bool addRender = true;
+    if (cls != nullptr) {
+        for (std::map<wxString, std::map<wxString, wxString> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); it++) {
+            CoroFace_FaceDefinitonChoice->Append(it->first);
+            if (it->first == "Coro" || it->first == "SingleNode" || it->first == "NodeRange") {
+                addRender = false;
+            }
+        }
+    }
+    if (CoroFace_FaceDefinitonChoice->GetCount() == 0) {
+        CoroFace_FaceDefinitonChoice->Append("Default");
+        addRender = false;
+    }
+    if (addRender) {
+        CoroFace_FaceDefinitonChoice->Append("Rendered");
+    }
+    CoroFace_FaceDefinitonChoice->SetSelection(0);
 }
 
 
@@ -4937,7 +4963,7 @@ void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
     wxScrolledWindow* w = (wxScrolledWindow*)EffectChoicebook->GetPage(EffectChoicebook->GetSelection());
 
     wxString ef = EffectChoicebook->GetPageText(EffectChoicebook->GetSelection());
-    SetDefaultEffectValues(ef);
+    SetDefaultEffectValues(nullptr, ef);
 
     wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
     // We do not have an actual effect in grid to send

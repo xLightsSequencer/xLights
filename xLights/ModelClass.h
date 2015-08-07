@@ -436,7 +436,7 @@ public:
     wxString name;       // user-designated model name
     int BufferHt,BufferWi;  // size of the buffer
     int RenderHt,RenderWi;  // size of the rendered output
-    std::map<wxString, wxString> faceInfo;
+    std::map<wxString, std::map<wxString, wxString> > faceInfo;
     bool MyDisplay;
     long ModelBrightness;   // Value from -100 to +100 indicates an adjustment to brightness for this model
     bool Selected=false;
@@ -550,15 +550,21 @@ public:
     int GetStarSize(int starLayer) const {
         return starSizes[starLayer];
     }
-    wxString GetStrandName(int x) const {
+    wxString GetStrandName(int x, bool def = false) const {
         if (x < strandNames.size()) {
             return strandNames[x];
         }
+        if (def) {
+            return wxString::Format("Strand %d", x + 1);
+        }
         return "";
     }
-    wxString GetNodeName(int x) const {
+    wxString GetNodeName(int x, bool def = false) const {
         if (x < nodeNames.size()) {
             return nodeNames[x];
+        }
+        if (def) {
+            return wxString::Format("Node %d", x + 1);
         }
         return "";
     }

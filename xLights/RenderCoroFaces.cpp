@@ -126,13 +126,13 @@ void RgbEffects::RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString&
 //    wxString model_name = "???";
     if (!curPeriod) model_xy.clear(); //flush cache once at start of each effect
 
-    static std::unordered_map<std::string, int> auto_phonemes {{"a-AI", 0}, {"a-E", 1}, {"a-FV", 2}, {"a-L", 3},
-              {"a-MBP", 4}, {"a-O", 5}, {"a-U", 6}, {"a-WQ", 7}, {"a-etc", 8}, {"a-rest", 9}};
+    static std::unordered_map<std::string, wxString> auto_phonemes {{"a-AI", "AI"}, {"a-E", "E"}, {"a-FV", "FV"}, {"a-L", "L"},
+              {"a-MBP", "MBP"}, {"a-O", "O"}, {"a-U", "U"}, {"a-WQ", "WQ"}, {"a-etc", "etc"}, {"a-rest", "rest"}};
 //    static const char* auto_eyes[] = {"Open", "Closed", "Left", "Right", "Up", "Down"};
 
     if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
     {
-        RenderFaces(auto_phonemes[(const char*)Phoneme.c_str()]); //TODO: add params for eyes, outline
+        RenderFaces(auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline);
         return;
     }
 
@@ -178,7 +178,8 @@ void RgbEffects::RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString&
 }
 
 
-void RgbEffects::RenderCoroFaces(SequenceElements *elements, const wxString& Phoneme, const wxString &trackName, const wxString& eyes, bool face_outline)
+void RgbEffects::RenderCoroFaces(SequenceElements *elements, const wxString &faceDefinition,
+                                 const wxString& Phoneme, const wxString &trackName, const wxString& eyes, bool face_outline)
 {
     
     if (needToInit) {
@@ -214,34 +215,112 @@ void RgbEffects::RenderCoroFaces(SequenceElements *elements, const wxString& Pho
     ModelClass* model_info = xLightsFrame::AllModels[cur_model].get();
 
     xlColor color;
-    palette.GetColor(0, color); //use first color; user must make sure it matches model node type
+    palette.GetColor(0, color); //use first color for mouth; user must make sure it matches model node type
     
     wxArrayString todo;
+    std::vector<xlColor> colors;
     todo.push_back("Mouth-" + phoneme);
-    if (face_outline) {
-        todo.push_back("FaceOutline");
+    colors.push_back(color);
+    if (palette.Size() > 1) {
+        palette.GetColor(1, color); //use second color for eyes; user must make sure it matches model node type
     }
-    if (eyes == "Open") {
+    if (eyes == "Open" || eyes == "Auto") {
         todo.push_back("Eyes-Open");
+        colors.push_back(color);
     }
     if (eyes == "Closed") {
         todo.push_back("Eyes-Closed");
+        colors.push_back(color);
     }
     if (eyes == "(off)") {
         //no eyes
     }
+    if (palette.Size() > 2) {
+        palette.GetColor(2, color); //use third color for outline; user must make sure it matches model node type
+    }
+    if (face_outline) {
+        todo.push_back("FaceOutline");
+        colors.push_back(color);
+    }
+    wxString definition = faceDefinition;
+    if (definition == "Default" && !model_info->faceInfo.empty()) {
+        definition = model_info->faceInfo.begin()->first;
+    }
+    bool found = true;
+    std::map<wxString, std::map<wxString, wxString> >::iterator it = model_info->faceInfo.find(definition);
+    if (it == model_info->faceInfo.end()) {
+        //not found
+        found = false;
+    }
     
-    for (int x = 0; x < todo.size(); x++) {
-        wxString channels = model_info->faceInfo[todo[x]];
+    int type = 3;
+    if ("Coro" == definition || "SingleNode" == definition) {
+        type = 0;
+    } else if ("NodeRange" == definition) {
+        type = 1;
+    } else if ("Rendered" == definition || "Default" == definition) {
+        type = 2;
+    }
+    
+    
+    if (type == 2) {
+        RenderFaces(phoneme, eyes, face_outline);
+        return;
+    }
+    if (type == 3) {
+        //picture
+        wxString e = eyes;
+        if (eyes == "Auto") {
+            e = "Open";
+        }
+        if (eyes == "(off)") {
+            e = "Closed";
+        }
+        wxString key = "Mouth-" + phoneme + "-Eyes";
+        wxString picture = model_info->faceInfo[definition][key + e];
+        if (picture == "" && e == "Closed") {
+            picture = model_info->faceInfo[definition][key + "Open"];
+        }
+        RenderPictures(9 /*RENDER_PICTURE_SCALED*/, picture, 0, 0, 0, 0, 0, 0, 0, false);
+    }
+    for (int t = 0; t < todo.size(); t++) {
+        wxString channels = model_info->faceInfo[definition][todo[t]];
         wxStringTokenizer wtkz(channels, ",");
         while (wtkz.HasMoreTokens()) {
             wxString valstr = wtkz.GetNextToken();
-            for (int x = 0; x < model_info->GetNodeCount(); x++) {
-                if (model_info->GetNodeName(x) == valstr) {
+            
+            if (type == 0) {
+                for (int n = 0; n < model_info->GetNodeCount(); n++) {
+                    wxString nn = model_info->GetNodeName(n, true);
+                    if (nn == valstr) {
+                        std::vector<wxPoint> pts;
+                        model_info->GetNodeCoords(n, pts);
+                        for (int x = 0; x < pts.size(); x++) {
+                            SetPixel(pts[x].x, pts[x].y, colors[t]);
+                        }
+                    }
+                }
+            } else if (type == 1) {
+                int start, end;
+                if (valstr.Contains("-")) {
+                    int idx = valstr.Index('-');
+                    start = wxAtoi(valstr.Left(idx));
+                    end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                } else {
+                    start = end = wxAtoi(valstr);
+                }
+                if (start > end) {
+                    start = end;
+                }
+                start--;
+                end--;
+                for (int n = start; n <= end; n++) {
                     std::vector<wxPoint> pts;
-                    model_info->GetNodeCoords(x, pts);
-                    for (int x = 0; x < pts.size(); x++) {
-                        SetPixel(pts[x].x, pts[x].y, color);
+                    if (n < model_info->GetNodeCount()) {
+                        model_info->GetNodeCoords(n, pts);
+                        for (int x = 0; x < pts.size(); x++) {
+                            SetPixel(pts[x].x, pts[x].y, colors[t]);
+                        }
                     }
                 }
             }

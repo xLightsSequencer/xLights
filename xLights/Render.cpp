@@ -828,7 +828,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                              SettingsMap["CHECKBOX_Curtain_Repeat"]=="1",
                              wxAtof(SettingsMap.Get("TEXTCTRL_Curtain_Speed", "1.0")));
     } else if (effect == "Faces") {
-        buffer.RenderFaces(FacesPhoneme.Index(SettingsMap["CHOICE_Faces_Phoneme"]));
+        buffer.RenderFaces(SettingsMap["CHOICE_Faces_Phoneme"], "Auto", true);
     } else if (effect == "CoroFaces") {
         if (SettingsMap.Get("CHECKBOX_CoroFaces_InPapagayo", "1") == "1") {
             buffer.RenderCoroFacesFromPGO(SettingsMap["CHOICE_CoroFaces_Phoneme"],
@@ -836,6 +836,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                           SettingsMap["CHECKBOX_CoroFaces_Outline"] == "1");
         } else {
             buffer.RenderCoroFaces(&mSequenceElements,
+                                   SettingsMap.Get("CHOICE_CoroFaces_FaceDefinition", "Default"),
                                    SettingsMap["CHOICE_CoroFaces_Phoneme"],
                                    SettingsMap["CHOICE_CoroFaces_TimingTrack"],
                                    SettingsMap["CHOICE_CoroFaces_Eyes"],

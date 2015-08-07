@@ -28,6 +28,7 @@
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 
 class SequenceElements;
+class ModelClass;
 
 class EffectsPanel: public wxPanel
 {
@@ -38,7 +39,7 @@ public:
     bool EffectChanged;
     void SetDefaultPalette();
     wxString* CurrentDir;
-    void SetDefaultEffectValues(const wxString &name);
+    void SetDefaultEffectValues(ModelClass *cls, const wxString &name);
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
     wxString GetEffectStringFromWindow(wxWindow *ParentWin);
@@ -205,6 +206,7 @@ public:
     wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
     wxStaticText* StaticText49;
     wxSlider* Slider_Snowflakes_Type;
+    wxStaticText* StaticText64;
     wxBitmapButton* BitmapButton14;
     wxSlider* Slider_Fireworks_Count;
     wxBitmapButton* BitmapButton_CurtainEdge;
@@ -453,6 +455,7 @@ public:
     wxSlider* Slider_Text_Position2;
     wxChoice* Choice_Ripple_Object_To_Draw;
     wxStaticText* StaticText81;
+    wxChoice* CoroFace_FaceDefinitonChoice;
     wxBitmapButton* BitmapButton_TextDir1;
     wxBitmapButton* BitmapButton_CurtainRepeat;
     wxScrolledWindow* Panel1_Fireworks;
@@ -681,6 +684,8 @@ protected:
     static const long ID_CHOICE_CoroFaces_Phoneme;
     static const long IDD_RADIOBUTTON_CoroFaces_TimingTrack;
     static const long ID_CHOICE_CoroFaces_TimingTrack;
+    static const long ID_STATICTEXT60;
+    static const long ID_CHOICE_CoroFaces_FaceDefinition;
     static const long ID_STATICTEXT64;
     static const long ID_CHOICE_CoroFaces_Eyes;
     static const long ID_CHECKBOX_CoroFaces_Outline;
