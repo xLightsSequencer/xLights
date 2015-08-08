@@ -246,22 +246,18 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     {
         Effect* phrase_effect = mSelectedEffect;
         EffectLayer* word_layer;
-        EffectLayer* phoneme_layer;
         if( phrase_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount() == 1 )
         {
             word_layer = phrase_effect->GetParentEffectLayer()->GetParentElement()->AddEffectLayer();
-            phoneme_layer = phrase_effect->GetParentEffectLayer()->GetParentElement()->AddEffectLayer();
         }
         else
         {
             word_layer = phrase_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(1);
-            phoneme_layer = phrase_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(2);
         }
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        word_layer->UnSelectAllEffects();
         word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
         word_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-        phoneme_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
-        phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         mSequenceElements->BreakdownPhrase(word_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName());
         phrase_effect->GetParentEffectLayer()->GetParentElement()->SetCollapsed(false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -270,8 +266,17 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_BREAKDOWN_WORD)
     {
         Effect* word_effect = mSelectedEffect;
-        EffectLayer* phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(2);
+        EffectLayer* phoneme_layer;
+        if( word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount() < 3 )
+        {
+            phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->AddEffectLayer();
+        }
+        else
+        {
+            phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(2);
+        }
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        phoneme_layer->UnSelectAllEffects();
         phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
         phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
@@ -282,8 +287,17 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_BREAKDOWN_WORDS)
     {
         Effect* word_effect = mSelectedEffect;
-        EffectLayer* phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(2);
+        EffectLayer* phoneme_layer;
+        if( word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount() < 3 )
+        {
+            phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->AddEffectLayer();
+        }
+        else
+        {
+            phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(2);
+        }
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        phoneme_layer->UnSelectAllEffects();
         phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
         EffectLayer *layer = word_effect->GetParentEffectLayer();
         for (int x = 0; x < layer->GetEffectCount(); x++) {
