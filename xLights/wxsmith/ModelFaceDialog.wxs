@@ -11,7 +11,7 @@
 			<object class="sizeritem">
 				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="FaceTypeChoice" member="yes">
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL1" variable="None" member="no" />
+						<object class="wxPanel" name="ID_PANEL1" variable="NonePanel" member="no" />
 						<label>None</label>
 					</object>
 					<object class="choicebookpage">
@@ -123,7 +123,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON1" variable="Button1" member="no">
+											<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
 												<label>Add</label>
 												<handler function="OnButtonMatrixAddClicked" entry="EVT_BUTTON" />
 											</object>

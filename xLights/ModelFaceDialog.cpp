@@ -44,10 +44,10 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 {
 	//(*Initialize(ModelFaceDialog)
 	wxFlexGridSizer* FlexGridSizer4;
-	wxPanel* None;
+	wxPanel* NonePanel;
 	wxPanel* CoroPanel;
 	wxStaticText* StaticText2;
-	wxButton* Button1;
+	wxButton* Button01;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxPanel* NodeRangePanel;
 	wxFlexGridSizer* FlexGridSizer5;
@@ -63,7 +63,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	FaceTypeChoice = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
-	None = new wxPanel(FaceTypeChoice, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	NonePanel = new wxPanel(FaceTypeChoice, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	CoroPanel = new wxPanel(FaceTypeChoice, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
@@ -138,8 +138,8 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer4->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	MatrixNameChoice = new wxChoice(Matrix, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	FlexGridSizer4->Add(MatrixNameChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button1 = new wxButton(Matrix, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer4->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button01 = new wxButton(Matrix, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer4->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	MatrixDeleteButton = new wxButton(Matrix, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer4->Add(MatrixDeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -177,7 +177,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	Matrix->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Matrix);
 	FlexGridSizer3->SetSizeHints(Matrix);
-	FaceTypeChoice->AddPage(None, _("None"), false);
+	FaceTypeChoice->AddPage(NonePanel, _("None"), false);
 	FaceTypeChoice->AddPage(CoroPanel, _("Single Nodes"), false);
 	FaceTypeChoice->AddPage(NodeRangePanel, _("Node Ranges"), false);
 	FaceTypeChoice->AddPage(Matrix, _("Matrix"), false);
@@ -314,6 +314,11 @@ void NodesGridCellEditor::EditDone2(wxMouseEvent& event)
 
 
 void NodesGridCellEditor::BeginEdit(int row, int col, wxGrid* grid) {
+
+#ifdef __linux__
+    // wxGridCellEditorEvtHandler is undefined on Linux, need a workaround
+    return;
+#endif
 
     wxGridCellEditorEvtHandler* evtHandler = NULL;
     if (m_control)

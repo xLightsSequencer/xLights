@@ -76,7 +76,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     //(*Initialize(ModelDialog)
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer10;
-    wxButton* Button1;
+    wxButton* Button01;
     wxFlexGridSizer* FlexGridSizer3;
     wxButton* Button04;
     wxFlexGridSizer* FlexGridSizer5;
@@ -228,8 +228,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer7->Add(Button03, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button04 = new wxButton(this, ID_BUTTON4, _("Names"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
     FlexGridSizer7->Add(Button04, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button1 = new wxButton(this, ID_BUTTON1, _("Faces"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer7->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button01 = new wxButton(this, ID_BUTTON1, _("Faces"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizer7->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     OuterSizer->Add(LeftGridSizer, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);

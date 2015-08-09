@@ -429,7 +429,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxButton" name="ID_BUTTON1" variable="Button1" member="no">
+								<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
 									<label>Faces</label>
 									<handler function="OnFacesButtonClick" entry="EVT_BUTTON" />
 								</object>
