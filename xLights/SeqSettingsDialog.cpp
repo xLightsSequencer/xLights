@@ -692,8 +692,8 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     {
         dialog.RemoveChoice("50ms");
     }
-    
-    
+
+
     VAMPPluginDialog vamp(this);
     wxArrayString plugins;
     if (xml_file->HasAudioMedia()) {
@@ -702,9 +702,9 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
             dialog.Choice_New_Fixed_Timing->Append(plugins[x]);
         }
     }
-    
+
     dialog.Fit();
-    
+
     if (dialog.ShowModal() == wxID_OK)
     {
         wxString selected_timing = dialog.GetTiming();
@@ -731,7 +731,9 @@ void SeqSettingsDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
 {
     xLightsParent->ImportTimingElement();
     int num_rows = Grid_Timing->GetNumberRows();
-	Grid_Timing->DeleteRows(0, num_rows);
+    if( num_rows > 0 ) {
+        Grid_Timing->DeleteRows(0, num_rows);
+    }
     PopulateTimingGrid();
 }
 

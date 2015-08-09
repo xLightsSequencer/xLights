@@ -1505,7 +1505,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             }
             else
             {
-                AddTimingEffect(layer, labels[k], "0", "0", string_format("%f", startTime), string_format("%f", endTime));
+                AddTimingEffect(layer, labels[k], "0", "0", string_format("%d", startTime), string_format("%d", endTime));
             }
         }
     }
@@ -1934,7 +1934,7 @@ void xLightsXmlFile::AddNewTimingSection(wxString filename, xLightsFrame* xLight
         layer = AddChildXmlNode(node, "EffectLayer");
     }
     for (int k = 0; k < starts.size(); k++) {
-        
+
         if( sequence_loaded )
         {
             effectLayer->AddEffect(0,0,labels[k],wxEmptyString,"",starts[k],ends[k],EFFECT_NOT_SELECTED,false);
