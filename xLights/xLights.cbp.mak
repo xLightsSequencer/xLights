@@ -12,14 +12,14 @@ LD = g++
 WINDRES = windres
 
 INC = 
-CFLAGS =  -DwxUSE_UNICODE -std=gnu++0x
+CFLAGS =  -DwxUSE_UNICODE -std=gnu++11
 RESINC = 
 LIBDIR = 
 LIB = 
 LDFLAGS =  -static-libgcc
 
 INC_LINUX_DEBUG =  $(INC) -Iinclude -Isequencer -I../xLights
-CFLAGS_LINUX_DEBUG =  $(CFLAGS) -std=c++0x -Wall -g `wx-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -D__WXDEBUG__
+CFLAGS_LINUX_DEBUG =  $(CFLAGS) -std=gnu++11 -Wall -g `wx-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -D__WXDEBUG__
 RESINC_LINUX_DEBUG =  $(RESINC)
 RCFLAGS_LINUX_DEBUG =  $(RCFLAGS)
 LIBDIR_LINUX_DEBUG =  $(LIBDIR)
@@ -30,7 +30,7 @@ DEP_LINUX_DEBUG =
 OUT_LINUX_DEBUG = ../bin/xLights
 
 INC_LINUX_RELEASE =  $(INC) -Iinclude -Isequencer -I../xLights
-CFLAGS_LINUX_RELEASE =  $(CFLAGS) -O2 -std=c++0x -Wall `wx-config --version=3.0 --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
+CFLAGS_LINUX_RELEASE =  $(CFLAGS) -O2 -std=gnu++11 -Wall `wx-config --version=3.0 --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
 RESINC_LINUX_RELEASE =  $(RESINC)
 RCFLAGS_LINUX_RELEASE =  $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
 LIBDIR_LINUX_RELEASE =  $(LIBDIR)
