@@ -982,13 +982,12 @@ void ModelClass::SetLineCoord() {
     double half=numlights/2;
     SetRenderSize(numlights*2,numlights);
 
-    double radians=toRadians(PreviewRotation);
     for(size_t n=0; n<NodeCount; n++) {
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
-            x=cos(radians)*idx;
+            x=idx;
             x=IsLtoR ? x - half : half - x;
-            y=sin(radians)*idx;
+            y=0;
             Nodes[n]->Coords[c].screenX=x;
             Nodes[n]->Coords[c].screenY=y + numlights;
             idx++;
@@ -1462,7 +1461,7 @@ void ModelClass::UpdateXmlWithScale() {
 void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,
                                       std::vector<int>& actChannel, std::vector<wxString>& nodeTypes) {
     size_t NodeCount=Nodes.size();
-    wxCoord sx,sy;
+    double sx,sy;
     int w, h;
     preview->GetVirtualCanvasSize(w,h);
 
@@ -1477,17 +1476,23 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
     }
     double scalex = double(w) / RenderWi * PreviewScaleX;
     double scaley = double(h) / RenderHt * PreviewScaleY;
+    double radians=toRadians(PreviewRotation);
 
-    int w1 = int(offsetXpct*w);
-    int h1 = int(offsetYpct*h);
+    double w1 = int(offsetXpct*w);
+    double h1 = int(offsetYpct*h);
 
     for(size_t n=0; n<NodeCount; n++) {
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            sx = (sx*scalex)+w1;
-            sy = (sy*scaley)+h1;
+            
+            sx = (sx*scalex);
+            sy = (sy*scaley);
+            TranslatePointDoubles(radians,sx,sy,sx,sy);
+            sx += w1;
+            sy += h1;
+            
             xPos.push_back(sx);
             yPos.push_back(sy);
             actChannel.push_back(Nodes[n]->ActChan);
@@ -1644,7 +1649,8 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
     double scalex=double(w) / RenderWi * PreviewScaleX;
     double scaley=double(h) / RenderHt * PreviewScaleY;
 
-    
+    double radians=toRadians(PreviewRotation);
+
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
 
@@ -1697,8 +1703,12 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;;
             sy=Nodes[n]->Coords[c].screenY;
-            sx = (sx*scalex)+w1;
-            sy = (sy*scaley)+h1;
+            sx = (sx*scalex);
+            sy = (sy*scaley);
+            TranslatePointDoubles(radians,sx,sy,sx,sy);
+            sx += w1;
+            sy += h1;
+
             if (pixelStyle < 2) {
                 started = true;
                 DrawGLUtils::AddVertex(sx,sy,color, color == xlBLACK ? blackTransparency : transparency);
@@ -1725,7 +1735,6 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
 
     if (Selected && c != NULL && allowSelected) {
         //Draw bounding rectangle
-        double radians=toRadians(PreviewRotation);
         // Upper Left Handle
         sx =  (-RenderWi*scalex/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
         sy = (RenderHt*scaley/2) + BOUNDING_RECT_OFFSET;
@@ -1885,28 +1894,6 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
 
 void ModelClass::SetModelCoord(int degrees) {
     PreviewRotation=degrees;
-
-    size_t NodeCount=Nodes.size();
-    double sx,sy;
-    double x1, y1;
-    double radians=toRadians(PreviewRotation);
-
-    for(size_t nn=0; nn<NodeCount; nn++) {
-        size_t CoordCount=GetCoordCount(nn);
-        if( ! Nodes[nn]->OrigCoordsSaved())
-            Nodes[nn]->SaveCoords();
-
-        for(size_t cc=0; cc < CoordCount; cc++) {
-            //Calculate new Screen x and y based on current rotation value
-            sx=Nodes[nn]->OrigCoords[cc].screenX;
-            sy=Nodes[nn]->OrigCoords[cc].screenY;
-
-            TranslatePointDoubles(radians,sx,sy,x1,y1);
-            
-            Nodes[nn]->Coords[cc].screenX = x1;
-            Nodes[nn]->Coords[cc].screenY = y1;
-        }
-    }
 }
 
 void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
@@ -1927,9 +1914,10 @@ void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
     
     double scalex = double(w) / RenderWi * PreviewScaleX;
     double scaley = double(h) / RenderHt * PreviewScaleY;
+    double radians=toRadians(PreviewRotation);
 
-    int w1 = int(offsetXpct*w);
-    int h1 = int(offsetYpct*h);
+    double w1 = int(offsetXpct*w);
+    double h1 = int(offsetYpct*h);
 
     mMinScreenX = w;
     mMinScreenY = h;
@@ -1941,8 +1929,13 @@ void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            sx = (sx*scalex)+w1;
-            sy = (sy*scaley)+h1;
+
+            sx = (sx*scalex);
+            sy = (sy*scaley);
+            TranslatePointDoubles(radians,sx,sy,sx,sy);
+            sx += w1;
+            sy += h1;
+
             if (sx<mMinScreenX) {
                 mMinScreenX = sx;
             }
