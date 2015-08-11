@@ -1769,6 +1769,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveUpClick);
     Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveDownClick);
     Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkBeginDrag);
+    Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemActivated);
     Connect(ID_BUTTON_SELECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonTestSelectAllClick);
     Connect(ID_BUTTON_CLEAR_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonTestClearClick);
     Connect(ID_BUTTON_LOAD,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonTestLoadClick);
@@ -1978,11 +1979,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(4, itemCol);
 
+    itemCol.SetText(_T("Enabled"));
+    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+    GridNetwork->InsertColumn(5, itemCol);
+
     GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(1,100);
     GridNetwork->SetColumnWidth(2,wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(3,100);
     GridNetwork->SetColumnWidth(4,170);
+    GridNetwork->SetColumnWidth(5,wxLIST_AUTOSIZE_USEHEADER);
 
     // get list of most recently used directories
     wxString dir,mru_name;
@@ -2382,7 +2388,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Text_Count4->SetSelection(0);
 
     panel->CurrentDir = &CurrentDir;
-    
+
     panel->Choice_Ripple_Movement->Set(RippleMovement);
     panel->Choice_Ripple_Movement->SetSelection(0);
     panel->Choice_Ripple_Object_To_Draw->Set(RippleObjectToDraw);
@@ -2625,7 +2631,10 @@ bool xLightsFrame::EnableOutputs()
                 wxString ComPort=e->GetAttribute("ComPort", "");
                 wxString BaudRate=e->GetAttribute("BaudRate", "");
                 int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
+                bool enabled = e->GetAttribute("Enabled", "Yes") == "Yes";
                 static wxString choices;
+
+                int numU = wxAtoi(e->GetAttribute("NumUniverses", "1"));
 
 #ifdef __WXMSW__ //TODO: enumerate comm ports on all platforms -DJ
                 TCHAR valname[32];
@@ -2663,7 +2672,7 @@ bool xLightsFrame::EnableOutputs()
 
                 try
                 {
-                    xout->addnetwork(NetworkType,MaxChan,ComPort,baud);
+                    xout->addnetwork(NetworkType,MaxChan,ComPort,baud, numU, enabled);
                     //TextCtrlLog->AppendText(_("Successfully initialized ") + NetworkType + _(" network on ") + ComPort + _("\n"));
                 }
                 catch (const char *str)
@@ -3437,3 +3446,4 @@ void xLightsFrame::CheckUnsavedChanges()
         SaveEffectsFile();
     }
 }
+

@@ -17,6 +17,8 @@ const long E131Dialog::ID_STATICTEXT2 = wxNewId();
 const long E131Dialog::ID_SPINCTRL1 = wxNewId();
 const long E131Dialog::ID_STATICTEXT3 = wxNewId();
 const long E131Dialog::ID_SPINCTRL2 = wxNewId();
+const long E131Dialog::ID_STATICTEXT7 = wxNewId();
+const long E131Dialog::ID_CHECKBOX1 = wxNewId();
 const long E131Dialog::ID_STATICTEXT6 = wxNewId();
 const long E131Dialog::ID_SPINCTRL_LAST_CHANNEL = wxNewId();
 //*)
@@ -65,6 +67,11 @@ E131Dialog::E131Dialog(wxWindow* parent)
     SpinCtrl_NumUniv = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 63999, 1, _T("ID_SPINCTRL2"));
     SpinCtrl_NumUniv->SetValue(_T("1"));
     FlexGridSizer2->Add(SpinCtrl_NumUniv, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("One Ouput"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+    FlexGridSizer2->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    MultiE131CheckBox = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    MultiE131CheckBox->SetValue(false);
+    FlexGridSizer2->Add(MultiE131CheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Last Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
     FlexGridSizer2->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_LastChannel = new wxSpinCtrl(this, ID_SPINCTRL_LAST_CHANNEL, _T("512"), wxDefaultPosition, wxDefaultSize, 0, 1, 512, 512, _T("ID_SPINCTRL_LAST_CHANNEL"));
@@ -82,6 +89,7 @@ E131Dialog::E131Dialog(wxWindow* parent)
 
     Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&E131Dialog::OnRadioButtonMulticastSelect);
     Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&E131Dialog::OnRadioButtonUnicastSelect);
+    Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&E131Dialog::OnSpinCtrl_NumUnivChange);
     //*)
 }
 
@@ -102,4 +110,8 @@ void E131Dialog::OnRadioButtonMulticastSelect(wxCommandEvent& event)
 {
     TextCtrlIpAddr->SetValue(_("MULTICAST"));
     TextCtrlIpAddr->Enable(false);
+}
+
+void E131Dialog::OnSpinCtrl_NumUnivChange(wxSpinEvent& event)
+{
 }

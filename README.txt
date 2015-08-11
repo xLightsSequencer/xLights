@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh(dkulp) Add ability to enable/disable various outputs (so if controllers aren't hooked up, don't arp flood)
+    -- enh(dkulp) Add ability to configure e1.31 ouput to handle consecutive universes in one output
     -- bug(dkulp) Fix problem of rotating elements with unequal scales
 4.2.0  Aug 8, 2015
     -- bug(gil)  Fix channel map buttons disappearing when resizing dialog.  Fixes #313.

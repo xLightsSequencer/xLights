@@ -229,10 +229,20 @@ void xLightsFrame::UpdateNetworkList()
             NetName=e->GetAttribute("NetworkType", "");
             newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), NetName);
             GridNetwork->SetItem(newidx,1,e->GetAttribute("ComPort", ""));
-            GridNetwork->SetItem(newidx,2,e->GetAttribute("BaudRate", ""));
+            int i = wxAtoi(e->GetAttribute("NumUniverses", "1"));
+
             MaxChannelsStr=e->GetAttribute("MaxChannels", "0");
-            GridNetwork->SetItem(newidx,3,MaxChannelsStr);
             MaxChannelsStr.ToLong(&MaxChannels);
+            if (i > 1) {
+                int u = wxAtoi(e->GetAttribute("BaudRate", "1"));
+                GridNetwork->SetItem(newidx,2,wxString::Format("%d-%d",u,(u + i - 1)));
+                MaxChannelsStr = MaxChannelsStr + "x" + e->GetAttribute("NumUniverses");
+                MaxChannels *= i;
+            } else {
+                GridNetwork->SetItem(newidx,2,e->GetAttribute("BaudRate", ""));
+            }
+            GridNetwork->SetItem(newidx,3,MaxChannelsStr);
+            
             NetInfo.AddNetwork(MaxChannels);
             StartChannel=TotChannels+1;
             TotChannels+=MaxChannels;
@@ -241,6 +251,8 @@ void xLightsFrame::UpdateNetworkList()
             // Vixen mapping
             msg=wxString::Format(_("Channels %d to %ld"), StartChannel, TotChannels);
             GridNetwork->SetItem(newidx,4,msg);
+            
+            GridNetwork->SetItem(newidx,5,e->GetAttribute("Enabled", "Yes"));
         }
     }
     //GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE);
@@ -533,6 +545,36 @@ void xLightsFrame::OnGridNetworkDragEnd(wxMouseEvent& event)
                             wxMouseEventHandler(xLightsFrame::OnGridNetworkDragQuit));
 }
 
+void xLightsFrame::OnGridNetworkItemActivated(wxListEvent& event)
+{
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    if (item == -1) {
+        return;
+    }
+    int i = item;
+    wxXmlNode* e=NetworkXML.GetRoot();
+    GridNetwork->DeleteAllItems();
+    NetInfo.Clear();
+    for( e=e->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "network") {
+            item--;
+            if (item == -1) {
+                wxString b = e->GetAttribute("Enabled", "Yes");
+                e->DeleteAttribute("Enabled");
+                e->AddAttribute("Enabled", b == "Yes" ? "No" : "Yes");
+                if (xout != nullptr) {
+                    xout->EnableOutput(i, b == "No");
+                }
+                UpdateNetworkList();
+                return;
+            }
+        }
+    }
+
+}
+
+
 // abort dragging a list item because user has left window
 void xLightsFrame::OnGridNetworkDragQuit(wxMouseEvent& event)
 {
@@ -609,9 +651,13 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
         IpAddr=e->GetAttribute("ComPort");
         StartUniverse=e->GetAttribute("BaudRate");
         LastChannelStr=e->GetAttribute("MaxChannels");
+        
+        NumUniv = wxAtoi(e->GetAttribute("NumUniverses", "1"));
         E131Dlg.SpinCtrl_StartUniv->SetValue(StartUniverse);
-        E131Dlg.SpinCtrl_NumUniv->SetValue(1);
-        E131Dlg.SpinCtrl_NumUniv->Enable(false);
+        E131Dlg.SpinCtrl_NumUniv->SetValue(NumUniv);
+        E131Dlg.MultiE131CheckBox->SetValue(NumUniv > 1);
+        E131Dlg.MultiE131CheckBox->Enable(false);
+        E131Dlg.SpinCtrl_NumUniv->Enable(NumUniv > 1);
         E131Dlg.SpinCtrl_LastChannel->SetValue(LastChannelStr);
 
         if (IpAddr.StartsWith( "239.255." ) || IpAddr == "MULTICAST")
@@ -648,19 +694,34 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
                     e->AddAttribute("BaudRate",wxString::Format("%d",UnivNum));
                     e->DeleteAttribute("MaxChannels");
                     e->AddAttribute("MaxChannels",LastChannelStr);
+                    
+                    e->DeleteAttribute("NumUniverses");
+                    if (E131Dlg.MultiE131CheckBox->GetValue()) {
+                        e->AddAttribute("NumUniverses", wxString::Format("%d",E131Dlg.SpinCtrl_NumUniv->GetValue()));
+                    }
                 }
                 else
                 {
                     NumUniv = E131Dlg.SpinCtrl_NumUniv->GetValue();
-                    for (int u=0; u < NumUniv; u++)
-                    {
+                    if (E131Dlg.MultiE131CheckBox->GetValue()) {
                         e = new wxXmlNode( wxXML_ELEMENT_NODE, "network" );
                         e->AddAttribute("NetworkType",NetName);
                         e->AddAttribute("ComPort",IpAddr);
                         e->AddAttribute("BaudRate",wxString::Format("%d",UnivNum));
                         e->AddAttribute("MaxChannels",LastChannelStr);
+                        e->AddAttribute("NumUniverses", wxString::Format("%d", NumUniv));
                         NetworkXML.GetRoot()->AddChild(e);
-                        UnivNum++;
+                    } else {
+                        for (int u=0; u < NumUniv; u++)
+                        {
+                            e = new wxXmlNode( wxXML_ELEMENT_NODE, "network" );
+                            e->AddAttribute("NetworkType",NetName);
+                            e->AddAttribute("ComPort",IpAddr);
+                            e->AddAttribute("BaudRate",wxString::Format("%d",UnivNum));
+                            e->AddAttribute("MaxChannels",LastChannelStr);
+                            NetworkXML.GetRoot()->AddChild(e);
+                            UnivNum++;
+                        }
                     }
                 }
                 UpdateNetworkList();

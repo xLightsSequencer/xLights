@@ -43,6 +43,7 @@ protected:
     size_t num_channels;
     wxString netdesc;
     int datalen;
+    bool enabled;
 
 public:
     xNetwork();
@@ -56,11 +57,14 @@ public:
     virtual void SetChannelCount(size_t numchannels) = 0;
     virtual void InitSerialPort(const wxString& portname, int baudrate);
     virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum);
-    void TimerStart(long msec);
+    virtual void TimerStart(long msec);
     long GetTimer();
     virtual void TimerEnd() = 0;
     virtual void ResetTimer();
     virtual void SetIntensity (size_t chindex, wxByte intensity) = 0;
+    void SetEnabled(bool b) {
+        enabled = b;
+    }
 };
 
 
@@ -76,8 +80,9 @@ protected:
 public:
     xOutput();
     ~xOutput();
+    void EnableOutput(int network, bool en = true);
     size_t NetworkCount();
-    size_t addnetwork (const wxString& NetworkType, int chcount, const wxString& portname, int baudrate);
+    size_t addnetwork (const wxString& NetworkType, int chcount, const wxString& portname, int baudrate, int count, bool enabled);
     int GetChannelCount(size_t netnum);
     wxString GetNetworkDesc(size_t netnum);
     void SetIntensity (size_t absChNum, wxByte intensity);

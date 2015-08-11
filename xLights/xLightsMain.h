@@ -591,6 +591,7 @@ private:
     void ShowHideDisplayElementsWindow(wxCommandEvent& event);
     void ShowHideEffectAssistWindow(wxCommandEvent& event);
     void OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event);
+    void OnGridNetworkItemActivated(wxListEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
