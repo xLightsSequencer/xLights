@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(dkulp) Fix problem of rotating elements with unequal scales
 4.2.0  Aug 8, 2015
     -- bug(gil)  Fix channel map buttons disappearing when resizing dialog.  Fixes #313.
     -- bug(gil)  Prevent crash when doing Import Effects on xLights xml file.
