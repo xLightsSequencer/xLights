@@ -188,7 +188,7 @@ void xLightsFrame::LoadEffectsFile()
 
         UnsavedRgbEffectsChanges = true;
     }
-    
+
     UpdateModelsList();
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements,ModelsNode, ModelGroupsNode, ViewsNode);
     CheckForAndCreateDefaultPerpective();
@@ -307,16 +307,26 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
     SaveSequence();
 }
 
+int wxCALLBACK MyCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr WXUNUSED(sortData))
+{
+	wxString a = ((ModelClass*)item1)->name;
+	wxString b = ((ModelClass*)item2)->name;
+	return a.CmpNoCase(b);
+}
+
+
 void xLightsFrame::UpdateModelsList()
 {
-    wxString name;
+    wxString name, start_channel;
+    int end_channel;
     wxArrayString model_names;
     ModelClass *model;
-    ListBoxElementList->Clear();
+	ListBoxElementList->DeleteAllItems();
     PreviewModels.clear();
     AllModels.clear();
     wxString msg;
     int num_group_models = 0;
+	int itemCount = 0;
 
     // Set models in selected modelgroups as part of display.
     for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
@@ -354,7 +364,20 @@ void xLightsFrame::UpdateModelsList()
                                     }
                                     if (ModelClass::IsMyDisplay(e))
                                     {
-                                        ListBoxElementList->Append(name,model);
+                                        long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
+                                        start_channel = e->GetAttribute("StartChannel");
+                                        model->SetModelStartChan(wxAtoi(start_channel));
+                                        wxString string_type = e->GetAttribute("StringType");
+                                        int parm1 = wxAtoi(e->GetAttribute("parm1"));
+                                        int parm2 = wxAtoi(e->GetAttribute("parm2"));
+                                        wxString display_as = e->GetAttribute("DisplayAs");
+                                        end_channel = model->GetLastChannel()+1;
+                                        ListBoxElementList->SetItem(itemIndex,1,start_channel);
+                                        ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
+                                        ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
+                                        ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
+                                        ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
+                                        ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
                                         PreviewModels.push_back(model);
                                     }
                                     AllModels[name].reset(model);
@@ -386,7 +409,20 @@ void xLightsFrame::UpdateModelsList()
                     }
                     if (ModelClass::IsMyDisplay(e))
                     {
-                        ListBoxElementList->Append(name,model);
+                        long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
+                        start_channel = e->GetAttribute("StartChannel");
+                        model->SetModelStartChan(wxAtoi(start_channel));
+                        wxString string_type = e->GetAttribute("StringType");
+                        int parm1 = wxAtoi(e->GetAttribute("parm1"));
+                        int parm2 = wxAtoi(e->GetAttribute("parm2"));
+                        wxString display_as = e->GetAttribute("DisplayAs");
+                        end_channel = model->GetLastChannel()+1;
+                        ListBoxElementList->SetItem(itemIndex,1,start_channel);
+                        ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
+                        ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
+                        ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
+                        ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
+                        ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
                         PreviewModels.push_back(model);
                     }
                     AllModels[name].reset(model);
@@ -394,6 +430,7 @@ void xLightsFrame::UpdateModelsList()
             }
         }
     }
+    ListBoxElementList->SortItems(MyCompareFunction,0);
     if (msg != "") {
         wxMessageBox(wxString::Format("These models extends beyond the number of configured channels (%u):\n", NetInfo.GetTotChannels()) + msg);
     }

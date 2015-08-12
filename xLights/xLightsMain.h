@@ -12,32 +12,31 @@
 
 
 //(*Headers(xLightsFrame)
-#include <wx/listctrl.h>
-#include <wx/treectrl.h>
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/menu.h>
-#include <wx/textctrl.h>
-#include <wx/checklst.h>
-#include <wx/msgdlg.h>
-#include <wx/checkbox.h>
-#include <wx/splitter.h>
-#include <wx/listbox.h>
-#include <wx/aui/aui.h>
-#include <wx/radiobut.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
-#include <wx/grid.h>
-#include <wx/filedlg.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/gbsizer.h>
+#include <wx/grid.h>
+#include <wx/msgdlg.h>
+#include <wx/checklst.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/listctrl.h>
+#include <wx/notebook.h>
 #include <wx/button.h>
+#include <wx/menu.h>
 #include <wx/dirdlg.h>
-#include <wx/frame.h>
-#include <wx/timer.h>
+#include <wx/radiobut.h>
+#include <wx/filedlg.h>
+#include <wx/panel.h>
+#include <wx/splitter.h>
+#include <wx/slider.h>
 #include <wx/statusbr.h>
+#include <wx/frame.h>
+#include <wx/gbsizer.h>
+#include <wx/stattext.h>
+#include <wx/aui/aui.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/timer.h>
+#include <wx/treectrl.h>
 //*)
 
 #include <wx/config.h>
@@ -591,6 +590,8 @@ private:
     void ShowHideDisplayElementsWindow(wxCommandEvent& event);
     void ShowHideEffectAssistWindow(wxCommandEvent& event);
     void OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event);
+	void OnListBoxElementListItemSelect(wxCommandEvent& event);
+	void OnTextCtrlModelStartChannelText(wxCommandEvent& event);
     void OnGridNetworkItemActivated(wxListEvent& event);
     //*)
 
@@ -794,6 +795,8 @@ private:
     static const long ID_STATICTEXT25;
     static const long ID_TEXTCTRL2;
     static const long ID_SLIDER_PREVIEW_ROTATE;
+    static const long ID_STATICTEXT31;
+    static const long ID_TEXTCTRL4;
     static const long ID_PANEL1;
     static const long ID_PANEL_PREVIEW;
     static const long ID_TREECTRL1;
@@ -948,269 +951,271 @@ private:
 
 
     //(*Declarations(xLightsFrame)
-    wxRadioButton* RadioButtonRgbChase;
-    wxSlider* SliderFgColorC;
-    wxRadioButton* RadioButtonRgbCycleMixed;
-    DragEffectBitmapButton* BitmapButton27;
-    DragEffectBitmapButton* BitmapButton19;
-    wxButton* Button_papagayo_output_sequence;
-    wxMenu* MenuItem18;
-    wxTextCtrl* TextCtrl_PgoAutoFade;
-    xlAuiToolBar* ViewToolBar;
-    wxButton* ButtonClearLog;
-    DragEffectBitmapButton* BitmapButton6;
-    xlAuiToolBar* PlayToolBar;
-    wxFlexGridSizer* PreviewGLSizer;
-    wxStaticText* StaticText68;
-    wxSlider* SliderBgIntensity;
-    wxButton* Button_CoroGroupDelete;
-    wxStaticText* StaticText32;
-    wxMenuItem* MenuItemLoadEditPerspective;
-    wxStaticText* StaticText36;
-    wxPanel* Panel2;
-    wxButton* ButtonTestSelectAll;
-    wxButton* ButtonSaveSchedule;
-    wxRadioButton* RadioButtonRgbTwinkle50;
-    wxStaticText* StaticText27;
-    DragEffectBitmapButton* BitmapButton13;
-    DragEffectBitmapButton* BitmapButton4;
-    wxButton* ButtonAddE131;
-    wxTextCtrl* TextCtrlPreviewElementWidth;
-    wxTextCtrl* TextCtrlFilename;
-    DragEffectBitmapButton* BitmapButton2;
-    wxMenuItem* MenuItemRenderEraseMode;
-    wxMenuItem* MenuItem_File_Close_Sequence;
-    wxFileDialog* FileDialogConvert;
-    wxTimer Timer1;
-    wxRadioButton* RadioButtonTwinkle50;
-    wxRadioButton* RadioButtonRgbTwinkle10;
-    DragEffectBitmapButton* BitmapButton26;
-    wxMenuItem* MenuItem_ViewZoomOut;
-    wxMenu* AudioMenu;
-    wxPanel* PanelPapagayo;
     DragEffectBitmapButton* BitmapButton32;
-    wxRadioButton* RadioButtonChase3;
-    wxRadioButton* RadioButtonChase4;
-    wxTextCtrl* TextCtrl_PgoMaxRest;
-    wxButton* Button_pgo_filename;
-    DragEffectBitmapButton* BitmapButton7;
-    wxRadioButton* RadioButtonRgbChase4;
-    wxButton* ButtonModelsPreview;
-    DragEffectBitmapButton* BitmapButton24;
-    wxButton* ButtonPreviewOpen;
-    wxPanel* PanelTest;
-    wxMenuItem* MenuItemBackup;
-    DragEffectBitmapButton* BitmapButton23;
-    wxButton* ButtonChooseFile;
-    DragEffectBitmapButton* BitmapButton15;
-    wxRadioButton* RadioButtonRgbDim;
-    wxStaticText* StaticText5;
-    wxMenuItem* MenuItemGridNodeValuesOn;
-    wxMenuItem* MenuItemGridIconBackgroundOn;
-    wxCheckBox* CheckBox_CoroPictureScaled;
-    wxStaticText* StaticText25;
+    wxTextCtrl* TextCtrl_pgo_filename;
+    wxSlider* SliderPreviewTime;
+    wxStaticText* StaticText1;
+    wxRadioButton* RadioButtonRgbTwinkle10;
+    DragEffectBitmapButton* BitmapButton11;
+    wxStaticText* StaticText23;
+    wxButton* Button_Change_Media_Dir;
+    wxPanel* Panel2;
+    wxRadioButton* RadioButtonRgbChase3;
     wxCheckBox* MapLORChannelsWithNoNetwork;
-    wxPanel* PanelPreview;
-    wxStaticText* StaticText6;
-    wxButton* ButtonTestClear;
-    wxPanel* PanelConvert;
-    DragEffectBitmapButton* BitmapButton28;
-    wxTextCtrl* TextCtrl_PgoMinRest;
-    wxButton* ButtonSaveSetup;
-    DragEffectBitmapButton* BitmapButton20;
-    wxButton* ButtonStartConversion;
-    wxStaticText* StaticText19;
-    wxPanel* PanelSequencer;
-    wxMenuItem* MenuItemViewSavePerspective;
-    wxButton* ButtonDeleteShow;
-    wxButton* Button_CoroGroupClear;
-    DragEffectBitmapButton* BitmapButton17;
-    wxButton* ButtonSelectModelGroups;
-    wxRadioButton* RadioButtonRgbShimmer;
-    wxAuiManager* m_mgr;
-    wxListBox* ListBoxElementList;
-    wxSlider* Slider_BackgroundBrightness;
-    wxPanel* PreviewGLPanel;
-    wxStaticText* StaticText10;
+    wxStaticText* StaticText13;
+    DragEffectBitmapButton* BitmapButton21;
+    wxSlider* SliderPreviewScaleWidth;
+    wxSlider* SliderRgbChaseSpeed;
+    wxButton* Button_PgoStitch;
     wxMenuItem* mRenderOnSaveMenuItem;
+    wxTimer Timer1;
+    wxCheckBox* CheckBox_CoroPictureScaled;
+    wxSlider* SliderBgColorB;
+    wxPanel* PanelSetup;
+    wxStaticText* StaticText32;
+    wxMenuItem* MenuItemGridNodeValuesOff;
+    wxTextCtrl* TextCtrlPreviewElementHeight;
+    wxButton* ButtonChooseFile;
+    wxRadioButton* RadioButtonAlt;
+    wxMenuItem* MenuItemEffectAssistAlwaysOn;
+    xlAuiToolBar* OutputToolBar;
+    wxStatusBar* StatusBar1;
+    wxButton* ButtonShowDatesChange;
+    wxStaticText* StaticText20;
+    wxRadioButton* RadioButtonRgbCycleOff;
+    xlAuiToolBar* MainToolBar;
+    wxBitmapButton* BitmapButton_SaveCoroGroup;
+    xlAuiToolBar* WindowMgmtToolbar;
+    DragEffectBitmapButton* BitmapButton10;
+    wxButton* ButtonPreviewOpen;
+    wxMenu* MenuItemRenderMode;
+    wxStaticText* StaticText6;
+    DragEffectBitmapButton* BitmapButton7;
+    wxSlider* SliderPreviewRotate;
+    wxRadioButton* RadioButtonDim;
+    wxMenuItem* MenuItemRefresh;
+    wxMenuItem* MenuItem_File_Save_Sequence;
+    wxStaticText* StaticText18;
+    wxMenu* MenuItem7;
+    wxStaticText* StaticText17;
+    wxMenuItem* MenuItem_File_Open_Sequence;
+    wxStaticText* StaticText24;
+    wxButton* Button_CoroGroupClear;
+    DragEffectBitmapButton* BitmapButton24;
+    wxSplitterWindow* SplitterWindow1;
+    wxStaticText* StaticText30;
+    wxTextCtrl* TextCtrlPreviewElementWidth;
+    wxStaticText* StaticText15;
+    wxChoice* Choice_PgoGroupName;
+    wxButton* ButtonAddDongle;
+    DragEffectBitmapButton* BitmapButton18;
+    wxPanel* PanelTestStandard;
+    wxStaticText* StaticText43;
+    wxButton* ButtonAddNull;
+    wxMenuItem* MenuItem_ViewZoomOut;
+    wxStaticText* StaticTextShowEnd;
+    wxStaticText* MediaDirectoryLabel;
     wxStaticText* StaticText35;
     wxMenuBar* MenuBar;
-    wxChoice* ChoiceOutputFormat;
-    DragEffectBitmapButton* BitmapButton12;
-    wxDirDialog* DirDialog1;
-    wxButton* ButtonAddNull;
-    wxCheckListBox* CheckListBoxTestChannels;
-    wxStaticText* StaticText33;
-    wxStaticText* StaticText23;
-    wxRadioButton* RadioButtonTwinkle10;
-    wxStaticText* StaticText12;
-    wxSlider* SliderPreviewRotate;
-    wxTreeCtrl* ListBoxSched;
-    wxNotebook* NotebookTest;
-    DragEffectBitmapButton* BitmapButton14;
-    wxRadioButton* RadioButtonTwinkle25;
-    wxAuiManager* MainAuiManager;
-    DragEffectBitmapButton* BitmapButton3;
-    DragEffectBitmapButton* BitmapButton18;
-    wxSlider* SliderChaseSpeed;
-    wxButton* Button_PgoCopyVoices;
-    wxCheckBox* CheckBoxMapEmptyChannels;
-    wxMenu* MenuItemRenderMode;
-    wxButton* ButtonShowDatesChange;
-    wxButton* ButtonAddShow;
-    wxRadioButton* RadioButtonDim;
-    wxMenuItem* MenuItemEffectAssistAlwaysOff;
-    wxMenu* MenuItem15;
-    wxMenuItem* MenuItemEffectAssistToggleMode;
-    wxButton* ButtonUpdateShow;
-    wxStaticText* ShowDirectoryLabel;
-    wxStaticText* StaticText7;
-    wxMenu* MenuFile;
-    DragEffectBitmapButton* BitmapButton33;
-    wxButton* ButtonSetPreviewSize;
-    wxSlider* SliderPreviewScaleWidth;
-    wxStaticText* StaticText16;
-    DragEffectBitmapButton* BitmapButton30;
-    wxMenu* ToolIconSizeMenu;
+    wxButton* Button_CoroGroupDelete;
+    wxRadioButton* RadioButtonRgbCycleMixed;
     wxStaticText* StaticText_PgoOutputType;
-    wxMenu* MenuItem1;
-    wxMenuItem* MenuItemGridIconBackgroundOff;
-    wxButton* ButtonSaveLog;
-    wxPanel* PanelSetup;
+    wxButton* ButtonUpdateShow;
+    wxFlexGridSizer* PreviewGLSizer;
     DragEffectBitmapButton* BitmapButton1;
-    wxMenuItem* MenuItem_File_SaveAs_Sequence;
-    DragEffectBitmapButton* BitmapButton25;
-    wxStaticText* StaticText43;
-    wxStaticText* StaticText24;
+    wxRadioButton* RadioButtonTwinkle50;
     wxSlider* SliderFgColorB;
-    wxButton* ButtonSetBackgroundImage;
-    wxStaticText* StaticText65;
-    wxRadioButton* RadioButtonShimmer;
-    wxMenuItem* MenuItemSavePlaylists;
-    wxStaticText* StaticText14;
-    wxStaticText* StaticText34;
-    wxSlider* SliderBgColorC;
-    wxStatusBar* StatusBar1;
-    wxMenu* MenuItem7;
-    wxTextCtrl* TextCtrlModelRotationDegrees;
-    wxCheckBox* CheckBox_PgoAutoRest;
-    wxPanel* Panel3;
-    wxStaticText* StaticText18;
-    xlAuiToolBar* EffectsToolBar;
-    wxListCtrl* GridNetwork;
-    wxSlider* SliderPreviewScaleHeight;
-    DragEffectBitmapButton* BitmapButton9;
-    wxSlider* SliderRgbChaseSpeed;
-    wxStaticText* StaticText37;
-    wxButton* ButtonSavePreview;
-    wxStaticText* StaticText13;
-    wxStaticText* StaticTextPreviewRotation;
-    wxSplitterWindow* SplitterWindow1;
-    wxSlider* SliderFgIntensity;
-    xlAuiToolBar* MainToolBar;
-    DragEffectBitmapButton* BitmapButton10;
-    wxPanel* PanelTestStandard;
-    wxStaticText* StaticText20;
-    wxButton* ButtonStartPapagayo;
-    wxTextCtrl* TextCtrlPreviewElementHeight;
-    DragEffectBitmapButton* BitmapButton21;
-    wxButton* Button_Change_Media_Dir;
-    wxTextCtrl* TextCtrl_pgo_filename;
-    wxCheckBox* CheckBox_CoroEyesRandomBlink;
-    wxRadioButton* RadioButtonRgbCycle4;
-    wxStaticText* StaticText31;
-    wxChoice* Choice_PgoGroupName;
-    wxRadioButton* RadioButtonRgbTwinkle05;
-    wxAuiNotebook* Notebook1;
-    wxBitmapButton* BitmapButton_SaveCoroGroup;
-    wxStaticText* StaticText67;
-    xlAuiToolBar* OutputToolBar;
-    wxButton* ButtonTestSave;
-    wxChoice* Choice_PgoOutputType;
-    wxButton* Button_PgoStitch;
-    wxMenuItem* MenuItem3;
-    wxStaticText* StaticTextShowEnd;
-    DragEffectBitmapButton* BitmapButton31;
-    wxFileDialog* FileDialogPgoImage;
-    DragEffectBitmapButton* BitmapButton8;
-    wxStaticText* StaticTextCurrentPreviewSize;
-    wxCheckBox* CheckBox_PgoAutoFade;
-    wxTextCtrl* TextCtrl_papagayo_output_filename;
-    wxStaticText* StaticText4;
-    wxRadioButton* RadioButtonAlt;
-    xlAuiToolBar* WindowMgmtToolbar;
-    wxMenuItem* MenuItem_ViewZoomIn;
-    wxPanel* PanelRgbCycle;
-    wxRadioButton* RadioButtonRgbChase3;
-    wxCheckBox* CheckBoxRunSchedule;
-    wxBitmapButton* BitmapButtonMoveNetworkUp;
-    wxBitmapButton* bbStop;
-    wxBitmapButton* bbPlayPause;
-    wxRadioButton* RadioButtonChase5;
-    wxRadioButton* RadioButtonRgbCycleOff;
-    wxPanel* PanelCal;
-    wxMenuItem* QuitMenuItem;
-    wxMenuItem* MenuItemRenderCanvasMode;
-    wxMenuItem* MenuItem_File_Open_Sequence;
-    wxStaticText* StaticText26;
-    wxStaticText* StaticText15;
-    wxStaticText* StaticText8;
-    wxMenuItem* MenuItemRefresh;
-    wxRadioButton* RadioButtonRgbAlt;
-    wxStaticText* StaticText30;
-    wxStaticText* StaticText29;
-    wxSlider* SliderFgColorA;
-    wxMenuItem* MenuItemEffectAssistWindow;
-    wxCheckBox* CheckBoxOffAtEnd;
-    wxSlider* SliderRgbCycleSpeed;
-    wxBitmapButton* BitmapButton_Link_Dirs;
-    wxButton* ButtonNetworkDelete;
-    DragEffectBitmapButton* BitmapButton5;
-    wxMenuItem* Menu_Settings_Sequence;
-    DragEffectBitmapButton* BitmapButton22;
-    wxMenuItem* MenuItemGridNodeValuesOff;
-    wxButton* ButtonTestLoad;
+    wxButton* ButtonModelsPreview;
+    DragEffectBitmapButton* BitmapButton17;
+    wxPanel* PanelConvert;
+    wxSlider* SliderBgColorA;
+    wxTextCtrl* TextCtrlModelStartChannel;
+    wxCheckListBox* CheckListBoxTestChannels;
+    wxAuiManager* MainAuiManager;
+    wxStaticText* StaticText3;
+    wxStaticText* StaticTextPreviewFileName;
+    DragEffectBitmapButton* BitmapButton30;
+    wxStaticText* StaticText2;
     wxRadioButton* RadioButtonOff;
+    DragEffectBitmapButton* BitmapButton23;
+    DragEffectBitmapButton* BitmapButton28;
+    wxRadioButton* RadioButtonChase;
+    wxButton* ButtonTestClear;
+    wxButton* ButtonStartPapagayo;
+    wxCheckBox* CheckBoxOffAtEnd;
+    DragEffectBitmapButton* BitmapButton2;
+    wxSlider* SliderPreviewScaleHeight;
+    wxButton* Button_pgo_filename;
+    wxPanel* PanelRgbCycle;
+    wxCheckBox* CheckBoxMapEmptyChannels;
+    wxStaticText* StaticText27;
+    wxTextCtrl* TextCtrl_PgoMaxRest;
+    DragEffectBitmapButton* BitmapButton6;
+    wxRadioButton* RadioButtonRgbShimmer;
+    wxMenuItem* MenuItemLoadEditPerspective;
+    DragEffectBitmapButton* BitmapButton31;
+    DragEffectBitmapButton* BitmapButton22;
+    wxRadioButton* RadioButtonRgbCycle3;
+    wxTreeCtrl* ListBoxSched;
+    wxBitmapButton* BitmapButtonMoveNetworkUp;
+    DragEffectBitmapButton* BitmapButton25;
+    wxMenuItem* MenuItemGridNodeValuesOn;
+    wxTextCtrl* TextCtrlConversionStatus;
+    wxAuiNotebook* Notebook1;
+    wxSlider* SliderFgColorC;
+    wxPanel* PanelTestRgb;
+    wxCheckBox* ScaleImageCheckbox;
+    wxMenu* GridSpacingMenu;
+    wxMenuItem* Menu_Settings_Sequence;
+    wxMenu* MenuItem15;
+    wxPanel* PreviewGLPanel;
+    wxRadioButton* RadioButtonRgbCycle4;
+    wxGrid* GridCoroFaces;
+    wxButton* ButtonSaveLog;
+    wxMenuItem* MenuItemEffectAssistAlwaysOff;
+    wxMenuItem* MenuItemRenderCanvasMode;
+    wxPanel* Panel3;
+    wxSlider* SliderBgIntensity;
+    wxStaticText* StaticTextCurrentPreviewSize;
+    wxButton* ButtonDeleteShow;
+    wxBitmapButton* BitmapButton_Link_Dirs;
+    DragEffectBitmapButton* BitmapButton9;
+    wxCheckBox* CheckBox_CoroEyesRandomLR;
+    wxStaticText* StaticText16;
+    wxButton* ButtonTestLoad;
+    wxMenuItem* MenuItemEffectAssistWindow;
+    wxMenu* MenuFile;
+    wxBitmapButton* bbPlayPause;
+    wxStaticText* StaticText39;
+    wxRadioButton* RadioButtonShimmer;
+    wxTextCtrl* TextCtrl_papagayo_output_filename;
+    wxMenuItem* MenuItem3;
+    wxMenu* MenuItem1;
+    wxButton* ButtonNetworkChange;
+    wxRadioButton* RadioButtonRgbChase;
+    wxStaticText* StaticText34;
+    wxRadioButton* RadioButtonRgbDim;
+    wxTextCtrl* TextCtrlModelRotationDegrees;
+    wxMenuItem* MenuItemBackup;
+    wxButton* ButtonSetBackgroundImage;
+    wxButton* ButtonTestSave;
     DragEffectBitmapButton* BitmapButton29;
-    wxRadioButton* RadioButtonRgbTwinkle25;
+    wxMenuItem* MenuItemViewSavePerspective;
+    wxMenuItem* MenuItemRenderEraseMode;
+    wxButton* Button_PgoCopyVoices;
+    wxStaticText* StaticText25;
+    wxStaticText* StaticText26;
     wxRadioButton* RadioButtonRgbChase5;
     wxTextCtrl* TextCtrlLog;
-    wxStaticText* StaticText1;
-    wxStaticText* StaticText2;
-    wxStaticText* MediaDirectoryLabel;
-    wxTextCtrl* TextCtrlConversionStatus;
-    wxSlider* SliderBgColorB;
-    DragEffectBitmapButton* BitmapButton16;
-    wxPanel* PanelTestRgb;
-    wxButton* ButtonAddDongle;
-    wxSplitterWindow* SplitterWindow3;
-    wxRadioButton* RadioButtonChase;
-    wxMenuItem* MenuItem_File_Save_Sequence;
-    wxChoice* LORImportTimeResolution;
-    wxStaticText* StaticText17;
-    wxStaticText* StaticText11;
-    wxMenu* MenuSettings;
-    wxCheckBox* ScaleImageCheckbox;
-    wxRadioButton* RadioButtonRgbCycle5;
-    wxGrid* GridCoroFaces;
-    wxStaticText* StaticTextShowStart;
+    wxStaticText* StaticText31;
+    wxStaticText* StaticText68;
+    wxCheckBox* CheckBox_PgoAutoRest;
+    wxSlider* SliderRgbCycleSpeed;
+    DragEffectBitmapButton* BitmapButton26;
+    DragEffectBitmapButton* BitmapButton15;
+    wxRadioButton* RadioButtonChase3;
+    wxCheckBox* CheckBoxRunSchedule;
+    wxStaticText* StaticText14;
+    wxMenuItem* MenuItemGridIconBackgroundOn;
+    wxStaticText* StaticText4;
+    wxRadioButton* RadioButtonTwinkle25;
+    DragEffectBitmapButton* BitmapButton5;
+    wxStaticText* StaticText8;
+    wxBitmapButton* bbStop;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
-    wxMenuItem* MenuItemEffectAssistAlwaysOn;
-    wxStaticText* StaticTextPreviewFileName;
-    wxSlider* SliderPreviewTime;
-    wxStaticText* StaticText9;
-    wxMessageDialog* MessageDialog1;
+    wxTextCtrl* TextCtrlFilename;
+    wxMenu* ToolIconSizeMenu;
     wxButton* ButtonNetworkDeleteAll;
-    wxRadioButton* RadioButtonRgbChaseOff;
-    wxButton* ButtonNetworkChange;
-    wxCheckBox* CheckBox_CoroEyesRandomLR;
+    wxRadioButton* RadioButtonTwinkle10;
+    wxCheckBox* CheckBox_PgoAutoFade;
+    wxStaticText* StaticText9;
+    wxSlider* SliderFgColorA;
+    wxStaticText* StaticTextPreviewRotation;
+    wxMenuItem* MenuItemEffectAssistToggleMode;
+    wxMenuItem* MenuItem_ViewZoomIn;
+    wxPanel* PanelTest;
+    wxTextCtrl* TextCtrl_PgoMinRest;
+    DragEffectBitmapButton* BitmapButton19;
+    wxButton* ButtonClearLog;
+    wxRadioButton* RadioButtonRgbTwinkle25;
+    wxButton* ButtonAddShow;
+    wxStaticText* ShowDirectoryLabel;
+    wxStaticText* StaticText29;
+    wxSlider* Slider_BackgroundBrightness;
+    wxButton* ButtonSetPreviewSize;
     wxTextCtrl* TextCtrlPreviewTime;
-    wxMenu* GridSpacingMenu;
-    DragEffectBitmapButton* BitmapButton11;
-    wxRadioButton* RadioButtonRgbCycle3;
-    wxSlider* SliderBgColorA;
+    xlAuiToolBar* PlayToolBar;
+    DragEffectBitmapButton* BitmapButton27;
+    wxSlider* SliderChaseSpeed;
+    wxButton* ButtonAddE131;
+    wxStaticText* StaticText19;
+    DragEffectBitmapButton* BitmapButton14;
+    wxButton* ButtonSaveSetup;
+    wxRadioButton* RadioButtonRgbTwinkle05;
+    wxMenuItem* QuitMenuItem;
+    wxRadioButton* RadioButtonRgbCycle5;
+    wxButton* ButtonSelectModelGroups;
+    wxButton* ButtonSavePreview;
+    DragEffectBitmapButton* BitmapButton13;
+    wxChoice* Choice_PgoOutputType;
+    wxStaticText* StaticText37;
+    wxMenu* MenuItem18;
+    wxButton* Button_papagayo_output_sequence;
+    wxSlider* SliderFgIntensity;
+    wxPanel* PanelSequencer;
+    wxListCtrl* GridNetwork;
+    DragEffectBitmapButton* BitmapButton3;
+    wxChoice* ChoiceOutputFormat;
+    wxRadioButton* RadioButtonRgbChaseOff;
+    wxButton* ButtonStartConversion;
+    wxMenuItem* MenuItemSavePlaylists;
+    wxMenuItem* MenuItem_File_SaveAs_Sequence;
+    wxStaticText* StaticText33;
+    xlAuiToolBar* ViewToolBar;
+    wxButton* ButtonSaveSchedule;
+    DragEffectBitmapButton* BitmapButton20;
+    wxMenuItem* MenuItem_File_Close_Sequence;
+    wxRadioButton* RadioButtonRgbAlt;
+    wxMenuItem* MenuItemGridIconBackgroundOff;
+    wxStaticText* StaticText7;
+    wxTextCtrl* TextCtrl_PgoAutoFade;
+    wxButton* ButtonTestSelectAll;
+    wxPanel* PanelCal;
+    wxStaticText* StaticText11;
+    xlAuiToolBar* EffectsToolBar;
+    wxFileDialog* FileDialogConvert;
+    wxSlider* SliderBgColorC;
+    DragEffectBitmapButton* BitmapButton4;
+    wxMessageDialog* MessageDialog1;
+    wxRadioButton* RadioButtonRgbChase4;
+    wxRadioButton* RadioButtonChase4;
+    wxStaticText* StaticText12;
     wxRadioButton* RadioButtonTwinkle05;
-    wxStaticText* StaticText3;
+    wxPanel* PanelPreview;
+    wxCheckBox* CheckBox_CoroEyesRandomBlink;
+    wxStaticText* StaticTextShowStart;
+    wxRadioButton* RadioButtonChase5;
+    wxListView* ListBoxElementList;
+    wxRadioButton* RadioButtonRgbTwinkle50;
+    wxSplitterWindow* SplitterWindow3;
+    wxStaticText* StaticText10;
+    wxStaticText* StaticText67;
+    wxStaticText* StaticText5;
+    wxAuiManager* m_mgr;
+    wxPanel* PanelPapagayo;
+    wxNotebook* NotebookTest;
+    wxChoice* LORImportTimeResolution;
+    DragEffectBitmapButton* BitmapButton16;
+    wxMenu* AudioMenu;
+    wxFileDialog* FileDialogPgoImage;
+    wxDirDialog* DirDialog1;
+    DragEffectBitmapButton* BitmapButton33;
+    wxButton* ButtonNetworkDelete;
+    wxStaticText* StaticText36;
+    DragEffectBitmapButton* BitmapButton8;
+    DragEffectBitmapButton* BitmapButton12;
+    wxMenu* MenuSettings;
+    wxStaticText* StaticText65;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;

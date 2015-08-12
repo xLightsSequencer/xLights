@@ -1444,6 +1444,7 @@ void ModelClass::UpdateXmlWithScale() {
     ModelXml->DeleteAttribute("PreviewScaleX");
     ModelXml->DeleteAttribute("PreviewScaleY");
     ModelXml->DeleteAttribute("PreviewRotation");
+    ModelXml->DeleteAttribute("StartChannel");
     if (ModelXml->HasAttribute("versionNumber"))
         ModelXml->DeleteAttribute("versionNumber");
     ModelXml->AddAttribute("offsetXpct", wxString::Format("%6.4f",offsetXpct));
@@ -1456,6 +1457,7 @@ void ModelClass::UpdateXmlWithScale() {
     }
     ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
     ModelXml->AddAttribute("versionNumber", wxString::Format("%d",ModelVersion));
+	ModelXml->AddAttribute("StartChannel", wxString::Format("%d",ModelStartChannel));
 }
 
 void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,
@@ -2104,3 +2106,6 @@ int ModelClass::MapToNodeIndex(int strand, int node) const {
 }
 
 
+void ModelClass::SetModelStartChan(int start_channel) {
+	ModelStartChannel = start_channel;
+}
