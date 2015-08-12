@@ -110,6 +110,7 @@ class SequenceElements : public ChangeLister
         void SetSelectedTimingRow(int row);
 
         int GetNumberOfTimingRows();
+        int GetNumberOfTimingElements();
         bool ElementExists(wxString elementName, int view = MASTER_VIEW);
         bool TimingIsPartOfView(Element* timing, int view);
         wxString GetViewName(int view);

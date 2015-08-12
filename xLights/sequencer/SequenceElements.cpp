@@ -927,6 +927,19 @@ int SequenceElements::GetNumberOfTimingRows()
     return mTimingRowCount;
 }
 
+int SequenceElements::GetNumberOfTimingElements() {
+    int count = 0;
+    for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    {
+        if(mAllViews[MASTER_VIEW][i]->GetType()=="timing")
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
+
 void SequenceElements::DeactivateAllTimingElements()
 {
     for(int i=0;i<mAllViews[mCurrentView].size();i++)

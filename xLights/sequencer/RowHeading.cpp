@@ -263,7 +263,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         {
             // Deactivate active timing mark so new one is selected;
             mSequenceElements->DeactivateAllTimingElements();
-            int timingCount = mSequenceElements->GetNumberOfTimingRows();
+            int timingCount = mSequenceElements->GetNumberOfTimingElements();
             wxString type = "timing";
             Element* e = mSequenceElements->AddElement(timingCount,name,type,true,false,true,false);
             e->AddEffectLayer();
