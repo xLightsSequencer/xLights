@@ -228,7 +228,7 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
     while (DlgResult == wxID_OK && !ok);
     if (DlgResult != wxID_OK) return;
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
-    
+
     wxString attr;
     e->GetAttribute("name", &attr);
 
@@ -271,6 +271,8 @@ void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
             {
                 wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
                 e->AddAttribute("name", name);
+                e->AddAttribute("offsetXpct","0.5");
+                e->AddAttribute("offsetYpct","0.5");
                 dialog.UpdateXml(e);
                 ListBox1->Append(name,e);
             }
