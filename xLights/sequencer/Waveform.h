@@ -119,46 +119,7 @@ class Waveform : public xlGLCanvas
                 return  mZoomLevel;
             }
 
-            void SetMinMaxSampleSet(float SamplesPerPixel, float*sampleData, int trackSize)
-            {
-                if( sampleData != nullptr )
-                {
-                    int sampleIndex=0;
-                    float minimum=1;
-                    float maximum=-1;
-                    int iSamplesPerPixel = (int)SamplesPerPixel;
-                    int totalMinMaxs = (int)((float)trackSize/SamplesPerPixel)+1;
-                    MinMaxs.clear();
-                    for(int i=0;i<totalMinMaxs;i++)
-                    {
-                        // Use float calculation to minimize compounded rounding of position
-                        sampleIndex = (int)((float)i*SamplesPerPixel);
-                        minimum=1;
-                        maximum=-1;
-                        int j;
-                        for(j=sampleIndex;j<sampleIndex+iSamplesPerPixel && j<trackSize;j++)
-                        {
-                            if(sampleData[j]< minimum)
-                            {
-                                minimum = sampleData[j];
-                            }
-                            if(sampleData[j]> maximum)
-                            {
-                                maximum = sampleData[j];
-                            }
-                        }
-                        MINMAX mm;
-                        mm.min = minimum;
-                        mm.max = maximum;
-                        MinMaxs.push_back(mm);
-                        if (j>=trackSize)
-                            break;
-                    }
-                }
-                int l = MinMaxs.size();
-                l++;
-            }
-
+            void SetMinMaxSampleSet(float SamplesPerPixel, float*sampleData, int trackSize);
 
         };
 

@@ -284,7 +284,7 @@ int Waveform::OpenfileMediaFile(const char* filename, wxString& error)
         error = "More than 2 audio channels is not supported yet.";
     }
     views.clear();
-    int samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+    float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
     WaveView wv(mZoomLevel,samplesPerLine,m_left_data,mMediaTrackSize);
     views.push_back(wv);
     mCurrentWaveView = 0;
@@ -600,6 +600,40 @@ float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel)
     return samplesPerPixel;
 }
 
+void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, float*sampleData, int trackSize) {
+    if (sampleData != nullptr) {
+        float minimum=1;
+        float maximum=-1;
+        int totalMinMaxs = (int)((float)trackSize/SamplesPerPixel)+1;
+        MinMaxs.clear();
+        
+        for(int i = 0; i < totalMinMaxs; i++) {
+            // Use float calculation to minimize compounded rounding of position
+            int start = (int)((float)i*SamplesPerPixel);
+            if (start >= trackSize) {
+                return;
+            }
+            int end = start + SamplesPerPixel;
+            if (end >= trackSize) {
+                end = trackSize;
+            }
+            minimum=1;
+            maximum=-1;
+            for (int j = start;j < end; j++) {
+                if (sampleData[j]< minimum) {
+                    minimum = sampleData[j];
+                }
+                if (sampleData[j]> maximum) {
+                    maximum = sampleData[j];
+                }
+            }
+            MINMAX mm;
+            mm.min = minimum;
+            mm.max = maximum;
+            MinMaxs.push_back(mm);
+        }
+    }
+}
 
 
 

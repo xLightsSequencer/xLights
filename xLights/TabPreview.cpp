@@ -298,7 +298,6 @@ void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
     }
     mnu.Append(ID_PREVIEW_MODEL_PROPERTIES,"Model Properties");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
-    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
     PopupMenu(&mnu);
 }
 
@@ -662,6 +661,8 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
                 if(PreviewModels[i]->Selected || PreviewModels[i]->GroupSelected)
                 {
                    PreviewModels[i]->AddOffset(delta_x/wi, delta_y/ht);
+                   PreviewModels[i]->UpdateXmlWithScale();
+                   UnsavedRgbEffectsChanges = true;
                 }
             }
         }
