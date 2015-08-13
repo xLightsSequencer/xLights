@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(dkulp) Fix saving the model XML during resize/rotate
+    -- bug(dkulp) Fix clearing when an effect is shrunk
     -- bug(dkulp) If a papagayo track is in the sequence, trying to add another timing track will crash
     -- enh(gil)  Models that are copied will now display in the center of the screen.
     -- enh(dkulp) Add ability to enable/disable various outputs (so if controllers aren't hooked up, don't arp flood)

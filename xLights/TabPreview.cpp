@@ -634,6 +634,8 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
     if(m_rotating)
     {
         m->RotateWithHandles(modelPreview,event.ShiftDown(), event.GetPosition().x,y);
+        m->UpdateXmlWithScale();
+        UnsavedRgbEffectsChanges = true;
         TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",(int)(m->GetPreviewRotation())));
         UpdatePreview();
     }
@@ -644,6 +646,8 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
         m->GetScales(scalex, scaley);
         TextCtrlPreviewElementWidth->SetValue(wxString::Format( "%0.1f",scalex*100.0));
         TextCtrlPreviewElementHeight->SetValue(wxString::Format( "%0.1f",scaley*100.0));
+        m->UpdateXmlWithScale();
+        UnsavedRgbEffectsChanges = true;
         UpdatePreview();
     }
     else if (m_dragging && event.Dragging())
@@ -692,6 +696,8 @@ void xLightsFrame::PreviewScaleUpdated(float xscale, float yscale)
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
     m->SetScale(xscale/100.0, yscale/100.0);
+    m->UpdateXmlWithScale();
+    UnsavedRgbEffectsChanges = true;
     UpdatePreview();
 }
 
@@ -712,6 +718,8 @@ void xLightsFrame::PreviewRotationUpdated(int newRotation)
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
     m->SetModelCoord(newRotation);
+    m->UpdateXmlWithScale();
+    UnsavedRgbEffectsChanges = true;
     UpdatePreview();
 }
 

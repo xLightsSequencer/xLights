@@ -687,7 +687,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                 }
 
                 sendRenderEvent(mEffectLayer->GetParentElement()->GetName(), min, max);
-                RaisePlayModelEffect(mEffectLayer->GetParentElement(),effect,true);
+                RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
             }
         }
 
