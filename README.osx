@@ -33,10 +33,6 @@ The instructions here suggest compiling with Xcode:
 
 However, I followed the method used for Linux from inside a Terminal window:
 
-    NOTE: STARTING 7 SEPT 2013 YOU WILL NEED TO (RE)COMPILE
-       WXWIDGETS WITH CXXFLAGS="-std=gnu++0x"
-       FAILING TO DO THIS WILL CAUSE XLIGHTS TO CRASH
-
     NOTE: The GCC that is part of Xcode 4.x is version 4.2 which does
        NOT support the gnu++0x flag (tops out at c++99).  Since xLights
        requires g++0x, we need to use the clang compiler.  This also
@@ -58,9 +54,25 @@ However, I followed the method used for Linux from inside a Terminal window:
   export CC=clang 
   export CPP="clang -E" 
   ./configure  --prefix=/opt/local --disable-shared --enable-debug_info --enable-macosx_arch=x86_64 \
-               --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking --with-macosx-version-min=10.7 --with-libjpeg=builtin
+               --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
+               --with-macosx-version-min=10.7 --with-libjpeg=builtin
   make 
   make install
+
+If you are planning debugging xLights, it's likely better to do:
+  export CXXFLAGS="-stdlib=libc++ -std=c++11 -g" 
+  export OBJCXXFLAGS="-stdlib=libc++ -std=c++11" 
+  export CPPFLAGS="-stdlib=libc++ -g" 
+  export LDFLAGS="-stdlib=libc++" 
+  export CXX=clang++ 
+  export CXXCPP="clang++ -E" 
+  export CC=clang 
+  export CPP="clang -E" 
+  export CFLAGS="-g"
+  ./configure  --prefix=/opt/local --disable-shared --enable-debug_info --enable-macosx_arch=x86_64 \
+               --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
+               --with-macosx-version-min=10.7 --with-libjpeg=builtin    --disable-optimise
+
 
 Next, you will use Xcode to compile xLights. Most of the steps are listed here:
 
