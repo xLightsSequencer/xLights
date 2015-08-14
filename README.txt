@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug(gil)  Mark rgbeffects file as changed when views are modified.
     -- bug(dkulp) Fix saving the model XML during resize/rotate
     -- bug(dkulp) Fix clearing when an effect is shrunk
     -- bug(dkulp) If a papagayo track is in the sequence, trying to add another timing track will crash

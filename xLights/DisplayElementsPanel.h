@@ -19,6 +19,7 @@ class wxChoice;
 
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
 
 class DisplayElementsPanel: public wxPanel
 {
@@ -26,7 +27,7 @@ class DisplayElementsPanel: public wxPanel
 
 		DisplayElementsPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~DisplayElementsPanel();
-    
+
         void SetViewChoice(wxChoice *ch);
 
         void SetSequenceElementsModelsViews(SequenceData* seq_data,
@@ -35,7 +36,8 @@ class DisplayElementsPanel: public wxPanel
                                             wxXmlNode* views);
         void Initialize();
         void SelectView(const wxString& name);
-        void AddMissingModelsOfView(wxString view);
+        void MarkViewsChanged();
+
 		//(*Declarations(DisplayElementsPanel)
 		wxButton* ButtonDeleteView;
 		wxButton* ButtonMoveUp;
@@ -54,7 +56,7 @@ class DisplayElementsPanel: public wxPanel
 		wxButton* ButtonHideAll;
 		//*)
 
-    
+
          wxChoice *MainViewsChoice;
 	protected:
 
