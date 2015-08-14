@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.2.1  Aug 14, 2015
     -- enh(gil)  Timings added to a sequence default to exist in all views.
     -- bug(gil)  Mark rgbeffects file as changed when views are modified.
     -- bug(dkulp) Fix saving the model XML during resize/rotate

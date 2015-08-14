@@ -480,7 +480,7 @@ void RgbEffects::RenderTextLine(DrawingContext* dc, int idx, int Position, const
     wxString fmt, Line = Line_orig; //make copy so it can be modified -DJ
     wxChar delim;
     if (Line.IsEmpty()) return;
-    
+
     int state = (curPeriod - curEffStartPer) * tspeed * frameTimeInMs / 50;
 
     switch(Countdown)
@@ -499,6 +499,19 @@ void RgbEffects::RenderTextLine(DrawingContext* dc, int idx, int Position, const
 
     case COUNTDOWN_FREEFMT: //free format text with embedded formatting chars -DJ
 #if 0
+
+Aug 14,2015 <scm>
+Sample datestrings that are valid for the countdown timer
+Wed, 02 Oct 2015 15:00:00 +0200
+Wed, 02 Oct 2015 15:00:00 EST
+
+Note, dates must be in the future, any date in the past will show as "Invalid Date" when converted
+
+
+
+clear(
+
+                                                               )
 wxTimeSpan format chars are described at:
 http://docs.wxwidgets.org/trunk/classwx_time_span.html
 The following format specifiers are allowed after %:
