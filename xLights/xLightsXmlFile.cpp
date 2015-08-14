@@ -1442,7 +1442,6 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             layer = AddChildXmlNode(node, "EffectLayer");
         }
 
-
         wxArrayString start_times;
         wxArrayString end_times;
         wxArrayString labels;

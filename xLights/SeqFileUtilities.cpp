@@ -41,7 +41,9 @@ void xLightsFrame::NewSequence()
     int ms = atoi(mss.c_str());
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
-    CurrentSeqXmlFile->AddNewTimingSection("New Timing", this);
+    wxString new_timing = "New Timing";
+    CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
+    mSequenceElements.AddTimingToAllViews(new_timing);
     MenuItem_File_Save_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);
 
@@ -55,6 +57,7 @@ void xLightsFrame::NewSequence()
         SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
 }
+
 static wxFileName mapFileName(const wxFileName &orig) {
     if (orig.GetDirCount() == 0) {
         //likely a filename from windows on Mac/Linux or vice versa

@@ -267,12 +267,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxString type = "timing";
             Element* e = mSequenceElements->AddElement(timingCount,name,type,true,false,true,false);
             e->AddEffectLayer();
-            wxArrayString timings;
-            timings.push_back(name);
-            mSequenceElements->AddViewToTimings(timings, mSequenceElements->GetViewName(mSequenceElements->GetCurrentView()));
+            mSequenceElements->AddTimingToAllViews(name);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
-            timings.clear();
         }
     }
     else if(id == ID_ROW_MNU_DELETE_TIMING_TRACK)

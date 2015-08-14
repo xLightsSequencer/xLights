@@ -86,6 +86,8 @@ class SequenceElements : public ChangeLister
         void AddView(const wxString &viewName);
         void RemoveView(int view_index);
         void AddViewToTimings(wxArrayString& timings, const wxString& name);
+        void AddTimingToAllViews(wxString& timing);
+        void AddTimingToView(wxString& timing, const wxString& name);
 
         void DeleteElement(const wxString &name);
         void DeleteElementFromView(const wxString &name, int view);

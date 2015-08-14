@@ -869,7 +869,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
             RenderEffectForModel((*it)->GetName(), ss, es);
         }
     }
-    
+
     // Update play status so sequencer grid can allow dropping timings during playback
     mainSequencer->SetPlayStatus(playType);
 
@@ -1075,7 +1075,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
                     wxPostEvent(b->GetEventHandler(), evt);
                 }
 
-                
+
                 wxChoice* ctrl=(wxChoice*)CtrlWin;
                 ctrl->SetStringSelection(value);
 
@@ -1354,6 +1354,7 @@ Element* xLightsFrame::AddTimingElement(wxString& name)
     wxString type = "timing";
     Element* e = mSequenceElements.AddElement(timingCount,name,type,true,false,true,false);
     e->AddEffectLayer();
+    mSequenceElements.AddTimingToAllViews(name);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
     return e;

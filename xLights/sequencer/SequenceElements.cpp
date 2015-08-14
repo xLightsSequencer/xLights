@@ -637,30 +637,44 @@ void SequenceElements::SetTimingVisibility(const wxString& name)
     }
 }
 
+void SequenceElements::AddTimingToAllViews(wxString& timing)
+{
+    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
+    {
+        wxString name = view->GetAttribute("name");
+        AddTimingToView(timing, name);
+    }
+}
+
 void SequenceElements::AddViewToTimings(wxArrayString& timings, const wxString& name)
 {
     for( int i = 0; i < timings.size(); i++ )
     {
-        Element* elem = GetElement(timings[i]);
-        if( elem != nullptr && elem->GetType() == "timing" )
+        AddTimingToView(timings[i], name);
+    }
+}
+
+void SequenceElements::AddTimingToView(wxString& timing, const wxString& name)
+{
+    Element* elem = GetElement(timing);
+    if( elem != nullptr && elem->GetType() == "timing" )
+    {
+        wxString views = elem->GetViews();
+        wxArrayString all_views = wxSplit(views,',');
+        bool found = false;
+        for( int j = 0; j < all_views.size(); j++ )
         {
-            wxString views = elem->GetViews();
-            wxArrayString all_views = wxSplit(views,',');
-            bool found = false;
-            for( int j = 0; j < all_views.size(); j++ )
+            if( all_views[j] == name )
             {
-                if( all_views[j] == name )
-                {
-                    found = true;
-                    break;
-                }
+                found = true;
+                break;
             }
-            if( !found )
-            {
-                all_views.push_back(name);
-                views = wxJoin(all_views, ',');
-                elem->SetViews(views);
-            }
+        }
+        if( !found )
+        {
+            all_views.push_back(name);
+            views = wxJoin(all_views, ',');
+            elem->SetViews(views);
         }
     }
 }
