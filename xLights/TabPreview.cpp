@@ -1037,7 +1037,9 @@ void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
 	ListBoxElementList->SetItem(sel, 1, wxString::Format("%d",newStartChannel));
 	ListBoxElementList->SetItem(sel, 2, wxString::Format("%d",newEnd));
 	if (newEnd >= NetInfo.GetTotChannels()) {
-		wxMessageBox(wxString::Format("The channels for model %s extends beyond the number of configured channels (%u):\n", name, NetInfo.GetTotChannels()));
-	}
+        TextCtrlModelStartChannel->SetBackgroundColour(wxColour("#ff0000"));
+	} else {
+        TextCtrlModelStartChannel->SetBackgroundColour(wxColour("#ffffff"));
+    }
 	UpdatePreview();
 }
