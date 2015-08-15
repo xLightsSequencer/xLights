@@ -96,6 +96,28 @@ class DrawingContext;
 class Effect;
 class SequenceElements;
 
+
+class DrawingContext {
+public:
+    DrawingContext(int BufferWi, int BufferHt);
+    ~DrawingContext();
+    wxImage *FlushAndGetImage();
+    void SetFont(wxFont &font, const xlColor &color);
+    void DrawText(const wxString &msg, int x, int y, double rotation);
+    void DrawText(const wxString &msg, int x, int y);
+    void GetTextExtent(const wxString &msg, double *width, double *height);
+    void Clear();
+private:
+    wxImage *image;
+    wxBitmap *bitmap;
+    wxBitmap nullBitmap;
+    wxMemoryDC *dc;
+#if wxUSE_GRAPHICS_CONTEXT
+    wxGraphicsContext *gc;
+#endif
+};
+
+
 class NCCDLLEXPORT RgbEffects
 {
 public:
@@ -591,6 +613,7 @@ protected:
 
     //TextEffect
     wxSize synced_textsize;
+    DrawingContext *drawingContext;
 
 
 public:
