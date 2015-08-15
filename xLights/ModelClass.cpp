@@ -494,7 +494,16 @@ void ModelClass::InitArches() {
     int SegmentsPerArch=parm2;
     
     SetBufferSize(NumArches,SegmentsPerArch);
-    SetNodeCount(NumArches * SegmentsPerArch, parm3,rgbOrder);
+    if (SingleNode) {
+        SetNodeCount(NumArches * SegmentsPerArch, parm3,rgbOrder);
+    } else {
+        SetNodeCount(NumArches, SegmentsPerArch, rgbOrder);
+        if (parm3 > 1) {
+            for (int x = 0; x < Nodes.size(); x++) {
+                Nodes[x]->Coords.resize(parm3);
+            }
+        }
+    }
     SetRenderSize(NumArches,SegmentsPerArch);
 
     for (int y=0; y < NumArches; y++) {
