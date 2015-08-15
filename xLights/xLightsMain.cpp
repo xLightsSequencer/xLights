@@ -2003,6 +2003,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 	itemCol.SetText(_T("Element Name"));
 	itemCol.SetImage(-1);
 	itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+	ListBoxElementList->DeleteColumn(0);
 	ListBoxElementList->InsertColumn(0, itemCol);
 
 	itemCol.SetText(_T("Start Chan"));
@@ -2012,9 +2013,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 	itemCol.SetText(_T("End Chan"));
 	itemCol.SetAlign(wxLIST_FORMAT_LEFT);
 	ListBoxElementList->InsertColumn(2, itemCol);
-	ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
-	ListBoxElementList->SetColumnWidth(1,100);
-	ListBoxElementList->SetColumnWidth(2,100);
+	ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
+	ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
+	ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
 
     // get list of most recently used directories
     wxString dir,mru_name;
