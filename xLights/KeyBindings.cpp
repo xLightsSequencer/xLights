@@ -29,6 +29,8 @@ void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding('S', "Spirals", ""));
     bindings.push_back(KeyBinding('w', "Color Wash", ""));
     bindings.push_back(KeyBinding('n', "Snowflakes", ""));
+	bindings.push_back(KeyBinding('F', "Off", ""));
+	bindings.push_back(KeyBinding('a', "Fan", ""));
 }
 
 void KeyBindingMap::Load(wxFileName &fileName) {
