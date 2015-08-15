@@ -29,8 +29,8 @@ void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding('S', "Spirals", ""));
     bindings.push_back(KeyBinding('w', "Color Wash", ""));
     bindings.push_back(KeyBinding('n', "Snowflakes", ""));
-	bindings.push_back(KeyBinding('F', "Off", ""));
-	bindings.push_back(KeyBinding('a', "Fan", ""));
+	bindings.push_back(KeyBinding('O', "Off", ""));
+	bindings.push_back(KeyBinding('F', "Fan", ""));
 }
 
 void KeyBindingMap::Load(wxFileName &fileName) {
@@ -40,7 +40,7 @@ void KeyBindingMap::Load(wxFileName &fileName) {
             bindings.clear();
             wxXmlNode *root = doc.GetRoot();
             wxXmlNode *child = root->GetChildren();
-            
+
             while (child != NULL) {
                 if ("keybinding" == child->GetName()) {
                     wxString type = child->GetAttribute("type");
@@ -64,7 +64,7 @@ void KeyBindingMap::Load(wxFileName &fileName) {
                         bindings.push_back(KeyBinding(k, effect, settings));
                     }
                 }
-                
+
                 child = child->GetNext();
             }
         }
