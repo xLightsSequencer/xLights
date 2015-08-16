@@ -204,9 +204,9 @@ void xLightsFrame::SelectModel(wxString name)
             bool canrotate=m->CanRotate();
             SliderPreviewRotate->Enable(canrotate);
             StaticTextPreviewRotation->Enable(canrotate);
-			foundStart = m->ModelStartChannel;
-			foundEnd = wxAtoi(ListBoxElementList->GetItemText(i,2));
-			TextCtrlModelStartChannel->SetValue(wxString::Format("%d", m->ModelStartChannel));
+			foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
+			foundEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
+			TextCtrlModelStartChannel->SetValue(m->ModelStartChannel);
             break;
         }
     }
@@ -214,9 +214,9 @@ void xLightsFrame::SelectModel(wxString name)
 	for(int i=0;i<ListBoxElementList->GetItemCount();i++)
 	{
 		if (name != ListBoxElementList->GetItemText(i)) {
-			int startChan = wxAtoi(ListBoxElementList->GetItemText(i,1));
-			int endChan = wxAtoi(ListBoxElementList->GetItemText(i,2));
 			ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
+			int startChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,1));
+			int endChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
 			if ((startChan >= foundStart) && (endChan <= foundEnd)) {
 				m->Overlapping = true;
 			} else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
@@ -1017,14 +1017,14 @@ void xLightsFrame::OnScaleImageCheckboxClick(wxCommandEvent& event)
 
 void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
 {
-	int newStartChannel = wxAtoi(TextCtrlModelStartChannel->GetValue());
+	wxString newStartChannel = TextCtrlModelStartChannel->GetValue();
 	int sel = ListBoxElementList->GetFirstSelected();
 	if (sel == wxNOT_FOUND) return;
 	ModelClass* m = (ModelClass*)ListBoxElementList->GetItemData(sel);
 	wxString name = ListBoxElementList->GetItemText(sel);
-	int oldStart = wxAtoi(ListBoxElementList->GetItemText(sel,1));
-	int oldEnd = wxAtoi(ListBoxElementList->GetItemText(sel,2));
-	int newEnd = (newStartChannel - oldStart) + oldEnd;
+	int oldStart = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(sel,1));
+    int oldEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(sel,2));
+    int newEnd = (m->GetNumberFromChannelString(newStartChannel) - oldStart) + oldEnd;
 	m->SetModelStartChan(newStartChannel);
 	for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
 		if (e->GetName() == "modelGroup") {
@@ -1034,7 +1034,7 @@ void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
 			}
 		}
 	}
-	ListBoxElementList->SetItem(sel, 1, wxString::Format("%d",newStartChannel));
+	ListBoxElementList->SetItem(sel, 1, newStartChannel);
 	ListBoxElementList->SetItem(sel, 2, wxString::Format("%d",newEnd));
 	if (newEnd >= NetInfo.GetTotChannels()) {
         TextCtrlModelStartChannel->SetBackgroundColour(wxColour("#ff0000"));

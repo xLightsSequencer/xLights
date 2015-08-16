@@ -366,7 +366,7 @@ void xLightsFrame::UpdateModelsList()
                                     {
                                         long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
                                         start_channel = e->GetAttribute("StartChannel");
-                                        model->SetModelStartChan(wxAtoi(start_channel));
+                                        model->SetModelStartChan(start_channel);
                                         wxString string_type = e->GetAttribute("StringType");
                                         int parm1 = wxAtoi(e->GetAttribute("parm1"));
                                         int parm2 = wxAtoi(e->GetAttribute("parm2"));
@@ -411,7 +411,7 @@ void xLightsFrame::UpdateModelsList()
                     {
                         long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
                         start_channel = e->GetAttribute("StartChannel");
-                        model->SetModelStartChan(wxAtoi(start_channel));
+                        model->SetModelStartChan(start_channel);
                         wxString string_type = e->GetAttribute("StringType");
                         int parm1 = wxAtoi(e->GetAttribute("parm1"));
                         int parm2 = wxAtoi(e->GetAttribute("parm2"));

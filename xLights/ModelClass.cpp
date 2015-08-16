@@ -89,17 +89,17 @@ wxXmlNode* ModelClass::GetModelXml() {
     return this->ModelXml;
 }
 
-int GetStartChannel(wxString sc, NetInfoClass &netInfo) {
+int ModelClass::GetNumberFromChannelString(wxString sc) {
     int output = 1;
     if (sc.Contains(":")) {
         output = wxAtoi(sc.SubString(0, sc.Find(":") - 1));
         sc = sc.SubString(sc.Find(":") + 1, sc.size());
     }
-    int startChannel = wxAtoi(sc);
+    int returnChannel = wxAtoi(sc);
     if (output > 1) {
-        startChannel = netInfo.CalcAbsChannel(output - 1, startChannel - 1) + 1;
+        returnChannel = ModelNetInfo->CalcAbsChannel(output - 1, returnChannel - 1) + 1;
     }
-    return startChannel;
+    return returnChannel;
 }
 
 void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBased) {
@@ -110,6 +110,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     long i2;
 
     ModelXml=ModelNode;
+    ModelNetInfo = &netInfo;
     StrobeRate=0;
     Nodes.clear();
 
@@ -187,8 +188,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
         nodeNames.push_back(t2);
     }
 
-    StartChannel = GetStartChannel(ModelNode->GetAttribute("StartChannel","1"),
-                                   netInfo);
+    StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1"));
     if (ModelNode->HasAttribute("ModelBrightness")) {
         tempstr=ModelNode->GetAttribute("ModelBrightness");
         tempstr.ToLong(&ModelBrightness);
@@ -282,7 +282,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     for (i=0; i<NumberOfStrings; i++) {
         tempstr=StartChanAttrName(i);
         if (!zeroBased && HasIndividualStartChans && ModelNode->HasAttribute(tempstr)) {
-            stringStartChan[i] = GetStartChannel(ModelNode->GetAttribute(tempstr, "1"), netInfo)-1;
+            stringStartChan[i] = GetNumberFromChannelString(ModelNode->GetAttribute(tempstr, "1"))-1;
         } else {
             stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + i*ChannelsPerString;
         }
@@ -1457,7 +1457,7 @@ void ModelClass::UpdateXmlWithScale() {
     }
     ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
     ModelXml->AddAttribute("versionNumber", wxString::Format("%d",ModelVersion));
-	ModelXml->AddAttribute("StartChannel", wxString::Format("%d",ModelStartChannel));
+	ModelXml->AddAttribute("StartChannel", ModelStartChannel);
 }
 
 void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,
@@ -2106,6 +2106,7 @@ int ModelClass::MapToNodeIndex(int strand, int node) const {
 }
 
 
-void ModelClass::SetModelStartChan(int start_channel) {
+void ModelClass::SetModelStartChan(wxString start_channel) {
 	ModelStartChannel = start_channel;
 }
+
