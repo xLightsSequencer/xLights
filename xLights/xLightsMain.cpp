@@ -2612,6 +2612,18 @@ void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
     AllLightsOff();
 }
 
+#ifdef __WXOSX__
+
+#include "osxMacUtils.h"
+AppNapSuspender sleepData;
+void EnableSleepModes() { sleepData.resume();}
+void DisableSleepModes() {sleepData.suspend();}
+#else
+void EnableSleepModes() {}
+void DisableSleepModes() {}
+#endif
+
+
 bool xLightsFrame::EnableOutputs()
 {
     wxCriticalSectionLocker locker(gs_xoutCriticalSection);
@@ -2619,6 +2631,7 @@ bool xLightsFrame::EnableOutputs()
     bool ok=true;
     if (CheckBoxLightOutput->IsChecked() && xout==0)
     {
+        DisableSleepModes();
         xout = new xOutput();
 
 
@@ -2696,6 +2709,7 @@ bool xLightsFrame::EnableOutputs()
     }
     else if (!CheckBoxLightOutput->IsChecked() && xout)
     {
+        EnableSleepModes();
         delete xout;
         xout=0;
     }

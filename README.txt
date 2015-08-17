@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp) OSX - Disable AppNap and Timer Colescing when Output To Lights is on
     -- eng(steve) Add keybindings "F" for Off and "a" for fan effects
     -- enh(steve) Update Readme for Windows builds
 4.2.1  Aug 14, 2015

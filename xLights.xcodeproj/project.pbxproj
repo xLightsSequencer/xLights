@@ -397,6 +397,7 @@
 		67B845031A9C0E7500564051 /* ModelViewSelector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelViewSelector.h; sourceTree = "<group>"; };
 		67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wxCheckedListCtrl.cpp; sourceTree = "<group>"; };
 		67B845051A9C0E7500564051 /* wxCheckedListCtrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wxCheckedListCtrl.h; sourceTree = "<group>"; };
+		67B94CE11B82129600B5FB0D /* osxMacUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = osxMacUtils.h; sourceTree = "<group>"; };
 		67BAE6E21A08252700CB7041 /* spxml-0.5 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "spxml-0.5"; path = "include/spxml-0.5"; sourceTree = SOURCE_ROOT; };
 		67BC91021A3FD22F00905A53 /* RenderOn.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderOn.cpp; sourceTree = "<group>"; };
 		67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSingleStrand.cpp; sourceTree = "<group>"; };
@@ -778,6 +779,7 @@
 				67A61A2517B51C0F008E95BB /* xLightsMain.h */,
 				672F950F1A7A6619005FF8BF /* xLightsXmlFile.h */,
 				675DE2661B53381800A9BB44 /* xlSlider.h */,
+				67B94CE11B82129600B5FB0D /* osxMacUtils.h */,
 			);
 			name = "Supporting Files";
 			path = xLights;
