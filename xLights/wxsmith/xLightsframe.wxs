@@ -2074,14 +2074,15 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer34" member="no">
-										<cols>2</cols>
-										<rows>1</rows>
-										<growablecols>1</growablecols>
-										<growablerows>0</growablerows>
-										<object class="sizeritem">
+									<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
+										<sashpos>100</sashpos>
+										<minsize>10</minsize>
+										<orientation>vertical</orientation>
+										<minsize>10,10</minsize>
+										<object class="wxPanel" name="ID_PANEL5" variable="Panel1" member="yes">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
 												<cols>1</cols>
+												<growablecols>0</growablecols>
 												<growablerows>2</growablerows>
 												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON_SELECT_MODEL_GROUPS" variable="ButtonSelectModelGroups" member="yes">
@@ -2102,8 +2103,8 @@
 												</object>
 												<object class="sizeritem">
 													<object class="wxListView" name="ID_LISTBOX_ELEMENT_LIST" variable="ListBoxElementList" member="yes">
-														<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING</style>
-														<handler function="OnListBoxElementListItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+														<size>180,-1</size>
+														<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING|wxLC_NO_SORT_HEADER</style>
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
@@ -2269,23 +2270,15 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-											<border>5</border>
-											<option>1</option>
 										</object>
-										<object class="sizeritem">
-											<object class="wxPanel" name="ID_PANEL1" variable="PreviewGLPanel" member="yes">
-												<style>0</style>
-												<object class="wxFlexGridSizer" variable="PreviewGLSizer" member="yes">
-													<cols>1</cols>
-													<rows>1</rows>
-													<growablecols>0</growablecols>
-													<growablerows>0</growablerows>
-												</object>
+										<object class="wxPanel" name="ID_PANEL1" variable="PreviewGLPanel" member="yes">
+											<style>0</style>
+											<object class="wxFlexGridSizer" variable="PreviewGLSizer" member="yes">
+												<cols>1</cols>
+												<rows>1</rows>
+												<growablecols>0</growablecols>
+												<growablerows>0</growablerows>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -375,9 +375,6 @@ void xLightsFrame::UpdateModelsList()
                                         ListBoxElementList->SetItem(itemIndex,1,start_channel);
                                         ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
                                         ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
-                                        ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
-                                        ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
-                                        ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
                                         PreviewModels.push_back(model);
                                     }
                                     AllModels[name].reset(model);
@@ -420,9 +417,6 @@ void xLightsFrame::UpdateModelsList()
                         ListBoxElementList->SetItem(itemIndex,1,start_channel);
                         ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
                         ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
-                        ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
-                        ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
-                        ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
                         PreviewModels.push_back(model);
                     }
                     AllModels[name].reset(model);
@@ -431,6 +425,9 @@ void xLightsFrame::UpdateModelsList()
         }
     }
     ListBoxElementList->SortItems(MyCompareFunction,0);
+    ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
+    ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
+    ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
     if (msg != "") {
         wxMessageBox(wxString::Format("These models extends beyond the number of configured channels (%u):\n", NetInfo.GetTotChannels()) + msg);
     }
