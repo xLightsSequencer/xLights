@@ -106,5 +106,6 @@ void CurrentPreviewModels::OnButtonEditGroupsClick(wxCommandEvent& event)
 {
     PreviewModels dialog(this,mModelGroups,mModels);
     dialog.ShowModal();
+    
     PopulateModelGroups();
 }

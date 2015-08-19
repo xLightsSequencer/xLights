@@ -33,7 +33,7 @@ static inline void TranslatePointDoubles(double radians,double x, double y,doubl
     y1 = sin(radians)*x+(cos(radians)*y);
 }
 
-void ModelClass::InitWholeHouse(wxString WholeHouseData) {
+void ModelClass::InitWholeHouse(const wxString &WholeHouseData, bool zeroBased) {
     long xCoord,yCoord,actChn;
     int lastActChn=0;
     wxArrayString data;
@@ -42,6 +42,8 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData) {
     wxString stringType;
 
     Nodes.clear();
+    int minChan = 9999999;
+    int maxChan = -1;
     if(WholeHouseData.Length()> 0) {
         wxArrayString wholeHouseDataArr=wxSplit(WholeHouseData,';');
         int coordinateCount=wholeHouseDataArr.size();
@@ -49,6 +51,12 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData) {
         // Load first coordinate
         data=wxSplit(wholeHouseDataArr[0],',');
         data[0].ToLong(&actChn);
+        if (actChn > maxChan) {
+            maxChan = actChn;
+        }
+        if (actChn < minChan) {
+            minChan = actChn;
+        }
         data[1].ToLong(&xCoord);
         data[2].ToLong(&yCoord);
         if (data.size() > 3) {
@@ -82,6 +90,11 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData) {
                 Nodes.back()->AddBufCoord(xCoord,yCoord);
             }
             lastActChn = actChn;
+        }
+    }
+    if (zeroBased && minChan != 0) {
+        for (int x = 0; x < Nodes.size(); x++) {
+            Nodes[x]->ActChan -= minChan;
         }
     }
 }
@@ -294,7 +307,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     wxString token = tkz.GetNextToken();
     if(DisplayAs=="WholeHouse") {
         WholeHouseData = ModelNode->GetAttribute("WholeHouseData");
-        InitWholeHouse(WholeHouseData);
+        InitWholeHouse(WholeHouseData, zeroBased);
         CopyBufCoord2ScreenCoord();
     } else if (token == "Tree") {
         int firstStrand = 0;

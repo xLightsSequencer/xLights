@@ -241,9 +241,10 @@ wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const wxString &name) {
                 modelString = e->GetAttribute("models");
                 wxArrayString modelNames = wxSplit(modelString, ',');
                 for (int x = 0; x < modelNames.size(); x++) {
-                    ModelClass &c = GetModelClass(modelNames[x]);
-
-                    models.push_back(&c);
+                    ModelClass *c = GetModelClass(modelNames[x]);
+                    if (c != nullptr) {
+                        models.push_back(c);
+                    }
                 }
             }
         }
@@ -274,6 +275,7 @@ void xLightsFrame::ShowModelsDialog()
     dialog.HtmlEasyPrint=HtmlEasyPrint;
     dialog.SetSequenceElements(&mSequenceElements);
     dialog.SetNetInfo(&NetInfo);
+    dialog.SetModelGroupsNode(ModelGroupsNode);
     dialog.ShowModal();
 
     // append any new models to the main xml structure

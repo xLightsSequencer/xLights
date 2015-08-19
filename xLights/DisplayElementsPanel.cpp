@@ -633,7 +633,7 @@ void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
     }
 
     int first_model = GetFirstModelIndex();
-    if( selected_list[0] != 0 && selected_list[0] != first_model )  // don't let item or group move up if top item is selected
+    if (!selected_list.empty() && selected_list[0] != 0 && selected_list[0] != first_model )  // don't let item or group move up if top item is selected
     {
         if( selected_list[0] > first_model || (selected_list[0] < first_model && selected_list.size() == 1 ) )
         {
@@ -691,7 +691,7 @@ void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
     }
 
     int first_model = GetFirstModelIndex();
-    if( selected_list.back() < num_items-1 && selected_list[0] != first_model-1 )  // don't let item or group move up if top item is selected
+    if(!selected_list.empty() && selected_list.back() < num_items-1 && selected_list[0] != first_model-1 )  // don't let item or group move up if top item is selected
     {
         if( selected_list[0] >= first_model || (selected_list[0] < first_model && selected_list.size() == 1 ) )
         {

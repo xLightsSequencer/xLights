@@ -298,8 +298,13 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
         }
 
         e=(wxXmlNode*)(ListBoxModelGroups->GetClientData(ListBoxModelGroups->GetSelection()));
-        e->DeleteAttribute("name");
-        e->AddAttribute("name",TextModelGroupName->GetValue());
+        wxString oldName = e->GetAttribute("name");
+        if (oldName != TextModelGroupName->GetValue()) {
+            e->DeleteAttribute("name");
+            e->AddAttribute("name", TextModelGroupName->GetValue());
+            e->DeleteAttribute("oldName");
+            e->AddAttribute("oldName", oldName);
+        }
         e->DeleteAttribute("models");
         e->AddAttribute("models", ModelsInGroup);
         

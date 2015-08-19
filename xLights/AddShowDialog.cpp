@@ -46,7 +46,9 @@ AddShowDialog::AddShowDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("Schedule Playlist"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
-    FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer1->AddGrowableCol(0);
+    FlexGridSizer1->AddGrowableRow(0);
     FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer5->AddGrowableCol(0);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -107,7 +109,7 @@ AddShowDialog::AddShowDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     CheckBoxRandom = new wxCheckBox(this, ID_CHECKBOX_RANDOM, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RANDOM"));
     CheckBoxRandom->SetValue(false);
     FlexGridSizer4->Add(CheckBoxRandom, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer5->Add(FlexGridSizer4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer5->Add(FlexGridSizer4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Apply to these dates\nUse shift-click or ctrl-click to select multiple dates"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
     FlexGridSizer5->Add(StaticText10, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ListBoxDates = new wxListBox(this, ID_LISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED|wxLB_ALWAYS_SB, wxDefaultValidator, _T("ID_LISTBOX1"));

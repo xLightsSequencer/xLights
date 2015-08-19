@@ -761,10 +761,10 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
         ri.submodel = submodel;
         mRowInformation.push_back(ri);
     }
-    ModelClass &cls = xframe->GetModelClass(elem->GetName());
-    elem->InitStrands(cls);
-    if (cls.GetDisplayAs() == "WholeHouse" && elem->ShowStrands()) {
-        wxString models = cls.GetModelXml()->GetAttribute("models");
+    ModelClass *cls = xframe->GetModelClass(elem->GetName());
+    elem->InitStrands(*cls);
+    if (cls->GetDisplayAs() == "WholeHouse" && elem->ShowStrands()) {
+        wxString models = cls->GetModelXml()->GetAttribute("models");
         wxArrayString model=wxSplit(models,',');
         for(int m=0;m<model.size();m++) {
             for (int x = 0; x < elements.size(); x++) {

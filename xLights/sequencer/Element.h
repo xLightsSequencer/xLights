@@ -29,7 +29,7 @@ class Element
         virtual ~Element();
 
         wxString GetName();
-        void SetName(wxString &name);
+        void SetName(const wxString &name);
 
         bool GetVisible();
         void SetVisible(bool visible);

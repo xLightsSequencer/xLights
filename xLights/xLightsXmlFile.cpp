@@ -2070,9 +2070,9 @@ void xLightsXmlFile::CheckUpdateMorphPositions(SequenceElements& elements, xLigh
                         if( eff->GetEffectIndex() == BitmapCache::eff_MORPH )
                         {
                             wxString model_name = elem->GetName();
-                            ModelClass &cls = xLightsParent->GetModelClass(model_name);
-                            int width = cls.BufferWi;
-                            int height = cls.BufferHt;
+                            ModelClass *cls = xLightsParent->GetModelClass(model_name);
+                            int width = cls->BufferWi;
+                            int height = cls->BufferHt;
                             double width_band = 101.0 / width;
                             double height_band = 101.0 / height;
                             wxString settings = eff->GetSettingsAsString();

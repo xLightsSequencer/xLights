@@ -202,11 +202,11 @@ void EffectAssist::SetEffect(Effect* effect_)
         EffectLayer* layer = mEffect->GetParentEffectLayer();
         Element* elem = layer->GetParentElement();
         wxString model_name = elem->GetName();
-        ModelClass &cls = mxLightsParent->GetModelClass(model_name);
-        PanelEffectGrid->SetModelClass(&cls);
-        PanelEffectGrid->SetNumColumns(cls.BufferWi);
-        PanelEffectGrid->SetNumRows(cls.BufferHt);
-        StaticText_ModelSize->SetLabelText(wxString::Format("Model Size: %d x %d", cls.BufferWi, cls.BufferHt));
+        ModelClass *cls = mxLightsParent->GetModelClass(model_name);
+        PanelEffectGrid->SetModelClass(cls);
+        PanelEffectGrid->SetNumColumns(cls->BufferWi);
+        PanelEffectGrid->SetNumRows(cls->BufferHt);
+        StaticText_ModelSize->SetLabelText(wxString::Format("Model Size: %d x %d", cls->BufferWi, cls->BufferHt));
 
         if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
         {

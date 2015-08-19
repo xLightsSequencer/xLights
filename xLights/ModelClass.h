@@ -368,7 +368,7 @@ private:
     void InitStar();
     void InitWreath();
     void InitSphere();
-    void InitWholeHouse(wxString);
+    void InitWholeHouse(const wxString &data, bool zeroBased = false);
 
     void SetBufferSize(int NewHt, int NewWi);
     void SetRenderSize(int NewHt, int NewWi);

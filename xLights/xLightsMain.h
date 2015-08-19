@@ -1435,7 +1435,7 @@ private:
 public:
     wxXmlNode* GetModelNode(const wxString& name);
     bool InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
-    ModelClass &GetModelClass(const wxString& name);
+    ModelClass *GetModelClass(const wxString& name);
     void RenderGridToSeqData();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,

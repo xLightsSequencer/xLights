@@ -943,8 +943,22 @@ void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
 {
     CurrentPreviewModels dialog(this,ModelGroupsNode,ModelsNode);
     dialog.ShowModal();
+    
+    for (wxXmlNode *node = ModelGroupsNode->GetChildren(); node != nullptr; node = node->GetNext()) {
+        wxString oldName = node->GetAttribute("oldName", "");
+        node->DeleteAttribute("oldName");
+        if (oldName != "") {
+            Element* elem_to_rename = mSequenceElements.GetElement(oldName);
+            if( elem_to_rename != NULL ) {
+                elem_to_rename->SetName(node->GetAttribute("name"));
+            }
+        }
+    }
+    
     UnsavedRgbEffectsChanges=true;
     ShowSelectedModelGroups();
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    RowHeadingsChanged(eventRowHeaderChanged);
 }
 
 void xLightsFrame::ShowSelectedModelGroups()

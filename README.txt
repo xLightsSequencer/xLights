@@ -7,6 +7,10 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) Fix crashes when renaming models that are part of a group or renaming a group.  Fixes #337.
+    -- bug(dkulp) Fix crash on clicking Up/Down if no modals selected. Fixes #181
+    -- enh(dkulp) Make "Export Model" export the current state of the model, add option to re-render it
+    -- bug(dkulp) Enable "Export Model" for groups
     -- enh(dkulp) OSX - Disable AppNap and Timer Colescing when Output To Lights is on
     -- eng(steve) Add keybindings "F" for Off and "a" for fan effects
     -- enh(steve) Update Readme for Windows builds

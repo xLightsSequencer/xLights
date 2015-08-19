@@ -21,6 +21,7 @@ const long RowHeading::ID_ROW_MNU_DELETE_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_PLAY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_MODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_EXPORT_RENDERED_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_STRANDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
@@ -168,6 +169,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
         if (element->GetType()=="model") {
             mnuLayer->Append(ID_ROW_MNU_PLAY_MODEL,"Play Model");
             mnuLayer->Append(ID_ROW_MNU_EXPORT_MODEL,"Export Model");
+            mnuLayer->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export Model");
             mnuLayer->AppendSeparator();
             bool canPromote = false;
             if (element->getStrandLayerCount() == 1) {
@@ -301,6 +303,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
+        playEvent.SetInt(0);
+        playEvent.SetString(element->GetName());
+        wxPostEvent(GetParent(), playEvent);
+    } else if (id == ID_ROW_MNU_EXPORT_RENDERED_MODEL) {
+        wxCommandEvent playEvent(EVT_EXPORT_MODEL);
+        playEvent.SetInt(1);
         playEvent.SetString(element->GetName());
         wxPostEvent(GetParent(), playEvent);
     } else if (id == ID_ROW_MNU_PLAY_MODEL) {

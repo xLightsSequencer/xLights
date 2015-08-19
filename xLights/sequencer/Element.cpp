@@ -49,7 +49,7 @@ wxString Element::GetName()
     return mName;
 }
 
-void Element::SetName(wxString &name)
+void Element::SetName(const wxString &name)
 {
     mName = name;
 }

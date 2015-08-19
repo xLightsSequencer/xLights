@@ -239,6 +239,25 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
     }
     e->DeleteAttribute("name");
     e->AddAttribute("name",NewName);
+    
+    for (wxXmlNode *grp = modelGroups->GetChildren(); grp != nullptr; grp = grp->GetNext()) {
+        wxString groupModels = grp->GetAttribute("models");
+        wxArrayString ModelsInGroup=wxSplit(groupModels,',');
+        for(int i=0;i<ModelsInGroup.size();i++)
+        {
+            if (ModelsInGroup[i] == attr) {
+                ModelsInGroup[i] = NewName;
+                grp->DeleteAttribute("models");
+                
+                groupModels = ModelsInGroup[0];
+                for (int x = 1; x < ModelsInGroup.size(); x++) {
+                    groupModels += ",";
+                    groupModels += ModelsInGroup[x];
+                }
+                grp->AddAttribute("models", groupModels);
+            }
+        }
+    }
     ListBox1->Delete(sel);
     ListBox1->Append(NewName, e);
 }

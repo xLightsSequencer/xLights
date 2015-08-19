@@ -121,7 +121,7 @@ void xLightsFrame::InitSequencer()
     sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 
-ModelClass &xLightsFrame::GetModelClass(const wxString& name) {
+ModelClass *xLightsFrame::GetModelClass(const wxString& name) {
     ModelClass *cls = AllModels[name].get();
     if (cls == nullptr) {
         wxXmlNode *model = GetModelNode(name);
@@ -136,12 +136,12 @@ ModelClass &xLightsFrame::GetModelClass(const wxString& name) {
         }
         AllModels[name].reset(cls);
     }
-    return *cls;
+    return cls;
 }
 
 bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
-    ModelClass &model = GetModelClass(modelName);
-    buffer.InitBuffer(model.GetModelXml(), layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
+    ModelClass *model = GetModelClass(modelName);
+    buffer.InitBuffer(model->GetModelXml(), layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
     return true;
 }
 
@@ -1001,7 +1001,7 @@ void xLightsFrame::SetEffectControls(const wxString &modelName, const wxString &
     if (modelName == "") {
         EffectsPanel1->SetDefaultEffectValues(nullptr, effectName);
     } else {
-        EffectsPanel1->SetDefaultEffectValues(&GetModelClass(modelName), effectName);
+        EffectsPanel1->SetDefaultEffectValues(GetModelClass(modelName), effectName);
     }
     SetEffectControls(settings);
     SetEffectControls(palette);
@@ -1525,7 +1525,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
 
     xlColorVector colors;
     PixelBufferClass ncls;
-    ncls.InitNodeBuffer(GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
+    ncls.InitNodeBuffer(*GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
     for (int f = 0; f < SeqData.NumFrames(); f++) {
         ncls.SetNodeChannelValues(0, &SeqData[f][ncls.NodeStartChannel(0)]);
         xlColor c = ncls.GetNodeColor(0);

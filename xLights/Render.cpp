@@ -714,16 +714,33 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     NextRenderer wait;
     RenderJob *job = new RenderJob(el, SeqData, this, true);
     SequenceData *data = job->createExportBuffer();
-    job->setRenderRange(0, SeqData.NumFrames());
-    job->setPreviousFrameDone(END_OF_RENDER_FRAME);
-    job->setNext(&wait);
     int cpn = job->getBuffer()->GetChanCountPerNode();
-    jobPool.PushJob(job);
-
-    //wait to complete
-    while (!wait.checkIfDone(SeqData.NumFrames())) {
-        wxYield();
+    
+    if (command.GetInt()) {
+        job->setRenderRange(0, SeqData.NumFrames());
+        job->setPreviousFrameDone(END_OF_RENDER_FRAME);
+        job->setNext(&wait);
+        jobPool.PushJob(job);
+        //wait to complete
+        while (!wait.checkIfDone(SeqData.NumFrames())) {
+            wxYield();
+        }
+    } else {
+        ModelClass *m = GetModelClass(model);
+        for (int frame = 0; frame < SeqData.NumFrames(); frame++) {
+            for (int x = 0; x < job->getBuffer()->GetNodeCount(); x++) {
+                //chan in main buffer
+                int ostart = m->NodeStartChannel(x);
+                int nstart = job->getBuffer()->NodeStartChannel(x);
+                //copy to render buffer for export
+                job->getBuffer()->SetNodeChannelValues(x, &SeqData[frame][ostart]);
+                job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
+            }
+        }
+        delete job;
     }
+    
+
 
     if (Out3 == "Lcb") {
         oName.SetExt(_("lcb"));

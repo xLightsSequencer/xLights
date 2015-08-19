@@ -22,6 +22,7 @@ public:
     wxHtmlEasyPrinting* HtmlEasyPrint;
     void SetSequenceElements(SequenceElements* elements);
     void SetNetInfo(NetInfoClass *ni) {netInfo = ni;};
+    void SetModelGroupsNode(wxXmlNode *mg) {modelGroups = mg;};
 
     //(*Declarations(ModelListDialog)
     wxButton* Button_ExportCsv;
@@ -64,6 +65,7 @@ private:
     bool ValidateModelName(const wxString& name);
     SequenceElements* mSequenceElements;
     NetInfoClass *netInfo;
+    wxXmlNode *modelGroups;
 
     DECLARE_EVENT_TABLE()
 };

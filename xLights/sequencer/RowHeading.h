@@ -60,6 +60,7 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_LAYER;
         static const long ID_ROW_MNU_PLAY_MODEL;
         static const long ID_ROW_MNU_EXPORT_MODEL;
+        static const long ID_ROW_MNU_EXPORT_RENDERED_MODEL;
         static const long ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS;
         static const long ID_ROW_MNU_TOGGLE_STRANDS;
         static const long ID_ROW_MNU_TOGGLE_NODES;

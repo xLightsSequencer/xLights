@@ -122,7 +122,7 @@ void LMSImportChannelMapDialog::SetupByNode() {
         ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     }
     for (int x = 0; x < modelNames.size(); x++) {
-        AddModel(xlights->GetModelClass(modelNames[x]));
+        AddModel(*xlights->GetModelClass(modelNames[x]));
     }
 }
 void LMSImportChannelMapDialog::SetupByStrand() {
@@ -131,7 +131,7 @@ void LMSImportChannelMapDialog::SetupByStrand() {
         ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     }
     for (int x = 0; x < modelNames.size(); x++) {
-        AddModel(xlights->GetModelClass(modelNames[x]));
+        AddModel(*xlights->GetModelClass(modelNames[x]));
     }
 }
 
@@ -205,8 +205,8 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
         return;
     }
     modelNames.push_back(name);
-    ModelClass &cls = xlights->GetModelClass(name);
-    AddModel(cls);
+    ModelClass *cls = xlights->GetModelClass(name);
+    AddModel(*cls);
     Refresh();
 }
 
