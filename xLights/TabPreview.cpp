@@ -1082,17 +1082,6 @@ void xLightsFrame::OnListBoxElementListColumnClick(wxListEvent& event)
     int col = event.GetColumn();
     static bool x = false;
     x = !x;
-    wxListItem item;
-    item.SetMask(wxLIST_MASK_IMAGE);
-    for (int i = 0; i < 3; i++) {
-        if (i == col){
-            item.SetImage(x ? 0 : 1);
-            ListBoxElementList->SetColumn(i,item);
-        } else {
-            item.SetImage(-1);
-            ListBoxElementList->SetColumn(i,item);
-        }
-    }
     x ? ListBoxElementList->SortItems(SortElementsFunctionASC,col):ListBoxElementList->SortItems(SortElementsFunctionDESC,col);
 }
 

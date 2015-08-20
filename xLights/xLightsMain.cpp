@@ -42,8 +42,6 @@
 #include "../include/control-play-icon.xpm"
 #include "../include/control-stop-blue-icon.xpm"
 #include "../include/control-stop-icon.xpm"
-#include "../include/sort-up-arrow.xpm"
-#include "../include/sort-down-arrow.xpm"
 
 
 
@@ -2025,12 +2023,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 	ListBoxElementList->SetColumnWidth(0,10);
 	ListBoxElementList->SetColumnWidth(1,10);
 	ListBoxElementList->SetColumnWidth(2,10);
-
-	wxImageList* elementImages;
-	elementImages = new wxImageList();
-	elementImages->Add(wxIcon(sort_up_arrow_xpm));
-	elementImages->Add(wxIcon(sort_down_arrow_xpm));
-	ListBoxElementList->SetImageList(elementImages,wxIMAGE_LIST_SMALL);
 
     // get list of most recently used directories
     wxString dir,mru_name;
