@@ -174,7 +174,7 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
 }
 
 
-void xLightsFrame::OnListBoxElementListItemSelect(wxCommandEvent& event)
+void xLightsFrame::OnListBoxElementListItemSelect(wxListEvent& event)
 {
     UnSelectAllModels();
     SelectModel(ListBoxElementList->GetItemText(ListBoxElementList->GetFirstSelected()));
