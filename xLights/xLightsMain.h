@@ -590,7 +590,7 @@ private:
     void ShowHideDisplayElementsWindow(wxCommandEvent& event);
     void ShowHideEffectAssistWindow(wxCommandEvent& event);
     void OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event);
-    void OnListBoxElementListItemSelect(wxCommandEvent& event);
+    void OnListBoxElementListItemSelect(wxListEvent& event);
     void OnTextCtrlModelStartChannelText(wxCommandEvent& event);
     void OnGridNetworkItemActivated(wxListEvent& event);
     void OnListBoxElementListColumnClick(wxListEvent& event);
