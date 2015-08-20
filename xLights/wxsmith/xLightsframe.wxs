@@ -2104,8 +2104,9 @@
 												<object class="sizeritem">
 													<object class="wxListView" name="ID_LISTBOX_ELEMENT_LIST" variable="ListBoxElementList" member="yes">
 														<size>180,-1</size>
-														<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING|wxLC_NO_SORT_HEADER</style>
+														<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING</style>
 														<handler function="OnListBoxElementListColumnClick" entry="EVT_LIST_COL_CLICK" />
+                                                        <handler function="OnListBoxElementListItemSelect" entry="EVT_LIST_ITEM_SELECTED" /> 
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
