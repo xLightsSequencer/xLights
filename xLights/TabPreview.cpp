@@ -1043,3 +1043,56 @@ void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
     }
 	UpdatePreview();
 }
+
+int wxCALLBACK SortElementsFunctionASC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortColumn)
+{
+    ModelClass* a = (ModelClass *)item1;
+    ModelClass* b = (ModelClass *)item2;
+
+    if (sortColumn == 1) {
+        int ia = a->GetNumberFromChannelString(a->ModelStartChannel);
+        int ib = b->GetNumberFromChannelString(b->ModelStartChannel);
+        if (ia > ib)
+            return 1;
+        if (ia < ib)
+            return -1;
+        return 0;
+    } else if (sortColumn == 2) {
+        int ia = a->GetLastChannel();
+        int ib = b->GetLastChannel();
+        if (ia > ib)
+            return 1;
+        if (ia < ib)
+            return -1;
+        return 0;
+    } else {
+        return a->name.CmpNoCase(b->name);
+    }
+	return 0;
+}
+
+int wxCALLBACK SortElementsFunctionDESC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortColumn)
+{
+    return SortElementsFunctionASC(item2, item1, sortColumn);
+}
+
+
+void xLightsFrame::OnListBoxElementListColumnClick(wxListEvent& event)
+{
+    int col = event.GetColumn();
+    static bool x = false;
+    x = !x;
+    wxListItem item;
+    item.SetMask(wxLIST_MASK_IMAGE);
+    for (int i = 0; i < 3; i++) {
+        if (i == col){
+            item.SetImage(x ? 0 : 1);
+            ListBoxElementList->SetColumn(i,item);
+        } else {
+            item.SetImage(-1);
+            ListBoxElementList->SetColumn(i,item);
+        }
+    }
+    x ? ListBoxElementList->SortItems(SortElementsFunctionASC,col):ListBoxElementList->SortItems(SortElementsFunctionDESC,col);
+}
+

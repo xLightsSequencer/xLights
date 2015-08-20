@@ -42,17 +42,19 @@
 #include "../include/control-play-icon.xpm"
 #include "../include/control-stop-blue-icon.xpm"
 #include "../include/control-stop-icon.xpm"
+#include "../include/sort-up-arrow.xpm"
+#include "../include/sort-down-arrow.xpm"
 
 
 
 //(*InternalHeaders(xLightsFrame)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
 #include <wx/settings.h>
-#include <wx/font.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/font.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/artprov.h>
 //*)
 
 
@@ -505,107 +507,107 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
-    wxStaticText* StaticText22;
+    wxMenuItem* MenuItem2;
+    wxMenuItem* MenuItem29;
+    wxMenuItem* MenuItem23;
+    wxFlexGridSizer* FlexGridSizer30;
     wxStaticBoxSizer* StaticBoxSizer2;
+    wxFlexGridSizer* FlexGridSizer21;
+    wxStaticText* StaticText22;
+    wxFlexGridSizer* FlexGridSizer28;
     wxMenuItem* MenuItem31;
+    wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizerNetworks;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer25;
+    wxMenuItem* MenuItem30;
+    wxMenuItem* MenuItemDelList;
+    wxStaticText* StaticText21;
+    wxFlexGridSizer* FlexGridSizer15;
+    wxBoxSizer* BoxSizer3;
+    wxMenu* Menu5;
+    wxFlexGridSizer* FlexGridSizer56;
+    wxFlexGridSizer* FlexGridSizer50;
+    wxMenuItem* MenuItem12;
+    wxMenuItem* MenuItem25;
+    wxStaticText* StaticText28;
+    wxFlexGridSizer* FlexGridSizer17;
+    wxBoxSizer* BoxSizer10;
+    wxFlexGridSizer* FlexGridSizer29;
+    wxMenuItem* MenuItem19;
+    wxFlexGridSizer* FlexGridSizer19;
+    wxFlexGridSizer* FlexGridSizer11;
+    wxMenuItem* MenuItemAddList;
+    wxFlexGridSizer* FlexGridSizerCal;
+    wxFlexGridSizer* FlexGridSizer47;
+    wxMenuItem* MenuItem20;
+    wxFlexGridSizer* FlexGridSizer40;
+    wxFlexGridSizer* FlexGridSizerPreview;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxMenu* MenuItem_Grid_Icon_Backgrounds;
+    wxMenuItem* MenuItem24;
+    wxBoxSizer* BoxSizer2;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer26;
+    wxFlexGridSizer* FlexGridSizer9;
+    wxFlexGridSizer* FlexGridSizer14;
+    wxFlexGridSizer* FlexGridSizer55;
+    wxFlexGridSizer* FlexGridSizer6;
+    wxMenuItem* MenuItem17;
+    wxButton* Button03;
+    wxFlexGridSizer* FlexGridSizer27;
+    wxFlexGridSizer* FlexGridSizer37;
+    wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer22;
+    wxFlexGridSizer* FlexGridSizer31;
+    wxMenuItem* MenuItem9;
+    wxFlexGridSizer* FlexGridSizer43;
+    wxFlexGridSizer* FlexGridSizerPapagayo;
+    wxStaticText* StaticText38;
+    wxFlexGridSizer* FlexGridSizer39;
+    wxMenuItem* MenuItem11;
+    wxStaticBoxSizer* StaticBoxSizer4;
+    wxBoxSizer* BoxSizer8;
+    wxMenuItem* MenuItem22;
+    wxMenuItem* MenuItem5;
+    wxFlexGridSizer* FlexGridSizer16;
+    wxStaticBoxSizer* StaticBoxSizerHighlightColor;
+    wxFlexGridSizer* FlexGridSizer23;
+    wxFlexGridSizer* FlexGridSizerConvert;
+    wxFlexGridSizer* FlexGridSizerTest;
+    wxStaticBoxSizer* StaticBoxSizerBackgroundColor;
+    wxFlexGridSizer* FlexGridSizer10;
+    wxMenuItem* MenuItemDisplayElements;
+    wxBoxSizer* BoxSizer1;
+    wxFlexGridSizer* FlexGridSizer13;
+    wxMenuItem* MenuItem10;
+    wxMenuItem* MenuItem27;
+    wxGridBagSizer* GridBagSizer1;
+    wxFlexGridSizer* FlexGridSizer18;
+    wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem6;
+    wxMenuItem* MenuItem26;
+    wxMenuItem* MenuItem13;
+    wxFlexGridSizer* FlexGridSizer54;
+    wxFlexGridSizer* FlexGridSizer36;
+    wxFlexGridSizer* FlexGridSizer12;
+    wxMenu* Menu2;
+    wxMenuItem* MenuItemCustomScript;
+    wxMenu* MenuPlaylist;
+    wxMenuItem* MenuItem28;
+    wxFlexGridSizer* FlexGridSizer35;
+    wxFlexGridSizer* FlexGridSizer5;
+    wxFlexGridSizer* FlexGridSizer24;
     wxMenu* MenuHelp;
     wxMenuItem* MenuItem8;
-    wxFlexGridSizer* FlexGridSizer4;
-    wxFlexGridSizer* FlexGridSizer47;
-    wxFlexGridSizer* FlexGridSizer54;
-    wxFlexGridSizer* FlexGridSizerTest;
-    wxFlexGridSizer* FlexGridSizer16;
-    wxFlexGridSizer* FlexGridSizerSetup;
-    wxMenuItem* MenuItem26;
-    wxFlexGridSizer* FlexGridSizer24;
-    wxMenuItem* MenuItemCustomScript;
-    wxStaticBoxSizer* StaticBoxSizerHighlightColor;
-    wxMenuItem* MenuItem25;
-    wxFlexGridSizer* FlexGridSizer19;
-    wxBoxSizer* BoxSizer10;
-    wxBoxSizer* BoxSizer8;
-    wxFlexGridSizer* FlexGridSizer23;
-    wxMenuItem* MenuItem5;
-    wxMenuItem* MenuItem2;
-    wxMenuItem* MenuItemAddList;
-    wxGridBagSizer* GridBagSizer1;
-    wxStaticBoxSizer* StaticBoxSizer4;
-    wxFlexGridSizer* FlexGridSizer10;
-    wxFlexGridSizer* FlexGridSizer3;
-    wxFlexGridSizer* FlexGridSizer27;
-    wxMenuItem* MenuItem4;
     wxMenuItem* MenuItem14;
-    wxFlexGridSizer* FlexGridSizer37;
-    wxFlexGridSizer* FlexGridSizer5;
-    wxFlexGridSizer* FlexGridSizer25;
-    wxMenuItem* MenuItem11;
-    wxMenuItem* MenuItem29;
-    wxFlexGridSizer* FlexGridSizer22;
-    wxStaticText* StaticText38;
-    wxFlexGridSizer* FlexGridSizer56;
-    wxFlexGridSizer* FlexGridSizer9;
-    wxMenuItem* MenuItem22;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxMenuItem* MenuItem17;
-    wxBoxSizer* BoxSizer2;
-    wxMenuItem* MenuItem13;
-    wxFlexGridSizer* FlexGridSizer7;
-    wxMenuItem* MenuItem10;
-    wxFlexGridSizer* FlexGridSizerCal;
-    wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxStaticText* StaticText21;
-    wxFlexGridSizer* FlexGridSizer55;
-    wxMenuItem* MenuItemDelList;
-    wxMenuItem* MenuItem12;
-    wxMenuItem* MenuItem24;
-    wxMenuItem* MenuItem27;
-    wxFlexGridSizer* FlexGridSizerNetworks;
     wxFlexGridSizer* FlexGridSizer57;
-    wxFlexGridSizer* FlexGridSizer29;
-    wxMenuItem* MenuItem20;
-    wxFlexGridSizer* FlexGridSizerPreview;
-    wxMenuItem* MenuItem28;
-    wxFlexGridSizer* FlexGridSizer15;
-    wxFlexGridSizer* FlexGridSizer18;
-    wxFlexGridSizer* FlexGridSizer8;
-    wxMenuItem* MenuItemDisplayElements;
-    wxFlexGridSizer* FlexGridSizer21;
-    wxMenuItem* MenuItem6;
-    wxFlexGridSizer* FlexGridSizer14;
-    wxMenuItem* MenuItem23;
-    wxFlexGridSizer* FlexGridSizer20;
-    wxStaticText* StaticText28;
-    wxBoxSizer* BoxSizer1;
-    wxMenuItem* MenuItemRenameList;
-    wxFlexGridSizer* FlexGridSizer50;
-    wxFlexGridSizer* FlexGridSizer13;
-    wxFlexGridSizer* FlexGridSizer35;
-    wxFlexGridSizer* FlexGridSizer12;
-    wxFlexGridSizer* FlexGridSizer36;
-    wxFlexGridSizer* FlexGridSizer6;
-    wxStaticBoxSizer* StaticBoxSizer1;
-    wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizerConvert;
-    wxFlexGridSizer* FlexGridSizer43;
-    wxFlexGridSizer* FlexGridSizer11;
-    wxBoxSizer* BoxSizer3;
-    wxFlexGridSizer* FlexGridSizer17;
-    wxMenu* Menu2;
-    wxFlexGridSizer* FlexGridSizerPapagayo;
-    wxMenuItem* MenuItem9;
     wxFlexGridSizer* FlexGridSizer32;
-    wxMenuItem* MenuItem30;
-    wxFlexGridSizer* FlexGridSizer31;
-    wxFlexGridSizer* FlexGridSizer40;
-    wxFlexGridSizer* FlexGridSizer39;
-    wxFlexGridSizer* FlexGridSizer28;
-    wxStaticBoxSizer* StaticBoxSizerBackgroundColor;
-    wxMenu* MenuPlaylist;
-    wxFlexGridSizer* FlexGridSizer26;
-    wxMenu* Menu5;
-    wxMenuItem* MenuItem19;
-    wxFlexGridSizer* FlexGridSizer30;
-    wxButton* Button03;
+    wxStaticBoxSizer* StaticBoxSizer1;
+    wxMenuItem* MenuItemRenameList;
+    wxFlexGridSizer* FlexGridSizer20;
+    wxFlexGridSizer* FlexGridSizerSetup;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1411,1103));
@@ -1833,6 +1835,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnScaleImageCheckboxClick);
     Connect(ID_SLIDER_BACKGROUND_BRIGHTNESS,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated);
     Connect(ID_BUTTON_SELECT_MODEL_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSelectModelGroupsClick);
+    Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListColumnClick);
     Connect(ID_BUTTON_MODELS_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonModelsPreviewClick);
     Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSavePreviewClick);
     Connect(ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlPreviewElementSizeText);
@@ -2010,7 +2013,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 	elementCol.SetText(_T("Element Name"));
 	elementCol.SetImage(-1);
 	elementCol.SetAlign(wxLIST_FORMAT_LEFT);
-	ListBoxElementList->DeleteColumn(0);
 	ListBoxElementList->InsertColumn(0, elementCol);
 
 	elementCol.SetText(_T("Start Chan"));
@@ -2023,7 +2025,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 	ListBoxElementList->SetColumnWidth(0,10);
 	ListBoxElementList->SetColumnWidth(1,10);
 	ListBoxElementList->SetColumnWidth(2,10);
-	ListBoxElementList->SetColumnWidth(3,10);
+
+	wxImageList* elementImages;
+	elementImages = new wxImageList();
+	elementImages->Add(wxIcon(sort_up_arrow_xpm));
+	elementImages->Add(wxIcon(sort_down_arrow_xpm));
+	ListBoxElementList->SetImageList(elementImages,wxIMAGE_LIST_SMALL);
 
     // get list of most recently used directories
     wxString dir,mru_name;
