@@ -441,6 +441,9 @@ public:
     long ModelBrightness;   // Value from -100 to +100 indicates an adjustment to brightness for this model
     bool Selected=false;
     bool GroupSelected=false;
+    wxString ModelStartChannel;
+    NetInfoClass *ModelNetInfo;
+    bool Overlapping=false;
     void SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBased=false);
     size_t GetNodeCount() const;
     int GetChanCount() const;
@@ -455,6 +458,7 @@ public:
     int GetLastChannel();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml();
+    int GetNumberFromChannelString(wxString sc);
     wxCursor GetResizeCursor(int cornerIndex);
     void DisplayModelOnWindow(ModelPreview* preview, const xlColour *color =  NULL, bool allowSelected = true);
     void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
@@ -477,6 +481,8 @@ public:
     int NodeStartChannel(size_t nodenum) const;
     wxString NodeType(size_t nodenum) const;
     int MapToNodeIndex(int strand, int node) const;
+	void SetModelStartChan(wxString start_channel);
+    int ChannelStringToNumber(wxString channel);
 
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
@@ -492,7 +498,7 @@ public:
 //    int FindChannelAtXY(int x, int y, const wxString& model);
     wxString GetNodeXY(const wxString& nodenumstr);
     wxString GetNodeXY(int nodeinx);
-    
+
     void GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts);
 
     void SetTop(ModelPreview* preview,int y);

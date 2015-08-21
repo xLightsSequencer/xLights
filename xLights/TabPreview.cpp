@@ -108,7 +108,7 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
             }
             xOff = minx;
             yOff = miny;
-            
+
             h = maxy - miny + 1;
             w = maxx - minx + 1;
         }
@@ -174,20 +174,22 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
 }
 
 
-void xLightsFrame::OnListBoxElementListSelect(wxCommandEvent& event)
+void xLightsFrame::OnListBoxElementListItemSelect(wxListEvent& event)
 {
     UnSelectAllModels();
-    SelectModel(ListBoxElementList->GetString(ListBoxElementList->GetSelection()));
+    SelectModel(ListBoxElementList->GetItemText(ListBoxElementList->GetFirstSelected()));
 }
 
 void xLightsFrame::SelectModel(wxString name)
 {
-    for(int i=0;i<ListBoxElementList->GetCount();i++)
+	int foundStart = 0;
+	int foundEnd = 0;
+	for(int i=0;i<ListBoxElementList->GetItemCount();i++)
     {
-        if (name == ListBoxElementList->GetString(i))
+        if (name == ListBoxElementList->GetItemText(i))
         {
-            ListBoxElementList->SetSelection(i);
-            ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(i);
+            ListBoxElementList->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+            ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
             m->Selected = true;
             double newscalex, newscaley;
             m->GetScales(newscalex, newscaley);
@@ -202,10 +204,31 @@ void xLightsFrame::SelectModel(wxString name)
             bool canrotate=m->CanRotate();
             SliderPreviewRotate->Enable(canrotate);
             StaticTextPreviewRotation->Enable(canrotate);
-            UpdatePreview();
+			foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
+			foundEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
+			TextCtrlModelStartChannel->SetValue(m->ModelStartChannel);
             break;
         }
     }
+
+	for(int i=0;i<ListBoxElementList->GetItemCount();i++)
+	{
+		if (name != ListBoxElementList->GetItemText(i)) {
+			ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
+			int startChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,1));
+			int endChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
+			if ((startChan >= foundStart) && (endChan <= foundEnd)) {
+				m->Overlapping = true;
+			} else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
+				m->Overlapping = true;
+			} else if ((endChan >= foundStart) && (endChan <= foundEnd)) {
+				m->Overlapping = true;
+			} else {
+				m->Overlapping = false;
+			}
+		}
+	}
+	UpdatePreview();
 
 }
 
@@ -460,8 +483,7 @@ int xLightsFrame::ModelsSelectedCount()
 
 void xLightsFrame::ShowModelProperties()
 {
-    ListBoxElementList->GetSelection();
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(ListBoxElementList->GetSelection());
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(ListBoxElementList->GetFirstSelected());
 
     wxXmlNode* e=m->GetModelXml();
     int DlgResult;
@@ -626,9 +648,9 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
         return;
     }
 
-    int sel=ListBoxElementList->GetSelection();
+    int sel=ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND) return;
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(sel);
 
     if(m_rotating)
     {
@@ -693,9 +715,9 @@ void xLightsFrame::OnScrolledWindowPreviewPaint(wxPaintEvent& event)
 
 void xLightsFrame::PreviewScaleUpdated(float xscale, float yscale)
 {
-    int sel=ListBoxElementList->GetSelection();
+    int sel=ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND) return;
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(sel);
     m->SetScale(xscale/100.0, yscale/100.0);
     m->UpdateXmlWithScale();
     UnsavedRgbEffectsChanges = true;
@@ -715,9 +737,9 @@ void xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated(wxScrollEvent& event)
 
 void xLightsFrame::PreviewRotationUpdated(int newRotation)
 {
-    int sel=ListBoxElementList->GetSelection();
+    int sel=ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND) return;
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(sel);
     m->SetModelCoord(newRotation);
     m->UpdateXmlWithScale();
     UnsavedRgbEffectsChanges = true;
@@ -1015,4 +1037,74 @@ void xLightsFrame::OnScaleImageCheckboxClick(wxCommandEvent& event)
     UnsavedRgbEffectsChanges=true;
 }
 
+
+void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
+{
+	wxString newStartChannel = TextCtrlModelStartChannel->GetValue();
+	int sel = ListBoxElementList->GetFirstSelected();
+	if (sel == wxNOT_FOUND) return;
+	ModelClass* m = (ModelClass*)ListBoxElementList->GetItemData(sel);
+	wxString name = ListBoxElementList->GetItemText(sel);
+	int oldStart = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(sel,1));
+    int oldEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(sel,2));
+    int newEnd = (m->GetNumberFromChannelString(newStartChannel) - oldStart) + oldEnd;
+	m->SetModelStartChan(newStartChannel);
+	for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
+		if (e->GetName() == "modelGroup") {
+			if (name == e->GetAttribute("name")) {
+				e->DeleteAttribute("StartChannel");
+				e->AddAttribute("StartChannel",wxString::Format("%d",newStartChannel));
+			}
+		}
+	}
+	ListBoxElementList->SetItem(sel, 1, newStartChannel);
+	ListBoxElementList->SetItem(sel, 2, wxString::Format("%d",newEnd));
+	if (newEnd >= NetInfo.GetTotChannels()) {
+        TextCtrlModelStartChannel->SetBackgroundColour(wxColour("#ff0000"));
+	} else {
+        TextCtrlModelStartChannel->SetBackgroundColour(wxColour("#ffffff"));
+    }
+	UpdatePreview();
+}
+
+int wxCALLBACK SortElementsFunctionASC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortColumn)
+{
+    ModelClass* a = (ModelClass *)item1;
+    ModelClass* b = (ModelClass *)item2;
+
+    if (sortColumn == 1) {
+        int ia = a->GetNumberFromChannelString(a->ModelStartChannel);
+        int ib = b->GetNumberFromChannelString(b->ModelStartChannel);
+        if (ia > ib)
+            return 1;
+        if (ia < ib)
+            return -1;
+        return 0;
+    } else if (sortColumn == 2) {
+        int ia = a->GetLastChannel();
+        int ib = b->GetLastChannel();
+        if (ia > ib)
+            return 1;
+        if (ia < ib)
+            return -1;
+        return 0;
+    } else {
+        return a->name.CmpNoCase(b->name);
+    }
+	return 0;
+}
+
+int wxCALLBACK SortElementsFunctionDESC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortColumn)
+{
+    return SortElementsFunctionASC(item2, item1, sortColumn);
+}
+
+
+void xLightsFrame::OnListBoxElementListColumnClick(wxListEvent& event)
+{
+    int col = event.GetColumn();
+    static bool x = false;
+    x = !x;
+    x ? ListBoxElementList->SortItems(SortElementsFunctionASC,col):ListBoxElementList->SortItems(SortElementsFunctionDESC,col);
+}
 
