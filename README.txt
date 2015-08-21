@@ -14,7 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh(dkulp) Make "Export Model" export the current state of the model, add option to re-render it
     -- bug(dkulp) Enable "Export Model" for groups
     -- enh(dkulp) OSX - Disable AppNap and Timer Coalescing when Output To Lights is on
-    -- eng(steve) Add keybindings "F" for Off and "a" for fan effects
+    -- eng(steve) Add keybindings "O" for Off and "F" for fan effects
     -- enh(steve) Update Readme for Windows builds
 4.2.1  Aug 14, 2015
     -- enh(gil)  Timings added to a sequence default to exist in all views.
