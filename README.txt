@@ -7,11 +7,13 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.2  Aug 14, 2015
+    -- enh(chrisD) in the Layout screen starting and ending channels are now shown. Name,Start and End are clickable columns to sort
     -- bug(dkulp) Fix crashes when renaming models that are part of a group or renaming a group.  Fixes #337.
-    -- bug(dkulp) Fix crash on clicking Up/Down if no modals selected. Fixes #181
+    -- bug(dkulp) Fix crash on clicking Up/Down if no models selected. Fixes #181
     -- enh(dkulp) Make "Export Model" export the current state of the model, add option to re-render it
     -- bug(dkulp) Enable "Export Model" for groups
-    -- enh(dkulp) OSX - Disable AppNap and Timer Colescing when Output To Lights is on
+    -- enh(dkulp) OSX - Disable AppNap and Timer Coalescing when Output To Lights is on
     -- eng(steve) Add keybindings "F" for Off and "a" for fan effects
     -- enh(steve) Update Readme for Windows builds
 4.2.1  Aug 14, 2015
