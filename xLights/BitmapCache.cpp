@@ -586,7 +586,7 @@ const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int 
             return effectBitmaps.get(size, exact, "Corner2a", point_2a_64, point_2a_64, point_2a_64, point_2a_64, point_2a_64);
         case 3:
             toolTip = "Corner 2b";
-            return effectBitmaps.get(size, exact, "Corner2a", point_2a_64, point_2a_64, point_2a_64, point_2a_64, point_2a_64);
+            return effectBitmaps.get(size, exact, "Corner2b", point_2b_64, point_2b_64, point_2b_64, point_2b_64, point_2b_64);
         case 4:
             toolTip = "Corner 1ab";
             return effectBitmaps.get(size, exact, "Corner1ab", point_1ab_64, point_1ab_64, point_1ab_64, point_1ab_64, point_1ab_64);

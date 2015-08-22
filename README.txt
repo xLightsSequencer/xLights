@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Version older detection code was wrong....this caused morphs to be converted when they shouldn't.
+                  Also fixed morph corner 2b point graphic.
 4.2.2  Aug 14, 2015
     -- enh(chrisD) in the Layout screen starting and ending channels are now shown. Name,Start and End are clickable columns to sort
     -- bug(dkulp) Fix crashes when renaming models that are part of a group or renaming a group.  Fixes #337.

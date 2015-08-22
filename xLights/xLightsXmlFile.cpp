@@ -83,7 +83,9 @@ bool xLightsXmlFile::IsVersionOlder(const wxString& compare, const wxString& ver
     wxArrayString compare_parts = wxSplit(compare, '.');
     wxArrayString version_parts = wxSplit(version, '.');
     if( wxAtoi(version_parts[0]) < wxAtoi(compare_parts[0]) ) return true;
+    if( wxAtoi(version_parts[0]) > wxAtoi(compare_parts[0]) ) return false;
     if( wxAtoi(version_parts[1]) < wxAtoi(compare_parts[1]) ) return true;
+    if( wxAtoi(version_parts[1]) > wxAtoi(compare_parts[1]) ) return false;
     if( wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]) ) return true;
     return false;
 }
