@@ -58,6 +58,12 @@ void xLightsFrame::SetDir(const wxString& newdir)
     // Check to see if any show directory files need to be saved
     CheckUnsavedChanges();
 
+    // Force update of Preset dialog
+    if( EffectTreeDlg != NULL ) {
+        delete EffectTreeDlg;
+    }
+    EffectTreeDlg = NULL;
+
     // update most recently used array
     idx=mru.Index(newdir);
     if (idx != wxNOT_FOUND) mru.RemoveAt(idx);
@@ -242,7 +248,7 @@ void xLightsFrame::UpdateNetworkList()
                 GridNetwork->SetItem(newidx,2,e->GetAttribute("BaudRate", ""));
             }
             GridNetwork->SetItem(newidx,3,MaxChannelsStr);
-            
+
             NetInfo.AddNetwork(MaxChannels);
             StartChannel=TotChannels+1;
             TotChannels+=MaxChannels;
@@ -251,7 +257,7 @@ void xLightsFrame::UpdateNetworkList()
             // Vixen mapping
             msg=wxString::Format(_("Channels %d to %ld"), StartChannel, TotChannels);
             GridNetwork->SetItem(newidx,4,msg);
-            
+
             GridNetwork->SetItem(newidx,5,e->GetAttribute("Enabled", "Yes"));
         }
     }
@@ -651,7 +657,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
         IpAddr=e->GetAttribute("ComPort");
         StartUniverse=e->GetAttribute("BaudRate");
         LastChannelStr=e->GetAttribute("MaxChannels");
-        
+
         NumUniv = wxAtoi(e->GetAttribute("NumUniverses", "1"));
         E131Dlg.SpinCtrl_StartUniv->SetValue(StartUniverse);
         E131Dlg.SpinCtrl_NumUniv->SetValue(NumUniv);
@@ -694,7 +700,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
                     e->AddAttribute("BaudRate",wxString::Format("%d",UnivNum));
                     e->DeleteAttribute("MaxChannels");
                     e->AddAttribute("MaxChannels",LastChannelStr);
-                    
+
                     e->DeleteAttribute("NumUniverses");
                     if (E131Dlg.MultiE131CheckBox->GetValue()) {
                         e->AddAttribute("NumUniverses", wxString::Format("%d",E131Dlg.SpinCtrl_NumUniv->GetValue()));
