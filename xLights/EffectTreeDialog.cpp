@@ -110,6 +110,14 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
             TreeCtrl1->SetItemHasChildren(curGroupID);
             AddTreeElementsRecursive(ele, curGroupID);
         }
+        else if (ele->GetName() == "effect")
+        {
+            name = ele->GetAttribute("name");
+            if (!name.IsEmpty())
+            {
+                TreeCtrl1->AppendItem(treeRootID, name,-1,-1, new MyTreeItemData(ele));
+            }
+        }
     }
 
 	TreeCtrl1->Expand(treeRootID);
