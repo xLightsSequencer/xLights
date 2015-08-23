@@ -2263,6 +2263,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CurtainEdge=EffectsPanel1->Choice_Curtain_Edge->GetStrings();
     CurtainEffect=EffectsPanel1->Choice_Curtain_Effect->GetStrings();
 
+    EffectTreeDlg = NULL;  // must be before any call to SetDir
+
     // Check if schedule should be running
     xout=0;
     long RunFlag=0;
@@ -2312,7 +2314,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     //start out with 50ms timer, once we load a file or create a new one, we'll reset
     //to whatever the timing that is selected
     Timer1.Start(50, wxTIMER_CONTINUOUS);
-    EffectTreeDlg = NULL;
 
 //    ConnectOnChar(PaneNutcracker);
 //    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
