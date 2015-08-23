@@ -211,9 +211,25 @@ Element* SequenceElements::GetElement(int index, int view)
     }
 }
 
-
 void SequenceElements::DeleteElement(const wxString &name)
 {
+    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
+    {
+        wxString view_models = view->GetAttribute("models");
+        wxArrayString all_models = wxSplit(view_models, ',');
+        wxArrayString new_models;
+        for( int model = 0; model < all_models.size(); model++ )
+        {
+            if( all_models[model] != name )
+            {
+                new_models.push_back(all_models[model]);
+            }
+        }
+        view_models = wxJoin(new_models, ',');
+        view->DeleteAttribute("models");
+        view->AddAttribute("models", view_models);
+    }
+
     // delete element pointer from all views
     for(int i=0;i<mAllViews.size();i++)
     {
@@ -278,6 +294,36 @@ void SequenceElements::DeleteTimingFromView(const wxString &name, int view)
             all_views.erase(all_views.begin() + found);
             views = wxJoin(all_views, ',');
             elem->SetViews(views);
+        }
+    }
+}
+
+void SequenceElements::RenameModelInViews(const wxString& old_name, const wxString& new_name)
+{
+    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
+    {
+        wxString view_models = view->GetAttribute("models");
+        wxArrayString all_models = wxSplit(view_models, ',');
+        for( int model = 0; model < all_models.size(); model++ )
+        {
+            if( all_models[model] == old_name )
+            {
+                all_models[model] = new_name;
+            }
+        }
+        view_models = wxJoin(all_models, ',');
+        view->DeleteAttribute("models");
+        view->AddAttribute("models", view_models);
+    }
+
+    for(int view=0; view < mAllViews.size(); view++)
+    {
+        for(int i=0; i < mAllViews[view].size(); i++)
+        {
+            if(mAllViews[view][i]->GetName() == old_name)
+            {
+                mAllViews[view][i]->SetName(new_name);
+            }
         }
     }
 }
