@@ -204,10 +204,10 @@ void xLightsFrame::SelectModel(wxString name)
             bool canrotate=m->CanRotate();
             SliderPreviewRotate->Enable(canrotate);
             StaticTextPreviewRotation->Enable(canrotate);
+            TextCtrlModelStartChannel->SetValue(m->ModelStartChannel);
             if (CheckBoxOverlap->GetValue()== true) {
                 foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
                 foundEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
-                TextCtrlModelStartChannel->SetValue(m->ModelStartChannel);
             }
             break;
         }
