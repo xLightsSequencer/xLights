@@ -229,26 +229,27 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
     if (DlgResult != wxID_OK) return;
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
 
-    wxString attr;
-    e->GetAttribute("name", &attr);
+    wxString OldName;
+    e->GetAttribute("name", &OldName);
 
-    Element* elem_to_rename = mSequenceElements->GetElement(attr);
+    Element* elem_to_rename = mSequenceElements->GetElement(OldName);
     if( elem_to_rename != NULL )
     {
         elem_to_rename->SetName(NewName);
     }
+
     e->DeleteAttribute("name");
     e->AddAttribute("name",NewName);
-    
+
     for (wxXmlNode *grp = modelGroups->GetChildren(); grp != nullptr; grp = grp->GetNext()) {
         wxString groupModels = grp->GetAttribute("models");
         wxArrayString ModelsInGroup=wxSplit(groupModels,',');
         for(int i=0;i<ModelsInGroup.size();i++)
         {
-            if (ModelsInGroup[i] == attr) {
+            if (ModelsInGroup[i] == OldName) {
                 ModelsInGroup[i] = NewName;
                 grp->DeleteAttribute("models");
-                
+
                 groupModels = ModelsInGroup[0];
                 for (int x = 1; x < ModelsInGroup.size(); x++) {
                     groupModels += ",";
@@ -258,6 +259,9 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
             }
         }
     }
+
+    mSequenceElements->RenameModelInViews(OldName, NewName);
+
     ListBox1->Delete(sel);
     ListBox1->Append(NewName, e);
 }

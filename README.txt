@@ -7,6 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)  Fix view combo drop-down not populating when no fseq file existed.  Moved Initialize call
+                 to make sure SequenceData object has been initialized first.
+    -- bug(gil)  Models that are renamed or deleted will now be updated in all views.
     -- bug(gil)  Presets will now populate correctly when switching to a new Show directory.
     -- bug(gil)  Presets created at top level will now show up when program is reopened.
 4.2.3  Aug 22, 2015

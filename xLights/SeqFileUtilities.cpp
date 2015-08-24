@@ -56,6 +56,7 @@ void xLightsFrame::NewSequence()
     {
         SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
+    displayElementsPanel->Initialize();
 }
 
 static wxFileName mapFileName(const wxFileName &orig) {
@@ -226,6 +227,7 @@ void xLightsFrame::OpenSequence()
         {
             SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
+        displayElementsPanel->Initialize();
 
         if( loaded_fseq )
         {
