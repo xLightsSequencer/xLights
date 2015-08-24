@@ -2113,6 +2113,15 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOXOVERLAP" variable="CheckBoxOverlap" member="yes">
+														<label>Overlap checks enabled</label>
+														<handler function="OnCheckBoxOverlapClick" entry="EVT_CHECKBOX" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON_MODELS_PREVIEW" variable="ButtonModelsPreview" member="yes">
 														<label>Models</label>
 														<handler function="OnButtonModelsPreviewClick" entry="EVT_BUTTON" />
@@ -2245,10 +2254,10 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxFlexGridSizer" variable="FlexGridSizer32" member="no">
+													<object class="wxFlexGridSizer" variable="FlexGridSizerStartChan" member="no">
 														<cols>3</cols>
 														<object class="sizeritem">
-															<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText39" member="yes">
+															<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticTextStartChannel" member="yes">
 																<label>Start Channel</label>
 															</object>
 															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -204,29 +204,35 @@ void xLightsFrame::SelectModel(wxString name)
             bool canrotate=m->CanRotate();
             SliderPreviewRotate->Enable(canrotate);
             StaticTextPreviewRotation->Enable(canrotate);
-			foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
-			foundEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
-			TextCtrlModelStartChannel->SetValue(m->ModelStartChannel);
+            if (CheckBoxOverlap->GetValue()== true) {
+                foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
+                foundEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
+                TextCtrlModelStartChannel->SetValue(m->ModelStartChannel);
+            }
             break;
         }
     }
 
-	for(int i=0;i<ListBoxElementList->GetItemCount();i++)
-	{
-		if (name != ListBoxElementList->GetItemText(i)) {
-			ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
-			int startChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,1));
-			int endChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
-			if ((startChan >= foundStart) && (endChan <= foundEnd)) {
-				m->Overlapping = true;
-			} else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
-				m->Overlapping = true;
-			} else if ((endChan >= foundStart) && (endChan <= foundEnd)) {
-				m->Overlapping = true;
-			} else {
-				m->Overlapping = false;
-			}
-		}
+    if (CheckBoxOverlap->GetValue()) {
+        for(int i=0;i<ListBoxElementList->GetItemCount();i++)
+        {
+            if (name != ListBoxElementList->GetItemText(i)) {
+                ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
+                if (m != NULL) {
+                    int startChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,1));
+                    int endChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
+                    if ((startChan >= foundStart) && (endChan <= foundEnd)) {
+                        m->Overlapping = true;
+                    } else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
+                        m->Overlapping = true;
+                    } else if ((endChan >= foundStart) && (endChan <= foundEnd)) {
+                        m->Overlapping = true;
+                    } else {
+                        m->Overlapping = false;
+                    }
+                }
+            }
+        }
 	}
 	UpdatePreview();
 
@@ -965,7 +971,7 @@ void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
 {
     CurrentPreviewModels dialog(this,ModelGroupsNode,ModelsNode);
     dialog.ShowModal();
-    
+
     for (wxXmlNode *node = ModelGroupsNode->GetChildren(); node != nullptr; node = node->GetNext()) {
         wxString oldName = node->GetAttribute("oldName", "");
         node->DeleteAttribute("oldName");
@@ -976,7 +982,7 @@ void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
             }
         }
     }
-    
+
     UnsavedRgbEffectsChanges=true;
     ShowSelectedModelGroups();
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -1059,7 +1065,7 @@ void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
 	}
 	ListBoxElementList->SetItem(sel, 1, newStartChannel);
 	ListBoxElementList->SetItem(sel, 2, wxString::Format("%d",newEnd));
-	if (newEnd >= NetInfo.GetTotChannels()) {
+	if (newEnd > NetInfo.GetTotChannels()) {
         TextCtrlModelStartChannel->SetBackgroundColour(wxColour("#ff0000"));
 	} else {
         TextCtrlModelStartChannel->SetBackgroundColour(wxColour("#ffffff"));
@@ -1108,3 +1114,16 @@ void xLightsFrame::OnListBoxElementListColumnClick(wxListEvent& event)
     x ? ListBoxElementList->SortItems(SortElementsFunctionASC,col):ListBoxElementList->SortItems(SortElementsFunctionDESC,col);
 }
 
+
+void xLightsFrame::OnCheckBoxOverlapClick(wxCommandEvent& event)
+{
+    if (CheckBoxOverlap->GetValue() == false) {
+        for(int i=0;i<ListBoxElementList->GetItemCount();i++)
+        {
+            ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
+            if (m != NULL) {
+                m->Overlapping = false;
+            }
+        }
+    }
+}

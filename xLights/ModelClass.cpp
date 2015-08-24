@@ -273,7 +273,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
         ChannelsPerString=1;
     else if (SingleNode)
         ChannelsPerString=GetNodeChannelCount(StringType);
-    
+
     if ("Arches" == DisplayAs) {
         SingleChannel = false;
         ChannelsPerString=GetNodeChannelCount(StringType) * parm2;
@@ -364,13 +364,13 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     for(size_t i=0; i<NodeCount; i++) {
         Nodes[i]->sparkle = rand() % 10000;
     }
-    
+
     wxXmlNode *f = ModelNode->GetChildren();
     faceInfo.clear();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
             wxString type = f->GetAttribute("Type", "SingleNode");
-            
+
             wxXmlAttribute *att = f->GetAttributes();
             while (att != nullptr) {
                 if (att->GetName() != "Type") {
@@ -505,7 +505,7 @@ void ModelClass::InitVMatrix(int firstExportStrand) {
 void ModelClass::InitArches() {
     int NumArches=parm1;
     int SegmentsPerArch=parm2;
-    
+
     SetBufferSize(NumArches,SegmentsPerArch);
     if (SingleNode) {
         SetNodeCount(NumArches * SegmentsPerArch, parm3,rgbOrder);
@@ -673,7 +673,7 @@ void ModelClass::InitCustomMatrix(const wxString& customModel) {
     for (int x = 0; x < Nodes.size(); x++) {
         Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
     }
-    
+
     SetBufferSize(height,width);
 }
 
@@ -699,7 +699,7 @@ void ModelClass::SetTreeCoord(long degrees) {
         double radians=toRadians(degrees);
         double radius=RenderWi/2.0;
         double topradius=RenderWi/12;
-        
+
         double StartAngle=-radians/2.0;
         double AngleIncr=radians/double(BufferWi);
         if (degrees > 180) {
@@ -709,7 +709,7 @@ void ModelClass::SetTreeCoord(long degrees) {
         double topYoffset = std::abs(0.2 * topradius * cos(M_PI));
         double ytop = RenderHt - topYoffset;
         double ybot = std::abs(0.2 * radius * cos(M_PI));
-        
+
         size_t NodeCount=GetNodeCount();
         for(size_t n=0; n<NodeCount; n++) {
             size_t CoordCount=GetCoordCount(n);
@@ -722,7 +722,7 @@ void ModelClass::SetTreeCoord(long degrees) {
                 double yb = ybot - 0.2 * radius * cos(angle);
                 double yt = ytop - 0.2 * topradius * cos(angle);
                 double posOnString = (bufferY/(double)(BufferHt-1.0));
-                
+
                 Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
                 Nodes[n]->Coords[c].screenY = yb + (yt - yb) * posOnString - ((double)RenderHt)/2.0;
             }
@@ -741,7 +741,7 @@ void ModelClass::SetTreeCoord(long degrees) {
                 for(size_t c=0; c < CoordCount; c++) {
                     bufferX=Nodes[n]->Coords[c].bufX;
                     bufferY=Nodes[n]->Coords[c].bufY;
-                    
+
                     double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
                     double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
                     double h = std::sqrt(RenderHt * RenderHt + (xt - xb)*(xt - xb));
@@ -750,13 +750,13 @@ void ModelClass::SetTreeCoord(long degrees) {
                     double newh = RenderHt * posOnString;
                     Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords[c].screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
-                    
+
                     posOnString = ((bufferY - 0.33)/(double)(BufferHt-1.0));
                     newh = RenderHt * posOnString;
                     Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
                     Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
-                    
+
                     posOnString = ((bufferY + 0.33)/(double)(BufferHt-1.0));
                     newh = RenderHt * posOnString;
                     Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
@@ -768,7 +768,7 @@ void ModelClass::SetTreeCoord(long degrees) {
                 for(size_t c=0; c < CoordCount; c++) {
                     bufferX=Nodes[n]->Coords[c].bufX;
                     bufferY=Nodes[n]->Coords[c].bufY;
-                    
+
                     double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
                     double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
                     double posOnString = (bufferY/(double)(BufferHt-1.0));
@@ -1478,7 +1478,7 @@ void ModelClass::UpdateXmlWithScale() {
         ModelXml->AddAttribute("PreviewScaleY", wxString::Format("%6.4f",PreviewScaleY));
     }
     ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
-    ModelXml->AddAttribute("versionNumber", wxString::Format("%d",ModelVersion));
+    ModelXml->AddAttribute("versionNumber", wxString::Format("%ld",ModelVersion));
 	ModelXml->AddAttribute("StartChannel", ModelStartChannel);
 }
 
@@ -1510,13 +1510,13 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
         for(size_t c=0; c < CoordCount; c++) {
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            
+
             sx = (sx*scalex);
             sy = (sy*scaley);
             TranslatePointDoubles(radians,sx,sy,sx,sy);
             sx += w1;
             sy += h1;
-            
+
             xPos.push_back(sx);
             yPos.push_back(sy);
             actChannel.push_back(Nodes[n]->ActChan);
@@ -1652,14 +1652,14 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
     //int vw, vh;
     //preview->GetSize(&w, &h);
     preview->GetVirtualCanvasSize(w, h);
-    
+
     if (pixelStyle == 1) {
         glEnable(GL_POINT_SMOOTH);
     }
     if (pixelSize != 2) {
         glPointSize(preview->calcPixelSize(pixelSize));
     }
-    
+
     if (singleScale) {
         //we now have the virtual size so we can flip to non-single scale
         singleScale = false;
@@ -1669,7 +1669,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
             PreviewScaleY = double(RenderHt) * double(w) / (double(h) * RenderWi) * PreviewScaleX;
         }
     }
-    
+
     double scalex=double(w) / RenderWi * PreviewScaleX;
     double scaley=double(h) / RenderHt * PreviewScaleY;
 
@@ -1795,7 +1795,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
         mHandlePosition[3].x = sx;
         mHandlePosition[3].y = sy;
-        
+
         // Draw rotation handle square
         sx = -RECT_HANDLE_WIDTH/2;
         sy = ((RenderHt*scaley/2) + 50);
@@ -1819,16 +1819,16 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
 void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     xlColor color;
     int w, h;
-    
-    
+
+
     preview->GetSize(&w, &h);
-    
+
     double scaleX = double(w) * 0.95 / RenderWi;
     double scaleY = double(h) * 0.95 / RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
-    
+
     bool success = preview->StartDrawing(pointSize);
-    
+
     if (pixelStyle == 1) {
         glEnable(GL_POINT_SMOOTH);
     }
@@ -1887,7 +1887,7 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
                 // draw node on screen
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                
+
                 double newsy = ((sy*scale)+(h/2));
                 if (pixelStyle < 2) {
                     DrawGLUtils::AddVertex((sx*scale)+(w/2), newsy, color, color == xlBLACK ? blackTransparency : transparency);
@@ -1935,7 +1935,7 @@ void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
             PreviewScaleY = double(RenderHt) * double(w) / (double(h) * RenderWi) * PreviewScaleX;
         }
     }
-    
+
     double scalex = double(w) / RenderWi * PreviewScaleX;
     double scaley = double(h) / RenderHt * PreviewScaleY;
     double radians=toRadians(PreviewRotation);

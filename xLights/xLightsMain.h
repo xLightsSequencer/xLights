@@ -594,6 +594,7 @@ private:
     void OnTextCtrlModelStartChannelText(wxCommandEvent& event);
     void OnGridNetworkItemActivated(wxListEvent& event);
     void OnListBoxElementListColumnClick(wxListEvent& event);
+    void OnCheckBoxOverlapClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -785,6 +786,7 @@ private:
     static const long ID_BUTTON_SELECT_MODEL_GROUPS;
     static const long ID_STATICTEXT21;
     static const long ID_LISTBOX_ELEMENT_LIST;
+    static const long ID_CHECKBOXOVERLAP;
     static const long ID_BUTTON_MODELS_PREVIEW;
     static const long ID_BUTTON_SAVE_PREVIEW;
     static const long ID_STATICTEXT22;
@@ -1090,7 +1092,6 @@ private:
     wxMenuItem* MenuItemEffectAssistWindow;
     wxMenu* MenuFile;
     wxBitmapButton* bbPlayPause;
-    wxStaticText* StaticText39;
     wxRadioButton* RadioButtonShimmer;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
     wxMenuItem* MenuItem3;
@@ -1170,6 +1171,7 @@ private:
     wxListCtrl* GridNetwork;
     DragEffectBitmapButton* BitmapButton3;
     wxChoice* ChoiceOutputFormat;
+    wxStaticText* StaticTextStartChannel;
     wxRadioButton* RadioButtonRgbChaseOff;
     wxPanel* Panel1;
     wxButton* ButtonStartConversion;
@@ -1201,6 +1203,7 @@ private:
     wxStaticText* StaticTextShowStart;
     wxRadioButton* RadioButtonChase5;
     wxListView* ListBoxElementList;
+    wxCheckBox* CheckBoxOverlap;
     wxRadioButton* RadioButtonRgbTwinkle50;
     wxSplitterWindow* SplitterWindow3;
     wxStaticText* StaticText10;
