@@ -177,7 +177,9 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
 void xLightsFrame::OnListBoxElementListItemSelect(wxListEvent& event)
 {
     UnSelectAllModels();
-    SelectModel(ListBoxElementList->GetItemText(ListBoxElementList->GetFirstSelected()));
+    int sel = ListBoxElementList->GetFirstSelected();
+    if (sel == wxNOT_FOUND) return;
+    SelectModel(ListBoxElementList->GetItemText(sel));
 }
 
 void xLightsFrame::SelectModel(wxString name)
@@ -186,7 +188,7 @@ void xLightsFrame::SelectModel(wxString name)
 	int foundEnd = 0;
 	for(int i=0;i<ListBoxElementList->GetItemCount();i++)
     {
-        if (name == ListBoxElementList->GetItemText(i))
+        if (name.Cmp(ListBoxElementList->GetItemText(i)) == 0)
         {
             ListBoxElementList->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
             ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
@@ -216,7 +218,7 @@ void xLightsFrame::SelectModel(wxString name)
     if (CheckBoxOverlap->GetValue()) {
         for(int i=0;i<ListBoxElementList->GetItemCount();i++)
         {
-            if (name != ListBoxElementList->GetItemText(i)) {
+            if (name.Cmp(ListBoxElementList->GetItemText(i)) != 0) {
                 ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
                 if (m != NULL) {
                     int startChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,1));
@@ -489,7 +491,9 @@ int xLightsFrame::ModelsSelectedCount()
 
 void xLightsFrame::ShowModelProperties()
 {
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(ListBoxElementList->GetFirstSelected());
+    int sel = ListBoxElementList->GetFirstSelected();
+    if (sel == wxNOT_FOUND) return;
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(sel);
 
     wxXmlNode* e=m->GetModelXml();
     int DlgResult;
@@ -1056,8 +1060,8 @@ void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
     int newEnd = (m->GetNumberFromChannelString(newStartChannel) - oldStart) + oldEnd;
 	m->SetModelStartChan(newStartChannel);
 	for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
-		if (e->GetName() == "modelGroup") {
-			if (name == e->GetAttribute("name")) {
+		if (e->GetName().Cmp("modelGroup") == 0) {
+			if (name.Cmp(e->GetAttribute("name")) == 0) {
 				e->DeleteAttribute("StartChannel");
 				e->AddAttribute("StartChannel",wxString::Format("%d",newStartChannel));
 			}
