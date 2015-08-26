@@ -8,14 +8,14 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
 4.2.4  Aug 26, 2015
-    -- bug(gil)  Fix view combo drop-down not populating when no fseq file existed.  Moved Initialize call
+	-- bug(gil)  Fix view combo drop-down not populating when no fseq file existed.  Moved Initialize call
                  to make sure SequenceData object has been initialized first.
-    -- bug(gil)  Models that are renamed or deleted will now be updated in all views.
-	-- nug (chrisD) Fixed popup error box when selecting models in LAYOUT
+	-- bug(gil)  Models that are renamed or deleted will now be updated in all views.
+	-- bug (chrisD) Fixed popup error box when selecting models in LAYOUT
 	-- enh(chrisD) New checkbox for channel overlap check in LAYOUT.
 	-- enh(chrisD) in LAYOUT fixed flashing when selecting models
-    -- bug(gil)  Presets will now populate correctly when switching to a new Show directory.
-    -- bug(gil)  Presets created at top level will now show up when program is reopened.
+	-- bug(gil)  Presets will now populate correctly when switching to a new Show directory.
+	-- bug(gil)  Presets created at top level will now show up when program is reopened.
 	-- bug(chrisP) Fix export of Falcon .eseq Effects files
 4.2.3  Aug 22, 2015
     -- bug(gil)   Version older detection code was wrong....this caused morphs to be converted when they shouldn't.
