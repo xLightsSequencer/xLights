@@ -202,6 +202,7 @@ void xLightsFrame::SelectModel(wxString name)
             newscaley *= 100.0;
             SliderPreviewScaleWidth->SetValue(newscalex*10);
             SliderPreviewScaleHeight->SetValue(newscaley*10);
+            TextCtrlPreviewElementHeight->SetValue("-1");
             TextCtrlPreviewElementWidth->SetValue(wxString::Format( "%0.1f",newscalex));
             TextCtrlPreviewElementHeight->SetValue(wxString::Format( "%0.1f",newscaley));
             SliderPreviewRotate->SetValue(m->GetRotation());
@@ -969,6 +970,7 @@ void xLightsFrame::OnTextCtrlPreviewElementSizeText(wxCommandEvent& event)
 {
     float newscalex = wxAtof(TextCtrlPreviewElementWidth->GetValue());
     float newscaley = wxAtof(TextCtrlPreviewElementHeight->GetValue());
+    if (newscaley == -1) {return;}
     SliderPreviewScaleWidth->SetValue(newscalex * 10);
     SliderPreviewScaleHeight->SetValue(newscaley * 10);
     PreviewScaleUpdated(newscalex, newscaley); //slider event not called automatically, so force it here
