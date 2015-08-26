@@ -11,6 +11,7 @@
 #include <wx/string.h>
 //*)
 
+#include "ModelPreview.h"
 #include "PixelAppearanceDlg.h"
 #include "StrandNodeNamesDialog.h"
 #include "NetInfo.h"

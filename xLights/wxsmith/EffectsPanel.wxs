@@ -27,7 +27,7 @@
 									<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 										<cols>2</cols>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT100" variable="StaticText97" member="yes">
+											<object class="wxStaticText" name="wxID_ANY" variable="StaticText97" member="no">
 												<label>This Effect simply turns every</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -35,7 +35,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT120" variable="StaticText118" member="yes">
+											<object class="wxStaticText" name="wxID_ANY" variable="StaticText118" member="no">
 												<label>pixel off on this model.</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -64,7 +64,7 @@
 									<object class="wxFlexGridSizer" variable="FlexGridSizer96" member="no">
 										<cols>1</cols>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT75" variable="StaticText73" member="yes">
+											<object class="wxStaticText" name="wxID_ANY" variable="StaticText73" member="no">
 												<label>This Effect turns every pixel on.</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -197,7 +197,7 @@
 								<vgap>0d</vgap>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT25" variable="StaticText23" member="yes">
+									<object class="wxStaticText" name="wxID_ANY" variable="StaticText23" member="no">
 										<label>Palette Rep</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -235,7 +235,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Bars_BarCount" variable="BitmapButton_PaletteRep" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Bars_BarCount" variable="BitmapButton_PaletteRep" member="no">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>13,13</size>
@@ -290,7 +290,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT26" variable="StaticText24" member="yes">
+									<object class="wxStaticText" name="wxID_ANY" variable="StaticText24" member="no">
 										<label>Direction</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -306,7 +306,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Bars_Direction" variable="BitmapButton_Direction" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Bars_Direction" variable="BitmapButton_Direction" member="no">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>13,13</size>
@@ -327,7 +327,7 @@
 									<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
 										<cols>5</cols>
 										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_Bars_Highlight" variable="CheckBox_Bars_Highlight" member="yes">
+											<object class="wxCheckBox" name="ID_CHECKBOX_Bars_Highlight" variable="CheckBox_Bars_Highlight" member="no">
 												<label>Highlight</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -335,7 +335,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight" variable="BitmapButton_Highlight" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight" variable="BitmapButton_Highlight" member="no">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>13,13</size>
@@ -353,7 +353,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_Bars_3D" variable="CheckBox_Bars_3D" member="yes">
+											<object class="wxCheckBox" name="ID_CHECKBOX_Bars_3D" variable="CheckBox_Bars_3D" member="no">
 												<label>3D</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -361,7 +361,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_3D" variable="BitmapButton_3D" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_3D" variable="BitmapButton_3D" member="no">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>13,13</size>
@@ -408,7 +408,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Butterfly_Color" variable="BitmapButton_ButterflyColors" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Butterfly_Color" variable="BitmapButton_ButterflyColors" member="no">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>13,13</size>
@@ -451,7 +451,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Style" variable="BitmapButton_ButterflyStyle" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Style" variable="BitmapButton_ButterflyStyle" member="no">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>13,13</size>
@@ -494,7 +494,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks" variable="BitmapButton_ButterflyChunks" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks" variable="BitmapButton_ButterflyChunks" member="no">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>13,13</size>
@@ -537,7 +537,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON15" variable="BitmapButton1" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON15" variable="BitmapButton1" member="no">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>13,13</size>
@@ -578,7 +578,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Skip" variable="BitmapButton_ButterflySkip" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Skip" variable="BitmapButton_ButterflySkip" member="no">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>13,13</size>
@@ -610,7 +610,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON9" variable="BitmapButton8" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON9" variable="BitmapButton8" member="no">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<size>13,13</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

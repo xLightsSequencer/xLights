@@ -8,6 +8,8 @@
 #include "TimeLine.h"
 #include "xLightsMain.h"
 #include "LyricsDialog.h"
+#include "../xLightsXmlFile.h"
+
 
 SequenceElements::SequenceElements()
 : undo_mgr(this)

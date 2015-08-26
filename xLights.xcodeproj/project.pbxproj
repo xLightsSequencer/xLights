@@ -143,6 +143,7 @@
 		67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6488619E3396C006526CD /* RenderCoroFaces.cpp */; };
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
+		67CBF26E1B8D525B0028705C /* EffectPanelDefaults.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CBF26D1B8D525B0028705C /* EffectPanelDefaults.cpp */; };
 		67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D678FC1A7E628400421B05 /* tmGridCell.cpp */; };
 		67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D7DD031B23C586007A3F20 /* UndoManager.cpp */; };
 		67D8F4591A1A584400522413 /* TabTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425A17F0D23E00F4BC76 /* TabTest.cpp */; };
@@ -406,6 +407,7 @@
 		67C7969017B5791700CEE775 /* TabConvert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabConvert.cpp; sourceTree = "<group>"; };
 		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
 		67CA857F18BE86B800A6268C /* heartbeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heartbeat.h; sourceTree = "<group>"; };
+		67CBF26D1B8D525B0028705C /* EffectPanelDefaults.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectPanelDefaults.cpp; sourceTree = "<group>"; };
 		67D678FC1A7E628400421B05 /* tmGridCell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tmGridCell.cpp; sourceTree = "<group>"; };
 		67D7DD031B23C586007A3F20 /* UndoManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UndoManager.cpp; path = sequencer/UndoManager.cpp; sourceTree = "<group>"; };
 		67DB87F51AD6CA1300595194 /* wxsmith */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wxsmith; path = xLights/wxsmith; sourceTree = "<group>"; };
@@ -611,6 +613,7 @@
 				67DB87F71AD6CFD100595194 /* EffectRendering */,
 				6784F9201A5653670018EC0C /* EffectsGrid.cpp */,
 				67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */,
+				67CBF26D1B8D525B0028705C /* EffectPanelDefaults.cpp */,
 				67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */,
 				6784F9211A5653670018EC0C /* Element.cpp */,
 				67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */,
@@ -882,6 +885,7 @@
 				675DE2681B53381800A9BB44 /* FlickerFreeBitmapButton.cpp in Sources */,
 				671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */,
 				67A61A2F17B51C0F008E95BB /* ModelDialog.cpp in Sources */,
+				67CBF26E1B8D525B0028705C /* EffectPanelDefaults.cpp in Sources */,
 				677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */,
 				671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */,
 				67A61A3017B51C0F008E95BB /* ModelListDialog.cpp in Sources */,

@@ -1,80 +1,6 @@
 #include <wx/msgdlg.h>
 #include <wx/fontpicker.h>
 #include <wx/filepicker.h>
-#include "EffectsPanel.h"
-#include "../include/padlock16x16-green.xpm" //-DJ
-#include "../include/padlock16x16-red.xpm" //-DJ
-#include "../include/padlock16x16-blue.xpm" //-DJ
-
-#include "../include/bars.xpm"
-#include "../include/butterfly.xpm"
-#include "../include/circles.xpm"
-#include "../include/ColorWash.xpm"
-#include "../include/corofaces.xpm"
-#include "../include/curtain.xpm"
-#include "../include/faces.xpm"
-#include "../include/fire.xpm"
-#include "../include/fireworks.xpm"
-#include "../include/garlands.xpm"
-#include "../include/glediator.xpm"
-#include "../include/life.xpm"
-#include "../include/meteors.xpm"
-#include "../include/morph.xpm"
-
-#include "../include/Off.xpm"
-#include "../include/On.xpm"
-#include "../include/piano.xpm"
-#include "../include/pictures.xpm"
-
-#include "../include/pinwheel.xpm"
-#include "../include/ripple.xpm"
-#include "../include/shimmer.xpm"
-#include "../include/singleStrand.xpm"
-#include "../include/snowflakes.xpm"
-#include "../include/snowstorm.xpm"
-#include "../include/spirals.xpm"
-#include "../include/spirograph.xpm"
-#include "../include/strobe.xpm"
-#include "../include/text.xpm"
-#include "../include/tree.xpm"
-#include "../include/twinkle.xpm"
-#include "../include/wave.xpm"
-
-#include "../include/control-play-blue-icon.xpm"
-#include "../include/control-play-icon.xpm"
-#include "../include/control-pause-blue-icon.xpm"
-#include "../include/control-pause-icon.xpm"
-#include "../include/control-stop-blue-icon.xpm"
-#include "../include/control-stop-icon.xpm"
-
-//  New icons from sean 01-17-2015
-
-#include "../include/zoom-out-24.xpm"
-#include "../include/zoom-in-24.xpm"
-#include "../include/stop-24.xpm"
-#include "../include/stop-24_off.xpm"
-#include "../include/save-as-24.xpm"
-#include "../include/settings-24.xpm"
-#include "../include/trash-24.xpm"
-#include "../include/search-24.xpm"
-#include "../include/save-24.xpm"
-#include "../include/replay-24.xpm"
-#include "../include/play-24.xpm"
-#include "../include/play-24_off.xpm"
-#include "../include/pause-24.xpm"
-#include "../include/pause-24_off.xpm"
-#include "../include/move-24.xpm"
-#include "../include/home-24.xpm"
-#include "../include/gears-24.xpm"
-#include "../include/forward-24.xpm"
-#include "../include/forward-24_off.xpm"
-#include "../include/folder.xpm"
-#include "../include/eye-open-24.xpm"
-#include "../include/backward-24.xpm"
-#include "../include/backward-24_off.xpm"
-
-#include "SequenceElements.h"
-#include "ModelClass.h"
 
 //(*InternalHeaders(EffectsPanel)
 #include <wx/bitmap.h>
@@ -84,11 +10,15 @@
 #include <wx/string.h>
 //*)
 
+#include <map>
+
+#include "EffectsPanel.h"
+#include "../include/padlock16x16-green.xpm" //-DJ
+#include "../include/padlock16x16-red.xpm" //-DJ
+#include "../include/padlock16x16-blue.xpm" //-DJ
+
 //(*IdInit(EffectsPanel)
-const long EffectsPanel::ID_STATICTEXT100 = wxNewId();
-const long EffectsPanel::ID_STATICTEXT120 = wxNewId();
 const long EffectsPanel::ID_PANEL19 = wxNewId();
-const long EffectsPanel::ID_STATICTEXT75 = wxNewId();
 const long EffectsPanel::IDD_SLIDER_Eff_On_Start = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_Eff_On_Start = wxNewId();
 const long EffectsPanel::IDD_SLIDER_Eff_On_End = wxNewId();
@@ -97,13 +27,11 @@ const long EffectsPanel::IDD_SLIDER_On_Cycles = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_On_Cycles = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_On_Shimmer = wxNewId();
 const long EffectsPanel::ID_PANEL25 = wxNewId();
-const long EffectsPanel::ID_STATICTEXT25 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Bars_BarCount = wxNewId();
 const long EffectsPanel::IDD_TEXTCTRL_Bars_BarCount = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Bars_BarCount = wxNewId();
 const long EffectsPanel::IDD_SLIDER_Bars_Cycles = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_Bars_Cycles = wxNewId();
-const long EffectsPanel::ID_STATICTEXT26 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Bars_Direction = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Bars_Direction = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Bars_Highlight = wxNewId();
@@ -955,9 +883,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer55;
     wxNotebook* Notebook_Text1;
     wxTextCtrl* TextCtrl31;
+    wxTextCtrl* TextCtrl44;
     wxFlexGridSizer* FlexGridSizer7;
     wxTextCtrl* TextCtrl70;
-    wxTextCtrl* TextCtrl44;
     wxTextCtrl* TextCtrl_Pictures_FR;
     wxTextCtrl* TextCtrl27;
     wxFlexGridSizer* FlexGridSizer5;
@@ -1004,8 +932,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider_Circles_Size;
     wxTextCtrl* TextCtrl_Shockwave_End_Radius;
     wxPanel* Panel11;
-    wxPanel* Panel6;
+    wxBitmapButton* BitmapButton_ButterflyChunks;
     wxTextCtrl* TextCtrl45;
+    wxPanel* Panel6;
+    wxStaticText* StaticText118;
     wxStaticText* StaticText92;
     wxTextCtrl* TextCtrl82;
     wxFlexGridSizer* FlexGridSizer32;
@@ -1029,6 +959,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer75;
     wxStaticText* StaticText168;
     wxSlider* Slider_PicturesYC;
+    wxStaticText* StaticText24;
     wxSlider* Slider_Snowflakes_Count;
     wxSlider* Slider_Shockwave_CenterX;
     wxTextCtrl* TextCtrl7;
@@ -1075,6 +1006,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxStaticText* StaticText28;
     wxTextCtrl* TextCtrl46;
     wxCheckBox* CheckBox3;
+    wxStaticText* StaticText23;
     wxNotebook* Notebook4;
     wxCheckBox* CheckBox1;
     wxFlexGridSizer* FlexGridSizer125;
@@ -1084,9 +1016,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxTextCtrl* TextCtrl48;
     wxTextCtrl* TextCtrl71;
     wxTextCtrl* TextCtrl_Shockwave_End_Width;
+    wxCheckBox* CheckBox_Bars_3D;
+    wxCheckBox* CheckBox_Bars_Highlight;
     wxSlider* Slider25;
     wxTextCtrl* TextCtrl40;
     wxSlider* Slider_PicturesXC;
+    wxBitmapButton* BitmapButton8;
     wxSlider* Slider_Butterfly_Skip;
     wxFlexGridSizer* FlexGridSizer57;
     wxTextCtrl* TextCtrl6;
@@ -1100,6 +1035,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxPanel* Panel10;
     wxFlexGridSizer* FlexGridSizer81;
     wxStaticText* StaticText176;
+    wxBitmapButton* BitmapButton_ButterflySkip;
     wxFlexGridSizer* FlexGridSizer128;
     wxFlexGridSizer* FlexGridSizer50;
     wxTextCtrl* TextCtrl68;
@@ -1128,6 +1064,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider_Galaxy_Start_Radius;
     wxFlexGridSizer* FlexGridSizer103;
     wxStaticText* StaticText154;
+    wxBitmapButton* BitmapButton_ButterflyStyle;
     wxFlexGridSizer* FlexGridSizer129;
     wxFlexGridSizer* FlexGridSizer131;
     wxTextCtrl* TextCtrl_Galaxy_Start_Angle;
@@ -1136,6 +1073,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer100;
     wxTextCtrl* TextCtrl50;
     wxFlexGridSizer* FlexGridSizer112;
+    wxBitmapButton* BitmapButton_Highlight;
     wxFlexGridSizer* FlexGridSizer14;
     wxSlider* Slider18;
     wxFlexGridSizer* FlexGridSizer8;
@@ -1157,6 +1095,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer110;
     wxTextCtrl* TextCtrl75;
     wxTextCtrl* TextCtrl63;
+    wxBitmapButton* BitmapButton_PaletteRep;
     wxFlexGridSizer* FlexGridSizer35;
     wxTextCtrl* TextCtrl52;
     wxSlider* Slider_Morph_End_X2;
@@ -1183,6 +1122,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider_Fan_Accel;
     wxTextCtrl* TextCtrl51;
     wxFlexGridSizer* FlexGridSizer105;
+    wxBitmapButton* BitmapButton_Direction;
     wxFlexGridSizer* FlexGridSizer119;
     wxSlider* Slider_Skips_BandSize;
     wxSlider* Slider_Morph_End_Y2;
@@ -1203,6 +1143,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider19;
     wxFlexGridSizer* FlexGridSizer107;
     wxTextCtrl* TextCtrl61;
+    wxStaticText* StaticText97;
     wxSlider* Slider_Curtain_Swag;
     wxTextCtrl* TextCtrl9;
     wxTextCtrl* TextCtrl36;
@@ -1243,7 +1184,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxStaticText* StaticText133;
     wxSlider* Slider_Fan_Start_Radius;
     wxGridBagSizer* GridBagSizer3;
+    wxStaticText* StaticText73;
     wxSlider* Slider_Shockwave_Start_Width;
+    wxBitmapButton* BitmapButton_ButterflyColors;
     wxFlexGridSizer* FlexGridSizer46;
     wxSlider* Slider_Pictures_FR;
     wxSlider* Slider_Morph_Start_Y2;
@@ -1256,8 +1199,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider2;
     wxTextCtrl* TextCtrl60;
     wxTextCtrl* TextCtrl24;
-    wxTextCtrl* TextCtrl_Morph_Repeat_Count;
     wxTextCtrl* TextCtrl43;
+    wxTextCtrl* TextCtrl_Morph_Repeat_Count;
     wxSlider* Slider_Fan_End_Radius;
     wxTextCtrl* TextCtrl81;
     wxStaticText* StaticText2;
@@ -1293,6 +1236,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxSlider* Slider7;
     wxTextCtrl* TextCtrl_Eff_On_End;
     wxTextCtrl* TextCtrl49;
+    wxBitmapButton* BitmapButton1;
     wxSlider* Slider3;
     wxSlider* Slider26;
     wxFlexGridSizer* FlexGridSizer124;
@@ -1344,9 +1288,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxStaticText* StaticText_Pictures_YC;
     wxSlider* Slider_Fan_Duration;
     wxSlider* Slider_Galaxy_Revolutions;
-    wxFlexGridSizer* GridBagSizerGalaxyStart;
     wxStaticText* StaticText101;
+    wxFlexGridSizer* GridBagSizerGalaxyStart;
     wxFlexGridSizer* FlexGridSizer26;
+    wxBitmapButton* BitmapButton_3D;
     wxTextCtrl* TextCtrl_MorphDuration;
     wxStaticText* StaticText162;
     wxTextCtrl* TextCtrl65;
@@ -1365,9 +1310,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer77->AddGrowableCol(1);
     FlexGridSizer77->Add(19,44,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
-    StaticText97 = new wxStaticText(Panel1_Off, ID_STATICTEXT100, _("This Effect simply turns every"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT100"));
+    StaticText97 = new wxStaticText(Panel1_Off, wxID_ANY, _("This Effect simply turns every"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer2->Add(StaticText97, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText118 = new wxStaticText(Panel1_Off, ID_STATICTEXT120, _("pixel off on this model."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT120"));
+    StaticText118 = new wxStaticText(Panel1_Off, wxID_ANY, _("pixel off on this model."), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer2->Add(StaticText118, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer77->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer77->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -1378,7 +1323,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer92 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer92->AddGrowableCol(0);
     FlexGridSizer96 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText73 = new wxStaticText(Panel1_On, ID_STATICTEXT75, _("This Effect turns every pixel on."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT75"));
+    StaticText73 = new wxStaticText(Panel1_On, wxID_ANY, _("This Effect turns every pixel on."), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer96->Add(StaticText73, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer92->Add(FlexGridSizer96, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer93 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -1415,7 +1360,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Bars = new wxScrolledWindow(EffectChoicebook, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL8"));
     FlexGridSizer35 = new wxFlexGridSizer(0, 3, wxDLG_UNIT(Panel1_Bars,wxSize(0,0)).GetWidth(), 0);
     FlexGridSizer35->AddGrowableCol(1);
-    StaticText23 = new wxStaticText(Panel1_Bars, ID_STATICTEXT25, _("Palette Rep"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT25"));
+    StaticText23 = new wxStaticText(Panel1_Bars, wxID_ANY, _("Palette Rep"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer35->Add(StaticText23, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer123 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer123->AddGrowableCol(0);
@@ -1440,7 +1385,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer70->Add(TextCtrl35, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer35->Add(FlexGridSizer70, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FlexGridSizer35->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText24 = new wxStaticText(Panel1_Bars, ID_STATICTEXT26, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT26"));
+    StaticText24 = new wxStaticText(Panel1_Bars, wxID_ANY, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer35->Add(StaticText24, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Choice_Bars_Direction = new wxChoice(Panel1_Bars, ID_CHOICE_Bars_Direction, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Bars_Direction"));
     FlexGridSizer35->Add(Choice_Bars_Direction, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -4661,62 +4606,6 @@ EffectsPanel::~EffectsPanel()
 
 
 
-void SetCheckboxValue(wxWindow *w, int id, bool b) {
-    wxCheckBox *c = (wxCheckBox*)w->FindWindowById(id);
-    c->SetValue(b);
-    wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, id);
-    evt.SetEventObject(c);
-    evt.SetInt(b);
-    c->ProcessWindowEvent(evt);
-}
-void EnableControl(wxWindow *w, int id, bool e) {
-    wxWindow *c = w->FindWindowById(id);
-    if (c) c->Enable(e);
-}
-
-void EffectsPanel::SetDefaultEffectValues(ModelClass *cls, const wxString &name) {
-    //NOTE: the settings loop after this section does not initialize controls.
-    //For controls that have been added recently, an older version of the XML file will cause initial settings to be incorrect.
-    //A loop needs to be added to initialize the wx controls to a predictable value.
-    //For now, a few recently added controls are explicitly initialized here:
-    //(not sure if there will be side effects to using a full loop) -DJ
-
-    if ("Color Wash" == name) {
-        SetCheckboxValue(this, ID_CHECKBOX_ColorWash_EntireModel, true);
-    } else if ("Text" == name) {
-        SetCheckboxValue(this, ID_CHECKBOX_TextToCenter1, false);
-        SetCheckboxValue(this, ID_CHECKBOX_TextToCenter2, false);
-        SetCheckboxValue(this, ID_CHECKBOX_TextToCenter3, false);
-        SetCheckboxValue(this, ID_CHECKBOX_TextToCenter4, false);
-    } else if ("Faces" == name ) {
-        Choice_Faces_TimingTrack->Clear();
-        for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
-            if (mSequenceElements->GetElement(i)->GetEffectLayerCount() == 3
-                && mSequenceElements->GetElement(i)->GetType() == "timing") {
-                Choice_Faces_TimingTrack->Append(mSequenceElements->GetElement(i)->GetName());
-            }
-        }
-    }
-    Face_FaceDefinitonChoice->Clear();
-    bool addRender = true;
-    if (cls != nullptr) {
-        for (std::map<wxString, std::map<wxString, wxString> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); it++) {
-            Face_FaceDefinitonChoice->Append(it->first);
-            if (it->first == "Coro" || it->first == "SingleNode" || it->first == "NodeRange") {
-                addRender = false;
-            }
-        }
-    }
-    if (Face_FaceDefinitonChoice->GetCount() == 0) {
-        Face_FaceDefinitonChoice->Append("Default");
-        addRender = false;
-    }
-    if (addRender) {
-        Face_FaceDefinitonChoice->Append("Rendered");
-    }
-    Face_FaceDefinitonChoice->SetSelection(0);
-}
-
 
 //#define WANT_DEBUG_IMPL
 //#define WANT_DEBUG  -99 //unbuffered in case app crashes
@@ -5215,126 +5104,3 @@ void EffectsPanel::enableControlsByName(const wxString &name, bool enable) {
         w->Enable(enable);
     }
 }
-
-void EffectsPanel::OnChoicePicturesDirectionSelect(wxCommandEvent& event)
-{
-    bool enable = "vector" == Choice_Pictures_Direction->GetStringSelection();
-    EnableControl(Choice_Pictures_Direction->GetParent(), IDD_TEXTCTRL_PicturesEndXC, enable);
-    EnableControl(Choice_Pictures_Direction->GetParent(), IDD_TEXTCTRL_PicturesEndYC, enable);
-    EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndXC, enable);
-    EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndYC, enable);
-    PictureEndPositionPanel->Enable(enable);
-}
-
-
-void EffectsPanel::OnColorWashEntireModelClicked(wxCommandEvent& event)
-{
-    bool on = ((wxCheckBox*)event.GetEventObject())->GetValue();
-    EnableControl(this, IDD_NOTEBOOK_ColorWashRect, !on);
-}
-
-void EffectsPanel::OnChoice_Morph_QuickSetSelect(wxCommandEvent& event)
-{
-    wxString quickset_choice = Choice_Morph_QuickSet->GetStringSelection();
-    if( quickset_choice == "Full Sweep Up" )
-    {
-        TextCtrl_Morph_Start_X1->SetValue("0");
-        TextCtrl_Morph_Start_X2->SetValue("100");
-        TextCtrl_Morph_End_X1->SetValue("0");
-        TextCtrl_Morph_End_X2->SetValue("100");
-        TextCtrl_Morph_Start_Y1->SetValue("0");
-        TextCtrl_Morph_Start_Y2->SetValue("0");
-        TextCtrl_Morph_End_Y1->SetValue("100");
-        TextCtrl_Morph_End_Y2->SetValue("100");
-    }
-    else if( quickset_choice == "Full Sweep Down" )
-    {
-        TextCtrl_Morph_Start_X1->SetValue("0");
-        TextCtrl_Morph_Start_X2->SetValue("100");
-        TextCtrl_Morph_End_X1->SetValue("0");
-        TextCtrl_Morph_End_X2->SetValue("100");
-        TextCtrl_Morph_Start_Y1->SetValue("100");
-        TextCtrl_Morph_Start_Y2->SetValue("100");
-        TextCtrl_Morph_End_Y1->SetValue("0");
-        TextCtrl_Morph_End_Y2->SetValue("0");
-    }
-    else if( quickset_choice == "Full Sweep Left" )
-    {
-        TextCtrl_Morph_Start_X1->SetValue("100");
-        TextCtrl_Morph_Start_X2->SetValue("100");
-        TextCtrl_Morph_End_X1->SetValue("0");
-        TextCtrl_Morph_End_X2->SetValue("0");
-        TextCtrl_Morph_Start_Y1->SetValue("0");
-        TextCtrl_Morph_Start_Y2->SetValue("100");
-        TextCtrl_Morph_End_Y1->SetValue("0");
-        TextCtrl_Morph_End_Y2->SetValue("100");
-    }
-    else if( quickset_choice == "Full Sweep Right" )
-    {
-        TextCtrl_Morph_Start_X1->SetValue("0");
-        TextCtrl_Morph_Start_X2->SetValue("0");
-        TextCtrl_Morph_End_X1->SetValue("100");
-        TextCtrl_Morph_End_X2->SetValue("100");
-        TextCtrl_Morph_Start_Y1->SetValue("0");
-        TextCtrl_Morph_Start_Y2->SetValue("100");
-        TextCtrl_Morph_End_Y1->SetValue("0");
-        TextCtrl_Morph_End_Y2->SetValue("100");
-    }
-    else if( quickset_choice == "Single Sweep Up" )
-    {
-        TextCtrl_Morph_Start_X1->SetValue("0");
-        TextCtrl_Morph_Start_X2->SetValue("0");
-        TextCtrl_Morph_End_X1->SetValue("0");
-        TextCtrl_Morph_End_X2->SetValue("0");
-        TextCtrl_Morph_Start_Y1->SetValue("0");
-        TextCtrl_Morph_Start_Y2->SetValue("0");
-        TextCtrl_Morph_End_Y1->SetValue("100");
-        TextCtrl_Morph_End_Y2->SetValue("100");
-    }
-    else if( quickset_choice == "Single Sweep Down" )
-    {
-        TextCtrl_Morph_Start_X1->SetValue("0");
-        TextCtrl_Morph_Start_X2->SetValue("0");
-        TextCtrl_Morph_End_X1->SetValue("0");
-        TextCtrl_Morph_End_X2->SetValue("0");
-        TextCtrl_Morph_Start_Y1->SetValue("100");
-        TextCtrl_Morph_Start_Y2->SetValue("100");
-        TextCtrl_Morph_End_Y1->SetValue("0");
-        TextCtrl_Morph_End_Y2->SetValue("0");
-    }
-    else if( quickset_choice == "Single Sweep Left" )
-    {
-        TextCtrl_Morph_Start_X1->SetValue("100");
-        TextCtrl_Morph_Start_X2->SetValue("100");
-        TextCtrl_Morph_End_X1->SetValue("0");
-        TextCtrl_Morph_End_X2->SetValue("0");
-        TextCtrl_Morph_Start_Y1->SetValue("0");
-        TextCtrl_Morph_Start_Y2->SetValue("0");
-        TextCtrl_Morph_End_Y1->SetValue("0");
-        TextCtrl_Morph_End_Y2->SetValue("0");
-    }
-    else if( quickset_choice == "Single Sweep Right" )
-    {
-        TextCtrl_Morph_Start_X1->SetValue("0");
-        TextCtrl_Morph_Start_X2->SetValue("0");
-        TextCtrl_Morph_End_X1->SetValue("100");
-        TextCtrl_Morph_End_X2->SetValue("100");
-        TextCtrl_Morph_Start_Y1->SetValue("0");
-        TextCtrl_Morph_Start_Y2->SetValue("0");
-        TextCtrl_Morph_End_Y1->SetValue("0");
-        TextCtrl_Morph_End_Y2->SetValue("0");
-    }
-    Choice_Morph_QuickSet->SetSelection(0);
-}
-
-void EffectsPanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
-{
-    if (event.GetId() == IDD_RADIOBUTTON_Faces_Phoneme) {
-        Choice_Faces_Phoneme->Enable();
-        Choice_Faces_TimingTrack->Disable();
-    } else {
-        Choice_Faces_Phoneme->Disable();
-        Choice_Faces_TimingTrack->Enable();
-    }
-}
-

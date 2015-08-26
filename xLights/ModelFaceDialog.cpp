@@ -7,6 +7,10 @@
 
 #include <wx/filefn.h>
 #include <wx/filename.h>
+#include <wx/valtext.h>
+#include <wx/textdlg.h>
+#include <wx/msgdlg.h> 
+#include <wx/filedlg.h> 
 
 //(*IdInit(ModelFaceDialog)
 const long ModelFaceDialog::ID_PANEL1 = wxNewId();

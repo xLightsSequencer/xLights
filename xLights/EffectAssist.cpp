@@ -6,6 +6,8 @@
 #include "../include/PaintToolIcons.h"
 #include "xlGridCanvasMorph.h"
 #include "xlGridCanvasEmpty.h"
+#include "../xLightsXmlFile.h"
+
 
 //(*InternalHeaders(EffectAssist)
 #include <wx/intl.h>

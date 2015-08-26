@@ -3,7 +3,6 @@
 
 #include "EffectLayer.h"
 #include "Element.h"
-#include "../xLightsXmlFile.h"
 #include "wx/wx.h"
 #include <vector>
 #include <set>

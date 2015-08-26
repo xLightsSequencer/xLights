@@ -38,12 +38,12 @@
 #include <wx/listbox.h>
 #include <wx/tokenzr.h>
 
-#include "ModelPreview.h"
-#include "Color.h"
 
+#include "Color.h"
 
 typedef std::vector<long> StartChannelVector_t;
 class NetInfoClass;
+class ModelPreview;
 
 #define NODE_RGB_CHAN_CNT           3
 #define NODE_RGBW_CHAN_CNT          4

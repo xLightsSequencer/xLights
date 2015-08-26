@@ -36,6 +36,7 @@ struct EffectDropData;
 
 class MainSequencer;
 class PixelBufferClass;
+class SequenceData;
 
 class EffectsGrid : public xlGLCanvas
 {

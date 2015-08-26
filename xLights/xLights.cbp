@@ -397,6 +397,7 @@
 		<Unit filename="EffectIconPanel.h" />
 		<Unit filename="EffectListDialog.cpp" />
 		<Unit filename="EffectListDialog.h" />
+		<Unit filename="EffectPanelDefaults.cpp" />
 		<Unit filename="EffectTreeDialog.cpp" />
 		<Unit filename="EffectTreeDialog.h" />
 		<Unit filename="Effects.h" />
