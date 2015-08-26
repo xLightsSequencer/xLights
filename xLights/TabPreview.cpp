@@ -190,7 +190,10 @@ void xLightsFrame::SelectModel(wxString name)
     {
         if (name.Cmp(ListBoxElementList->GetItemText(i)) == 0)
         {
-            ListBoxElementList->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+            if (ListBoxElementList->GetItemState(i, wxLIST_STATE_SELECTED) == false) {
+                ListBoxElementList->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                return;
+            }
             ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
             m->Selected = true;
             double newscalex, newscaley;
@@ -198,9 +201,9 @@ void xLightsFrame::SelectModel(wxString name)
             newscalex *= 100.0;
             newscaley *= 100.0;
             SliderPreviewScaleWidth->SetValue(newscalex*10);
-            SliderPreviewScaleHeight->SetValue(newscalex*10);
-            TextCtrlPreviewElementWidth->SetValue(wxString::Format( "%.1f",newscalex));
-            TextCtrlPreviewElementHeight->SetValue(wxString::Format( "%.1f",newscaley));
+            SliderPreviewScaleHeight->SetValue(newscaley*10);
+            TextCtrlPreviewElementWidth->SetValue(wxString::Format( "%0.1f",newscalex));
+            TextCtrlPreviewElementHeight->SetValue(wxString::Format( "%0.1f",newscaley));
             SliderPreviewRotate->SetValue(m->GetRotation());
             TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",m->GetRotation()));
             bool canrotate=m->CanRotate();
