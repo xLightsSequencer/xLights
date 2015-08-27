@@ -595,6 +595,8 @@ protected:
     long LastLifeState;
     int lastperiod, curPeriod;
     RgbFireworks *fireworkBursts;
+    int nextBlinkTime;
+    int blinkEndTime;
 
     long timer_countdown[4]; // was  long timer_countdown[1];
 

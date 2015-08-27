@@ -179,13 +179,14 @@ void RgbEffects::RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString&
 
 
 void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDefinition,
-                             const wxString& Phoneme, const wxString &trackName, const wxString& eyes, bool face_outline)
+                             const wxString& Phoneme, const wxString &trackName, const wxString& eyesIn, bool face_outline)
 {
     
     if (needToInit) {
         needToInit = false;
         elements->AddRenderDependency(trackName, cur_model);
     }
+    wxString eyes = eyesIn;
 
     Element *track = elements->GetElement(trackName);
     wxMutex tmpLock;
@@ -195,12 +196,55 @@ void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDef
     }
     wxMutexLocker locker(*lock);
     
+    if (cur_model == "") {
+        return;
+    }
+    ModelClass* model_info = xLightsFrame::AllModels[cur_model].get();
+    if (model_info == nullptr) {
+        return;
+    }
+    
+    wxString definition = faceDefinition;
+    if (definition == "Default" && !model_info->faceInfo.empty()) {
+        definition = model_info->faceInfo.begin()->first;
+    }
+    bool found = true;
+    std::map<wxString, std::map<wxString, wxString> >::iterator it = model_info->faceInfo.find(definition);
+    if (it == model_info->faceInfo.end()) {
+        //not found
+        found = false;
+    }
+    
+    int type = 3;
+    if ("Coro" == definition || "SingleNode" == definition) {
+        type = 0;
+    } else if ("NodeRange" == definition) {
+        type = 1;
+    } else if ("Rendered" == definition || "Default" == definition) {
+        type = 2;
+    }
+    
     wxString phoneme = Phoneme;
     if (phoneme == "") {
         //GET Phoneme from timing track
         if (track == nullptr || track->GetEffectLayerCount() < 3) {
             phoneme = "rest";
+            if ("Auto" == eyes) {
+                if ((curPeriod * frameTimeInMs) >= nextBlinkTime) {
+                    //roughly every 5 seconds we'll blink
+                    nextBlinkTime += (4500 + (rand() % 1000));
+                    blinkEndTime = curPeriod * frameTimeInMs + 101; //100ms blink
+                    eyes = "Closed";
+                } else if ((curPeriod * frameTimeInMs) < blinkEndTime) {
+                    eyes = "Closed";
+                } else {
+                    eyes = "Open";
+                }
+            }
         } else {
+            int startms = -1;
+            int endms = -1;
+
             EffectLayer *layer = track->GetEffectLayer(2);
             wxMutexLocker locker(layer->GetLock());
             int time = curPeriod * frameTimeInMs + 1;
@@ -208,11 +252,51 @@ void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDef
             if (ef == nullptr) {
                 phoneme = "rest";
             } else {
+                startms = ef->GetStartTimeMS();
+                endms = ef->GetEndTimeMS();
                 phoneme = ef->GetEffectName();
+            }
+            if ("Auto" == eyes && phoneme == "rest" && type != 2) {
+                 if (startms == -1) {
+                     //need to figure out the time
+                     for (int x = 0; x < layer->GetEffectCount() && startms == -1; x++) {
+                         ef = layer->GetEffect(x);
+                         if (ef->GetStartTimeMS() > curPeriod * frameTimeInMs) {
+                             endms = ef->GetStartTimeMS();
+                             if (x > 0) {
+                                 startms = layer->GetEffect(x - 1)->GetEndTimeMS();
+                             } else {
+                                 startms = 0;
+                             }
+                         }
+                     }
+                 }
+                
+                if ((curPeriod * frameTimeInMs) >= nextBlinkTime) {
+                    if ((startms + 150) >= (curPeriod * frameTimeInMs)) {
+                        //don't want to blink RIGHT at the start of the rest, delay a little bie
+                        int tmp =  (curPeriod * frameTimeInMs) + 150 + rand() % 400;
+                        
+                        //also don't want it right at the end
+                        if ((tmp + 130) > endms) {
+                            nextBlinkTime = (startms + endms) / 2;
+                        } else {
+                            nextBlinkTime = tmp;
+                        }
+                    } else {
+                        //roughly every 5 seconds we'll blink
+                        nextBlinkTime += (4500 + (rand() % 1000));
+                        blinkEndTime = curPeriod * frameTimeInMs + 101; //100ms blink
+                        eyes = "Closed";
+                    }
+                } else if ((curPeriod * frameTimeInMs) < blinkEndTime) {
+                    eyes = "Closed";
+                } else {
+                    eyes = "Open";
+                }
             }
         }
     }
-    ModelClass* model_info = xLightsFrame::AllModels[cur_model].get();
 
     xlColor color;
     palette.GetColor(0, color); //use first color for mouth; user must make sure it matches model node type
@@ -241,25 +325,6 @@ void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDef
     if (face_outline) {
         todo.push_back("FaceOutline");
         colors.push_back(color);
-    }
-    wxString definition = faceDefinition;
-    if (definition == "Default" && !model_info->faceInfo.empty()) {
-        definition = model_info->faceInfo.begin()->first;
-    }
-    bool found = true;
-    std::map<wxString, std::map<wxString, wxString> >::iterator it = model_info->faceInfo.find(definition);
-    if (it == model_info->faceInfo.end()) {
-        //not found
-        found = false;
-    }
-    
-    int type = 3;
-    if ("Coro" == definition || "SingleNode" == definition) {
-        type = 0;
-    } else if ("NodeRange" == definition) {
-        type = 1;
-    } else if ("Rendered" == definition || "Default" == definition) {
-        type = 2;
     }
     
     

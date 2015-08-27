@@ -32,7 +32,8 @@ RgbEffects::RgbEffects()
     balls = NULL;
     metaballs = NULL;
     drawingContext = NULL;
-    
+    nextBlinkTime = (4500 + (rand() % 1000));
+    blinkEndTime = -1;
 }
 
 RgbEffects::~RgbEffects()
