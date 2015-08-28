@@ -12,6 +12,8 @@
 #include "ModelClass.h"
 #include "SequenceElements.h"
 
+class xLightsFrame;
+
 class ModelListDialog: public wxDialog
 {
 public:
@@ -64,6 +66,7 @@ private:
 
     bool ValidateModelName(const wxString& name);
     SequenceElements* mSequenceElements;
+    xLightsFrame* mParent;
     NetInfoClass *netInfo;
     wxXmlNode *modelGroups;
 

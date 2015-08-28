@@ -1473,6 +1473,7 @@ public:
     wxXmlNode* CreateEffectNode(wxString& name);
     void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data);
+    void RenameModelInViews(const wxString& old_name, const wxString& new_name);
 
     void SetSequenceEnd(int ms);
     void UpdateRenderMode();

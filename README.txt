@@ -7,8 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
-        -- bug(dkulp) Implement an "Auto" mode for Eyes for Coro/Image faces that will blink roughly every 5 seconds on a rest
-        -- bug(dkulp) Fix crash if face effect dropped on a strand or node
+    -- bug(gil) Fix crash when renaming model without sequence open.
+    -- bug(dkulp) Implement an "Auto" mode for Eyes for Coro/Image faces that will blink roughly every 5 seconds on a rest
+    -- bug(dkulp) Fix crash if face effect dropped on a strand or node
 4.2.4  Aug 26, 2015
 	-- bug(gil)  Fix view combo drop-down not populating when no fseq file existed.  Moved Initialize call
                  to make sure SequenceData object has been initialized first.

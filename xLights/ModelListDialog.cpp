@@ -7,6 +7,7 @@
 #include <wx/textdlg.h>
 #include <wx/xml/xml.h>
 #include <wx/file.h>
+#include "xLightsMain.h"
 
 //(*InternalHeaders(ModelListDialog)
 #include <wx/intl.h>
@@ -30,7 +31,8 @@ BEGIN_EVENT_TABLE(ModelListDialog,wxDialog)
 END_EVENT_TABLE()
 
 ModelListDialog::ModelListDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
-: mSequenceElements(NULL)
+: mParent((xLightsFrame*)parent),
+  mSequenceElements(NULL)
 {
     //(*Initialize(ModelListDialog)
     wxFlexGridSizer* FlexGridSizer3;
@@ -260,6 +262,7 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
         }
     }
 
+    mParent->RenameModelInViews(OldName, NewName);
     mSequenceElements->RenameModelInViews(OldName, NewName);
 
     ListBox1->Delete(sel);

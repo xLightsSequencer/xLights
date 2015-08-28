@@ -302,22 +302,7 @@ void SequenceElements::DeleteTimingFromView(const wxString &name, int view)
 
 void SequenceElements::RenameModelInViews(const wxString& old_name, const wxString& new_name)
 {
-    for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
-    {
-        wxString view_models = view->GetAttribute("models");
-        wxArrayString all_models = wxSplit(view_models, ',');
-        for( int model = 0; model < all_models.size(); model++ )
-        {
-            if( all_models[model] == old_name )
-            {
-                all_models[model] = new_name;
-            }
-        }
-        view_models = wxJoin(all_models, ',');
-        view->DeleteAttribute("models");
-        view->AddAttribute("models", view_models);
-    }
-
+    // renames models in any views that have been loaded for a sequence
     for(int view=0; view < mAllViews.size(); view++)
     {
         for(int i=0; i < mAllViews[view].size(); i++)

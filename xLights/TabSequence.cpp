@@ -292,6 +292,27 @@ void xLightsFrame::ShowModelsDialog()
     EnableSequenceControls(true);
 }
 
+void xLightsFrame::RenameModelInViews(const wxString& old_name, const wxString& new_name)
+{
+    // renames view in the rgbeffects xml node
+    for(wxXmlNode* view=ViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
+    {
+        wxString view_models = view->GetAttribute("models");
+        wxArrayString all_models = wxSplit(view_models, ',');
+        for( int model = 0; model < all_models.size(); model++ )
+        {
+            if( all_models[model] == old_name )
+            {
+                all_models[model] = new_name;
+            }
+        }
+        view_models = wxJoin(all_models, ',');
+        view->DeleteAttribute("models");
+        view->AddAttribute("models", view_models);
+    }
+}
+
+
 void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
 {
     for(size_t i=0; i<cb->GetPageCount(); i++)
