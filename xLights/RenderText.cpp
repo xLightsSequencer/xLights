@@ -253,30 +253,38 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 #endif // WANT_TEXT_LINES_SYNCED
 
         size_t colorcnt=GetColorCount();
-        palette.GetColor(0,c);
-        SetFont(drawingContext,FontString1,c);
-        RenderTextLine(drawingContext,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass, speed1);
+        if (!Line1.IsEmpty()) {
+            palette.GetColor(0,c);
+            SetFont(drawingContext,FontString1,c);
+            RenderTextLine(drawingContext,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass, speed1);
+        }
 
         if(colorcnt>1)
         {
             palette.GetColor(1,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
-        SetFont(drawingContext,FontString2,c);
-        RenderTextLine(drawingContext,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass, speed2);
+        if (!Line2.IsEmpty()) {
+            SetFont(drawingContext,FontString2,c);
+            RenderTextLine(drawingContext,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass, speed2);
+        }
 
         if(colorcnt>2)
         {
             palette.GetColor(2,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
-        SetFont(drawingContext,FontString3,c);
-        RenderTextLine(drawingContext,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass, speed3);
+        if (!Line3.IsEmpty()) {
+            SetFont(drawingContext,FontString3,c);
+            RenderTextLine(drawingContext,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass, speed3);
+        }
 
         if(colorcnt>3)
         {
             palette.GetColor(3,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
-        SetFont(drawingContext,FontString4,c);
-        RenderTextLine(drawingContext,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass, speed4);
+        if (!Line4.IsEmpty()) {
+            SetFont(drawingContext,FontString4,c);
+            RenderTextLine(drawingContext,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass, speed4);
+        }
     }
 
     wxImage * i = drawingContext->FlushAndGetImage();
