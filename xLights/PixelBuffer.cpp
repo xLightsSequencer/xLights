@@ -413,7 +413,7 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
             if (brightness[layer] != 100 || contrast[layer] != 0) {
                 hsv = color.asHSV();
                 hsv.value = hsv.value * ((double)brightness[layer]/(double)100);
-                
+
                 // Apply Contrast
                 if (hsv.value< 0.5) {
                     // reduce brightness when below 0.5 in the V value or increase if > 0.5
@@ -421,14 +421,14 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
                 } else {
                     hsv.value = hsv.value + (hsv.value* ((double)contrast[layer]/(double)100));
                 }
-                
+
                 if (hsv.value < 0.0) hsv.value=0.0;
                 if (hsv.value > 1.0) hsv.value=1.0;
                 unsigned char alpha = color.Alpha();
                 color = wxImage::HSVtoRGB(hsv);
                 color.alpha = alpha;
             }
-            
+
             if (MixTypeHandlesAlpha(mixType[layer])) {
                 c = mixColors(x, y, color, c, layer);
             } else {
@@ -636,6 +636,10 @@ void PixelBufferClass::RenderGlediator( const wxString& NewPictureName) {
 
 void PixelBufferClass::RenderLife(int Count, int Seed, int lspeed) {
     effects[CurrentLayer].RenderLife(Count,Seed, lspeed);
+}
+
+void PixelBufferClass::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int MSpeed, bool reverse_dir) {
+    effects[CurrentLayer].RenderMarquee(BandSize, SkipSize, Thickness, stagger, MSpeed, reverse_dir);
 }
 
 void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed) {

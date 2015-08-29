@@ -3494,6 +3494,237 @@
 						<label>Life</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW3" variable="Panel1_Marquee" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer23" member="no">
+								<cols>4</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT60" variable="StaticText116" member="yes">
+										<label>Band Size:</label>
+									</object>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Band_Size" variable="Slider_Marquee_Band_Size" member="yes">
+										<value>3</value>
+										<min>1</min>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Band_Size" variable="TextCtrl_Marquee_Band_Size" member="no">
+										<value>3</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size" variable="BitmapButton_Marquee_Band_Size" member="no">
+										<bitmap code="padlock16x16_blue_xpm" />
+										<default>1</default>
+										<size>13,13</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>1</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT64" variable="StaticText194" member="yes">
+										<label>Skip Size:</label>
+									</object>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Skip_Size" variable="Slider_Marquee_Skip_Size" member="no">
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Skip_Size" variable="TextCtrl_Marquee_Skip_Size" member="no">
+										<value>0</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size" variable="BitmapButton_Marquee_Skip_Size" member="yes">
+										<bitmap code="padlock16x16_blue_xpm" />
+										<default>1</default>
+										<size>13,13</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>1</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT67" variable="StaticText195" member="yes">
+										<label>Thickness:</label>
+									</object>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Thickness" variable="Slider_Marquee_Thickness" member="yes">
+										<value>1</value>
+										<min>1</min>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Thickness" variable="TextCtrl_Marquee_Thickness" member="no">
+										<value>1</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Thickness" variable="BitmapButton_Marquee_Thickness" member="yes">
+										<bitmap code="padlock16x16_blue_xpm" />
+										<default>1</default>
+										<size>13,13</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>1</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="wxID_ANY" variable="StaticText62" member="no">
+										<label>Stagger:</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Stagger" variable="Slider_Marquee_Stagger" member="no">
+										<max>50</max>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Stagger" variable="TextCtrl_Marquee_Stagger" member="no">
+										<value>0</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Stagger" variable="BitmapButton_Marquee_Stagger" member="yes">
+										<bitmap code="padlock16x16_blue_xpm" />
+										<default>1</default>
+										<size>13,13</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="wxID_ANY" variable="StaticText196" member="no">
+										<label>Speed:</label>
+									</object>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Speed" variable="Slider_Marquee_Speed" member="no">
+										<value>3</value>
+										<min>1</min>
+										<max>50</max>
+										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Speed" variable="TextCtrl_Marquee_Speed" member="no">
+										<value>3</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Speed" variable="BitmapButton_Marquee_Speed" member="yes">
+										<bitmap code="padlock16x16_blue_xpm" />
+										<default>1</default>
+										<size>13,13</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_Reverse" variable="CheckBox_Marquee_Reverse" member="yes">
+										<label>Reverse:</label>
+										<style>wxALIGN_RIGHT</style>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Marquee</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL18" variable="Panel1_Meteors" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer41" member="no">
 								<cols>4</cols>

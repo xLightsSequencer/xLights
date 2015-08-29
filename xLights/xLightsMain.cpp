@@ -46,13 +46,13 @@
 
 
 //(*InternalHeaders(xLightsFrame)
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/intl.h>
-#include <wx/font.h>
-#include <wx/bitmap.h>
-#include <wx/image.h>
 #include <wx/artprov.h>
+#include <wx/bitmap.h>
+#include <wx/settings.h>
+#include <wx/font.h>
+#include <wx/intl.h>
+#include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 
@@ -151,6 +151,7 @@ const long xLightsFrame::ID_BITMAPBUTTON30 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON35 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON36 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON37 = wxNewId();
+const long xLightsFrame::ID_BITMAPBUTTON38 = wxNewId();
 const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
@@ -508,107 +509,107 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
-    wxMenuItem* MenuItem2;
-    wxMenuItem* MenuItem29;
-    wxMenuItem* MenuItem23;
-    wxFlexGridSizer* FlexGridSizer30;
-    wxStaticBoxSizer* StaticBoxSizer2;
-    wxFlexGridSizer* FlexGridSizer21;
     wxStaticText* StaticText22;
-    wxFlexGridSizer* FlexGridSizer28;
+    wxStaticBoxSizer* StaticBoxSizer2;
     wxMenuItem* MenuItem31;
-    wxFlexGridSizer* FlexGridSizer8;
-    wxFlexGridSizer* FlexGridSizerNetworks;
-    wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxFlexGridSizer* FlexGridSizer25;
-    wxMenuItem* MenuItem30;
-    wxMenuItem* MenuItemDelList;
-    wxStaticText* StaticText21;
-    wxFlexGridSizer* FlexGridSizer15;
-    wxBoxSizer* BoxSizer3;
-    wxMenu* Menu5;
-    wxFlexGridSizer* FlexGridSizer56;
-    wxFlexGridSizer* FlexGridSizer50;
-    wxMenuItem* MenuItem12;
-    wxMenuItem* MenuItem25;
-    wxStaticText* StaticText28;
-    wxFlexGridSizer* FlexGridSizer17;
-    wxBoxSizer* BoxSizer10;
-    wxFlexGridSizer* FlexGridSizer29;
-    wxMenuItem* MenuItem19;
-    wxFlexGridSizer* FlexGridSizer19;
-    wxFlexGridSizer* FlexGridSizer11;
-    wxMenuItem* MenuItemAddList;
-    wxFlexGridSizer* FlexGridSizerCal;
-    wxFlexGridSizer* FlexGridSizer47;
-    wxMenuItem* MenuItem20;
-    wxFlexGridSizer* FlexGridSizer40;
-    wxFlexGridSizer* FlexGridSizerPreview;
-    wxFlexGridSizer* FlexGridSizer7;
-    wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxMenuItem* MenuItem24;
-    wxBoxSizer* BoxSizer2;
-    wxFlexGridSizer* FlexGridSizer4;
-    wxFlexGridSizer* FlexGridSizer26;
-    wxFlexGridSizer* FlexGridSizer9;
-    wxFlexGridSizer* FlexGridSizer14;
-    wxFlexGridSizer* FlexGridSizer55;
-    wxFlexGridSizer* FlexGridSizer6;
-    wxMenuItem* MenuItem17;
-    wxButton* Button03;
-    wxFlexGridSizer* FlexGridSizer27;
-    wxFlexGridSizer* FlexGridSizer37;
-    wxFlexGridSizer* FlexGridSizer3;
-    wxFlexGridSizer* FlexGridSizer22;
-    wxFlexGridSizer* FlexGridSizer31;
-    wxMenuItem* MenuItem9;
-    wxFlexGridSizer* FlexGridSizer43;
-    wxFlexGridSizer* FlexGridSizerPapagayo;
-    wxStaticText* StaticText38;
-    wxFlexGridSizer* FlexGridSizer39;
-    wxMenuItem* MenuItem11;
-    wxStaticBoxSizer* StaticBoxSizer4;
-    wxBoxSizer* BoxSizer8;
-    wxMenuItem* MenuItem22;
-    wxMenuItem* MenuItem5;
-    wxFlexGridSizer* FlexGridSizer16;
-    wxStaticBoxSizer* StaticBoxSizerHighlightColor;
-    wxFlexGridSizer* FlexGridSizer23;
-    wxFlexGridSizer* FlexGridSizerConvert;
-    wxFlexGridSizer* FlexGridSizerStartChan;
-    wxFlexGridSizer* FlexGridSizerTest;
-    wxStaticBoxSizer* StaticBoxSizerBackgroundColor;
-    wxFlexGridSizer* FlexGridSizer10;
-    wxMenuItem* MenuItemDisplayElements;
-    wxBoxSizer* BoxSizer1;
-    wxFlexGridSizer* FlexGridSizer13;
-    wxMenuItem* MenuItem10;
-    wxMenuItem* MenuItem27;
-    wxGridBagSizer* GridBagSizer1;
-    wxFlexGridSizer* FlexGridSizer18;
-    wxMenuItem* MenuItem4;
-    wxMenuItem* MenuItem6;
-    wxMenuItem* MenuItem26;
-    wxMenuItem* MenuItem13;
-    wxFlexGridSizer* FlexGridSizer54;
-    wxFlexGridSizer* FlexGridSizer36;
-    wxFlexGridSizer* FlexGridSizer12;
-    wxMenu* Menu2;
-    wxMenuItem* MenuItemCustomScript;
-    wxMenu* MenuPlaylist;
-    wxMenuItem* MenuItem28;
-    wxFlexGridSizer* FlexGridSizer35;
-    wxFlexGridSizer* FlexGridSizer5;
-    wxFlexGridSizer* FlexGridSizer24;
     wxMenu* MenuHelp;
     wxMenuItem* MenuItem8;
-    wxMenuItem* MenuItem14;
-    wxFlexGridSizer* FlexGridSizer57;
-    wxStaticBoxSizer* StaticBoxSizer1;
-    wxMenuItem* MenuItemRenameList;
-    wxFlexGridSizer* FlexGridSizer20;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer47;
+    wxFlexGridSizer* FlexGridSizer54;
+    wxFlexGridSizer* FlexGridSizerTest;
+    wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizerSetup;
+    wxMenuItem* MenuItem26;
+    wxFlexGridSizer* FlexGridSizer24;
+    wxMenuItem* MenuItemCustomScript;
+    wxStaticBoxSizer* StaticBoxSizerHighlightColor;
+    wxMenuItem* MenuItem25;
+    wxFlexGridSizer* FlexGridSizer19;
+    wxBoxSizer* BoxSizer10;
+    wxBoxSizer* BoxSizer8;
+    wxFlexGridSizer* FlexGridSizer23;
+    wxMenuItem* MenuItem5;
+    wxMenuItem* MenuItem2;
+    wxMenuItem* MenuItemAddList;
+    wxGridBagSizer* GridBagSizer1;
+    wxStaticBoxSizer* StaticBoxSizer4;
+    wxFlexGridSizer* FlexGridSizer10;
+    wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer27;
+    wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem14;
+    wxFlexGridSizer* FlexGridSizer37;
+    wxFlexGridSizer* FlexGridSizer5;
+    wxFlexGridSizer* FlexGridSizer25;
+    wxMenuItem* MenuItem11;
+    wxMenuItem* MenuItem29;
+    wxFlexGridSizer* FlexGridSizer22;
+    wxStaticText* StaticText38;
+    wxFlexGridSizer* FlexGridSizer56;
+    wxFlexGridSizer* FlexGridSizer9;
+    wxMenuItem* MenuItem22;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxMenuItem* MenuItem17;
+    wxBoxSizer* BoxSizer2;
+    wxMenuItem* MenuItem13;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxMenuItem* MenuItem10;
+    wxFlexGridSizer* FlexGridSizerCal;
+    wxMenu* MenuItem_Grid_Icon_Backgrounds;
+    wxStaticText* StaticText21;
+    wxFlexGridSizer* FlexGridSizer55;
+    wxMenuItem* MenuItemDelList;
+    wxMenuItem* MenuItem12;
+    wxMenuItem* MenuItem24;
+    wxMenuItem* MenuItem27;
+    wxFlexGridSizer* FlexGridSizerNetworks;
+    wxFlexGridSizer* FlexGridSizer57;
+    wxFlexGridSizer* FlexGridSizer29;
+    wxMenuItem* MenuItem20;
+    wxFlexGridSizer* FlexGridSizerPreview;
+    wxMenuItem* MenuItem28;
+    wxFlexGridSizer* FlexGridSizer15;
+    wxFlexGridSizer* FlexGridSizer18;
+    wxFlexGridSizer* FlexGridSizer8;
+    wxMenuItem* MenuItemDisplayElements;
+    wxFlexGridSizer* FlexGridSizer21;
+    wxMenuItem* MenuItem6;
+    wxFlexGridSizer* FlexGridSizer14;
+    wxMenuItem* MenuItem23;
+    wxFlexGridSizer* FlexGridSizer20;
+    wxStaticText* StaticText28;
+    wxBoxSizer* BoxSizer1;
+    wxMenuItem* MenuItemRenameList;
+    wxFlexGridSizer* FlexGridSizer50;
+    wxFlexGridSizer* FlexGridSizer13;
+    wxFlexGridSizer* FlexGridSizer35;
+    wxFlexGridSizer* FlexGridSizer12;
+    wxFlexGridSizer* FlexGridSizer36;
+    wxFlexGridSizer* FlexGridSizer6;
+    wxStaticBoxSizer* StaticBoxSizer1;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizerConvert;
+    wxFlexGridSizer* FlexGridSizer43;
+    wxFlexGridSizer* FlexGridSizer11;
+    wxBoxSizer* BoxSizer3;
+    wxFlexGridSizer* FlexGridSizerStartChan;
+    wxFlexGridSizer* FlexGridSizer17;
+    wxMenu* Menu2;
+    wxFlexGridSizer* FlexGridSizerPapagayo;
+    wxMenuItem* MenuItem9;
+    wxMenuItem* MenuItem30;
+    wxFlexGridSizer* FlexGridSizer31;
+    wxFlexGridSizer* FlexGridSizer40;
+    wxFlexGridSizer* FlexGridSizer39;
+    wxFlexGridSizer* FlexGridSizer28;
+    wxStaticBoxSizer* StaticBoxSizerBackgroundColor;
+    wxMenu* MenuPlaylist;
+    wxFlexGridSizer* FlexGridSizer26;
+    wxMenu* Menu5;
+    wxMenuItem* MenuItem19;
+    wxFlexGridSizer* FlexGridSizer30;
+    wxButton* Button03;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1411,1103));
@@ -821,6 +822,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BitmapButton33->SetMaxSize(wxSize(16,16));
     BitmapButton33->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
     BitmapButton33->SetEffectIndex(32);
+    BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON38, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
+    BitmapButton34->SetMinSize(wxSize(16,16));
+    BitmapButton34->SetMaxSize(wxSize(16,16));
+    BitmapButton34->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
+    BitmapButton34->SetEffectIndex(33);
     EffectsToolBar->AddControl(BitmapButton1, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton2, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton3, _("Item label"));
@@ -854,6 +860,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectsToolBar->AddControl(BitmapButton31, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton32, _("Item label"));
     EffectsToolBar->AddControl(BitmapButton33, _("Item label"));
+    EffectsToolBar->AddControl(BitmapButton34, _("Item label"));
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
     Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER);
@@ -1751,11 +1758,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\n\n\t\t\tLOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
     FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
-    DirDialog1 = new wxDirDialog(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
-    Timer1.SetOwner(this, ID_TIMER1);
-    FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\n\n\t\t\tLOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
-    MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
-    FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
 
     Connect(ID_AUITOOLBAR_OPENSHOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_AUITOOLBAR_NEWSEQUENCE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
@@ -1936,7 +1938,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
-    Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);

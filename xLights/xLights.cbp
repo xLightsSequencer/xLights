@@ -477,6 +477,7 @@
 		<Unit filename="RenderGarlands.cpp" />
 		<Unit filename="RenderGlediator.cpp" />
 		<Unit filename="RenderLife.cpp" />
+		<Unit filename="RenderMarquee.cpp" />
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderMorph.cpp" />
 		<Unit filename="RenderOff.cpp" />

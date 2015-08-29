@@ -87,6 +87,12 @@
 #include "../include/life-48.xpm"
 #include "../include/life-64.xpm"
 
+#include "../include/marquee-16.xpm"
+#include "../include/marquee-24.xpm"
+#include "../include/marquee-32.xpm"
+#include "../include/marquee-48.xpm"
+#include "../include/marquee-64.xpm"
+
 //#include "../include/meteors.xpm"
 #include "../include/meteors-16.xpm"
 #include "../include/meteors-24.xpm"
@@ -506,6 +512,9 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
         case BitmapCache::eff_LIFE:
             toolTip = "Life";
             return effectBitmaps.get(size, exact, "Life", life_16, life_24, life_32, life_48, life_48);
+        case BitmapCache::eff_MARQUEE:
+            toolTip = "Marquee";
+            return effectBitmaps.get(size, exact, "Marquee", marquee_16, marquee_24, marquee_32, marquee_48, marquee_64);
         case BitmapCache::eff_METEORS:
             toolTip = "Meteors";
             return effectBitmaps.get(size, exact, "Meteors", meteors_16, meteors_24, meteors_32, meteors_48, meteors_64);

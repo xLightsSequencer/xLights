@@ -34,7 +34,7 @@ public:
         data["E_TEXTCTRL_Text_Font2"] = "E_FONTPICKER_Text_Font2";
         data["E_TEXTCTRL_Text_Font3"] = "E_FONTPICKER_Text_Font3";
         data["E_TEXTCTRL_Text_Font4"] = "E_FONTPICKER_Text_Font4";
-        
+
         data["E_CHOICE_CoroFaces_Phoneme"] = "E_CHOICE_Faces_Phoneme";
         data["E_CHOICE_CoroFaces_Eyes"] = "E_CHOICE_Faces_Eyes";
         data["E_CHECKBOX_CoroFaces_Outline"] = "E_CHECKBOX_Faces_Outline";
@@ -66,6 +66,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
         case BitmapCache::eff_OFF:
         case BitmapCache::eff_GALAXY:
         case BitmapCache::eff_FAN:
+        case BitmapCache::eff_MARQUEE:
         case BitmapCache::eff_MORPH:
         case BitmapCache::eff_SHOCKWAVE:
         case BitmapCache::eff_GLEDIATOR:
@@ -333,7 +334,7 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & nam
 {
     int i = GetEffectIndex(name);
     mSettings.Parse(settings);
-    
+
     if (effectIndex == BitmapCache::eff_FACES
         && mSettings.Get("E_CHOICE_Faces_FaceDefinition", "") == ""
         && mSettings.Get("E_CHOICE_Faces_TimingTrack", "") == "") {
@@ -560,6 +561,7 @@ public:
         at(BitmapCache::eff_GARLANDS) = "Garlands";
         at(BitmapCache::eff_GLEDIATOR) = "Glediator";
         at(BitmapCache::eff_LIFE) = "Life";
+        at(BitmapCache::eff_MARQUEE) = "Marquee";
         at(BitmapCache::eff_METEORS) = "Meteors";
         at(BitmapCache::eff_MORPH) = "Morph";
         at(BitmapCache::eff_PIANO) = "Piano";

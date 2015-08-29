@@ -239,12 +239,12 @@ public:
         int maxFrameBeforeCheck = -1;
         int origChangeCount;
         int ss, es;
-        
+
         rowToRender->IncWaitCount();
         wxMutexLocker lock(rowToRender->GetRenderLock());
         rowToRender->DecWaitCount();
         SetGenericStatus("Got lock on rendering thread for %s\n", 0);
-        
+
         rowToRender->GetAndResetDirtyRange(origChangeCount, ss, es);
         if (ss != -1) {
             //expand to cover the whole dirty range
@@ -418,7 +418,7 @@ public:
             SetGenericStatus("%s: Waiting on previous renderer for final frame\n", 0);
             waitForFrame(END_OF_RENDER_FRAME);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
-            
+
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
@@ -501,7 +501,7 @@ private:
                          SettingsMap& settingsMap) {
         settingsMap.clear();
         settingsMap["Effect"]=effectName;
-        
+
 
         effect->CopySettingsMap(settingsMap, true);
         effect->CopyPaletteMap(settingsMap, true);
@@ -517,7 +517,7 @@ private:
     SequenceData *seqData;
     bool clearAllFrames;
     RenderEvent renderEvent;
-    
+
     //stuff for handling the status;
     wxString statusMsg;
     int statusType;
@@ -715,7 +715,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     RenderJob *job = new RenderJob(el, SeqData, this, true);
     SequenceData *data = job->createExportBuffer();
     int cpn = job->getBuffer()->GetChanCountPerNode();
-    
+
     if (command.GetInt()) {
         job->setRenderRange(0, SeqData.NumFrames());
         job->setPreviousFrameDone(END_OF_RENDER_FRAME);
@@ -739,7 +739,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         }
         delete job;
     }
-    
+
 
 
     if (Out3 == "Lcb") {
@@ -912,6 +912,13 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
         buffer.RenderLife(wxAtoi(SettingsMap["SLIDER_Life_Count"]),
                           wxAtoi(SettingsMap["SLIDER_Life_Seed"]),
                           wxAtoi(SettingsMap.Get("SLIDER_Life_Speed", "10")));
+    } else if (effect == "Marquee") {
+        buffer.RenderMarquee(wxAtoi(SettingsMap["SLIDER_Marquee_Band_Size"]),
+                             wxAtoi(SettingsMap["SLIDER_Marquee_Skip_Size"]),
+                             wxAtoi(SettingsMap["SLIDER_Marquee_Thickness"]),
+                             wxAtoi(SettingsMap["SLIDER_Marquee_Stagger"]),
+                             wxAtoi(SettingsMap.Get("SLIDER_Marquee_Speed", "1")),
+                             SettingsMap["CHECKBOX_Marquee_Reverse"] == "1");
     } else if (effect == "Meteors") {
         buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap["CHOICE_Meteors_Type"]),
                              wxAtoi(SettingsMap["SLIDER_Meteors_Count"]),

@@ -29,6 +29,7 @@ void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, 
 void RenderGarlands(int GarlandType, int Spacing, float cycles, const wxString &direction);
 void RenderGlediator(const wxString& NewPictureName);
 void RenderLife(int Count, int Type, int lifeSpeed);
+void RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int MSpeed, bool reverse_dir);
 void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed);
 void RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2,
                  int end_x1,   int end_y1,   int end_x2,   int end_y2,

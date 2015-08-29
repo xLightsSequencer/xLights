@@ -27,6 +27,7 @@ public:
         eff_GARLANDS,
         eff_GLEDIATOR,
         eff_LIFE,
+        eff_MARQUEE,
         eff_METEORS,
         eff_MORPH,
         eff_PIANO,
