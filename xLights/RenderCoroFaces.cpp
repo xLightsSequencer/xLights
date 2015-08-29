@@ -214,7 +214,16 @@ void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDef
         //not found
         found = false;
     }
-    
+    if (!found) {
+        if ("Coro" == definition && model_info->faceInfo.find("SingleNode") != model_info->faceInfo.end()) {
+            definition = "SingleNode";
+            found = true;
+        } else if ("SingleNode" == definition && model_info->faceInfo.find("Coro") != model_info->faceInfo.end()) {
+            definition = "Coro";
+            found = true;
+        }
+    }
+
     int type = 3;
     if ("Coro" == definition || "SingleNode" == definition) {
         type = 0;
