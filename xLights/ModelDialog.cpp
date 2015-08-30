@@ -76,8 +76,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 
     //(*Initialize(ModelDialog)
     wxFlexGridSizer* FlexGridSizer4;
-    wxFlexGridSizer* FlexGridSizer10;
     wxButton* Button01;
+    wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer3;
     wxButton* Button04;
     wxFlexGridSizer* FlexGridSizer5;
@@ -158,7 +158,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     StaticText_Strands = new wxStaticText(this, ID_STATICTEXT4, _("# of Strands per String"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     StaticText_Strands->SetHelpText(_("How many times is a string folded\?"));
     LeftGridSizer->Add(StaticText_Strands, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    SpinCtrl_parm3 = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(35,-1)), 0, 1, 100, 1, _T("ID_SPINCTRL3"));
+    SpinCtrl_parm3 = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(35,-1)), 0, 1, 1000, 1, _T("ID_SPINCTRL3"));
     SpinCtrl_parm3->SetValue(_T("1"));
     LeftGridSizer->Add(SpinCtrl_parm3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Start Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
