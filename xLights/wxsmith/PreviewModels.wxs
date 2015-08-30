@@ -155,7 +155,7 @@
 														<object class="wxListBox" name="ID_LISTBOX_ADD_TO_MODEL_GROUP" variable="ListBoxAddToModelGroup" member="yes">
 															<default>-1</default>
 															<minsize>75,65d</minsize>
-															<style>wxLB_SORT|wxVSCROLL</style>
+															<style>wxLB_SORT|wxVSCROLL|wxHSCROLL</style>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -238,6 +238,7 @@
 														<object class="wxListBox" name="ID_LISTBOX_MODELS_IN_GROUP" variable="ListBoxModelsInGroup" member="yes">
 															<default>-1</default>
 															<minsize>75,65d</minsize>
+															<style>wxVSCROLL|wxHSCROLL</style>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
