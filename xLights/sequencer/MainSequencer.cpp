@@ -476,10 +476,17 @@ void MainSequencer::InsertTimingMarkFromRange()
             {
                 // if there is an effect to left
                 wxString name,settings;
-                Effect* effect = el->GetEffectBeforePosition(x2);
+                Effect * effect = nullptr;
+                for (int x = 0; x < el->GetEffectCount(); x++) {
+                    Effect * e = el->GetEffect(x);
+                    if (e->GetStartTimeMS() > t2 && x > 0) {
+                        effect = el->GetEffect(x - 1);
+                        break;
+                    }
+                }
                 if(effect!=nullptr)
                 {
-                    int t1 = PanelTimeLine->GetAbsoluteTimeMSfromPosition(effect->GetEndPosition());
+                    int t1 = effect->GetEndTimeMS();
                     el->AddEffect(0,0,name,settings,"",t1,t2,false,false);
                 }
                 // No effect to left start at time = 0

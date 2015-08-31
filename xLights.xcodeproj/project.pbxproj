@@ -19,6 +19,7 @@
 		672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		6730E4D21ADB54E8005DECF0 /* RenderGalaxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */; };
+		673B04A41B926957009151BA /* RenderMarquee.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673B04A31B926957009151BA /* RenderMarquee.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		67402E871B4230360047EDC1 /* NullOutputDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67402E851B4230360047EDC1 /* NullOutputDialog.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
@@ -204,6 +205,7 @@
 		672F95241A7A6619005FF8BF /* WholeHouseModelNameDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WholeHouseModelNameDialog.h; sourceTree = "<group>"; };
 		672F95251A7A6619005FF8BF /* XlightsDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XlightsDrawable.h; sourceTree = "<group>"; };
 		6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGalaxy.cpp; sourceTree = "<group>"; };
+		673B04A31B926957009151BA /* RenderMarquee.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderMarquee.cpp; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
 		673E425817F0D23E00F4BC76 /* TabSchedule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSchedule.cpp; sourceTree = "<group>"; };
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
@@ -510,6 +512,7 @@
 				67A619E217B51C0F008E95BB /* RenderGarlands.cpp */,
 				675006771923EBBD00875D45 /* RenderGlediator.cpp */,
 				67A619E317B51C0F008E95BB /* RenderLife.cpp */,
+				673B04A31B926957009151BA /* RenderMarquee.cpp */,
 				67A619E417B51C0F008E95BB /* RenderMeteors.cpp */,
 				67B189751AA22C990082B00C /* RenderMorph.cpp */,
 				676F58771A1556210045FA22 /* RenderOff.cpp */,
@@ -920,6 +923,7 @@
 				67AAF8F21B63767B00585431 /* PhonemeDictionary.cpp in Sources */,
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,
 				67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */,
+				673B04A41B926957009151BA /* RenderMarquee.cpp in Sources */,
 				67A61A3917B51C0F008E95BB /* RenderColorWash.cpp in Sources */,
 				67A61A3A17B51C0F008E95BB /* RenderFire.cpp in Sources */,
 				67A61A3B17B51C0F008E95BB /* RenderFireworks.cpp in Sources */,
