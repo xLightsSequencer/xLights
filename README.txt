@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil) New model groups default to "minimal grid".
     -- enh(gil) Add scrollbars to lower windows in Model Groups dialog. Fixes #350.
     -- enh(gil) Increase window frame model bottom limit.  Fixes #351.
 4.2.5  Aug 29, 2015

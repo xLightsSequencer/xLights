@@ -162,6 +162,7 @@ PreviewModels::PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode*
 	mModelGroups = ModelGroups;
 	mModels = Models;
 	PopulateModelGroups();
+    ChoiceModelLayoutType->SetSelection(1);
 }
 
 PreviewModels::~PreviewModels()
@@ -201,7 +202,7 @@ void PreviewModels::UpdateSelectedModel()
     }
     TextModelGroupName->SetValue(ListBoxModelGroups->GetString(ListBoxModelGroups->GetSelection()));
     PopulateUnusedModels(ModelsInGroup);
-    
+
     wxString v = e->GetAttribute("layout", "grid");
     if (v == "grid") {
         ChoiceModelLayoutType->SetSelection(0);
@@ -212,10 +213,10 @@ void PreviewModels::UpdateSelectedModel()
     } else if (v == "vertical") {
         ChoiceModelLayoutType->SetSelection(3);
     }
-    
+
     wxCommandEvent evt;
     OnChoiceModelLayoutTypeSelect(evt);
-    
+
     SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
 }
 
@@ -307,7 +308,7 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
         }
         e->DeleteAttribute("models");
         e->AddAttribute("models", ModelsInGroup);
-        
+
         e->DeleteAttribute("GridSize");
         e->DeleteAttribute("layout");
         switch (ChoiceModelLayoutType->GetSelection()) {
@@ -326,7 +327,7 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
                 e->AddAttribute("layout", "vertical");
                 break;
         }
-        
+
         ListBoxModelGroups->Delete(ListBoxModelGroups->GetSelection());
         ListBoxModelGroups->Append(TextModelGroupName->GetValue(), e);
     }
