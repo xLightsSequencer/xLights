@@ -576,8 +576,14 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms,int &index, HitLocati
         int position = GetClippedPositionFromTimeMS(ms);
         int mid = (startPos + endPos) / 2;
         
-        if ((endPos - startPos) < 22) {
-            selectionType = HitLocation::CENTER;
+        if ((endPos - startPos) < 8) {
+            //too small to really differentiate, just
+            //provide ability to make the effect larger
+            if (position < mid) {
+                selectionType = HitLocation::LEFT_EDGE;
+            } else {
+                selectionType = HitLocation::RIGHT_EDGE;
+            }
         } else if(position > endPos - 6) {
             selectionType = HitLocation::RIGHT_EDGE;
         } else if(position > endPos - 10) {

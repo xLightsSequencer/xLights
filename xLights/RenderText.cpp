@@ -38,7 +38,6 @@
 
 #define WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
 
-
 inline void unshare(wxObject &o) {
     if (o.GetRefData() != nullptr) {
         o.UnShare();
@@ -60,27 +59,28 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1,1,32)
 
     
     //make sure we UnShare everything that is being held onto
-    wxFont font(*wxNORMAL_FONT);
+    //also use "non-normal" defaults to avoid "==" issue that
+    //would keep it from using the non-shared versions
+    wxFont font(*wxITALIC_FONT);
     unshare(font);
     dc->SetFont(font);
-    wxBrush b(dc->GetBrush());
-    unshare(b);
-    dc->SetBrush(b);
-    b = dc->GetBackground();
-    unshare(b);
-    dc->SetBackground(b);
-    wxPen pen(*wxBLACK_PEN);
-    pen.UnShare();
+    
+    wxBrush brush(*wxYELLOW_BRUSH);
+    unshare(brush);
+    dc->SetBrush(brush);
+    dc->SetBackground(brush);
+    
+    wxPen pen(*wxGREEN_PEN);
+    unshare(pen);
     dc->SetPen(pen);
     
-    wxColor c = dc->GetTextBackground();
+    wxColor c(12, 25, 3);
     unshare(c);
     dc->SetTextBackground(c);
     
-    c = dc->GetTextForeground();
-    unshare(c);
-    dc->SetTextForeground(c);
-    
+    wxColor c2(0, 35, 5);
+    unshare(c2);
+    dc->SetTextForeground(c2);
 #if wxUSE_GRAPHICS_CONTEXT
     gc = nullptr;
 #endif
