@@ -257,7 +257,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mSequenceElements.SetModelsNode(ModelsNode, this);
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file);
-    xml_file.CheckUpdateMorphPositions(mSequenceElements, this);
+    //xml_file.CheckUpdateMorphPositions(mSequenceElements, this);  everyone should have had time to fix their older sequences prior to May 20th, 2015.  Delete once we know this function is no longer needed.
     mSequenceElements.PopulateRowInformation();
 
     Menu_Settings_Sequence->Enable(true);

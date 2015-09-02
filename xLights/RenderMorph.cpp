@@ -55,7 +55,8 @@ double RgbEffects::calcAccel(double ratio, double accel)
 
 static int calcPosition(int value, int base)
 {
-    double band = 101.0 / (double)base;
+    if( value == 100 ) return (base - 1);
+    double band = 100.0 / (double)base;
     return (int)((double)value / band);
 }
 
