@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.6  Sep 02, 2015
     -- bug(gil) Fix morph row/column calculation for large model sizes
     -- enh(gil) New model groups default to "minimal grid".
     -- enh(gil) Add scrollbars to lower windows in Model Groups dialog. Fixes #350.
