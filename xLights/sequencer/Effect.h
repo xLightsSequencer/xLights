@@ -33,6 +33,11 @@
 
 class EffectLayer;
 
+#define EFFECT_NOT_SELECTED     0
+#define EFFECT_LT_SELECTED      1
+#define EFFECT_RT_SELECTED      2
+#define EFFECT_SELECTED         3
+
 class Effect
 {
     private:
@@ -63,12 +68,6 @@ class Effect
 
         bool GetProtected();
         void SetProtected(bool Protected);
-
-        int GetStartPosition();
-        void SetStartPosition(int position);
-
-        int GetEndPosition();
-        void SetEndPosition(int position);
 
         static int GetEffectIndex(const wxString &effectName);
         static const wxString &GetEffectName(int idx);
@@ -112,8 +111,6 @@ class Effect
         wxString *mName;
         short mEffectIndex;
         bool mProtected;
-        int mStartPosition;
-        int mEndPosition;
         EffectLayer* mParentLayer;
 
         mutable wxMutex settingsLock;

@@ -515,26 +515,6 @@ void Effect::SetProtected(bool Protected)
     mProtected = Protected;
 }
 
-int Effect::GetStartPosition()
-{
-    return mStartPosition;
-}
-
-void Effect::SetStartPosition(int position)
-{
-    mStartPosition = position;
-}
-
-int Effect::GetEndPosition()
-{
-    return mEndPosition;
-}
-
-void Effect::SetEndPosition(int position)
-{
-    mEndPosition = position;
-}
-
 bool operator<(const Effect &e1, const Effect &e2){
     if(e1.GetStartTimeMS() < e2.GetStartTimeMS())
         return true;

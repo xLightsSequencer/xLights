@@ -5,18 +5,7 @@
 #include "Effect.h"
 #include "UndoManager.h"
 
-#define EFFECT_NOT_SELECTED     0
-#define EFFECT_LT_SELECTED      1
-#define EFFECT_RT_SELECTED      2
-#define EFFECT_SELECTED         3
-
 #define NO_MIN_MAX_TIME      0
-
-#define HIT_TEST_EFFECT_LT      0
-#define HIT_TEST_EFFECT_RT      1
-#define HIT_TEST_EFFECT_CTR     2
-#define HIT_TEST_EFFECT_LT_EDGE 3
-#define HIT_TEST_EFFECT_RT_EDGE 4
 
 #define NO_MAX                  1000000
 class Element;
@@ -47,18 +36,17 @@ class EffectLayer
         int GetMaximumEndTimeMS(int index, bool allow_collapse);
         int GetMinimumStartTimeMS(int index, bool allow_collapse);
 
-        bool HitTestEffect(int position,int &index, int &result);
         bool HitTestEffectByTime(int timeMS,int &index);
-        int GetEffectIndexThatContainsPosition(int position,int &selectionType);
-        Effect* GetEffectBeforePosition(int position);
-        Effect* GetEffectAfterPosition(int position);
-        bool GetRangeIsClearPos(int startX, int endX);
+
+        Effect* GetEffectAtTime(int ms);
+        Effect* GetEffectBeforeTime(int ms);
+        Effect* GetEffectAfterTime(int ms);
+        Effect* GetEffectBeforeEmptyTime(int ms);
+        Effect* GetEffectAfterEmptyTime(int ms);
+
         bool GetRangeIsClearMS(int startTimeMS, int endTimeMS);
-        Effect* GetEffectBeforeEmptySpace(int position);
-        Effect* GetEffectAfterEmptySpace(int position);
 
         void GetMaximumRangeOfMovementForSelectedEffects(int &toLeft,int &toRight);
-        void SelectEffectsInPositionRange(int startX,int endX);
         int SelectEffectsInTimeRange(int startTimeMS, int endTimeMS);
         bool HasEffectsInTimeRange(int startTimeMS, int endTimeMS);
         void UnSelectAllEffects();

@@ -19,12 +19,18 @@
 
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 
-#define EFFECT_RESIZE_NO                    0
-#define EFFECT_RESIZE_LEFT                  1
-#define EFFECT_RESIZE_RIGHT                 2
-#define EFFECT_RESIZE_MOVE                  3
-#define EFFECT_RESIZE_LEFT_EDGE             4
-#define EFFECT_RESIZE_RIGHT_EDGE            5
+
+enum class HitLocation {
+    NONE,
+    LEFT_EDGE,
+    LEFT_EDGE_DISCONNECT,
+    LEFT,
+    CENTER,
+    RIGHT,
+    RIGHT_EDGE_DISCONNECT,
+    RIGHT_EDGE
+};
+
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
@@ -74,6 +80,9 @@ protected:
 
 
 private:
+    Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
+    int GetClippedPositionFromTimeMS(int ms);
+
     void sendRenderEvent(const wxString &model, int start, int end, bool clear = true);
     void render(wxPaintEvent& evt);
 	void mouseMoved(wxMouseEvent& event);

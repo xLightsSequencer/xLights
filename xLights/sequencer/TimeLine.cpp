@@ -405,9 +405,9 @@ int TimeLine::GetPixelOffsetFromStartTime()
 
 int TimeLine::GetPositionFromTimeMS(int timeMS)
 {
-   double majorHashs = (double)timeMS/(double)TimePerMajorTickInMS();
-   double xAbsolutePosition = majorHashs * (double)PIXELS_PER_MAJOR_HASH;
-   return (int)(xAbsolutePosition - mStartPixelOffset);
+    double majorHashs = (double)timeMS/(double)TimePerMajorTickInMS();
+    double xAbsolutePosition = majorHashs * (double)PIXELS_PER_MAJOR_HASH;
+    return (int)(xAbsolutePosition - mStartPixelOffset);
 }
 
 void TimeLine::GetPositionsFromTimeRange(int startTimeMS,int endTimeMS,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2, int& x3, int& x4)

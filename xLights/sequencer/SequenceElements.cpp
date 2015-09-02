@@ -998,8 +998,9 @@ void SequenceElements::DeactivateAllTimingElements()
     }
 }
 
-void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX)
+int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS)
 {
+    int i = 0;
     if(startRow<mVisibleRowInformation.size())
     {
         if(endRow>=mVisibleRowInformation.size())
@@ -1009,56 +1010,11 @@ void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endR
         for(int i=startRow;i<=endRow;i++)
         {
             EffectLayer* effectLayer = GetEffectLayer(&mVisibleRowInformation[i]);
-            effectLayer->SelectEffectsInPositionRange(startX,endX);
+            i += effectLayer->SelectEffectsInTimeRange(startMS,endMS);
         }
     }
+    return i;
 }
-
-int SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol)
-{
-    int num_selected = 0;
-    if(startRow < mRowInformation.size())
-    {
-        if(endRow >= mRowInformation.size())
-        {
-            endRow = mRowInformation.size()-1;
-        }
-        EffectLayer* tel = GetVisibleEffectLayer(GetSelectedTimingRow());
-        if( tel != nullptr )
-        {
-            Effect* eff1 = tel->GetEffect(startCol);
-            Effect* eff2 = tel->GetEffect(endCol);
-            if( eff1 != nullptr && eff2 != nullptr )
-            {
-                int start_time = eff1->GetStartTimeMS();
-                int end_time = eff2->GetEndTimeMS();
-                for(int i=startRow;i <= endRow;i++)
-                {
-                    EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
-                    num_selected += effectLayer->SelectEffectsInTimeRange(start_time,end_time);
-                }
-            }
-        }
-    }
-    return num_selected;
-}
-
-Effect* SequenceElements::GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType)
-{
-    EffectLayer* effectLayer = GetEffectLayer(&mVisibleRowInformation[row]);
-
-    index = effectLayer->GetEffectIndexThatContainsPosition(x,selectionType);
-    if(index<0)
-    {
-        return nullptr;
-    }
-    else
-    {
-        return effectLayer->GetEffect(index);
-    }
-}
-
-
 
 void SequenceElements::UnSelectAllEffects()
 {

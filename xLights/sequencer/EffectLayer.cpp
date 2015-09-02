@@ -173,103 +173,26 @@ int EffectLayer::GetEffectCount()
         return mEffects.size();
 }
 
-bool EffectLayer::HitTestEffect(int position,int &index, int &result)
-{
-    bool isHit=false;
-    for(int i=0;i<mEffects.size();i++)
-    {
-        int start_pos = mEffects[i]->GetStartPosition();
-        int end_pos = mEffects[i]->GetEndPosition();
-        int delta = end_pos-start_pos;
-        if (position >= start_pos && position <= end_pos)
-        {
-            index = i;
-            if(position > end_pos - 6)
-            {
-                isHit = true;
-                result = HIT_TEST_EFFECT_RT;
-            }
-            else if(position < start_pos + 6)
-            {
-                isHit = true;
-                result = HIT_TEST_EFFECT_LT;
-            }
-            else if(position > end_pos - 10 && delta > 17)
-            {
-                isHit = true;
-                result = HIT_TEST_EFFECT_RT_EDGE;
-            }
-            else if(position < start_pos + 10 && delta > 17)
-            {
-                isHit = true;
-                result = HIT_TEST_EFFECT_LT_EDGE;
-            }
-            else
-            {
-                int midpoint = start_pos + delta/2;
-                if( std::abs(position - midpoint) <= 7 )
-                {
-                    isHit = true;
-                    result = HIT_TEST_EFFECT_CTR;
-                }
-            }
-            break;
-        }
-    }
-    return isHit;
-}
-
 bool EffectLayer::HitTestEffectByTime(int timeMS,int &index)
 {
-    bool isHit=false;
     for(int i=0;i<mEffects.size();i++)
     {
         if (timeMS >= mEffects[i]->GetStartTimeMS() &&
             timeMS <= mEffects[i]->GetEndTimeMS())
         {
-            isHit = true;
             index = i;
-            break;
+            return true;
         }
     }
-    return isHit;
+    return false;
 }
 
-int EffectLayer::GetEffectIndexThatContainsPosition(int position,int &selectionType)
-{
-   int index=-1;
-   selectionType = EFFECT_NOT_SELECTED;
-    for(int i=0;i<mEffects.size();i++)
-    {
-        if (position >= mEffects[i]->GetStartPosition() &&
-            position <= mEffects[i]->GetEndPosition())
-        {
-            index = i;
-
-            if(position > mEffects[i]->GetEndPosition() - 10)
-            {
-                selectionType = EFFECT_RT_SELECTED;
-            }
-            else if(position < mEffects[i]->GetStartPosition() + 10)
-            {
-                selectionType = EFFECT_LT_SELECTED;
-            }
-            else
-            {
-                selectionType = EFFECT_SELECTED;
-            }
-            break;
-        }
-    }
-    return index;
-}
-
-Effect* EffectLayer::GetEffectBeforePosition(int position)
+Effect* EffectLayer::GetEffectBeforeTime(int ms)
 {
     int i;
     for(i=0; i<mEffects.size();i++)
     {
-        if(mEffects[i]->GetStartPosition()>position)
+        if(mEffects[i]->GetStartTimeMS() >= ms)
         {
             break;
         }
@@ -284,32 +207,23 @@ Effect* EffectLayer::GetEffectBeforePosition(int position)
     }
 }
 
-Effect* EffectLayer::GetEffectAfterPosition(int position)
+Effect* EffectLayer::GetEffectAtTime(int timeMS)
 {
-    int i;
-    for(i=0; i<mEffects.size();i++)
-    {
-        if(mEffects[i]->GetEndPosition()<position)
-        {
-            break;
+    for(int i=0;i<mEffects.size();i++) {
+        if (timeMS >= mEffects[i]->GetStartTimeMS() &&
+            timeMS <= mEffects[i]->GetEndTimeMS()) {
+            return mEffects[i];
         }
     }
-    if(i==mEffects.size()-1)
-    {
-        return nullptr;
-    }
-    else
-    {
-        return mEffects[i+1];
-    }
+    return nullptr;
 }
 
-Effect*  EffectLayer::GetEffectBeforeEmptySpace(int position)
+Effect*  EffectLayer::GetEffectBeforeEmptyTime(int ms)
 {
     int i;
     for(i=mEffects.size()-1; i >= 0; i--)
     {
-        if( mEffects[i]->GetEndPosition() < position )
+        if( mEffects[i]->GetEndTimeMS() < ms )
         {
             break;
         }
@@ -324,12 +238,12 @@ Effect*  EffectLayer::GetEffectBeforeEmptySpace(int position)
     }
 }
 
-Effect*  EffectLayer::GetEffectAfterEmptySpace(int position)
+Effect*  EffectLayer::GetEffectAfterEmptyTime(int ms)
 {
     int i;
     for(i=0; i < mEffects.size(); i++)
     {
-        if( mEffects[i]->GetStartPosition() > position )
+        if( mEffects[i]->GetStartTimeMS() > ms )
         {
             break;
         }
@@ -343,31 +257,7 @@ Effect*  EffectLayer::GetEffectAfterEmptySpace(int position)
         return mEffects[i];
     }
 }
-
-bool EffectLayer::GetRangeIsClearPos(int startX, int endX)
-{
-    int i;
-    for(i=0; i<mEffects.size();i++)
-    {
-        // check if start is between effect range
-        if( (startX > mEffects[i]->GetStartPosition()) && (startX < mEffects[i]->GetEndPosition()) )
-        {
-            return false;
-        }
-        // check if end is between effect range
-        if( (endX > mEffects[i]->GetStartPosition()) && (endX < mEffects[i]->GetEndPosition()) )
-        {
-            return false;
-        }
-        // check effect is between start and end
-        if( (mEffects[i]->GetStartPosition() >= startX) && (mEffects[i]->GetEndPosition() <= endX) )
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
+ 
 bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS)
 {
     int i;
@@ -390,55 +280,6 @@ bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS)
         }
     }
     return true;
-}
-
-
-
-void EffectLayer::SelectEffectsInPositionRange(int startX,int endX)
-{
-    for(int i=0;i<mEffects.size();i++)
-    {
-        if(mEffects[i]->GetStartPosition() < 0 &&
-           mEffects[i]->GetEndPosition() < 0)
-        {
-            continue;
-        }
-        int center = mEffects[i]->GetStartPosition() + ((mEffects[i]->GetEndPosition() - mEffects[i]->GetStartPosition())/2);
-        int squareWidth =  center<DEFAULT_ROW_HEADING_HEIGHT-6?MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT:DEFAULT_ROW_HEADING_HEIGHT-6;
-        int squareLeft = center - (squareWidth/2);
-        int squareRight = center + (squareWidth/2);
-        // If selection around icon/square
-        if (startX>squareLeft && endX < squareRight)
-        {
-            if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
-            {
-                mEffects[i]->SetSelected(EFFECT_SELECTED);
-            }
-        }
-        else if (startX<squareLeft && endX > squareRight)
-        {
-            if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
-            {
-                mEffects[i]->SetSelected(EFFECT_SELECTED);
-            }
-        }
-        // If selection on left side
-        else if (endX>mEffects[i]->GetStartPosition() && endX<squareLeft)
-        {
-            if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
-            {
-                mEffects[i]->SetSelected(EFFECT_LT_SELECTED);
-            }
-        }
-        // If selection on right side
-        else if (startX > squareRight && startX < mEffects[i]->GetEndPosition())
-        {
-            if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
-            {
-                mEffects[i]->SetSelected(EFFECT_RT_SELECTED);
-            }
-        }
-    }
 }
 
 bool EffectLayer::HasEffectsInTimeRange(int startTimeMS, int endTimeMS) {

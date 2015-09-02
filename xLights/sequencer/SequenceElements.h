@@ -130,9 +130,8 @@ class SequenceElements : public ChangeLister
         void DeactivateAllTimingElements();
         void SetFrequency(double frequency);
         double GetFrequency();
-        void SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX);
-        int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol);
-        Effect* GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType);
+
+        int SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS);
         void UnSelectAllEffects();
         void UnSelectAllElements();
 
