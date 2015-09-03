@@ -74,6 +74,7 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1,1,32)
     unshare(pen);
     dc->SetPen(pen);
     
+    #ifndef LINUX
     wxColor c(12, 25, 3);
     unshare(c);
     dc->SetTextBackground(c);
@@ -81,6 +82,7 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1,1,32)
     wxColor c2(0, 35, 5);
     unshare(c2);
     dc->SetTextForeground(c2);
+    #endif
 #if wxUSE_GRAPHICS_CONTEXT
     gc = nullptr;
 #endif
