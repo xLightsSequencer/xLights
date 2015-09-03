@@ -493,6 +493,10 @@ void MainSequencer::InsertTimingMarkFromRange()
                 else
                 {
                     int t1 = 0;
+                    if (el->GetEffectCount() > 0) {
+                        Effect *e = el->GetEffect(el->GetEffectCount() - 1);
+                        t1 = e->GetEndTimeMS();
+                    }
                     el->AddEffect(0,0,name,settings,"",t1,t2,false,false);
                 }
                 PanelEffectGrid->ForceRefresh();

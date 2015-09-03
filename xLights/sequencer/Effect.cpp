@@ -335,6 +335,14 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & nam
     int i = GetEffectIndex(name);
     mSettings.Parse(settings);
 
+    if (mEndTime < mStartTime) {
+        //should never happend, but if we load something with invalid times, make sure we can at least
+        //show/select/delete the effect
+        int tmp = mStartTime;
+        mStartTime = mEndTime;
+        mEndTime = tmp;
+    }
+    
     if (effectIndex == BitmapCache::eff_FACES
         && mSettings.Get("E_CHOICE_Faces_FaceDefinition", "") == ""
         && mSettings.Get("E_CHOICE_Faces_TimingTrack", "") == "") {
