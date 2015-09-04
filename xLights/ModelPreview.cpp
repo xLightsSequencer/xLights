@@ -68,7 +68,7 @@ void ModelPreview::Render() {
 			if (((*PreviewModels)[i])->Selected) {
 				color = &xlYELLOW;
 			} else if (((*PreviewModels)[i])->GroupSelected) {
-				color = &xlWHITE;
+				color = &xlYELLOW;
 			} else if (((*PreviewModels)[i])->Overlapping) {
 				color = &xlRED;
 			}
