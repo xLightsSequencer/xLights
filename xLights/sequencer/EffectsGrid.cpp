@@ -393,7 +393,7 @@ bool EffectsGrid::AdjustDropLocations(int x, EffectLayer* el)
 {
     bool return_val = false;
     int time = mTimeline->GetAbsoluteTimeMSfromPosition(x);
-    
+
     int startT = mTimeline->GetAbsoluteTimeMSfromPosition(mDropStartX);
     int endT = mTimeline->GetAbsoluteTimeMSfromPosition(mDropEndX);
 
@@ -566,7 +566,7 @@ int MapHitLocationToEffectSelection(HitLocation location) {
 
 Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType) {
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
-    
+
     Effect *eff = nullptr;
     selectionType = HitLocation::NONE;
     if (effectLayer->HitTestEffectByTime(ms, index)) {
@@ -575,7 +575,7 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms,int &index, HitLocati
         int endPos = GetClippedPositionFromTimeMS(eff->GetEndTimeMS());
         int position = GetClippedPositionFromTimeMS(ms);
         int mid = (startPos + endPos) / 2;
-        
+
         if ((endPos - startPos) < 8) {
             //too small to really differentiate, just
             //provide ability to make the effect larger
@@ -657,7 +657,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
                 selectedTimeMS = selectedEffect->GetEndTimeMS();
                 break;
         }
-        
+
         if(!(event.ShiftDown() || event.ControlDown() || event.AltDown()))
         {
             mSequenceElements->UnSelectAllEffects();
@@ -870,7 +870,7 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
             int effectIndex = 0;
             if( el->HitTestEffectByTime(startTime, effectIndex)) {
                 Effect* eff = tel->GetEffect(mRangeStartCol);
-                
+
                 mDropStartX = mTimeline->GetPositionFromTimeMS(eff->GetStartTimeMS());
                 mDropEndX = mTimeline->GetPositionFromTimeMS(eff->GetEndTimeMS());
                 mDropStartTimeMS = eff->GetStartTimeMS();
@@ -1488,7 +1488,7 @@ void EffectsGrid::EstablishSelectionRectangle()
 
     int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(start_x);
     int endTime = mTimeline->GetAbsoluteTimeMSfromPosition(end_x);
-    
+
     if( mSequenceElements->GetSelectedTimingRow() >= 0 )
     {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -1551,9 +1551,7 @@ void EffectsGrid::UpdateSelectedEffects()
         if( start_col > end_col ) {
             std::swap( start_col, end_col );
         }
-        int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(start_col);
-        int endTime = mTimeline->GetAbsoluteTimeMSfromPosition(end_col);
-        int num_selected = mSequenceElements->SelectEffectsInRowAndTimeRange(start_row, end_row, startTime, endTime);
+        int num_selected = mSequenceElements->SelectEffectsInRowAndColumnRange(start_row, end_row, start_col, end_col);
         if( num_selected != 1 )  // we don't know what to preview unless only 1 effect is selected
         {
             wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);

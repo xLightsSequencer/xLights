@@ -1000,7 +1000,7 @@ void SequenceElements::DeactivateAllTimingElements()
 
 int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS)
 {
-    int i = 0;
+    int num_selected = 0;
     if(startRow<mVisibleRowInformation.size())
     {
         if(endRow>=mVisibleRowInformation.size())
@@ -1010,10 +1010,28 @@ int SequenceElements::SelectEffectsInRowAndTimeRange(int startRow, int endRow, i
         for(int i=startRow;i<=endRow;i++)
         {
             EffectLayer* effectLayer = GetEffectLayer(&mVisibleRowInformation[i]);
-            i += effectLayer->SelectEffectsInTimeRange(startMS,endMS);
+            num_selected += effectLayer->SelectEffectsInTimeRange(startMS,endMS);
         }
     }
-    return i;
+    return num_selected;
+}
+
+int SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol)
+{
+    int num_selected = 0;
+    EffectLayer* tel = GetVisibleEffectLayer(GetSelectedTimingRow());
+    if( tel != nullptr )
+    {
+        Effect* eff1 = tel->GetEffect(startCol);
+        Effect* eff2 = tel->GetEffect(endCol);
+        if( eff1 != nullptr && eff2 != nullptr )
+        {
+            int startMS = eff1->GetStartTimeMS();
+            int endMS = eff2->GetEndTimeMS();
+            num_selected = SelectEffectsInRowAndTimeRange(startRow, endRow, startMS, endMS);
+        }
+    }
+    return num_selected;
 }
 
 void SequenceElements::UnSelectAllEffects()

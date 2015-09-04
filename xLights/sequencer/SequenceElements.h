@@ -132,6 +132,7 @@ class SequenceElements : public ChangeLister
         double GetFrequency();
 
         int SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS);
+        int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol);
         void UnSelectAllEffects();
         void UnSelectAllElements();
 
