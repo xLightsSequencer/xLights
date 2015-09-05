@@ -59,7 +59,8 @@ static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int
     }
 }
 
-void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int mSpeed, bool reverse_dir)
+void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int mSpeed, bool reverse_dir,
+                               int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x)
 {
     int x = 0;
     xlColour color;
@@ -69,11 +70,18 @@ void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int st
     x = (mSpeed * effectState++) / 5;
     int corner_x1 = 0;
     int corner_y1 = 0;
-    int corner_x2 = BufferWi-1;
-    int corner_y2 = BufferHt-1;
+    int corner_x2 = (int)((double)BufferWi * (double)x_scale / 100.0) - 1;
+    int corner_y2 = (int)((double)BufferHt * (double)y_scale / 100.0) - 1;
     int sign = 1;
     if( reverse_dir ) {
         sign = -1;
+    }
+
+    int xoffset_adj = xc_adj;
+    int yoffset_adj = yc_adj;
+    if (!pixelOffsets) {
+        xoffset_adj = (xoffset_adj*BufferWi)/100.0; // xc_adj is from -100 to 100
+        yoffset_adj = (yoffset_adj*BufferHt)/100.0; // yc_adj is from -100 to 100
     }
 
     for( int thick = 0; thick < Thickness; thick++ )
@@ -81,47 +89,47 @@ void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int st
         int current_color = (x % repeat_size) / color_size;
         int current_pos = ((x % repeat_size) % color_size);
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*(stagger+1) * sign);
-        for( int pos = corner_x1; pos <= corner_x2; pos++ )
+        for( int x_pos = corner_x1; x_pos <= corner_x2; x_pos++ )
         {
             color = xlBLACK;
             if( current_pos <= BandSize )
             {
                 palette.GetColor(current_color, color);
             }
-            SetPixel(pos, corner_y2, color);
+            ProcessPixel(x_pos + xoffset_adj, corner_y2 + yoffset_adj, color, wrap_x, BufferWi);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
-        for( int pos = corner_y2; pos >=corner_y1 ; pos-- )
+        for( int y_pos = corner_y2; y_pos >=corner_y1 ; y_pos-- )
         {
             color = xlBLACK;
             if( current_pos <= BandSize )
             {
                 palette.GetColor(current_color, color);
             }
-            SetPixel(corner_x2, pos, color);
+            ProcessPixel(corner_x2 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x, BufferWi);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
-        for( int pos = corner_x2; pos >= corner_x1; pos-- )
+        for( int x_pos = corner_x2; x_pos >= corner_x1; x_pos-- )
         {
             color = xlBLACK;
             if( current_pos <= BandSize )
             {
                 palette.GetColor(current_color, color);
             }
-            SetPixel(pos, corner_y1, color);
+            ProcessPixel(x_pos + xoffset_adj, corner_y1 + yoffset_adj, color, wrap_x, BufferWi);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
-        for( int pos = corner_y1; pos <= corner_y2; pos++ )
+        for( int y_pos = corner_y1; y_pos <= corner_y2; y_pos++ )
         {
             color = xlBLACK;
             if( current_pos <= BandSize )
             {
                 palette.GetColor(current_color, color);
             }
-            SetPixel(corner_x1, pos, color);
+            ProcessPixel(corner_x1 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x, BufferWi);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         corner_x1++;

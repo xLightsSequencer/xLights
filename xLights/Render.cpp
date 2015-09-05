@@ -918,7 +918,13 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                              wxAtoi(SettingsMap["SLIDER_Marquee_Thickness"]),
                              wxAtoi(SettingsMap["SLIDER_Marquee_Stagger"]),
                              wxAtoi(SettingsMap.Get("SLIDER_Marquee_Speed", "1")),
-                             SettingsMap["CHECKBOX_Marquee_Reverse"] == "1");
+                             SettingsMap["CHECKBOX_Marquee_Reverse"] == "1",
+                             wxAtoi(SettingsMap["SLIDER_Marquee_ScaleX"]),
+                             wxAtoi(SettingsMap["SLIDER_Marquee_ScaleY"]),
+                             wxAtoi(SettingsMap["SLIDER_MarqueeXC"]),
+                             wxAtoi(SettingsMap["SLIDER_MarqueeYC"]),
+                             SettingsMap["CHECKBOX_Marquee_PixelOffsets"] == "1",
+                             SettingsMap["CHECKBOX_Marquee_WrapX"] == "1");
     } else if (effect == "Meteors") {
         buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap["CHOICE_Meteors_Type"]),
                              wxAtoi(SettingsMap["SLIDER_Meteors_Count"]),

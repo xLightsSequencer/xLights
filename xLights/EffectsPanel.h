@@ -9,6 +9,7 @@
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/filepicker.h>
+#include <wx/statline.h>
 #include <wx/radiobut.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
@@ -85,7 +86,6 @@ public:
     wxBitmapButton* BitmapButton_Shockwave_Accel;
     wxStaticText* StaticText140;
     wxButton* ButtonGledFile;
-    wxStaticText* StaticText195;
     wxBitmapButton* BitmapButton_TextPosition4;
     wxButton* Button_Piano_CueFilename;
     wxBitmapButton* BitmapButton_TextCount1;
@@ -128,7 +128,6 @@ public:
     wxCheckBox* CheckBox_Shockwave_Blend_Edges;
     wxBitmapButton* BitmapButton_Morph_Start_X2;
     wxStaticText* StaticText171;
-    wxStaticText* StaticText116;
     wxStaticText* StaticText48;
     wxScrolledWindow* Panel1_Faces;
     wxStaticText* StaticText173;
@@ -204,6 +203,7 @@ public:
     wxPanel* PictureEndPositionPanel;
     wxStaticText* StaticText65;
     wxStaticText* StaticText60;
+    wxPanel* Panel17;
     wxChoice* Choice_Wave_Direction;
     wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
     wxStaticText* StaticText49;
@@ -248,6 +248,7 @@ public:
     wxCheckBox* CheckBox_Fan_Blend_Edges;
     wxBitmapButton* BitmapButton_SpiralsShrink;
     wxStaticText* StaticText39;
+    wxStaticLine* StaticLine1;
     wxBitmapButton* BitmapButton3;
     wxStaticText* StaticText124;
     wxStaticText* StaticText78;
@@ -296,6 +297,7 @@ public:
     wxTextCtrl* TextCtrl_Piano_ShapeFilename;
     wxStaticText* StaticText190;
     wxBitmapButton* BitmapButton_PinwheelTwist;
+    wxPanel* Panel16;
     wxStaticText* StaticText156;
     wxStaticText* StaticText76;
     wxBitmapButton* BitmapButton_Fan_Element_Width;
@@ -361,6 +363,7 @@ public:
     wxStaticText* StaticText187;
     wxStaticText* StaticText54;
     wxTextCtrl* TextCtrl_Piano_CueFilename;
+    wxBitmapButton* BitmapButton_Marquee_ScaleY;
     wxStaticText* StaticText107;
     wxStaticText* StaticText7;
     wxScrolledWindow* Panel1_Galaxy;
@@ -396,7 +399,6 @@ public:
     wxStaticText* StaticText98;
     wxTextCtrl* TextCtrl_Morph_Start_Y1;
     wxBitmapButton* BitmapButton11;
-    wxStaticText* StaticText194;
     wxSlider* Slider_Meteors_Count;
     wxBitmapButton* BitmapButton_TwinkleStrobe;
     wxStaticText* StaticText88;
@@ -493,6 +495,7 @@ public:
     wxStaticText* StaticText12;
     wxChoice* Choice_Pictures_Direction;
     wxScrolledWindow* Panel1_Twinkle;
+    wxCheckBox* CheckBox_Marquee_WrapX;
     wxCheckBox* CheckBox_Marquee_Reverse;
     wxChoice* Choice_Bars_Direction;
     wxCheckBox* CheckBox_Galaxy_Inward;
@@ -503,6 +506,7 @@ public:
     wxBitmapButton* BitmapButton_MeteorsEffect;
     wxRadioButton* RadioButton1;
     wxChoice* Choice_Text_Count3;
+    wxSlider* Slider_Marquee_ScaleX;
     wxBitmapButton* BitmapButton16;
     wxBitmapButton* BitmapButton_Skips_StartingPosition;
     wxCheckBox* CheckBox_Circles_Linear_Fade;
@@ -521,6 +525,7 @@ public:
     wxSlider* Slider_Pinwheel_Twist;
     wxCheckBox* CheckBox_ColorWash_VFade;
     wxBitmapButton* BitmapButton_SnowflakesCount;
+    wxNotebook* Notebook_Marquee;
     wxBitmapButton* BitmapButton_TextFont3;
     wxSlider* Slider_Strobe_Duration;
     wxSlider* Slider_Thickness_Percentage;
@@ -540,6 +545,7 @@ public:
     wxSlider* Slider_Fireworks_Fade;
     wxBitmapButton* BitmapButton_Piano_ShapeFilename;
     wxScrolledWindow* Panel1_Spirals;
+    wxBitmapButton* BitmapButton_Marquee_ScaleX;
     wxStaticText* StaticText138;
     wxChoice* Choice_Text_Count1;
     wxBitmapButton* BitmapButton_FireworksVelocity;
@@ -849,15 +855,12 @@ protected:
     static const long ID_SLIDER_Life_Speed;
     static const long IDD_TEXTCTRL_Life_Speed;
     static const long ID_PANEL16;
-    static const long ID_STATICTEXT60;
     static const long ID_SLIDER_Marquee_Band_Size;
     static const long IDD_TEXTCTRL_Marquee_Band_Size;
     static const long ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size;
-    static const long ID_STATICTEXT64;
     static const long ID_SLIDER_Marquee_Skip_Size;
     static const long IDD_TEXTCTRL_Marquee_Skip_Size;
     static const long ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size;
-    static const long ID_STATICTEXT67;
     static const long ID_SLIDER_Marquee_Thickness;
     static const long IDD_TEXTCTRL_Marquee_Thickness;
     static const long ID_BITMAPBUTTON_SLIDER_Marquee_Thickness;
@@ -868,6 +871,22 @@ protected:
     static const long IDD_TEXTCTRL_Marquee_Speed;
     static const long ID_BITMAPBUTTON_SLIDER_Marquee_Speed;
     static const long ID_CHECKBOX_Marquee_Reverse;
+    static const long ID_PANEL6;
+    static const long ID_SLIDER_Marquee_ScaleX;
+    static const long IDD_TEXTCTRL_Marquee_ScaleX;
+    static const long ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX;
+    static const long ID_SLIDER_Marquee_ScaleY;
+    static const long IDD_TEXTCTRL_Marquee_ScaleY;
+    static const long ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY;
+    static const long ID_STATICLINE1;
+    static const long ID_CHECKBOX_Marquee_PixelOffsets;
+    static const long ID_SLIDER_MarqueeXC;
+    static const long ID_CHECKBOX_Marquee_WrapX;
+    static const long IDD_TEXTCTRL_MarqueeXC;
+    static const long IDD_TEXTCTRL_MarqueeYC;
+    static const long ID_SLIDER_MarqueeYC;
+    static const long ID_PANEL28;
+    static const long ID_NOTEBOOK_Marquee;
     static const long ID_SCROLLEDWINDOW3;
     static const long ID_STATICTEXT39;
     static const long ID_CHOICE_Meteors_Type;

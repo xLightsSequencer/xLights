@@ -638,8 +638,10 @@ void PixelBufferClass::RenderLife(int Count, int Seed, int lspeed) {
     effects[CurrentLayer].RenderLife(Count,Seed, lspeed);
 }
 
-void PixelBufferClass::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int MSpeed, bool reverse_dir) {
-    effects[CurrentLayer].RenderMarquee(BandSize, SkipSize, Thickness, stagger, MSpeed, reverse_dir);
+void PixelBufferClass::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int MSpeed, bool reverse_dir,
+                                     int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x) {
+    effects[CurrentLayer].RenderMarquee(BandSize, SkipSize, Thickness, stagger, MSpeed, reverse_dir,
+                                        x_scale, y_scale, xc_adj, yc_adj, pixelOffsets, wrap_x);
 }
 
 void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed) {
