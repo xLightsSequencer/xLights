@@ -463,6 +463,10 @@ void xLightsFrame::SaveSequence()
         wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
+
+    wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+    wxPostEvent(this, playEvent);
+
     if (xlightsFilename.IsEmpty())
     {
         int saved_text_entry_context = mTextEntryContext;

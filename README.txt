@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil) Stop effect playback when performing a Save operation.
     -- enh(gil) Add scale and position options to the Marquee effect.
 4.2.6  Sep 02, 2015
     -- bug(gil) Fix morph row/column calculation for large model sizes
