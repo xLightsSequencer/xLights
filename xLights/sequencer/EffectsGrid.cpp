@@ -868,7 +868,7 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
 
             int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(x_pos);
             int effectIndex = 0;
-            if( el->HitTestEffectByTime(startTime, effectIndex)) {
+            if( !el->HitTestEffectByTime(startTime, effectIndex)) {
                 Effect* eff = tel->GetEffect(mRangeStartCol);
 
                 mDropStartX = mTimeline->GetPositionFromTimeMS(eff->GetStartTimeMS());

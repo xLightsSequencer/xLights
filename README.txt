@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil) Fix the single cell selection caused by undocumented logic enhancements last release.  Fixes #359.
 4.2.7  Sep 06, 2015
     -- enh(gil) Stop effect playback when performing a Save operation.
     -- enh(gil) Add scale and position options to the Marquee effect.
