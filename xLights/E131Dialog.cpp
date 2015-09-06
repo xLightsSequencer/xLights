@@ -67,7 +67,7 @@ E131Dialog::E131Dialog(wxWindow* parent)
     SpinCtrl_NumUniv = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 63999, 1, _T("ID_SPINCTRL2"));
     SpinCtrl_NumUniv->SetValue(_T("1"));
     FlexGridSizer2->Add(SpinCtrl_NumUniv, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("One Ouput"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+    StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("One Output"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     FlexGridSizer2->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     MultiE131CheckBox = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     MultiE131CheckBox->SetValue(false);
