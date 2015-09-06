@@ -806,7 +806,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         if((mDragStartX == event.GetX() && mDragStartY == event.GetY()) || mSequenceElements->GetSelectedTimingRow() >= 0) {
             checkForEmptyCell = true;
         }
-    } else {
+    } else if( !event.ControlDown() ) {
         checkForEmptyCell = true;
     }
 
