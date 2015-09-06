@@ -166,7 +166,6 @@ public:
     wxBitmapButton* BitmapButton_Strobe_Type;
     wxBitmapButton* BitmapButton_Morph_Repeat_Count;
     wxScrolledWindow* Panel1_SingleStrand;
-    wxSlider* Slider_Marquee_Band_Size;
     wxStaticText* StaticText166;
     wxSlider* Slider_Garlands_Spacing;
     wxBitmapButton* BitmapButton_CirclesCount;
@@ -367,7 +366,6 @@ public:
     wxStaticText* StaticText107;
     wxStaticText* StaticText7;
     wxScrolledWindow* Panel1_Galaxy;
-    wxSlider* Slider_Marquee_Thickness;
     wxBitmapButton* BitmapButton_CurtainEffect;
     wxBitmapButton* BitmapButton_Chase_Type1;
     wxScrolledWindow* Panel1_Fan;
@@ -495,8 +493,6 @@ public:
     wxStaticText* StaticText12;
     wxChoice* Choice_Pictures_Direction;
     wxScrolledWindow* Panel1_Twinkle;
-    wxCheckBox* CheckBox_Marquee_WrapX;
-    wxCheckBox* CheckBox_Marquee_Reverse;
     wxChoice* Choice_Bars_Direction;
     wxCheckBox* CheckBox_Galaxy_Inward;
     wxStaticText* StaticText111;
@@ -506,7 +502,6 @@ public:
     wxBitmapButton* BitmapButton_MeteorsEffect;
     wxRadioButton* RadioButton1;
     wxChoice* Choice_Text_Count3;
-    wxSlider* Slider_Marquee_ScaleX;
     wxBitmapButton* BitmapButton16;
     wxBitmapButton* BitmapButton_Skips_StartingPosition;
     wxCheckBox* CheckBox_Circles_Linear_Fade;

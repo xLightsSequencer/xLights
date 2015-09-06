@@ -3511,17 +3511,17 @@
 															<label>Band Size:</label>
 														</object>
 														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Marquee_Band_Size" variable="Slider_Marquee_Band_Size" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Marquee_Band_Size" variable="Slider_Marquee_Band_Size" member="no">
 															<value>3</value>
 															<min>1</min>
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3545,7 +3545,7 @@
 															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3553,7 +3553,7 @@
 															<label>Skip Size:</label>
 														</object>
 														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3561,7 +3561,7 @@
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3585,7 +3585,7 @@
 															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3593,17 +3593,17 @@
 															<label>Thickness:</label>
 														</object>
 														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Marquee_Thickness" variable="Slider_Marquee_Thickness" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Marquee_Thickness" variable="Slider_Marquee_Thickness" member="no">
 															<value>1</value>
 															<min>1</min>
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3627,7 +3627,7 @@
 															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3720,7 +3720,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_Reverse" variable="CheckBox_Marquee_Reverse" member="yes">
+														<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_Reverse" variable="CheckBox_Marquee_Reverse" member="no">
 															<label>Reverse:</label>
 															<style>wxALIGN_RIGHT</style>
 														</object>
@@ -3736,7 +3736,6 @@
 											<object class="wxPanel" name="ID_PANEL28" variable="Panel17" member="yes">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer135" member="no">
 													<cols>1</cols>
-													<growablecols>0</growablecols>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer138" member="no">
 															<cols>4</cols>
@@ -3746,17 +3745,17 @@
 																	<label>Scale X:</label>
 																</object>
 																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>2</border>
+																<border>5</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleX" variable="Slider_Marquee_ScaleX" member="yes">
+																<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleX" variable="Slider_Marquee_ScaleX" member="no">
 																	<value>100</value>
 																	<min>1</min>
 																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>2</border>
+																<border>5</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
@@ -3780,7 +3779,7 @@
 																	<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>1</border>
+																<border>5</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
@@ -3788,7 +3787,7 @@
 																	<label>Scale Y:</label>
 																</object>
 																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>2</border>
+																<border>5</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
@@ -3798,7 +3797,7 @@
 																	<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>2</border>
+																<border>5</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
@@ -3872,7 +3871,7 @@
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_WrapX" variable="CheckBox_Marquee_WrapX" member="yes">
+																		<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_WrapX" variable="CheckBox_Marquee_WrapX" member="no">
 																			<label>Wrap X</label>
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3950,7 +3949,7 @@
 											<label>Position</label>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
