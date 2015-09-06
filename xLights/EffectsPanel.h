@@ -202,7 +202,6 @@ public:
     wxPanel* PictureEndPositionPanel;
     wxStaticText* StaticText65;
     wxStaticText* StaticText60;
-    wxPanel* Panel17;
     wxChoice* Choice_Wave_Direction;
     wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
     wxStaticText* StaticText49;
@@ -296,7 +295,6 @@ public:
     wxTextCtrl* TextCtrl_Piano_ShapeFilename;
     wxStaticText* StaticText190;
     wxBitmapButton* BitmapButton_PinwheelTwist;
-    wxPanel* Panel16;
     wxStaticText* StaticText156;
     wxStaticText* StaticText76;
     wxBitmapButton* BitmapButton_Fan_Element_Width;
@@ -494,6 +492,7 @@ public:
     wxChoice* Choice_Pictures_Direction;
     wxScrolledWindow* Panel1_Twinkle;
     wxChoice* Choice_Bars_Direction;
+    wxPanel* Panel_Marquee_Settings;
     wxCheckBox* CheckBox_Galaxy_Inward;
     wxStaticText* StaticText111;
     wxBitmapButton* BitmapButton_RippleThickness;
@@ -530,6 +529,7 @@ public:
     wxTextCtrl* TextCtrl_Morph_End_X2;
     wxBitmapButton* BitmapButton_Skips_Direction;
     wxBitmapButton* BitmapButton_CirclesSize;
+    wxPanel* Panel_Marquee_Position;
     wxBitmapButton* BitmapButton_MeteorsCount;
     wxCheckBox* CheckBox_Curtain_Repeat;
     wxStaticText* StaticText155;
@@ -866,7 +866,7 @@ protected:
     static const long IDD_TEXTCTRL_Marquee_Speed;
     static const long ID_BITMAPBUTTON_SLIDER_Marquee_Speed;
     static const long ID_CHECKBOX_Marquee_Reverse;
-    static const long ID_PANEL6;
+    static const long ID_PANEL_Marquee_Settings;
     static const long ID_SLIDER_Marquee_ScaleX;
     static const long IDD_TEXTCTRL_Marquee_ScaleX;
     static const long ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX;
@@ -880,7 +880,7 @@ protected:
     static const long IDD_TEXTCTRL_MarqueeXC;
     static const long IDD_TEXTCTRL_MarqueeYC;
     static const long ID_SLIDER_MarqueeYC;
-    static const long ID_PANEL28;
+    static const long ID_PANEL_Marquee_Position;
     static const long ID_NOTEBOOK_Marquee;
     static const long ID_SCROLLEDWINDOW3;
     static const long ID_STATICTEXT39;

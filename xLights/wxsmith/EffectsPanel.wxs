@@ -3501,8 +3501,7 @@
 								<object class="sizeritem">
 									<object class="wxNotebook" name="ID_NOTEBOOK_Marquee" variable="Notebook_Marquee" member="yes">
 										<object class="notebookpage">
-											<object class="wxPanel" name="ID_PANEL6" variable="Panel16" member="yes">
-												<size>154,94</size>
+											<object class="wxPanel" name="ID_PANEL_Marquee_Settings" variable="Panel_Marquee_Settings" member="yes">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer58" member="no">
 													<cols>4</cols>
 													<growablecols>1</growablecols>
@@ -3733,7 +3732,7 @@
 											<label>Settings</label>
 										</object>
 										<object class="notebookpage">
-											<object class="wxPanel" name="ID_PANEL28" variable="Panel17" member="yes">
+											<object class="wxPanel" name="ID_PANEL_Marquee_Position" variable="Panel_Marquee_Position" member="yes">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer135" member="no">
 													<cols>1</cols>
 													<object class="sizeritem">
