@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.7  Sep 06, 2015
     -- enh(gil) Stop effect playback when performing a Save operation.
     -- enh(gil) Add scale and position options to the Marquee effect.
 4.2.6  Sep 02, 2015
