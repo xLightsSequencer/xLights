@@ -2,6 +2,8 @@
 #include "ModelDialog.h" //Cheating to avoid full recompile by adding this in main.h
 #include "heartbeat.h"
 #include "DrawGLUtils.h"
+#include "SaveChangesDialog.h"
+
 #define PREVIEWROTATIONFACTOR 3
 
 void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
@@ -17,11 +19,19 @@ void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
 {
-    if (mSavedChangeCount !=  mSequenceElements.GetChangeCount() && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
-                                               "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+    if( mSavedChangeCount !=  mSequenceElements.GetChangeCount() )
     {
-        return;
+        SaveChangesDialog* dlg = new SaveChangesDialog(this);
+        if( dlg->ShowModal() == wxID_CANCEL )
+        {
+            return;
+        }
+        if( dlg->GetSaveChanges() )
+        {
+            SaveSequence();
+        }
     }
+
     wxArrayString SeqFiles;
     wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.fseq");
     wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");

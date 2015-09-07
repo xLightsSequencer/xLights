@@ -5,6 +5,7 @@
 
 #include "LMSImportChannelMapDialog.h"
 #include "SuperStarImportDialog.h"
+#include "SaveChangesDialog.h"
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -252,10 +253,17 @@ void xLightsFrame::OpenSequence()
 
 bool xLightsFrame::CloseSequence()
 {
-    if (mSavedChangeCount !=  mSequenceElements.GetChangeCount() && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
-                                               "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+    if( mSavedChangeCount !=  mSequenceElements.GetChangeCount() )
     {
-        return false;
+        SaveChangesDialog* dlg = new SaveChangesDialog(this);
+        if( dlg->ShowModal() == wxID_CANCEL )
+        {
+            return false;
+        }
+        if( dlg->GetSaveChanges() )
+        {
+            SaveSequence();
+        }
     }
 
     // clear everything to prepare for new sequence

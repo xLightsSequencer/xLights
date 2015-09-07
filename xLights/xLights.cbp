@@ -501,6 +501,8 @@
 		<Unit filename="RgbEffects.cpp" />
 		<Unit filename="RgbEffects.h" />
 		<Unit filename="SOIL.h" />
+		<Unit filename="SaveChangesDialog.cpp" />
+		<Unit filename="SaveChangesDialog.h" />
 		<Unit filename="SeqElementMismatchDialog.cpp" />
 		<Unit filename="SeqElementMismatchDialog.h" />
 		<Unit filename="SeqExportDialog.cpp" />
@@ -653,6 +655,7 @@
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
+		<Unit filename="wxsmith/SaveChangesDialog.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
@@ -741,6 +744,7 @@
 					<wxPanel wxs="wxsmith/EffectAssist.wxs" src="EffectAssist.cpp" hdr="EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
 					<wxDialog wxs="wxsmith/VAMPPluginDialog.wxs" src="VAMPPluginDialog.cpp" hdr="VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelFaceDialog.wxs" src="ModelFaceDialog.cpp" hdr="ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SaveChangesDialog.wxs" src="SaveChangesDialog.cpp" hdr="SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
