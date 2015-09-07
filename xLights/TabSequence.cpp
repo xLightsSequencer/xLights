@@ -472,17 +472,23 @@ void xLightsFrame::SaveSequence()
         int saved_text_entry_context = mTextEntryContext;
         mTextEntryContext = TEXT_ENTRY_DIALOG;
         wxString NewFilename;
-        wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
-        dialog.SetValue(CurrentSeqXmlFile->GetName());
+
+        wxFileDialog fd(this,
+                        "Choose filename to Save Sequence:",
+                        CurrentDir,
+                        CurrentSeqXmlFile->GetName(),
+                        strSequenceSaveAsFileTypes,
+                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
         bool ok = false;
         do
         {
-            if (dialog.ShowModal() != wxID_OK)
+            if (fd.ShowModal() != wxID_OK)
             {
                 return;
             }
             // validate inputs
-            NewFilename=dialog.GetValue();
+            NewFilename=fd.GetPath();
             NewFilename.Trim();
             ok=true;
             if (NewFilename.IsEmpty())
@@ -493,7 +499,6 @@ void xLightsFrame::SaveSequence()
         }
         while (!ok);
         wxFileName oName(NewFilename);
-        oName.SetPath( CurrentDir );
         oName.SetExt("fseq");
         DisplayXlightsFilename(oName.GetFullPath());
 
@@ -530,16 +535,22 @@ void xLightsFrame::SaveAsSequence()
         return;
     }
     wxString NewFilename;
-    wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
-    bool ok;
+    wxFileDialog fd(this,
+                    "Choose filename to Save Sequence:",
+                    CurrentDir,
+                    CurrentSeqXmlFile->GetName(),
+                    strSequenceSaveAsFileTypes,
+                    wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    bool ok = false;
     do
     {
-        if (dialog.ShowModal() != wxID_OK)
+        if (fd.ShowModal() != wxID_OK)
         {
             return;
         }
         // validate inputs
-        NewFilename=dialog.GetValue();
+        NewFilename=fd.GetPath();
         NewFilename.Trim();
         ok=true;
         if (NewFilename.IsEmpty())
@@ -550,7 +561,6 @@ void xLightsFrame::SaveAsSequence()
     }
     while (!ok);
     wxFileName oName(NewFilename);
-    oName.SetPath( CurrentDir );
     oName.SetExt("fseq");
     DisplayXlightsFilename(oName.GetFullPath());
 

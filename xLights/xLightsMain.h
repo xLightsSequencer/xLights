@@ -173,6 +173,7 @@ static const wxString xlights_version_string  = "4.2.7";
 static const wxString xlights_build_date      = "Sep 06, 2015";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
+static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xml)|*.xml";
 static wxCriticalSection gs_xoutCriticalSection;
 
 

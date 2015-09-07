@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil) Use standard File SaveAs dialog for saving sequences. Fixes #336.
     -- enh(gil) Improved dialog when prompting to save sequence changes.
     -- bug(gil) Fix the single cell selection caused by undocumented logic enhancements last release.  Fixes #359.
 4.2.7  Sep 06, 2015
