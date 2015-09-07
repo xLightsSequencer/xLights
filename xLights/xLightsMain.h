@@ -1639,6 +1639,7 @@ protected:
     // Methods
     void InitSequencer();
     void CreateSequencer();
+    void StopSequence();
     // Events
     void Zoom( wxCommandEvent& event);
     void TimelineChanged( wxCommandEvent& event);

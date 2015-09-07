@@ -484,7 +484,7 @@ void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 }
 
 void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
-    if (playType != PLAY_TYPE_MODEL) {
+    if (playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED) {
         playType = PLAY_TYPE_STOPPED;
         playStartTime = -1;
         playEndTime = -1;
@@ -544,10 +544,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         }
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
-            mainSequencer->PanelTimeLine->PlayStopped();
-            mainSequencer->PanelWaveForm->UpdatePlayMarker();
-            mainSequencer->UpdateTimeDisplay(playStartTime);
-            mainSequencer->PanelEffectGrid->ForceRefresh();
+            StopSequence();
         }
 
         if (playType != PLAY_TYPE_MODEL) {
@@ -607,10 +604,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
-            mainSequencer->PanelTimeLine->PlayStopped();
-            mainSequencer->PanelWaveForm->UpdatePlayMarker();
-            mainSequencer->PanelEffectGrid->ForceRefresh();
-            mainSequencer->UpdateTimeDisplay(playStartTime);
+            StopSequence();
         }
 
         if (playType != PLAY_TYPE_MODEL) {
@@ -742,7 +736,7 @@ void xLightsFrame::TogglePlay(wxCommandEvent& event)
     }
 }
 
-void xLightsFrame::StopSequence(wxCommandEvent& event)
+void xLightsFrame::StopSequence()
 {
     if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED )
     {
@@ -764,6 +758,11 @@ void xLightsFrame::StopSequence(wxCommandEvent& event)
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,true);
+}
+
+void xLightsFrame::StopSequence(wxCommandEvent& event)
+{
+    StopSequence();
 }
 
 void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)

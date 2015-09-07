@@ -551,6 +551,7 @@ void TimeLine::Initialize()
     mSelectedPlayMarkerStartMS = -1;
     mSelectedPlayMarkerEndMS = -1;
     mCurrentPlayMarkerMS = -1;
+    timeline_initiated_play = false;
     m_dragging = false;
 }
 

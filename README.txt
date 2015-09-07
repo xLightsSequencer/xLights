@@ -7,6 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil) Fix bug where play marker wouldn't work if pressing play was the first thing you do and also
+                fixed dropping an effect while model playback is paused such that it executes a stop and
+                switches to effect play.  Fixes #322.
     -- enh(gil) Use standard File SaveAs dialog for saving sequences. Fixes #336.
     -- enh(gil) Improved dialog when prompting to save sequence changes.
     -- bug(gil) Fix the single cell selection caused by undocumented logic enhancements last release.  Fixes #359.
