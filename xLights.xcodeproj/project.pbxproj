@@ -48,6 +48,7 @@
 		675DE26D1B53381800A9BB44 /* xlGridCanvasMorph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2611B53381800A9BB44 /* xlGridCanvasMorph.cpp */; };
 		675DE26E1B53381800A9BB44 /* xlGridCanvasPictures.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2631B53381800A9BB44 /* xlGridCanvasPictures.cpp */; };
 		675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2651B53381800A9BB44 /* xlSlider.cpp */; };
+		676013E51B9D34F7001179FA /* SaveChangesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */; };
 		6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6760BF121953BAD700704AEA /* TabPapagayo.cpp */; };
 		67623E711AD07E320022667B /* KeyBindings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E6F1AD07E320022667B /* KeyBindings.cpp */; };
 		67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E721AD2BF3F0022667B /* BitmapCache.cpp */; };
@@ -263,6 +264,7 @@
 		675DE2641B53381800A9BB44 /* xlGridCanvasPictures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvasPictures.h; sourceTree = "<group>"; };
 		675DE2651B53381800A9BB44 /* xlSlider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlSlider.cpp; sourceTree = "<group>"; };
 		675DE2661B53381800A9BB44 /* xlSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlSlider.h; sourceTree = "<group>"; };
+		676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SaveChangesDialog.cpp; sourceTree = "<group>"; };
 		6760BF121953BAD700704AEA /* TabPapagayo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = TabPapagayo.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67623E6F1AD07E320022667B /* KeyBindings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KeyBindings.cpp; sourceTree = "<group>"; };
 		67623E701AD07E320022667B /* KeyBindings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyBindings.h; sourceTree = "<group>"; };
@@ -597,6 +599,7 @@
 			children = (
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67623E721AD2BF3F0022667B /* BitmapCache.cpp */,
+				676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
 				67B797171A5AE343008D5921 /* ColorPanel.cpp */,
 				67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */,
@@ -945,6 +948,7 @@
 				67A61A4017B51C0F008E95BB /* RenderPictures.cpp in Sources */,
 				677421DB1A6A8FBE0082DA5B /* NewTimingDialog.cpp in Sources */,
 				675DE26A1B53381800A9BB44 /* xlColorPicker.cpp in Sources */,
+				676013E51B9D34F7001179FA /* SaveChangesDialog.cpp in Sources */,
 				67B7971C1A5AE343008D5921 /* TopEffectsPanel.cpp in Sources */,
 				67A61A4117B51C0F008E95BB /* RenderSnowflakes.cpp in Sources */,
 				676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */,
