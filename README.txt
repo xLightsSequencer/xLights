@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.8  Sep 08, 2015
     -- bug(gil) Fix bug where play marker wouldn't work if pressing play was the first thing you do and also
                 fixed dropping an effect while model playback is paused such that it executes a stop and
                 switches to effect play.  Fixes #322.
@@ -14,6 +15,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh(gil) Improved dialog when prompting to save sequence changes.
     -- bug(gil) Fix the single cell selection caused by undocumented logic enhancements last release.  Fixes #359.
 4.2.7  Sep 06, 2015
+	-- bug (chrisD) Fixed a number of bugs in Linux version of xLights
+	-- bug (chrisD) Set colour of multi-selected items to yellow. This fixes the multi model select	
+		in LAYOUT mode. Ctl-left click to select models. You can then move whole group at once
+	-- enh (dkulp A bit more error checking for placement of effects/timing marks
+	-- enh (dkulp More work on bg text render stuff, better mouse-over/selection for tiny effects
+	-- enh (dkulp) Remove the position things from Effects, base all hit testing on time and handle the specifics in EffectsGrid
     -- enh(gil) Stop effect playback when performing a Save operation.
     -- enh(gil) Add scale and position options to the Marquee effect.
 4.2.6  Sep 02, 2015
