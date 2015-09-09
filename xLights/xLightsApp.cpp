@@ -146,8 +146,10 @@ void handleCrash(void *data) {
     trace = windows_get_stacktrace(data);
 #endif
     
-    trace += wxString::Format("\nCrashed thread id: %X\n", wxThread::GetCurrentId());
+    trace += wxString::Format("\nCrashed thread id: %ld\n", wxThread::GetCurrentId());
+#ifndef LINUX
     trace += topFrame->GetThreadStatusReport();
+#endif // LINUX
     
     report->AddText("backtrace.txt", trace, "Backtrace");
     if (!wxThread::IsMain() && topFrame != nullptr) {
