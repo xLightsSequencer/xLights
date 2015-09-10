@@ -7,7 +7,10 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.9  Sep 10, 2015
     -- bug(gil) Fix effect selection especially pointing hands not working.
+	-- bug(chrisD) Don't crash when collecting a crash report on linux
+	-- bug(chrisD) Fix text effect on linux
 4.2.8  Sep 08, 2015
     -- bug(gil) Fix bug where play marker wouldn't work if pressing play was the first thing you do and also
                 fixed dropping an effect while model playback is paused such that it executes a stop and
