@@ -431,7 +431,7 @@ bool EffectsGrid::DragOver(int x, int y)
     {
         int effectIndex;
         HitLocation selectionType;
-        int time = mTimeline->GetAbsoluteTimeMSfromPosition(x);
+        int time = mTimeline->GetRawTimeMSfromPosition(x);
 
         Effect* selectedEffect = GetEffectAtRowAndTime(row,time,effectIndex,selectionType);
         if(selectedEffect != nullptr)
@@ -586,13 +586,13 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms,int &index, HitLocati
             }
         } else if(position > endPos - 6) {
             selectionType = HitLocation::RIGHT_EDGE;
-        } else if(position > endPos - 10) {
+        } else if(position > endPos - 12) {
             selectionType = HitLocation::RIGHT_EDGE_DISCONNECT;
         } else if(position > mid + 8) {
             selectionType = HitLocation::RIGHT;
         } else if(position < startPos + 6) {
             selectionType = HitLocation::LEFT_EDGE;
-        } else if(position < startPos + 10) {
+        } else if(position < startPos + 12) {
             selectionType = HitLocation::LEFT_EDGE_DISCONNECT;
         } else if(position < mid - 8) {
             selectionType = HitLocation::LEFT;
@@ -630,7 +630,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     mSequenceElements->get_undo_mgr().SetCaptureUndo(true);
     int effectIndex;
     HitLocation selectionType;
-    int time = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+    int time = mTimeline->GetRawTimeMSfromPosition(event.GetX());
     Effect* selectedEffect = GetEffectAtRowAndTime(row,time,effectIndex,selectionType);
     if(selectedEffect!= nullptr)
     {
@@ -1413,7 +1413,7 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
     int effectIndex;
 
 
-    int time = mTimeline->GetAbsoluteTimeMSfromPosition(x);
+    int time = mTimeline->GetRawTimeMSfromPosition(x);
     HitLocation selectionType = HitLocation::NONE;
     Effect * eff = GetEffectAtRowAndTime(rowIndex, time, effectIndex, selectionType);
     if (eff != nullptr) {

@@ -488,6 +488,13 @@ int TimeLine::GetAbsoluteTimeMSfromPosition(int position)
     return time;
 }
 
+int TimeLine::GetRawTimeMSfromPosition(int position)
+{
+    float nMajorHashs = (float)position/(float)PIXELS_PER_MAJOR_HASH;
+    int time = mStartTimeMS + (int)(nMajorHashs*TimePerMajorTickInMS());
+    return time;
+}
+
 int TimeLine::GetMaxViewableTimeMS()
 {
     float width = (float)GetSize().x;
