@@ -55,14 +55,9 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1,1,32)
         }
     }
     bitmap = nullptr;
-#if wxUSE_GRAPHICS_CONTEXT
-    dc = wxGraphicsContext::Create(*image);
-    dc->SetAntialiasMode(wxANTIALIAS_NONE);
-#else
     dc = new wxMemoryDC(nullBitmap);
-#endif
+
     
-#ifndef LINUX
     //make sure we UnShare everything that is being held onto
     //also use "non-normal" defaults to avoid "==" issue that
     //would keep it from using the non-shared versions
@@ -79,6 +74,7 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1,1,32)
     unshare(pen);
     dc->SetPen(pen);
     
+    #ifndef LINUX
     wxColor c(12, 25, 3);
     unshare(c);
     dc->SetTextBackground(c);
@@ -86,11 +82,19 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1,1,32)
     wxColor c2(0, 35, 5);
     unshare(c2);
     dc->SetTextForeground(c2);
+    #endif
+#if wxUSE_GRAPHICS_CONTEXT
+    gc = nullptr;
 #endif
 }
 
 
 DrawingContext::~DrawingContext() {
+#if wxUSE_GRAPHICS_CONTEXT
+    if (gc != nullptr) {
+        delete gc;
+    }
+#endif
     if (dc != nullptr) {
         delete dc;
     }
@@ -103,14 +107,13 @@ DrawingContext::~DrawingContext() {
 }
 void DrawingContext::Clear() {
 #if wxUSE_GRAPHICS_CONTEXT
-    if (dc != nullptr) {
-        delete dc;
-        dc = nullptr;
+    if (gc != nullptr) {
+        delete gc;
+        gc = nullptr;
     }
-#else
-    dc->SelectObject(nullBitmap);
 #endif
 
+    dc->SelectObject(nullBitmap);
     if (bitmap != nullptr) {
         delete bitmap;
     }
@@ -122,34 +125,32 @@ void DrawingContext::Clear() {
         }
     }
     bitmap = new wxBitmap(*image, 32);
+    dc->SelectObject(*bitmap);
     
 #if wxUSE_GRAPHICS_CONTEXT
-    dc = wxGraphicsContext::Create(*image);
-    dc->SetAntialiasMode(wxANTIALIAS_NONE);
-#else
-    dc->SelectObject(*bitmap);
+    gc = wxGraphicsContext::Create(*dc);
+    gc->SetAntialiasMode(wxANTIALIAS_NONE);
 #endif
 }
 
 
 wxImage *DrawingContext::FlushAndGetImage() {
 #if wxUSE_GRAPHICS_CONTEXT
-    if (dc != nullptr) {
-        dc->Flush();
-        delete dc;
-        dc = nullptr;
+    if (gc != nullptr) {
+        gc->Flush();
+        delete gc;
+        gc = nullptr;
     }
-#else
+#endif
     dc->SelectObject(nullBitmap);
     *image = bitmap->ConvertToImage();
     dc->SelectObject(*bitmap);
-#endif
     return image;
 }
 
 void DrawingContext::SetFont(wxFont &font, const xlColor &color) {
 #if wxUSE_GRAPHICS_CONTEXT
-    dc->SetFont(font, color.asWxColor());
+    gc->SetFont(font, color.asWxColor());
 #else
     dc->SetFont(font);
     dc->SetTextForeground(color.asWxColor());
@@ -158,14 +159,14 @@ void DrawingContext::SetFont(wxFont &font, const xlColor &color) {
 
 void DrawingContext::DrawText(const wxString &msg, int x, int y, double rotation) {
 #if wxUSE_GRAPHICS_CONTEXT
-    dc->DrawText(msg, x, y, rotation);
+    gc->DrawText(msg, x, y, rotation);
 #else
     dc->DrawRotatedText(msg, x, y, rotation);
 #endif
 }
 void DrawingContext::DrawText(const wxString &msg, int x, int y) {
 #if wxUSE_GRAPHICS_CONTEXT
-    dc->DrawText(msg, x, y);
+    gc->DrawText(msg, x, y);
 #else
     dc->DrawText(msg, x, y);
 #endif
@@ -173,7 +174,7 @@ void DrawingContext::DrawText(const wxString &msg, int x, int y) {
 
 void DrawingContext::GetTextExtent(const wxString &msg, double *width, double *height) {
 #if wxUSE_GRAPHICS_CONTEXT
-    dc->GetTextExtent(msg, width, height);
+    gc->GetTextExtent(msg, width, height);
 #else
     wxSize size = dc->GetTextExtent(msg);
     *width = size.GetWidth();

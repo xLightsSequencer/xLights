@@ -111,10 +111,9 @@ private:
     wxImage *image;
     wxBitmap *bitmap;
     wxBitmap nullBitmap;
-#if wxUSE_GRAPHICS_CONTEXT
-    wxGraphicsContext *dc;
-#else
     wxMemoryDC *dc;
+#if wxUSE_GRAPHICS_CONTEXT
+    wxGraphicsContext *gc;
 #endif
 };
 
