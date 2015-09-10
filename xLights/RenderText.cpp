@@ -128,7 +128,11 @@ void DrawingContext::Clear() {
     dc->SelectObject(*bitmap);
     
 #if wxUSE_GRAPHICS_CONTEXT
+#ifdef LINUX
+    gc = wxGraphicsContext::Create(*image);
+#else
     gc = wxGraphicsContext::Create(*dc);
+#endif // LINUX
     gc->SetAntialiasMode(wxANTIALIAS_NONE);
 #endif
 }
@@ -142,9 +146,11 @@ wxImage *DrawingContext::FlushAndGetImage() {
         gc = nullptr;
     }
 #endif
+#ifndef LINUX
     dc->SelectObject(nullBitmap);
     *image = bitmap->ConvertToImage();
     dc->SelectObject(*bitmap);
+#endif // LINUX
     return image;
 }
 
