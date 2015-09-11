@@ -2191,6 +2191,11 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         int blade_width = wxAtoi(element->GetAttribute("width"));
                         int elementAngle = wxAtoi(element->GetAttribute("elementAngle"));
                         int elementStepAngle = wxAtoi(element->GetAttribute("elementStepAngle"));
+                        int numElements = (int)(((360.0/(double)blades)*((double)blade_width/100.0))/(double)elementStepAngle);
+                        numElements = std::max(1, numElements);
+                        numElements = std::min(numElements, 4);
+                        blades = std::max(1, blades);
+                        blades = std::min(blades, 16);
                         wxString settings = "E_CHECKBOX_Fan_Reverse=" + wxString::Format("%d", startAngle > endAngle)
                                             + ",E_CHECKBOX_Fan_Blend_Edges=1"
                                             + ",E_NOTEBOOK_Fan=Position,E_SLIDER_Fan_Accel=" + wxString::Format("%d", acceleration)
@@ -2201,7 +2206,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Fan_Duration=100"
                                             + ",E_SLIDER_Fan_Element_Width=" + wxString::Format("%d", 100)
                                             + ",E_SLIDER_Fan_Num_Blades=" + wxString::Format("%d", blades)
-                                            + ",E_SLIDER_Fan_Num_Elements=" + wxString::Format("%d", (int)(360.0/(double)blades*(double)blade_width/100.0/(double)elementStepAngle))
+                                            + ",E_SLIDER_Fan_Num_Elements=" + wxString::Format("%d", numElements)
                                             + ",E_SLIDER_Fan_End_Radius=" + wxString::Format("%d", endRadius)
                                             + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond*((double)(endms-startms)/1000.0)*3.6))
                                             + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle)
