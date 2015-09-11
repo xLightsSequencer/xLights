@@ -106,6 +106,29 @@ private:
     const int finalFrame;
 };
 
+class SNPair {
+public:
+    SNPair(int s, int n) : strand(s), node(n) {
+    }
+    SNPair(const SNPair &p) : strand(p.strand), node(p.node) {
+    }
+    
+    bool operator>(const SNPair &p) const {
+        return strand > p.strand
+        || (strand == p.strand && node > p.node);
+    }
+    bool operator<(const SNPair &p) const {
+        return strand < p.strand
+            || (strand == p.strand && node < p.node);
+    }
+    bool operator==(const SNPair &p) const {
+        return strand == p.strand && node == p.node;
+    }
+    
+    const int strand;
+    const int node;
+};
+
 class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
@@ -122,10 +145,12 @@ public:
                         strandBuffers[x]->InitStrandBuffer(*mainBuffer, x, data.FrameTime());
                     }
                     for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                        EffectLayer *nl = sl->GetNodeLayer(n);
-                        if (nl -> GetEffectCount() > 0) {
-                            nodeBuffers[x * mainBuffer->GetNodeCount() + n].reset(new PixelBufferClass());
-                            nodeBuffers[x * mainBuffer->GetNodeCount() + n]->InitNodeBuffer(*mainBuffer, x, n, data.FrameTime());
+                        if (n < mainBuffer->GetStrandLength(x)) {
+                            EffectLayer *nl = sl->GetNodeLayer(n);
+                            if (nl -> GetEffectCount() > 0) {
+                                nodeBuffers[SNPair(x, n)].reset(new PixelBufferClass());
+                                nodeBuffers[SNPair(x, n)]->InitNodeBuffer(*mainBuffer, x, n, data.FrameTime());
+                            }
                         }
                     }
                 }
@@ -274,9 +299,9 @@ public:
         std::map<int, Effect*> strandEffects;
         std::map<int, SettingsMap> strandSettingsMaps;
         std::map<int, bool> strandEffectStates;
-        std::map<int, Effect*> nodeEffects;
-        std::map<int, SettingsMap> nodeSettingsMaps;
-        std::map<int, bool> nodeEffectStates;
+        std::map<SNPair, Effect*> nodeEffects;
+        std::map<SNPair, SettingsMap> nodeSettingsMaps;
+        std::map<SNPair, bool> nodeEffectStates;
 
         if (clearAllFrames && mainBuffer != NULL) {
             mainBuffer->Clear(0);
@@ -370,13 +395,21 @@ public:
                 }
             }
             if (!nodeBuffers.empty()) {
-                for (std::map<int, PixelBufferClassPtr>::iterator it = nodeBuffers.begin(); it != nodeBuffers.end(); it++) {
-                    int node = it->first;
+                for (std::map<SNPair, PixelBufferClassPtr>::iterator it = nodeBuffers.begin(); it != nodeBuffers.end(); it++) {
+                    SNPair node = it->first;
                     PixelBufferClass *buffer = it->second.get();
-                    int strand = node / mainBuffer->GetNodeCount();
-                    int inode = node % mainBuffer->GetNodeCount();
+                    int strand = node.strand;
+                    int inode = node.node;
                     StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
-                    EffectLayer *nlayer = slayer->GetNodeLayer(inode);
+                    if (slayer == nullptr) {
+                        //deleted strand
+                        continue;
+                    }
+                    EffectLayer *nlayer = slayer->GetNodeLayer(inode, false);
+                    if (nlayer == nullptr) {
+                        //deleted node
+                        continue;
+                    }
                     Effect *el = findEffectForFrame(nlayer, frame);
                     if (el != nodeEffects[node] || frame == startFrame) {
                         nodeEffects[node] = el;
@@ -528,7 +561,7 @@ private:
     int statusNode;
 
     std::map<int, PixelBufferClassPtr> strandBuffers;
-    std::map<int, PixelBufferClassPtr> nodeBuffers;
+    std::map<SNPair, PixelBufferClassPtr> nodeBuffers;
 };
 
 
