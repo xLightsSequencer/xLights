@@ -1539,10 +1539,11 @@ void EffectsGrid::UpdateSelectionRectangle()
 void EffectsGrid::UpdateSelectedEffects()
 {
     mSequenceElements->UnSelectAllEffects();
+    int first_row = mSequenceElements->GetFirstVisibleModelRow();
     if( mRangeStartCol >= 0 && mRangeStartRow >= 0 )
     {
-        int start_row = mRangeStartRow;
-        int end_row = mRangeEndRow;
+        int start_row = mRangeStartRow-first_row;
+        int end_row = mRangeEndRow-first_row;
         int start_col = mRangeStartCol;
         int end_col = mRangeEndCol;
         if( start_row > end_row ) {

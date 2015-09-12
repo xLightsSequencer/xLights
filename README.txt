@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil) Fix effect selection when vertical scrollbar has been moved.
     -- bug(gil) Range check the number of fan and element blades for SuperStar import.
 4.2.9  Sep 10, 2015
     -- bug(gil) Fix effect selection especially pointing hands not working.
