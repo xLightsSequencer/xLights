@@ -2057,16 +2057,23 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         mru_MenuItem[i] = NULL;
     }
     dir.clear();
-    bool ok = config->Read("LastDir", &dir);
-    wxString ConvertDir;
-    ConvertDir.clear();
-    if (ok && !config->Read("ConvertDir", &ConvertDir))
-    {
-        ConvertDir=dir;
+    bool ok = true;
+    if (!xLightsApp::showDir.IsNull()) {
+        dir = xLightsApp::showDir;
+    } else {
+        ok = config->Read("LastDir", &dir);
+        wxString ConvertDir;
+        ConvertDir.clear();
+        if (ok && !config->Read("ConvertDir", &ConvertDir))
+        {
+            ConvertDir=dir;
+        }
+        FileDialogConvert->SetDirectory(ConvertDir);
     }
-    FileDialogConvert->SetDirectory(ConvertDir);
 
-    if (ok && !config->Read(_("MediaDir"), &mediaDirectory))
+    if (!xLightsApp::mediaDir.IsNull()) {
+        mediaDirectory = xLightsApp::mediaDir;
+    } else if (ok && !config->Read(_("MediaDir"), &mediaDirectory))
     {
         mediaDirectory=dir;
     }
@@ -2302,7 +2309,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
     basic.setFrame(this);
     PlayerDlg = new PlayerFrame(this, ID_PLAYER_DIALOG);
-
     EffectNames=EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStrings();
 //~    EffectLayerOptions=Choice_LayerMethod->GetStrings();
 
@@ -2332,6 +2338,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
   jobPool.Start(wxThread::GetCPUCount() * 4);
  //   jobPool.Start(24);
+
+    if (!xLightsApp::sequenceFile.IsNull()) {
+        OpenSequence(xLightsApp::sequenceFile);
+        Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
+    }
+
 }
 
 xLightsFrame::~xLightsFrame()
@@ -3203,7 +3215,7 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 {
-    OpenSequence();
+    OpenSequence("");
 }
 
 void xLightsFrame::OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event)

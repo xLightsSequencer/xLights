@@ -1492,7 +1492,7 @@ protected:
     wxString CreateEffectStringRandom(wxString &settings, wxString &palette);
     void BackupDirectory(wxString targetDirName);
     void NewSequence();
-    void OpenSequence();
+    void OpenSequence(wxString filename);
     void SaveSequence();
     void SaveAsSequence();
     bool CloseSequence();

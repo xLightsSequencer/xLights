@@ -20,7 +20,7 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 {
-    OpenSequence();
+    OpenSequence("");
 }
 
 void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
