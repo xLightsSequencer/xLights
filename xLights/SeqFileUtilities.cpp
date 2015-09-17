@@ -57,6 +57,7 @@ void xLightsFrame::NewSequence()
     {
         SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
+    Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
 }
 
