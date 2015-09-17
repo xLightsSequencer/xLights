@@ -75,13 +75,16 @@ static wxFileName mapFileName(const wxFileName &orig) {
     return orig;
 }
 
-void xLightsFrame::OpenSequence(const wxString filename)
+void xLightsFrame::OpenSequence(const wxString passed_filename)
 {
     bool loaded_xml = false;
     bool loaded_fseq = false;
+    wxString filename;
     wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq";
-    if (filename.IsEmpty()) {
-        wxString filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (passed_filename.IsEmpty()) {
+        filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    } else {
+        filename = passed_filename;
     }
     if ( !filename.empty() )
     {
