@@ -821,7 +821,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = xl;
-				LastUpgradeCheck = 0620;
+				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Daniel Kulp";
 			};
 			buildConfigurationList = 67E7086817B51AB400A22034 /* Build configuration list for PBXProject "xLights" */;
@@ -1026,6 +1026,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -1153,6 +1154,7 @@
 					"-lz",
 					"-lexpat",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "xLights.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				VALID_ARCHS = x86_64;
@@ -1245,6 +1247,7 @@
 					"-lz",
 					"-lexpat",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "xLights.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				VALID_ARCHS = x86_64;
