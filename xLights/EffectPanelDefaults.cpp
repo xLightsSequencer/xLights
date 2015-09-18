@@ -48,7 +48,7 @@ void EffectsPanel::SetDefaultEffectValues(ModelClass *cls, const wxString &name)
     if (cls != nullptr) {
         for (std::map<wxString, std::map<wxString, wxString> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); it++) {
             Face_FaceDefinitonChoice->Append(it->first);
-            if (it->first == "Coro" || it->first == "SingleNode" || it->first == "NodeRange") {
+            if (it->second["Type"] == "Coro" || it->second["Type"] == "SingleNode" || it->second["Type"] == "NodeRange") {
                 addRender = false;
             }
         }

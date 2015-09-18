@@ -223,11 +223,16 @@ void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDef
             found = true;
         }
     }
+    wxString modelType = found ? model_info->faceInfo[definition]["Type"] : definition;
+    if (modelType == "") {
+        modelType = definition;
+    }
 
     int type = 3;
-    if ("Coro" == definition || "SingleNode" == definition) {
+    
+    if ("Coro" == modelType || "SingleNode" == modelType) {
         type = 0;
-    } else if ("NodeRange" == definition) {
+    } else if ("NodeRange" == modelType) {
         type = 1;
     } else if ("Rendered" == definition || "Default" == definition) {
         type = 2;
@@ -310,20 +315,49 @@ void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDef
     xlColor color;
     palette.GetColor(0, color); //use first color for mouth; user must make sure it matches model node type
     
+    bool customColor = found ? model_info->faceInfo[definition]["CustomColors"] == "1" : false;
+    
     wxArrayString todo;
     std::vector<xlColor> colors;
     todo.push_back("Mouth-" + phoneme);
-    colors.push_back(color);
+    if (customColor) {
+        wxString cname = model_info->faceInfo[definition][ "Mouth-" + phoneme + "-Color"];
+        if (cname == "") {
+            colors.push_back(xlWHITE);
+        } else {
+            colors.push_back(xlColor(cname));
+        }
+    } else {
+        colors.push_back(color);
+    }
     if (palette.Size() > 1) {
         palette.GetColor(1, color); //use second color for eyes; user must make sure it matches model node type
     }
     if (eyes == "Open" || eyes == "Auto") {
         todo.push_back("Eyes-Open");
-        colors.push_back(color);
+        if (customColor) {
+            wxString cname = model_info->faceInfo[definition][ "Eyes-Open-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            } else {
+                colors.push_back(xlColor(cname));
+            }
+        } else {
+            colors.push_back(color);
+        }
     }
     if (eyes == "Closed") {
         todo.push_back("Eyes-Closed");
-        colors.push_back(color);
+        if (customColor) {
+            wxString cname = model_info->faceInfo[definition][ "Eyes-Closed-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            } else {
+                colors.push_back(xlColor(cname));
+            }
+        } else {
+            colors.push_back(color);
+        }
     }
     if (eyes == "(off)") {
         //no eyes
@@ -333,7 +367,16 @@ void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDef
     }
     if (face_outline) {
         todo.push_back("FaceOutline");
-        colors.push_back(color);
+        if (customColor) {
+            wxString cname = model_info->faceInfo[definition][ "FaceOutline-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            } else {
+                colors.push_back(xlColor(cname));
+            }
+        } else {
+            colors.push_back(color);
+        }
     }
     
     

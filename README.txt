@@ -7,6 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) On a new sequence, make sure the timer is restarted with the right speed
+    -- enh(dkulp) Allow a custom color for each phoneme in faces.
+    -- enh(dkulp) Allow multple face defintions for every model type, not just matrix.  Fixes #357.
 4.2.10  Sep 11, 2015
     -- bug(gil) Fix effect selection when vertical scrollbar has been moved.
     -- bug(gil) Range check the number of fan and element blades for SuperStar import.

@@ -9,19 +9,21 @@
 #include <wx/filename.h>
 #include <wx/valtext.h>
 #include <wx/textdlg.h>
-#include <wx/msgdlg.h> 
-#include <wx/filedlg.h> 
+#include <wx/msgdlg.h>
+#include <wx/filedlg.h>
+#include <wx/colordlg.h>
 
 //(*IdInit(ModelFaceDialog)
-const long ModelFaceDialog::ID_PANEL1 = wxNewId();
+const long ModelFaceDialog::ID_STATICTEXT2 = wxNewId();
+const long ModelFaceDialog::ID_CHOICE3 = wxNewId();
+const long ModelFaceDialog::ID_BUTTON3 = wxNewId();
+const long ModelFaceDialog::ID_BUTTON4 = wxNewId();
+const long ModelFaceDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelFaceDialog::ID_GRID_COROFACES = wxNewId();
 const long ModelFaceDialog::ID_PANEL2 = wxNewId();
+const long ModelFaceDialog::ID_CHECKBOX2 = wxNewId();
 const long ModelFaceDialog::ID_GRID3 = wxNewId();
 const long ModelFaceDialog::ID_PANEL6 = wxNewId();
-const long ModelFaceDialog::ID_STATICTEXT1 = wxNewId();
-const long ModelFaceDialog::ID_CHOICE1 = wxNewId();
-const long ModelFaceDialog::ID_BUTTON1 = wxNewId();
-const long ModelFaceDialog::ID_BUTTON2 = wxNewId();
 const long ModelFaceDialog::ID_CHOICE2 = wxNewId();
 const long ModelFaceDialog::ID_GRID1 = wxNewId();
 const long ModelFaceDialog::ID_PANEL3 = wxNewId();
@@ -35,8 +37,7 @@ END_EVENT_TABLE()
 
 
 enum {
-    NO_FACE = 0,
-    SINGLE_NODE_FACE,
+    SINGLE_NODE_FACE = 0,
     NODE_RANGE_FACE,
     MATRIX_FACE
 };
@@ -47,15 +48,14 @@ enum {
 ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ModelFaceDialog)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxPanel* NonePanel;
 	wxPanel* CoroPanel;
 	wxStaticText* StaticText2;
-	wxButton* Button01;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxPanel* NodeRangePanel;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxButton* AddButton;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
@@ -66,14 +66,28 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer7->AddGrowableCol(1);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT2, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	NameChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
+	NameChoice->SetMinSize(wxDLG_UNIT(this,wxSize(100,-1)));
+	FlexGridSizer7->Add(NameChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	AddButton = new wxButton(this, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer7->Add(AddButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	DeleteButton = new wxButton(this, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FaceTypeChoice = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
-	NonePanel = new wxPanel(FaceTypeChoice, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	CoroPanel = new wxPanel(FaceTypeChoice, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(0);
+	CustomColorSingleNode = new wxCheckBox(CoroPanel, ID_CHECKBOX1, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CustomColorSingleNode->SetValue(false);
+	FlexGridSizer2->Add(CustomColorSingleNode, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SingleNodeGrid = new wxGrid(CoroPanel, ID_GRID_COROFACES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_COROFACES"));
-	SingleNodeGrid->CreateGrid(13,1);
+	SingleNodeGrid->CreateGrid(13,2);
 	SingleNodeGrid->SetMinSize(wxDLG_UNIT(CoroPanel,wxSize(-1,200)));
 	SingleNodeGrid->EnableEditing(true);
 	SingleNodeGrid->EnableGridLines(true);
@@ -81,6 +95,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	SingleNodeGrid->SetRowLabelSize(100);
 	SingleNodeGrid->SetDefaultColSize(200, true);
 	SingleNodeGrid->SetColLabelValue(0, _("Nodes"));
+	SingleNodeGrid->SetColLabelValue(1, _("Color"));
 	SingleNodeGrid->SetRowLabelValue(0, _("Face Outline"));
 	SingleNodeGrid->SetRowLabelValue(1, _("Mouth - AI"));
 	SingleNodeGrid->SetRowLabelValue(2, _("Mouth - E"));
@@ -104,8 +119,11 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
 	FlexGridSizer5->AddGrowableRow(0);
+	CustomColorNodeRanges = new wxCheckBox(NodeRangePanel, ID_CHECKBOX2, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CustomColorNodeRanges->SetValue(false);
+	FlexGridSizer5->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	NodeRangeGrid = new wxGrid(NodeRangePanel, ID_GRID3, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID3"));
-	NodeRangeGrid->CreateGrid(13,1);
+	NodeRangeGrid->CreateGrid(13,2);
 	NodeRangeGrid->SetMinSize(wxDLG_UNIT(NodeRangePanel,wxSize(-1,200)));
 	NodeRangeGrid->EnableEditing(true);
 	NodeRangeGrid->EnableGridLines(true);
@@ -113,6 +131,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	NodeRangeGrid->SetRowLabelSize(100);
 	NodeRangeGrid->SetDefaultColSize(200, true);
 	NodeRangeGrid->SetColLabelValue(0, _("Nodes"));
+	NodeRangeGrid->SetColLabelValue(1, _("Color"));
 	NodeRangeGrid->SetRowLabelValue(0, _("Face Outline"));
 	NodeRangeGrid->SetRowLabelValue(1, _("Mouth - AI"));
 	NodeRangeGrid->SetRowLabelValue(2, _("Mouth - E"));
@@ -136,17 +155,6 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(1);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
-	FlexGridSizer4->AddGrowableCol(1);
-	StaticText1 = new wxStaticText(Matrix, ID_STATICTEXT1, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer4->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	MatrixNameChoice = new wxChoice(Matrix, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-	FlexGridSizer4->Add(MatrixNameChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button01 = new wxButton(Matrix, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer4->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	MatrixDeleteButton = new wxButton(Matrix, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer4->Add(MatrixDeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
 	StaticText2 = new wxStaticText(Matrix, wxID_ANY, _("Image Placement:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -181,7 +189,6 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	Matrix->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Matrix);
 	FlexGridSizer3->SetSizeHints(Matrix);
-	FaceTypeChoice->AddPage(NonePanel, _("None"), false);
 	FaceTypeChoice->AddPage(CoroPanel, _("Single Nodes"), false);
 	FaceTypeChoice->AddPage(NodeRangePanel, _("Node Ranges"), false);
 	FaceTypeChoice->AddPage(Matrix, _("Matrix"), false);
@@ -195,12 +202,19 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixNameChoiceSelect);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixAddClicked);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixDeleteClick);
+	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixNameChoiceSelect);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixAddClicked);
+	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixDeleteClick);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnCustomColorCheckboxClick);
+	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellLeftDClick);
+	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellChange);
+	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnCustomColorCheckboxClick);
+	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellLeftDClick);
+	Connect(ID_GRID3,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellChange);
 	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelFaceDialog::OnMatricImagePlacementChoiceSelect);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellChange);
+	Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&ModelFaceDialog::OnFaceTypeChoicePageChanged);
 	//*)
 }
 
@@ -410,31 +424,39 @@ wxString NodesGridCellEditor::GetValue() const
 }
 
 void ModelFaceDialog::SetFaceInfo(ModelClass *cls, std::map< wxString, std::map<wxString, wxString> > &finfo) {
-    FaceTypeChoice->SetSelection(NO_FACE);
+    NodeRangeGrid->SetColSize(1, 50);
+    SingleNodeGrid->SetColSize(1, 50);
+    
     for (std::map< wxString, std::map<wxString, wxString> >::iterator it = finfo.begin();
          it != finfo.end(); it++) {
 
         wxString type = it->first;
         std::map<wxString, wxString> &info = it->second;
-        if (type == "Coro" || type == "SingleNode") {
-            FaceTypeChoice->SetSelection(SINGLE_NODE_FACE);
-            for (int x = 0; x < SingleNodeGrid->GetNumberRows(); x++) {
-                wxString name = SingleNodeGrid->GetRowLabelValue(x);
-                name.Replace(" ", "");
-                SingleNodeGrid->SetCellValue(x, 0, info[name]);
+
+        NameChoice->Append(type);
+
+        wxString type2 = info["Type"];
+        if (type2 == "") {
+            //old style, map
+            if (type == "Coro" || type == "SingleNode") {
+                info["Type"] = "SingleNode";
+            } else if (type == "NodeRange") {
+                info["Type"] = "NodeRange";
+            } else {
+                info["Type"] = "Matrix";
             }
-        } else if (type == "NodeRange") {
-            FaceTypeChoice->SetSelection(NODE_RANGE_FACE);
-            for (int x = 0; x < NodeRangeGrid->GetNumberRows(); x++) {
-                wxString name = NodeRangeGrid->GetRowLabelValue(x);
-                name.Replace(" ", "");
-                NodeRangeGrid->SetCellValue(x, 0, info[name]);
-            }
-        } else {
-            FaceTypeChoice->SetSelection(MATRIX_FACE);
-            matrixData[type] = info;
-            MatrixNameChoice->Append(type);
         }
+        faceData[type] = info;
+    }
+
+    if (NameChoice->GetCount() > 0) {
+        DeleteButton->Enable();
+        FaceTypeChoice->Enable();
+        NameChoice->SetSelection(0);
+        SelectFaceModel(NameChoice->GetString(NameChoice->GetSelection()));
+    } else {
+        DeleteButton->Disable();
+        FaceTypeChoice->Disable();
     }
 
     wxArrayString names;
@@ -447,6 +469,9 @@ void ModelFaceDialog::SetFaceInfo(ModelClass *cls, std::map< wxString, std::map<
     NodesGridCellEditor *editor = new NodesGridCellEditor();
     editor->names = names;
     SingleNodeGrid->SetDefaultEditor(editor);
+    for (int x = 0; x < SingleNodeGrid->GetNumberRows(); x++) {
+        SingleNodeGrid->SetReadOnly(x, 1);
+    }
 
     wxGridCellTextEditor *reditor = new wxGridCellTextEditor();
     wxString filter("0123456789,-");
@@ -454,64 +479,78 @@ void ModelFaceDialog::SetFaceInfo(ModelClass *cls, std::map< wxString, std::map<
     validator.SetCharIncludes(filter);
     reditor->SetValidator(validator);
     NodeRangeGrid->SetDefaultEditor(reditor);
-
-    if (matrixData.empty()) {
-        MatrixNameChoice->Disable();
-        MatrixModelsGrid->Disable();
-        MatrixDeleteButton->Disable();
-        MatrixImagePlacementChoice->Disable();
-    } else {
-        MatrixNameChoice->SetSelection(0);
-        FillMatrix(MatrixNameChoice->GetString(MatrixNameChoice->GetSelection()));
+    for (int x = 0; x < NodeRangeGrid->GetNumberRows(); x++) {
+        NodeRangeGrid->SetReadOnly(x, 1);
     }
 }
+
+
 void ModelFaceDialog::GetFaceInfo(std::map< wxString, std::map<wxString, wxString> > &finfo) {
     finfo.clear();
-    if (FaceTypeChoice->GetSelection() == SINGLE_NODE_FACE) {
-        //Coro style face
-        std::map<wxString, wxString> &info = finfo["SingleNode"];
-        for (int x = 0; x < SingleNodeGrid->GetNumberRows(); x++) {
-            wxString name = SingleNodeGrid->GetRowLabelValue(x);
-            name.Replace(" ", "");
-            info[name] = SingleNodeGrid->GetCellValue(x, 0);
-        }
-    } else if (FaceTypeChoice->GetSelection() == NODE_RANGE_FACE) {
-        //Coro style face using pixels
-        std::map<wxString, wxString> &info = finfo["NodeRange"];
-        for (int x = 0; x < NodeRangeGrid->GetNumberRows(); x++) {
-            wxString name = NodeRangeGrid->GetRowLabelValue(x);
-            name.Replace(" ", "");
-            info[name] = NodeRangeGrid->GetCellValue(x, 0);
-        }
-    } else if (FaceTypeChoice->GetSelection() == MATRIX_FACE) {
-        //matrix style
-        for (std::map<wxString, std::map<wxString, wxString> >::iterator it = matrixData.begin();
-             it != matrixData.end(); it++) {
-            if (!it->second.empty()) {
-                finfo[it->first] = it->second;
-            }
+    for (std::map<wxString, std::map<wxString, wxString> >::iterator it = faceData.begin();
+         it != faceData.end(); it++) {
+        if (!it->second.empty()) {
+            finfo[it->first] = it->second;
         }
     }
 }
-void ModelFaceDialog::FillMatrix(const wxString &name) {
-    for (int r = 0; r < MatrixModelsGrid->GetNumberRows(); r++) {
-        for (int c = 0; c < MatrixModelsGrid->GetNumberCols(); c++) {
-            wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
-            key.Replace(" ", "");
-            MatrixModelsGrid->SetCellValue(r, c, matrixData[name][key]);
+
+static bool SetGrid(wxGrid *grid, std::map<wxString, wxString> &info) {
+    bool customColor = false;
+    if (info["CustomColors"] == "1") {
+        grid->ShowCol(1);
+        customColor = true;
+    } else {
+        grid->HideCol(1);
+    }
+    for (int x = 0; x < grid->GetNumberRows(); x++) {
+        wxString pname = grid->GetRowLabelValue(x);
+        pname.Replace(" ", "");
+        grid->SetCellValue(x, 0, info[pname]);
+
+        wxString c = info[pname + "-Color"];
+        if (c == "") {
+            c = "#FFFFFF";
         }
+        xlColor color(c);
+        grid->SetCellBackgroundColour(x, 1, color.asWxColor());
     }
-    wxString w = matrixData[name]["ImagePlacement"];
-    if (w == "") {
-        w = "Centered";
+    return customColor;
+}
+
+void ModelFaceDialog::SelectFaceModel(const wxString &name) {
+    FaceTypeChoice->Enable();
+    wxString type = faceData[name]["Type"];
+    if (type == "") {
+        type = "SingleNode";
     }
-    MatrixImagePlacementChoice->SetStringSelection(w);
+    if (type == "SingleNode") {
+        FaceTypeChoice->SetSelection(SINGLE_NODE_FACE);
+        CustomColorSingleNode->SetValue(SetGrid(SingleNodeGrid, faceData[name]));
+    } else if (type == "NodeRange") {
+        FaceTypeChoice->SetSelection(NODE_RANGE_FACE);
+        CustomColorNodeRanges->SetValue(SetGrid(NodeRangeGrid, faceData[name]));
+    } else {
+        FaceTypeChoice->SetSelection(MATRIX_FACE);
+        for (int r = 0; r < MatrixModelsGrid->GetNumberRows(); r++) {
+            for (int c = 0; c < MatrixModelsGrid->GetNumberCols(); c++) {
+                wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
+                key.Replace(" ", "");
+                MatrixModelsGrid->SetCellValue(r, c, faceData[name][key]);
+            }
+        }
+        wxString w = faceData[name]["ImagePlacement"];
+        if (w == "") {
+            w = "Centered";
+        }
+        MatrixImagePlacementChoice->SetStringSelection(w);
+    }
 }
 
 
 void ModelFaceDialog::OnMatrixNameChoiceSelect(wxCommandEvent& event)
 {
-    FillMatrix(MatrixNameChoice->GetString(MatrixNameChoice->GetSelection()));
+    SelectFaceModel(NameChoice->GetString(NameChoice->GetSelection()));
 }
 
 void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
@@ -519,54 +558,52 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
     wxTextEntryDialog dlg(this, "New Face", "Enter name for new face definition");
     if (dlg.ShowModal() == wxID_OK) {
         wxString n = dlg.GetValue();
-        if (MatrixNameChoice->FindString(n) == wxNOT_FOUND) {
-            MatrixNameChoice->Append(n);
-            MatrixNameChoice->SetStringSelection(n);
-            FillMatrix(n);
-            MatrixNameChoice->Enable();
-            MatrixModelsGrid->Enable();
-            MatrixDeleteButton->Enable();
-            MatrixImagePlacementChoice->Enable();
+        if (NameChoice->FindString(n) == wxNOT_FOUND) {
+            NameChoice->Append(n);
+            NameChoice->SetStringSelection(n);
+            SelectFaceModel(n);
+            NameChoice->Enable();
+            FaceTypeChoice->Enable();
+            DeleteButton->Enable();
         }
     }
 }
 void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
 {
-    wxString name = MatrixNameChoice->GetString(MatrixNameChoice->GetSelection());
-    if (wxMessageBox("Delete face definion?", "Are you sure you want to delete " + name + "?",
-                     wxICON_WARNING | wxOK , this) == wxID_OK) {
+    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    int i = wxMessageBox("Delete face definion?", "Are you sure you want to delete " + name + "?",
+                         wxICON_WARNING | wxOK , this);
+    if (i == wxID_OK || i == wxOK) {
 
-        matrixData[name].clear();
-        FillMatrix(name);
-        MatrixNameChoice->Delete(MatrixNameChoice->GetSelection());
-        if (MatrixNameChoice->GetCount() > 0) {
-            MatrixNameChoice->SetSelection(0);
-            FillMatrix(MatrixNameChoice->GetString(0));
+        faceData[name].clear();
+        NameChoice->Delete(NameChoice->GetSelection());
+        if (NameChoice->GetCount() > 0) {
+            NameChoice->SetSelection(0);
+            SelectFaceModel(NameChoice->GetString(0));
         } else {
-            MatrixNameChoice->SetSelection(wxNOT_FOUND);
-            MatrixNameChoice->Disable();
-            MatrixDeleteButton->Disable();
-            MatrixModelsGrid->Disable();
-            MatrixImagePlacementChoice->Disable();
+            NameChoice->SetSelection(wxNOT_FOUND);
+            NameChoice->Disable();
+            FaceTypeChoice->Disable();
+            DeleteButton->Disable();
         }
     }
 }
 
 void ModelFaceDialog::OnMatrixModelsGridCellChange(wxGridEvent& event)
 {
-    wxString name = MatrixNameChoice->GetString(MatrixNameChoice->GetSelection());
+    wxString name = NameChoice->GetString(NameChoice->GetSelection());
     int r = event.GetRow();
     int c = event.GetCol();
     wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
     key.Replace(" ", "");
-    matrixData[name][key] = MatrixModelsGrid->GetCellValue(r, c);
+    faceData[name][key] = MatrixModelsGrid->GetCellValue(r, c);
 }
 
 
 static const wxString strSupportedImageTypes = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp|JPG files(*.jpg)|*.jpg|All files (*.*)|*.*";
 void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
 {
-    wxString name = MatrixNameChoice->GetString(MatrixNameChoice->GetSelection());
+    wxString name = NameChoice->GetString(NameChoice->GetSelection());
     int r = event.GetRow();
     int c = event.GetCol();
     wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
@@ -578,7 +615,7 @@ void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
     if (dlg.ShowModal() == wxID_OK) {
         wxString new_filename = dlg.GetPath();
         key.Replace(" ", "");
-        matrixData[name][key] = new_filename;
+        faceData[name][key] = new_filename;
         MatrixModelsGrid->SetCellValue(r, c, new_filename);
     }
 }
@@ -586,6 +623,104 @@ void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
 
 void ModelFaceDialog::OnMatricImagePlacementChoiceSelect(wxCommandEvent& event)
 {
-    wxString name = MatrixNameChoice->GetString(MatrixNameChoice->GetSelection());
-    matrixData[name]["ImagePlacement"] = MatrixNameChoice->GetString(MatrixImagePlacementChoice->GetSelection());
+    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    faceData[name]["ImagePlacement"] = NameChoice->GetString(MatrixImagePlacementChoice->GetSelection());
+}
+
+void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
+{
+    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    if (FaceTypeChoice->GetSelection() == SINGLE_NODE_FACE) {
+        if (CustomColorSingleNode->IsChecked()) {
+            SingleNodeGrid->ShowCol(1);
+            faceData[name]["CustomColors"] = "1";
+        } else {
+            SingleNodeGrid->HideCol(1);
+            faceData[name]["CustomColors"] = "0";
+        }
+    } else {
+        if (CustomColorNodeRanges->IsChecked()) {
+            NodeRangeGrid->ShowCol(1);
+            faceData[name]["CustomColors"] = "1";
+        } else {
+            NodeRangeGrid->HideCol(1);
+            faceData[name]["CustomColors"] = "0";
+        }
+    }
+}
+
+static void GetValue(wxGrid *grid, wxGridEvent &event, std::map<wxString, wxString> &info) {
+    int r = event.GetRow();
+    int c = event.GetCol();
+    wxString key = grid->GetRowLabelValue(r);
+    key.Replace(" ", "");
+    if (c == 1) {
+        key += "-Color";
+        xlColor color = grid->GetCellBackgroundColour(r, c);
+        info[key] = color;
+    } else {
+        info[key] = grid->GetCellValue(r, c);
+    }
+}
+
+void ModelFaceDialog::OnNodeRangeGridCellChange(wxGridEvent& event)
+{
+    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    GetValue(NodeRangeGrid, event, faceData[name]);
+}
+
+void ModelFaceDialog::OnSingleNodeGridCellChange(wxGridEvent& event)
+{
+    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    GetValue(SingleNodeGrid, event, faceData[name]);
+}
+
+void ModelFaceDialog::OnFaceTypeChoicePageChanged(wxChoicebookEvent& event)
+{
+    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    faceData[name].clear();
+    switch (FaceTypeChoice->GetSelection()) {
+        case SINGLE_NODE_FACE:
+            faceData[name]["Type"] = "SingleNode";
+            break;
+        case NODE_RANGE_FACE:
+            faceData[name]["Type"] = "NodeRange";
+            break;
+        case MATRIX_FACE:
+            faceData[name]["Type"] = "Matrix";
+            break;
+    }
+    SelectFaceModel(name);
+}
+void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
+{
+    if (event.GetCol() == 1) {
+        wxString name = NameChoice->GetString(NameChoice->GetSelection());
+        wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), 1);
+        wxColourData data;
+        data.SetColour(c);
+        wxColourDialog dlg(this, &data);
+        if (dlg.ShowModal() == wxID_OK) {
+            NodeRangeGrid->SetCellBackgroundColour(event.GetRow(), 1, dlg.GetColourData().GetColour());
+            NodeRangeGrid->Refresh();
+            GetValue(NodeRangeGrid, event, faceData[name]);
+        }
+    }
+
+}
+
+void ModelFaceDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
+{
+    if (event.GetCol() == 1) {
+        wxString name = NameChoice->GetString(NameChoice->GetSelection());
+        wxColor c = SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), 1);
+        wxColourData data;
+        data.SetColour(c);
+        wxColourDialog dlg(this, &data);
+        if (dlg.ShowModal() == wxID_OK) {
+            SingleNodeGrid->SetCellBackgroundColour(event.GetRow(), 1, dlg.GetColourData().GetColour());
+            SingleNodeGrid->Refresh();
+            GetValue(SingleNodeGrid, event, faceData[name]);
+        }
+    }
 }

@@ -369,12 +369,27 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     faceInfo.clear();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
+            wxString name = f->GetAttribute("Name", "SingleNode");
             wxString type = f->GetAttribute("Type", "SingleNode");
+            if (name == "") {
+                name = type;
+                f->DeleteAttribute("Name");
+                f->AddAttribute("Name", type);
+            }
+            if (!(type == "SingleNode" || type == "NodeRange" || type == "Matrix")) {
+                if (type == "Coro") {
+                    type = "SingleNode";
+                } else {
+                    type = "Matrix";
+                }
+                f->DeleteAttribute("Type");
+                f->AddAttribute("Type", type);
+            }
 
             wxXmlAttribute *att = f->GetAttributes();
             while (att != nullptr) {
-                if (att->GetName() != "Type") {
-                    faceInfo[type][att->GetName()] = att->GetValue();
+                if (att->GetName() != "Name") {
+                    faceInfo[name][att->GetName()] = att->GetValue();
                 }
                 att = att->GetNext();
             }

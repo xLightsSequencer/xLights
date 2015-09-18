@@ -851,9 +851,9 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     wxXmlNode *f = e->GetChildren();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
-             e->RemoveChild(f);
+            e->RemoveChild(f);
             delete f;
-            f = nullptr;
+            f = e->GetChildren();
         } else {
             f = f->GetNext();
         }
@@ -861,8 +861,8 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     if (!faceInfo.empty()) {
         for (std::map<wxString, std::map<wxString,wxString> >::iterator it = faceInfo.begin(); it != faceInfo.end(); it++) {
             f = new wxXmlNode(e, wxXML_ELEMENT_NODE , "faceInfo");
-            wxString type = it->first;
-            f->AddAttribute("Type", type);
+            wxString name = it->first;
+            f->AddAttribute("Name", name);
             for (std::map<wxString,wxString>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
                 f->AddAttribute(it2->first, it2->second);
             }
@@ -984,14 +984,30 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
 
     UpdateLabels();
     
+    faceInfo.clear();
     wxXmlNode *f = e->GetChildren();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
+            wxString name = f->GetAttribute("Name");
             wxString type = f->GetAttribute("Type", "SingleNode");
+            if (name == "") {
+                name = type;
+                f->DeleteAttribute("Name");
+                f->AddAttribute("Name", type);
+            }
+            if (!(type == "SingleNode" || type == "NodeRange" || type == "Matrix")) {
+                if (type == "Coro") {
+                    type = "SingleNode";
+                } else {
+                    type = "Matrix";
+                }
+                f->DeleteAttribute("Type");
+                f->AddAttribute("Type", type);
+            }
             wxXmlAttribute *att = f->GetAttributes();
             while (att != nullptr) {
-                if (att->GetName() != "Type") {
-                    faceInfo[type][att->GetName()] = att->GetValue();
+                if (att->GetName() != "Name") {
+                    faceInfo[name][att->GetName()] = att->GetValue();
                 }
                 att = att->GetNext();
             }
