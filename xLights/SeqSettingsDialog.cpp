@@ -769,12 +769,12 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
         if( xml_file->GetSequenceLoaded() )
         {
             timing_list = xml_file->GetTimingList(xLightsParent->GetSequenceElements());
+            xLightsParent->DeleteTimingElement(timing_list[row]);
         }
         else
         {
             timing_list = xml_file->GetTimingList();
         }
-        xLightsParent->DeleteTimingElement(timing_list[row]);
         xml_file->DeleteTimingSection(timing_list[row]);
         Grid_Timing->DeleteRows(row);
         Refresh();

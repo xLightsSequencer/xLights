@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil) Fix crash if deleting a timing in new sequence wizards.  Fixes #372.
     -- bug(dkulp) On a new sequence, make sure the timer is restarted with the right speed
     -- enh(dkulp) Allow a custom color for each phoneme in faces.
     -- enh(dkulp) Allow multple face defintions for every model type, not just matrix.  Fixes #357.
