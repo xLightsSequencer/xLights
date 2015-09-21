@@ -5026,7 +5026,7 @@ bool EffectsPanel::WantOverlayBkg(void)
 void EffectsPanel::OnButton_Glediator_FilenameClick(wxCommandEvent& event)
 {
     wxString filename = wxFileSelector( "Choose Glediator *.gled", *CurrentDir, "", "",
-                                       "Glediator files (*.gled)|*.gled", wxFD_OPEN );
+                                       "Glediator files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out", wxFD_OPEN );
     if (!filename.IsEmpty()) TextCtrl_Glediator_Filename->SetValue(filename);
 }
 
