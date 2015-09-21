@@ -432,7 +432,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Butterfly_Style" variable="Slider_Butterfly_Style" member="no">
 										<value>1</value>
 										<min>1</min>
-										<max>5</max>
+										<max>9</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
