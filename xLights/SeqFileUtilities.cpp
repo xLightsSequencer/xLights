@@ -254,6 +254,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         float elapsedTime = sw.Time()/1000.0; //msec => sec
         StatusBar1->SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
         EnableSequenceControls(true);
+        Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
     }
 }
 

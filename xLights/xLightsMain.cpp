@@ -1603,7 +1603,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem_File_Save_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_Save_Sequence);
     MenuItem_File_Save_Sequence->Enable(false);
-    MenuItem_File_SaveAs_Sequence = new wxMenuItem(MenuFile, ID_SAVE_AS_SEQUENCE, _("Save As Sequence"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem_File_SaveAs_Sequence = new wxMenuItem(MenuFile, ID_SAVE_AS_SEQUENCE, _("Save Sequence As"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_SaveAs_Sequence);
     MenuItem_File_Close_Sequence = new wxMenuItem(MenuFile, ID_CLOSE_SEQ, _("Close Sequence"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Close_Sequence);
@@ -2341,7 +2341,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     if (!xLightsApp::sequenceFile.IsNull()) {
         OpenSequence(xLightsApp::sequenceFile);
-        Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
     }
 
 }
