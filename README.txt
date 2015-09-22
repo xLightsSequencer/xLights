@@ -7,6 +7,16 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.12  Sep 22, 2015
+	-- enh (sean) Added a enw style to Butterfly, Style=10. This allows setting color of Plasma
+			also all plasma effects (Styles 6,7,8,9,10 in Butterfly), will use 
+			Background chunks to change the plasma effect.
+	-- bug (gil) * Fix crash if deleting a timing in new sequence wizards.  Fixes #372.
+			this bug was actually fixed in 3.2.11
+	-- enh (chrisD) * Implement issue #237 - Enhancement request: Media file missing,
+			prompt for user input
+	-- enh (chrisD) * Implement issue #367 - Enhancement: Add .out file type 
+			to Glediator file search
 4.2.11  Sep 20, 2015
     -- enh(sean) New effect Plasma. Access this through butterfly. Select Style 6,7,8 or 9
     -- bug(dkulp) On a new sequence, make sure the timer is restarted with the right speed

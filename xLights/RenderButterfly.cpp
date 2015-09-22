@@ -36,14 +36,14 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
 {
     int x,y,d,xc,yc,x0,y0;
     double n,x1,y1,f;
-    double h=0.0;
+    double h=0.0,hue1,hue2;
     static const double pi2=6.283185307;
 
     //  These are for Plasma effect
-    double rx,ry,cx,cy,v,time,Speed_plasma;
+    double rx,ry,cx,cy,v,time,Speed_plasma,multiplier;
     static const double pi=3.1415926535897932384626433832;
+    int i;
     int state;
-
 
     double  fractpart, intpart;
 
@@ -54,7 +54,7 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
     int curState = (curPeriod - curEffStartPer) * butterFlySpeed * frameTimeInMs / 50;
     int frame=(BufferHt * curState / 200)%maxframe;
     double offset=double(curState)/200.0;
-
+    size_t colorcnt=GetColorCount();
 
     if(ButterflyDirection==1) offset = -offset;
     xc=BufferWi/2;
@@ -178,7 +178,11 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 // reference: http://www.bidouille.org/prog/plasma
 
                 state = (curPeriod - curEffStartPer); // frames 0 to N
-                Speed_plasma = (101-butterFlySpeed)*5; // we want a large number to divide bu
+                if(Style==10) // Style 10 is for custom colors on Plasma
+                    Speed_plasma = (101-butterFlySpeed)*3; // we want a large number to divide by
+                else
+                    Speed_plasma = (101-butterFlySpeed)*5; // we want a large number to divide by
+
                 time = (state+1.0)/Speed_plasma;
 
                 v=0;
@@ -215,24 +219,45 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 switch (Style)
                 {
                 case 6:
-                    color.red = (sin(v*pi)+1)*128;
-                    color.green= (cos(v*pi)+1)*128;
+                    color.red = (sin(v*Chunks*pi)+1)*128;
+                    color.green= (cos(v*Chunks*pi)+1)*128;
                     color.blue =0;
                     break;
                 case 7:
                     color.red = 1;
-                    color.green= (cos(v*pi)+1)*128;
-                    color.blue =(sin(v*pi)+1)*128;
+                    color.green= (cos(v*Chunks*pi)+1)*128;
+                    color.blue =(sin(v*Chunks*pi)+1)*128;
                     break;
 
                 case 8:
-                    color.red = (sin(v*pi)+1)*128;
-                    color.green= (sin(v*pi + 2*pi/3)+1)*128;
-                    color.blue =(sin(v*pi+4*pi/3)+1)*128;
+                    color.red = (sin(v*Chunks*pi)+1)*128;
+                    color.green= (sin(v*Chunks*pi + 2*pi/3)+1)*128;
+                    color.blue =(sin(v*Chunks*pi+4*pi/3)+1)*128;
                     break;
 
                 case 9:
-                    color.red=color.green=color.blue=(sin(v*5*pi) +1) * 128;
+                    color.red=color.green=color.blue=(sin(v*Chunks*pi) +1) * 128;
+                    break;
+                case 10:
+                    if(colorcnt>=2)
+                    {
+                        GetMultiColorBlend(h,false,color);
+
+                        hue1=.1;
+                        hue1=0;
+                        hue2=.7;
+                        hue2=1;
+                        multiplier=(hue2-hue1)/2;
+                        h=hue1+ multiplier*(v+1); // v is between -1 to 1. h
+                        h = sin(v*Chunks*pi+2*pi/3)+1*0.5;
+
+                        hsv.hue=h;
+                        //  hsv.hue=hsv.hue + (v+1)/20.0;
+//color.red = (sin(v*color.red)+1)*128;
+//color.green = (sin(v*color.green)+1)*128;
+//color.blue = (sin(v*color.blue)+1)*128;
+
+                    }
                     break;
                 }
 
