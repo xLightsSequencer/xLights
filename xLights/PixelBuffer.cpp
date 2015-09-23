@@ -674,6 +674,9 @@ void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int p
                                          pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,
                                          pinwheel_armsize, pspeed);
 }
+void PixelBufferClass::RenderPlasma(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection, int butterFlySpeed) {
+    effects[CurrentLayer].RenderButterfly(ColorScheme,Style,Chunks,Skip, ButterflyDirection, butterFlySpeed);
+}
 void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles) {
     effects[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D, cycles );
 }

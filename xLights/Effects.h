@@ -45,6 +45,8 @@ void RenderPictures(int dir, const wxString& NewPictureName,float moveSpeed, flo
 void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,
                     bool pinwheel_rotation,const wxString &pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize,
                     int pspeed);
+void RenderPlasma(int ColorScheme, int Style, int Chunks, int Skip,
+                  int ButterflyDirection, int butterFlySpeed);
 void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,
               int xc_adj, int yc_adj);
 

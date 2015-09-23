@@ -112,7 +112,7 @@ public:
     }
     SNPair(const SNPair &p) : strand(p.strand), node(p.node) {
     }
-    
+
     bool operator>(const SNPair &p) const {
         return strand > p.strand
         || (strand == p.strand && node > p.node);
@@ -124,7 +124,7 @@ public:
     bool operator==(const SNPair &p) const {
         return strand == p.strand && node == p.node;
     }
-    
+
     const int strand;
     const int node;
 };
@@ -1015,6 +1015,13 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                               wxAtoi(SettingsMap["SLIDER_PinwheelYC"]),
                               wxAtoi(SettingsMap["SLIDER_Pinwheel_ArmSize"]),
                               wxAtoi(SettingsMap["TEXTCTRL_Pinwheel_Speed"]));
+    } else if (effect == "Plasma") {
+        buffer.RenderPlasma(ButterflyEffectColors.Index(SettingsMap["CHOICE_Butterfly_Colors"]),
+                               wxAtoi(SettingsMap["SLIDER_Butterfly_Style"]),
+                               wxAtoi(SettingsMap["SLIDER_Butterfly_Chunks"]),
+                               wxAtoi(SettingsMap["SLIDER_Butterfly_Skip"]),
+                               ButterflyDirection.Index(SettingsMap["CHOICE_Butterfly_Direction"]),
+                               wxAtoi(SettingsMap.Get("SLIDER_Butterfly_Speed", "10")));
     } else if (effect == "Ripple") {
         buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap["CHOICE_Ripple_Object_To_Draw"]),
                             RippleMovement.Index(SettingsMap["CHOICE_Ripple_Movement"]),

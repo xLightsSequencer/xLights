@@ -135,6 +135,7 @@ public:
     wxCheckBox* CheckBox_Spirlas_Shrink;
     wxChoice* Choice_Butterfly_Colors;
     wxBitmapButton* BitmapButton_MeteorsLength;
+    wxChoice* Choice3;
     wxStaticText* StaticText188;
     wxCheckBox* CheckBox5;
     wxStaticText* StaticText1;
@@ -211,6 +212,7 @@ public:
     wxBitmapButton* BitmapButton_CurtainEdge;
     wxChoice* Choice_Morph_QuickSet;
     wxStaticText* StaticText32;
+    wxScrolledWindow* Panel1_Plasma;
     wxStaticText* StaticText14;
     wxNotebook* Notebook_Galaxy;
     wxStaticText* StaticText75;
@@ -569,6 +571,7 @@ public:
     wxStaticText* StaticText9;
     wxBitmapButton* BitmapButton_TreeBranches;
     wxBitmapButton* BitmapButton_SpirographAnimate;
+    wxChoice* Choice4;
     wxScrolledWindow* Panel1_Tree;
     wxBitmapButton* BitmapButton_Spirals3D;
     wxStaticText* StaticText159;
@@ -1061,6 +1064,23 @@ protected:
     static const long IDD_TEXTCTRL_PinwheelYC;
     static const long ID_SLIDER_PinwheelYC;
     static const long ID_PANEL_Pinwheel;
+    static const long ID_CHOICE1;
+    static const long ID_BITMAPBUTTON35;
+    static const long ID_SLIDER1;
+    static const long ID_TEXTCTRL1;
+    static const long ID_BITMAPBUTTON36;
+    static const long ID_SLIDER2;
+    static const long ID_TEXTCTRL2;
+    static const long ID_BITMAPBUTTON37;
+    static const long ID_SLIDER3;
+    static const long ID_TEXTCTRL3;
+    static const long ID_BITMAPBUTTON38;
+    static const long ID_SLIDER4;
+    static const long ID_TEXTCTRL4;
+    static const long ID_BITMAPBUTTON39;
+    static const long ID_CHOICE2;
+    static const long ID_BITMAPBUTTON40;
+    static const long ID_PANEL_Plasma;
     static const long ID_STATICTEXT71;
     static const long ID_CHOICE_Ripple_Object_To_Draw;
     static const long ID_BITMAPBUTTON20;
