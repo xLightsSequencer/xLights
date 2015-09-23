@@ -215,7 +215,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
     {
         int musicLength = 0;
         mediaFilename = xml_file.GetMediaFile();
-        if( mediaFilename == wxEmptyString )
+        if( (mediaFilename == wxEmptyString) || (!wxFileExists(mediaFilename)))
         {
             SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
             setting_dlg.Fit();
