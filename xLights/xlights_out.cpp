@@ -967,6 +967,7 @@ size_t xOutput::addnetwork(const wxString& NetworkType, int chcount, const wxStr
     {
         channels.push_back(std::make_pair(netnum, ch));
     }
+    netobj->SetEnabled(enabled);
     return netnum;
 }
 
