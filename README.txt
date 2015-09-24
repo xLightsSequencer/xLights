@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+        -- bug(dkulp) Fix crash when rendering models that have channels that extend beyond the configured range
         -- bug(dkulp) The "Enable" flag is only honored when changed while outputting to lights 
 4.2.12  Sep 22, 2015
 	-- enh (sean) Added a enw style to Butterfly, Style=10. This allows setting color of Plasma
