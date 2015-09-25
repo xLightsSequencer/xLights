@@ -44,7 +44,7 @@ public:
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
     wxString GetEffectStringFromWindow(wxWindow *ParentWin);
-    
+
     void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 
     //(*Declarations(EffectsPanel)
@@ -1066,17 +1066,15 @@ protected:
     static const long ID_PANEL_Pinwheel;
     static const long ID_CHOICE1;
     static const long ID_BITMAPBUTTON35;
-    static const long ID_SLIDER1;
-    static const long ID_TEXTCTRL1;
+    static const long ID_SLIDER_Plasma_Style;
+    static const long IDD_TEXTCTRL_Plasma_Style;
     static const long ID_BITMAPBUTTON36;
-    static const long ID_SLIDER2;
-    static const long ID_TEXTCTRL2;
+    static const long ID_SLIDER_Plasma_Chunks;
+    static const long IDD_TEXTCTRL_Plasma_Chunks;
     static const long ID_BITMAPBUTTON37;
-    static const long ID_SLIDER3;
-    static const long ID_TEXTCTRL3;
     static const long ID_BITMAPBUTTON38;
-    static const long ID_SLIDER4;
-    static const long ID_TEXTCTRL4;
+    static const long ID_SLIDER_Plasma_Speed;
+    static const long IDD_TEXTCTRL_Plasma_Speed;
     static const long ID_BITMAPBUTTON39;
     static const long ID_CHOICE2;
     static const long ID_BITMAPBUTTON40;

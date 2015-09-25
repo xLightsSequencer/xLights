@@ -6153,10 +6153,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER1" variable="Slider33" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Plasma_Style" variable="Slider33" member="no">
 										<value>1</value>
 										<min>1</min>
-										<max>5</max>
+										<max>10</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -6164,7 +6164,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl84" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Plasma_Style" variable="TextCtrl84" member="no">
 										<value>1</value>
 										<maxlength>1</maxlength>
 										<size>20,-1d</size>
@@ -6196,7 +6196,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER2" variable="Slider34" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Plasma_Chunks" variable="Slider34" member="no">
 										<value>1</value>
 										<min>1</min>
 										<max>10</max>
@@ -6207,7 +6207,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl85" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Plasma_Chunks" variable="TextCtrl85" member="no">
 										<value>1</value>
 										<maxlength>2</maxlength>
 										<size>20,-1d</size>
@@ -6228,36 +6228,6 @@
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="wxID_ANY" variable="StaticText203" member="no">
-										<label>Bkgrd Skip</label>
-									</object>
-									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER3" variable="Slider35" member="no">
-										<value>2</value>
-										<min>2</min>
-										<max>10</max>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl86" member="no">
-										<value>2</value>
-										<maxlength>2</maxlength>
-										<size>20,-1d</size>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -6282,7 +6252,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER4" variable="Slider36" member="no">
+									<object class="wxSlider" name="ID_SLIDER_Plasma_Speed" variable="Slider36" member="no">
 										<value>10</value>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
@@ -6291,7 +6261,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL4" variable="TextCtrl87" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Plasma_Speed" variable="TextCtrl87" member="no">
 										<value>10</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>

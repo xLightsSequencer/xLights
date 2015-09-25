@@ -194,7 +194,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-march=i586" />
-					<Add option="-O2" />
+					<Add option="-O3" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++11" />

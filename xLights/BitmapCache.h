@@ -8,10 +8,12 @@
 
 #include "wx/bitmap.h"
 
-class BitmapCache {
+class BitmapCache
+{
 public:
 
-    enum RGB_EFFECTS_e  {
+    enum RGB_EFFECTS_e
+    {
         eff_OFF,
         eff_ON,
         eff_BARS,
@@ -33,6 +35,7 @@ public:
         eff_PIANO,
         eff_PICTURES,
         eff_PINWHEEL,
+        eff_PLASMA,
         eff_RIPPLE,
         eff_SHIMMER,
         eff_SHOCKWAVE,

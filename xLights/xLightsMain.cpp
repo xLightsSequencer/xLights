@@ -2146,6 +2146,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButterflyDirection.Add("Normal");
     ButterflyDirection.Add("Reverse");
 
+    PlasmaEffectColors.Add("Rainbow");
+    PlasmaEffectColors.Add("Palette");
+    PlasmaDirection.Add("Normal");
+    PlasmaDirection.Add("Reverse");
+
+
     WaveType.Add("Sine");
     WaveType.Add("Triangle");
     WaveType.Add("Square");

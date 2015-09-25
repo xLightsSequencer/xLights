@@ -1586,6 +1586,8 @@ protected:
     wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
     wxArrayString ButterflyDirection;
+    wxArrayString PlasmaEffectColors;
+    wxArrayString PlasmaDirection;
 
     wxArrayString MeteorsEffectTypes;
     wxArrayString MeteorsEffect;
