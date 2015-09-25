@@ -622,12 +622,13 @@ void xLightsFrame::RenderGridToSeqData() {
                 int start = buffer->NodeStartChannel(node);
                 for (int c = 0; c < cn; c++) {
                     int cnum = start + c;
-                    if (cnum < SeqData.NumChannels()
-                        && channelsRendered[cnum] >= 0
-                        && channelsRendered[cnum] != row) {
-                        hasDep = true;
-                    } else {
-                        channelsRendered[cnum] = row;
+                    if (cnum < SeqData.NumChannels()) {
+                        if (channelsRendered[cnum] >= 0
+                            && channelsRendered[cnum] != row) {
+                            hasDep = true;
+                        } else {
+                            channelsRendered[cnum] = row;
+                        }
                     }
                 }
             }
