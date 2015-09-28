@@ -71,12 +71,14 @@ public:
     wxSlider* Slider_Number_Chases;
     wxNotebook* Notebook1;
     wxBitmapButton* BitmapButton_SpiralsGrow;
+    wxStaticText* StaticText206;
     wxChoice* Choice_SingleStrand_Colors;
     wxBitmapButton* BitmapButton_Piano_MapFilename;
     wxBitmapButton* BitmapButton_NumberStrobes;
     wxStaticText* StaticText38;
     wxStaticText* StaticText86;
     wxStaticText* StaticText42;
+    wxBitmapButton* BitmapButton22;
     wxTextCtrl* TextCtrl_Morph_End_Y2;
     wxBitmapButton* BitmapButton_PicturesSpeed;
     wxScrolledWindow* Panel1_Curtain;
@@ -196,6 +198,7 @@ public:
     wxBitmapButton* BitmapButton_Piano_KeyPlacement;
     wxStaticText* StaticText_Piano_NumRows;
     wxBitmapButton* BitmapButton_CirclesRadial;
+    wxStaticText* StaticText205;
     wxBitmapButton* BitmapButton_FireworksNumberExplosions;
     wxBitmapButton* BitmapButton_Morph_End_X2;
     wxStaticText* StaticText152;
@@ -209,6 +212,7 @@ public:
     wxBitmapButton* BitmapButton14;
     wxSlider* Slider_Fireworks_Count;
     wxBitmapButton* BitmapButton_CurtainEdge;
+    wxStaticText* StaticText203;
     wxChoice* Choice_Morph_QuickSet;
     wxStaticText* StaticText32;
     wxScrolledWindow* Panel1_Plasma;
@@ -258,6 +262,7 @@ public:
     wxScrolledWindow* Panel1_Butterfly;
     wxBitmapButton* BitmapButton_Piano_NumRows;
     wxBitmapButton* BitmapButton_Morph_Start_Y1;
+    wxBitmapButton* BitmapButton23;
     wxScrolledWindow* Panel1_Marquee;
     wxBitmapButton* BitmapButton_TextCount2;
     wxStaticText* StaticText108;
@@ -312,6 +317,7 @@ public:
     wxStaticText* StaticText53;
     wxPanel* Panel4;
     wxChoice* Choice_Text_Count4;
+    wxCheckBox* CheckBox6;
     wxScrolledWindow* Panel1_Spirograph;
     wxStaticText* StaticText129;
     wxNotebook* SingleStrandEffectType;
@@ -427,6 +433,7 @@ public:
     wxBitmapButton* BitmapButton_ColorWashVFade;
     wxChoice* Choice_Faces_Phoneme;
     wxStaticText* StaticText100;
+    wxBitmapButton* BitmapButton20;
     wxStaticText* StaticText186;
     wxScrolledWindow* Panel1_Morph;
     wxBitmapButton* BitmapButton_Shockwave_Start_Width;
@@ -443,6 +450,7 @@ public:
     wxStaticText* StaticText139;
     wxBitmapButton* BitmapButton_TextDir3;
     wxBitmapButton* BitmapButton_SpiralsThickness;
+    wxScrolledWindow* Panel1_Lightning;
     wxCheckBox* CheckBox_Ripple3D;
     wxBitmapButton* BitmapButton_ColorWashCount;
     wxBitmapButton* BitmapButton_CirclesRadial3D;
@@ -852,6 +860,18 @@ protected:
     static const long ID_SLIDER_Life_Speed;
     static const long IDD_TEXTCTRL_Life_Speed;
     static const long ID_PANEL16;
+    static const long ID_STATICTEXT25;
+    static const long ID_SLIDER1;
+    static const long ID_TEXTCTRL1;
+    static const long ID_BITMAPBUTTON38;
+    static const long ID_STATICTEXT26;
+    static const long ID_SLIDER2;
+    static const long ID_TEXTCTRL2;
+    static const long ID_BITMAPBUTTON40;
+    static const long ID_STATICTEXT60;
+    static const long ID_CHECKBOX2;
+    static const long ID_BITMAPBUTTON41;
+    static const long ID_SCROLLEDWINDOW4;
     static const long ID_SLIDER_Marquee_Band_Size;
     static const long IDD_TEXTCTRL_Marquee_Band_Size;
     static const long ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size;

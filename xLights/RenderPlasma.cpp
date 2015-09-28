@@ -1,6 +1,6 @@
 /***************************************************************
  * Name:      RenderPlasma.cpp
- * Purpose:   Implements RGB effects
+ * Purpose:   Implements Plasma Effect
  * Author:    Sean Meighan (sean@meighan.net)
  * Created:   2015-09-24
  * Copyright: 2015 by Sean Meighan
@@ -64,18 +64,11 @@ void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Line_Density,int P
             // reference: http://www.bidouille.org/prog/plasma
 
             state = (curPeriod - curEffStartPer); // frames 0 to N
-
             Speed_plasma = (101-PlasmaSpeed)*3; // we want a large number to divide by
-
-
             time = (state+1.0)/Speed_plasma;
-
             v=0;
-
-            rx = ((float)x/BufferWi) -0.5;
-            ry = ((float)y/BufferHt) -0.5;
-
-
+            rx = ((float)x/(BufferWi-1)) ; // rx is now in the range 0.0 to 1.0
+            ry = ((float)y/(BufferHt-1)) ;
 
             // 1st equation
             v=sin(rx*10+time);
@@ -103,8 +96,9 @@ void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Line_Density,int P
             switch (ColorScheme)
             {
             case PLASMA_NORMAL_COLORS:
-                GetMultiColorBlend(h,false,color);
+
                 h = sin(v*Line_Density*pi+2*pi/3)+1*0.5;
+                GetMultiColorBlend(h,false,color);
                 hsv.hue=h;
                 break;
             case PLASMA_PRESET1:
@@ -126,11 +120,9 @@ void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Line_Density,int P
             case PLASMA_PRESET4:
                 color.red=color.green=color.blue=(sin(v*Line_Density*pi) +1) * 128;
                 break;
-            default:
-                GetMultiColorBlend(h,false,color);
-             //                hsv.hue=h;
-                break;
+
             }
+
             SetPixel(x,y,color);
 
 
