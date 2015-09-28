@@ -2023,21 +2023,21 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     GridNetwork->SetColumnWidth(5,wxLIST_AUTOSIZE_USEHEADER);
 
     wxListItem elementCol;
-	elementCol.SetText(_T("Element Name"));
-	elementCol.SetImage(-1);
-	elementCol.SetAlign(wxLIST_FORMAT_LEFT);
-	ListBoxElementList->InsertColumn(0, elementCol);
+    elementCol.SetText(_T("Element Name"));
+    elementCol.SetImage(-1);
+    elementCol.SetAlign(wxLIST_FORMAT_LEFT);
+    ListBoxElementList->InsertColumn(0, elementCol);
 
-	elementCol.SetText(_T("Start Chan"));
-	elementCol.SetAlign(wxLIST_FORMAT_LEFT);
-	ListBoxElementList->InsertColumn(1, elementCol);
+    elementCol.SetText(_T("Start Chan"));
+    elementCol.SetAlign(wxLIST_FORMAT_LEFT);
+    ListBoxElementList->InsertColumn(1, elementCol);
 
-	elementCol.SetText(_T("End Chan"));
-	elementCol.SetAlign(wxLIST_FORMAT_LEFT);
-	ListBoxElementList->InsertColumn(2, elementCol);
-	ListBoxElementList->SetColumnWidth(0,10);
-	ListBoxElementList->SetColumnWidth(1,10);
-	ListBoxElementList->SetColumnWidth(2,10);
+    elementCol.SetText(_T("End Chan"));
+    elementCol.SetAlign(wxLIST_FORMAT_LEFT);
+    ListBoxElementList->InsertColumn(2, elementCol);
+    ListBoxElementList->SetColumnWidth(0,10);
+    ListBoxElementList->SetColumnWidth(1,10);
+    ListBoxElementList->SetColumnWidth(2,10);
 
     // get list of most recently used directories
     wxString dir,mru_name;
@@ -2058,9 +2058,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     }
     dir.clear();
     bool ok = true;
-    if (!xLightsApp::showDir.IsNull()) {
+    if (!xLightsApp::showDir.IsNull())
+    {
         dir = xLightsApp::showDir;
-    } else {
+    }
+    else
+    {
         ok = config->Read("LastDir", &dir);
         wxString ConvertDir;
         ConvertDir.clear();
@@ -2071,38 +2074,49 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         FileDialogConvert->SetDirectory(ConvertDir);
     }
 
-    if (!xLightsApp::mediaDir.IsNull()) {
+    if (!xLightsApp::mediaDir.IsNull())
+    {
         mediaDirectory = xLightsApp::mediaDir;
-    } else if (ok && !config->Read(_("MediaDir"), &mediaDirectory))
+    }
+    else if (ok && !config->Read(_("MediaDir"), &mediaDirectory))
     {
         mediaDirectory=dir;
     }
     MediaDirectoryLabel->SetLabel(mediaDirectory);
 
     wxString tbData = config->Read("ToolbarLocations");
-   // wxMessageBox(tbData);
-    if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
+    // wxMessageBox(tbData);
+    if (tbData.StartsWith(TOOLBAR_SAVE_VERSION))
+    {
         MainAuiManager->LoadPerspective(tbData.Right(tbData.size() - 5));
     }
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     config->Read("xLightsIconSize", &mIconSize, 16);
-    if (mIconSize != 16) {
+    if (mIconSize != 16)
+    {
         int id = ID_MENUITEM_ICON_MEDIUM;
-        if (mIconSize == 32) {
+        if (mIconSize == 32)
+        {
             id = ID_MENUITEM_ICON_LARGE;
-        } else if (mIconSize == 48) {
+        }
+        else if (mIconSize == 48)
+        {
             id = ID_MENUITEM_ICON_XLARGE;
         }
         wxCommandEvent event(wxEVT_NULL, id);
         SetToolIconSize(event);
     }
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
-    if (mGridSpacing != 16) {
+    if (mGridSpacing != 16)
+    {
         int id = ID_MENUITEM_GRID_ICON_MEDIUM;
-        if (mGridSpacing == 32) {
+        if (mGridSpacing == 32)
+        {
             id = ID_MENUITEM_GRID_ICON_LARGE;
-        } else if (mGridSpacing == 48) {
+        }
+        else if (mGridSpacing == 48)
+        {
             id = ID_MENUITEM_GRID_ICON_XLARGE;
         }
         wxCommandEvent event(wxEVT_NULL, id);
@@ -2146,10 +2160,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButterflyDirection.Add("Normal");
     ButterflyDirection.Add("Reverse");
 
-    PlasmaEffectColors.Add("Rainbow");
-    PlasmaEffectColors.Add("Palette");
-    PlasmaDirection.Add("Normal");
-    PlasmaDirection.Add("Reverse");
+
 
 
     WaveType.Add("Sine");
@@ -2218,7 +2229,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PictureEffectDirections.Add("down once"); //19
     PictureEffectDirections.Add("vector"); //20
 
-//  remember to godown to around line 1800 to active ate these add's
+
+PlasmaEffectColors.Add("Normal");
+PlasmaEffectColors.Add("Preset 1");
+PlasmaEffectColors.Add("Preset 2");
+PlasmaEffectColors.Add("Preset 3");
+PlasmaEffectColors.Add("Preset 4");
+
+//  remember to go down to around line 2460 to active these add's
 
 //read from choice list instead of hard-coded duplication: -DJ
 //    PianoEffectStyles.Add("Color Organ");
@@ -2342,10 +2360,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 //    ConnectOnChar(PaneNutcracker);
 //    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
 
-  jobPool.Start(wxThread::GetCPUCount() * 4);
- //   jobPool.Start(24);
+    jobPool.Start(wxThread::GetCPUCount() * 4);
+//   jobPool.Start(24);
 
-    if (!xLightsApp::sequenceFile.IsNull()) {
+    if (!xLightsApp::sequenceFile.IsNull())
+    {
         OpenSequence(xLightsApp::sequenceFile);
     }
 
@@ -2357,9 +2376,12 @@ xLightsFrame::~xLightsFrame()
     selectedEffect = NULL;
 
     wxConfigBase* config = wxConfigBase::Get();
-    if (mResetToolbars) {
+    if (mResetToolbars)
+    {
         config->DeleteEntry("ToolbarLocations");
-    } else {
+    }
+    else
+    {
         config->Write("ToolbarLocations", TOOLBAR_SAVE_VERSION + MainAuiManager->SavePerspective());
     }
     config->Write("xLightsIconSize", mIconSize);
@@ -2396,7 +2418,8 @@ xLightsFrame::~xLightsFrame()
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
     wxCloseEvent evt;
-    if (QuitMenuItem->IsEnabled()) {
+    if (QuitMenuItem->IsEnabled())
+    {
         OnClose(evt);
     }
 }
@@ -2461,6 +2484,8 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Ripple_Object_To_Draw->Set(RippleObjectToDraw);
     panel->Choice_Ripple_Object_To_Draw->SetSelection(0);
 
+    panel->Choice_Plasma_Color->Set(PlasmaEffectColors);
+    panel->Choice_Plasma_Color->SetSelection(0);
 
 }
 
@@ -2584,26 +2609,34 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
     wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
     bool update = false;
-    if (show) {
-        for (int x = 0; x < info.size(); x++) {
+    if (show)
+    {
+        for (int x = 0; x < info.size(); x++)
+        {
             if (x < savedPaneShown.size() && info[x].IsFloating() && !info[x].IsShown()
-                && savedPaneShown[x]) {
+                    && savedPaneShown[x])
+            {
                 info[x].Show();
                 savedPaneShown[x] = true;
                 update = true;
             }
         }
-    } else {
+    }
+    else
+    {
         savedPaneShown.resize(info.size());
-        for (int x = 0; x < info.size(); x++) {
+        for (int x = 0; x < info.size(); x++)
+        {
             savedPaneShown[x] = info[x].IsShown();
-            if (info[x].IsFloating() && info[x].IsShown()) {
+            if (info[x].IsFloating() && info[x].IsShown())
+            {
                 info[x].Hide();
                 update = true;
             }
         }
     }
-    if (update) {
+    if (update)
+    {
         m_mgr->Update();
     }
 }
@@ -2611,7 +2644,8 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
 void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
 {
-    if (event.GetOldSelection() == NEWSEQUENCER) {
+    if (event.GetOldSelection() == NEWSEQUENCER)
+    {
         ShowHideAllSequencerWindows(false);
     }
 }
@@ -2647,7 +2681,8 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     if (pagenum == PREVIEWTAB)
     {
         UpdatePreview();
-        if (SeqPlayerState != NO_SEQ) {
+        if (SeqPlayerState != NO_SEQ)
+        {
             if(!mediaFilename.IsEmpty())
             {
                 StopPreviewPlayback(); //FR. If we have sequence data loaded make sure that media playback is inproper state when returnign to preview tab.
@@ -2681,8 +2716,14 @@ void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
 
 #include "osxMacUtils.h"
 AppNapSuspender sleepData;
-void EnableSleepModes() { sleepData.resume();}
-void DisableSleepModes() {sleepData.suspend();}
+void EnableSleepModes()
+{
+    sleepData.resume();
+}
+void DisableSleepModes()
+{
+    sleepData.suspend();
+}
 #else
 void EnableSleepModes() {}
 void DisableSleepModes() {}
@@ -2759,7 +2800,7 @@ bool xLightsFrame::EnableOutputs()
                 {
                     wxString errmsg(str,wxConvUTF8);
                     if (wxMessageBox(msg + errmsg + _("\nProceed anyway?"), _("Communication Error"), wxYES_NO | wxNO_DEFAULT) != wxYES)
-                    ok = false;
+                        ok = false;
                 }
             }
         }
@@ -2886,7 +2927,8 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     wxLogDebug("xLightsFrame::OnClose");
 
-    if (!CloseSequence()) {
+    if (!CloseSequence())
+    {
         event.Veto();
         return;
     }
@@ -3121,8 +3163,10 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
     SaveAsSequence();
 }
 
-wxString xLightsFrame::GetSeqXmlFileName() {
-    if (CurrentSeqXmlFile == NULL) {
+wxString xLightsFrame::GetSeqXmlFileName()
+{
+    if (CurrentSeqXmlFile == NULL)
+    {
         return "";
     }
     return CurrentSeqXmlFile->GetFullPath();
@@ -3252,24 +3296,32 @@ void xLightsFrame::OnAuiToolBarItemRenderAllClick(wxCommandEvent& event)
     RenderAll();
 }
 
-bool AUIToolbarButtonWrapper::IsChecked() {
+bool AUIToolbarButtonWrapper::IsChecked()
+{
     return toolbar->GetToolToggled(id);
 }
-void AUIToolbarButtonWrapper::SetValue(bool b) {
+void AUIToolbarButtonWrapper::SetValue(bool b)
+{
     toolbar->ToggleTool(id, b);
 }
-void AUIToolbarButtonWrapper::Enable(bool b) {
+void AUIToolbarButtonWrapper::Enable(bool b)
+{
     toolbar->EnableTool(id, b);
 }
 
 void xLightsFrame::SetIconSize(wxCommandEvent& event)
 {
     int size = 48;
-    if (event.GetId() == ID_MENUITEM_GRID_ICON_SMALL) {
+    if (event.GetId() == ID_MENUITEM_GRID_ICON_SMALL)
+    {
         size = 16;
-    } else if (event.GetId() == ID_MENUITEM_GRID_ICON_MEDIUM) {
+    }
+    else if (event.GetId() == ID_MENUITEM_GRID_ICON_MEDIUM)
+    {
         size = 24;
-    } else if (event.GetId() == ID_MENUITEM_GRID_ICON_LARGE) {
+    }
+    else if (event.GetId() == ID_MENUITEM_GRID_ICON_LARGE)
+    {
         size = 32;
     }
     mGridSpacing = size;
@@ -3289,16 +3341,22 @@ void xLightsFrame::ResetToolbarLocations(wxCommandEvent& event)
 void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
 {
     int size = 48;
-    if (event.GetId() == ID_MENUITEM_ICON_SMALL) {
+    if (event.GetId() == ID_MENUITEM_ICON_SMALL)
+    {
         size = 16;
-    } else if (event.GetId() == ID_MENUITEM_ICON_MEDIUM) {
+    }
+    else if (event.GetId() == ID_MENUITEM_ICON_MEDIUM)
+    {
         size = 24;
-    } else if (event.GetId() == ID_MENUITEM_ICON_LARGE) {
+    }
+    else if (event.GetId() == ID_MENUITEM_ICON_LARGE)
+    {
         size = 32;
     }
 
     mIconSize = size;
-    for (int x = 0; x < EffectsToolBar->GetToolCount(); x++) {
+    for (int x = 0; x < EffectsToolBar->GetToolCount(); x++)
+    {
         EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMinSize(wxSize(size, size));
@@ -3311,7 +3369,8 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
     MainAuiManager->Update();
 
     const wxWindowList& lst =effectPalettePanel->GetChildren();
-    for (int x = 0; x < lst.size(); x++) {
+    for (int x = 0; x < lst.size(); x++)
+    {
         lst[x]->SetSizeHints(size, size, size, size);
     }
     effectPalettePanel->Layout();
@@ -3355,9 +3414,12 @@ void xLightsFrame::SetFrequency(int frequency)
 
 void xLightsFrame::OnSetGridIconBackground(wxCommandEvent& event)
 {
-    if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_ON) {
+    if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_ON)
+    {
         mGridIconBackgrounds = true;
-    } else if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_OFF) {
+    }
+    else if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_OFF)
+    {
         mGridIconBackgrounds = false;
     }
     MenuItemGridIconBackgroundOn->Check(mGridIconBackgrounds);
@@ -3368,9 +3430,12 @@ void xLightsFrame::OnSetGridIconBackground(wxCommandEvent& event)
 
 void xLightsFrame::OnSetGridNodeValues(wxCommandEvent& event)
 {
-    if (event.GetId() == ID_MENUITEM_GRID_NODE_VALUES_ON) {
+    if (event.GetId() == ID_MENUITEM_GRID_NODE_VALUES_ON)
+    {
         mGridNodeValues = true;
-    } else if (event.GetId() == ID_MENUITEM_GRID_NODE_VALUES_OFF) {
+    }
+    else if (event.GetId() == ID_MENUITEM_GRID_NODE_VALUES_OFF)
+    {
         mGridNodeValues = false;
     }
     MenuItemGridNodeValuesOn->Check(mGridNodeValues);
@@ -3384,13 +3449,20 @@ void xLightsFrame::OnSetGridNodeValues(wxCommandEvent& event)
 void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
 {
     double playSpeed = 1.0;
-    if (event.GetId() == ID_PLAY_FULL) {
+    if (event.GetId() == ID_PLAY_FULL)
+    {
         playSpeed = 1.0;
-    } else if (event.GetId() == ID_PLAY_3_4) {
+    }
+    else if (event.GetId() == ID_PLAY_3_4)
+    {
         playSpeed = 0.75;
-    } else if (event.GetId() == ID_PLAY_1_2) {
+    }
+    else if (event.GetId() == ID_PLAY_1_2)
+    {
         playSpeed = 0.5;
-    } else if (event.GetId() == ID_PLAY_1_4) {
+    }
+    else if (event.GetId() == ID_PLAY_1_4)
+    {
         playSpeed = 0.25;
     }
     PlayerDlg->SetPlaybackRate(playSpeed);
@@ -3401,11 +3473,14 @@ void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)
     wxConfigBase* config = wxConfigBase::Get();
     long LinkFlag=0;
     config->Read(_("LinkFlag"), &LinkFlag);
-    if( LinkFlag ) {
+    if( LinkFlag )
+    {
         LinkFlag = 0;
         BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_UNLINK")),wxART_OTHER));
         Button_Change_Media_Dir->Enable(true);
-    } else {
+    }
+    else
+    {
         LinkFlag = 1;
         BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LINK")),wxART_OTHER));
         Button_Change_Media_Dir->Enable(false);
@@ -3456,10 +3531,13 @@ void xLightsFrame::OnMenuItemEffectAssistToggleModeSelected(wxCommandEvent& even
 void xLightsFrame::SetEffectAssistWindowState(bool show)
 {
     bool visible = m_mgr->GetPane("EffectAssist").IsShown();
-    if (visible && !show) {
+    if (visible && !show)
+    {
         m_mgr->GetPane("EffectAssist").Hide();
         m_mgr->Update();
-    } else if(!visible && show) {
+    }
+    else if(!visible && show)
+    {
         m_mgr->GetPane("EffectAssist").Show();
         m_mgr->Update();
     }
@@ -3510,19 +3588,19 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect)
 void xLightsFrame::CheckUnsavedChanges()
 {
     if ( UnsavedNetworkChanges && wxYES == wxMessageBox("Save Network Setup changes?",
-                                                        "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+            "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
     {
         SaveNetworksFile();
     }
 
     if ( UnsavedPlaylistChanges && wxYES == wxMessageBox("Save Scheduler/Playlist changes?",
-                                                         "Scheduler Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+            "Scheduler Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
     {
         SaveScheduleFile();
     }
 
     if ( UnsavedRgbEffectsChanges && wxYES == wxMessageBox("Save Models, Views, Perspectives, and Preset changes?",
-                                                           "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+            "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
     {
         SaveEffectsFile();
     }

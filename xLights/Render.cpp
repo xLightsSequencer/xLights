@@ -1017,9 +1017,9 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                               wxAtoi(SettingsMap["SLIDER_Pinwheel_ArmSize"]),
                               wxAtoi(SettingsMap["TEXTCTRL_Pinwheel_Speed"]));
     } else if (effect == "Plasma") {
-        buffer.RenderPlasma(ButterflyEffectColors.Index(SettingsMap["CHOICE_Plasma_Colors"]),
+        buffer.RenderPlasma(PlasmaEffectColors.Index(SettingsMap["CHOICE_Plasma_Color"]),
                                wxAtoi(SettingsMap["SLIDER_Plasma_Style"]),
-                               wxAtoi(SettingsMap["SLIDER_Plasma_Chunks"]),
+                               wxAtoi(SettingsMap["SLIDER_Plasma_Line_Density"]),
                                ButterflyDirection.Index(SettingsMap["CHOICE_Plasma_Direction"]),
                                wxAtoi(SettingsMap.Get("SLIDER_Plasma_Speed", "10")));
     } else if (effect == "Ripple") {

@@ -1,9 +1,9 @@
 /***************************************************************
  * Name:      RenderPlasma.cpp
  * Purpose:   Implements RGB effects
- * Author:    Matt Brown (dowdybrown@yahoo.com)
- * Created:   2012-12-23
- * Copyright: 2012 by Matt Brown
+ * Author:    Sean Meighan (sean@meighan.net)
+ * Created:   2015-09-24
+ * Copyright: 2015 by Sean Meighan
  * License:
      This file is part of xLights.
 
@@ -23,16 +23,14 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-/*
-01) x*y^3-y*x^3
-(02) (x^2+3*y^2)*e^(-x^2-y^2)
-	(03) -x*y*e^(-x^2-y^2)
-	(04) -1/(x^2+y^2)
-	(05) cos(abs(x)+abs(y))
-	(06) cos(abs(x)+abs(y))*(abs(x)+abs(y))
-*/
 
-void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Chunks,  int ButterflyDirection, int butterFlySpeed)
+#define PLASMA_NORMAL_COLORS    0
+#define PLASMA_PRESET1          1
+#define PLASMA_PRESET2          2
+#define PLASMA_PRESET3          3
+#define PLASMA_PRESET4          4
+
+void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Line_Density,int PlasmaDirection, int PlasmaSpeed)
 {
     int x,y,d,xc,yc,x0,y0;
     double n,x1,y1,f;
@@ -49,14 +47,16 @@ void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Chunks,  int Butte
     int i;
     int state;
 
-    int curState = (curPeriod - curEffStartPer) * butterFlySpeed * frameTimeInMs / 50;
+    int curState = (curPeriod - curEffStartPer) * PlasmaSpeed * frameTimeInMs / 50;
     int frame=(BufferHt * curState / 200)%maxframe;
     double offset=double(curState)/200.0;
 
 
-    if(ButterflyDirection==1) offset = -offset;
+    if(PlasmaDirection==1) offset = -offset;
     xc=BufferWi/2;
     yc=BufferHt/2;
+    // PlasmaSpeed=50;
+    //  Line_Density=1;
     for (x=0; x<BufferWi; x++)
     {
         for (y=0; y<BufferHt; y++)
@@ -64,10 +64,9 @@ void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Chunks,  int Butte
             // reference: http://www.bidouille.org/prog/plasma
 
             state = (curPeriod - curEffStartPer); // frames 0 to N
-            if(Style==10) // Style 10 is for custom colors on Plasma
-                Speed_plasma = (101-butterFlySpeed)*3; // we want a large number to divide by
-            else
-                Speed_plasma = (101-butterFlySpeed)*5; // we want a large number to divide by
+
+            Speed_plasma = (101-PlasmaSpeed)*3; // we want a large number to divide by
+
 
             time = (state+1.0)/Speed_plasma;
 
@@ -87,7 +86,7 @@ void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Chunks,  int Butte
 //  third equation
             cx=rx+.5*sin(time/5);
             cy=ry+.5*cos(time/3);
-            v+=sin ( sqrt(100*((cx*cx)+(cy*cy))+1+time));
+            v+=sin ( sqrt((Style*50)*((cx*cx)+(cy*cy))+time));
 
 
 //    vec2 c = v_coords * u_k - u_k/2.0;
@@ -95,61 +94,46 @@ void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Chunks,  int Butte
             v += sin((ry+time)/2.0);
             v += sin((rx+ry+time)/2.0);
 //   c += u_k/2.0 * vec2(sin(u_time/3.0), cos(u_time/2.0));
-            v += sin(sqrt(rx*rx+ry*ry+1.0)+time);
+            v += sin(sqrt(rx*rx+ry*ry)+time);
             v = v/2.0;
             // vec3 col = vec3(1, sin(PI*v), cos(PI*v));
 //   gl_FragColor = vec4(col*.5 + .5, 1);
 
-            GetMultiColorBlend(h,false,color);
-//color.red=color.green=color.blue=h*255;
-            switch (Style)
+
+            switch (ColorScheme)
             {
-            case 6:
-                color.red = (sin(v*Chunks*pi)+1)*128;
-                color.green= (cos(v*Chunks*pi)+1)*128;
+            case PLASMA_NORMAL_COLORS:
+                GetMultiColorBlend(h,false,color);
+                h = sin(v*Line_Density*pi+2*pi/3)+1*0.5;
+                hsv.hue=h;
+                break;
+            case PLASMA_PRESET1:
+                color.red = (sin(v*Line_Density*pi)+1)*128;
+                color.green= (cos(v*Line_Density*pi)+1)*128;
                 color.blue =0;
                 break;
-            case 7:
+            case PLASMA_PRESET2:
                 color.red = 1;
-                color.green= (cos(v*Chunks*pi)+1)*128;
-                color.blue =(sin(v*Chunks*pi)+1)*128;
+                color.green= (cos(v*Line_Density*pi)+1)*128;
+                color.blue =(sin(v*Line_Density*pi)+1)*128;
                 break;
 
-            case 8:
-                color.red = (sin(v*Chunks*pi)+1)*128;
-                color.green= (sin(v*Chunks*pi + 2*pi/3)+1)*128;
-                color.blue =(sin(v*Chunks*pi+4*pi/3)+1)*128;
+            case PLASMA_PRESET3:
+                color.red = (sin(v*Line_Density*pi)+1)*128;
+                color.green= (sin(v*Line_Density*pi + 2*pi/3)+1)*128;
+                color.blue =(sin(v*Line_Density*pi+4*pi/3)+1)*128;
                 break;
-
-            case 9:
-                color.red=color.green=color.blue=(sin(v*Chunks*pi) +1) * 128;
+            case PLASMA_PRESET4:
+                color.red=color.green=color.blue=(sin(v*Line_Density*pi) +1) * 128;
                 break;
-            case 10:
-                int colorcnt=2;
-                if(colorcnt>=2)
-                {
-                    GetMultiColorBlend(h,false,color);
-
-/*                    hue1=.1;
-                    hue1=0;
-                    hue2=.7;
-                    hue2=1;
-                    multiplier=(hue2-hue1)/2;
-                    h=hue1+ multiplier*(v+1); // v is between -1 to 1. h
-                    */
-                    h = sin(v*Chunks*pi+2*pi/3)+1*0.5;
-
-                    hsv.hue=h;
-                    //  hsv.hue=hsv.hue + (v+1)/20.0;
-//color.red = (sin(v*color.red)+1)*128;
-//color.green = (sin(v*color.green)+1)*128;
-//color.blue = (sin(v*color.blue)+1)*128;
-
-                }
+            default:
+                GetMultiColorBlend(h,false,color);
+             //                hsv.hue=h;
                 break;
             }
-
             SetPixel(x,y,color);
+
+
         }
     }
 }

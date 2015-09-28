@@ -135,7 +135,6 @@ public:
     wxCheckBox* CheckBox_Spirlas_Shrink;
     wxChoice* Choice_Butterfly_Colors;
     wxBitmapButton* BitmapButton_MeteorsLength;
-    wxChoice* Choice3;
     wxStaticText* StaticText188;
     wxCheckBox* CheckBox5;
     wxStaticText* StaticText1;
@@ -479,6 +478,7 @@ public:
     wxScrolledWindow* Panel1_Shimmer;
     wxStaticText* StaticText47;
     wxBitmapButton* BitmapButton_Shimmer_Use_All_Colors;
+    wxChoice* Choice_Plasma_Color;
     wxCheckBox* CheckBox_Circles_Collide;
     wxBitmapButton* BitmapButton_Shockwave_End_Width;
     wxStaticText* StaticText69;
@@ -571,7 +571,6 @@ public:
     wxStaticText* StaticText9;
     wxBitmapButton* BitmapButton_TreeBranches;
     wxBitmapButton* BitmapButton_SpirographAnimate;
-    wxChoice* Choice4;
     wxScrolledWindow* Panel1_Tree;
     wxBitmapButton* BitmapButton_Spirals3D;
     wxStaticText* StaticText159;
@@ -1064,20 +1063,17 @@ protected:
     static const long IDD_TEXTCTRL_PinwheelYC;
     static const long ID_SLIDER_PinwheelYC;
     static const long ID_PANEL_Pinwheel;
-    static const long ID_CHOICE1;
+    static const long ID_CHOICE_Plasma_Color;
     static const long ID_BITMAPBUTTON35;
     static const long ID_SLIDER_Plasma_Style;
     static const long IDD_TEXTCTRL_Plasma_Style;
     static const long ID_BITMAPBUTTON36;
-    static const long ID_SLIDER_Plasma_Chunks;
-    static const long IDD_TEXTCTRL_Plasma_Chunks;
+    static const long ID_SLIDER_Plasma_Line_Density;
+    static const long IDD_TEXTCTRL_Plasma_Line_Density;
     static const long ID_BITMAPBUTTON37;
-    static const long ID_BITMAPBUTTON38;
     static const long ID_SLIDER_Plasma_Speed;
     static const long IDD_TEXTCTRL_Plasma_Speed;
     static const long ID_BITMAPBUTTON39;
-    static const long ID_CHOICE2;
-    static const long ID_BITMAPBUTTON40;
     static const long ID_PANEL_Plasma;
     static const long ID_STATICTEXT71;
     static const long ID_CHOICE_Ripple_Object_To_Draw;
