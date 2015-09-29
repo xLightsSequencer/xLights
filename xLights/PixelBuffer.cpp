@@ -324,7 +324,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         if (hsv0.value > effectMixThreshold[layer]) {
             // if effect 1 is non black
             hsv1.value = hsv0.value;
-            hsv1.saturation = hsv0.saturation;
+            //hsv1.saturation = hsv0.saturation;
             c = hsv1;
         }
         break;
@@ -335,7 +335,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         if (hsv1.value > effectMixThreshold[layer]) {
             // if effect 1 is non black
             hsv0.value = hsv1.value;
-            hsv0.saturation = hsv1.saturation;
+//hsv0.saturation = hsv1.saturation;
             c = hsv0;
         }
         break;
