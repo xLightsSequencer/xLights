@@ -42,6 +42,10 @@ $(addsuffix _clean,$(SUBDIRS)):
 install:
 	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/${PREFIX}/bin || $(MKDIR) $(INSTALL_ROOT)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) bin/xLights $(INSTALL_ROOT)/${PREFIX}/bin/xLights
+	install -d -m 755 $(INSTALL_ROOT)/${PREFIX}/share/xLights/piano
+	cp -r piano/* $(INSTALL_ROOT)/${PREFIX}/share/xLights/piano
+	install -d -m 755 $(INSTALL_ROOT)/${PREFIX}/share/xLights/songs
+	cp -r songs/* $(INSTALL_ROOT)/${PREFIX}/share/xLights/songs
 
 uninstall:
 	-$(DEL_FILE) $(INSTALL_ROOT)/${PREFIX}/bin/xLights
