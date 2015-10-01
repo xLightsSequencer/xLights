@@ -825,7 +825,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
             }
         }
         else if (row >= 0 && row < mSequenceElements->GetVisibleRowInformationSize()) {
-            EffectLayer* el = mSequenceElements->GetVisibleRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(row)->layerIndex);
+            EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
             int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
             int effectIndex = 0;
             if (el != nullptr) {

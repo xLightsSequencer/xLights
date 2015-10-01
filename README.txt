@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) Click on a "node" may not hit test properly if an effect exists on the model or strand layers
     -- bug(dkulp) Prevent effect from being resized so start is < 0ms which prevent effect updates/rendering/etc..
     -- enh(dkulp) Add option to twinkle to re-randomize the color after each twinkle
 4.2.13  Sep 27, 2015
