@@ -194,7 +194,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-march=i586" />
-					<Add option="-O3" />
+					<Add option="-Os" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++11" />
@@ -477,6 +477,7 @@
 		<Unit filename="RenderGarlands.cpp" />
 		<Unit filename="RenderGlediator.cpp" />
 		<Unit filename="RenderLife.cpp" />
+		<Unit filename="RenderLightning.cpp" />
 		<Unit filename="RenderMarquee.cpp" />
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderMorph.cpp" />
