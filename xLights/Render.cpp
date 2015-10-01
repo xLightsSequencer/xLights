@@ -1160,7 +1160,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     } else if (effect == "Twinkle") {
         buffer.RenderTwinkle(wxAtoi(SettingsMap["SLIDER_Twinkle_Count"]),
                              wxAtoi(SettingsMap["SLIDER_Twinkle_Steps"]),
-                             SettingsMap["CHECKBOX_Twinkle_Strobe"]=="1");
+                             SettingsMap["CHECKBOX_Twinkle_Strobe"]=="1",
+                             SettingsMap["CHECKBOX_Twinkle_ReRandom"] == "1");
     } else if (effect == "Wave") {
         buffer.RenderWave(WaveType.Index(SettingsMap["CHOICE_Wave_Type"]), //
                           FillColors.Index(SettingsMap["CHOICE_Fill_Colors"]),

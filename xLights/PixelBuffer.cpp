@@ -735,8 +735,8 @@ void PixelBufferClass::RenderTree(int Branches, int tspeed) {
     effects[CurrentLayer].RenderTree(Branches, tspeed);
 }
 
-void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe) {
-    effects[CurrentLayer].RenderTwinkle(Count,Steps,Strobe);
+void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe, bool reRandomize) {
+    effects[CurrentLayer].RenderTwinkle(Count,Steps,Strobe,reRandomize);
 }
 
 void PixelBufferClass::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,

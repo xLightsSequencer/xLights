@@ -48,7 +48,6 @@ void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Line_Density,int P
     int state;
 
     int curState = (curPeriod - curEffStartPer) * PlasmaSpeed * frameTimeInMs / 50;
-    int frame=(BufferHt * curState / 200)%maxframe;
     double offset=double(curState)/200.0;
 
 

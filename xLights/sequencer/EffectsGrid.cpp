@@ -1334,6 +1334,10 @@ void EffectsGrid::ResizeSingleEffect(int position)
         }
         else if (time >= minimumTime  || minimumTime == NO_MIN_MAX_TIME)
         {
+            if (time < 0) {
+                //cannot have a starting time less than 0 or we cannot preview the effect or update the effect
+                time = 0;
+            }
             if(mEffectLayer->IsStartTimeLinked(mResizeEffectIndex) && mResizingMode==EFFECT_RESIZE_LEFT)
             {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex-1);

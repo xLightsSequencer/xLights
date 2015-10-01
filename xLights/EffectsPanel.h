@@ -1393,6 +1393,8 @@ protected:
     static const long ID_BITMAPBUTTON_SLIDER_Twinkle_Steps;
     static const long ID_CHECKBOX_Twinkle_Strobe;
     static const long ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe;
+    static const long ID_CHECKBOX_Twinkle_ReRandom;
+    static const long ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom;
     static const long ID_PANEL33;
     static const long ID_STATICTEXT49;
     static const long ID_CHOICE_Wave_Type;

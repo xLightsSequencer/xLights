@@ -22,7 +22,8 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
+
+void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe, bool reRandomize)
 {
 
     int i,ColorIdx;
@@ -55,7 +56,7 @@ void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
                     strobe[s].y = y;
                     
                     ColorIdx=rand()%colorcnt;
-                    palette.GetHSV(ColorIdx, strobe[s].hsv); // take first checked color as color of flash
+                    palette.GetHSV(ColorIdx, strobe[s].hsv);
                     palette.GetColor(ColorIdx, strobe[s].color);
                 }
             }
@@ -64,8 +65,17 @@ void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
 
     for (int x = 0; x < strobe.size(); x++) {
         strobe[x].duration++;
+        if (strobe[x].duration < 0) {
+            continue;
+        }
         if (strobe[x].duration == max_modulo) {
             strobe[x].duration = 0;
+            if (reRandomize) {
+                strobe[x].duration -= rand() % max_modulo2;
+                ColorIdx=rand()%colorcnt;
+                palette.GetHSV(ColorIdx, strobe[x].hsv);
+                palette.GetColor(ColorIdx, strobe[x].color);
+            }
         }
         int i7 = strobe[x].duration;
         double v = strobe[x].hsv.value;
@@ -84,7 +94,7 @@ void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
         if(Strobe)
         {
             if(i7==max_modulo2)  v = 1.0;
-            else  v = 0.0;
+            else v = 0.0;
         }
         if (allowAlpha) {
             xlColor color(strobe[x].color);

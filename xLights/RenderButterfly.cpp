@@ -42,7 +42,6 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
     //  These are for Plasma effect
     double rx,ry,cx,cy,v,time,Speed_plasma,multiplier;
     static const double pi=3.1415926535897932384626433832;
-    int i;
     int state;
 
     double  fractpart, intpart;

@@ -86,5 +86,5 @@ void RenderText(int Position1, const wxString& Line1, const wxString& FontString
                 int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int TextRotation3,int Effect3, int Speed3,
                 int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int TextRotation4,int Effect4, int Speed4);
 void RenderTree(int Branches, int tspeed);
-void RenderTwinkle(int Count,int Steps,bool Strobe);
+void RenderTwinkle(int Count,int Steps,bool Strobe, bool reRandomize);
 void RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection, int wspeed);
