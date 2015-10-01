@@ -12,11 +12,9 @@
 
 #define END_OF_RENDER_FRAME INT_MAX
 
-class RenderEvent
-{
+class RenderEvent {
 public:
-    RenderEvent() : mutex(), signal(mutex)
-    {
+    RenderEvent() : mutex(), signal(mutex) {
     }
     wxMutex mutex;
     wxCondition signal;
@@ -69,7 +67,7 @@ protected:
 
 class AggregatorRenderer: public NextRenderer {
 public:
-    AggregatorRenderer(int numFrames) : NextRenderer(), finalFrame(numFrames + 19){
+    AggregatorRenderer(int numFrames) : NextRenderer(), finalFrame(numFrames + 19) {
         data = new int[numFrames + 20];
         for (int x = 0; x < (numFrames + 20); x++) {
             data[x] = 0;
@@ -115,11 +113,11 @@ public:
 
     bool operator>(const SNPair &p) const {
         return strand > p.strand
-        || (strand == p.strand && node > p.node);
+               || (strand == p.strand && node > p.node);
     }
     bool operator<(const SNPair &p) const {
         return strand < p.strand
-            || (strand == p.strand && node < p.node);
+               || (strand == p.strand && node < p.node);
     }
     bool operator==(const SNPair &p) const {
         return strand == p.strand && node == p.node;
@@ -319,8 +317,8 @@ public:
             SetGenericStatus("%s: Starting frame %d\n", frame);
 
             if (next == nullptr &&
-                (origChangeCount != rowToRender->getChangeCount()
-                 || rowToRender->GetWaitCount())) {
+                    (origChangeCount != rowToRender->getChangeCount()
+                     || rowToRender->GetWaitCount())) {
                 //we're bailing out but make sure this range is reconsidered
                 rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
                 break;
@@ -624,7 +622,7 @@ void xLightsFrame::RenderGridToSeqData() {
                     int cnum = start + c;
                     if (cnum < SeqData.NumChannels()) {
                         if (channelsRendered[cnum] >= 0
-                            && channelsRendered[cnum] != row) {
+                                && channelsRendered[cnum] != row) {
                             hasDep = true;
                         } else {
                             channelsRendered[cnum] = row;
@@ -682,8 +680,7 @@ void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int 
     //printf("render model %d %d   %d\n", startms,endms, clear);
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
-    if( el->GetType() != "timing")
-    {
+    if( el->GetType() != "timing") {
         job = new RenderJob(el, SeqData, this, false, clear);
         if (job->getBuffer() == nullptr) {
             delete job;
@@ -733,8 +730,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     wxStopWatch sw;
     wxString Out3=format.Left(3);
 
-    if (Out3 == "LSP")
-    {
+    if (Out3 == "LSP") {
         filename = filename + "_USER";
     }
     wxFileName oName(filename);
@@ -857,7 +853,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                              SettingsMap["CHECKBOX_Circles_Plasma"]=="1",
                              SettingsMap["CHECKBOX_Circles_Linear_Fade"]=="1",
                              wxAtoi(SettingsMap.Get("SLIDER_Circles_Speed", "10"))
-                             );
+                            );
 
     } else if (effect == "Color Wash") {
         buffer.RenderColorWash(effectObj,
@@ -871,7 +867,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                wxAtoi(SettingsMap.Get("SLIDER_ColorWash_Y2", "50")),
                                wxAtoi(SettingsMap.Get("CHECKBOX_ColorWash_Shimmer", "0")),
                                wxAtoi(SettingsMap.Get("CHECKBOX_ColorWash_CircularPalette", "0"))
-                               );
+                              );
     } else if (effect == "Curtain") {
         buffer.RenderCurtain(CurtainEdge.Index(SettingsMap["CHOICE_Curtain_Edge"]),
                              CurtainEffect.Index(SettingsMap["CHOICE_Curtain_Effect"]),
@@ -880,7 +876,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                              wxAtof(SettingsMap.Get("TEXTCTRL_Curtain_Speed", "1.0")));
     } else if (effect == "Faces") {
         if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered"
-            && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {
+                && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {
             //3.x style Faces effect
             buffer.RenderFaces(SettingsMap["CHOICE_Faces_Phoneme"], "Auto", true);
         } else if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == XLIGHTS_PGOFACES_FILE) {
@@ -946,6 +942,10 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
         buffer.RenderLife(wxAtoi(SettingsMap["SLIDER_Life_Count"]),
                           wxAtoi(SettingsMap["SLIDER_Life_Seed"]),
                           wxAtoi(SettingsMap.Get("SLIDER_Life_Speed", "10")));
+    } else if (effect == "Lightning") {
+        buffer.RenderLightning(wxAtoi(SettingsMap["SLIDER_Number_Bolts"]),
+                               wxAtoi(SettingsMap["SLIDER_Number_Segments"]),
+                                      SettingsMap["CHECKBOX6"]=="1");
     } else if (effect == "Marquee") {
         buffer.RenderMarquee(wxAtoi(SettingsMap["SLIDER_Marquee_Band_Size"]),
                              wxAtoi(SettingsMap["SLIDER_Marquee_Skip_Size"]),
@@ -1005,7 +1005,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                               wxAtoi(SettingsMap["SLIDER_PicturesEndYC"]),
                               SettingsMap["CHECKBOX_Pictures_PixelOffsets"] == "1",
                               SettingsMap["CHECKBOX_Pictures_WrapX"] == "1"
-                              );
+                             );
     } else if (effect == "Pinwheel") {
         buffer.RenderPinwheel(wxAtoi(SettingsMap["SLIDER_Pinwheel_Arms"]),
                               wxAtoi(SettingsMap["SLIDER_Pinwheel_Twist"]),
@@ -1018,10 +1018,10 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                               wxAtoi(SettingsMap["TEXTCTRL_Pinwheel_Speed"]));
     } else if (effect == "Plasma") {
         buffer.RenderPlasma(PlasmaEffectColors.Index(SettingsMap["CHOICE_Plasma_Color"]),
-                               wxAtoi(SettingsMap["SLIDER_Plasma_Style"]),
-                               wxAtoi(SettingsMap["SLIDER_Plasma_Line_Density"]),
-                               ButterflyDirection.Index(SettingsMap["CHOICE_Plasma_Direction"]),
-                               wxAtoi(SettingsMap.Get("SLIDER_Plasma_Speed", "10")));
+                            wxAtoi(SettingsMap["SLIDER_Plasma_Style"]),
+                            wxAtoi(SettingsMap["SLIDER_Plasma_Line_Density"]),
+                            ButterflyDirection.Index(SettingsMap["CHOICE_Plasma_Direction"]),
+                            wxAtoi(SettingsMap.Get("SLIDER_Plasma_Speed", "10")));
     } else if (effect == "Ripple") {
         buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap["CHOICE_Ripple_Object_To_Draw"]),
                             RippleMovement.Index(SettingsMap["CHOICE_Ripple_Movement"]),
@@ -1076,7 +1076,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                              SettingsMap["CHECKBOX_Spirals_3D"]=="1",
                              SettingsMap["CHECKBOX_Spirals_Grow"]=="1",
                              SettingsMap["CHECKBOX_Spirals_Shrink"]=="1"
-                             );
+                            );
     } else if (effect == "Spirograph") {
         buffer.RenderSpirograph(wxAtoi(SettingsMap["SLIDER_Spirograph_R"]),
                                 wxAtoi(SettingsMap["SLIDER_Spirograph_r"]),
@@ -1090,11 +1090,11 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                             wxAtoi(SettingsMap["SLIDER_Strobe_Type"]));
     } else if (effect == "Text") {
         // this needs to be on the primary thread due to GDI calls
-        #ifdef LINUX
+#ifdef LINUX
         if (bgThread) {
-        #else
+#else
         if (bgThread && false) {
-        #endif // LINUX
+#endif // LINUX
             event->effect = effectObj;
             event->layer = layer;
             event->period = period;
@@ -1152,7 +1152,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                               TextEffects.Index(SettingsMap["CHOICE_Text_Effect4"]),
                               TextCountDown.Index(SettingsMap["CHOICE_Text_Count4"]),
                               wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed4", "10"))
-                              );
+                             );
         }
     } else if (effect == "Tree") {
         buffer.RenderTree(wxAtoi(SettingsMap["SLIDER_Tree_Branches"]),

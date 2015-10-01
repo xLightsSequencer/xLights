@@ -861,12 +861,12 @@ protected:
     static const long IDD_TEXTCTRL_Life_Speed;
     static const long ID_PANEL16;
     static const long ID_STATICTEXT25;
-    static const long ID_SLIDER1;
-    static const long ID_TEXTCTRL1;
+    static const long ID_SLIDER_Number_Bolts;
+    static const long ID_TEXTCTRL_Number_Bolts;
     static const long ID_BITMAPBUTTON38;
     static const long ID_STATICTEXT26;
-    static const long ID_SLIDER2;
-    static const long ID_TEXTCTRL2;
+    static const long ID_SLIDER_Number_Segments;
+    static const long ID_TEXTCTRL_Number_Segments;
     static const long ID_BITMAPBUTTON40;
     static const long ID_STATICTEXT60;
     static const long ID_CHECKBOX2;

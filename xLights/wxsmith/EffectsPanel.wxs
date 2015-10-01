@@ -3508,9 +3508,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER1" variable="Slider35" member="no">
-										<value>50</value>
+									<object class="wxSlider" name="ID_SLIDER_Number_Bolts" variable="Number_Bolts" member="no">
+										<value>3</value>
 										<min>1</min>
+										<max>50</max>
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -3518,7 +3519,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl86" member="no">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Number_Bolts" variable="TextCtrl_Number_Bolts" member="no">
 										<value>50</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
@@ -3547,9 +3548,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER2" variable="Slider37" member="no">
-										<value>10</value>
-										<max>300</max>
+									<object class="wxSlider" name="ID_SLIDER_Number_Segments" variable="Number_Segments" member="no">
+										<value>5</value>
+										<min>1</min>
+										<max>20</max>
 										<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3557,7 +3559,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl88" member="no">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Number_Segments" variable="TextCtrl_Number_Segments" member="no">
 										<value>1.0</value>
 										<maxlength>4</maxlength>
 										<size>20,-1d</size>
