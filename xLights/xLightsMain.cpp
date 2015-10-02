@@ -2170,6 +2170,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PictureEffectDirections.Add("up once"); //18
     PictureEffectDirections.Add("down once"); //19
     PictureEffectDirections.Add("vector"); //20
+    PictureEffectDirections.Add("tile-left"); //21
+    PictureEffectDirections.Add("tile-right"); //22
+    PictureEffectDirections.Add("tile-down"); //23
+    PictureEffectDirections.Add("tile-up"); //24
 
 //  remember to godown to around line 1800 to active ate these add's
 

@@ -52,6 +52,10 @@
 #define RENDER_PICTURE_UPONCE  18
 #define RENDER_PICTURE_DOWNONCE  19
 #define RENDER_PICTURE_VECTOR  20
+#define RENDER_PICTURE_TILE_LEFT  21
+#define RENDER_PICTURE_TILE_RIGHT  22
+#define RENDER_PICTURE_TILE_DOWN  23
+#define RENDER_PICTURE_TILE_UP  24
 
 
 #define wrdebug(msg)  if (debug.IsOpened()) debug.Write(msg + "\n")
@@ -173,7 +177,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
 {
     double position = GetEffectTimeIntervalPosition(movementSpeed);
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
-    
+
     wxFile f;
     if(NewPictureName2.length()==0) return;
 
@@ -314,7 +318,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
             waveN = waveX / waveW;
             break;
     }
-    
+
     int xoffset_adj = xc_adj;
     int yoffset_adj = yc_adj;
     if (dir == RENDER_PICTURE_VECTOR) {
@@ -370,7 +374,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                 case RENDER_PICTURE_DOWNRIGHT: //8:
                     ProcessPixel(x+xoffset_adj+((imgwidth+BufferWi)*position)-imgwidth,BufferHt+imght-y-yoffset_adj-((imght+BufferHt)*position),c, wrap_x, imgwidth);
                     break; // down-right
- 
+
                 case RENDER_PICTURE_PEEKABOO_0: //10: //up+down 1x (peekaboo) -DJ
                     ProcessPixel(x - xoffset+xoffset_adj, BufferHt + yoffset - y - yoffset_adj, c, wrap_x, imgwidth); // - BufferHt, c);
                     break;
@@ -403,6 +407,58 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                 case RENDER_PICTURE_WIGGLE: //11: //back+forth a little (wiggle) -DJ
 //                    ProcessPixel(x + xoffset+xoffset_adj, yoffset - y - yoffset_adj, c, wrap_x, imgwidth);
 //                    break;
+                case RENDER_PICTURE_TILE_LEFT: // 21
+                    {
+                        for (int renderycount = 0; renderycount < (BufferHt + imght) / imght; renderycount++)
+                        {
+                            for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
+                            {
+                                ProcessPixel((x + -1 * ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth)) % imgwidth + renderxcount * imgwidth,
+                                             (BufferHt - 1 - (y + 0) % imght + renderycount * imght) % BufferHt,
+                                             c, false, 0);
+                            }
+                        }
+                    }
+                    break;
+                case RENDER_PICTURE_TILE_RIGHT: // 22
+                    {
+                        for (int renderycount = 0; renderycount < (BufferHt + imght) / imght; renderycount++)
+                        {
+                            for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
+                            {
+                                ProcessPixel((x + ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth)) % imgwidth + renderxcount * imgwidth,
+                                             (BufferHt - 1 - (y + 0) % imght + renderycount * imght) % BufferHt,
+                                             c, false, 0);
+                            }
+                        }
+                    }
+                    break;
+                case RENDER_PICTURE_TILE_DOWN: // 23
+                    {
+                        for (int renderycount = 0; renderycount < (BufferHt + imght) / imght; renderycount++)
+                        {
+                            for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
+                            {
+                                ProcessPixel((x + 0) % imgwidth + renderxcount * imgwidth,
+                                             (BufferHt - 1 - (y + ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght)) % imght + renderycount * imght) % BufferHt,
+                                             c, false, 0);
+                            }
+                        }
+                    }
+                    break;
+                case RENDER_PICTURE_TILE_UP: // 24
+                    {
+                        for (int renderycount = 0; renderycount < (BufferHt + imght) / imght; renderycount++)
+                        {
+                            for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
+                            {
+                                ProcessPixel((x + 0) % imgwidth + renderxcount * imgwidth,
+                                             (BufferHt - 1 - (y + -1 * ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght)) % imght + renderycount * imght) % BufferHt,
+                                             c, false, 0);
+                            }
+                        }
+                    }
+                    break;
                 default:
                     ProcessPixel(x-xoffset+xoffset_adj,yoffset+yoffset_adj-y - 1,c, wrap_x, imgwidth);
                     break; // no movement - centered
