@@ -10,6 +10,7 @@
 #import <AppKit/NSOpenGLView.h>
 #include "wx/glcanvas.h"
 
+
 #include "osxMacUtils.h"
 
 double xlOSXGetMainScreenContentScaleFactor()
@@ -91,5 +92,20 @@ void AppNapSuspender::resume()
         [[NSProcessInfo processInfo ] endActivity:p->activityId];
         [p->activityId release];
     }
+}
+
+wxString GetOSXFormattedClipboardData() {
+    
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    NSArray *classArray = [NSArray arrayWithObject:[NSString class]];
+    NSDictionary *options = [NSDictionary dictionary];
+    
+    BOOL ok = [pasteboard canReadObjectForClasses:classArray options:options];
+    if (ok) {
+        NSArray *objectsToPaste = [pasteboard readObjectsForClasses:classArray options:options];
+        NSString *dts = [objectsToPaste objectAtIndex:0];
+        return wxString([dts UTF8String], wxConvUTF8);
+    }
+    return "";
 }
 
