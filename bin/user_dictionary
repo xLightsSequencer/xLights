@@ -1,0 +1,13 @@
+## You can add your own words to this user dictionary.
+## For example, some proper nouns will not appear in the standard dictionary.
+## Also strange, "cartoony" words will likely not appear.
+##
+## Each entry must be on its own line in the file. First is the word as normally written.
+## Next, the word is followed by the phonemes used to pronounce it.
+## These must be CMU-style phonemes, not Preston Blair phonemes. The CMU phonemes are more
+## complex, but also more complete. Using CMU phonemes will also allow Papagayo to map them
+## to other phoneme sets in the future.
+##
+## To start with, there is just one sample entry in this dictionary, WOWZA.
+
+WOWZA  W AW1 Z AH0

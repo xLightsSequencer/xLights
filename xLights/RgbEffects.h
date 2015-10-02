@@ -94,6 +94,29 @@ typedef enum
 
 class DrawingContext;
 class Effect;
+class SequenceElements;
+
+
+class DrawingContext {
+public:
+    DrawingContext(int BufferWi, int BufferHt);
+    ~DrawingContext();
+    wxImage *FlushAndGetImage();
+    void SetFont(wxFont &font, const xlColor &color);
+    void DrawText(const wxString &msg, int x, int y, double rotation);
+    void DrawText(const wxString &msg, int x, int y);
+    void GetTextExtent(const wxString &msg, double *width, double *height);
+    void Clear();
+private:
+    wxImage *image;
+    wxBitmap *bitmap;
+    wxBitmap nullBitmap;
+    wxMemoryDC *dc;
+#if wxUSE_GRAPHICS_CONTEXT
+    wxGraphicsContext *gc;
+#endif
+};
+
 
 class NCCDLLEXPORT RgbEffects
 {
@@ -527,7 +550,7 @@ protected:
     void mouth(int Phoneme,int BufferHt, int BufferWt);
     void coroface(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y);
     void drawline1(int Phoneme,int x1,int x2,int y1, int y2);
-    void drawoutline(int Phoneme,int BufferHt,int BufferWi);
+    void drawoutline(int Phoneme, bool outline, const wxString &eyes, int BufferHt,int BufferWi);
     double calcAccel(double ratio, double accel);
 
     void facesCircle(int Phoneme, int xc,int yc,double radius,int start_degrees, int end_degrees);
@@ -572,6 +595,8 @@ protected:
     long LastLifeState;
     int lastperiod, curPeriod;
     RgbFireworks *fireworkBursts;
+    int nextBlinkTime;
+    int blinkEndTime;
 
     long timer_countdown[4]; // was  long timer_countdown[1];
 
@@ -590,6 +615,7 @@ protected:
 
     //TextEffect
     wxSize synced_textsize;
+    DrawingContext *drawingContext;
 
 
 public:

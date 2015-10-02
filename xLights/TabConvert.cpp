@@ -567,8 +567,7 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
         SeqDataType *dataBuf, int startAddr, int modelSize)
 {
     wxUint16 fixedHeaderLength = 20;
-    wxUint32 stepSize = numChans + (numChans%4);
-
+    wxUint32 stepSize = rountTo4(numChans);
     wxFile f;
 
     size_t ch;

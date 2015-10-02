@@ -262,16 +262,23 @@ const long xLightsFrame::ID_SLIDER_BACKGROUND_BRIGHTNESS = wxNewId();
 const long xLightsFrame::ID_BUTTON_SELECT_MODEL_GROUPS = wxNewId();
 const long xLightsFrame::ID_STATICTEXT21 = wxNewId();
 const long xLightsFrame::ID_LISTBOX_ELEMENT_LIST = wxNewId();
+const long xLightsFrame::ID_CHECKBOXOVERLAP = wxNewId();
 const long xLightsFrame::ID_BUTTON_MODELS_PREVIEW = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_PREVIEW = wxNewId();
-const long xLightsFrame::ID_BUTTON_BUILD_WHOLEHOUSE_MODEL = wxNewId();
 const long xLightsFrame::ID_STATICTEXT22 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE = wxNewId();
+const long xLightsFrame::ID_SLIDER3 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT24 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL3 = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_SCALE = wxNewId();
 const long xLightsFrame::ID_STATICTEXT25 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL2 = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_ROTATE = wxNewId();
+const long xLightsFrame::ID_STATICTEXT31 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL4 = wxNewId();
+const long xLightsFrame::ID_PANEL5 = wxNewId();
 const long xLightsFrame::ID_PANEL1 = wxNewId();
+const long xLightsFrame::ID_SPLITTERWINDOW2 = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
 const long xLightsFrame::ID_TREECTRL1 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_RUN_SCHEDULE = wxNewId();
@@ -455,6 +462,7 @@ wxDEFINE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RENDER_RANGE, RenderCommandEvent);
 wxDEFINE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
@@ -490,6 +498,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_IMPORT_TIMING, xLightsFrame::ExecuteImportTimingElement)
     EVT_COMMAND(wxID_ANY, EVT_CONVERT_DATA_TO_EFFECTS, xLightsFrame::ConvertDataRowToEffects)
     EVT_COMMAND(wxID_ANY, EVT_PROMOTE_EFFECTS, xLightsFrame::PromoteEffects)
+    EVT_COMMAND(wxID_ANY, EVT_RGBEFFECTS_CHANGED, xLightsFrame::PerspectivesChanged)
     wx__DECLARE_EVT1(EVT_RENDER_RANGE, wxID_ANY, &xLightsFrame::RenderRange)
 END_EVENT_TABLE()
 
@@ -540,6 +549,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
     wxMenuItem* MenuItem22;
+    wxFlexGridSizer* FlexGridSizer2;
     wxMenuItem* MenuItem17;
     wxBoxSizer* BoxSizer2;
     wxMenuItem* MenuItem13;
@@ -556,7 +566,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizerNetworks;
     wxFlexGridSizer* FlexGridSizer57;
     wxFlexGridSizer* FlexGridSizer29;
-    wxFlexGridSizer* FlexGridSizer34;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
     wxMenuItem* MenuItem28;
@@ -584,6 +593,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer43;
     wxFlexGridSizer* FlexGridSizer11;
     wxBoxSizer* BoxSizer3;
+    wxFlexGridSizer* FlexGridSizerStartChan;
     wxFlexGridSizer* FlexGridSizer17;
     wxMenu* Menu2;
     wxFlexGridSizer* FlexGridSizerPapagayo;
@@ -1238,52 +1248,75 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer30->Add(FlexGridSizer40, 1, wxALL|wxEXPAND|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer31->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerPreview->Add(FlexGridSizer31, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer34 = new wxFlexGridSizer(1, 2, 0, 0);
-    FlexGridSizer34->AddGrowableCol(1);
-    FlexGridSizer34->AddGrowableRow(0);
+    SplitterWindow2 = new wxSplitterWindow(PanelPreview, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
+    SplitterWindow2->SetMinSize(wxSize(10,10));
+    SplitterWindow2->SetMinimumPaneSize(10);
+    SplitterWindow2->SetSashGravity(0.5);
+    Panel1 = new wxPanel(SplitterWindow2, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
     FlexGridSizer35 = new wxFlexGridSizer(0, 1, 0, 0);
-    ButtonSelectModelGroups = new wxButton(PanelPreview, ID_BUTTON_SELECT_MODEL_GROUPS, _("Select Model Groups"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_MODEL_GROUPS"));
+    FlexGridSizer35->AddGrowableCol(0);
+    FlexGridSizer35->AddGrowableRow(2);
+    ButtonSelectModelGroups = new wxButton(Panel1, ID_BUTTON_SELECT_MODEL_GROUPS, _("Select Model Groups"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_MODEL_GROUPS"));
     FlexGridSizer35->Add(ButtonSelectModelGroups, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText5 = new wxStaticText(PanelPreview, ID_STATICTEXT21, _("Preview Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT21"));
+    StaticText5 = new wxStaticText(Panel1, ID_STATICTEXT21, _("Preview Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT21"));
     FlexGridSizer35->Add(StaticText5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ListBoxElementList = new wxListBox(PanelPreview, ID_LISTBOX_ELEMENT_LIST, wxDefaultPosition, wxSize(132,240), 0, 0, wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX_ELEMENT_LIST"));
+    ListBoxElementList = new wxListView(Panel1, ID_LISTBOX_ELEMENT_LIST, wxDefaultPosition, wxSize(100,-1), wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING, wxDefaultValidator, _T("ID_LISTBOX_ELEMENT_LIST"));
     FlexGridSizer35->Add(ListBoxElementList, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonModelsPreview = new wxButton(PanelPreview, ID_BUTTON_MODELS_PREVIEW, _("Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MODELS_PREVIEW"));
+    CheckBoxOverlap = new wxCheckBox(Panel1, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
+    CheckBoxOverlap->SetValue(false);
+    FlexGridSizer35->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonModelsPreview = new wxButton(Panel1, ID_BUTTON_MODELS_PREVIEW, _("Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MODELS_PREVIEW"));
     FlexGridSizer35->Add(ButtonModelsPreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonSavePreview = new wxButton(PanelPreview, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
+    ButtonSavePreview = new wxButton(Panel1, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
     FlexGridSizer35->Add(ButtonSavePreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonBuildWholeHouseModel = new wxButton(PanelPreview, ID_BUTTON_BUILD_WHOLEHOUSE_MODEL, _("Build Model from Preview"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_BUILD_WHOLEHOUSE_MODEL"));
-    FlexGridSizer35->Add(ButtonBuildWholeHouseModel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer37 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer37->AddGrowableCol(1);
-    StaticText23 = new wxStaticText(PanelPreview, ID_STATICTEXT22, _("Model Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
+    StaticText23 = new wxStaticText(Panel1, ID_STATICTEXT22, _("Model Width"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
     FlexGridSizer37->Add(StaticText23, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrlPreviewElementSize = new wxTextCtrl(PanelPreview, ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE, _("50"), wxDefaultPosition, wxDLG_UNIT(PanelPreview,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE"));
-    FlexGridSizer37->Add(TextCtrlPreviewElementSize, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrlPreviewElementWidth = new wxTextCtrl(Panel1, ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE"));
+    FlexGridSizer37->Add(TextCtrlPreviewElementWidth, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer35->Add(FlexGridSizer37, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    SliderPreviewScale = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_SCALE, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_SCALE"));
-    FlexGridSizer35->Add(SliderPreviewScale, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    SliderPreviewScaleWidth = new wxSlider(Panel1, ID_SLIDER3, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER3"));
+    FlexGridSizer35->Add(SliderPreviewScaleWidth, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer2->AddGrowableCol(1);
+    StaticText37 = new wxStaticText(Panel1, ID_STATICTEXT24, _("Model Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
+    FlexGridSizer2->Add(StaticText37, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrlPreviewElementHeight = new wxTextCtrl(Panel1, ID_TEXTCTRL3, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
+    FlexGridSizer2->Add(TextCtrlPreviewElementHeight, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer35->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    SliderPreviewScaleHeight = new wxSlider(Panel1, ID_SLIDER_PREVIEW_SCALE, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_SCALE"));
+    FlexGridSizer35->Add(SliderPreviewScaleHeight, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer39 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticTextPreviewRotation = new wxStaticText(PanelPreview, ID_STATICTEXT25, _("Model Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT25"));
+    StaticTextPreviewRotation = new wxStaticText(Panel1, ID_STATICTEXT25, _("Model Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT25"));
     StaticTextPreviewRotation->Disable();
     FlexGridSizer39->Add(StaticTextPreviewRotation, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrlModelRotationDegrees = new wxTextCtrl(PanelPreview, ID_TEXTCTRL2, _("0"), wxDefaultPosition, wxDLG_UNIT(PanelPreview,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+    TextCtrlModelRotationDegrees = new wxTextCtrl(Panel1, ID_TEXTCTRL2, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
     FlexGridSizer39->Add(TextCtrlModelRotationDegrees, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer35->Add(FlexGridSizer39, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    SliderPreviewRotate = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_ROTATE, 0, -180, 180, wxDefaultPosition, wxDefaultSize, wxTRANSPARENT_WINDOW, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_ROTATE"));
+    SliderPreviewRotate = new wxSlider(Panel1, ID_SLIDER_PREVIEW_ROTATE, 0, -180, 180, wxDefaultPosition, wxDefaultSize, wxTRANSPARENT_WINDOW, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_ROTATE"));
     SliderPreviewRotate->SetTickFreq(1);
     SliderPreviewRotate->Disable();
     FlexGridSizer35->Add(SliderPreviewRotate, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer34->Add(FlexGridSizer35, 1, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    PreviewGLPanel = new wxPanel(PanelPreview, ID_PANEL1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_PANEL1"));
+    FlexGridSizerStartChan = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticTextStartChannel = new wxStaticText(Panel1, ID_STATICTEXT31, _("Start Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
+    FlexGridSizerStartChan->Add(StaticTextStartChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrlModelStartChannel = new wxTextCtrl(Panel1, ID_TEXTCTRL4, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL4"));
+    FlexGridSizerStartChan->Add(TextCtrlModelStartChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer35->Add(FlexGridSizerStartChan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel1->SetSizer(FlexGridSizer35);
+    FlexGridSizer35->Fit(Panel1);
+    FlexGridSizer35->SetSizeHints(Panel1);
+    PreviewGLPanel = new wxPanel(SplitterWindow2, ID_PANEL1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_PANEL1"));
     PreviewGLSizer = new wxFlexGridSizer(1, 1, 0, 0);
     PreviewGLSizer->AddGrowableCol(0);
     PreviewGLSizer->AddGrowableRow(0);
     PreviewGLPanel->SetSizer(PreviewGLSizer);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);
-    FlexGridSizer34->Add(PreviewGLPanel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerPreview->Add(FlexGridSizer34, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    SplitterWindow2->SplitVertically(Panel1, PreviewGLPanel);
+    SplitterWindow2->SetSashPosition(100);
+    FlexGridSizerPreview->Add(SplitterWindow2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     PanelPreview->SetSizer(FlexGridSizerPreview);
     FlexGridSizerPreview->Fit(PanelPreview);
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
@@ -1570,7 +1603,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem_File_Save_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_Save_Sequence);
     MenuItem_File_Save_Sequence->Enable(false);
-    MenuItem_File_SaveAs_Sequence = new wxMenuItem(MenuFile, ID_SAVE_AS_SEQUENCE, _("Save As Sequence"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem_File_SaveAs_Sequence = new wxMenuItem(MenuFile, ID_SAVE_AS_SEQUENCE, _("Save Sequence As"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_SaveAs_Sequence);
     MenuItem_File_Close_Sequence = new wxMenuItem(MenuFile, ID_CLOSE_SEQ, _("Close Sequence"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Close_Sequence);
@@ -1765,6 +1798,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveUpClick);
     Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveDownClick);
     Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkBeginDrag);
+    Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemActivated);
     Connect(ID_BUTTON_SELECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonTestSelectAllClick);
     Connect(ID_BUTTON_CLEAR_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonTestClearClick);
     Connect(ID_BUTTON_LOAD,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonTestLoadClick);
@@ -1812,14 +1846,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnScaleImageCheckboxClick);
     Connect(ID_SLIDER_BACKGROUND_BRIGHTNESS,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated);
     Connect(ID_BUTTON_SELECT_MODEL_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSelectModelGroupsClick);
-    Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListSelect);
+    Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListItemSelect);
+    Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListColumnClick);
+    Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxOverlapClick);
     Connect(ID_BUTTON_MODELS_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonModelsPreviewClick);
     Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSavePreviewClick);
-    Connect(ID_BUTTON_BUILD_WHOLEHOUSE_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonBuildWholeHouseModelClick);
     Connect(ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlPreviewElementSizeText);
+    Connect(ID_SLIDER3,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated);
+    Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlPreviewElementSizeText);
     Connect(ID_SLIDER_PREVIEW_SCALE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated);
     Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlModelRotationDegreesText);
     Connect(ID_SLIDER_PREVIEW_ROTATE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewRotateCmdSliderUpdated);
+    Connect(ID_TEXTCTRL4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlModelStartChannelText);
     Connect(ID_CHECKBOX_RUN_SCHEDULE,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxRunScheduleClick);
     Connect(ID_BUTTON_SAVE_SCHEDULE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveScheduleClick);
     Connect(ID_BUTTON_ADD_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddShowClick);
@@ -1973,11 +2011,33 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(4, itemCol);
 
+    itemCol.SetText(_T("Enabled"));
+    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+    GridNetwork->InsertColumn(5, itemCol);
+
     GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(1,100);
     GridNetwork->SetColumnWidth(2,wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(3,100);
     GridNetwork->SetColumnWidth(4,170);
+    GridNetwork->SetColumnWidth(5,wxLIST_AUTOSIZE_USEHEADER);
+
+    wxListItem elementCol;
+    elementCol.SetText(_T("Element Name"));
+    elementCol.SetImage(-1);
+    elementCol.SetAlign(wxLIST_FORMAT_LEFT);
+    ListBoxElementList->InsertColumn(0, elementCol);
+
+    elementCol.SetText(_T("Start Chan"));
+    elementCol.SetAlign(wxLIST_FORMAT_LEFT);
+    ListBoxElementList->InsertColumn(1, elementCol);
+
+    elementCol.SetText(_T("End Chan"));
+    elementCol.SetAlign(wxLIST_FORMAT_LEFT);
+    ListBoxElementList->InsertColumn(2, elementCol);
+    ListBoxElementList->SetColumnWidth(0,10);
+    ListBoxElementList->SetColumnWidth(1,10);
+    ListBoxElementList->SetColumnWidth(2,10);
 
     // get list of most recently used directories
     wxString dir,mru_name;
@@ -1997,45 +2057,66 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         mru_MenuItem[i] = NULL;
     }
     dir.clear();
-    bool ok = config->Read("LastDir", &dir);
-    wxString ConvertDir;
-    ConvertDir.clear();
-    if (ok && !config->Read("ConvertDir", &ConvertDir))
+    bool ok = true;
+    if (!xLightsApp::showDir.IsNull())
     {
-        ConvertDir=dir;
+        dir = xLightsApp::showDir;
     }
-    FileDialogConvert->SetDirectory(ConvertDir);
+    else
+    {
+        ok = config->Read("LastDir", &dir);
+        wxString ConvertDir;
+        ConvertDir.clear();
+        if (ok && !config->Read("ConvertDir", &ConvertDir))
+        {
+            ConvertDir=dir;
+        }
+        FileDialogConvert->SetDirectory(ConvertDir);
+    }
 
-    if (ok && !config->Read(_("MediaDir"), &mediaDirectory))
+    if (!xLightsApp::mediaDir.IsNull())
+    {
+        mediaDirectory = xLightsApp::mediaDir;
+    }
+    else if (ok && !config->Read(_("MediaDir"), &mediaDirectory))
     {
         mediaDirectory=dir;
     }
     MediaDirectoryLabel->SetLabel(mediaDirectory);
 
     wxString tbData = config->Read("ToolbarLocations");
-   // wxMessageBox(tbData);
-    if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
+    // wxMessageBox(tbData);
+    if (tbData.StartsWith(TOOLBAR_SAVE_VERSION))
+    {
         MainAuiManager->LoadPerspective(tbData.Right(tbData.size() - 5));
     }
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     config->Read("xLightsIconSize", &mIconSize, 16);
-    if (mIconSize != 16) {
+    if (mIconSize != 16)
+    {
         int id = ID_MENUITEM_ICON_MEDIUM;
-        if (mIconSize == 32) {
+        if (mIconSize == 32)
+        {
             id = ID_MENUITEM_ICON_LARGE;
-        } else if (mIconSize == 48) {
+        }
+        else if (mIconSize == 48)
+        {
             id = ID_MENUITEM_ICON_XLARGE;
         }
         wxCommandEvent event(wxEVT_NULL, id);
         SetToolIconSize(event);
     }
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
-    if (mGridSpacing != 16) {
+    if (mGridSpacing != 16)
+    {
         int id = ID_MENUITEM_GRID_ICON_MEDIUM;
-        if (mGridSpacing == 32) {
+        if (mGridSpacing == 32)
+        {
             id = ID_MENUITEM_GRID_ICON_LARGE;
-        } else if (mGridSpacing == 48) {
+        }
+        else if (mGridSpacing == 48)
+        {
             id = ID_MENUITEM_GRID_ICON_XLARGE;
         }
         wxCommandEvent event(wxEVT_NULL, id);
@@ -2079,29 +2160,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButterflyDirection.Add("Normal");
     ButterflyDirection.Add("Reverse");
 
-    FacesPhoneme.Add("AI");
-    FacesPhoneme.Add("E");
-    FacesPhoneme.Add("FV");
-    FacesPhoneme.Add("L");
-    FacesPhoneme.Add("MBP");
-    FacesPhoneme.Add("O");
-    FacesPhoneme.Add("U");
-    FacesPhoneme.Add("WQ");
-    FacesPhoneme.Add("etc");
-    FacesPhoneme.Add("rest");
 
-    CoroFacesPhoneme.Add("AI");
-    CoroFacesPhoneme.Add("E");
-    CoroFacesPhoneme.Add("FV");
-    CoroFacesPhoneme.Add("L");
-    CoroFacesPhoneme.Add("MBP");
-    CoroFacesPhoneme.Add("O");
-    CoroFacesPhoneme.Add("U");
-    CoroFacesPhoneme.Add("WQ");
-    CoroFacesPhoneme.Add("etc");
-    CoroFacesPhoneme.Add("rest");
-    CoroFacesPhoneme.Add("(off)"); //allow turn off mouth (ie, eyes only)
-    if (xLightsApp::WantDebug) CoroFacesPhoneme.Add("(test)"); //debug/test
+
 
     WaveType.Add("Sine");
     WaveType.Add("Triangle");
@@ -2113,8 +2173,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FillColors.Add("Palette");
     WaveDirection.Add("Right to Left");
     WaveDirection.Add("Left to Right");
-
-
 
     MeteorsEffectTypes.Add("Rainbow");
     MeteorsEffectTypes.Add("Range");
@@ -2175,7 +2233,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PictureEffectDirections.Add("tile-down"); //23
     PictureEffectDirections.Add("tile-up"); //24
 
-//  remember to godown to around line 1800 to active ate these add's
+
+PlasmaEffectColors.Add("Normal");
+PlasmaEffectColors.Add("Preset 1");
+PlasmaEffectColors.Add("Preset 2");
+PlasmaEffectColors.Add("Preset 3");
+PlasmaEffectColors.Add("Preset 4");
+
+//  remember to go down to around line 2460 to active these add's
 
 //read from choice list instead of hard-coded duplication: -DJ
 //    PianoEffectStyles.Add("Color Organ");
@@ -2245,6 +2310,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CurtainEdge=EffectsPanel1->Choice_Curtain_Edge->GetStrings();
     CurtainEffect=EffectsPanel1->Choice_Curtain_Effect->GetStrings();
 
+    EffectTreeDlg = NULL;  // must be before any call to SetDir
+
     // Check if schedule should be running
     xout=0;
     long RunFlag=0;
@@ -2270,7 +2337,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
     basic.setFrame(this);
     PlayerDlg = new PlayerFrame(this, ID_PLAYER_DIALOG);
-
     EffectNames=EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStrings();
 //~    EffectLayerOptions=Choice_LayerMethod->GetStrings();
 
@@ -2294,13 +2360,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     //start out with 50ms timer, once we load a file or create a new one, we'll reset
     //to whatever the timing that is selected
     Timer1.Start(50, wxTIMER_CONTINUOUS);
-    EffectTreeDlg = NULL;
 
 //    ConnectOnChar(PaneNutcracker);
 //    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
 
-  jobPool.Start(wxThread::GetCPUCount() * 4);
- //   jobPool.Start(24);
+    jobPool.Start(wxThread::GetCPUCount() * 4);
+//   jobPool.Start(24);
+
+    if (!xLightsApp::sequenceFile.IsNull())
+    {
+        OpenSequence(xLightsApp::sequenceFile);
+    }
+
 }
 
 xLightsFrame::~xLightsFrame()
@@ -2309,9 +2380,12 @@ xLightsFrame::~xLightsFrame()
     selectedEffect = NULL;
 
     wxConfigBase* config = wxConfigBase::Get();
-    if (mResetToolbars) {
+    if (mResetToolbars)
+    {
         config->DeleteEntry("ToolbarLocations");
-    } else {
+    }
+    else
+    {
         config->Write("ToolbarLocations", TOOLBAR_SAVE_VERSION + MainAuiManager->SavePerspective());
     }
     config->Write("xLightsIconSize", mIconSize);
@@ -2348,7 +2422,8 @@ xLightsFrame::~xLightsFrame()
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
     wxCloseEvent evt;
-    if (QuitMenuItem->IsEnabled()) {
+    if (QuitMenuItem->IsEnabled())
+    {
         OnClose(evt);
     }
 }
@@ -2407,17 +2482,14 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Text_Count4->SetSelection(0);
 
     panel->CurrentDir = &CurrentDir;
-    panel->Choice_Faces_Phoneme->Set(FacesPhoneme);
-    panel->Choice_Faces_Phoneme->SetSelection(0);
-
-    panel->Choice_CoroFaces_Phoneme->Set(CoroFacesPhoneme);
-    panel->Choice_CoroFaces_Phoneme->SetSelection(0);
 
     panel->Choice_Ripple_Movement->Set(RippleMovement);
     panel->Choice_Ripple_Movement->SetSelection(0);
     panel->Choice_Ripple_Object_To_Draw->Set(RippleObjectToDraw);
     panel->Choice_Ripple_Object_To_Draw->SetSelection(0);
 
+    panel->Choice_Plasma_Color->Set(PlasmaEffectColors);
+    panel->Choice_Plasma_Color->SetSelection(0);
 
 }
 
@@ -2541,26 +2613,34 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
     wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
     bool update = false;
-    if (show) {
-        for (int x = 0; x < info.size(); x++) {
+    if (show)
+    {
+        for (int x = 0; x < info.size(); x++)
+        {
             if (x < savedPaneShown.size() && info[x].IsFloating() && !info[x].IsShown()
-                && savedPaneShown[x]) {
+                    && savedPaneShown[x])
+            {
                 info[x].Show();
                 savedPaneShown[x] = true;
                 update = true;
             }
         }
-    } else {
+    }
+    else
+    {
         savedPaneShown.resize(info.size());
-        for (int x = 0; x < info.size(); x++) {
+        for (int x = 0; x < info.size(); x++)
+        {
             savedPaneShown[x] = info[x].IsShown();
-            if (info[x].IsFloating() && info[x].IsShown()) {
+            if (info[x].IsFloating() && info[x].IsShown())
+            {
                 info[x].Hide();
                 update = true;
             }
         }
     }
-    if (update) {
+    if (update)
+    {
         m_mgr->Update();
     }
 }
@@ -2568,7 +2648,8 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
 void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
 {
-    if (event.GetOldSelection() == NEWSEQUENCER) {
+    if (event.GetOldSelection() == NEWSEQUENCER)
+    {
         ShowHideAllSequencerWindows(false);
     }
 }
@@ -2604,7 +2685,8 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     if (pagenum == PREVIEWTAB)
     {
         UpdatePreview();
-        if (SeqPlayerState != NO_SEQ) {
+        if (SeqPlayerState != NO_SEQ)
+        {
             if(!mediaFilename.IsEmpty())
             {
                 StopPreviewPlayback(); //FR. If we have sequence data loaded make sure that media playback is inproper state when returnign to preview tab.
@@ -2634,6 +2716,24 @@ void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
     AllLightsOff();
 }
 
+#ifdef __WXOSX__
+
+#include "osxMacUtils.h"
+AppNapSuspender sleepData;
+void EnableSleepModes()
+{
+    sleepData.resume();
+}
+void DisableSleepModes()
+{
+    sleepData.suspend();
+}
+#else
+void EnableSleepModes() {}
+void DisableSleepModes() {}
+#endif
+
+
 bool xLightsFrame::EnableOutputs()
 {
     wxCriticalSectionLocker locker(gs_xoutCriticalSection);
@@ -2641,6 +2741,7 @@ bool xLightsFrame::EnableOutputs()
     bool ok=true;
     if (CheckBoxLightOutput->IsChecked() && xout==0)
     {
+        DisableSleepModes();
         xout = new xOutput();
 
 
@@ -2655,7 +2756,10 @@ bool xLightsFrame::EnableOutputs()
                 wxString ComPort=e->GetAttribute("ComPort", "");
                 wxString BaudRate=e->GetAttribute("BaudRate", "");
                 int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
+                bool enabled = e->GetAttribute("Enabled", "Yes") == "Yes";
                 static wxString choices;
+
+                int numU = wxAtoi(e->GetAttribute("NumUniverses", "1"));
 
 #ifdef __WXMSW__ //TODO: enumerate comm ports on all platforms -DJ
                 TCHAR valname[32];
@@ -2693,14 +2797,14 @@ bool xLightsFrame::EnableOutputs()
 
                 try
                 {
-                    xout->addnetwork(NetworkType,MaxChan,ComPort,baud);
+                    xout->addnetwork(NetworkType,MaxChan,ComPort,baud, numU, enabled);
                     //TextCtrlLog->AppendText(_("Successfully initialized ") + NetworkType + _(" network on ") + ComPort + _("\n"));
                 }
                 catch (const char *str)
                 {
                     wxString errmsg(str,wxConvUTF8);
                     if (wxMessageBox(msg + errmsg + _("\nProceed anyway?"), _("Communication Error"), wxYES_NO | wxNO_DEFAULT) != wxYES)
-                    ok = false;
+                        ok = false;
                 }
             }
         }
@@ -2715,6 +2819,7 @@ bool xLightsFrame::EnableOutputs()
     }
     else if (!CheckBoxLightOutput->IsChecked() && xout)
     {
+        EnableSleepModes();
         delete xout;
         xout=0;
     }
@@ -2826,7 +2931,8 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     wxLogDebug("xLightsFrame::OnClose");
 
-    if (!CloseSequence()) {
+    if (!CloseSequence())
+    {
         event.Veto();
         return;
     }
@@ -3061,8 +3167,10 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
     SaveAsSequence();
 }
 
-wxString xLightsFrame::GetSeqXmlFileName() {
-    if (CurrentSeqXmlFile == NULL) {
+wxString xLightsFrame::GetSeqXmlFileName()
+{
+    if (CurrentSeqXmlFile == NULL)
+    {
         return "";
     }
     return CurrentSeqXmlFile->GetFullPath();
@@ -3160,7 +3268,7 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 {
-    OpenSequence();
+    OpenSequence("");
 }
 
 void xLightsFrame::OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event)
@@ -3192,24 +3300,32 @@ void xLightsFrame::OnAuiToolBarItemRenderAllClick(wxCommandEvent& event)
     RenderAll();
 }
 
-bool AUIToolbarButtonWrapper::IsChecked() {
+bool AUIToolbarButtonWrapper::IsChecked()
+{
     return toolbar->GetToolToggled(id);
 }
-void AUIToolbarButtonWrapper::SetValue(bool b) {
+void AUIToolbarButtonWrapper::SetValue(bool b)
+{
     toolbar->ToggleTool(id, b);
 }
-void AUIToolbarButtonWrapper::Enable(bool b) {
+void AUIToolbarButtonWrapper::Enable(bool b)
+{
     toolbar->EnableTool(id, b);
 }
 
 void xLightsFrame::SetIconSize(wxCommandEvent& event)
 {
     int size = 48;
-    if (event.GetId() == ID_MENUITEM_GRID_ICON_SMALL) {
+    if (event.GetId() == ID_MENUITEM_GRID_ICON_SMALL)
+    {
         size = 16;
-    } else if (event.GetId() == ID_MENUITEM_GRID_ICON_MEDIUM) {
+    }
+    else if (event.GetId() == ID_MENUITEM_GRID_ICON_MEDIUM)
+    {
         size = 24;
-    } else if (event.GetId() == ID_MENUITEM_GRID_ICON_LARGE) {
+    }
+    else if (event.GetId() == ID_MENUITEM_GRID_ICON_LARGE)
+    {
         size = 32;
     }
     mGridSpacing = size;
@@ -3229,16 +3345,22 @@ void xLightsFrame::ResetToolbarLocations(wxCommandEvent& event)
 void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
 {
     int size = 48;
-    if (event.GetId() == ID_MENUITEM_ICON_SMALL) {
+    if (event.GetId() == ID_MENUITEM_ICON_SMALL)
+    {
         size = 16;
-    } else if (event.GetId() == ID_MENUITEM_ICON_MEDIUM) {
+    }
+    else if (event.GetId() == ID_MENUITEM_ICON_MEDIUM)
+    {
         size = 24;
-    } else if (event.GetId() == ID_MENUITEM_ICON_LARGE) {
+    }
+    else if (event.GetId() == ID_MENUITEM_ICON_LARGE)
+    {
         size = 32;
     }
 
     mIconSize = size;
-    for (int x = 0; x < EffectsToolBar->GetToolCount(); x++) {
+    for (int x = 0; x < EffectsToolBar->GetToolCount(); x++)
+    {
         EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMinSize(wxSize(size, size));
@@ -3251,7 +3373,8 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
     MainAuiManager->Update();
 
     const wxWindowList& lst =effectPalettePanel->GetChildren();
-    for (int x = 0; x < lst.size(); x++) {
+    for (int x = 0; x < lst.size(); x++)
+    {
         lst[x]->SetSizeHints(size, size, size, size);
     }
     effectPalettePanel->Layout();
@@ -3295,9 +3418,12 @@ void xLightsFrame::SetFrequency(int frequency)
 
 void xLightsFrame::OnSetGridIconBackground(wxCommandEvent& event)
 {
-    if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_ON) {
+    if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_ON)
+    {
         mGridIconBackgrounds = true;
-    } else if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_OFF) {
+    }
+    else if (event.GetId() == ID_MENUITEM_GRID_ICON_BACKGROUND_OFF)
+    {
         mGridIconBackgrounds = false;
     }
     MenuItemGridIconBackgroundOn->Check(mGridIconBackgrounds);
@@ -3308,9 +3434,12 @@ void xLightsFrame::OnSetGridIconBackground(wxCommandEvent& event)
 
 void xLightsFrame::OnSetGridNodeValues(wxCommandEvent& event)
 {
-    if (event.GetId() == ID_MENUITEM_GRID_NODE_VALUES_ON) {
+    if (event.GetId() == ID_MENUITEM_GRID_NODE_VALUES_ON)
+    {
         mGridNodeValues = true;
-    } else if (event.GetId() == ID_MENUITEM_GRID_NODE_VALUES_OFF) {
+    }
+    else if (event.GetId() == ID_MENUITEM_GRID_NODE_VALUES_OFF)
+    {
         mGridNodeValues = false;
     }
     MenuItemGridNodeValuesOn->Check(mGridNodeValues);
@@ -3324,13 +3453,20 @@ void xLightsFrame::OnSetGridNodeValues(wxCommandEvent& event)
 void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
 {
     double playSpeed = 1.0;
-    if (event.GetId() == ID_PLAY_FULL) {
+    if (event.GetId() == ID_PLAY_FULL)
+    {
         playSpeed = 1.0;
-    } else if (event.GetId() == ID_PLAY_3_4) {
+    }
+    else if (event.GetId() == ID_PLAY_3_4)
+    {
         playSpeed = 0.75;
-    } else if (event.GetId() == ID_PLAY_1_2) {
+    }
+    else if (event.GetId() == ID_PLAY_1_2)
+    {
         playSpeed = 0.5;
-    } else if (event.GetId() == ID_PLAY_1_4) {
+    }
+    else if (event.GetId() == ID_PLAY_1_4)
+    {
         playSpeed = 0.25;
     }
     PlayerDlg->SetPlaybackRate(playSpeed);
@@ -3341,11 +3477,14 @@ void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)
     wxConfigBase* config = wxConfigBase::Get();
     long LinkFlag=0;
     config->Read(_("LinkFlag"), &LinkFlag);
-    if( LinkFlag ) {
+    if( LinkFlag )
+    {
         LinkFlag = 0;
         BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_UNLINK")),wxART_OTHER));
         Button_Change_Media_Dir->Enable(true);
-    } else {
+    }
+    else
+    {
         LinkFlag = 1;
         BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LINK")),wxART_OTHER));
         Button_Change_Media_Dir->Enable(false);
@@ -3396,10 +3535,13 @@ void xLightsFrame::OnMenuItemEffectAssistToggleModeSelected(wxCommandEvent& even
 void xLightsFrame::SetEffectAssistWindowState(bool show)
 {
     bool visible = m_mgr->GetPane("EffectAssist").IsShown();
-    if (visible && !show) {
+    if (visible && !show)
+    {
         m_mgr->GetPane("EffectAssist").Hide();
         m_mgr->Update();
-    } else if(!visible && show) {
+    }
+    else if(!visible && show)
+    {
         m_mgr->GetPane("EffectAssist").Show();
         m_mgr->Update();
     }
@@ -3450,19 +3592,19 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect)
 void xLightsFrame::CheckUnsavedChanges()
 {
     if ( UnsavedNetworkChanges && wxYES == wxMessageBox("Save Network Setup changes?",
-                                                        "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+            "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
     {
         SaveNetworksFile();
     }
 
     if ( UnsavedPlaylistChanges && wxYES == wxMessageBox("Save Scheduler/Playlist changes?",
-                                                         "Scheduler Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+            "Scheduler Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
     {
         SaveScheduleFile();
     }
 
     if ( UnsavedRgbEffectsChanges && wxYES == wxMessageBox("Save Models, Views, Perspectives, and Preset changes?",
-                                                           "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
+            "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
     {
         SaveEffectsFile();
     }

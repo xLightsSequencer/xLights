@@ -166,6 +166,7 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrl_parm3" member="yes">
 							<value>1</value>
 							<min>1</min>
+							<max>1000</max>
 							<size>35,-1d</size>
 							<handler function="OnSpinCtrl_parm3Change" entry="EVT_SPINCTRL" />
 						</object>
@@ -423,6 +424,15 @@
 								<object class="wxButton" name="ID_BUTTON4" variable="Button04" member="no">
 									<label>Names</label>
 									<handler function="OnNamesButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
+									<label>Faces</label>
+									<handler function="OnFacesButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>

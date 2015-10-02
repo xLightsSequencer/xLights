@@ -30,9 +30,7 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 {
 	//(*Initialize(LMSImportChannelMapDialog)
 	wxButton* Button01;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxButton* Button02;
-	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
@@ -46,9 +44,10 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	AddModelButton = new wxButton(this, ID_BUTTON_ADDMODEL, _("Add Model For Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADDMODEL"));
 	FlexGridSizer1->Add(AddModelButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SizerMap = new wxFlexGridSizer(0, 1, 0, 0);
 	MapByStrand = new wxCheckBox(this, ID_CHECKBOX1, _("Map by Strand/CCR"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	MapByStrand->SetValue(false);
-	Sizer->Add(MapByStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SizerMap->Add(MapByStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ChannelMapGrid = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID1"));
 	ChannelMapGrid->CreateGrid(18,9);
 	ChannelMapGrid->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,440)));
@@ -61,7 +60,8 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	ChannelMapGrid->SetColLabelValue(4, _("Color"));
 	ChannelMapGrid->SetDefaultCellFont( ChannelMapGrid->GetFont() );
 	ChannelMapGrid->SetDefaultCellTextColour( ChannelMapGrid->GetForegroundColour() );
-	Sizer->Add(ChannelMapGrid, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+	SizerMap->Add(ChannelMapGrid, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+	Sizer->Add(SizerMap, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 5, 0, 0);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
@@ -74,7 +74,7 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	FlexGridSizer2->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button02 = new wxButton(this, ID_BUTTON2, _("Save Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer2->Add(Button02, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Sizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL, 5);
 	SetSizer(Sizer);
 	Sizer->Fit(this);
 	Sizer->SetSizeHints(this);
@@ -87,6 +87,7 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	Connect(ID_GRID1,wxEVT_GRID_EDITOR_SHOWN,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnChannelMapGridEditorShown);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LMSImportChannelMapDialog::LoadMapping);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LMSImportChannelMapDialog::SaveMapping);
+	Connect(wxEVT_SIZE,(wxObjectEventFunction)&LMSImportChannelMapDialog::OnResize);
 	//*)
 }
 
@@ -121,7 +122,7 @@ void LMSImportChannelMapDialog::SetupByNode() {
         ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     }
     for (int x = 0; x < modelNames.size(); x++) {
-        AddModel(xlights->GetModelClass(modelNames[x]));
+        AddModel(*xlights->GetModelClass(modelNames[x]));
     }
 }
 void LMSImportChannelMapDialog::SetupByStrand() {
@@ -130,7 +131,7 @@ void LMSImportChannelMapDialog::SetupByStrand() {
         ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     }
     for (int x = 0; x < modelNames.size(); x++) {
-        AddModel(xlights->GetModelClass(modelNames[x]));
+        AddModel(*xlights->GetModelClass(modelNames[x]));
     }
 }
 
@@ -204,8 +205,9 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
         return;
     }
     modelNames.push_back(name);
-    ModelClass &cls = xlights->GetModelClass(name);
-    AddModel(cls);
+    ModelClass *cls = xlights->GetModelClass(name);
+    AddModel(*cls);
+    Refresh();
 }
 
 void LMSImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
@@ -285,19 +287,19 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
         wxString line = text.ReadLine();
         int r = 0;
         while (line != "") {
-            
+
             wxString model = FindTab(line);
             wxString strand = FindTab(line);
             wxString node = FindTab(line);
             wxString mapping = FindTab(line);
             xlColor color(FindTab(line));
-            
+
             if (modelNames.Index(model) != wxNOT_FOUND) {
                 while (model != ChannelMapGrid->GetCellValue(r, 0)
                        && r < ChannelMapGrid->GetRows()) {
                     r++;
                 }
-                
+
                 if (model != ChannelMapGrid->GetCellValue(r, 0)
                     || strand != ChannelMapGrid->GetCellValue(r, 1)
                     || node !=  ChannelMapGrid->GetCellValue(r, 2)) {
@@ -333,6 +335,26 @@ void LMSImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
                              + "\t" + ChannelMapGrid->GetCellValue(x, 3)
                              + "\t" + c + "\n");
         }
-        
+
     }
+}
+
+void LMSImportChannelMapDialog::OnResize(wxSizeEvent& event)
+{
+    wxSize s = GetSize();
+    s.SetWidth(s.GetWidth()-15);
+    s.SetHeight(s.GetHeight()-75);
+
+    wxSize s1 = FlexGridSizer1->GetSize();
+    wxSize s2 = FlexGridSizer2->GetSize();
+
+    s.SetHeight(s.GetHeight()-s1.GetHeight()-s2.GetHeight());
+
+    ChannelMapGrid->SetSize(s);
+    ChannelMapGrid->SetMinSize(s);
+    ChannelMapGrid->SetMaxSize(s);
+
+    ChannelMapGrid->FitInside();
+    ChannelMapGrid->Refresh();
+    Layout();
 }

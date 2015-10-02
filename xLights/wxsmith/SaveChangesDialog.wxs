@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="SaveChangesDialog">
+		<title>Save Sequence Changes?</title>
+		<centered>1</centered>
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>1</cols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+							<label>*** The sequence you are closing has unsaved changes. ***</label>
+							<fg>#FF0000</fg>
+							<font>
+								<size>12</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+								<family>swiss</family>
+								<face>Arial</face>
+							</font>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+							<label>Please choose whether you would like to Save or Discard the changes &#x0A;or hit Cancel to return to the sequence.</label>
+							<font>
+								<size>12</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+								<family>swiss</family>
+							</font>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+					<cols>3</cols>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_SaveChanges" variable="Button_SaveChanges" member="yes">
+							<label>Save Changes</label>
+							<handler function="OnButton_SaveChangesClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_DiscardChanges" variable="Button_DiscardChanges" member="yes">
+							<label>Discard Changes</label>
+							<handler function="OnButton_DiscardChangesClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_CANCEL" variable="Button_Cancel" member="yes">
+							<label>Cancel</label>
+							<handler function="OnButton_CancelClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

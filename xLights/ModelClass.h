@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <vector>
+#include <map>
 #include <wx/xml/xml.h>
 #include <wx/gdicmn.h>
 #include <wx/colour.h>
@@ -37,12 +38,12 @@
 #include <wx/listbox.h>
 #include <wx/tokenzr.h>
 
-#include "ModelPreview.h"
-#include "Color.h"
 
+#include "Color.h"
 
 typedef std::vector<long> StartChannelVector_t;
 class NetInfoClass;
+class ModelPreview;
 
 #define NODE_RGB_CHAN_CNT           3
 #define NODE_RGBW_CHAN_CNT          4
@@ -367,7 +368,7 @@ private:
     void InitStar();
     void InitWreath();
     void InitSphere();
-    void InitWholeHouse(wxString);
+    void InitWholeHouse(const wxString &data, bool zeroBased = false);
 
     void SetBufferSize(int NewHt, int NewWi);
     void SetRenderSize(int NewHt, int NewWi);
@@ -396,7 +397,8 @@ private:
     bool modelv2;
     int StrobeRate;      // 0=no strobing
     double offsetXpct,offsetYpct;
-    double PreviewScale;
+    bool singleScale;
+    double PreviewScaleX, PreviewScaleY;
     int PreviewRotation;
     long ModelVersion;
 
@@ -434,10 +436,14 @@ public:
     wxString name;       // user-designated model name
     int BufferHt,BufferWi;  // size of the buffer
     int RenderHt,RenderWi;  // size of the rendered output
+    std::map<wxString, std::map<wxString, wxString> > faceInfo;
     bool MyDisplay;
     long ModelBrightness;   // Value from -100 to +100 indicates an adjustment to brightness for this model
     bool Selected=false;
     bool GroupSelected=false;
+    wxString ModelStartChannel;
+    NetInfoClass *ModelNetInfo;
+    bool Overlapping=false;
     void SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBased=false);
     size_t GetNodeCount() const;
     int GetChanCount() const;
@@ -446,12 +452,13 @@ public:
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
-    void SetScale(double newscale);
-    double GetScale();
+    void SetScale(double x, double y);
+    void GetScales(double &x, double &y);
     int GetPreviewRotation();
     int GetLastChannel();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml();
+    int GetNumberFromChannelString(wxString sc);
     wxCursor GetResizeCursor(int cornerIndex);
     void DisplayModelOnWindow(ModelPreview* preview, const xlColour *color =  NULL, bool allowSelected = true);
     void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
@@ -474,6 +481,8 @@ public:
     int NodeStartChannel(size_t nodenum) const;
     wxString NodeType(size_t nodenum) const;
     int MapToNodeIndex(int strand, int node) const;
+	void SetModelStartChan(wxString start_channel);
+    int ChannelStringToNumber(wxString channel);
 
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
@@ -489,6 +498,8 @@ public:
 //    int FindChannelAtXY(int x, int y, const wxString& model);
     wxString GetNodeXY(const wxString& nodenumstr);
     wxString GetNodeXY(int nodeinx);
+
+    void GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts);
 
     void SetTop(ModelPreview* preview,int y);
     void SetBottom(ModelPreview* preview,int y);
@@ -545,15 +556,21 @@ public:
     int GetStarSize(int starLayer) const {
         return starSizes[starLayer];
     }
-    wxString GetStrandName(int x) const {
+    wxString GetStrandName(int x, bool def = false) const {
         if (x < strandNames.size()) {
             return strandNames[x];
         }
+        if (def) {
+            return wxString::Format("Strand %d", x + 1);
+        }
         return "";
     }
-    wxString GetNodeName(int x) const {
+    wxString GetNodeName(int x, bool def = false) const {
         if (x < nodeNames.size()) {
             return nodeNames[x];
+        }
+        if (def) {
+            return wxString::Format("Node %d", x + 1);
         }
         return "";
     }

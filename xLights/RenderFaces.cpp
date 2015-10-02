@@ -66,23 +66,26 @@ int FindChannelAtXY(int x, int y, const wxString& model)
 #endif // 0
 
 
-void RgbEffects::RenderFaces(int Phoneme)
+void RgbEffects::RenderFaces(const wxString &Phoneme, const wxString &eyes, bool outline)
 {
-
-
-    /*
-        FacesPhoneme.Add("AI");     0
-        FacesPhoneme.Add("E");      1
-        FacesPhoneme.Add("FV");     2
-        FacesPhoneme.Add("L");      3
-        FacesPhoneme.Add("MBP");    4
-        FacesPhoneme.Add("O");      5
-        FacesPhoneme.Add("U");      6
-        FacesPhoneme.Add("WQ");     7
-        FacesPhoneme.Add("etc");    8
-        FacesPhoneme.Add("rest");   9
-    */
+    static const std::map<wxString, int> phonemeMap = {
+        {"AI", 0},
+        {"E", 1},
+        {"FV", 2},
+        {"L", 3},
+        {"MBP", 4},
+        {"O", 5},
+        {"U", 6},
+        {"WQ", 7},
+        {"etc", 8},
+        {"rest", 9},
+    };
     wxImage::HSVValue hsv;
+    std::map<wxString, int>::const_iterator it = phonemeMap.find(Phoneme);
+    int PhonemeInt = 0;
+    if (it != phonemeMap.end()) {
+        PhonemeInt = it->second;
+    }
 
 //    std::vector<int> chmap;
 //    std::vector<std::vector<int>> chmap; //array of arrays
@@ -97,8 +100,9 @@ void RgbEffects::RenderFaces(int Phoneme)
     Ht = BufferHt;
     Wt = BufferWi;
 //    int mode; // 1=auto, 2=coroface, 3=picture,4=movie;
-
-        mouth( Phoneme, Ht,  Wt); // draw a mouth syllable
+    
+    drawoutline(PhonemeInt, outline, eyes, BufferHt,BufferWi);
+    mouth( PhonemeInt, Ht,  Wt); // draw a mouth syllable
 
 
 
@@ -204,7 +208,6 @@ void RgbEffects::mouth(int Phoneme,int BufferHt, int BufferWi)
     // eyes
 
 
-    drawoutline(Phoneme,BufferHt,BufferWi);
 
     switch (Phoneme)
     {
@@ -326,7 +329,7 @@ void RgbEffects::facesCircle(int Phoneme, int xc,int yc,double radius,int start_
     }
 }
 
-void RgbEffects::drawoutline(int Phoneme,int BufferHt,int BufferWi)
+void RgbEffects::drawoutline(int Phoneme, bool outline, const wxString &eyes, int BufferHt,int BufferWi)
 {
     wxImage::HSVValue hsv;
     double radius;
@@ -346,19 +349,26 @@ void RgbEffects::drawoutline(int Phoneme,int BufferHt,int BufferWi)
 //  DRAW EYES
     int start_degrees=0;
     int end_degrees=360;
-    if(Phoneme==5 || Phoneme==6 || Phoneme==7)
-    {
+    if (eyes == "Auto") {
+        if(Phoneme==5 || Phoneme==6 || Phoneme==7)
+        {
+            start_degrees=180;
+            end_degrees=360;
+        }
+    } else if (eyes == "Closed") {
         start_degrees=180;
         end_degrees=360;
     }
-    xc = (int)(0.5 + Wt*0.33); // left eye
-    yc = (int)(0.5 + Ht*0.75);
-    radius = Wt*0.08;
-    facesCircle( Phoneme,xc, yc, radius,start_degrees,end_degrees);
-    xc = (int)(0.5 + Wt*0.66); // right eye
-    yc = (int)(0.5 + Ht*0.75);
-    radius = Wt*0.08;
-    facesCircle(Phoneme,xc, yc, radius,start_degrees,end_degrees);
+    if (eyes != "(off)") {
+        xc = (int)(0.5 + Wt*0.33); // left eye
+        yc = (int)(0.5 + Ht*0.75);
+        radius = Wt*0.08;
+        facesCircle( Phoneme,xc, yc, radius,start_degrees,end_degrees);
+        xc = (int)(0.5 + Wt*0.66); // right eye
+        yc = (int)(0.5 + Ht*0.75);
+        radius = Wt*0.08;
+        facesCircle(Phoneme,xc, yc, radius,start_degrees,end_degrees);
+    }
 
 
     /*
@@ -369,28 +379,29 @@ void RgbEffects::drawoutline(int Phoneme,int BufferHt,int BufferWi)
     *
     *
     */
+    if (outline) {
+        for(y=3; y<BufferHt-3; y++)
+        {
+            SetPixel(0,y,hsv); // Left side of mouyh
+            SetPixel(BufferWi-1,y,hsv); // rightside
+        }
+        for(x=3; x<BufferWi-3; x++)
+        {
+            SetPixel(x,0,hsv); // Bottom
+            SetPixel(x,BufferHt-1,hsv); // Bottom
+        }
+        SetPixel(2,1,hsv); // Bottom left
+        SetPixel(1,2,hsv); //
 
-    for(y=3; y<BufferHt-3; y++)
-    {
-        SetPixel(0,y,hsv); // Left side of mouyh
-        SetPixel(BufferWi-1,y,hsv); // rightside
+        SetPixel(BufferWi-3,1,hsv); // Bottom Right
+        SetPixel(BufferWi-2,2,hsv); //
+
+        SetPixel(BufferWi-3,BufferHt-2,hsv); // Bottom Right
+        SetPixel(BufferWi-2,BufferHt-3,hsv); //
+
+        SetPixel(2,BufferHt-2,hsv); // Bottom Right
+        SetPixel(1,BufferHt-3,hsv); //
     }
-    for(x=3; x<BufferWi-3; x++)
-    {
-        SetPixel(x,0,hsv); // Bottom
-        SetPixel(x,BufferHt-1,hsv); // Bottom
-    }
-    SetPixel(2,1,hsv); // Bottom left
-    SetPixel(1,2,hsv); //
-
-    SetPixel(BufferWi-3,1,hsv); // Bottom Right
-    SetPixel(BufferWi-2,2,hsv); //
-
-    SetPixel(BufferWi-3,BufferHt-2,hsv); // Bottom Right
-    SetPixel(BufferWi-2,BufferHt-3,hsv); //
-
-    SetPixel(2,BufferHt-2,hsv); // Bottom Right
-    SetPixel(1,BufferHt-3,hsv); //
 }
 
 /*

@@ -405,9 +405,9 @@ int TimeLine::GetPixelOffsetFromStartTime()
 
 int TimeLine::GetPositionFromTimeMS(int timeMS)
 {
-   double majorHashs = (double)timeMS/(double)TimePerMajorTickInMS();
-   double xAbsolutePosition = majorHashs * (double)PIXELS_PER_MAJOR_HASH;
-   return (int)(xAbsolutePosition - mStartPixelOffset);
+    double majorHashs = (double)timeMS/(double)TimePerMajorTickInMS();
+    double xAbsolutePosition = majorHashs * (double)PIXELS_PER_MAJOR_HASH;
+    return (int)(xAbsolutePosition - mStartPixelOffset);
 }
 
 void TimeLine::GetPositionsFromTimeRange(int startTimeMS,int endTimeMS,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2, int& x3, int& x4)
@@ -488,6 +488,13 @@ int TimeLine::GetAbsoluteTimeMSfromPosition(int position)
     return time;
 }
 
+int TimeLine::GetRawTimeMSfromPosition(int position)
+{
+    float nMajorHashs = (float)position/(float)PIXELS_PER_MAJOR_HASH;
+    int time = mStartTimeMS + (int)(nMajorHashs*TimePerMajorTickInMS());
+    return time;
+}
+
 int TimeLine::GetMaxViewableTimeMS()
 {
     float width = (float)GetSize().x;
@@ -551,6 +558,7 @@ void TimeLine::Initialize()
     mSelectedPlayMarkerStartMS = -1;
     mSelectedPlayMarkerEndMS = -1;
     mCurrentPlayMarkerMS = -1;
+    timeline_initiated_play = false;
     m_dragging = false;
 }
 

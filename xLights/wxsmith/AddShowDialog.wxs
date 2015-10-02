@@ -3,12 +3,16 @@
 	<object class="wxDialog" name="AddShowDialog">
 		<title>Schedule Playlist</title>
 		<id_arg>0</id_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxFULL_REPAINT_ON_RESIZE</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-			<cols>3</cols>
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
 					<cols>1</cols>
 					<growablecols>0</growablecols>
+					<growablerows>2</growablerows>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 							<cols>2</cols>
@@ -79,7 +83,7 @@
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -134,7 +138,7 @@
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -200,7 +204,7 @@
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -215,6 +219,7 @@
 					<object class="sizeritem">
 						<object class="wxListBox" name="ID_LISTBOX1" variable="ListBoxDates" member="yes">
 							<default>-1</default>
+							<minsize>-1,150</minsize>
 							<style>wxLB_EXTENDED|wxLB_ALWAYS_SB</style>
 						</object>
 						<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -234,7 +239,7 @@
 								</object>
 							</object>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

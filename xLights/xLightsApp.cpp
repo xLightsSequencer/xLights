@@ -15,6 +15,9 @@
 #include <wx/image.h>
 //*)
 
+#ifdef LINUX
+#include <GL/glut.h>
+#endif
 
 #ifndef __WXMSW__
 #include <execinfo.h>
@@ -142,10 +145,12 @@ void handleCrash(void *data) {
 #else
     trace = windows_get_stacktrace(data);
 #endif
-    
-    trace += wxString::Format("\nCrashed thread id: %X\n", wxThread::GetCurrentId());
+
+    trace += wxString::Format("\nCrashed thread id: %ld\n", wxThread::GetCurrentId());
+#ifndef LINUX
     trace += topFrame->GetThreadStatusReport();
-    
+#endif // LINUX
+
     report->AddText("backtrace.txt", trace, "Backtrace");
     if (!wxThread::IsMain() && topFrame != nullptr) {
         topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report);
@@ -185,28 +190,57 @@ bool xLightsApp::OnInit()
 //TODO: maybe use wxCmdLineParser instead?
 //do this before instantiating xLightsFrame so it can use info gathered here
     wxString unrecog, info;
-    for (int i = 1; i < wxApp::argc; ++i)
-        if (!strcasecmp(wxApp::argv[i], "/debug"))
-        {
-            WantDebug = true;
+
+    static const wxCmdLineEntryDesc cmdLineDesc [] =
+    {
+        { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+        { wxCMD_LINE_SWITCH, "n", "noauto", "enable auto-run prompt"},
+        { wxCMD_LINE_SWITCH, "d", "debug", "enable debug mode"},
+        { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
+        { wxCMD_LINE_OPTION, "s", "show", "specify show directory"},
+        { wxCMD_LINE_PARAM, "", "", "sequence file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
+        { wxCMD_LINE_NONE }
+    };
+
+    wxCmdLineParser parser(cmdLineDesc, argc, argv);
+    switch (parser.Parse()) {
+    case -1:
+        // help was given
+        return false;
+    case 0:
+        WantDebug = parser.Found("d");
+        if (WantDebug) {
             info += _("Debug is ON\n");
         }
-        else if (wxApp::argv[i].StartsWith(wxT("/debug=")))
-        {
-            WantDebug = true;
-            DebugPath = wxApp::argv[i].Mid(7);
-            info += _("Debug is ON, path = '") + DebugPath + _("'");
-        }
-        else if (!strcasecmp(wxApp::argv[i], "/noauto"))
-        {
-            RunPrompt = true;
+        RunPrompt = parser.Found("n");
+        if (RunPrompt) {
             info += _("Auto-run prompt is ON\n");
         }
-//        else if ... //check for other options
-        else unrecog += wxString::Format("\narg[%d/%d]: '%s'", i, wxApp::argc, wxApp::argv[i]);
-
-    if (!unrecog.empty()) wxMessageBox(info + _("Unrecognized command line parameters:") + unrecog, _("Command Line Error"));
-    else if (!info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback
+        if (parser.Found("s", &showDir)) {
+            info += _("Setting show directory to ") + showDir + "\n";
+        }
+        if (parser.Found("m", &mediaDir)) {
+            info += _("Setting media directory to ") + mediaDir + "\n";
+        } else if (!showDir.IsNull()) {
+            mediaDir = showDir;
+        }
+        if (parser.GetParamCount()>0) {
+            sequenceFile = parser.GetParam(0);
+            wxString seqDir =
+            info += _("Loading sequence ") + sequenceFile + "\n";
+            if (showDir.IsNull()) {
+                showDir=wxPathOnly(sequenceFile);
+            }
+            if (mediaDir.IsNull()) {
+                mediaDir=wxPathOnly(sequenceFile);
+            }
+        }
+        if (!info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback*/
+        break;
+    default:
+        wxMessageBox(_("Unrecognized command line parameters"),_("Command Line Error"));
+        return false;
+    }
 
 #if wxUSE_ON_FATAL_EXCEPTION
     wxHandleFatalExceptions();
@@ -227,6 +261,10 @@ bool xLightsApp::OnInit()
     topFrame = (xLightsFrame* )GetTopWindow();
 
     wxImage::AddHandler(new wxPNGHandler);
+    #ifdef LINUX
+        glutInit(&(wxApp::argc), wxApp::argv);
+    #endif
+
 
     return wxsOK;
 }
@@ -241,4 +279,6 @@ void xLightsApp::OnFatalException() {
 bool xLightsApp::WantDebug = false;
 bool xLightsApp::RunPrompt = false; //prompt before running schedule (allows override) -DJ
 wxString xLightsApp::DebugPath;
-
+wxString xLightsApp::mediaDir;
+wxString xLightsApp::showDir;
+wxString xLightsApp::sequenceFile;

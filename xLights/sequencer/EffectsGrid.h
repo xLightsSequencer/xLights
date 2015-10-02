@@ -19,10 +19,18 @@
 
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 
-#define EFFECT_RESIZE_NO                    0
-#define EFFECT_RESIZE_LEFT                  1
-#define EFFECT_RESIZE_RIGHT                 2
-#define EFFECT_RESIZE_MOVE                  3
+
+enum class HitLocation {
+    NONE,
+    LEFT_EDGE,
+    LEFT_EDGE_DISCONNECT,
+    LEFT,
+    CENTER,
+    RIGHT,
+    RIGHT_EDGE_DISCONNECT,
+    RIGHT_EDGE
+};
+
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
@@ -34,6 +42,7 @@ struct EffectDropData;
 
 class MainSequencer;
 class PixelBufferClass;
+class SequenceData;
 
 class EffectsGrid : public xlGLCanvas
 {
@@ -71,6 +80,9 @@ protected:
 
 
 private:
+    Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
+    int GetClippedPositionFromTimeMS(int ms);
+
     void sendRenderEvent(const wxString &model, int start, int end, bool clear = true);
     void render(wxPaintEvent& evt);
 	void mouseMoved(wxMouseEvent& event);
@@ -112,6 +124,7 @@ private:
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect);
     Element* GetActiveTimingElement();
     bool MultipleEffectsSelected();
+    bool PapagayoEffectsSelected();
     void ResizeSingleEffect(int position);
     void ResizeMoveMultipleEffects(int position, bool offset);
     void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight);
@@ -134,6 +147,11 @@ private:
     xlColor * mGridlineColor;
     xlColor * mTimingColor;
     xlColor * mTimingVerticalLine;
+    xlColor * mLabelColor;
+    xlColor * mLabelOutlineColor;
+    xlColor * mPhraseColor;
+    xlColor * mWordColor;
+    xlColor * mPhonemeColor;
 
     xlColor * mSelectionColor;
     wxWindow* mParent;
@@ -175,6 +193,9 @@ private:
     static const long ID_GRID_MNU_RANDOM_EFFECTS;
     static const long ID_GRID_MNU_UNDO;
     static const long ID_GRID_MNU_PRESETS;
+    static const long ID_GRID_MNU_BREAKDOWN_PHRASE;
+    static const long ID_GRID_MNU_BREAKDOWN_WORD;
+    static const long ID_GRID_MNU_BREAKDOWN_WORDS;
 
     EventPlayEffectArgs* playArgs;
 

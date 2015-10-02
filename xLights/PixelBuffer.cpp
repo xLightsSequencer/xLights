@@ -167,10 +167,10 @@ void PixelBufferClass::Clear(int which) {
 }
 bool MixTypeHandlesAlpha(MixTypes mt) {
     switch (mt) {
-        case Mix_Normal:
-            return true;
-        default:
-            return false;
+    case Mix_Normal:
+        return true;
+    default:
+        return false;
     }
 }
 
@@ -242,8 +242,8 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
     double emt, emtNot;
     switch (mixType[layer]) {
     case Mix_Normal:
-            c0.alpha = c0.alpha * fadeFactor[layer] * (1.0 - effectMixThreshold[layer]);
-            c = c0.AlphaBlend(c1);
+        c0.alpha = c0.alpha * fadeFactor[layer] * (1.0 - effectMixThreshold[layer]);
+        c = c0.AlphaBlend(c1);
         break;
     case Mix_Effect1:
     case Mix_Effect2: {
@@ -321,23 +321,27 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         // Effect 1 shadows onto effect 2
         hsv0 = wxImage::RGBtoHSV(c0);
         hsv1 = wxImage::RGBtoHSV(c1);
-        if (hsv0.value > effectMixThreshold[layer]) {
-            // if effect 1 is non black
-            hsv1.value = hsv0.value;
-            hsv1.saturation = hsv0.saturation;
-            c = hsv1;
-        }
+        //   if (hsv0.value > effectMixThreshold[layer]) {
+        // if effect 1 is non black
+        //  to shadow we will shift the hue on the primary layer using the hue and brightness from the
+        //  other layer
+        if(hsv0.value>0.0) hsv1.hue = hsv1.hue + (hsv0.value*(hsv1.hue-hsv0.hue))/5.0;
+        // hsv1.value = hsv0.value;
+        //hsv1.saturation = hsv0.saturation;
+        c = hsv1;
+        //   }
         break;
     case Mix_Shadow_2on1:
         // Effect 2 shadows onto effect 1
         hsv0 = wxImage::RGBtoHSV(c0);
         hsv1 = wxImage::RGBtoHSV(c1);
-        if (hsv1.value > effectMixThreshold[layer]) {
-            // if effect 1 is non black
-            hsv0.value = hsv1.value;
-            hsv0.saturation = hsv1.saturation;
-            c = hsv0;
-        }
+//if (hsv1.value > effectMixThreshold[layer]) {
+        // if effect 1 is non black
+        if(hsv1.value>0.0) hsv0.hue = hsv0.hue + (hsv1.value*(hsv0.hue-hsv1.hue))/2.0;
+        //hsv0.value = hsv1.value;
+//hsv0.saturation = hsv1.saturation;
+        c = hsv0;
+        //    }
         break;
     case Mix_Layered:
         hsv1 = wxImage::RGBtoHSV(c1);
@@ -391,29 +395,29 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
             // add sparkles
             if (sparkle_count[layer] > 0 && color != xlBLACK) {
                 switch (sparkle % (208 - sparkle_count[layer])) {
-                    case 1:
-                    case 7:
-                        // too dim
-                        //color.Set("#444444");
-                        break;
-                    case 2:
-                    case 6:
-                        color.Set(0x88, 0x88, 0x88);
-                        break;
-                    case 3:
-                    case 5:
-                        color.Set(0xbb, 0xbb, 0xbb);
-                        break;
-                    case 4:
-                        color.Set(255, 255, 255);
-                        break;
+                case 1:
+                case 7:
+                    // too dim
+                    //color.Set("#444444");
+                    break;
+                case 2:
+                case 6:
+                    color.Set(0x88, 0x88, 0x88);
+                    break;
+                case 3:
+                case 5:
+                    color.Set(0xbb, 0xbb, 0xbb);
+                    break;
+                case 4:
+                    color.Set(255, 255, 255);
+                    break;
                 }
                 sparkle++;
             }
             if (brightness[layer] != 100 || contrast[layer] != 0) {
                 hsv = color.asHSV();
                 hsv.value = hsv.value * ((double)brightness[layer]/(double)100);
-                
+
                 // Apply Contrast
                 if (hsv.value< 0.5) {
                     // reduce brightness when below 0.5 in the V value or increase if > 0.5
@@ -421,14 +425,14 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
                 } else {
                     hsv.value = hsv.value + (hsv.value* ((double)contrast[layer]/(double)100));
                 }
-                
+
                 if (hsv.value < 0.0) hsv.value=0.0;
                 if (hsv.value > 1.0) hsv.value=1.0;
                 unsigned char alpha = color.Alpha();
                 color = wxImage::HSVtoRGB(hsv);
                 color.alpha = alpha;
             }
-            
+
             if (MixTypeHandlesAlpha(mixType[layer])) {
                 c = mixColors(x, y, color, c, layer);
             } else {
@@ -590,19 +594,21 @@ void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat
     effects[CurrentLayer].RenderCurtain(edge,effect,swag,repeat, cspeed);
 }
 
-void PixelBufferClass::RenderFaces(int Phoneme) {
-    effects[CurrentLayer].RenderFaces(Phoneme);
+void PixelBufferClass::RenderFaces(const wxString &Phoneme, const wxString &eyes, bool outline) {
+    effects[CurrentLayer].RenderFaces(Phoneme, eyes, outline);
 }
-//void PixelBufferClass::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/)
-void PixelBufferClass::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline) {
-//    effects[CurrentLayer].RenderCoroFaces(Phoneme,x_y,Outline_x_y,Eyes_x_y/*, parsed_xy*/);
-    effects[CurrentLayer].RenderCoroFaces(Phoneme, eyes, face_outline);
+void PixelBufferClass::RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString& eyes, bool face_outline) {
+    effects[CurrentLayer].RenderCoroFacesFromPGO(Phoneme, eyes, face_outline);
 }
+void PixelBufferClass::RenderFaces(SequenceElements *elements, const wxString &faceDefinition,
+                                   const wxString &Phoneme, const wxString &track, const wxString& eyes, bool face_outline) {
+    effects[CurrentLayer].RenderFaces(elements, faceDefinition, Phoneme, track, eyes, face_outline);
+}
+
 
 void PixelBufferClass::RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                                  int duration, int acceleration, bool reverse_dir, bool blend_edges,
-                                 int num_blades, int blade_width, int blade_angle, int num_elements, int element_width )
-{
+                                 int num_blades, int blade_width, int blade_angle, int num_elements, int element_width ) {
     effects[CurrentLayer].RenderFan( center_x, center_y, start_radius, end_radius, start_angle, revolutions,
                                      duration, acceleration, reverse_dir, blend_edges,
                                      num_blades, blade_width, blade_angle, num_elements, element_width );
@@ -633,6 +639,14 @@ void PixelBufferClass::RenderGlediator( const wxString& NewPictureName) {
 
 void PixelBufferClass::RenderLife(int Count, int Seed, int lspeed) {
     effects[CurrentLayer].RenderLife(Count,Seed, lspeed);
+}
+void PixelBufferClass::RenderLightning(int Number_Bolts, int Number_Segments, bool Use_All_Colors) {
+    effects[CurrentLayer].RenderLightning(Number_Bolts, Number_Segments, Use_All_Colors );
+}
+void PixelBufferClass::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int MSpeed, bool reverse_dir,
+                                     int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x) {
+    effects[CurrentLayer].RenderMarquee(BandSize, SkipSize, Thickness, stagger, MSpeed, reverse_dir,
+                                        x_scale, y_scale, xc_adj, yc_adj, pixelOffsets, wrap_x);
 }
 
 void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed) {
@@ -665,6 +679,9 @@ void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int p
                                          pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,
                                          pinwheel_armsize, pspeed);
 }
+void PixelBufferClass::RenderPlasma(int ColorScheme, int Style, int Line_Density,  int PlasmaDirection, int PlasmaSpeed) {
+    effects[CurrentLayer].RenderPlasma(ColorScheme,Style,Line_Density, PlasmaDirection, PlasmaSpeed);
+}
 void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles) {
     effects[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D, cycles );
 }
@@ -672,8 +689,7 @@ void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,float c
     effects[CurrentLayer].RenderShimmer(Duty_Factor,Use_All_Colors,cycles );
 }
 void PixelBufferClass::RenderShockwave(int center_x, int center_y, int start_radius, int end_radius,
-                                       int start_width, int end_width, int acceleration, bool blend_edges )
-{
+                                       int start_width, int end_width, int acceleration, bool blend_edges ) {
     effects[CurrentLayer].RenderShockwave( center_x, center_y, start_radius, end_radius, start_width, end_width, acceleration, blend_edges );
 }
 void PixelBufferClass::RenderSingleStrandChase(const wxString &ColorScheme,int Number_Chases, int Color_Mix1,
@@ -719,8 +735,8 @@ void PixelBufferClass::RenderTree(int Branches, int tspeed) {
     effects[CurrentLayer].RenderTree(Branches, tspeed);
 }
 
-void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe) {
-    effects[CurrentLayer].RenderTwinkle(Count,Steps,Strobe);
+void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe, bool reRandomize) {
+    effects[CurrentLayer].RenderTwinkle(Count,Steps,Strobe,reRandomize);
 }
 
 void PixelBufferClass::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,

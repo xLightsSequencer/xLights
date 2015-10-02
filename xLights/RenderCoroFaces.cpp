@@ -45,73 +45,6 @@
 #endif
 
 
-#if 0 //obsolete
-int FindChannelAtXY(int x, int y, const wxString& model)
-{
-//get list of models:
-    wxString buf;
-    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
-    {
-        if (!model.IsEmpty() && model.CmpNoCase((*it)->name)) continue; //don't check this model
-
-        /*
-        //        debug(1, "checking model '%s' ...", (const char*)(*it)->name.c_str());
-              buf = xLightsFrame::PreviewModels[0]->ChannelLayoutHtml();
-               if (buf.size() > 500) buf.resize(500);
-               debug(1, "first 500 char of layout html = %s", (const char*)buf);
-               wxString buf = (*it)->ChannelLayoutHtml();
-
-                for (size_t n = (*it)->GetNodeCount(); n > 0; --n)
-               {
-                   Nodes[nodenum]->Coords.size()
-               }
-               size_t CoordCount=GetCoordCount(n);
-                for(size_t c=0; c < CoordCount; c++)
-               {
-                   Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
-                   Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY;
-               }
-
-        */
-        int ch = (*it)->FindChannelAt(x, y);
-        if (ch != -1) return ch;
-    }
-    return -1; //pixel not found
-}
-#endif // 0
-
-
-#if 0
-static wxString prev_model;
-static void get_elements(wxCheckListBox* listbox, const wxString& model)
-{
-    listbox->Clear();
-    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
-    {
-        if ((*it)->name != model) continue;
-        if ((*it)->GetChannelCoords(listbox))
-        {
-            prev_model = model;
-            return;
-        }
-    }
-//also list non-preview models:
-    for (auto it = xLightsFrame::OtherModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
-    {
-        if ((*it)->name != model) continue;
-        if ((*it)->GetChannelCoords(listbox))
-        {
-            prev_model = model;
-            return;
-        }
-    }
-}
-#endif // 0
-
-//static bool IsParsed(const wxString& settings)
-//{
-//    return settings.Find('@') != wxNOT_FOUND;
-//}
 
 //TODO: move this to a shared location:
 static wxString NoInactive(wxString name)
@@ -175,16 +108,15 @@ static bool parse_model(const wxString& want_model)
         }
     }
 #endif
-    debug(10, "model '%s' not found", (const char*)want_model.c_str());
-    return false; //not found
+    return false;
 }
 
 //NOTE: params are re-purposed as follows for Coro face mode:
 // x_y = list of active elements for this frame
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
-//void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/)
-void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline)
+
+void RgbEffects::RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString& eyes, bool face_outline)
 {
 //    const wxString& parsed_xy = IsParsed(x_y)? x_y: wxEmptyString;
 //NOTE:
@@ -193,291 +125,327 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
 //therefore we can access the model info by going to parent object's buffer member
 //    wxString model_name = "???";
     if (!curPeriod) model_xy.clear(); //flush cache once at start of each effect
-    debug(10, "RenderCoroFaces: frame %d (%7.3f sec), state %d, model '%s', mouth/phoneme '%s', eyes '%s', face outline? %d", cur_period, cur_period * 0.05, state, (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)eyes.c_str(), face_outline);
-//    if (prev_model != cur_model) get_elements(CheckListBox_CoroFaceElements, curmodel); //update choice list
 
-//NOTE: Pgo tab adds "a-" prefix for auto-faces
-//CAUTION: ints must match what RenderFaces() is expecting
-    static std::unordered_map<std::string, int> auto_phonemes {{"a-AI", 0}, {"a-E", 1}, {"a-FV", 2}, {"a-L", 3}, {"a-MBP", 4}, {"a-O", 5}, {"a-U", 6}, {"a-WQ", 7}, {"a-etc", 8}, {"a-rest", 9}};
+    static std::unordered_map<std::string, wxString> auto_phonemes {{"a-AI", "AI"}, {"a-E", "E"}, {"a-FV", "FV"}, {"a-L", "L"},
+              {"a-MBP", "MBP"}, {"a-O", "O"}, {"a-U", "U"}, {"a-WQ", "WQ"}, {"a-etc", "etc"}, {"a-rest", "rest"}};
 //    static const char* auto_eyes[] = {"Open", "Closed", "Left", "Right", "Up", "Down"};
 
     if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
     {
-        RenderFaces(auto_phonemes[(const char*)Phoneme.c_str()]); //TODO: add params for eyes, outline
+        RenderFaces(auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline);
         return;
     }
 
-    __attribute__((unused)) bool ok;
-//    wxColour color;
     wxImage::HSVValue hsv;
-//    int maxframe=BufferHt*2;
-//    int frame=(BufferHt * state / 200)%maxframe;
-//    double offset=double(state)/100.0;
-//    size_t colorcnt=GetColorCount();
-
-//    std::vector<int> chmap;
-//    std::vector<std::vector<int>> chmap; //array of arrays
-//    chmap.resize(BufferHt * BufferWi,0);
-//    ModelClass mc;
-//    mc.GetChannelCoords(chmap, true); //method is on ModelClass object
-
-
-//    if (IsParsed(x_y)) //already have (X,Y) info
-//    {
-//TODO: how is color palette supposed to work with Coro faces?
-//        wxImage::HSVValue hsv;
-//        size_t colorcnt=GetColorCount();
-//        int ColorIdx=0;
-//        palette.GetHSV(ColorIdx, hsv);
-#if 0
-        hsv.hue=0.0;
-        hsv.value=1.0;
-        hsv.saturation=1.0;
-#else
+    
         xlColor color;
-//        palette.GetColor(ColorMap.size() % GetColorCount(), color); //assign user-selected colors to shape palette sequentially, loop if run out of colors
         palette.GetColor(0, color); //use first color; user must make sure it matches model node type
         color = xlWHITE; //kludge: must use WHITE to get single-color nodes to show correctly
         Color2HSV(color, hsv);
-#endif // 0
 
         std::vector<wxPoint> first_xy;
         ModelClass* model_info = xLightsFrame::AllModels[cur_model].get();
         if (!model_info || !parse_model(cur_model))
         {
-            debug(10, "model '%s' not found", (const char*)cur_model.c_str());
             return;
         }
-//        wxXmlNode* xy_info = model_xy[(const char*)cur_model.c_str()];
         std::unordered_map<std::string, std::string>& map = model_xy[(const char*)cur_model.c_str()];
         if (Phoneme == wxT("(test)"))
         {
             /*static*/ wxString info = eyes;
-//            eyes.clear();
-//            if (!state && !EffectTreeDialog::PromptForName(NULL, &info, wxT("Enter @(x, y) to turn on"), wxT("Need (X, Y) for test"))) return;
-//            info = wxT("@F2"); //TextCtrl_CoroTest->GetValue();
-            ok = ModelClass::ParseFaceElement(info, first_xy);
-            debug(10, "model '%s', state %d, test '%s', turn on? %d", (const char*)cur_model.c_str(), state, (const char*)info.c_str(), ok);
+            ModelClass::ParseFaceElement(info, first_xy);
         }
         if (!Phoneme.empty())
         {
             wxString info = map[(const char*)Phoneme.c_str()];
-//            if (xy_info) info = xy_info->GetAttribute(Phoneme);
-              ok = ModelClass::ParseFaceElement(info, first_xy);
-//            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
-            debug(10, "model '%s', phoneme '%s', parsed info '%s', turn on? %d", (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)info.c_str(), ok);
+            ModelClass::ParseFaceElement(info, first_xy);
         }
         if (!eyes.empty())
         {
             wxString info = map[(const char*)wxString::Format(wxT("Eyes_%s"), eyes.Lower()).c_str()];
-//            if (xy_info) info = xy_info->GetAttribute(eyes);
-            ok = ModelClass::ParseFaceElement(info, first_xy);
-//            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
-            debug(10, "model '%s', eyes '%s', parsed info '%s', turn on? %d", (const char*)cur_model.c_str(), (const char*)eyes.c_str(), (const char*)info.c_str(), ok);
+            ModelClass::ParseFaceElement(info, first_xy);
         }
         if (face_outline)
         {
             wxString info = map["Outline"];
-//            if (xy_info) info = xy_info->GetAttribute("Outline");
-            ok = ModelClass::ParseFaceElement(info, first_xy);
-//            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
-            debug(10, "model '%s', outline, parsed info '%s', turn on? %d", (const char*)cur_model.c_str(), (const char*)info.c_str(), ok);
+            ModelClass::ParseFaceElement(info, first_xy);
         }
         for (auto it = first_xy.begin(); it != first_xy.end(); ++it)
         {
             --(*it).x; // "A" = 1 = first col
             SetPixel((*it).x, BufferHt - (*it).y, hsv); //only need to turn on first pixel for each face part
-            debug(10, "turn on (x %d, y %d), set to color [r %d, g %d, b %d] => [h %3.2f, s %3.2f, v %3.2f]", (*it).x, (*it).y, color.Red(), color.Green(), color.Blue(), hsv.hue, hsv.saturation, hsv.value);
         }
+}
 
-#if 0 //obsolete
-        wxStringTokenizer wtkz(x_y, "+");
-        while (wtkz.HasMoreTokens())
-        {
-            wxString nextstr = wtkz.GetNextToken();
-            wxPoint first_xy;
-            bool ok = ModelClass::ParseFaceElement(nextstr, &first_xy);
-            first_xy.y = BufferHt - first_xy.y; //y is reversed?
-            debug(10, "coro faces: turn on '%s'? %d, xy (%d, %x)", (const char*)nextstr.c_str(), ok, first_xy.x, first_xy.y);
-            if (!ok) continue;
-            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
-        }
+
+void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDefinition,
+                             const wxString& Phoneme, const wxString &trackName, const wxString& eyesIn, bool face_outline)
+{
+    
+    if (needToInit) {
+        needToInit = false;
+        elements->AddRenderDependency(trackName, cur_model);
+    }
+    wxString eyes = eyesIn;
+
+    Element *track = elements->GetElement(trackName);
+    wxMutex tmpLock;
+    wxMutex *lock = &tmpLock;
+    if (track != nullptr) {
+        lock = &track->GetRenderLock();
+    }
+    wxMutexLocker locker(*lock);
+    
+    if (cur_model == "") {
         return;
     }
-#endif // 0
-
-//    wxString html = "<html><body><table border=0>";
-//    int Ht, Wt;
-//    Ht = BufferHt;
-//    Wt = BufferWi;
-
-//        coroface( Phoneme, x_y, Outline_x_y, Eyes_x_y); // draw a mouth syllable
-
-
-
-//size_t NodeCount=GetNodeCount();
-
-//    above is from ModelClass::ChannelLayoutHtml()
-#if 0 //sample code for Sean
-    std::vector<std::vector<int>> face_channels;
-    wxString model_name = "(change this)";
-    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
-    {
-        if (model_name.CmpNoCase((*it)->name)) continue; //don't check this model
-        wxSize wh = (*it)->GetChannelCoords(face_channels, true);
-//        debug(1, "model '%s' is %d x %d, channel[0,0] = %d, ...", (const char*)(*it)->name.c_str(), wh.x, wh.y, face_channels[0][0]);
-        break;
+    ModelClass* model_info = xLightsFrame::AllModels[cur_model].get();
+    if (model_info == nullptr) {
+        return;
     }
-#endif // 1
-#if 0 //DEBUG
-//get list of models:
-    wxString buf;
-    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
-        buf += ", " + (*it)->name; //ModelClassPtr*
-    debug(1, "faces: models = %s", (CmpNoCaseconst char*)buf + 2);
+    
+    wxString definition = faceDefinition;
+    if (definition == "Default" && !model_info->faceInfo.empty()) {
+        definition = model_info->faceInfo.begin()->first;
+    }
+    bool found = true;
+    std::map<wxString, std::map<wxString, wxString> >::iterator it = model_info->faceInfo.find(definition);
+    if (it == model_info->faceInfo.end()) {
+        //not found
+        found = false;
+    }
+    if (!found) {
+        if ("Coro" == definition && model_info->faceInfo.find("SingleNode") != model_info->faceInfo.end()) {
+            definition = "SingleNode";
+            found = true;
+        } else if ("SingleNode" == definition && model_info->faceInfo.find("Coro") != model_info->faceInfo.end()) {
+            definition = "Coro";
+            found = true;
+        }
+    }
+    wxString modelType = found ? model_info->faceInfo[definition]["Type"] : definition;
+    if (modelType == "") {
+        modelType = definition;
+    }
 
-//get info about one of the models:
-    buf = xLightsFrame::PreviewModels[0]->name;
-    debug(1, "first model is %s", (const char*)buf);
-    buf = xLightsFrame::PreviewModels[0]->ChannelLayoutHtml();
-    if (buf.size() > 500) buf.resize(500);
-    debug(1, "first 500 char of layout html = %s", (const char*)buf);
-#endif
+    int type = 3;
+    
+    if ("Coro" == modelType || "SingleNode" == modelType) {
+        type = 0;
+    } else if ("NodeRange" == modelType) {
+        type = 1;
+    } else if ("Rendered" == definition || "Default" == definition) {
+        type = 2;
+    }
+    
+    wxString phoneme = Phoneme;
+    if (phoneme == "") {
+        //GET Phoneme from timing track
+        if (track == nullptr || track->GetEffectLayerCount() < 3) {
+            phoneme = "rest";
+            if ("Auto" == eyes) {
+                if ((curPeriod * frameTimeInMs) >= nextBlinkTime) {
+                    //roughly every 5 seconds we'll blink
+                    nextBlinkTime += (4500 + (rand() % 1000));
+                    blinkEndTime = curPeriod * frameTimeInMs + 101; //100ms blink
+                    eyes = "Closed";
+                } else if ((curPeriod * frameTimeInMs) < blinkEndTime) {
+                    eyes = "Closed";
+                } else {
+                    eyes = "Open";
+                }
+            }
+        } else {
+            int startms = -1;
+            int endms = -1;
+
+            EffectLayer *layer = track->GetEffectLayer(2);
+            wxMutexLocker locker(layer->GetLock());
+            int time = curPeriod * frameTimeInMs + 1;
+            Effect *ef = layer->GetEffectByTime(time);
+            if (ef == nullptr) {
+                phoneme = "rest";
+            } else {
+                startms = ef->GetStartTimeMS();
+                endms = ef->GetEndTimeMS();
+                phoneme = ef->GetEffectName();
+            }
+            if ("Auto" == eyes && phoneme == "rest" && type != 2) {
+                 if (startms == -1) {
+                     //need to figure out the time
+                     for (int x = 0; x < layer->GetEffectCount() && startms == -1; x++) {
+                         ef = layer->GetEffect(x);
+                         if (ef->GetStartTimeMS() > curPeriod * frameTimeInMs) {
+                             endms = ef->GetStartTimeMS();
+                             if (x > 0) {
+                                 startms = layer->GetEffect(x - 1)->GetEndTimeMS();
+                             } else {
+                                 startms = 0;
+                             }
+                         }
+                     }
+                 }
+                
+                if ((curPeriod * frameTimeInMs) >= nextBlinkTime) {
+                    if ((startms + 150) >= (curPeriod * frameTimeInMs)) {
+                        //don't want to blink RIGHT at the start of the rest, delay a little bie
+                        int tmp =  (curPeriod * frameTimeInMs) + 150 + rand() % 400;
+                        
+                        //also don't want it right at the end
+                        if ((tmp + 130) > endms) {
+                            nextBlinkTime = (startms + endms) / 2;
+                        } else {
+                            nextBlinkTime = tmp;
+                        }
+                    } else {
+                        //roughly every 5 seconds we'll blink
+                        nextBlinkTime += (4500 + (rand() % 1000));
+                        blinkEndTime = curPeriod * frameTimeInMs + 101; //100ms blink
+                        eyes = "Closed";
+                    }
+                } else if ((curPeriod * frameTimeInMs) < blinkEndTime) {
+                    eyes = "Closed";
+                } else {
+                    eyes = "Open";
+                }
+            }
+        }
+    }
+
+    xlColor color;
+    palette.GetColor(0, color); //use first color for mouth; user must make sure it matches model node type
+    
+    bool customColor = found ? model_info->faceInfo[definition]["CustomColors"] == "1" : false;
+    
+    wxArrayString todo;
+    std::vector<xlColor> colors;
+    todo.push_back("Mouth-" + phoneme);
+    if (customColor) {
+        wxString cname = model_info->faceInfo[definition][ "Mouth-" + phoneme + "-Color"];
+        if (cname == "") {
+            colors.push_back(xlWHITE);
+        } else {
+            colors.push_back(xlColor(cname));
+        }
+    } else {
+        colors.push_back(color);
+    }
+    if (palette.Size() > 1) {
+        palette.GetColor(1, color); //use second color for eyes; user must make sure it matches model node type
+    }
+    if (eyes == "Open" || eyes == "Auto") {
+        todo.push_back("Eyes-Open");
+        if (customColor) {
+            wxString cname = model_info->faceInfo[definition][ "Eyes-Open-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            } else {
+                colors.push_back(xlColor(cname));
+            }
+        } else {
+            colors.push_back(color);
+        }
+    }
+    if (eyes == "Closed") {
+        todo.push_back("Eyes-Closed");
+        if (customColor) {
+            wxString cname = model_info->faceInfo[definition][ "Eyes-Closed-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            } else {
+                colors.push_back(xlColor(cname));
+            }
+        } else {
+            colors.push_back(color);
+        }
+    }
+    if (eyes == "(off)") {
+        //no eyes
+    }
+    if (palette.Size() > 2) {
+        palette.GetColor(2, color); //use third color for outline; user must make sure it matches model node type
+    }
+    if (face_outline) {
+        todo.push_back("FaceOutline");
+        if (customColor) {
+            wxString cname = model_info->faceInfo[definition][ "FaceOutline-Color"];
+            if (cname == "") {
+                colors.push_back(xlWHITE);
+            } else {
+                colors.push_back(xlColor(cname));
+            }
+        } else {
+            colors.push_back(color);
+        }
+    }
+    
+    
+    if (type == 2) {
+        RenderFaces(phoneme, eyes, face_outline);
+        return;
+    }
+    if (type == 3) {
+        //picture
+        wxString e = eyes;
+        if (eyes == "Auto") {
+            e = "Open";
+        }
+        if (eyes == "(off)") {
+            e = "Closed";
+        }
+        wxString key = "Mouth-" + phoneme + "-Eyes";
+        wxString picture = model_info->faceInfo[definition][key + e];
+        if (picture == "" && e == "Closed") {
+            picture = model_info->faceInfo[definition][key + "Open"];
+        }
+        int i = 9; /*RENDER_PICTURE_SCALED*/
+        if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
+            i = 4; /*RENDER_PICTURE_NONE */
+        }
+        RenderPictures(i, picture, 0, 0, 0, 0, 0, 0, 0, false);
+    }
+    for (int t = 0; t < todo.size(); t++) {
+        wxString channels = model_info->faceInfo[definition][todo[t]];
+        wxStringTokenizer wtkz(channels, ",");
+        while (wtkz.HasMoreTokens()) {
+            wxString valstr = wtkz.GetNextToken();
+            
+            if (type == 0) {
+                for (int n = 0; n < model_info->GetNodeCount(); n++) {
+                    wxString nn = model_info->GetNodeName(n, true);
+                    if (nn == valstr) {
+                        std::vector<wxPoint> pts;
+                        model_info->GetNodeCoords(n, pts);
+                        for (int x = 0; x < pts.size(); x++) {
+                            SetPixel(pts[x].x, pts[x].y, colors[t]);
+                        }
+                    }
+                }
+            } else if (type == 1) {
+                int start, end;
+                if (valstr.Contains("-")) {
+                    int idx = valstr.Index('-');
+                    start = wxAtoi(valstr.Left(idx));
+                    end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                } else {
+                    start = end = wxAtoi(valstr);
+                }
+                if (start > end) {
+                    start = end;
+                }
+                start--;
+                end--;
+                for (int n = start; n <= end; n++) {
+                    std::vector<wxPoint> pts;
+                    if (n < model_info->GetNodeCount()) {
+                        model_info->GetNodeCoords(n, pts);
+                        for (int x = 0; x < pts.size(); x++) {
+                            SetPixel(pts[x].x, pts[x].y, colors[t]);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
-#if 0 //obsolete
-void RgbEffects::coroface(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
-{
-    /*
-       FacesPhoneme.Add("AI");     0 : 2,3
-       FacesPhoneme.Add("E");      1 : 6
-       FacesPhoneme.Add("FV");     2 : 6
-       FacesPhoneme.Add("L");      3 : 6
-       FacesPhoneme.Add("MBP");    4 : 6
-       FacesPhoneme.Add("O");      5 :4
-       FacesPhoneme.Add("U");      6 :4
-       FacesPhoneme.Add("WQ");     7 : 5
-       FacesPhoneme.Add("etc");    8 : 5
-       FacesPhoneme.Add("rest");   9 : 6
-    */
-
-#if 0
-    int face[5][5] =
-    {
-        {7,8,4,8,1}, /*  initializers for row indexed by 0 */
-        {-1,4,2,1,-1}, /*  initializers for row indexed by 1 */
-        {4,2,1,3,-1}, /*  initializers for row indexed by 2 */
-        {-1,1,3,5,-1}, /*  initializers for row indexed by 3 */
-        {1,-1,5,-1,6}
-    }; /*  initializers for row indexed by 4 */
-#endif
-
-
-    wxImage::HSVValue hsv;
-    size_t colorcnt=GetColorCount();
-    int ColorIdx=0;
-    palette.GetHSV(ColorIdx, hsv);
-    hsv.hue=0.0;
-    hsv.value=1.0;
-    hsv.saturation=1.0;
-    int i,j,indx,x[10],y[10],v;
-    int x_Outline,y_Outline,x_Eyes,y_Eyes;
-    wxString model,s_Phoneme; //set to target model name (optional)
-    switch (Phoneme)
-    {
-
-    case 0 :
-        s_Phoneme="AI";
-        break;
-
-    case 1 :
-        s_Phoneme="E";
-        break;
-
-    case 2 :
-        s_Phoneme="FV";
-        break;
-
-    case 3 :
-        s_Phoneme="L";
-        break;
-
-    case 4 :
-        s_Phoneme="MBP";
-        break;
-
-    case 5 :
-        s_Phoneme="O";
-        break;
-
-    case 6 :
-        s_Phoneme="U";
-        break;
-
-    case 7 :
-        s_Phoneme="WQ";
-        break;
-
-    case 8 :
-        s_Phoneme="etc";
-        break;
-
-    case 9 :
-        s_Phoneme="rest";
-        break;
-    }
-
-    //  Now lests parse the coordinates for the Mouth, face outline and the eyes
-    /*  we can have more than one pair of numbers
-    E1_TEXTCTRL_X_Y=5:28:4:28,
-    E1_TEXTCTRL_Outline_X_Y=15:51,
-    E1_TEXTCTRL_Eyes_X_Y=10:44
-    */
-    wxStringTokenizer tkz(x_y, ":");
-    i=0;
-//    x=y=-1;
-    while ( tkz.HasMoreTokens() )
-    {
-        i++;
-        wxString token = tkz.GetNextToken();
-        // process token here
-
-        indx=(i-1)/2; // counter to count up by 2's
-        if(i==1) x[indx]=wxAtoi(token);
-        if(i==2) y[indx]=wxAtoi(token);
-    }
-
-    wxStringTokenizer tkz_Outline(Outline_x_y, ":");
-    i=0;
-    x_Outline=y_Outline=-1;
-    while ( tkz_Outline.HasMoreTokens() )
-    {
-        i++;
-        wxString token = tkz_Outline.GetNextToken();
-        // process token here
-        if(i==1) x_Outline=wxAtoi(token);
-        if(i==2) y_Outline=wxAtoi(token);
-    }
-
-
-    wxStringTokenizer tkz_Eyes(Eyes_x_y, ":");
-    i=0;
-    x_Eyes=y_Eyes=-1;
-    while ( tkz_Eyes.HasMoreTokens() )
-    {
-        i++;
-        wxString token = tkz_Eyes.GetNextToken();
-        // process token here
-        if(i==1) x_Eyes=wxAtoi(token);
-        if(i==2) y_Eyes=wxAtoi(token);
-    }
-
-    for(j=0; j<=indx; j++)
-    {
-        if(x[j]>=0 && x[j]<BufferWi && y[j]>=0 && y[j]<=BufferHt)  SetPixel(x[j],y[j],hsv);
-    }
-    if(x_Outline>=0 && x_Outline<BufferWi && y_Outline>=0 && y_Outline<=BufferHt)  SetPixel(x_Outline,y_Outline,hsv);
-    if(x_Eyes>=0 && x_Eyes<BufferWi && y_Eyes>=0 && y_Eyes<=BufferHt)  SetPixel(x_Eyes,y_Eyes,hsv);
-
-}
-#endif //0

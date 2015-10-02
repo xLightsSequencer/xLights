@@ -149,11 +149,12 @@
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
+					<Add option="-march=i586" />
 					<Add option="-pedantic" />
 					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=gnu++0x" />
+					<Add option="-std=gnu++11" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
@@ -192,10 +193,11 @@
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-march=i586" />
+					<Add option="-Os" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=gnu++0x" />
+					<Add option="-std=gnu++11" />
 					<Add option="-static-libgcc" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -239,12 +241,13 @@
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
-					<Add option="-std=c++0x" />
+					<Add option="-std=gnu++11" />
 					<Add option="-Wall" />
 					<Add option="-g" />
 					<Add option="`wx-config --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
+					<Add option="-DLINUX" />
 					<Add option="-D__WXDEBUG__" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
@@ -263,11 +266,12 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-std=c++0x" />
+					<Add option="-std=gnu++11" />
 					<Add option="-Wall" />
 					<Add option="`wx-config --version=3.0 --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
+					<Add option="-DLINUX" />
 					<Add option="-DNDEBUG" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
@@ -393,6 +397,7 @@
 		<Unit filename="EffectIconPanel.h" />
 		<Unit filename="EffectListDialog.cpp" />
 		<Unit filename="EffectListDialog.h" />
+		<Unit filename="EffectPanelDefaults.cpp" />
 		<Unit filename="EffectTreeDialog.cpp" />
 		<Unit filename="EffectTreeDialog.h" />
 		<Unit filename="Effects.h" />
@@ -417,10 +422,14 @@
 		<Unit filename="LMSImportChannelMapDialog.h" />
 		<Unit filename="LorConvertDialog.cpp" />
 		<Unit filename="LorConvertDialog.h" />
+		<Unit filename="LyricsDialog.cpp" />
+		<Unit filename="LyricsDialog.h" />
 		<Unit filename="ModelClass.cpp" />
 		<Unit filename="ModelClass.h" />
 		<Unit filename="ModelDialog.cpp" />
 		<Unit filename="ModelDialog.h" />
+		<Unit filename="ModelFaceDialog.cpp" />
+		<Unit filename="ModelFaceDialog.h" />
 		<Unit filename="ModelListDialog.cpp" />
 		<Unit filename="ModelListDialog.h" />
 		<Unit filename="ModelPreview.cpp" />
@@ -439,6 +448,8 @@
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="PerspectivesPanel.cpp" />
 		<Unit filename="PerspectivesPanel.h" />
+		<Unit filename="PhonemeDictionary.cpp" />
+		<Unit filename="PhonemeDictionary.h" />
 		<Unit filename="PixelAppearanceDlg.cpp" />
 		<Unit filename="PixelAppearanceDlg.h" />
 		<Unit filename="PixelBuffer.cpp" />
@@ -466,6 +477,8 @@
 		<Unit filename="RenderGarlands.cpp" />
 		<Unit filename="RenderGlediator.cpp" />
 		<Unit filename="RenderLife.cpp" />
+		<Unit filename="RenderLightning.cpp" />
+		<Unit filename="RenderMarquee.cpp" />
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderMorph.cpp" />
 		<Unit filename="RenderOff.cpp" />
@@ -473,6 +486,7 @@
 		<Unit filename="RenderPiano.cpp" />
 		<Unit filename="RenderPictures.cpp" />
 		<Unit filename="RenderPinwheel.cpp" />
+		<Unit filename="RenderPlasma.cpp" />
 		<Unit filename="RenderRipple.cpp" />
 		<Unit filename="RenderShimmer.cpp" />
 		<Unit filename="RenderShockwave.cpp" />
@@ -489,6 +503,8 @@
 		<Unit filename="RgbEffects.cpp" />
 		<Unit filename="RgbEffects.h" />
 		<Unit filename="SOIL.h" />
+		<Unit filename="SaveChangesDialog.cpp" />
+		<Unit filename="SaveChangesDialog.h" />
 		<Unit filename="SeqElementMismatchDialog.cpp" />
 		<Unit filename="SeqElementMismatchDialog.h" />
 		<Unit filename="SeqExportDialog.cpp" />
@@ -630,6 +646,7 @@
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
+		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelViewSelector.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/OptionChooser.wxs" />
@@ -640,6 +657,7 @@
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
+		<Unit filename="wxsmith/SaveChangesDialog.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
@@ -727,6 +745,8 @@
 					<wxPanel wxs="wxsmith/xlColorPickerFields.wxs" src="xlColorPickerFields.cpp" hdr="xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectAssist.wxs" src="EffectAssist.cpp" hdr="EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
 					<wxDialog wxs="wxsmith/VAMPPluginDialog.wxs" src="VAMPPluginDialog.cpp" hdr="VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelFaceDialog.wxs" src="ModelFaceDialog.cpp" hdr="ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SaveChangesDialog.wxs" src="SaveChangesDialog.cpp" hdr="SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

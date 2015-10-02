@@ -74,6 +74,7 @@ class TimeLine : public wxWindow
 
         int GetTimeMSfromPosition(int position);
         int GetAbsoluteTimeMSfromPosition(int position);
+        int GetRawTimeMSfromPosition(int position);
 
         static int RoundToMultipleOfPeriod(int number,double period);
 

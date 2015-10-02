@@ -10,6 +10,8 @@
 #import <AppKit/NSOpenGLView.h>
 #include "wx/glcanvas.h"
 
+#include "osxMacUtils.h"
+
 double xlOSXGetMainScreenContentScaleFactor()
 {
     
@@ -56,5 +58,38 @@ double xlTranslateToRetina(wxGLCanvas &win, double x) {
     pt.height = 0;
     NSSize pt2 = [glView convertSizeToBacking: pt];
     return pt2.width;
+}
+
+
+
+class AppNapSuspenderPrivate
+{
+public:
+    id<NSObject> activityId;
+};
+
+AppNapSuspender::AppNapSuspender() :
+    p(new AppNapSuspenderPrivate)
+{}
+AppNapSuspender::~AppNapSuspender()
+{
+    delete p;
+}
+
+void AppNapSuspender::suspend()
+{
+    if ([[NSProcessInfo processInfo] respondsToSelector:@selector(beginActivityWithOptions:reason:)]) {
+        p->activityId = [[NSProcessInfo processInfo ] beginActivityWithOptions: NSActivityUserInitiated | NSActivityLatencyCritical
+                                                                        reason:@"Outputting to lights"];
+        [p->activityId retain];
+    }
+}
+
+void AppNapSuspender::resume()
+{
+    if ([[NSProcessInfo processInfo] respondsToSelector:@selector(beginActivityWithOptions:reason:)]) {
+        [[NSProcessInfo processInfo ] endActivity:p->activityId];
+        [p->activityId release];
+    }
 }
 

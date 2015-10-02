@@ -42,6 +42,10 @@ $(addsuffix _clean,$(SUBDIRS)):
 install:
 	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/${PREFIX}/bin || $(MKDIR) $(INSTALL_ROOT)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) bin/xLights $(INSTALL_ROOT)/${PREFIX}/bin/xLights
+	install -d -m 755 $(INSTALL_ROOT)/${PREFIX}/share/xLights/piano
+	cp -r piano/* $(INSTALL_ROOT)/${PREFIX}/share/xLights/piano
+	install -d -m 755 $(INSTALL_ROOT)/${PREFIX}/share/xLights/songs
+	cp -r songs/* $(INSTALL_ROOT)/${PREFIX}/share/xLights/songs
 
 uninstall:
 	-$(DEL_FILE) $(INSTALL_ROOT)/${PREFIX}/bin/xLights
@@ -56,7 +60,7 @@ xLights/xLights.cbp.mak: xLights/xLights.cbp
 	cp xLights/xLights.cbp.mak xLights/xLights.cbp.mak.orig
 	cat xLights/xLights.cbp.mak.orig \
 		| sed \
-			-e "s/^CFLAGS = \(.*\)/CFLAGS = \1 -std=gnu++0x/" \
+			-e "s/^CFLAGS = \(.*\)/CFLAGS = \1 -std=gnu++11/" \
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/LDFLAGS_LINUX_DEBUG = \(.*\)/LDFLAGS_LINUX_DEBUG = \1 \`pkg-config --libs gstreamer-interfaces-0.10\`/" \
 			-e "s/LDFLAGS_LINUX_RELEASE = \(.*\)/LDFLAGS_LINUX_RELEASE = \1 \`pkg-config --libs gstreamer-interfaces-0.10\`/" \

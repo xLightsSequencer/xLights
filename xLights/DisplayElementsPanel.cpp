@@ -149,6 +149,12 @@ DisplayElementsPanel::~DisplayElementsPanel()
 	//*)
 }
 
+void DisplayElementsPanel::MarkViewsChanged()
+{
+    wxCommandEvent eventRgbEffects(EVT_RGBEFFECTS_CHANGED);
+    wxPostEvent(GetParent(), eventRgbEffects);
+}
+
 void DisplayElementsPanel::SetViewChoice(wxChoice *ch) {
     MainViewsChoice = ch;
     MainViewsChoice->Connect(wxEVT_CHOICE, (wxObjectEventFunction)&DisplayElementsPanel::OnViewSelect, NULL, this);
@@ -186,7 +192,7 @@ void DisplayElementsPanel::AddViewToList(const wxString& viewName, bool isChecke
     ListCtrlViews->SetItem(mNumViews,1,viewName);
     ListCtrlViews->SetChecked(mNumViews,isChecked);
     mNumViews++;
-    
+
     MainViewsChoice->Append(viewName);
 }
 
@@ -369,6 +375,7 @@ void DisplayElementsPanel::OnButtonAddViewsClick(wxCommandEvent& event)
     AddViewToList(viewName, true);
     mSequenceElements->AddView(viewName);
     SelectView(viewName);
+    MarkViewsChanged();
     PopulateViews();
 }
 
@@ -413,6 +420,7 @@ void DisplayElementsPanel::OnButtonDeleteViewClick(wxCommandEvent& event)
     ListCtrlViews->Refresh();
     mSequenceElements->SetCurrentView(MASTER_VIEW);
     SelectView("Master View");
+    MarkViewsChanged();
     PopulateViews();
 }
 
@@ -474,6 +482,7 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
                 view_index++;
             }
         }
+        MarkViewsChanged();
 
         PopulateModels();
 
@@ -481,13 +490,6 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
     }
-}
-
-void DisplayElementsPanel::AddMissingModelsOfView(wxString view)
-{
-    if (mSeqData->NumFrames() == 0) return;
-    wxString modelsString = mSequenceElements->GetViewModels(view);
-    mSequenceElements->AddMissingModelsToSequence(modelsString);
 }
 
 void DisplayElementsPanel::ListItemChecked(wxCommandEvent& event)
@@ -505,6 +507,7 @@ void DisplayElementsPanel::ListItemChecked(wxCommandEvent& event)
     {
         e->SetVisible(!e->GetVisible());
     }
+    MarkViewsChanged();
     // Update Grid
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
@@ -515,6 +518,7 @@ void DisplayElementsPanel::OnButtonShowAllClick(wxCommandEvent& event)
 {
     if (mSeqData->NumFrames() == 0) return;
     mSequenceElements->SetVisibilityForAllModels(true, mSequenceElements->GetCurrentView());
+    MarkViewsChanged();
     PopulateModels();
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
@@ -524,6 +528,7 @@ void DisplayElementsPanel::OnButtonHideAllClick(wxCommandEvent& event)
 {
     if (mSeqData->NumFrames() == 0) return;
     mSequenceElements->SetVisibilityForAllModels(false, mSequenceElements->GetCurrentView());
+    MarkViewsChanged();
     PopulateModels();
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
@@ -586,6 +591,7 @@ void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
         ListCtrlModels->Refresh();
         UpdateModelsForSelectedView();
     }
+    MarkViewsChanged();
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
 }
@@ -627,7 +633,7 @@ void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
     }
 
     int first_model = GetFirstModelIndex();
-    if( selected_list[0] != 0 && selected_list[0] != first_model )  // don't let item or group move up if top item is selected
+    if (!selected_list.empty() && selected_list[0] != 0 && selected_list[0] != first_model )  // don't let item or group move up if top item is selected
     {
         if( selected_list[0] > first_model || (selected_list[0] < first_model && selected_list.size() == 1 ) )
         {
@@ -643,6 +649,7 @@ void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
 
     if( items_moved )
     {
+        MarkViewsChanged();
         UpdateModelsForSelectedView();
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
@@ -684,7 +691,7 @@ void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
     }
 
     int first_model = GetFirstModelIndex();
-    if( selected_list.back() < num_items-1 && selected_list[0] != first_model-1 )  // don't let item or group move up if top item is selected
+    if(!selected_list.empty() && selected_list.back() < num_items-1 && selected_list[0] != first_model-1 )  // don't let item or group move up if top item is selected
     {
         if( selected_list[0] >= first_model || (selected_list[0] < first_model && selected_list.size() == 1 ) )
         {
@@ -700,6 +707,7 @@ void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
 
     if( items_moved )
     {
+        MarkViewsChanged();
         UpdateModelsForSelectedView();
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);

@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/radiobut.h>
 #include <wx/dialog.h>
@@ -26,8 +27,10 @@ public:
     wxStaticText* StaticText3;
     wxRadioButton* RadioButtonMulticast;
     wxStaticText* StaticText5;
+    wxStaticText* StaticText7;
     wxSpinCtrl* SpinCtrl_NumUniv;
     wxSpinCtrl* SpinCtrl_StartUniv;
+    wxCheckBox* MultiE131CheckBox;
     wxStaticText* StaticText4;
     wxSpinCtrl* SpinCtrl_LastChannel;
     //*)
@@ -45,6 +48,8 @@ protected:
     static const long ID_SPINCTRL1;
     static const long ID_STATICTEXT3;
     static const long ID_SPINCTRL2;
+    static const long ID_STATICTEXT7;
+    static const long ID_CHECKBOX1;
     static const long ID_STATICTEXT6;
     static const long ID_SPINCTRL_LAST_CHANNEL;
     //*)
@@ -54,6 +59,7 @@ private:
     //(*Handlers(E131Dialog)
     void OnRadioButtonUnicastSelect(wxCommandEvent& event);
     void OnRadioButtonMulticastSelect(wxCommandEvent& event);
+    void OnSpinCtrl_NumUnivChange(wxSpinEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()

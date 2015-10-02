@@ -13,9 +13,12 @@ void RenderColorWash(Effect *eff,
                      bool shimmer,
                      bool circularPalette);
 void RenderCurtain(int edge, int effect, int swag, bool repeat, float curtainSpeed);
-void RenderFaces(int Phoneme);
-//void RenderCoroFaces( int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/);
-void RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline);
+
+void RenderFaces(const wxString &Phoneme, const wxString& eyes, bool face_outline);
+void RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString& eyes, bool face_outline);
+void RenderFaces(SequenceElements *elements, const wxString &faceDefintion,
+                 const wxString &Phoneme, const wxString &track, const wxString& eyes, bool face_outline);
+
 void RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                int duration, int acceleration, bool reverse_dir, bool blend_edges,
                int num_blades, int blade_width, int blade_angle, int num_elements, int element_width );
@@ -26,6 +29,9 @@ void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, 
 void RenderGarlands(int GarlandType, int Spacing, float cycles, const wxString &direction);
 void RenderGlediator(const wxString& NewPictureName);
 void RenderLife(int Count, int Type, int lifeSpeed);
+void RenderLightning(int Number_Bolts, int Number_Segments, bool Use_All_Colors);
+void RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int MSpeed, bool reverse_dir,
+                   int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x);
 void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed);
 void RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2,
                  int end_x1,   int end_y1,   int end_x2,   int end_y2,
@@ -40,6 +46,7 @@ void RenderPictures(int dir, const wxString& NewPictureName,float moveSpeed, flo
 void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,
                     bool pinwheel_rotation,const wxString &pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize,
                     int pspeed);
+void RenderPlasma(int ColorScheme, int Style, int Line_Density,int PlasmaDirection, int PlasmaSpeed);
 void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,
               int xc_adj, int yc_adj);
 
@@ -79,5 +86,5 @@ void RenderText(int Position1, const wxString& Line1, const wxString& FontString
                 int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int TextRotation3,int Effect3, int Speed3,
                 int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int TextRotation4,int Effect4, int Speed4);
 void RenderTree(int Branches, int tspeed);
-void RenderTwinkle(int Count,int Steps,bool Strobe);
+void RenderTwinkle(int Count,int Steps,bool Strobe, bool reRandomize);
 void RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection, int wspeed);

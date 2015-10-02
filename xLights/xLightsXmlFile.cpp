@@ -83,7 +83,9 @@ bool xLightsXmlFile::IsVersionOlder(const wxString& compare, const wxString& ver
     wxArrayString compare_parts = wxSplit(compare, '.');
     wxArrayString version_parts = wxSplit(version, '.');
     if( wxAtoi(version_parts[0]) < wxAtoi(compare_parts[0]) ) return true;
+    if( wxAtoi(version_parts[0]) > wxAtoi(compare_parts[0]) ) return false;
     if( wxAtoi(version_parts[1]) < wxAtoi(compare_parts[1]) ) return true;
+    if( wxAtoi(version_parts[1]) > wxAtoi(compare_parts[1]) ) return false;
     if( wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]) ) return true;
     return false;
 }
@@ -1442,7 +1444,6 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             layer = AddChildXmlNode(node, "EffectLayer");
         }
 
-
         wxArrayString start_times;
         wxArrayString end_times;
         wxArrayString labels;
@@ -1505,7 +1506,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             }
             else
             {
-                AddTimingEffect(layer, labels[k], "0", "0", string_format("%f", startTime), string_format("%f", endTime));
+                AddTimingEffect(layer, labels[k], "0", "0", string_format("%d", startTime), string_format("%d", endTime));
             }
         }
     }
@@ -1934,7 +1935,7 @@ void xLightsXmlFile::AddNewTimingSection(wxString filename, xLightsFrame* xLight
         layer = AddChildXmlNode(node, "EffectLayer");
     }
     for (int k = 0; k < starts.size(); k++) {
-        
+
         if( sequence_loaded )
         {
             effectLayer->AddEffect(0,0,labels[k],wxEmptyString,"",starts[k],ends[k],EFFECT_NOT_SELECTED,false);
@@ -2071,9 +2072,9 @@ void xLightsXmlFile::CheckUpdateMorphPositions(SequenceElements& elements, xLigh
                         if( eff->GetEffectIndex() == BitmapCache::eff_MORPH )
                         {
                             wxString model_name = elem->GetName();
-                            ModelClass &cls = xLightsParent->GetModelClass(model_name);
-                            int width = cls.BufferWi;
-                            int height = cls.BufferHt;
+                            ModelClass *cls = xLightsParent->GetModelClass(model_name);
+                            int width = cls->BufferWi;
+                            int height = cls->BufferHt;
                             double width_band = 101.0 / width;
                             double height_band = 101.0 / height;
                             wxString settings = eff->GetSettingsAsString();

@@ -8,17 +8,18 @@
 
 #include "wx/bitmap.h"
 
-class BitmapCache {
+class BitmapCache
+{
 public:
 
-    enum RGB_EFFECTS_e  {
+    enum RGB_EFFECTS_e
+    {
         eff_OFF,
         eff_ON,
         eff_BARS,
         eff_BUTTERFLY,
         eff_CIRCLES,
         eff_COLORWASH,
-        eff_COROFACES,
         eff_CURTAIN,
         eff_FACES,
         eff_FAN,
@@ -28,11 +29,13 @@ public:
         eff_GARLANDS,
         eff_GLEDIATOR,
         eff_LIFE,
+        eff_MARQUEE,
         eff_METEORS,
         eff_MORPH,
         eff_PIANO,
         eff_PICTURES,
         eff_PINWHEEL,
+        eff_PLASMA,
         eff_RIPPLE,
         eff_SHIMMER,
         eff_SHOCKWAVE,
@@ -51,6 +54,7 @@ public:
 
     static const wxBitmap &GetEffectIcon(int effectID, wxString &toolTip, int size = 16, bool exact = false);
     static const wxBitmap &GetToolbarIcon(const wxString &name, int size);
+    static const wxBitmap &GetPapgayoIcon(wxString &toolTip, int size, bool exact);
     static const wxBitmap &GetCornerIcon(int position, wxString &toolTip, int size, bool exact);
 };
 

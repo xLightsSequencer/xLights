@@ -31,6 +31,9 @@ RgbEffects::RgbEffects()
     fireworkBursts = NULL;
     balls = NULL;
     metaballs = NULL;
+    drawingContext = NULL;
+    nextBlinkTime = (4500 + (rand() % 1000));
+    blinkEndTime = -1;
 }
 
 RgbEffects::~RgbEffects()
@@ -44,6 +47,9 @@ RgbEffects::~RgbEffects()
     }
     if (metaballs != NULL) {
         delete [] metaballs;
+    }
+    if (drawingContext != NULL) {
+        delete drawingContext;
     }
 }
 
@@ -60,6 +66,9 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
     WaveBuffer1.resize(NumPixels);
     WaveBuffer2.resize(NumPixels);
     effectState = 0;
+    
+    drawingContext = new DrawingContext(newBufferWi, newBufferHt);
+    
 }
 
 void RgbEffects::Clear(const xlColour& bgColor)

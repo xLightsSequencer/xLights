@@ -3,6 +3,7 @@
 
 #include "wx/wx.h"
 #include <vector>
+#include <atomic>
 #include "wx/xml/xml.h"
 #include "EffectLayer.h"
 
@@ -14,10 +15,11 @@ enum ElementType
 };
 
 class NetInfoClass;
+class Element;
 
 class ChangeLister {
 public:
-    virtual void IncrementChangeCount() = 0;
+    virtual void IncrementChangeCount(Element *el) = 0;
 };
 
 class Element
@@ -27,7 +29,7 @@ class Element
         virtual ~Element();
 
         wxString GetName();
-        void SetName(wxString &name);
+        void SetName(const wxString &name);
 
         bool GetVisible();
         void SetVisible(bool visible);
@@ -66,10 +68,11 @@ class Element
         bool ShowStrands() { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
 
-        int GetIndex();
-        void SetIndex(int index);
-
-        int Index;
+    
+        int GetIndex() const {return mIndex;}
+        void SetIndex(int index) { mIndex = index;}
+        int &Index() { return mIndex;}
+        int Index() const { return mIndex;}
 
         void IncrementChangeCount(int startMs, int endMS);
         int getChangeCount() const { return changeCount; }
@@ -107,7 +110,6 @@ class Element
         void DecWaitCount();
     protected:
     private:
-
         int mIndex;
         wxString mName;
         wxString mElementType;
@@ -122,7 +124,7 @@ class Element
         std::vector<StrandLayer*> mStrandLayers;
     
         wxMutex renderLock;
-        wxAtomicInt waitCount;
+        std::atomic_int waitCount;
 
         ChangeLister *listener;
         volatile int changeCount = 0;

@@ -2187,9 +2187,9 @@ bool xLightsFrame::LoadPgoSettings(void)
 //    debug(10, "set selection hint on model row");
 
 //    wxMessageBox(wxString::Format(_("load settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.end() - xLightsFrame::PreviewModels.begin(), xLightsFrame::OtherModels.end() - xLightsFrame::OtherModels.begin(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()), wxT("Debug info"));
-    StatusBar1->SetStatusText(wxString::Format(_("Loaded pgo settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.size(), xLightsFrame::AllModels.size() - xLightsFrame::PreviewModels.size(),
+    StatusBar1->SetStatusText(wxString::Format(_("Loaded pgo settings: %ld active models, %ld inactive models, choice %d of %u"), xLightsFrame::PreviewModels.size(), xLightsFrame::AllModels.size() - xLightsFrame::PreviewModels.size(),
         Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()));
-    debug(10, "loaded pgo settings: %u active models, %u inactive models, grp choice %d of %u", xLightsFrame::PreviewModels.size(), xLightsFrame::OtherModels.size(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount());
+    debug(10, "loaded pgo settings: %ld active models, %ld inactive models, grp choice %d of %u", xLightsFrame::PreviewModels.size(), xLightsFrame::OtherModels.size(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount());
     return true;
 }
 

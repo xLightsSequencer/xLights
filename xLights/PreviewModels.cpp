@@ -90,6 +90,7 @@ PreviewModels::PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode*
 	FlexGridSizer6->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoiceModelLayoutType = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	ChoiceModelLayoutType->SetSelection( ChoiceModelLayoutType->Append(_("Grid as per preview")) );
+	ChoiceModelLayoutType->Append(_("Minimal Grid"));
 	ChoiceModelLayoutType->Append(_("Horizontal per model"));
 	ChoiceModelLayoutType->Append(_("Vertical per model"));
 	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -107,7 +108,7 @@ PreviewModels::PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode*
 	FlexGridSizer10->AddGrowableRow(1);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Add to Group:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer10->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ListBoxAddToModelGroup = new wxListBox(this, ID_LISTBOX_ADD_TO_MODEL_GROUP, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SORT|wxVSCROLL, wxDefaultValidator, _T("ID_LISTBOX_ADD_TO_MODEL_GROUP"));
+	ListBoxAddToModelGroup = new wxListBox(this, ID_LISTBOX_ADD_TO_MODEL_GROUP, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SORT|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_LISTBOX_ADD_TO_MODEL_GROUP"));
 	ListBoxAddToModelGroup->SetMinSize(wxDLG_UNIT(this,wxSize(75,65)));
 	FlexGridSizer10->Add(ListBoxAddToModelGroup, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer12->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -129,7 +130,7 @@ PreviewModels::PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode*
 	FlexGridSizer9->AddGrowableRow(1);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Models in Group:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer9->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ListBoxModelsInGroup = new wxListBox(this, ID_LISTBOX_MODELS_IN_GROUP, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_MODELS_IN_GROUP"));
+	ListBoxModelsInGroup = new wxListBox(this, ID_LISTBOX_MODELS_IN_GROUP, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_LISTBOX_MODELS_IN_GROUP"));
 	ListBoxModelsInGroup->SetMinSize(wxDLG_UNIT(this,wxSize(75,65)));
 	FlexGridSizer9->Add(ListBoxModelsInGroup, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer12->Add(FlexGridSizer9, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -161,6 +162,7 @@ PreviewModels::PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode*
 	mModelGroups = ModelGroups;
 	mModels = Models;
 	PopulateModelGroups();
+    ChoiceModelLayoutType->SetSelection(1);
 }
 
 PreviewModels::~PreviewModels()
@@ -200,19 +202,21 @@ void PreviewModels::UpdateSelectedModel()
     }
     TextModelGroupName->SetValue(ListBoxModelGroups->GetString(ListBoxModelGroups->GetSelection()));
     PopulateUnusedModels(ModelsInGroup);
-    
+
     wxString v = e->GetAttribute("layout", "grid");
     if (v == "grid") {
         ChoiceModelLayoutType->SetSelection(0);
-    } else if (v == "horizontal") {
+    }else if (v == "minimalGrid") {
         ChoiceModelLayoutType->SetSelection(1);
-    } else if (v == "vertical") {
+    } else if (v == "horizontal") {
         ChoiceModelLayoutType->SetSelection(2);
+    } else if (v == "vertical") {
+        ChoiceModelLayoutType->SetSelection(3);
     }
-    
+
     wxCommandEvent evt;
     OnChoiceModelLayoutTypeSelect(evt);
-    
+
     SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
 }
 
@@ -295,11 +299,16 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
         }
 
         e=(wxXmlNode*)(ListBoxModelGroups->GetClientData(ListBoxModelGroups->GetSelection()));
-        e->DeleteAttribute("name");
-        e->AddAttribute("name",TextModelGroupName->GetValue());
+        wxString oldName = e->GetAttribute("name");
+        if (oldName != TextModelGroupName->GetValue()) {
+            e->DeleteAttribute("name");
+            e->AddAttribute("name", TextModelGroupName->GetValue());
+            e->DeleteAttribute("oldName");
+            e->AddAttribute("oldName", oldName);
+        }
         e->DeleteAttribute("models");
         e->AddAttribute("models", ModelsInGroup);
-        
+
         e->DeleteAttribute("GridSize");
         e->DeleteAttribute("layout");
         switch (ChoiceModelLayoutType->GetSelection()) {
@@ -308,13 +317,17 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
                 e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
                 break;
             case 1:
-                e->AddAttribute("layout", "horizontal");
+                e->AddAttribute("layout", "minimalGrid");
+                e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
                 break;
             case 2:
+                e->AddAttribute("layout", "horizontal");
+                break;
+            case 3:
                 e->AddAttribute("layout", "vertical");
                 break;
         }
-        
+
         ListBoxModelGroups->Delete(ListBoxModelGroups->GetSelection());
         ListBoxModelGroups->Append(TextModelGroupName->GetValue(), e);
     }
@@ -386,5 +399,5 @@ void PreviewModels::OnButtonDownClick(wxCommandEvent& event)
 
 void PreviewModels::OnChoiceModelLayoutTypeSelect(wxCommandEvent& event)
 {
-    SizeSpinCtrl->Enable(ChoiceModelLayoutType->GetSelection() == 0);
+    SizeSpinCtrl->Enable(ChoiceModelLayoutType->GetSelection() <= 1);
 }

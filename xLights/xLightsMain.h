@@ -23,7 +23,6 @@
 #include <wx/msgdlg.h>
 #include <wx/checkbox.h>
 #include <wx/splitter.h>
-#include <wx/listbox.h>
 #include <wx/aui/aui.h>
 #include <wx/radiobut.h>
 #include <wx/slider.h>
@@ -87,6 +86,7 @@
 #include "dlgPreviewSize.h"
 #include "SequenceData.h"
 #include "UtilClasses.h"
+#include "PhonemeDictionary.h"
 
 #include "sequencer/EffectsGrid.h"
 #include "sequencer/MainSequencer.h"
@@ -166,13 +166,14 @@ wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
-
+wxDECLARE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights 4 BETA";
-static const wxString xlights_version_string  = "4.1.12";
-static const wxString xlights_build_date      = "Jul 20, 2015";
+static const wxString xlights_version_string  = "4.2.13";
+static const wxString xlights_build_date      = "Sep 27, 2015";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
+static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xml)|*.xml";
 static wxCriticalSection gs_xoutCriticalSection;
 
 
@@ -310,6 +311,8 @@ public:
     int TxOverflowCnt, TxOverflowTotal;
     xOutput* xout;
 
+    PhonemeDictionary dictionary;
+
     void BasicPrompt(char* prompt, char* buff, int size);
     void BasicOutput(char *msg);
     void BasicError(const char *msg);
@@ -321,7 +324,7 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(const wxString &name, const SettingsMap &settings, const SettingsMap &palette);
+    void SetEffectControls(const wxString &modelName, const wxString &name, const SettingsMap &settings, const SettingsMap &palette);
     void SetEffectControls(const SettingsMap &settings);
     bool SaveEffectsFile();
     void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }
@@ -524,7 +527,6 @@ private:
     void OnbtEditViewsClick(wxCommandEvent& event);
     void OnChoice_ViewsSelect(wxCommandEvent& event);
     void OnButtonBuildCustomModelClick(wxCommandEvent& event);
-    void OnButtonBuildWholeHouseModelClick(wxCommandEvent& event);
     void OnTextCtrlModelRotationDegreesText(wxCommandEvent& event);
     void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
     void OnScrolledWindowPreviewPaint(wxPaintEvent& event);
@@ -589,6 +591,11 @@ private:
     void ShowHideDisplayElementsWindow(wxCommandEvent& event);
     void ShowHideEffectAssistWindow(wxCommandEvent& event);
     void OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event);
+    void OnListBoxElementListItemSelect(wxListEvent& event);
+    void OnTextCtrlModelStartChannelText(wxCommandEvent& event);
+    void OnGridNetworkItemActivated(wxListEvent& event);
+    void OnListBoxElementListColumnClick(wxListEvent& event);
+    void OnCheckBoxOverlapClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -781,16 +788,23 @@ private:
     static const long ID_BUTTON_SELECT_MODEL_GROUPS;
     static const long ID_STATICTEXT21;
     static const long ID_LISTBOX_ELEMENT_LIST;
+    static const long ID_CHECKBOXOVERLAP;
     static const long ID_BUTTON_MODELS_PREVIEW;
     static const long ID_BUTTON_SAVE_PREVIEW;
-    static const long ID_BUTTON_BUILD_WHOLEHOUSE_MODEL;
     static const long ID_STATICTEXT22;
     static const long ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE;
+    static const long ID_SLIDER3;
+    static const long ID_STATICTEXT24;
+    static const long ID_TEXTCTRL3;
     static const long ID_SLIDER_PREVIEW_SCALE;
     static const long ID_STATICTEXT25;
     static const long ID_TEXTCTRL2;
     static const long ID_SLIDER_PREVIEW_ROTATE;
+    static const long ID_STATICTEXT31;
+    static const long ID_TEXTCTRL4;
+    static const long ID_PANEL5;
     static const long ID_PANEL1;
+    static const long ID_SPLITTERWINDOW2;
     static const long ID_PANEL_PREVIEW;
     static const long ID_TREECTRL1;
     static const long ID_CHECKBOX_RUN_SCHEDULE;
@@ -971,12 +985,14 @@ private:
     DragEffectBitmapButton* BitmapButton13;
     DragEffectBitmapButton* BitmapButton4;
     wxButton* ButtonAddE131;
+    wxTextCtrl* TextCtrlPreviewElementWidth;
     wxTextCtrl* TextCtrlFilename;
     DragEffectBitmapButton* BitmapButton2;
     wxMenuItem* MenuItemRenderEraseMode;
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxFileDialog* FileDialogConvert;
     wxTimer Timer1;
+    wxPanel* Panel1;
     wxRadioButton* RadioButtonTwinkle50;
     wxRadioButton* RadioButtonRgbTwinkle10;
     DragEffectBitmapButton* BitmapButton26;
@@ -1004,8 +1020,8 @@ private:
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxCheckBox* CheckBox_CoroPictureScaled;
     wxStaticText* StaticText25;
-    wxCheckBox* MapLORChannelsWithNoNetwork;
     wxPanel* PanelPreview;
+    wxCheckBox* MapLORChannelsWithNoNetwork;
     wxStaticText* StaticText6;
     wxButton* ButtonTestClear;
     wxPanel* PanelConvert;
@@ -1023,13 +1039,10 @@ private:
     wxButton* ButtonSelectModelGroups;
     wxRadioButton* RadioButtonRgbShimmer;
     wxAuiManager* m_mgr;
-    wxListBox* ListBoxElementList;
     wxSlider* Slider_BackgroundBrightness;
     wxPanel* PreviewGLPanel;
     wxStaticText* StaticText10;
     wxMenuItem* mRenderOnSaveMenuItem;
-    wxButton* ButtonBuildWholeHouseModel;
-    wxTextCtrl* TextCtrlPreviewElementSize;
     wxStaticText* StaticText35;
     wxMenuBar* MenuBar;
     wxChoice* ChoiceOutputFormat;
@@ -1066,6 +1079,7 @@ private:
     wxMenu* MenuFile;
     DragEffectBitmapButton* BitmapButton33;
     wxButton* ButtonSetPreviewSize;
+    wxSlider* SliderPreviewScaleWidth;
     wxStaticText* StaticText16;
     DragEffectBitmapButton* BitmapButton30;
     wxMenu* ToolIconSizeMenu;
@@ -1095,8 +1109,10 @@ private:
     wxStaticText* StaticText18;
     xlAuiToolBar* EffectsToolBar;
     wxListCtrl* GridNetwork;
+    wxSlider* SliderPreviewScaleHeight;
     DragEffectBitmapButton* BitmapButton9;
     wxSlider* SliderRgbChaseSpeed;
+    wxStaticText* StaticText37;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
     wxStaticText* StaticTextPreviewRotation;
@@ -1107,6 +1123,7 @@ private:
     wxPanel* PanelTestStandard;
     wxStaticText* StaticText20;
     wxButton* ButtonStartPapagayo;
+    wxTextCtrl* TextCtrlPreviewElementHeight;
     DragEffectBitmapButton* BitmapButton21;
     wxButton* Button_Change_Media_Dir;
     wxTextCtrl* TextCtrl_pgo_filename;
@@ -1130,9 +1147,11 @@ private:
     wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
+    wxTextCtrl* TextCtrlModelStartChannel;
     wxStaticText* StaticText4;
     wxRadioButton* RadioButtonAlt;
     xlAuiToolBar* WindowMgmtToolbar;
+    wxCheckBox* CheckBoxOverlap;
     wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
@@ -1163,9 +1182,9 @@ private:
     wxMenuItem* Menu_Settings_Sequence;
     DragEffectBitmapButton* BitmapButton22;
     wxMenuItem* MenuItemGridNodeValuesOff;
-    wxSlider* SliderPreviewScale;
     wxButton* ButtonTestLoad;
     wxRadioButton* RadioButtonOff;
+    wxStaticText* StaticTextStartChannel;
     DragEffectBitmapButton* BitmapButton29;
     wxRadioButton* RadioButtonRgbTwinkle25;
     wxRadioButton* RadioButtonRgbChase5;
@@ -1185,6 +1204,7 @@ private:
     wxStaticText* StaticText17;
     wxStaticText* StaticText11;
     wxMenu* MenuSettings;
+    wxListView* ListBoxElementList;
     wxCheckBox* ScaleImageCheckbox;
     wxRadioButton* RadioButtonRgbCycle5;
     wxGrid* GridCoroFaces;
@@ -1206,6 +1226,7 @@ private:
     wxSlider* SliderBgColorA;
     wxRadioButton* RadioButtonTwinkle05;
     wxStaticText* StaticText3;
+    wxSplitterWindow* SplitterWindow2;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;
@@ -1430,7 +1451,7 @@ private:
 public:
     wxXmlNode* GetModelNode(const wxString& name);
     bool InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
-    ModelClass &GetModelClass(const wxString& name);
+    ModelClass *GetModelClass(const wxString& name);
     void RenderGridToSeqData();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
@@ -1455,6 +1476,7 @@ public:
     wxXmlNode* CreateEffectNode(wxString& name);
     void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data);
+    void RenameModelInViews(const wxString& old_name, const wxString& new_name);
 
     void SetSequenceEnd(int ms);
     void UpdateRenderMode();
@@ -1470,7 +1492,7 @@ protected:
     wxString CreateEffectStringRandom(wxString &settings, wxString &palette);
     void BackupDirectory(wxString targetDirName);
     void NewSequence();
-    void OpenSequence();
+    void OpenSequence(wxString passed_filename);
     void SaveSequence();
     void SaveAsSequence();
     bool CloseSequence();
@@ -1486,14 +1508,13 @@ protected:
     void StopNow(void);
     void PlayRgbSequence(void);
     bool IsValidEffectString(wxString& s);
-    void PreviewScaleUpdated(float newscale);
+    void PreviewScaleUpdated(float xscale, float yscale);
     void LoadPapagayoFile(const wxString& filename, int frame_offset = 0);
     void InitPapagayoTab(bool tab_changed);
     bool LoadPgoSettings(void);
     bool SavePgoSettings(void);
     bool GetGroupName(wxString& grpname);
     void PgoGridCellSelect(int row, int col, int where);
-    void GetMouthNodes(const wxString& model_name);
     void PreviewRotationUpdated(int newRotation);
     int FindModelsClicked(int x,int y,wxArrayInt* found);
     void SelectModel(wxString name);
@@ -1565,8 +1586,8 @@ protected:
     wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
     wxArrayString ButterflyDirection;
-    wxArrayString FacesPhoneme;
-    wxArrayString CoroFacesPhoneme;
+    wxArrayString PlasmaEffectColors;
+
 
     wxArrayString MeteorsEffectTypes;
     wxArrayString MeteorsEffect;
@@ -1620,6 +1641,7 @@ protected:
     // Methods
     void InitSequencer();
     void CreateSequencer();
+    void StopSequence();
     // Events
     void Zoom( wxCommandEvent& event);
     void TimelineChanged( wxCommandEvent& event);

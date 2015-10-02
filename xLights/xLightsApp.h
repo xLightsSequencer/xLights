@@ -11,6 +11,7 @@
 #define XLIGHTSAPP_H
 
 #include <wx/app.h>
+#include <wx/cmdline.h>
 
 class xLightsApp : public wxApp
 {
@@ -19,7 +20,10 @@ public:
     static bool WantDebug; //debug flag from command-line -DJ
     static bool RunPrompt; //prompt before running schedule (allows override) -DJ
     static wxString DebugPath; //path name for debug log file -DJ
-    
+    static wxString showDir;
+    static wxString mediaDir;
+    static wxString sequenceFile;
+
     virtual void OnFatalException();
 
 };

@@ -11,9 +11,11 @@
 #include <wx/string.h>
 //*)
 
+#include "ModelPreview.h"
 #include "PixelAppearanceDlg.h"
 #include "StrandNodeNamesDialog.h"
 #include "NetInfo.h"
+#include "ModelFaceDialog.h"
 
 //(*IdInit(ModelDialog)
 const long ModelDialog::ID_STATICTEXT1 = wxNewId();
@@ -49,6 +51,7 @@ const long ModelDialog::ID_SPINCTRL5 = wxNewId();
 const long ModelDialog::ID_TEXTCTRL3 = wxNewId();
 const long ModelDialog::ID_BUTTON3 = wxNewId();
 const long ModelDialog::ID_BUTTON4 = wxNewId();
+const long ModelDialog::ID_BUTTON1 = wxNewId();
 const long ModelDialog::ID_CHECKBOX2 = wxNewId();
 const long ModelDialog::ID_GRID_START_CHANNELS = wxNewId();
 const long ModelDialog::ID_STATICTEXT14 = wxNewId();
@@ -73,6 +76,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 
     //(*Initialize(ModelDialog)
     wxFlexGridSizer* FlexGridSizer4;
+    wxButton* Button01;
     wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer3;
     wxButton* Button04;
@@ -154,7 +158,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     StaticText_Strands = new wxStaticText(this, ID_STATICTEXT4, _("# of Strands per String"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     StaticText_Strands->SetHelpText(_("How many times is a string folded\?"));
     LeftGridSizer->Add(StaticText_Strands, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    SpinCtrl_parm3 = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(35,-1)), 0, 1, 100, 1, _T("ID_SPINCTRL3"));
+    SpinCtrl_parm3 = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(35,-1)), 0, 1, 1000, 1, _T("ID_SPINCTRL3"));
     SpinCtrl_parm3->SetValue(_T("1"));
     LeftGridSizer->Add(SpinCtrl_parm3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Start Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
@@ -225,6 +229,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer7->Add(Button03, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button04 = new wxButton(this, ID_BUTTON4, _("Names"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
     FlexGridSizer7->Add(Button04, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button01 = new wxButton(this, ID_BUTTON1, _("Faces"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizer7->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     OuterSizer->Add(LeftGridSizer, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
@@ -296,6 +302,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_SPINCTRLMODELBRIGHTNESS,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrlModelBrightnessChange);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnAppearanceButtonClicked);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnNamesButtonClick);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnFacesButtonClick);
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
     Connect(ID_GRID_START_CHANNELS,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
     Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomCutClick);
@@ -306,7 +313,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_CustomModelZoomOut,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButton_CustomModelZoomOutClick);
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OnGridCustomCellChange);
     //*)
- 
+
     wxGridCellTextEditor *editor = new wxGridCellTextEditor();
     wxString filter("0123456789:");
     wxTextValidator validator(wxFILTER_INCLUDE_CHAR_LIST);
@@ -839,6 +846,28 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         e->AddAttribute("StrandNames", strandNames);
     }
     ModelClass::SetMyDisplay(e,CheckBox_MyDisplay->GetValue());
+    
+    
+    wxXmlNode *f = e->GetChildren();
+    while (f != nullptr) {
+        if ("faceInfo" == f->GetName()) {
+            e->RemoveChild(f);
+            delete f;
+            f = e->GetChildren();
+        } else {
+            f = f->GetNext();
+        }
+    }
+    if (!faceInfo.empty()) {
+        for (std::map<wxString, std::map<wxString,wxString> >::iterator it = faceInfo.begin(); it != faceInfo.end(); it++) {
+            f = new wxXmlNode(e, wxXML_ELEMENT_NODE , "faceInfo");
+            wxString name = it->first;
+            f->AddAttribute("Name", name);
+            for (std::map<wxString,wxString>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                f->AddAttribute(it2->first, it2->second);
+            }
+        }
+    }
 }
 
 void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& NameSuffix)
@@ -954,6 +983,37 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
     GridCustom->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
 
     UpdateLabels();
+    
+    faceInfo.clear();
+    wxXmlNode *f = e->GetChildren();
+    while (f != nullptr) {
+        if ("faceInfo" == f->GetName()) {
+            wxString name = f->GetAttribute("Name");
+            wxString type = f->GetAttribute("Type", "SingleNode");
+            if (name == "") {
+                name = type;
+                f->DeleteAttribute("Name");
+                f->AddAttribute("Name", type);
+            }
+            if (!(type == "SingleNode" || type == "NodeRange" || type == "Matrix")) {
+                if (type == "Coro") {
+                    type = "SingleNode";
+                } else {
+                    type = "Matrix";
+                }
+                f->DeleteAttribute("Type");
+                f->AddAttribute("Type", type);
+            }
+            wxXmlAttribute *att = f->GetAttributes();
+            while (att != nullptr) {
+                if (att->GetName() != "Name") {
+                    faceInfo[name][att->GetName()] = att->GetValue();
+                }
+                att = att->GetNext();
+            }
+        }
+        f = f->GetNext();
+    }
 }
 
 void ModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)
@@ -1185,7 +1245,7 @@ void ModelDialog::OnAppearanceButtonClicked(wxCommandEvent& event)
     dlg.PixelSizeSpinner->SetValue(pixelSize);
     dlg.BlackTransparency->SetValue(blackTransparency);
     dlg.Brightness->SetValue(previewBrightness);
-    
+
     dlg.TransparencyText->SetValue(wxString::Format("%d", transparency));
     dlg.BlackTransparencyText->SetValue(wxString::Format("%d", blackTransparency));
     dlg.BrightnessText->SetValue(wxString::Format("%d", previewBrightness));
@@ -1288,5 +1348,20 @@ void ModelDialog::OnNamesButtonClick(wxCommandEvent& event)
                 strandNames = dlg.StrandsGrid->GetCellValue(x-1,0) + strandNames;
             }
         }
+    }
+}
+
+void ModelDialog::OnFacesButtonClick(wxCommandEvent& event)
+{
+    wxXmlNode xml;
+    UpdateXml(&xml);
+    ModelClass md;
+    md.SetFromXml(&xml, *netInfo);
+
+    ModelFaceDialog dlg(this);
+    dlg.SetFaceInfo(&md, faceInfo);
+    if (dlg.ShowModal()) {
+        faceInfo.clear();
+        dlg.GetFaceInfo(faceInfo);
     }
 }

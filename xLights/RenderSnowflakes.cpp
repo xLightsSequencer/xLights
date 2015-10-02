@@ -298,10 +298,10 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool
                                     if (moves & 2) {
                                         x0 = x;
                                     }
-                                    else if (moves & 5 == 4) {
+                                    else if ((moves & 5) == 4) {
                                         x0 = x + 1;
                                     }
-                                    else if (moves & 5 == 1) {
+                                    else if ((moves & 5) == 1) {
                                         x0 = x - 1;
                                     }
                                     else {

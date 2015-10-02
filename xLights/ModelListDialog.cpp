@@ -7,6 +7,7 @@
 #include <wx/textdlg.h>
 #include <wx/xml/xml.h>
 #include <wx/file.h>
+#include "xLightsMain.h"
 
 //(*InternalHeaders(ModelListDialog)
 #include <wx/intl.h>
@@ -30,7 +31,8 @@ BEGIN_EVENT_TABLE(ModelListDialog,wxDialog)
 END_EVENT_TABLE()
 
 ModelListDialog::ModelListDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
-: mSequenceElements(NULL)
+: mParent((xLightsFrame*)parent),
+  mSequenceElements(NULL)
 {
     //(*Initialize(ModelListDialog)
     wxFlexGridSizer* FlexGridSizer3;
@@ -228,17 +230,41 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
     while (DlgResult == wxID_OK && !ok);
     if (DlgResult != wxID_OK) return;
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
-    
-    wxString attr;
-    e->GetAttribute("name", &attr);
 
-    Element* elem_to_rename = mSequenceElements->GetElement(attr);
+    wxString OldName;
+    e->GetAttribute("name", &OldName);
+
+    Element* elem_to_rename = mSequenceElements->GetElement(OldName);
     if( elem_to_rename != NULL )
     {
         elem_to_rename->SetName(NewName);
     }
+
     e->DeleteAttribute("name");
     e->AddAttribute("name",NewName);
+
+    for (wxXmlNode *grp = modelGroups->GetChildren(); grp != nullptr; grp = grp->GetNext()) {
+        wxString groupModels = grp->GetAttribute("models");
+        wxArrayString ModelsInGroup=wxSplit(groupModels,',');
+        for(int i=0;i<ModelsInGroup.size();i++)
+        {
+            if (ModelsInGroup[i] == OldName) {
+                ModelsInGroup[i] = NewName;
+                grp->DeleteAttribute("models");
+
+                groupModels = ModelsInGroup[0];
+                for (int x = 1; x < ModelsInGroup.size(); x++) {
+                    groupModels += ",";
+                    groupModels += ModelsInGroup[x];
+                }
+                grp->AddAttribute("models", groupModels);
+            }
+        }
+    }
+
+    mParent->RenameModelInViews(OldName, NewName);
+    mSequenceElements->RenameModelInViews(OldName, NewName);
+
     ListBox1->Delete(sel);
     ListBox1->Append(NewName, e);
 }
@@ -271,6 +297,8 @@ void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
             {
                 wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
                 e->AddAttribute("name", name);
+                e->AddAttribute("offsetXpct","0.5");
+                e->AddAttribute("offsetYpct","0.5");
                 dialog.UpdateXml(e);
                 ListBox1->Append(name,e);
             }

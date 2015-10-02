@@ -20,7 +20,7 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 {
-    OpenSequence();
+    OpenSequence("");
 }
 
 void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
@@ -178,12 +178,13 @@ void xLightsFrame::LoadEffectsFile()
 
         // load converted file
         LoadEffectsFileNoCheck();
-        // update version
-        EffectsNode->DeleteAttribute("version");
-        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
         // fix effect presets
         xLightsXmlFile::FixEffectPresets(EffectsNode);
+
+        // update version
+        EffectsNode->DeleteAttribute("version");
+        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
         UnsavedRgbEffectsChanges = true;
     }
@@ -240,9 +241,10 @@ wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const wxString &name) {
                 modelString = e->GetAttribute("models");
                 wxArrayString modelNames = wxSplit(modelString, ',');
                 for (int x = 0; x < modelNames.size(); x++) {
-                    ModelClass &c = GetModelClass(modelNames[x]);
-
-                    models.push_back(&c);
+                    ModelClass *c = GetModelClass(modelNames[x]);
+                    if (c != nullptr) {
+                        models.push_back(c);
+                    }
                 }
             }
         }
@@ -273,6 +275,7 @@ void xLightsFrame::ShowModelsDialog()
     dialog.HtmlEasyPrint=HtmlEasyPrint;
     dialog.SetSequenceElements(&mSequenceElements);
     dialog.SetNetInfo(&NetInfo);
+    dialog.SetModelGroupsNode(ModelGroupsNode);
     dialog.ShowModal();
 
     // append any new models to the main xml structure
@@ -288,6 +291,27 @@ void xLightsFrame::ShowModelsDialog()
     UpdateModelsList();
     EnableSequenceControls(true);
 }
+
+void xLightsFrame::RenameModelInViews(const wxString& old_name, const wxString& new_name)
+{
+    // renames view in the rgbeffects xml node
+    for(wxXmlNode* view=ViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
+    {
+        wxString view_models = view->GetAttribute("models");
+        wxArrayString all_models = wxSplit(view_models, ',');
+        for( int model = 0; model < all_models.size(); model++ )
+        {
+            if( all_models[model] == old_name )
+            {
+                all_models[model] = new_name;
+            }
+        }
+        view_models = wxJoin(all_models, ',');
+        view->DeleteAttribute("models");
+        view->AddAttribute("models", view_models);
+    }
+}
+
 
 void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
 {
@@ -306,16 +330,26 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
     SaveSequence();
 }
 
+int wxCALLBACK MyCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr WXUNUSED(sortData))
+{
+	wxString a = ((ModelClass*)item1)->name;
+	wxString b = ((ModelClass*)item2)->name;
+	return a.CmpNoCase(b);
+}
+
+
 void xLightsFrame::UpdateModelsList()
 {
-    wxString name;
+    wxString name, start_channel;
+    int end_channel;
     wxArrayString model_names;
     ModelClass *model;
-    ListBoxElementList->Clear();
+	ListBoxElementList->DeleteAllItems();
     PreviewModels.clear();
     AllModels.clear();
     wxString msg;
     int num_group_models = 0;
+	int itemCount = 0;
 
     // Set models in selected modelgroups as part of display.
     for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
@@ -353,7 +387,17 @@ void xLightsFrame::UpdateModelsList()
                                     }
                                     if (ModelClass::IsMyDisplay(e))
                                     {
-                                        ListBoxElementList->Append(name,model);
+                                        long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
+                                        start_channel = e->GetAttribute("StartChannel");
+                                        model->SetModelStartChan(start_channel);
+                                        wxString string_type = e->GetAttribute("StringType");
+                                        int parm1 = wxAtoi(e->GetAttribute("parm1"));
+                                        int parm2 = wxAtoi(e->GetAttribute("parm2"));
+                                        wxString display_as = e->GetAttribute("DisplayAs");
+                                        end_channel = model->GetLastChannel()+1;
+                                        ListBoxElementList->SetItem(itemIndex,1,start_channel);
+                                        ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
+                                        ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
                                         PreviewModels.push_back(model);
                                     }
                                     AllModels[name].reset(model);
@@ -385,7 +429,17 @@ void xLightsFrame::UpdateModelsList()
                     }
                     if (ModelClass::IsMyDisplay(e))
                     {
-                        ListBoxElementList->Append(name,model);
+                        long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
+                        start_channel = e->GetAttribute("StartChannel");
+                        model->SetModelStartChan(start_channel);
+                        wxString string_type = e->GetAttribute("StringType");
+                        int parm1 = wxAtoi(e->GetAttribute("parm1"));
+                        int parm2 = wxAtoi(e->GetAttribute("parm2"));
+                        wxString display_as = e->GetAttribute("DisplayAs");
+                        end_channel = model->GetLastChannel()+1;
+                        ListBoxElementList->SetItem(itemIndex,1,start_channel);
+                        ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
+                        ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
                         PreviewModels.push_back(model);
                     }
                     AllModels[name].reset(model);
@@ -393,6 +447,10 @@ void xLightsFrame::UpdateModelsList()
             }
         }
     }
+    ListBoxElementList->SortItems(MyCompareFunction,0);
+    ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
+    ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
+    ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
     if (msg != "") {
         wxMessageBox(wxString::Format("These models extends beyond the number of configured channels (%u):\n", NetInfo.GetTotChannels()) + msg);
     }
@@ -405,22 +463,32 @@ void xLightsFrame::SaveSequence()
         wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
+
+    wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+    wxPostEvent(this, playEvent);
+
     if (xlightsFilename.IsEmpty())
     {
         int saved_text_entry_context = mTextEntryContext;
         mTextEntryContext = TEXT_ENTRY_DIALOG;
         wxString NewFilename;
-        wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
-        dialog.SetValue(CurrentSeqXmlFile->GetName());
+
+        wxFileDialog fd(this,
+                        "Choose filename to Save Sequence:",
+                        CurrentDir,
+                        CurrentSeqXmlFile->GetName(),
+                        strSequenceSaveAsFileTypes,
+                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
         bool ok = false;
         do
         {
-            if (dialog.ShowModal() != wxID_OK)
+            if (fd.ShowModal() != wxID_OK)
             {
                 return;
             }
             // validate inputs
-            NewFilename=dialog.GetValue();
+            NewFilename=fd.GetPath();
             NewFilename.Trim();
             ok=true;
             if (NewFilename.IsEmpty())
@@ -431,7 +499,6 @@ void xLightsFrame::SaveSequence()
         }
         while (!ok);
         wxFileName oName(NewFilename);
-        oName.SetPath( CurrentDir );
         oName.SetExt("fseq");
         DisplayXlightsFilename(oName.GetFullPath());
 
@@ -468,16 +535,22 @@ void xLightsFrame::SaveAsSequence()
         return;
     }
     wxString NewFilename;
-    wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
-    bool ok;
+    wxFileDialog fd(this,
+                    "Choose filename to Save Sequence:",
+                    CurrentDir,
+                    CurrentSeqXmlFile->GetName(),
+                    strSequenceSaveAsFileTypes,
+                    wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    bool ok = false;
     do
     {
-        if (dialog.ShowModal() != wxID_OK)
+        if (fd.ShowModal() != wxID_OK)
         {
             return;
         }
         // validate inputs
-        NewFilename=dialog.GetValue();
+        NewFilename=fd.GetPath();
         NewFilename.Trim();
         ok=true;
         if (NewFilename.IsEmpty())
@@ -488,7 +561,6 @@ void xLightsFrame::SaveAsSequence()
     }
     while (!ok);
     wxFileName oName(NewFilename);
-    oName.SetPath( CurrentDir );
     oName.SetExt("fseq");
     DisplayXlightsFilename(oName.GetFullPath());
 
@@ -635,7 +707,7 @@ int xLightsFrame::ChooseRandomEffect()
         count++;
         eff=rand() % BitmapCache::eff_LASTEFFECT;
         BAD_CHOICE = (BitmapCache::eff_TEXT == eff || BitmapCache::eff_PICTURES == eff || BitmapCache::eff_PIANO == eff
-                      || BitmapCache::eff_FACES == eff || BitmapCache::eff_COROFACES == eff || BitmapCache::eff_GLEDIATOR == eff
+                      || BitmapCache::eff_FACES == eff || BitmapCache::eff_GLEDIATOR == eff
                       || BitmapCache::eff_OFF == eff || BitmapCache::eff_ON == eff);
     }
     if(count==MAX_TRIES) eff=BitmapCache::eff_OFF; // we failed to find a good effect after MAX_TRIES attempts

@@ -3,9 +3,9 @@
 
 #include "EffectLayer.h"
 #include "Element.h"
-#include "../xLightsXmlFile.h"
 #include "wx/wx.h"
 #include <vector>
+#include <set>
 #include "wx/xml/xml.h"
 #include "UndoManager.h"
 
@@ -85,6 +85,10 @@ class SequenceElements : public ChangeLister
         void AddView(const wxString &viewName);
         void RemoveView(int view_index);
         void AddViewToTimings(wxArrayString& timings, const wxString& name);
+        void AddTimingToAllViews(wxString& timing);
+        void AddTimingToView(wxString& timing, const wxString& name);
+
+        void RenameModelInViews(const wxString& old_name, const wxString& new_name);
 
         void DeleteElement(const wxString &name);
         void DeleteElementFromView(const wxString &name, int view);
@@ -92,6 +96,11 @@ class SequenceElements : public ChangeLister
 
         void PopulateRowInformation();
         void PopulateVisibleRowInformation();
+
+        void SetSequenceEnd(int ms);
+        void ImportLyrics(Element* element, wxWindow* parent);
+        void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const wxString& phrase);
+        void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word);
 
         // Selected Ranges
         int GetSelectedRangeCount();
@@ -104,6 +113,7 @@ class SequenceElements : public ChangeLister
         void SetSelectedTimingRow(int row);
 
         int GetNumberOfTimingRows();
+        int GetNumberOfTimingElements();
         bool ElementExists(wxString elementName, int view = MASTER_VIEW);
         bool TimingIsPartOfView(Element* timing, int view);
         wxString GetViewName(int view);
@@ -120,9 +130,9 @@ class SequenceElements : public ChangeLister
         void DeactivateAllTimingElements();
         void SetFrequency(double frequency);
         double GetFrequency();
-        void SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX);
+
+        int SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS);
         int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol);
-        Effect* GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType);
         void UnSelectAllEffects();
         void UnSelectAllElements();
 
@@ -130,11 +140,16 @@ class SequenceElements : public ChangeLister
         EffectLayer* GetEffectLayer(int row);
         EffectLayer* GetVisibleEffectLayer(int row);
 
-        virtual void IncrementChangeCount() {mChangeCount++;}
+        virtual void IncrementChangeCount(Element *el);
         int GetChangeCount() { return mChangeCount;}
+
+        bool HasPapagayoTiming() { return hasPapagayoTiming; }
 
         UndoManager& get_undo_mgr() { return undo_mgr; }
 
+
+        void AddRenderDependency(const wxString &layer, const wxString &model);
+        bool GetElementsToRender(std::vector<Element *> &models);
     protected:
     private:
         void LoadEffects(EffectLayer *layer,
@@ -144,8 +159,10 @@ class SequenceElements : public ChangeLister
                      std::vector<wxString> colorPalettes);
         static bool SortElementsByIndex(const Element *element1,const Element *element2)
         {
-            return (element1->Index<element2->Index);
+            return (element1->GetIndex() < element2->GetIndex());
         }
+        void addTimingElement(Element *elem, std::vector<Row_Information_Struct> &mRowInformation,
+                              int &rowIndex, int &selectedTimingRow, int &timingRowCount, int &timingColorIndex);
 
         void ClearAllViews();
         std::vector<std::vector <Element*> > mAllViews;
@@ -169,11 +186,17 @@ class SequenceElements : public ChangeLister
         int mTimingRowCount;
         int mMaxRowsDisplayed;
         int mCurrentView;
+        bool hasPapagayoTiming;
+        int mSequenceEndMS;
 
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
         int mFirstVisibleModelRow;
         int mChangeCount;
         UndoManager undo_mgr;
+
+        std::map<wxString, std::set<wxString>> renderDependency;
+        std::set<wxString> modelsToRender;
+        wxMutex renderDepLock;
 };
 
 

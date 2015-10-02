@@ -238,7 +238,6 @@ void xlGridCanvasPictures::UpdateRenderedImage()
     for( int s = 0; s < all_settings.size(); s++ )
     {
         wxArrayString parts = wxSplit(all_settings[s], '=');
-        int percent = wxAtoi(parts[1]);
         if( parts[0] == "E_FILEPICKER_Pictures_Filename" ) {
             parts[1] = PictureName;
         }

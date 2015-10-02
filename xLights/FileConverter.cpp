@@ -775,7 +775,7 @@ void FileConverter::ReadXlightsFile(ConvertParameters& params)
         }
         delete [] buf;
 #ifndef NDEBUG
-        params.xLightsParent->AppendConvertLog (string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+        params.xLightsParent->AppendConvertLog (string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%d SeqData.NumChannels()=%d\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
 #endif
     }
     f.Close();
@@ -1479,7 +1479,7 @@ void FileConverter::ReadGlediatorFile(ConvertParameters& params)
     }
 
 #ifndef NDEBUG
-    params.xLightsParent->AppendConvertLog (string_format(wxString("ReadGlediatorFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+    params.xLightsParent->AppendConvertLog (string_format(wxString("ReadGlediatorFile SeqData.NumFrames()=%d SeqData.NumChannels()=%d\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
 #endif
 
     wxYield();
@@ -1653,7 +1653,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     delete []tmpBuf;
 
 #ifndef NDEBUG
-    params.xLightsParent->AppendConvertLog(string_format(wxString("Read ISEQ File SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+    params.xLightsParent->AppendConvertLog(string_format(wxString("Read ISEQ File SeqData.NumFrames()=%d SeqData.NumChannels()=%d\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
 #endif
 
     f.Close();

@@ -1,4 +1,4 @@
-xLights is a program that allows you to play the sequence files from Vixen and
+﻿xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler.
 Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches.
 
@@ -6,17 +6,115 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
----------------------------------
+--------------------------------
+    -- bug(dkulp) Click on a "node" may not hit test properly if an effect exists on the model or strand layers
+    -- bug(dkulp) Prevent effect from being resized so start is < 0ms which prevent effect updates/rendering/etc..
+    -- enh(dkulp) Add option to twinkle to re-randomize the color after each twinkle
+4.2.13  Sep 27, 2015
+	-- enh (sean) Added new Plasma effect. Now you dont need to use Butterfly to get Plasma effects
+    -- bug(dkulp) Fix crash when rendering models that have channels that extend beyond the configured range
+    -- bug(dkulp) The "Enable" flag is only honored when changed while outputting to lights 
+4.2.12  Sep 22, 2015
+	-- enh (sean) Added a enw style to Butterfly, Style=10. This allows setting color of Plasma
+			also all plasma effects (Styles 6,7,8,9,10 in Butterfly), will use 
+			Background chunks to change the plasma effect.
+	-- bug (gil) * Fix crash if deleting a timing in new sequence wizards.  Fixes #372.
+			this bug was actually fixed in 3.2.11
+	-- enh (chrisD) * Implement issue #237 - Enhancement request: Media file missing,
+			prompt for user input
+	-- enh (chrisD) * Implement issue #367 - Enhancement: Add .out file type 
+			to Glediator file search
+4.2.11  Sep 20, 2015
+    -- enh(sean) New effect Plasma. Access this through butterfly. Select Style 6,7,8 or 9
+    -- bug(dkulp) On a new sequence, make sure the timer is restarted with the right speed
+    -- enh(dkulp) Allow a custom color for each phoneme in faces.
+    -- enh(dkulp) Allow multple face defintions for every model type, not just matrix.  Fixes #357.
+4.2.10  Sep 11, 2015
+    -- bug(gil) Fix effect selection when vertical scrollbar has been moved.
+    -- bug(gil) Range check the number of fan and element blades for SuperStar import.
+4.2.9  Sep 10, 2015
+    -- bug(gil) Fix effect selection especially pointing hands not working.
+	-- bug(chrisD) Don't crash when collecting a crash report on linux
+	-- bug(chrisD) Fix text effect on linux
+4.2.8  Sep 08, 2015
+    -- bug(gil) Fix bug where play marker wouldn't work if pressing play was the first thing you do and also
+                fixed dropping an effect while model playback is paused such that it executes a stop and
+                switches to effect play.  Fixes #322.
+    -- enh(gil) Use standard File SaveAs dialog for saving sequences. Fixes #336.
+    -- enh(gil) Improved dialog when prompting to save sequence changes.
+    -- bug(gil) Fix the single cell selection caused by undocumented logic enhancements last release.  Fixes #359.
+4.2.7  Sep 06, 2015
+	-- bug (chrisD) Fixed a number of bugs in Linux version of xLights
+	-- bug (chrisD) Set colour of multi-selected items to yellow. This fixes the multi model select
+		in LAYOUT mode. Ctl-left click to select models. You can then move whole group at once
+	-- enh (dkulp A bit more error checking for placement of effects/timing marks
+	-- enh (dkulp More work on bg text render stuff, better mouse-over/selection for tiny effects
+	-- enh (dkulp) Remove the position things from Effects, base all hit testing on time and handle the specifics in EffectsGrid
+    -- enh(gil) Stop effect playback when performing a Save operation.
+    -- enh(gil) Add scale and position options to the Marquee effect.
+4.2.6  Sep 02, 2015
+    -- bug(gil) Fix morph row/column calculation for large model sizes
+    -- enh(gil) New model groups default to "minimal grid".
+    -- enh(gil) Add scrollbars to lower windows in Model Groups dialog. Fixes #350.
+    -- enh(gil) Increase window frame model bottom limit.  Fixes #351.
+4.2.5  Aug 29, 2015
+    -- enh(gil) Add Marquee effect
+    -- bug(gil) Fix crash when renaming model without sequence open.
+    -- bug(dkulp) Implement an "Auto" mode for Eyes for Coro/Image faces that will blink roughly every 5 seconds on a rest
+    -- bug(dkulp) Fix crash if face effect dropped on a strand or node
+4.2.4  Aug 26, 2015
+	-- bug(gil)  Fix view combo drop-down not populating when no fseq file existed.  Moved Initialize call
+                 to make sure SequenceData object has been initialized first.
+	-- bug(gil)  Models that are renamed or deleted will now be updated in all views.
+	-- bug (chrisD) Fixed popup error box when selecting models in LAYOUT
+	-- enh(chrisD) New checkbox for channel overlap check in LAYOUT.
+	-- enh(chrisD) in LAYOUT fixed flashing when selecting models
+	-- bug(gil)  Presets will now populate correctly when switching to a new Show directory.
+	-- bug(gil)  Presets created at top level will now show up when program is reopened.
+	-- bug(chrisP) Fix export of Falcon .eseq Effects files
+4.2.3  Aug 22, 2015
+    -- bug(gil)   Version older detection code was wrong....this caused morphs to be converted when they shouldn't.
+                  Also fixed morph corner 2b point graphic.
+4.2.2  Aug 20, 2015
+    -- enh(chrisD) in the Layout screen starting and ending channels are now shown. Name,Start and End are clickable columns to sort
+    -- bug(dkulp) Fix crashes when renaming models that are part of a group or renaming a group.  Fixes #337.
+    -- bug(dkulp) Fix crash on clicking Up/Down if no models selected. Fixes #181
+    -- enh(dkulp) Make "Export Model" export the current state of the model, add option to re-render it
+    -- bug(dkulp) Enable "Export Model" for groups
+    -- enh(dkulp) OSX - Disable AppNap and Timer Coalescing when Output To Lights is on
+    -- eng(steve) Add keybindings "O" for Off and "F" for fan effects
+    -- enh(steve) Update Readme for Windows builds
+4.2.1  Aug 14, 2015
+    -- enh(gil)  Timings added to a sequence default to exist in all views.
+    -- bug(gil)  Mark rgbeffects file as changed when views are modified.
+    -- bug(dkulp) Fix saving the model XML during resize/rotate
+    -- bug(dkulp) Fix clearing when an effect is shrunk
+    -- bug(dkulp) If a papagayo track is in the sequence, trying to add another timing track will crash
+    -- enh(gil)  Models that are copied will now display in the center of the screen.
+    -- enh(dkulp) Add ability to enable/disable various outputs (so if controllers aren't hooked up, don't arp flood)
+    -- enh(dkulp) Add ability to configure e1.31 ouput to handle consecutive universes in one output
+    -- bug(dkulp) Fix problem of rotating elements with unequal scales
+4.2.0  Aug 8, 2015
+    -- bug(gil)  Fix channel map buttons disappearing when resizing dialog.  Fixes #313.
+    -- bug(gil)  Prevent crash when doing Import Effects on xLights xml file.
+    -- bug(gil)  Fix sparkles, brightness, and contrast text controls so that sliders update.  Fixes #320.
+    -- bug(gil)  Fix right-click crash on grid when no sequence is loaded. Fixes #317.
+    -- bug(dkulp) Audio at non-full speed stops too early when only playing a range
+    -- enh(dkulp) Add a "Minimal Grid" option for model group to specify just the area of the given models
+    -- enh(dkulp) Add ability to have model sizes scaled separately for horizontal and vertical directions
+    -- enh(gil) Add ability to import lyrics to a timing track.
+4.1.13  Jul 24, 2015
+	-- enh(gil) First pass at coding a built in Papagayo into xLights. You will see 4 new dictionary files in xLights/bin
     -- bug(gil)   Column 0 wasn't working properly for pasting to single cell.
     -- enh(gil)   Change the look of the labels
     -- bug(gil)   Prevent text labels from piling up on left side when scrolling.
 4.1.12  Jul 20, 2015
     -- enh (dkulp) If VAMP plugins are found, allow using them to generating timing rows
-
 4.1.11  Jul 14, 2015
 	-- enh(gil)   Add ability to create/edit/draw images on models using the Pictures effect and the Effect Assist window.
 	-- gil (bug)  Prevent crash if image file cannot be found.
-    -- enh(dkulp) Add a choice to select the view in the top left corner
+    -- enh(dkul
+	p) Add a choice to select the view in the top left corner
     -- enh(dkulp) Add ability to "expand" a ModelGroup on row headings to expand out the models.
     -- bug(dkulp) Fix the Align/Distribute menu items on the Layout tab
     -- enh(dkulp) Add options for how the ModelGroup internal buffer is constructed including:

@@ -4,7 +4,8 @@
 #include "wx/brush.h"
 #include "../xLightsMain.h"
 #include "EffectDropTarget.h"
-
+#include "BitmapCache.h"
+#include "TimeLine.h"
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
@@ -20,6 +21,7 @@ const long RowHeading::ID_ROW_MNU_DELETE_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_PLAY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_MODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_EXPORT_RENDERED_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_STRANDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
@@ -30,6 +32,9 @@ const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
+const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
+const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_WORDS = wxNewId();
 
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
@@ -43,6 +48,8 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     mHeaderColorTiming = new xlColor(130,178,207);
     mHeaderSelectedColor = new xlColor(130,178,207);
     SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
+    wxString tooltip;
+    papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, true);
 }
 
 RowHeading::~RowHeading()
@@ -116,6 +123,18 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
         eventRowHeaderChanged.SetString(element->GetName());
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
+    else if(element->GetType()=="timing") {
+        if(element->GetEffectLayerCount() > 1) {
+            if(element->GetCollapsed()) {
+                element->SetCollapsed(false);
+            } else {
+                element->SetCollapsed(true);
+            }
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            eventRowHeaderChanged.SetString(element->GetName());
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
+    }
 }
 void RowHeading::rightClick( wxMouseEvent& event)
 {
@@ -150,6 +169,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
         if (element->GetType()=="model") {
             mnuLayer->Append(ID_ROW_MNU_PLAY_MODEL,"Play Model");
             mnuLayer->Append(ID_ROW_MNU_EXPORT_MODEL,"Export Model");
+            mnuLayer->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export Model");
             mnuLayer->AppendSeparator();
             bool canPromote = false;
             if (element->getStrandLayerCount() == 1) {
@@ -178,6 +198,13 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer->Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
         mnuLayer->Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
         mnuLayer->Append(ID_ROW_MNU_IMPORT_TIMING_TRACK,"Import Timing Track");
+        mnuLayer->AppendSeparator();
+        mnuLayer->Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
+        mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES,"Breakdown Phrases");
+        if( element->GetEffectLayerCount() > 1 )
+        {
+            mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS,"Breakdown Words");
+        }
     }
 
     mnuLayer->AppendSeparator();
@@ -238,22 +265,19 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         {
             // Deactivate active timing mark so new one is selected;
             mSequenceElements->DeactivateAllTimingElements();
-            int timingCount = mSequenceElements->GetNumberOfTimingRows();
+            int timingCount = mSequenceElements->GetNumberOfTimingElements();
             wxString type = "timing";
             Element* e = mSequenceElements->AddElement(timingCount,name,type,true,false,true,false);
             e->AddEffectLayer();
-            wxArrayString timings;
-            timings.push_back(name);
-            mSequenceElements->AddViewToTimings(timings, mSequenceElements->GetViewName(mSequenceElements->GetCurrentView()));
+            mSequenceElements->AddTimingToAllViews(name);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
-            timings.clear();
         }
     }
     else if(id == ID_ROW_MNU_DELETE_TIMING_TRACK)
     {
         wxString prompt = wxString::Format("Delete 'Timing Track '%s'?",element->GetName());
-        wxString caption = "Comfirm Timing Track Deletion";
+        wxString caption = "Confirm Timing Track Deletion";
 
         int answer = wxMessageBox(prompt,caption,wxYES_NO);
         if(answer == wxYES)
@@ -265,8 +289,26 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK) {
         wxCommandEvent playEvent(EVT_IMPORT_TIMING);
         wxPostEvent(GetParent(), playEvent);
+    } else if(id == ID_ROW_MNU_IMPORT_LYRICS) {
+        mSequenceElements->ImportLyrics(element, GetParent());
+    } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {
+        int result = wxMessageBox("Breakdown phrases? Any existing words and phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        if (result == wxOK) {
+            BreakdownTimingPhrases(element);
+        }
+    } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_WORDS) {
+        int result = wxMessageBox("Breakdown words? Any existing phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        if (result == wxOK) {
+            BreakdownTimingWords(element);
+        }
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
+        playEvent.SetInt(0);
+        playEvent.SetString(element->GetName());
+        wxPostEvent(GetParent(), playEvent);
+    } else if (id == ID_ROW_MNU_EXPORT_RENDERED_MODEL) {
+        wxCommandEvent playEvent(EVT_EXPORT_MODEL);
+        playEvent.SetInt(1);
         playEvent.SetString(element->GetName());
         wxPostEvent(GetParent(), playEvent);
     } else if (id == ID_ROW_MNU_PLAY_MODEL) {
@@ -307,6 +349,44 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     wxPostEvent(GetParent(), eventForceRefresh);
 }
 
+void RowHeading::BreakdownTimingPhrases(Element* element)
+{
+    EffectLayer* layer = element->GetEffectLayer(0);
+    if( element->GetEffectLayerCount() > 1 )
+    {
+        for( int k = element->GetEffectLayerCount()-1; k > 0; k--)
+        {
+            element->RemoveEffectLayer(k);
+        }
+    }
+    EffectLayer* word_layer = element->AddEffectLayer();
+    for( int i = 0; i < layer->GetEffectCount(); i++ )
+    {
+        Effect* effect = layer->GetEffect(i);
+        wxString phrase = effect->GetEffectName();
+        mSequenceElements->BreakdownPhrase(word_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase);
+    }
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
+}
+
+void RowHeading::BreakdownTimingWords(Element* element)
+{
+    if( element->GetEffectLayerCount() > 2 )
+    {
+        element->RemoveEffectLayer(2);
+    }
+    EffectLayer* word_layer = element->GetEffectLayer(1);
+    EffectLayer* phoneme_layer = element->AddEffectLayer();
+    for( int i = 0; i < word_layer->GetEffectCount(); i++ )
+    {
+        Effect* effect = word_layer->GetEffect(i);
+        wxString word = effect->GetEffectName();
+        mSequenceElements->BreakdownWord(phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), word);
+    }
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
+}
 
 bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 {
@@ -436,22 +516,29 @@ void RowHeading::Draw()
         }
         else if(mSequenceElements->GetVisibleRowInformation(i)->element->GetType()=="timing")
         {
-            dc.SetPen(*wxBLACK_PEN);
-            if(mSequenceElements->GetVisibleRowInformation(i)->Active)
+            if( mSequenceElements->GetVisibleRowInformation(i)->layerIndex == 0 )
             {
-                dc.SetBrush(*wxWHITE_BRUSH);
-                dc.DrawCircle(7,startY+11,5);
+                dc.SetPen(*wxBLACK_PEN);
+                if(mSequenceElements->GetVisibleRowInformation(i)->Active)
+                {
+                    dc.SetBrush(*wxWHITE_BRUSH);
+                    dc.DrawCircle(7,startY+11,5);
 
-                dc.SetBrush(*wxGREY_BRUSH);
-                dc.DrawCircle(7,startY+11,2);
+                    dc.SetBrush(*wxGREY_BRUSH);
+                    dc.DrawCircle(7,startY+11,2);
+                }
+                else
+                {
+                    dc.SetBrush(*wxWHITE_BRUSH);
+                    dc.DrawCircle(7,startY+11,5);
+                }
+                dc.SetPen(penOutline);
+                dc.SetBrush(brush);
+                if(mSequenceElements->GetVisibleRowInformation(i)->element->GetEffectLayerCount() > 1)
+                {
+                    dc.DrawBitmap(papagayo_icon, getWidth()-25, startY+3, true);
+                }
             }
-            else
-            {
-                dc.SetBrush(*wxWHITE_BRUSH);
-                dc.DrawCircle(7,startY+11,5);
-            }
-            dc.SetPen(penOutline);
-            dc.SetBrush(brush);
         }
         row++;
     }

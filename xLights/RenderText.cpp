@@ -38,94 +38,155 @@
 
 #define WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
 
+inline void unshare(wxObject &o) {
+    if (o.GetRefData() != nullptr) {
+        o.UnShare();
+    }
+}
+
+DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1,1,32)
+{
+    unshare(nullBitmap);
+    image = new wxImage(BufferWi, BufferHt);
+    image->SetAlpha();
+    for(wxCoord x=0; x<BufferWi; x++) {
+        for(wxCoord y=0; y<BufferHt; y++) {
+            image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
+        }
+    }
+    bitmap = nullptr;
+    dc = new wxMemoryDC(nullBitmap);
+
+    
+    //make sure we UnShare everything that is being held onto
+    //also use "non-normal" defaults to avoid "==" issue that
+    //would keep it from using the non-shared versions
+    wxFont font(*wxITALIC_FONT);
+    unshare(font);
+    dc->SetFont(font);
+    
+    wxBrush brush(*wxYELLOW_BRUSH);
+    unshare(brush);
+    dc->SetBrush(brush);
+    dc->SetBackground(brush);
+    
+    wxPen pen(*wxGREEN_PEN);
+    unshare(pen);
+    dc->SetPen(pen);
+    
+    #ifndef LINUX
+    wxColor c(12, 25, 3);
+    unshare(c);
+    dc->SetTextBackground(c);
+    
+    wxColor c2(0, 35, 5);
+    unshare(c2);
+    dc->SetTextForeground(c2);
+    #endif
 #if wxUSE_GRAPHICS_CONTEXT
-class DrawingContext {
-public:
-    DrawingContext(int BufferWi, int BufferHt) {
-        image = new wxImage(BufferWi, BufferHt);
-        image->SetAlpha();
-        for(wxCoord x=0; x<BufferWi; x++) {
-            for(wxCoord y=0; y<BufferHt; y++) {
-                image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
-            }
-        }
+    gc = nullptr;
+#endif
+}
 
-        dc = wxGraphicsContext::Create(*image);
-        dc->SetAntialiasMode(wxANTIALIAS_NONE);
+
+DrawingContext::~DrawingContext() {
+#if wxUSE_GRAPHICS_CONTEXT
+    if (gc != nullptr) {
+        delete gc;
     }
-    ~DrawingContext() {
-        if (dc != nullptr) {
-            delete dc;
-        }
-    }
-    wxImage *FlushAndGetImage() {
-        dc->Flush();
+#endif
+    if (dc != nullptr) {
         delete dc;
-        dc = nullptr;
-        return image;
     }
-
-    void SetFont(wxFont &font, const xlColor &color) {
-        dc->SetFont(font, color.asWxColor());
+    if (bitmap != nullptr) {
+        delete bitmap;
     }
-
-    void DrawText(const wxString &msg, int x, int y, double rotation) {
-        dc->DrawText(msg, x, y, rotation);
+    if (image != nullptr) {
+        delete image;
     }
-    void DrawText(const wxString &msg, int x, int y) {
-        dc->DrawText(msg, x, y);
+}
+void DrawingContext::Clear() {
+#if wxUSE_GRAPHICS_CONTEXT
+    if (gc != nullptr) {
+        delete gc;
+        gc = nullptr;
     }
-
-    void GetTextExtent(const wxString &msg, double *width, double *height) {
-        dc->GetTextExtent(msg, width, height);
-    }
-private:
-    wxImage *image;
-    wxGraphicsContext *dc;
-};
-#else
-class DrawingContext {
-public:
-    DrawingContext(int BufferWi, int BufferHt) : bitmap(BufferWi, BufferHt, 32) {
-        dc = new wxMemoryDC(bitmap);
-    }
-    ~DrawingContext() {
-        if (dc != nullptr) {
-            delete dc;
-        }
-    }
-    wxImage *FlushAndGetImage() {
-        delete dc;
-        dc = nullptr;
-        wxImage *image = new wxImage();
-        *image = bitmap.ConvertToImage();
-        return image;
-    }
-
-    void SetFont(wxFont &font, const xlColor &color) {
-        dc->SetFont(font);
-        dc->SetTextForeground(color.asWxColor());
-    }
-
-    void DrawText(const wxString &msg, int x, int y, double rotation) {
-        dc->DrawRotatedText(msg, x, y, rotation);
-    }
-    void DrawText(const wxString &msg, int x, int y) {
-        dc->DrawText(msg, x, y);
-    }
-
-    void GetTextExtent(const wxString &msg, double *width, double *height) {
-        wxSize size = dc->GetTextExtent(msg);
-        *width = size.GetWidth();
-        *height = size.GetHeight();
-    }
-private:
-    wxBitmap bitmap;
-    wxMemoryDC *dc;
-};
-
 #endif
 
+    dc->SelectObject(nullBitmap);
+    if (bitmap != nullptr) {
+        delete bitmap;
+    }
+    image->Clear();
+    image->SetAlpha();
+    for(wxCoord x=0; x<image->GetWidth(); x++) {
+        for(wxCoord y=0; y<image->GetHeight(); y++) {
+            image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
+        }
+    }
+    bitmap = new wxBitmap(*image, 32);
+    dc->SelectObject(*bitmap);
+    
+#if wxUSE_GRAPHICS_CONTEXT
+#ifdef LINUX
+    gc = wxGraphicsContext::Create(*image);
+#else
+    gc = wxGraphicsContext::Create(*dc);
+#endif // LINUX
+    gc->SetAntialiasMode(wxANTIALIAS_NONE);
+#endif
+}
+
+
+wxImage *DrawingContext::FlushAndGetImage() {
+#if wxUSE_GRAPHICS_CONTEXT
+    if (gc != nullptr) {
+        gc->Flush();
+        delete gc;
+        gc = nullptr;
+    }
+#endif
+#ifndef LINUX
+    dc->SelectObject(nullBitmap);
+    *image = bitmap->ConvertToImage();
+    dc->SelectObject(*bitmap);
+#endif // LINUX
+    return image;
+}
+
+void DrawingContext::SetFont(wxFont &font, const xlColor &color) {
+#if wxUSE_GRAPHICS_CONTEXT
+    gc->SetFont(font, color.asWxColor());
+#else
+    dc->SetFont(font);
+    dc->SetTextForeground(color.asWxColor());
+#endif
+}
+
+void DrawingContext::DrawText(const wxString &msg, int x, int y, double rotation) {
+#if wxUSE_GRAPHICS_CONTEXT
+    gc->DrawText(msg, x, y, rotation);
+#else
+    dc->DrawRotatedText(msg, x, y, rotation);
+#endif
+}
+void DrawingContext::DrawText(const wxString &msg, int x, int y) {
+#if wxUSE_GRAPHICS_CONTEXT
+    gc->DrawText(msg, x, y);
+#else
+    dc->DrawText(msg, x, y);
+#endif
+}
+
+void DrawingContext::GetTextExtent(const wxString &msg, double *width, double *height) {
+#if wxUSE_GRAPHICS_CONTEXT
+    gc->GetTextExtent(msg, width, height);
+#else
+    wxSize size = dc->GetTextExtent(msg);
+    *width = size.GetWidth();
+    *height = size.GetHeight();
+#endif
+}
 
 wxMutex FONT_MAP_LOCK;
 std::map<wxString, wxFont> FONT_MAP;
@@ -165,10 +226,13 @@ void SetFont(DrawingContext *dc, const wxString& FontString, const xlColor &colo
         font.SetNativeFontInfo(s);
 #endif
         FONT_MAP[FontString] = font;
+        font.UnShare();
         dc->SetFont(font, color);
         return;
     }
-    dc->SetFont(FONT_MAP[FontString], color);
+    wxFont font = FONT_MAP[FontString];
+    font.UnShare();
+    dc->SetFont(font, color);
 }
 
 // Render 4 independent strings of text
@@ -183,8 +247,8 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
                             int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4, int speed4)
 {
     xlColour c;
-    DrawingContext *dc = new DrawingContext(BufferWi,BufferHt);
 
+    drawingContext->Clear();
     long DefaultPixelHt=BufferHt/2;
 //    if (DefaultPixelHt < 10) DefaultPixelHt=10; // min height
     if (DefaultPixelHt < 8) DefaultPixelHt=8; // min height; allow smaller grids -DJ
@@ -197,34 +261,41 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 #endif // WANT_TEXT_LINES_SYNCED
 
         size_t colorcnt=GetColorCount();
-        palette.GetColor(0,c);
-        SetFont(dc,FontString1,c);
-        RenderTextLine(dc,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass, speed1);
+        if (!Line1.IsEmpty()) {
+            palette.GetColor(0,c);
+            SetFont(drawingContext,FontString1,c);
+            RenderTextLine(drawingContext,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass, speed1);
+        }
 
         if(colorcnt>1)
         {
             palette.GetColor(1,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
-        SetFont(dc,FontString2,c);
-        RenderTextLine(dc,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass, speed2);
+        if (!Line2.IsEmpty()) {
+            SetFont(drawingContext,FontString2,c);
+            RenderTextLine(drawingContext,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass, speed2);
+        }
 
         if(colorcnt>2)
         {
             palette.GetColor(2,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
-        SetFont(dc,FontString3,c);
-        RenderTextLine(dc,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass, speed3);
+        if (!Line3.IsEmpty()) {
+            SetFont(drawingContext,FontString3,c);
+            RenderTextLine(drawingContext,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass, speed3);
+        }
 
         if(colorcnt>3)
         {
             palette.GetColor(3,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
         }
-        SetFont(dc,FontString4,c);
-        RenderTextLine(dc,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass, speed4);
+        if (!Line4.IsEmpty()) {
+            SetFont(drawingContext,FontString4,c);
+            RenderTextLine(drawingContext,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass, speed4);
+        }
     }
 
-    wxImage * i = dc->FlushAndGetImage();
-    delete dc;
+    wxImage * i = drawingContext->FlushAndGetImage();
 
     bool ha = i->HasAlpha();
     for(wxCoord x=0; x<BufferWi; x++)
@@ -247,7 +318,6 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
             SetPixel(x,y,c);
         }
     }
-    delete i;
 }
 
 
@@ -480,7 +550,7 @@ void RgbEffects::RenderTextLine(DrawingContext* dc, int idx, int Position, const
     wxString fmt, Line = Line_orig; //make copy so it can be modified -DJ
     wxChar delim;
     if (Line.IsEmpty()) return;
-    
+
     int state = (curPeriod - curEffStartPer) * tspeed * frameTimeInMs / 50;
 
     switch(Countdown)
@@ -499,6 +569,19 @@ void RgbEffects::RenderTextLine(DrawingContext* dc, int idx, int Position, const
 
     case COUNTDOWN_FREEFMT: //free format text with embedded formatting chars -DJ
 #if 0
+
+Aug 14,2015 <scm>
+Sample datestrings that are valid for the countdown timer
+Wed, 02 Oct 2015 15:00:00 +0200
+Wed, 02 Oct 2015 15:00:00 EST
+
+Note, dates must be in the future, any date in the past will show as "Invalid Date" when converted
+
+
+
+clear(
+
+                                                               )
 wxTimeSpan format chars are described at:
 http://docs.wxwidgets.org/trunk/classwx_time_span.html
 The following format specifiers are allowed after %:

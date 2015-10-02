@@ -58,6 +58,7 @@ void xLightsFrame::CreateSequencer()
     sEffectAssist->Layout();
 
     wxScrolledWindow* w;
+    EffectsPanel1->SetSequenceElements(&mSequenceElements);
     for(int i =0;i<EffectsPanel1->EffectChoicebook->GetPageCount();i++)
     {
         w = (wxScrolledWindow*)EffectsPanel1->EffectChoicebook->GetPage(i);
@@ -120,7 +121,7 @@ void xLightsFrame::InitSequencer()
     sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 
-ModelClass &xLightsFrame::GetModelClass(const wxString& name) {
+ModelClass *xLightsFrame::GetModelClass(const wxString& name) {
     ModelClass *cls = AllModels[name].get();
     if (cls == nullptr) {
         wxXmlNode *model = GetModelNode(name);
@@ -135,12 +136,12 @@ ModelClass &xLightsFrame::GetModelClass(const wxString& name) {
         }
         AllModels[name].reset(cls);
     }
-    return *cls;
+    return cls;
 }
 
 bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
-    ModelClass &model = GetModelClass(modelName);
-    buffer.InitBuffer(model.GetModelXml(), layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
+    ModelClass *model = GetModelClass(modelName);
+    buffer.InitBuffer(model->GetModelXml(), layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
     return true;
 }
 
@@ -214,7 +215,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
     {
         int musicLength = 0;
         mediaFilename = xml_file.GetMediaFile();
-        if( mediaFilename == wxEmptyString )
+        if( (mediaFilename == wxEmptyString) || (!wxFileExists(mediaFilename)))
         {
             SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
             setting_dlg.Fit();
@@ -256,7 +257,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mSequenceElements.SetModelsNode(ModelsNode, this);
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file);
-    xml_file.CheckUpdateMorphPositions(mSequenceElements, this);
+    //xml_file.CheckUpdateMorphPositions(mSequenceElements, this);  everyone should have had time to fix their older sequences prior to May 20th, 2015.  Delete once we know this function is no longer needed.
     mSequenceElements.PopulateRowInformation();
 
     Menu_Settings_Sequence->Enable(true);
@@ -279,13 +280,13 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
+    mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     ResizeAndMakeEffectsScroll();
     ResizeMainSequencer();
     mainSequencer->PanelEffectGrid->Refresh();
     sPreview1->Refresh();
     sPreview2->Refresh();
     m_mgr->Update();
-    displayElementsPanel->Initialize();
 
     mSavedChangeCount = mSequenceElements.GetChangeCount();
 }
@@ -483,7 +484,7 @@ void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 }
 
 void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
-    if (playType != PLAY_TYPE_MODEL) {
+    if (playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED) {
         playType = PLAY_TYPE_STOPPED;
         playStartTime = -1;
         playEndTime = -1;
@@ -500,7 +501,8 @@ void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
 void xLightsFrame::EffectChanged(wxCommandEvent& event)
 {
     Effect* effect = (Effect*)event.GetClientData();
-    SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
+    SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
+                      effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
     selectedEffectString = wxEmptyString;  // force update to effect rendering
 }
 
@@ -529,7 +531,8 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             effect->SetSettings(settings);
             resetStrings = true;
         }
-        SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
+        SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
+                          effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
         if (effect->GetPaletteMap().empty() || resetStrings) {
@@ -541,10 +544,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         }
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
-            mainSequencer->PanelTimeLine->PlayStopped();
-            mainSequencer->PanelWaveForm->UpdatePlayMarker();
-            mainSequencer->UpdateTimeDisplay(playStartTime);
-            mainSequencer->PanelEffectGrid->ForceRefresh();
+            StopSequence();
         }
 
         if (playType != PLAY_TYPE_MODEL) {
@@ -604,10 +604,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
-            mainSequencer->PanelTimeLine->PlayStopped();
-            mainSequencer->PanelWaveForm->UpdatePlayMarker();
-            mainSequencer->PanelEffectGrid->ForceRefresh();
-            mainSequencer->UpdateTimeDisplay(playStartTime);
+            StopSequence();
         }
 
         if (playType != PLAY_TYPE_MODEL) {
@@ -630,7 +627,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
     if (playType != PLAY_TYPE_MODEL && last_effect_created != NULL)
     {
-        SetEffectControls(last_effect_created->GetEffectName(), last_effect_created->GetSettings(), last_effect_created->GetPaletteMap());
+        SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetName(),
+                          last_effect_created->GetEffectName(), last_effect_created->GetSettings(), last_effect_created->GetPaletteMap());
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = last_effect_created;
     }
@@ -738,7 +736,7 @@ void xLightsFrame::TogglePlay(wxCommandEvent& event)
     }
 }
 
-void xLightsFrame::StopSequence(wxCommandEvent& event)
+void xLightsFrame::StopSequence()
 {
     if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED )
     {
@@ -760,6 +758,11 @@ void xLightsFrame::StopSequence(wxCommandEvent& event)
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,true);
+}
+
+void xLightsFrame::StopSequence(wxCommandEvent& event)
+{
+    StopSequence();
 }
 
 void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
@@ -855,6 +858,16 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 
 void xLightsFrame::TimerRgbSeq(long msec)
 {
+    //check if there are models that depend on timing tracks or similar that need to be rendered
+    std::vector<Element *> elsToRender;
+    if (mSequenceElements.GetElementsToRender(elsToRender)) {
+        for (std::vector<Element *>::iterator it = elsToRender.begin(); it != elsToRender.end(); it++) {
+            int ss, es;
+            (*it)->GetDirtyRange(ss, es);
+            RenderEffectForModel((*it)->GetName(), ss, es);
+        }
+    }
+
     // Update play status so sequencer grid can allow dropping timings during playback
     mainSequencer->SetPlayStatus(playType);
 
@@ -900,6 +913,14 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 
     if (playType == PLAY_TYPE_MODEL) {
+
+        int current_play_time = 0;
+        if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
+            current_play_time = PlayerDlg->GetState() != wxMEDIASTATE_PLAYING ? playEndTime + 1 : PlayerDlg->Tell();
+            curt = current_play_time;
+        } else {
+            current_play_time = curt;
+        }
         // see if its time to stop model play
         if ((curt > playEndTime) || (CurrentSeqXmlFile->GetSequenceType() == "Media" && PlayerDlg->GetState() != wxMEDIASTATE_PLAYING)) {
             playStartTime = playEndTime = 0;
@@ -907,13 +928,6 @@ void xLightsFrame::TimerRgbSeq(long msec)
             wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
             wxPostEvent(this, playEvent);
             return;
-        }
-        int current_play_time = 0;
-        if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
-            current_play_time = PlayerDlg->Tell();
-            curt = current_play_time;
-        } else {
-            current_play_time = curt;
         }
         mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time);
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
@@ -980,9 +994,13 @@ void xLightsFrame::TimerRgbSeq(long msec)
     sPreview2->Render(&SeqData[frame][0]);
 }
 
-void xLightsFrame::SetEffectControls(const wxString &effectName, const SettingsMap &settings, const SettingsMap &palette) {
+void xLightsFrame::SetEffectControls(const wxString &modelName, const wxString &effectName, const SettingsMap &settings, const SettingsMap &palette) {
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
-    EffectsPanel1->SetDefaultEffectValues(effectName);
+    if (modelName == "") {
+        EffectsPanel1->SetDefaultEffectValues(nullptr, effectName);
+    } else {
+        EffectsPanel1->SetDefaultEffectValues(GetModelClass(modelName), effectName);
+    }
     SetEffectControls(settings);
     SetEffectControls(palette);
 }
@@ -1046,6 +1064,16 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             }
             else if (name.StartsWith("ID_CHOICE"))
             {
+                wxString nn = "IDD_RADIOBUTTON" + name.SubString(9, name.size());
+                wxRadioButton *b = (wxRadioButton*)wxWindow::FindWindowByName(nn,ContextWin);
+                if (b != nullptr) {
+                    b->SetValue(true);
+                    wxCommandEvent evt(wxEVT_RADIOBUTTON, b->GetId());
+                    evt.SetEventObject(b);
+                    wxPostEvent(b->GetEventHandler(), evt);
+                }
+
+
                 wxChoice* ctrl=(wxChoice*)CtrlWin;
                 ctrl->SetStringSelection(value);
 
@@ -1320,10 +1348,11 @@ Element* xLightsFrame::AddTimingElement(wxString& name)
 {
     // Deactivate active timing mark so new one is selected;
     mSequenceElements.DeactivateAllTimingElements();
-    int timingCount = mSequenceElements.GetNumberOfTimingRows();
+    int timingCount = mSequenceElements.GetNumberOfTimingElements();
     wxString type = "timing";
     Element* e = mSequenceElements.AddElement(timingCount,name,type,true,false,true,false);
     e->AddEffectLayer();
+    mSequenceElements.AddTimingToAllViews(name);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
     return e;
@@ -1494,7 +1523,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
 
     xlColorVector colors;
     PixelBufferClass ncls;
-    ncls.InitNodeBuffer(GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
+    ncls.InitNodeBuffer(*GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
     for (int f = 0; f < SeqData.NumFrames(); f++) {
         ncls.SetNodeChannelValues(0, &SeqData[f][ncls.NodeStartChannel(0)]);
         xlColor c = ncls.GetNodeColor(0);
@@ -1639,7 +1668,5 @@ void xLightsFrame::PromoteEffects(Element *element) {
         }
     }
 }
-
-
 
 

@@ -43,10 +43,13 @@ class RowHeading : public wxWindow
         void DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row);
         bool HitTestCollapseExpand(int row,int x, bool* IsCollapsed);
         bool HitTestTimingActive(int row,int x, bool* IsActive);
+        void BreakdownTimingPhrases(Element* element);
+        void BreakdownTimingWords(Element* element);
         const xlColor* GetHeaderColor(Row_Information_Struct* info);
         const xlColor * mHeaderColorModel;
         const xlColor * mHeaderColorTiming;
         const xlColor * mHeaderSelectedColor;
+        wxBitmap papagayo_icon;
 
         int mSelectedRow;
         SequenceElements* mSequenceElements;
@@ -57,6 +60,7 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_LAYER;
         static const long ID_ROW_MNU_PLAY_MODEL;
         static const long ID_ROW_MNU_EXPORT_MODEL;
+        static const long ID_ROW_MNU_EXPORT_RENDERED_MODEL;
         static const long ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS;
         static const long ID_ROW_MNU_TOGGLE_STRANDS;
         static const long ID_ROW_MNU_TOGGLE_NODES;
@@ -67,7 +71,9 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_ADD_TIMING_TRACK;
         static const long ID_ROW_MNU_DELETE_TIMING_TRACK;
         static const long ID_ROW_MNU_IMPORT_TIMING_TRACK;
-
+        static const long ID_ROW_MNU_IMPORT_LYRICS;
+        static const long ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES;
+        static const long ID_ROW_MNU_BREAKDOWN_TIMING_WORDS;
 
 };
 

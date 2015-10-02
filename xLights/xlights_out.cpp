@@ -39,6 +39,7 @@ xNetwork::xNetwork()
 {
     timer_msec=0;
     num_channels=0;
+    enabled = true;
 }
 
 xNetwork::~xNetwork()
@@ -181,7 +182,7 @@ public:
 
     void TimerEnd()
     {
-        if (changed && serptr)
+        if (enabled && changed && serptr)
         {
             serptr->Write((char *)data,datalen);
             changed=false;
@@ -222,7 +223,7 @@ public:
 
     void TimerEnd()
     {
-        if (serptr)
+        if (enabled && serptr)
         {
             serptr->SendBreak();  // sends a 1 millisecond break
             wxMilliSleep(1);      // mark after break (MAB) - 1 millisecond is overkill (8 microseconds is the minimum dmx requirement)
@@ -251,6 +252,7 @@ protected:
     wxDatagramSocket *datagram;
     bool changed;
 
+public:
     void SetIntensity(size_t chindex, wxByte intensity)
     {
         if (data[chindex+126] != intensity) {
@@ -259,7 +261,6 @@ protected:
         }
     };
 
-public:
     xNetwork_E131()
     {
         datagram=0;
@@ -272,7 +273,7 @@ public:
         if (datagram) delete datagram;
     };
 
-    void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum)
+    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum)
     {
         if (UniverseNumber == 0 || UniverseNumber >= 64000)
         {
@@ -430,7 +431,7 @@ private:
         wxIPV4address localaddr;
         localaddr.AnyAddress();
         //localaddr.Hostname("192.168.2.100");
-        localaddr.Service(0x8000 | NetNum);
+        //localaddr.Service(0x8000 | NetNum);
         datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         //datagram = new wxDatagramSocket(localaddr, wxSOCKET_WAITALL);
 
@@ -485,6 +486,9 @@ public:
 
     void TimerEnd()
     {
+        if (!enabled) {
+            return;
+        }
         // skipping would cause ECG-DR4 (firmware version 1.30) to timeout
         if (changed || SkipCount > 10)
         {
@@ -508,6 +512,56 @@ public:
     {
         return true;
     }
+};
+
+class xMultiE131Network : public xNetwork {
+public:
+    xMultiE131Network(int univCount) { ucount = univCount;};
+    virtual ~xMultiE131Network() {};
+    
+    virtual bool TxEmpty() {return true;};
+    virtual size_t TxNonEmptyCount() {return 0;};
+    
+    virtual void InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
+        for (int x = 0; x < ucount; x++) {
+            xNetwork_E131 *ptr = new xNetwork_E131();
+            ptr->SetChannelCount(chanPerNet);
+            ptr->InitNetwork(ipaddr, UniverseNumber, NetNum);
+            UniverseNumber++;
+            networks.push_back(std::unique_ptr<xNetwork_E131>(ptr));
+        }
+    }
+    
+    virtual void SetChannelCount(size_t numchannels) {
+        num_channels = ucount * numchannels;
+        chanPerNet = numchannels;
+    };
+    
+    virtual void TimerStart(long msec)
+    {
+        timer_msec=msec;
+        for (std::vector<std::unique_ptr<xNetwork_E131>>::iterator it = networks.begin(); it != networks.end(); it++) {
+            it->get()->TimerStart(msec);
+        }
+    }
+
+    virtual void TimerEnd() {
+        if (!enabled) {
+            return;
+        }
+        for (std::vector<std::unique_ptr<xNetwork_E131>>::iterator it = networks.begin(); it != networks.end(); it++) {
+            it->get()->TimerEnd();
+        }
+    }
+    virtual void SetIntensity (size_t chindex, wxByte intensity) {
+        int net = chindex / chanPerNet;
+        int ch = chindex % chanPerNet;
+        networks[net]->SetIntensity(ch, intensity);
+    }
+    
+    int chanPerNet;
+    int ucount;
+    std::vector<std::unique_ptr<xNetwork_E131>> networks;
 };
 
 // Should be called with: 0 <= chindex <= 1015 (max channels=127*8)
@@ -622,6 +676,10 @@ public:
 
     void TimerEnd()
     {
+        if (!enabled) {
+            return;
+        }
+
         if (changed && serptr)
         {
             if (HasPlugin()) //call plug-in to process data before sending -DJ
@@ -674,6 +732,10 @@ public:
 
     void TimerEnd()
     {
+        if (!enabled) {
+            return;
+        }
+
         if (serptr && serptr->WaitingToWrite()==0)
         {
             memcpy(&SerialBuffer[1],data,sizeof(data));
@@ -719,6 +781,10 @@ public:
 
     void TimerEnd()
     {
+        if (!enabled) {
+            return;
+        }
+
         if (serptr && serptr->WaitingToWrite()==0)
         {
             memcpy(&SerialBuffer[6],data,sizeof(data));
@@ -764,6 +830,10 @@ public:
 
     void TimerEnd()
     {
+        if (!enabled) {
+            return;
+        }
+
         // send heartbeat
         if (timer_msec > lastheartbeat+300 || timer_msec < lastheartbeat || lastheartbeat < 0)
         {
@@ -824,8 +894,15 @@ size_t xOutput::NetworkCount()
     return networks.GetCount();
 }
 
+void xOutput::EnableOutput(int network, bool en) {
+    if (network < networks.GetCount()) {
+        networks[network]->SetEnabled(en);
+    }
+}
+
 // returns the network index
-size_t xOutput::addnetwork (const wxString& NetworkType, int chcount, const wxString& portname, int baudrate)
+size_t xOutput::addnetwork(const wxString& NetworkType, int chcount, const wxString& portname,
+                           int baudrate, int univCount, bool enabled)
 {
     xNetwork* netobj;
     wxString nettype3 = NetworkType.Upper().Left(3);
@@ -858,7 +935,11 @@ size_t xOutput::addnetwork (const wxString& NetworkType, int chcount, const wxSt
     }
     else if (nettype3 == "E13")
     {
-        netobj = new xNetwork_E131();
+        if (univCount > 1) {
+            netobj = new xMultiE131Network(univCount);
+        } else {
+            netobj = new xNetwork_E131();
+        }
     }
     else if (nettype3 == "NUL")
     {
@@ -871,10 +952,6 @@ size_t xOutput::addnetwork (const wxString& NetworkType, int chcount, const wxSt
     size_t netnum = networks.GetCount();
     networks.Add(netobj);
     netobj->SetChannelCount(chcount);
-    for (int ch=0; ch<chcount; ch++)
-    {
-        channels.push_back(std::make_pair(netnum, ch));
-    }
     wxString description = NetworkType + " on " + portname;
     netobj->SetNetworkDesc(description);
     if (nettype3 == "E13")
@@ -885,6 +962,12 @@ size_t xOutput::addnetwork (const wxString& NetworkType, int chcount, const wxSt
     {
         netobj->InitSerialPort(portname, baudrate);
     }
+    chcount = netobj->GetChannelCount();
+    for (int ch=0; ch<chcount; ch++)
+    {
+        channels.push_back(std::make_pair(netnum, ch));
+    }
+    netobj->SetEnabled(enabled);
     return netnum;
 }
 
