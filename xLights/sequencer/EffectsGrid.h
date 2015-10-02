@@ -66,6 +66,8 @@ public:
     void MoveSelectedEffectDown(bool shift);
     void MoveSelectedEffectLeft(bool shift);
     void MoveSelectedEffectRight(bool shift);
+    
+    void DeleteSelectedEffects();
     void ProcessDroppedEffect(Effect* effect);
 
     void Paste(const wxString &data);

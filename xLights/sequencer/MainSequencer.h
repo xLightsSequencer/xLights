@@ -27,7 +27,6 @@ class MainSequencer: public wxPanel
         void GetSelectedEffectsData(wxString& copy_data);
         void CopySelectedEffects();
         void Paste();
-        void DeleteAllSelectedEffects();
 
 		//(*Declarations(MainSequencer)
 		wxScrollBar* ScrollBarEffectsHorizontal;

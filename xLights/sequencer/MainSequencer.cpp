@@ -251,7 +251,7 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
     {
         case WXK_BACK:
         case WXK_DELETE:
-            DeleteAllSelectedEffects();
+            PanelEffectGrid->DeleteSelectedEffects();
             event.StopPropagation();
             break;
         case WXK_SPACE:
@@ -333,7 +333,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case WXK_CONTROL_X:
             if (event.CmdDown() || event.ControlDown()) {
                 CopySelectedEffects();
-                DeleteAllSelectedEffects();
+                PanelEffectGrid->DeleteSelectedEffects();
                 event.StopPropagation();
             }
             break;
@@ -396,36 +396,6 @@ void MainSequencer::Paste() {
         }
         wxTheClipboard->Close();
     }
-}
-
-
-void MainSequencer::DeleteAllSelectedEffects()
-{
-    mSequenceElements->get_undo_mgr().CreateUndoStep();
-    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
-    {
-        Element* element = mSequenceElements->GetRowInformation(i)->element;
-        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
-        int start = 99999999;
-        int end = -1;
-        for (int x = 0; x < el->GetEffectCount(); x++) {
-            Effect *ef = el->GetEffect(x);
-            if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
-                if (ef->GetStartTimeMS() < start) {
-                    start = ef->GetStartTimeMS();
-                }
-                if (ef->GetEndTimeMS() > end) {
-                    end = ef->GetEndTimeMS();
-                }
-            }
-        }
-        if (end > 0) {
-            RenderCommandEvent event(element->GetName(), start, end, true, true);
-            wxPostEvent(mParent, event);
-            el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-        }
-    }
-    PanelEffectGrid->ForceRefresh();
 }
 
 void MainSequencer::InsertTimingMarkFromRange()

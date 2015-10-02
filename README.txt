@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) After deleting an effect, if you hit Up/Down, crash will result
     -- bug(dkulp) Use native ObjectC code for clipboard paste for custom models to support pasting from Numbers
     -- bug(dkulp) Click on a "node" may not hit test properly if an effect exists on the model or strand layers
     -- bug(dkulp) Prevent effect from being resized so start is < 0ms which prevent effect updates/rendering/etc..
