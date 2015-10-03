@@ -2319,7 +2319,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename, int LORImportInterval)
                         ChannelColors[curchannel] = ChannelColor;
                         if( showChannelMap )
                         {
-                            AppendConvertStatus (string_format("INFO: xLights Channel: %d = LOR Name: %s\n", curchannel,ChannelName));
+                            AppendConvertStatus (string_format("INFO: xLights Channel: %d = LOR Name: %s\n", curchannel+1,ChannelName));
                         }
                     }
                     else
