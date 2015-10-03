@@ -1031,6 +1031,11 @@ void ModelDialog::OnGridCustomCellChange(wxGridEvent& event)
     UpdateStartChannels();
 }
 
+#ifdef __WXOSX__
+wxString GetOSXFormattedClipboardData();
+#endif
+
+
 void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
 {
     wxString copy_data;
@@ -1039,31 +1044,39 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     int i,k,fieldnum;
     long val;
 
-    if (wxTheClipboard->Open())
-    {
-        if (wxTheClipboard->IsSupported(wxDF_TEXT))
+#ifdef __WXOSX__
+    //wxDF_TEXT gets a very strange formatted string from the clipboard if using Numbers
+    //native ObjectC code can get the proper tab formatted version.
+    copy_data = GetOSXFormattedClipboardData();
+#endif
+    
+    if (copy_data == "") {
+        if (wxTheClipboard->Open())
         {
-            wxTextDataObject data;
-
-            if (wxTheClipboard->GetData(data))
+            if (wxTheClipboard->IsSupported(wxDF_TEXT))
             {
-                copy_data = data.GetText();
+                wxTextDataObject data;
+                
+                if (wxTheClipboard->GetData(data))
+                {
+                    copy_data = data.GetText();
+                }
+                else
+                {
+                    wxMessageBox(_("Unable to copy data from clipboard."), _("Error"));
+                }
             }
             else
             {
-                wxMessageBox(_("Unable to copy data from clipboard."), _("Error"));
+                wxMessageBox(_("Non-Text data in clipboard."), _("Error"));
             }
+            wxTheClipboard->Close();
         }
         else
         {
-            wxMessageBox(_("Non-Text data in clipboard."), _("Error"));
+            wxMessageBox(_("Error opening clipboard."), _("Error"));
+            return;
         }
-        wxTheClipboard->Close();
-    }
-    else
-    {
-        wxMessageBox(_("Error opening clipboard."), _("Error"));
-        return;
     }
 
     i = GridCustom->GetGridCursorRow();
@@ -1076,7 +1089,7 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     copy_data.Replace("\r\r", "\n");
     copy_data.Replace("\r\n", "\n");
     copy_data.Replace("\r", "\n");
-
+    
     do
     {
         cur_line = copy_data.BeforeFirst('\n');

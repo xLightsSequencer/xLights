@@ -229,7 +229,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     }
     else if(id == ID_GRID_MNU_DELETE)
     {
-        ((MainSequencer*)mParent)->DeleteAllSelectedEffects();
+        DeleteSelectedEffects();
     }
     else if(id == ID_GRID_MNU_RANDOM_EFFECTS)
     {
@@ -237,7 +237,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     }
     else if(id == ID_GRID_MNU_DELETE)
     {
-        ((MainSequencer*)mParent)->DeleteAllSelectedEffects();
+        DeleteSelectedEffects();
     }
     else if(id == ID_GRID_MNU_UNDO)
     {
@@ -1056,6 +1056,37 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
             Refresh(false);
         }
     }
+}
+
+void EffectsGrid::DeleteSelectedEffects()
+{
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
+    {
+        Element* element = mSequenceElements->GetRowInformation(i)->element;
+        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
+        int start = 99999999;
+        int end = -1;
+        for (int x = 0; x < el->GetEffectCount(); x++) {
+            Effect *ef = el->GetEffect(x);
+            if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
+                if (ef->GetStartTimeMS() < start) {
+                    start = ef->GetStartTimeMS();
+                }
+                if (ef->GetEndTimeMS() > end) {
+                    end = ef->GetEndTimeMS();
+                }
+            }
+        }
+        if (end > 0) {
+            RenderCommandEvent event(element->GetName(), start, end, true, true);
+            wxPostEvent(mParent, event);
+            el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+        }
+    }
+    mSelectedEffect = nullptr;
+    mSelectedRow = -1;
+    ForceRefresh();
 }
 
 bool EffectsGrid::PapagayoEffectsSelected()

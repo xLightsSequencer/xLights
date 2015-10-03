@@ -60,6 +60,9 @@ void FRAMECLASS ConversionError(const wxString& msg)
 bool FRAMECLASS mapEmptyChannels() {
     return CheckBoxMapEmptyChannels->IsChecked();
 }
+bool FRAMECLASS showChannelMapping() {
+    return CheckBoxShowChannelMapping->IsChecked();
+}
 bool FRAMECLASS isSetOffAtEnd() {
     return CheckBoxOffAtEnd->IsChecked();
 }
@@ -2016,6 +2019,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename, int LORImportInterval)
     size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
     parser->append(bytes, read);
     bool mapEmpty = mapEmptyChannels();
+    bool showChannelMap = showChannelMapping();
 
     //pass 1, read the length, determine number of networks, units/network, channels per unit
     SP_XmlPullEvent * event = parser->getNext();
@@ -2313,6 +2317,10 @@ void FRAMECLASS ReadLorFile(const wxString& filename, int LORImportInterval)
                         ChannelNames[curchannel] = ChannelName;
                         ChannelColor = getAttributeValueAsInt(stagEvent, "color");
                         ChannelColors[curchannel] = ChannelColor;
+                        if( showChannelMap )
+                        {
+                            AppendConvertStatus (string_format("INFO: xLights Channel: %d = LOR Name: %s\n", curchannel+1,ChannelName));
+                        }
                     }
                     else
                     {

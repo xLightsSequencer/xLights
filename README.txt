@@ -7,6 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil)   Add LOR conversion option to show verbose channel mapping.
+    -- bug(dkulp) After deleting an effect, if you hit Up/Down, crash will result
+    -- bug(dkulp) Use native ObjectC code for clipboard paste for custom models to support pasting from Numbers
     -- bug(dkulp) Click on a "node" may not hit test properly if an effect exists on the model or strand layers
     -- bug(dkulp) Prevent effect from being resized so start is < 0ms which prevent effect updates/rendering/etc..
     -- enh(dkulp) Add option to twinkle to re-randomize the color after each twinkle
@@ -14,16 +17,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 4.2.13  Sep 27, 2015
 	-- enh (sean) Added new Plasma effect. Now you dont need to use Butterfly to get Plasma effects
     -- bug(dkulp) Fix crash when rendering models that have channels that extend beyond the configured range
-    -- bug(dkulp) The "Enable" flag is only honored when changed while outputting to lights 
+    -- bug(dkulp) The "Enable" flag is only honored when changed while outputting to lights
 4.2.12  Sep 22, 2015
 	-- enh (sean) Added a enw style to Butterfly, Style=10. This allows setting color of Plasma
-			also all plasma effects (Styles 6,7,8,9,10 in Butterfly), will use 
+			also all plasma effects (Styles 6,7,8,9,10 in Butterfly), will use
 			Background chunks to change the plasma effect.
 	-- bug (gil) * Fix crash if deleting a timing in new sequence wizards.  Fixes #372.
 			this bug was actually fixed in 3.2.11
 	-- enh (chrisD) * Implement issue #237 - Enhancement request: Media file missing,
 			prompt for user input
-	-- enh (chrisD) * Implement issue #367 - Enhancement: Add .out file type 
+	-- enh (chrisD) * Implement issue #367 - Enhancement: Add .out file type
 			to Glediator file search
 4.2.11  Sep 20, 2015
     -- enh(sean) New effect Plasma. Access this through butterfly. Select Style 6,7,8 or 9
