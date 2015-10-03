@@ -413,8 +413,8 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                         {
                             for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
                             {
-                                ProcessPixel((x + -1 * ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth)) % imgwidth + renderxcount * imgwidth,
-                                             (BufferHt - 1 - (y + 0) % imght + renderycount * imght) % BufferHt,
+                                ProcessPixel((x + xoffset_adj + -1 * ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth)) % imgwidth + renderxcount * imgwidth,
+                                             (BufferHt - 1 - (y + 0 + yoffset_adj) % imght + renderycount * imght) % BufferHt,
                                              c, false, 0);
                             }
                         }
@@ -426,8 +426,8 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                         {
                             for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
                             {
-                                ProcessPixel((x + ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth)) % imgwidth + renderxcount * imgwidth,
-                                             (BufferHt - 1 - (y + 0) % imght + renderycount * imght) % BufferHt,
+                                ProcessPixel((x + xoffset_adj + ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth)) % imgwidth + renderxcount * imgwidth,
+                                             (BufferHt - 1 - (y + 0 + yoffset_adj) % imght + renderycount * imght) % BufferHt,
                                              c, false, 0);
                             }
                         }
@@ -439,8 +439,8 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                         {
                             for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
                             {
-                                ProcessPixel((x + 0) % imgwidth + renderxcount * imgwidth,
-                                             (BufferHt - 1 - (y + ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght)) % imght + renderycount * imght) % BufferHt,
+                                ProcessPixel((x + 0 + xoffset_adj) % imgwidth + renderxcount * imgwidth,
+                                             (BufferHt - 1 - (y + yoffset_adj + ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght)) % imght + renderycount * imght) % BufferHt,
                                              c, false, 0);
                             }
                         }
@@ -452,8 +452,8 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                         {
                             for(int renderxcount = 0; renderxcount < (BufferWi + imgwidth) / imgwidth; renderxcount++)
                             {
-                                ProcessPixel((x + 0) % imgwidth + renderxcount * imgwidth,
-                                             (BufferHt - 1 - (y + -1 * ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght)) % imght + renderycount * imght) % BufferHt,
+                                ProcessPixel((x + 0 + xoffset_adj) % imgwidth + renderxcount * imgwidth,
+                                             (BufferHt - 1 - (y + yoffset_adj + -1 * ((int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght)) % imght + renderycount * imght) % BufferHt,
                                              c, false, 0);
                             }
                         }
