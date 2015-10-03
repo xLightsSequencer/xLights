@@ -768,6 +768,8 @@ private:
     static const long ID_CHECKBOX_MAP_EMPTY_CHANNELS;
     static const long ID_STATICTEXT33;
     static const long ID_CHECKBOX_LOR_WITH_NO_CHANNELS;
+    static const long ID_STATICTEXT39;
+    static const long ID_CHECKBOX_ShowChannelMapping;
     static const long ID_CHOICE1;
     static const long ID_BUTTON_START_CONVERSION;
     static const long ID_STATICTEXT18;
@@ -1027,6 +1029,7 @@ private:
     wxPanel* PanelConvert;
     DragEffectBitmapButton* BitmapButton28;
     wxTextCtrl* TextCtrl_PgoMinRest;
+    wxCheckBox* CheckBoxShowChannelMapping;
     wxButton* ButtonSaveSetup;
     DragEffectBitmapButton* BitmapButton20;
     wxButton* ButtonStartConversion;
@@ -1036,6 +1039,7 @@ private:
     wxButton* ButtonDeleteShow;
     wxButton* Button_CoroGroupClear;
     DragEffectBitmapButton* BitmapButton17;
+    wxStaticText* StaticText39;
     wxButton* ButtonSelectModelGroups;
     wxRadioButton* RadioButtonRgbShimmer;
     wxAuiManager* m_mgr;
@@ -1337,6 +1341,7 @@ private:
     void ClearLastPeriod();
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);
     bool mapEmptyChannels();
+    bool showChannelMapping();
     bool isSetOffAtEnd();
 
     wxString base64_encode();
