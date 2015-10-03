@@ -27,6 +27,12 @@ Instructions for other Linux distributions will vary.
      libgtk2.0-dev
      libgstreamer0.10-dev
      libgstreamer-plugins-base0.10-dev
+     freeglut3-dev
+     libmpg123-dev
+
+     Debian based packages to install
+
+     sudo apt-get install build-essential libgtk2.0-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev freeglut3-dev libmpg123-dev
 
      Fedora 21 packages required for wxWidgets build
 
