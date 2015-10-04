@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Remove fixed attribute for timing track converted to papagayo timing.
     -- enh(gil)   Add LOR conversion option to show verbose channel mapping.
     -- bug(dkulp) After deleting an effect, if you hit Up/Down, crash will result
     -- bug(dkulp) Use native ObjectC code for clipboard paste for custom models to support pasting from Numbers

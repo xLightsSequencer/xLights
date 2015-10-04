@@ -1170,6 +1170,7 @@ void SequenceElements::ImportLyrics(Element* element, wxWindow* parent)
 
     if (dlgLyrics->ShowModal() == wxID_OK)
     {
+        element->SetFixedTiming(0);
         // remove all existing layers from timing track
         int num_layers = element->GetEffectLayerCount();
         for( int k = num_layers-1; k >= 0; k-- )
