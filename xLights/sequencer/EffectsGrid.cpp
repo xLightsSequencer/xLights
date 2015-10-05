@@ -256,20 +256,22 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     {
         Effect* phrase_effect = mSelectedEffect;
         EffectLayer* word_layer;
-        if( phrase_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount() == 1 )
+        Element* element = phrase_effect->GetParentEffectLayer()->GetParentElement();
+        element->SetFixedTiming(0);
+        if( element->GetEffectLayerCount() == 1 )
         {
-            word_layer = phrase_effect->GetParentEffectLayer()->GetParentElement()->AddEffectLayer();
+            word_layer = element->AddEffectLayer();
         }
         else
         {
-            word_layer = phrase_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(1);
+            word_layer = element->GetEffectLayer(1);
         }
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         word_layer->UnSelectAllEffects();
         word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
         word_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         mSequenceElements->BreakdownPhrase(word_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName());
-        phrase_effect->GetParentEffectLayer()->GetParentElement()->SetCollapsed(false);
+        element->SetCollapsed(false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(mParent, eventRowHeaderChanged);
     }
@@ -277,20 +279,21 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     {
         Effect* word_effect = mSelectedEffect;
         EffectLayer* phoneme_layer;
-        if( word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount() < 3 )
+        Element* element = word_effect->GetParentEffectLayer()->GetParentElement();
+        if( element->GetEffectLayerCount() < 3 )
         {
-            phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->AddEffectLayer();
+            phoneme_layer = element->AddEffectLayer();
         }
         else
         {
-            phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(2);
+            phoneme_layer = element->GetEffectLayer(2);
         }
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         phoneme_layer->UnSelectAllEffects();
         phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
         phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
-        word_effect->GetParentEffectLayer()->GetParentElement()->SetCollapsed(false);
+        element->SetCollapsed(false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(mParent, eventRowHeaderChanged);
     }
@@ -298,13 +301,14 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     {
         Effect* word_effect = mSelectedEffect;
         EffectLayer* phoneme_layer;
-        if( word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount() < 3 )
+        Element* element = word_effect->GetParentEffectLayer()->GetParentElement();
+        if( element->GetEffectLayerCount() < 3 )
         {
-            phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->AddEffectLayer();
+            phoneme_layer = element->AddEffectLayer();
         }
         else
         {
-            phoneme_layer = word_effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayer(2);
+            phoneme_layer = element->GetEffectLayer(2);
         }
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         phoneme_layer->UnSelectAllEffects();
@@ -323,7 +327,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
                 mSequenceElements->BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName());
             }
         }
-        word_effect->GetParentEffectLayer()->GetParentElement()->SetCollapsed(false);
+        element->SetCollapsed(false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(mParent, eventRowHeaderChanged);
     }

@@ -351,6 +351,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
 void RowHeading::BreakdownTimingPhrases(Element* element)
 {
+    element->SetFixedTiming(0);
     EffectLayer* layer = element->GetEffectLayer(0);
     if( element->GetEffectLayerCount() > 1 )
     {
