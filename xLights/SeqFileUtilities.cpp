@@ -2684,7 +2684,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
         row++;
 
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandLayer *sl = model->GetStrandLayer(str);
+            StrandLayer *sl = model->GetStrandLayer(str, true);
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                 if (dlg.MapByStrand->IsChecked()) {
@@ -2699,7 +2699,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
             if (!dlg.MapByStrand->IsChecked()) {
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                        NodeLayer *nl = sl->GetNodeLayer(n);
+                        NodeLayer *nl = sl->GetNodeLayer(n, true);
                         MapLSPEffects(nl, nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
                                       dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
                     }
