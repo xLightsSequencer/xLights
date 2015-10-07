@@ -783,9 +783,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     } else if (Out3 == "LSP") {
         oName.SetExt(_("xml"));
         fullpath=oName.GetFullPath();
-        //    int cpn = ChannelsPerNode();
         WriteLSPFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, cpn);
-        return;
     } else if (Out3 == "HLS") {
         oName.SetExt(_("hlsnc"));
         fullpath=oName.GetFullPath();
