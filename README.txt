@@ -7,25 +7,32 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+	-- enh(ChrisD) Add application launcher for linux
+	-- bug(ChrisD) New timing dialog should be titled as such (partial fix for issue #377)
     -- bug(gil)   Buttons will now re-enable after an LSP export model operation.
+	-- enh(Keithsw) New feature in pictures, tiled pictures
     -- bug(gil)   Fix potential crashes for all imports where models may be hidden.
     -- bug(gil)   Fix LSP import effects when a target model is hidden.
+	-- enh (sean) New effect class Lightning
     -- bug(gil)   Sequence SaveAs was not saving XML in new directory.
     -- bug(gil)   Remove fixed attribute for timing track converted to papagayo timing.
     -- enh(gil)   Add LOR conversion option to show verbose channel mapping.
+	-- enh(Keithsw) Updated tile code to support x/y offsets in Picture effect
     -- bug(dkulp) After deleting an effect, if you hit Up/Down, crash will result
     -- bug(dkulp) Use native ObjectC code for clipboard paste for custom models to support pasting from Numbers
     -- bug(dkulp) Click on a "node" may not hit test properly if an effect exists on the model or strand layers
     -- bug(dkulp) Prevent effect from being resized so start is < 0ms which prevent effect updates/rendering/etc..
     -- enh(dkulp) Add option to twinkle to re-randomize the color after each twinkle
 	-- enh(keith) Added tiling options to picture effect
+	-- bug(sean) Fixed bottom row of plasma. Bug was the bottom row was copied from top row
+	-- bug(ChrisD) Fix issue #368 - missing OK/Cancel on Schedule Playlist
 4.2.13  Sep 27, 2015
 	-- enh (sean) Added new Plasma effect. Now you dont need to use Butterfly to get Plasma effects
     -- bug(dkulp) Fix crash when rendering models that have channels that extend beyond the configured range
     -- bug(dkulp) The "Enable" flag is only honored when changed while outputting to lights
     -- enh(cjd) Add application launcher for linux systems
 4.2.12  Sep 22, 2015
-	-- enh (sean) Added a enw style to Butterfly, Style=10. This allows setting color of Plasma
+	-- enh (sean) Added a new style to Butterfly, Style=10. This allows setting color of Plasma
 			also all plasma effects (Styles 6,7,8,9,10 in Butterfly), will use
 			Background chunks to change the plasma effect.
 	-- bug (gil) * Fix crash if deleting a timing in new sequence wizards.  Fixes #372.

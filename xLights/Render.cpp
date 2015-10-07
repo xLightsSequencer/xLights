@@ -943,7 +943,11 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     } else if (effect == "Lightning") {
         buffer.RenderLightning(wxAtoi(SettingsMap["SLIDER_Number_Bolts"]),
                                wxAtoi(SettingsMap["SLIDER_Number_Segments"]),
-                                      SettingsMap["CHECKBOX6"]=="1");
+                                      SettingsMap["CHECKBOX6"]=="1",
+                                      wxAtoi(SettingsMap["SLIDER_Lightning_TopX"]),
+                               wxAtoi(SettingsMap["SLIDER_Lightning_TopY"]),
+                               wxAtoi(SettingsMap["SLIDER_Lightning_BOTX"]),
+                               wxAtoi(SettingsMap["SLIDER_Lightning_BOTY"]));
     } else if (effect == "Marquee") {
         buffer.RenderMarquee(wxAtoi(SettingsMap["SLIDER_Marquee_Band_Size"]),
                              wxAtoi(SettingsMap["SLIDER_Marquee_Skip_Size"]),

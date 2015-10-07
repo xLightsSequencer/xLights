@@ -87,6 +87,12 @@
 #include "../include/life-48.xpm"
 #include "../include/life-64.xpm"
 
+#include "../include/lightning-16.xpm"
+#include "../include/lightning-24.xpm"
+#include "../include/lightning-32.xpm"
+#include "../include/lightning-48.xpm"
+#include "../include/lightning-64.xpm"
+
 #include "../include/marquee-16.xpm"
 #include "../include/marquee-24.xpm"
 #include "../include/marquee-32.xpm"
@@ -267,8 +273,7 @@ double xlOSXGetMainScreenContentScaleFactor();
 #endif
 
 
-class xlArtProvider : public wxArtProvider
-{
+class xlArtProvider : public wxArtProvider {
 public:
     xlArtProvider() {}
     virtual ~xlArtProvider() {};
@@ -281,17 +286,14 @@ public:
 
 };
 
-class EffectBitmapCache
-{
+class EffectBitmapCache {
 public:
-    EffectBitmapCache()
-    {
+    EffectBitmapCache() {
         wxArtProvider::PushBack(new xlArtProvider());
     }
     const wxBitmap &get(int size, bool exact,
                         const wxString &eff,
-                        const char **data)
-    {
+                        const char **data) {
         return get(size, exact, eff, data, data, data, data, data);
     }
 
@@ -301,37 +303,27 @@ public:
                         const char **data24,
                         const char **data32,
                         const char **data48,
-                        const char **data64)
-    {
+                        const char **data64) {
 
         std::map<wxString, wxBitmap> *data = &size16;
         const char ** dc = data16;
-        if (size <= 16)
-        {
+        if (size <= 16) {
             data = &size16;
             size = 16;
             dc = data16;
-        }
-        else if (size <= 24)
-        {
+        } else if (size <= 24) {
             data = &size24;
             size = 24;
             dc = data24;
-        }
-        else if (size <= 32)
-        {
+        } else if (size <= 32) {
             data = &size32;
             size = 32;
             dc = data32;
-        }
-        else if (size <= 48)
-        {
+        } else if (size <= 48) {
             data = &size48;
             size = 48;
             dc = data48;
-        }
-        else
-        {
+        } else {
             data = &size64;
             size = 64;
             dc = data64;
@@ -340,67 +332,46 @@ public:
 #ifdef __WXOSX__
         double scale = 1.0;
         //Retina Display, use the larger icons with the scale factor set
-        if (exact)
-        {
-            if (size == 16)
-            {
+        if (exact) {
+            if (size == 16) {
                 data = &size16e;
-            }
-            else if (size == 24)
-            {
+            } else if (size == 24) {
                 data = &size24e;
-            }
-            else if (size == 32)
-            {
+            } else if (size == 32) {
                 data = &size32e;
             }
-        }
-        else if (xlOSXGetMainScreenContentScaleFactor() > 1.9)
-        {
-            if (size == 16 && (data16 != data32))
-            {
+        } else if (xlOSXGetMainScreenContentScaleFactor() > 1.9) {
+            if (size == 16 && (data16 != data32)) {
                 size = 32;
                 scale = 2.0;
                 dc = data32;
-            }
-            else if (size == 24 && (data24 != data48))
-            {
+            } else if (size == 24 && (data24 != data48)) {
                 size = 48;
                 scale = 2.0;
                 dc = data48;
-            }
-            else if (size == 32 && (data64 != data48) && (data64 != data32))
-            {
+            } else if (size == 32 && (data64 != data48) && (data64 != data32)) {
                 size = 64;
                 scale = 2.0;
                 dc = data64;
             }
         }
         const wxBitmap &bmp = (*data)[eff];
-        if (!bmp.IsOk())
-        {
+        if (!bmp.IsOk()) {
             wxImage image(dc);
-            if (image.GetHeight() == size)
-            {
+            if (image.GetHeight() == size) {
                 (*data)[eff] = wxBitmap(image, -1, scale);
-            }
-            else
-            {
+            } else {
                 wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
                 (*data)[eff] = wxBitmap(scaled, -1, scale);
             }
         }
 #else
         const wxBitmap &bmp = (*data)[eff];
-        if (!bmp.IsOk())
-        {
+        if (!bmp.IsOk()) {
             wxImage image(dc);
-            if (image.GetHeight() == size)
-            {
+            if (image.GetHeight() == size) {
                 (*data)[eff] = wxBitmap(image);
-            }
-            else
-            {
+            } else {
                 wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
                 (*data)[eff] = wxBitmap(scaled);
             }
@@ -426,125 +397,67 @@ public:
 
 wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
                                      const wxArtClient& client,
-                                     const wxSize& size)
-{
-    if ("xlART_STOP_NOW" == id)
-    {
+                                     const wxSize& size) {
+    if ("xlART_STOP_NOW" == id) {
         return effectBitmaps.get(24, false, id, stop_sign_24_xpm, stop_sign_24_xpm, stop_sign_24_xpm, stop_sign_24_xpm, stop_sign_24_xpm);
-    }
-    else if ("xlART_OUTPUT_LIGHTS" == id)
-    {
+    } else if ("xlART_OUTPUT_LIGHTS" == id) {
         return effectBitmaps.get(24, false, id, output_lights_24_xpm, output_lights_24_xpm, output_lights_24_xpm, output_lights_24_xpm, output_lights_24_xpm);
-    }
-    else if ("xlART_EFFECTS" == id)
-    {
+    } else if ("xlART_EFFECTS" == id) {
         return effectBitmaps.get(24, false, id, effects_xpm, effects_xpm, effects_xpm, effects_xpm, effects_xpm);
-    }
-    else if ("xlART_COLORS" == id)
-    {
+    } else if ("xlART_COLORS" == id) {
         return effectBitmaps.get(24, false, id, colors_xpm, colors_xpm, colors_xpm, colors_xpm, colors_xpm);
-    }
-    else if ("xlART_LAYERS" == id)
-    {
+    } else if ("xlART_LAYERS" == id) {
         return effectBitmaps.get(24, false, id, layers_xpm, layers_xpm, layers_xpm, layers_xpm, layers_xpm);
-    }
-    else if ("xlART_MODEL_PREVIEW" == id)
-    {
+    } else if ("xlART_MODEL_PREVIEW" == id) {
         return effectBitmaps.get(24, false, id, model_preview_xpm, model_preview_xpm, model_preview_xpm, model_preview_xpm, model_preview_xpm);
-    }
-    else if ("xlART_HOUSE_PREVIEW" == id)
-    {
+    } else if ("xlART_HOUSE_PREVIEW" == id) {
         return effectBitmaps.get(24, false, id, house_preview_xpm, house_preview_xpm, house_preview_xpm, house_preview_xpm, house_preview_xpm);
-    }
-    else if ("xlART_GRACEFUL_STOP" == id)
-    {
+    } else if ("xlART_GRACEFUL_STOP" == id) {
         return effectBitmaps.get(24, false, id, graceful_stop_24_xpm, graceful_stop_24_xpm, graceful_stop_24_xpm, graceful_stop_24_xpm, graceful_stop_24_xpm);
-    }
-    else if ("xlART_LIGHTS_OFF" == id)
-    {
+    } else if ("xlART_LIGHTS_OFF" == id) {
         return effectBitmaps.get(24, false, id, lights_off_24_xpm, lights_off_24_xpm, lights_off_24_xpm, lights_off_24_xpm, lights_off_24_xpm);
-    }
-    else if ("xlART_ZOOM_IN" == id)
-    {
+    } else if ("xlART_ZOOM_IN" == id) {
         return effectBitmaps.get(24, false, id, zoom_in_24_xpm, zoom_in_24_xpm, zoom_in_24_xpm, zoom_in_24_xpm, zoom_in_24_xpm);
-    }
-    else if ("xlART_ZOOM_OUT" == id)
-    {
+    } else if ("xlART_ZOOM_OUT" == id) {
         return effectBitmaps.get(24, false, id, zoom_out_24_xpm, zoom_out_24_xpm, zoom_out_24_xpm, zoom_out_24_xpm, zoom_out_24_xpm);
-    }
-    else if ("xlART_SETTINGS" == id)
-    {
+    } else if ("xlART_SETTINGS" == id) {
         return effectBitmaps.get(24, false, id, settings_24_xpm, settings_24_xpm, settings_24_xpm, settings_24_xpm, settings_24_xpm);
-    }
-    else if ("xlART_PLAY" == id)
-    {
+    } else if ("xlART_PLAY" == id) {
         return effectBitmaps.get(24, false, id, play_24_xpm, play_24_xpm, play_24_xpm, play_24_xpm, play_24_xpm);
-    }
-    else if ("xlART_PAUSE" == id)
-    {
+    } else if ("xlART_PAUSE" == id) {
         return effectBitmaps.get(24, false, id, pause_24_xpm, pause_24_xpm, pause_24_xpm, pause_24_xpm, pause_24_xpm);
-    }
-    else if ("xlART_BACKWARD" == id)
-    {
+    } else if ("xlART_BACKWARD" == id) {
         return effectBitmaps.get(24, false, id, backward_24_xpm, backward_24_xpm, backward_24_xpm, backward_24_xpm, backward_24_xpm);
-    }
-    else if ("xlART_FORWARD" == id)
-    {
+    } else if ("xlART_FORWARD" == id) {
         return effectBitmaps.get(24, false, id, forward_24_xpm, forward_24_xpm, forward_24_xpm, forward_24_xpm, forward_24_xpm);
-    }
-    else if ("xlART_REPLAY" == id)
-    {
+    } else if ("xlART_REPLAY" == id) {
         return effectBitmaps.get(24, false, id, replay_24_xpm, replay_24_xpm, replay_24_xpm, replay_24_xpm, replay_24_xpm);
-    }
-    else if ("xlART_STOP" == id)
-    {
+    } else if ("xlART_STOP" == id) {
         return effectBitmaps.get(24, false, id, stop_24_xpm, stop_24_xpm, stop_24_xpm, stop_24_xpm, stop_24_xpm);
-    }
-    else if ("xlART_LINK" == id)
-    {
+    } else if ("xlART_LINK" == id) {
         return effectBitmaps.get(48, false, id, link_48_xpm, link_48_xpm, link_48_xpm, link_48_xpm, link_48_xpm);
-    }
-    else if ("xlART_UNLINK" == id)
-    {
+    } else if ("xlART_UNLINK" == id) {
         return effectBitmaps.get(48, false, id, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm);
-    }
-    else if ("xlART_MODELS" == id)
-    {
+    } else if ("xlART_MODELS" == id) {
         return effectBitmaps.get(24, true, id, models_16_xpm, models_24_xpm, models_32_xpm, models_48_xpm, models_64_xpm);
 #ifndef __WXOSX__
         //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
-    }
-    else if ("xlART_RENDER_ALL" == id)
-    {
+    } else if ("xlART_RENDER_ALL" == id) {
         return effectBitmaps.get(24, false, id, green_gear_24_xpm, green_gear_24_xpm, green_gear_24_xpm, green_gear_24_xpm, green_gear_24_xpm);
-    }
-    else if (wxART_FOLDER_OPEN == id)
-    {
+    } else if (wxART_FOLDER_OPEN == id) {
         return effectBitmaps.get(24, false, id, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm);
-    }
-    else if (wxART_NEW == id)
-    {
+    } else if (wxART_NEW == id) {
         return effectBitmaps.get(24, false, id, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm);
-    }
-    else if (wxART_FILE_OPEN == id)
-    {
+    } else if (wxART_FILE_OPEN == id) {
         return effectBitmaps.get(24, false, id, folder_xpm, folder_xpm, folder_xpm, folder_xpm, folder_xpm);
-    }
-    else if (wxART_FILE_SAVE == id)
-    {
+    } else if (wxART_FILE_SAVE == id) {
         return effectBitmaps.get(24, false, id, save_24_xpm, save_24_xpm, save_24_xpm, save_24_xpm, save_24_xpm);
-    }
-    else if (wxART_FILE_SAVE_AS == id)
-    {
+    } else if (wxART_FILE_SAVE_AS == id) {
         return effectBitmaps.get(24, false, id, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm);
 #else
-    }
-    else if ("xlART_RENDER_ALL" == id)
-    {
+    } else if ("xlART_RENDER_ALL" == id) {
         return wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND_AND_REPLACE")), wxART_OTHER);
-    }
-    else if (wxART_TOOLBAR == client)
-    {
+    } else if (wxART_TOOLBAR == client) {
         return wxArtProvider::GetBitmap(id, wxART_OTHER);
 #endif
     }
@@ -552,8 +465,7 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     return wxNullBitmap;
 }
 wxIconBundle xlArtProvider::CreateIconBundle(const wxArtID& id,
-        const wxArtClient& client)
-{
+        const wxArtClient& client) {
     printf("ib:  %s   %s \n", (const char *)id.c_str(), (const char*)client.c_str());
     return wxNullIconBundle;
 }
@@ -561,15 +473,12 @@ wxIconBundle xlArtProvider::CreateIconBundle(const wxArtID& id,
 
 
 static const wxBitmap tmp;
-const wxBitmap &BitmapCache::GetToolbarIcon(const wxString &name, int size)
-{
+const wxBitmap &BitmapCache::GetToolbarIcon(const wxString &name, int size) {
     return tmp;
 }
 
-const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int size, bool exact)
-{
-    switch(effectID)
-    {
+const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int size, bool exact) {
+    switch(effectID) {
     case BitmapCache::eff_OFF:
         toolTip = "Off";
         return effectBitmaps.get(size, exact, "Off", Off, Off, Off, Off, Off);
@@ -615,6 +524,9 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
     case BitmapCache::eff_LIFE:
         toolTip = "Life";
         return effectBitmaps.get(size, exact, "Life", life_16, life_24, life_32, life_48, life_48);
+    case BitmapCache::eff_LIGHTNING:
+        toolTip = "Lightning";
+        return effectBitmaps.get(size, exact, "Lightning", lightning_16, lightning_24, lightning_32, lightning_48, lightning_64);
     case BitmapCache::eff_MARQUEE:
         toolTip = "Marquee";
         return effectBitmaps.get(size, exact, "Marquee", marquee_16, marquee_24, marquee_32, marquee_48, marquee_64);
@@ -682,16 +594,13 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
     return effectBitmaps.get(size, exact, "Off", Off, Off, Off, Off, Off);
 }
 
-const wxBitmap &BitmapCache::GetPapgayoIcon(wxString &toolTip, int size, bool exact)
-{
+const wxBitmap &BitmapCache::GetPapgayoIcon(wxString &toolTip, int size, bool exact) {
     toolTip = "Papagayo Voice";
     return effectBitmaps.get(size, exact, "Papagayo", papagayo_16, papagayo_64, papagayo_64, papagayo_64, papagayo_64);
 }
 
-const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int size, bool exact)
-{
-    switch(position)
-    {
+const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int size, bool exact) {
+    switch(position) {
     case 0:
         toolTip = "Corner 1a";
         return effectBitmaps.get(size, exact, "Corner1a", point_1a_64, point_1a_64, point_1a_64, point_1a_64, point_1a_64);

@@ -640,8 +640,9 @@ void PixelBufferClass::RenderGlediator( const wxString& NewPictureName) {
 void PixelBufferClass::RenderLife(int Count, int Seed, int lspeed) {
     effects[CurrentLayer].RenderLife(Count,Seed, lspeed);
 }
-void PixelBufferClass::RenderLightning(int Number_Bolts, int Number_Segments, bool Use_All_Colors) {
-    effects[CurrentLayer].RenderLightning(Number_Bolts, Number_Segments, Use_All_Colors );
+void PixelBufferClass::RenderLightning(int Number_Bolts, int Number_Segments, bool Use_All_Colors,
+                                       int topX,int topY, int botX, int botY) {
+    effects[CurrentLayer].RenderLightning(Number_Bolts, Number_Segments, Use_All_Colors,  topX, topY,  botX,  botY );
 }
 void PixelBufferClass::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int MSpeed, bool reverse_dir,
                                      int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x) {
