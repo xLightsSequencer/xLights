@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Fix potential crashes for all imports where models may be hidden.
     -- bug(gil)   Fix LSP import effects when a target model is hidden.
     -- bug(gil)   Sequence SaveAs was not saving XML in new directory.
     -- bug(gil)   Remove fixed attribute for timing track converted to papagayo timing.

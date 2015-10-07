@@ -639,7 +639,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
             dlg.channelNames.push_back(el->GetName());
         }
         for (int s = 0; s < el->getStrandLayerCount(); s++) {
-            StrandLayer *sl = el->GetStrandLayer(s);
+            StrandLayer *sl = el->GetStrandLayer(s, true);
             wxString strandName = sl->GetName();
             if (strandName == "") {
                 strandName = wxString::Format("Strand %d", (s + 1));
@@ -650,7 +650,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
                 layerMap[el->GetName() + "/" + strandName] = sl;
             }
             for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                NodeLayer *nl = sl->GetNodeLayer(n);
+                NodeLayer *nl = sl->GetNodeLayer(n, true);
                 if (nl->GetEffectCount() > 0) {
                     wxString nodeName = nl->GetName();
                     if (nodeName == "") {
@@ -692,7 +692,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
         row++;
 
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandLayer *sl = model->GetStrandLayer(str);
+            StrandLayer *sl = model->GetStrandLayer(str, true);
 
             if( sl != nullptr ) {
                 if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
@@ -701,7 +701,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
                 row++;
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                        NodeLayer *nl = sl->GetNodeLayer(n);
+                        NodeLayer *nl = sl->GetNodeLayer(n, true);
                         MapXLightsEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap);
                     }
                     row++;
@@ -1108,7 +1108,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
         row++;
 
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandLayer *sl = model->GetStrandLayer(str);
+            StrandLayer *sl = model->GetStrandLayer(str, true);
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                     MapVixChannelInformation(this, sl,
@@ -1120,7 +1120,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
             row++;
             for (int n = 0; n < mc->GetStrandLength(str); n++) {
                 if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                    MapVixChannelInformation(this, sl->GetNodeLayer(n),
+                    MapVixChannelInformation(this, sl->GetNodeLayer(n, true),
                                              VixSeqData, frameTime, numFrames,
                                              dlg.ChannelMapGrid->GetCellValue(row, 3),
                                              unsortedChannels,
@@ -1241,7 +1241,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
         row++;
 
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandLayer *sl = model->GetStrandLayer(str);
+            StrandLayer *sl = model->GetStrandLayer(str, true);
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                 if (!dlg.MapByStrand->GetValue()) {
@@ -1253,7 +1253,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
                 } else {
                     wxString ccrName = dlg.ChannelMapGrid->GetCellValue(row, 3);
                     for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                        EffectLayer *layer = sl->GetNodeLayer(n);
+                        EffectLayer *layer = sl->GetNodeLayer(n, true);
 
                         wxString nm = FindHLSStrandName(ccrName, n+1, dlg.channelNames);
 
@@ -1272,7 +1272,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
             if (!dlg.MapByStrand->GetValue()) {
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                        MapHLSChannelInformation(this, sl->GetNodeLayer(n),
+                        MapHLSChannelInformation(this, sl->GetNodeLayer(n, true),
                                                  totalUniverses, frames, frameTime,
                                                  dlg.ChannelMapGrid->GetCellValue(row, 3),
                                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
@@ -1737,7 +1737,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
         row++;
 
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandLayer *sl = model->GetStrandLayer(str);
+            StrandLayer *sl = model->GetStrandLayer(str, true);
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                 if (!dlg.MapByStrand->GetValue()) {
@@ -1748,7 +1748,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                 } else {
                     wxString ccrName = dlg.ChannelMapGrid->GetCellValue(row, 3);
                     for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                        EffectLayer *layer = sl->GetNodeLayer(n);
+                        EffectLayer *layer = sl->GetNodeLayer(n, true);
                         wxString nm = ccrName + wxString::Format("-P%02d", (n + 1));
                         if (dlg.channelNames.Index(nm) == wxNOT_FOUND) {
                             nm = ccrName + wxString::Format(" p%02d", (n + 1));
@@ -1774,7 +1774,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
             if (!dlg.MapByStrand->GetValue()) {
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                        MapChannelInformation(sl->GetNodeLayer(n),
+                        MapChannelInformation(sl->GetNodeLayer(n, true),
                                               input_xml,
                                               dlg.ChannelMapGrid->GetCellValue(row, 3),
                                               dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
@@ -2575,7 +2575,7 @@ void MapLSPStrand(StrandLayer *layer, wxXmlNode *node, const wxColor &c) {
         if (nd->GetName() == "Channels") {
             for (wxXmlNode *cnd = nd->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
                 if (cnd->GetName() == "Channel") {
-                    EffectLayer *el = layer->GetNodeLayer(nodeNum);
+                    EffectLayer *el = layer->GetNodeLayer(nodeNum, true);
                     MapLSPEffects(el, cnd, c);
                     nodeNum++;
                     if (nodeNum >= layer->GetNodeLayerCount()) {
