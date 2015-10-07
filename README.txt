@@ -23,6 +23,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	-- enh (sean) Added new Plasma effect. Now you dont need to use Butterfly to get Plasma effects
     -- bug(dkulp) Fix crash when rendering models that have channels that extend beyond the configured range
     -- bug(dkulp) The "Enable" flag is only honored when changed while outputting to lights
+    -- enh(cjd) Add application launcher for linux systems
 4.2.12  Sep 22, 2015
 	-- enh (sean) Added a enw style to Butterfly, Style=10. This allows setting color of Plasma
 			also all plasma effects (Styles 6,7,8,9,10 in Butterfly), will use
