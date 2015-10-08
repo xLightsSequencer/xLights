@@ -7,6 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.15  Oct 08, 2015
+	-- bug(gil) Fixed the labels showing "off"
+4.2.14  Oct 07, 2015
 	-- enh(ChrisD) Add application launcher for linux
 	-- bug(ChrisD) New timing dialog should be titled as such (partial fix for issue #377)
     -- bug(gil)   Buttons will now re-enable after an LSP export model operation.
