@@ -650,6 +650,7 @@ public:
         at(BitmapCache::eff_GARLANDS) = "Garlands";
         at(BitmapCache::eff_GLEDIATOR) = "Glediator";
         at(BitmapCache::eff_LIFE) = "Life";
+        at(BitmapCache::eff_LIGHTNING) = "Lightning";
         at(BitmapCache::eff_MARQUEE) = "Marquee";
         at(BitmapCache::eff_METEORS) = "Meteors";
         at(BitmapCache::eff_MORPH) = "Morph";
