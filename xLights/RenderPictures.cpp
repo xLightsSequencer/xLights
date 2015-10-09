@@ -404,9 +404,6 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                     }
                     ProcessPixel(x - xoffset+xoffset_adj, yoffset - y - yoffset_adj + waveY - 1, c, wrap_x, imgwidth);
                     break;
-                case RENDER_PICTURE_WIGGLE: //11: //back+forth a little (wiggle) -DJ
-//                    ProcessPixel(x + xoffset+xoffset_adj, yoffset - y - yoffset_adj, c, wrap_x, imgwidth);
-//                    break;
                 case RENDER_PICTURE_TILE_LEFT: // 21
                     {
                         for (int renderycount = 0; renderycount < (BufferHt + imght) / imght; renderycount++)
@@ -459,6 +456,9 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                         }
                     }
                     break;
+                case RENDER_PICTURE_WIGGLE: //11: //back+forth a little (wiggle) -DJ
+//                    ProcessPixel(x + xoffset+xoffset_adj, yoffset - y - yoffset_adj, c, wrap_x, imgwidth);
+//                    break;
                 default:
                     ProcessPixel(x-xoffset+xoffset_adj,yoffset+yoffset_adj-y - 1,c, wrap_x, imgwidth);
                     break; // no movement - centered
