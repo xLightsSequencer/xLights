@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.16  Oct ??, 2015
+    -- bug(keithsw) Fix broken picture wiggle style
 4.2.15  Oct 08, 2015
 	-- bug(gil) Fixed the labels showing "off"
 4.2.14  Oct 07, 2015
