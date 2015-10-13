@@ -7,8 +7,10 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
-4.2.16  Oct ??, 2015
+4.2.16  Oct 13, 2015
     -- bug(keithsw) Fix broken picture wiggle style
+	-- enh (sean) Added slider to give horizontal movement to lightning bolts
+	-- enh (sean) Added check box to give chose to have forked lightning.
 4.2.15  Oct 08, 2015
 	-- bug(gil) Fixed the labels showing "off"
 4.2.14  Oct 07, 2015

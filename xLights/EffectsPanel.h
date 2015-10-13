@@ -86,6 +86,7 @@ public:
     wxScrolledWindow* Panel1_Curtain;
     wxChoice* Choice_Piano_KeyPlacement;
     wxStaticText* StaticText145;
+    wxCheckBox* ForkedLightning;
     wxBitmapButton* BitmapButton_Pinwheel_ArmSize;
     wxBitmapButton* BitmapButton_Shockwave_Accel;
     wxStaticText* StaticText140;
@@ -326,7 +327,6 @@ public:
     wxBitmapButton* BitmapButton26;
     wxPanel* Panel4;
     wxChoice* Choice_Text_Count4;
-    wxCheckBox* CheckBox6;
     wxScrolledWindow* Panel1_Spirograph;
     wxStaticText* StaticText129;
     wxNotebook* SingleStrandEffectType;
@@ -886,7 +886,7 @@ protected:
     static const long IDD_TEXTCTRL_Number_Segments;
     static const long ID_BITMAPBUTTON40;
     static const long ID_STATICTEXT60;
-    static const long ID_CHECKBOX2;
+    static const long ID_CHECKBOX_ForkedLightning;
     static const long ID_BITMAPBUTTON41;
     static const long ID_STATICTEXT64;
     static const long ID_SLIDER_Lightning_TopX;

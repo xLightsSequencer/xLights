@@ -3582,14 +3582,14 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT60" variable="StaticText206" member="yes">
-										<label>Use All Colors</label>
+										<label>Forked Lightning</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox6" member="yes">
+									<object class="wxCheckBox" name="ID_CHECKBOX_ForkedLightning" variable="ForkedLightning" member="yes">
 										<label>Yes</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -3689,7 +3689,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT70" variable="StaticText209" member="yes">
-										<label>Bottom X Location</label>
+										<label>X Movement</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -3728,7 +3728,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT73" variable="StaticText210" member="yes">
-										<label>Bottom Y Location</label>
+										<label>(Not Used yet)</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>

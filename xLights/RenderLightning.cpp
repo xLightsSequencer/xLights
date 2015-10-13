@@ -43,13 +43,13 @@
 #include <wx/textfile.h>
 
 
-void RgbEffects::RenderLightning(int Number_Bolts, int Number_Segments, bool Use_All_Colors,
+void RgbEffects::RenderLightning(int Number_Bolts, int Number_Segments, bool ForkedLightning,
                                  int topX,int topY, int botX, int botY) {
     int colorcnt=GetColorCount();
     xlColor color;
     wxImage::HSVValue hsv;
-    int x,y,x1,x2,y1,y2,xc,yc,step,ystep;
-    int i,j,segment,StepSegment;
+    int x,y,x1,x2,y1,y2,x3,y3,xc,yc,step,ystep;
+    int i,j,segment,StepSegment, xoffset;
     wxString str;
     int curState = (curPeriod - curEffStartPer);
 
@@ -89,6 +89,8 @@ void RgbEffects::RenderLightning(int Number_Bolts, int Number_Segments, bool Use
     palette.GetColor(0, color);
     x1=xc + topX;
     y1=BufferHt - topY;
+
+    xoffset=curState*botX/10.0;
     for(i=0; i<=segment; i++) {
         //0  x2=bolt[i].x1;
         //  y2=bolt[i].y1;
@@ -105,15 +107,29 @@ void RgbEffects::RenderLightning(int Number_Bolts, int Number_Segments, bool Use
         }
         y2 = BufferHt-(i*StepSegment) - topY;
 
+        LightningDrawBolt(x1+xoffset,y1,x2+xoffset,y2,color,curState);
+        if(ForkedLightning) {
 
 
-        LightningDrawBolt(x1,y1,x2,y2,color,curState);
+            if(i>(segment/2)) {
 
+                if(i%2==1) {
+                    if(rand()%2==1)
+                        x3 = xc + topX - (j%Number_Segments);
+                    else  x3 = xc + topX + (2*j%Number_Segments);
+                } else {
+                    if(rand()%2==1)
+                        x3 = xc + topX + (j%Number_Segments);
+                    else
+                        x3 = xc + topX - (3*j%Number_Segments);
+                }
+                y3 = BufferHt-(i*StepSegment) - topY - rand()%5;
+                LightningDrawBolt(x1+xoffset,y1,x3+xoffset,y2,color,curState);
+            }
+        }
         x1=x2;
         y1=y2;
     }
-
-
 }
 
 void RgbEffects::LightningDrawBolt(const int x0_, const int y0_, const int x1_, const int y1_,  xlColor& color ,int curState) {
@@ -121,6 +137,7 @@ void RgbEffects::LightningDrawBolt(const int x0_, const int y0_, const int x1_, 
     int x1 = x1_;
     int y0 = y0_;
     int y1 = y1_;
+    double diminish;
     xlColor color2;
     wxImage::HSVValue hsv = color.asHSV();
     wxImage::HSVValue hsv2 = color2.asHSV();
@@ -130,17 +147,20 @@ void RgbEffects::LightningDrawBolt(const int x0_, const int y0_, const int x1_, 
     int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
     int err = (dx>dy ? dx : -dy)/2, e2;
     color2=color;
-    color2.red=color2.green=color2.blue=200;
-    if(curState>40) {
-        hsv.value = hsv.value - (1-(curState/80.0));
-        if(hsv.value<0.0)
-            hsv.value=0.0;
-        hsv2.value = hsv2.value - (1-(curState/60.0));
-        if(hsv2.value<0.0)
-            hsv2.value=0.0;
-        color = hsv;
-        color2 = hsv2;
+// color2.red=color2.green=color2.blue=200;
+    int frame_startfade = 2*20; // 2 seconds full brightness
+    int frame_fadedone = 5*20; // 3 seconds to fade out
+    if(curState>frame_startfade) {
+        diminish = ((frame_startfade+frame_fadedone)-curState)/(double)frame_fadedone;
+        if(diminish<0) diminish=0.0;
+        hsv.value = hsv.value * diminish;
     }
+
+    color = hsv;
+
+    hsv2.value = hsv.value * 0.90;
+    color2 = hsv2;
+    color2 = hsv;
     for(;;) {
         SetPixel(x0,y0, color);
         SetPixel(x0-1,y0, color2);

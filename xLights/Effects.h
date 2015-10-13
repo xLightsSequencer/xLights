@@ -29,7 +29,7 @@ void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, 
 void RenderGarlands(int GarlandType, int Spacing, float cycles, const wxString &direction);
 void RenderGlediator(const wxString& NewPictureName);
 void RenderLife(int Count, int Type, int lifeSpeed);
-void RenderLightning(int Number_Bolts, int Number_Segments, bool Use_All_Colors,
+void RenderLightning(int Number_Bolts, int Number_Segments, bool ForkedLightning,
                      int topX,int topY, int botX, int botY);
 void LightningDrawBolt(const int x0_, const int y0_, const int x1_, const int y1_,  xlColor& color, int curState );
 
