@@ -33,11 +33,11 @@ static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int
         while( index < shift )
         {
             position++;
-            if( position > color_size )
+            if( position >= color_size )
             {
                 band_color++;
                 band_color %= colorcnt;
-                position = 1;
+                position = 0;
             }
             index++;
         }
@@ -48,11 +48,11 @@ static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int
         while( index > shift )
         {
             position--;
-            if( position < 1 )
+            if( position < 0 )
             {
                 band_color--;
                 if( band_color < 0 ) band_color = colorcnt-1;
-                position = color_size;
+                position = color_size-1;
             }
             index--;
         }
@@ -92,7 +92,7 @@ void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int st
         for( int x_pos = corner_x1; x_pos <= corner_x2; x_pos++ )
         {
             color = xlBLACK;
-            if( current_pos <= BandSize )
+            if( current_pos < BandSize )
             {
                 palette.GetColor(current_color, color);
             }
@@ -103,7 +103,7 @@ void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int st
         for( int y_pos = corner_y2; y_pos >=corner_y1 ; y_pos-- )
         {
             color = xlBLACK;
-            if( current_pos <= BandSize )
+            if( current_pos < BandSize )
             {
                 palette.GetColor(current_color, color);
             }
@@ -114,7 +114,7 @@ void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int st
         for( int x_pos = corner_x2; x_pos >= corner_x1; x_pos-- )
         {
             color = xlBLACK;
-            if( current_pos <= BandSize )
+            if( current_pos < BandSize )
             {
                 palette.GetColor(current_color, color);
             }
@@ -125,7 +125,7 @@ void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int st
         for( int y_pos = corner_y1; y_pos <= corner_y2; y_pos++ )
         {
             color = xlBLACK;
-            if( current_pos <= BandSize )
+            if( current_pos < BandSize )
             {
                 palette.GetColor(current_color, color);
             }
