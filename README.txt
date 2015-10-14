@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) Fix problem where numChannels*numFrames > 2G
     -- bug(gil)   Fix Marquee not rendering smooth when reverse is checked.
 4.2.16  Oct 13, 2015
     -- bug(keithsw) Fix broken picture wiggle style

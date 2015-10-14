@@ -27,7 +27,7 @@ SequenceData::~SequenceData() {
     }
 }
 
-void SequenceData::init(int numChannels, int numFrames, int frameTime) {
+void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime) {
     if (data != NULL) {
         free(data);
         data = NULL;
@@ -39,22 +39,25 @@ void SequenceData::init(int numChannels, int numFrames, int frameTime) {
     this->numChannels = numChannels;
     this->numFrames = numFrames;
     this->frameTime = frameTime;
-    
+
     if (numFrames > 0 && numChannels > 0) {
-        data = (unsigned char *)malloc(numChannels * numFrames);
-        memset(data, 0, numChannels * numFrames);
+        unsigned long tmp = numChannels;
+        tmp *= numFrames;
+        size_t sz = tmp;
+        data = (unsigned char *)malloc(sz);
+        memset(data, 0, sz);
     }
     invalidData = (unsigned char *)malloc(numChannels);
     memset(invalidData, 0, numChannels);
 }
 
-FrameData SequenceData::operator[](int frame) {
+FrameData SequenceData::operator[](unsigned int frame) {
     if (frame >= numFrames) {
         return FrameData(numChannels, invalidData);
     }
     return FrameData(numChannels, &data[frame * numChannels]);
 }
-const FrameData SequenceData::operator[](int frame) const {
+const FrameData SequenceData::operator[](unsigned int frame) const {
     if (frame >= numFrames) {
         return FrameData(numChannels, invalidData);
     }
