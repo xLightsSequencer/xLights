@@ -48,7 +48,7 @@ install:
 	cp -r piano/* $(INSTALL_ROOT)/${PREFIX}/share/xLights/piano
 	install -d -m 755 $(INSTALL_ROOT)/${PREFIX}/share/xLights/songs
 	cp -r songs/* $(INSTALL_ROOT)/${PREFIX}/share/xLights/songs
-	$(foreach size, $(ICON_SIZES), install -m 644 xLights/Images.xcassets/AppIcon.appiconset/$(size).png $(INSTALL_ROOT)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
+	$(foreach size, $(ICON_SIZES), install -D -m 644 xLights/Images.xcassets/AppIcon.appiconset/$(size).png $(INSTALL_ROOT)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
 
 uninstall:
 	-$(DEL_FILE) $(INSTALL_ROOT)/${PREFIX}/bin/xLights
