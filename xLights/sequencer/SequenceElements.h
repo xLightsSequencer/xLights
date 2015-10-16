@@ -130,6 +130,7 @@ class SequenceElements : public ChangeLister
         void DeactivateAllTimingElements();
         void SetFrequency(double frequency);
         double GetFrequency();
+        int GetMinPeriod();
 
         int SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS);
         int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol);

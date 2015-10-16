@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Prevent magnetically connected effects from being crushed to zero duration.
     -- bug(dkulp) Fix problem where numChannels*numFrames > 2G
     -- bug(gil)   Fix Marquee not rendering smooth when reverse is checked.
 4.2.16  Oct 13, 2015

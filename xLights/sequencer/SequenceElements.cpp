@@ -738,6 +738,10 @@ double SequenceElements::GetFrequency()
     return mFrequency;
 }
 
+int SequenceElements::GetMinPeriod()
+{
+    return (int)((double)1000.0/(double)mFrequency);
+}
 
 void SequenceElements::SetSelectedTimingRow(int row)
 {
