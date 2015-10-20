@@ -33,8 +33,8 @@ class EffectLayer
         bool IsEffectStartTimeInRange(int index, int startTimeMS, int endTimeMS);
         bool IsEffectEndTimeInRange(int index, int startTimeMS, int endTimeMS);
 
-        int GetMaximumEndTimeMS(int index, bool allow_collapse);
-        int GetMinimumStartTimeMS(int index, bool allow_collapse);
+        int GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period);
+        int GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period);
 
         bool HitTestEffectByTime(int timeMS,int &index);
 
@@ -63,7 +63,7 @@ class EffectLayer
         void UpdateAllSelectedEffects(const wxString& palette);
 
         void IncrementChangeCount(int startMS, int endMS);
-    
+
         wxMutex &GetLock() {return lock;}
     protected:
     private:

@@ -127,7 +127,7 @@ bool EffectLayer::IsEndTimeLinked(int index)
     }
 }
 
-int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse)
+int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period)
 {
     if(index+1 >= mEffects.size())
     {
@@ -137,7 +137,7 @@ int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse)
     {
         if(mEffects[index]->GetEndTimeMS() == mEffects[index+1]->GetStartTimeMS() && allow_collapse)
         {
-            return mEffects[index+1]->GetEndTimeMS();
+            return mEffects[index+1]->GetEndTimeMS() - min_period;
         }
         else
         {
@@ -146,7 +146,7 @@ int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse)
     }
 }
 
-int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse)
+int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period)
 {
     if(index == 0)
     {
@@ -156,7 +156,7 @@ int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse)
     {
         if(mEffects[index-1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse)
         {
-            return mEffects[index-1]->GetStartTimeMS();
+            return mEffects[index-1]->GetStartTimeMS() + min_period;
         }
         else
         {
@@ -257,7 +257,7 @@ Effect*  EffectLayer::GetEffectAfterEmptyTime(int ms)
         return mEffects[i];
     }
 }
- 
+
 bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS)
 {
     int i;
