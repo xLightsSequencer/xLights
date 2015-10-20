@@ -12,8 +12,8 @@ class PhonemeDictionary
         PhonemeDictionary();
         virtual ~PhonemeDictionary();
 
-        void LoadDictionaries();
-        void LoadDictionary(wxString filename);
+        void LoadDictionaries(const wxString &showDir);
+        void LoadDictionary(const wxString &filename, const wxString &showDir);
         void BreakdownWord(const wxString& text, wxArrayString& phonemes);
         void InsertSpacesAfterPunctuation(wxString& text);
 

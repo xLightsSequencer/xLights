@@ -15,14 +15,14 @@ PhonemeDictionary::~PhonemeDictionary()
 
 }
 
-void PhonemeDictionary::LoadDictionaries()
+void PhonemeDictionary::LoadDictionaries(const wxString &showDir)
 {
 	if (phoneme_dict.size() > 0)
 		return;
 
-    LoadDictionary("standard_dictionary");
-    LoadDictionary("extended_dictionary");
-    LoadDictionary("user_dictionary");
+    LoadDictionary("user_dictionary", showDir);
+    LoadDictionary("standard_dictionary", showDir);
+    LoadDictionary("extended_dictionary", showDir);
 
     wxFileName phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
     phonemeFile.SetFullName("phoneme_mapping");
@@ -56,10 +56,14 @@ void PhonemeDictionary::LoadDictionaries()
     }
 }
 
-void PhonemeDictionary::LoadDictionary(wxString filename)
+void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString &showDir)
 {
-    wxFileName phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
+    wxFileName phonemeFile = wxFileName::DirName(showDir);
     phonemeFile.SetFullName(filename);
+    if (!wxFile::Exists(phonemeFile.GetFullPath())) {
+        phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
+        phonemeFile.SetFullName(filename);
+    }
     if (!wxFile::Exists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir(), filename);
     }

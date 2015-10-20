@@ -1214,7 +1214,7 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
 {
     if( phrase != "" )
     {
-        xframe->dictionary.LoadDictionaries();
+        xframe->dictionary.LoadDictionaries(xframe->CurrentDir);
         wxArrayString words = wxSplit(phrase, ' ');
         int num_words = words.Count();
         double interval_ms = (end_time-start_time) / num_words;
@@ -1234,7 +1234,7 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
 
 void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word)
 {
-    xframe->dictionary.LoadDictionaries();
+    xframe->dictionary.LoadDictionaries(xframe->CurrentDir);
     wxArrayString phonemes;
     xframe->dictionary.BreakdownWord(word, phonemes);
     if( phonemes.Count() > 0 )

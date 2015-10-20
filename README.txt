@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp) Make sure user_dictionary can load from show dir and make sure it can override stuff in the standard dictionaries.
 	-- enh(sean) Removed built in fade from lightning effect
 	-- enh(sean) changed the backup (F10) so that it saves files <20mbytes. Before it was 10mbytes.
     -- bug(gil)   Prevent magnetically connected effects from being crushed to zero duration.
