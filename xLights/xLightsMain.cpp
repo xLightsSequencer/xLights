@@ -2980,7 +2980,7 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
                           "Backup%c%s-%s",wxFileName::GetPathSeparator(),
                           curTime.FormatISODate(),curTime.Format("%H%M%S"));
 
-    if ( wxNO == wxMessageBox("All xml files under 10MB in your xlights directory will be backed up to \""+
+    if ( wxNO == wxMessageBox("All xml files under 20MB in your xlights directory will be backed up to \""+
                               newDir+"\". Proceed?","Backup",wxICON_QUESTION | wxYES_NO))
     {
         return;
@@ -3016,7 +3016,7 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
         srcFile.SetFullName(fname);
 
         wxULongLong fsize=srcFile.GetSize();
-        if(fsize > 10*1024*1024) // skip any xml files > 10 mbytes, they are something other than xml files
+        if(fsize > 20*1024*1024) // skip any xml files > 20 mbytes, they are something other than xml files
         {
             srcDir.GetNext(&fname);
             continue;

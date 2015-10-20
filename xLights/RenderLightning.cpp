@@ -150,11 +150,14 @@ void RgbEffects::LightningDrawBolt(const int x0_, const int y0_, const int x1_, 
 // color2.red=color2.green=color2.blue=200;
     int frame_startfade = 2*20; // 2 seconds full brightness
     int frame_fadedone = 5*20; // 3 seconds to fade out
+
+    /**     for now, dont fade out the effect
     if(curState>frame_startfade) {
         diminish = ((frame_startfade+frame_fadedone)-curState)/(double)frame_fadedone;
         if(diminish<0) diminish=0.0;
         hsv.value = hsv.value * diminish;
     }
+    **/
 
     color = hsv;
 

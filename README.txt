@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+	-- enh(sean) Removed built in fade from lightning effect
+	-- enh(sean) changed the backup (F10) so that it saves files <20mbytes. Before it was 10mbytes.
     -- bug(gil)   Prevent magnetically connected effects from being crushed to zero duration.
     -- bug(dkulp) Fix problem where numChannels*numFrames > 2G
     -- bug(gil)   Fix Marquee not rendering smooth when reverse is checked.
