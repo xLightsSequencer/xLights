@@ -111,7 +111,7 @@ bool NetInfoClass::GetEndNetworkAndChannel(int netNum,int startChannel, int tota
         return false;
     }
 
-    if(startChannel >= GetNumChannels(netNum))
+    if(startChannel > GetNumChannels(netNum))
     {
         return false;
     }
