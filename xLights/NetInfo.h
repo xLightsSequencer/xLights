@@ -26,6 +26,8 @@ public:
     int GetTotChannels();
     void GetAllChannelNames(wxArrayString& names);
     wxString GetChannelName(int ChNum);
+    bool GetEndNetworkAndChannel(int netNum,int startChannel, int totalChannels,int& endNetNum, int& endChannel);
+    bool GetStartNetworkAndChannelFromEndInfo(int endNetNum, int endChannel,int& netNum,int& startChannel);
 };
 
 #endif // XLIGHTSNETINFO_H

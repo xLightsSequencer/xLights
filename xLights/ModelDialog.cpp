@@ -597,7 +597,7 @@ void ModelDialog::OncbIndividualStartNumbersClick(wxCommandEvent& event)
 void ModelDialog::UpdateStartChannels()
 {
     int StringStartChan,StringEndChan;
-    long StringStartChanLong;
+    long StringStartChanLong,startNetwork;
     wxString tmpStr;
     int StringCnt = GetNumberOfStrings();
     bool OneString = StringCnt == 1;
@@ -651,15 +651,41 @@ void ModelDialog::UpdateStartChannels()
         for (int stringnum=0; stringnum<StringCnt; stringnum++)
         {
             tmpStr = gridStartChannels->GetCellValue(stringnum,0);
+            wxString sNet = "";
             wxString pfx = "";
             if (tmpStr.Contains(":")) {
-                pfx = tmpStr.SubString(0, tmpStr.Find(":"));
-                tmpStr = tmpStr.SubString(tmpStr.Find(":") + 1, tmpStr.size());
+                sNet = tmpStr.SubString(0, tmpStr.Find(":")-1);
+                if (sNet.ToLong(&startNetwork) && startNetwork > 0)
+                {
+                    int endNetwork;
+                    int endChannel;
+                    startNetwork--; // Zero based index
+                    pfx = tmpStr.SubString(0, tmpStr.Find(":"));
+                    tmpStr = tmpStr.SubString(tmpStr.Find(":") + 1, tmpStr.size());
+                    if (tmpStr.ToLong(&StringStartChanLong) && StringStartChanLong > 0)
+                    {
+                        if(netInfo->GetEndNetworkAndChannel(startNetwork,(int)StringStartChanLong,ChannelsPerString,endNetwork,endChannel))
+                        {
+                            gridStartChannels->SetCellValue(stringnum,1,wxString::Format("%i:%i",endNetwork+1,endChannel)); //endNetwork is zero based
+                        }
+                        else
+                        {
+                            gridStartChannels->SetCellValue(stringnum,1,wxString::Format("Invalid"));
+                        }
+                    }
+                    else
+                    {
+                        gridStartChannels->SetCellValue(stringnum,1,wxString::Format("Invalid"));
+                    }
+                }
             }
-            if (tmpStr.ToLong(&StringStartChanLong) && StringStartChanLong > 0)
+            else
             {
-                StringEndChan=StringStartChanLong + ChannelsPerString - 1;
-                gridStartChannels->SetCellValue(stringnum,1, pfx + wxString::Format("%i",StringEndChan));
+                if (tmpStr.ToLong(&StringStartChanLong) && StringStartChanLong > 0)
+                {
+                    StringEndChan=StringStartChanLong + ChannelsPerString - 1;
+                    gridStartChannels->SetCellValue(stringnum,1, pfx + wxString::Format("%i",StringEndChan));
+                }
             }
         }
         SetReadOnly(false);
@@ -672,15 +698,39 @@ void ModelDialog::UpdateStartChannels()
         // update start and end channel numbers
         int startchan = SpinCtrl_StartChannel->GetValue();
         wxString pfx = "";
-        if (OutputSpinCtrl->GetValue() > 1) {
-            pfx = wxString::Format("%d:", OutputSpinCtrl->GetValue());
-        }
-        for (int stringnum=0; stringnum<StringCnt; stringnum++)
+        if (OutputSpinCtrl->GetValue() > 1)
         {
-            StringStartChan=startchan + (stringnum*ChannelsPerString);
-            StringEndChan=StringStartChan + ChannelsPerString - 1;
-            gridStartChannels->SetCellValue(stringnum,0, pfx + wxString::Format("%i",StringStartChan));
-            gridStartChannels->SetCellValue(stringnum,1, pfx + wxString::Format("%i",StringEndChan));
+            wxString sNet = "";
+            wxString pfx = "";
+            int endNetwork;
+            int endChannel;
+            int sNetwork;
+            sNetwork = OutputSpinCtrl->GetValue();
+            for (int stringnum=0; stringnum<StringCnt; stringnum++)
+            {
+                pfx = wxString::Format("%d:", sNetwork);
+                if(netInfo->GetEndNetworkAndChannel(sNetwork,startchan,ChannelsPerString,endNetwork,endChannel))
+                {
+                    gridStartChannels->SetCellValue(stringnum,0, pfx + wxString::Format("%i",startchan));
+                    gridStartChannels->SetCellValue(stringnum,1, wxString::Format("%i:%i",endNetwork,endChannel));
+                    netInfo->GetStartNetworkAndChannelFromEndInfo(endNetwork,endChannel,sNetwork,startchan);
+                }
+                else
+                {
+                    gridStartChannels->SetCellValue(stringnum,0, wxString::Format("Invalid"));
+                    gridStartChannels->SetCellValue(stringnum,1, wxString::Format("Invalid"));
+                }
+            }
+        }
+        else
+        {
+            for (int stringnum=0; stringnum<StringCnt; stringnum++)
+            {
+                StringStartChan=startchan + (stringnum*ChannelsPerString);
+                StringEndChan=StringStartChan + ChannelsPerString - 1;
+                gridStartChannels->SetCellValue(stringnum,0, pfx + wxString::Format("%i",StringStartChan));
+                gridStartChannels->SetCellValue(stringnum,1, pfx + wxString::Format("%i",StringEndChan));
+            }
         }
         SetReadOnly(true);
     }
@@ -846,8 +896,8 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         e->AddAttribute("StrandNames", strandNames);
     }
     ModelClass::SetMyDisplay(e,CheckBox_MyDisplay->GetValue());
-    
-    
+
+
     wxXmlNode *f = e->GetChildren();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
@@ -983,7 +1033,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
     GridCustom->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
 
     UpdateLabels();
-    
+
     faceInfo.clear();
     wxXmlNode *f = e->GetChildren();
     while (f != nullptr) {
@@ -1049,14 +1099,14 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     //native ObjectC code can get the proper tab formatted version.
     copy_data = GetOSXFormattedClipboardData();
 #endif
-    
+
     if (copy_data == "") {
         if (wxTheClipboard->Open())
         {
             if (wxTheClipboard->IsSupported(wxDF_TEXT))
             {
                 wxTextDataObject data;
-                
+
                 if (wxTheClipboard->GetData(data))
                 {
                     copy_data = data.GetText();
@@ -1089,7 +1139,7 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     copy_data.Replace("\r\r", "\n");
     copy_data.Replace("\r\n", "\n");
     copy_data.Replace("\r", "\n");
-    
+
     do
     {
         cur_line = copy_data.BeforeFirst('\n');

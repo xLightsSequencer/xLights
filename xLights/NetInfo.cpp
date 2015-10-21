@@ -103,3 +103,63 @@ wxString NetInfoClass::GetChannelName(int ChNum)
     }
     return string_format("Ch %d: invalid",ChNum);
 }
+
+bool NetInfoClass::GetEndNetworkAndChannel(int netNum,int startChannel, int totalChannels,int& endNetNum, int& endChannel)
+{
+    if(netNum >= GetNumNetworks())
+    {
+        return false;
+    }
+
+    if(startChannel >= GetNumChannels(netNum))
+    {
+        return false;
+    }
+
+    int index = netNum;
+    int start = startChannel-1;
+    int countRemaining = totalChannels;
+	int channelsLeftInNetwork = GetNumChannels(index) - start;
+    while(countRemaining > channelsLeftInNetwork)
+    {
+        start = 0;
+        countRemaining-=channelsLeftInNetwork;
+        // Is there more networks defined
+        if(index<GetNumNetworks()-1)
+        {
+            // Yes there are more networks defined, increment
+            index++;
+        }
+        else
+        {
+            return false;
+        }
+        channelsLeftInNetwork = GetNumChannels(index);
+    }
+    endNetNum = index;
+    endChannel = countRemaining+start;
+    return true;
+}
+
+bool NetInfoClass::GetStartNetworkAndChannelFromEndInfo(int endNetNum, int endChannel,int& netNum,int& startChannel)
+{
+    if(endChannel+1 < GetNumChannels(endNetNum))
+    {
+        netNum = endNetNum;
+        startChannel = endChannel+1;
+        return true;
+    }
+    else
+    {
+        netNum = endNetNum+1;
+        startChannel = 1;
+        if(netNum<GetNumNetworks())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+}
