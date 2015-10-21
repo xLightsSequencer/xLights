@@ -8,7 +8,6 @@
 #include "xlGridCanvasEmpty.h"
 #include "../xLightsXmlFile.h"
 
-
 //(*InternalHeaders(EffectAssist)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -19,6 +18,7 @@ const long EffectAssist::ID_BUTTON_NewImage = wxNewId();
 const long EffectAssist::ID_BUTTON_LoadImage = wxNewId();
 const long EffectAssist::ID_BUTTON_SaveImage = wxNewId();
 const long EffectAssist::ID_BUTTON_SaveAs = wxNewId();
+const long EffectAssist::ID_BUTTON1 = wxNewId();
 const long EffectAssist::ID_STATICTEXT_CurrentImage = wxNewId();
 const long EffectAssist::ID_STATICTEXT_ImageSize = wxNewId();
 const long EffectAssist::ID_STATICTEXT_ModelSize = wxNewId();
@@ -89,6 +89,8 @@ EffectAssist::EffectAssist(wxWindow* parent, xLightsFrame* xlights_parent, wxWin
 	FlexGridSizer3->Add(Button_SaveImage, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Button_SaveAs = new wxButton(Panel_RightSide, ID_BUTTON_SaveAs, _("Save As\nImage"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SaveAs"));
 	FlexGridSizer3->Add(Button_SaveAs, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Resize = new wxButton(Panel_RightSide, ID_BUTTON1, _("Resize\nImage"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer3->Add(Button_Resize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PaintFuntionsSizer->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_CurrentImage = new wxStaticText(Panel_RightSide, ID_STATICTEXT_CurrentImage, _("Current Image:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_CurrentImage"));
 	PaintFuntionsSizer->Add(StaticText_CurrentImage, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -117,6 +119,7 @@ EffectAssist::EffectAssist(wxWindow* parent, xLightsFrame* xlights_parent, wxWin
 	Connect(ID_BUTTON_LoadImage,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectAssist::OnButton_LoadImageClick);
 	Connect(ID_BUTTON_SaveImage,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectAssist::OnButton_SaveImageClick);
 	Connect(ID_BUTTON_SaveAs,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectAssist::OnButton_SaveAsClick);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectAssist::OnButton_ResizeClick);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&EffectAssist::OnResize);
 	//*)
 
@@ -293,8 +296,8 @@ void EffectAssist::OnImageFileSelected(wxCommandEvent& event)
 
 void EffectAssist::OnImageSize(wxCommandEvent& event)
 {
-   wxString* image_size = (wxString*)event.GetClientData();
-   StaticText_ImageSize->SetLabelText( *image_size );
+   wxString image_size = event.GetString();
+   StaticText_ImageSize->SetLabelText( image_size );
 }
 
 void EffectAssist::OnButton_SaveImageClick(wxCommandEvent& event)
@@ -316,4 +319,8 @@ void EffectAssist::OnButton_LoadImageClick(wxCommandEvent& event)
 void EffectAssist::OnButton_SaveAsClick(wxCommandEvent& event)
 {
     ((xlGridCanvasPictures*)PanelEffectGrid)->SaveAsImage();
+}
+void EffectAssist::OnButton_ResizeClick(wxCommandEvent& event)
+{
+    ((xlGridCanvasPictures*)PanelEffectGrid)->ResizeImage();
 }

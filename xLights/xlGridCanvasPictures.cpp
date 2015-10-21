@@ -4,6 +4,8 @@
 #include <wx/filefn.h>
 #include <wx/filename.h>
 
+#include "ResizeImageDialog.h"
+
 static const wxString strSupportedImageTypes = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp|JPG files(*.jpg)|*.jpg|All files (*.*)|*.*";
 
 BEGIN_EVENT_TABLE(xlGridCanvasPictures, xlGridCanvas)
@@ -46,9 +48,8 @@ xlGridCanvasPictures::~xlGridCanvasPictures()
 {
 }
 
-void xlGridCanvasPictures::ProcessNewImage()
+void xlGridCanvasPictures::LoadAndProcessImage()
 {
-    static wxString image_size = wxEmptyString;
 
     // process loading new image
     if( mModified )
@@ -69,6 +70,11 @@ void xlGridCanvasPictures::ProcessNewImage()
         if (!image.IsOk())
             return;
     }
+    ProcessNewImage();
+}
+void xlGridCanvasPictures::ProcessNewImage()
+{
+    wxString image_size = wxEmptyString;
 
     wxCommandEvent eventImage(EVT_IMAGE_FILE_SELECTED);
     eventImage.SetClientData(&NewPictureName);
@@ -79,7 +85,7 @@ void xlGridCanvasPictures::ProcessNewImage()
 
     image_size = wxString::Format("Image Size: %d x %d", imgwidth, imght);
     wxCommandEvent eventImageSize(EVT_IMAGE_SIZE);
-    eventImageSize.SetClientData(&image_size);
+    eventImageSize.SetString(image_size);
     wxPostEvent(GetParent(), eventImageSize);
 
     if( imgwidth > mColumns || imght > mRows )
@@ -128,7 +134,7 @@ void xlGridCanvasPictures::LoadImage()
 
     mModified = true;
     NewPictureName = PictureName;
-    ProcessNewImage();
+    LoadAndProcessImage();
 }
 
 void xlGridCanvasPictures::SaveAsImage()
@@ -173,7 +179,50 @@ void xlGridCanvasPictures::SaveAsImage()
 
     mModified = true;
     NewPictureName = PictureName;
-    ProcessNewImage();
+    LoadAndProcessImage();
+}
+
+void xlGridCanvasPictures::ResizeImage()
+{
+    if (img_mode == IMAGE_SINGLE_OVERSIZED || img_mode == IMAGE_SINGLE_FITS) {
+        ResizeImageDialog dlg(this);
+        dlg.HeightSpinCtrl->SetValue(image.GetHeight());
+        dlg.WidthSpinCtrl->SetValue(image.GetWidth());
+        if (dlg.ShowModal() == wxID_OK) {
+            wxImageResizeQuality type = wxIMAGE_QUALITY_NEAREST;
+            
+            switch (dlg.ResizeChoice->GetSelection()) {
+                case 0:
+                    type = wxIMAGE_QUALITY_NEAREST;
+                    image.Rescale(dlg.WidthSpinCtrl->GetValue(), dlg.HeightSpinCtrl->GetValue(), type);
+                    break;
+                case 1:
+                    type = wxIMAGE_QUALITY_BILINEAR;
+                    image.Rescale(dlg.WidthSpinCtrl->GetValue(), dlg.HeightSpinCtrl->GetValue(), type);
+                    break;
+                case 2:
+                    type = wxIMAGE_QUALITY_BICUBIC;
+                    image.Rescale(dlg.WidthSpinCtrl->GetValue(), dlg.HeightSpinCtrl->GetValue(), type);
+                    break;
+                case 3:
+                    type = wxIMAGE_QUALITY_BOX_AVERAGE;
+                    image.Rescale(dlg.WidthSpinCtrl->GetValue(), dlg.HeightSpinCtrl->GetValue(), type);
+                    break;
+                case 4:
+                    image.Resize(wxSize(dlg.WidthSpinCtrl->GetValue(), dlg.HeightSpinCtrl->GetValue()),
+                                 wxPoint((dlg.WidthSpinCtrl->GetValue()-image.GetWidth()) / 2,
+                                         (dlg.HeightSpinCtrl->GetValue()-image.GetHeight()) / 2),
+                                 0,0,0);
+                    break;
+            }
+            if( sprite != NULL ) {
+                delete sprite;
+                sprite = NULL;
+            }
+            ProcessNewImage();
+        }
+    }
+    
 }
 
 void xlGridCanvasPictures::SaveImage()
@@ -221,7 +270,7 @@ void xlGridCanvasPictures::SaveImage()
 
     mModified = true;
     NewPictureName = PictureName;
-    ProcessNewImage();
+    LoadAndProcessImage();
 }
 
 void xlGridCanvasPictures::SaveImageToFile()
@@ -280,7 +329,7 @@ void xlGridCanvasPictures::CreateNewImage(wxString& image_dir)
 void xlGridCanvasPictures::ForceRefresh()
 {
     NewPictureName = GetImageFilename();
-    ProcessNewImage();
+    LoadAndProcessImage();
 }
 
 void xlGridCanvasPictures::SetEffect(Effect* effect_)
@@ -296,7 +345,7 @@ void xlGridCanvasPictures::SetEffect(Effect* effect_)
     if( NewPictureName == "" ) return;
 
     if( wxFile::Exists(NewPictureName)) {
-        ProcessNewImage();
+        LoadAndProcessImage();
     } else {
         missing_file = "File Not Found: " + NewPictureName;
         wxCommandEvent eventImage(EVT_IMAGE_FILE_SELECTED);
@@ -508,14 +557,14 @@ void xlGridCanvasPictures::render( wxPaintEvent& event )
 void xlGridCanvasPictures::DrawPicturesEffect()
 {
     if( NewPictureName == "" ) return;
-    if( NewPictureName != PictureName )
+    if( NewPictureName != PictureName || sprite == NULL)
     {
         if( sprite != NULL ) {
             delete sprite;
         }
         if( use_ping )
         {
-            imageGL_ping = new Image(NewPictureName);
+            imageGL_ping = new Image(image);
             sprite = new xLightsDrawable(imageGL_ping);
             imageWidth = imageGL_ping->width;
             imageHeight = imageGL_ping->height;
@@ -523,7 +572,7 @@ void xlGridCanvasPictures::DrawPicturesEffect()
         }
         else
         {
-            imageGL_pong = new Image(NewPictureName);
+            imageGL_pong = new Image(image);
             sprite = new xLightsDrawable(imageGL_pong);
             imageWidth = imageGL_pong->width;
             imageHeight = imageGL_pong->height;

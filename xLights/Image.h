@@ -32,7 +32,10 @@ public:
     bool hasAlpha() { return mAlpha; }
     Image();
     Image(wxString path);
+    Image(wxImage &path);
+    
     ~Image();
+    void load(wxImage &path);
     void load(wxString path);
 
 };

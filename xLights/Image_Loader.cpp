@@ -5,7 +5,33 @@
 #include "wx/wx.h"
 #define GL_CLAMP_TO_EDGE 0x812F
 
+
 GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
+                  bool &scaledW, bool &scaledH, bool &hasAlpha)
+{
+    // the first time, init image handlers (remove this part if you do it somewhere else in your app)
+    static bool is_first_time = true;
+    if(is_first_time)
+    {
+        wxInitAllImageHandlers();
+        
+        is_first_time = false;
+    }
+    
+    // check the file exists
+    if(!wxFileExists(path))
+    {
+        wxMessageBox( _("Failed to load resource image") );
+        exit(1);
+    }
+    
+    wxImage img( path );
+    return loadImage(&img, imageWidth, imageHeight, textureWidth, textureHeight,
+                     scaledW, scaledH, hasAlpha);
+
+}
+
+GLuint* loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
                   bool &scaledW, bool &scaledH, bool &hasAlpha)
 {
 
@@ -18,23 +44,7 @@ GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &texture
 	glBindTexture( GL_TEXTURE_2D, *ID );
 
 
-	// the first time, init image handlers (remove this part if you do it somewhere else in your app)
-	static bool is_first_time = true;
-	if(is_first_time)
-	{
-		wxInitAllImageHandlers();
 
-		is_first_time = false;
-	}
-
-	// check the file exists
-	if(!wxFileExists(path))
-	{
-		wxMessageBox( _("Failed to load resource image") );
-		exit(1);
-	}
-
-	wxImage* img=new wxImage( path );
 
 	imageWidth=img->GetWidth();
 	imageHeight=img->GetHeight();

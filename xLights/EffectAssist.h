@@ -32,6 +32,7 @@ class EffectAssist: public wxPanel
 		wxButton* Button_NewImage;
 		wxPanel* Panel_Sizer;
 		wxScrolledWindow* ScrolledWindowEffectAssist;
+		wxButton* Button_Resize;
 		wxStaticText* StaticText_CurrentImage;
 		wxButton* Button_SaveAs;
 		wxFlexGridSizer* FlexGridSizer_RightSide;
@@ -53,6 +54,7 @@ class EffectAssist: public wxPanel
 		static const long ID_BUTTON_LoadImage;
 		static const long ID_BUTTON_SaveImage;
 		static const long ID_BUTTON_SaveAs;
+		static const long ID_BUTTON1;
 		static const long ID_STATICTEXT_CurrentImage;
 		static const long ID_STATICTEXT_ImageSize;
 		static const long ID_STATICTEXT_ModelSize;
@@ -80,6 +82,7 @@ class EffectAssist: public wxPanel
 		void OnButton_NewImageClick(wxCommandEvent& event);
 		void OnButton_LoadImageClick(wxCommandEvent& event);
 		void OnButton_SaveAsClick(wxCommandEvent& event);
+		void OnButton_ResizeClick(wxCommandEvent& event);
 		//*)
 
         void CreatePaintTools(wxWindow* parent, wxFlexGridSizer* container);

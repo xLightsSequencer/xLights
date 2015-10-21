@@ -79,6 +79,15 @@
 																	<border>5</border>
 																	<option>1</option>
 																</object>
+																<object class="sizeritem">
+																	<object class="wxButton" name="ID_BUTTON1" variable="Button_Resize" member="yes">
+																		<label>Resize&#x0A;Image</label>
+																		<handler function="OnButton_ResizeClick" entry="EVT_BUTTON" />
+																	</object>
+																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																	<border>5</border>
+																	<option>1</option>
+																</object>
 															</object>
 															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 															<border>5</border>

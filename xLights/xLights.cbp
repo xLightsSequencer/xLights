@@ -500,6 +500,8 @@
 		<Unit filename="RenderTree.cpp" />
 		<Unit filename="RenderTwinkle.cpp" />
 		<Unit filename="RenderWave.cpp" />
+		<Unit filename="ResizeImageDialog.cpp" />
+		<Unit filename="ResizeImageDialog.h" />
 		<Unit filename="RgbEffects.cpp" />
 		<Unit filename="RgbEffects.h" />
 		<Unit filename="SOIL.h" />
@@ -657,6 +659,7 @@
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
+		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
 		<Unit filename="wxsmith/SaveChangesDialog.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
@@ -747,6 +750,7 @@
 					<wxDialog wxs="wxsmith/VAMPPluginDialog.wxs" src="VAMPPluginDialog.cpp" hdr="VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelFaceDialog.wxs" src="ModelFaceDialog.cpp" hdr="ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SaveChangesDialog.wxs" src="SaveChangesDialog.cpp" hdr="SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ResizeImageDialog.wxs" src="ResizeImageDialog.cpp" hdr="ResizeImageDialog.h" fwddecl="0" i18n="1" name="ResizeImageDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

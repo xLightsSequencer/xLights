@@ -33,6 +33,7 @@ class xlGridCanvasPictures : public xlGridCanvas
         void LoadImage();
         void SaveImage();
         void SaveAsImage();
+        void ResizeImage();
         void CreateNewImage(wxString& image_dir);
         void SetPaintColor( xlColor& color ) { mPaintColor = color; }
         void SetPaintMode( PaintMode mode ) { mPaintMode = mode; }
@@ -60,6 +61,7 @@ class xlGridCanvasPictures : public xlGridCanvas
         void mouseUp();
         void render(wxPaintEvent& event);
         void DrawPicturesEffect();
+        void LoadAndProcessImage();
         void ProcessNewImage();
         wxString GetImageFilename();
         void SaveImageToFile();
