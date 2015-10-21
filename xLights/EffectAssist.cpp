@@ -283,9 +283,9 @@ void EffectAssist::OnColorChange(wxCommandEvent& event)
 
 void EffectAssist::OnEyedropperColor(wxCommandEvent& event)
 {
-    xlColor* color = (xlColor*)event.GetClientData();
-    ((xlGridCanvasPictures*)PanelEffectGrid)->SetPaintColor(*color);
-    mColorPicker->SetColor(*color);
+    xlColor color(event.GetInt(), true);
+    ((xlGridCanvasPictures*)PanelEffectGrid)->SetPaintColor(color);
+    mColorPicker->SetColor(color);
 }
 
 void EffectAssist::OnImageFileSelected(wxCommandEvent& event)

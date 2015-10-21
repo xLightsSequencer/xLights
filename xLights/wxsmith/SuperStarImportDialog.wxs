@@ -25,6 +25,33 @@
 						</object>
 						<colspan>5</colspan>
 						<col>0</col>
+						<row>5</row>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+							<label>Image Resizing:</label>
+						</object>
+						<col>0</col>
+						<row>4</row>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE1" variable="ImageResizeChoice" member="yes">
+							<content>
+								<item>None</item>
+								<item>Exact Width</item>
+								<item>Exact Height</item>
+								<item>Exact Width or Height</item>
+							</content>
+							<selection>0</selection>
+						</object>
+						<colspan>3</colspan>
+						<col>1</col>
 						<row>4</row>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

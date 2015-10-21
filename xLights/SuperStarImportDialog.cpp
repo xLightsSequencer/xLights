@@ -9,6 +9,8 @@
 //(*IdInit(SuperStarImportDialog)
 const long SuperStarImportDialog::ID_CHOICE_SuperStarImportModel = wxNewId();
 const long SuperStarImportDialog::ID_STATICTEXT31 = wxNewId();
+const long SuperStarImportDialog::ID_STATICTEXT1 = wxNewId();
+const long SuperStarImportDialog::ID_CHOICE1 = wxNewId();
 const long SuperStarImportDialog::ID_STATICTEXT39 = wxNewId();
 const long SuperStarImportDialog::ID_TEXTCTRL_SS_X_Offset = wxNewId();
 const long SuperStarImportDialog::ID_STATICTEXT24 = wxNewId();
@@ -41,7 +43,15 @@ SuperStarImportDialog::SuperStarImportDialog(wxWindow* parent,wxWindowID id,cons
 	ChoiceSuperStarImportModel = new wxChoice(this, ID_CHOICE_SuperStarImportModel, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_SuperStarImportModel"));
 	GridBagSizer1->Add(ChoiceSuperStarImportModel, wxGBPosition(0, 1), wxGBSpan(1, 3), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText39 = new wxStaticText(this, ID_STATICTEXT31, _("SuperStar: This is currently designed to work with SuperStar sequences\nfor CCR ribbon trees.  X/Y Size and Offset only apply to SuperStar. \nX/Y Size is ignored unless the sequence type is a Visualization.\n"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
-	GridBagSizer1->Add(StaticText39, wxGBPosition(4, 0), wxGBSpan(1, 5), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(StaticText39, wxGBPosition(5, 0), wxGBSpan(1, 5), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Image Resizing:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	GridBagSizer1->Add(StaticText1, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ImageResizeChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	ImageResizeChoice->SetSelection( ImageResizeChoice->Append(_("None")) );
+	ImageResizeChoice->Append(_("Exact Width"));
+	ImageResizeChoice->Append(_("Exact Height"));
+	ImageResizeChoice->Append(_("Exact Width or Height"));
+	GridBagSizer1->Add(ImageResizeChoice, wxGBPosition(4, 1), wxGBSpan(1, 3), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText40 = new wxStaticText(this, ID_STATICTEXT39, _("Select Model:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT39"));
 	GridBagSizer1->Add(StaticText40, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_SS_X_Offset = new wxTextCtrl(this, ID_TEXTCTRL_SS_X_Offset, _("0"), wxDefaultPosition, wxSize(50,-1), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_SS_X_Offset"));

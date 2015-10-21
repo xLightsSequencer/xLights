@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp) Add some options to SuperStar import for doing some simple image scaling
+    -- enh(dkulp) don't scale image in effect assist to allow editing images smaller than the model
     -- enh(dkulp) Start adding ability to resize image from effect assist
     -- enh(dkulp) Able to parse .sup files that have configuration elements (that aren't valid XML) (fixes #394)
     -- bug(dkulp) Prompt for image directory for SUP import up front so Cancel can work. (fixes #393)

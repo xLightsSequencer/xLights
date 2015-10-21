@@ -25,9 +25,11 @@ class SuperStarImportDialog: public wxDialog
 		wxStaticText* StaticText40;
 		wxStaticText* StaticText42;
 		wxTextCtrl* TextCtrl_SS_X_Size;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText44;
 		wxStaticText* StaticText39;
 		wxChoice* ChoiceSuperStarImportModel;
+		wxChoice* ImageResizeChoice;
 		wxTextCtrl* TextCtrl_SS_X_Offset;
 		wxStaticText* StaticText41;
 		wxTextCtrl* TextCtrl_SS_Y_Offset;
@@ -38,6 +40,8 @@ class SuperStarImportDialog: public wxDialog
 		//(*Identifiers(SuperStarImportDialog)
 		static const long ID_CHOICE_SuperStarImportModel;
 		static const long ID_STATICTEXT31;
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT39;
 		static const long ID_TEXTCTRL_SS_X_Offset;
 		static const long ID_STATICTEXT24;

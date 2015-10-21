@@ -381,7 +381,9 @@ public:
     void ImportLSP(const wxFileName &filename);
 
 private:
-    bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size, int x_offset, int y_offset, bool flip_y);
+    bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
+                         int x_offset, int y_offset, bool flip_y,
+                         int imageResizeType, const wxSize &modelSize);
     bool ImportLMS(wxXmlDocument &doc);
 
     //(*Handlers(xLightsFrame)
