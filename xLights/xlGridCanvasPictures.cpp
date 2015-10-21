@@ -399,27 +399,30 @@ void xlGridCanvasPictures::mouseDown(int x, int y)
         if( column >= 0 && column < mColumns && row >= 0 && row < mRows )
         {
             int draw_row = mRows - row - 1;
+            row = image.GetHeight() - draw_row - 1;
             SetCurrentGLContext();
-            if( mPaintMode == PAINT_PENCIL && !mRightDown ) {
-                DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mPaintColor, mImage->hasAlpha());
-                image.SetRGB(column, row, mPaintColor.red, mPaintColor.green, mPaintColor.blue);
-                if( mImage->hasAlpha() ) {
-                    image.SetAlpha(column, row, mPaintColor.alpha);
+            if (column < image.GetWidth() && draw_row < image.GetHeight()) {
+                if( mPaintMode == PAINT_PENCIL && !mRightDown ) {
+                    DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mPaintColor, mImage->hasAlpha());
+                    image.SetRGB(column, row, mPaintColor.red, mPaintColor.green, mPaintColor.blue);
+                    if( mImage->hasAlpha() ) {
+                        image.SetAlpha(column, row, mPaintColor.alpha);
+                    }
+                } else if( mPaintMode == PAINT_ERASER || mRightDown ) {
+                    DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mEraseColor, mImage->hasAlpha());
+                    image.SetRGB(column, row, mEraseColor.red, mEraseColor.green, mEraseColor.blue);
+                    if( mImage->hasAlpha() ) {
+                        image.SetAlpha(column, row, mEraseColor.alpha);
+                    }
+                } else if( mPaintMode == PAINT_EYEDROPPER && !mRightDown ) {
+                    xlColor eyedrop_color;
+                    eyedrop_color.red = image.GetRed(column, row);
+                    eyedrop_color.green = image.GetGreen(column, row);
+                    eyedrop_color.blue = image.GetBlue(column, row);
+                    wxCommandEvent eventEyedrop(EVT_EYEDROPPER_COLOR);
+                    eventEyedrop.SetInt(eyedrop_color.GetRGB());
+                    wxPostEvent(GetParent(), eventEyedrop);
                 }
-            } else if( mPaintMode == PAINT_ERASER || mRightDown ) {
-                DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mEraseColor, mImage->hasAlpha());
-                image.SetRGB(column, row, mEraseColor.red, mEraseColor.green, mEraseColor.blue);
-                if( mImage->hasAlpha() ) {
-                    image.SetAlpha(column, row, mEraseColor.alpha);
-                }
-            } else if( mPaintMode == PAINT_EYEDROPPER && !mRightDown ) {
-                xlColor eyedrop_color;
-                eyedrop_color.red = image.GetRed(column, row);
-                eyedrop_color.green = image.GetGreen(column, row);
-                eyedrop_color.blue = image.GetBlue(column, row);
-                wxCommandEvent eventEyedrop(EVT_EYEDROPPER_COLOR);
-                eventEyedrop.SetClientData(&eyedrop_color);
-                wxPostEvent(GetParent(), eventEyedrop);
             }
         }
         mModified = true;
@@ -460,27 +463,30 @@ void xlGridCanvasPictures::mouseMoved(wxMouseEvent& event)
         if( mDragging )
         {
             int draw_row = mRows - row - 1;
+            row = image.GetHeight() - draw_row - 1;
             SetCurrentGLContext();
-            if( mPaintMode == PAINT_PENCIL && !mRightDown ) {
-                DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mPaintColor, mImage->hasAlpha());
-                image.SetRGB(column, row, mPaintColor.red, mPaintColor.green, mPaintColor.blue);
-                if( mImage->hasAlpha() ) {
-                    image.SetAlpha(column, row, mPaintColor.alpha);
+            if (column < image.GetWidth() && draw_row < image.GetHeight()) {
+                if( mPaintMode == PAINT_PENCIL && !mRightDown ) {
+                    DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mPaintColor, mImage->hasAlpha());
+                    image.SetRGB(column, row, mPaintColor.red, mPaintColor.green, mPaintColor.blue);
+                    if( mImage->hasAlpha() ) {
+                        image.SetAlpha(column, row, mPaintColor.alpha);
+                    }
+                } else if( mPaintMode == PAINT_ERASER || mRightDown ) {
+                    DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mEraseColor, mImage->hasAlpha());
+                    image.SetRGB(column, row, mEraseColor.red, mEraseColor.green, mEraseColor.blue);
+                    if( mImage->hasAlpha() ) {
+                        image.SetAlpha(column, row, mEraseColor.alpha);
+                    }
+                } else if( mPaintMode == PAINT_EYEDROPPER && !mRightDown ) {
+                    xlColor eyedrop_color;
+                    eyedrop_color.red = image.GetRed(column, row);
+                    eyedrop_color.green = image.GetGreen(column, row);
+                    eyedrop_color.blue = image.GetBlue(column, row);
+                    wxCommandEvent eventEyedrop(EVT_EYEDROPPER_COLOR);
+                    eventEyedrop.SetClientData(&eyedrop_color);
+                    wxPostEvent(GetParent(), eventEyedrop);
                 }
-            } else if( mPaintMode == PAINT_ERASER || mRightDown ) {
-                DrawGLUtils::UpdateTexturePixel(mImage->getID(), (double)column, (double)draw_row, mEraseColor, mImage->hasAlpha());
-                image.SetRGB(column, row, mEraseColor.red, mEraseColor.green, mEraseColor.blue);
-                if( mImage->hasAlpha() ) {
-                    image.SetAlpha(column, row, mEraseColor.alpha);
-                }
-            } else if( mPaintMode == PAINT_EYEDROPPER && !mRightDown ) {
-                xlColor eyedrop_color;
-                eyedrop_color.red = image.GetRed(column, row);
-                eyedrop_color.green = image.GetGreen(column, row);
-                eyedrop_color.blue = image.GetBlue(column, row);
-                wxCommandEvent eventEyedrop(EVT_EYEDROPPER_COLOR);
-                eventEyedrop.SetClientData(&eyedrop_color);
-                wxPostEvent(GetParent(), eventEyedrop);
             }
             Refresh(false);
             Update();
@@ -580,10 +586,8 @@ void xlGridCanvasPictures::DrawPicturesEffect()
         }
         sprite->setFlip(false, false);
     }
-    scaleh= float(mCellSize*mRows) / float(imageHeight);
-    scalew = float(mCellSize*mColumns) / float(imageWidth);
-    sprite->scale(scalew, scaleh);
-    sprite->setHotspot(-(float)mCellSize/scalew, -(float)mCellSize/scaleh);
+    sprite->scale(mCellSize, mCellSize);
+    sprite->setHotspot(-1, -mRows - 1 + imageHeight);
 
     glPushMatrix();
 
