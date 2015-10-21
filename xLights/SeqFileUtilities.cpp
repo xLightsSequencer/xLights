@@ -518,6 +518,43 @@ public:
                        && buf[x-1] == 'n'
                        && buf[x] == ' ') {
                 needToClose = true;
+            } else if (x > 14 &&
+                       buf[x-14] == '<'
+                       && buf[x-13] == 'c'
+                       && buf[x-12] == 'o'
+                       && buf[x-11] == 'n'
+                       && buf[x-10] == 'f'
+                       && buf[x-9] == 'i'
+                       && buf[x-8] == 'g'
+                       && buf[x-7] == 'u'
+                       && buf[x-6] == 'r'
+                       && buf[x-5] == 'a'
+                       && buf[x-4] == 't'
+                       && buf[x-3] == 'i'
+                       && buf[x-2] == 'o'
+                       && buf[x-1] == 'n'
+                       && buf[x] == ' ') {
+                needToClose = true;
+            } else if (x > 15 &&
+                       buf[x-15] == '<'
+                       && buf[x-14] == '/'
+                       && buf[x-13] == 'c'
+                       && buf[x-12] == 'o'
+                       && buf[x-11] == 'n'
+                       && buf[x-10] == 'f'
+                       && buf[x-9] == 'i'
+                       && buf[x-8] == 'g'
+                       && buf[x-7] == 'u'
+                       && buf[x-6] == 'r'
+                       && buf[x-5] == 'a'
+                       && buf[x-4] == 't'
+                       && buf[x-3] == 'i'
+                       && buf[x-2] == 'o'
+                       && buf[x-1] == 'n'
+                       && buf[x] == '>') {
+                for (int y = x - 15; y <= x; y++) {
+                    buf[y] = ' ';
+                }
             } else if (buf[x-1] == '>' && needToClose) {
                 if (buf[x-2] != '/') {
                     buf[x - 1] = '/';
@@ -1905,6 +1942,23 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         reserved.resize(layer_index + 1, false);
                     }
                     reserved[layer_index] = true;
+                }
+            }
+        } else if ("scenes" == e->GetName() || "images" == e->GetName()) {
+            for(wxXmlNode* element=e->GetChildren(); (element != NULL) && ("" == imagePfx); element=element->GetNext()) {
+                if ("image" == element->GetName() || "scene" == element->GetName()) {
+                    if ("" == imagePfx) {
+                        wxFileDialog fd(this,
+                                        "Choose location and base name for image files",
+                                        showDirectory,
+                                        wxEmptyString,
+                                        wxFileSelectorDefaultWildcardStr,
+                                        wxFD_SAVE);
+                        if (fd.ShowModal() == wxID_CANCEL) {
+                            return false;
+                        }
+                        imagePfx = fd.GetPath();
+                    }
                 }
             }
         }
