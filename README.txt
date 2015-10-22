@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil)   Allow zero speed for Marquee effect.
 4.2.17  Oct 21, 2015
 	-- enh(dpitts) Made output/start channel in models have correct end output/end channel.
     -- enh(dkulp) Add some options to SuperStar import for doing some simple image scaling

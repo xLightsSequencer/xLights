@@ -2594,7 +2594,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer58->Add(BitmapButton_Marquee_Stagger, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText196 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Speed:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer58->Add(StaticText196, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Marquee_Speed = new wxSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Speed, 3, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Speed"));
+    Slider_Marquee_Speed = new wxSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Speed, 3, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Speed"));
     FlexGridSizer58->Add(Slider_Marquee_Speed, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Marquee_Speed = new wxTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Speed, _("3"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Speed"));
     TextCtrl_Marquee_Speed->SetMaxLength(3);

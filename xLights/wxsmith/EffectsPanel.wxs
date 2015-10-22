@@ -3955,7 +3955,6 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Marquee_Speed" variable="Slider_Marquee_Speed" member="no">
 															<value>3</value>
-															<min>1</min>
 															<max>50</max>
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
