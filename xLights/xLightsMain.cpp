@@ -3324,6 +3324,7 @@ void AUIToolbarButtonWrapper::SetValue(bool b)
 void AUIToolbarButtonWrapper::SetBitmap(const wxBitmap &bmp)
 {
     toolbar->SetToolBitmap(id,bmp);
+    toolbar->Refresh();
 }
 
 void AUIToolbarButtonWrapper::Enable(bool b)
