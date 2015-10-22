@@ -150,6 +150,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarEffects" member="yes">
 							<bitmap stock_id="xlART_EFFECTS" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Effects</shorthelp>
+							<itemkind>Check</itemkind>
 							<handler function="ShowHideEffectSettingsWindow" entry="EVT_TOOL" />
 						</object>
 						<label>Effects</label>
@@ -158,6 +159,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM5" variable="AuiToolBarColors" member="yes">
 							<bitmap stock_id="xlART_COLORS" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Effect Colors</shorthelp>
+							<itemkind>Check</itemkind>
 							<handler function="ShowHideColorWindow" entry="EVT_TOOL" />
 						</object>
 						<label>Effect Colors</label>

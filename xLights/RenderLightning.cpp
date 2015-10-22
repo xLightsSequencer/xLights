@@ -40,6 +40,11 @@
 #define IFDEBUG(stmt)
 #endif // WANT_DEBUG
 
+#define DOWN 0
+#define UP 1
+#define RIGHT 2
+#define LEFT 3
+
 #include <wx/textfile.h>
 
 
@@ -52,7 +57,7 @@ void RgbEffects::RenderLightning(int Number_Bolts, int Number_Segments, bool For
     int i,j,segment,StepSegment, xoffset;
     wxString str;
     int curState = (curPeriod - curEffStartPer);
-
+    int DIRECTION=UP;
 
 
     ystep=BufferHt/10;
@@ -60,25 +65,6 @@ void RgbEffects::RenderLightning(int Number_Bolts, int Number_Segments, bool For
     yc=BufferHt/2;
 
     i=0;
-    /*
-        if (curState==0) {
-            needToInit = false;
-            bolt.resize(50);
-            for (BoltList::iterator it=bolt.begin(); it!=bolt.end(); ++it) {
-
-                segment=i;
-                it->segment = i;
-                if(segment%2==0)
-                    it->x1 = xc+i - (segment%step);
-                else
-                    it->x1 = xc+segment + (segment%step);
-
-                it->y1 = BufferHt-segment;
-
-                i++;
-            }
-        }
-        */
 
     step=5;
     StepSegment=BufferHt/Number_Bolts;
@@ -87,30 +73,41 @@ void RgbEffects::RenderLightning(int Number_Bolts, int Number_Segments, bool For
     if(segment>Number_Bolts) segment=Number_Bolts;
     if(curState>Number_Bolts)  segment=Number_Bolts;
     palette.GetColor(0, color);
-    x1=xc + topX;
-    y1=BufferHt - topY;
+    if(DIRECTION==DOWN) {
+        x1=xc + topX;
+        y1=BufferHt - topY;
+    } else if(DIRECTION==UP) {
+        x1=xc + topX;
+        y1=topY;
+    }
 
     xoffset=curState/2;
+    xoffset=curState*botX/10.0;
     for(i=0; i<=segment; i++) {
         //0  x2=bolt[i].x1;
         //  y2=bolt[i].y1;
         j=rand()+1;
-        if(i%2==0) {
-            if(rand()%2==0)
-                x2 = xc + topX - (j%Number_Segments);
-            else  x2 = xc + topX + (2*j%Number_Segments);
-        } else {
-            if(rand()%2==0)
-                x2 = xc + topX + (j%Number_Segments);
-            else
-                x2 = xc + topX - (3*j%Number_Segments);
-        }
-        y2 = BufferHt-(i*StepSegment) - topY;
+        if(DIRECTION==UP || DIRECTION==DOWN) {
+            if(i%2==0) { // Every even segment will alternate direction
+                if(rand()%2==0) // target x is to the left
+                    x2 = xc + topX - (j%Number_Segments);
+                else // but randomely we reverse direction, also make it a larger jag
+                    x2 = xc + topX + (2*j%Number_Segments);
+            } else { // odd segments will
+                if(rand()%2==0) // move to the right
+                    x2 = xc + topX + (j%Number_Segments);
+                else // but sometimes move 3 units to left.
+                    x2 = xc + topX - (3*j%Number_Segments);
+            }
+            if(DIRECTION==DOWN)
+                y2 = BufferHt-(i*StepSegment) - topY;
+            else if(DIRECTION==UP)
+                y2 = (i*StepSegment) + topY;
+        } else if(DIRECTION==LEFT || DIRECTION==RIGHT) {
 
+        }
         LightningDrawBolt(x1+xoffset,y1,x2+xoffset,y2,color,curState);
         if(ForkedLightning) {
-
-
             if(i>(segment/2)) {
 
                 if(i%2==1) {
@@ -148,15 +145,8 @@ void RgbEffects::LightningDrawBolt(const int x0_, const int y0_, const int x1_, 
     int err = (dx>dy ? dx : -dy)/2, e2;
     color2=color;
 // color2.red=color2.green=color2.blue=200;
-    int frame_startfade = 2*20; // 2 seconds full brightness
-    int frame_fadedone = 5*20; // 3 seconds to fade out
-   /* if(curState>frame_startfade) { // comment out fade, still full intensity for entire
-                                    // effect
-        diminish = ((frame_startfade+frame_fadedone)-curState)/(double)frame_fadedone;
-        if(diminish<0) diminish=0.0;
-        hsv.value = hsv.value * diminish;
-    }
-    */
+//   int frame_startfade = 2*20; // 2 seconds full brightness
+//   int frame_fadedone = 5*20; // 3 seconds to fade o
 
     color = hsv;
 
