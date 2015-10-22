@@ -270,6 +270,7 @@ public:
     bool IsChecked();
     void SetValue(bool b);
     void Enable(bool b);
+    void SetBitmap(const wxBitmap &bmp);
 private:
     wxAuiToolBar *toolbar;
     int id;

@@ -2821,12 +2821,18 @@ bool xLightsFrame::EnableOutputs()
             delete xout;
             xout=0;
             CheckBoxLightOutput->SetValue(false);
+            CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));
             //CheckBoxLightOutput->Enable(false);
+        }
+        else
+        {
+            CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")),wxART_TOOLBAR));
         }
     }
     else if (!CheckBoxLightOutput->IsChecked() && xout)
     {
         EnableSleepModes();
+        CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));
         delete xout;
         xout=0;
     }
@@ -3315,6 +3321,11 @@ void AUIToolbarButtonWrapper::SetValue(bool b)
 {
     toolbar->ToggleTool(id, b);
 }
+void AUIToolbarButtonWrapper::SetBitmap(const wxBitmap &bmp)
+{
+    toolbar->SetToolBitmap(id,bmp);
+}
+
 void AUIToolbarButtonWrapper::Enable(bool b)
 {
     toolbar->EnableTool(id, b);

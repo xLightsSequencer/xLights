@@ -212,6 +212,20 @@
 /*-----  Toolbar Art ----- */
 #include "../include/stop_sign_24.xpm"
 #include "../include/output_lights_24.xpm"
+#include "../include/output_lights_off_16.xpm"
+#include "../include/output_lights_off_24.xpm"
+#include "../include/output_lights_off_32.xpm"
+#include "../include/output_lights_off_48.xpm"
+#include "../include/output_lights_off_64.xpm"
+
+#include "../include/output_lights_on_16.xpm"
+#include "../include/output_lights_on_24.xpm"
+#include "../include/output_lights_on_32.xpm"
+#include "../include/output_lights_on_48.xpm"
+#include "../include/output_lights_on_64.xpm"
+
+
+
 #include "../include/effects.xpm"
 #include "../include/colors.xpm"
 #include "../include/layers.xpm"
@@ -401,7 +415,9 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     if ("xlART_STOP_NOW" == id) {
         return effectBitmaps.get(24, false, id, stop_sign_24_xpm, stop_sign_24_xpm, stop_sign_24_xpm, stop_sign_24_xpm, stop_sign_24_xpm);
     } else if ("xlART_OUTPUT_LIGHTS" == id) {
-        return effectBitmaps.get(24, false, id, output_lights_24_xpm, output_lights_24_xpm, output_lights_24_xpm, output_lights_24_xpm, output_lights_24_xpm);
+        return effectBitmaps.get(24, false, id, output_lights_off_24, output_lights_off_24, output_lights_off_24, output_lights_off_24, output_lights_off_24);
+    } else if ("xlART_OUTPUT_LIGHTS_ON" == id) {
+        return effectBitmaps.get(24, false, id, output_lights_on_24, output_lights_on_24, output_lights_on_24, output_lights_on_24, output_lights_on_24);
     } else if ("xlART_EFFECTS" == id) {
         return effectBitmaps.get(24, false, id, effects_xpm, effects_xpm, effects_xpm, effects_xpm, effects_xpm);
     } else if ("xlART_COLORS" == id) {
