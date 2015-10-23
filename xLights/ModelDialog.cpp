@@ -706,13 +706,13 @@ void ModelDialog::UpdateStartChannels()
             int endChannel;
             int sNetwork;
             sNetwork = OutputSpinCtrl->GetValue();
+            sNetwork--;  //0 based
             for (int stringnum=0; stringnum<StringCnt; stringnum++)
             {
-                pfx = wxString::Format("%d:", sNetwork);
                 if(netInfo->GetEndNetworkAndChannel(sNetwork,startchan,ChannelsPerString,endNetwork,endChannel))
                 {
-                    gridStartChannels->SetCellValue(stringnum,0, pfx + wxString::Format("%i",startchan));
-                    gridStartChannels->SetCellValue(stringnum,1, wxString::Format("%i:%i",endNetwork,endChannel));
+                    gridStartChannels->SetCellValue(stringnum,0, pfx + wxString::Format("%i:%i",sNetwork + 1, startchan));
+                    gridStartChannels->SetCellValue(stringnum,1, wxString::Format("%i:%i",endNetwork + 1,endChannel));
                     netInfo->GetStartNetworkAndChannelFromEndInfo(endNetwork,endChannel,sNetwork,startchan);
                 }
                 else

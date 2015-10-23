@@ -118,6 +118,7 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
     wxString name;
     ModelDialog dialog(this);
     dialog.RadioButton_BotLeft->SetValue(true);
+    dialog.SetNetInfo(netInfo);
     dialog.UpdateLabels();
     do
     {

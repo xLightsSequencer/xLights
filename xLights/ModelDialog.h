@@ -31,6 +31,7 @@ public:
     void UpdateLabels();
     void SetCustomGridData(const wxString& customChannelData);
     wxString GetCustomGridData();
+    void SetNetInfo(NetInfoClass *ni) {netInfo = ni;}
     void SetFromXml(wxXmlNode* e, NetInfoClass *netInfo, const wxString& NameSuffix=wxEmptyString);
     void UpdateXml(wxXmlNode* e);
 
