@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp) SuperStar import allow scaling of ALL images.   Can import 12CCR into a 100x24 model for example.
+    -- bug(dkulp) Fix some problems with using the "From Output" stuff with new models.  Crash.
     -- enh(gil)   Allow zero speed for Marquee effect.
 4.2.17  Oct 21, 2015
 	-- enh(dpitts) Made output/start channel in models have correct end output/end channel.

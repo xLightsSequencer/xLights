@@ -1850,61 +1850,83 @@ unsigned char ChannelBlend(unsigned char c1, unsigned char  c2, double ratio)
 
 class ImageInfo {
 public:
-    int xoffset;
-    int yoffset;
+    int xOffset;
+    int yOffset;
     int width;
     int height;
+    double scaleY;
+    double scaleX;
     wxString imageName;
 
     void Set(int x, int y, int w, int h, const wxString &n) {
-        xoffset = x;
-        yoffset = y;
+        xOffset = x;
+        yOffset = y;
         width = w;
         height = h;
         imageName = n;
+        scaleX = 1.0;
+        scaleY = 1.0;
     }
 };
 
 void ScaleImage(wxImage &img, int type,
                 const wxSize &modelSize,
                 int numCol, int numRow,
-                int &w, int &h,
-                int &xOff, int &yOff) {
+                ImageInfo &imgInfo) {
     bool scale = false;
+    
+    imgInfo.xOffset = imgInfo.xOffset + (imgInfo.width-numCol)/2;
+    imgInfo.yOffset = numRow - imgInfo.yOffset - (numRow+imgInfo.height)/2;
+
     switch (type) {
         case 0: // NONE
             return;
         case 1: // Exact width
-            if (numCol == w) {
-                w = modelSize.GetWidth();
-                xOff = xOff - (modelSize.GetWidth() - numCol) / 2;
+            if (numCol == imgInfo.width) {
+                imgInfo.width = modelSize.GetWidth();
+                imgInfo.scaleX = ((double)modelSize.GetWidth())/((double)numCol);
+                imgInfo.xOffset = round((double)imgInfo.xOffset * imgInfo.scaleX);
                 scale = true;
             }
             break;
         case 2: // Exact height
-            if (numRow == h) {
-                h = modelSize.GetHeight();
-                yOff = yOff - (modelSize.GetHeight() - numRow) / 2;
+            if (numRow == imgInfo.height) {
+                imgInfo.height = modelSize.GetHeight();
+                imgInfo.scaleY = ((double)modelSize.GetHeight())/((double)numRow);
+                imgInfo.yOffset = round((double)imgInfo.yOffset * imgInfo.scaleY);
                 scale = true;
             }
             break;
         case 3: // Exact width or height
-            if (numCol == w) {
-                w = modelSize.GetWidth();
-                xOff = xOff - (modelSize.GetWidth() - numCol) / 2;
+            if (numCol == imgInfo.width) {
+                imgInfo.width = modelSize.GetWidth();
+                imgInfo.scaleX = ((double)modelSize.GetWidth())/((double)numCol);
+                imgInfo.xOffset = round((double)imgInfo.xOffset * imgInfo.scaleX);
                 scale = true;
             }
-            if (numRow == h) {
-                h = modelSize.GetHeight();
-                yOff = yOff - (modelSize.GetHeight() - numRow) / 2;
+            if (numRow == imgInfo.height) {
+                imgInfo.height = modelSize.GetHeight();
+                imgInfo.scaleY = ((double)modelSize.GetHeight())/((double)numRow);
+                imgInfo.yOffset = round((double)imgInfo.yOffset * imgInfo.scaleY);
                 scale = true;
             }
             break;
         case 4: // everything
+            imgInfo.scaleX = ((double)modelSize.GetWidth())/((double)numCol);
+            imgInfo.scaleY = ((double)modelSize.GetHeight())/((double)numRow);
+            int newW = round((double)imgInfo.width * imgInfo.scaleX);
+            int newH = round((double)imgInfo.height * imgInfo.scaleY);
+            if (newH != imgInfo.height || newW !=imgInfo.width) {
+                scale = true;
+                imgInfo.height = newH;
+                imgInfo.width = newW;
+                imgInfo.yOffset = round((double)imgInfo.yOffset * imgInfo.scaleY);
+                imgInfo.xOffset = round((double)imgInfo.xOffset * imgInfo.scaleX);
+            }
             break;
     }
     if (scale) {
-        img.Rescale(w, h);
+        img.Rescale(imgInfo.width, imgInfo.height);
     }
 }
 
@@ -1931,8 +1953,9 @@ wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
         }
     }
     wxString name = imagePfx + "_s" + element->GetAttribute("savedIndex") + postFix + ".png";
-    int xo = 0, yo = 0;
-    ScaleImage(i, resizeType, modelSize, numCols, numRows, numCols, numRows, xo, yo);
+    ImageInfo im;
+    im.Set(0, 0, numCols, numRows, name);
+    ScaleImage(i, resizeType, modelSize, numCols, numRows, im);
     i.SaveFile(name);
     return name;
 }
@@ -2200,7 +2223,6 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             }
 
                             wxImage image(w, h, bytes, alpha);
-                            ScaleImage(image, imageResizeType, modelSize, num_columns, num_rows, w, h, xOffset, yOffset);
                             if ("" == imagePfx) {
                                 wxFileDialog fd(this,
                                                 "Choose location and base name for image files",
@@ -2214,6 +2236,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             }
                             wxString fname = imagePfx + "_" + wxString::Format("%d.png", idx);
                             imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
+                            ScaleImage(image, imageResizeType, modelSize, num_columns, num_rows, imageInfo[idx]);
+
                             image.SaveFile(fname);
                         }
                     }
@@ -2531,49 +2555,28 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         rampDownTimeString = wxString::Format("%lf", fade);
                     }
 
+                    if (imageInfo[idx].imageName.Contains("_71")) {
+                        printf("found\n");
+                    }
 
                     int startx = wxAtoi(element->GetAttribute("xStart"));
                     int starty = wxAtoi(element->GetAttribute("yStart"));
                     int endx = wxAtoi(element->GetAttribute("xEnd"));
                     int endy = wxAtoi(element->GetAttribute("yEnd"));
 
-
-                    int xOffIfCentered =(imageInfo[idx].width-num_columns)/2;
-                    int x = imageInfo[idx].xoffset + xOffIfCentered;
-
-
-
-                    int yll = num_rows -  imageInfo[idx].yoffset;
-                    int yOffIfCentered =(num_rows+imageInfo[idx].height)/2; //centered if sizes don't match
-                    int y = yll - yOffIfCentered;
-
-
-                    //yoffset+yoffset_adj-y - 1
-                    /*
-                    int xoffset =(imageInfo[idx].width-12)/2; //centered if sizes don't match
-                    if (imageInfo[idx].xoffset != (0-xoffset + x)) {
-                        printf("%d:  %d  %d  %d\n", idx, imageInfo[idx].width, imageInfo[idx].xoffset, startx);
-                        printf("x    %d       %d\n", imageInfo[idx].xoffset + startx, x);
-                        printf("     %d  \n", 0-xoffset + (x + startx));
-                    }
-                    int yoffset =(50+imageInfo[idx].height)/2; //centered if sizes don't match
-                    if ((num_rows-(imageInfo[idx].yoffset + starty)) != (yoffset + (y - starty) - 1)) {
-                        printf("%d:  %d  %d  %d\n", idx, imageInfo[idx].height, imageInfo[idx].yoffset, starty);
-                        printf("y    %d       %d\n", int(num_rows) - (imageInfo[idx].yoffset + starty), y);
-                        printf("     %d  \n", (yoffset + (y - starty) - 1));
-                    }
-                     */
-
+                    ImageInfo &imgInfo = imageInfo[idx];
+                    int x = imgInfo.xOffset;
+                    int y = imgInfo.yOffset;
 
                     layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                     if (endy == starty && endx == startx) {
-                        x += startx;
-                        y -= starty;
+                        x += round((double)startx*imgInfo.scaleX);
+                        y -= round((double)starty*imgInfo.scaleY);
                         wxString settings = _("E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,")
                             + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x)
                             + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y)
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
-                            + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
+                            + ",E_TEXTCTRL_Pictures_Filename=" + imgInfo.imageName
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"
                             + ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
                             + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
@@ -2583,14 +2586,14 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         layer->AddEffect(0, "Pictures", settings, "", startms, endms, false, false);
                     } else {
                         wxString settings = _("E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=vector,")
-                            + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x + startx)
-                            + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - starty)
-                            + ",E_SLIDER_PicturesEndXC=" + wxString::Format("%d", x + endx)
-                            + ",E_SLIDER_PicturesEndYC=" + wxString::Format("%d", y - endy)
+                            + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x + (int)round((double)startx*imgInfo.scaleX))
+                            + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - (int)round((double)starty*imgInfo.scaleY))
+                            + ",E_SLIDER_PicturesEndXC=" + wxString::Format("%d", x + (int)round((double)endx*imgInfo.scaleX))
+                            + ",E_SLIDER_PicturesEndYC=" + wxString::Format("%d", y - (int)round((double)endy*imgInfo.scaleY))
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"
                             + ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
-                            + ",E_TEXTCTRL_Pictures_Filename=" + imageInfo[idx].imageName
+                            + ",E_TEXTCTRL_Pictures_Filename=" + imgInfo.imageName
                             + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                             + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=" + rampUpTimeString
                             + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;

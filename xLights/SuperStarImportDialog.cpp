@@ -51,6 +51,7 @@ SuperStarImportDialog::SuperStarImportDialog(wxWindow* parent,wxWindowID id,cons
 	ImageResizeChoice->Append(_("Exact Width"));
 	ImageResizeChoice->Append(_("Exact Height"));
 	ImageResizeChoice->Append(_("Exact Width or Height"));
+	ImageResizeChoice->Append(_("All"));
 	GridBagSizer1->Add(ImageResizeChoice, wxGBPosition(4, 1), wxGBSpan(1, 3), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText40 = new wxStaticText(this, ID_STATICTEXT39, _("Select Model:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT39"));
 	GridBagSizer1->Add(StaticText40, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);

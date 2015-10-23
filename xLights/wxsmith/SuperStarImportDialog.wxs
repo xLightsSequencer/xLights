@@ -47,6 +47,7 @@
 								<item>Exact Width</item>
 								<item>Exact Height</item>
 								<item>Exact Width or Height</item>
+								<item>All</item>
 							</content>
 							<selection>0</selection>
 						</object>
