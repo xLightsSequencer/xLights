@@ -84,10 +84,8 @@ void RenderSpirals(int PaletteRepeat, float Movement, int Rotation, int Thicknes
 void RenderSpirograph(int R, int r, int d, int Animate, int speed, int length);
 
 
-void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int TextRotation1,int Effect1, int Speed1,
-                int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int TextRotation2,int Effect2, int Speed2,
-                int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int TextRotation3,int Effect3, int Speed3,
-                int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int TextRotation4,int Effect4, int Speed4);
+void RenderText(const SettingsMap& SettingsMap);
+
 void RenderTree(int Branches, int tspeed);
 void RenderTwinkle(int Count,int Steps,bool Strobe, bool reRandomize);
 void RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection, int wspeed);

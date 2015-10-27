@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp) Update Text effect Line 1 to have a "Vector" option (like images) for moving text arbitrarily
+    -- enh(dkulp) Update SuperStar import to import the textActions (more or less, fonts are different, but close)
     -- enh(dkulp) SuperStar import allow scaling of ALL images.   Can import 12CCR into a 100x24 model for example.
     -- bug(dkulp) Fix some problems with using the "From Output" stuff with new models.  Crash.
     -- enh(gil)   Allow zero speed for Marquee effect.

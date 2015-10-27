@@ -166,7 +166,6 @@ public:
     wxBitmapButton* BitmapButton_Morph_End_Y1;
     wxChoice* Choice_Curtain_Effect;
     wxBitmapButton* BitmapButton_Chase_Group_All;
-    wxBitmapButton* BitmapButton_TextPosition1;
     wxStaticText* StaticText207;
     wxChoice* Choice_Text_Effect4;
     wxBitmapButton* BitmapButton_LifeSpeed;
@@ -210,6 +209,7 @@ public:
     wxStaticText* StaticText152;
     wxPanel* PictureEndPositionPanel;
     wxStaticText* StaticText65;
+    wxPanel* Panel17;
     wxStaticText* StaticText60;
     wxChoice* Choice_Wave_Direction;
     wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
@@ -343,7 +343,6 @@ public:
     wxSlider* Slider_Wave_Height;
     wxSlider* Slider_Text_Position3;
     wxBitmapButton* BitmapButton_Skips_SkipSize;
-    wxSlider* Slider_Text_Position1;
     wxBitmapButton* BitmapButton_Morph_Start_X1;
     wxSlider* Slider_Garlands_Type;
     wxStaticText* StaticText172;
@@ -441,7 +440,6 @@ public:
     wxChoice* Choice_Piano_Style;
     wxBitmapButton* BitmapButton_ColorWashVFade;
     wxChoice* Choice_Faces_Phoneme;
-    wxStaticText* StaticText100;
     wxBitmapButton* BitmapButton20;
     wxTextCtrl* TextCtrl90;
     wxStaticText* StaticText186;
@@ -1330,10 +1328,18 @@ protected:
     static const long ID_STATICTEXT99;
     static const long ID_CHOICE_Text_Count1;
     static const long ID_BITMAPBUTTON_CHOICE_Text_Count1;
-    static const long ID_STATICTEXT101;
-    static const long ID_SLIDER_Text_Position1;
-    static const long IDD_TEXTCTRL_Text_Position1;
-    static const long ID_BITMAPBUTTON_SLIDER_Text_Position1;
+    static const long ID_CHECKBOX_Text_PixelOffsets1;
+    static const long ID_SLIDER_Text_XStart1;
+    static const long IDD_TEXTCTRL_Text_XStart1;
+    static const long IDD_TEXTCTRL_Text_YStart1;
+    static const long ID_SLIDER_Text_YStart1;
+    static const long IDD_PANEL6;
+    static const long ID_SLIDER_Text_XEnd1;
+    static const long IDD_TEXTCTRL_Text_XEnd1;
+    static const long IDD_TEXTCTRL_Text_YEnd1;
+    static const long ID_SLIDER_Text_YEnd1;
+    static const long IDD_PANEL17;
+    static const long IDD_NOTEBOOK1;
     static const long ID_PANEL_Text1;
     static const long ID_STATICTEXT54;
     static const long ID_TEXTCTRL_Text_Line2;

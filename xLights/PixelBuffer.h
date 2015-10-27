@@ -54,6 +54,7 @@ enum MixTypes
 };
 class Effect;
 class SequenceElements;
+class SettingsMap;
 
 class PixelBufferClass : public ModelClass
 {

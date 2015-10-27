@@ -2461,7 +2461,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Pictures_Direction->Set(PictureEffectDirections);
     panel->Choice_Pictures_Direction->SetSelection(0);
 
-    panel->Choice_Text_Dir1->Set(TextEffectDirections);
+    //panel->Choice_Text_Dir1->Set(TextEffectDirections);
     panel->Choice_Text_Dir1->SetSelection(0);
     panel->Choice_Text_Dir2->Set(TextEffectDirections);
     panel->Choice_Text_Dir2->SetSelection(0);

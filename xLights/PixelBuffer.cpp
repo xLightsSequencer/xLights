@@ -722,14 +722,8 @@ void PixelBufferClass::RenderStrobe(int Number_Strobes,int StrobeDuration,int St
     effects[CurrentLayer].RenderStrobe(Number_Strobes,StrobeDuration,Strobe_Type);
 }
 
-void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1, int speed1,
-                                  int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int Effect2,int Countdown2, int speed2,
-                                  int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int Effect3,int Countdown3, int speed3,
-                                  int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4, int speed4) {
-    effects[CurrentLayer].RenderText(Position1,Line1,FontString1,dir1,center1,Effect1,Countdown1,speed1,
-                                     Position2,Line2,FontString2,dir2,center2,Effect2,Countdown2,speed2,
-                                     Position3,Line3,FontString3,dir3,center3,Effect3,Countdown3,speed3,
-                                     Position4,Line4,FontString4,dir4,center4,Effect4,Countdown4,speed4);
+void PixelBufferClass::RenderText(const SettingsMap &settingsMap) {
+    effects[CurrentLayer].RenderText(settingsMap);
 }
 
 void PixelBufferClass::RenderTree(int Branches, int tspeed) {

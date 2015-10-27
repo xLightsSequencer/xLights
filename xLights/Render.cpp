@@ -1119,42 +1119,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 wxThread::Yield();
             }
         } else {
-            buffer.RenderText(wxAtoi(SettingsMap["SLIDER_Text_Position1"]),
-                              SettingsMap["TEXTCTRL_Text_Line1"],
-                              SettingsMap["FONTPICKER_Text_Font1"],
-                              TextEffectDirections.Index(SettingsMap["CHOICE_Text_Dir1"]),
-                              wxAtoi(SettingsMap["CHECKBOX_TextToCenter1"]) != 0,
-                              TextEffects.Index(SettingsMap["CHOICE_Text_Effect1"]),
-                              TextCountDown.Index(SettingsMap["CHOICE_Text_Count1"]),
-                              wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed1", "10")),
-                              //
-                              wxAtoi(SettingsMap["SLIDER_Text_Position2"]),
-                              SettingsMap["TEXTCTRL_Text_Line2"],
-                              SettingsMap["FONTPICKER_Text_Font2"],
-                              TextEffectDirections.Index(SettingsMap["CHOICE_Text_Dir2"]),
-                              wxAtoi(SettingsMap["CHECKBOX_TextToCenter2"]) != 0,
-                              TextEffects.Index(SettingsMap["CHOICE_Text_Effect2"]),
-                              TextCountDown.Index(SettingsMap["CHOICE_Text_Count2"]),
-                              wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed2", "10")),
-                              //
-                              wxAtoi(SettingsMap["SLIDER_Text_Position3"]),
-                              SettingsMap["TEXTCTRL_Text_Line3"],
-                              SettingsMap["FONTPICKER_Text_Font3"],
-                              TextEffectDirections.Index(SettingsMap["CHOICE_Text_Dir3"]),
-                              wxAtoi(SettingsMap["CHECKBOX_TextToCenter3"]) != 0,
-                              TextEffects.Index(SettingsMap["CHOICE_Text_Effect3"]),
-                              TextCountDown.Index(SettingsMap["CHOICE_Text_Count3"]),
-                              wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed3", "10")),
-                              //
-                              wxAtoi(SettingsMap["SLIDER_Text_Position4"]),
-                              SettingsMap["TEXTCTRL_Text_Line4"],
-                              SettingsMap["FONTPICKER_Text_Font4"],
-                              TextEffectDirections.Index(SettingsMap["CHOICE_Text_Dir4"]),
-                              wxAtoi(SettingsMap["CHECKBOX_TextToCenter4"]) != 0,
-                              TextEffects.Index(SettingsMap["CHOICE_Text_Effect4"]),
-                              TextCountDown.Index(SettingsMap["CHOICE_Text_Count4"]),
-                              wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed4", "10"))
-                             );
+            buffer.RenderText(SettingsMap);
         }
     } else if (effect == "Tree") {
         buffer.RenderTree(wxAtoi(SettingsMap["SLIDER_Tree_Branches"]),

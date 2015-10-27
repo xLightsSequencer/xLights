@@ -94,6 +94,7 @@ typedef enum
 
 class DrawingContext;
 class Effect;
+class SettingsMap;
 class SequenceElements;
 
 
@@ -533,9 +534,11 @@ protected:
     void ClearWaveBuffer1();
     void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
-    void RenderTextLine(DrawingContext* dc, int idx, int Position,
+    void RenderTextLine(DrawingContext* dc, int idx,
                         const wxString& Line, int dir, bool center, int Effect,
-                        int Countdown, bool WantRender, int tspeed);
+                        int Countdown, bool WantRender, int tspeed,
+                        int startx, int starty, int endx, int endy,
+                        bool isPixelBased);
 
     void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
     void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);

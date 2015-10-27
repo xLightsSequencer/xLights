@@ -414,7 +414,12 @@ static bool CalcBoundedPercentage(wxString& value, int base, bool reverse, int o
     }
     return true;
 }
+static int CalcUnBoundedPercentage(int val, int base) {
+    double half_width = 50.0/base;
+    double percent = (double)val/base*100.0 + half_width;
 
+    return percent;
+}
 static xlColor GetColor(const wxString& sRed, const wxString& sGreen, const wxString& sBlue)
 {
     double red,green,blue;
@@ -2522,10 +2527,95 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
         } else if ("textActions" == e->GetName()) {
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
                 if ("textAction" == element->GetName()) {
-                    wxString startms = element->GetAttribute("startCentisecond");
-                    AppendConvertStatus("Could not map textAction at starting time " + startms + "0 ms\n", true);
+                    wxString startms = element->GetAttribute("startCentisecond") + "0";
+                    wxString endms = element->GetAttribute("endCentisecond") + "0";
+                    wxString text = element->GetAttribute("text");
+                    wxString fontName = element->GetAttribute("fontName");
+                    int fontSize = wxAtoi(element->GetAttribute("fontCapsHeight", "6"));
+                    int fontCellWidth = wxAtoi(element->GetAttribute("fontCellWidth", "6"));
+
+                    int rotation = wxAtoi(element->GetAttribute("rotation", "90"));
+                    //int direction = wxAtoi(element->GetAttribute("direction", "0"));
+                    int xStart = wxAtoi(element->GetAttribute("xStart", "0"));
+                    int yStart = wxAtoi(element->GetAttribute("yStart", "0"));
+                    int xEnd = wxAtoi(element->GetAttribute("xEnd", "0"));
+                    int yEnd = wxAtoi(element->GetAttribute("yEnd", "0"));
+                    
+                    xlColor color = GetColor(element->GetAttribute("red"),
+                                             element->GetAttribute("green"),
+                                             element->GetAttribute("blue"));
+                    
+                    int layer_index = wxAtoi(element->GetAttribute("layer"));
+                    while( model->GetEffectLayerCount() < layer_index ) {
+                        model->AddEffectLayer();
+                    }
+                    int start_time = wxAtoi(startms);
+                    int end_time = wxAtoi(endms);
+                    layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
+                    int lorWidth = text.Length() * fontCellWidth;
+                    int lorHeight = fontSize;
+                    
+                    wxString font = "arial " + wxString::Format("%s%d", (fontName.Contains("Bold") ? "bold " : ""), fontSize + 4);
+                    wxString eff = "normal";
+                    if (fontName.Contains("Vertical")) {
+                        eff = "vert text down";
+                        lorWidth = fontSize;
+                        lorHeight = text.Length() * fontCellWidth;
+                    } else if (rotation == 90) {
+                        eff = "rotate down 90";
+                        lorWidth = fontSize;
+                        lorHeight = text.Length() * fontCellWidth;
+                    } else if (rotation == 270 || rotation == -90) {
+                        eff = "rotate up 90";
+                        lorWidth = fontSize;
+                        lorHeight = text.Length() * fontCellWidth;
+                    }
+
+                    // calculate everything off the LOR center
+                    xStart += round((double)lorWidth / 2.0);
+                    xEnd += round((double)lorWidth / 2.0);
+                    yStart += round((double)lorHeight / 2.0);
+                    yEnd += round((double)lorHeight / 2.0);
+                    
+                    yStart = -yStart + num_rows;
+                    yEnd = -yEnd + num_rows;
+                    
+                    xStart = CalcUnBoundedPercentage(xStart, num_columns) - 50;
+                    xEnd = CalcUnBoundedPercentage(xEnd, num_columns) - 50;
+                    yStart = CalcUnBoundedPercentage(yStart, num_rows) - 50;
+                    yEnd = CalcUnBoundedPercentage(yEnd, num_rows) - 50;
+                    
+                    wxString palette = _("C_BUTTON_Palette1=") + color + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=0"
+                        + ",C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                        + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                    wxString settings = _("")
+                        + "E_CHECKBOX_TextToCenter1=0,E_TEXTCTRL_Text_Line1=" + text
+                        + ",E_TEXTCTRL_Text_Speed1=26,"
+                        + "E_CHOICE_Text_Count1=none,"
+                        + "E_CHOICE_Text_Dir1=vector,E_CHECKBOX_Text_PixelOffsets1=0,"
+                        + "E_CHOICE_Text_Effect1=" + eff + ","
+                        + "E_FONTPICKER_Text_Font1=" + font + ","
+                        + "E_SLIDER_Text_XStart1=" + wxString::Format("%d", xStart) + ","
+                        + "E_SLIDER_Text_YStart1=" + wxString::Format("%d", yStart) + ","
+                        + "E_SLIDER_Text_XEnd1=" + wxString::Format("%d", xEnd) + ","
+                        + "E_SLIDER_Text_YEnd1=" + wxString::Format("%d", yEnd) + ","
+                        + "E_CHECKBOX_TextToCenter2=0,E_CHECKBOX_TextToCenter3=0,E_CHECKBOX_TextToCenter4=0,"
+                        + "E_CHOICE_Text_Count2=none,E_CHOICE_Text_Count3=none,E_CHOICE_Text_Count4=none,"
+                        + "E_CHOICE_Text_Dir2=left,E_CHOICE_Text_Dir3=left,E_CHOICE_Text_Dir4=left,"
+                        + "E_CHOICE_Text_Effect2=normal,E_CHOICE_Text_Effect3=normal,"
+                        + "E_CHOICE_Text_Effect4=normal,E_FONTPICKER_Text_Font2='.sf ns text' macroman,"
+                        + "E_FONTPICKER_Text_Font3='.sf ns text' macroman,E_FONTPICKER_Text_Font4='.sf ns text' macroman,"
+                        + "E_SLIDER_Text_Position2=50,E_SLIDER_Text_Position3=50,E_SLIDER_Text_Position4=50,"
+                        + "E_TEXTCTRL_Text_Line2=,E_TEXTCTRL_Text_Line3=,E_TEXTCTRL_Text_Line4=,"
+                        + "E_TEXTCTRL_Text_Speed2=10,E_TEXTCTRL_Text_Speed3=10,E_TEXTCTRL_Text_Speed4=10,"
+                        + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                        + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.0";
+                    
+                    
+                    layer->AddEffect(0, "Text", settings, palette, start_time, end_time, false, false);
                 }
             }
+
         } else if ("imageActions" == e->GetName()) {
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
                 if ("imageAction" == element->GetName()) {
