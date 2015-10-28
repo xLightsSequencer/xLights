@@ -22,7 +22,7 @@
 #include "SeqSettingsDialog.h"
 
 #include "RenderCommandEvent.h"
-
+#include "BitmapCache.h"
 
 // scripting language
 #include "xLightsBasic.cpp"
@@ -118,40 +118,6 @@ const long xLightsFrame::ID_BUTTON_GRACEFUL_STOP = wxNewId();
 const long xLightsFrame::ID_BUTTON_LIGHTS_OFF = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_OUTPUT = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON7 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON8 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON3 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON4 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON31 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON32 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON33 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON34 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON9 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON10 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON11 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON12 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON13 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON14 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON15 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON16 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON17 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON18 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON19 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON20 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON21 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON22 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON23 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON24 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON25 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON26 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON27 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON28 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON29 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON30 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON35 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON36 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON37 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON38 = wxNewId();
 const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
@@ -506,6 +472,28 @@ END_EVENT_TABLE()
 
 
 
+void AddEffectToolbarButtons(xlAuiToolBar *EffectsToolBar) {
+    
+    for (int x = 0; x < BitmapCache::RGB_EFFECTS_e::eff_LASTEFFECT; x++) {
+        DragEffectBitmapButton *BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(16,16),
+                                                    wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
+        int size = 16;
+        BitmapButton34->SetMinSize(wxSize(size,size));
+        BitmapButton34->SetMaxSize(wxSize(size,size));
+        BitmapButton34->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
+        BitmapButton34->SetEffectIndex(x);
+        EffectsToolBar->AddControl(BitmapButton34, BitmapButton34->GetToolTipText());
+        
+        EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);
+        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMinSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMaxSize(wxSize(size, size));
+
+    }
+    EffectsToolBar->Realize();
+}
+
+
 xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 {
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
@@ -659,210 +647,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     OutputToolBar->Realize();
     MainAuiManager->AddPane(OutputToolBar, wxAuiPaneInfo().Name(_T("Output Tool Bar")).ToolbarPane().Caption(_("Output Tool Bar")).CloseButton(false).Layer(10).Position(25).Top().Gripper());
     EffectsToolBar = new xlAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    BitmapButton1 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
-    BitmapButton1->SetMinSize(wxSize(16,16));
-    BitmapButton1->SetMaxSize(wxSize(16,16));
-    BitmapButton1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton1->SetEffectIndex(0);
-    BitmapButton2 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON8, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON8"));
-    BitmapButton2->SetMinSize(wxSize(16,16));
-    BitmapButton2->SetMaxSize(wxSize(16,16));
-    BitmapButton2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton2->SetEffectIndex(1);
-    BitmapButton3 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
-    BitmapButton3->SetMinSize(wxSize(16,16));
-    BitmapButton3->SetMaxSize(wxSize(16,16));
-    BitmapButton3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton3->SetEffectIndex(2);
-    BitmapButton4 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
-    BitmapButton4->SetMinSize(wxSize(16,16));
-    BitmapButton4->SetMaxSize(wxSize(16,16));
-    BitmapButton4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton4->SetEffectIndex(3);
-    BitmapButton5 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON31, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON31"));
-    BitmapButton5->SetMinSize(wxSize(16,16));
-    BitmapButton5->SetMaxSize(wxSize(16,16));
-    BitmapButton5->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton5->SetEffectIndex(4);
-    BitmapButton6 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON32, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON32"));
-    BitmapButton6->SetMinSize(wxSize(16,16));
-    BitmapButton6->SetMaxSize(wxSize(16,16));
-    BitmapButton6->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton6->SetEffectIndex(5);
-    BitmapButton7 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON33, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON33"));
-    BitmapButton7->SetMinSize(wxSize(16,16));
-    BitmapButton7->SetMaxSize(wxSize(16,16));
-    BitmapButton7->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton7->SetEffectIndex(6);
-    BitmapButton8 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON34, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON34"));
-    BitmapButton8->SetMinSize(wxSize(16,16));
-    BitmapButton8->SetMaxSize(wxSize(16,16));
-    BitmapButton8->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton8->SetEffectIndex(7);
-    BitmapButton9 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON9, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON9"));
-    BitmapButton9->SetMinSize(wxSize(16,16));
-    BitmapButton9->SetMaxSize(wxSize(16,16));
-    BitmapButton9->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton9->SetEffectIndex(8);
-    BitmapButton10 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON10, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON10"));
-    BitmapButton10->SetMinSize(wxSize(16,16));
-    BitmapButton10->SetMaxSize(wxSize(16,16));
-    BitmapButton10->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton10->SetEffectIndex(9);
-    BitmapButton11 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON11, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON11"));
-    BitmapButton11->SetMinSize(wxSize(16,16));
-    BitmapButton11->SetMaxSize(wxSize(16,16));
-    BitmapButton11->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton11->SetEffectIndex(10);
-    BitmapButton12 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON12, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON12"));
-    BitmapButton12->SetMinSize(wxSize(16,16));
-    BitmapButton12->SetMaxSize(wxSize(16,16));
-    BitmapButton12->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton12->SetEffectIndex(11);
-    BitmapButton13 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON13, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON13"));
-    BitmapButton13->SetMinSize(wxSize(16,16));
-    BitmapButton13->SetMaxSize(wxSize(16,16));
-    BitmapButton13->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton13->SetEffectIndex(12);
-    BitmapButton14 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON14, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON14"));
-    BitmapButton14->SetMinSize(wxSize(16,16));
-    BitmapButton14->SetMaxSize(wxSize(16,16));
-    BitmapButton14->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton14->SetEffectIndex(13);
-    BitmapButton15 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON15, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON15"));
-    BitmapButton15->SetMinSize(wxSize(16,16));
-    BitmapButton15->SetMaxSize(wxSize(16,16));
-    BitmapButton15->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton15->SetEffectIndex(14);
-    BitmapButton16 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON16, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON16"));
-    BitmapButton16->SetMinSize(wxSize(16,16));
-    BitmapButton16->SetMaxSize(wxSize(16,16));
-    BitmapButton16->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton16->SetEffectIndex(15);
-    BitmapButton17 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON17, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON17"));
-    BitmapButton17->SetMinSize(wxSize(16,16));
-    BitmapButton17->SetMaxSize(wxSize(16,16));
-    BitmapButton17->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton17->SetEffectIndex(16);
-    BitmapButton18 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON18, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON18"));
-    BitmapButton18->SetMinSize(wxSize(16,16));
-    BitmapButton18->SetMaxSize(wxSize(16,16));
-    BitmapButton18->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton18->SetEffectIndex(17);
-    BitmapButton19 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON19, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON19"));
-    BitmapButton19->SetMinSize(wxSize(16,16));
-    BitmapButton19->SetMaxSize(wxSize(16,16));
-    BitmapButton19->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton19->SetEffectIndex(18);
-    BitmapButton20 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON20, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON20"));
-    BitmapButton20->SetMinSize(wxSize(16,16));
-    BitmapButton20->SetMaxSize(wxSize(16,16));
-    BitmapButton20->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton20->SetEffectIndex(19);
-    BitmapButton21 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON21, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON21"));
-    BitmapButton21->SetMinSize(wxSize(16,16));
-    BitmapButton21->SetMaxSize(wxSize(16,16));
-    BitmapButton21->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton21->SetEffectIndex(20);
-    BitmapButton22 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON22, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON22"));
-    BitmapButton22->SetMinSize(wxSize(16,16));
-    BitmapButton22->SetMaxSize(wxSize(16,16));
-    BitmapButton22->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton22->SetEffectIndex(21);
-    BitmapButton23 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON23, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON23"));
-    BitmapButton23->SetMinSize(wxSize(16,16));
-    BitmapButton23->SetMaxSize(wxSize(16,16));
-    BitmapButton23->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton23->SetEffectIndex(22);
-    BitmapButton24 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON24, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON24"));
-    BitmapButton24->SetMinSize(wxSize(16,16));
-    BitmapButton24->SetMaxSize(wxSize(16,16));
-    BitmapButton24->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton24->SetEffectIndex(23);
-    BitmapButton25 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON25, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON25"));
-    BitmapButton25->SetMinSize(wxSize(16,16));
-    BitmapButton25->SetMaxSize(wxSize(16,16));
-    BitmapButton25->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton25->SetEffectIndex(24);
-    BitmapButton26 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON26, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON26"));
-    BitmapButton26->SetMinSize(wxSize(16,16));
-    BitmapButton26->SetMaxSize(wxSize(16,16));
-    BitmapButton26->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton26->SetEffectIndex(25);
-    BitmapButton27 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON27, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON27"));
-    BitmapButton27->SetMinSize(wxSize(16,16));
-    BitmapButton27->SetMaxSize(wxSize(16,16));
-    BitmapButton27->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton27->SetEffectIndex(26);
-    BitmapButton28 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON28, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON28"));
-    BitmapButton28->SetMinSize(wxSize(16,16));
-    BitmapButton28->SetMaxSize(wxSize(16,16));
-    BitmapButton28->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton28->SetEffectIndex(27);
-    BitmapButton29 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON29, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON29"));
-    BitmapButton29->SetMinSize(wxSize(16,16));
-    BitmapButton29->SetMaxSize(wxSize(16,16));
-    BitmapButton29->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton29->SetEffectIndex(28);
-    BitmapButton30 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON30, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON30"));
-    BitmapButton30->SetMinSize(wxSize(16,16));
-    BitmapButton30->SetMaxSize(wxSize(16,16));
-    BitmapButton30->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton30->SetEffectIndex(29);
-    BitmapButton31 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON35, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON35"));
-    BitmapButton31->SetMinSize(wxSize(16,16));
-    BitmapButton31->SetMaxSize(wxSize(16,16));
-    BitmapButton31->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton31->SetEffectIndex(30);
-    BitmapButton32 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON36, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON36"));
-    BitmapButton32->SetMinSize(wxSize(16,16));
-    BitmapButton32->SetMaxSize(wxSize(16,16));
-    BitmapButton32->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton32->SetEffectIndex(31);
-    BitmapButton33 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON37, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON37"));
-    BitmapButton33->SetMinSize(wxSize(16,16));
-    BitmapButton33->SetMaxSize(wxSize(16,16));
-    BitmapButton33->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton33->SetEffectIndex(32);
-    BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON38, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
-    BitmapButton34->SetMinSize(wxSize(16,16));
-    BitmapButton34->SetMaxSize(wxSize(16,16));
-    BitmapButton34->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-    BitmapButton34->SetEffectIndex(33);
-    EffectsToolBar->AddControl(BitmapButton1, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton2, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton3, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton4, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton5, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton6, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton7, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton8, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton9, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton10, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton11, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton12, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton13, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton14, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton15, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton16, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton17, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton18, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton19, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton20, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton21, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton22, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton23, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton24, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton25, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton26, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton27, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton28, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton29, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton30, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton31, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton32, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton33, _("Item label"));
-    EffectsToolBar->AddControl(BitmapButton34, _("Item label"));
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
     Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER);
@@ -1950,6 +1734,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
+    
+    AddEffectToolbarButtons(EffectsToolBar);
+    wxSize sz = EffectsToolBar->GetSize();
+    wxAuiPaneInfo &info = MainAuiManager->GetPane("EffectsToolBar");
+    info.BestSize(sz);
+    MainAuiManager->Update();
+    
     SetTitle( xlights_base_name + " (Ver " + xlights_version_string + ") " + xlights_build_date );
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);

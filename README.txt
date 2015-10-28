@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) Update effect toolbar and icon panel to always include all effects
 	-- enh(sean) Change output to lights icon to be a light bulb that fills in Yellow when on
 	-- enh(sean) changed icon for lights off to have a small red "x"
     -- enh(dkulp) Update Text effect Line 1 to have a "Vector" option (like images) for moving text arbitrarily

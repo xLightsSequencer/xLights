@@ -8,28 +8,6 @@
 #include "../Color.h"
 #include "../DrawGLUtils.h"
 
-#define EFFECT_BARS         0
-#define EFFECT_BUTTERFLY    1
-#define EFFECT_CIRCLES      2
-#define EFFECT_COLORWASH    3
-#define EFFECT_CURTAIN      4
-#define EFFECT_FIRE         5
-#define EFFECT_FIREWORKS    6
-#define EFFECT_GARLANDS     7
-#define EFFECT_GLEDIATOR    8
-#define EFFECT_LIFE         9
-#define EFFECT_METEORS      10
-#define EFFECT_PINWHEEL     11
-#define EFFECT_RIPPLE       12
-#define EFFECT_SINGLESTRAND 13
-#define EFFECT_SNOWFLAKES   14
-#define EFFECT_SNOWSTORM    15
-#define EFFECT_SPIRALS      16
-#define EFFECT_SPIROGRAPH   17
-#define EFFECT_TREE         18
-#define EFFECT_TWINKLE      19
-#define EFFECT_WAVE         20
-#define NUMBER_OF_EFFECTS   21
 
 class EffectLayer;
 
