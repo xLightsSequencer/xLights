@@ -1358,6 +1358,23 @@ void xLightsFrame::ImportLMS(const wxFileName &filename) {
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
+
+void AdjustAllTimings(wxXmlNode *input_xml, int offset) {
+    if (input_xml->HasAttribute("startCentisecond")) {
+        int i = wxAtoi(input_xml->GetAttribute("startCentisecond"));
+        input_xml->DeleteAttribute("startCentisecond");
+        input_xml->AddAttribute("startCentisecond", wxString::Format("%d", i + offset));
+    }
+    if (input_xml->HasAttribute("endCentisecond")) {
+        int i = wxAtoi(input_xml->GetAttribute("endCentisecond"));
+        input_xml->DeleteAttribute("endCentisecond");
+        input_xml->AddAttribute("endCentisecond", wxString::Format("%d", i + offset));
+    }
+    for (wxXmlNode* chan=input_xml->GetChildren(); chan!=NULL; chan=chan->GetNext()) {
+        AdjustAllTimings(chan, offset);
+    }
+}
+
 void xLightsFrame::ImportSuperStar(const wxFileName &filename)
 {
     SuperStarImportDialog dlg(this);
@@ -1371,6 +1388,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     if (dlg.ShowModal() == wxID_CANCEL) {
         return;
     }
+    
     wxString model_name = dlg.ChoiceSuperStarImportModel->GetStringSelection();
     if( model_name == "" )
     {
@@ -1389,6 +1407,12 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     FixXMLInputStream bufIn(fin);
 
     if( !input_xml.Load(bufIn) )  return;
+
+    
+    if (dlg.TimeAdjSpinCtrl->GetValue() != 0) {
+        int offset = dlg.TimeAdjSpinCtrl->GetValue();
+        AdjustAllTimings(input_xml.GetRoot(), offset  / 10);
+    }
 
     Element* model = nullptr;
 
@@ -1726,11 +1750,11 @@ bool MapChannelInformation(EffectLayer *layer, wxXmlDocument &input_xml, const w
     }
     return true;
 }
-
 bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
 {
     LMSImportChannelMapDialog dlg(this);
     dlg.mSequenceElements = &mSequenceElements;
+    dlg.TimeAdjustPanel->Show();
     dlg.xlights = this;
 
     for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=NULL; e=e->GetNext()) {
@@ -1779,6 +1803,11 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
         return false;
     }
 
+    if (dlg.TimeAdjustSpinCtrl->GetValue() != 0) {
+        int offset = dlg.TimeAdjustSpinCtrl->GetValue();
+        AdjustAllTimings(input_xml.GetRoot(), offset / 10);
+    }
+    
     int row = 0;
     for (int m = 0; m < dlg.modelNames.size(); m++) {
         wxString modelName = dlg.modelNames[m];

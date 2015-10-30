@@ -6,6 +6,7 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
+#include <wx/spinctrl.h>
 #include <wx/choice.h>
 #include <wx/gbsizer.h>
 #include <wx/dialog.h>
@@ -25,6 +26,7 @@ class SuperStarImportDialog: public wxDialog
 		wxStaticText* StaticText40;
 		wxStaticText* StaticText42;
 		wxTextCtrl* TextCtrl_SS_X_Size;
+		wxSpinCtrl* TimeAdjSpinCtrl;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText44;
 		wxStaticText* StaticText39;
@@ -42,6 +44,7 @@ class SuperStarImportDialog: public wxDialog
 		static const long ID_STATICTEXT31;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE1;
+		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT39;
 		static const long ID_TEXTCTRL_SS_X_Offset;
 		static const long ID_STATICTEXT24;

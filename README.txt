@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp) Add an timing offset option for importing of SuperStar and LMS
+    -- bug(dklup) Make sure we create an image with a valid size. With invalid models, can cause crash at render.
 4.2.18  Oct 28, 2015
     -- bug(dkulp) Update effect toolbar and icon panel to always include all effects
 	-- enh(sean) Change output to lights icon to be a light bulb that fills in Yellow when on

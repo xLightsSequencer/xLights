@@ -3,7 +3,10 @@
 
 //(*Headers(LMSImportChannelMapDialog)
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/checkbox.h>
+#include <wx/spinctrl.h>
+#include <wx/panel.h>
 #include <wx/grid.h>
 #include <wx/choice.h>
 #include <wx/button.h>
@@ -27,8 +30,10 @@ class LMSImportChannelMapDialog: public wxDialog
         void Init();
 
 		//(*Declarations(LMSImportChannelMapDialog)
+		wxSpinCtrl* TimeAdjustSpinCtrl;
 		wxGrid* ChannelMapGrid;
 		wxChoice* ModelsChoice;
+		wxPanel* TimeAdjustPanel;
 		wxFlexGridSizer* Sizer;
 		wxFlexGridSizer* FlexGridSizer2;
 		wxCheckBox* MapByStrand;
@@ -48,6 +53,8 @@ class LMSImportChannelMapDialog: public wxDialog
 		//(*Identifiers(LMSImportChannelMapDialog)
 		static const long ID_CHOICE1;
 		static const long ID_BUTTON_ADDMODEL;
+		static const long ID_SPINCTRL1;
+		static const long ID_PANEL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_GRID1;
 		static const long ID_BUTTON1;

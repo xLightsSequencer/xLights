@@ -50,7 +50,7 @@ inline void unshare(wxObject &o) {
 DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1,1,32)
 {
     unshare(nullBitmap);
-    image = new wxImage(BufferWi, BufferHt);
+    image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
     image->SetAlpha();
     for(wxCoord x=0; x<BufferWi; x++) {
         for(wxCoord y=0; y<BufferHt; y++) {

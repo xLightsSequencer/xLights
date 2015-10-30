@@ -14,6 +14,8 @@
 //(*IdInit(LMSImportChannelMapDialog)
 const long LMSImportChannelMapDialog::ID_CHOICE1 = wxNewId();
 const long LMSImportChannelMapDialog::ID_BUTTON_ADDMODEL = wxNewId();
+const long LMSImportChannelMapDialog::ID_SPINCTRL1 = wxNewId();
+const long LMSImportChannelMapDialog::ID_PANEL1 = wxNewId();
 const long LMSImportChannelMapDialog::ID_CHECKBOX1 = wxNewId();
 const long LMSImportChannelMapDialog::ID_GRID1 = wxNewId();
 const long LMSImportChannelMapDialog::ID_BUTTON1 = wxNewId();
@@ -30,6 +32,8 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 {
 	//(*Initialize(LMSImportChannelMapDialog)
 	wxButton* Button01;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxStaticText* StaticText1;
 	wxButton* Button02;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
@@ -43,6 +47,18 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	FlexGridSizer1->Add(ModelsChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	AddModelButton = new wxButton(this, ID_BUTTON_ADDMODEL, _("Add Model For Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADDMODEL"));
 	FlexGridSizer1->Add(AddModelButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TimeAdjustPanel = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	TimeAdjustPanel->Hide();
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	StaticText1 = new wxStaticText(TimeAdjustPanel, wxID_ANY, _("Time Adjust (ms)"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TimeAdjustSpinCtrl = new wxSpinCtrl(TimeAdjustPanel, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -10000, 10000, 0, _T("ID_SPINCTRL1"));
+	TimeAdjustSpinCtrl->SetValue(_T("0"));
+	FlexGridSizer3->Add(TimeAdjustSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TimeAdjustPanel->SetSizer(FlexGridSizer3);
+	FlexGridSizer3->Fit(TimeAdjustPanel);
+	FlexGridSizer3->SetSizeHints(TimeAdjustPanel);
+	FlexGridSizer1->Add(TimeAdjustPanel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	Sizer->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SizerMap = new wxFlexGridSizer(0, 1, 0, 0);
 	MapByStrand = new wxCheckBox(this, ID_CHECKBOX1, _("Map by Strand/CCR"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));

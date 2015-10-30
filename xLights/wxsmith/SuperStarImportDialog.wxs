@@ -25,7 +25,7 @@
 						</object>
 						<colspan>5</colspan>
 						<col>0</col>
-						<row>5</row>
+						<row>7</row>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -36,7 +36,7 @@
 						</object>
 						<col>0</col>
 						<row>4</row>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -54,6 +54,28 @@
 						<colspan>3</colspan>
 						<col>1</col>
 						<row>4</row>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
+							<label>Timing Adjustment (ms):</label>
+						</object>
+						<col>0</col>
+						<row>5</row>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="TimeAdjSpinCtrl" member="yes">
+							<value>0</value>
+							<min>-10000</min>
+							<max>10000</max>
+						</object>
+						<col>1</col>
+						<row>5</row>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
