@@ -1370,6 +1370,24 @@ void AdjustAllTimings(wxXmlNode *input_xml, int offset) {
         input_xml->DeleteAttribute("endCentisecond");
         input_xml->AddAttribute("endCentisecond", wxString::Format("%d", i + offset));
     }
+    if (input_xml->GetName() == "flowy") {
+        if (input_xml->HasAttribute("startTime")) {
+            int i = wxAtoi(input_xml->GetAttribute("startTime"));
+            input_xml->DeleteAttribute("startTime");
+            input_xml->AddAttribute("startTime", wxString::Format("%d", i + offset));
+        }
+        if (input_xml->HasAttribute("endTime")) {
+            int i = wxAtoi(input_xml->GetAttribute("endTime"));
+            input_xml->DeleteAttribute("endTime");
+            input_xml->AddAttribute("endTime", wxString::Format("%d", i + offset));
+        }
+    } else if (input_xml->GetName() == "state1" || input_xml->GetName() == "state2") {
+        if (input_xml->HasAttribute("time")) {
+            int i = wxAtoi(input_xml->GetAttribute("time"));
+            input_xml->DeleteAttribute("time");
+            input_xml->AddAttribute("time", wxString::Format("%d", i + offset));
+        }
+    }
     for (wxXmlNode* chan=input_xml->GetChildren(); chan!=NULL; chan=chan->GetNext()) {
         AdjustAllTimings(chan, offset);
     }

@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) Apply offset for SuperStar import to flowy and morphs
     -- bug(dkulp) Change algorithm of single strand chases to work a bit faster when dumped on a model group if "group arches" is on.  Still slow, but not "it looks like it's hung" slow.
     -- enh(dkulp) Add an timing offset option for importing of SuperStar and LMS
     -- bug(dklup) Make sure we create an image with a valid size. With invalid models, can cause crash at render.
