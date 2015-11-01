@@ -339,48 +339,68 @@ void RgbEffects::draw_chase(int x, bool GroupAll,
         .........RRR+........................
     */
     
+    int firstX = x;
+    
+    if (AutoReverse) {
+        if (firstX < 0 || firstX >= width) {
+            int dif = - firstX;
+            int dir = 1;
+            if (firstX < 0) {
+                firstX = -1;
+            } else {
+                dif = firstX - width + 1;
+                firstX = width;
+                dir = -1;
+            }
+            
+            while (dif) {
+                dif--;
+                firstX += dir;
+                if (firstX == (width - 1)) {
+                    dir = -1;
+                }
+                if (firstX == 0) {
+                    dir = 1;
+                }
+            }
+        }
+    }
+    
+    
+    
     if(max_chase_width>=1)
     {
+        int direction = 1;
         for (i=0; i<max_chase_width; i++)
         {
             if(ColorScheme==0) {
                 if (max_chase_width) hsv.hue = 1.0 - (i*1.0/max_chase_width); // rainbow hue
                 color = hsv;
             }
-            new_x = x+i;
             
             if (AutoReverse) {
-                int tmpx = new_x;
+                new_x = firstX + direction;
                 
-                if (tmpx < 0 || tmpx >= width) {
-                    int dif = - tmpx;
-                    int dir = 1;
-                    if (tmpx < 0) {
-                        tmpx = -1;
-                    } else {
-                        dif = tmpx - width + 1;
-                        tmpx = width;
-                        dir = -1;
-                    }
-                    while (dif) {
-                        dif--;
-                        tmpx += dir;
-                        if (tmpx == (width - 1)) {
-                            dir = -1;
-                        }
-                        if (tmpx == 0) {
-                            dir = 1;
-                        }
-                    }
+                while (new_x < 0) {
+                    direction = 1;
+                    new_x = 0;
                 }
-                new_x = tmpx;
+                while (new_x >= width) {
+                    direction = -1;
+                    new_x = width - 1;
+                }
+                firstX = new_x;
             } else if (Number_Chases > 1) {
+                new_x = x+i;
+
                 while (new_x < 0) {
                     new_x += width;
                 }
                 while (new_x >= width) {
                     new_x -= width;
                 }
+            } else {
+                new_x = x+i;
             }
 
             //new_x=new_x%BufferWi;
