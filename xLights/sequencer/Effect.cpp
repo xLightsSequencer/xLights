@@ -169,7 +169,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
         {
             settings["E_TEXTCTRL_Text_Speed4"] = settings.Get("T_SLIDER_Speed", "10");
         }
-            
+
         if (settings.Get("E_SLIDER_Text_Position1", "") != "") {
             int pos = wxAtoi(settings.Get("E_SLIDER_Text_Position1", "50")) * 2 - 100;
             settings.erase("E_SLIDER_Text_Position1");
@@ -651,6 +651,7 @@ public:
         at(BitmapCache::eff_CIRCLES) = "Circles";
         at(BitmapCache::eff_COLORWASH) = "Color Wash";
         at(BitmapCache::eff_CURTAIN) = "Curtain";
+        at(BitmapCache::eff_DMX) = "DMX";
         at(BitmapCache::eff_FACES) = "Faces";
         at(BitmapCache::eff_FAN) = "Fan";
         at(BitmapCache::eff_FIRE) = "Fire";

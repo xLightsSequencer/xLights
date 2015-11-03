@@ -872,6 +872,33 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                              wxAtoi(SettingsMap["SLIDER_Curtain_Swag"]),
                              SettingsMap["CHECKBOX_Curtain_Repeat"]=="1",
                              wxAtof(SettingsMap.Get("TEXTCTRL_Curtain_Speed", "1.0")));
+    } else if (effect == "DMX") {
+        buffer.RenderDMX(wxAtoi(SettingsMap["SLIDER_DMX1"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX2"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX3"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX4"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX5"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX6"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX7"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX8"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX9"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX10"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX11"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX12"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX1_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX2_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX3_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX4_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX5_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX6_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX7_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX8_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX9_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX10_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX11_Ramp"]),
+                         wxAtoi(SettingsMap["SLIDER_DMX12_Ramp"]),
+                         SettingsMap["CHECKBOX_Use_Dmx_Ramps"]=="1",
+                         SettingsMap.Get("CHOICE_Num_Dmx_Channels", "Use 1 Channel"));
     } else if (effect == "Faces") {
         if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered"
                 && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {

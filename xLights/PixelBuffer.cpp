@@ -594,6 +594,16 @@ void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat
     effects[CurrentLayer].RenderCurtain(edge,effect,swag,repeat, cspeed);
 }
 
+void PixelBufferClass::RenderDMX(int ch1, int ch2, int ch3, int ch4, int ch5, int ch6,
+                                 int ch7, int ch8, int ch9, int ch10, int ch11, int ch12,
+                                 int ch1_ramp, int ch2_ramp, int ch3_ramp, int ch4_ramp, int ch5_ramp, int ch6_ramp,
+                                 int ch7_ramp, int ch8_ramp, int ch9_ramp, int ch10_ramp, int ch11_ramp, int ch12_ramp,
+                                 bool use_ramps, const wxString &num_channels) {
+    effects[CurrentLayer].RenderDMX( ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10, ch11, ch12,
+                                     ch1_ramp, ch2_ramp, ch3_ramp, ch4_ramp, ch5_ramp, ch6_ramp,
+                                     ch7_ramp, ch8_ramp, ch9_ramp, ch10_ramp, ch11_ramp, ch12_ramp, use_ramps, num_channels);
+}
+
 void PixelBufferClass::RenderFaces(const wxString &Phoneme, const wxString &eyes, bool outline) {
     effects[CurrentLayer].RenderFaces(Phoneme, eyes, outline);
 }

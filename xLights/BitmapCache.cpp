@@ -39,6 +39,12 @@
 #include "../include/curtain-48.xpm"
 #include "../include/curtain-64.xpm"
 
+#include "../include/dmx-16.xpm"
+#include "../include/dmx-24.xpm"
+#include "../include/dmx-32.xpm"
+#include "../include/dmx-48.xpm"
+#include "../include/dmx-64.xpm"
+
 
 //#include "../include/faces.xpm"
 #include "../include/corofaces.xpm"
@@ -516,6 +522,9 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
     case BitmapCache::eff_CURTAIN:
         toolTip = "Curtain";
         return effectBitmaps.get(size, exact, "Curtain", curtain_16, curtain_24, curtain_32, curtain_48, curtain_64);
+    case BitmapCache::eff_DMX:
+        toolTip = "DMX";
+        return effectBitmaps.get(size, exact, "DMX", dmx_16, dmx_24, dmx_32, dmx_48, dmx_64);
     case BitmapCache::eff_FACES:
         toolTip = "Faces";
         return effectBitmaps.get(size, exact, "Faces", corofaces, corofaces, corofaces, corofaces, corofaces);

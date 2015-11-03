@@ -19,6 +19,7 @@ public:
         eff_CIRCLES,
         eff_COLORWASH,
         eff_CURTAIN,
+        eff_DMX,
         eff_FACES,
         eff_FAN,
         eff_FIRE,
