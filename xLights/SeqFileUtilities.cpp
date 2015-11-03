@@ -451,7 +451,7 @@ static EffectLayer* FindOpenLayer(Element* model, int layer_index, int startTime
     int index = layer_index-1;
 
     layer = model->GetEffectLayer(index);
-    if( layer->GetRangeIsClearMS(startTimeMS, endTimeMS) )
+    if (layer != nullptr && layer->GetRangeIsClearMS(startTimeMS, endTimeMS) )
     {
         return layer;
     }
