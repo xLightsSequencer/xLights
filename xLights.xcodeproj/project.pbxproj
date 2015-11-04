@@ -16,14 +16,14 @@
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
 		671E7DFA1AED4FFD0034C6DF /* RenderFan.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */; };
 		671E7DFB1AED4FFD0034C6DF /* RenderShockwave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */; };
-		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; settings = {ASSET_TAGS = (); }; };
+		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; };
 		672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		6730E4D21ADB54E8005DECF0 /* RenderGalaxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */; };
 		673B04A41B926957009151BA /* RenderMarquee.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673B04A31B926957009151BA /* RenderMarquee.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		67402E871B4230360047EDC1 /* NullOutputDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67402E851B4230360047EDC1 /* NullOutputDialog.cpp */; };
-		67435AFE1BBB82EC00CBE95F /* RenderPlasma.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67435AFD1BBB82EC00CBE95F /* RenderPlasma.cpp */; settings = {ASSET_TAGS = (); }; };
+		67435AFE1BBB82EC00CBE95F /* RenderPlasma.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67435AFD1BBB82EC00CBE95F /* RenderPlasma.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
 		674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C51918238E00A993C7 /* RenderFaces.cpp */; };
 		674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C61918238E00A993C7 /* RenderWave.cpp */; };
@@ -66,7 +66,7 @@
 		677421DB1A6A8FBE0082DA5B /* NewTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */; };
 		677421DD1A6A8FF30082DA5B /* RenameTextDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */; };
 		677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677674481B38E7F70018E14B /* OptionChooser.cpp */; };
-		677797BD1BBDB55B007F26CA /* RenderLightning.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677797BC1BBDB55B007F26CA /* RenderLightning.cpp */; settings = {ASSET_TAGS = (); }; };
+		677797BD1BBDB55B007F26CA /* RenderLightning.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677797BC1BBDB55B007F26CA /* RenderLightning.cpp */; };
 		6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E31A601CA7008C2086 /* Effect.cpp */; };
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
 		677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */; };
@@ -135,6 +135,7 @@
 		67AAF8FA1B63785900585431 /* phoneme_mapping in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F61B63785900585431 /* phoneme_mapping */; };
 		67AAF8FB1B63785900585431 /* standard_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F71B63785900585431 /* standard_dictionary */; };
 		67AAF8FD1B642E6C00585431 /* LyricsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */; };
+		67B068F91BE9414800B7F2DC /* RenderDmx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B068F81BE9414800B7F2DC /* RenderDmx.cpp */; };
 		67B189761AA22C990082B00C /* RenderMorph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B189751AA22C990082B00C /* RenderMorph.cpp */; };
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
 		67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797171A5AE343008D5921 /* ColorPanel.cpp */; };
@@ -388,6 +389,7 @@
 		67AAF8F71B63785900585431 /* standard_dictionary */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = standard_dictionary; path = bin/standard_dictionary; sourceTree = "<group>"; };
 		67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LyricsDialog.cpp; sourceTree = "<group>"; };
 		67AAF8FE1B642E7D00585431 /* LyricsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LyricsDialog.h; sourceTree = "<group>"; };
+		67B068F81BE9414800B7F2DC /* RenderDmx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderDmx.cpp; sourceTree = "<group>"; };
 		67B189751AA22C990082B00C /* RenderMorph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderMorph.cpp; sourceTree = "<group>"; };
 		67B30CDC1A583F7A009E23FF /* libmpg123.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpg123.0.dylib; path = lib/osx/libmpg123.0.dylib; sourceTree = "<group>"; };
 		67B4C91F17B53D960006B951 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
@@ -507,6 +509,7 @@
 			isa = PBXGroup;
 			children = (
 				67A619D617B51C0F008E95BB /* PixelBuffer.cpp */,
+				67B068F81BE9414800B7F2DC /* RenderDmx.cpp */,
 				677421D31A68AB3E0082DA5B /* Render.cpp */,
 				67A619DC17B51C0F008E95BB /* RenderBars.cpp */,
 				67A619DD17B51C0F008E95BB /* RenderButterfly.cpp */,
@@ -914,6 +917,7 @@
 				6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */,
 				675DE26E1B53381800A9BB44 /* xlGridCanvasPictures.cpp in Sources */,
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
+				67B068F91BE9414800B7F2DC /* RenderDmx.cpp in Sources */,
 				67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
 				675AB42A1B5ACEDA00853A28 /* PluginChannelAdapter.cpp in Sources */,
