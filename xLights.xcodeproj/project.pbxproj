@@ -150,6 +150,9 @@
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CBF26E1B8D525B0028705C /* EffectPanelDefaults.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CBF26D1B8D525B0028705C /* EffectPanelDefaults.cpp */; };
+		67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D11C751BEA691900000A7F /* ModelDimmingCurveDialog.cpp */; };
+		67D11C7A1BEA691900000A7F /* DimmingCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D11C781BEA691900000A7F /* DimmingCurve.cpp */; };
+		67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D11C7B1BEA692300000A7F /* DimmingCurvePanel.cpp */; };
 		67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D678FC1A7E628400421B05 /* tmGridCell.cpp */; };
 		67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D7DD031B23C586007A3F20 /* UndoManager.cpp */; };
 		67D8F4591A1A584400522413 /* TabTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425A17F0D23E00F4BC76 /* TabTest.cpp */; };
@@ -421,6 +424,12 @@
 		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
 		67CA857F18BE86B800A6268C /* heartbeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heartbeat.h; sourceTree = "<group>"; };
 		67CBF26D1B8D525B0028705C /* EffectPanelDefaults.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectPanelDefaults.cpp; sourceTree = "<group>"; };
+		67D11C741BEA691900000A7F /* ModelDimmingCurveDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelDimmingCurveDialog.h; sourceTree = "<group>"; };
+		67D11C751BEA691900000A7F /* ModelDimmingCurveDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelDimmingCurveDialog.cpp; sourceTree = "<group>"; };
+		67D11C761BEA691900000A7F /* DimmingCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DimmingCurve.h; sourceTree = "<group>"; };
+		67D11C771BEA691900000A7F /* DimmingCurvePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DimmingCurvePanel.h; sourceTree = "<group>"; };
+		67D11C781BEA691900000A7F /* DimmingCurve.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DimmingCurve.cpp; sourceTree = "<group>"; };
+		67D11C7B1BEA692300000A7F /* DimmingCurvePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DimmingCurvePanel.cpp; sourceTree = "<group>"; };
 		67D678FC1A7E628400421B05 /* tmGridCell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tmGridCell.cpp; sourceTree = "<group>"; };
 		67D7DD031B23C586007A3F20 /* UndoManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UndoManager.cpp; path = sequencer/UndoManager.cpp; sourceTree = "<group>"; };
 		67DB87F51AD6CA1300595194 /* wxsmith */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wxsmith; path = xLights/wxsmith; sourceTree = "<group>"; };
@@ -609,6 +618,9 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67D11C7B1BEA692300000A7F /* DimmingCurvePanel.cpp */,
+				67D11C751BEA691900000A7F /* ModelDimmingCurveDialog.cpp */,
+				67D11C781BEA691900000A7F /* DimmingCurve.cpp */,
 				671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67623E721AD2BF3F0022667B /* BitmapCache.cpp */,
@@ -716,6 +728,9 @@
 			isa = PBXGroup;
 			children = (
 				671FD62F1BD72014003C2E33 /* ResizeImageDialog.h */,
+				67D11C741BEA691900000A7F /* ModelDimmingCurveDialog.h */,
+				67D11C761BEA691900000A7F /* DimmingCurve.h */,
+				67D11C771BEA691900000A7F /* DimmingCurvePanel.h */,
 				675DE2561B53381800A9BB44 /* EffectAssist.h */,
 				67A619BD17B51C0F008E95BB /* AddShowDialog.h */,
 				671B331D1AD6071600C9F215 /* BitmapCache.h */,
@@ -919,6 +934,7 @@
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				67B068F91BE9414800B7F2DC /* RenderDmx.cpp in Sources */,
 				67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */,
+				67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
 				675AB42A1B5ACEDA00853A28 /* PluginChannelAdapter.cpp in Sources */,
 				671E7DFA1AED4FFD0034C6DF /* RenderFan.cpp in Sources */,
@@ -974,6 +990,7 @@
 				67A61A4217B51C0F008E95BB /* RenderSnowstorm.cpp in Sources */,
 				675AB42C1B5ACEDA00853A28 /* PluginInputDomainAdapter.cpp in Sources */,
 				67A61A4317B51C0F008E95BB /* RenderSpirals.cpp in Sources */,
+				67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */,
 				67A61A4417B51C0F008E95BB /* RenderSpirograph.cpp in Sources */,
 				67A61A4517B51C0F008E95BB /* RenderText.cpp in Sources */,
 				67A61A4617B51C0F008E95BB /* RenderTree.cpp in Sources */,
@@ -1006,6 +1023,7 @@
 				671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */,
 				6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */,
 				67A61A5317B51C0F008E95BB /* SerialPortWithRate.cpp in Sources */,
+				67D11C7A1BEA691900000A7F /* DimmingCurve.cpp in Sources */,
 				674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */,
 				670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */,
 				675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */,

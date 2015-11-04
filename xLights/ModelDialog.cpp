@@ -16,6 +16,7 @@
 #include "StrandNodeNamesDialog.h"
 #include "NetInfo.h"
 #include "ModelFaceDialog.h"
+#include "ModelDimmingCurveDialog.h"
 
 //(*IdInit(ModelDialog)
 const long ModelDialog::ID_STATICTEXT1 = wxNewId();
@@ -43,12 +44,10 @@ const long ModelDialog::ID_RADIOBUTTON4 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT10 = wxNewId();
 const long ModelDialog::ID_CHECKBOX1 = wxNewId();
-const long ModelDialog::ID_STATICTEXT7 = wxNewId();
-const long ModelDialog::ID_Slider_Model_Brightness = wxNewId();
-const long ModelDialog::ID_SPINCTRLMODELBRIGHTNESS = wxNewId();
 const long ModelDialog::ID_STATICTEXT15 = wxNewId();
 const long ModelDialog::ID_SPINCTRL5 = wxNewId();
 const long ModelDialog::ID_TEXTCTRL3 = wxNewId();
+const long ModelDialog::ID_BUTTON2 = wxNewId();
 const long ModelDialog::ID_BUTTON3 = wxNewId();
 const long ModelDialog::ID_BUTTON4 = wxNewId();
 const long ModelDialog::ID_BUTTON1 = wxNewId();
@@ -85,7 +84,6 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer7;
     wxBoxSizer* BoxSizer1;
-    wxFlexGridSizer* FlexGridSizer6;
     wxStdDialogButtonSizer* StdDialogButtonSizer2;
     wxFlexGridSizer* FlexGridSizer1;
     wxButton* Button03;
@@ -197,16 +195,6 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     CheckBox_MyDisplay = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_MyDisplay->SetValue(true);
     LeftGridSizer->Add(CheckBox_MyDisplay, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText2 = new wxStaticText(this, ID_STATICTEXT7, _("Model Brightness\nAdjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-    LeftGridSizer->Add(StaticText2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer6->AddGrowableCol(0);
-    Slider_Model_Brightness = new wxSlider(this, ID_Slider_Model_Brightness, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_Slider_Model_Brightness"));
-    FlexGridSizer6->Add(Slider_Model_Brightness, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    SpinCtrlModelBrightness = new wxSpinCtrl(this, ID_SPINCTRLMODELBRIGHTNESS, _T("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(35,-1)), 0, -100, 100, 0, _T("ID_SPINCTRLMODELBRIGHTNESS"));
-    SpinCtrlModelBrightness->SetValue(_T("0"));
-    FlexGridSizer6->Add(SpinCtrlModelBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(FlexGridSizer6, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     ExtraParameterLabel = new wxStaticText(this, ID_STATICTEXT15, _("Star Sizes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
     LeftGridSizer->Add(ExtraParameterLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -216,7 +204,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer10->Add(StarSizes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button1 = new wxButton(this, ID_BUTTON2, _("Dimming Curves"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    LeftGridSizer->Add(Button1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer2 = new wxStdDialogButtonSizer();
@@ -297,9 +286,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm3Change);
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
     Connect(ID_SPINCTRL6,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
-    Connect(ID_Slider_Model_Brightness,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ModelDialog::OnSlider_Model_BrightnessCmdScroll);
-    Connect(ID_Slider_Model_Brightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSlider_Model_BrightnessCmdScroll);
-    Connect(ID_SPINCTRLMODELBRIGHTNESS,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrlModelBrightnessChange);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnDimmingCurvesClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnAppearanceButtonClicked);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnNamesButtonClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnFacesButtonClick);
@@ -778,13 +765,6 @@ void ModelDialog::OnSpinCtrl_StartChannelChange(wxSpinEvent& event)
 }
 
 
-
-void ModelDialog::OnSpinCtrlModelBrightnessChange(wxSpinEvent& event)
-{
-    Slider_Model_Brightness->SetValue(SpinCtrlModelBrightness->GetValue());
-}
-
-
 void ModelDialog::OngridStartChannelsCellChange(wxGridEvent& event)
 {
     int col = event.GetCol();
@@ -884,7 +864,6 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         e->AddAttribute("PreviewBrightness", wxString::Format("%d", previewBrightness));
     }
 
-    e->AddAttribute("ModelBrightness", wxString::Format("%d",Slider_Model_Brightness->GetValue()));
     if (Choice_DisplayAs->GetStringSelection() == "Custom")
     {
         e->AddAttribute("CustomModel",GetCustomGridData());
@@ -900,7 +879,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
 
     wxXmlNode *f = e->GetChildren();
     while (f != nullptr) {
-        if ("faceInfo" == f->GetName()) {
+        if ("faceInfo" == f->GetName() || "dimmingCurve" == f->GetName()) {
             e->RemoveChild(f);
             delete f;
             f = e->GetChildren();
@@ -915,6 +894,15 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
             f->AddAttribute("Name", name);
             for (std::map<wxString,wxString>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
                 f->AddAttribute(it2->first, it2->second);
+            }
+        }
+    }
+    if (!dimmingInfo.empty()) {
+        f = new wxXmlNode(e, wxXML_ELEMENT_NODE , "dimmingCurve");
+        for (std::map<wxString, std::map<wxString,wxString> >::iterator it = dimmingInfo.begin(); it != dimmingInfo.end(); it++) {
+            wxXmlNode *dc = new wxXmlNode(f, wxXML_ELEMENT_NODE , it->first);
+            for (std::map<wxString,wxString>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                dc->AddAttribute(it2->first, it2->second);
             }
         }
     }
@@ -971,13 +959,6 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
     nodeNames = e->GetAttribute("NodeNames");
     strandNames = e->GetAttribute("StrandNames");
 
-    if(e->HasAttribute("ModelBrightness"))
-    {
-        tempStr=e->GetAttribute("ModelBrightness","0");
-        tempStr.ToLong(&n);
-        Slider_Model_Brightness->SetValue(n);
-        SpinCtrlModelBrightness->SetValue(n);
-    }
     direction=e->GetAttribute("Dir");
     if(e->HasAttribute("StartSide"))
     {
@@ -1035,6 +1016,8 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
     UpdateLabels();
 
     faceInfo.clear();
+    dimmingInfo.clear();
+    
     wxXmlNode *f = e->GetChildren();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
@@ -1061,8 +1044,24 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
                 }
                 att = att->GetNext();
             }
+        } else if ("dimmingCurve" == f->GetName()) {
+            wxXmlNode *dc = f->GetChildren();
+            while (dc != nullptr) {
+                wxString name = dc->GetName();
+                wxXmlAttribute *att = dc->GetAttributes();
+                while (att != nullptr) {
+                    dimmingInfo[name][att->GetName()] = att->GetValue();
+                    att = att->GetNext();
+                }
+                dc = dc->GetNext();
+            }
         }
         f = f->GetNext();
+    }
+    if(e->HasAttribute("ModelBrightness") && dimmingInfo.empty()) {
+        wxString b = e->GetAttribute("ModelBrightness","0");
+        dimmingInfo["all"]["gamma"] = "1.0";
+        dimmingInfo["all"]["brightness"] = b;
     }
 }
 
@@ -1232,12 +1231,6 @@ void ModelDialog::OnSpinCtrl_parm3Change(wxSpinEvent& event)
 {
     UpdateStartChannels();
 }
-
-void ModelDialog::OnSlider_Model_BrightnessCmdScroll(wxScrollEvent& event)
-{
-    SpinCtrlModelBrightness->SetValue(wxString::Format("%d",Slider_Model_Brightness->GetValue()));
-}
-
 
 class myGrid: public wxGrid
 {
@@ -1426,5 +1419,15 @@ void ModelDialog::OnFacesButtonClick(wxCommandEvent& event)
     if (dlg.ShowModal()) {
         faceInfo.clear();
         dlg.GetFaceInfo(faceInfo);
+    }
+}
+
+void ModelDialog::OnDimmingCurvesClick(wxCommandEvent& event)
+{
+    ModelDimmingCurveDialog d(this);
+    d.Init(dimmingInfo);
+    if (d.ShowModal()) {
+        dimmingInfo.clear();
+        d.Update(dimmingInfo);
     }
 }

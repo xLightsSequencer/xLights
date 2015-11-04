@@ -365,7 +365,7 @@ brightness
         ModelClass model;
         model.SetFromXml(node, *netInfo);
         wxString stch = node->GetAttribute("StartChannel", wxString::Format("%d?", model.NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
-        f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %d, %d\n", model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), stch, /*WRONG:*/ model.NodeStartChannel(0) / model.NodesPerString() + 1, model.MyDisplay, model.ModelBrightness));
+        f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %d\n", model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), stch, /*WRONG:*/ model.NodeStartChannel(0) / model.NodesPerString() + 1, model.MyDisplay));
 //no worky        f.Flush(); //paranoid: write out data in case model loop crashes
     }
     f.Close();

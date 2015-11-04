@@ -24,6 +24,7 @@
 #include "PixelBuffer.h"
 #include <wx/image.h>
 #include <wx/tokenzr.h>
+#include "DimmingCurve.h"
 
 PixelBufferClass::PixelBufferClass() {
     numLayers = 0;
@@ -114,7 +115,7 @@ void PixelBufferClass::reset(int layers, int timing) {
 
 void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, NetInfoClass &netInfo, bool zeroBased) {
     SetFromXml(ModelNode, netInfo, zeroBased);
-    SetModelBrightness(wxAtoi(ModelNode->GetAttribute("ModelBrightness","0")));
+    SetDimmingCurve(modelDimmingCurve);
     reset(layers, timing);
 }
 void PixelBufferClass::InitStrandBuffer(const ModelClass &pbc, int strand, int timing) {
@@ -133,7 +134,7 @@ void PixelBufferClass::InitStrandBuffer(const ModelClass &pbc, int strand, int t
         stringStartChan[x] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, x));
     }
     InitLine();
-    SetModelBrightness(pbc.ModelBrightness);
+    SetDimmingCurve(pbc.modelDimmingCurve);
     reset(2, timing);
 }
 void PixelBufferClass::InitNodeBuffer(const ModelClass &pbc, int strand, int node, int timing) {
@@ -150,7 +151,7 @@ void PixelBufferClass::InitNodeBuffer(const ModelClass &pbc, int strand, int nod
     stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, node));
     InitLine();
 
-    SetModelBrightness(pbc.ModelBrightness);
+    SetDimmingCurve(pbc.modelDimmingCurve);
     reset(2, timing);
 }
 
@@ -466,8 +467,8 @@ void PixelBufferClass::SetBrightness(int layer, int value) {
     brightness[layer]=value;
 }
 
-void PixelBufferClass::SetModelBrightness(int value) {
-    ModelBrightness=value;
+void PixelBufferClass::SetDimmingCurve(DimmingCurve *value) {
+    dimmingCurve=value;
 }
 
 void PixelBufferClass::SetContrast(int layer, int value) {
@@ -541,19 +542,9 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             // get blend of two effects
             GetMixedColor(Nodes[i]->Coords[0].bufX, Nodes[i]->Coords[0].bufY, color, validLayers, Nodes[i]->sparkle);
 
-            // Apply brightness
-            if (ModelBrightness != 0) {
-                wxImage::RGBValue rgb(color.Red(), color.Green(), color.Blue());
-                hsv = wxImage::RGBtoHSV(rgb);
-
-                float fModelBrightness=((float)ModelBrightness/100) + 1.0;
-                hsv.value = hsv.value * fModelBrightness;
-
-                // Apply Contrast
-                if (hsv.value < 0.0) hsv.value=0.0;
-                if (hsv.value > 1.0) hsv.value=1.0;
-
-                color = wxImage::HSVtoRGB(hsv);
+            // Apply dimming curve
+            if (dimmingCurve != nullptr) {
+                dimmingCurve->apply(color);
             }
 
             // set color for physical output

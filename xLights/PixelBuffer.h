@@ -55,6 +55,7 @@ enum MixTypes
 class Effect;
 class SequenceElements;
 class SettingsMap;
+class DimmingCurve;
 
 class PixelBufferClass : public ModelClass
 {
@@ -65,7 +66,7 @@ private:
     int frameTimeInMs;
 
     int CurrentLayer;  // 0 or 1
-    int ModelBrightness;
+    DimmingCurve *dimmingCurve;
 
     //bunch of per layer settings
     RgbEffects *effects;
@@ -79,7 +80,7 @@ private:
 
     void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, const std::vector<bool> & validLayers, int & sparkle);
     xlColour mixColors(const wxCoord &x, const wxCoord &y, const xlColour &c0, const xlColour &c1, int layer);
-    void SetModelBrightness(int value);
+    void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
 public:
     PixelBufferClass();

@@ -44,6 +44,7 @@
 typedef std::vector<long> StartChannelVector_t;
 class NetInfoClass;
 class ModelPreview;
+class DimmingCurve;
 
 #define NODE_RGB_CHAN_CNT           3
 #define NODE_RGBW_CHAN_CNT          4
@@ -430,15 +431,15 @@ protected:
 
     friend class PixelBufferClass;
 public:
-    ModelClass() {}
-    virtual ~ModelClass() {}
+    ModelClass();
+    virtual ~ModelClass();
 
     wxString name;       // user-designated model name
     int BufferHt,BufferWi;  // size of the buffer
     int RenderHt,RenderWi;  // size of the rendered output
     std::map<wxString, std::map<wxString, wxString> > faceInfo;
+    DimmingCurve *modelDimmingCurve;
     bool MyDisplay;
-    long ModelBrightness;   // Value from -100 to +100 indicates an adjustment to brightness for this model
     bool Selected=false;
     bool GroupSelected=false;
     wxString ModelStartChannel;

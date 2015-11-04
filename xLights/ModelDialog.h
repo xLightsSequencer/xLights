@@ -11,7 +11,6 @@
 #include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/radiobut.h>
-#include <wx/slider.h>
 #include <wx/grid.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
@@ -43,9 +42,8 @@ public:
     wxStaticText* StaticText_Strings;
     wxTextCtrl* TextCtrl_Name;
     wxStaticText* StaticTextCustomModel;
-    wxStaticText* StaticText2;
+    wxButton* Button1;
     wxStaticText* StaticText6;
-    wxSpinCtrl* SpinCtrlModelBrightness;
     wxSpinCtrl* SpinCtrl_parm3;
     wxFlexGridSizer* OuterSizer;
     wxStaticText* StaticText8;
@@ -66,7 +64,6 @@ public:
     wxBitmapButton* BitmapButtonCustomCopy;
     wxCheckBox* cbIndividualStartNumbers;
     wxStaticText* ExtraParameterLabel;
-    wxSlider* Slider_Model_Brightness;
     wxButton* ButtonCustomModelHelp;
     wxGrid* gridStartChannels;
     wxBitmapButton* BitmapButtonCustomCut;
@@ -109,12 +106,10 @@ protected:
     static const long ID_RADIOBUTTON3;
     static const long ID_STATICTEXT10;
     static const long ID_CHECKBOX1;
-    static const long ID_STATICTEXT7;
-    static const long ID_Slider_Model_Brightness;
-    static const long ID_SPINCTRLMODELBRIGHTNESS;
     static const long ID_STATICTEXT15;
     static const long ID_SPINCTRL5;
     static const long ID_TEXTCTRL3;
+    static const long ID_BUTTON2;
     static const long ID_BUTTON3;
     static const long ID_BUTTON4;
     static const long ID_BUTTON1;
@@ -146,15 +141,12 @@ private:
     void OnBitmapButtonCustomCopyClick(wxCommandEvent& event);
     void OnBitmapButtonCustomCutClick(wxCommandEvent& event);
     void OnSpinCtrl_parm3Change(wxSpinEvent& event);
-    void OnSlider_Model_BrightnessCmdScroll(wxScrollEvent& event);
-    void OnSlider_Model_BrightnessScrollTop(wxScrollEvent& event);
-    void OnSlider_Model_BrightnessCmdScroll1(wxScrollEvent& event);
     void OnButton_CustomModelZoomOutClick(wxCommandEvent& event);
     void OnButton_CustomModelZoomInClick(wxCommandEvent& event);
-    void OnSpinCtrlModelBrightnessChange(wxSpinEvent& event);
     void OnAppearanceButtonClicked(wxCommandEvent& event);
     void OnNamesButtonClick(wxCommandEvent& event);
     void OnFacesButtonClick(wxCommandEvent& event);
+    void OnDimmingCurvesClick(wxCommandEvent& event);
     //*)
 
     void SetReadOnly(bool);
@@ -180,6 +172,7 @@ private:
     wxString strandNames;
     wxString nodeNames;
     std::map<wxString, std::map<wxString,wxString> > faceInfo;
+    std::map<wxString, std::map<wxString,wxString> > dimmingInfo;
 };
 
 #endif

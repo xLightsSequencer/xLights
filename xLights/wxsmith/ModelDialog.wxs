@@ -304,43 +304,6 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText2" member="yes">
-							<label>Model Brightness&#x0A;Adjustment</label>
-						</object>
-						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-							<cols>2</cols>
-							<growablecols>0</growablecols>
-							<object class="sizeritem">
-								<object class="wxSlider" name="ID_Slider_Model_Brightness" variable="Slider_Model_Brightness" member="yes">
-									<min>-100</min>
-									<handler function="OnSlider_Model_BrightnessCmdScroll" entry="EVT_COMMAND_SCROLL" />
-									<handler function="OnSlider_Model_BrightnessCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
-								</object>
-								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxSpinCtrl" name="ID_SPINCTRLMODELBRIGHTNESS" variable="SpinCtrlModelBrightness" member="yes">
-									<value>0</value>
-									<min>-100</min>
-									<size>35,-1d</size>
-									<handler function="OnSpinCtrlModelBrightnessChange" entry="EVT_SPINCTRL" />
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT15" variable="ExtraParameterLabel" member="yes">
 							<label>Star Sizes</label>
 						</object>
@@ -376,8 +339,12 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
-					<object class="spacer">
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON2" variable="Button1" member="yes">
+							<label>Dimming Curves</label>
+							<handler function="OnDimmingCurvesClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

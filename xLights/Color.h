@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include <wx/colour.h>
 #include <wx/image.h>
 
 class xlColor : public wxImage::RGBValue {

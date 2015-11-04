@@ -27,10 +27,20 @@
 #include "xLightsMain.h" //for Preview and Other model collections
 #include "Color.h"
 #include "DrawGLUtils.h"
+#include "DimmingCurve.h"
 
 static inline void TranslatePointDoubles(double radians,double x, double y,double &x1, double &y1) {
     x1 = cos(radians)*x-(sin(radians)*y);
     y1 = sin(radians)*x+(cos(radians)*y);
+}
+
+ModelClass::ModelClass() : modelDimmingCurve(nullptr) {
+}
+
+ModelClass::~ModelClass() {
+    if (modelDimmingCurve != nullptr) {
+        delete modelDimmingCurve;
+    }
 }
 
 void ModelClass::InitWholeHouse(const wxString &WholeHouseData, bool zeroBased) {
@@ -202,10 +212,6 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     }
 
     StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1"));
-    if (ModelNode->HasAttribute("ModelBrightness")) {
-        tempstr=ModelNode->GetAttribute("ModelBrightness");
-        tempstr.ToLong(&ModelBrightness);
-    }
     tempstr=ModelNode->GetAttribute("Dir");
     IsLtoR=tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
@@ -393,8 +399,17 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
                 }
                 att = att->GetNext();
             }
+        } else if ("dimmingCurve" == f->GetName()) {
+            modelDimmingCurve = DimmingCurve::createFromXML(f);
         }
         f = f->GetNext();
+    }
+    
+    if (ModelNode->HasAttribute("ModelBrightness") && modelDimmingCurve == nullptr) {
+        int b = wxAtoi(ModelNode->GetAttribute("ModelBrightness"));
+        if (b != 0) {
+            modelDimmingCurve = DimmingCurve::createBrightnessGamma(b, 1.0);
+        }
     }
 }
 

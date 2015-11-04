@@ -388,6 +388,10 @@
 		<Unit filename="CurrentPreviewModels.h" />
 		<Unit filename="DataLayer.cpp" />
 		<Unit filename="DataLayer.h" />
+		<Unit filename="DimmingCurve.cpp" />
+		<Unit filename="DimmingCurve.h" />
+		<Unit filename="DimmingCurvePanel.cpp" />
+		<Unit filename="DimmingCurvePanel.h" />
 		<Unit filename="DisplayElementsPanel.cpp" />
 		<Unit filename="DisplayElementsPanel.h" />
 		<Unit filename="DrawGLUtils.cpp" />
@@ -433,6 +437,8 @@
 		<Unit filename="ModelClass.h" />
 		<Unit filename="ModelDialog.cpp" />
 		<Unit filename="ModelDialog.h" />
+		<Unit filename="ModelDimmingCurveDialog.cpp" />
+		<Unit filename="ModelDimmingCurveDialog.h" />
 		<Unit filename="ModelFaceDialog.cpp" />
 		<Unit filename="ModelFaceDialog.h" />
 		<Unit filename="ModelListDialog.cpp" />
@@ -654,6 +660,7 @@
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
+		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelViewSelector.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
@@ -757,6 +764,7 @@
 					<wxDialog wxs="wxsmith/ModelFaceDialog.wxs" src="ModelFaceDialog.cpp" hdr="ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SaveChangesDialog.wxs" src="SaveChangesDialog.cpp" hdr="SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ResizeImageDialog.wxs" src="ResizeImageDialog.cpp" hdr="ResizeImageDialog.h" fwddecl="0" i18n="1" name="ResizeImageDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelDimmingCurveDialog.wxs" src="ModelDimmingCurveDialog.cpp" hdr="ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
