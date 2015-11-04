@@ -10,7 +10,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 4.2.19  Nov 3, 2015
     -- enh(gil)   Add effect to control DMX outputs
     -- bug(dkulp) Apply offset for SuperStar import to flowy and morphs
-    -- bug(dkulp) Change algorithm of single strand chases to work a bit faster when dumped on a model group if "group arches" is on.  Still slow, but not "it looks like it's hung" slow.
+    -- bug(dkulp) Change algorithm of single strand chases to work a bit faster when dumped on a model group 
+		if "group arches" is on.  Still slow, but not "it looks like it's hung" slow.
     -- enh(dkulp) Add an timing offset option for importing of SuperStar and LMS
     -- bug(dklup) Make sure we create an image with a valid size. With invalid models, can cause crash at render.
 4.2.18  Oct 28, 2015

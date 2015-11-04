@@ -369,6 +369,9 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-fno-strict-aliasing" />
+			<Add option="-Wno-unused-local-typedefs" />
+			<Add option="-fno-keep-inline-dllexport" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
 		<Linker>
@@ -401,7 +404,9 @@
 		<Unit filename="EffectTreeDialog.cpp" />
 		<Unit filename="EffectTreeDialog.h" />
 		<Unit filename="Effects.h" />
-		<Unit filename="EffectsPanel.cpp" />
+		<Unit filename="EffectsPanel.cpp">
+			<Option compiler="gcc" use="1" buildCommand="$compiler -O1 -DwxUSE_UNICODE -march=i586 -pipe -mthreads -std=gnu++11 -static-libgcc -D__GNUWIN32__ -D__WXMSW__ -DWXUSINGDLL -DNDEBUG $includes -c $file -o $object\n" />
+		</Unit>
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
