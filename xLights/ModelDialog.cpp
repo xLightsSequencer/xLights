@@ -4,11 +4,11 @@
 #include <wx/clipbrd.h>
 
 //(*InternalHeaders(ModelDialog)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/artprov.h>
 //*)
 
 #include "ModelPreview.h"
@@ -74,19 +74,19 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     netInfo = nullptr;
 
     //(*Initialize(ModelDialog)
-    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
     wxButton* Button01;
-    wxFlexGridSizer* FlexGridSizer10;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxBoxSizer* BoxSizer2;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxButton* Button03;
     wxFlexGridSizer* FlexGridSizer3;
     wxButton* Button04;
-    wxFlexGridSizer* FlexGridSizer5;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxBoxSizer* BoxSizer2;
-    wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer10;
     wxBoxSizer* BoxSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer2;
-    wxFlexGridSizer* FlexGridSizer1;
-    wxButton* Button03;
+    wxFlexGridSizer* FlexGridSizer5;
 
     Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     SetHelpText(_("Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical."));
@@ -204,8 +204,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer10->Add(StarSizes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button1 = new wxButton(this, ID_BUTTON2, _("Dimming Curves"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    LeftGridSizer->Add(Button1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonDimCurve = new wxButton(this, ID_BUTTON2, _("Dimming Curves"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    LeftGridSizer->Add(ButtonDimCurve, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer2 = new wxStdDialogButtonSizer();

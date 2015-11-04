@@ -340,7 +340,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON2" variable="Button1" member="yes">
+						<object class="wxButton" name="ID_BUTTON2" variable="ButtonDimCurve" member="yes">
 							<label>Dimming Curves</label>
 							<handler function="OnDimmingCurvesClick" entry="EVT_BUTTON" />
 						</object>

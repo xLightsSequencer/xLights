@@ -155,6 +155,7 @@
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++11" />
+					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
@@ -199,6 +200,7 @@
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++11" />
 					<Add option="-static-libgcc" />
+					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
@@ -294,6 +296,7 @@
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++0x" />
+					<Add option="-fno-keep-inline-dllexport" />
 					<Add option="-static-libgcc" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -338,6 +341,7 @@
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++0x" />
+					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
@@ -371,7 +375,6 @@
 		<Compiler>
 			<Add option="-fno-strict-aliasing" />
 			<Add option="-Wno-unused-local-typedefs" />
-			<Add option="-fno-keep-inline-dllexport" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
 		<Linker>
