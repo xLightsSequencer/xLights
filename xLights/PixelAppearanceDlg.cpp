@@ -15,8 +15,6 @@ const long PixelAppearanceDlg::IDD_TEXTCTRL_TRANSPARENCY = wxNewId();
 const long PixelAppearanceDlg::ID_STATICTEXT2 = wxNewId();
 const long PixelAppearanceDlg::ID_SLIDER_BLACKT = wxNewId();
 const long PixelAppearanceDlg::IDD_TEXTCTRL_BLACKT = wxNewId();
-const long PixelAppearanceDlg::ID_SLIDER_BRIGHTNESS = wxNewId();
-const long PixelAppearanceDlg::IDD_TEXTCTRL_BRIGHTNESS = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PixelAppearanceDlg,wxDialog)
@@ -31,7 +29,6 @@ PixelAppearanceDlg::PixelAppearanceDlg(wxWindow* parent,wxWindowID id,const wxPo
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText3;
-	wxStaticText* StaticText5;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
@@ -71,13 +68,6 @@ PixelAppearanceDlg::PixelAppearanceDlg(wxWindow* parent,wxWindowID id,const wxPo
 	BlackTransparencyText = new wxTextCtrl(this, IDD_TEXTCTRL_BLACKT, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_BLACKT"));
 	BlackTransparencyText->SetMaxLength(4);
 	FlexGridSizer5->Add(BlackTransparencyText, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText5 = new wxStaticText(this, wxID_ANY, _("Preview Brightness:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	FlexGridSizer5->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Brightness = new wxSlider(this, ID_SLIDER_BRIGHTNESS, 100, 1, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BRIGHTNESS"));
-	FlexGridSizer5->Add(Brightness, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BrightnessText = new wxTextCtrl(this, IDD_TEXTCTRL_BRIGHTNESS, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_BRIGHTNESS"));
-	BrightnessText->SetMaxLength(4);
-	FlexGridSizer5->Add(BrightnessText, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
@@ -95,8 +85,6 @@ PixelAppearanceDlg::PixelAppearanceDlg(wxWindow* parent,wxWindowID id,const wxPo
 	Connect(IDD_TEXTCTRL_TRANSPARENCY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PixelAppearanceDlg::UpdateLinkedSlider);
 	Connect(ID_SLIDER_BLACKT,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PixelAppearanceDlg::UpdateLinkedTextCtrl);
 	Connect(IDD_TEXTCTRL_BLACKT,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PixelAppearanceDlg::UpdateLinkedSlider);
-	Connect(ID_SLIDER_BRIGHTNESS,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PixelAppearanceDlg::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_BRIGHTNESS,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PixelAppearanceDlg::UpdateLinkedSlider);
 	//*)
 }
 

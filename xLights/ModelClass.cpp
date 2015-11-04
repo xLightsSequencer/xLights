@@ -233,8 +233,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     tempstr.ToLong(&n);
     transparency = n;
     blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency","0"));
-    previewBrightness = wxAtoi(ModelNode->GetAttribute("PreviewBrightness","100"));
-
+    
     MyDisplay=IsMyDisplay(ModelNode);
 
     tempstr=ModelNode->GetAttribute("offsetXpct","0");
@@ -1736,14 +1735,8 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, 
         }
         if (c == NULL) {
             Nodes[n]->GetColor(color);
-            if (previewBrightness != 100) {
-                wxImage::HSVValue hsv = color.asHSV();
-                hsv.value *= previewBrightness;
-                hsv.value /= 100.0;
-                if (hsv.value > 1.0) {
-                    hsv.value = 1.0;
-                }
-                color = hsv;
+            if (modelDimmingCurve != nullptr) {
+                modelDimmingCurve->reverse(color);
             }
             if (StrobeRate) {
                 int r = rand() % 5;
@@ -1897,14 +1890,8 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
             }
 
             Nodes[n]->GetColor(color);
-            if (previewBrightness != 100) {
-                wxImage::HSVValue hsv = color.asHSV();
-                hsv.value *= previewBrightness;
-                hsv.value /= 100.0;
-                if (hsv.value > 1.0) {
-                    hsv.value = 1.0;
-                }
-                color = hsv;
+            if (modelDimmingCurve != nullptr) {
+                modelDimmingCurve->reverse(color);
             }
             if (StrobeRate) {
                 int r = rand() % 5;

@@ -9,10 +9,37 @@ public:
     BaseDimmingCurve(int ch = -1) : DimmingCurve(), channel(ch)  {
         for (int x = 0; x < 256; x++) {
             data[x] = x;
+            reverseData[x] = 0;
         }
     }
     virtual ~BaseDimmingCurve() {}
 
+    void fixupReverseData() {
+        int lastIdx = 0;
+        
+        for (int x = 1; x < 256; x++) {
+            if (reverseData[x] == 0) {
+                //possibly not set, let's average between
+                int origX = x;
+                while (x < 256 && reverseData[x] == 0) {
+                    x++;
+                }
+                if (x < 256) {
+                    int newV = reverseData[x];
+                    for (int x2 = origX; x2 < x; x2++) {
+                        reverseData[x2] = reverseData[lastIdx] + float(newV - reverseData[lastIdx]) * float(x2-origX) / float(x-origX);
+                    }
+                    lastIdx = x;
+                } else {
+                    for (int x2 = origX; x2 < x; x2++) {
+                        reverseData[x2] = reverseData[lastIdx];
+                    }
+                }
+            } else {
+                lastIdx = x;
+            }
+        }
+    }
     
     virtual void apply(xlColor &c) {
         switch (channel) {
@@ -37,9 +64,34 @@ public:
                 break;
         }
     }
+    virtual void reverse(xlColor &c) {
+        switch (channel) {
+            case -1:
+                c.green = reverseData[c.green];
+                c.blue = reverseData[c.blue];
+                c.red = reverseData[c.red];
+                break;
+            case 0:
+                c.red = reverseData[c.red];
+                break;
+            case 1:
+                c.green = reverseData[c.green];
+                break;
+            case 2:
+                c.blue = reverseData[c.blue];
+                break;
+            case 4:
+                if (c.blue == c.red && c.green == c.red) {
+                    c.green = c.blue = c.red = reverseData[c.red];
+                }
+                break;
+        }
+    }
+
     
     int channel;
     unsigned char data[256];
+    unsigned char reverseData[256];
 };
 
 
@@ -64,7 +116,9 @@ public:
                 i = 0;
             }
             data[x] = i;
+            reverseData[(int)i] = x;
         }
+        fixupReverseData();
     }
 };
 
@@ -79,12 +133,14 @@ public:
             wxString data = text.ReadLine();
             if (data != "") {
                 data[count] = wxAtoi(data);
+                reverseData[data[count]] = count;
                 count++;
                 if (count == 256) {
                     return;
                 }
             }
         }
+        fixupReverseData();
     }
 };
 
@@ -112,6 +168,17 @@ public:
         }
         if (blue != nullptr) {
             blue->apply(c);
+        }
+    }
+    virtual void reverse(xlColor &c) {
+        if (red != nullptr) {
+            red->reverse(c);
+        }
+        if (green != nullptr) {
+            green->reverse(c);
+        }
+        if (blue != nullptr) {
+            blue->reverse(c);
         }
     }
     DimmingCurve *red;

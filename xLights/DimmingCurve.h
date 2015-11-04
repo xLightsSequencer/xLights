@@ -13,6 +13,7 @@ class DimmingCurve
     
     
         virtual void apply(xlColor &c) = 0;
+        virtual void reverse(xlColor &c) = 0;
     
     
         static DimmingCurve *createFromXML(wxXmlNode *node);
