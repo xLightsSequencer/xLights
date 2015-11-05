@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.20  Nov 4, 2015
     -- enh(gil)   Add 3 more DMX channels to support larger channel DMX lights.
     -- enh(dkulp) Change the ModelBrightness stuff to a full fledged multi-channel dimming curve supporting
                 gamma curves, specific values from a file, etc...
