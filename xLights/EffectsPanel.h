@@ -741,6 +741,12 @@ protected:
     static const long IDD_TEXTCTRL_DMX11;
     static const long ID_SLIDER_DMX12;
     static const long IDD_TEXTCTRL_DMX12;
+    static const long ID_SLIDER_DMX13;
+    static const long IDD_TEXTCTRL_DMX13;
+    static const long ID_SLIDER_DMX14;
+    static const long IDD_TEXTCTRL_DMX14;
+    static const long ID_SLIDER_DMX15;
+    static const long IDD_TEXTCTRL_DMX15;
     static const long ID_PANEL28;
     static const long ID_SLIDER_DMX1_Ramp;
     static const long IDD_TEXTCTRL_DMX1_Ramp;
@@ -767,6 +773,12 @@ protected:
     static const long IDD_TEXTCTRL_DMX11_Ramp;
     static const long ID_SLIDER_DMX12_Ramp;
     static const long IDD_TEXTCTRL_DMX12_Ramp;
+    static const long ID_SLIDER_DMX13_Ramp;
+    static const long IDD_TEXTCTRL_DMX13_Ramp;
+    static const long ID_SLIDER_DMX14_Ramp;
+    static const long IDD_TEXTCTRL_DMX14_Ramp;
+    static const long ID_SLIDER_DMX15_Ramp;
+    static const long IDD_TEXTCTRL_DMX15_Ramp;
     static const long ID_PANEL49;
     static const long ID_NOTEBOOK1;
     static const long ID_SCROLLEDWINDOW5;

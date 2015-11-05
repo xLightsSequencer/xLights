@@ -36,9 +36,10 @@ static int GetRampedValue(int start_val, int end_val, double eff_pos, bool use_r
     }
 }
 
-void RgbEffects::RenderDMX(int ch1, int ch2, int ch3, int ch4, int ch5, int ch6, int ch7, int ch8, int ch9, int ch10, int ch11, int ch12,
+void RgbEffects::RenderDMX(int ch1, int ch2, int ch3, int ch4, int ch5, int ch6, int ch7, int ch8, int ch9, int ch10, int ch11, int ch12, int ch13, int ch14, int ch15,
                            int ch1_ramp, int ch2_ramp, int ch3_ramp, int ch4_ramp, int ch5_ramp, int ch6_ramp,
                            int ch7_ramp, int ch8_ramp, int ch9_ramp, int ch10_ramp, int ch11_ramp, int ch12_ramp,
+                           int ch13_ramp, int ch14_ramp, int ch15_ramp,
                            bool use_ramps, const wxString& num_channels)
 {
     double eff_pos = GetEffectTimeIntervalPosition();
@@ -88,5 +89,16 @@ void RgbEffects::RenderDMX(int ch1, int ch2, int ch3, int ch4, int ch5, int ch6,
         color.blue = GetRampedValue(ch12, ch12_ramp, eff_pos, use_ramps);
     }
     SetPixel(3, 0, color);
+
+    if( channels < 13 || BufferWi < 5) return;
+    color = xlBLACK;
+    color.red = GetRampedValue(ch13, ch13_ramp, eff_pos, use_ramps);
+    if( channels >= 14 ) {
+        color.green = GetRampedValue(ch14, ch14_ramp, eff_pos, use_ramps);
+    }
+    if( channels >= 15 ) {
+        color.blue = GetRampedValue(ch15, ch15_ramp, eff_pos, use_ramps);
+    }
+    SetPixel(4, 0, color);
 }
 
