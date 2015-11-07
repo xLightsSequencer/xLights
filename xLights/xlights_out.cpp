@@ -265,7 +265,7 @@ public:
     {
         datagram=0;
         memset(data,0,sizeof(data));
-        changed = false;
+        changed = true;
     };
 
     ~xNetwork_E131()
@@ -496,7 +496,7 @@ public:
             datagram->SendTo(remoteAddr, data, E131_PACKET_LEN - (512 - num_channels));
             SequenceNum= SequenceNum==255 ? 0 : SequenceNum+1;
             SkipCount=0;
-            changed = false;
+            //changed = false;
         }
         else
         {
