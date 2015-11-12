@@ -340,37 +340,40 @@ void RgbEffects::draw_chase(int x, bool GroupAll,
     */
     
     int firstX = x;
-    
+    int direction = 1;
+
     if (AutoReverse) {
+        if (firstX < 0 && firstX > -max_chase_width) {
+            firstX = -firstX - 1;
+            direction = -1;
+        }
         if (firstX < 0 || firstX >= width) {
             int dif = - firstX;
-            int dir = 1;
             if (firstX < 0) {
-                firstX = -1;
+                firstX = -firstX - 1;
+                direction = -1;
+                dif = 0;
             } else {
                 dif = firstX - width + 1;
                 firstX = width;
-                dir = -1;
+                direction = -1;
             }
             
             while (dif) {
                 dif--;
-                firstX += dir;
+                firstX += direction;
                 if (firstX == (width - 1)) {
-                    dir = -1;
+                    direction = -1;
                 }
                 if (firstX == 0) {
-                    dir = 1;
+                    direction = 1;
                 }
             }
         }
     }
     
-    
-    
     if(max_chase_width>=1)
     {
-        int direction = 1;
         for (i=0; i<max_chase_width; i++)
         {
             if(ColorScheme==0) {
