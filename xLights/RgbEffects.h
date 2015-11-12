@@ -555,6 +555,7 @@ protected:
     void drawline1(int Phoneme,int x1,int x2,int y1, int y2);
     void drawoutline(int Phoneme, bool outline, const wxString &eyes, int BufferHt,int BufferWi);
     double calcAccel(double ratio, double accel);
+    double GetStepAngle(int width, int height);
 
     void facesCircle(int Phoneme, int xc,int yc,double radius,int start_degrees, int end_degrees);
     void drawline3 (int Phoneme, int x1,int x2,int y6,int y7);

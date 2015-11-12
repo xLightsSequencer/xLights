@@ -31,7 +31,7 @@ void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end
                            int duration, int acceleration, bool reverse_dir, bool blend_edges,
                            int num_blades, int blade_width, int blade_angle, int num_elements, int element_width )
 {
-    double step = 0.5;
+    double step = GetStepAngle(BufferWi, BufferHt);
     std::vector< std::vector<double> > temp_colors_pct(BufferWi, std::vector<double>(BufferHt));
     double eff_pos = GetEffectTimeIntervalPosition();
     int num_colors = palette.Size();

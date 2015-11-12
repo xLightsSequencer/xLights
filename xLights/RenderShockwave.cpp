@@ -27,10 +27,33 @@
 const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
+double RgbEffects::GetStepAngle(int width, int height)
+{
+    double step = 0.5;
+    int biggest = std::max(width, height);
+    if( biggest > 50 )
+    {
+        step = 0.4;
+    }
+    if( biggest > 150 )
+    {
+        step = 0.3;
+    }
+    if( biggest > 250 )
+    {
+        step = 0.2;
+    }
+    if( biggest > 400 )
+    {
+        step = 0.1;
+    }
+    return step;
+}
+
 void RgbEffects::RenderShockwave(int center_x, int center_y, int start_radius, int end_radius,
                                  int start_width, int end_width, int acceleration, bool blend_edges )
 {
-    double step = 0.5;
+    double step = GetStepAngle(BufferWi, BufferHt);
     std::vector< std::vector<double> > temp_colors_pct(BufferWi, std::vector<double>(BufferHt));
     double eff_pos = GetEffectTimeIntervalPosition();
     int num_colors = palette.Size();
