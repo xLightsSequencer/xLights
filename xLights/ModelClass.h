@@ -365,6 +365,7 @@ private:
     void InitVMatrix(int firstExportStrand = 0);
     void InitHMatrix();
     void InitArches();
+    void InitCircle();
     void InitFrame();
     void InitStar();
     void InitWreath();
@@ -379,6 +380,7 @@ private:
 
     void SetLineCoord();
     void SetArchCoord();
+    void SetCircleCoord();
     int GetCustomMaxChannel(const wxString& customModel);
     void InitCustomMatrix(const wxString& customModel);
     double toRadians(long degrees);

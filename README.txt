@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil)   Add Circle model class.
     -- enh(gil)   Smaller step angle for Fan, Galaxy, and Shockwave to support larger models.
 4.2.20  Nov 4, 2015
     -- enh(gil)   Add 3 more DMX channels to support larger channel DMX lights.

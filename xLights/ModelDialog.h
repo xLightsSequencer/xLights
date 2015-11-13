@@ -5,18 +5,18 @@
 #include <map>
 
 //(*Headers(ModelDialog)
-#include <wx/bmpbuttn.h>
-#include <wx/grid.h>
-#include <wx/spinctrl.h>
-#include <wx/checkbox.h>
-#include <wx/dialog.h>
 #include <wx/sizer.h>
-#include <wx/button.h>
-#include <wx/radiobut.h>
 #include <wx/stattext.h>
-#include <wx/clrpicker.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/spinctrl.h>
+#include <wx/radiobut.h>
+#include <wx/grid.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
+#include <wx/button.h>
+#include <wx/dialog.h>
+#include <wx/clrpicker.h>
 //*)
 
 class NetInfoClass;
@@ -35,47 +35,47 @@ public:
     void UpdateXml(wxXmlNode* e);
 
     //(*Declarations(ModelDialog)
-    wxSpinCtrl* SpinCtrl_StartChannel;
+    wxStaticText* StaticText9;
     wxSpinCtrl* SpinCtrl_parm2;
-    wxButton* Button_CustomModelZoomOut;
-    wxCheckBox* cbIndividualStartNumbers;
-    wxCheckBox* CheckBox_MyDisplay;
-    wxRadioButton* RadioButton_TopRight;
-    wxStaticText* StaticText_Nodes;
-    wxFlexGridSizer* OuterSizer;
-    wxRadioButton* RadioButton_BotLeft;
-    wxRadioButton* RadioButton_TopLeft;
-    wxStaticText* StaticText_Strands;
-    wxChoice* Choice_StringType;
-    wxSpinCtrl* TreeFirstStringForExport;
-    wxButton* ButtonCustomModelHelp;
-    wxGrid* GridCustom;
-    wxStaticText* StaticText1;
-    wxGrid* gridStartChannels;
-    wxChoice* Choice_DisplayAs;
-    wxStaticText* StaticText3;
     wxColourPickerCtrl* ColorPicker;
-    wxStaticText* ExtraParameterLabel;
-    wxRadioButton* RadioButton_BotRight;
-    wxStaticText* StaticText8;
-    wxButton* ButtonDimCurve;
+    wxSpinCtrl* SpinCtrl_parm1;
+    wxStaticText* StaticText_Strings;
     wxTextCtrl* TextCtrl_Name;
-    wxBitmapButton* BitmapButtonCustomPaste;
-    wxStaticText* StaticText7;
-    wxTextCtrl* StarSizes;
-    wxStaticText* StaticText4;
-    wxStaticText* StaticText5;
-    wxButton* Button_CustomModelZoomIn;
-    wxBitmapButton* BitmapButtonCustomCopy;
+    wxStaticText* StaticTextCustomModel;
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrl_parm3;
-    wxSpinCtrl* SpinCtrl_parm1;
+    wxFlexGridSizer* OuterSizer;
+    wxStaticText* StaticText8;
+    wxStaticText* StaticText1;
+    wxTextCtrl* StarSizes;
+    wxStaticText* StaticText3;
+    wxChoice* Choice_StringType;
+    wxSpinCtrl* TreeFirstStringForExport;
+    wxButton* Button_CustomModelZoomIn;
+    wxGrid* GridCustom;
+    wxBitmapButton* BitmapButtonCustomPaste;
     wxFlexGridSizer* LeftGridSizer;
-    wxStaticText* StaticText9;
-    wxSpinCtrl* OutputSpinCtrl;
+    wxRadioButton* RadioButton_TopLeft;
+    wxRadioButton* RadioButton_BotLeft;
+    wxCheckBox* CheckBox_MyDisplay;
+    wxStaticText* StaticText5;
+    wxStaticText* StaticText7;
+    wxBitmapButton* BitmapButtonCustomCopy;
+    wxCheckBox* cbIndividualStartNumbers;
+    wxStaticText* ExtraParameterLabel;
+    wxButton* ButtonCustomModelHelp;
+    wxButton* ButtonDimCurve;
+    wxGrid* gridStartChannels;
     wxBitmapButton* BitmapButtonCustomCut;
-    wxStaticText* StaticTextCustomModel;
-    wxStaticText* StaticText_Strings;
+    wxChoice* Choice_DisplayAs;
+    wxStaticText* StaticText4;
+    wxButton* Button_CustomModelZoomOut;
+    wxRadioButton* RadioButton_BotRight;
+    wxSpinCtrl* SpinCtrl_StartChannel;
+    wxRadioButton* RadioButton_TopRight;
+    wxStaticText* StaticText_Strands;
+    wxStaticText* StaticText_Nodes;
+    wxSpinCtrl* OutputSpinCtrl;
     //*)
 
 protected:

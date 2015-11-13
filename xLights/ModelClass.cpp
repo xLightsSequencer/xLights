@@ -233,7 +233,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     tempstr.ToLong(&n);
     transparency = n;
     blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency","0"));
-    
+
     MyDisplay=IsMyDisplay(ModelNode);
 
     tempstr=ModelNode->GetAttribute("offsetXpct","0");
@@ -350,6 +350,9 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     } else if (DisplayAs == "Arches") {
         InitArches();
         SetArchCoord();
+    } else if (DisplayAs == "Circle") {
+        InitCircle();
+        SetCircleCoord();
     } else if (DisplayAs == "Window Frame") {
         InitFrame();
         CopyBufCoord2ScreenCoord();
@@ -403,7 +406,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
         }
         f = f->GetNext();
     }
-    
+
     if (ModelNode->HasAttribute("ModelBrightness") && modelDimmingCurve == nullptr) {
         int b = wxAtoi(ModelNode->GetAttribute("ModelBrightness"));
         if (b != 0) {
@@ -582,6 +585,33 @@ void ModelClass::SetArchCoord() {
         }
     }
 }
+
+void ModelClass::InitCircle() {
+    InitLine();
+}
+
+// Set screen coordinates for circles
+void ModelClass::SetCircleCoord() {
+    double xoffset,x,y;
+    int numlights=parm1*parm2*parm3;
+    size_t NodeCount=GetNodeCount();
+    SetRenderSize(parm2*parm3,numlights*2);
+    double midpt=parm2*parm3;
+    midpt -= 1.0;
+    midpt /= 2.0;
+    for(size_t n=0; n<NodeCount; n++) {
+        xoffset=Nodes[n]->StringNum*parm2*parm3*2 - numlights;
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++) {
+            double angle=-M_PI + M_PI * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c))/midpt;
+            x=xoffset + midpt*sin(angle)*2.0+parm2*parm3;
+            y=(parm2*parm3)*cos(angle);
+            Nodes[n]->Coords[c].screenX=x;
+            Nodes[n]->Coords[c].screenY=y/2;
+        }
+    }
+}
+
 // initialize buffer coordinates
 // parm1=NumStrings
 // parm2=PixelsPerString
