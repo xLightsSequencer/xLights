@@ -478,6 +478,18 @@ void ModelDialog::UpdateLabels()
         //SpinCtrl_parm3->SetValue(1);
         SpinCtrl_parm3->Enable(true);
     }
+    else if (DisplayAs == "Circle")
+    {
+        StaticText_Strings->SetLabelText(_("Actual # of Strings"));
+        s=_("# of ") + NodeLabel + _(" per String");
+        StaticText_Nodes->SetLabelText(s);
+        StaticText_Strands->SetLabelText(_("Center %"));
+        SpinCtrl_parm3->Enable(true);
+        ExtraParameterLabel->SetLabel("Circle Sizes (Outer to Inner)");
+        ExtraParameterLabel->Show();
+        StarSizes->Show();
+
+    }
     else if (DisplayAs == "Tree 360" || DisplayAs == "Tree 270" || DisplayAs == "Sphere 360" || DisplayAs == "Sphere 270")
     {
         ExtraParameterLabel->SetLabel("First Strand for Export");
@@ -820,7 +832,8 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute("BlackTransparency");
     e->DeleteAttribute("PreviewBrightness");
     e->DeleteAttribute("Transparency");
-    e->DeleteAttribute("starSizes");
+    if (e->HasAttribute("starSizes")) e->DeleteAttribute("starSizes");
+    if (e->HasAttribute("circleSizes")) e->DeleteAttribute("circleSizes");
     e->DeleteAttribute("exportFirstStrand");
     e->DeleteAttribute("NodeNames");
     e->DeleteAttribute("StrandNames");
@@ -828,6 +841,9 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->AddAttribute("StringType", Choice_StringType->GetStringSelection());
     if (Choice_DisplayAs->GetStringSelection() == "Star") {
         e->AddAttribute("starSizes", StarSizes->GetValue());
+    }
+    if (Choice_DisplayAs->GetStringSelection() == "Circle") {
+        e->AddAttribute("circleSizes", StarSizes->GetValue());
     }
     if (Choice_DisplayAs->GetStringSelection() == "Tree 360"
         || Choice_DisplayAs->GetStringSelection() == "Tree 270") {
@@ -918,7 +934,12 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
     SpinCtrl_parm1->SetValue(e->GetAttribute("parm1"));
     SpinCtrl_parm2->SetValue(e->GetAttribute("parm2"));
     SpinCtrl_parm3->SetValue(e->GetAttribute("parm3"));
-    StarSizes->SetValue(e->GetAttribute("starSizes"));
+    if(e->HasAttribute("starSizes")) {
+        StarSizes->SetValue(e->GetAttribute("starSizes"));
+    }
+    if(e->HasAttribute("circleSizes")) {
+        StarSizes->SetValue(e->GetAttribute("circleSizes"));
+    }
 
     SpinCtrl_StartChannel->Enable(true);
     OutputSpinCtrl->Enable(true);
@@ -1014,7 +1035,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
 
     faceInfo.clear();
     dimmingInfo.clear();
-    
+
     wxXmlNode *f = e->GetChildren();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {

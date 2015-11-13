@@ -389,6 +389,7 @@ private:
 
 
     std::vector<int> starSizes;
+    std::vector<int> circleSizes;
 
     int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
     int pixelSize = 2;
@@ -552,11 +553,16 @@ public:
             return parm1*parm3;
         } else if (token == wxT("Star"))
             return starSizes.size();
+        else if (token == wxT("Circle"))
+            return circleSizes.size();
         else
             return 1;
     }
     int GetStarSize(int starLayer) const {
         return starSizes[starLayer];
+    }
+    int GetCircleSize(int circleLayer) const {
+        return circleSizes[circleLayer];
     }
     wxString GetStrandName(int x, bool def = false) const {
         if (x < strandNames.size()) {
