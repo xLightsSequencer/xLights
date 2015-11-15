@@ -60,7 +60,7 @@ void RgbEffects::RenderShockwave(int center_x, int center_y, int start_radius, i
     if( num_colors == 0 )
         num_colors = 1;
     xlColor color, c_old, c_new;
-    double eff_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
+    double eff_pos_adj = calcAccel(eff_pos, acceleration);
 
     double blend_pct = 1.0 / (num_colors-1);
     double color_pct1 = eff_pos_adj / blend_pct;

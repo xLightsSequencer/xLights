@@ -38,7 +38,7 @@ void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end
     if( num_colors == 0 )
         num_colors = 1;
     xlColor color, c_old, c_new;
-    double eff_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
+    double eff_pos_adj = calcAccel(eff_pos, acceleration);
     double revs = (double)revolutions;
 
     double pos_x = BufferWi * center_x/100.0;

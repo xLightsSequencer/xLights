@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Correct calculation for acceleration and deceleration of Morph, Fan, Galaxy, and Shockwave.
     -- enh(gil)   Increase spinner limit for model start channel and from output. Fixes #408.
     -- enh(gil)   Add concentric circle capability to new Circle model class.
     -- enh(gil)   Add Circle model class.
