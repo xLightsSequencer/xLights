@@ -164,12 +164,12 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     LeftGridSizer->Add(StaticText6, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer2->AddGrowableCol(1);
-    SpinCtrl_StartChannel = new wxSpinCtrl(this, ID_SPINCTRL4, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(55,-1)), 0, 1, 99999, 1, _T("ID_SPINCTRL4"));
+    SpinCtrl_StartChannel = new wxSpinCtrl(this, ID_SPINCTRL4, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(55,-1)), 0, 1, 999999, 1, _T("ID_SPINCTRL4"));
     SpinCtrl_StartChannel->SetValue(_T("1"));
     FlexGridSizer2->Add(SpinCtrl_StartChannel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText4 = new wxStaticText(this, ID_STATICTEXT9, _("From Output:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
     FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    OutputSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL6, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(45,-1)), 0, 1, 255, 1, _T("ID_SPINCTRL6"));
+    OutputSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL6, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(45,-1)), 0, 1, 64000, 1, _T("ID_SPINCTRL6"));
     OutputSpinCtrl->SetValue(_T("1"));
     FlexGridSizer2->Add(OutputSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);

@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil)   Increase spinner limit for model start channel and from output. Fixes #408.
     -- enh(gil)   Add concentric circle capability to new Circle model class.
     -- enh(gil)   Add Circle model class.
     -- enh(gil)   Smaller step angle for Fan, Galaxy, and Shockwave to support larger models.

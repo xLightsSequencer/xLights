@@ -191,7 +191,7 @@
 								<object class="wxSpinCtrl" name="ID_SPINCTRL4" variable="SpinCtrl_StartChannel" member="yes">
 									<value>1</value>
 									<min>1</min>
-									<max>99999</max>
+									<max>999999</max>
 									<size>55,-1d</size>
 									<handler function="OnSpinCtrl_StartChannelChange" entry="EVT_SPINCTRL" />
 								</object>
@@ -211,7 +211,7 @@
 								<object class="wxSpinCtrl" name="ID_SPINCTRL6" variable="OutputSpinCtrl" member="yes">
 									<value>1</value>
 									<min>1</min>
-									<max>255</max>
+									<max>64000</max>
 									<size>45,-1d</size>
 									<handler function="OnSpinCtrl_StartChannelChange" entry="EVT_SPINCTRL" />
 								</object>
