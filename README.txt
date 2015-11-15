@@ -7,11 +7,16 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.22  Nov 15, 2015
     -- bug(gil)   Correct calculation for acceleration and deceleration of Morph, Fan, Galaxy, and Shockwave.
     -- enh(gil)   Increase spinner limit for model start channel and from output. Fixes #408.
     -- enh(gil)   Add concentric circle capability to new Circle model class.
-    -- enh(gil)   Add Circle model class.
-    -- enh(gil)   Smaller step angle for Fan, Galaxy, and Shockwave to support larger models.
+4.2.21  Nov 13, 2015
+    -- enh(gil)  Add Circle model class.
+    -- enh(gil)  Smaller step angle for Fan, Galaxy, and Shockwave to support larger models.
+	-- enh(sean) Smaller step angle for Pinwheel, this allows the edges to show correctly on larger displays
+	-- bug(dan)  Fix chases in single strand.  Calc the correct offset and direction for the starting point
+	-- bug (dan) change e1.31 optimization so data gets sent when nothing has changed
 4.2.20  Nov 4, 2015
     -- enh(gil)   Add 3 more DMX channels to support larger channel DMX lights.
     -- enh(dkulp) Change the ModelBrightness stuff to a full fledged multi-channel dimming curve supporting
