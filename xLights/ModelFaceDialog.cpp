@@ -426,27 +426,28 @@ wxString NodesGridCellEditor::GetValue() const
 void ModelFaceDialog::SetFaceInfo(ModelClass *cls, std::map< wxString, std::map<wxString, wxString> > &finfo) {
     NodeRangeGrid->SetColSize(1, 50);
     SingleNodeGrid->SetColSize(1, 50);
+    NameChoice->Clear();
     
     for (std::map< wxString, std::map<wxString, wxString> >::iterator it = finfo.begin();
          it != finfo.end(); it++) {
 
-        wxString type = it->first;
+        wxString name = it->first;
         std::map<wxString, wxString> &info = it->second;
 
-        NameChoice->Append(type);
+        NameChoice->Append(name);
 
         wxString type2 = info["Type"];
         if (type2 == "") {
             //old style, map
-            if (type == "Coro" || type == "SingleNode") {
+            if (name == "Coro" || name == "SingleNode") {
                 info["Type"] = "SingleNode";
-            } else if (type == "NodeRange") {
+            } else if (name == "NodeRange") {
                 info["Type"] = "NodeRange";
             } else {
                 info["Type"] = "Matrix";
             }
         }
-        faceData[type] = info;
+        faceData[name] = info;
     }
 
     if (NameChoice->GetCount() > 0) {
@@ -523,15 +524,18 @@ void ModelFaceDialog::SelectFaceModel(const wxString &name) {
     wxString type = faceData[name]["Type"];
     if (type == "") {
         type = "SingleNode";
+        faceData[name]["Type"] = type;
     }
     if (type == "SingleNode") {
-        FaceTypeChoice->SetSelection(SINGLE_NODE_FACE);
-        CustomColorSingleNode->SetValue(SetGrid(SingleNodeGrid, faceData[name]));
+        FaceTypeChoice->ChangeSelection(SINGLE_NODE_FACE);
+        std::map<wxString, wxString> &info = faceData[name];
+        CustomColorSingleNode->SetValue(SetGrid(SingleNodeGrid, info));
     } else if (type == "NodeRange") {
-        FaceTypeChoice->SetSelection(NODE_RANGE_FACE);
-        CustomColorNodeRanges->SetValue(SetGrid(NodeRangeGrid, faceData[name]));
+        FaceTypeChoice->ChangeSelection(NODE_RANGE_FACE);
+        std::map<wxString, wxString> &info = faceData[name];
+        CustomColorNodeRanges->SetValue(SetGrid(NodeRangeGrid, info));
     } else {
-        FaceTypeChoice->SetSelection(MATRIX_FACE);
+        FaceTypeChoice->ChangeSelection(MATRIX_FACE);
         for (int r = 0; r < MatrixModelsGrid->GetNumberRows(); r++) {
             for (int c = 0; c < MatrixModelsGrid->GetNumberCols(); c++) {
                 wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
