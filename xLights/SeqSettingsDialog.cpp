@@ -899,38 +899,60 @@ void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
 {
     LayerTreeItemData* data = (LayerTreeItemData*)TreeCtrl_Data_Layers->GetItemData(selected_branch);
     DataLayer* layer = data->GetLayer();
+    Button_Close->Enable(false);
     wxString media_filename;
     wxFileName full_name(layer->GetSource());
-    if( full_name.GetExt() == "lms" )
+    ConvertParameters conv_params(layer->GetSource(),                                       // input filename
+                                  layer->GetSequenceData(),                                 // sequence data object
+                                  xLightsParent->GetNetInfo(),                              // global network info
+                                  ConvertParameters::READ_MODE_NORMAL,                      // file read mode
+                                  xLightsParent,                                            // xLights main frame
+                                  &media_filename,                                          // media filename
+                                  layer,                                                    // data layer to fill in header info
+                                  layer->GetDataSource(),                                   // output filename
+                                  atoi(xml_file->GetSequenceTiming().c_str()),              // sequence timing
+                                  layer->GetLORConvertParams() & 0x1,                       // turn off all channels at end
+                                  (layer->GetLORConvertParams() >> 1) & 0x1,                // map empty channels (mainly LOR)
+                                  (layer->GetLORConvertParams() >> 2) & 0x1 );              // map no network channels (mainly LOR)
+    if( full_name.GetExt() == "lms" || full_name.GetExt() == "las")
     {
-        ConvertParameters conv_params(layer->GetSource(),                                       // input filename
-                                      layer->GetSequenceData(),                                 // sequence data object
-                                      xLightsParent->GetNetInfo(),                              // global network info
-                                      ConvertParameters::READ_MODE_NORMAL,                      // file read mode
-                                      xLightsParent,                                            // xLights main frame
-                                      &media_filename,                                          // media filename
-                                      layer,                                                    // data layer to fill in header info
-                                      layer->GetDataSource(),                                   // output filename
-                                      atoi(xml_file->GetSequenceTiming().c_str()),              // sequence timing
-                                      layer->GetLORConvertParams() & 0x1,                       // turn off all channels at end
-                                      (layer->GetLORConvertParams() >> 1) & 0x1,                // map empty channels (mainly LOR)
-                                      (layer->GetLORConvertParams() >> 2) & 0x1 );              // map no network channels (mainly LOR)
         FileConverter::ReadLorFile(conv_params);
+        FileConverter::WriteFalconPiFile( conv_params );
+    }
+    else if( full_name.GetExt() == "xseq" )
+    {
+        FileConverter::ReadXlightsFile(conv_params);
+        FileConverter::WriteFalconPiFile( conv_params );
+    }
+    else if( full_name.GetExt() == "hlsIdata" )
+    {
+        FileConverter::ReadHLSFile(conv_params);
+        FileConverter::WriteFalconPiFile( conv_params );
+    }
+    else if( full_name.GetExt() == "vix" )
+    {
+        FileConverter::ReadVixFile(conv_params);
+        FileConverter::WriteFalconPiFile( conv_params );
+    }
+    else if( full_name.GetExt() == "gled" )
+    {
+        FileConverter::ReadGlediatorFile(conv_params);
+        FileConverter::WriteFalconPiFile( conv_params );
+    }
+    else if( full_name.GetExt() == "seq" )
+    {
+        FileConverter::ReadConductorFile(conv_params);
         FileConverter::WriteFalconPiFile( conv_params );
     }
     else if( full_name.GetExt() == "iseq" || full_name.GetExt() == "fseq")
     {
         // we read only the header to fill in the channel count info
-        ConvertParameters conv_params(layer->GetSource(),                                       // input filename
-                                      layer->GetSequenceData(),                                 // sequence data object
-                                      xLightsParent->GetNetInfo(),                              // global network info
-                                      ConvertParameters::READ_MODE_HEADER_ONLY,                 // file read mode
-                                      xLightsParent,                                            // xLights main frame
-                                      nullptr,                                                  // media filename
-                                      layer );                                                  // data layer to fill in header info
+        conv_params.read_mode = ConvertParameters::READ_MODE_HEADER_ONLY;
+        conv_params.media_filename = nullptr;
         FileConverter::ReadFalconFile(conv_params);
     }
-    // TreeCtrl_Data_Layers->SetItemText(branch_num_channels, wxString::Format("Number of Channels: %d", new_data_layer->GetNumChannels()));  FIXME update in case channel number changes
+    //TreeCtrl_Data_Layers->SetItemText(branch_num_channels, wxString::Format("Number of Channels: %d", new_data_layer->GetNumChannels()));  FIXME update in case channel number changes
+    Button_Close->Enable(true);
 }
 
 void SeqSettingsDialog::UpdateDataLayer()

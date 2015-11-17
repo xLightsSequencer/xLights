@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Fix Data Layer re-import so it works for all supported file types. Fixes #391.
     -- bug(gil)   Fix pictures effect so wrapping doesn't leave a gap.
     -- bug(dkulp) Fix some problems with the Faces dialog where the first face would get it's data deleted.
 4.2.22  Nov 15, 2015
