@@ -334,6 +334,10 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
     // copy image to buffer
     xlColour c;
     bool hasAlpha = image.HasAlpha();
+
+    int calc_position_wi = (imgwidth+BufferWi)*position;
+    int calc_position_ht = (imght+BufferHt)*position;
+
     for(int x=0; x<imgwidth; x++)
     {
         for(int y=0; y<imght; y++)
@@ -349,30 +353,30 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
                 switch (dir)
                 {
                 case RENDER_PICTURE_LEFT: //0:
-                    ProcessPixel(x+BufferWi-((imgwidth+BufferWi+xoffset_adj)*position),yoffset-y-yoffset_adj,c, wrap_x, imgwidth);
+                    ProcessPixel(x+xoffset_adj+BufferWi-calc_position_wi,yoffset-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // left
                 case RENDER_PICTURE_RIGHT: //1:
-                    ProcessPixel(x+((imgwidth+BufferWi+xoffset_adj)*position)-imgwidth,yoffset-y-yoffset_adj,c, wrap_x, imgwidth);
+                    ProcessPixel(x+xoffset_adj+calc_position_wi-imgwidth,yoffset-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // right
                 case RENDER_PICTURE_UP: //2:
                 case RENDER_PICTURE_UPONCE: //18
-                    ProcessPixel(x-xoffset+xoffset_adj,((imght+BufferHt)*position)-y-yoffset_adj,c, wrap_x, imgwidth);
+                    ProcessPixel(x-xoffset+xoffset_adj,calc_position_ht-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // up
                 case RENDER_PICTURE_DOWN: //3:
                 case RENDER_PICTURE_DOWNONCE: //19
-                    ProcessPixel(x-xoffset+xoffset_adj,BufferHt+imght-y-yoffset_adj-((imght+BufferHt)*position),c, wrap_x, imgwidth);
+                    ProcessPixel(x-xoffset+xoffset_adj,BufferHt+imght-y-yoffset_adj-calc_position_ht,c, wrap_x, imgwidth);
                     break; // down
                 case RENDER_PICTURE_UPLEFT: //5:
-                    ProcessPixel(x+xoffset_adj+BufferWi-((imgwidth+BufferWi)*position),((imght+BufferHt)*position)-y-yoffset_adj,c, wrap_x, imgwidth);
+                    ProcessPixel(x+xoffset_adj+BufferWi-calc_position_wi,calc_position_ht-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // up-left
                 case RENDER_PICTURE_DOWNLEFT: //6:
-                    ProcessPixel(x+xoffset_adj+BufferWi-((imgwidth+BufferWi)*position),BufferHt+imght-y-yoffset_adj-((imght+BufferHt)*position),c, wrap_x, imgwidth);
+                    ProcessPixel(x+xoffset_adj+BufferWi-calc_position_wi,BufferHt+imght-y-yoffset_adj-calc_position_ht,c, wrap_x, imgwidth);
                     break; // down-left
                 case RENDER_PICTURE_UPRIGHT: //7:
-                    ProcessPixel(x+xoffset_adj+((imgwidth+BufferWi)*position)-imgwidth,((imght+BufferHt)*position)-y-yoffset_adj,c, wrap_x, imgwidth);
+                    ProcessPixel(x+xoffset_adj+calc_position_wi-imgwidth,calc_position_ht-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // up-right
                 case RENDER_PICTURE_DOWNRIGHT: //8:
-                    ProcessPixel(x+xoffset_adj+((imgwidth+BufferWi)*position)-imgwidth,BufferHt+imght-y-yoffset_adj-((imght+BufferHt)*position),c, wrap_x, imgwidth);
+                    ProcessPixel(x+xoffset_adj+calc_position_wi-imgwidth,BufferHt+imght-y-yoffset_adj-calc_position_ht,c, wrap_x, imgwidth);
                     break; // down-right
 
                 case RENDER_PICTURE_PEEKABOO_0: //10: //up+down 1x (peekaboo) -DJ

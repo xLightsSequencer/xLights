@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Fix pictures effect so wrapping doesn't leave a gap.
     -- bug(dkulp) Fix some problems with the Faces dialog where the first face would get it's data deleted.
 4.2.22  Nov 15, 2015
     -- bug(gil)   Correct calculation for acceleration and deceleration of Morph, Fan, Galaxy, and Shockwave.
