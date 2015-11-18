@@ -2426,7 +2426,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     GridBagSizerFanPosition->Add(BitmapButton_Fan_CenterY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText143 = new wxStaticText(Panel9, ID_STATICTEXT136, _("Radius1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT136"));
     GridBagSizerFanPosition->Add(StaticText143, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Fan_Start_Radius = new wxSlider(Panel9, ID_SLIDER_Fan_Start_Radius, 1, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fan_Start_Radius"));
+    Slider_Fan_Start_Radius = new wxSlider(Panel9, ID_SLIDER_Fan_Start_Radius, 1, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fan_Start_Radius"));
     GridBagSizerFanPosition->Add(Slider_Fan_Start_Radius, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Fan_Start_Radius = new wxTextCtrl(Panel9, IDD_TEXTCTRL_Fan_Start_Radius, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel9,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Fan_Start_Radius"));
     TextCtrl_Fan_Start_Radius->SetMaxLength(3);
@@ -2446,7 +2446,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     GridBagSizerFanPosition->Add(BitmapButton_Fan_Start_Angle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText144 = new wxStaticText(Panel9, ID_STATICTEXT141, _("Radius2:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT141"));
     GridBagSizerFanPosition->Add(StaticText144, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Fan_End_Radius = new wxSlider(Panel9, ID_SLIDER_Fan_End_Radius, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fan_End_Radius"));
+    Slider_Fan_End_Radius = new wxSlider(Panel9, ID_SLIDER_Fan_End_Radius, 10, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fan_End_Radius"));
     GridBagSizerFanPosition->Add(Slider_Fan_End_Radius, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Fan_End_Radius = new wxTextCtrl(Panel9, IDD_TEXTCTRL_Fan_End_Radius, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel9,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Fan_End_Radius"));
     TextCtrl_Fan_End_Radius->SetMaxLength(3);
@@ -2679,7 +2679,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_CenterY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText127 = new wxStaticText(Panel6, ID_STATICTEXT125, _("Radius:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT125"));
     GridBagSizerGalaxyStart->Add(StaticText127, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Galaxy_Start_Radius = new wxSlider(Panel6, ID_SLIDER_Galaxy_Start_Radius, 1, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Start_Radius"));
+    Slider_Galaxy_Start_Radius = new wxSlider(Panel6, ID_SLIDER_Galaxy_Start_Radius, 1, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Start_Radius"));
     GridBagSizerGalaxyStart->Add(Slider_Galaxy_Start_Radius, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Galaxy_Start_Radius = new wxTextCtrl(Panel6, IDD_TEXTCTRL_Galaxy_Start_Radius, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel6,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_Start_Radius"));
     TextCtrl_Galaxy_Start_Radius->SetMaxLength(3);
@@ -2715,7 +2715,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     GridBagSizerGalaxyEnd->AddGrowableCol(1);
     StaticText138 = new wxStaticText(Panel7, ID_STATICTEXT130, _("Radius:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT130"));
     GridBagSizerGalaxyEnd->Add(StaticText138, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Galaxy_End_Radius = new wxSlider(Panel7, ID_SLIDER_Galaxy_End_Radius, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_End_Radius"));
+    Slider_Galaxy_End_Radius = new wxSlider(Panel7, ID_SLIDER_Galaxy_End_Radius, 10, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_End_Radius"));
     GridBagSizerGalaxyEnd->Add(Slider_Galaxy_End_Radius, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Galaxy_End_Radius = new wxTextCtrl(Panel7, IDD_TEXTCTRL_Galaxy_End_Radius, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel7,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_End_Radius"));
     TextCtrl_Galaxy_End_Radius->SetMaxLength(3);
@@ -3896,7 +3896,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer100->Add(BitmapButton_Shockwave_CenterY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText156 = new wxStaticText(Panel10, ID_STATICTEXT152, _("Radius1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT152"));
     FlexGridSizer100->Add(StaticText156, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Shockwave_Start_Radius = new wxSlider(Panel10, ID_SLIDER_Shockwave_Start_Radius, 1, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_Start_Radius"));
+    Slider_Shockwave_Start_Radius = new wxSlider(Panel10, ID_SLIDER_Shockwave_Start_Radius, 1, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_Start_Radius"));
     FlexGridSizer100->Add(Slider_Shockwave_Start_Radius, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Shockwave_Start_Radius = new wxTextCtrl(Panel10, IDD_TEXTCTRL_Shockwave_Start_Radius, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel10,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Shockwave_Start_Radius"));
     TextCtrl_Shockwave_Start_Radius->SetMaxLength(3);
@@ -3906,7 +3906,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer100->Add(BitmapButton_Shockwave_Start_Radius, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText158 = new wxStaticText(Panel10, ID_STATICTEXT154, _("Radius2:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT154"));
     FlexGridSizer100->Add(StaticText158, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Shockwave_End_Radius = new wxSlider(Panel10, ID_SLIDER_Shockwave_End_Radius, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_End_Radius"));
+    Slider_Shockwave_End_Radius = new wxSlider(Panel10, ID_SLIDER_Shockwave_End_Radius, 10, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_End_Radius"));
     FlexGridSizer100->Add(Slider_Shockwave_End_Radius, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Shockwave_End_Radius = new wxTextCtrl(Panel10, IDD_TEXTCTRL_Shockwave_End_Radius, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel10,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Shockwave_End_Radius"));
     TextCtrl_Shockwave_End_Radius->SetMaxLength(3);

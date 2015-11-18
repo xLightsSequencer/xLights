@@ -2770,7 +2770,7 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Fan_Start_Radius" variable="Slider_Fan_Start_Radius" member="no">
 															<value>1</value>
-															<max>200</max>
+															<max>250</max>
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2853,7 +2853,7 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Fan_End_Radius" variable="Slider_Fan_End_Radius" member="no">
 															<value>10</value>
-															<max>200</max>
+															<max>250</max>
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3678,7 +3678,7 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Galaxy_Start_Radius" variable="Slider_Galaxy_Start_Radius" member="no">
 															<value>1</value>
-															<max>200</max>
+															<max>250</max>
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3812,7 +3812,7 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Galaxy_End_Radius" variable="Slider_Galaxy_End_Radius" member="no">
 															<value>10</value>
-															<max>200</max>
+															<max>250</max>
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -7896,7 +7896,7 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Radius" variable="Slider_Shockwave_Start_Radius" member="no">
 															<value>1</value>
-															<max>200</max>
+															<max>250</max>
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -7938,7 +7938,7 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Radius" variable="Slider_Shockwave_End_Radius" member="no">
 															<value>10</value>
-															<max>200</max>
+															<max>250</max>
 															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
