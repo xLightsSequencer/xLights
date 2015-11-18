@@ -3221,7 +3221,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer86->Add(BitmapButton_Morph_Start_Y2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText115 = new wxStaticText(MorphPanelStart, ID_STATICTEXT115, _("Head Length:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT115"));
     FlexGridSizer86->Add(StaticText115, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_MorphStartLength = new wxSlider(MorphPanelStart, ID_SLIDER_MorphStartLength, 1, 0, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphStartLength"));
+    Slider_MorphStartLength = new wxSlider(MorphPanelStart, ID_SLIDER_MorphStartLength, 1, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphStartLength"));
     FlexGridSizer86->Add(Slider_MorphStartLength, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_MorphStartLength = new wxTextCtrl(MorphPanelStart, IDD_TEXTCTRL_MorphStartLength, _("1"), wxDefaultPosition, wxDLG_UNIT(MorphPanelStart,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_MorphStartLength"));
     TextCtrl_MorphStartLength->SetMaxLength(3);
@@ -3295,7 +3295,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer94->Add(BitmapButton_Morph_End_Y2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText122 = new wxStaticText(MorphPanelEnd, ID_STATICTEXT122, _("Head Length:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT122"));
     FlexGridSizer94->Add(StaticText122, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_MorphEndLength = new wxSlider(MorphPanelEnd, ID_SLIDER_MorphEndLength, 1, 0, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphEndLength"));
+    Slider_MorphEndLength = new wxSlider(MorphPanelEnd, ID_SLIDER_MorphEndLength, 1, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphEndLength"));
     FlexGridSizer94->Add(Slider_MorphEndLength, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_MorphEndLength = new wxTextCtrl(MorphPanelEnd, IDD_TEXTCTRL_MorphEndLength, _("1"), wxDefaultPosition, wxDLG_UNIT(MorphPanelEnd,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_MorphEndLength"));
     TextCtrl_MorphEndLength->SetMaxLength(3);
@@ -3337,7 +3337,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer99->Add(BitmapButton_MorphAccel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText171 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT97, _("Repeat Count:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT97"));
     FlexGridSizer99->Add(StaticText171, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Morph_Repeat_Count = new wxSlider(MorphPanelOptions, ID_SLIDER_Morph_Repeat_Count, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Repeat_Count"));
+    Slider_Morph_Repeat_Count = new wxSlider(MorphPanelOptions, ID_SLIDER_Morph_Repeat_Count, 0, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Repeat_Count"));
     FlexGridSizer99->Add(Slider_Morph_Repeat_Count, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Morph_Repeat_Count = new wxTextCtrl(MorphPanelOptions, IDD_TEXTCTRL_Morph_Repeat_Count, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelOptions,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Repeat_Count"));
     TextCtrl_Morph_Repeat_Count->SetMaxLength(3);
