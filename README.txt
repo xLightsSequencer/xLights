@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil)   Slight tweak to Fan, Galaxy, and Shockwave so that step angle is 0.1 for > 350 instead of 400.
     -- bug(gil)   Fix Data Layer re-import so it works for all supported file types. Fixes #391.
     -- bug(gil)   Fix pictures effect so wrapping doesn't leave a gap.
     -- bug(dkulp) Fix some problems with the Faces dialog where the first face would get it's data deleted.

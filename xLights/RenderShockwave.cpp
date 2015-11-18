@@ -43,7 +43,7 @@ double RgbEffects::GetStepAngle(int width, int height)
     {
         step = 0.2;
     }
-    if( biggest > 400 )
+    if( biggest > 350 )
     {
         step = 0.1;
     }
