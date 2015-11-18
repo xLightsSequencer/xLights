@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.2.23  Nov 18, 2015
     -- enh(gil)   Increase max head length and repeat count for Morph.
     -- enh(gil)   Increase max radius from 200 to 250 for Fan, Galaxy, and Shockwave.
     -- enh(gil)   Slight tweak to Fan, Galaxy, and Shockwave so that step angle is 0.1 for > 350 instead of 400.

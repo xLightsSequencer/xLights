@@ -28,8 +28,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"
-Source: "C:\Users\Sean_Dell\wxwidgets-3.0.2\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
-Source: "C:\Users\Sean_Dell\wxwidgets-3.0.2\lib\gcc_dll\wxmsw30u_gl_gcc_custom.dll"; DestDir: "{app}"
+Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
+Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gl_gcc_custom.dll"; DestDir: "{app}"
 ;Source: "C:\Users\Sean_Dell\wxwidgets-3.0.2\lib\gcc_dll\wxmsw30ud_gl_gcc_custom.dll"; DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\bin\glut32.dll"; DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\bin\libmpg123-0.dll"; DestDir: "{app}"
