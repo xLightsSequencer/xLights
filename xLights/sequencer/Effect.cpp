@@ -692,6 +692,9 @@ const wxString &Effect::GetEffectName(int idx)
 
 int Effect::GetEffectIndex(const wxString &effectName)
 {
+    if ("None" == effectName) {
+        return -1;
+    }
     for (int x = 0; x < effectMap.size(); x++)
     {
         if (effectMap[x] == effectName)

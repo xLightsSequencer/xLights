@@ -17,7 +17,35 @@ public:
     wxString &operator[](const wxString &key) {
         return std::map<wxString, wxString>::operator[](key);
     }
+    int GetInt(const wxString &key, const int def) const {
+        std::map<wxString,wxString>::const_iterator i(find(key));
+        if (i == end() || i->second.Length() == 0) {
+            return def;
+        }
+        return wxAtoi(i->second);
+    }
+    double GetDouble(const wxString &key, const double &def) const {
+        std::map<wxString,wxString>::const_iterator i(find(key));
+        if (i == end()) {
+            return def;
+        }
+        return wxAtof(i->second);
+    }
+    bool GetBool(const wxString &key, const bool def = false) const {
+        std::map<wxString,wxString>::const_iterator i(find(key));
+        if (i == end()) {
+            return def;
+        }
+        return i->second.Length() >= 1 && i->second.GetChar(0) == '1';
+    }
     const wxString &Get(const wxString &key, const wxString &def) const {
+        std::map<wxString,wxString>::const_iterator i(find(key));
+        if (i == end()) {
+            return def;
+        }
+        return i->second;
+    }
+    wxString Get(const wxString &key, const char *def) const {
         std::map<wxString,wxString>::const_iterator i(find(key));
         if (i == end()) {
             return def;

@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp) Reduce the number of wxString objects created during rendering.  Speeds up rendering of large LMS imports by 50% or so.
 4.2.23  Nov 18, 2015
     -- enh(gil)   Increase max head length and repeat count for Morph.
     -- enh(gil)   Increase max radius from 200 to 250 for Fan, Galaxy, and Shockwave.
