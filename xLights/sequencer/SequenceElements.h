@@ -155,9 +155,9 @@ class SequenceElements : public ChangeLister
     private:
         void LoadEffects(EffectLayer *layer,
                          const wxString &type,
-                     wxXmlNode *effectLayerNode,
-                     std::vector<wxString> effectStrings,
-                     std::vector<wxString> colorPalettes);
+                         wxXmlNode *effectLayerNode,
+                         const std::vector<wxString> & effectStrings,
+                         const std::vector<wxString> & colorPalettes);
         static bool SortElementsByIndex(const Element *element1,const Element *element2)
         {
             return (element1->GetIndex() < element2->GetIndex());

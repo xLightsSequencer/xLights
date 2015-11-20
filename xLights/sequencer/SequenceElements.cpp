@@ -11,6 +11,28 @@
 #include "../xLightsXmlFile.h"
 
 
+static const wxString STR_EMPTY("");
+static const wxString STR_NAME("name");
+static const wxString STR_EFFECT("Effect");
+static const wxString STR_ELEMENT("Element");
+static const wxString STR_EFFECTLAYER("EffectLayer");
+static const wxString STR_COLORPALETTE("ColorPalette");
+static const wxString STR_NODE("Node");
+static const wxString STR_STRAND("Strand");
+static const wxString STR_INDEX("index");
+static const wxString STR_TYPE("type");
+static const wxString STR_TIMING("timing");
+
+static const wxString STR_STARTTIME("startTime");
+static const wxString STR_ENDTIME("endTime");
+static const wxString STR_PROTECTED("protected");
+static const wxString STR_ID("id");
+static const wxString STR_REF("ref");
+static const wxString STR_PALETTE("palette");
+static const wxString STR_LABEL("label");
+static const wxString STR_ZERO("0");
+
+
 SequenceElements::SequenceElements()
 : undo_mgr(this)
 {
@@ -151,7 +173,7 @@ wxString SequenceElements::GetViewName(int which_view)
     {
         if( view_index == which_view )
         {
-            view_name = view->GetAttribute("name");
+            view_name = view->GetAttribute(STR_NAME);
             break;
         }
         view_index++;
@@ -180,7 +202,7 @@ wxString SequenceElements::GetViewModels(wxString viewName)
     wxString result="";
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
     {
-        if(view->GetAttribute("name")==viewName)
+        if(view->GetAttribute(STR_NAME)==viewName)
         {
             result = view->GetAttribute("models");
             break;
@@ -404,11 +426,11 @@ void SequenceElements::MoveElement(int index,int destinationIndex)
 void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                                    const wxString &type,
                                    wxXmlNode *effectLayerNode,
-                                   std::vector<wxString> effectStrings,
-                                   std::vector<wxString> colorPalettes) {
+                                   const std::vector<wxString> & effectStrings,
+                                   const std::vector<wxString> & colorPalettes) {
     for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
     {
-        if (effect->GetName() == "Effect")
+        if (effect->GetName() == STR_EFFECT)
         {
             wxString effectName;
             wxString settings;
@@ -419,45 +441,45 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
 
             // Start time
             double startTime;
-            effect->GetAttribute("startTime").ToDouble(&startTime);
+            effect->GetAttribute(STR_STARTTIME).ToDouble(&startTime);
             startTime = TimeLine::RoundToMultipleOfPeriod(startTime,mFrequency);
             // End time
             double endTime;
-            effect->GetAttribute("endTime").ToDouble(&endTime);
+            effect->GetAttribute(STR_ENDTIME).ToDouble(&endTime);
             endTime = TimeLine::RoundToMultipleOfPeriod(endTime,mFrequency);
             // Protected
-            bProtected = effect->GetAttribute("protected")=='1'?true:false;
-            if(type != "timing")
+            bProtected = effect->GetAttribute(STR_PROTECTED)=='1'?true:false;
+            if(type != STR_TIMING)
             {
                 // Name
-                effectName = effect->GetAttribute("name");
+                effectName = effect->GetAttribute(STR_NAME);
                 effectIndex = Effect::GetEffectIndex(effectName);
                 // ID
-                id = wxAtoi(effect->GetAttribute("id", "0"));
-                if (effect->GetAttribute("ref") != "") {
-                    settings = effectStrings[wxAtoi(effect->GetAttribute("ref"))];
+                id = wxAtoi(effect->GetAttribute(STR_ID, STR_ZERO));
+                if (effect->GetAttribute(STR_REF) != STR_EMPTY) {
+                    settings = effectStrings[wxAtoi(effect->GetAttribute(STR_REF))];
                 } else {
                     settings = effect->GetNodeContent();
                 }
 
                 wxString tmp;
-                if (effect->GetAttribute("palette", &tmp)) {
+                if (effect->GetAttribute(STR_PALETTE, &tmp)) {
                     tmp.ToLong(&palette);
                 }
             }
             else
             {
                 // store timing labels in name attribute
-                effectName = effect->GetAttribute("label");
+                effectName = effect->GetAttribute(STR_LABEL);
 
             }
             effectLayer->AddEffect(id,effectIndex,effectName,settings,
-                                   palette == -1 ? "" : colorPalettes[palette],
+                                   palette == -1 ? STR_EMPTY : colorPalettes[palette],
                                    startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
-        } else if (effect->GetName() == "Node" && effectLayerNode->GetName() == "Strand") {
-            EffectLayer* neffectLayer = ((StrandLayer*)effectLayer)->GetNodeLayer(wxAtoi(effect->GetAttribute("index")), true);
-            if (effect->GetAttribute("name", "") != "") {
-                ((NodeLayer*)neffectLayer)->SetName(effect->GetAttribute("name"));
+        } else if (effect->GetName() == STR_NODE && effectLayerNode->GetName() == STR_STRAND) {
+            EffectLayer* neffectLayer = ((StrandLayer*)effectLayer)->GetNodeLayer(wxAtoi(effect->GetAttribute(STR_INDEX)), true);
+            if (effect->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
+                ((NodeLayer*)neffectLayer)->SetName(effect->GetAttribute(STR_NAME));
             }
 
             LoadEffects(neffectLayer, type, effect, effectStrings, colorPalettes);
@@ -482,11 +504,11 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                 bool active=false;
                 bool selected=false;
                 bool collapsed=false;
-                wxString name = element->GetAttribute("name");
-                wxString type = element->GetAttribute("type");
+                wxString name = element->GetAttribute(STR_NAME);
+                wxString type = element->GetAttribute(STR_TYPE);
                 bool visible = element->GetAttribute("visible")=='1'?true:false;
 
-                if (type=="timing")
+                if (type==STR_TIMING)
                 {
                     active = element->GetAttribute("active")=='1'?true:false;
                 }
@@ -495,7 +517,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                     collapsed = element->GetAttribute("collapsed")=='1'?true:false;
                 }
                 Element* elem = AddElement(name,type,visible,collapsed,active,selected);
-                if (type=="timing")
+                if (type==STR_TIMING)
                 {
                     wxString views = element->GetAttribute("views", "");
                     elem->SetViews(views);
@@ -507,7 +529,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
            effectStrings.clear();
            for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=NULL; elementNode=elementNode->GetNext() )
            {
-               if(elementNode->GetName()=="Effect")
+               if(elementNode->GetName()==STR_EFFECT)
                {
                    effectStrings.push_back(elementNode->GetNodeContent());
                }
@@ -518,7 +540,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
            colorPalettes.clear();
            for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=NULL; elementNode=elementNode->GetNext() )
            {
-               if(elementNode->GetName()=="ColorPalette")
+               if(elementNode->GetName() == STR_COLORPALETTE)
                {
                    colorPalettes.push_back(elementNode->GetNodeContent());
                }
@@ -528,14 +550,14 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
         {
             for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=NULL; elementNode=elementNode->GetNext() )
             {
-                if(elementNode->GetName()=="Element")
+                if(elementNode->GetName()==STR_ELEMENT)
                 {
-                    Element* element = GetElement(elementNode->GetAttribute("name"));
+                    Element* element = GetElement(elementNode->GetAttribute(STR_NAME));
                     if (element !=NULL)
                     {
                         // check for fixed timing interval
                         int interval = 0;
-                        if( elementNode->GetAttribute("type") == "timing" )
+                        if( elementNode->GetAttribute(STR_TYPE) == STR_TIMING )
                         {
                             interval = wxAtoi(elementNode->GetAttribute("fixed"));
                         }
@@ -559,18 +581,18 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                         {
                             for(wxXmlNode* effectLayerNode=elementNode->GetChildren(); effectLayerNode!=NULL; effectLayerNode=effectLayerNode->GetNext())
                             {
-                                if (effectLayerNode->GetName() == "EffectLayer" || effectLayerNode->GetName() == "Strand")
+                                if (effectLayerNode->GetName() == STR_EFFECTLAYER || effectLayerNode->GetName() == STR_STRAND)
                                 {
                                     EffectLayer* effectLayer = NULL;
-                                    if (effectLayerNode->GetName() == "EffectLayer") {
+                                    if (effectLayerNode->GetName() == STR_EFFECTLAYER) {
                                         effectLayer = element->AddEffectLayer();
                                     } else {
-                                        effectLayer = element->GetStrandLayer(wxAtoi(effectLayerNode->GetAttribute("index")), true);
-                                        if (effectLayerNode->GetAttribute("name", "") != "") {
-                                            ((StrandLayer*)effectLayer)->SetName(effectLayerNode->GetAttribute("name"));
+                                        effectLayer = element->GetStrandLayer(wxAtoi(effectLayerNode->GetAttribute(STR_INDEX)), true);
+                                        if (effectLayerNode->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
+                                            ((StrandLayer*)effectLayer)->SetName(effectLayerNode->GetAttribute(STR_NAME));
                                         }
                                     }
-                                    LoadEffects(effectLayer, elementNode->GetAttribute("type"), effectLayerNode, effectStrings, colorPalettes);
+                                    LoadEffects(effectLayer, elementNode->GetAttribute(STR_TYPE), effectLayerNode, effectStrings, colorPalettes);
                                 }
                             }
                         }
@@ -584,7 +606,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
     int last_view = xml_file.GetLastView();
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
     {
-        wxString viewName = view->GetAttribute("name");
+        wxString viewName = view->GetAttribute(STR_NAME);
         wxString models = view->GetAttribute("models");
         std::vector <Element*> new_view;
         mAllViews.push_back(new_view);
@@ -674,7 +696,7 @@ void SequenceElements::AddTimingToAllViews(wxString& timing)
 {
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
     {
-        wxString name = view->GetAttribute("name");
+        wxString name = view->GetAttribute(STR_NAME);
         AddTimingToView(timing, name);
     }
 }
@@ -759,7 +781,7 @@ wxXmlNode *GetModelNode(wxXmlNode *root, const wxString & name) {
     {
         if (e->GetName() == "model")
         {
-            if (name == e->GetAttribute("name")) return e;
+            if (name == e->GetAttribute(STR_NAME)) return e;
         }
     }
     return NULL;
