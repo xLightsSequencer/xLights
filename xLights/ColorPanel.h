@@ -10,11 +10,13 @@
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/bmpbuttn.h>
+#include <wx/button.h>
 //*)
 
 #include <wx/colordlg.h>
 #include <unordered_map>
 
+wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 
 class ColorPanel: public wxPanel
 {
@@ -96,6 +98,7 @@ class ColorPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_BUTTON_Palette4;
 		static const long ID_BITMAPBUTTON_BUTTON_Palette5;
 		static const long ID_BITMAPBUTTON_BUTTON_Palette6;
+		static const long ID_BUTTON1;
 		static const long ID_STATICTEXT24;
 		static const long ID_SLIDER_SparkleFrequency;
 		static const long IDL_TEXTCTRL_SPARKLE;
@@ -137,6 +140,7 @@ class ColorPanel: public wxPanel
 		void OnSlider_SparkleFrequencyCmdSliderUpdated(wxScrollEvent& event);
 		void OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event);
 		void OnSlider_ContrastCmdSliderUpdated(wxScrollEvent& event);
+		void OnUpdateColorClick(wxCommandEvent& event);
 		//*)
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);

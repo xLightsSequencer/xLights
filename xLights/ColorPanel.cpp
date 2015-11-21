@@ -34,6 +34,7 @@ const long ColorPanel::ID_BITMAPBUTTON_BUTTON_Palette3 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_BUTTON_Palette4 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_BUTTON_Palette5 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_BUTTON_Palette6 = wxNewId();
+const long ColorPanel::ID_BUTTON1 = wxNewId();
 const long ColorPanel::ID_STATICTEXT24 = wxNewId();
 const long ColorPanel::ID_SLIDER_SparkleFrequency = wxNewId();
 const long ColorPanel::IDL_TEXTCTRL_SPARKLE = wxNewId();
@@ -62,6 +63,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 {
 	//(*Initialize(ColorPanel)
 	wxFlexGridSizer* FlexGridSizer4;
+	wxButton* Button1;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
@@ -77,7 +79,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	ColorScrollWindow->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
-	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
 	FlexGridSizer5->AddGrowableCol(1);
 	FlexGridSizer5->AddGrowableCol(2);
@@ -151,6 +153,8 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer_Palette->Add(BitmapButton_Palette6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer5->Add(FlexGridSizer_Palette, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button1 = new wxButton(ColorScrollWindow, ID_BUTTON1, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer5->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
@@ -232,6 +236,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette4Click);
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette5Click);
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette6Click);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnUpdateColorClick);
 	Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ColorPanel::OnSlider_SparkleFrequencyCmdSliderUpdated);
 	Connect(IDL_TEXTCTRL_SPARKLE,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::OntxtCtrlSparkleFreqText);
 	Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SparkleFrequencyClick);
@@ -590,3 +595,10 @@ void ColorPanel::OnSlider_ContrastCmdSliderUpdated(wxScrollEvent& event)
     txtCtlContrast->ChangeValue( wxString::Format(wxT("%d"),Slider_Contrast->GetValue()));
 }
 
+
+void ColorPanel::OnUpdateColorClick(wxCommandEvent& event)
+{
+    wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);
+    wxPostEvent(GetParent(), eventEffectUpdated);
+    Refresh();
+}

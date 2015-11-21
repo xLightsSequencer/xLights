@@ -818,6 +818,36 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
         InitPixelBuffer(args->element->GetName(), playBuffer, args->element->GetEffectLayerCount());
     }
 }
+void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
+    wxString palette;
+    wxString effectText = GetEffectTextFromWindows(palette);
+    for(int i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
+    {
+        Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
+        if(element->GetType() == "model" || element->GetType() == "timing")
+        {
+            EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
+            for(int j=0;j< el->GetEffectCount();j++)
+            {
+                if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)
+                {
+                    el->GetEffect(j)->SetPalette(palette);
+                    
+                    if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
+                    {
+                        playType = PLAY_TYPE_EFFECT;
+                        playStartTime = (int)(el->GetEffect(j)->GetStartTimeMS());
+                        playEndTime = (int)(el->GetEffect(j)->GetEndTimeMS());
+                        playStartMS = -1;
+                        RenderEffectForModel(element->GetName(),playStartTime,playEndTime);
+                    }
+                }
+            }
+        }
+    }
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+}
+
 
 void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 {
