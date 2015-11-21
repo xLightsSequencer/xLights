@@ -626,12 +626,12 @@ private:
     //stuff for handling the status;
     wxString statusMsg;
     const char *statusMsgChars;
-    int statusType;
-    int statusFrame;
+    volatile int statusType;
+    volatile int statusFrame;
     SettingsMap *statusMap;
-    int statusLayer;
-    int statusStrand;
-    int statusNode;
+    volatile int statusLayer;
+    volatile int statusStrand;
+    volatile int statusNode;
 
     std::map<int, PixelBufferClassPtr> strandBuffers;
     std::map<SNPair, PixelBufferClassPtr> nodeBuffers;

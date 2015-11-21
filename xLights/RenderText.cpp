@@ -47,41 +47,43 @@ inline void unshare(wxObject &o) {
     }
 }
 
-DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1,1,32)
+DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(wxNullBitmap)
 {
     unshare(nullBitmap);
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
+#if wxUSE_GRAPHICS_CONTEXT
     image->SetAlpha();
     for(wxCoord x=0; x<BufferWi; x++) {
         for(wxCoord y=0; y<BufferHt; y++) {
             image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
         }
     }
+#endif
     bitmap = nullptr;
     dc = new wxMemoryDC(nullBitmap);
 
-    
+
     //make sure we UnShare everything that is being held onto
     //also use "non-normal" defaults to avoid "==" issue that
     //would keep it from using the non-shared versions
     wxFont font(*wxITALIC_FONT);
     unshare(font);
     dc->SetFont(font);
-    
+
     wxBrush brush(*wxYELLOW_BRUSH);
     unshare(brush);
     dc->SetBrush(brush);
     dc->SetBackground(brush);
-    
+
     wxPen pen(*wxGREEN_PEN);
     unshare(pen);
     dc->SetPen(pen);
-    
+
     #ifndef LINUX
     wxColor c(12, 25, 3);
     unshare(c);
     dc->SetTextBackground(c);
-    
+
     wxColor c2(0, 35, 5);
     unshare(c2);
     dc->SetTextForeground(c2);
@@ -121,15 +123,18 @@ void DrawingContext::Clear() {
         delete bitmap;
     }
     image->Clear();
+#if wxUSE_GRAPHICS_CONTEXT
     image->SetAlpha();
     for(wxCoord x=0; x<image->GetWidth(); x++) {
         for(wxCoord y=0; y<image->GetHeight(); y++) {
             image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
         }
     }
-    bitmap = new wxBitmap(*image, 32);
+#endif
+
+    bitmap = new wxBitmap(*image);
     dc->SelectObject(*bitmap);
-    
+
 #if wxUSE_GRAPHICS_CONTEXT
 #ifdef LINUX
     gc = wxGraphicsContext::Create(*image);
@@ -288,7 +293,7 @@ static int TextEffectsIndex(const wxString &st) {
 
 void RgbEffects::RenderText(const SettingsMap &SettingsMap)
 {
-    
+
     xlColour c;
     drawingContext->Clear();
     size_t colorcnt=GetColorCount();
@@ -309,13 +314,13 @@ void RgbEffects::RenderText(const SettingsMap &SettingsMap)
                 }
                 wxString fontString = SettingsMap["FONTPICKER_Text_Font" + lp];
                 SetFont(drawingContext,fontString,c);
-                
+
                 bool pixelOffsets = false;
                 int startx = 0;
                 int starty = 0;
                 int endx = 0;
                 int endy = 0;
-               
+
                 if (line == 1) {
                     starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart" + lp, "0"));
                     startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart" + lp, "0"));
@@ -328,7 +333,7 @@ void RgbEffects::RenderText(const SettingsMap &SettingsMap)
                     startx = starty;
                     endx = endy;
                 }
-                
+
                 RenderTextLine(drawingContext, line - 1,
                                text,
                                TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir" + lp]),
@@ -341,9 +346,9 @@ void RgbEffects::RenderText(const SettingsMap &SettingsMap)
             }
         }
     }
-    
+
     wxImage * i = drawingContext->FlushAndGetImage();
-    
+
     bool ha = i->HasAlpha();
     for(wxCoord x=0; x<BufferWi; x++)
     {
@@ -811,14 +816,14 @@ TIME FORMAT CHARACTERS:
     int txtwidth=textsize.GetWidth();
     int totwidth=BufferWi+txtwidth;
     int totheight=BufferHt+textsize.GetHeight();
-    
+
     int OffsetLeft = startx * BufferWi / 100;
     int OffsetTop = -starty * BufferHt / 100;
     if (isPixelBased) {
         OffsetLeft = startx;
         OffsetTop =  -starty;
     }
-    
+
     int xlimit=totwidth*8 + 1;
     int ylimit=totheight*8 + 1;
     int state8;
