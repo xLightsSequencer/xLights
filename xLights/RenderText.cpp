@@ -47,7 +47,7 @@ inline void unshare(wxObject &o) {
     }
 }
 
-DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1, 1, 32)
+DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(wxNullBitmap)
 {
     unshare(nullBitmap);
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
@@ -59,8 +59,8 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1, 1, 32
         }
     }
 #endif
-    bitmap = nullptr;
-    dc = new wxMemoryDC(nullBitmap);
+    bitmap = new wxBitmap(*image);
+    dc = new wxMemoryDC(*bitmap);
 
 
     //make sure we UnShare everything that is being held onto
@@ -88,6 +88,10 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1, 1, 32
     unshare(c2);
     dc->SetTextForeground(c2);
     #endif
+    
+    dc->SelectObject(nullBitmap);
+    delete bitmap;
+    bitmap = nullptr;
 #if wxUSE_GRAPHICS_CONTEXT
     gc = nullptr;
 #endif
