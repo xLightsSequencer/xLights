@@ -9950,7 +9950,8 @@
 																						</object>
 																						<object class="sizeritem">
 																							<object class="wxSlider" name="ID_SLIDER_Text_XStart1" variable="Slider35" member="no">
-																								<min>-100</min>
+																								<min>-200</min>
+																								<max>200</max>
 																								<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																							</object>
 																							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -10007,7 +10008,8 @@
 																						</object>
 																						<object class="sizeritem">
 																							<object class="wxSlider" name="ID_SLIDER_Text_YStart1" variable="Slider37" member="no">
-																								<min>-100</min>
+																								<min>-200</min>
+																								<max>200</max>
 																								<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 																								<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																							</object>
@@ -10047,7 +10049,8 @@
 																						</object>
 																						<object class="sizeritem">
 																							<object class="wxSlider" name="ID_SLIDER_Text_XEnd1" variable="Slider38" member="no">
-																								<min>-100</min>
+																								<min>-200</min>
+																								<max>200</max>
 																								<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																							</object>
 																							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -10104,7 +10107,8 @@
 																						</object>
 																						<object class="sizeritem">
 																							<object class="wxSlider" name="ID_SLIDER_Text_YEnd1" variable="Slider39" member="no">
-																								<min>-100</min>
+																								<min>-200</min>
+																								<max>200</max>
 																								<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 																								<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																							</object>

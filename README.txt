@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp) Increase the range for the text movement to accomodate longer text
     -- enh(dkulp) Add "Update" button to Color panel that will update just the palettes for the selected effects
     -- enh(dkulp) Reduce the number of wxString objects created during rendering.  Speeds up rendering of large LMS imports by 50% or so.
 4.2.23  Nov 18, 2015

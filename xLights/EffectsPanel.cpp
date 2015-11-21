@@ -4513,7 +4513,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer143->AddGrowableCol(1);
     StaticText211 = new wxStaticText(Panel16, wxID_ANY, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer143->Add(StaticText211, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider35 = new wxSlider(Panel16, ID_SLIDER_Text_XStart1, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Text_XStart1"));
+    Slider35 = new wxSlider(Panel16, ID_SLIDER_Text_XStart1, 0, -200, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Text_XStart1"));
     FlexGridSizer143->Add(Slider35, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer143->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl91 = new wxTextCtrl(Panel16, IDD_TEXTCTRL_Text_XStart1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel16,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Text_XStart1"));
@@ -4526,7 +4526,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     TextCtrl92 = new wxTextCtrl(Panel16, IDD_TEXTCTRL_Text_YStart1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel16,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Text_YStart1"));
     TextCtrl92->SetMaxLength(3);
     GridBagSizer6->Add(TextCtrl92, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider37 = new wxSlider(Panel16, ID_SLIDER_Text_YStart1, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_Text_YStart1"));
+    Slider37 = new wxSlider(Panel16, ID_SLIDER_Text_YStart1, 0, -200, 200, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_Text_YStart1"));
     GridBagSizer6->Add(Slider37, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer142->Add(GridBagSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel16->SetSizer(FlexGridSizer142);
@@ -4539,7 +4539,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer145->AddGrowableCol(1);
     StaticText213 = new wxStaticText(Panel17, wxID_ANY, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer145->Add(StaticText213, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider38 = new wxSlider(Panel17, ID_SLIDER_Text_XEnd1, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Text_XEnd1"));
+    Slider38 = new wxSlider(Panel17, ID_SLIDER_Text_XEnd1, 0, -200, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Text_XEnd1"));
     FlexGridSizer145->Add(Slider38, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer145->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl93 = new wxTextCtrl(Panel17, IDD_TEXTCTRL_Text_XEnd1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel17,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Text_XEnd1"));
@@ -4552,7 +4552,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     TextCtrl94 = new wxTextCtrl(Panel17, IDD_TEXTCTRL_Text_YEnd1, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel17,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Text_YEnd1"));
     TextCtrl94->SetMaxLength(3);
     GridBagSizer7->Add(TextCtrl94, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider39 = new wxSlider(Panel17, ID_SLIDER_Text_YEnd1, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_Text_YEnd1"));
+    Slider39 = new wxSlider(Panel17, ID_SLIDER_Text_YEnd1, 0, -200, 200, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_Text_YEnd1"));
     GridBagSizer7->Add(Slider39, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer144->Add(GridBagSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel17->SetSizer(FlexGridSizer144);
