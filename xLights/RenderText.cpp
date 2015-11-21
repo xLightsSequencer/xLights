@@ -47,7 +47,7 @@ inline void unshare(wxObject &o) {
     }
 }
 
-DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(wxNullBitmap)
+DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(1, 1, 32)
 {
     unshare(nullBitmap);
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
@@ -130,9 +130,11 @@ void DrawingContext::Clear() {
             image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
         }
     }
+    bitmap = new wxBitmap(*image, 32);
+#else
+    bitmap = new wxBitmap(*image);
 #endif
 
-    bitmap = new wxBitmap(*image);
     dc->SelectObject(*bitmap);
 
 #if wxUSE_GRAPHICS_CONTEXT
