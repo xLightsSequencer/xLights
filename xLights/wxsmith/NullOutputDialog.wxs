@@ -28,7 +28,7 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="NumChannelsSpinCtrl" member="yes">
 							<value>1</value>
 							<min>1</min>
-							<max>99999</max>
+							<max>512000</max>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

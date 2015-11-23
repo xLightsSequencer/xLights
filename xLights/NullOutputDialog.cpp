@@ -33,7 +33,7 @@ NullOutputDialog::NullOutputDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Number of Channels"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	NumChannelsSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 99999, 1, _T("ID_SPINCTRL1"));
+	NumChannelsSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 512000, 1, _T("ID_SPINCTRL1"));
 	NumChannelsSpinCtrl->SetValue(_T("1"));
 	FlexGridSizer2->Add(NumChannelsSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
