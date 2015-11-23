@@ -236,7 +236,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON1" variable="Button1" member="no">
+												<object class="wxButton" name="ID_BUTTON1" variable="ButtonColor1" member="no">
 													<label>Update</label>
 													<handler function="OnUpdateColorClick" entry="EVT_BUTTON" />
 												</object>
