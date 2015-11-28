@@ -1163,16 +1163,26 @@ void EffectsGrid::Paste(const wxString &data) {
             int start_row = wxAtoi(eff1data[5]);
             int drop_row_offset = drop_row - start_row;
             mSequenceElements->get_undo_mgr().CreateUndoStep();
+            Effect* te;
             for( int i = 0; i < all_efdata.size()-1; i++ )
             {
                 wxArrayString efdata = wxSplit(all_efdata[i], '\t');
                 if (efdata.size() < 7) {
                     break;
                 }
-                new_start_time = wxAtoi(efdata[3]);
-                new_end_time = wxAtoi(efdata[4]);
-                new_start_time += drop_time_offset;
-                new_end_time += drop_time_offset;
+                if( tel != nullptr && (te = tel->GetEffect(mRangeStartCol + i)) != nullptr )
+                {
+                    new_start_time = te->GetStartTimeMS();
+                    new_end_time = te->GetEndTimeMS();
+                }
+                else
+                {
+                    // use original effect length if no timing track is active
+                    new_start_time = wxAtoi(efdata[3]);
+                    new_end_time = wxAtoi(efdata[4]);
+                    new_start_time += drop_time_offset;
+                    new_end_time += drop_time_offset;
+                }
                 int eff_row = wxAtoi(efdata[5]);
                 drop_row = eff_row + drop_row_offset;
                 Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
