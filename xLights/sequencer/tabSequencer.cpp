@@ -141,6 +141,9 @@ ModelClass *xLightsFrame::GetModelClass(const wxString& name) {
 
 bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
     ModelClass *model = GetModelClass(modelName);
+    if (model->GetModelXml() == nullptr) {
+        return false;
+    }
     buffer.InitBuffer(model->GetModelXml(), layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
     return true;
 }
