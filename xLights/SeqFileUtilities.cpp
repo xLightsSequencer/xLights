@@ -652,8 +652,12 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src) {
                           ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, 0);
     }
 }
-void MapXLightsEffects(EffectLayer *target, wxString name, std::map<wxString, EffectLayer *> &layerMap) {
+void MapXLightsStrandEffects(EffectLayer *target, wxString name, std::map<wxString, EffectLayer *> &layerMap, SequenceElements &seqEl) {
     EffectLayer *src = layerMap[name];
+    if (src == nullptr) {
+        Element * srcEl = seqEl.GetElement(name);
+        src = srcEl->GetEffectLayer(0);
+    }
     MapXLightsEffects(target, src);
 }
 void MapXLightsEffects(Element *target, wxString name, SequenceElements &seqEl, std::map<wxString, EffectLayer *> &layerMap) {
@@ -752,13 +756,13 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
 
             if( sl != nullptr ) {
                 if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                    MapXLightsEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap);
+                    MapXLightsStrandEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap, se);
                 }
                 row++;
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                         NodeLayer *nl = sl->GetNodeLayer(n, true);
-                        MapXLightsEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap);
+                        MapXLightsStrandEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap, se);
                     }
                     row++;
                 }
