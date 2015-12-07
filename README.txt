@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) Fix crashes in lightning effect if not all the effect properties are specified
+    -- enh(dkulp) Allow maping the first layer of a model effect onto a strand
     -- enh(gil)   Increase null output maximum from 99999 to 512000 channels.
 4.2.24  Nov 23, 2015
     -- bug(dkulp) Fix for crashe occuring during RenderText

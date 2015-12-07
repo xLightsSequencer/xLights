@@ -1071,8 +1071,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                               wxAtoi(SettingsMap.Get("SLIDER_Life_Speed", "10")));
             break;
         case BitmapCache::eff_LIGHTNING:
-            buffer.RenderLightning(wxAtoi(SettingsMap["SLIDER_Number_Bolts"]),
-                                   wxAtoi(SettingsMap["SLIDER_Number_Segments"]),
+            buffer.RenderLightning(SettingsMap.GetInt("SLIDER_Number_Bolts", 1),
+                                   SettingsMap.GetInt("SLIDER_Number_Segments", 1),
                                    SettingsMap["CHECKBOX_ForkedLightning"]=="1",
                                    wxAtoi(SettingsMap["SLIDER_Lightning_TopX"]),
                                    wxAtoi(SettingsMap["SLIDER_Lightning_TopY"]),

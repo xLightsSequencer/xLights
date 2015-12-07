@@ -50,6 +50,12 @@
 
 void RgbEffects::RenderLightning(int Number_Bolts, int Number_Segments, bool ForkedLightning,
                                  int topX,int topY, int botX, int botY) {
+    if (Number_Bolts == 0) {
+        Number_Bolts = 1;
+    }
+    if (Number_Segments == 0) {
+        Number_Segments = 1;
+    }
     int colorcnt=GetColorCount();
     xlColor color;
     wxImage::HSVValue hsv;

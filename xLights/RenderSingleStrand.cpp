@@ -240,6 +240,9 @@ void RgbEffects::RenderSingleStrandChase(const wxString & ColorSchemeName,int Nu
     if (Mirror) {
         width /= 2;
     }
+    if (width == 0) {
+        width = 1;
+    }
     double chaseOffset = width * chaseSize / 100.0 - 1;
 
     double rtval;
