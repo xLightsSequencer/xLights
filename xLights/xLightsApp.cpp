@@ -132,7 +132,8 @@ void handleCrash(void *data) {
             report->AddFile(topFrame->GetSeqXmlFileName(), fn.GetName());
         }
     }
-    wxString trace;
+    wxString trace = wxString::Format("xLights version %s\n", xlights_version_string);
+
 #ifndef __WXMSW__
     void* callstack[128];
     int i, frames = backtrace(callstack, 128);
@@ -146,7 +147,7 @@ void handleCrash(void *data) {
     trace = windows_get_stacktrace(data);
 #endif
 
-    trace += wxString::Format("\nCrashed thread id: %ld\n", wxThread::GetCurrentId());
+    trace += wxString::Format("\nCrashed thread id: %X\n", wxThread::GetCurrentId());
 #ifndef LINUX
     trace += topFrame->GetThreadStatusReport();
 #endif // LINUX
