@@ -87,6 +87,11 @@ void SequenceElements::SetSequenceEnd(int ms)
     mSequenceEndMS = ms;
 }
 
+int SequenceElements::GetSequenceEnd()
+{
+    return mSequenceEndMS;
+}
+
 EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) {
 
     Element* e = s->element;

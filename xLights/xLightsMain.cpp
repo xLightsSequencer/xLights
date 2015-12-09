@@ -418,6 +418,8 @@ wxDEFINE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SAVE_PERSPECTIVES, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_COPY_MODEL_EFFECTS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PASTE_MODEL_EFFECTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PAUSE_SEQUENCE, wxCommandEvent);
@@ -456,6 +458,8 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_PERSPECTIVES_CHANGED, xLightsFrame::PerspectivesChanged)
     EVT_COMMAND(wxID_ANY, EVT_EXPORT_MODEL, xLightsFrame::ExportModel)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL, xLightsFrame::PlayModel)
+    EVT_COMMAND(wxID_ANY, EVT_COPY_MODEL_EFFECTS, xLightsFrame::CopyModelEffects)
+    EVT_COMMAND(wxID_ANY, EVT_PASTE_MODEL_EFFECTS, xLightsFrame::PasteModelEffects)
     EVT_COMMAND(wxID_ANY, EVT_MODEL_SELECTED, xLightsFrame::ModelSelected)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_SEQUENCE, xLightsFrame::PlaySequence)
     EVT_COMMAND(wxID_ANY, EVT_PAUSE_SEQUENCE, xLightsFrame::PauseSequence)
@@ -475,7 +479,7 @@ END_EVENT_TABLE()
 
 
 void AddEffectToolbarButtons(xlAuiToolBar *EffectsToolBar) {
-    
+
     for (int x = 0; x < BitmapCache::RGB_EFFECTS_e::eff_LASTEFFECT; x++) {
         DragEffectBitmapButton *BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(16,16),
                                                     wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
@@ -485,7 +489,7 @@ void AddEffectToolbarButtons(xlAuiToolBar *EffectsToolBar) {
         BitmapButton34->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
         BitmapButton34->SetEffectIndex(x);
         EffectsToolBar->AddControl(BitmapButton34, BitmapButton34->GetToolTipText());
-        
+
         EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMinSize(wxSize(size, size));
@@ -1736,13 +1740,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
-    
+
     AddEffectToolbarButtons(EffectsToolBar);
     wxSize sz = EffectsToolBar->GetSize();
     wxAuiPaneInfo &info = MainAuiManager->GetPane("EffectsToolBar");
     info.BestSize(sz);
     MainAuiManager->Update();
-    
+
     SetTitle( xlights_base_name + " (Ver " + xlights_version_string + ") " + xlights_build_date );
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);

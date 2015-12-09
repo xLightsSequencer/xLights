@@ -651,6 +651,16 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::CopyModelEffects(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt());
+}
+
+void xLightsFrame::PasteModelEffects(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->PasteModelEffects(event.GetInt());
+}
+
 void xLightsFrame::ModelSelected(wxCommandEvent& event)
 {
     if (playType == PLAY_TYPE_MODEL)
@@ -835,7 +845,7 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
                 if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)
                 {
                     el->GetEffect(j)->SetPalette(palette);
-                    
+
                     if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
                     {
                         playType = PLAY_TYPE_EFFECT;

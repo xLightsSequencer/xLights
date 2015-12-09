@@ -28,6 +28,7 @@ class RowHeading : public wxWindow
         int getWidth();
         int getHeight();
         int GetMaxRows();
+        void SetCanPaste(bool value) { mCanPaste = value; }
 
     static int rowHeadingSize;
 
@@ -53,6 +54,7 @@ class RowHeading : public wxWindow
 
         int mSelectedRow;
         SequenceElements* mSequenceElements;
+        bool mCanPaste;
 
         static const long ID_ROW_MNU_INSERT_LAYER_ABOVE;
         static const long ID_ROW_MNU_INSERT_LAYER_BELOW;
@@ -66,7 +68,8 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_TOGGLE_NODES;
         static const long ID_ROW_MNU_CONVERT_TO_EFFECTS;
         static const long ID_ROW_MNU_PROMOTE_EFFECTS;
-
+        static const long ID_ROW_MNU_COPY_MODEL;
+        static const long ID_ROW_MNU_PASTE_MODEL;
 
         static const long ID_ROW_MNU_ADD_TIMING_TRACK;
         static const long ID_ROW_MNU_DELETE_TIMING_TRACK;

@@ -27,6 +27,8 @@ const long RowHeading::ID_ROW_MNU_TOGGLE_STRANDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
 const long RowHeading::ID_ROW_MNU_CONVERT_TO_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_COPY_MODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_PASTE_MODEL = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
@@ -50,6 +52,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
     wxString tooltip;
     papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, true);
+    mCanPaste = false;
 }
 
 RowHeading::~RowHeading()
@@ -190,6 +193,11 @@ void RowHeading::rightClick( wxMouseEvent& event)
             if (canPromote) {
                 mnuLayer->Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
             }
+            mnuLayer->Append(ID_ROW_MNU_COPY_MODEL,"Copy Model");
+            wxMenuItem* menu_paste = mnuLayer->Append(ID_ROW_MNU_PASTE_MODEL,"Paste Model");
+            if( !mCanPaste ) {
+                menu_paste->Enable(false);
+            }
         }
     }
     else
@@ -315,6 +323,15 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent playEvent(EVT_PLAY_MODEL);
         playEvent.SetString(element->GetName());
         wxPostEvent(GetParent(), playEvent);
+    } else if (id == ID_ROW_MNU_COPY_MODEL) {
+        wxCommandEvent copyModelEvent(EVT_COPY_MODEL_EFFECTS);
+        copyModelEvent.SetInt(mSelectedRow);
+        wxPostEvent(GetParent(), copyModelEvent);
+        mCanPaste = true;
+    } else if (id == ID_ROW_MNU_PASTE_MODEL) {
+        wxCommandEvent copyModelEvent(EVT_PASTE_MODEL_EFFECTS);
+        copyModelEvent.SetInt(mSelectedRow);
+        wxPostEvent(GetParent(), copyModelEvent);
     } else if(id==ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS) {
         wxCommandEvent displayElementEvent(EVT_SHOW_DISPLAY_ELEMENTS);
         wxPostEvent(GetParent(), displayElementEvent);

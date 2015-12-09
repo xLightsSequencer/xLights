@@ -154,6 +154,8 @@ wxDECLARE_EVENT(EVT_SAVE_PERSPECTIVES, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_COPY_MODEL_EFFECTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PASTE_MODEL_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
@@ -1602,6 +1604,8 @@ protected:
     void LoadPerspective(wxCommandEvent& event);
     void PerspectivesChanged(wxCommandEvent& event);
     void PlayModel(wxCommandEvent& event);
+    void CopyModelEffects(wxCommandEvent& event);
+    void PasteModelEffects(wxCommandEvent& event);
     void ModelSelected(wxCommandEvent& event);
     void PlaySequence(wxCommandEvent& event);
     void PauseSequence(wxCommandEvent& event);

@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil)   Add Copy Model and Paste Model effects options to row heading right click menu.
     -- bug(dkulp) Fix crashes in lightning effect if not all the effect properties are specified
     -- enh(dkulp) Allow maping the first layer of a model effect onto a strand
     -- enh(gil)   Increase null output maximum from 99999 to 512000 channels.

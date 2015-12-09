@@ -98,6 +98,7 @@ class SequenceElements : public ChangeLister
         void PopulateVisibleRowInformation();
 
         void SetSequenceEnd(int ms);
+        int GetSequenceEnd();
         void ImportLyrics(Element* element, wxWindow* parent);
         void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const wxString& phrase);
         void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word);

@@ -66,9 +66,11 @@ public:
     void MoveSelectedEffectDown(bool shift);
     void MoveSelectedEffectLeft(bool shift);
     void MoveSelectedEffectRight(bool shift);
-    
+
     void DeleteSelectedEffects();
     void ProcessDroppedEffect(Effect* effect);
+    void CopyModelEffects(int row_number);
+    void PasteModelEffects(int row_number);
 
     void Paste(const wxString &data);
     void SetCanPaste() { mCanPaste = true; }

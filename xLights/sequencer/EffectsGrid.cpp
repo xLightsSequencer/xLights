@@ -1139,6 +1139,7 @@ bool EffectsGrid::OneCellSelected()
 }
 
 void EffectsGrid::Paste(const wxString &data) {
+    ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
     if (mPartialCellSelected || OneCellSelected()) {
         wxArrayString all_efdata = wxSplit(data, '\n');
         if (all_efdata.size() == 0) {
@@ -2372,4 +2373,36 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
     }
 }
 
+void EffectsGrid::CopyModelEffects(int row_number)
+{
+    EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
+    Effect* effect = effectLayer->GetEffect(0);
+    if( effect != NULL )
+    {
+        mDropStartTimeMS = effect->GetStartTimeMS();
+        mRangeStartCol = -1;
+        mRangeEndCol = -1;
+        mRangeStartRow = -1;
+        mRangeEndRow = -1;
+        int first_row = mSequenceElements->GetFirstVisibleModelRow();
+        mSequenceElements->SelectEffectsInRowAndTimeRange(row_number-first_row,row_number-first_row,mDropStartTimeMS,mSequenceElements->GetSequenceEnd());
+        ((MainSequencer*)mParent)->CopySelectedEffects();
+        mCanPaste = true;
+        effectLayer->UnSelectAllEffects();
+        mPartialCellSelected = true;
+        mCellRangeSelected = false;
+    }
+    else
+    {
+        ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
+    }
+}
+
+void EffectsGrid::PasteModelEffects(int row_number)
+{
+    mDropRow = row_number;
+    ((MainSequencer*)mParent)->Paste();
+    mPartialCellSelected = true;
+    ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
+}
 
