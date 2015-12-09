@@ -5648,9 +5648,9 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
     wxString s,ChildName,AttrName;
     int i;
     wxWindowList &ChildList = ParentWin->GetChildren();
-    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext() )
+    for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
     {
-        wxWindow *ChildWin = (wxWindow *)node->GetData();
+        wxWindow *ChildWin = *it;
         if (!ChildWin->IsEnabled()) {
             continue;
         }
@@ -5733,9 +5733,9 @@ int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
 wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxString &prefix) {
     wxWindowList &ChildList = w->GetChildren();
     wxString s;
-    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext() )
+    for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
     {
-        wxWindow *ChildWin = (wxWindow *)node->GetData();
+        wxWindow *ChildWin = *it;
         wxString ChildName = ChildWin->GetName();
         wxString AttrName = prefix + ChildName.Mid(3) + "=";
 

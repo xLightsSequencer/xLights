@@ -105,7 +105,7 @@ class xLightsXmlFile : public wxFileName
         bool IsV3Sequence();
         bool NeedsTimesCorrected();
         void ConvertToFixedPointTiming();
-        bool ExtractMetaTagsFromMP3(wxString filename);
+        bool ExtractMetaTagsFromMP3(const wxString &filename);
 
         void SetRenderMode(const wxString& mode);
         wxString GetRenderMode();

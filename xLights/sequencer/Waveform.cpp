@@ -224,7 +224,7 @@ void Waveform::cleanup(mpg123_handle *mh)
 }
 
 // Open Media file and return elapsed time in millseconds
-int Waveform::OpenfileMediaFile(const char* filename, wxString& error)
+int Waveform::OpenfileMediaFile(const wxString &filename, wxString& error)
 {
     mpg123_handle *mh = NULL;
     int err;
@@ -243,7 +243,7 @@ int Waveform::OpenfileMediaFile(const char* filename, wxString& error)
     }
 
     /* open the file and get the decoding format */
-    if( mpg123_open(mh, filename) != MPG123_OK ||
+    if( mpg123_open(mh, filename.c_str()) != MPG123_OK ||
         mpg123_getformat(mh, &rate, &channels, &encoding) != MPG123_OK )
     {
         error = wxString::Format("Trouble with mpg123: %s", mpg123_strerror(mh));
@@ -298,7 +298,7 @@ int Waveform::OpenfileMediaFile(const char* filename, wxString& error)
     return (int)(seconds * (float)1000);
 }
 
-int Waveform::GetLengthOfMusicFileInMS(const char* filename)
+int Waveform::GetLengthOfMusicFileInMS(const wxString &filename)
 {
     mpg123_handle *mh;
     int err;
@@ -307,7 +307,7 @@ int Waveform::GetLengthOfMusicFileInMS(const char* filename)
     mpg123_init();
     mh = mpg123_new(NULL, &err);
     /* open the file and get the decoding format */
-    mpg123_open(mh, filename);
+    mpg123_open(mh, filename.c_str());
     mpg123_getformat(mh, &rate, &channels, &encoding);
     int bits = mpg123_encsize(encoding);
 

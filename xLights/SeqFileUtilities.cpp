@@ -2914,7 +2914,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
                     }
                 }
             } else {
-                wxLogError("Could not parse XML file %s", (const char *)ent->GetName());
+                wxLogError("Could not parse XML file %s", ent->GetName().c_str());
             }
         }
         ent = zin.GetNextEntry();

@@ -684,7 +684,7 @@ public:
         {
             if (HasPlugin()) //call plug-in to process data before sending -DJ
             {
-                int iolen = (*fmtout)(serptr->m_devname, xLightsFrame::PlaybackMarker.c_str(), seqnum++, &data[2], &data[datalen], datalen - 2, iobuf, sizeof(iobuf)); //don't pre-fill first 2 bytes; plug-in might not need them; provide prev data in case plug-in needs to look back
+                int iolen = (*fmtout)(serptr->m_devname.c_str(), xLightsFrame::PlaybackMarker.c_str(), seqnum++, &data[2], &data[datalen], datalen - 2, iobuf, sizeof(iobuf)); //don't pre-fill first 2 bytes; plug-in might not need them; provide prev data in case plug-in needs to look back
 //                if (seqnum < 5) wxMessageBox(wxString::Format("called plug-in: in %d -> out %d, got back 0x%x", datalen - 2, sizeof(iobuf), iolen), _("DEBUG"));
                 if (iolen > 0) serptr->Write((char*)iobuf, iolen);
             }
@@ -698,7 +698,7 @@ public:
 //            usleep(1000); //TODO: allow a little time to receive data?  OTOH, don't want to slow down xLights
             int rdlen = serptr->Read((char*)iobuf, sizeof(iobuf)); //NOTE: might be split up
 //            if ((rdlen > 0) && (fido++ < 5)) wxMessageBox(wxString::Format("plugin: got %d bytes back, sent? %d", rdlen, incoming? 1: 0), _("DEBUG"));
-            if (rdlen > 0) (*incoming)(serptr->m_devname, xLightsFrame::PlaybackMarker.c_str(), seqnum, iobuf, rdlen);
+            if (rdlen > 0) (*incoming)(serptr->m_devname.c_str(), xLightsFrame::PlaybackMarker.c_str(), seqnum, iobuf, rdlen);
         }
     }
 };

@@ -512,7 +512,7 @@ static wxString remapV3Value(const wxString &st) {
     if (st.Contains("SparkleFrequency")) {
         wxString val = st.AfterLast('=');
         wxString key = st.BeforeLast('=');
-        int i = 200 - atoi(val);
+        int i = 200 - wxAtoi(val);
         return key + "=" + wxString::Format("%d", i);
     }
     return st;
@@ -1999,7 +1999,7 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame*
     AddChildXmlNode(node, "EffectLayer");
 }
 
-bool xLightsXmlFile::ExtractMetaTagsFromMP3(wxString filename)
+bool xLightsXmlFile::ExtractMetaTagsFromMP3(const wxString &filename)
 {
     bool modified = false;
     mpg123_handle *mh;
@@ -2010,7 +2010,7 @@ bool xLightsXmlFile::ExtractMetaTagsFromMP3(wxString filename)
     mpg123_init();
     mh = mpg123_new(NULL, &err);
 
-    mpg123_open(mh, filename);
+    mpg123_open(mh, filename.c_str());
 
     if( err == MPG123_OK )
     {

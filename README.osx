@@ -55,7 +55,8 @@ However, I followed the method used for Linux from inside a Terminal window:
   export CPP="clang -E" 
   ./configure  --prefix=/opt/local --disable-shared --enable-debug_info --enable-macosx_arch=x86_64 \
                --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
-               --with-macosx-version-min=10.7 --with-libjpeg=builtin
+               --with-macosx-version-min=10.7 --with-libjpeg=builtin \
+               --enable-stl --enable-std_string_conv_in_wxstring --enable-std_containers
   make 
   make install
 
@@ -71,8 +72,8 @@ If you are planning debugging xLights, it's likely better to do:
   export CFLAGS="-g"
   ./configure  --prefix=/opt/local --disable-shared --enable-debug_info --enable-macosx_arch=x86_64 \
                --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
-               --with-macosx-version-min=10.7 --with-libjpeg=builtin    --disable-optimise
-
+               --with-macosx-version-min=10.7 --with-libjpeg=builtin    --disable-optimise \
+               --enable-stl --enable-std_string_conv_in_wxstring --enable-std_containers
 
 Next, you will use Xcode to compile xLights. Most of the steps are listed here:
 

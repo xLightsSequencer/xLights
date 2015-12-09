@@ -617,9 +617,9 @@ void xLightsFrame::GetModelNames(wxArrayString& a, bool includeGroups)
 
 static void enableAllChildControls(wxWindow *parent, bool enable) {
     wxWindowList &ChildList = parent->GetChildren();
-    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext()) {
-        wxWindow *ChildWin = (wxWindow *)node->GetData();
-        ChildWin->Enable(enable);
+    for (wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it) {
+        wxWindow * child = *it;
+        child->Enable(enable);
     }
 }
 static void enableAllToolbarControls(wxAuiToolBar *parent, bool enable) {

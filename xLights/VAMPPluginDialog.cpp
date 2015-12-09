@@ -478,7 +478,7 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
         float *pdata[2];
         wxString error;
         long rate;
-        int len = OpenMediaFile(media, error, data, rate, std::max(step, block) + 1);
+        int len = OpenMediaFile(media.c_str(), error, data, rate, std::max(step, block) + 1);
 
         for (int x = 0; x < params.size(); x++) {
 

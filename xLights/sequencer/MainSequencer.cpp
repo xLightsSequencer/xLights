@@ -52,11 +52,10 @@ void MainSequencer::SetHandlers(wxWindow *window)
                         (wxObject*) NULL,
                         this);
 
-        wxWindowListNode* pclNode = window->GetChildren().GetFirst();
-        while(pclNode) {
-            wxWindow* pclChild = pclNode->GetData();
+        wxWindowList &list = window->GetChildren();
+        for (wxWindowList::iterator it = list.begin(); it != list.end(); ++it) {
+            wxWindow* pclChild = *it;
             SetHandlers(pclChild);
-            pclNode = pclNode->GetNext();
         }
     }
 }

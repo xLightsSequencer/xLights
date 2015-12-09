@@ -6,6 +6,7 @@
 #include "xlGLCanvas.h"
 #include "mpg123.h"
 #include <vector>
+#include <string>
 
 #define VERTICAL_PADDING            10
 #define NO_WAVE_VIEW_SELECTED       -1
@@ -27,10 +28,10 @@ class Waveform : public xlGLCanvas
 {
     public:
 
-        static int GetLengthOfMusicFileInMS(const char* filename);
+        static int GetLengthOfMusicFileInMS(const wxString &filename);
         static int GetTrackSize(mpg123_handle *mh,int bits, int channels);
 
-        int OpenfileMediaFile(const char* filename, wxString& error);
+        int OpenfileMediaFile(const wxString &filename, wxString& error);
         void CloseMediaFile();
 
         void SetZoomLevel(int level);
