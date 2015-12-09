@@ -193,6 +193,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
             if (canPromote) {
                 mnuLayer->Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
             }
+            mnuLayer->AppendSeparator();
             mnuLayer->Append(ID_ROW_MNU_COPY_MODEL,"Copy Model");
             wxMenuItem* menu_paste = mnuLayer->Append(ID_ROW_MNU_PASTE_MODEL,"Paste Model");
             if( !mCanPaste ) {
