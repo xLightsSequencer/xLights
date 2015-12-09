@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp) Add a message box if the rgbeffects.xml contains a model with an invalid model type
 4.2.25  Dec 9, 2015
     -- enh(gil)   Add Copy Model and Paste Model effects options to row heading right click menu.
     -- bug(dkulp) Fix crashes in lightning effect if not all the effect properties are specified

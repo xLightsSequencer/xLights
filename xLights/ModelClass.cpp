@@ -385,6 +385,10 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     } else if (DisplayAs == "Wreath") {
         InitWreath();
         CopyBufCoord2ScreenCoord();
+    } else {
+        wxMessageBox(DisplayAs + " is not a valid model type for model " + name);
+        DisplayAs = "Vert Matrix";
+        InitVMatrix();  //init something to avoid some crashes
     }
 
     //if (DisplayAs != "Single Line")
