@@ -1,70 +1,77 @@
 #ifndef UTILCLASSES_H
 #define UTILCLASSES_H
 
-#include "wx/wx.h"
 #include <map>
+#include <string>
+#include <algorithm>
 
-
-class MapStringString: public std::map<wxString,wxString> {
+class MapStringString: public std::map<std::string,std::string> {
 public:
-    MapStringString(): std::map<wxString,wxString>() {
+    MapStringString(): std::map<std::string,std::string>() {
     }
     virtual ~MapStringString() {}
     
-    const wxString &operator[](const wxString &key) const {
+    const std::string &operator[](const std::string &key) const {
         return Get(key, EMPTY_STRING);
     }
-    wxString &operator[](const wxString &key) {
-        return std::map<wxString, wxString>::operator[](key);
+    std::string &operator[](const std::string &key) {
+        return std::map<std::string, std::string>::operator[](key);
     }
-    int GetInt(const wxString &key, const int def) const {
-        std::map<wxString,wxString>::const_iterator i(find(key));
-        if (i == end() || i->second.Length() == 0) {
+    int GetInt(const std::string &key, const int def) const {
+        std::map<std::string,std::string>::const_iterator i(find(key));
+        if (i == end() || i->second.length() == 0) {
             return def;
         }
         return wxAtoi(i->second);
     }
-    double GetDouble(const wxString &key, const double &def) const {
-        std::map<wxString,wxString>::const_iterator i(find(key));
+    double GetDouble(const std::string &key, const double &def) const {
+        std::map<std::string,std::string>::const_iterator i(find(key));
         if (i == end()) {
             return def;
         }
         return wxAtof(i->second);
     }
-    bool GetBool(const wxString &key, const bool def = false) const {
-        std::map<wxString,wxString>::const_iterator i(find(key));
+    bool GetBool(const std::string &key, const bool def = false) const {
+        std::map<std::string,std::string>::const_iterator i(find(key));
         if (i == end()) {
             return def;
         }
-        return i->second.Length() >= 1 && i->second.GetChar(0) == '1';
+        return i->second.length() >= 1 && i->second.at(0) == '1';
     }
-    const wxString &Get(const wxString &key, const wxString &def) const {
-        std::map<wxString,wxString>::const_iterator i(find(key));
+    const std::string &Get(const std::string &key, const std::string &def) const {
+        std::map<std::string,std::string>::const_iterator i(find(key));
         if (i == end()) {
             return def;
         }
         return i->second;
     }
-    wxString Get(const wxString &key, const char *def) const {
-        std::map<wxString,wxString>::const_iterator i(find(key));
+    std::string Get(const std::string &key, const char *def) const {
+        std::map<std::string,std::string>::const_iterator i(find(key));
         if (i == end()) {
             return def;
         }
         return i->second;
     }
     
-    void Parse(const wxString &str) {
+    void Parse(const std::string &str) {
         clear();
-        wxString before,after,name,value;
-        wxString settings(str);
-        while (!settings.IsEmpty()) {
-            before=settings.BeforeFirst(',');
-            settings=settings.AfterFirst(',');
-            
-            name=before.BeforeFirst('=');
-            value=before.AfterFirst('=');
-            value.Replace("&comma;", ",", true); //unescape the commas
-            value.Replace("&amp;", "&", true); //unescape the amps
+        std::string before,after,name,value;
+        std::string settings(str);
+        while (!settings.empty()) {
+            size_t start_pos = settings.find(',');
+            if (start_pos != std::string::npos) {
+                before = settings.substr(0, start_pos);
+                settings = settings.substr(start_pos + 1);
+            } else {
+                before = settings;
+                settings = "";
+            }
+        
+            start_pos = before.find('=');
+            name = before.substr(0, start_pos);
+            value = before.substr(start_pos + 1);
+            ReplaceAll(value, "&comma;", ","); //unescape the commas
+            ReplaceAll(value, "&amp;", "&"); //unescape the amps
 
             RemapKey(name, value);
             if (!name.empty()) {
@@ -73,17 +80,17 @@ public:
         }
     }
     
-    virtual void RemapKey(wxString &n, wxString &value) {};
+    virtual void RemapKey(std::string &n, std::string &value) {};
     
-    wxString AsString() const {
-        wxString ret;
-        for (std::map<wxString,wxString>::const_iterator it=begin(); it!=end(); ++it) {
-            if (ret.Length() != 0) {
+    std::string AsString() const {
+        std::string ret;
+        for (std::map<std::string,std::string>::const_iterator it=begin(); it!=end(); ++it) {
+            if (ret.length() != 0) {
                 ret += ",";
             }
-            wxString value = it->second;
-            value.Replace("&", "&amp;", true); //need to escape the amps
-            value.Replace(",", "&comma;", true); //need to escape the commas
+            std::string value = it->second;
+            ReplaceAll(value, "&", "&amp;"); //need to escape the amps
+            ReplaceAll(value, ",", "&comma;"); //need to escape the commas
             ret += it->first + "=" + value;
         }
         return ret;
@@ -91,7 +98,16 @@ public:
     
     
 private:
-    static const wxString EMPTY_STRING;
+    
+    void ReplaceAll(std::string &str, const std::string& from, const std::string& to) const {
+        size_t start_pos = 0;
+        while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+            str.replace(start_pos, from.length(), to);
+            start_pos += to.length();
+        }
+    }
+    
+    static const std::string EMPTY_STRING;
 };
 
 class SettingsMap: public MapStringString {
@@ -100,11 +116,11 @@ public:
     }
     virtual ~SettingsMap() {}
     
-    virtual void RemapKey(wxString &n, wxString &value) {
+    virtual void RemapKey(std::string &n, std::string &value) {
         RemapChangedSettingKey(n, value);
     }
 private:
-    static void RemapChangedSettingKey(wxString &n,  wxString &value);
+    static void RemapChangedSettingKey(std::string &n,  std::string &value);
 };
 
 

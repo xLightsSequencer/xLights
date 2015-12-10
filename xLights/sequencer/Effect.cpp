@@ -4,6 +4,9 @@
 
 #include "../../include/globals.h"
 
+
+#include <unordered_map>
+
 class ControlRenameMap
 {
 public:
@@ -45,21 +48,21 @@ public:
         data["E_CHOICE_CoroFaces_TimingTrack"] = "E_CHOICE_Faces_TimingTrack";
         data["E_CHOICE_CoroFaces_FaceDefinition"] = "E_CHOICE_Faces_FaceDefinition";
     }
-    const void map(wxString &n) const
+    const void map(std::string &n) const
     {
-        wxStringToStringHashMap::const_iterator it = data.find(n);
+        std::unordered_map<std::string, std::string>::const_iterator it = data.find(n);
         if (it != data.end())
         {
             n = it->second;
         }
     }
 private:
-    wxStringToStringHashMap data;
+    std::unordered_map<std::string, std::string> data;
 } Remaps;
 
-const wxString MapStringString::EMPTY_STRING;
+const std::string MapStringString::EMPTY_STRING;
 
-void SettingsMap::RemapChangedSettingKey(wxString &n,  wxString &value)
+void SettingsMap::RemapChangedSettingKey(std::string &n,  std::string &value)
 {
     Remaps.map(n);
 }
@@ -469,12 +472,12 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 {
     wxMutexLocker lock(settingsLock);
 
-    for (std::map<wxString,wxString>::const_iterator it=mSettings.begin(); it!=mSettings.end(); ++it)
+    for (std::map<std::string,std::string>::const_iterator it=mSettings.begin(); it!=mSettings.end(); ++it)
     {
-        wxString name = it->first;
+        std::string name = it->first;
         if (stripPfx && name[1] == '_')
         {
-            name = name.AfterFirst('_');
+            name = name.substr(2);
         }
         target[name] = it->second;
     }
@@ -482,12 +485,12 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 void Effect::CopyPaletteMap(SettingsMap &target, bool stripPfx) const
 {
     wxMutexLocker lock(settingsLock);
-    for (std::map<wxString,wxString>::const_iterator it=mPaletteMap.begin(); it!=mPaletteMap.end(); ++it)
+    for (std::map<std::string,std::string>::const_iterator it=mPaletteMap.begin(); it!=mPaletteMap.end(); ++it)
     {
-        wxString name = it->first;
+        std::string name = it->first;
         if (stripPfx && name[1] == '_')
         {
-            name = name.AfterFirst('_');
+            name = name.substr(2);
         }
         target[name] = it->second;
     }

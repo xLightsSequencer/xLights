@@ -1056,7 +1056,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     wxPanel *efPanel;
     int cnt=0;
 
-    for (std::map<wxString,wxString>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
+    for (std::map<std::string,std::string>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
 //NOTE: this doesn't handle "," embedded into Text lines (causes "unable to find" error): -DJ
         name = it->first;
         if (name.StartsWith("E_"))
