@@ -298,6 +298,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_MyDisplay" member="yes">
+							<label> </label>
 							<checked>1</checked>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

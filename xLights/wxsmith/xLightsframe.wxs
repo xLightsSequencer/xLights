@@ -1418,7 +1418,9 @@
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
-															<object class="wxCheckBox" name="ID_CHECKBOX_OFF_AT_END" variable="CheckBoxOffAtEnd" member="yes" />
+															<object class="wxCheckBox" name="ID_CHECKBOX_OFF_AT_END" variable="CheckBoxOffAtEnd" member="yes">
+																<label> </label>
+															</object>
 															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 															<border>5</border>
 															<option>1</option>
@@ -1443,7 +1445,9 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxCheckBox" name="ID_CHECKBOX_MAP_EMPTY_CHANNELS" variable="CheckBoxMapEmptyChannels" member="yes" />
+																	<object class="wxCheckBox" name="ID_CHECKBOX_MAP_EMPTY_CHANNELS" variable="CheckBoxMapEmptyChannels" member="yes">
+																		<label> </label>
+																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>5</border>
 																	<option>1</option>
@@ -1458,6 +1462,7 @@
 																</object>
 																<object class="sizeritem">
 																	<object class="wxCheckBox" name="ID_CHECKBOX_LOR_WITH_NO_CHANNELS" variable="MapLORChannelsWithNoNetwork" member="yes">
+																		<label> </label>
 																		<checked>1</checked>
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -1473,7 +1478,9 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxCheckBox" name="ID_CHECKBOX_ShowChannelMapping" variable="CheckBoxShowChannelMapping" member="yes" />
+																	<object class="wxCheckBox" name="ID_CHECKBOX_ShowChannelMapping" variable="CheckBoxShowChannelMapping" member="yes">
+																		<label> </label>
+																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>5</border>
 																	<option>1</option>

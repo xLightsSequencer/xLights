@@ -33,6 +33,7 @@
 													<growablecols>0,1,2,3,4,5</growablecols>
 													<object class="sizeritem">
 														<object class="wxCheckBox" name="ID_CHECKBOX_Palette1" variable="CheckBox_Palette1" member="yes">
+															<label> </label>
 															<checked>1</checked>
 															<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 														</object>
@@ -42,6 +43,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxCheckBox" name="ID_CHECKBOX_Palette2" variable="CheckBox_Palette2" member="yes">
+															<label> </label>
 															<checked>1</checked>
 															<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 														</object>
@@ -51,6 +53,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxCheckBox" name="ID_CHECKBOX_Palette3" variable="CheckBox_Palette3" member="yes">
+															<label> </label>
 															<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -59,6 +62,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxCheckBox" name="ID_CHECKBOX_Palette4" variable="CheckBox_Palette4" member="yes">
+															<label> </label>
 															<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -67,6 +71,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxCheckBox" name="ID_CHECKBOX_Palette5" variable="CheckBox_Palette5" member="yes">
+															<label> </label>
 															<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -75,6 +80,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxCheckBox" name="ID_CHECKBOX_Palette6" variable="CheckBox_Palette6" member="yes">
+															<label> </label>
 															<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -2,13 +2,13 @@
 #define ADDSHOWDIALOG_H
 
 //(*Headers(AddShowDialog)
-#include <wx/spinctrl.h>
-#include <wx/checkbox.h>
-#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/choice.h>
+#include <wx/checkbox.h>
 #include <wx/listbox.h>
+#include <wx/spinctrl.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
 //*)
 
 class AddShowDialog: public wxDialog
@@ -38,26 +38,26 @@ public:
 
 
     //(*Declarations(AddShowDialog)
-    wxCheckBox* CheckBoxLastItem;
-    wxCheckBox* CheckBoxFirstItem;
-    wxSpinCtrl* SpinCtrlStartMinute;
-    wxStaticText* StaticText1;
     wxStaticText* StaticText10;
-    wxStaticText* StaticText3;
-    wxCheckBox* CheckBoxRandom;
+    wxStaticText* StaticText9;
+    wxCheckBox* CheckBoxFirstItem;
+    wxCheckBox* CheckBoxRepeat;
+    wxStaticText* StaticText2;
+    wxStaticText* StaticText6;
     wxStaticText* StaticText8;
     wxListBox* ListBoxDates;
-    wxStaticText* StaticText7;
+    wxStaticText* StaticText1;
+    wxStaticText* StaticText3;
     wxSpinCtrl* SpinCtrlEndMinute;
-    wxStaticText* StaticText4;
     wxStaticText* StaticText5;
-    wxStaticText* StaticText2;
-    wxCheckBox* CheckBoxRepeat;
-    wxStaticText* StaticText6;
-    wxStaticText* StaticText9;
-    wxSpinCtrl* SpinCtrlEndHour;
-    wxChoice* ChoicePlayList;
+    wxStaticText* StaticText7;
+    wxSpinCtrl* SpinCtrlStartMinute;
+    wxCheckBox* CheckBoxLastItem;
+    wxCheckBox* CheckBoxRandom;
     wxSpinCtrl* SpinCtrlStartHour;
+    wxChoice* ChoicePlayList;
+    wxSpinCtrl* SpinCtrlEndHour;
+    wxStaticText* StaticText4;
     //*)
 
 protected:

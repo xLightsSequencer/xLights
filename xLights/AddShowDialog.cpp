@@ -1,10 +1,10 @@
 #include "AddShowDialog.h"
 
 //(*InternalHeaders(AddShowDialog)
+#include <wx/font.h>
+#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
-#include <wx/intl.h>
-#include <wx/font.h>
 //*)
 
 //(*IdInit(AddShowDialog)
@@ -38,11 +38,11 @@ END_EVENT_TABLE()
 AddShowDialog::AddShowDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     //(*Initialize(AddShowDialog)
-    wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer5;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("Schedule Playlist"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxFULL_REPAINT_ON_RESIZE, _T("wxID_ANY"));
@@ -92,7 +92,7 @@ AddShowDialog::AddShowDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Repeat"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     StaticText2->SetToolTip(_("Repeat playlist until scheduled end time"));
     FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBoxRepeat = new wxCheckBox(this, ID_CHECKBOX_REPEAT, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_REPEAT"));
+    CheckBoxRepeat = new wxCheckBox(this, ID_CHECKBOX_REPEAT, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_REPEAT"));
     CheckBoxRepeat->SetValue(false);
     FlexGridSizer4->Add(CheckBoxRepeat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Play first\nitem once"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
@@ -107,7 +107,7 @@ AddShowDialog::AddShowDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     FlexGridSizer4->Add(CheckBoxLastItem, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Random\norder"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     FlexGridSizer4->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBoxRandom = new wxCheckBox(this, ID_CHECKBOX_RANDOM, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RANDOM"));
+    CheckBoxRandom = new wxCheckBox(this, ID_CHECKBOX_RANDOM, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RANDOM"));
     CheckBoxRandom->SetValue(false);
     FlexGridSizer4->Add(CheckBoxRandom, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer5->Add(FlexGridSizer4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

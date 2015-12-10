@@ -4040,7 +4040,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer24->Add(BitmapButton_Chase_3dFade1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     StaticText13 = new wxStaticText(Panel1, ID_STATICTEXT12, _("Group All Arches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
     FlexGridSizer24->Add(StaticText13, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_Chase_Group_All = new wxCheckBox(Panel1, ID_CHECKBOX_Chase_Group_All, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Chase_Group_All"));
+    CheckBox_Chase_Group_All = new wxCheckBox(Panel1, ID_CHECKBOX_Chase_Group_All, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Chase_Group_All"));
     CheckBox_Chase_Group_All->SetValue(false);
     FlexGridSizer24->Add(CheckBox_Chase_Group_All, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer24->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -4907,7 +4907,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer51->Add(BitmapButton_Wave_FillColors, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     StaticText49 = new wxStaticText(Panel1_Wave, ID_STATICTEXT52, _("Mirror Wave"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT52"));
     FlexGridSizer51->Add(StaticText49, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_Mirror_Wave = new wxCheckBox(Panel1_Wave, ID_CHECKBOX_Mirror_Wave, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Mirror_Wave"));
+    CheckBox_Mirror_Wave = new wxCheckBox(Panel1_Wave, ID_CHECKBOX_Mirror_Wave, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Mirror_Wave"));
     CheckBox_Mirror_Wave->SetValue(false);
     FlexGridSizer51->Add(CheckBox_Mirror_Wave, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer51->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

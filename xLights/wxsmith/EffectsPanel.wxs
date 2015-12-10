@@ -8389,7 +8389,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxCheckBox" name="ID_CHECKBOX_Chase_Group_All" variable="CheckBox_Chase_Group_All" member="yes" />
+														<object class="wxCheckBox" name="ID_CHECKBOX_Chase_Group_All" variable="CheckBox_Chase_Group_All" member="yes">
+															<label> </label>
+														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -11275,7 +11277,9 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Mirror_Wave" variable="CheckBox_Mirror_Wave" member="yes" />
+									<object class="wxCheckBox" name="ID_CHECKBOX_Mirror_Wave" variable="CheckBox_Mirror_Wave" member="yes">
+										<label> </label>
+									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
