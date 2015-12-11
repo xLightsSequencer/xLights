@@ -91,25 +91,25 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer_Palette->AddGrowableCol(3);
 	FlexGridSizer_Palette->AddGrowableCol(4);
 	FlexGridSizer_Palette->AddGrowableCol(5);
-	CheckBox_Palette1 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette1, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette1"));
+	CheckBox_Palette1 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette1"));
 	CheckBox_Palette1->SetValue(true);
 	FlexGridSizer_Palette->Add(CheckBox_Palette1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	CheckBox_Palette2 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette2, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette2"));
+	CheckBox_Palette2 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette2"));
 	CheckBox_Palette2->SetValue(true);
 	FlexGridSizer_Palette->Add(CheckBox_Palette2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	CheckBox_Palette3 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette3, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette3"));
+	CheckBox_Palette3 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette3"));
 	CheckBox_Palette3->SetValue(false);
 	FlexGridSizer_Palette->Add(CheckBox_Palette3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	CheckBox_Palette4 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette4, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette4"));
+	CheckBox_Palette4 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette4"));
 	CheckBox_Palette4->SetValue(false);
 	FlexGridSizer_Palette->Add(CheckBox_Palette4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	CheckBox_Palette5 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette5, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette5"));
+	CheckBox_Palette5 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette5"));
 	CheckBox_Palette5->SetValue(false);
 	FlexGridSizer_Palette->Add(CheckBox_Palette5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	CheckBox_Palette6 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette6, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette6"));
+	CheckBox_Palette6 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette6, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette6"));
 	CheckBox_Palette6->SetValue(false);
 	FlexGridSizer_Palette->Add(CheckBox_Palette6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_Palette1 = new wxBitmapButton(ColorScrollWindow, ID_BUTTON_Palette1, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BUTTON_Palette1"));
+	Button_Palette1 = new wxBitmapButton(ColorScrollWindow, ID_BUTTON_Palette1, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER|wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_Palette1"));
 	Button_Palette1->SetDefault();
 	FlexGridSizer_Palette->Add(Button_Palette1, 1, wxALIGN_LEFT|wxALIGN_TOP, 2);
 	Button_Palette2 = new wxBitmapButton(ColorScrollWindow, ID_BUTTON_Palette2, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BUTTON_Palette2"));
@@ -250,6 +250,19 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorPanel::OnResize);
 	//*)
 
+    CheckBox_Palette1->SetLabel(" ");
+    CheckBox_Palette2->SetLabel(" ");
+    CheckBox_Palette3->SetLabel(" ");
+    CheckBox_Palette4->SetLabel(" ");
+    CheckBox_Palette5->SetLabel(" ");
+    CheckBox_Palette6->SetLabel(" ");
+    
+    Button_Palette1->SetLabel(" ");
+    Button_Palette2->SetLabel(" ");
+    Button_Palette3->SetLabel(" ");
+    Button_Palette4->SetLabel(" ");
+    Button_Palette5->SetLabel(" ");
+    Button_Palette6->SetLabel(" ");
     SetDefaultPalette();
 
 }
@@ -264,11 +277,10 @@ ColorPanel::~ColorPanel()
 void ColorPanel::SetButtonColor(wxBitmapButton* btn, const wxColour* c)
 {
     btn->SetBackgroundColour(*c);
-    int test=c->Red()*0.299 + c->Green()*0.587 + c->Blue()*0.114;
-    btn->SetForegroundColour(test < 186 ? *wxWHITE : *wxBLACK);
+    btn->SetForegroundColour(*c);
 
-    wxImage image(15, 15);
-    image.SetRGB(wxRect(0, 0, 15, 15),
+    wxImage image(18, 18);
+    image.SetRGB(wxRect(0, 0, 18, 18),
                  c->Red(), c->Green(), c->Blue());
     wxBitmap bmp(image);
 
@@ -416,11 +428,11 @@ wxButton* ColorPanel::GetPaletteButton(int idx)
 
 void ColorPanel::SetDefaultPalette()
 {
-    SetButtonColor(Button_Palette1,wxRED);
-    SetButtonColor(Button_Palette2,wxGREEN);
-    SetButtonColor(Button_Palette3,wxBLUE);
-    SetButtonColor(Button_Palette4,wxYELLOW);
-    SetButtonColor(Button_Palette5,wxWHITE);
+    SetButtonColor(Button_Palette1,wxWHITE);
+    SetButtonColor(Button_Palette2,wxRED);
+    SetButtonColor(Button_Palette3,wxGREEN);
+    SetButtonColor(Button_Palette4,wxBLUE);
+    SetButtonColor(Button_Palette5,wxYELLOW);
     SetButtonColor(Button_Palette6,wxBLACK);
 }
 
