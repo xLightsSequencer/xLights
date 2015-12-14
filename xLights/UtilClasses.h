@@ -5,12 +5,22 @@
 #include <string>
 #include <algorithm>
 
+/* for now, to determine if we need the wxString variants */
+#include <wx/string.h>
+
+#ifdef __WXMSW__
+/* the c++11 runtime in mingw is broken.  It doesn't include these as the spec says it should */
+#include <cstdlib>
+#define stof(x) atof(x.c_str())
+#define stoi(x) strtol(x.c_str(), nullptr, 10)
+#endif
+
 class MapStringString: public std::map<std::string,std::string> {
 public:
     MapStringString(): std::map<std::string,std::string>() {
     }
     virtual ~MapStringString() {}
-    
+
     const std::string &operator[](const std::string &key) const {
         return Get(key, EMPTY_STRING);
     }
@@ -22,14 +32,14 @@ public:
         if (i == end() || i->second.length() == 0) {
             return def;
         }
-        return wxAtoi(i->second);
+        return stoi(i->second);
     }
     double GetDouble(const std::string &key, const double &def) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
         if (i == end()) {
             return def;
         }
-        return wxAtof(i->second);
+        return stof(i->second);
     }
     bool GetBool(const std::string &key, const bool def = false) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
@@ -52,7 +62,58 @@ public:
         }
         return i->second;
     }
-    
+
+
+
+    const std::string &operator[](const char *key) const {
+        return Get(key, EMPTY_STRING);
+    }
+    std::string &operator[](const char *ckey) {
+        std::string key(ckey);
+        return std::map<std::string, std::string>::operator[](key);
+    }
+    int GetInt(const char * ckey, const int def) const {
+        std::string key(ckey);
+        std::map<std::string,std::string>::const_iterator i(find(key));
+        if (i == end() || i->second.length() == 0) {
+            return def;
+        }
+        return stoi(i->second);
+    }
+    double GetDouble(const char *ckey, const double &def) const {
+        std::string key(ckey);
+        std::map<std::string,std::string>::const_iterator i(find(key));
+        if (i == end()) {
+            return def;
+        }
+        return stof(i->second);
+    }
+    bool GetBool(const char *ckey, const bool def = false) const {
+        std::string key(ckey);
+        std::map<std::string,std::string>::const_iterator i(find(key));
+        if (i == end()) {
+            return def;
+        }
+        return i->second.length() >= 1 && i->second.at(0) == '1';
+    }
+    const std::string &Get(const char *ckey, const std::string &def) const {
+        std::string key(ckey);
+        std::map<std::string,std::string>::const_iterator i(find(key));
+        if (i == end()) {
+            return def;
+        }
+        return i->second;
+    }
+    std::string Get(const char *ckey, const char *def) const {
+        std::string key(ckey);
+        std::map<std::string,std::string>::const_iterator i(find(key));
+        if (i == end()) {
+            return def;
+        }
+        return i->second;
+    }
+
+
     void Parse(const std::string &str) {
         clear();
         std::string before,after,name,value;
@@ -66,7 +127,7 @@ public:
                 before = settings;
                 settings = "";
             }
-        
+
             start_pos = before.find('=');
             name = before.substr(0, start_pos);
             value = before.substr(start_pos + 1);
@@ -79,9 +140,8 @@ public:
             }
         }
     }
-    
+
     virtual void RemapKey(std::string &n, std::string &value) {};
-    
     std::string AsString() const {
         std::string ret;
         for (std::map<std::string,std::string>::const_iterator it=begin(); it!=end(); ++it) {
@@ -95,10 +155,43 @@ public:
         }
         return ret;
     }
-    
-    
+
+#ifndef wxUSE_STD_STRING
+    /* deprecated wxString versions, need to rebuild wxWidgets with --with-stl */
+    /* On platforms that use the std::string, we don't need these */
+    const std::string &operator[](const wxString &wkey) const {
+        std::map<std::string,std::string>::const_iterator i(find(wkey.ToStdString()));
+        if (i == end()) {
+            return EMPTY_STRING;
+        }
+        return i->second;
+    }
+    std::string &operator[](const wxString &wkey) {
+        return std::map<std::string, std::string>::operator[](wkey.ToStdString());
+    }
+    int GetInt(const wxString &wkey, const int def) const {
+        return GetInt(wkey.ToStdString(), def);
+    }
+    double GetDouble(const wxString &wkey, const double &def) const {
+        return GetDouble(wkey.ToStdString(), def);
+    }
+    bool GetBool(const wxString &wkey, const bool def = false) const {
+        return GetBool(wkey.ToStdString(), def);
+    }
+    const std::string Get(const wxString &wkey, const wxString &def) const {
+        std::map<std::string,std::string>::const_iterator i(find(wkey.ToStdString()));
+        if (i == end()) {
+            return def.ToStdString();
+        }
+        return i->second;
+    }
+    std::string Get(const wxString &wkey, const char *def) const {
+        return Get(wkey.ToStdString(), def);
+    }
+#endif
+
 private:
-    
+
     void ReplaceAll(std::string &str, const std::string& from, const std::string& to) const {
         size_t start_pos = 0;
         while((start_pos = str.find(from, start_pos)) != std::string::npos) {
@@ -106,7 +199,7 @@ private:
             start_pos += to.length();
         }
     }
-    
+
     static const std::string EMPTY_STRING;
 };
 
@@ -115,7 +208,7 @@ public:
     SettingsMap(): MapStringString() {
     }
     virtual ~SettingsMap() {}
-    
+
     virtual void RemapKey(std::string &n, std::string &value) {
         RemapChangedSettingKey(n, value);
     }

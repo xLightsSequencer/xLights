@@ -1,3 +1,5 @@
+
+#include "UtilClasses.h"
 #include "Effect.h"
 #include "EffectLayer.h"
 #include "../BitmapCache.h"
@@ -413,7 +415,7 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & nam
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mProtected(Protected)
 {
     int i = GetEffectIndex(name);
-    mSettings.Parse(settings);
+    mSettings.Parse(settings.ToStdString());
 
     if (mEndTime < mStartTime)
     {
@@ -435,7 +437,7 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & nam
         mName = new wxString(name);
     }
 
-    mPaletteMap.Parse(palette);
+    mPaletteMap.Parse(palette.ToStdString());
     mColors.clear();
     if (!mPaletteMap.empty())
     {
@@ -499,7 +501,7 @@ void Effect::CopyPaletteMap(SettingsMap &target, bool stripPfx) const
 void Effect::SetSettings(const wxString &settings)
 {
     wxMutexLocker lock(settingsLock);
-    mSettings.Parse(settings);
+    mSettings.Parse(settings.ToStdString());
     IncrementChangeCount();
 }
 
@@ -512,7 +514,7 @@ wxString Effect::GetSettingsAsString() const
 void Effect::SetPalette(const wxString& i)
 {
     wxMutexLocker lock(settingsLock);
-    mPaletteMap.Parse(i);
+    mPaletteMap.Parse(i.ToStdString());
     mColors.clear();
     IncrementChangeCount();
     if (mPaletteMap.empty())
