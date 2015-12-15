@@ -1,4 +1,4 @@
-xLights/Nutcracker Version 3.x OS/X build instructions
+xLights/Nutcracker Version 4.x OS/X build instructions
 ------------------------------------------------------------------------------
 NOTE: These docs need updating for build instructions for xLights/Nutcracker
       These are the original Mac OS/X notes from ToolConfig.txt created by
@@ -11,7 +11,7 @@ xLights/Nutcracker on Mac OS/X.
 
 xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is 3.0.0.
+of wxWidgets for xLights/Nutcracker is 3.0.2.
 
 Unfortunately, xLights/Nutcracker cannot be compiled wxWidgets3 that is part 
 of MacPorts due to that build not including the wxMediaControl widgets that 
@@ -31,36 +31,16 @@ OS/X comes with the wxWidgets libraries pre-installed.
 The instructions here suggest compiling with Xcode:
   http://wiki.wxwidgets.org/Compiling_wxWidgets_with_Xcode
 
-However, I followed the method used for Linux from inside a Terminal window:
-
-    NOTE: The GCC that is part of Xcode 4.x is version 4.2 which does
-       NOT support the gnu++0x flag (tops out at c++99).  Since xLights
-       requires g++0x, we need to use the clang compiler.  This also
-       requires setting the minimum maxosx version to 10.7.
+From inside a Terminal window:
 
     NOTE: If running on OS X Yosemite, the Font dialog for the Text effect will 
        crash if build with wxWidgets 3.0.2.  You need to checkout the latest
-       wsWdigets code:
+       wxWidgets code:
      git clone -b WX_3_0_BRANCH https://github.com/wxWidgets/wxWidgets
        to get the latest fixes for the Font selection to work.
 
-  cd <wxMac base dir>
-  export CXXFLAGS="-stdlib=libc++ -std=c++11" 
-  export OBJCXXFLAGS="-stdlib=libc++ -std=c++11" 
-  export CPPFLAGS="-stdlib=libc++" 
-  export LDFLAGS="-stdlib=libc++" 
-  export CXX=clang++ 
-  export CXXCPP="clang++ -E" 
-  export CC=clang 
-  export CPP="clang -E" 
-  ./configure  --prefix=/opt/local --disable-shared --enable-debug_info --enable-macosx_arch=x86_64 \
-               --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
-               --with-macosx-version-min=10.7 --with-libjpeg=builtin \
-               --enable-stl --enable-std_string_conv_in_wxstring --enable-std_containers
-  make 
-  make install
 
-If you are planning debugging xLights, it's likely better to do:
+  cd <wxMac base dir>
   export CXXFLAGS="-stdlib=libc++ -std=c++11 -g" 
   export OBJCXXFLAGS="-stdlib=libc++ -std=c++11" 
   export CPPFLAGS="-stdlib=libc++ -g" 
@@ -70,10 +50,31 @@ If you are planning debugging xLights, it's likely better to do:
   export CC=clang 
   export CPP="clang -E" 
   export CFLAGS="-g"
-  ./configure  --prefix=/opt/local --disable-shared --enable-debug_info --enable-macosx_arch=x86_64 \
+  ./configure  --prefix=/opt/local --libdir=/opt/local/libdbg \
+               --enable-debug --enable-debug_info --disable-optimise --enable-macosx_arch=x86_64 \
                --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
-               --with-macosx-version-min=10.7 --with-libjpeg=builtin    --disable-optimise \
-               --enable-stl --enable-std_string_conv_in_wxstring --enable-std_containers
+               --with-macosx-version-min=10.7 --with-libjpeg=builtin
+  make
+  make install
+
+
+If you are planning on being able to build Release builds, you will ALSO need to do:
+
+  export CXXFLAGS="-stdlib=libc++ -std=c++11" 
+  export OBJCXXFLAGS="-stdlib=libc++ -std=c++11" 
+  export CPPFLAGS="-stdlib=libc++" 
+  export LDFLAGS="-stdlib=libc++" 
+  export CXX=clang++ 
+  export CXXCPP="clang++ -E" 
+  export CC=clang 
+  export CPP="clang -E" 
+  ./configure  --prefix=/opt/local --enable-macosx_arch=x86_64 \
+               --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
+               --with-macosx-version-min=10.7 --with-libjpeg=builtin
+  make 
+  make install
+
+
 
 Next, you will use Xcode to compile xLights. Most of the steps are listed here:
 

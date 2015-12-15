@@ -17,6 +17,19 @@
 		671E7DFA1AED4FFD0034C6DF /* RenderFan.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */; };
 		671E7DFB1AED4FFD0034C6DF /* RenderShockwave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */; };
 		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; };
+		672BD4F41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib */; };
+		672BD4F51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.0.dylib */; };
+		672BD4F61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.0.dylib */; };
+		672BD4F81C207D2E008F8B36 /* libwx_osx_cocoau_qa-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4E81C207D2E008F8B36 /* libwx_osx_cocoau_qa-3.0.dylib */; };
+		672BD4FC1C207D2E008F8B36 /* libwx_osx_cocoau_xrc-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4EC1C207D2E008F8B36 /* libwx_osx_cocoau_xrc-3.0.dylib */; };
+		672BD4FD1C207D2E008F8B36 /* libwx_baseu_net-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4ED1C207D2E008F8B36 /* libwx_baseu_net-3.0.dylib */; };
+		672BD4FE1C207D2E008F8B36 /* libwx_baseu-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4EE1C207D2E008F8B36 /* libwx_baseu-3.0.dylib */; };
+		672BD4FF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4EF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.0.dylib */; };
+		672BD5001C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4F01C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib */; };
+		672BD5021C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4F21C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib */; };
+		672BD5031C207D2E008F8B36 /* libwx_osx_cocoau_webview-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4F31C207D2E008F8B36 /* libwx_osx_cocoau_webview-3.0.dylib */; };
+		672BD5041C207DC6008F8B36 /* libmpg123.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B7971F1A5AE40B008D5921 /* libmpg123.a */; };
+		672BD5051C208335008F8B36 /* libwx_osx_cocoau_html-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4F11C207D2E008F8B36 /* libwx_osx_cocoau_html-3.0.dylib */; };
 		672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		6730E4D21ADB54E8005DECF0 /* RenderGalaxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */; };
@@ -27,6 +40,12 @@
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
 		674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C51918238E00A993C7 /* RenderFaces.cpp */; };
 		674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C61918238E00A993C7 /* RenderWave.cpp */; };
+		674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D1C1C207B9F000D632B /* OpenGL.framework */; };
+		674D3D1E1C207BBD000D632B /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; };
+		674D3D1F1C207BBD000D632B /* Cocoa.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D211C207BCC000D632B /* IOKit.framework */; };
+		674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D231C207BD7000D632B /* AudioToolbox.framework */; };
+		674D3D261C207C25000D632B /* libpthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D251C207C25000D632B /* libpthread.tbd */; };
 		674E27A51B5B37B000274B20 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674E27A41B5B37B000274B20 /* GLUT.framework */; };
 		675006781923EBBD00875D45 /* RenderGlediator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675006771923EBBD00875D45 /* RenderGlediator.cpp */; };
 		675878DB1A89297200205A75 /* DataLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675878D91A89297200205A75 /* DataLayer.cpp */; };
@@ -82,7 +101,6 @@
 		6784F9311A5653670018EC0C /* Waveform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9281A5653670018EC0C /* Waveform.cpp */; };
 		67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67879B7319F94544009D994D /* RenderShimmer.cpp */; };
 		679B1E371AD6C73200927259 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 679B1E361AD6C73200927259 /* Images.xcassets */; };
-		679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92517B53DB50006B951 /* libiconv.2.4.0.dylib */; };
 		679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92B17B53DE70006B951 /* QTKit.framework */; };
 		679E52BF1AD2F7520065E6EA /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */; };
 		67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */; };
@@ -171,6 +189,20 @@
 		67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		674D3D201C207BBD000D632B /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				674D3D1F1C207BBD000D632B /* Cocoa.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelAppearanceDlg.cpp; sourceTree = "<group>"; };
 		6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelAppearanceDlg.h; sourceTree = "<group>"; };
@@ -189,6 +221,22 @@
 		671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShockwave.cpp; sourceTree = "<group>"; };
 		671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResizeImageDialog.cpp; sourceTree = "<group>"; };
 		671FD62F1BD72014003C2E33 /* ResizeImageDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResizeImageDialog.h; sourceTree = "<group>"; };
+		672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_xml-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_aui-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_aui-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_gl-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_gl-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4E71C207D2E008F8B36 /* libwx_osx_cocoau_propgrid-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_propgrid-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_propgrid-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4E81C207D2E008F8B36 /* libwx_osx_cocoau_qa-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_qa-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_qa-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4E91C207D2E008F8B36 /* libwx_osx_cocoau_ribbon-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_ribbon-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_ribbon-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4EA1C207D2E008F8B36 /* libwx_osx_cocoau_richtext-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_richtext-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_richtext-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4EB1C207D2E008F8B36 /* libwx_osx_cocoau_stc-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_stc-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_stc-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4EC1C207D2E008F8B36 /* libwx_osx_cocoau_xrc-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_xrc-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_xrc-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4ED1C207D2E008F8B36 /* libwx_baseu_net-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_net-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_net-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4EE1C207D2E008F8B36 /* libwx_baseu-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4EF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_adv-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_adv-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4F01C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_core-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_core-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4F11C207D2E008F8B36 /* libwx_osx_cocoau_html-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_html-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_html-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4F21C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_media-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_media-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4F31C207D2E008F8B36 /* libwx_osx_cocoau_webview-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_webview-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_webview-3.0.dylib"; sourceTree = "<group>"; };
 		672E7C5C1B4B6B3700409549 /* xlGridCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvas.h; sourceTree = "<group>"; };
 		672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvas.cpp; sourceTree = "<group>"; };
 		672E7C601B4B6B3700409549 /* OptionChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionChooser.h; sourceTree = "<group>"; };
@@ -222,10 +270,15 @@
 		673E425A17F0D23E00F4BC76 /* TabTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabTest.cpp; sourceTree = "<group>"; };
 		67402E851B4230360047EDC1 /* NullOutputDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NullOutputDialog.cpp; sourceTree = "<group>"; };
 		67402E861B4230360047EDC1 /* NullOutputDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NullOutputDialog.h; sourceTree = "<group>"; };
+		674298971C20432600B11478 /* wx */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wx; path = ../../../../opt/local/lib/wx; sourceTree = "<group>"; };
 		67435AFD1BBB82EC00CBE95F /* RenderPlasma.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPlasma.cpp; sourceTree = "<group>"; };
 		6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsXmlFile.cpp; sourceTree = "<group>"; };
 		674D34C51918238E00A993C7 /* RenderFaces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFaces.cpp; sourceTree = "<group>"; };
 		674D34C61918238E00A993C7 /* RenderWave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderWave.cpp; sourceTree = "<group>"; };
+		674D3D1C1C207B9F000D632B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		674D3D211C207BCC000D632B /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+		674D3D231C207BD7000D632B /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		674D3D251C207C25000D632B /* libpthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpthread.tbd; path = usr/lib/libpthread.tbd; sourceTree = SDKROOT; };
 		674E27A41B5B37B000274B20 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		675006771923EBBD00875D45 /* RenderGlediator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGlediator.cpp; sourceTree = "<group>"; };
 		675878D91A89297200205A75 /* DataLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataLayer.cpp; sourceTree = "<group>"; };
@@ -394,13 +447,9 @@
 		67AAF8FE1B642E7D00585431 /* LyricsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LyricsDialog.h; sourceTree = "<group>"; };
 		67B068F81BE9414800B7F2DC /* RenderDmx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderDmx.cpp; sourceTree = "<group>"; };
 		67B189751AA22C990082B00C /* RenderMorph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderMorph.cpp; sourceTree = "<group>"; };
-		67B30CDC1A583F7A009E23FF /* libmpg123.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpg123.0.dylib; path = lib/osx/libmpg123.0.dylib; sourceTree = "<group>"; };
 		67B4C91F17B53D960006B951 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		67B4C92017B53D960006B951 /* CoreMediaIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMediaIO.framework; path = System/Library/Frameworks/CoreMediaIO.framework; sourceTree = SDKROOT; };
 		67B4C92117B53D960006B951 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
-		67B4C92517B53DB50006B951 /* libiconv.2.4.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.2.4.0.dylib; path = usr/lib/libiconv.2.4.0.dylib; sourceTree = SDKROOT; };
-		67B4C92617B53DB50006B951 /* libiconv.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.2.dylib; path = usr/lib/libiconv.2.dylib; sourceTree = SDKROOT; };
-		67B4C92717B53DB50006B951 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
 		67B4C92B17B53DE70006B951 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = System/Library/Frameworks/QTKit.framework; sourceTree = SDKROOT; };
 		67B4C92C17B53DE70006B951 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
 		67B797171A5AE343008D5921 /* ColorPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ColorPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -461,9 +510,26 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				672BD5051C208335008F8B36 /* libwx_osx_cocoau_html-3.0.dylib in Frameworks */,
+				672BD5041C207DC6008F8B36 /* libmpg123.a in Frameworks */,
+				672BD4F41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib in Frameworks */,
+				672BD4F51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.0.dylib in Frameworks */,
+				672BD4F61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.0.dylib in Frameworks */,
+				672BD4F81C207D2E008F8B36 /* libwx_osx_cocoau_qa-3.0.dylib in Frameworks */,
+				672BD4FC1C207D2E008F8B36 /* libwx_osx_cocoau_xrc-3.0.dylib in Frameworks */,
+				672BD4FD1C207D2E008F8B36 /* libwx_baseu_net-3.0.dylib in Frameworks */,
+				672BD4FE1C207D2E008F8B36 /* libwx_baseu-3.0.dylib in Frameworks */,
+				672BD4FF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.0.dylib in Frameworks */,
+				672BD5001C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib in Frameworks */,
+				672BD5021C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib in Frameworks */,
+				672BD5031C207D2E008F8B36 /* libwx_osx_cocoau_webview-3.0.dylib in Frameworks */,
+				674D3D261C207C25000D632B /* libpthread.tbd in Frameworks */,
+				674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */,
+				674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */,
+				674D3D1E1C207BBD000D632B /* Cocoa.framework in Frameworks */,
+				674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */,
 				674E27A51B5B37B000274B20 /* GLUT.framework in Frameworks */,
 				679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */,
-				679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -565,6 +631,7 @@
 		67E7086417B51AB400A22034 = {
 			isa = PBXGroup;
 			children = (
+				674298971C20432600B11478 /* wx */,
 				67AAF8F31B63782F00585431 /* Resources */,
 				67DB87F51AD6CA1300595194 /* wxsmith */,
 				67E7087617B51AB400A22034 /* xLights */,
@@ -587,18 +654,34 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib */,
+				672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.0.dylib */,
+				672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.0.dylib */,
+				672BD4E71C207D2E008F8B36 /* libwx_osx_cocoau_propgrid-3.0.dylib */,
+				672BD4E81C207D2E008F8B36 /* libwx_osx_cocoau_qa-3.0.dylib */,
+				672BD4E91C207D2E008F8B36 /* libwx_osx_cocoau_ribbon-3.0.dylib */,
+				672BD4EA1C207D2E008F8B36 /* libwx_osx_cocoau_richtext-3.0.dylib */,
+				672BD4EB1C207D2E008F8B36 /* libwx_osx_cocoau_stc-3.0.dylib */,
+				672BD4EC1C207D2E008F8B36 /* libwx_osx_cocoau_xrc-3.0.dylib */,
+				672BD4ED1C207D2E008F8B36 /* libwx_baseu_net-3.0.dylib */,
+				672BD4EE1C207D2E008F8B36 /* libwx_baseu-3.0.dylib */,
+				672BD4EF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.0.dylib */,
+				672BD4F01C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib */,
+				672BD4F11C207D2E008F8B36 /* libwx_osx_cocoau_html-3.0.dylib */,
+				672BD4F21C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib */,
+				672BD4F31C207D2E008F8B36 /* libwx_osx_cocoau_webview-3.0.dylib */,
+				674D3D251C207C25000D632B /* libpthread.tbd */,
+				674D3D231C207BD7000D632B /* AudioToolbox.framework */,
+				674D3D211C207BCC000D632B /* IOKit.framework */,
+				674D3D1C1C207B9F000D632B /* OpenGL.framework */,
 				674E27A41B5B37B000274B20 /* GLUT.framework */,
 				67B4C92B17B53DE70006B951 /* QTKit.framework */,
 				67B4C92C17B53DE70006B951 /* QuickTime.framework */,
-				67B4C92517B53DB50006B951 /* libiconv.2.4.0.dylib */,
-				67B4C92617B53DB50006B951 /* libiconv.2.dylib */,
-				67B4C92717B53DB50006B951 /* libiconv.dylib */,
 				67B4C91F17B53D960006B951 /* CoreMedia.framework */,
 				67B4C92017B53D960006B951 /* CoreMediaIO.framework */,
 				67B4C92117B53D960006B951 /* CoreVideo.framework */,
 				67B7971F1A5AE40B008D5921 /* libmpg123.a */,
 				67B7971D1A5AE3CA008D5921 /* libmpg123.la */,
-				67B30CDC1A583F7A009E23FF /* libmpg123.0.dylib */,
 				67E7087017B51AB400A22034 /* Cocoa.framework */,
 				67E7087217B51AB400A22034 /* Other Frameworks */,
 			);
@@ -833,6 +916,8 @@
 				67E7086917B51AB400A22034 /* Sources */,
 				67E7086A17B51AB400A22034 /* Frameworks */,
 				67E7086B17B51AB400A22034 /* Resources */,
+				674298661C1FC3CC00B11478 /* ShellScript */,
+				674D3D201C207BBD000D632B /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -885,6 +970,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		674298661C1FC3CC00B11478 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = bin/mac_fix_dylibs;
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		67E7086917B51AB400A22034 /* Sources */ = {
@@ -1125,15 +1227,18 @@
 					xLights/sequencer,
 				);
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/lib/osx",
+					/usr/lib,
+					/opt/local/libdbg,
 				);
 				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-I/opt/local/lib/wx/include/osx_cocoa-unicode-static-3.0",
+					"-I/opt/local/lib/wx/include/osx_cocoa-unicode-3.0",
 					"-I/opt/local/include/wx-3.0",
 					"-D_FILE_OFFSET_BITS=64",
 					"-DwxDEBUG_LEVEL=0",
@@ -1141,55 +1246,8 @@
 					"-D__WXOSX__",
 					"-D__WXOSX_COCOA__",
 				);
-				OTHER_LDFLAGS = (
-					"-L/usr/lib",
-					"-L/opt/local/lib",
-					"-Llib/osx",
-					lib/osx/libmpg123.a,
-					"-framework",
-					IOKit,
-					"-framework",
-					Cocoa,
-					"-framework",
-					Carbon,
-					"-framework",
-					AudioToolbox,
-					"-framework",
-					System,
-					"-framework",
-					OpenGL,
-					"/opt/local/lib/libwx_osx_cocoau_xrc-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_webview-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_stc-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_richtext-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_ribbon-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_propgrid-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_aui-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_gl-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_media-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_qa-3.0.a",
-					"/opt/local/lib/libwx_baseu_net-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_html-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_adv-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_core-3.0.a",
-					"/opt/local/lib/libwx_baseu_xml-3.0.a",
-					"/opt/local/lib/libwx_baseu-3.0.a",
-					"-lwxscintilla-3.0",
-					"-framework",
-					OpenGL,
-					"-framework",
-					AGL,
-					"-framework",
-					WebKit,
-					"-lwxregexu-3.0",
-					"-lwxtiff-3.0",
-					"-lwxjpeg-3.0",
-					"-lwxpng-3.0",
-					"-liconv",
-					"-lpthread",
-					"-lz",
-					"-lexpat",
-				);
+				OTHER_LDFLAGS = "";
+				"OTHER_LDFLAGS[arch=*]" = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "xLights.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1218,15 +1276,19 @@
 					xLights/sequencer,
 				);
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/lib/osx",
+					/usr/lib,
+					/opt/local/lib,
+					/opt/local/libdbg,
 				);
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-I/opt/local/lib/wx/include/osx_cocoa-unicode-static-3.0",
+					"-I/opt/local/lib/wx/include/osx_cocoa-unicode-3.0",
 					"-I/opt/local/include/wx-3.0",
 					"-D_FILE_OFFSET_BITS=64",
 					"-DwxDEBUG_LEVEL=0",
@@ -1234,55 +1296,8 @@
 					"-D__WXOSX__",
 					"-D__WXOSX_COCOA__",
 				);
-				OTHER_LDFLAGS = (
-					"-L/usr/lib",
-					"-L/opt/local/lib",
-					"-Llib/osx",
-					lib/osx/libmpg123.a,
-					"-framework",
-					IOKit,
-					"-framework",
-					Cocoa,
-					"-framework",
-					Carbon,
-					"-framework",
-					AudioToolbox,
-					"-framework",
-					System,
-					"-framework",
-					OpenGL,
-					"/opt/local/lib/libwx_osx_cocoau_xrc-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_webview-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_stc-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_richtext-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_ribbon-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_propgrid-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_aui-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_gl-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_media-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_qa-3.0.a",
-					"/opt/local/lib/libwx_baseu_net-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_html-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_adv-3.0.a",
-					"/opt/local/lib/libwx_osx_cocoau_core-3.0.a",
-					"/opt/local/lib/libwx_baseu_xml-3.0.a",
-					"/opt/local/lib/libwx_baseu-3.0.a",
-					"-lwxscintilla-3.0",
-					"-framework",
-					OpenGL,
-					"-framework",
-					AGL,
-					"-framework",
-					WebKit,
-					"-lwxregexu-3.0",
-					"-lwxtiff-3.0",
-					"-lwxjpeg-3.0",
-					"-lwxpng-3.0",
-					"-liconv",
-					"-lpthread",
-					"-lz",
-					"-lexpat",
-				);
+				OTHER_LDFLAGS = "";
+				"OTHER_LDFLAGS[arch=*]" = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "xLights.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

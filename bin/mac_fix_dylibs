@@ -1,0 +1,33 @@
+#!/bin/sh
+
+if [ "$CONFIGURATION" == "Release" ]; then
+
+SRCVER=3.0.0.3.0
+TARGETVER=3.0
+
+LIBS="baseu baseu_net baseu_xml osx_cocoau_core osx_cocoau_adv osx_cocoau_gl osx_cocoau_media osx_cocoau_html"
+
+mkdir -p "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
+for L in $LIBS
+do
+   rm -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$L-$SRCVER.dylib"
+   rm -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$L-$TARGETVER.dylib"
+   cp -af /opt/local/lib/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
+   cp -af /opt/local/lib/libwx_$L-$TARGETVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
+
+   install_name_tool -change /opt/local/lib/libwx_$L-$TARGETVER.dylib @executable_path/../Frameworks/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
+   install_name_tool -change /opt/local/lib/libwx_$L-$SRCVER.dylib @executable_path/../Frameworks/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
+done
+
+
+for LS in $LIBS
+do
+    for LT in $LIBS
+    do
+	install_name_tool -change /opt/local/lib/libwx_$LS-$TARGETVER.dylib @loader_path/../Frameworks/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
+	install_name_tool -change /opt/local/lib/libwx_$LS-$SRCVER.dylib @loader_path/../Frameworks/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
+    done
+done
+
+
+fi
