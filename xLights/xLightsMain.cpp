@@ -346,6 +346,7 @@ const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_LARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_XLARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM4 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_GRID_ICON_XSMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_SMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_LARGE = wxNewId();
@@ -953,7 +954,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer26->Add(ChoiceOutputFormat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText17 = new wxStaticText(PanelConvert, ID_STATICTEXT17, _("All channels off at end:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT17"));
     FlexGridSizer26->Add(StaticText17, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBoxOffAtEnd = new wxCheckBox(PanelConvert, ID_CHECKBOX_OFF_AT_END, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OFF_AT_END"));
+    CheckBoxOffAtEnd = new wxCheckBox(PanelConvert, ID_CHECKBOX_OFF_AT_END, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OFF_AT_END"));
     CheckBoxOffAtEnd->SetValue(false);
     FlexGridSizer26->Add(CheckBoxOffAtEnd, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer6->Add(FlexGridSizer26, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -961,17 +962,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText20 = new wxStaticText(PanelConvert, ID_STATICTEXT20, _("Map Empty LMS Channels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT20"));
     FlexGridSizer1->Add(StaticText20, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBoxMapEmptyChannels = new wxCheckBox(PanelConvert, ID_CHECKBOX_MAP_EMPTY_CHANNELS, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MAP_EMPTY_CHANNELS"));
+    CheckBoxMapEmptyChannels = new wxCheckBox(PanelConvert, ID_CHECKBOX_MAP_EMPTY_CHANNELS, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MAP_EMPTY_CHANNELS"));
     CheckBoxMapEmptyChannels->SetValue(false);
     FlexGridSizer1->Add(CheckBoxMapEmptyChannels, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText31 = new wxStaticText(PanelConvert, ID_STATICTEXT33, _("Map LMS Channels with no network"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT33"));
     FlexGridSizer1->Add(StaticText31, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    MapLORChannelsWithNoNetwork = new wxCheckBox(PanelConvert, ID_CHECKBOX_LOR_WITH_NO_CHANNELS, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LOR_WITH_NO_CHANNELS"));
+    MapLORChannelsWithNoNetwork = new wxCheckBox(PanelConvert, ID_CHECKBOX_LOR_WITH_NO_CHANNELS, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LOR_WITH_NO_CHANNELS"));
     MapLORChannelsWithNoNetwork->SetValue(true);
     FlexGridSizer1->Add(MapLORChannelsWithNoNetwork, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText39 = new wxStaticText(PanelConvert, ID_STATICTEXT39, _("Show Verbose Channel Map:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT39"));
     FlexGridSizer1->Add(StaticText39, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBoxShowChannelMapping = new wxCheckBox(PanelConvert, ID_CHECKBOX_ShowChannelMapping, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ShowChannelMapping"));
+    CheckBoxShowChannelMapping = new wxCheckBox(PanelConvert, ID_CHECKBOX_ShowChannelMapping, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ShowChannelMapping"));
     CheckBoxShowChannelMapping->SetValue(false);
     FlexGridSizer1->Add(CheckBoxShowChannelMapping, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText22 = new wxStaticText(PanelConvert, wxID_ANY, _("Time Resolution"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -1495,13 +1496,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ToolIconSizeMenu->Append(MenuItem14);
     MenuSettings->Append(ID_MENUITEM4, _("Tool Icon Size"), ToolIconSizeMenu, wxEmptyString);
     GridSpacingMenu = new wxMenu();
-    MenuItem17 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_SMALL, _("Small\tCTRL-1"), wxEmptyString, wxITEM_RADIO);
+    MenuItem16 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XSMALL, _("Extra Small\tCTRL-1"), wxEmptyString, wxITEM_RADIO);
+    GridSpacingMenu->Append(MenuItem16);
+    MenuItem17 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_SMALL, _("Small\tCTRL-2"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem17);
-    MenuItem19 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_MEDIUM, _("Medium\tCTRL-2"), wxEmptyString, wxITEM_RADIO);
+    MenuItem19 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_MEDIUM, _("Medium\tCTRL-3"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem19);
-    MenuItem27 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_LARGE, _("Large\tCTRL-3"), wxEmptyString, wxITEM_RADIO);
+    MenuItem27 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_LARGE, _("Large\tCTRL-4"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem27);
-    MenuItem28 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XLARGE, _("Extra Large\tCTRL-4"), wxEmptyString, wxITEM_RADIO);
+    MenuItem28 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XLARGE, _("Extra Large\tCTRL-5"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem28);
     MenuSettings->Append(ID_MENUITEM6, _("Grid Spacing"), GridSpacingMenu, wxEmptyString);
     MenuItem_Grid_Icon_Backgrounds = new wxMenu();
@@ -1719,6 +1722,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_XLARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
+    Connect(ID_MENUITEM_GRID_ICON_XSMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
@@ -1919,9 +1923,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         {
             id = ID_MENUITEM_GRID_ICON_LARGE;
         }
-        else if (mGridSpacing == 48)
+        else if (mGridSpacing >= 48)
         {
             id = ID_MENUITEM_GRID_ICON_XLARGE;
+        }
+        else if (mGridSpacing <= 12)
+        {
+            id = ID_MENUITEM_GRID_ICON_XSMALL;
         }
         wxCommandEvent event(wxEVT_NULL, id);
         SetIconSize(event);
@@ -3132,7 +3140,11 @@ void AUIToolbarButtonWrapper::Enable(bool b)
 void xLightsFrame::SetIconSize(wxCommandEvent& event)
 {
     int size = 48;
-    if (event.GetId() == ID_MENUITEM_GRID_ICON_SMALL)
+    if (event.GetId() == ID_MENUITEM_GRID_ICON_XSMALL)
+    {
+        size = 10;
+    }
+    else if (event.GetId() == ID_MENUITEM_GRID_ICON_SMALL)
     {
         size = 16;
     }

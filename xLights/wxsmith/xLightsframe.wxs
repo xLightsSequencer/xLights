@@ -1418,9 +1418,7 @@
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
-															<object class="wxCheckBox" name="ID_CHECKBOX_OFF_AT_END" variable="CheckBoxOffAtEnd" member="yes">
-																<label> </label>
-															</object>
+															<object class="wxCheckBox" name="ID_CHECKBOX_OFF_AT_END" variable="CheckBoxOffAtEnd" member="yes" />
 															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 															<border>5</border>
 															<option>1</option>
@@ -1445,9 +1443,7 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxCheckBox" name="ID_CHECKBOX_MAP_EMPTY_CHANNELS" variable="CheckBoxMapEmptyChannels" member="yes">
-																		<label> </label>
-																	</object>
+																	<object class="wxCheckBox" name="ID_CHECKBOX_MAP_EMPTY_CHANNELS" variable="CheckBoxMapEmptyChannels" member="yes" />
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>5</border>
 																	<option>1</option>
@@ -1462,7 +1458,6 @@
 																</object>
 																<object class="sizeritem">
 																	<object class="wxCheckBox" name="ID_CHECKBOX_LOR_WITH_NO_CHANNELS" variable="MapLORChannelsWithNoNetwork" member="yes">
-																		<label> </label>
 																		<checked>1</checked>
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -1478,9 +1473,7 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxCheckBox" name="ID_CHECKBOX_ShowChannelMapping" variable="CheckBoxShowChannelMapping" member="yes">
-																		<label> </label>
-																	</object>
+																	<object class="wxCheckBox" name="ID_CHECKBOX_ShowChannelMapping" variable="CheckBoxShowChannelMapping" member="yes" />
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>5</border>
 																	<option>1</option>
@@ -2952,27 +2945,33 @@
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM6" variable="GridSpacingMenu" member="yes">
 					<label>Grid Spacing</label>
+					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_XSMALL" variable="MenuItem16" member="yes">
+						<label>Extra Small</label>
+						<accel>CTRL-1</accel>
+						<handler function="SetIconSize" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_SMALL" variable="MenuItem17" member="no">
 						<label>Small</label>
-						<accel>CTRL-1</accel>
+						<accel>CTRL-2</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_MEDIUM" variable="MenuItem19" member="no">
 						<label>Medium</label>
-						<accel>CTRL-2</accel>
+						<accel>CTRL-3</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_LARGE" variable="MenuItem27" member="no">
 						<label>Large</label>
-						<accel>CTRL-3</accel>
+						<accel>CTRL-4</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_XLARGE" variable="MenuItem28" member="no">
 						<label>Extra Large</label>
-						<accel>CTRL-4</accel>
+						<accel>CTRL-5</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>

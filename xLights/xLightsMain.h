@@ -877,6 +877,7 @@ private:
     static const long ID_MENUITEM_ICON_LARGE;
     static const long ID_MENUITEM_ICON_XLARGE;
     static const long ID_MENUITEM4;
+    static const long ID_MENUITEM_GRID_ICON_XSMALL;
     static const long ID_MENUITEM_GRID_ICON_SMALL;
     static const long ID_MENUITEM_GRID_ICON_MEDIUM;
     static const long ID_MENUITEM_GRID_ICON_LARGE;
@@ -1153,6 +1154,7 @@ private:
     wxStaticText* StaticTextShowStart;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxMenuItem* MenuItemEffectAssistAlwaysOn;
+    wxMenuItem* MenuItem16;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
     wxStaticText* StaticText9;

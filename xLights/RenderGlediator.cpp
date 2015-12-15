@@ -100,7 +100,6 @@ void RgbEffects::RenderGlediator( const wxString& GledFilename)
     SeqNumPeriods=(int)(fileLength/SeqNumChannels);
     SeqDataLen=fileLength;
 
-    wxYield();
     period = curPeriod - curEffStartPer;
     offset = period*SeqNumChannels;
     f.Seek(offset, wxFromStart);

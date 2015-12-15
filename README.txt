@@ -7,6 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- change(dkulp) OSX uses dynamic wxWidgets libraries instead of static
+    -- bug(dkulp) Don't call wxYield in Glediator render.  We're on a background thread. Fixes #384
+    -- enh(dkulp) Add an "extra small" grid spacing
     -- enh(dkulp) Add a message box if the rgbeffects.xml contains a model with an invalid model type
 4.2.25  Dec 9, 2015
     -- enh(gil)   Add Copy Model and Paste Model effects options to row heading right click menu.

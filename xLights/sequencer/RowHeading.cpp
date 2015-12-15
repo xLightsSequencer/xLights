@@ -479,7 +479,7 @@ void RowHeading::Draw()
             dc.DrawLine(1,startY-1,w-1,startY-1);
             dc.SetPen(*wxBLACK_PEN);
             if (mSequenceElements->GetVisibleRowInformation(i)->strandIndex >= 0) {
-                wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
+                wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
                 wxString name = mSequenceElements->GetVisibleRowInformation(i)->displayName;
                 if (name == "") {
                     if (mSequenceElements->GetVisibleRowInformation(i)->nodeIndex >= 0) {
@@ -498,7 +498,7 @@ void RowHeading::Draw()
         }
         else        // Draw label
         {
-            wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
+            wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
             dc.DrawLabel(prefix + mSequenceElements->GetVisibleRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
@@ -523,11 +523,11 @@ void RowHeading::Draw()
             {
                 dc.SetBrush(*wxWHITE_BRUSH);
                 dc.SetPen(*wxBLACK_PEN);
-                dc.DrawRectangle(2,startY+7,9,9);
-                dc.DrawLine(4,startY+11,9,startY+11);
+                dc.DrawRectangle(2,startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4,9,9);
+                dc.DrawLine(2,startY + DEFAULT_ROW_HEADING_HEIGHT/2,9,startY + DEFAULT_ROW_HEADING_HEIGHT/2);
                 if(mSequenceElements->GetVisibleRowInformation(i)->Collapsed)
                 {
-                    dc.DrawLine(6,startY+9,6,startY+14);
+                    dc.DrawLine(6,startY + DEFAULT_ROW_HEADING_HEIGHT/2 + 4,6,startY + DEFAULT_ROW_HEADING_HEIGHT/2 - 4);
                 }
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush);
@@ -541,15 +541,15 @@ void RowHeading::Draw()
                 if(mSequenceElements->GetVisibleRowInformation(i)->Active)
                 {
                     dc.SetBrush(*wxWHITE_BRUSH);
-                    dc.DrawCircle(7,startY+11,5);
+                    dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,5);
 
                     dc.SetBrush(*wxGREY_BRUSH);
-                    dc.DrawCircle(7,startY+11,2);
+                    dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,2);
                 }
                 else
                 {
                     dc.SetBrush(*wxWHITE_BRUSH);
-                    dc.DrawCircle(7,startY+11,5);
+                    dc.DrawCircle(7,startY + DEFAULT_ROW_HEADING_HEIGHT/2,5);
                 }
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush);

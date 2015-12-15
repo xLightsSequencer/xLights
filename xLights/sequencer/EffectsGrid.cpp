@@ -2118,6 +2118,11 @@ void EffectsGrid::DrawTimingEffects(int row)
                 DrawGLUtils::DrawLine(*mEffectColorRight,255,x1+half_width,y,x2,y,2);
                 if (effectLayer->GetEffect(effectIndex)->GetEffectName() != "" && (x2-x1) > 20 ) {
                     double fontSize = DEFAULT_ROW_HEADING_HEIGHT - 10;
+                    int toffset = 0;
+                    if (fontSize < 10) {
+                        fontSize = 10;
+                        toffset = 2;
+                    }
                     double factor = translateToBacking(1.0);
                     int max_width = x2-x1-18;
                     int text_width = DrawGLUtils::GetTextWidth(fontSize, effectLayer->GetEffect(effectIndex)->GetEffectName(), factor) + 8;
@@ -2139,7 +2144,7 @@ void EffectsGrid::DrawTimingEffects(int row)
                     }
                     DrawGLUtils::DrawFillRectangle(*label_color,80,label_start,y1-2,width,y2-y1+4);
                     DrawGLUtils::DrawRectangle(*mLabelOutlineColor,false,label_start,y1-2,label_start + width,y2+2);
-                    DrawGLUtils::DrawText(label_start + 4, y2-3, fontSize, effectLayer->GetEffect(effectIndex)->GetEffectName(), factor);
+                    DrawGLUtils::DrawText(label_start + 4, y2-3 + toffset, fontSize, effectLayer->GetEffect(effectIndex)->GetEffectName(), factor);
                 }
             }
         }
