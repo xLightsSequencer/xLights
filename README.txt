@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.3.00  Dec 17, 2015
     -- change(dkulp) OSX uses dynamic wxWidgets libraries instead of static
     -- bug(dkulp) Don't call wxYield in Glediator render.  We're on a background thread. Fixes #384
     -- enh(dkulp) Add an "extra small" grid spacing
