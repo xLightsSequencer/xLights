@@ -282,8 +282,9 @@ void xLightsFrame::ShowModelsDialog()
     for(size_t i=0; i<dialog.ListBox1->GetCount(); i++)
     {
         e=(wxXmlNode*)dialog.ListBox1->GetClientData(i);
-        if (!e->GetParent())
-        {
+        if (e == nullptr) {
+            wxMessageBox("Could not find XML for " + dialog.ListBox1->GetString(i), _("ERROR"));           
+        } else if (!e->GetParent()) {
             ModelsNode->AddChild(e);
         }
     }
