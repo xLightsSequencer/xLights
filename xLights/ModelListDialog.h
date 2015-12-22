@@ -1,6 +1,8 @@
 #ifndef MODELLISTDIALOG_H
 #define MODELLISTDIALOG_H
 
+#include <map>
+
 //(*Headers(ModelListDialog)
 #include <wx/sizer.h>
 #include <wx/listbox.h>
@@ -25,7 +27,9 @@ public:
     void SetSequenceElements(SequenceElements* elements);
     void SetNetInfo(NetInfoClass *ni) {netInfo = ni;};
     void SetModelGroupsNode(wxXmlNode *mg) {modelGroups = mg;};
-
+    void AddModel(const wxString &name, wxXmlNode *nd);
+    wxXmlNode *GetXMLForModel(const wxString &name);
+    
     //(*Declarations(ModelListDialog)
     wxButton* Button_ExportCsv;
     wxButton* Button_Modify;
@@ -69,6 +73,7 @@ private:
     xLightsFrame* mParent;
     NetInfoClass *netInfo;
     wxXmlNode *modelGroups;
+    std::map<wxString, wxXmlNode*> models;
 
     DECLARE_EVENT_TABLE()
 };

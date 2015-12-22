@@ -90,6 +90,15 @@ ModelListDialog::~ModelListDialog()
     //*)
 }
 
+void ModelListDialog::AddModel(const wxString &name, wxXmlNode *nd) {
+    models[name] = nd;
+    ListBox1->Append(name, nd);
+}
+wxXmlNode *ModelListDialog::GetXMLForModel(const wxString &name) {
+    return models[name];
+}
+
+
 void ModelListDialog::SetSequenceElements(SequenceElements* elements)
 {
     mSequenceElements = elements;
@@ -139,6 +148,7 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
 
                 dialog.UpdateXml(e);
                 ListBox1->Append(name,e);
+                models[name] = e;
             }
         }
     }
@@ -153,7 +163,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
         wxMessageBox(_("Select an item before clicking the Modify button"));
         return;
     }
-    wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
+    wxXmlNode* e = models[ListBox1->GetString(sel)];
     int DlgResult;
     bool ok;
     ModelDialog *dialog = new ModelDialog(this);
@@ -185,7 +195,7 @@ void ModelListDialog::OnButton_DeleteClick(wxCommandEvent& event)
         return;
     }
 
-    wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
+    wxXmlNode* e = models[ListBox1->GetString(sel)];
     wxString attr;
     int result = wxNO;
     e->GetAttribute("name", &attr);
@@ -230,7 +240,7 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
     }
     while (DlgResult == wxID_OK && !ok);
     if (DlgResult != wxID_OK) return;
-    wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
+    wxXmlNode* e = models[ListBox1->GetString(sel)];
 
     wxString OldName;
     e->GetAttribute("name", &OldName);
@@ -268,6 +278,8 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
 
     ListBox1->Delete(sel);
     ListBox1->Append(NewName, e);
+    models[NewName] = e;
+    models[OldName] = nullptr;
 }
 
 void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
@@ -278,7 +290,7 @@ void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
         wxMessageBox(_("Select an item before clicking the Copy button"));
         return;
     }
-    wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
+    wxXmlNode* e = models[ListBox1->GetString(sel)];
     wxString name;
     int DlgResult;
     bool ok;
@@ -302,6 +314,7 @@ void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
                 e->AddAttribute("offsetYpct","0.5");
                 dialog.UpdateXml(e);
                 ListBox1->Append(name,e);
+                models[name] = e;
             }
         }
     }
@@ -316,7 +329,7 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
         wxMessageBox(_("Select an item before clicking the Channel Layout button"));
         return;
     }
-    wxXmlNode* ModelNode=(wxXmlNode*)ListBox1->GetClientData(sel);
+    wxXmlNode* ModelNode = models[ListBox1->GetString(sel)];
     ModelClass model;
     model.SetFromXml(ModelNode, *netInfo);
     wxString html=model.ChannelLayoutHtml();
@@ -361,7 +374,7 @@ brightness
     if (ListBox1->GetSelection() != wxNOT_FOUND) last = 1 + (first = ListBox1->GetSelection());
     for (int i = first; i < last; ++i)
     {
-        wxXmlNode* node = (wxXmlNode*)ListBox1->GetClientData(i);
+        wxXmlNode* node = models[ListBox1->GetString(i)];
         ModelClass model;
         model.SetFromXml(node, *netInfo);
         wxString stch = node->GetAttribute("StartChannel", wxString::Format("%d?", model.NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
@@ -374,7 +387,7 @@ brightness
 
 void ModelListDialog::OnListBox_ListBox1(wxCommandEvent& event)
 {
-    wxXmlNode* ModelNode=(wxXmlNode*)ListBox1->GetClientData(ListBox1->GetSelection());
+    wxXmlNode* ModelNode = models[ListBox1->GetString(ListBox1->GetSelection())];
     wxString displayAs = ModelNode->GetAttribute("DisplayAs");
     bool enable = displayAs == "WholeHouse"?false:true;
     Button_Modify->Enable(enable);

@@ -268,7 +268,7 @@ void xLightsFrame::ShowModelsDialog()
             name=e->GetAttribute("name");
             if (!name.IsEmpty())
             {
-                dialog.ListBox1->Append(name,e);
+                dialog.AddModel(name, e);
             }
         }
     }
@@ -281,9 +281,9 @@ void xLightsFrame::ShowModelsDialog()
     // append any new models to the main xml structure
     for(size_t i=0; i<dialog.ListBox1->GetCount(); i++)
     {
-        e=(wxXmlNode*)dialog.ListBox1->GetClientData(i);
+        e=(wxXmlNode*)dialog.GetXMLForModel(dialog.ListBox1->GetString(i));
         if (e == nullptr) {
-            wxMessageBox("Could not find XML for " + dialog.ListBox1->GetString(i), _("ERROR"));           
+            wxMessageBox("Could not find XML for " + dialog.ListBox1->GetString(i), _("ERROR"));
         } else if (!e->GetParent()) {
             ModelsNode->AddChild(e);
         }
