@@ -647,9 +647,9 @@ void PixelBufferClass::RenderLightning(int Number_Bolts, int Number_Segments, bo
                                        int topX,int topY, int botX, int botY) {
     effects[CurrentLayer].RenderLightning(Number_Bolts, Number_Segments, ForkedLightning,  topX, topY,  botX,  botY );
 }
-void PixelBufferClass::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int MSpeed, bool reverse_dir,
+void PixelBufferClass::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int mSpeed, int mStart, bool reverse_dir,
                                      int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x) {
-    effects[CurrentLayer].RenderMarquee(BandSize, SkipSize, Thickness, stagger, MSpeed, reverse_dir,
+    effects[CurrentLayer].RenderMarquee(BandSize, SkipSize, Thickness, stagger, mSpeed, mStart, reverse_dir,
                                         x_scale, y_scale, xc_adj, yc_adj, pixelOffsets, wrap_x);
 }
 

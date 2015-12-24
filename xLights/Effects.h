@@ -38,7 +38,7 @@ void RenderLightning(int Number_Bolts, int Number_Segments, bool ForkedLightning
                      int topX,int topY, int botX, int botY);
 void LightningDrawBolt(const int x0_, const int y0_, const int x1_, const int y1_,  xlColor& color, int curState );
 
-void RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int MSpeed, bool reverse_dir,
+void RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int mSpeed, int mStart, bool reverse_dir,
                    int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x);
 void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed);
 void RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2,

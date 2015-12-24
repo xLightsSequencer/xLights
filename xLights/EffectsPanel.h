@@ -255,6 +255,7 @@ public:
     wxBitmapButton* BitmapButton_Marquee_Speed;
     wxBitmapButton* BitmapButton12;
     wxNotebook* Notebook3;
+    wxBitmapButton* BitmapButton_Marquee_Start;
     wxBitmapButton* BitmapButton_SnowstormCount;
     wxStaticText* StaticText189;
     wxCheckBox* CheckBox_Fan_Blend_Edges;
@@ -994,6 +995,9 @@ protected:
     static const long ID_SLIDER_Marquee_Speed;
     static const long IDD_TEXTCTRL_Marquee_Speed;
     static const long ID_BITMAPBUTTON_SLIDER_Marquee_Speed;
+    static const long ID_SLIDER_Marquee_Start;
+    static const long IDD_TEXTCTRL_Marquee_Start;
+    static const long ID_BITMAPBUTTON_SLIDER_Marquee_Start;
     static const long ID_CHECKBOX_Marquee_Reverse;
     static const long ID_PANEL_Marquee_Settings;
     static const long ID_SLIDER_Marquee_ScaleX;

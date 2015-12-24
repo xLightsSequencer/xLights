@@ -59,7 +59,7 @@ static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int
     }
 }
 
-void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int mSpeed, bool reverse_dir,
+void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int mSpeed, int mStart, bool reverse_dir,
                                int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x)
 {
     int x = 0;
@@ -86,8 +86,8 @@ void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int st
 
     for( int thick = 0; thick < Thickness; thick++ )
     {
-        int current_color = (x % repeat_size) / color_size;
-        int current_pos = ((x % repeat_size) % color_size);
+        int current_color = ((x + mStart) % repeat_size) / color_size;
+        int current_pos = (((x + mStart) % repeat_size) % color_size);
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*(stagger+1) * sign);
         for( int x_pos = corner_x1; x_pos <= corner_x2; x_pos++ )
         {

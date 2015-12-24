@@ -4926,6 +4926,46 @@
 														<border>5</border>
 														<option>1</option>
 													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticText244" member="no">
+															<label>Start Pos:</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Marquee_Start" variable="Slider_Marquee_Start" member="no">
+															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Start" variable="TextCtrl_Marquee_Start" member="no">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>20,-1d</size>
+															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Start" variable="BitmapButton_Marquee_Start" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<default>1</default>
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
 													<object class="spacer">
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -8389,9 +8429,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxCheckBox" name="ID_CHECKBOX_Chase_Group_All" variable="CheckBox_Chase_Group_All" member="yes">
-															<label> </label>
-														</object>
+														<object class="wxCheckBox" name="ID_CHECKBOX_Chase_Group_All" variable="CheckBox_Chase_Group_All" member="yes" />
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -11277,9 +11315,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Mirror_Wave" variable="CheckBox_Mirror_Wave" member="yes">
-										<label> </label>
-									</object>
+									<object class="wxCheckBox" name="ID_CHECKBOX_Mirror_Wave" variable="CheckBox_Mirror_Wave" member="yes" />
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>

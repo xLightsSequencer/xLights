@@ -432,7 +432,7 @@ public:
             if (!strandBuffers.empty()) {
                 for (std::map<int, PixelBufferClassPtr>::iterator it = strandBuffers.begin(); it != strandBuffers.end(); it++) {
                     int strand = it->first;
-                    
+
                     PixelBufferClass *buffer = it->second.get();
                     StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
                     Effect *el = findEffectForFrame(slayer, frame);
@@ -527,7 +527,7 @@ public:
     }
 
 private:
-    
+
     void initialize(int layer, int frame, Effect *el, SettingsMap &settingsMap, PixelBufferClass *buffer) {
         if (el == NULL) {
             settingsMap.clear();
@@ -1085,6 +1085,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                  wxAtoi(SettingsMap["SLIDER_Marquee_Thickness"]),
                                  wxAtoi(SettingsMap["SLIDER_Marquee_Stagger"]),
                                  wxAtoi(SettingsMap.Get("SLIDER_Marquee_Speed", "1")),
+                                 wxAtoi(SettingsMap.Get("SLIDER_Marquee_Start", "0")),
                                  SettingsMap["CHECKBOX_Marquee_Reverse"] == "1",
                                  wxAtoi(SettingsMap["SLIDER_Marquee_ScaleX"]),
                                  wxAtoi(SettingsMap["SLIDER_Marquee_ScaleY"]),
@@ -1245,7 +1246,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 event->period = period;
                 event->settingsMap = &SettingsMap;
                 event->ResetEffectState = &resetEffectState;
-                
+
                 event->mutex.Lock();
                 CallAfter(&xLightsFrame::RenderEffectOnMainThread, event);
                 if (event->signal.Wait() == wxCOND_NO_ERROR) {
