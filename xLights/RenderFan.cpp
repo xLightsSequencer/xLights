@@ -31,7 +31,6 @@ void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end
                            int duration, int acceleration, bool reverse_dir, bool blend_edges,
                            int num_blades, int blade_width, int blade_angle, int num_elements, int element_width )
 {
-    double step = GetStepAngle(BufferWi, BufferHt);
     std::vector< std::vector<double> > temp_colors_pct(BufferWi, std::vector<double>(BufferHt));
     double eff_pos = GetEffectTimeIntervalPosition();
     int num_colors = palette.Size();
@@ -97,6 +96,8 @@ void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end
         std::swap(radius1, radius2);
     }
 
+    double step = GetStepAngle(radius1, radius2);
+
     double a_const = radius2 / ToRadians(std::abs((double)blade_angle));
 
     for( int blade = 0; blade < num_blades; blade++ )
@@ -110,7 +111,7 @@ void RgbEffects::RenderFan(int center_x, int center_y, int start_radius, int end
                 {
                     double mid_angle = element_size / 2.0;
                     double color_pct = 1.0 - std::abs(current_angle - mid_angle)/mid_angle;
-                    for( double i = radius1; i <= radius2; i += step )
+                    for( double i = radius1; i <= radius2; i += 0.5 )
                     {
                         double calc_angle = i / a_const * 180.0 / PI;
                         double adj_angle = calc_angle + blade_element_start_angle + current_angle;

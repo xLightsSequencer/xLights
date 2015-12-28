@@ -39,7 +39,6 @@ void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int 
                               int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward )
 {
     if( revolutions == 0 ) return;
-    double step = GetStepAngle(BufferWi, BufferHt);
     std::vector< std::vector<double> > temp_colors_pct(BufferWi, std::vector<double>(BufferHt));
     std::vector< std::vector<double> > pixel_age(BufferWi, std::vector<double>(BufferHt));
 
@@ -66,6 +65,8 @@ void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int 
     double radius2 = end_radius;
     double width1 = start_width;
     double width2 = end_width;
+
+    double step = GetStepAngle(radius1, radius2);
 
     for( int x = 0; x < BufferWi; x++ )
     {

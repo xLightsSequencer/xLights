@@ -53,7 +53,6 @@ double RgbEffects::GetStepAngle(int width, int height)
 void RgbEffects::RenderShockwave(int center_x, int center_y, int start_radius, int end_radius,
                                  int start_width, int end_width, int acceleration, bool blend_edges )
 {
-    double step = GetStepAngle(BufferWi, BufferHt);
     std::vector< std::vector<double> > temp_colors_pct(BufferWi, std::vector<double>(BufferHt));
     double eff_pos = GetEffectTimeIntervalPosition();
     int num_colors = palette.Size();
@@ -78,6 +77,8 @@ void RgbEffects::RenderShockwave(int center_x, int center_y, int start_radius, i
     radius1 = radius_center - half_width;
     radius2 = radius_center + half_width;
 
+    double step = GetStepAngle(radius1, radius2);
+
     for( int x = 0; x < BufferWi; x++ )
     {
         for( int y = 0; y < BufferHt; y++ )
@@ -89,7 +90,7 @@ void RgbEffects::RenderShockwave(int center_x, int center_y, int start_radius, i
 
     for( double current_angle = 0.0; current_angle <= 360.0; current_angle += step )
     {
-        for( double r = std::max(0.0, radius1); r <= radius2; r += step )
+        for( double r = std::max(0.0, radius1); r <= radius2; r += 0.5 )
         {
             double x1 = std::sin(ToRadians(current_angle)) * r + (double)pos_x;
             double y1 = std::cos(ToRadians(current_angle)) * r + (double)pos_y;
