@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Improve acceleration for Morph, Fan, Galaxy, and Shockwave. Values 1, 2, -1, and -2 were broken.
     -- bug(gil)   Fix a node rendering bug when clicking on effects next to the end of Marquee effects.
     -- enh(gil)   Improve Fan, Galaxy, and Shockwave render time.
     -- enh(gil)   Add start position slider to Marquee to allow positioning the start color.

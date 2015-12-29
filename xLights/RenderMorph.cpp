@@ -47,10 +47,21 @@ static void StoreLine( const int x0_, const int y0_, const int x1_, const int y1
 
 double RgbEffects::calcAccel(double ratio, double accel)
 {
-    accel /= 2.0;
     if( accel == 0 ) return ratio;
-    else if( accel > 0 ) return std::pow(ratio, accel);
-    else return (1.0 - std::pow(1.0 - ratio, -accel));
+
+    double pct_accel = (abs(accel) - 1.0) / 9.0;
+    double new_accel1 = pct_accel * 5 + (1.0 - pct_accel) * 1.5;
+    double new_accel2 = 1.5 + (ratio * new_accel1);
+    double final_accel = pct_accel * new_accel2 + (1.0 - pct_accel) * new_accel1;
+
+    if( accel > 0 )
+    {
+        return std::pow(ratio, final_accel);
+    }
+    else
+    {
+        return (1.0 - std::pow(1.0 - ratio, new_accel1));
+    }
 }
 
 static int calcPosition(int value, int base)

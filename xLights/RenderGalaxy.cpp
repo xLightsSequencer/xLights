@@ -27,14 +27,6 @@
 const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
-double calcAccel(double ratio, double accel)
-{
-    accel /= 3.0;
-    if( accel == 0 ) return 1.0;
-    else if( accel > 0 ) return std::pow(ratio, accel);
-    else return (1 - std::pow(1 - ratio, -accel));
-}
-
 void RgbEffects::RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                               int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward )
 {
