@@ -67,7 +67,9 @@ void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int st
     size_t colorcnt = GetColorCount();
     int color_size = BandSize +  SkipSize;
     int repeat_size = color_size * colorcnt;
-    x = (mSpeed * effectState++) / 5;
+    int eff_pos = curPeriod - curEffStartPer;
+
+    x = (mSpeed * eff_pos) / 5;
     int corner_x1 = 0;
     int corner_y1 = 0;
     int corner_x2 = (int)((double)BufferWi * (double)x_scale / 100.0) - 1;
