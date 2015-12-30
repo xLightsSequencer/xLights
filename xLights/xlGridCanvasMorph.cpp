@@ -7,6 +7,8 @@ EVT_PAINT(xlGridCanvasMorph::render)
 EVT_MOTION(xlGridCanvasMorph::mouseMoved)
 EVT_LEFT_DOWN(xlGridCanvasMorph::mouseLeftDown)
 EVT_LEFT_UP(xlGridCanvasMorph::mouseLeftUp)
+EVT_RIGHT_DOWN(xlGridCanvasMorph::mouseRightDown)
+EVT_RIGHT_UP(xlGridCanvasMorph::mouseRightUp)
 END_EVENT_TABLE()
 
 #define CORNER_NOT_SELECTED     0
@@ -70,13 +72,36 @@ void xlGridCanvasMorph::mouseLeftDown(wxMouseEvent& event)
 {
     if( mEffect == NULL ) return;
     mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
-    if( mSelectedCorner != CORNER_NOT_SELECTED )
+    if( mSelectedCorner == CORNER_NOT_SELECTED )
     {
-        SetCursor(wxCURSOR_HAND);
-        mDragging = true;
-        CaptureMouse();
-        Refresh(false);
+        SetMorphCorner1a(event.GetX(), event.GetY());
+        StoreUpdatedMorphPositions();
+        SetMorphCorner1b(event.GetX(), event.GetY());
+        StoreUpdatedMorphPositions();
+        Update();
     }
+    mDragging = true;
+    CaptureMouse();
+    SetCursor(wxCURSOR_HAND);
+    Refresh(false);
+}
+
+void xlGridCanvasMorph::mouseRightDown(wxMouseEvent& event)
+{
+    if( mEffect == NULL ) return;
+    mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
+    if( mSelectedCorner == CORNER_NOT_SELECTED )
+    {
+        SetMorphCorner2a(event.GetX(), event.GetY());
+        StoreUpdatedMorphPositions();
+        SetMorphCorner2b(event.GetX(), event.GetY());
+        StoreUpdatedMorphPositions();
+        Update();
+    }
+    mDragging = true;
+    CaptureMouse();
+    SetCursor(wxCURSOR_HAND);
+    Refresh(false);
 }
 
 void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
@@ -102,6 +127,18 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
 }
 
 void xlGridCanvasMorph::mouseLeftUp(wxMouseEvent& event)
+{
+    if( mEffect == NULL ) return;
+    if( mDragging )
+    {
+        StoreUpdatedMorphPositions();
+        mSelectedCorner = CORNER_NOT_SELECTED;
+        ReleaseMouse();
+        mDragging = false;
+    }
+}
+
+void xlGridCanvasMorph::mouseRightUp(wxMouseEvent& event)
 {
     if( mEffect == NULL ) return;
     if( mDragging )
@@ -154,6 +191,82 @@ void xlGridCanvasMorph::UpdateSelectedMorphCorner(int x, int y)
         y2b = y_pos;
     }
     Refresh(false);
+}
+
+void xlGridCanvasMorph::SetMorphCorner1a(int x, int y)
+{
+    if( x < mCellSize ) x = mCellSize;
+    if( x > mColumns * mCellSize ) x = mColumns * mCellSize;
+    if( y < mCellSize ) y = mCellSize;
+    if( y > mRows * mCellSize ) y = mRows * mCellSize;
+
+    int x_pos = (x / mCellSize) * mCellSize + mCellSize/2;
+    int y_pos = (y / mCellSize) * mCellSize + mCellSize/2;
+
+    x1a = x_pos;
+    y1a = y_pos;
+    if( mMorphStartLinked )
+    {
+        x1b = x_pos;
+        y1b = y_pos;
+    }
+    mSelectedCorner = CORNER_1A_SELECTED;
+}
+
+void xlGridCanvasMorph::SetMorphCorner1b(int x, int y)
+{
+    if( x < mCellSize ) x = mCellSize;
+    if( x > mColumns * mCellSize ) x = mColumns * mCellSize;
+    if( y < mCellSize ) y = mCellSize;
+    if( y > mRows * mCellSize ) y = mRows * mCellSize;
+
+    int x_pos = (x / mCellSize) * mCellSize + mCellSize/2;
+    int y_pos = (y / mCellSize) * mCellSize + mCellSize/2;
+
+    x1b = x_pos;
+    y1b = y_pos;
+    if( !mMorphStartLinked )
+    {
+        mSelectedCorner = CORNER_1B_SELECTED;
+    }
+}
+
+void xlGridCanvasMorph::SetMorphCorner2a(int x, int y)
+{
+    if( x < mCellSize ) x = mCellSize;
+    if( x > mColumns * mCellSize ) x = mColumns * mCellSize;
+    if( y < mCellSize ) y = mCellSize;
+    if( y > mRows * mCellSize ) y = mRows * mCellSize;
+
+    int x_pos = (x / mCellSize) * mCellSize + mCellSize/2;
+    int y_pos = (y / mCellSize) * mCellSize + mCellSize/2;
+
+    x2a = x_pos;
+    y2a = y_pos;
+    if( mMorphEndLinked )
+    {
+        x2b = x_pos;
+        y2b = y_pos;
+    }
+    mSelectedCorner = CORNER_2A_SELECTED;
+}
+
+void xlGridCanvasMorph::SetMorphCorner2b(int x, int y)
+{
+    if( x < mCellSize ) x = mCellSize;
+    if( x > mColumns * mCellSize ) x = mColumns * mCellSize;
+    if( y < mCellSize ) y = mCellSize;
+    if( y > mRows * mCellSize ) y = mRows * mCellSize;
+
+    int x_pos = (x / mCellSize) * mCellSize + mCellSize/2;
+    int y_pos = (y / mCellSize) * mCellSize + mCellSize/2;
+
+    x2b = x_pos;
+    y2b = y_pos;
+    if( !mMorphStartLinked )
+    {
+        mSelectedCorner = CORNER_2B_SELECTED;
+    }
 }
 
 void xlGridCanvasMorph::StoreUpdatedMorphPositions()

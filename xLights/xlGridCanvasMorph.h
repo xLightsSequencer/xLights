@@ -25,13 +25,19 @@ class xlGridCanvasMorph : public xlGridCanvas
 
         int CheckForCornerHit(int x, int y);
         void mouseMoved(wxMouseEvent& event);
+        void mouseRightDown(wxMouseEvent& event);
         void mouseLeftDown(wxMouseEvent& event);
+        void mouseRightUp(wxMouseEvent& event);
         void mouseLeftUp(wxMouseEvent& event);
         void render(wxPaintEvent& event);
         void DrawMorphEffect();
         void CreateCornerTextures();
         void UpdateMorphPositionsFromEffect();
         void UpdateSelectedMorphCorner(int x, int y);
+        void SetMorphCorner1a(int x, int y);
+        void SetMorphCorner1b(int x, int y);
+        void SetMorphCorner2a(int x, int y);
+        void SetMorphCorner2b(int x, int y);
         void StoreUpdatedMorphPositions();
 
         int x1a, x1b, x2a, x2b, y1a, y1b, y2a, y2b;
