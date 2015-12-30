@@ -50,8 +50,8 @@ static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int
             position--;
             if( position < 0 )
             {
-                band_color--;
-                if( band_color < 0 ) band_color = colorcnt-1;
+                band_color++;
+                band_color %= colorcnt;
                 position = color_size-1;
             }
             index--;
@@ -90,6 +90,10 @@ void RgbEffects::RenderMarquee(int BandSize, int SkipSize, int Thickness, int st
     {
         int current_color = ((x + mStart) % repeat_size) / color_size;
         int current_pos = (((x + mStart) % repeat_size) % color_size);
+        if( sign < 0 )
+        {
+            current_color = color_size - current_color;
+        }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*(stagger+1) * sign);
         for( int x_pos = corner_x1; x_pos <= corner_x2; x_pos++ )
         {
