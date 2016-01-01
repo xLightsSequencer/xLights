@@ -601,7 +601,7 @@ void RgbEffects::RenderTextLine(DrawingContext* dc, int idx, const wxString& Lin
     if (Line.IsEmpty()) return;
 
     int state = (curPeriod - curEffStartPer) * tspeed * frameTimeInMs / 50;
-
+    int framesPerSec = 1000 / frameTimeInMs;
     switch(Countdown)
     {
     case COUNTDOWN_SECONDS:
@@ -609,9 +609,9 @@ void RgbEffects::RenderTextLine(DrawingContext* dc, int idx, const wxString& Lin
         if (state==0)
         {
             if (!Line.ToLong(&tempLong)) tempLong=0;
-            timer_countdown[idx] = curPeriod+tempLong*20+19;  // capture 0 period
+            timer_countdown[idx] = curPeriod+tempLong*framesPerSec+framesPerSec-1;  // capture 0 period
         }
-        seconds=(timer_countdown[idx]-curPeriod)/20;
+        seconds=(timer_countdown[idx]-curPeriod)/framesPerSec;
         if(seconds < 0) seconds=0;
         msg=wxString::Format("%i",seconds);
         break;
@@ -683,7 +683,7 @@ TIME FORMAT CHARACTERS:
     case COUNTDOWN_M_or_S:
     case COUNTDOWN_S:
         // countdown to date
-        if (state%20 == 0)   //1x/sec
+        if (state%framesPerSec == 0)   //1x/sec
         {
 //            if ( dt.ParseDateTime(Line, &end) ) { //broken, force RFC822 for now -DJ
             if ( dt.ParseRfc822Date(Line, &end) )
