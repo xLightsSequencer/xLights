@@ -49,7 +49,7 @@ double RgbEffects::calcAccel(double ratio, double accel)
 {
     if( accel == 0 ) return ratio;
 
-    double pct_accel = (abs(accel) - 1.0) / 9.0;
+    double pct_accel = (std::abs(accel) - 1.0) / 9.0;
     double new_accel1 = pct_accel * 5 + (1.0 - pct_accel) * 1.5;
     double new_accel2 = 1.5 + (ratio * new_accel1);
     double final_accel = pct_accel * new_accel2 + (1.0 - pct_accel) * new_accel1;

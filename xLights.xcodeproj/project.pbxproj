@@ -99,6 +99,15 @@
 		6784F9311A5653670018EC0C /* Waveform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9281A5653670018EC0C /* Waveform.cpp */; };
 		67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67879B7319F94544009D994D /* RenderShimmer.cpp */; };
 		679B1E371AD6C73200927259 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 679B1E361AD6C73200927259 /* Images.xcassets */; };
+		679BD3351C37555C000539FE /* OnPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3291C37555C000539FE /* OnPanel.cpp */; };
+		679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD32A1C37555C000539FE /* EffectPanelUtils.cpp */; };
+		679BD3371C37555C000539FE /* BarsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD32D1C37555C000539FE /* BarsPanel.cpp */; };
+		679BD3381C37555C000539FE /* OffPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD32F1C37555C000539FE /* OffPanel.cpp */; };
+		679BD3391C37555C000539FE /* RenderableEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3301C37555C000539FE /* RenderableEffect.cpp */; };
+		679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3321C37555C000539FE /* OffEffect.cpp */; };
+		679BD33D1C3757F6000539FE /* EffectManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD33B1C3757F6000539FE /* EffectManager.cpp */; };
+		679BD3421C375D9F000539FE /* BarsEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD33E1C375D9F000539FE /* BarsEffect.cpp */; };
+		679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3401C375D9F000539FE /* OnEffect.cpp */; };
 		679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92B17B53DE70006B951 /* QTKit.framework */; };
 		679E52BF1AD2F7520065E6EA /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */; };
 		67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */; };
@@ -363,6 +372,24 @@
 		6784F9281A5653670018EC0C /* Waveform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Waveform.cpp; path = sequencer/Waveform.cpp; sourceTree = "<group>"; };
 		67879B7319F94544009D994D /* RenderShimmer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShimmer.cpp; sourceTree = "<group>"; };
 		679B1E361AD6C73200927259 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = xLights/Images.xcassets; sourceTree = "<group>"; };
+		679BD3291C37555C000539FE /* OnPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OnPanel.cpp; path = effects/OnPanel.cpp; sourceTree = "<group>"; };
+		679BD32A1C37555C000539FE /* EffectPanelUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectPanelUtils.cpp; path = effects/EffectPanelUtils.cpp; sourceTree = "<group>"; };
+		679BD32B1C37555C000539FE /* EffectPanelUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EffectPanelUtils.h; path = effects/EffectPanelUtils.h; sourceTree = "<group>"; };
+		679BD32C1C37555C000539FE /* OnPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OnPanel.h; path = effects/OnPanel.h; sourceTree = "<group>"; };
+		679BD32D1C37555C000539FE /* BarsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BarsPanel.cpp; path = effects/BarsPanel.cpp; sourceTree = "<group>"; };
+		679BD32E1C37555C000539FE /* BarsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BarsPanel.h; path = effects/BarsPanel.h; sourceTree = "<group>"; };
+		679BD32F1C37555C000539FE /* OffPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OffPanel.cpp; path = effects/OffPanel.cpp; sourceTree = "<group>"; };
+		679BD3301C37555C000539FE /* RenderableEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderableEffect.cpp; path = effects/RenderableEffect.cpp; sourceTree = "<group>"; };
+		679BD3311C37555C000539FE /* RenderableEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderableEffect.h; path = effects/RenderableEffect.h; sourceTree = "<group>"; };
+		679BD3321C37555C000539FE /* OffEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OffEffect.cpp; path = effects/OffEffect.cpp; sourceTree = "<group>"; };
+		679BD3331C37555C000539FE /* OffEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OffEffect.h; path = effects/OffEffect.h; sourceTree = "<group>"; };
+		679BD3341C37555C000539FE /* OffPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OffPanel.h; path = effects/OffPanel.h; sourceTree = "<group>"; };
+		679BD33B1C3757F6000539FE /* EffectManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectManager.cpp; path = effects/EffectManager.cpp; sourceTree = "<group>"; };
+		679BD33C1C3757F6000539FE /* EffectManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EffectManager.h; path = effects/EffectManager.h; sourceTree = "<group>"; };
+		679BD33E1C375D9F000539FE /* BarsEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BarsEffect.cpp; path = effects/BarsEffect.cpp; sourceTree = "<group>"; };
+		679BD33F1C375D9F000539FE /* BarsEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BarsEffect.h; path = effects/BarsEffect.h; sourceTree = "<group>"; };
+		679BD3401C375D9F000539FE /* OnEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OnEffect.cpp; path = effects/OnEffect.cpp; sourceTree = "<group>"; };
+		679BD3411C375D9F000539FE /* OnEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OnEffect.h; path = effects/OnEffect.h; sourceTree = "<group>"; };
 		679BEF1B1A9FCB1D00C37BB4 /* RenderCommandEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderCommandEvent.h; sourceTree = "<group>"; };
 		679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = xlMacUtils.mm; sourceTree = "<group>"; };
 		67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils.cpp; sourceTree = "<group>"; };
@@ -563,6 +590,31 @@
 			name = Vamp;
 			sourceTree = "<group>";
 		};
+		679BD3281C37552D000539FE /* Effects */ = {
+			isa = PBXGroup;
+			children = (
+				679BD33E1C375D9F000539FE /* BarsEffect.cpp */,
+				679BD33F1C375D9F000539FE /* BarsEffect.h */,
+				679BD3401C375D9F000539FE /* OnEffect.cpp */,
+				679BD3411C375D9F000539FE /* OnEffect.h */,
+				679BD33B1C3757F6000539FE /* EffectManager.cpp */,
+				679BD33C1C3757F6000539FE /* EffectManager.h */,
+				679BD3291C37555C000539FE /* OnPanel.cpp */,
+				679BD32A1C37555C000539FE /* EffectPanelUtils.cpp */,
+				679BD32B1C37555C000539FE /* EffectPanelUtils.h */,
+				679BD32C1C37555C000539FE /* OnPanel.h */,
+				679BD32D1C37555C000539FE /* BarsPanel.cpp */,
+				679BD32E1C37555C000539FE /* BarsPanel.h */,
+				679BD32F1C37555C000539FE /* OffPanel.cpp */,
+				679BD3301C37555C000539FE /* RenderableEffect.cpp */,
+				679BD3311C37555C000539FE /* RenderableEffect.h */,
+				679BD3321C37555C000539FE /* OffEffect.cpp */,
+				679BD3331C37555C000539FE /* OffEffect.h */,
+				679BD3341C37555C000539FE /* OffPanel.h */,
+			);
+			name = Effects;
+			sourceTree = "<group>";
+		};
 		67AAF8F31B63782F00585431 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -693,6 +745,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				679BD3281C37552D000539FE /* Effects */,
 				67D11C7B1BEA692300000A7F /* DimmingCurvePanel.cpp */,
 				67D11C751BEA691900000A7F /* ModelDimmingCurveDialog.cpp */,
 				67D11C781BEA691900000A7F /* DimmingCurve.cpp */,
@@ -995,6 +1048,7 @@
 				673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */,
 				67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */,
 				67AAF8FD1B642E6C00585431 /* LyricsDialog.cpp in Sources */,
+				679BD33D1C3757F6000539FE /* EffectManager.cpp in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
 				677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */,
 				67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */,
@@ -1003,6 +1057,7 @@
 				67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */,
 				67B189761AA22C990082B00C /* RenderMorph.cpp in Sources */,
 				67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */,
+				679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */,
 				67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */,
 				675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */,
 				676F58781A1556210045FA22 /* RenderOff.cpp in Sources */,
@@ -1015,6 +1070,7 @@
 				671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */,
 				67A61A2F17B51C0F008E95BB /* ModelDialog.cpp in Sources */,
 				67CBF26E1B8D525B0028705C /* EffectPanelDefaults.cpp in Sources */,
+				679BD3391C37555C000539FE /* RenderableEffect.cpp in Sources */,
 				677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */,
 				671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */,
 				67A61A3017B51C0F008E95BB /* ModelListDialog.cpp in Sources */,
@@ -1038,6 +1094,9 @@
 				67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */,
 				6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */,
 				675AB42D1B5ACEDA00853A28 /* PluginLoader.cpp in Sources */,
+				679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */,
+				679BD3351C37555C000539FE /* OnPanel.cpp in Sources */,
+				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,
 				67A61A3617B51C0F008E95BB /* RenderBars.cpp in Sources */,
@@ -1121,6 +1180,7 @@
 				674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */,
 				670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */,
 				675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */,
+				679BD3371C37555C000539FE /* BarsPanel.cpp in Sources */,
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,
 				67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */,
 				6717E3AE19FC9D3F00E94972 /* RenderRipple.cpp in Sources */,
@@ -1129,6 +1189,7 @@
 				67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */,
 				675AB4291B5ACEDA00853A28 /* host-c.cpp in Sources */,
 				67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */,
+				679BD3421C375D9F000539FE /* BarsEffect.cpp in Sources */,
 				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
 				675DE26D1B53381800A9BB44 /* xlGridCanvasMorph.cpp in Sources */,
 				6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */,
@@ -1138,6 +1199,7 @@
 				67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */,
 				67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */,
 				67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */,
+				679BD3381C37555C000539FE /* OffPanel.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

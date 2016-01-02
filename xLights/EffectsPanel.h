@@ -207,9 +207,9 @@ public:
     wxStaticText* StaticText205;
     wxBitmapButton* BitmapButton_FireworksNumberExplosions;
     wxBitmapButton* BitmapButton_Morph_End_X2;
-    wxStaticText* StaticText65;
     wxStaticText* StaticText152;
     wxPanel* PictureEndPositionPanel;
+    wxStaticText* StaticText65;
     wxPanel* Panel17;
     wxStaticText* StaticText60;
     wxChoice* Choice_Wave_Direction;
@@ -299,7 +299,6 @@ public:
     wxBitmapButton* BitmapButton_random;
     wxBitmapButton* BitmapButton_PinwheelNumberArms;
     wxStaticText* StaticText153;
-    wxSlider* Slider_Bars_BarCount;
     wxCheckBox* CheckBox_Morph_End_Link;
     wxBitmapButton* BitmapButton_Morph_Repeat_Skip;
     wxStaticText* StaticText127;
@@ -437,8 +436,8 @@ public:
     wxStaticText* StaticText151;
     wxCheckBox* CheckBox_Circles_Random_m;
     wxBitmapButton* BitmapButton_TextEffect1;
-    wxStaticText* StaticText66;
     wxBitmapButton* BitmapButton2;
+    wxStaticText* StaticText66;
     wxBitmapButton* BitmapButton_Fan_Num_Blades;
     wxPanel* Panel_Text3;
     wxBitmapButton* BitmapButton_Shockwave_CenterX;
@@ -520,7 +519,6 @@ public:
     wxStaticText* StaticText12;
     wxChoice* Choice_Pictures_Direction;
     wxScrolledWindow* Panel1_Twinkle;
-    wxChoice* Choice_Bars_Direction;
     wxPanel* Panel_Marquee_Settings;
     wxCheckBox* CheckBox_Galaxy_Inward;
     wxStaticText* StaticText111;
@@ -568,7 +566,6 @@ public:
     wxBitmapButton* BitmapButton_FireWidth;
     wxStaticText* StaticText16;
     wxChoice* Choice_Skips_Direction;
-    wxScrolledWindow* Panel1_On;
     wxSlider* Slider_Fireworks_Fade;
     wxBitmapButton* BitmapButton_Piano_ShapeFilename;
     wxScrolledWindow* Panel1_Spirals;
@@ -577,7 +574,6 @@ public:
     wxChoice* Choice_Text_Count1;
     wxBitmapButton* BitmapButton_FireworksVelocity;
     wxSlider* Slider_Piano_NumKeys;
-    wxScrolledWindow* Panel1_Bars;
     wxChoice* Choice_Num_Dmx_Channels;
     wxCheckBox* CheckBox_Twinkle_Strobe;
     wxStaticText* StaticText20;
@@ -593,7 +589,6 @@ public:
     wxBitmapButton* BitmapButton_SpiralsRotation;
     wxStaticText* StaticText83;
     wxBitmapButton* BitmapButton_TextCount3;
-    wxScrolledWindow* Panel1_Off;
     wxStaticText* StaticText74;
     wxStaticText* StaticText41;
     wxStaticText* StaticText29;
@@ -611,27 +606,6 @@ public:
 protected:
 
     //(*Identifiers(EffectsPanel)
-    static const long ID_PANEL19;
-    static const long IDD_SLIDER_Eff_On_Start;
-    static const long ID_TEXTCTRL_Eff_On_Start;
-    static const long IDD_SLIDER_Eff_On_End;
-    static const long ID_TEXTCTRL_Eff_On_End;
-    static const long IDD_SLIDER_On_Cycles;
-    static const long ID_TEXTCTRL_On_Cycles;
-    static const long ID_CHECKBOX_On_Shimmer;
-    static const long ID_PANEL25;
-    static const long ID_SLIDER_Bars_BarCount;
-    static const long IDD_TEXTCTRL_Bars_BarCount;
-    static const long ID_BITMAPBUTTON_SLIDER_Bars_BarCount;
-    static const long IDD_SLIDER_Bars_Cycles;
-    static const long ID_TEXTCTRL_Bars_Cycles;
-    static const long ID_CHOICE_Bars_Direction;
-    static const long ID_BITMAPBUTTON_CHOICE_Bars_Direction;
-    static const long ID_CHECKBOX_Bars_Highlight;
-    static const long ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight;
-    static const long ID_CHECKBOX_Bars_3D;
-    static const long ID_BITMAPBUTTON_CHECKBOX_Bars_3D;
-    static const long ID_PANEL8;
     static const long ID_CHOICE_Butterfly_Colors;
     static const long ID_BITMAPBUTTON_CHOICE_Butterfly_Color;
     static const long ID_SLIDER_Butterfly_Style;
@@ -1610,9 +1584,6 @@ private:
 
 //add lock/unlock/random state flags -DJ
 //these could be used to make fields read-only, but initially they are just used for partially random effects
-//#include <unordered_map>
-    typedef enum { Normal, Locked, Random } EditState;
-    std::unordered_map<std::string, EditState> buttonState;
     bool isRandom_(wxControl* ctl, const char*debug);
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
     void setlock(wxButton* button); //, EditState& islocked);

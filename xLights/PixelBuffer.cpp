@@ -561,7 +561,7 @@ void PixelBufferClass::RenderOn(Effect *eff, int start, int end, bool shimmer, f
     effects[CurrentLayer].RenderOn(eff, start, end, shimmer, repeat);
 }
 
-void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, float cycles) {
+void PixelBufferClass::RenderBars(int PaletteRepeat, const wxString & Direction, bool Highlight, bool Show3D, float cycles) {
     effects[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D,cycles);
 }
 

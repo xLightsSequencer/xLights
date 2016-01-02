@@ -911,7 +911,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             break;
         case BitmapCache::eff_BARS:
             buffer.RenderBars(wxAtoi(SettingsMap["SLIDER_Bars_BarCount"]),
-                              BarEffectDirections.Index(SettingsMap["CHOICE_Bars_Direction"]),
+                              SettingsMap["CHOICE_Bars_Direction"],
                               SettingsMap["CHECKBOX_Bars_Highlight"]=="1",
                               SettingsMap["CHECKBOX_Bars_3D"]=="1",
                               wxAtof(SettingsMap.Get("TEXTCTRL_Bars_Cycles", "1.0")));

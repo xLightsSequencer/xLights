@@ -1527,7 +1527,6 @@ protected:
     int NextGridRowToPlay;
     int SeqPlayColumn;
 
-    wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
     wxArrayString ButterflyDirection;
     wxArrayString PlasmaEffectColors;

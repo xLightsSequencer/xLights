@@ -9,6 +9,9 @@
 #include <map>
 #include "BitmapCache.h"
 
+#include "../../include/padlock16x16-blue.xpm"
+#include "../../include/padlock16x16-red.xpm"
+
 //#include "../include/bars.xpm"
 #include "../include/bars-16.xpm"
 #include "../include/bars-24.xpm"
@@ -399,6 +402,16 @@ public:
 #endif
         return (*data)[eff];
     }
+    const wxBitmap &GetOtherImage(const wxString &name,
+                                  const char **data) {
+        const wxBitmap &bmp = others[name];
+        if (!bmp.IsOk()) {
+            wxImage image(data);
+            others[name] = wxBitmap(image);
+        }
+        return bmp;
+    }
+    
 
     std::map<wxString, wxBitmap> size16;
     std::map<wxString, wxBitmap> size24;
@@ -411,6 +424,8 @@ public:
     std::map<wxString, wxBitmap> size24e;
     std::map<wxString, wxBitmap> size32e;
 #endif
+
+    std::map<wxString, wxBitmap> others;
 } effectBitmaps;
 
 
@@ -647,3 +662,11 @@ const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int 
         return effectBitmaps.get(size, exact, "Corner2ab", point_2ab_64, point_2ab_64, point_2ab_64, point_2ab_64, point_2ab_64);
     }
 }
+
+const wxBitmap &BitmapCache::GetLockIcon(bool locked) {
+    if (locked) {
+        return effectBitmaps.GetOtherImage("Locked", padlock16x16_red_xpm);
+    }
+    return effectBitmaps.GetOtherImage("Unlocked", padlock16x16_blue_xpm);
+}
+

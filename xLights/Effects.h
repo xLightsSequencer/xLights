@@ -1,5 +1,5 @@
 
-void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, float cycles);
+void RenderBars(int PaletteRepeat, const wxString & Direction, bool Highlight, bool Show3D, float cycles);
 void RenderOff(void);
 void RenderOn(Effect *eff, int start, int end, bool shimmer, float cycles);
 void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip,

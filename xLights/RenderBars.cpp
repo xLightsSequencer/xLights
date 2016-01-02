@@ -39,8 +39,38 @@
     BarEffectDirections.Add("Alternate Right"); // 11
 */
 
-void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D, float cycles)
+static inline int GetDirection(const wxString & DirectionString) {
+    if ("up" == DirectionString) {
+        return 0;
+    } else if ("down" == DirectionString) {
+        return 1;
+    } else if ("expand" == DirectionString) {
+        return 2;
+    } else if ("compress" == DirectionString) {
+        return 3;
+    } else if ("Left" == DirectionString) {
+        return 4;
+    } else if ("Right" == DirectionString) {
+        return 5;
+    } else if ("H-expand" == DirectionString) {
+        return 6;
+    } else if ("H-compress" == DirectionString) {
+        return 7;
+    } else if ("Alternate Up" == DirectionString) {
+        return 8;
+    } else if ("Alternate Down" == DirectionString) {
+        return 9;
+    } else if ("Alternate Left" == DirectionString) {
+        return 10;
+    } else if ("Alternate Right" == DirectionString) {
+        return 11;
+    }
+    return 0;
+}
+
+void RgbEffects::RenderBars(int PaletteRepeat, const wxString & DirectionString, bool Highlight, bool Show3D, float cycles)
 {
+    int Direction = GetDirection(DirectionString);
     int x,y,n,ColorIdx;
     wxImage::HSVValue hsv;
     size_t colorcnt=GetColorCount();

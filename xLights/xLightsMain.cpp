@@ -1953,20 +1953,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     // initialize all effect wxChoice lists
 
-    BarEffectDirections.Add("up");          // 0
-    BarEffectDirections.Add("down");        // 1
-    BarEffectDirections.Add("expand");      // 2
-    BarEffectDirections.Add("compress");    // 3
-    BarEffectDirections.Add("Left");        // 4
-    BarEffectDirections.Add("Right");       // 5
-    BarEffectDirections.Add("H-expand");    // 6
-    BarEffectDirections.Add("H-compress");  // 7
-    BarEffectDirections.Add("Alternate Up");// 8
-    BarEffectDirections.Add("Alternate Down");  // 9
-    BarEffectDirections.Add("Alternate Left");  // 10
-    BarEffectDirections.Add("Alternate Right"); // 11
-
-
     ButterflyEffectColors.Add("Rainbow");
     ButterflyEffectColors.Add("Palette");
     ButterflyDirection.Add("Normal");
@@ -2242,9 +2228,6 @@ void xLightsFrame::OnQuit(wxCommandEvent& event)
 
 void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 {
-    panel->Choice_Bars_Direction->Set(BarEffectDirections);
-    panel->Choice_Bars_Direction->SetSelection(0);
-
     panel->Choice_Butterfly_Colors->Set(ButterflyEffectColors);
     panel->Choice_Butterfly_Colors->SetSelection(0);
     panel->Choice_Butterfly_Direction->Set(ButterflyDirection);
