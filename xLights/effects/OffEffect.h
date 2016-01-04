@@ -3,16 +3,14 @@
 
 #include "RenderableEffect.h"
 
-
 class OffEffect : public RenderableEffect
 {
     public:
         OffEffect(int id);
         virtual ~OffEffect();
     
-        virtual wxPanel *CreatePanel(wxWindow *parent);
-
     protected:
+        virtual wxPanel *CreatePanel(wxWindow *parent);
     private:
 };
 

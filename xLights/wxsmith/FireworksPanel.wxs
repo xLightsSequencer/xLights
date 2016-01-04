@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="FireworksPanel">
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer73" member="no">
+			<cols>3</cols>
+			<growablecols>1</growablecols>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT95" variable="StaticText94" member="yes">
+					<label>Number of Explosions</label>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Fireworks_Explosions" variable="Slider_Fireworks_Num_Explosions" member="no">
+					<value>5</value>
+					<min>1</min>
+					<max>50</max>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions" variable="BitmapButton_FireworksNumberExplosions" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT92" variable="StaticText91" member="yes">
+					<label>Particles in Explosion</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Fireworks_Count" variable="Slider_Fireworks_Count" member="yes">
+					<value>50</value>
+					<min>1</min>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Count" variable="BitmapButton_FireworksCount" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT94" variable="StaticText93" member="yes">
+					<label>Velocity of Particles</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Fireworks_Velocity" variable="Slider_Fireworks_Velocity" member="yes">
+					<value>2</value>
+					<min>1</min>
+					<max>10</max>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity" variable="BitmapButton_FireworksVelocity" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT96" variable="StaticText95" member="yes">
+					<label>Particle Fade</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Fireworks_Fade" variable="Slider_Fireworks_Fade" member="yes">
+					<value>50</value>
+					<min>1</min>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Fade" variable="BitmapButton_FireworksFade" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

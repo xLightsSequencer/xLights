@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="SnowstormPanel">
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer44" member="no">
+			<cols>4</cols>
+			<growablecols>1</growablecols>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT45" variable="StaticText45" member="yes">
+					<label>Max flakes</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Snowstorm_Count" variable="Slider_Snowstorm_Count" member="yes">
+					<value>50</value>
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowstorm_Count" variable="TextCtrl53" member="no">
+					<value>50</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowstorm_Count" variable="BitmapButton_SnowstormCount" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT51" variable="StaticText51" member="yes">
+					<label>Trail Length</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Snowstorm_Length" variable="Slider_Snowstorm_Length" member="yes">
+					<value>50</value>
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowstorm_Length" variable="TextCtrl54" member="no">
+					<value>50</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowstorm_Length" variable="BitmapButton_SnowstormLength" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText180" member="no">
+					<label>Speed</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Snowstorm_Speed" variable="Slider20" member="no">
+					<value>10</value>
+					<min>1</min>
+					<max>50</max>
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowstorm_Speed" variable="TextCtrl55" member="no">
+					<value>10</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

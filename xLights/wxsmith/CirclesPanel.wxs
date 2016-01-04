@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="CirclesPanel">
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer80" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer17" member="no">
+							<cols>3</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT137" variable="StaticText136" member="yes">
+									<label>Number of Circles</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Circles_Count" variable="Slider_Circles_Count" member="no">
+									<value>3</value>
+									<min>1</min>
+									<max>10</max>
+									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Circles_Count" variable="TextCtrl27" member="no">
+									<value>3</value>
+									<maxlength>2</maxlength>
+									<size>20,-1d</size>
+									<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Circles_Count" variable="BitmapButton_CirclesCount" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer18" member="no">
+							<cols>3</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT138" variable="StaticText137" member="yes">
+									<label>Size</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Circles_Size" variable="Slider_Circles_Size" member="no">
+									<value>5</value>
+									<min>1</min>
+									<max>20</max>
+									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Circles_Size" variable="TextCtrl28" member="no">
+									<value>5</value>
+									<maxlength>2</maxlength>
+									<size>20,-1d</size>
+									<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Circles_Size" variable="BitmapButton_CirclesSize" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer22" member="no">
+							<cols>3</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="wxID_ANY" variable="StaticText31" member="no">
+									<label>Speed</label>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Circles_Speed" variable="Slider10" member="no">
+									<value>10</value>
+									<min>1</min>
+									<max>30</max>
+									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Circles_Speed" variable="TextCtrl29" member="no">
+									<value>10</value>
+									<maxlength>2</maxlength>
+									<size>20,-1d</size>
+									<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON21" variable="BitmapButton2" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,14</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bounce" variable="CheckBox_Circles_Bounce" member="yes">
+									<label>Bounce</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce" variable="BitmapButton_CirclesBounce" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial" variable="CheckBox_Circles_Radial" member="yes">
+									<label>Radial</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Radial" variable="BitmapButton_CirclesRadial" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer14" member="no">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Plasma" variable="CheckBox_Circles_Plasma" member="yes">
+									<label>Plasma</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma" variable="BitmapButton_CirclesPlasma" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial_3D" variable="CheckBox_Circles_Radial_3D" member="yes">
+									<label>Radial 3D</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D" variable="BitmapButton_CirclesRadial3D" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer91" member="no">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bubbles" variable="CheckBox_Circles_Bubbles" member="yes">
+									<label>Bubbles</label>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CirclesBubbles" variable="BitmapButton_CirclesBubbles" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer15" member="no">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Collide" variable="CheckBox_Circles_Collide" member="yes">
+									<label>Collide</label>
+									<hidden>1</hidden>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Collide" variable="BitmapButton_CirclesCollide" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,13</size>
+							<hidden>1</hidden>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer16" member="no">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Random_m" variable="CheckBox_Circles_Random_m" member="yes">
+									<label>Random Motion</label>
+									<hidden>1</hidden>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m" variable="BitmapButton_RandomMotion" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,13</size>
+							<hidden>1</hidden>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer107" member="no">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Linear_Fade" variable="CheckBox_Circles_Linear_Fade" member="yes">
+									<label>Linear Fade</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade" variable="BitmapButton_Circles_Linear_Fade" member="yes">
+							<bitmap code="padlock16x16_blue_xpm" />
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

@@ -37,10 +37,45 @@
 #define METEORS_ICICLES_BKG  7 //with bkg (dim) icicles -DJ
 
 
+static inline int GetMeteorEffect(const wxString &dir) {
+    if (dir == "Down") {
+        return 0;
+    } else if (dir == "Up") {
+        return 1;
+    } else if (dir == "Left") {
+        return 2;
+    } else if (dir == "Right") {
+        return 3;
+    } else if (dir == "Implode") {
+        return 4;
+    } else if (dir == "Explode") {
+        return 5;
+    } else if (dir == "Icicles") {
+        return 6;
+    } else if (dir == "Icicles + bkg") {
+        return 7;
+    }
+    return 0; //down
+}
+static inline int GetMeteorColorScheme(const wxString &color) {
+    if (color == "Rainbow") {
+        return 0;
+    } else if (color == "Range") {
+        return 1;
+    } else if (color == "Palette") {
+        return 2;
+    }
+    
+    return 0;
+}
+
+
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
-void RgbEffects::RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mSpeed)
+void RgbEffects::RenderMeteors(const wxString & ColorSchemeStr, int Count, int Length, const wxString & MeteorsEffectStr, int SwirlIntensity, int mSpeed)
 {
+    int MeteorsEffect = GetMeteorEffect(MeteorsEffectStr);
+    int ColorScheme = GetMeteorColorScheme(ColorSchemeStr);
     if (needToInit) {
         needToInit = false;
         meteors.clear();

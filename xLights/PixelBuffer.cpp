@@ -565,7 +565,7 @@ void PixelBufferClass::RenderBars(int PaletteRepeat, const wxString & Direction,
     effects[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D,cycles);
 }
 
-void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection, int butterFlySpeed) {
+void PixelBufferClass::RenderButterfly(const wxString & ColorScheme, int Style, int Chunks, int Skip, const wxString & ButterflyDirection, int butterFlySpeed) {
     effects[CurrentLayer].RenderButterfly(ColorScheme,Style,Chunks,Skip, ButterflyDirection, butterFlySpeed);
 }
 
@@ -581,7 +581,7 @@ void PixelBufferClass::RenderColorWash(Effect *eff, bool HorizFade, bool VertFad
                                           shimmer, circular);
 }
 
-void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat, float cspeed) {
+void PixelBufferClass::RenderCurtain(const wxString & edge, const wxString & effect, int swag, bool repeat, float cspeed) {
     effects[CurrentLayer].RenderCurtain(edge,effect,swag,repeat, cspeed);
 }
 
@@ -653,7 +653,7 @@ void PixelBufferClass::RenderMarquee(int BandSize, int SkipSize, int Thickness, 
                                         x_scale, y_scale, xc_adj, yc_adj, pixelOffsets, wrap_x);
 }
 
-void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed) {
+void PixelBufferClass::RenderMeteors(const wxString & MeteorType, int Count, int Length, const wxString & MeteorsEffect, int SwirlIntensity, int MSpeed) {
     effects[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity, MSpeed);
 }
 
@@ -666,11 +666,12 @@ void PixelBufferClass::RenderMorph(int start_x1, int start_y1, int start_x2, int
 }
 
 
-void PixelBufferClass::RenderPiano(int Style, int NumKeys, int NumRows, int DrawMode, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename) { //added more controls -DJ
+void PixelBufferClass::RenderPiano(const wxString & Style, int NumKeys, int NumRows, const wxString & DrawMode,
+                                   bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename) { //added more controls -DJ
     effects[CurrentLayer].RenderPiano(Style, NumKeys, NumRows, DrawMode, Clipping, CueFilename, MapFilename, ShapeFilename);
 }
 
-void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,
+void PixelBufferClass::RenderPictures(const wxString & dir, const wxString& NewPictureName,
                                       float moveSpeed, float frameRateAdj,
                                       int xc_adj, int yc_adj, int xce_adj, int yce_adj,
                                       bool pixelOffsets, bool wrap_x) {
@@ -683,10 +684,10 @@ void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int p
                                          pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,
                                          pinwheel_armsize, pspeed);
 }
-void PixelBufferClass::RenderPlasma(int ColorScheme, int Style, int Line_Density,  int PlasmaDirection, int PlasmaSpeed) {
+void PixelBufferClass::RenderPlasma(const wxString &ColorScheme, int Style, int Line_Density,  const wxString & PlasmaDirection, int PlasmaSpeed) {
     effects[CurrentLayer].RenderPlasma(ColorScheme,Style,Line_Density, PlasmaDirection, PlasmaSpeed);
 }
-void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles) {
+void PixelBufferClass::RenderRipple(const wxString &Object_To_Draw, const wxString &Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles) {
     effects[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D, cycles );
 }
 void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,float cycles) {
@@ -737,7 +738,7 @@ void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe, bool reRan
     effects[CurrentLayer].RenderTwinkle(Count,Steps,Strobe,reRandomize);
 }
 
-void PixelBufferClass::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,
-                                  int WaveHeight, int WaveDirection, int wspeed) {
+void PixelBufferClass::RenderWave(const wxString & WaveType,const wxString & FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,
+                                  int WaveHeight, const wxString & WaveDirection, int wspeed) {
     effects[CurrentLayer].RenderWave(WaveType, FillColor, MirrorWave, NumberWaves, ThicknessWave, WaveHeight, WaveDirection, wspeed);
 }

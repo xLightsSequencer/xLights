@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="FirePanel">
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer38" member="no">
+			<cols>4</cols>
+			<growablecols>1</growablecols>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT84" variable="StaticText83" member="yes">
+					<label>Height</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Fire_Height" variable="Slider_Fire_Height" member="yes">
+					<value>50</value>
+					<min>10</min>
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fire_Height" variable="TextCtrl19" member="no">
+					<value>50</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fire_Height" variable="BitmapButton_FireHeight" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT133" variable="StaticText132" member="yes">
+					<label>Hue Shift</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Fire_HueShift" variable="Slider_Fire_HueShift" member="no">
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fire_HueShift" variable="TextCtrl20" member="no">
+					<value>0</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fire_HueShift" variable="BitmapButton_FireWidth" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText30" member="no">
+					<label>Growth Cycles</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="IDD_SLIDER_Fire_GrowthCycles" variable="Slider9" member="no">
+					<max>200</max>
+					<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Fire_GrowthCycles" variable="TextCtrl26" member="no">
+					<value>0.0</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+					<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire" variable="BitmapButton_FireGrow" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<default>1</default>
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText193" member="no">
+					<label>Location</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE_Fire_Location" variable="Choice2" member="no">
+					<content>
+						<item>Bottom</item>
+						<item>Top</item>
+						<item>Left</item>
+						<item>Right</item>
+					</content>
+					<selection>0</selection>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

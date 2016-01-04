@@ -9,9 +9,9 @@ class OnEffect : public RenderableEffect
     public:
         OnEffect(int id);
         virtual ~OnEffect();
-        virtual wxPanel *CreatePanel(wxWindow *parent);
     
     protected:
+        virtual wxPanel *CreatePanel(wxWindow *parent);
     private:
 };
 

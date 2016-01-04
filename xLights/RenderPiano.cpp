@@ -93,7 +93,18 @@ public:
 //#define NoteVolume(key, time)  ((key + time) & 7) //TODO
 //#define IsNoteOn(key, time)  (NoteVolume(key, time) >= 2) //TODO
 
-
+static inline int GetPianoStyle(const wxString &style) {
+    if (style == "Anim Image (face)") {
+        return PIANO_STYLE_ANIMAGE;
+    } else if (style == "Equalizer (bars)") {
+        return PIANO_STYLE_EQBARS;
+    } else if (style == "Piano Keys (top/edge)") {
+        return PIANO_STYLE_KEYS;
+    } else if (style == "Player Piano (scroll)") {
+        return PIANO_STYLE_SCROLLING;
+    }
+    return PIANO_STYLE_KEYS;
+}
 
 //clear active queues:
 #if 0
@@ -416,8 +427,9 @@ void RgbEffects::Piano_map_colors(void)
 
 
 //render piano fx during sequence:
-void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename)
+void RgbEffects::RenderPiano(const wxString & StyleStr, int NumKeys, int NumRows, const wxString & Placement, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename)
 {
+    int Style = GetPianoStyle(StyleStr);
 //    wxImage::HSVValue hsv;
 //    xlColor color;
 //    int ColorIdx;
@@ -560,14 +572,13 @@ void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement,
 }
 
 
-bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& drawn, int style, wxSize& canvas, wxSize& keywh, int placement, bool clip)
+bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& drawn, int style, wxSize& canvas, wxSize& keywh, const wxString &placement, bool clip)
 //bool RgbEffects::Sprite::render(wxSize& keywh, wxSize& BufferWH_int, int yscroll, bool Clipping)
 {
     debug_function(9);
 
 //hash_map<pair<wxPoint, wxSize>, int>& drawn)
 //PIANO_STYLE_KEYS sprites have 2 states: on (down) and off (up); draw all sprites; top view or edge view
-    debug(30, "render key '%s': style %d, canvas (%d,%d), keywh (%d, %d), placement %d, clip %d", sprite->name.ToStdString().c_str(), style, canvas.x, canvas.y, keywh.x, keywh.y, placement, clip);
     int drawstate = sprite->ani_state++; //bump to next active (animation) state
     if (!drawstate) sprite->ani_state = 0; //stay in inactive state
     else

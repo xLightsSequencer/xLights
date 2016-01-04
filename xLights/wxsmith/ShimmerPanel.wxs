@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="ShimmerPanel">
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer56" member="no">
+			<cols>4</cols>
+			<growablecols>1</growablecols>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT68" variable="StaticText66" member="yes">
+					<label>Duty Factor</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Shimmer_Duty_Factor" variable="Slider_Shimmer_Duty_Factor" member="no">
+					<value>50</value>
+					<min>1</min>
+					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shimmer_Duty_Factor" variable="TextCtrl46" member="no">
+					<value>50</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_DutyFactor" variable="BitmapButton_Shimmer_Duty_Factor" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText65" member="yes">
+					<label>Cycle Count</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="IDD_SLIDER_Shimmer_Cycles" variable="Slider17" member="no">
+					<value>10</value>
+					<max>300</max>
+					<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Shimmer_Cycles" variable="TextCtrl47" member="no">
+					<value>1.0</value>
+					<maxlength>4</maxlength>
+					<size>20,-1d</size>
+					<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON24" variable="BitmapButton5" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<minsize>13,13</minsize>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT69" variable="StaticText67" member="yes">
+					<label>Use All Colors</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Shimmer_Use_All_Colors" variable="CheckBox_Shimmer_Use_All_Colors" member="yes">
+					<label>Yes</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_ShimmerUseAllColors" variable="BitmapButton_Shimmer_Use_All_Colors" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<minsize>13,13</minsize>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

@@ -40,10 +40,36 @@
  #define debug_function(level)
 #endif
 
+static inline int GetWaveType(const wxString & WaveType) {
+    if (WaveType == "Sine") {
+        return WAVETYPE_SINE;
+    } else if (WaveType == "Triangle") {
+        return WAVETYPE_TRIANGLE;
+    } else if (WaveType == "Square") {
+        return WAVETYPE_SQUARE;
+    } else if (WaveType == "Decaying Sine") {
+        return WAVETYPE_DECAYSINE;
+    } else if (WaveType == "Fractal/ivy") {
+        return WAVETYPE_IVYFRACTAL;
+    }
+    return 0;
+}
+static inline int GetWaveFillColor(const wxString &color) {
+    if (color == "Rainbow") {
+        return 1;
+    } else if (color == "Palette") {
+        return 2;
+    }
+    return 0; //None
+}
 
 
-void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection, int wspeed)
+void RgbEffects::RenderWave(const wxString & WaveTypeStr,const wxString & FillColorStr,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight,
+                            const wxString & WaveDirectionStr, int wspeed)
 {
+    int WaveType = GetWaveType(WaveTypeStr);
+    int FillColor = GetWaveFillColor(FillColorStr);
+    int WaveDirection = "Left to Right" == WaveDirectionStr ? 1 : 0;
     /*
     WaveType.Add("Sine");       // 0
     WaveType.Add("Triangle");   // 1

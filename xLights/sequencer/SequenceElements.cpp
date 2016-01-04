@@ -494,6 +494,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
 }
 bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
 {
+    mFilename = xml_file;
     wxXmlDocument& seqDocument = xml_file.GetXmlDocument();
 
     wxXmlNode* root=seqDocument.GetRoot();

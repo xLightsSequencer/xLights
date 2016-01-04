@@ -32,8 +32,19 @@
 	(06) cos(abs(x)+abs(y))*(abs(x)+abs(y))
 */
 
-void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection, int butterFlySpeed)
+static inline int GetButterflyColorScheme(const wxString &color) {
+    if (color == "Rainbow") {
+        return 0;
+    } else if (color == "Palette") {
+        return 1;
+    }
+    return 0;
+}
+
+void RgbEffects::RenderButterfly(const wxString & ColorSchemeStr, int Style, int Chunks, int Skip, const wxString & ButterflyDirectionStr, int butterFlySpeed)
 {
+    int ColorScheme = GetButterflyColorScheme(ColorSchemeStr);
+    int ButterflyDirection = ButterflyDirectionStr == "Reverse" ? 1 : 0;
     int x,y,d,xc,yc,x0,y0;
     double n,x1,y1,f;
     double h=0.0,hue1,hue2;

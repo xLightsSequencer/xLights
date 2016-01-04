@@ -3,6 +3,7 @@
 
 
 #include <map>
+#include <string>
 
 class RenderableEffect;
 
@@ -13,13 +14,16 @@ class EffectManager
         virtual ~EffectManager();
     
     
-        RenderableEffect *GetEffect(int i);
-    
+        RenderableEffect *GetEffect(int i) const;
+        RenderableEffect *GetEffect(const std::string &str) const;
+        int GetLastEffectId() const;
     protected:
     private:
     
     
-    std::map<int, RenderableEffect *> effects;
+    mutable std::map<int, RenderableEffect *> effectsById;
+    mutable std::map<std::string, RenderableEffect *> effectsByName;
+    int last;
 };
 
 #endif // EFFECTMANAGER_H

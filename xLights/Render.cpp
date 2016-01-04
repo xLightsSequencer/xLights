@@ -917,11 +917,11 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                               wxAtof(SettingsMap.Get("TEXTCTRL_Bars_Cycles", "1.0")));
             break;
         case BitmapCache::eff_BUTTERFLY:
-            buffer.RenderButterfly(ButterflyEffectColors.Index(SettingsMap["CHOICE_Butterfly_Colors"]),
+            buffer.RenderButterfly(SettingsMap["CHOICE_Butterfly_Colors"],
                                    wxAtoi(SettingsMap["SLIDER_Butterfly_Style"]),
                                    wxAtoi(SettingsMap["SLIDER_Butterfly_Chunks"]),
                                    wxAtoi(SettingsMap["SLIDER_Butterfly_Skip"]),
-                                   ButterflyDirection.Index(SettingsMap["CHOICE_Butterfly_Direction"]),
+                                   SettingsMap["CHOICE_Butterfly_Direction"],
                                    wxAtoi(SettingsMap.Get("SLIDER_Butterfly_Speed", "10")));
             break;
         case BitmapCache::eff_CIRCLES:
@@ -954,8 +954,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                    );
             break;
         case BitmapCache::eff_CURTAIN:
-            buffer.RenderCurtain(CurtainEdge.Index(SettingsMap["CHOICE_Curtain_Edge"]),
-                                 CurtainEffect.Index(SettingsMap["CHOICE_Curtain_Effect"]),
+            buffer.RenderCurtain(SettingsMap["CHOICE_Curtain_Edge"],
+                                 SettingsMap["CHOICE_Curtain_Effect"],
                                  wxAtoi(SettingsMap["SLIDER_Curtain_Swag"]),
                                  SettingsMap["CHECKBOX_Curtain_Repeat"]=="1",
                                  wxAtof(SettingsMap.Get("TEXTCTRL_Curtain_Speed", "1.0")));
@@ -1095,10 +1095,10 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                  SettingsMap["CHECKBOX_Marquee_WrapX"] == "1");
             break;
         case BitmapCache::eff_METEORS:
-            buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap["CHOICE_Meteors_Type"]),
+            buffer.RenderMeteors(SettingsMap["CHOICE_Meteors_Type"],
                                  wxAtoi(SettingsMap["SLIDER_Meteors_Count"]),
                                  wxAtoi(SettingsMap["SLIDER_Meteors_Length"]),
-                                 MeteorsEffect.Index(SettingsMap["CHOICE_Meteors_Effect"]),
+                                 SettingsMap["CHOICE_Meteors_Effect"],
                                  wxAtoi(SettingsMap["SLIDER_Meteors_Swirl_Intensity"]),
                                  wxAtoi(SettingsMap.Get("SLIDER_Meteors_Speed", "10")));
             break;
@@ -1123,17 +1123,17 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                wxAtoi(SettingsMap["SLIDER_Morph_Stagger"]));
             break;
         case BitmapCache::eff_PIANO:
-            buffer.RenderPiano(PianoEffectStyles.Index(SettingsMap["CHOICE_Piano_Style"]),
+            buffer.RenderPiano(SettingsMap["CHOICE_Piano_Style"],
                                wxAtoi(SettingsMap["SLIDER_Piano_NumKeys"]),
                                wxAtoi(SettingsMap["SLIDER_Piano_NumRows"]),
-                               PianoKeyPlacement.Index(SettingsMap["CHOICE_Piano_Placement"]),
+                               SettingsMap["CHOICE_Piano_Placement"],
                                SettingsMap["CHECKBOX_Piano_Clipping"] == "1",
                                SettingsMap["TEXTCTRL_Piano_CueFilename"],
                                SettingsMap["TEXTCTRL_Piano_MapFilename"],
                                SettingsMap["TEXTCTRL_Piano_ShapeFilename"]);
             break;
         case BitmapCache::eff_PICTURES:
-            buffer.RenderPictures(PictureEffectDirections.Index(SettingsMap["CHOICE_Pictures_Direction"]),
+            buffer.RenderPictures(SettingsMap["CHOICE_Pictures_Direction"],
                                   SettingsMap["FILEPICKER_Pictures_Filename"],
                                   wxAtof(SettingsMap.Get("TEXTCTRL_Pictures_Speed", "1.0")),
                                   wxAtof(SettingsMap.Get("TEXTCTRL_Pictures_FrameRateAdj", "1.0")),
@@ -1157,15 +1157,15 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                   wxAtoi(SettingsMap["TEXTCTRL_Pinwheel_Speed"]));
             break;
         case BitmapCache::eff_PLASMA:
-            buffer.RenderPlasma(PlasmaEffectColors.Index(SettingsMap["CHOICE_Plasma_Color"]),
+            buffer.RenderPlasma(SettingsMap["CHOICE_Plasma_Color"],
                                 wxAtoi(SettingsMap["SLIDER_Plasma_Style"]),
                                 wxAtoi(SettingsMap["SLIDER_Plasma_Line_Density"]),
-                                ButterflyDirection.Index(SettingsMap["CHOICE_Plasma_Direction"]),
+                                SettingsMap["CHOICE_Plasma_Direction"],
                                 wxAtoi(SettingsMap.Get("SLIDER_Plasma_Speed", "10")));
             break;
         case BitmapCache::eff_RIPPLE:
-            buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap["CHOICE_Ripple_Object_To_Draw"]),
-                                RippleMovement.Index(SettingsMap["CHOICE_Ripple_Movement"]),
+            buffer.RenderRipple(SettingsMap["CHOICE_Ripple_Object_To_Draw"],
+                                SettingsMap["CHOICE_Ripple_Movement"],
                                 wxAtoi(SettingsMap["SLIDER_Ripple_Thickness"]),
                                 SettingsMap["CHECKBOX_Ripple3D"] == "1" ,
                                 wxAtof(SettingsMap.Get("TEXTCTRL_Ripple_Cycles", "1.0")));
@@ -1280,13 +1280,13 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                  SettingsMap["CHECKBOX_Twinkle_ReRandom"] == "1");
             break;
         case BitmapCache::eff_WAVE:
-            buffer.RenderWave(WaveType.Index(SettingsMap["CHOICE_Wave_Type"]), //
-                              FillColors.Index(SettingsMap["CHOICE_Fill_Colors"]),
+            buffer.RenderWave(SettingsMap["CHOICE_Wave_Type"],
+                              SettingsMap["CHOICE_Fill_Colors"],
                               SettingsMap["CHECKBOX_Mirror_Wave"]=="1",
                               wxAtoi(SettingsMap["SLIDER_Number_Waves"]),
                               wxAtoi(SettingsMap["SLIDER_Thickness_Percentage"]),
                               wxAtoi(SettingsMap["SLIDER_Wave_Height"]),
-                              WaveDirection.Index(SettingsMap["CHOICE_Wave_Direction"]),
+                              SettingsMap["CHOICE_Wave_Direction"],
                               wxAtoi(SettingsMap.Get("TEXTCTRL_Wave_Speed", "10")));
             break;
         default:

@@ -23,10 +23,42 @@
 #include <cmath>
 #include "RgbEffects.h"
 
+static inline int GetCurtainEdge(const wxString &edge) {
+    if ("left" == edge) {
+        return 0;
+    } else if ("center" == edge) {
+        return 1;
+    } else if ("right" == edge) {
+        return 2;
+    } else if ("bottom" == edge) {
+        return 3;
+    } else if ("middle" == edge) {
+        return 4;
+    } else if ("top" == edge) {
+        return 5;
+    }
+    return 0;
+}
+static inline int GetCurtainEffect(const wxString &effect) {
+    if ("open" == effect) {
+        return 0;
+    } else if ("close" == effect) {
+        return 1;
+    } else if ("open then close" == effect) {
+        return 2;
+    } else if ("close then open" == effect) {
+        return 3;
+    }
+    return 0;
+}
+
+
 // edge: 0=left, 1=center, 2=right
 // effect: 0=open, 1=close, 2=open then close, 3=close then open
-void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat, float curtainSpeed)
+void RgbEffects::RenderCurtain(const wxString & edgestr, const wxString & effectstr, int swag, bool repeat, float curtainSpeed)
 {
+    int edge = GetCurtainEdge(edgestr);
+    int effect = GetCurtainEffect(effectstr);
     double a;
     wxImage::HSVValue hsv;
     wxArrayInt SwagArray;

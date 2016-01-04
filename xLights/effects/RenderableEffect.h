@@ -6,6 +6,8 @@
 class wxPanel;
 class wxWindow;
 class wxBitmap;
+class ModelClass;
+class SequenceElements;
 
 class RenderableEffect
 {
@@ -17,12 +19,19 @@ class RenderableEffect
         virtual const wxBitmap &GetEffectIcon(int size, bool exact = true) const;
         virtual int GetId() const { return id; }
 
-        virtual wxPanel *CreatePanel(wxWindow *parent) = 0;
+        virtual void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
+
+        wxPanel *GetPanel(wxWindow *parent);
+        virtual void SetDefaultParameters(ModelClass *cls) {}
+
         //virtual void Render() = 0;
 
     protected:
+        virtual wxPanel *CreatePanel(wxWindow *parent) = 0;
         std::string name;
         int id;
+        wxPanel *panel;
+        SequenceElements *mSequenceElements;
     private:
 };
 

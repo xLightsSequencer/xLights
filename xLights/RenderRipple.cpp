@@ -50,10 +50,13 @@
 #define MOVEMENT_IMPLODE    1
 
 
-
-void RgbEffects::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles)
+void RgbEffects::RenderRipple(const wxString &Object_To_DrawStr, const wxString & MovementStr,
+                              int Ripple_Thickness,int CheckBox_Ripple3D, float cycles)
 {
-
+    int Object_To_Draw = "Circle" == Object_To_DrawStr ? RENDER_RIPPLE_CIRCLE :
+        "Square" == Object_To_DrawStr ? RENDER_RIPPLE_SQUARE : RENDER_RIPPLE_TRIANGLE;
+    int Movement = "Explode" == MovementStr ? MOVEMENT_EXPLODE : MOVEMENT_IMPLODE;
+    
     int i,ColorIdx;
     int xc,yc;
 

@@ -49,7 +49,7 @@ void xLightsFrame::CreateSequencer()
                    BestSize(wxSize(200,200)).Left());
 
     effectsPnl = new TopEffectsPanel(PanelSequencer);
-    EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
+    EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, &effectManager);
     effectsPnl->Refresh();
 
     sEffectAssist = new EffectAssist(PanelSequencer, this);

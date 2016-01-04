@@ -398,9 +398,9 @@ void RgbEffects::RenderFaces(SequenceElements *elements, const wxString &faceDef
         if (picture == "" && e == "Closed") {
             picture = model_info->faceInfo[definition][key + "Open"];
         }
-        int i = 9; /*RENDER_PICTURE_SCALED*/
+        wxString i = "scaled"; /*RENDER_PICTURE_SCALED*/
         if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
-            i = 4; /*RENDER_PICTURE_NONE */
+            i = "none"; /*RENDER_PICTURE_NONE */
         }
         RenderPictures(i, picture, 0, 0, 0, 0, 0, 0, 0, false);
     }

@@ -61,6 +61,61 @@
 #define wrdebug(msg)  if (debug.IsOpened()) debug.Write(msg + "\n")
 
 
+static inline int GetPicturesDirection(const wxString &dir) {
+    if (dir == "left") {
+        return RENDER_PICTURE_LEFT;
+    } else if (dir == "right") {
+        return RENDER_PICTURE_RIGHT;
+    } else if (dir == "up") {
+        return RENDER_PICTURE_UP;
+    } else if (dir == "down") {
+        return RENDER_PICTURE_DOWN;
+    } else if (dir == "none") {
+        return RENDER_PICTURE_NONE;
+    } else if (dir == "up-left") {
+        return RENDER_PICTURE_UPLEFT;
+    } else if (dir == "down-left") {
+        return RENDER_PICTURE_DOWNLEFT;
+    } else if (dir == "up-right") {
+        return RENDER_PICTURE_UPRIGHT;
+    } else if (dir == "down-right") {
+        return RENDER_PICTURE_DOWNRIGHT;
+    } else if (dir == "scaled") {
+        return RENDER_PICTURE_SCALED;
+    } else if (dir == "peekaboo") {
+        return RENDER_PICTURE_PEEKABOO_0;
+    } else if (dir == "wiggle") {
+        return RENDER_PICTURE_WIGGLE;
+    } else if (dir == "zoom in") {
+        return RENDER_PICTURE_ZOOMIN;
+    } else if (dir == "peekaboo 90") {
+        return RENDER_PICTURE_PEEKABOO_90;
+    } else if (dir == "peekaboo 180") {
+        return RENDER_PICTURE_PEEKABOO_180;
+    } else if (dir == "peekaboo 270") {
+        return RENDER_PICTURE_PEEKABOO_270;
+    } else if (dir == "vix 2 routine") {
+        return RENDER_PICTURE_VIXREMAP;
+    } else if (dir == "flag wave") {
+        return RENDER_PICTURE_FLAGWAVE;
+    } else if (dir == "up once") {
+        return RENDER_PICTURE_UPONCE;
+    } else if (dir == "down once") {
+        return RENDER_PICTURE_DOWNONCE;
+    } else if (dir == "vector") {
+        return RENDER_PICTURE_VECTOR;
+    } else if (dir == "tile-left") {
+        return RENDER_PICTURE_TILE_LEFT;
+    } else if (dir == "tile-right") {
+        return RENDER_PICTURE_TILE_RIGHT;
+    } else if (dir == "tile-down") {
+        return RENDER_PICTURE_TILE_DOWN;
+    } else if (dir == "tile-up") {
+        return RENDER_PICTURE_TILE_UP;
+    }
+    return RENDER_PICTURE_NONE;
+}
+
 //Vixen channel remap from Vixen 2.x back to xLights:
 //for use when you have cell-by-cell Vixen 2.x sequencing that you want to preserve in an xLights sequence
 //how it works:
@@ -169,12 +224,13 @@ void RgbEffects::ProcessPixel(int x_pos, int y_pos, const xlColour &color, bool 
     SetPixel(x_value,y_pos,color);
 }
 
-void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,
+void RgbEffects::RenderPictures(const wxString & dirstr, const wxString& NewPictureName2,
                                 float movementSpeed, float frameRateAdj,
                                 int xc_adj, int yc_adj,
                                 int xce_adj, int yce_adj,
                                 bool pixelOffsets, bool wrap_x)
 {
+    int dir = GetPicturesDirection(dirstr);
     double position = GetEffectTimeIntervalPosition(movementSpeed);
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
 

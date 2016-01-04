@@ -99,6 +99,7 @@
 #include "PerspectivesPanel.h"
 #include "EffectIconPanel.h"
 #include "DisplayElementsPanel.h"
+#include "effects/EffectManager.h"
 
 #include "wx/aui/aui.h"
 
@@ -1196,6 +1197,8 @@ private:
     NetInfoClass NetInfo;
 
     ModelPreview* modelPreview;
+    
+    EffectManager effectManager;
 
     int effGridPrevX;
     int effGridPrevY;
@@ -1527,28 +1530,6 @@ protected:
     int NextGridRowToPlay;
     int SeqPlayColumn;
 
-    wxArrayString ButterflyEffectColors;
-    wxArrayString ButterflyDirection;
-    wxArrayString PlasmaEffectColors;
-
-
-    wxArrayString MeteorsEffectTypes;
-    wxArrayString MeteorsEffect;
-    wxArrayString TextEffectDirections;
-    wxArrayString PictureEffectDirections;
-    wxArrayString PianoEffectStyles;
-    wxArrayString PianoKeyPlacement;
-    wxArrayString RippleObjectToDraw;
-    wxArrayString RippleMovement;
-    wxArrayString TextEffects;
-    wxArrayString TextCountDown;
-    wxArrayString WaveType;
-    wxArrayString FillColors;
-    wxArrayString WaveDirection;
-
-
-    wxArrayString CurtainEdge;
-    wxArrayString CurtainEffect;
     wxGridCellCoords *curCell;
     int PlaybackPeriod; //used to be able to record the frame being played in an animation preview
 

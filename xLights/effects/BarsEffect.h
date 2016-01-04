@@ -3,15 +3,15 @@
 
 #include "RenderableEffect.h"
 
-
 class BarsEffect : public RenderableEffect
 {
     public:
         BarsEffect(int id);
         virtual ~BarsEffect();
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+    
     
     protected:
+        virtual wxPanel *CreatePanel(wxWindow *parent);
     private:
 };
 

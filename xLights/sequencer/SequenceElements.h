@@ -7,6 +7,7 @@
 #include <vector>
 #include <set>
 #include "wx/xml/xml.h"
+#include "wx/filename.h"
 #include "UndoManager.h"
 
 class xLightsXmlFile;  // forward declaration needed due to circular dependency
@@ -55,7 +56,6 @@ class SequenceElements : public ChangeLister
         SequenceElements();
         virtual ~SequenceElements();
         bool LoadSequencerFile(xLightsXmlFile& xml_file);
-        bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
         void Clear();
         Element* AddElement(wxString &name, wxString &type,bool visible,bool collapsed,bool active, bool selected);
         Element* AddElement(int index,wxString &name, wxString &type,bool visible,bool collapsed,bool active, bool selected);
@@ -152,6 +152,8 @@ class SequenceElements : public ChangeLister
 
         void AddRenderDependency(const wxString &layer, const wxString &model);
         bool GetElementsToRender(std::vector<Element *> &models);
+    
+        wxFileName &GetFileName() { return mFilename;}
     protected:
     private:
         void LoadEffects(EffectLayer *layer,
@@ -190,6 +192,8 @@ class SequenceElements : public ChangeLister
         int mCurrentView;
         bool hasPapagayoTiming;
         int mSequenceEndMS;
+    
+        wxFileName mFilename;
 
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
         int mFirstVisibleModelRow;

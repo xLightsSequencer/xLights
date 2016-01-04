@@ -30,21 +30,30 @@
 #define PLASMA_PRESET3          3
 #define PLASMA_PRESET4          4
 
-void RgbEffects::RenderPlasma(int ColorScheme, int Style, int Line_Density,int PlasmaDirection, int PlasmaSpeed)
+static inline int GetPlasmaColorScheme(const wxString &ColorSchemeStr) {
+    if (ColorSchemeStr == "Preset Colors 1") {
+        return PLASMA_PRESET1;
+    } else if (ColorSchemeStr == "Preset Colors 2") {
+        return PLASMA_PRESET2;
+    } else if (ColorSchemeStr == "Preset Colors 3") {
+        return PLASMA_PRESET3;
+    } else if (ColorSchemeStr == "Preset Colors 4") {
+        return PLASMA_PRESET4;
+    }
+    return PLASMA_NORMAL_COLORS;
+}
+void RgbEffects::RenderPlasma(const wxString &ColorSchemeStr, int Style, int Line_Density,const wxString & PlasmaDirectionStr, int PlasmaSpeed)
 {
-    int x,y,d,xc,yc,x0,y0;
-    double n,x1,y1,f;
+    int PlasmaDirection = 0; //fixme?
+    int ColorScheme = GetPlasmaColorScheme(ColorSchemeStr);
+    int x,y,xc,yc;
     double h=0.0;
-    double  fractpart, intpart;
-    static const double pi2=6.283185307;
     xlColour color;
     wxImage::HSVValue hsv;
-    int maxframe=BufferHt*2;
 
     //  These are for Plasma effect
-    double rx,ry,cx,cy,v,time,Speed_plasma,multiplier;
+    double rx,ry,cx,cy,v,time,Speed_plasma;
     static const double pi=3.1415926535897932384626433832;
-    int i;
     int state;
 
     int curState = (curPeriod - curEffStartPer) * PlasmaSpeed * frameTimeInMs / 50;

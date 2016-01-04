@@ -2,8 +2,8 @@
 void RenderBars(int PaletteRepeat, const wxString & Direction, bool Highlight, bool Show3D, float cycles);
 void RenderOff(void);
 void RenderOn(Effect *eff, int start, int end, bool shimmer, float cycles);
-void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip,
-                     int ButterflyDirection, int butterFlySpeed);
+void RenderButterfly(const wxString &ColorScheme, int Style, int Chunks, int Skip,
+                     const wxString &ButterflyDirection, int butterFlySpeed);
 void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
                    bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade,
                    int circleSpeed);
@@ -12,7 +12,7 @@ void RenderColorWash(Effect *eff,
                      bool EntireModel, int x1, int y1, int x2, int y2,
                      bool shimmer,
                      bool circularPalette);
-void RenderCurtain(int edge, int effect, int swag, bool repeat, float curtainSpeed);
+void RenderCurtain(const wxString & edge, const wxString & effect, int swag, bool repeat, float curtainSpeed);
 void RenderDMX(int ch1, int ch2, int ch3, int ch4, int ch5, int ch6, int ch7, int ch8, int ch9, int ch10, int ch11, int ch12, int ch13, int ch14, int ch15,
                int ch1_ramp, int ch2_ramp, int ch3_ramp, int ch4_ramp, int ch5_ramp, int ch6_ramp,
                int ch7_ramp, int ch8_ramp, int ch9_ramp, int ch10_ramp, int ch11_ramp, int ch12_ramp,
@@ -40,25 +40,25 @@ void LightningDrawBolt(const int x0_, const int y0_, const int x1_, const int y1
 
 void RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int mSpeed, int mStart, bool reverse_dir,
                    int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x);
-void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int MSpeed);
+void RenderMeteors(const wxString & ColorScheme, int Count, int Length, const wxString & MeteorsEffect, int SwirlIntensity, int MSpeed);
 void RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2,
                  int end_x1,   int end_y1,   int end_x2,   int end_y2,
                  int start_length, int end_length, bool start_linked, bool end_linked,
                  int duration, int acceleration,
                  bool showEntireHeadAtStart, int repeat_count, int repeat_skip, int stagger );
-void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Clipping,
+void RenderPiano(const wxString & Style, int NumKeys, int NumRows, const wxString & KeyPlacement, bool Clipping,
                  const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
-void RenderPictures(int dir, const wxString& NewPictureName,float moveSpeed, float frameRateAdj,
+void RenderPictures(const wxString & dir, const wxString& NewPictureName,float moveSpeed, float frameRateAdj,
                     int xc_adj, int yc_adj, int xce_adj, int yce_adj,
                     bool pixelOffsets, bool wrap_x);
 void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,
                     bool pinwheel_rotation,const wxString &pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize,
                     int pspeed);
-void RenderPlasma(int ColorScheme, int Style, int Line_Density,int PlasmaDirection, int PlasmaSpeed);
+void RenderPlasma(const wxString &ColorScheme, int Style, int Line_Density,const wxString & PlasmaDirection, int PlasmaSpeed);
 void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,
               int xc_adj, int yc_adj);
 
-void RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles);
+void RenderRipple(const wxString &Object_To_Draw, const wxString &Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles);
 void Drawsquare(int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,wxImage::HSVValue hsv);
 void Drawcircle(int Movement, int xc,int yc,double radius, wxImage::HSVValue hsv, int Ripple_Thickness,int CheckBox_Ripple3D);
 
@@ -93,4 +93,5 @@ void RenderText(const SettingsMap& SettingsMap);
 
 void RenderTree(int Branches, int tspeed);
 void RenderTwinkle(int Count,int Steps,bool Strobe, bool reRandomize);
-void RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection, int wspeed);
+void RenderWave(const wxString & WaveType,const wxString & FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,
+                int WaveHeight, const wxString &WaveDirection, int wspeed);

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="FacesPanel">
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer47" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<object class="sizeritem">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizer2" member="no">
+					<label>Mouth Movements</label>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer97" member="no">
+							<cols>2</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxRadioButton" name="IDD_RADIOBUTTON_Faces_Phoneme" variable="RadioButton1" member="yes">
+									<label>Phoneme</label>
+									<selected>1</selected>
+									<handler function="OnMouthMovementTypeSelected" entry="EVT_RADIOBUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxChoice" name="ID_CHOICE_Faces_Phoneme" variable="Choice_Faces_Phoneme" member="yes">
+									<content>
+										<item>AI</item>
+										<item>E</item>
+										<item>FV</item>
+										<item>L</item>
+										<item>MBP</item>
+										<item>O</item>
+										<item>U</item>
+										<item>WQ</item>
+										<item>etc</item>
+										<item>rest</item>
+										<item>(off)</item>
+									</content>
+									<selection>0</selection>
+								</object>
+								<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxRadioButton" name="IDD_RADIOBUTTON_Faces_TimingTrack" variable="RadioButton2" member="yes">
+									<label>Timing Track</label>
+									<handler function="OnMouthMovementTypeSelected" entry="EVT_RADIOBUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxChoice" name="ID_CHOICE_Faces_TimingTrack" variable="Choice_Faces_TimingTrack" member="yes">
+									<enabled>0</enabled>
+								</object>
+								<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer98" member="no">
+					<cols>2</cols>
+					<growablecols>1</growablecols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT15" variable="StaticText14" member="yes">
+							<label>Face Definition</label>
+						</object>
+						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_Faces_FaceDefinition" variable="Face_FaceDefinitonChoice" member="yes" />
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT66" variable="StaticText71" member="yes">
+							<label>Eyes</label>
+						</object>
+						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_Faces_Eyes" variable="Choice_Faces_Eyes" member="yes">
+							<content>
+								<item>Open</item>
+								<item>Closed</item>
+								<item>Auto</item>
+								<item>(off)</item>
+							</content>
+							<style>wxCB_SORT</style>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Faces_Outline" variable="CheckBox_Faces_Outline" member="yes">
+							<label>Show outline</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

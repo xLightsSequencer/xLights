@@ -431,7 +431,7 @@ protected:
     void Piano_load_cues(const wxString& filename);
     void Piano_update_bkg(int Style, wxSize& canvas, int rowh);
     void Piano_map_colors(void);
-    bool Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& drawn, int style, wxSize& canvas, wxSize& keywh, int placement, bool clip);
+    bool Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& drawn, int style, wxSize& canvas, wxSize& keywh, const wxString &placement, bool clip);
     xlColor cached_rgb; //cached mapped pixel color
     wxPoint cached_xy;
 //end of piano support stuff -DJ
