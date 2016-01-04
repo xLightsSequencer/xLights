@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.3.01  Jan 3, 2016
     -- bug(gil)   Fixed direction of colors for a reversed Marquee.
     -- enh(gil)   Allow Morph endpoint selections using left and right click and drag.
     -- bug(gil)   Improve acceleration for Morph, Fan, Galaxy, and Shockwave. Values 1, 2, -1, and -2 were broken.
