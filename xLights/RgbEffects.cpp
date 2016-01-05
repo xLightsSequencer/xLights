@@ -44,7 +44,6 @@ RenderBuffer::~RenderBuffer()
 }
 RgbEffects::RgbEffects()
 {
-    fireworkBursts = NULL;
     balls = NULL;
     metaballs = NULL;
 }
@@ -52,9 +51,6 @@ RgbEffects::RgbEffects()
 RgbEffects::~RgbEffects()
 {
     //dtor
-    if (fireworkBursts != NULL) {
-        delete [] fireworkBursts;
-    }
     if (balls != NULL) {
         delete [] balls;
     }

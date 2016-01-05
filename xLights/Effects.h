@@ -25,7 +25,6 @@ void RenderFan(int center_x, int center_y, int start_radius, int end_radius, int
                int duration, int acceleration, bool reverse_dir, bool blend_edges,
                int num_blades, int blade_width, int blade_angle, int num_elements, int element_width );
 void RenderFire(int HeightPct,int HueShift,float GrowCycles, const wxString &location);
-void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
                   int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward );
 void RenderGarlands(int GarlandType, int Spacing, float cycles, const wxString &direction);

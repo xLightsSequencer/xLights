@@ -1018,12 +1018,6 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                               wxAtof(SettingsMap.Get("TEXTCTRL_Fire_GrowthCycles", "0.0")),
                               SettingsMap.Get("CHOICE_Fire_Location", "Bottom"));
             break;
-        case BitmapCache::eff_FIREWORKS:
-            buffer.RenderFireworks(wxAtoi(SettingsMap["SLIDER_Fireworks_Explosions"]),
-                                   wxAtoi(SettingsMap["SLIDER_Fireworks_Count"]),
-                                   wxAtoi(SettingsMap["SLIDER_Fireworks_Velocity"]),
-                                   wxAtoi(SettingsMap["SLIDER_Fireworks_Fade"]));
-            break;
         case BitmapCache::eff_GALAXY:
             buffer.RenderGalaxy(wxAtoi(SettingsMap["SLIDER_Galaxy_CenterX"]),
                                 wxAtoi(SettingsMap["SLIDER_Galaxy_CenterY"]),
@@ -1271,9 +1265,6 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                               wxAtoi(SettingsMap["SLIDER_Wave_Height"]),
                               SettingsMap["CHOICE_Wave_Direction"],
                               wxAtoi(SettingsMap.Get("TEXTCTRL_Wave_Speed", "10")));
-            break;
-        default:
-            printf("Unknown effect: %d\n", eidx);
             break;
     }
     return retval;

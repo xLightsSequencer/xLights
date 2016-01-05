@@ -284,39 +284,6 @@ public:
 
 protected:
 
-    class RgbFireworks
-    {
-    public:
-        //static const float velocity = 2.5;
-        static const int maxCycle = 4096;
-        static const int maxNewBurstFlakes = 10;
-        float _x;
-        float _y;
-        float _dx;
-        float _dy;
-        float vel;
-        float angle;
-        bool _bActive;
-        int _cycles;
-        wxImage::HSVValue _hsv;
-        int startPeriod;
-
-        void Reset(int x, int y, bool active, float velocity, wxImage::HSVValue hsv, int start)
-        {
-            _x       = x;
-            _y       = y;
-            vel      = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
-            angle    = 2*M_PI*rand()/RAND_MAX;
-            _dx      = vel*cos(angle);
-            _dy      = vel*sin(angle);
-            _bActive = false;
-            _cycles  = 0;
-            _hsv     = hsv;
-            startPeriod = start;
-        }
-    protected:
-    private:
-    };
 
     class RgbBalls
     {
@@ -628,7 +595,6 @@ protected:
 
 
     long LastLifeState;
-    RgbFireworks *fireworkBursts;
     int nextBlinkTime;
     int blinkEndTime;
 

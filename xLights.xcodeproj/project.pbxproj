@@ -129,7 +129,6 @@
 		67A61A3817B51C0F008E95BB /* RenderCircles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619DE17B51C0F008E95BB /* RenderCircles.cpp */; };
 		67A61A3917B51C0F008E95BB /* RenderColorWash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619DF17B51C0F008E95BB /* RenderColorWash.cpp */; };
 		67A61A3A17B51C0F008E95BB /* RenderFire.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E017B51C0F008E95BB /* RenderFire.cpp */; };
-		67A61A3B17B51C0F008E95BB /* RenderFireworks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E117B51C0F008E95BB /* RenderFireworks.cpp */; };
 		67A61A3C17B51C0F008E95BB /* RenderGarlands.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E217B51C0F008E95BB /* RenderGarlands.cpp */; };
 		67A61A3D17B51C0F008E95BB /* RenderLife.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E317B51C0F008E95BB /* RenderLife.cpp */; };
 		67A61A3E17B51C0F008E95BB /* RenderMeteors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E417B51C0F008E95BB /* RenderMeteors.cpp */; };
@@ -489,7 +488,6 @@
 		67A619DE17B51C0F008E95BB /* RenderCircles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCircles.cpp; sourceTree = "<group>"; };
 		67A619DF17B51C0F008E95BB /* RenderColorWash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderColorWash.cpp; sourceTree = "<group>"; };
 		67A619E017B51C0F008E95BB /* RenderFire.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFire.cpp; sourceTree = "<group>"; };
-		67A619E117B51C0F008E95BB /* RenderFireworks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFireworks.cpp; sourceTree = "<group>"; };
 		67A619E217B51C0F008E95BB /* RenderGarlands.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGarlands.cpp; sourceTree = "<group>"; };
 		67A619E317B51C0F008E95BB /* RenderLife.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLife.cpp; sourceTree = "<group>"; };
 		67A619E417B51C0F008E95BB /* RenderMeteors.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderMeteors.cpp; sourceTree = "<group>"; };
@@ -972,7 +970,6 @@
 				674D34C51918238E00A993C7 /* RenderFaces.cpp */,
 				671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */,
 				67A619E017B51C0F008E95BB /* RenderFire.cpp */,
-				67A619E117B51C0F008E95BB /* RenderFireworks.cpp */,
 				6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */,
 				67A619E217B51C0F008E95BB /* RenderGarlands.cpp */,
 				675006771923EBBD00875D45 /* RenderGlediator.cpp */,
@@ -1478,7 +1475,6 @@
 				67B2CF8C1C39D98A003C17CA /* TreePanel.cpp in Sources */,
 				67B2CFDF1C3A186A003C17CA /* SingleStrandEffect.cpp in Sources */,
 				67A61A3A17B51C0F008E95BB /* RenderFire.cpp in Sources */,
-				67A61A3B17B51C0F008E95BB /* RenderFireworks.cpp in Sources */,
 				6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */,
 				67B7971B1A5AE343008D5921 /* TimingPanel.cpp in Sources */,
 				67043A4C1A07D17F00C09B71 /* dlgPreviewSize.cpp in Sources */,
