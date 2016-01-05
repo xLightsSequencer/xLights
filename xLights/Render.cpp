@@ -9,6 +9,7 @@
 #include "BitmapCache.h"
 #include <map>
 #include <memory>
+#include "effects/RenderableEffect.h"
 
 #define END_OF_RENDER_FRAME INT_MAX
 
@@ -35,10 +36,6 @@ static const wxString BUTTON_Palette4("BUTTON_Palette4");
 static const wxString BUTTON_Palette5("BUTTON_Palette5");
 static const wxString BUTTON_Palette6("BUTTON_Palette6");
 
-static const wxString TEXTCTRL_Eff_On_Start("TEXTCTRL_Eff_On_Start");
-static const wxString TEXTCTRL_Eff_On_End("TEXTCTRL_Eff_On_End");
-static const wxString CHECKBOX_On_Shimmer("CHECKBOX_On_Shimmer");
-static const wxString TEXTCTRL_On_Cycles("TEXTCTRL_On_Cycles");
 
 
 static const wxString CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
@@ -895,26 +892,12 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     } else {
         eidx = Effect::GetEffectIndex(SettingsMap.Get(STR_EFFECT, STR_NONE));
     }
+    if (eidx >= 0) {
+        effectManager.GetEffect(eidx)->Render(effectObj, SettingsMap, buffer.BufferForLayer(layer));
+    }
     switch (eidx) {
         case -1: //none
             retval = false;
-            break;
-        case BitmapCache::eff_OFF:
-            buffer.RenderOff();
-            break;
-        case BitmapCache::eff_ON:
-            buffer.RenderOn(effectObj,
-                            SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, 100),
-                            SettingsMap.GetInt(TEXTCTRL_Eff_On_End, 100),
-                            SettingsMap.GetInt(CHECKBOX_On_Shimmer, 0),
-                            SettingsMap.GetDouble(TEXTCTRL_On_Cycles, 1.0));
-            break;
-        case BitmapCache::eff_BARS:
-            buffer.RenderBars(wxAtoi(SettingsMap["SLIDER_Bars_BarCount"]),
-                              SettingsMap["CHOICE_Bars_Direction"],
-                              SettingsMap["CHECKBOX_Bars_Highlight"]=="1",
-                              SettingsMap["CHECKBOX_Bars_3D"]=="1",
-                              wxAtof(SettingsMap.Get("TEXTCTRL_Bars_Cycles", "1.0")));
             break;
         case BitmapCache::eff_BUTTERFLY:
             buffer.RenderButterfly(SettingsMap["CHOICE_Butterfly_Colors"],

@@ -10,6 +10,8 @@ class OnEffect : public RenderableEffect
         OnEffect(int id);
         virtual ~OnEffect();
     
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
     private:

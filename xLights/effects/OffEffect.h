@@ -9,6 +9,8 @@ class OffEffect : public RenderableEffect
         OffEffect(int id);
         virtual ~OffEffect();
     
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
     private:

@@ -25,15 +25,28 @@
 #include "Effect.h"
 
 
-RgbEffects::RgbEffects()
+RenderBuffer::RenderBuffer()
 {
     frameTimeInMs = 50;
+    drawingContext = NULL;
+    InhibitClear = false;
+}
+
+RenderBuffer::~RenderBuffer()
+{
+    //dtor
+    if (drawingContext != NULL) {
+        delete drawingContext;
+    }
+    for (std::map<int, EffectRenderCache*>::iterator i = infoCache.begin(); i != infoCache.end(); i++) {
+        delete i->second;
+    }
+}
+RgbEffects::RgbEffects()
+{
     fireworkBursts = NULL;
     balls = NULL;
     metaballs = NULL;
-    drawingContext = NULL;
-    nextBlinkTime = (4500 + (rand() % 1000));
-    blinkEndTime = -1;
 }
 
 RgbEffects::~RgbEffects()
@@ -48,15 +61,17 @@ RgbEffects::~RgbEffects()
     if (metaballs != NULL) {
         delete [] metaballs;
     }
-    if (drawingContext != NULL) {
-        delete drawingContext;
-    }
 }
 
-void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
+void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi)
 {
     BufferHt=newBufferHt;
     BufferWi=newBufferWi;
+    drawingContext = new DrawingContext(newBufferWi, newBufferHt);
+}
+void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
+{
+    RenderBuffer::InitBuffer(newBufferHt, newBufferWi);
     DiagLen=sqrt( (double)BufferHt*BufferHt + BufferWi*BufferWi);
     NumPixels=BufferHt * BufferWi;
     pixels.resize(NumPixels);
@@ -66,12 +81,9 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
     WaveBuffer1.resize(NumPixels);
     WaveBuffer2.resize(NumPixels);
     effectState = 0;
-    
-    drawingContext = new DrawingContext(newBufferWi, newBufferHt);
-    
 }
 
-void RgbEffects::Clear(const xlColour& bgColor)
+void RenderBuffer::Clear(const xlColour& bgColor)
 {
     if (InhibitClear) { InhibitClear = false; return; } //allow canvas to be persistent for piano fx (self-reseting for safety) -DJ
     for(size_t i=0; i<pixels.size(); i++)
@@ -80,24 +92,24 @@ void RgbEffects::Clear(const xlColour& bgColor)
     }
 }
 
-void RgbEffects::SetPalette(xlColourVector& newcolors)
+void RenderBuffer::SetPalette(xlColourVector& newcolors)
 {
     palette.Set(newcolors);
 }
 
-size_t RgbEffects::GetColorCount()
+size_t RenderBuffer::GetColorCount()
 {
     return palette.Size();
 }
 
 // return a random number between 0 and 1 inclusive
-double RgbEffects::rand01()
+double RenderBuffer::rand01()
 {
     return (double)rand()/(double)RAND_MAX;
 }
 
 // generates a random number between num1 and num2 inclusive
-double RgbEffects::RandomRange(double num1, double num2)
+double RenderBuffer::RandomRange(double num1, double num2)
 {
     double hi,lo;
     if (num1 < num2)
@@ -113,14 +125,14 @@ double RgbEffects::RandomRange(double num1, double num2)
     return rand01()*(hi-lo)+ lo;
 }
 
-void RgbEffects::Color2HSV(const xlColour& color, wxImage::HSVValue& hsv)
+void RenderBuffer::Color2HSV(const xlColour& color, wxImage::HSVValue& hsv)
 {
     wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
     hsv=wxImage::RGBtoHSV(rgb);
 }
 
 // sets newcolor to a random color between hsv1 and hsv2
-void RgbEffects::SetRangeColor(const wxImage::HSVValue& hsv1, const wxImage::HSVValue& hsv2, wxImage::HSVValue& newhsv)
+void RenderBuffer::SetRangeColor(const wxImage::HSVValue& hsv1, const wxImage::HSVValue& hsv2, wxImage::HSVValue& newhsv)
 {
     newhsv.hue=RandomRange(hsv1.hue,hsv2.hue);
     newhsv.saturation=RandomRange(hsv1.saturation,hsv2.saturation);
@@ -128,12 +140,12 @@ void RgbEffects::SetRangeColor(const wxImage::HSVValue& hsv1, const wxImage::HSV
 }
 
 // return a value between c1 and c2
-wxByte RgbEffects::ChannelBlend(wxByte c1, wxByte c2, double ratio)
+wxByte RenderBuffer::ChannelBlend(wxByte c1, wxByte c2, double ratio)
 {
     return c1 + floor(ratio*(c2-c1)+0.5);
 }
 
-void RgbEffects::Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColour &color)
+void RenderBuffer::Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColour &color)
 {
     xlColour c1,c2;
     palette.GetColor(coloridx1,c1);
@@ -141,12 +153,12 @@ void RgbEffects::Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlCo
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
 }
 
-void RgbEffects::Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, double ratio, xlColour &color)
+void RenderBuffer::Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, double ratio, xlColour &color)
 {
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
 }
 
-HSVValue RgbEffects::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
+HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
 {
     wxImage::RGBValue rgb;
     wxImage::RGBValue rgb1 = wxImage::HSVtoRGB(hsv1);
@@ -157,7 +169,7 @@ HSVValue RgbEffects::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
     return wxImage::RGBtoHSV(rgb);
 }
 // 0 <= n < 1
-void RgbEffects::GetMultiColorBlend(double n, bool circular, xlColour &color)
+void RenderBuffer::GetMultiColorBlend(double n, bool circular, xlColour &color)
 {
     size_t colorcnt=GetColorCount();
     if (colorcnt <= 1)
@@ -176,7 +188,7 @@ void RgbEffects::GetMultiColorBlend(double n, bool circular, xlColour &color)
 
 
 // 0,0 is lower left
-void RgbEffects::SetPixel(int x, int y, const xlColour &color, bool wrap)
+void RenderBuffer::SetPixel(int x, int y, const xlColour &color, bool wrap)
 {
     if (wrap) {
         while (x < 0) {
@@ -199,7 +211,7 @@ void RgbEffects::SetPixel(int x, int y, const xlColour &color, bool wrap)
 }
 
 // 0,0 is lower left
-void RgbEffects::SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap)
+void RenderBuffer::SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap)
 {
     if (wrap) {
         while (x < 0) {
@@ -222,14 +234,14 @@ void RgbEffects::SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap)
 }
 
 //copy src to dest: -DJ
-void RgbEffects::CopyPixel(int srcx, int srcy, int destx, int desty)
+void RenderBuffer::CopyPixel(int srcx, int srcy, int destx, int desty)
 {
     if ((srcx >= 0) && (srcx < BufferWi) && (srcy >= 0) && (srcy < BufferHt))
         if ((destx >= 0) && (destx < BufferWi) && (desty >= 0) && (desty < BufferHt))
             pixels[desty * BufferWi + destx] = pixels[srcy * BufferWi + srcx];
 }
 
-void RgbEffects::DrawHLine(int y, int xstart, int xend, const xlColor &color, bool wrap) {
+void RenderBuffer::DrawHLine(int y, int xstart, int xend, const xlColor &color, bool wrap) {
     if (xstart > xend) {
         int i = xstart;
         xstart = xend;
@@ -239,7 +251,7 @@ void RgbEffects::DrawHLine(int y, int xstart, int xend, const xlColor &color, bo
         SetPixel(x, y, color, wrap);
     }
 }
-void RgbEffects::DrawVLine(int x, int ystart, int yend, const xlColor &color, bool wrap) {
+void RenderBuffer::DrawVLine(int x, int ystart, int yend, const xlColor &color, bool wrap) {
     if (ystart > yend) {
         int i = ystart;
         ystart = yend;
@@ -249,7 +261,7 @@ void RgbEffects::DrawVLine(int x, int ystart, int yend, const xlColor &color, bo
         SetPixel(x, y, color, wrap);
     }
 }
-void RgbEffects::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap) {
+void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap) {
     if (y1 > y2) {
         int i = y1;
         y1 = y2;
@@ -268,7 +280,7 @@ void RgbEffects::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, b
 }
 
 // Bresenham's line algorithm
-void RgbEffects::DrawLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color )
+void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color )
 {
     int x0 = x0_;
     int x1 = x1_;
@@ -288,7 +300,7 @@ void RgbEffects::DrawLine( const int x0_, const int y0_, const int x1_, const in
   }
 }
 
-void RgbEffects::DrawThickLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color, bool direction )
+void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color, bool direction )
 {
     int x0 = x0_;
     int x1 = x1_;
@@ -338,7 +350,7 @@ void RgbEffects::DrawThickLine( const int x0_, const int y0_, const int x1_, con
   }
 }
 
-void RgbEffects::DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap)
+void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap)
 {
     HSVValue hsv = wxImage::RGBtoHSV(rgb);
     xlColor color(rgb);
@@ -365,7 +377,7 @@ void RgbEffects::DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb
     }
 }
 
-void RgbEffects::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bool filled, bool wrap)
+void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bool filled, bool wrap)
 {
     int x = radius;
     int y = 0;
@@ -399,7 +411,7 @@ void RgbEffects::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bool
 
 
 // 0,0 is lower left
-void RgbEffects::GetPixel(int x, int y, xlColour &color)
+void RenderBuffer::GetPixel(int x, int y, xlColour &color)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
@@ -409,7 +421,7 @@ void RgbEffects::GetPixel(int x, int y, xlColour &color)
 
 
 // 0,0 is lower left
-void RgbEffects::SetTempPixel(int x, int y, const xlColour &color)
+void RenderBuffer::SetTempPixel(int x, int y, const xlColour &color)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
@@ -417,7 +429,7 @@ void RgbEffects::SetTempPixel(int x, int y, const xlColour &color)
     }
 }
 
-void RgbEffects::SetTempPixel(int x, int y, const xlColour & color, int alpha)
+void RenderBuffer::SetTempPixel(int x, int y, const xlColour & color, int alpha)
 {
     xlColor c(color.Red(), color.Green(), color.Blue(), alpha);
 
@@ -425,14 +437,14 @@ void RgbEffects::SetTempPixel(int x, int y, const xlColour & color, int alpha)
 }
 
 // 0,0 is lower left
-void RgbEffects::GetTempPixel(int x, int y, xlColour &color)
+void RenderBuffer::GetTempPixel(int x, int y, xlColour &color)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
         color=tempbuf[y*BufferWi+x];
     }
 }
-const xlColor &RgbEffects::GetTempPixel(int x, int y) {
+const xlColor &RenderBuffer::GetTempPixel(int x, int y) {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
         return tempbuf[y*BufferWi+x];
@@ -441,7 +453,7 @@ const xlColor &RgbEffects::GetTempPixel(int x, int y) {
 }
 
 
-const xlColor& RgbEffects::GetTempPixelRGB(int x, int y)
+const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
@@ -450,7 +462,7 @@ const xlColor& RgbEffects::GetTempPixelRGB(int x, int y)
     return xlBLACK;
 }
 
-void RgbEffects::SetState(int period, bool ResetState, const wxString& model_name)
+void RenderBuffer::SetState(int period, bool ResetState, const wxString& model_name)
 {
     if (ResetState)
     {
@@ -461,14 +473,14 @@ void RgbEffects::SetState(int period, bool ResetState, const wxString& model_nam
     cur_model = model_name;
     curPeriod = period;
 }
-void RgbEffects::ClearTempBuf()
+void RenderBuffer::ClearTempBuf()
 {
     for (size_t i=0; i < tempbuf.size(); i++)
     {
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }
-double RgbEffects::GetEffectTimeIntervalPosition(float cycles) {
+double RenderBuffer::GetEffectTimeIntervalPosition(float cycles) {
     if (curEffEndPer == curEffStartPer) {
         return 0.0;
     }
@@ -479,7 +491,7 @@ double RgbEffects::GetEffectTimeIntervalPosition(float cycles) {
     }
     return retval;
 }
-double RgbEffects::GetEffectTimeIntervalPosition()
+double RenderBuffer::GetEffectTimeIntervalPosition()
 {
     if (curEffEndPer == curEffStartPer) {
         return 0.0;
@@ -503,38 +515,38 @@ void RgbEffects::ClearWaveBuffer2()
     }
 }
 
-void RgbEffects::SetFadeTimes(float fadeInDuration, float fadeOutDuration )
+void RenderBuffer::SetFadeTimes(float fadeInDuration, float fadeOutDuration )
 {
     fadeinsteps = (int)(fadeInDuration*1000)/frameTimeInMs;
     fadeoutsteps = (int)(fadeOutDuration*1000)/frameTimeInMs;
 }
-void RgbEffects::GetFadeSteps( int& fadeInSteps, int& fadeOutSteps)
+void RenderBuffer::GetFadeSteps( int& fadeInSteps, int& fadeOutSteps)
 {
     fadeInSteps = fadeinsteps;
     fadeOutSteps = fadeoutsteps;
 }
 
-void RgbEffects::SetEffectDuration(int startMsec, int endMsec)
+void RenderBuffer::SetEffectDuration(int startMsec, int endMsec)
 {
     curEffStartPer = startMsec / frameTimeInMs;
     curEffEndPer = (endMsec - 1) / frameTimeInMs;
 }
 
-void RgbEffects::GetEffectPeriods( int& start, int& endp)
+void RenderBuffer::GetEffectPeriods( int& start, int& endp)
 {
     start = curEffStartPer;
     endp = curEffEndPer;
 }
 
-void RgbEffects::SetDisplayListHRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
+void RenderBuffer::SetDisplayListHRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
                                      const xlColor &c1, const xlColor &c2) {
     SetDisplayListRect(eff, idx, x1, y1, x2, y2, c1, c1, c2, c2);
 }
-void RgbEffects::SetDisplayListVRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
+void RenderBuffer::SetDisplayListVRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
                                      const xlColor &c1, const xlColor &c2) {
     SetDisplayListRect(eff, idx, x1, y1, x2, y2, c1, c2, c1, c2);
 }
-void RgbEffects::SetDisplayListRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
+void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, double x1, double y1, double x2, double y2,
                                     const xlColor &cx1y1, const xlColor &cx1y2,
                                     const xlColor &cx2y1, const xlColor &cx2y2) {
     eff->GetBackgroundDisplayList()[idx].color = cx1y1;
@@ -556,7 +568,7 @@ void RgbEffects::SetDisplayListRect(Effect *eff, int idx, double x1, double y1, 
     eff->GetBackgroundDisplayList()[idx+2].usage = GL_QUADS;
     eff->GetBackgroundDisplayList()[idx+3].usage = GL_QUADS;
 }
-void RgbEffects::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex, int inc) {
+void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex, int inc) {
     wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
     int count = curEffEndPer - curEffStartPer + 1;
 

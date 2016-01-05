@@ -8,6 +8,9 @@ class wxWindow;
 class wxBitmap;
 class ModelClass;
 class SequenceElements;
+class Effect;
+class SettingsMap;
+class RenderBuffer;
 
 class RenderableEffect
 {
@@ -24,7 +27,7 @@ class RenderableEffect
         wxPanel *GetPanel(wxWindow *parent);
         virtual void SetDefaultParameters(ModelClass *cls) {}
 
-        //virtual void Render() = 0;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) {}
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) = 0;

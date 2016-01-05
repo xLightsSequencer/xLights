@@ -1,6 +1,8 @@
 #include "OffEffect.h"
 #include "OffPanel.h"
 
+#include "../RgbEffects.h"
+
 OffEffect::OffEffect(int i) : RenderableEffect(i, "Off")
 {
     //ctor
@@ -13,4 +15,14 @@ OffEffect::~OffEffect()
 
 wxPanel *OffEffect::CreatePanel(wxWindow *parent) {
     return new OffPanel(parent);
+}
+
+void OffEffect::Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) {
+    int x,y;
+    //  Every Node, every frame set to BLACK
+    for (x = 0; x < buffer.BufferWi; x++) {
+        for (y = 0; y < buffer.BufferHt; y++) {
+            buffer.SetPixel(x, y, xlBLACK);
+        }
+    }
 }

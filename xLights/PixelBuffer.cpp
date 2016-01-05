@@ -479,7 +479,9 @@ void PixelBufferClass::SetMixThreshold(int layer, int value, bool varies) {
     effectMixThreshold[layer] = (float)value/100.0;
     effectMixVaries[layer] = varies;
 }
-
+RenderBuffer& PixelBufferClass::BufferForLayer(int layer) {
+    return effects[layer];
+}
 void PixelBufferClass::SetLayer(int newlayer, int period, bool resetState) {
     CurrentLayer=newlayer;
     effects[CurrentLayer].SetState(period, resetState, name);
@@ -551,18 +553,6 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             Nodes[i]->SetColor(color);
         }
     }
-}
-
-void PixelBufferClass::RenderOff(void) {
-    effects[CurrentLayer].RenderOff();
-}
-
-void PixelBufferClass::RenderOn(Effect *eff, int start, int end, bool shimmer, float repeat) {
-    effects[CurrentLayer].RenderOn(eff, start, end, shimmer, repeat);
-}
-
-void PixelBufferClass::RenderBars(int PaletteRepeat, const wxString & Direction, bool Highlight, bool Show3D, float cycles) {
-    effects[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D,cycles);
 }
 
 void PixelBufferClass::RenderButterfly(const wxString & ColorScheme, int Style, int Chunks, int Skip, const wxString & ButterflyDirection, int butterFlySpeed) {

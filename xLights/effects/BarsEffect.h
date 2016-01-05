@@ -9,7 +9,8 @@ class BarsEffect : public RenderableEffect
         BarsEffect(int id);
         virtual ~BarsEffect();
     
-    
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
     private:
