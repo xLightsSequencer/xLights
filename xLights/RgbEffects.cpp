@@ -25,6 +25,171 @@
 #include "Effect.h"
 
 
+
+inline void unshare(wxObject &o) {
+    if (o.GetRefData() != nullptr) {
+        o.UnShare();
+    }
+}
+
+DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(wxNullBitmap)
+{
+    unshare(nullBitmap);
+    image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
+#if wxUSE_GRAPHICS_CONTEXT
+    image->SetAlpha();
+    for(wxCoord x=0; x<BufferWi; x++) {
+        for(wxCoord y=0; y<BufferHt; y++) {
+            image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
+        }
+    }
+#endif
+    bitmap = new wxBitmap(*image);
+    dc = new wxMemoryDC(*bitmap);
+    
+    
+    //make sure we UnShare everything that is being held onto
+    //also use "non-normal" defaults to avoid "==" issue that
+    //would keep it from using the non-shared versions
+    wxFont font(*wxITALIC_FONT);
+    unshare(font);
+    dc->SetFont(font);
+    
+    wxBrush brush(*wxYELLOW_BRUSH);
+    unshare(brush);
+    dc->SetBrush(brush);
+    dc->SetBackground(brush);
+    
+    wxPen pen(*wxGREEN_PEN);
+    unshare(pen);
+    dc->SetPen(pen);
+    
+#ifndef LINUX
+    wxColor c(12, 25, 3);
+    unshare(c);
+    dc->SetTextBackground(c);
+    
+    wxColor c2(0, 35, 5);
+    unshare(c2);
+    dc->SetTextForeground(c2);
+#endif
+    
+    dc->SelectObject(nullBitmap);
+    delete bitmap;
+    bitmap = nullptr;
+#if wxUSE_GRAPHICS_CONTEXT
+    gc = nullptr;
+#endif
+}
+
+
+DrawingContext::~DrawingContext() {
+#if wxUSE_GRAPHICS_CONTEXT
+    if (gc != nullptr) {
+        delete gc;
+    }
+#endif
+    if (dc != nullptr) {
+        delete dc;
+    }
+    if (bitmap != nullptr) {
+        delete bitmap;
+    }
+    if (image != nullptr) {
+        delete image;
+    }
+}
+void DrawingContext::Clear() {
+#if wxUSE_GRAPHICS_CONTEXT
+    if (gc != nullptr) {
+        delete gc;
+        gc = nullptr;
+    }
+#endif
+    
+    dc->SelectObject(nullBitmap);
+    if (bitmap != nullptr) {
+        delete bitmap;
+    }
+    image->Clear();
+#if wxUSE_GRAPHICS_CONTEXT
+    image->SetAlpha();
+    for(wxCoord x=0; x<image->GetWidth(); x++) {
+        for(wxCoord y=0; y<image->GetHeight(); y++) {
+            image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
+        }
+    }
+    bitmap = new wxBitmap(*image, 32);
+#else
+    bitmap = new wxBitmap(*image);
+#endif
+    
+    dc->SelectObject(*bitmap);
+    
+#if wxUSE_GRAPHICS_CONTEXT
+#ifdef LINUX
+    gc = wxGraphicsContext::Create(*image);
+#else
+    gc = wxGraphicsContext::Create(*dc);
+#endif // LINUX
+    gc->SetAntialiasMode(wxANTIALIAS_NONE);
+#endif
+}
+
+
+wxImage *DrawingContext::FlushAndGetImage() {
+#if wxUSE_GRAPHICS_CONTEXT
+    if (gc != nullptr) {
+        gc->Flush();
+        delete gc;
+        gc = nullptr;
+    }
+#endif
+#ifndef LINUX
+    dc->SelectObject(nullBitmap);
+    *image = bitmap->ConvertToImage();
+    dc->SelectObject(*bitmap);
+#endif // LINUX
+    return image;
+}
+
+void DrawingContext::SetFont(wxFont &font, const xlColor &color) {
+#if wxUSE_GRAPHICS_CONTEXT
+    gc->SetFont(font, color.asWxColor());
+#else
+    dc->SetFont(font);
+    dc->SetTextForeground(color.asWxColor());
+#endif
+}
+
+inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
+
+void DrawingContext::DrawText(const wxString &msg, int x, int y, double rotation) {
+#if wxUSE_GRAPHICS_CONTEXT
+    gc->DrawText(msg, x, y, DegToRad(rotation));
+#else
+    dc->DrawRotatedText(msg, x, y, rotation);
+#endif
+}
+void DrawingContext::DrawText(const wxString &msg, int x, int y) {
+#if wxUSE_GRAPHICS_CONTEXT
+    gc->DrawText(msg, x, y);
+#else
+    dc->DrawText(msg, x, y);
+#endif
+}
+
+void DrawingContext::GetTextExtent(const wxString &msg, double *width, double *height) {
+#if wxUSE_GRAPHICS_CONTEXT
+    gc->GetTextExtent(msg, width, height);
+#else
+    wxSize size = dc->GetTextExtent(msg);
+    *width = size.GetWidth();
+    *height = size.GetHeight();
+#endif
+}
+
+
 RenderBuffer::RenderBuffer()
 {
     frameTimeInMs = 50;
@@ -44,19 +209,11 @@ RenderBuffer::~RenderBuffer()
 }
 RgbEffects::RgbEffects()
 {
-    balls = NULL;
-    metaballs = NULL;
 }
 
 RgbEffects::~RgbEffects()
 {
     //dtor
-    if (balls != NULL) {
-        delete [] balls;
-    }
-    if (metaballs != NULL) {
-        delete [] metaballs;
-    }
 }
 
 void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi)
@@ -73,9 +230,6 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
     FireBuffer.resize(NumPixels);
-    WaveBuffer0.resize(NumPixels);
-    WaveBuffer1.resize(NumPixels);
-    WaveBuffer2.resize(NumPixels);
     effectState = 0;
 }
 
@@ -495,20 +649,6 @@ double RenderBuffer::GetEffectTimeIntervalPosition()
     double retval = (double)(curPeriod-curEffStartPer)/(double)(curEffEndPer-curEffStartPer);
 //    debug(10, "GetEffTiIntPos(fr last? %d): (cur %d - curst %d)/(curend %d - curst) = %f, (cur - curst)/(next %d - curst) = %f, (cur - prev %d)/(curend - prev) = %f", from_last, curPeriod, curEffStartPer, curEffEndPer, GetEffectPeriodPosition(), nextEffTimePeriod, (double)(curPeriod-curEffStartPer)/(nextEffTimePeriod-curEffStartPer), prevNonBlankStartPeriod, (double)(curPeriod - prevNonBlankStartPeriod) / (curEffEndPer - prevNonBlankStartPeriod));
     return retval;
-}
-void RgbEffects::ClearWaveBuffer1()
-{
-    for (size_t i=0; i < WaveBuffer1.size(); i++)
-    {
-        WaveBuffer1[i]=0;
-    }
-}
-void RgbEffects::ClearWaveBuffer2()
-{
-    for (size_t i=0; i < WaveBuffer2.size(); i++)
-    {
-        WaveBuffer2[i]=0;
-    }
 }
 
 void RenderBuffer::SetFadeTimes(float fadeInDuration, float fadeOutDuration )

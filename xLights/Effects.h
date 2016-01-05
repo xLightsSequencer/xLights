@@ -1,21 +1,4 @@
 
-void RenderButterfly(const wxString &ColorScheme, int Style, int Chunks, int Skip,
-                     const wxString &ButterflyDirection, int butterFlySpeed);
-void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                   bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade,
-                   int circleSpeed);
-void RenderColorWash(Effect *eff,
-                     bool HorizFade, bool VertFade, float cycles,
-                     bool EntireModel, int x1, int y1, int x2, int y2,
-                     bool shimmer,
-                     bool circularPalette);
-void RenderCurtain(const wxString & edge, const wxString & effect, int swag, bool repeat, float curtainSpeed);
-void RenderDMX(int ch1, int ch2, int ch3, int ch4, int ch5, int ch6, int ch7, int ch8, int ch9, int ch10, int ch11, int ch12, int ch13, int ch14, int ch15,
-               int ch1_ramp, int ch2_ramp, int ch3_ramp, int ch4_ramp, int ch5_ramp, int ch6_ramp,
-               int ch7_ramp, int ch8_ramp, int ch9_ramp, int ch10_ramp, int ch11_ramp, int ch12_ramp,
-               int ch13_ramp, int ch14_ramp, int ch15_ramp,
-               bool use_ramps,const wxString& num_channels);
-
 void RenderFaces(const wxString &Phoneme, const wxString& eyes, bool face_outline);
 void RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString& eyes, bool face_outline);
 void RenderFaces(SequenceElements *elements, const wxString &faceDefintion,
@@ -29,10 +12,6 @@ void RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, 
                   int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward );
 void RenderGarlands(int GarlandType, int Spacing, float cycles, const wxString &direction);
 void RenderGlediator(const wxString& NewPictureName);
-void RenderLife(int Count, int Type, int lifeSpeed);
-void RenderLightning(int Number_Bolts, int Number_Segments, bool ForkedLightning,
-                     int topX,int topY, int botX, int botY);
-void LightningDrawBolt(const int x0_, const int y0_, const int x1_, const int y1_,  xlColor& color, int curState );
 
 void RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int mSpeed, int mStart, bool reverse_dir,
                    int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x);
@@ -47,12 +26,6 @@ void RenderPiano(const wxString & Style, int NumKeys, int NumRows, const wxStrin
 void RenderPictures(const wxString & dir, const wxString& NewPictureName,float moveSpeed, float frameRateAdj,
                     int xc_adj, int yc_adj, int xce_adj, int yce_adj,
                     bool pixelOffsets, bool wrap_x);
-void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,
-                    bool pinwheel_rotation,const wxString &pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize,
-                    int pspeed);
-void RenderPlasma(const wxString &ColorScheme, int Style, int Line_Density,const wxString & PlasmaDirection, int PlasmaSpeed);
-void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,
-              int xc_adj, int yc_adj);
 
 void RenderRipple(const wxString &Object_To_Draw, const wxString &Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles);
 void Drawsquare(int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,wxImage::HSVValue hsv);
@@ -60,11 +33,8 @@ void Drawcircle(int Movement, int xc,int yc,double radius, wxImage::HSVValue hsv
 
 
 
-void RenderShimmer(int Duty_Factor,bool Use_All_Colors, float cycles);
 void RenderShockwave(int center_x, int center_y, int start_radius, int end_radius,
                      int start_width, int end_width, int acceleration, bool blend_edges );
-void RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_Type);
-
 
 
 void RenderSingleStrandChase(const wxString &ColorScheme,int Number_Chases,int chaseSize,
@@ -82,12 +52,10 @@ void RenderSnowflakes(int Count, int SnowflakeType, int sSpeed, bool accumulate)
 void RenderSnowstorm(int Count, int Length, int sSpeed);
 void RenderSpirals(int PaletteRepeat, float Movement, int Rotation, int Thickness,
                    bool Blend, bool Show3D, bool grow, bool shrink);
-void RenderSpirograph(int R, int r, int d, int Animate, int speed, int length);
 
 
-void RenderText(const SettingsMap& SettingsMap);
 
-void RenderTree(int Branches, int tspeed);
-void RenderTwinkle(int Count,int Steps,bool Strobe, bool reRandomize);
-void RenderWave(const wxString & WaveType,const wxString & FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,
-                int WaveHeight, const wxString &WaveDirection, int wspeed);
+
+
+
+

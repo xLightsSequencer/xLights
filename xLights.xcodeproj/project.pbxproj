@@ -34,10 +34,8 @@
 		673B04A41B926957009151BA /* RenderMarquee.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673B04A31B926957009151BA /* RenderMarquee.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		67402E871B4230360047EDC1 /* NullOutputDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67402E851B4230360047EDC1 /* NullOutputDialog.cpp */; };
-		67435AFE1BBB82EC00CBE95F /* RenderPlasma.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67435AFD1BBB82EC00CBE95F /* RenderPlasma.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
 		674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C51918238E00A993C7 /* RenderFaces.cpp */; };
-		674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C61918238E00A993C7 /* RenderWave.cpp */; };
 		674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D1C1C207B9F000D632B /* OpenGL.framework */; };
 		674D3D1E1C207BBD000D632B /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; };
 		674D3D1F1C207BBD000D632B /* Cocoa.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -82,10 +80,8 @@
 		677421DB1A6A8FBE0082DA5B /* NewTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */; };
 		677421DD1A6A8FF30082DA5B /* RenameTextDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */; };
 		677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677674481B38E7F70018E14B /* OptionChooser.cpp */; };
-		677797BD1BBDB55B007F26CA /* RenderLightning.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677797BC1BBDB55B007F26CA /* RenderLightning.cpp */; };
 		6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E31A601CA7008C2086 /* Effect.cpp */; };
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
-		677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */; };
 		6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780AB891A65C3480090B26E /* SequenceData.cpp */; };
 		6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */; };
 		6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9201A5653670018EC0C /* EffectsGrid.cpp */; };
@@ -96,7 +92,6 @@
 		6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9261A5653670018EC0C /* tabSequencer.cpp */; };
 		6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9271A5653670018EC0C /* TimeLine.cpp */; };
 		6784F9311A5653670018EC0C /* Waveform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9281A5653670018EC0C /* Waveform.cpp */; };
-		67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67879B7319F94544009D994D /* RenderShimmer.cpp */; };
 		679B1E371AD6C73200927259 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 679B1E361AD6C73200927259 /* Images.xcassets */; };
 		679BD3351C37555C000539FE /* OnPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3291C37555C000539FE /* OnPanel.cpp */; };
 		679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD32A1C37555C000539FE /* EffectPanelUtils.cpp */; };
@@ -125,22 +120,14 @@
 		67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619D617B51C0F008E95BB /* PixelBuffer.cpp */; };
 		67A61A3417B51C0F008E95BB /* PlaybackOptionsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619D817B51C0F008E95BB /* PlaybackOptionsDialog.cpp */; };
 		67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619DA17B51C0F008E95BB /* PlayerFrame.cpp */; };
-		67A61A3717B51C0F008E95BB /* RenderButterfly.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619DD17B51C0F008E95BB /* RenderButterfly.cpp */; };
-		67A61A3817B51C0F008E95BB /* RenderCircles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619DE17B51C0F008E95BB /* RenderCircles.cpp */; };
-		67A61A3917B51C0F008E95BB /* RenderColorWash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619DF17B51C0F008E95BB /* RenderColorWash.cpp */; };
 		67A61A3A17B51C0F008E95BB /* RenderFire.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E017B51C0F008E95BB /* RenderFire.cpp */; };
 		67A61A3C17B51C0F008E95BB /* RenderGarlands.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E217B51C0F008E95BB /* RenderGarlands.cpp */; };
-		67A61A3D17B51C0F008E95BB /* RenderLife.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E317B51C0F008E95BB /* RenderLife.cpp */; };
 		67A61A3E17B51C0F008E95BB /* RenderMeteors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E417B51C0F008E95BB /* RenderMeteors.cpp */; };
 		67A61A3F17B51C0F008E95BB /* RenderPiano.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E517B51C0F008E95BB /* RenderPiano.cpp */; };
 		67A61A4017B51C0F008E95BB /* RenderPictures.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E617B51C0F008E95BB /* RenderPictures.cpp */; };
 		67A61A4117B51C0F008E95BB /* RenderSnowflakes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E717B51C0F008E95BB /* RenderSnowflakes.cpp */; };
 		67A61A4217B51C0F008E95BB /* RenderSnowstorm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E817B51C0F008E95BB /* RenderSnowstorm.cpp */; };
 		67A61A4317B51C0F008E95BB /* RenderSpirals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619E917B51C0F008E95BB /* RenderSpirals.cpp */; };
-		67A61A4417B51C0F008E95BB /* RenderSpirograph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619EA17B51C0F008E95BB /* RenderSpirograph.cpp */; };
-		67A61A4517B51C0F008E95BB /* RenderText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619EB17B51C0F008E95BB /* RenderText.cpp */; };
-		67A61A4617B51C0F008E95BB /* RenderTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619EC17B51C0F008E95BB /* RenderTree.cpp */; };
-		67A61A4717B51C0F008E95BB /* RenderTwinkle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619ED17B51C0F008E95BB /* RenderTwinkle.cpp */; };
 		67A61A4817B51C0F008E95BB /* resource.rc in Resources */ = {isa = PBXBuildFile; fileRef = 67A619EE17B51C0F008E95BB /* resource.rc */; };
 		67A61A4917B51C0F008E95BB /* RgbEffects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619EF17B51C0F008E95BB /* RgbEffects.cpp */; };
 		67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619F217B51C0F008E95BB /* SeqElementMismatchDialog.cpp */; };
@@ -157,7 +144,6 @@
 		67AAF8FA1B63785900585431 /* phoneme_mapping in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F61B63785900585431 /* phoneme_mapping */; };
 		67AAF8FB1B63785900585431 /* standard_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F71B63785900585431 /* standard_dictionary */; };
 		67AAF8FD1B642E6C00585431 /* LyricsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */; };
-		67B068F91BE9414800B7F2DC /* RenderDmx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B068F81BE9414800B7F2DC /* RenderDmx.cpp */; };
 		67B189761AA22C990082B00C /* RenderMorph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B189751AA22C990082B00C /* RenderMorph.cpp */; };
 		67B2CF711C39D98A003C17CA /* DMXPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CF251C39D98A003C17CA /* DMXPanel.cpp */; };
 		67B2CF721C39D98A003C17CA /* FacesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CF271C39D98A003C17CA /* FacesPanel.cpp */; };
@@ -249,8 +235,6 @@
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
 		67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */; };
 		67E42C1F1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */; };
-		67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B117C459B800FE40EA /* RenderCurtain.cpp */; };
-		67E5B9E71A19AC860044D685 /* RenderStrobe.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */; };
 		67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */; };
 		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
 		67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6131A097A35003E978F /* Image_Loader.cpp */; };
@@ -339,10 +323,8 @@
 		67402E851B4230360047EDC1 /* NullOutputDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NullOutputDialog.cpp; sourceTree = "<group>"; };
 		67402E861B4230360047EDC1 /* NullOutputDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NullOutputDialog.h; sourceTree = "<group>"; };
 		674298971C20432600B11478 /* wx */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wx; path = ../../../../opt/local/lib/wx; sourceTree = "<group>"; };
-		67435AFD1BBB82EC00CBE95F /* RenderPlasma.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPlasma.cpp; sourceTree = "<group>"; };
 		6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsXmlFile.cpp; sourceTree = "<group>"; };
 		674D34C51918238E00A993C7 /* RenderFaces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFaces.cpp; sourceTree = "<group>"; };
-		674D34C61918238E00A993C7 /* RenderWave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderWave.cpp; sourceTree = "<group>"; };
 		674D3D1C1C207B9F000D632B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		674D3D211C207BCC000D632B /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		674D3D231C207BD7000D632B /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -416,10 +398,8 @@
 		677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NewTimingDialog.cpp; sourceTree = "<group>"; };
 		677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenameTextDialog.cpp; sourceTree = "<group>"; };
 		677674481B38E7F70018E14B /* OptionChooser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OptionChooser.cpp; sourceTree = "<group>"; };
-		677797BC1BBDB55B007F26CA /* RenderLightning.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLightning.cpp; sourceTree = "<group>"; };
 		6778F3E31A601CA7008C2086 /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = sequencer/Effect.cpp; sourceTree = "<group>"; };
 		6778F3E41A601CA7008C2086 /* EffectLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectLayer.cpp; path = sequencer/EffectLayer.cpp; sourceTree = "<group>"; };
-		677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPinwheel.cpp; sourceTree = "<group>"; };
 		6780AB881A65C3100090B26E /* SequenceData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceData.h; sourceTree = "<group>"; };
 		6780AB891A65C3480090B26E /* SequenceData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceData.cpp; sourceTree = "<group>"; };
 		6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LMSImportChannelMapDialog.cpp; sourceTree = "<group>"; };
@@ -432,7 +412,6 @@
 		6784F9261A5653670018EC0C /* tabSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tabSequencer.cpp; path = sequencer/tabSequencer.cpp; sourceTree = "<group>"; };
 		6784F9271A5653670018EC0C /* TimeLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TimeLine.cpp; path = sequencer/TimeLine.cpp; sourceTree = "<group>"; };
 		6784F9281A5653670018EC0C /* Waveform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Waveform.cpp; path = sequencer/Waveform.cpp; sourceTree = "<group>"; };
-		67879B7319F94544009D994D /* RenderShimmer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShimmer.cpp; sourceTree = "<group>"; };
 		679B1E361AD6C73200927259 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = xLights/Images.xcassets; sourceTree = "<group>"; };
 		679BD3291C37555C000539FE /* OnPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OnPanel.cpp; path = effects/OnPanel.cpp; sourceTree = "<group>"; };
 		679BD32A1C37555C000539FE /* EffectPanelUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectPanelUtils.cpp; path = effects/EffectPanelUtils.cpp; sourceTree = "<group>"; };
@@ -484,22 +463,14 @@
 		67A619D917B51C0F008E95BB /* PlaybackOptionsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlaybackOptionsDialog.h; sourceTree = "<group>"; };
 		67A619DA17B51C0F008E95BB /* PlayerFrame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayerFrame.cpp; sourceTree = "<group>"; };
 		67A619DB17B51C0F008E95BB /* PlayerFrame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerFrame.h; sourceTree = "<group>"; };
-		67A619DD17B51C0F008E95BB /* RenderButterfly.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderButterfly.cpp; sourceTree = "<group>"; };
-		67A619DE17B51C0F008E95BB /* RenderCircles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCircles.cpp; sourceTree = "<group>"; };
-		67A619DF17B51C0F008E95BB /* RenderColorWash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderColorWash.cpp; sourceTree = "<group>"; };
 		67A619E017B51C0F008E95BB /* RenderFire.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFire.cpp; sourceTree = "<group>"; };
 		67A619E217B51C0F008E95BB /* RenderGarlands.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGarlands.cpp; sourceTree = "<group>"; };
-		67A619E317B51C0F008E95BB /* RenderLife.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderLife.cpp; sourceTree = "<group>"; };
 		67A619E417B51C0F008E95BB /* RenderMeteors.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderMeteors.cpp; sourceTree = "<group>"; };
 		67A619E517B51C0F008E95BB /* RenderPiano.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPiano.cpp; sourceTree = "<group>"; };
 		67A619E617B51C0F008E95BB /* RenderPictures.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPictures.cpp; sourceTree = "<group>"; };
 		67A619E717B51C0F008E95BB /* RenderSnowflakes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSnowflakes.cpp; sourceTree = "<group>"; };
 		67A619E817B51C0F008E95BB /* RenderSnowstorm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSnowstorm.cpp; sourceTree = "<group>"; };
 		67A619E917B51C0F008E95BB /* RenderSpirals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSpirals.cpp; sourceTree = "<group>"; };
-		67A619EA17B51C0F008E95BB /* RenderSpirograph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSpirograph.cpp; sourceTree = "<group>"; };
-		67A619EB17B51C0F008E95BB /* RenderText.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderText.cpp; sourceTree = "<group>"; };
-		67A619EC17B51C0F008E95BB /* RenderTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderTree.cpp; sourceTree = "<group>"; };
-		67A619ED17B51C0F008E95BB /* RenderTwinkle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderTwinkle.cpp; sourceTree = "<group>"; };
 		67A619EE17B51C0F008E95BB /* resource.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = resource.rc; sourceTree = "<group>"; };
 		67A619EF17B51C0F008E95BB /* RgbEffects.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RgbEffects.cpp; sourceTree = "<group>"; };
 		67A619F017B51C0F008E95BB /* RgbEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RgbEffects.h; sourceTree = "<group>"; };
@@ -528,7 +499,6 @@
 		67AAF8F71B63785900585431 /* standard_dictionary */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = standard_dictionary; path = bin/standard_dictionary; sourceTree = "<group>"; };
 		67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LyricsDialog.cpp; sourceTree = "<group>"; };
 		67AAF8FE1B642E7D00585431 /* LyricsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LyricsDialog.h; sourceTree = "<group>"; };
-		67B068F81BE9414800B7F2DC /* RenderDmx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderDmx.cpp; sourceTree = "<group>"; };
 		67B189751AA22C990082B00C /* RenderMorph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderMorph.cpp; sourceTree = "<group>"; };
 		67B2CF251C39D98A003C17CA /* DMXPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DMXPanel.cpp; path = effects/DMXPanel.cpp; sourceTree = "<group>"; };
 		67B2CF261C39D98A003C17CA /* DMXPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DMXPanel.h; path = effects/DMXPanel.h; sourceTree = "<group>"; };
@@ -705,9 +675,7 @@
 		67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerspectivesPanel.cpp; sourceTree = "<group>"; };
 		67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VAMPPluginDialog.cpp; sourceTree = "<group>"; };
 		67E42C1E1B5C32AD00CEBEC2 /* VAMPPluginDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VAMPPluginDialog.h; sourceTree = "<group>"; };
-		67E491B117C459B800FE40EA /* RenderCurtain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCurtain.cpp; sourceTree = "<group>"; };
 		67E491B317C45BAF00FE40EA /* TabSequence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabSequence.cpp; sourceTree = "<group>"; };
-		67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderStrobe.cpp; sourceTree = "<group>"; };
 		67E7086D17B51AB400A22034 /* xLights.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xLights.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		67E7087017B51AB400A22034 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		67E7087317B51AB400A22034 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -960,41 +928,25 @@
 			isa = PBXGroup;
 			children = (
 				67A619D617B51C0F008E95BB /* PixelBuffer.cpp */,
-				67B068F81BE9414800B7F2DC /* RenderDmx.cpp */,
 				677421D31A68AB3E0082DA5B /* Render.cpp */,
-				67A619DD17B51C0F008E95BB /* RenderButterfly.cpp */,
-				67A619DE17B51C0F008E95BB /* RenderCircles.cpp */,
-				67A619DF17B51C0F008E95BB /* RenderColorWash.cpp */,
 				67C6488619E3396C006526CD /* RenderCoroFaces.cpp */,
-				67E491B117C459B800FE40EA /* RenderCurtain.cpp */,
 				674D34C51918238E00A993C7 /* RenderFaces.cpp */,
 				671E7DF81AED4FFD0034C6DF /* RenderFan.cpp */,
 				67A619E017B51C0F008E95BB /* RenderFire.cpp */,
 				6730E4D11ADB54E8005DECF0 /* RenderGalaxy.cpp */,
 				67A619E217B51C0F008E95BB /* RenderGarlands.cpp */,
 				675006771923EBBD00875D45 /* RenderGlediator.cpp */,
-				67A619E317B51C0F008E95BB /* RenderLife.cpp */,
-				677797BC1BBDB55B007F26CA /* RenderLightning.cpp */,
 				673B04A31B926957009151BA /* RenderMarquee.cpp */,
 				67A619E417B51C0F008E95BB /* RenderMeteors.cpp */,
 				67B189751AA22C990082B00C /* RenderMorph.cpp */,
 				67A619E517B51C0F008E95BB /* RenderPiano.cpp */,
 				67A619E617B51C0F008E95BB /* RenderPictures.cpp */,
-				677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */,
-				67435AFD1BBB82EC00CBE95F /* RenderPlasma.cpp */,
 				6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */,
-				67879B7319F94544009D994D /* RenderShimmer.cpp */,
 				671E7DF91AED4FFD0034C6DF /* RenderShockwave.cpp */,
 				67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */,
 				67A619E717B51C0F008E95BB /* RenderSnowflakes.cpp */,
 				67A619E817B51C0F008E95BB /* RenderSnowstorm.cpp */,
 				67A619E917B51C0F008E95BB /* RenderSpirals.cpp */,
-				67A619EA17B51C0F008E95BB /* RenderSpirograph.cpp */,
-				67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */,
-				67A619EB17B51C0F008E95BB /* RenderText.cpp */,
-				67A619EC17B51C0F008E95BB /* RenderTree.cpp */,
-				67A619ED17B51C0F008E95BB /* RenderTwinkle.cpp */,
-				674D34C61918238E00A993C7 /* RenderWave.cpp */,
 				67A619EF17B51C0F008E95BB /* RgbEffects.cpp */,
 			);
 			name = EffectRendering;
@@ -1382,7 +1334,6 @@
 				679BD33D1C3757F6000539FE /* EffectManager.cpp in Sources */,
 				67B2CF931C39D98A003C17CA /* CurtainEffect.cpp in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
-				677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */,
 				67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */,
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
 				67B2CFF31C3A186A003C17CA /* DMXEffect.cpp in Sources */,
@@ -1431,7 +1382,6 @@
 				675DE26E1B53381800A9BB44 /* xlGridCanvasPictures.cpp in Sources */,
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				67B2CF761C39D98A003C17CA /* GalaxyPanel.cpp in Sources */,
-				67B068F91BE9414800B7F2DC /* RenderDmx.cpp in Sources */,
 				67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */,
 				67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
@@ -1453,12 +1403,9 @@
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,
 				675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */,
-				67A61A3717B51C0F008E95BB /* RenderButterfly.cpp in Sources */,
 				67B2CF951C39D98A003C17CA /* CirclesEffect.cpp in Sources */,
-				677797BD1BBDB55B007F26CA /* RenderLightning.cpp in Sources */,
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
 				675878DB1A89297200205A75 /* DataLayer.cpp in Sources */,
-				67A61A3817B51C0F008E95BB /* RenderCircles.cpp in Sources */,
 				67B2CF841C39D98A003C17CA /* ShockwavePanel.cpp in Sources */,
 				67B2CF891C39D98A003C17CA /* SpirographPanel.cpp in Sources */,
 				677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */,
@@ -1471,7 +1418,6 @@
 				67B2CF821C39D98A003C17CA /* RipplePanel.cpp in Sources */,
 				67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */,
 				673B04A41B926957009151BA /* RenderMarquee.cpp in Sources */,
-				67A61A3917B51C0F008E95BB /* RenderColorWash.cpp in Sources */,
 				67B2CF8C1C39D98A003C17CA /* TreePanel.cpp in Sources */,
 				67B2CFDF1C3A186A003C17CA /* SingleStrandEffect.cpp in Sources */,
 				67A61A3A17B51C0F008E95BB /* RenderFire.cpp in Sources */,
@@ -1480,7 +1426,6 @@
 				67043A4C1A07D17F00C09B71 /* dlgPreviewSize.cpp in Sources */,
 				67B2CFDA1C3A186A003C17CA /* StrobeEffect.cpp in Sources */,
 				67A61A3C17B51C0F008E95BB /* RenderGarlands.cpp in Sources */,
-				67A61A3D17B51C0F008E95BB /* RenderLife.cpp in Sources */,
 				67A61A3E17B51C0F008E95BB /* RenderMeteors.cpp in Sources */,
 				67B2CFE21C3A186A003C17CA /* RippleEffect.cpp in Sources */,
 				675AB4281B5ACEDA00853A28 /* Files.cpp in Sources */,
@@ -1503,7 +1448,6 @@
 				67A61A4117B51C0F008E95BB /* RenderSnowflakes.cpp in Sources */,
 				676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */,
 				677421D41A68AB3E0082DA5B /* Render.cpp in Sources */,
-				67435AFE1BBB82EC00CBE95F /* RenderPlasma.cpp in Sources */,
 				675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */,
 				67A61A4217B51C0F008E95BB /* RenderSnowstorm.cpp in Sources */,
 				67B2CFE11C3A186A003C17CA /* ShimmerEffect.cpp in Sources */,
@@ -1511,10 +1455,6 @@
 				67B2CF721C39D98A003C17CA /* FacesPanel.cpp in Sources */,
 				67A61A4317B51C0F008E95BB /* RenderSpirals.cpp in Sources */,
 				67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */,
-				67A61A4417B51C0F008E95BB /* RenderSpirograph.cpp in Sources */,
-				67A61A4517B51C0F008E95BB /* RenderText.cpp in Sources */,
-				67A61A4617B51C0F008E95BB /* RenderTree.cpp in Sources */,
-				67A61A4717B51C0F008E95BB /* RenderTwinkle.cpp in Sources */,
 				675AB42E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp in Sources */,
 				67B2CF751C39D98A003C17CA /* FireworksPanel.cpp in Sources */,
 				67B2CF7C1C39D98A003C17CA /* MeteorsPanel.cpp in Sources */,
@@ -1531,7 +1471,6 @@
 				6784F92A1A5653670018EC0C /* Element.cpp in Sources */,
 				67B2CF791C39D98A003C17CA /* LifePanel.cpp in Sources */,
 				67B2CFE01C3A186A003C17CA /* ShockwaveEffect.cpp in Sources */,
-				67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */,
 				675AB4261B5ACEDA00853A28 /* PluginBufferingAdapter.cpp in Sources */,
 				6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */,
 				677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */,
@@ -1544,8 +1483,6 @@
 				67B2CFEC1C3A186A003C17CA /* GlediatorEffect.cpp in Sources */,
 				6784F92D1A5653670018EC0C /* RowHeading.cpp in Sources */,
 				6784F9311A5653670018EC0C /* Waveform.cpp in Sources */,
-				67E5B9E71A19AC860044D685 /* RenderStrobe.cpp in Sources */,
-				674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */,
 				6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */,
 				6730E4D21ADB54E8005DECF0 /* RenderGalaxy.cpp in Sources */,
 				671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */,
@@ -1584,7 +1521,6 @@
 				67B2CF801C39D98A003C17CA /* PinwheelPanel.cpp in Sources */,
 				67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */,
 				67B2CF7F1C39D98A003C17CA /* PicturesPanel.cpp in Sources */,
-				67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */,
 				679BD3381C37555C000539FE /* OffPanel.cpp in Sources */,
 				67B2CFE41C3A186A003C17CA /* PinwheelEffect.cpp in Sources */,
 				67B2CF7A1C39D98A003C17CA /* LightningPanel.cpp in Sources */,

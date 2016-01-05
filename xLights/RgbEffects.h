@@ -37,6 +37,8 @@
 
 #include "../include/globals.h"
 
+#include "RenderBuffer.h"
+
 #include "Color.h"
 
 //added hash_map, queue, vector: -DJ
@@ -68,208 +70,6 @@ public:
 };
 #define priority_queue  MyQueue //wedge in friend
 
-typedef enum
-{
-    //effect: 0=open, 1=close, 2=open then close, 3=close then open
-    E_CURTAIN_OPEN =0,
-    E_CURTAIN_CLOSE,
-    E_CURTAIN_OPEN_CLOSE,
-    E_CURTAIN_CLOSE_OPEN
-} CURTAIN_EFFECT_e;
-
-
-
-// eventually this will go in some header..
-// the idea is to define this (currently) for the MS compiler
-// and to switch its value based on creating vs using the dll
-// NCCDLLIMPL is set by the project creating the dll
-#ifdef _MSC_VER
-#ifdef NCCDLLIMPL
-#define NCCDLLEXPORT __declspec(dllexport)
-#else
-#define NCCDLLEXPORT __declspec(dllimport)
-#endif
-#else
-#define NCCDLLEXPORT
-#endif
-
-class DrawingContext;
-class Effect;
-class SettingsMap;
-class SequenceElements;
-
-
-class DrawingContext {
-public:
-    DrawingContext(int BufferWi, int BufferHt);
-    ~DrawingContext();
-    wxImage *FlushAndGetImage();
-    void SetFont(wxFont &font, const xlColor &color);
-    void DrawText(const wxString &msg, int x, int y, double rotation);
-    void DrawText(const wxString &msg, int x, int y);
-    void GetTextExtent(const wxString &msg, double *width, double *height);
-    void Clear();
-private:
-    wxImage *image;
-    wxBitmap *bitmap;
-    wxBitmap nullBitmap;
-    wxMemoryDC *dc;
-#if wxUSE_GRAPHICS_CONTEXT
-    wxGraphicsContext *gc;
-#endif
-};
-
-class PaletteClass
-{
-private:
-    xlColorVector color;
-    hsvVector hsv;
-public:
-    
-    void Set(xlColorVector& newcolors)
-    {
-        color=newcolors;
-        hsv.clear();
-        wxImage::RGBValue newrgb;
-        wxImage::HSVValue newhsv;
-        for(size_t i=0; i<newcolors.size(); i++)
-        {
-            newrgb.red=newcolors[i].Red();
-            newrgb.green=newcolors[i].Green();
-            newrgb.blue=newcolors[i].Blue();
-            newhsv=wxImage::RGBtoHSV(newrgb);
-            hsv.push_back(newhsv);
-        }
-    }
-    
-    size_t Size()
-    {
-        size_t colorcnt=color.size();
-        if (colorcnt < 1) colorcnt=1;
-        return colorcnt;
-    }
-    
-    void GetColor(size_t idx, xlColor& c)
-    {
-        if (idx >= color.size())
-        {
-            c.Set(255, 255, 255);
-        }
-        else
-        {
-            c=color[idx];
-        }
-    }
-    
-    void GetHSV(size_t idx, wxImage::HSVValue& c)
-    {
-        if (hsv.size() == 0)
-        {
-            // white
-            c.hue=0.0;
-            c.saturation=0.0;
-            c.value=1.0;
-        }
-        else
-        {
-            c=hsv[idx % hsv.size()];
-        }
-    }
-};
-
-class NCCDLLEXPORT EffectRenderCache {
-public:
-    EffectRenderCache() {}
-    virtual ~EffectRenderCache() {}
-};
-
-class NCCDLLEXPORT RenderBuffer {
-public:
-    RenderBuffer();
-    ~RenderBuffer();
-    virtual void InitBuffer(int newBufferHt, int newBufferWi);
-    void Clear(const xlColor& bgColor);
-    void SetPalette(xlColourVector& newcolors);
-    size_t GetColorCount();
-    void SetAllowAlphaChannel(bool a) {allowAlpha = a;};
-
-    void SetState(int period, bool reset, const wxString& model_name);
-    
-    void SetFadeTimes(float fadeIn, float fadeOut );
-    void GetFadeSteps( int& fadeInSteps, int& fadeOutSteps);
-
-    void SetEffectDuration(int startMsec, int endMsec);
-    void GetEffectPeriods( int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
-    void SetFrameTimeInMs(int i) { frameTimeInMs = i;};
-    
-    void GetPixel(int x, int y, xlColor &color);
-    void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
-    void SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap = false);
-    void CopyPixel(int srcx, int srcy, int destx, int desty);
-
-    void ClearTempBuf();
-    const xlColor &GetTempPixelRGB(int x, int y);
-    void SetTempPixel(int x, int y, const xlColor &color, int alpha);
-    void SetTempPixel(int x, int y, const xlColor &color);
-    void GetTempPixel(int x, int y, xlColor &color);
-    const xlColor &GetTempPixel(int x, int y);
-    
-    void DrawHLine(int y, int xstart, int xend, const xlColor& color, bool wrap = false);
-    void DrawVLine(int x, int ystart, int yend, const xlColor& color, bool wrap = false);
-    void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap = false);
-    void DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap = false);
-    void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);
-    void DrawLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color );
-    void DrawThickLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction );
-    
-    
-    double rand01();
-    wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
-    void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColor &color);
-    void Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, double ratio, xlColour &color);
-    void GetMultiColorBlend(double n, bool circular, xlColor &color);
-    void SetRangeColor(const wxImage::HSVValue& hsv1, const wxImage::HSVValue& hsv2, wxImage::HSVValue& newhsv);
-    double RandomRange(double num1, double num2);
-    void Color2HSV(const xlColor& color, wxImage::HSVValue& hsv);
-
-    HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
-    double GetEffectTimeIntervalPosition();
-    double GetEffectTimeIntervalPosition(float cycles);
-
-    
-    
-    void CopyPixelsToDisplayListX(Effect *eff, int y, int sx, int ex, int inc = 1);
-    // must hold the lock and be sized appropriately
-    void SetDisplayListHRect(Effect *eff, int startIdx, double x1, double y1, double x2, double y2,
-                             const xlColor &cx1, const xlColor &cx2);
-    void SetDisplayListVRect(Effect *eff, int startIdx, double x1, double y1, double x2, double y2,
-                             const xlColor &cy1, const xlColor &cy2);
-    void SetDisplayListRect(Effect *eff, int startIdx, double x1, double y1, double x2, double y2,
-                            const xlColor &cx1y1, const xlColor &cx1y2,
-                            const xlColor &cx2y1, const xlColor &cx2y2);
-
-    
-    int BufferHt,BufferWi;  // size of the buffer
-    xlColorVector pixels; // this is the calculation buffer
-    xlColorVector tempbuf;
-    PaletteClass palette;
-    int lastperiod, curPeriod;
-    wxString ModeName; //model currently in effect
-    
-    int fadeinsteps, fadeoutsteps;
-    int curEffStartPer;    /**< Start period of current effect. */
-    int curEffEndPer;      /**<  */
-    int frameTimeInMs;
-    wxString cur_model; //name of model currently in effect (used by RenderCoroFaces)
-    DrawingContext *drawingContext;
-
-    long effectState;
-    bool needToInit;
-    bool allowAlpha;
-    bool InhibitClear;
-    std::map<int, EffectRenderCache*> infoCache;
-
-};
 
 class RgbEffects : public RenderBuffer {
 public:
@@ -284,84 +84,6 @@ public:
 
 protected:
 
-
-    class RgbBalls
-    {
-    public:
-        float _x;
-        float _y;
-        float _dx;
-        float _dy;
-        float _radius;
-        float _t;
-        float dir;
-        wxImage::HSVValue hsvcolor;
-
-        void Reset(float x, float y, float speed, float angle, float radius, wxImage::HSVValue color)
-        {
-            _x=x;
-            _y=y;
-            _dx=speed*cos(angle);
-            _dy=speed*sin(angle);
-            _radius = radius;
-            hsvcolor = color;
-            _t=(float)M_PI/6.0;
-            dir =1.0f;
-
-        }
-        void updatePositionArc(int x,int y, int r)
-        {
-            _x=x+r*cos(_t);
-            _y=y+r*sin(_t);
-            _t+=dir* (M_PI/9.0);
-            dir *= _t < M_PI/6.0 || _t > (2*M_PI)/3?-1.0:1.0;
-        }
-        void updatePosition(float incr, int width, int height)
-        {
-            _x+=_dx*incr;
-            _x = _x>width?0:_x;
-            _x = _x<0?width:_x;
-            _y+=_dy*incr;
-            _y = _y>height?0:_y;
-            _y = _y<0?height:_y;
-        }
-
-        void Bounce(int width, int height)
-        {
-            if (_x-_radius<=0)
-            {
-                _dx=fabs(_dx);
-                if (_dx < 0.2f) _dx=0.2f;
-            }
-            if (_x+_radius>=width)
-            {
-                _dx=-fabs(_dx);
-                if (_dx > -0.2f) _dx=-0.2f;
-            }
-            if (_y-_radius<=0)
-            {
-                _dy=fabs(_dy);
-                if (_dy < 0.2f) _dy=0.2f;
-            }
-            if (_y+_radius>=height)
-            {
-                _dy=-fabs(_dy);
-                if (_dy > -0.2f) _dy=-0.2f;
-            }
-        }
-
-    };
-
-    class MetaBall : public RgbBalls
-    {
-    public:
-        float Equation(float x, float y)
-        {
-//            if(x==_x || y==_y) return 1; //this is incorrect
-            if((x==_x) && (y==_y)) return 1; //only return 1 if *both* coordinates match; else gives extraneous horiz or vert lines -DJ
-            return (_radius/(sqrt(pow(x-_x,2)+pow(y-_y,2))));
-        }
-    };
 
     // for meteor effect
     class MeteorHasExpiredX;
@@ -391,22 +113,6 @@ protected:
 
     typedef std::list<MeteorClass> MeteorList;
     typedef std::list<MeteorRadialClass> MeteorRadialList;
-
-
-//  User by RenderStrobe
-    class StrobeHasExpired;
-    class StrobeClass
-    {
-    public:
-
-        int x,y;
-        int duration; // How frames strobe light stays on. Will be decremented each frame
-        wxImage::HSVValue hsv;
-        xlColor color;
-    };
-    typedef std::vector<StrobeClass> StrobeList;
-
-
 
 
     class SnowstormClass
@@ -535,14 +241,6 @@ protected:
 
     wxPoint SnowstormVector(int idx);
     void SnowstormAdvance(SnowstormClass& ssItem);
-    void ClearWaveBuffer1();
-    void ClearWaveBuffer2();
-    int Life_CountNeighbors(int x, int y);
-    void RenderTextLine(DrawingContext* dc, int idx,
-                        const wxString& Line, int dir, bool center, int Effect,
-                        int Countdown, bool WantRender, int tspeed,
-                        int startx, int starty, int endx, int endy,
-                        bool isPixelBased);
 
     void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
     void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
@@ -550,7 +248,6 @@ protected:
     void RenderIcicleDrip(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
     void RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed);
 
-    void RenderMetaBalls(int numBalls);
     void DrawCurtain(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
     void DrawCurtainVertical(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
     void mouth(int Phoneme,int BufferHt, int BufferWt);
@@ -568,13 +265,8 @@ protected:
     int NumPixels;
 
     std::vector<int> FireBuffer;
-    std::vector<int> WaveBuffer0;
-    std::vector<int> WaveBuffer1;
-    std::vector<int> WaveBuffer2;
     MeteorList meteors;
     MeteorRadialList meteorsRadial;
-    StrobeList strobe;
-
     SnowstormList SnowstormItems;
 
     wxImage image;
@@ -588,39 +280,16 @@ protected:
     int LastSnowflakeType;
     bool LastSnowflakeAccumulate;
     int LastSnowstormCount;
-    int LastLifeCount;
-    int LastLifeType;
-    int LastCurtainDir;
-    int LastCurtainLimit;
 
-
-    long LastLifeState;
     int nextBlinkTime;
     int blinkEndTime;
-
-    long timer_countdown[4]; // was  long timer_countdown[1];
-
-
-    //circles
-    bool metaType=false;
-    RgbBalls *balls;
-    MetaBall *metaballs;
-    int numBalls = 0;
-
-
 
     size_t GetNodeCount();
     //int face[52][52];
 
-    //TextEffect
-    wxSize synced_textsize;
-
-
 public:
 
 private:
-    void RenderRadial(int start_x,int start_y,int radius,int colorCnt, int number, bool radial_3D);
-    void RenderCirclesUpdate(int number, RgbBalls* effObjs, int circleSpeed);
     void ProcessPixel(int x_pos, int y_pos, const xlColour &color, bool wrap_x, int width);
 };
 

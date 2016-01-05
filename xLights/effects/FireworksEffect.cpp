@@ -2,7 +2,7 @@
 #include "FireworksPanel.h"
 
 #include "../sequencer/Effect.h"
-#include "../RgbEffects.h"
+#include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
 FireworksEffect::FireworksEffect(int id) : RenderableEffect(id, "Fireworks")

@@ -9,6 +9,8 @@ class FanEffect : public RenderableEffect
     public:
         FanEffect(int id);
         virtual ~FanEffect();
+    
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
     private:

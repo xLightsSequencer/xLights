@@ -5,6 +5,10 @@
 
 #include <wx/filename.h>
 
+#include "../sequencer/Effect.h"
+#include "../RenderBuffer.h"
+#include "../UtilClasses.h"
+
 GlediatorEffect::GlediatorEffect(int id) : RenderableEffect(id, "Glediator")
 {
     //ctor
@@ -28,3 +32,7 @@ void GlediatorEffect::SetSequenceElements(SequenceElements *els) {
 wxPanel *GlediatorEffect::CreatePanel(wxWindow *parent) {
     return new GlediatorPanel(parent);
 }
+
+void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+}
+

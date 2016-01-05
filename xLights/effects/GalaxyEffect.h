@@ -9,6 +9,8 @@ class GalaxyEffect : public RenderableEffect
     public:
         GalaxyEffect(int id);
         virtual ~GalaxyEffect();
+    
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
 

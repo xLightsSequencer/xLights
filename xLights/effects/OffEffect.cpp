@@ -1,7 +1,7 @@
 #include "OffEffect.h"
 #include "OffPanel.h"
 
-#include "../RgbEffects.h"
+#include "../RenderBuffer.h"
 
 OffEffect::OffEffect(int i) : RenderableEffect(i, "Off")
 {

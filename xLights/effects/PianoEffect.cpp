@@ -4,6 +4,10 @@
 #include <wx/filename.h>
 #include "../sequencer/SequenceElements.h"
 
+#include "../sequencer/Effect.h"
+#include "../RenderBuffer.h"
+#include "../UtilClasses.h"
+
 PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano")
 {
     //ctor
@@ -27,4 +31,7 @@ void PianoEffect::SetSequenceElements(SequenceElements *els) {
 
 wxPanel *PianoEffect::CreatePanel(wxWindow *parent) {
     return new PianoPanel(parent);
+}
+
+void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 }

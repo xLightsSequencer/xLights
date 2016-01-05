@@ -2,7 +2,7 @@
 #include "OnPanel.h"
 
 #include "../sequencer/Effect.h"
-#include "../RgbEffects.h"
+#include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
 static const std::string TEXTCTRL_Eff_On_Start("TEXTCTRL_Eff_On_Start");

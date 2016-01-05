@@ -3,6 +3,11 @@
 #include "../ModelClass.h"
 #include "../sequencer/SequenceElements.h"
 
+#include "../sequencer/Effect.h"
+#include "../RenderBuffer.h"
+#include "../UtilClasses.h"
+
+
 FacesEffect::FacesEffect(int id) : RenderableEffect(id, "Faces")
 {
     //ctor
@@ -51,3 +56,7 @@ void FacesEffect::SetDefaultParameters(ModelClass *cls) {
 wxPanel *FacesEffect::CreatePanel(wxWindow *parent) {
     return new FacesPanel(parent);
 }
+
+void FacesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+}
+

@@ -1,6 +1,10 @@
 #include "WaveEffect.h"
 #include "WavePanel.h"
 
+#include "../sequencer/Effect.h"
+#include "../RenderBuffer.h"
+#include "../UtilClasses.h"
+
 WaveEffect::WaveEffect(int id) : RenderableEffect(id, "Wave")
 {
     //ctor
@@ -12,4 +16,267 @@ WaveEffect::~WaveEffect()
 }
 wxPanel *WaveEffect::CreatePanel(wxWindow *parent) {
     return new WavePanel(parent);
+}
+
+
+
+#define WAVETYPE_SINE  0
+#define WAVETYPE_TRIANGLE  1
+#define WAVETYPE_SQUARE  2
+#define WAVETYPE_DECAYSINE  3
+#define WAVETYPE_IVYFRACTAL  4
+
+//#define WANT_DEBUG_IMPL
+//#define WANT_DEBUG  -99 //unbuffered in case app crashes
+//#include "djdebug.cpp"
+#ifndef debug_function //dummy defs if debug cpp not included above
+#define debug(level, ...)
+#define debug_more(level, ...)
+#define debug_function(level)
+#endif
+
+
+class WaveRenderCache : public EffectRenderCache {
+public:
+    WaveRenderCache() {};
+    virtual ~WaveRenderCache() {};
+    
+    std::vector<int> WaveBuffer;
+};
+
+static inline int GetWaveType(const std::string & WaveType) {
+    if (WaveType == "Sine") {
+        return WAVETYPE_SINE;
+    } else if (WaveType == "Triangle") {
+        return WAVETYPE_TRIANGLE;
+    } else if (WaveType == "Square") {
+        return WAVETYPE_SQUARE;
+    } else if (WaveType == "Decaying Sine") {
+        return WAVETYPE_DECAYSINE;
+    } else if (WaveType == "Fractal/ivy") {
+        return WAVETYPE_IVYFRACTAL;
+    }
+    return 0;
+}
+static inline int GetWaveFillColor(const std::string &color) {
+    if (color == "Rainbow") {
+        return 1;
+    } else if (color == "Palette") {
+        return 2;
+    }
+    return 0; //None
+}
+void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    
+    int WaveType = GetWaveType(SettingsMap["CHOICE_Wave_Type"]);
+    int FillColor = GetWaveFillColor(SettingsMap["CHOICE_Fill_Colors"]);
+    
+    bool MirrorWave = SettingsMap.GetBool("CHECKBOX_Mirror_Wave");
+    int NumberWaves = SettingsMap.GetInt("SLIDER_Number_Waves", 1);
+    int ThicknessWave = SettingsMap.GetInt("SLIDER_Thickness_Percentage", 50);
+    int WaveHeight = SettingsMap.GetInt("SLIDER_Wave_Height", 50);
+    int wspeed = SettingsMap.GetInt("TEXTCTRL_Wave_Speed", 10);
+    
+    int WaveDirection = "Left to Right" == SettingsMap["CHOICE_Wave_Direction"] ? 1 : 0;
+    
+    
+    WaveRenderCache *cache = (WaveRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
+        cache = new WaveRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+    std::vector<int> &WaveBuffer0 = cache->WaveBuffer;
+    
+    /*
+     WaveType.Add("Sine");       // 0
+     WaveType.Add("Triangle");   // 1
+     WaveType.Add("Square");     //2
+     WaveType.Add("Decaying Sine"); //3
+     WaveType.Add("Ivy/fractal"); //4
+     FillColors.Add("None");     // 0
+     FillColors.Add("Rainbow");  // 1
+     FillColors.Add("Palette");  // 2
+     */
+    
+    int x,y,y1,y2,y1mirror,y2mirror,ystart,dy,modx,modx2;
+    double a,r,yc,deltay;
+    double degree,radian,degree_per_x;
+    static const double pi_180 = 0.01745329;
+    xlColour color;
+    wxImage::HSVValue hsv,hsv0,hsv1;
+    buffer.palette.GetHSV(0,hsv0);
+    buffer.palette.GetHSV(1,hsv1);
+    
+    if (NumberWaves == 0) {
+        NumberWaves = 1;
+    }
+    int state = (buffer.curPeriod - buffer.curEffStartPer) * wspeed * buffer.frameTimeInMs / 50;
+    
+    yc = buffer.BufferHt/2.0;
+    r=yc;
+    if (WaveType == WAVETYPE_DECAYSINE) {
+        r -= state/4;
+        //        if (r < 100./ThicknessWave) r = 100./ThicknessWave; //turn into straight line; don't completely disappear
+        if (r < 0) r = 0; //turn into straight line; don't completely disappear
+    }
+    else if (WaveType == WAVETYPE_IVYFRACTAL) //generate branches at start of effect
+        if (!buffer.needToInit || (WaveBuffer0.size() != NumberWaves * buffer.BufferWi)) {
+            r = 0;
+            debug(10, "regen wave path, state %d", state);
+            int delay = 0, delta; //next branch length, angle
+            WaveBuffer0.resize(NumberWaves * buffer.BufferWi);
+            for (int x = 0; x < NumberWaves * buffer.BufferWi; ++x) {
+                //                if (delay < 1) angle = (rand() % 45) - 22.5;
+                //                int xx = WaveDirection? NumberWaves * BufferWi - x - 1: x;
+                WaveBuffer0[x] = (delay-- > 0)? WaveBuffer0[x - 1] + delta: 2 * yc;
+                if (WaveBuffer0[x] >= 2 * buffer.BufferHt) { delta = -2; WaveBuffer0[x] = 2 * buffer.BufferHt - 1; if (delay > 1) delay = 1; }
+                if (WaveBuffer0[x] < 0) { delta = 2; WaveBuffer0[x] = 0; if (delay > 1) delay = 1; }
+                if (delay < 1) {
+                    delta = (rand() % 7) - 3;
+                    delay = 2 + (rand() % 3);
+                }
+            }
+        }
+    degree_per_x = NumberWaves/buffer.BufferWi;
+    degree = 1+ state%NumberWaves;
+    hsv.saturation=1.0;
+    hsv.value=1.0;
+    hsv.hue=1.0;
+    for (x=0; x<buffer.BufferWi; x++) {
+        if (WaveDirection==0)
+            degree = x * degree_per_x + state; // state causes it to move
+        else
+            degree = x * degree_per_x - state; // state causes it to move
+        radian = degree * pi_180;
+        if(WaveType==WAVETYPE_TRIANGLE) { // Triangle
+            /*
+             .
+             .
+             .      x
+             .     x x
+             .    x   x
+             .   x     x
+             .  x       x
+             . x         x
+             ******************************************** yc
+             .      a
+             .
+             .
+             .
+             .
+             .
+             .
+             */
+            
+            a = buffer.BufferWi/(NumberWaves/180) ;
+            if (a <1) a=1;
+            
+            dy = a/2;
+            if(dy<1) dy=1;
+            
+            modx = state%(int) dy;
+            modx2 = state%(int) a;
+            if(modx2>dy)
+                ystart = yc - modx*dy ;
+            else
+                ystart = yc + modx*dy ;
+            
+            
+            //  if( sin(radian)<0.0) ystart=-ystart;
+        } else if (WaveType == WAVETYPE_IVYFRACTAL) {
+            int eff_x = (WaveDirection? x: buffer.BufferWi - x - 1) + buffer.BufferWi * (state / 2 / buffer.BufferWi); //effective x before wrap
+            if (eff_x >= NumberWaves * buffer.BufferWi) break;
+            if (!WaveDirection) eff_x = NumberWaves * buffer.BufferWi - eff_x - 1;
+            bool ok = WaveDirection? (eff_x <= state/2): (eff_x >= NumberWaves * buffer.BufferWi - state/2 - 1); //ivy "grows"
+            if (!ok) continue;
+            ystart = WaveBuffer0[eff_x] / 2;
+        } else {
+            ystart = (int) (r*(WaveHeight/100.0) * sin(radian) +yc);
+        }
+        
+        if(x>=0 && x<buffer.BufferWi && ystart>=0 && ystart <buffer.BufferHt) {
+            //  SetPixel(x,ystart,hsv0);  // just leading edge
+            /*
+             
+             BufferHt
+             .
+             .
+             .
+             x <- y2
+             x <- ystart. calculated point of wave
+             x <- y1
+             .
+             .
+             + < - yc
+             .
+             .
+             x <- y2mirror
+             x
+             x <- y1mirror
+             .
+             .
+             .
+             0
+             */
+            
+            
+            y1=(int) (ystart - (r*(ThicknessWave/100.0)));
+            y2=(int) (ystart + (r*(ThicknessWave/100.0)));
+            if (y2 <= y1) y2 = y1 + 1; //minimum height
+            y1mirror= yc + (yc -y1);
+            y2mirror= yc + (yc -y2);
+            deltay = y2-y1;
+            
+            if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
+            
+            if(WaveType==WAVETYPE_SQUARE) { // Square Wave
+                if(sin(radian)>0.0) {
+                    y1=yc+1;
+                    y2=yc + yc*(WaveHeight/100.0);
+                } else {
+                    y1=yc - yc*(WaveHeight/100.0);
+                    y2=yc;
+                }
+            }
+            for (y=y1; y<y2; y++) {
+                if(FillColor<=0) { //default to this if no selection -DJ
+                    buffer.SetPixel(x,y,hsv0);  // fill with color 2
+                    //       hsv.hue=(double)(BufferHt-y)/deltay;
+                } else if(FillColor==1) {
+                    
+                    hsv.hue=(double)(y-y1)/deltay;
+                    buffer.SetPixel(x,y,hsv); // rainbow
+                } else if(FillColor==2) {
+                    hsv.hue=(double)(y-y1)/deltay;
+                    buffer.GetMultiColorBlend(hsv.hue,false,color);
+                    buffer.SetPixel(x,y,color); // palete fill
+                }
+            }
+            
+            if (MirrorWave) {
+                if(y1mirror<y2mirror) {
+                    y1=y1mirror;
+                    y2=y2mirror;
+                } else {
+                    y2=y1mirror;
+                    y1=y2mirror;
+                }
+                
+                for (y=y1; y<y2; y++) {
+                    if(FillColor<=0) { //default to this if no selection -DJ
+                        buffer.SetPixel(x,y,hsv0);  // fill with color 2
+                        //       hsv.hue=(double)(BufferHt-y)/deltay;
+                    } else if(FillColor==1) {
+                        
+                        hsv.hue=(double)(y-y1)/deltay;
+                        buffer.SetPixel(x,y,hsv); // rainbow
+                    } else if(FillColor==2) {
+                        hsv.hue=(double)(y-y1)/deltay;
+                        buffer.GetMultiColorBlend(hsv.hue,false,color);
+                        buffer.SetPixel(x,y,color); // palete fill
+                    }
+                }
+            }
+        }
+    }
 }

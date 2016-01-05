@@ -11,6 +11,7 @@ class ColorWashEffect : public RenderableEffect
         virtual ~ColorWashEffect();
     
         virtual void SetDefaultParameters(ModelClass *cls);
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);

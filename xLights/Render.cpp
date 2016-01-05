@@ -37,18 +37,8 @@ static const wxString BUTTON_Palette5("BUTTON_Palette5");
 static const wxString BUTTON_Palette6("BUTTON_Palette6");
 
 
+static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 
-static const wxString CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
-static const wxString CHECKBOX_ColorWash_VFade("CHECKBOX_ColorWash_VFade");
-static const wxString TEXTCTRL_ColorWash_Cycles("TEXTCTRL_ColorWash_Cycles");
-static const wxString CHECKBOX_ColorWash_EntireModel("CHECKBOX_ColorWash_EntireModel");
-static const wxString SLIDER_ColorWash_X1("SLIDER_ColorWash_X1");
-static const wxString SLIDER_ColorWash_Y1("SLIDER_ColorWash_Y1");
-static const wxString SLIDER_ColorWash_X2("SLIDER_ColorWash_X2");
-static const wxString SLIDER_ColorWash_Y2("SLIDER_ColorWash_Y2");
-static const wxString CHECKBOX_ColorWash_Shimmer("CHECKBOX_ColorWash_Shimmer");
-static const wxString CHECKBOX_ColorWash_CircularPalette("CHECKBOX_ColorWash_CircularPalette");
-static const wxString CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 
 //other common strings
 static const wxString STR_NORMAL("Normal");
@@ -893,90 +883,38 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
         eidx = Effect::GetEffectIndex(SettingsMap.Get(STR_EFFECT, STR_NONE));
     }
     if (eidx >= 0) {
-        effectManager.GetEffect(eidx)->Render(effectObj, SettingsMap, buffer.BufferForLayer(layer));
+        RenderableEffect *reff = effectManager.GetEffect(eidx);
+        if (reff == nullptr) {
+            retval= false;
+        } else if (!bgThread || reff->CanRenderOnBackgroundThread()) {
+            reff->Render(effectObj, SettingsMap, buffer.BufferForLayer(layer));
+        } else {
+            event->effect = effectObj;
+            event->layer = layer;
+            event->period = period;
+            event->settingsMap = &SettingsMap;
+            event->ResetEffectState = &resetEffectState;
+            
+            event->mutex.Lock();
+            CallAfter(&xLightsFrame::RenderEffectOnMainThread, event);
+            if (event->signal.Wait() == wxCOND_NO_ERROR) {
+                retval = event->returnVal;
+                event->mutex.Unlock();
+            } else {
+                printf("HELP!!!!\n");
+            }
+            if (period % 10 == 0) {
+                //constantly putting stuff on CallAfter can result in the main
+                //dispatch thread never being able to empty the CallAfter
+                //queue and thus effectively blocking.   We'll yield periodically to
+                //allow the main thread to hopefully continue
+                wxThread::Yield();
+            }
+        }
+    } else {
+        retval = false;
     }
     switch (eidx) {
-        case -1: //none
-            retval = false;
-            break;
-        case BitmapCache::eff_BUTTERFLY:
-            buffer.RenderButterfly(SettingsMap["CHOICE_Butterfly_Colors"],
-                                   wxAtoi(SettingsMap["SLIDER_Butterfly_Style"]),
-                                   wxAtoi(SettingsMap["SLIDER_Butterfly_Chunks"]),
-                                   wxAtoi(SettingsMap["SLIDER_Butterfly_Skip"]),
-                                   SettingsMap["CHOICE_Butterfly_Direction"],
-                                   wxAtoi(SettingsMap.Get("SLIDER_Butterfly_Speed", "10")));
-            break;
-        case BitmapCache::eff_CIRCLES:
-            buffer.RenderCircles(wxAtoi(SettingsMap["SLIDER_Circles_Count"]),
-                                 wxAtoi(SettingsMap["SLIDER_Circles_Size"]),
-                                 SettingsMap["CHECKBOX_Circles_Bounce"]=="1",
-                                 SettingsMap["CHECKBOX_Circles_Collide"]=="1",
-                                 SettingsMap["CHECKBOX_Circles_Random_m"]=="1",
-                                 SettingsMap["CHECKBOX_Circles_Radial"]=="1",
-                                 SettingsMap["CHECKBOX_Circles_Radial_3D"]=="1",
-                                 SettingsMap["CHECKBOX_Circles_Bubbles"]=="1",
-                                 buffer.BufferWi/2, buffer.BufferHt/2,
-                                 SettingsMap["CHECKBOX_Circles_Plasma"]=="1",
-                                 SettingsMap["CHECKBOX_Circles_Linear_Fade"]=="1",
-                                 wxAtoi(SettingsMap.Get("SLIDER_Circles_Speed", "10"))
-                                 );
-            break;
-        case BitmapCache::eff_COLORWASH:
-            buffer.RenderColorWash(effectObj,
-                                   SettingsMap.GetBool(CHECKBOX_ColorWash_HFade),
-                                   SettingsMap.GetBool(CHECKBOX_ColorWash_VFade),
-                                   SettingsMap.GetDouble(TEXTCTRL_ColorWash_Cycles, 1.0),
-                                   SettingsMap.GetInt(CHECKBOX_ColorWash_EntireModel, 1),
-                                   SettingsMap.GetInt(SLIDER_ColorWash_X1, -50),
-                                   SettingsMap.GetInt(SLIDER_ColorWash_Y1, -50),
-                                   SettingsMap.GetInt(SLIDER_ColorWash_X2, 50),
-                                   SettingsMap.GetInt(SLIDER_ColorWash_Y2, 50),
-                                   SettingsMap.GetInt(CHECKBOX_ColorWash_Shimmer, 0),
-                                   SettingsMap.GetInt(CHECKBOX_ColorWash_CircularPalette, 0)
-                                   );
-            break;
-        case BitmapCache::eff_CURTAIN:
-            buffer.RenderCurtain(SettingsMap["CHOICE_Curtain_Edge"],
-                                 SettingsMap["CHOICE_Curtain_Effect"],
-                                 wxAtoi(SettingsMap["SLIDER_Curtain_Swag"]),
-                                 SettingsMap["CHECKBOX_Curtain_Repeat"]=="1",
-                                 wxAtof(SettingsMap.Get("TEXTCTRL_Curtain_Speed", "1.0")));
-            break;
-        case BitmapCache::eff_DMX:
-            buffer.RenderDMX(wxAtoi(SettingsMap["SLIDER_DMX1"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX2"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX3"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX4"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX5"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX6"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX7"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX8"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX9"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX10"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX11"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX12"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX13"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX14"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX15"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX1_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX2_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX3_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX4_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX5_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX6_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX7_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX8_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX9_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX10_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX11_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX12_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX13_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX14_Ramp"]),
-                             wxAtoi(SettingsMap["SLIDER_DMX15_Ramp"]),
-                             SettingsMap["CHECKBOX_Use_Dmx_Ramps"]=="1",
-                             SettingsMap.Get("CHOICE_Num_Dmx_Channels", "Use 1 Channel"));
-            break;
         case BitmapCache::eff_FACES:
             if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered"
                 && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {
@@ -1041,20 +979,6 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             break;
         case BitmapCache::eff_GLEDIATOR:
             buffer.RenderGlediator(SettingsMap["TEXTCTRL_Glediator_Filename"]);
-            break;
-        case BitmapCache::eff_LIFE:
-            buffer.RenderLife(wxAtoi(SettingsMap["SLIDER_Life_Count"]),
-                              wxAtoi(SettingsMap["SLIDER_Life_Seed"]),
-                              wxAtoi(SettingsMap.Get("SLIDER_Life_Speed", "10")));
-            break;
-        case BitmapCache::eff_LIGHTNING:
-            buffer.RenderLightning(SettingsMap.GetInt("SLIDER_Number_Bolts", 1),
-                                   SettingsMap.GetInt("SLIDER_Number_Segments", 1),
-                                   SettingsMap["CHECKBOX_ForkedLightning"]=="1",
-                                   wxAtoi(SettingsMap["SLIDER_Lightning_TopX"]),
-                                   wxAtoi(SettingsMap["SLIDER_Lightning_TopY"]),
-                                   wxAtoi(SettingsMap["SLIDER_Lightning_BOTX"]),
-                                   wxAtoi(SettingsMap["SLIDER_Lightning_BOTY"]));
             break;
         case BitmapCache::eff_MARQUEE:
             buffer.RenderMarquee(wxAtoi(SettingsMap["SLIDER_Marquee_Band_Size"]),
@@ -1122,35 +1046,12 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                   SettingsMap["CHECKBOX_Pictures_WrapX"] == "1"
                                   );
             break;
-        case BitmapCache::eff_PINWHEEL:
-            buffer.RenderPinwheel(wxAtoi(SettingsMap["SLIDER_Pinwheel_Arms"]),
-                                  wxAtoi(SettingsMap["SLIDER_Pinwheel_Twist"]),
-                                  wxAtoi(SettingsMap["SLIDER_Pinwheel_Thickness"]),
-                                  SettingsMap["CHECKBOX_Pinwheel_Rotation"] == "1",
-                                  SettingsMap["CHOICE_Pinwheel_3D"],
-                                  wxAtoi(SettingsMap["SLIDER_PinwheelXC"]),
-                                  wxAtoi(SettingsMap["SLIDER_PinwheelYC"]),
-                                  wxAtoi(SettingsMap["SLIDER_Pinwheel_ArmSize"]),
-                                  wxAtoi(SettingsMap["TEXTCTRL_Pinwheel_Speed"]));
-            break;
-        case BitmapCache::eff_PLASMA:
-            buffer.RenderPlasma(SettingsMap["CHOICE_Plasma_Color"],
-                                wxAtoi(SettingsMap["SLIDER_Plasma_Style"]),
-                                wxAtoi(SettingsMap["SLIDER_Plasma_Line_Density"]),
-                                SettingsMap["CHOICE_Plasma_Direction"],
-                                wxAtoi(SettingsMap.Get("SLIDER_Plasma_Speed", "10")));
-            break;
         case BitmapCache::eff_RIPPLE:
             buffer.RenderRipple(SettingsMap["CHOICE_Ripple_Object_To_Draw"],
                                 SettingsMap["CHOICE_Ripple_Movement"],
                                 wxAtoi(SettingsMap["SLIDER_Ripple_Thickness"]),
                                 SettingsMap["CHECKBOX_Ripple3D"] == "1" ,
                                 wxAtof(SettingsMap.Get("TEXTCTRL_Ripple_Cycles", "1.0")));
-            break;
-        case BitmapCache::eff_SHIMMER:
-            buffer.RenderShimmer(wxAtoi(SettingsMap["SLIDER_Shimmer_Duty_Factor"]),
-                                 SettingsMap["CHECKBOX_Shimmer_Use_All_Colors"]=="1",
-                                 wxAtof(SettingsMap.Get("TEXTCTRL_Shimmer_Cycles", "1.0")));
             break;
         case BitmapCache::eff_SHOCKWAVE:
             buffer.RenderShockwave(wxAtoi(SettingsMap["SLIDER_Shockwave_CenterX"]),
@@ -1201,70 +1102,6 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                  SettingsMap["CHECKBOX_Spirals_Grow"]=="1",
                                  SettingsMap["CHECKBOX_Spirals_Shrink"]=="1"
                                  );
-            break;
-        case BitmapCache::eff_SPIROGRAPH:
-            buffer.RenderSpirograph(wxAtoi(SettingsMap["SLIDER_Spirograph_R"]),
-                                    wxAtoi(SettingsMap["SLIDER_Spirograph_r"]),
-                                    wxAtoi(SettingsMap["SLIDER_Spirograph_d"]),
-                                    wxAtoi(SettingsMap.Get("TEXTCTRL_Spirograph_Animate", "0")),
-                                    wxAtoi(SettingsMap.Get("TEXTCTRL_Spirograph_Speed", "10")),
-                                    wxAtoi(SettingsMap.Get("TEXTCTRL_Spirograph_Length", "20")));
-            break;
-        case BitmapCache::eff_STROBE:
-            buffer.RenderStrobe(wxAtoi(SettingsMap["SLIDER_Number_Strobes"]),
-                                wxAtoi(SettingsMap["SLIDER_Strobe_Duration"]),
-                                wxAtoi(SettingsMap["SLIDER_Strobe_Type"]));
-            break;
-        case BitmapCache::eff_TEXT:
-#ifdef LINUX
-            if (bgThread) {
-                event->effect = effectObj;
-                event->layer = layer;
-                event->period = period;
-                event->settingsMap = &SettingsMap;
-                event->ResetEffectState = &resetEffectState;
-
-                event->mutex.Lock();
-                CallAfter(&xLightsFrame::RenderEffectOnMainThread, event);
-                if (event->signal.Wait() == wxCOND_NO_ERROR) {
-                    retval = event->returnVal;
-                    event->mutex.Unlock();
-                } else {
-                    printf("HELP!!!!\n");
-                }
-                if (period % 10 == 0) {
-                    //constantly putting stuff on CallAfter can result in the main
-                    //dispatch thread never being able to empty the CallAfter
-                    //queue and thus effectively blocking.   We'll yield periodically to
-                    //allow the main thread to hopefully continue
-                    wxThread::Yield();
-                }
-            } else {
-                buffer.RenderText(SettingsMap);
-            }
-#else
-            buffer.RenderText(SettingsMap);
-#endif // LINUX
-            break;
-        case BitmapCache::eff_TREE:
-            buffer.RenderTree(wxAtoi(SettingsMap["SLIDER_Tree_Branches"]),
-                              wxAtoi(SettingsMap.Get("SLIDER_Tree_Speed", "10")));
-            break;
-        case BitmapCache::eff_TWINKLE:
-            buffer.RenderTwinkle(wxAtoi(SettingsMap["SLIDER_Twinkle_Count"]),
-                                 wxAtoi(SettingsMap["SLIDER_Twinkle_Steps"]),
-                                 SettingsMap["CHECKBOX_Twinkle_Strobe"]=="1",
-                                 SettingsMap["CHECKBOX_Twinkle_ReRandom"] == "1");
-            break;
-        case BitmapCache::eff_WAVE:
-            buffer.RenderWave(SettingsMap["CHOICE_Wave_Type"],
-                              SettingsMap["CHOICE_Fill_Colors"],
-                              SettingsMap["CHECKBOX_Mirror_Wave"]=="1",
-                              wxAtoi(SettingsMap["SLIDER_Number_Waves"]),
-                              wxAtoi(SettingsMap["SLIDER_Thickness_Percentage"]),
-                              wxAtoi(SettingsMap["SLIDER_Wave_Height"]),
-                              SettingsMap["CHOICE_Wave_Direction"],
-                              wxAtoi(SettingsMap.Get("TEXTCTRL_Wave_Speed", "10")));
             break;
     }
     return retval;

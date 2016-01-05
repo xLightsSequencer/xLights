@@ -2,7 +2,7 @@
 #include "BarsPanel.h"
 
 #include "../sequencer/Effect.h"
-#include "../RgbEffects.h"
+#include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
 BarsEffect::BarsEffect(int i) : RenderableEffect(i, "Bars")

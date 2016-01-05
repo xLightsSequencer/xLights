@@ -554,39 +554,6 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         }
     }
 }
-
-void PixelBufferClass::RenderButterfly(const wxString & ColorScheme, int Style, int Chunks, int Skip, const wxString & ButterflyDirection, int butterFlySpeed) {
-    effects[CurrentLayer].RenderButterfly(ColorScheme,Style,Chunks,Skip, ButterflyDirection, butterFlySpeed);
-}
-
-void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                                     bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma, bool fade, int circleSpeed) {
-    effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma, fade, circleSpeed);
-}
-
-void PixelBufferClass::RenderColorWash(Effect *eff, bool HorizFade, bool VertFade, float cycles,
-                                       bool EntireModel, int x1, int y1, int x2, int y2, bool shimmer, bool circular) {
-    effects[CurrentLayer].RenderColorWash(eff, HorizFade,VertFade,cycles,
-                                          EntireModel, x1, y1, x2, y2,
-                                          shimmer, circular);
-}
-
-void PixelBufferClass::RenderCurtain(const wxString & edge, const wxString & effect, int swag, bool repeat, float cspeed) {
-    effects[CurrentLayer].RenderCurtain(edge,effect,swag,repeat, cspeed);
-}
-
-void PixelBufferClass::RenderDMX(int ch1, int ch2, int ch3, int ch4, int ch5, int ch6,
-                                 int ch7, int ch8, int ch9, int ch10, int ch11, int ch12, int ch13, int ch14, int ch15,
-                                 int ch1_ramp, int ch2_ramp, int ch3_ramp, int ch4_ramp, int ch5_ramp, int ch6_ramp,
-                                 int ch7_ramp, int ch8_ramp, int ch9_ramp, int ch10_ramp, int ch11_ramp, int ch12_ramp,
-                                 int ch13_ramp, int ch14_ramp, int ch15_ramp,
-                                 bool use_ramps, const wxString &num_channels) {
-    effects[CurrentLayer].RenderDMX( ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10, ch11, ch12, ch13, ch14, ch15,
-                                     ch1_ramp, ch2_ramp, ch3_ramp, ch4_ramp, ch5_ramp, ch6_ramp,
-                                     ch7_ramp, ch8_ramp, ch9_ramp, ch10_ramp, ch11_ramp, ch12_ramp,
-                                     ch13_ramp, ch14_ramp, ch15_ramp, use_ramps, num_channels);
-}
-
 void PixelBufferClass::RenderFaces(const wxString &Phoneme, const wxString &eyes, bool outline) {
     effects[CurrentLayer].RenderFaces(Phoneme, eyes, outline);
 }
@@ -626,13 +593,6 @@ void PixelBufferClass::RenderGlediator( const wxString& NewPictureName) {
 }
 
 
-void PixelBufferClass::RenderLife(int Count, int Seed, int lspeed) {
-    effects[CurrentLayer].RenderLife(Count,Seed, lspeed);
-}
-void PixelBufferClass::RenderLightning(int Number_Bolts, int Number_Segments, bool ForkedLightning,
-                                       int topX,int topY, int botX, int botY) {
-    effects[CurrentLayer].RenderLightning(Number_Bolts, Number_Segments, ForkedLightning,  topX, topY,  botX,  botY );
-}
 void PixelBufferClass::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int mSpeed, int mStart, bool reverse_dir,
                                      int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x) {
     effects[CurrentLayer].RenderMarquee(BandSize, SkipSize, Thickness, stagger, mSpeed, mStart, reverse_dir,
@@ -663,21 +623,8 @@ void PixelBufferClass::RenderPictures(const wxString & dir, const wxString& NewP
                                       bool pixelOffsets, bool wrap_x) {
     effects[CurrentLayer].RenderPictures(dir,NewPictureName,moveSpeed, frameRateAdj, xc_adj, yc_adj, xce_adj, yce_adj, pixelOffsets, wrap_x);
 }
-void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int pinwheel_thickness,
-                                      bool pinwheel_rotation,const wxString & pinwheel_3D,int xc_adj, int yc_adj,
-                                      int pinwheel_armsize, int pspeed) {
-    effects[CurrentLayer].RenderPinwheel(pinwheel_arms,pinwheel_twist,
-                                         pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,
-                                         pinwheel_armsize, pspeed);
-}
-void PixelBufferClass::RenderPlasma(const wxString &ColorScheme, int Style, int Line_Density,  const wxString & PlasmaDirection, int PlasmaSpeed) {
-    effects[CurrentLayer].RenderPlasma(ColorScheme,Style,Line_Density, PlasmaDirection, PlasmaSpeed);
-}
 void PixelBufferClass::RenderRipple(const wxString &Object_To_Draw, const wxString &Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles) {
     effects[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D, cycles );
-}
-void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,float cycles) {
-    effects[CurrentLayer].RenderShimmer(Duty_Factor,Use_All_Colors,cycles );
 }
 void PixelBufferClass::RenderShockwave(int center_x, int center_y, int start_radius, int end_radius,
                                        int start_width, int end_width, int acceleration, bool blend_edges ) {
@@ -705,26 +652,7 @@ void PixelBufferClass::RenderSpirals(int PaletteRepeat, float Direction, int Rot
     effects[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D,grow,shrink);
 }
 
-void PixelBufferClass::RenderSpirograph(int R, int r, int d, int Animate, int speed, int length) {
-    effects[CurrentLayer].RenderSpirograph( R,  r,  d, Animate, speed, length);
-}
-void PixelBufferClass::RenderStrobe(int Number_Strobes,int StrobeDuration,int Strobe_Type) {
-    effects[CurrentLayer].RenderStrobe(Number_Strobes,StrobeDuration,Strobe_Type);
-}
 
-void PixelBufferClass::RenderText(const SettingsMap &settingsMap) {
-    effects[CurrentLayer].RenderText(settingsMap);
-}
 
-void PixelBufferClass::RenderTree(int Branches, int tspeed) {
-    effects[CurrentLayer].RenderTree(Branches, tspeed);
-}
 
-void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe, bool reRandomize) {
-    effects[CurrentLayer].RenderTwinkle(Count,Steps,Strobe,reRandomize);
-}
 
-void PixelBufferClass::RenderWave(const wxString & WaveType,const wxString & FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,
-                                  int WaveHeight, const wxString & WaveDirection, int wspeed) {
-    effects[CurrentLayer].RenderWave(WaveType, FillColor, MirrorWave, NumberWaves, ThicknessWave, WaveHeight, WaveDirection, wspeed);
-}

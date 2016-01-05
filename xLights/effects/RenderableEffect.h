@@ -27,7 +27,8 @@ class RenderableEffect
         wxPanel *GetPanel(wxWindow *parent);
         virtual void SetDefaultParameters(ModelClass *cls) {}
 
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) {}
+        virtual bool CanRenderOnBackgroundThread() { return true; }
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) = 0;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) = 0;
