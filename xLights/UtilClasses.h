@@ -11,6 +11,7 @@
 #ifdef __WXMSW__
 /* the c++11 runtime in mingw is broken.  It doesn't include these as the spec says it should */
 #include <cstdlib>
+#define stod(x) atof(x.c_str())
 #define stof(x) atof(x.c_str())
 #define stoi(x) strtol(x.c_str(), nullptr, 10)
 #endif
@@ -27,19 +28,26 @@ public:
     std::string &operator[](const std::string &key) {
         return std::map<std::string, std::string>::operator[](key);
     }
-    int GetInt(const std::string &key, const int def) const {
+    int GetInt(const std::string &key, const int def = 0) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
         if (i == end() || i->second.length() == 0) {
             return def;
         }
         return stoi(i->second);
     }
-    double GetDouble(const std::string &key, const double &def) const {
+    float GetFloat(const std::string &key, const float def = 0.0) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
         if (i == end()) {
             return def;
         }
         return stof(i->second);
+    }
+    double GetDouble(const std::string &key, const double def = 0.0) const {
+        std::map<std::string,std::string>::const_iterator i(find(key));
+        if (i == end()) {
+            return def;
+        }
+        return stod(i->second);
     }
     bool GetBool(const std::string &key, const bool def = false) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
@@ -72,7 +80,7 @@ public:
         std::string key(ckey);
         return std::map<std::string, std::string>::operator[](key);
     }
-    int GetInt(const char * ckey, const int def) const {
+    int GetInt(const char * ckey, const int def = 0) const {
         std::string key(ckey);
         std::map<std::string,std::string>::const_iterator i(find(key));
         if (i == end() || i->second.length() == 0) {
@@ -80,7 +88,15 @@ public:
         }
         return stoi(i->second);
     }
-    double GetDouble(const char *ckey, const double &def) const {
+    double GetDouble(const char *ckey, const double &def = 0.0) const {
+        std::string key(ckey);
+        std::map<std::string,std::string>::const_iterator i(find(key));
+        if (i == end()) {
+            return def;
+        }
+        return stod(i->second);
+    }
+    float GetFloat(const char *ckey, const float &def = 0.0) const {
         std::string key(ckey);
         std::map<std::string,std::string>::const_iterator i(find(key));
         if (i == end()) {

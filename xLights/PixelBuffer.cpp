@@ -95,7 +95,7 @@ void PixelBufferClass::reset(int layers, int timing) {
     frameTimeInMs = timing;
 
     numLayers = layers;
-    effects = new RgbEffects[numLayers];
+    effects = new RenderBuffer[numLayers];
     for (int x = 0; x < numLayers; x++) {
         effects[x].SetFrameTimeInMs(frameTimeInMs);
     }
@@ -554,103 +554,9 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         }
     }
 }
-void PixelBufferClass::RenderFaces(const wxString &Phoneme, const wxString &eyes, bool outline) {
-    effects[CurrentLayer].RenderFaces(Phoneme, eyes, outline);
-}
-void PixelBufferClass::RenderCoroFacesFromPGO(const wxString& Phoneme, const wxString& eyes, bool face_outline) {
-    effects[CurrentLayer].RenderCoroFacesFromPGO(Phoneme, eyes, face_outline);
-}
-void PixelBufferClass::RenderFaces(SequenceElements *elements, const wxString &faceDefinition,
-                                   const wxString &Phoneme, const wxString &track, const wxString& eyes, bool face_outline) {
-    effects[CurrentLayer].RenderFaces(elements, faceDefinition, Phoneme, track, eyes, face_outline);
-}
 
 
-void PixelBufferClass::RenderFan(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                                 int duration, int acceleration, bool reverse_dir, bool blend_edges,
-                                 int num_blades, int blade_width, int blade_angle, int num_elements, int element_width ) {
-    effects[CurrentLayer].RenderFan( center_x, center_y, start_radius, end_radius, start_angle, revolutions,
-                                     duration, acceleration, reverse_dir, blend_edges,
-                                     num_blades, blade_width, blade_angle, num_elements, element_width );
-}
 
-void PixelBufferClass::RenderFire(int HeightPct,int HueShift,float GrowCycles, const wxString &location) {
-    effects[CurrentLayer].RenderFire(HeightPct,HueShift,GrowCycles, location);
-}
-
-void PixelBufferClass::RenderGalaxy(int center_x, int center_y, int start_radius, int end_radius, int start_angle, int revolutions,
-                                    int start_width, int end_width, int duration, int acceleration, bool reverse_dir, bool blend_edges, bool inward ) {
-    effects[CurrentLayer].RenderGalaxy(center_x, center_y, start_radius, end_radius, start_angle, revolutions,
-                                       start_width, end_width, duration, acceleration, reverse_dir, blend_edges, inward );
-}
-
-void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing, float cycles, const wxString &direction) {
-    effects[CurrentLayer].RenderGarlands(GarlandType, Spacing, cycles, direction);
-}
-
-void PixelBufferClass::RenderGlediator( const wxString& NewPictureName) {
-    effects[CurrentLayer].RenderGlediator(NewPictureName);
-}
-
-
-void PixelBufferClass::RenderMarquee(int BandSize, int SkipSize, int Thickness, int stagger, int mSpeed, int mStart, bool reverse_dir,
-                                     int x_scale, int y_scale, int xc_adj, int yc_adj, bool pixelOffsets, bool wrap_x) {
-    effects[CurrentLayer].RenderMarquee(BandSize, SkipSize, Thickness, stagger, mSpeed, mStart, reverse_dir,
-                                        x_scale, y_scale, xc_adj, yc_adj, pixelOffsets, wrap_x);
-}
-
-void PixelBufferClass::RenderMeteors(const wxString & MeteorType, int Count, int Length, const wxString & MeteorsEffect, int SwirlIntensity, int MSpeed) {
-    effects[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity, MSpeed);
-}
-
-void PixelBufferClass::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2,
-                                   int start_length, int end_length, bool start_linked, bool end_linked, int duration, int acceleration,
-                                   bool showEntireHeadAtStart, int repeat_count, int repeat_skip, int stagger ) {
-    effects[CurrentLayer].RenderMorph(start_x1, start_y1, start_x2, start_y2, end_x1, end_y1, end_x2, end_y2,
-                                      start_length, end_length, start_linked, end_linked, duration, acceleration,
-                                      showEntireHeadAtStart, repeat_count, repeat_skip, stagger);
-}
-
-
-void PixelBufferClass::RenderPiano(const wxString & Style, int NumKeys, int NumRows, const wxString & DrawMode,
-                                   bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename) { //added more controls -DJ
-    effects[CurrentLayer].RenderPiano(Style, NumKeys, NumRows, DrawMode, Clipping, CueFilename, MapFilename, ShapeFilename);
-}
-
-void PixelBufferClass::RenderPictures(const wxString & dir, const wxString& NewPictureName,
-                                      float moveSpeed, float frameRateAdj,
-                                      int xc_adj, int yc_adj, int xce_adj, int yce_adj,
-                                      bool pixelOffsets, bool wrap_x) {
-    effects[CurrentLayer].RenderPictures(dir,NewPictureName,moveSpeed, frameRateAdj, xc_adj, yc_adj, xce_adj, yce_adj, pixelOffsets, wrap_x);
-}
-void PixelBufferClass::RenderRipple(const wxString &Object_To_Draw, const wxString &Movement, int Ripple_Thickness,int CheckBox_Ripple3D, float cycles) {
-    effects[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D, cycles );
-}
-void PixelBufferClass::RenderShockwave(int center_x, int center_y, int start_radius, int end_radius,
-                                       int start_width, int end_width, int acceleration, bool blend_edges ) {
-    effects[CurrentLayer].RenderShockwave( center_x, center_y, start_radius, end_radius, start_width, end_width, acceleration, blend_edges );
-}
-void PixelBufferClass::RenderSingleStrandChase(const wxString &ColorScheme,int Number_Chases, int Color_Mix1,
-        const wxString &Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All, float chaseSpeed) {
-    effects[CurrentLayer].RenderSingleStrandChase( ColorScheme,Number_Chases, Color_Mix1,
-            Chase_Type1, Chase_3dFade1,Chase_Group_All, chaseSpeed);
-}
-void PixelBufferClass::RenderSingleStrandSkips(Effect *eff, int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString &Skips_Direction, int advances) {
-    effects[CurrentLayer].RenderSingleStrandSkips(eff, Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction, advances);
-}
-
-void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType, int sspeed, bool accumulate) {
-    effects[CurrentLayer].RenderSnowflakes(Count,SnowflakeType, sspeed, accumulate);
-}
-
-void PixelBufferClass::RenderSnowstorm(int Count, int Length, int sSpeed) {
-    effects[CurrentLayer].RenderSnowstorm(Count,Length, sSpeed);
-}
-
-void PixelBufferClass::RenderSpirals(int PaletteRepeat, float Direction, int Rotation, int Thickness,
-                                     bool Blend, bool Show3D, bool grow, bool shrink) {
-    effects[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D,grow,shrink);
-}
 
 
 

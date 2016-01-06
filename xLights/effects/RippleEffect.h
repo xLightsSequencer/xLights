@@ -3,6 +3,7 @@
 
 #include "RenderableEffect.h"
 
+#include "../Color.h"
 
 class RippleEffect : public RenderableEffect
 {
@@ -14,6 +15,10 @@ class RippleEffect : public RenderableEffect
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
     private:
+    
+    void Drawcircle(RenderBuffer &buffer, int Movement, int xc, int yc, double radius,wxImage::HSVValue hsv, int Ripple_Thickness,int CheckBox_Ripple3D);
+    void Drawsquare(RenderBuffer &buffer, int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,wxImage::HSVValue hsv);
+
 };
 
 #endif // RIPPLEEFFECT_H

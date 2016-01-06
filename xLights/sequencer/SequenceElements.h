@@ -50,7 +50,7 @@ class wxXmlNode;
 class EffectLayer;
 class xLightsFrame;
 
-class SequenceElements : public ChangeLister
+class SequenceElements : public ChangeListener
 {
     public:
         SequenceElements();

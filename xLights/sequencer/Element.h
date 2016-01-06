@@ -17,16 +17,20 @@ enum ElementType
 class NetInfoClass;
 class Element;
 
-class ChangeLister {
+class ChangeListener {
 public:
     virtual void IncrementChangeCount(Element *el) = 0;
 };
 
+class SequenceElements;
+
 class Element
 {
     public:
-        Element(ChangeLister *l, wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected);
+        Element(SequenceElements *p, wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected);
         virtual ~Element();
+    
+        SequenceElements *GetSequenceElements() {return parent;}
 
         wxString GetName();
         void SetName(const wxString &name);
@@ -126,7 +130,8 @@ class Element
         wxMutex renderLock;
         std::atomic_int waitCount;
 
-        ChangeLister *listener;
+        SequenceElements *parent;
+        ChangeListener *listener;
         volatile int changeCount = 0;
         volatile int dirtyStart = -1;
         volatile int dirtyEnd = -1;

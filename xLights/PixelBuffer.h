@@ -27,7 +27,7 @@
 #include <wx/xml/xml.h>
 
 #include "ModelClass.h"
-#include "RgbEffects.h"
+#include "RenderBuffer.h"
 
 /**
  * \brief enumeration of the different techniques used in layering effects
@@ -69,7 +69,7 @@ private:
     DimmingCurve *dimmingCurve;
 
     //bunch of per layer settings
-    RgbEffects *effects;
+    RenderBuffer *effects;
     int *sparkle_count;
     int *brightness;
     int *contrast;
@@ -107,9 +107,6 @@ public:
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers);
     
     void SetColors(int layer, const unsigned char *fdata);
-
-#include "Effects.h"
-
 };
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;
 

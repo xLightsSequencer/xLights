@@ -3,6 +3,7 @@
 
 #include "RenderableEffect.h"
 
+#include <string>
 
 class PianoEffect : public RenderableEffect
 {
@@ -17,6 +18,11 @@ class PianoEffect : public RenderableEffect
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
     private:
+    
+        void RenderPiano(RenderBuffer &buffer,
+                         const std::string & Style, int NumKeys, int NumRows, const std::string & KeyPlacement, bool Clipping,
+                         const std::string& CueFilename, const std::string& MapFilename, const std::string& ShapeFilename);
+
 };
 
 #endif // PIANOEFFECT_H

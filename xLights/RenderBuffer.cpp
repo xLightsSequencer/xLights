@@ -21,10 +21,8 @@
     along with xLights.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************/
 #include <cmath>
-#include "RgbEffects.h"
+#include "RenderBuffer.h"
 #include "Effect.h"
-
-
 
 inline void unshare(wxObject &o) {
     if (o.GetRefData() != nullptr) {
@@ -207,30 +205,15 @@ RenderBuffer::~RenderBuffer()
         delete i->second;
     }
 }
-RgbEffects::RgbEffects()
-{
-}
-
-RgbEffects::~RgbEffects()
-{
-    //dtor
-}
 
 void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi)
 {
     BufferHt=newBufferHt;
     BufferWi=newBufferWi;
     drawingContext = new DrawingContext(newBufferWi, newBufferHt);
-}
-void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
-{
-    RenderBuffer::InitBuffer(newBufferHt, newBufferWi);
-    DiagLen=sqrt( (double)BufferHt*BufferHt + BufferWi*BufferWi);
-    NumPixels=BufferHt * BufferWi;
+    int NumPixels=BufferHt * BufferWi;
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
-    FireBuffer.resize(NumPixels);
-    effectState = 0;
 }
 
 void RenderBuffer::Clear(const xlColour& bgColor)
@@ -358,6 +341,17 @@ void RenderBuffer::SetPixel(int x, int y, const xlColour &color, bool wrap)
     {
         pixels[y*BufferWi+x] = color;
     }
+}
+
+void RenderBuffer::ProcessPixel(int x_pos, int y_pos, const xlColour &color, bool wrap_x, int width)
+{
+    int x_value = x_pos;
+    if( wrap_x )  // if set wrap image at boundary
+    {
+        x_value %= width;
+        x_value = (x_value >= 0) ? (x_value) : (width + x_value);
+    }
+    SetPixel(x_value,y_pos,color);
 }
 
 // 0,0 is lower left
@@ -616,7 +610,6 @@ void RenderBuffer::SetState(int period, bool ResetState, const wxString& model_n
 {
     if (ResetState)
     {
-        effectState = 0;
         needToInit = true;
     }
     lastperiod=curPeriod=period;
@@ -726,3 +719,40 @@ void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex
     }
 }
 
+double RenderBuffer::calcAccel(double ratio, double accel)
+{
+    if( accel == 0 ) return ratio;
+    
+    double pct_accel = (std::abs(accel) - 1.0) / 9.0;
+    double new_accel1 = pct_accel * 5 + (1.0 - pct_accel) * 1.5;
+    double new_accel2 = 1.5 + (ratio * new_accel1);
+    double final_accel = pct_accel * new_accel2 + (1.0 - pct_accel) * new_accel1;
+    
+    if( accel > 0 )
+    {
+        return std::pow(ratio, final_accel);
+    }
+    else
+    {
+        return (1.0 - std::pow(1.0 - ratio, new_accel1));
+    }
+}
+
+double RenderBuffer::GetStepAngle(int width, int height)
+{
+    double step = 0.5;
+    int biggest = std::max(width, height);
+    if( biggest > 50 ) {
+        step = 0.4;
+    }
+    if( biggest > 150 ) {
+        step = 0.3;
+    }
+    if( biggest > 250 ) {
+        step = 0.2;
+    }
+    if( biggest > 350 ) {
+        step = 0.1;
+    }
+    return step;
+}

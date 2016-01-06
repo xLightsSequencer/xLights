@@ -164,7 +164,7 @@ class NCCDLLEXPORT RenderBuffer {
 public:
     RenderBuffer();
     ~RenderBuffer();
-    virtual void InitBuffer(int newBufferHt, int newBufferWi);
+    void InitBuffer(int newBufferHt, int newBufferWi);
     void Clear(const xlColor& bgColor);
     void SetPalette(xlColourVector& newcolors);
     size_t GetColorCount();
@@ -183,7 +183,8 @@ public:
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
     void SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap = false);
     void CopyPixel(int srcx, int srcy, int destx, int desty);
-
+    void ProcessPixel(int x, int y, const xlColour &color, bool wrap_x, int width);
+    
     void ClearTempBuf();
     const xlColor &GetTempPixelRGB(int x, int y);
     void SetTempPixel(int x, int y, const xlColor &color, int alpha);
@@ -201,6 +202,9 @@ public:
     
     
     double rand01();
+    double calcAccel(double ratio, double accel);
+    double GetStepAngle(int width, int height);
+
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
     void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColor &color);
     void Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, double ratio, xlColour &color);
@@ -240,12 +244,14 @@ public:
     wxString cur_model; //name of model currently in effect (used by RenderCoroFaces)
     DrawingContext *drawingContext;
 
-    long effectState;
     bool needToInit;
     bool allowAlpha;
     bool InhibitClear;
+    
+    /* Places to store and data that is needed from one frame to another */
     std::map<int, EffectRenderCache*> infoCache;
-
+    int tempInt;
+    int tempInt2;
 };
 
 

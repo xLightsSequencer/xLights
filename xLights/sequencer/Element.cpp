@@ -1,6 +1,6 @@
 #include "Element.h"
 #include "ModelClass.h"
-Element::Element(ChangeLister *l, wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected)
+Element::Element(SequenceElements *l, wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected)
 :   mEffectLayers(),
     mName(name),
     mElementType(type),
@@ -9,9 +9,10 @@ Element::Element(ChangeLister *l, wxString &name, wxString &type,bool visible,bo
     mActive(active),
     mSelected(selected),
     mFixed(0),
-    listener(l),
-    waitCount(0)
+    waitCount(0),
+    parent(l)
 {
+    listener = (ChangeListener*)l;
 }
 
 Element::~Element()
