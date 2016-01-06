@@ -612,7 +612,7 @@ void RenderBuffer::SetState(int period, bool ResetState, const wxString& model_n
     {
         needToInit = true;
     }
-    lastperiod=curPeriod=period;
+    curPeriod = period;
     cur_model = model_name;
     curPeriod = period;
 }

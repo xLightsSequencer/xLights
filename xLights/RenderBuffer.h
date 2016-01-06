@@ -165,6 +165,9 @@ public:
     RenderBuffer();
     ~RenderBuffer();
     void InitBuffer(int newBufferHt, int newBufferWi);
+    void SetFadeTimes(float fadeIn, float fadeOut);
+    void GetFadeSteps(int& fadeInSteps, int& fadeOutSteps);
+    
     void Clear(const xlColor& bgColor);
     void SetPalette(xlColourVector& newcolors);
     size_t GetColorCount();
@@ -172,9 +175,6 @@ public:
 
     void SetState(int period, bool reset, const wxString& model_name);
     
-    void SetFadeTimes(float fadeIn, float fadeOut );
-    void GetFadeSteps( int& fadeInSteps, int& fadeOutSteps);
-
     void SetEffectDuration(int startMsec, int endMsec);
     void GetEffectPeriods( int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
     void SetFrameTimeInMs(int i) { frameTimeInMs = i;};
@@ -234,14 +234,17 @@ public:
     xlColorVector pixels; // this is the calculation buffer
     xlColorVector tempbuf;
     PaletteClass palette;
-    int lastperiod, curPeriod;
-    wxString ModeName; //model currently in effect
+
+    wxString cur_model; //model currently in effect
     
-    int fadeinsteps, fadeoutsteps;
+    int curPeriod;
     int curEffStartPer;    /**< Start period of current effect. */
     int curEffEndPer;      /**<  */
     int frameTimeInMs;
-    wxString cur_model; //name of model currently in effect (used by RenderCoroFaces)
+    
+    int fadeinsteps;
+    int fadeoutsteps;
+
     DrawingContext *drawingContext;
 
     bool needToInit;
