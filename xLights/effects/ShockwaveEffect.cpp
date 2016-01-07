@@ -20,6 +20,10 @@ wxPanel *ShockwaveEffect::CreatePanel(wxWindow *parent) {
     return new ShockwavePanel(parent);
 }
 
+int ShockwaveEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
+    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
+    return 2;
+}
 
 
 const double PI  =3.141592653589793238463;

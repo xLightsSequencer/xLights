@@ -29,6 +29,16 @@ ColorWashEffect::~ColorWashEffect()
 {
     //dtor
 }
+
+
+int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
+    if (e->HasBackgroundDisplayList()) {
+        DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList());
+        return e->GetBackgroundDisplayList().iconSize;
+    }
+    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
+    return 2;
+}
 static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
     wxCheckBox *c = (wxCheckBox*)w->FindWindowById(id);
     c->SetValue(b);

@@ -20,6 +20,62 @@ wxPanel *MorphEffect::CreatePanel(wxWindow *parent) {
     return new MorphPanel(parent);
 }
 
+
+void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlColor &start_t, xlColor &end_t) {
+    int useHeadStart = e->GetSettings().GetInt("E_CHECKBOX_MorphUseHeadStartColor", 0);
+    int useTailStart = e->GetSettings().GetInt("E_CHECKBOX_MorphUseHeadEndColor", 0);
+    
+    int hcols = 0, hcole = 1;
+    int tcols = 2, tcole = 3;
+    switch (e->GetPalette().size()) {
+        case 1:  //one color selected, use it for all
+            hcols = hcole = tcols = tcole = 0;
+            break;
+        case 2: //two colors, head/tail
+            hcols = hcole = 0;
+            tcols = tcole = 1;
+            break;
+        case 3: //three colors, head /tail start/end
+            hcols = hcole = 0;
+            tcols = 1;
+            tcole = 2;
+            break;
+    }
+    
+    if( useHeadStart > 0 )
+    {
+        tcols = hcols;
+    }
+    
+    if( useTailStart > 0 )
+    {
+        tcole = hcole;
+    }
+    
+    start_h = e->GetPalette()[hcols];
+    end_h = e->GetPalette()[hcole];
+    start_t = e->GetPalette()[tcols];
+    end_t = e->GetPalette()[tcole];
+}
+int MorphEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
+    int head_duration = e->GetSettings().GetInt("E_SLIDER_MorphDuration", 20);
+    xlColor start_h;
+    xlColor end_h;
+    xlColor start_t;
+    xlColor end_t;
+    GetMorphEffectColors(e, start_h, end_h, start_t, end_t);
+    int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
+    DrawGLUtils::DrawHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
+    if(e->GetPalette().size() <= 4) {
+        DrawGLUtils::DrawHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
+    }
+    else {
+        DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x_mid, y1+4, x2, y2-4, 2);
+    }
+    return 0;
+
+}
+
 static void StoreLine( const int x0_, const int y0_, const int x1_, const int y1_, std::vector<int> *vx,  std::vector<int> *vy)
 {
     int x0 = x0_;

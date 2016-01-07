@@ -32,6 +32,7 @@ void xLightsFrame::CreateSequencer()
     timingPanel = NULL;
 
     mainSequencer = new MainSequencer(PanelSequencer);
+    mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
     mainSequencer->SetSequenceElements(&mSequenceElements);
 
     mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
@@ -96,7 +97,6 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
     mainSequencer->Layout();
-    mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
 
     m_mgr->Update();
 }

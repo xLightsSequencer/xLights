@@ -29,6 +29,13 @@ class RenderableEffect
 
         virtual bool CanRenderOnBackgroundThread() { return true; }
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) = 0;
+    
+    
+        //return 0 if this is completely drawin the effect background
+        //return 1 to have the grid place a normal icon
+        //return 2 to have the grid place a smaller icon
+        virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2);
+
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) = 0;

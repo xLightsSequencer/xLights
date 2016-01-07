@@ -77,7 +77,8 @@ public:
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
-        xlights = xl;  seqData = data;
+        seqData = data;
+        xlights = xl;
     }
 protected:
     virtual void InitializeGLCanvas();
@@ -145,7 +146,7 @@ private:
 
     //~ Need to see why I cannot access xLightsFrame::GB_EFFECTS_e from xLightsMain.h
     // for effect count
-    GLuint m_EffectTextures[40];
+    std::vector<GLuint> m_EffectTextures;
     int mStartPixelOffset;
     xlColor * mEffectColor;
     xlColor * mGridlineColor;

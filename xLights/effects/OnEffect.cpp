@@ -25,6 +25,37 @@ wxPanel *OnEffect::CreatePanel(wxWindow *parent) {
     return new OnPanel(parent);
 }
 
+
+
+void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
+    int starti = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_Start", 100);
+    int endi = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_End", 100);
+    xlColor newcolor;
+    newcolor = e->GetPalette()[0];
+    if (starti == 100 && endi == 100) {
+        start = end = newcolor;
+    } else {
+        wxImage::HSVValue hsv = newcolor.asHSV();
+        hsv.value = (hsv.value * starti) / 100;
+        start = hsv;
+        hsv = newcolor.asHSV();
+        hsv.value = (hsv.value * endi) / 100;
+        end = hsv;
+    }
+}
+int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
+    if (e->HasBackgroundDisplayList()) {
+        DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList());
+        return e->GetBackgroundDisplayList().iconSize;
+    }
+    xlColor start;
+    xlColor end;
+    GetOnEffectColors(e, start, end);
+    DrawGLUtils::DrawHBlendedRectangle(start, end, x1, y1, x2, y2);
+    return 2;
+}
+
+
 void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, 100);
     int end = SettingsMap.GetInt(TEXTCTRL_Eff_On_End, 100);

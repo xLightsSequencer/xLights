@@ -383,6 +383,8 @@ public:
     void ImportVix(const wxFileName &filename);
     void ImportXLights(const wxFileName &filename);
     void ImportLSP(const wxFileName &filename);
+    
+    EffectManager &GetEffectManager() { return effectManager; }
 
 private:
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,

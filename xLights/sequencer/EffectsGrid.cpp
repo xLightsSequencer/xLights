@@ -24,6 +24,7 @@
 #include "../DrawGLUtils.h"
 #include "RenderCommandEvent.h"
 #include "../BitmapCache.h"
+#include "../effects/RenderableEffect.h"
 
 
 #define EFFECT_RESIZE_NO                    0
@@ -99,6 +100,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
     playArgs = new EventPlayEffectArgs();
     mSequenceElements = NULL;
+    xlights = nullptr;
 }
 
 EffectsGrid::~EffectsGrid()
@@ -1624,7 +1626,7 @@ void EffectsGrid::SetStartPixelOffset(int offset)
 
 void EffectsGrid::InitializeGLCanvas()
 {
-    if(!IsShownOnScreen()) return;
+    if(!IsShownOnScreen() || xlights == nullptr) return;
     SetCurrentGLContext();
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
     glDisable(GL_TEXTURE_2D);   // textures
@@ -1732,59 +1734,7 @@ void EffectsGrid::DrawPlayMarker()
     }
 }
 
-void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
-    int starti = wxAtoi(e->GetSettings().Get("E_TEXTCTRL_Eff_On_Start", "100"));
-    int endi = wxAtoi(e->GetSettings().Get("E_TEXTCTRL_Eff_On_End", "100"));
-    xlColor newcolor;
-    newcolor = e->GetPalette()[0];
-    if (starti == 100 && endi == 100) {
-        start = end = newcolor;
-    } else {
-        wxImage::HSVValue hsv = newcolor.asHSV();
-        hsv.value = (hsv.value * starti) / 100;
-        start = hsv;
-        hsv = newcolor.asHSV();
-        hsv.value = (hsv.value * endi) / 100;
-        end = hsv;
-    }
-}
 
-void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlColor &start_t, xlColor &end_t) {
-    int useHeadStart = wxAtoi(e->GetSettings().Get("E_CHECKBOX_MorphUseHeadStartColor", "0"));
-    int useTailStart = wxAtoi(e->GetSettings().Get("E_CHECKBOX_MorphUseHeadEndColor", "0"));
-
-    int hcols = 0, hcole = 1;
-    int tcols = 2, tcole = 3;
-    switch (e->GetPalette().size()) {
-        case 1:  //one color selected, use it for all
-            hcols = hcole = tcols = tcole = 0;
-            break;
-        case 2: //two colors, head/tail
-            hcols = hcole = 0;
-            tcols = tcole = 1;
-            break;
-        case 3: //three colors, head /tail start/end
-            hcols = hcole = 0;
-            tcols = 1;
-            tcole = 2;
-            break;
-    }
-
-    if( useHeadStart > 0 )
-    {
-        tcols = hcols;
-    }
-
-    if( useTailStart > 0 )
-    {
-        tcole = hcole;
-    }
-
-    start_h = e->GetPalette()[hcols];
-    end_h = e->GetPalette()[hcole];
-    start_t = e->GetPalette()[tcols];
-    end_t = e->GetPalette()[tcole];
-}
 
 int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Effect *e, int x1, int y1, int x2, int y2) {
     if (e->GetPalette().size() == 0) {
@@ -1793,115 +1743,7 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
         //need to make some decisions about the colors to be used.
         return 1;
     }
-
-    //some effects might have pre-rendered display lists.  Use those before dropping to the generic routines
-    switch (e->GetEffectIndex()) {
-        case BitmapCache::eff_ON:
-        case BitmapCache::eff_COLORWASH:
-        case BitmapCache::eff_SINGLESTRAND: {
-            if (e->HasBackgroundDisplayList()) {
-                DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList());
-                return e->GetBackgroundDisplayList().iconSize;
-            }
-        }
-    }
-
-    //haven't rendered an effect background yet, use a default redering mechanism
-    switch (e->GetEffectIndex()) {
-        case BitmapCache::eff_ON: {
-            xlColor start;
-            xlColor end;
-            GetOnEffectColors(e, start, end);
-            DrawGLUtils::DrawHBlendedRectangle(start, end, x1, y1, x2, y2);
-            return 2;
-        }
-        break;
-        case BitmapCache::eff_COLORWASH:
-        case BitmapCache::eff_SHOCKWAVE: {
-            DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
-            return 2;
-        }
-        break;
-        case BitmapCache::eff_MORPH: {
-            int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_MorphDuration", "20"));
-            xlColor start_h;
-            xlColor end_h;
-            xlColor start_t;
-            xlColor end_t;
-            GetMorphEffectColors(e, start_h, end_h, start_t, end_t);
-            int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
-            DrawGLUtils::DrawHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
-            if(e->GetPalette().size() <= 4) {
-                DrawGLUtils::DrawHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
-            }
-            else {
-                DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x_mid, y1+4, x2, y2-4, 2);
-            }
-            return 0;
-        }
-        break;
-        case BitmapCache::eff_GALAXY: {
-            int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_Galaxy_Duration", "20"));
-            int num_colors = e->GetPalette().size();
-            xlColor head_color = e->GetPalette()[0];
-            int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
-            if( x_mid > x1 )
-            {
-                DrawGLUtils::DrawHBlendedRectangle(head_color, head_color, x1, y1+1, x_mid, y2-1);
-            }
-            int color_length = (x2 - x_mid) / num_colors;
-            for(int i = 0; i < num_colors; i++ )
-            {
-                int cx1 = x_mid + (i*color_length);
-                if( i == (num_colors-1) ) // fix any roundoff error for last color
-                {
-                    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i], cx1, y1+4, x2, y2-4);
-                }
-                else
-                {
-                    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx1, y1+4, cx1+color_length, y2-4);
-                }
-            }
-            return 0;
-        }
-        case BitmapCache::eff_FAN: {
-            int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_Fan_Duration", "50"));
-            int num_colors = e->GetPalette().size();
-            xlColor head_color = e->GetPalette()[0];
-            int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
-            int head_length;
-            int color_length;
-            if( num_colors > 1 )
-            {
-                head_length = (x_mid - x1) / (num_colors-1);
-                color_length = (x2 - x_mid) / (num_colors-1);
-            }
-            else
-            {
-                head_length = (x_mid - x1);
-                color_length = (x2 - x_mid);
-            }
-            for(int i = 0; i < num_colors; i++ )
-            {
-                int cx = x1 + (i*head_length);
-                int cx1 = x_mid + (i*color_length);
-                if( i == (num_colors-1) ) // fix any roundoff error for last color
-                {
-                    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i], cx, y1+1, x_mid, y2-1);
-                    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i], cx1, y1+4, x2, y2-4);
-                }
-                else
-                {
-                    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx, y1+1, cx+head_length, y2-1);
-                    DrawGLUtils::DrawHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx1, y1+4, cx1+color_length, y2-4);
-                }
-            }
-            return 0;
-        }
-        break;
-        default: {}
-    }
-    return 1;
+    return xlights->GetEffectManager()[e->GetEffectIndex()]->DrawEffectBackground(e, x1, y1, x2, y2);
 }
 
 void EffectsGrid::DrawModelOrViewEffects(int row)
@@ -2223,13 +2065,14 @@ void EffectsGrid::DrawSelectedCells()
 
 void EffectsGrid::CreateEffectIconTextures()
 {
-    for(int effectID=0;effectID<BitmapCache::eff_LASTEFFECT;effectID++)
-    {
-        wxString tooltip;
-        DrawGLUtils::CreateOrUpdateTexture(BitmapCache::GetEffectIcon(effectID, tooltip, 64, true),
-                                           BitmapCache::GetEffectIcon(effectID, tooltip, 32, true),
-                                           BitmapCache::GetEffectIcon(effectID, tooltip, 16, true),
-                                           &m_EffectTextures[effectID]);
+    m_EffectTextures.resize(xlights->GetEffectManager().size());
+    for (int x = 0; x < xlights->GetEffectManager().size(); x++) {
+        RenderableEffect *eff = xlights->GetEffectManager()[x];
+        DrawGLUtils::CreateOrUpdateTexture(eff->GetEffectIcon(64, true),
+                                           eff->GetEffectIcon(32, true),
+                                           eff->GetEffectIcon(16, true),
+                                           &m_EffectTextures[eff->GetId()]);
+        
     }
 }
 
@@ -2239,6 +2082,7 @@ void EffectsGrid::DeleteEffectIconTextures()
     {
         glDeleteTextures(1,&m_EffectTextures[effectID]);
     }
+    m_EffectTextures.clear();
 }
 
 void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
