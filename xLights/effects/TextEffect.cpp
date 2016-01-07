@@ -7,8 +7,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
+#include "../../include/text-16.xpm"
+#include "../../include/text-24.xpm"
+#include "../../include/text-32.xpm"
+#include "../../include/text-48.xpm"
+#include "../../include/text-64.xpm"
 
-TextEffect::TextEffect(int id) : RenderableEffect(id, "Text")
+
+TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, text_32, text_48, text_64)
 {
     //ctor
 }

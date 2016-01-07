@@ -5,7 +5,10 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-SingleStrandEffect::SingleStrandEffect(int id) : RenderableEffect(id, "Single Strand")
+
+#include "../../include/singleStrand.xpm"
+
+SingleStrandEffect::SingleStrandEffect(int id) : RenderableEffect(id, "Single Strand", singleStrand, singleStrand, singleStrand, singleStrand, singleStrand)
 {
     //ctor
 }

@@ -2078,9 +2078,8 @@ void EffectsGrid::CreateEffectIconTextures()
 
 void EffectsGrid::DeleteEffectIconTextures()
 {
-    for(int effectID=0;effectID<BitmapCache::eff_LASTEFFECT;effectID++)
-    {
-        glDeleteTextures(1,&m_EffectTextures[effectID]);
+    for (int x = 0; x < m_EffectTextures.size(); x++) {
+        glDeleteTextures(1,&m_EffectTextures[x]);
     }
     m_EffectTextures.clear();
 }

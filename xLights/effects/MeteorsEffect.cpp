@@ -5,8 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
+#include "../../include/meteors-16.xpm"
+#include "../../include/meteors-24.xpm"
+#include "../../include/meteors-32.xpm"
+#include "../../include/meteors-48.xpm"
+#include "../../include/meteors-64.xpm"
 
-MeteorsEffect::MeteorsEffect(int id) : RenderableEffect(id, "Meteors")
+
+MeteorsEffect::MeteorsEffect(int id) : RenderableEffect(id, "Meteors", meteors_16, meteors_24, meteors_32, meteors_48, meteors_64)
 {
     //ctor
 }

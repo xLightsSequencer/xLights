@@ -14,7 +14,7 @@
 #include "Effect.h"
 #include "../SeqSettingsDialog.h"
 #include "../DisplayElementsPanel.h"
-#include "../BitmapCache.h"
+#include "../effects/RenderableEffect.h"
 
 
 #define PLAY_TYPE_STOPPED 0
@@ -72,7 +72,7 @@ void xLightsFrame::CreateSequencer()
 
     perspectivePanel = new PerspectivesPanel(PanelSequencer);
 
-    effectPalettePanel = new EffectIconPanel(PanelSequencer);
+    effectPalettePanel = new EffectIconPanel(effectManager, PanelSequencer);
 
     // DisplayElements Panel
     displayElementsPanel = new DisplayElementsPanel(PanelSequencer);
@@ -568,9 +568,9 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         }
         UpdateEffectAssistWindow(effect);
     }
-    wxString tooltip;
-    effectsPnl->SetDragIconBuffer(BitmapCache::GetEffectIcon(EffectsPanel1->EffectChoicebook->GetSelection(), tooltip));
-    effectsPnl->BitmapButtonSelectedEffect->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
+    RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
+    effectsPnl->SetDragIconBuffer(eff->GetEffectIcon(16));
+    effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff);
     mainSequencer->PanelEffectGrid->SetFocus();
 }
 

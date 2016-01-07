@@ -6,7 +6,10 @@
 #include "../UtilClasses.h"
 
 
-MorphEffect::MorphEffect(int id) : RenderableEffect(id, "Morph")
+#include "../../include/morph.xpm"
+
+
+MorphEffect::MorphEffect(int id) : RenderableEffect(id, "Morph", morph, morph, morph, morph, morph)
 {
     //ctor
 }

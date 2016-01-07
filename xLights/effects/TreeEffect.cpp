@@ -5,7 +5,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-TreeEffect::TreeEffect(int id) : RenderableEffect(id, "Tree")
+#include "../../include/tree-16.xpm"
+#include "../../include/tree-24.xpm"
+#include "../../include/tree-32.xpm"
+#include "../../include/tree-48.xpm"
+#include "../../include/tree-64.xpm"
+
+TreeEffect::TreeEffect(int id) : RenderableEffect(id, "Tree", tree_16, tree_24, tree_32, tree_48, tree_64)
 {
     //ctor
 }

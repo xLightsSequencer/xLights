@@ -7,12 +7,14 @@
 //*)
 
 #include "DragEffectBitmapButton.h"
+class EffectManager;
 
 class EffectIconPanel: public wxPanel
 {
 	public:
 
-		EffectIconPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		EffectIconPanel(const EffectManager &manager,
+                        wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~EffectIconPanel();
 
 		//(*Declarations(EffectIconPanel)

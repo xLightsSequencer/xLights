@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-SpirographEffect::SpirographEffect(int id) : RenderableEffect(id, "Spirograph")
+
+#include "../../include/spirograph-16.xpm"
+#include "../../include/spirograph-24.xpm"
+#include "../../include/spirograph-32.xpm"
+#include "../../include/spirograph-48.xpm"
+#include "../../include/spirograph-64.xpm"
+
+SpirographEffect::SpirographEffect(int id) : RenderableEffect(id, "Spirograph", spirograph_16, spirograph_24, spirograph_32, spirograph_48, spirograph_64)
 {
     //ctor
 }

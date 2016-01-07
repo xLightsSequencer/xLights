@@ -1,6 +1,6 @@
 #include "EffectAssist.h"
 #include "xLightsMain.h"
-#include "BitmapCache.h"
+#include "effects/EffectManager.h"
 #include "xlColorPicker.h"
 #include "xlColorPickerFields.h"
 #include "../include/PaintToolIcons.h"
@@ -186,11 +186,11 @@ void EffectAssist::SetEffect(Effect* effect_)
     {
         PanelEffectGrid = new xlGridCanvasEmpty(ScrolledWindowEffectAssist, ID_PANEL_EffectGrid, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL_EffectGrid"));
     }
-    else if( mEffect->GetEffectIndex() == BitmapCache::eff_MORPH )
+    else if( mEffect->GetEffectIndex() == EffectManager::eff_MORPH )
     {
         PanelEffectGrid = new xlGridCanvasMorph(ScrolledWindowEffectAssist, ID_PANEL_EffectGrid, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL_EffectGrid"));
     }
-    else if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
+    else if( mEffect->GetEffectIndex() == EffectManager::eff_PICTURES )
     {
         PanelEffectGrid = new xlGridCanvasPictures(ScrolledWindowEffectAssist, ID_PANEL_EffectGrid, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL_EffectGrid"));
     }
@@ -213,7 +213,7 @@ void EffectAssist::SetEffect(Effect* effect_)
         PanelEffectGrid->SetNumRows(cls->BufferHt);
         StaticText_ModelSize->SetLabelText(wxString::Format("Model Size: %d x %d", cls->BufferWi, cls->BufferHt));
 
-        if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
+        if( mEffect->GetEffectIndex() == EffectManager::eff_PICTURES )
         {
             Panel_RightSide->Show();
         }

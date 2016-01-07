@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-SpiralsEffect::SpiralsEffect(int id) : RenderableEffect(id, "Spirals")
+#include "../../include/spirals-16.xpm"
+#include "../../include/spirals-24.xpm"
+#include "../../include/spirals-32.xpm"
+#include "../../include/spirals-48.xpm"
+#include "../../include/spirals-64.xpm"
+
+
+SpiralsEffect::SpiralsEffect(int id) : RenderableEffect(id, "Spirals", spirals_16, spirals_24, spirals_32, spirals_48, spirals_64)
 {
     //ctor
 }

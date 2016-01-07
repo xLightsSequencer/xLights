@@ -6,7 +6,7 @@
 
 #include "SeqSettingsDialog.h"
 #include "xLightsXmlFile.h"
-#include "BitmapCache.h"
+#include "effects/RenderableEffect.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
@@ -700,20 +700,15 @@ wxString xLightsFrame::CreateEffectStringRandom(wxString &settings, wxString &pa
 
 int xLightsFrame::ChooseRandomEffect()
 {
-    bool BAD_CHOICE=1;
     int eff,count=0;
-    int MAX_TRIES=10;
+    const static int MAX_TRIES=10;
 
-    //    srand (time(NULL));
-    while (BAD_CHOICE && count<MAX_TRIES)
-    {
+    do {
         count++;
-        eff=rand() % BitmapCache::eff_LASTEFFECT;
-        BAD_CHOICE = (BitmapCache::eff_TEXT == eff || BitmapCache::eff_PICTURES == eff || BitmapCache::eff_PIANO == eff
-                      || BitmapCache::eff_FACES == eff || BitmapCache::eff_GLEDIATOR == eff
-                      || BitmapCache::eff_OFF == eff || BitmapCache::eff_ON == eff || BitmapCache::eff_DMX == eff);
-    }
-    if(count==MAX_TRIES) eff=BitmapCache::eff_OFF; // we failed to find a good effect after MAX_TRIES attempts
+        eff=rand() % effectManager.size();
+    } while (!effectManager[eff]->CanBeRandom() && count < MAX_TRIES);
+    
+    if(count==MAX_TRIES) eff = 0; // we failed to find a good effect after MAX_TRIES attempts
     return eff;
 }
 

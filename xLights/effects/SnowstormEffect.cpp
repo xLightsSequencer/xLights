@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-SnowstormEffect::SnowstormEffect(int id) : RenderableEffect(id, "Snowstorm")
+#include "../../include/snowstorm-16.xpm"
+#include "../../include/snowstorm-24.xpm"
+#include "../../include/snowstorm-32.xpm"
+#include "../../include/snowstorm-48.xpm"
+#include "../../include/snowstorm-64.xpm"
+
+
+SnowstormEffect::SnowstormEffect(int id) : RenderableEffect(id, "Snowstorm", snowstorm_16, snowstorm_24, snowstorm_32, snowstorm_48, snowstorm_64)
 {
     //ctor
 }

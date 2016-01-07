@@ -10,6 +10,7 @@ class PianoEffect : public RenderableEffect
     public:
         PianoEffect(int id);
         virtual ~PianoEffect();
+        virtual bool CanBeRandom() {return false;}
     
         virtual void SetSequenceElements(SequenceElements *els);
     

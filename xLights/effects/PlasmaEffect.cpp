@@ -5,8 +5,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
+#include "../../include/plasma-16.xpm"
+#include "../../include/plasma-24.xpm"
+#include "../../include/plasma-32.xpm"
+#include "../../include/plasma-48.xpm"
+#include "../../include/plasma-64.xpm"
 
-PlasmaEffect::PlasmaEffect(int id) : RenderableEffect(id, "Plasma")
+PlasmaEffect::PlasmaEffect(int id) : RenderableEffect(id, "Plasma", plasma_16, plasma_24, plasma_32, plasma_48, plasma_64)
 {
     //ctor
 }

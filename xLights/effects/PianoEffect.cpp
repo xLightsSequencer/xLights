@@ -13,7 +13,9 @@
 #include <queue>
 #include <map>
 
-PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano")
+#include "../../include/piano.xpm"
+
+PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano", piano, piano, piano, piano, piano)
 {
     //ctor
 }

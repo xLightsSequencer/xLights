@@ -6,7 +6,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-CirclesEffect::CirclesEffect(int i) : RenderableEffect(i, "Circles")
+#include "../../include/circles-16.xpm"
+#include "../../include/circles-24.xpm"
+#include "../../include/circles-32.xpm"
+#include "../../include/circles-48.xpm"
+#include "../../include/circles-64.xpm"
+
+CirclesEffect::CirclesEffect(int i) : RenderableEffect(i, "Circles", circles_16, circles_24, circles_32, circles_48, circles_64)
 {
     //ctor
 }

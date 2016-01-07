@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-BarsEffect::BarsEffect(int i) : RenderableEffect(i, "Bars")
+
+#include "../../include/bars-16.xpm"
+#include "../../include/bars-24.xpm"
+#include "../../include/bars-32.xpm"
+#include "../../include/bars-48.xpm"
+#include "../../include/bars-64.xpm"
+
+BarsEffect::BarsEffect(int i) : RenderableEffect(i, "Bars", bars_16, bars_24, bars_32, bars_48, bars_64)
 {
     //ctor
 }

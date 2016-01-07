@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-RippleEffect::RippleEffect(int id) : RenderableEffect(id, "Ripple")
+
+#include "../../include/ripple-16.xpm"
+#include "../../include/ripple-24.xpm"
+#include "../../include/ripple-32.xpm"
+#include "../../include/ripple-48.xpm"
+#include "../../include/ripple-64.xpm"
+
+RippleEffect::RippleEffect(int id) : RenderableEffect(id, "Ripple", ripple_16, ripple_24, ripple_32, ripple_48, ripple_64)
 {
     //ctor
 }

@@ -9,7 +9,7 @@ class DMXEffect : public RenderableEffect
     public:
         DMXEffect(int id);
         virtual ~DMXEffect();
-    
+        virtual bool CanBeRandom() {return false;}
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);

@@ -2,7 +2,7 @@
 #include "UtilClasses.h"
 #include "Effect.h"
 #include "EffectLayer.h"
-#include "../BitmapCache.h"
+#include "../effects/EffectManager.h"
 
 #include "../../include/globals.h"
 
@@ -75,21 +75,21 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
     switch (effectIdx)
     {
     //these effects have never used the FitToTime or speed settings, nothing to do
-    case BitmapCache::eff_OFF:
-    case BitmapCache::eff_GALAXY:
-    case BitmapCache::eff_FAN:
-    case BitmapCache::eff_MARQUEE:
-    case BitmapCache::eff_MORPH:
-    case BitmapCache::eff_SHOCKWAVE:
-    case BitmapCache::eff_GLEDIATOR:
-    case BitmapCache::eff_FACES:
+    case EffectManager::eff_OFF:
+    case EffectManager::eff_GALAXY:
+    case EffectManager::eff_FAN:
+    case EffectManager::eff_MARQUEE:
+    case EffectManager::eff_MORPH:
+    case EffectManager::eff_SHOCKWAVE:
+    case EffectManager::eff_GLEDIATOR:
+    case EffectManager::eff_FACES:
         break;
-    case BitmapCache::eff_STROBE:
-    case BitmapCache::eff_TWINKLE:
+    case EffectManager::eff_STROBE:
+    case EffectManager::eff_TWINKLE:
         break;
     //these effects have been updated to have a dedicated repeat or speed or other control
     //and now ignore the FitToTime and Speed sliders, but the settings need adjusting
-    case BitmapCache::eff_ON:
+    case EffectManager::eff_ON:
         if (settings.Get("E_TEXTCTRL_On_Cycles", "") == "")
         {
             float cycles = 1.0;
@@ -103,61 +103,61 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             settings["E_TEXTCTRL_On_Cycles"] = wxString::Format("%0.2f", cycles);
         }
         break;
-    case BitmapCache::eff_SNOWSTORM:
+    case EffectManager::eff_SNOWSTORM:
         if (settings.Get("E_SLIDER_Snowstorm_Speed", "") == "")
         {
             settings["E_SLIDER_Snowstorm_Speed"] = settings.Get("T_SLIDER_Speed", "10");
         }
         break;
-    case BitmapCache::eff_SNOWFLAKES:
+    case EffectManager::eff_SNOWFLAKES:
         if (settings.Get("E_SLIDER_Snowflakes_Speed", "") == "")
         {
             settings["E_SLIDER_Snowflakes_Speed"] = settings.Get("T_SLIDER_Speed", "10");
         }
         break;
-    case BitmapCache::eff_BUTTERFLY:
+    case EffectManager::eff_BUTTERFLY:
         if (settings.Get("E_SLIDER_Butterfly_Speed", "") == "")
         {
             settings["E_SLIDER_Butterfly_Speed"] = settings.Get("T_SLIDER_Speed", "10");
         }
         break;
-    case BitmapCache::eff_CIRCLES:
+    case EffectManager::eff_CIRCLES:
         if (settings.Get("E_SLIDER_Circles_Speed", "") == "")
         {
             settings["E_SLIDER_Circles_Speed"] = settings.Get("T_SLIDER_Speed", "10");
         }
         break;
-    case BitmapCache::eff_LIFE:
+    case EffectManager::eff_LIFE:
         if (settings.Get("E_SLIDER_Life_Speed", "") == "")
         {
             settings["E_SLIDER_Life_Speed"] = settings.Get("T_SLIDER_Speed", "10");
         }
         break;
-    case BitmapCache::eff_METEORS:
+    case EffectManager::eff_METEORS:
         if (settings.Get("E_SLIDER_Meteors_Speed", "") == "")
         {
             settings["E_SLIDER_Meteors_Speed"] = settings.Get("T_SLIDER_Speed", "10");
         }
         break;
-    case BitmapCache::eff_TREE:
+    case EffectManager::eff_TREE:
         if (settings.Get("E_SLIDER_Tree_Speed", "") == "")
         {
             settings["E_SLIDER_Tree_Speed"] = settings.Get("T_SLIDER_Speed", "10");
         }
         break;
-    case BitmapCache::eff_PINWHEEL:
+    case EffectManager::eff_PINWHEEL:
         if (settings.Get("E_TEXTCTRL_Pinwheel_Speed", "") == "")
         {
             settings["E_TEXTCTRL_Pinwheel_Speed"] = settings.Get("T_SLIDER_Speed", "10");
         }
         break;
-    case BitmapCache::eff_PLASMA:
+    case EffectManager::eff_PLASMA:
         if (settings.Get("E_TEXTCTRL_Plasma_Speed", "") == "")
         {
             settings["E_TEXTCTRL_Plasma_Speed"] = settings.Get("T_SLIDER_Speed", "10");
         }
         break;
-    case BitmapCache::eff_TEXT:
+    case EffectManager::eff_TEXT:
         if (settings.Get("E_TEXTCTRL_Text_Speed1", "") == "")
         {
             settings["E_TEXTCTRL_Text_Speed1"] = settings.Get("T_SLIDER_Speed", "10");
@@ -184,13 +184,13 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             settings["E_SLIDER_Text_YEnd1"] = wxString::Format("%d", pos);
         }
         break;
-    case BitmapCache::eff_WAVE:
+    case EffectManager::eff_WAVE:
         if (settings.Get("E_TEXTCTRL_Wave_Speed", "") == "")
         {
             settings["E_TEXTCTRL_Wave_Speed"] = settings.Get("T_SLIDER_Speed", "10");
         }
         break;
-    case BitmapCache::eff_SPIROGRAPH:
+    case EffectManager::eff_SPIROGRAPH:
         if (settings.Get("E_TEXTCTRL_Spirograph_Speed", "") == "")
         {
             settings["E_TEXTCTRL_Spirograph_Speed"] = settings.Get("T_SLIDER_Speed", "10");
@@ -203,7 +203,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
         }
         break;
 
-    case BitmapCache::eff_COLORWASH:
+    case EffectManager::eff_COLORWASH:
         if (settings.Get("E_TEXTCTRL_ColorWash_Cycles", "") == "")
         {
             double count = wxAtoi(settings.Get("E_SLIDER_ColorWash_Count", "1"));
@@ -220,7 +220,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             settings["E_TEXTCTRL_ColorWash_Cycles"] = wxString::Format("%0.2f", count);
         }
         break;
-    case BitmapCache::eff_FIRE:
+    case EffectManager::eff_FIRE:
         if (settings.Get("E_TEXTCTRL_Fire_GrowthCycles", "") == "")
         {
             bool grow = settings["E_CHECKBOX_Fire_GrowFire"] == "1";
@@ -239,7 +239,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             }
         }
         break;
-    case BitmapCache::eff_FIREWORKS:
+    case EffectManager::eff_FIREWORKS:
         if (settings.Get("E_SLIDER_Fireworks_Number_Explosions", "") != "")
         {
             int cnt = wxAtoi(settings.Get("E_SLIDER_Fireworks_Number_Explosions", "10"));
@@ -257,7 +257,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             settings["E_SLIDER_Fireworks_Explosions"] = wxString::Format("%d", total);
         }
         break;
-    case BitmapCache::eff_RIPPLE:
+    case EffectManager::eff_RIPPLE:
         if (settings.Get("E_TEXTCTRL_Ripple_Cycles", "") == "")
         {
             float cycles = 1.0;
@@ -271,7 +271,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             settings["E_TEXTCTRL_Ripple_Cycles"] = wxString::Format("%0.2f", cycles);
         }
         break;
-    case BitmapCache::eff_BARS:
+    case EffectManager::eff_BARS:
         if (settings.Get("E_TEXTCTRL_Bars_Cycles", "") == "")
         {
             float cycles = 1.0;
@@ -293,7 +293,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             settings["E_TEXTCTRL_Bars_Cycles"] = wxString::Format("%0.2f", cycles);
         }
         break;
-    case BitmapCache::eff_SPIRALS:
+    case EffectManager::eff_SPIRALS:
         if (settings.Get("E_TEXTCTRL_Spirals_Movement", "") == "")
         {
             float cycles = 1.0;
@@ -309,7 +309,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             settings["E_TEXTCTRL_Spirals_Movement"] = wxString::Format("%0.2f", dir * cycles);
         }
         break;
-    case BitmapCache::eff_CURTAIN:
+    case EffectManager::eff_CURTAIN:
         if (settings.Get("E_TEXTCTRL_Curtain_Speed", "") == "")
         {
             float cycles = 1.0;
@@ -323,7 +323,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             settings["E_TEXTCTRL_Curtain_Speed"] = wxString::Format("%0.2f", cycles);
         }
         break;
-    case BitmapCache::eff_SINGLESTRAND:
+    case EffectManager::eff_SINGLESTRAND:
         if ("Skips" == settings["E_NOTEBOOK_SSEFFECT_TYPE"])
         {
             if (settings.Get("E_SLIDER_Skips_Advance", "") == "")
@@ -359,7 +359,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             }
         }
         break;
-    case BitmapCache::eff_SHIMMER:
+    case EffectManager::eff_SHIMMER:
         if (settings.Get("E_TEXTCTRL_Shimmer_Cycles", "") == "")
         {
             float cycles = 1.0;
@@ -370,7 +370,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             settings["E_TEXTCTRL_Shimmer_Cycles"] = wxString::Format("%0.2f", cycles);
         }
         break;
-    case BitmapCache::eff_PICTURES:
+    case EffectManager::eff_PICTURES:
         if (settings.Get("E_TEXTCTRL_Pictures_FrameRateAdj", "") == "")
         {
             if (settings.Get("E_CHECKBOX_MovieIs20FPS", "") == "1")
@@ -394,7 +394,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
             settings.erase("E_SLIDER_Pictures_GifSpeed");
         }
         break;
-    case BitmapCache::eff_GARLANDS:
+    case EffectManager::eff_GARLANDS:
         //Don't attempt to map the Garlands speed settings.  In v3, the Garland speed depended on the Speed setting, the
         //Spacing setting as well as the height of the model.  We don't have the height of the model here so really
         //no way to figure out the speed or an appropriate mapping
@@ -402,7 +402,7 @@ void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int start
 
     //these all need code updated and new sliders and such before we can map them
     //these all have state/speed requirements
-    case BitmapCache::eff_PIANO:
+    case EffectManager::eff_PIANO:
         break;
     }
     settings.erase("T_CHECKBOX_FitToTime");
@@ -426,7 +426,7 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & nam
         mEndTime = tmp;
     }
 
-    if (effectIndex == BitmapCache::eff_FACES
+    if (effectIndex == EffectManager::eff_FACES
             && mSettings.Get("E_CHOICE_Faces_FaceDefinition", "") == ""
             && mSettings.Get("E_CHOICE_Faces_TimingTrack", "") == "")
     {
@@ -648,44 +648,44 @@ class EffectMap: public std::vector<wxString>
 public:
     EffectMap()
     {
-        resize(BitmapCache::eff_LASTEFFECT);
-        at(BitmapCache::eff_OFF) = "Off";
-        at(BitmapCache::eff_ON) = "On";
-        at(BitmapCache::eff_BARS) = "Bars";
-        at(BitmapCache::eff_BUTTERFLY) = "Butterfly";
-        at(BitmapCache::eff_CIRCLES) = "Circles";
-        at(BitmapCache::eff_COLORWASH) = "Color Wash";
-        at(BitmapCache::eff_CURTAIN) = "Curtain";
-        at(BitmapCache::eff_DMX) = "DMX";
-        at(BitmapCache::eff_FACES) = "Faces";
-        at(BitmapCache::eff_FAN) = "Fan";
-        at(BitmapCache::eff_FIRE) = "Fire";
-        at(BitmapCache::eff_FIREWORKS) = "Fireworks";
-        at(BitmapCache::eff_GALAXY) = "Galaxy";
-        at(BitmapCache::eff_GARLANDS) = "Garlands";
-        at(BitmapCache::eff_GLEDIATOR) = "Glediator";
-        at(BitmapCache::eff_LIFE) = "Life";
-        at(BitmapCache::eff_LIGHTNING) = "Lightning";
-        at(BitmapCache::eff_MARQUEE) = "Marquee";
-        at(BitmapCache::eff_METEORS) = "Meteors";
-        at(BitmapCache::eff_MORPH) = "Morph";
-        at(BitmapCache::eff_PIANO) = "Piano";
-        at(BitmapCache::eff_PICTURES) = "Pictures";
-        at(BitmapCache::eff_PINWHEEL) = "Pinwheel";
-        at(BitmapCache::eff_PLASMA) = "Plasma";
-        at(BitmapCache::eff_RIPPLE) = "Ripple";
-        at(BitmapCache::eff_SHIMMER) = "Shimmer";
-        at(BitmapCache::eff_SHOCKWAVE) = "Shockwave";
-        at(BitmapCache::eff_SINGLESTRAND) = "SingleStrand";
-        at(BitmapCache::eff_SNOWFLAKES) = "Snowflakes";
-        at(BitmapCache::eff_SNOWSTORM) = "Snowstorm";
-        at(BitmapCache::eff_SPIRALS) = "Spirals";
-        at(BitmapCache::eff_SPIROGRAPH) = "Spirograph";
-        at(BitmapCache::eff_STROBE) = "Strobe";
-        at(BitmapCache::eff_TEXT) = "Text";
-        at(BitmapCache::eff_TREE) = "Tree";
-        at(BitmapCache::eff_TWINKLE) = "Twinkle";
-        at(BitmapCache::eff_WAVE) = "Wave";
+        resize(EffectManager::eff_LASTEFFECT);
+        at(EffectManager::eff_OFF) = "Off";
+        at(EffectManager::eff_ON) = "On";
+        at(EffectManager::eff_BARS) = "Bars";
+        at(EffectManager::eff_BUTTERFLY) = "Butterfly";
+        at(EffectManager::eff_CIRCLES) = "Circles";
+        at(EffectManager::eff_COLORWASH) = "Color Wash";
+        at(EffectManager::eff_CURTAIN) = "Curtain";
+        at(EffectManager::eff_DMX) = "DMX";
+        at(EffectManager::eff_FACES) = "Faces";
+        at(EffectManager::eff_FAN) = "Fan";
+        at(EffectManager::eff_FIRE) = "Fire";
+        at(EffectManager::eff_FIREWORKS) = "Fireworks";
+        at(EffectManager::eff_GALAXY) = "Galaxy";
+        at(EffectManager::eff_GARLANDS) = "Garlands";
+        at(EffectManager::eff_GLEDIATOR) = "Glediator";
+        at(EffectManager::eff_LIFE) = "Life";
+        at(EffectManager::eff_LIGHTNING) = "Lightning";
+        at(EffectManager::eff_MARQUEE) = "Marquee";
+        at(EffectManager::eff_METEORS) = "Meteors";
+        at(EffectManager::eff_MORPH) = "Morph";
+        at(EffectManager::eff_PIANO) = "Piano";
+        at(EffectManager::eff_PICTURES) = "Pictures";
+        at(EffectManager::eff_PINWHEEL) = "Pinwheel";
+        at(EffectManager::eff_PLASMA) = "Plasma";
+        at(EffectManager::eff_RIPPLE) = "Ripple";
+        at(EffectManager::eff_SHIMMER) = "Shimmer";
+        at(EffectManager::eff_SHOCKWAVE) = "Shockwave";
+        at(EffectManager::eff_SINGLESTRAND) = "SingleStrand";
+        at(EffectManager::eff_SNOWFLAKES) = "Snowflakes";
+        at(EffectManager::eff_SNOWSTORM) = "Snowstorm";
+        at(EffectManager::eff_SPIRALS) = "Spirals";
+        at(EffectManager::eff_SPIROGRAPH) = "Spirograph";
+        at(EffectManager::eff_STROBE) = "Strobe";
+        at(EffectManager::eff_TEXT) = "Text";
+        at(EffectManager::eff_TREE) = "Tree";
+        at(EffectManager::eff_TWINKLE) = "Twinkle";
+        at(EffectManager::eff_WAVE) = "Wave";
     }
 
 } effectMap;
@@ -710,7 +710,7 @@ int Effect::GetEffectIndex(const wxString &effectName)
     if (effectName == "CoroFaces")
     {
         //old deprecated/removed effect.  Mapped to FACES
-        return BitmapCache::eff_FACES;
+        return EffectManager::eff_FACES;
     }
     return -1;
 }

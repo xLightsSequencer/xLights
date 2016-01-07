@@ -2,6 +2,7 @@
 #include <wx/dnd.h>
 #include "../BitmapCache.h"
 #include "../xLightsMain.h"
+#include "../effects/RenderableEffect.h"
 
 DragEffectBitmapButton::DragEffectBitmapButton (wxWindow *parent, wxWindowID id, const wxBitmap &bitmap, const wxPoint &pos,
                                 const wxSize &size, long style, const wxValidator &validator,
@@ -9,7 +10,7 @@ DragEffectBitmapButton::DragEffectBitmapButton (wxWindow *parent, wxWindowID id,
     : wxBitmapButton (parent, id, bitmap,pos,size,style,validator,name), mDragIconBuffer(&bitmap)
 {
     Connect (wxEVT_LEFT_DOWN, wxMouseEventHandler (DragEffectBitmapButton::OnMouseLeftDown));
-    mEffectIndex = 0;
+    mEffect = nullptr;
 }
 
 DragEffectBitmapButton::~DragEffectBitmapButton()
@@ -19,14 +20,15 @@ void DragEffectBitmapButton::DoSetSizeHints(int minW, int minH,
                                             int maxW, int maxH,
                                             int incW, int incH ) {
     wxBitmapButton::DoSetSizeHints(minW, minH, maxW, maxH, incW, incH);
-    SetEffectIndex(mEffectIndex, minW);
+    SetEffect(mEffect, minW);
 }
-void DragEffectBitmapButton::SetEffectIndex(int index, int sz)
+void DragEffectBitmapButton::SetEffect(RenderableEffect *eff, int sz)
 {
-    wxString tooltip;
-    SetBitmap(BitmapCache::GetEffectIcon(index, tooltip, sz));
-    SetToolTip(tooltip);
-    mEffectIndex = index;
+    mEffect = eff;
+    if (eff != nullptr) {
+        SetBitmap(eff->GetEffectIcon(sz));
+        SetToolTip(eff->Name());
+    }
 }
 
 void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
@@ -38,9 +40,13 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
     wxCommandEvent unselectEffect(EVT_UNSELECTED_EFFECT);
     wxPostEvent(GetParent(), unselectEffect);
 
+    int id = 0;
+    if (mEffect != nullptr) {
+        id = mEffect->GetId();
+    }
     // Change the Choicebook to correct page
     wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
-    eventEffectChanged.SetInt(mEffectIndex);
+    eventEffectChanged.SetInt(id);
     // We are only changing choicebook not populating effect panel with settings
     eventEffectChanged.SetClientData(nullptr);
     wxPostEvent(GetParent(), eventEffectChanged);

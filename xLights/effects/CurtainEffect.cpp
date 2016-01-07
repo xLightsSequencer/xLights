@@ -5,7 +5,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-CurtainEffect::CurtainEffect(int i) : RenderableEffect(i, "Curtain")
+#include "../../include/curtain-16.xpm"
+#include "../../include/curtain-24.xpm"
+#include "../../include/curtain-32.xpm"
+#include "../../include/curtain-48.xpm"
+#include "../../include/curtain-64.xpm"
+
+CurtainEffect::CurtainEffect(int i) : RenderableEffect(i, "Curtain", curtain_16, curtain_24, curtain_32, curtain_48, curtain_64)
 {
     //ctor
 }

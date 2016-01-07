@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-FanEffect::FanEffect(int id) : RenderableEffect(id, "Fan")
+
+#include "../../include/fan-16.xpm"
+#include "../../include/fan-24.xpm"
+#include "../../include/fan-32.xpm"
+#include "../../include/fan-48.xpm"
+#include "../../include/fan-64.xpm"
+
+FanEffect::FanEffect(int id) : RenderableEffect(id, "Fan", fan_16, fan_24, fan_32, fan_48, fan_64)
 {
     //ctor
 }

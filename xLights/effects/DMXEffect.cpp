@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-DMXEffect::DMXEffect(int id) : RenderableEffect(id, "DMX")
+#include "../../include/dmx-16.xpm"
+#include "../../include/dmx-24.xpm"
+#include "../../include/dmx-32.xpm"
+#include "../../include/dmx-48.xpm"
+#include "../../include/dmx-64.xpm"
+
+
+DMXEffect::DMXEffect(int id) : RenderableEffect(id, "DMX", dmx_16, dmx_24, dmx_32, dmx_48, dmx_64)
 {
     //ctor
 }

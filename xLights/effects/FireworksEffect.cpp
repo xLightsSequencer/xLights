@@ -5,7 +5,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-FireworksEffect::FireworksEffect(int id) : RenderableEffect(id, "Fireworks")
+#include "../../include/fireworks-16.xpm"
+#include "../../include/fireworks-24.xpm"
+#include "../../include/fireworks-32.xpm"
+#include "../../include/fireworks-48.xpm"
+#include "../../include/fireworks-64.xpm"
+
+FireworksEffect::FireworksEffect(int id) : RenderableEffect(id, "Fireworks", fireworks_16, fireworks_24, fireworks_32, fireworks_48, fireworks_64)
 {
     //ctor
 }

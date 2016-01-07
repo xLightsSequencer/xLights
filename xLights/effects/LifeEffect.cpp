@@ -6,7 +6,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-LifeEffect::LifeEffect(int id) : RenderableEffect(id, "Life")
+#include "../../include/life-16.xpm"
+#include "../../include/life-24.xpm"
+#include "../../include/life-32.xpm"
+#include "../../include/life-48.xpm"
+#include "../../include/life-64.xpm"
+
+LifeEffect::LifeEffect(int id) : RenderableEffect(id, "Life", life_16, life_24, life_32, life_48, life_48)
 {
     //ctor
 }

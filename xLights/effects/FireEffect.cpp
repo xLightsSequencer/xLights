@@ -5,7 +5,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-FireEffect::FireEffect(int id) : RenderableEffect(id, "Fire")
+#include "../../include/fire-16.xpm"
+#include "../../include/fire-24.xpm"
+#include "../../include/fire-32.xpm"
+#include "../../include/fire-48.xpm"
+#include "../../include/fire-64.xpm"
+
+FireEffect::FireEffect(int id) : RenderableEffect(id, "Fire", fire_16, fire_24, fire_32, fire_48, fire_64)
 {
     //ctor
 }

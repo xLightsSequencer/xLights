@@ -3,7 +3,9 @@
 
 #include "../RenderBuffer.h"
 
-OffEffect::OffEffect(int i) : RenderableEffect(i, "Off")
+#include "../../include/Off.xpm"
+
+OffEffect::OffEffect(int i) : RenderableEffect(i, "Off", Off, Off, Off, Off, Off)
 {
     //ctor
 }

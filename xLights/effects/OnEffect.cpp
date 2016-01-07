@@ -10,8 +10,10 @@ static const std::string TEXTCTRL_Eff_On_End("TEXTCTRL_Eff_On_End");
 static const std::string CHECKBOX_On_Shimmer("CHECKBOX_On_Shimmer");
 static const std::string TEXTCTRL_On_Cycles("TEXTCTRL_On_Cycles");
 
+#include "../../include/On.xpm"
 
-OnEffect::OnEffect(int i) : RenderableEffect(i, "On")
+
+OnEffect::OnEffect(int i) : RenderableEffect(i, "On", On, On, On, On, On)
 {
     //ctor
 }

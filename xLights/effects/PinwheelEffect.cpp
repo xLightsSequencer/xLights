@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-PinwheelEffect::PinwheelEffect(int id) : RenderableEffect(id, "Pinwheel")
+#include "../../include/pinwheel-16.xpm"
+#include "../../include/pinwheel-24.xpm"
+#include "../../include/pinwheel-32.xpm"
+#include "../../include/pinwheel-48.xpm"
+#include "../../include/pinwheel-64.xpm"
+
+
+PinwheelEffect::PinwheelEffect(int id) : RenderableEffect(id, "Pinwheel", pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48, pinwheel_64)
 {
     //ctor
 }

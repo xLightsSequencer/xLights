@@ -2,7 +2,10 @@
 #define DRAGEFFECTBITMAPBUTTON_H
 #include "wx/wx.h"
 
+
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+
+class RenderableEffect;
 
 class DragEffectBitmapButton : public wxBitmapButton
 {
@@ -18,7 +21,8 @@ class DragEffectBitmapButton : public wxBitmapButton
         virtual ~DragEffectBitmapButton();
         void OnMouseLeftDown (wxMouseEvent& event);
         void SetBitmap(const wxBitmap &bmp);
-        void SetEffectIndex(int index, int sz = 16);
+    
+        void SetEffect(RenderableEffect *effect, int sz = 16);
 
     protected:
     private:
@@ -26,7 +30,7 @@ class DragEffectBitmapButton : public wxBitmapButton
 
         wxString (*GetStringFunction)();
 
-        int mEffectIndex;
+        RenderableEffect *mEffect;
 };
 
 #endif // DRAGEFFECTBITMAPBUTTON_H

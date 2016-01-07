@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-GalaxyEffect::GalaxyEffect(int id) : RenderableEffect(id, "Galaxy")
+
+#include "../../include/galaxy-16.xpm"
+#include "../../include/galaxy-24.xpm"
+#include "../../include/galaxy-32.xpm"
+#include "../../include/galaxy-48.xpm"
+#include "../../include/galaxy-64.xpm"
+
+GalaxyEffect::GalaxyEffect(int id) : RenderableEffect(id, "Galaxy", galaxy_16, galaxy_24, galaxy_32, galaxy_48, galaxy_64)
 {
     //ctor
 }

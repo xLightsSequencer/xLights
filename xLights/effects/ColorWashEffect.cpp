@@ -6,6 +6,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../../include/ColorWash.xpm"
 
 
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
@@ -20,7 +21,7 @@ static const std::string CHECKBOX_ColorWash_Shimmer("CHECKBOX_ColorWash_Shimmer"
 static const std::string CHECKBOX_ColorWash_CircularPalette("CHECKBOX_ColorWash_CircularPalette");
 
 
-ColorWashEffect::ColorWashEffect(int i) : RenderableEffect(i, "Color Wash")
+ColorWashEffect::ColorWashEffect(int i) : RenderableEffect(i, "Color Wash", ColorWash, ColorWash, ColorWash, ColorWash, ColorWash)
 {
     //ctor
 }

@@ -12,8 +12,9 @@
 
 #include "PicturesEffect.h"
 
+#include "../../include/corofaces.xpm"
 
-FacesEffect::FacesEffect(int id) : RenderableEffect(id, "Faces")
+FacesEffect::FacesEffect(int id) : RenderableEffect(id, "Faces", corofaces, corofaces, corofaces, corofaces, corofaces)
 {
     //ctor
 }

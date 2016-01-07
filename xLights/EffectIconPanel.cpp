@@ -10,6 +10,9 @@
 //(*IdInit(EffectIconPanel)
 //*)
 
+
+#include "effects/EffectManager.h"
+
 BEGIN_EVENT_TABLE(EffectIconPanel,wxPanel)
 	//(*EventTable(EffectIconPanel)
 	//*)
@@ -17,22 +20,22 @@ END_EVENT_TABLE()
 
 
 
-void AddEffectPanelButtons(EffectIconPanel *panel, wxGridSizer *sizer) {
+void AddEffectPanelButtons(const EffectManager &manager, EffectIconPanel *panel, wxGridSizer *sizer) {
     
-    for (int x = 0; x < BitmapCache::RGB_EFFECTS_e::eff_LASTEFFECT; x++) {
+    for (int x = 0; x < manager.size(); x++) {
         DragEffectBitmapButton *BitmapButton = new DragEffectBitmapButton(panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(16,16),
                                                                             wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
         BitmapButton->SetMinSize(wxSize(16,16));
         BitmapButton->SetMaxSize(wxSize(16,16));
         BitmapButton->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-        BitmapButton->SetEffectIndex(x);
+        BitmapButton->SetEffect(manager[x]);
         sizer->Add(BitmapButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, x);
         
     }
 }
 
 
-EffectIconPanel::EffectIconPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+EffectIconPanel::EffectIconPanel(const EffectManager &manager, wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(EffectIconPanel)
 	wxGridSizer* GridSizer1;
@@ -44,7 +47,7 @@ EffectIconPanel::EffectIconPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	GridSizer1->SetSizeHints(this);
 	//*)
     
-    AddEffectPanelButtons(this, GridSizer1);
+    AddEffectPanelButtons(manager, this, GridSizer1);
     GridSizer1->Fit(this);
     GridSizer1->SetSizeHints(this);
 }

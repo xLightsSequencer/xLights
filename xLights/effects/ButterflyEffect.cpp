@@ -6,8 +6,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
+#include "../../include/butterfly-16.xpm"
+#include "../../include/butterfly-24.xpm"
+#include "../../include/butterfly_32.xpm"
+#include "../../include/butterfly-48.xpm"
+#include "../../include/butterfly-64.xpm"
 
-ButterflyEffect::ButterflyEffect(int i) : RenderableEffect(i, "Butterfly")
+
+ButterflyEffect::ButterflyEffect(int i) : RenderableEffect(i, "Butterfly", butterfly_16, butterfly_24, butterfly_32, butterfly_48, butterfly_64)
 {
     //ctor
 }

@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-SnowflakesEffect::SnowflakesEffect(int id) : RenderableEffect(id, "Snowflakes")
+#include "../../include/snowflakes-16.xpm"
+#include "../../include/snowflakes-24.xpm"
+#include "../../include/snowflakes-32.xpm"
+#include "../../include/snowflakes-48.xpm"
+#include "../../include/snowflakes-64.xpm"
+
+
+SnowflakesEffect::SnowflakesEffect(int id) : RenderableEffect(id, "Snowflakes", snowflakes_16, snowflakes_24, snowflakes_32, snowflakes_48, snowflakes_64)
 {
     //ctor
 }

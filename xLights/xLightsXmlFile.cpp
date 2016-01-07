@@ -4,7 +4,7 @@
 #include "OptionChooser.h"
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
-#include "BitmapCache.h"
+#include "effects/EffectManager.h"
 
 #define string_format wxString::Format
 
@@ -2069,7 +2069,7 @@ void xLightsXmlFile::CheckUpdateMorphPositions(SequenceElements& elements, xLigh
                     for( int k = 0; k < layer->GetEffectCount(); k++ )
                     {
                         Effect* eff = layer->GetEffect(k);
-                        if( eff->GetEffectIndex() == BitmapCache::eff_MORPH )
+                        if( eff->GetEffectIndex() == EffectManager::eff_MORPH )
                         {
                             wxString model_name = elem->GetName();
                             ModelClass *cls = xLightsParent->GetModelClass(model_name);

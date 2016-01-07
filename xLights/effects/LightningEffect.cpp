@@ -5,8 +5,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
+#include "../../include/lightning-16.xpm"
+#include "../../include/lightning-24.xpm"
+#include "../../include/lightning-32.xpm"
+#include "../../include/lightning-48.xpm"
+#include "../../include/lightning-64.xpm"
 
-LightningEffect::LightningEffect(int id) : RenderableEffect(id, "Lightning")
+LightningEffect::LightningEffect(int id) : RenderableEffect(id, "Lightning", lightning_16, lightning_24, lightning_32, lightning_48, lightning_64)
 {
     //ctor
 }

@@ -5,8 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
+#include "../../include/marquee-16.xpm"
+#include "../../include/marquee-24.xpm"
+#include "../../include/marquee-32.xpm"
+#include "../../include/marquee-48.xpm"
+#include "../../include/marquee-64.xpm"
 
-MarqueeEffect::MarqueeEffect(int id) : RenderableEffect(id, "Marquee")
+
+MarqueeEffect::MarqueeEffect(int id) : RenderableEffect(id, "Marquee", marquee_16, marquee_24, marquee_32, marquee_48, marquee_64)
 {
     //ctor
 }

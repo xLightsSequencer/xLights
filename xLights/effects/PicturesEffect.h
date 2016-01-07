@@ -12,6 +12,7 @@ class PicturesEffect : public RenderableEffect
     public:
         PicturesEffect(int id);
         virtual ~PicturesEffect();
+        virtual bool CanBeRandom() {return false;}
     
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
     

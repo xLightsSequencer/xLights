@@ -5,8 +5,9 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
+#include "../../include/shimmer.xpm"
 
-ShimmerEffect::ShimmerEffect(int id) : RenderableEffect(id, "Shimmer")
+ShimmerEffect::ShimmerEffect(int id) : RenderableEffect(id, "Shimmer", shimmer, shimmer, shimmer, shimmer, shimmer)
 {
     //ctor
 }

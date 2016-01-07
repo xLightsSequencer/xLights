@@ -6,7 +6,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-ShockwaveEffect::ShockwaveEffect(int id) : RenderableEffect(id, "Shockwave")
+#include "../../include/shockwave-16.xpm"
+#include "../../include/shockwave-24.xpm"
+#include "../../include/shockwave-32.xpm"
+#include "../../include/shockwave-48.xpm"
+#include "../../include/shockwave-64.xpm"
+
+
+ShockwaveEffect::ShockwaveEffect(int id) : RenderableEffect(id, "Shockwave", shockwave_16, shockwave_24, shockwave_32, shockwave_48, shockwave_64)
 {
     //ctor
 }

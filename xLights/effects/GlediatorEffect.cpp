@@ -9,7 +9,9 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-GlediatorEffect::GlediatorEffect(int id) : RenderableEffect(id, "Glediator")
+#include "../../include/glediator.xpm"
+
+GlediatorEffect::GlediatorEffect(int id) : RenderableEffect(id, "Glediator", glediator, glediator, glediator, glediator, glediator)
 {
     //ctor
 }

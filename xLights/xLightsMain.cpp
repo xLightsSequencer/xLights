@@ -479,16 +479,16 @@ END_EVENT_TABLE()
 
 
 
-void AddEffectToolbarButtons(xlAuiToolBar *EffectsToolBar) {
+void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBar) {
 
-    for (int x = 0; x < BitmapCache::RGB_EFFECTS_e::eff_LASTEFFECT; x++) {
+    for (int x = 0; x < manager.size(); x++) {
         DragEffectBitmapButton *BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(16,16),
                                                     wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
         int size = 16;
         BitmapButton34->SetMinSize(wxSize(size,size));
         BitmapButton34->SetMaxSize(wxSize(size,size));
         BitmapButton34->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-        BitmapButton34->SetEffectIndex(x);
+        BitmapButton34->SetEffect(manager[x]);
         EffectsToolBar->AddControl(BitmapButton34, BitmapButton34->GetToolTipText());
 
         EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
@@ -1745,7 +1745,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     //*)
 
 
-    AddEffectToolbarButtons(EffectsToolBar);
+    AddEffectToolbarButtons(effectManager, EffectsToolBar);
     wxSize sz = EffectsToolBar->GetSize();
     wxAuiPaneInfo &info = MainAuiManager->GetPane("EffectsToolBar");
     info.BestSize(sz);

@@ -9,11 +9,18 @@
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 
+
+#include "../../include/pictures-16.xpm"
+#include "../../include/pictures-24.xpm"
+#include "../../include/pictures-32.xpm"
+#include "../../include/pictures-48.xpm"
+#include "../../include/pictures-64.xpm"
+
 #define wrdebug(...)
 
 static int PicturesEffectId = 0;
 
-PicturesEffect::PicturesEffect(int id) : RenderableEffect(id, "Pictures")
+PicturesEffect::PicturesEffect(int id) : RenderableEffect(id, "Pictures", pictures_16, pictures_24, pictures_32, pictures_48, pictures_64)
 {
     //ctor
     PicturesEffectId = id;

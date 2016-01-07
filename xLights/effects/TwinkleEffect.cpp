@@ -5,7 +5,14 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-TwinkleEffect::TwinkleEffect(int id) : RenderableEffect(id, "Twinkle")
+#include "../../include/twinkle-16.xpm"
+#include "../../include/twinkle-24.xpm"
+#include "../../include/twinkle-32.xpm"
+#include "../../include/twinkle-48.xpm"
+#include "../../include/twinkle-64.xpm"
+
+
+TwinkleEffect::TwinkleEffect(int id) : RenderableEffect(id, "Twinkle", twinkle_16, twinkle_24, twinkle_32, twinkle_48, twinkle_64)
 {
     //ctor
 }

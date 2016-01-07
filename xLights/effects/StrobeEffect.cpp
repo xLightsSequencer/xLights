@@ -5,7 +5,10 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-StrobeEffect::StrobeEffect(int id) : RenderableEffect(id, "Strobe")
+
+#include "../../include/strobe.xpm"
+
+StrobeEffect::StrobeEffect(int id) : RenderableEffect(id, "Strobe", strobe, strobe, strobe, strobe, strobe)
 {
     //ctor
 }

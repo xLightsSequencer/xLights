@@ -15,6 +15,8 @@ class TextEffect : public RenderableEffect
     
         virtual bool CanRenderOnBackgroundThread();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        virtual bool CanBeRandom() {return false;}
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
     private:

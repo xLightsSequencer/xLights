@@ -5,7 +5,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-GarlandsEffect::GarlandsEffect(int id) : RenderableEffect(id, "Garlands")
+#include "../../include/garlands-16.xpm"
+#include "../../include/garlands-24.xpm"
+#include "../../include/garlands-32.xpm"
+#include "../../include/garlands-48.xpm"
+#include "../../include/garlands-64.xpm"
+
+GarlandsEffect::GarlandsEffect(int id) : RenderableEffect(id, "Garlands", garlands_16, garlands_24, garlands_32, garlands_48, garlands_64)
 {
     //ctor
 }

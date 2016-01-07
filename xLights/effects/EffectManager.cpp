@@ -1,8 +1,5 @@
 #include "EffectManager.h"
 
-
-#include "../BitmapCache.h"
-
 #include "OffEffect.h"
 #include "OnEffect.h"
 #include "BarsEffect.h"
@@ -47,43 +44,43 @@
 
 EffectManager::EffectManager() : std::vector<RenderableEffect*>()
 {
-    add(new OffEffect(BitmapCache::eff_OFF));
-    add(new OnEffect(BitmapCache::eff_ON));
-    add(new BarsEffect(BitmapCache::eff_BARS));
-    add(new ButterflyEffect(BitmapCache::eff_BUTTERFLY));
-    add(new CirclesEffect(BitmapCache::eff_CIRCLES));
-    add(new ColorWashEffect(BitmapCache::eff_COLORWASH));
-    add(new CurtainEffect(BitmapCache::eff_CURTAIN));
-    add(new DMXEffect(BitmapCache::eff_DMX));
-    add(new FacesEffect(BitmapCache::eff_FACES));
-    add(new FanEffect(BitmapCache::eff_FAN));
-    add(new FireEffect(BitmapCache::eff_FIRE));
-    add(new FireworksEffect(BitmapCache::eff_FIREWORKS));
-    add(new GalaxyEffect(BitmapCache::eff_GALAXY));
-    add(new GarlandsEffect(BitmapCache::eff_GARLANDS));
-    add(new GlediatorEffect(BitmapCache::eff_GLEDIATOR));
-    add(new LifeEffect(BitmapCache::eff_LIFE));
-    add(new LightningEffect(BitmapCache::eff_LIGHTNING));
-    add(new MarqueeEffect(BitmapCache::eff_MARQUEE));
-    add(new MeteorsEffect(BitmapCache::eff_METEORS));
-    add(new MorphEffect(BitmapCache::eff_MORPH));
-    add(new PianoEffect(BitmapCache::eff_PIANO));
-    add(new PicturesEffect(BitmapCache::eff_PICTURES));
-    add(new PinwheelEffect(BitmapCache::eff_PINWHEEL));
-    add(new PlasmaEffect(BitmapCache::eff_PLASMA));
-    add(new RippleEffect(BitmapCache::eff_RIPPLE));
-    add(new ShimmerEffect(BitmapCache::eff_SHIMMER));
-    add(new ShockwaveEffect(BitmapCache::eff_SHOCKWAVE));
-    add(new SingleStrandEffect(BitmapCache::eff_SINGLESTRAND));
-    add(new SnowflakesEffect(BitmapCache::eff_SNOWFLAKES));
-    add(new SnowstormEffect(BitmapCache::eff_SNOWSTORM));
-    add(new SpiralsEffect(BitmapCache::eff_SPIRALS));
-    add(new SpirographEffect(BitmapCache::eff_SPIROGRAPH));
-    add(new StrobeEffect(BitmapCache::eff_STROBE));
-    add(new TextEffect(BitmapCache::eff_TEXT));
-    add(new TreeEffect(BitmapCache::eff_TREE));
-    add(new TwinkleEffect(BitmapCache::eff_TWINKLE));
-    add(new WaveEffect(BitmapCache::eff_WAVE));
+    add(new OffEffect(eff_OFF));
+    add(new OnEffect(eff_ON));
+    add(new BarsEffect(eff_BARS));
+    add(new ButterflyEffect(eff_BUTTERFLY));
+    add(new CirclesEffect(eff_CIRCLES));
+    add(new ColorWashEffect(eff_COLORWASH));
+    add(new CurtainEffect(eff_CURTAIN));
+    add(new DMXEffect(eff_DMX));
+    add(new FacesEffect(eff_FACES));
+    add(new FanEffect(eff_FAN));
+    add(new FireEffect(eff_FIRE));
+    add(new FireworksEffect(eff_FIREWORKS));
+    add(new GalaxyEffect(eff_GALAXY));
+    add(new GarlandsEffect(eff_GARLANDS));
+    add(new GlediatorEffect(eff_GLEDIATOR));
+    add(new LifeEffect(eff_LIFE));
+    add(new LightningEffect(eff_LIGHTNING));
+    add(new MarqueeEffect(eff_MARQUEE));
+    add(new MeteorsEffect(eff_METEORS));
+    add(new MorphEffect(eff_MORPH));
+    add(new PianoEffect(eff_PIANO));
+    add(new PicturesEffect(eff_PICTURES));
+    add(new PinwheelEffect(eff_PINWHEEL));
+    add(new PlasmaEffect(eff_PLASMA));
+    add(new RippleEffect(eff_RIPPLE));
+    add(new ShimmerEffect(eff_SHIMMER));
+    add(new ShockwaveEffect(eff_SHOCKWAVE));
+    add(new SingleStrandEffect(eff_SINGLESTRAND));
+    add(new SnowflakesEffect(eff_SNOWFLAKES));
+    add(new SnowstormEffect(eff_SNOWSTORM));
+    add(new SpiralsEffect(eff_SPIRALS));
+    add(new SpirographEffect(eff_SPIROGRAPH));
+    add(new StrobeEffect(eff_STROBE));
+    add(new TextEffect(eff_TEXT));
+    add(new TreeEffect(eff_TREE));
+    add(new TwinkleEffect(eff_TWINKLE));
+    add(new WaveEffect(eff_WAVE));
 }
 
 EffectManager::~EffectManager()

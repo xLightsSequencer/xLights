@@ -5,7 +5,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-WaveEffect::WaveEffect(int id) : RenderableEffect(id, "Wave")
+#include "../../include/wave-16.xpm"
+#include "../../include/wave-24.xpm"
+#include "../../include/wave-32.xpm"
+#include "../../include/wave-48.xpm"
+#include "../../include/wave-64.xpm"
+
+WaveEffect::WaveEffect(int id) : RenderableEffect(id, "Wave", wave_16, wave_24, wave_32, wave_48, wave_64)
 {
     //ctor
 }
