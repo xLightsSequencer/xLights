@@ -1706,6 +1706,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxSlider" name="ID_SLIDER_BACKGROUND_BRIGHTNESS" variable="Slider_BackgroundBrightness" member="yes">
+																<size>100,-1</size>
 																<handler function="OnSlider_BackgroundBrightnessCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 															</object>
 															<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

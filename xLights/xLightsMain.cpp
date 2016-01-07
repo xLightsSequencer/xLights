@@ -1041,7 +1041,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer40->Add(ScaleImageCheckbox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText30 = new wxStaticText(PanelPreview, ID_STATICTEXT32, _("Brightness:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT32"));
     FlexGridSizer40->Add(StaticText30, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_BackgroundBrightness = new wxSlider(PanelPreview, ID_SLIDER_BACKGROUND_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BACKGROUND_BRIGHTNESS"));
+    Slider_BackgroundBrightness = new wxSlider(PanelPreview, ID_SLIDER_BACKGROUND_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxSize(100,-1), 0, wxDefaultValidator, _T("ID_SLIDER_BACKGROUND_BRIGHTNESS"));
     FlexGridSizer40->Add(Slider_BackgroundBrightness, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer30->Add(FlexGridSizer40, 1, wxALL|wxEXPAND|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer31->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
