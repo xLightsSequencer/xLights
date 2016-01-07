@@ -14,6 +14,7 @@
 #include <wx/choicebk.h>
 //*)
 
+#include <wx/valnum.h>
 
 #include <map>
 #include "DimmingCurvePanel.h"
@@ -67,7 +68,8 @@ class ModelDimmingCurveDialog: public wxDialog
 		DimmingCurvePanel* blueDCPanel;
 		//*)
 
-    
+        wxIntegerValidator<int> brightnessValidator;
+        wxFloatingPointValidator<float> gammaValidator;
 	protected:
 
 		//(*Identifiers(ModelDimmingCurveDialog)

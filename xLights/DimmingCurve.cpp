@@ -194,6 +194,12 @@ DimmingCurve::~DimmingCurve()
 {
 }
 
+static const wxString &validate(const wxString &in, const wxString &def) {
+    if (in == "") {
+        return def;
+    }
+    return in;
+}
 DimmingCurve *createCurve(wxXmlNode *dc, int channel = -1) {
     if (dc->HasAttribute("filename")) {
         wxString fn = dc->GetAttribute("filename");
@@ -201,8 +207,8 @@ DimmingCurve *createCurve(wxXmlNode *dc, int channel = -1) {
             return new FileDimmingCurve(fn);
         }
     } else {
-        return new BasicDimmingCurve(wxAtoi(dc->GetAttribute("brightness", "0")),
-                                     wxAtof(dc->GetAttribute("gamma", "1.0")));
+        return new BasicDimmingCurve(wxAtoi(validate(dc->GetAttribute("brightness", "0"), "0")),
+                                     wxAtof(validate(dc->GetAttribute("gamma", "1.0"), "1.0")));
     }
     return nullptr;
 }

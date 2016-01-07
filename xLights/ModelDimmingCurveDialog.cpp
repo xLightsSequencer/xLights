@@ -281,6 +281,20 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
     redDCPanel->SetDimmingCurve(DimmingCurve::createBrightnessGamma(0, 0.25), 0);
     greenDCPanel->SetDimmingCurve(DimmingCurve::createBrightnessGamma(0, 0.5), 0);
     blueDCPanel->SetDimmingCurve(DimmingCurve::createBrightnessGamma(0, 1.5), 0);
+    
+    brightnessValidator.SetRange(-100, 100);
+    gammaValidator.SetRange(0.0, 50.0);
+    gammaValidator.SetStyle(wxNUM_VAL_NO_TRAILING_ZEROES);
+    
+    SingleBrightnessBox->SetValidator(brightnessValidator);
+    RGBRedTextCtrl->SetValidator(brightnessValidator);
+    RGBGreenTextCtrl->SetValidator(brightnessValidator);
+    RGBBlueTextCtrl->SetValidator(brightnessValidator);
+    
+    SingleGammaText->SetValidator(gammaValidator);
+    RGBRedGammaTextCtrl->SetValidator(gammaValidator);
+    RGBGreenGammaTextCtrl->SetValidator(gammaValidator);
+    RGBBlueGammaTextCtrl->SetValidator(gammaValidator);
 }
 
 ModelDimmingCurveDialog::~ModelDimmingCurveDialog()
@@ -359,22 +373,28 @@ void ModelDimmingCurveDialog::Init(std::map<wxString, std::map<wxString,wxString
         }
     }
 }
+static const wxString &validate(const wxString &in, const wxString &def) {
+    if (in == "") {
+        return def;
+    }
+    return in;
+}
 void ModelDimmingCurveDialog::Update(std::map<wxString, std::map<wxString,wxString>> &dimmingInfo) {
     switch (DimmingTypeChoice->GetSelection()) {
     case 0:
-        dimmingInfo["all"]["brightness"] = SingleBrightnessBox->GetValue();
-        dimmingInfo["all"]["gamma"] = SingleGammaText->GetValue();
+        dimmingInfo["all"]["brightness"] = validate(SingleBrightnessBox->GetValue(), "0");
+        dimmingInfo["all"]["gamma"] = validate(SingleGammaText->GetValue(), "1.0");
         break;
     case 1:
         dimmingInfo["all"]["filename"] = SingleFilePicker->GetPath();
         break;
     case 2:
-        dimmingInfo["red"]["brightness"] = RGBRedTextCtrl->GetValue();
-        dimmingInfo["red"]["gamma"] = RGBRedGammaTextCtrl->GetValue();
-        dimmingInfo["green"]["brightness"] = RGBGreenTextCtrl->GetValue();
-        dimmingInfo["green"]["gamma"] = RGBGreenGammaTextCtrl->GetValue();
-        dimmingInfo["blue"]["brightness"] = RGBBlueTextCtrl->GetValue();
-        dimmingInfo["blue"]["gamma"] = RGBBlueGammaTextCtrl->GetValue();
+        dimmingInfo["red"]["brightness"] = validate(RGBRedTextCtrl->GetValue(), "0");
+        dimmingInfo["red"]["gamma"] = validate(RGBRedGammaTextCtrl->GetValue(), "1.0");
+        dimmingInfo["green"]["brightness"] = validate(RGBGreenTextCtrl->GetValue(), "0");
+        dimmingInfo["green"]["gamma"] = validate(RGBGreenGammaTextCtrl->GetValue(), "1.0");
+        dimmingInfo["blue"]["brightness"] = validate(RGBBlueTextCtrl->GetValue(), "0");
+        dimmingInfo["blue"]["gamma"] = validate(RGBBlueGammaTextCtrl->GetValue(), "1.0");
         break;
     case 3:
         dimmingInfo["red"]["filename"] = RGBRedFilePicker->GetPath();
@@ -386,8 +406,8 @@ void ModelDimmingCurveDialog::Update(std::map<wxString, std::map<wxString,wxStri
 
 void ModelDimmingCurveDialog::OnSingleGammaText(wxCommandEvent& event)
 {
-    float f = wxAtof(SingleGammaText->GetValue());
-    int i = wxAtoi(SingleBrightnessBox->GetValue());
+    float f = wxAtof(validate(SingleGammaText->GetValue(), "1.0"));
+    int i = wxAtoi(validate(SingleBrightnessBox->GetValue(), "0"));
     redDCPanel->SetDimmingCurve(DimmingCurve::createBrightnessGamma(i, f), 0);
     greenDCPanel->SetDimmingCurve(DimmingCurve::createBrightnessGamma(i, f), 0);
     blueDCPanel->SetDimmingCurve(DimmingCurve::createBrightnessGamma(i, f), 0);
@@ -401,16 +421,16 @@ void ModelDimmingCurveDialog::OnSingleBrightnessBoxText(wxCommandEvent& event)
 
 void ModelDimmingCurveDialog::OnRGBGammaText(wxCommandEvent& event)
 {
-    float f = wxAtof(RGBRedGammaTextCtrl->GetValue());
-    int i = wxAtoi(RGBRedTextCtrl->GetValue());
+    float f = wxAtof(validate(RGBRedGammaTextCtrl->GetValue(), "1.0"));
+    int i = wxAtoi(validate(RGBRedTextCtrl->GetValue(), "0"));
     redDCPanel->SetDimmingCurve(DimmingCurve::createBrightnessGamma(i, f), 0);
     
-    f = wxAtof(RGBGreenGammaTextCtrl->GetValue());
-    i = wxAtoi(RGBGreenTextCtrl->GetValue());
+    f = wxAtof(validate(RGBGreenGammaTextCtrl->GetValue(), "1.0"));
+    i = wxAtoi(validate(RGBGreenTextCtrl->GetValue(), "0"));
     greenDCPanel->SetDimmingCurve(DimmingCurve::createBrightnessGamma(i, f), 0);
 
-    f = wxAtof(RGBBlueGammaTextCtrl->GetValue());
-    i = wxAtoi(RGBBlueTextCtrl->GetValue());
+    f = wxAtof(validate(RGBBlueGammaTextCtrl->GetValue(), "1.0"));
+    i = wxAtoi(validate(RGBBlueTextCtrl->GetValue(), "0"));
     blueDCPanel->SetDimmingCurve(DimmingCurve::createBrightnessGamma(i, f), 0);
 }
 
