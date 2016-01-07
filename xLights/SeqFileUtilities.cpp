@@ -1612,7 +1612,7 @@ bool GetRGBEffectData(RGBData &red, RGBData &green, RGBData &blue, xlColor &sc, 
     return red.shimmer | blue.shimmer | green.shimmer;
 }
 
-void LoadRGBData(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, wxXmlNode *bchannel) {
+void LoadRGBData(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, wxXmlNode *bchannel) {
     std::vector<RGBData> red, green, blue;
     while (rchannel != nullptr) {
         red.resize(red.size() + 1);
@@ -1634,8 +1634,8 @@ void LoadRGBData(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, w
         UnifyData(x, red, green, blue);
     }
 
-    int cwIndex = Effect::GetEffectIndex("Color Wash");
-    int onIndex = Effect::GetEffectIndex("On");
+    int cwIndex = effectManager.GetEffectIndex("Color Wash");
+    int onIndex = effectManager.GetEffectIndex("On");
     for (int x = 0; x < red.size() || x < green.size() || x < blue.size(); x++) {
         xlColor sc, ec;
         bool isShimmer = GetRGBEffectData(red[x], green[x], blue[x], sc, ec);
@@ -1692,16 +1692,16 @@ void LoadRGBData(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, w
     }
 }
 
-void MapRGBEffects(EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, wxXmlNode *bchannel) {
+void MapRGBEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, wxXmlNode *bchannel) {
     wxXmlNode* re=rchannel->GetChildren();
     while (re != nullptr && "effect" != re->GetName()) re = re->GetNext();
     wxXmlNode* ge=gchannel->GetChildren();
     while (ge != nullptr && "effect" != ge->GetName()) ge = ge->GetNext();
     wxXmlNode* be=bchannel->GetChildren();
     while (be != nullptr && "effect" != be->GetName()) be = be->GetNext();
-    LoadRGBData(layer, re, ge, be);
+    LoadRGBData(effectManager, layer, re, ge, be);
 }
-void MapOnEffects(EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
+void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
     wxString palette = _("C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1,")
         + "C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
@@ -1712,7 +1712,7 @@ void MapOnEffects(EffectLayer *layer, wxXmlNode *channel, int chancountpernode, 
             + "C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
     }
-    int on_index = Effect::GetEffectIndex("On");
+    int on_index = effectManager.GetEffectIndex("On");
 
     for (wxXmlNode* ch=channel->GetChildren(); ch!=NULL; ch=ch->GetNext()) {
         if (ch->GetName() == "effect") {
@@ -1739,7 +1739,7 @@ void MapOnEffects(EffectLayer *layer, wxXmlNode *channel, int chancountpernode, 
         }
     }
 }
-bool MapChannelInformation(EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const ModelClass &mc) {
+bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const ModelClass &mc) {
     if ("" == nm) {
         return false;
     }
@@ -1766,9 +1766,9 @@ bool MapChannelInformation(EffectLayer *layer, wxXmlDocument &input_xml, const w
         return false;
     }
     if (channel->GetName() == "rgbChannel") {
-        MapRGBEffects(layer, rchannel, gchannel, bchannel);
+        MapRGBEffects(effectManager, layer, rchannel, gchannel, bchannel);
     } else {
-        MapOnEffects(layer, channel, mc.GetChanCountPerNode(), color);
+        MapOnEffects(effectManager, layer, channel, mc.GetChanCountPerNode(), color);
     }
     return true;
 }
@@ -1841,7 +1841,8 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                 model = mSequenceElements.GetElement(i);
             }
         }
-        MapChannelInformation(model->GetEffectLayer(0), input_xml,
+        MapChannelInformation(effectManager,
+                              model->GetEffectLayer(0), input_xml,
                               dlg.ChannelMapGrid->GetCellValue(row, 3),
                               dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), *mc);
         row++;
@@ -1851,7 +1852,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                 if (!dlg.MapByStrand->GetValue()) {
-                    MapChannelInformation(sl,
+                    MapChannelInformation(effectManager, sl,
                                       input_xml,
                                       dlg.ChannelMapGrid->GetCellValue(row, 3),
                                       dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4), *mc);
@@ -1872,7 +1873,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                         if (dlg.channelNames.Index(nm) == wxNOT_FOUND) {
                             nm = ccrName + wxString::Format(" P %02d", (n + 1));
                         }
-                        MapChannelInformation(layer,
+                        MapChannelInformation(effectManager, layer,
                                               input_xml,
                                               nm,
                                               dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
@@ -1884,7 +1885,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
             if (!dlg.MapByStrand->GetValue()) {
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                        MapChannelInformation(sl->GetNodeLayer(n, true),
+                        MapChannelInformation(effectManager, sl->GetNodeLayer(n, true),
                                               input_xml,
                                               dlg.ChannelMapGrid->GetCellValue(row, 3),
                                               dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4),
@@ -2068,10 +2069,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
     bool reverse_rows = false;
     bool layout_defined = false;
     wxXmlNode* input_root=input_xml.GetRoot();
-    int morph_index = Effect::GetEffectIndex("Morph");
-    int galaxy_index = Effect::GetEffectIndex("Galaxy");
-    int shockwave_index = Effect::GetEffectIndex("Shockwave");
-    int fan_index = Effect::GetEffectIndex("Fan");
+    int morph_index = effectManager.GetEffectIndex("Morph");
+    int galaxy_index = effectManager.GetEffectIndex("Galaxy");
+    int shockwave_index = effectManager.GetEffectIndex("Shockwave");
+    int fan_index = effectManager.GetEffectIndex("Fan");
     EffectLayer* layer = model->AddEffectLayer();
     std::map<int, ImageInfo> imageInfo;
     wxString imagePfx;

@@ -103,3 +103,22 @@ RenderableEffect *EffectManager::GetEffect(const std::string &str) const {
     return effectsByName[str];
 }
 
+int EffectManager::GetEffectIndex(const std::string &effectName) const {
+    RenderableEffect *eff = GetEffect(effectName);
+    if (eff == nullptr && effectName == "CoroFaces") {
+        eff = GetEffect("Faces");
+    }
+    if (eff != nullptr) {
+        return eff->GetId();
+    }
+    return -1;
+}
+const std::string &EffectManager::GetEffectName(int idx) const {
+    RenderableEffect *eff = GetEffect(idx);
+    if (eff != nullptr) {
+        return eff->Name();
+    }
+    return "Off";
+}
+
+

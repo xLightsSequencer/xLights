@@ -1186,7 +1186,7 @@ void EffectsGrid::Paste(const wxString &data) {
                 if( el == nullptr ) break;
                 if( el->GetRangeIsClearMS(new_start_time, new_end_time) )
                 {
-                    int effectIndex = Effect::GetEffectIndex(efdata[0]);
+                    int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                     if (effectIndex >= 0) {
                         Effect* ef = el->AddEffect(0,
                                       effectIndex,
@@ -1221,7 +1221,7 @@ void EffectsGrid::Paste(const wxString &data) {
             else
             {
                 EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
-                int effectIndex = Effect::GetEffectIndex(efdata[0]);
+                int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                 if (effectIndex >= 0) {
                     int end_time = mDropEndTimeMS;
                     if( (efdata.size() == 7) && GetActiveTimingElement() == nullptr )  // use original effect length if no timing track is active
@@ -1294,7 +1294,7 @@ void EffectsGrid::Paste(const wxString &data) {
                     EffectLayer* el = mSequenceElements->GetEffectLayer(row);
                     if( el->GetRangeIsClearMS(start_time, end_time) )
                     {
-                        int effectIndex = Effect::GetEffectIndex(efdata[0]);
+                        int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                         if (effectIndex >= 0) {
                             Effect* ef = el->AddEffect(0,
                                       effectIndex,

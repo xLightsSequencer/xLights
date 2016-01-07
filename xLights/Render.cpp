@@ -14,37 +14,37 @@
 #define END_OF_RENDER_FRAME INT_MAX
 
 
-static const wxString SLIDER_SparkleFrequency("SLIDER_SparkleFrequency");
-static const wxString SLIDER_Brightness("SLIDER_Brightness");
-static const wxString SLIDER_Contrast("SLIDER_Contrast");
-static const wxString CHOICE_LayerMethod("CHOICE_LayerMethod");
-static const wxString SLIDER_EffectLayerMix("SLIDER_EffectLayerMix");
-static const wxString CHECKBOX_LayerMorph("CHECKBOX_LayerMorph");
-static const wxString TEXTCTRL_Fadein("TEXTCTRL_Fadein");
-static const wxString TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
+static const std::string SLIDER_SparkleFrequency("SLIDER_SparkleFrequency");
+static const std::string SLIDER_Brightness("SLIDER_Brightness");
+static const std::string SLIDER_Contrast("SLIDER_Contrast");
+static const std::string CHOICE_LayerMethod("CHOICE_LayerMethod");
+static const std::string SLIDER_EffectLayerMix("SLIDER_EffectLayerMix");
+static const std::string CHECKBOX_LayerMorph("CHECKBOX_LayerMorph");
+static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
+static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
 
-static const wxString CHECKBOX_Palette1("CHECKBOX_Palette1");
-static const wxString CHECKBOX_Palette2("CHECKBOX_Palette2");
-static const wxString CHECKBOX_Palette3("CHECKBOX_Palette3");
-static const wxString CHECKBOX_Palette4("CHECKBOX_Palette4");
-static const wxString CHECKBOX_Palette5("CHECKBOX_Palette5");
-static const wxString CHECKBOX_Palette6("CHECKBOX_Palette6");
-static const wxString BUTTON_Palette1("BUTTON_Palette1");
-static const wxString BUTTON_Palette2("BUTTON_Palette2");
-static const wxString BUTTON_Palette3("BUTTON_Palette3");
-static const wxString BUTTON_Palette4("BUTTON_Palette4");
-static const wxString BUTTON_Palette5("BUTTON_Palette5");
-static const wxString BUTTON_Palette6("BUTTON_Palette6");
+static const std::string CHECKBOX_Palette1("CHECKBOX_Palette1");
+static const std::string CHECKBOX_Palette2("CHECKBOX_Palette2");
+static const std::string CHECKBOX_Palette3("CHECKBOX_Palette3");
+static const std::string CHECKBOX_Palette4("CHECKBOX_Palette4");
+static const std::string CHECKBOX_Palette5("CHECKBOX_Palette5");
+static const std::string CHECKBOX_Palette6("CHECKBOX_Palette6");
+static const std::string BUTTON_Palette1("BUTTON_Palette1");
+static const std::string BUTTON_Palette2("BUTTON_Palette2");
+static const std::string BUTTON_Palette3("BUTTON_Palette3");
+static const std::string BUTTON_Palette4("BUTTON_Palette4");
+static const std::string BUTTON_Palette5("BUTTON_Palette5");
+static const std::string BUTTON_Palette6("BUTTON_Palette6");
 
 
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 
 
 //other common strings
-static const wxString STR_NORMAL("Normal");
-static const wxString STR_EFFECT("Effect");
-static const wxString STR_NONE("None");
-static const wxString STR_EMPTY("");
+static const std::string STR_NORMAL("Normal");
+static const std::string STR_EFFECT("Effect");
+static const std::string STR_NONE("None");
+static const std::string STR_EMPTY("");
 
 
 class RenderEvent {
@@ -880,7 +880,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     if (effectObj != nullptr) {
         eidx = effectObj->GetEffectIndex();
     } else {
-        eidx = Effect::GetEffectIndex(SettingsMap.Get(STR_EFFECT, STR_NONE));
+        eidx = effectManager.GetEffectIndex(SettingsMap.Get(STR_EFFECT, STR_NONE));
     }
     if (eidx >= 0) {
         RenderableEffect *reff = effectManager.GetEffect(eidx);

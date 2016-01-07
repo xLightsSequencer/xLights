@@ -67,6 +67,11 @@ public:
         }
         RenderableEffect *GetEffect(const std::string &str) const;
         int GetLastEffectId() const { return size() - 1;};
+    
+    
+        int GetEffectIndex(const std::string &effectName) const;
+        const std::string &GetEffectName(int idx) const;
+
     protected:
     private:
         void add(RenderableEffect *eff);

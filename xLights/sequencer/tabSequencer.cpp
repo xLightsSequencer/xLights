@@ -529,7 +529,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             wxString settings, palette;
             wxString effectName = CreateEffectStringRandom(settings, palette);
             effect->SetEffectName(effectName);
-            effect->SetEffectIndex(Effect::GetEffectIndex(effectName));
+            effect->SetEffectIndex(effectManager.GetEffectIndex(effectName.ToStdString()));
             effect->SetPalette(palette);
             effect->SetSettings(settings);
             resetStrings = true;
