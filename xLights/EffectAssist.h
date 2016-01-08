@@ -67,10 +67,12 @@ class EffectAssist: public wxPanel
         static const long ID_BITMAPBUTTON_Paint_Pencil;
         static const long ID_BITMAPBUTTON_Paint_Eraser;
         static const long ID_BITMAPBUTTON_Paint_Eyedropper;
+        static const long ID_BITMAPBUTTON_Paint_Selectcopy;
 
 		FlickerFreeBitmapButton* BitmapButton_Paint_Pencil;
 		FlickerFreeBitmapButton* BitmapButton_Paint_Eraser;
 		FlickerFreeBitmapButton* BitmapButton_Paint_Eyedropper;
+		FlickerFreeBitmapButton* BitmapButton_Paint_Selectcopy;
 
         xlGridCanvas* PanelEffectGrid;
 
@@ -83,12 +85,16 @@ class EffectAssist: public wxPanel
 		void OnButton_LoadImageClick(wxCommandEvent& event);
 		void OnButton_SaveAsClick(wxCommandEvent& event);
 		void OnButton_ResizeClick(wxCommandEvent& event);
+		void OnChar(wxKeyEvent& event);
+		void OnCharHook(wxKeyEvent& event);
+		void OnKeyDown(wxKeyEvent& event);
 		//*)
 
         void CreatePaintTools(wxWindow* parent, wxFlexGridSizer* container);
 		void OnBitmapButton_Paint_PencilClick(wxCommandEvent& event);
 		void OnBitmapButton_Paint_EraserClick(wxCommandEvent& event);
 		void OnBitmapButton_Paint_EyedropperClick(wxCommandEvent& event);
+		void OnBitmapButton_Paint_SelectcopyClick(wxCommandEvent& event);
 		void OnColorChange(wxCommandEvent& event);
 		void OnImageFileSelected(wxCommandEvent& event);
 		void OnImageSize(wxCommandEvent& event);
@@ -106,8 +112,12 @@ class EffectAssist: public wxPanel
         wxBitmap paint_eraser_selected;
         wxBitmap paint_eyedropper;
         wxBitmap paint_eyedropper_selected;
+        wxBitmap paint_selectcopy;
+        wxBitmap paint_selectcopy_selected;
 
 		DECLARE_EVENT_TABLE()
+
+        void SetHandlers(wxWindow *);
 };
 
 #endif
