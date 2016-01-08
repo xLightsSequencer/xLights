@@ -31,6 +31,7 @@ const long EffectAssist::ID_PANEL_EffectGrid = wxNewId();
 const long EffectAssist::ID_BITMAPBUTTON_Paint_Pencil = wxNewId();
 const long EffectAssist::ID_BITMAPBUTTON_Paint_Eraser = wxNewId();
 const long EffectAssist::ID_BITMAPBUTTON_Paint_Eyedropper = wxNewId();
+const long EffectAssist::ID_BITMAPBUTTON_Paint_Selectcopy = wxNewId();
 
 wxDEFINE_EVENT(EVT_PAINT_COLOR, wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMAGE_FILE_SELECTED, wxCommandEvent);
@@ -57,6 +58,8 @@ EffectAssist::EffectAssist(wxWindow* parent, xLightsFrame* xlights_parent, wxWin
     paint_eraser_selected = wxBITMAP_PNG_FROM_DATA(eraser_sel);
     paint_eyedropper = wxBITMAP_PNG_FROM_DATA(eyedropper);
     paint_eyedropper_selected = wxBITMAP_PNG_FROM_DATA(eyedropper_sel);
+    paint_selectcopy = wxBITMAP_PNG_FROM_DATA(selectcopy);
+    paint_selectcopy_selected = wxBITMAP_PNG_FROM_DATA(selectcopy_sel);
 
 	//(*Initialize(EffectAssist)
 	wxFlexGridSizer* PaintFuntionsSizer;
@@ -65,11 +68,11 @@ EffectAssist::EffectAssist(wxWindow* parent, xLightsFrame* xlights_parent, wxWin
 	wxFlexGridSizer* PaintToolsSizer;
 	wxFlexGridSizer* ColorPickerSizer;
 
-	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
-	Panel_Sizer = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	Panel_Sizer = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("ID_PANEL1"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
-	ScrolledWindowEffectAssist = new wxScrolledWindow(Panel_Sizer, ID_SCROLLED_EffectAssist, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLED_EffectAssist"));
+	ScrolledWindowEffectAssist = new wxScrolledWindow(Panel_Sizer, ID_SCROLLED_EffectAssist, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS|wxVSCROLL|wxHSCROLL, _T("ID_SCROLLED_EffectAssist"));
 	FlexGridSizer_Container = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer_Container->AddGrowableCol(0);
 	FlexGridSizer_Container->AddGrowableRow(0);
@@ -77,7 +80,7 @@ EffectAssist::EffectAssist(wxWindow* parent, xLightsFrame* xlights_parent, wxWin
 	FlexGridSizer_RightSide = new wxFlexGridSizer(0, 1, 0, 0);
 	ColorPickerSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer_RightSide->Add(ColorPickerSizer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	PaintToolsSizer = new wxFlexGridSizer(0, 3, 0, 10);
+	PaintToolsSizer = new wxFlexGridSizer(0, 4, 0, 10);
 	FlexGridSizer_RightSide->Add(PaintToolsSizer, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	PaintFuntionsSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 6, 0, 0);
@@ -139,6 +142,8 @@ EffectAssist::EffectAssist(wxWindow* parent, xLightsFrame* xlights_parent, wxWin
 	FlexGridSizer2->SetSizeHints(Panel_Sizer);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
+
+	SetHandlers(this);
 }
 
 EffectAssist::~EffectAssist()
@@ -164,9 +169,15 @@ void EffectAssist::CreatePaintTools(wxWindow* parent, wxFlexGridSizer* container
     BitmapButton_Paint_Eyedropper->SetBitmapFocus(paint_eyedropper_selected);
     BitmapButton_Paint_Eyedropper->SetBitmapCurrent(paint_eyedropper_selected);
     container->Add(BitmapButton_Paint_Eyedropper, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Paint_Selectcopy = new FlickerFreeBitmapButton(parent, ID_BITMAPBUTTON_Paint_Selectcopy, paint_selectcopy, wxDefaultPosition, wxSize(64,64), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Paint_Selectcopy"));
+    BitmapButton_Paint_Selectcopy->SetBitmapSelected(paint_selectcopy_selected);
+    BitmapButton_Paint_Selectcopy->SetBitmapFocus(paint_selectcopy_selected);
+    BitmapButton_Paint_Selectcopy->SetBitmapCurrent(paint_selectcopy_selected);
+    container->Add(BitmapButton_Paint_Selectcopy, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Connect(ID_BITMAPBUTTON_Paint_Pencil,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectAssist::OnBitmapButton_Paint_PencilClick);
     Connect(ID_BITMAPBUTTON_Paint_Eraser,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectAssist::OnBitmapButton_Paint_EraserClick);
     Connect(ID_BITMAPBUTTON_Paint_Eyedropper,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectAssist::OnBitmapButton_Paint_EyedropperClick);
+    Connect(ID_BITMAPBUTTON_Paint_Selectcopy,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectAssist::OnBitmapButton_Paint_SelectcopyClick);
 }
 
 void EffectAssist::ForceRefresh()
@@ -175,6 +186,33 @@ void EffectAssist::ForceRefresh()
     PanelEffectGrid->Update();
     ScrolledWindowEffectAssist->Refresh();
     PanelEffectGrid->ForceRefresh();
+}
+
+void EffectAssist::SetHandlers(wxWindow *window)
+{
+    if (window) {
+        window->Connect(wxID_ANY,
+                        wxEVT_CHAR,
+                        wxKeyEventHandler(EffectAssist::OnChar),
+                        (wxObject*) NULL,
+                        this);
+        window->Connect(wxID_ANY,
+                        wxEVT_CHAR_HOOK,
+                        wxKeyEventHandler(EffectAssist::OnCharHook),
+                        (wxObject*) NULL,
+                        this);
+        window->Connect(wxID_ANY,
+                        wxEVT_KEY_DOWN,
+                        wxKeyEventHandler(EffectAssist::OnKeyDown),
+                        (wxObject*) NULL,
+                        this);
+
+        wxWindowList &list = window->GetChildren();
+        for (wxWindowList::iterator it = list.begin(); it != list.end(); ++it) {
+            wxWindow* pclChild = *it;
+            SetHandlers(pclChild);
+        }
+    }
 }
 
 void EffectAssist::SetEffect(Effect* effect_)
@@ -192,7 +230,8 @@ void EffectAssist::SetEffect(Effect* effect_)
     }
     else if( mEffect->GetEffectIndex() == EffectManager::eff_PICTURES )
     {
-        PanelEffectGrid = new xlGridCanvasPictures(ScrolledWindowEffectAssist, ID_PANEL_EffectGrid, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL_EffectGrid"));
+        PanelEffectGrid = new xlGridCanvasPictures(ScrolledWindowEffectAssist, ID_PANEL_EffectGrid, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE|wxWANTS_CHARS, _T("ID_PANEL_EffectGrid"));
+        SetHandlers(PanelEffectGrid);
     }
     else
     {
@@ -256,6 +295,7 @@ void EffectAssist::OnBitmapButton_Paint_PencilClick(wxCommandEvent& event)
     BitmapButton_Paint_Pencil->SetBitmap(paint_pencil_selected);
     BitmapButton_Paint_Eraser->SetBitmap(paint_eraser);
     BitmapButton_Paint_Eyedropper->SetBitmap(paint_eyedropper);
+    BitmapButton_Paint_Selectcopy->SetBitmap(paint_selectcopy);
     ((xlGridCanvasPictures*)PanelEffectGrid)->SetPaintMode(xlGridCanvasPictures::PAINT_PENCIL);
 }
 
@@ -264,6 +304,7 @@ void EffectAssist::OnBitmapButton_Paint_EraserClick(wxCommandEvent& event)
     BitmapButton_Paint_Pencil->SetBitmap(paint_pencil);
     BitmapButton_Paint_Eraser->SetBitmap(paint_eraser_selected);
     BitmapButton_Paint_Eyedropper->SetBitmap(paint_eyedropper);
+    BitmapButton_Paint_Selectcopy->SetBitmap(paint_selectcopy);
     ((xlGridCanvasPictures*)PanelEffectGrid)->SetPaintMode(xlGridCanvasPictures::PAINT_ERASER);
 }
 
@@ -272,7 +313,17 @@ void EffectAssist::OnBitmapButton_Paint_EyedropperClick(wxCommandEvent& event)
     BitmapButton_Paint_Pencil->SetBitmap(paint_pencil);
     BitmapButton_Paint_Eraser->SetBitmap(paint_eraser);
     BitmapButton_Paint_Eyedropper->SetBitmap(paint_eyedropper_selected);
+    BitmapButton_Paint_Selectcopy->SetBitmap(paint_selectcopy);
     ((xlGridCanvasPictures*)PanelEffectGrid)->SetPaintMode(xlGridCanvasPictures::PAINT_EYEDROPPER);
+}
+
+void EffectAssist::OnBitmapButton_Paint_SelectcopyClick(wxCommandEvent& event)
+{
+    BitmapButton_Paint_Pencil->SetBitmap(paint_pencil);
+    BitmapButton_Paint_Eraser->SetBitmap(paint_eraser);
+    BitmapButton_Paint_Eyedropper->SetBitmap(paint_eyedropper);
+    BitmapButton_Paint_Selectcopy->SetBitmap(paint_selectcopy_selected);
+    ((xlGridCanvasPictures*)PanelEffectGrid)->SetPaintMode(xlGridCanvasPictures::PAINT_SELECTCOPY);
 }
 
 void EffectAssist::OnColorChange(wxCommandEvent& event)
@@ -324,3 +375,44 @@ void EffectAssist::OnButton_ResizeClick(wxCommandEvent& event)
 {
     ((xlGridCanvasPictures*)PanelEffectGrid)->ResizeImage();
 }
+
+void EffectAssist::OnKeyDown(wxKeyEvent& event)
+{
+    event.Skip();
+}
+
+void EffectAssist::OnChar(wxKeyEvent& event)
+{
+    event.Skip();
+}
+
+void EffectAssist::OnCharHook(wxKeyEvent& event)
+{
+    if( mEffect != NULL )
+    {
+        if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
+        {
+            wxChar uc = event.GetUnicodeKey();
+            switch(uc)
+            {
+                case 'c':
+                case 'C':
+                case WXK_CONTROL_C:
+                    if (event.CmdDown() || event.ControlDown()) {
+                        ((xlGridCanvasPictures*)PanelEffectGrid)->Copy();
+                        event.StopPropagation();
+                    }
+                    break;
+                case 'v':
+                case 'V':
+                case WXK_CONTROL_V:
+                    if (event.CmdDown() || event.ControlDown()) {
+                        ((xlGridCanvasPictures*)PanelEffectGrid)->Paste();
+                        event.StopPropagation();
+                    }
+                    break;
+            }
+        }
+    }
+}
+

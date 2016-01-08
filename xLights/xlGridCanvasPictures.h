@@ -20,7 +20,8 @@ class xlGridCanvasPictures : public xlGridCanvas
         {
             PAINT_PENCIL,
             PAINT_ERASER,
-            PAINT_EYEDROPPER
+            PAINT_EYEDROPPER,
+            PAINT_SELECTCOPY
         };
 
         xlGridCanvasPictures(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
@@ -34,9 +35,11 @@ class xlGridCanvasPictures : public xlGridCanvas
         void SaveImage();
         void SaveAsImage();
         void ResizeImage();
+        void Copy();
+        void Paste();
         void CreateNewImage(wxString& image_dir);
         void SetPaintColor( xlColor& color ) { mPaintColor = color; }
-        void SetPaintMode( PaintMode mode ) { mPaintMode = mode; }
+        void SetPaintMode( PaintMode mode ) { mPaintMode = mode; Refresh(false); }
 
     protected:
         virtual void InitializeGLCanvas();
@@ -61,11 +64,14 @@ class xlGridCanvasPictures : public xlGridCanvas
         void mouseUp();
         void render(wxPaintEvent& event);
         void DrawPicturesEffect();
+        void DrawSelection();
         void LoadAndProcessImage();
         void ProcessNewImage();
         wxString GetImageFilename();
         void SaveImageToFile();
         void UpdateRenderedImage();
+        void CalcSelection();
+        void ProcessHoverDrag(int column, int row);
 
         bool mRightDown;
         bool mLeftDown;
@@ -85,12 +91,30 @@ class xlGridCanvasPictures : public xlGridCanvas
         Image* imageGL_ping;
         Image* imageGL_pong;
         Image* mImage;
+        wxImage image_copy;
+        Image* mImageCopy;
         xLightsDrawable* sprite;
+        xLightsDrawable* copy_sprite;
         wxString PictureName;
         wxString NewPictureName;
         xlColor mPaintColor;
         xlColor mEraseColor;
         PaintMode mPaintMode;
+        xlColor* mSelectionColor;
+
+        int mDragStartX;
+        int mDragStartY;
+        int mDragEndX;
+        int mDragEndY;
+        int mHoverDragRow;
+        int mHoverDragCol;
+        int mStartRow;
+        int mStartCol;
+        int mEndRow;
+        int mEndCol;
+        bool mHoverSelection;
+        bool mCopyAvailable;
+        bool mPasteCopy;
 
         DECLARE_EVENT_TABLE()
 };

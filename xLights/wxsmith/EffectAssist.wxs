@@ -2,16 +2,19 @@
 <wxsmith>
 	<object class="wxPanel" name="EffectAssist">
 		<id_arg>0</id_arg>
+		<style>wxTAB_TRAVERSAL|wxWANTS_CHARS</style>
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
 			<rows>1</rows>
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL1" variable="Panel_Sizer" member="yes">
+					<style>wxTAB_TRAVERSAL|wxWANTS_CHARS</style>
 					<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 						<cols>1</cols>
 						<object class="sizeritem">
 							<object class="wxScrolledWindow" name="ID_SCROLLED_EffectAssist" variable="ScrolledWindowEffectAssist" member="yes">
+								<style>wxWANTS_CHARS|wxVSCROLL|wxHSCROLL</style>
 								<object class="wxFlexGridSizer" variable="FlexGridSizer_Container" member="yes">
 									<cols>2</cols>
 									<growablecols>0</growablecols>
@@ -30,7 +33,7 @@
 												</object>
 												<object class="sizeritem">
 													<object class="wxFlexGridSizer" variable="PaintToolsSizer" member="no">
-														<cols>3</cols>
+														<cols>4</cols>
 														<hgap>10</hgap>
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
