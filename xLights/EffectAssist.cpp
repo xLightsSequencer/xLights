@@ -390,7 +390,7 @@ void EffectAssist::OnCharHook(wxKeyEvent& event)
 {
     if( mEffect != NULL )
     {
-        if( mEffect->GetEffectIndex() == EffectManager::eff_PICTURES )
+        if( mEffect->GetEffectIndex() == BitmapCache::eff_PICTURES )
         {
             wxChar uc = event.GetUnicodeKey();
             switch(uc)
