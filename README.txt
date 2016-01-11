@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+4.3.02  Jan 8, 2016
     -- enh(gil)   Add copy/paste tool to the Picture Effect Assist window.
 4.3.01  Jan 3, 2016
     -- bug(gil)   Fixed direction of colors for a reversed Marquee.
