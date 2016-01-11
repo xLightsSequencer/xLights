@@ -81,13 +81,8 @@ void EffectLayer::RemoveEffect(int index)
 Effect* EffectLayer::AddEffect(int id, const wxString &name, const wxString &settings, const wxString &palette,
                                int startTimeMS, int endTimeMS, int Selected, bool Protected)
 {
-    return AddEffect(id, Effect::GetEffectIndex(name), name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
-}
-Effect* EffectLayer::AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
-                               int startTimeMS, int endTimeMS, int Selected, bool Protected)
-{
     wxMutexLocker locker(lock);
-    Effect *e = new Effect(this, id, effectIndex, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
+    Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
     mEffects.push_back(e);
     SortEffects();
     IncrementChangeCount(startTimeMS, endTimeMS);

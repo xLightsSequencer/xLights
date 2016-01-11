@@ -78,8 +78,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
 
     Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::EffectSelected);
     Connect(ID_BITMAPBUTTON_CHOICEBOOK1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
-    Connect(wxEVT_PAINT,(wxObjectEventFunction)&EffectsPanel::OnPaint1);
-    Connect(wxEVT_SIZE,(wxObjectEventFunction)&EffectsPanel::OnResize);
     //*)
 
     this->SetName("Effect");
@@ -99,7 +97,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
         fgs->SetSizeHints(sw);
         
         
-        EffectChoicebook->AddPage(sw, p->Name(), false);
+        EffectChoicebook->AddPage(sw, p->ToolTip(), false);
     }
     
     EffectChoicebook->SetSelection(0);
@@ -347,23 +345,6 @@ void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
     GetEffectStringFromWindow(EffectChoicebook->GetPage(EffectChoicebook->GetSelection()));
 }
 
-//  Pinwheel
-/*
-void EffectsPanel::Update_TextCtrl_Pinwheel_Arms()
-{
-    TextCtrl_Pinwheel_Arms->SetValue(wxString::Format("%d",Slider_Pinwheel_Arms->GetValue()));
-}
-
-void EffectsPanel::OnSlider_Pinwheel_ArmsCmdScroll(wxScrollEvent& event)
-{
-    Update_TextCtrl_Pinwheel_Arms();
-}
-*/
-
-
-
-
-
 
 //add lock/unlock/random state flags -DJ
 //these could be used to make fields read-only, but initially they are just used for partially random effects
@@ -386,161 +367,4 @@ bool EffectsPanel::isRandom_(void)
 void EffectsPanel::OnLockButtonClick(wxCommandEvent& event) {
     wxButton * button = (wxButton*)event.GetEventObject();
     setlock(button);
-}
-
-
-
-
-void EffectsPanel::OnResize(wxSizeEvent& event)
-{
-
-}
-
-void EffectsPanel::OnPaint1(wxPaintEvent& event)
-{
-
-}
-
-
-//generic routines that can replace the above and be completely implemented in the codeblocks
-//gui based on the ID names of the two controls.  No need for "member" variables
-void EffectsPanel::UpdateLinkedSlider(wxCommandEvent& event)
-{
-    wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
-    wxString name = txt->GetName();
-    if (name.Contains("IDD_")) {
-        name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
-    } else {
-        name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
-    }
-    wxSlider *slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
-    if (slider == nullptr) {
-        return;
-    }
-    int value = wxAtoi(txt->GetValue());
-
-    if (value < slider->GetMin()) {
-        value = slider->GetMin();
-        wxString val_str;
-        val_str << value;
-        txt->ChangeValue(val_str);
-    }
-    else if (value > slider->GetMax()) {
-        value = slider->GetMax();
-        wxString val_str;
-        val_str << value;
-        txt->ChangeValue(val_str);
-    }
-    slider->SetValue(value);
-}
-
-void EffectsPanel::UpdateLinkedTextCtrl(wxScrollEvent& event)
-{
-    wxSlider * slider = (wxSlider*)event.GetEventObject();
-    wxString name = slider->GetName();
-    if (name.Contains("ID_")) {
-        name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
-    } else {
-        name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
-    }
-    wxTextCtrl *txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
-    txt->ChangeValue(wxString::Format("%d",slider->GetValue()));
-}
-
-
-void EffectsPanel::UpdateLinkedSlider360(wxCommandEvent& event)
-{
-    wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
-    wxString name = txt->GetName();
-    if (name.Contains("IDD_")) {
-        name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
-    } else {
-        name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
-    }
-    wxSlider *slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
-    if (slider == nullptr) {
-        return;
-    }
-    double val;
-    txt->GetValue().ToDouble(&val);
-    int value = (int)(val * 360.0);
-
-    if (value < slider->GetMin()) {
-        value = slider->GetMin();
-        txt->ChangeValue(wxString::Format("%0.2f",(double)value/360.0));
-    } else if (value > slider->GetMax()) {
-        value = slider->GetMax();
-        wxString val_str;
-        val_str << value;
-        txt->ChangeValue(wxString::Format("%0.2f",(double)value/360.0));
-    }
-    slider->SetValue(value);
-}
-void EffectsPanel::UpdateLinkedTextCtrl360(wxScrollEvent& event)
-{
-    wxSlider * slider = (wxSlider*)event.GetEventObject();
-    wxString name = slider->GetName();
-    if (name.Contains("ID_")) {
-        name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
-    } else {
-        name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
-    }
-    wxTextCtrl *txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
-    txt->ChangeValue(wxString::Format("%0.2f",slider->GetValue()/360.0));
-}
-
-void EffectsPanel::UpdateLinkedTextCtrlFloat(wxScrollEvent& event)
-{
-    wxSlider * slider = (wxSlider*)event.GetEventObject();
-    wxString name = slider->GetName();
-    if (name.Contains("ID_")) {
-        name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
-    } else {
-        name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
-    }
-    wxTextCtrl *txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
-    txt->ChangeValue(wxString::Format("%0.1f",slider->GetValue()/10.0));
-}
-
-void EffectsPanel::UpdateLinkedSliderFloat(wxCommandEvent& event)
-{
-    wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
-    wxString name = txt->GetName();
-    if (name.Contains("IDD_")) {
-        name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
-    } else {
-        name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
-    }
-    wxSlider *slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
-    if (slider == nullptr) {
-        return;
-    }
-
-    double val;
-    txt->GetValue().ToDouble(&val);
-    int value = (int)(val * 10.0);
-
-    if (value < slider->GetMin()) {
-        value = slider->GetMin();
-        txt->ChangeValue(wxString::Format("%0.1f",(double)value/10.0));
-    } else if (value > slider->GetMax()) {
-        value = slider->GetMax();
-        wxString val_str;
-        val_str << value;
-        txt->ChangeValue(wxString::Format("%0.1f",(double)value/10.0));
-    }
-    slider->SetValue(value);
-}
-
-
-void EffectsPanel::enableControlsByName(const wxString &name, bool enable) {
-    wxWindow *w = FindWindowByName(name);
-    if (w != nullptr) {
-        w->Enable(enable);
-    }
-    wxString n2 = "IDD_" + name.SubString(3, name.size());
-    w = FindWindowByName(name);
-    if (w != nullptr) {
-        w->Enable(enable);
-    }
 }

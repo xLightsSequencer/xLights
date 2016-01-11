@@ -131,7 +131,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 
         wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
         if (dlg.ShowModal()) {
-            selectedEffect->SetEffectName(dlg.GetValue());
+            selectedEffect->SetEffectName(dlg.GetValue().ToStdString());
         }
         Refresh();
     }
@@ -362,7 +362,6 @@ void EffectsGrid::FillRandomEffects()
                     if( effectLayer->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS()) )
                     {
                         Effect* ef = effectLayer->AddEffect(0,
-                                                  0,
                                                   "Random",
                                                   "",
                                                   "",
@@ -377,6 +376,31 @@ void EffectsGrid::FillRandomEffects()
                 }
             }
             mCellRangeSelected = false;
+        }
+    } else if (mSequenceElements->GetVisibleEffectLayer(mDropRow) != nullptr) {
+        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
+        int end_time = mDropEndTimeMS;
+        if( el->GetRangeIsClearMS(mDropStartTimeMS, end_time) )
+        {
+            Effect* ef = el->AddEffect(0,
+                                       "Random",
+                                       "",
+                                       "",
+                                       mDropStartTimeMS,
+                                       mDropEndTimeMS,
+                                       EFFECT_SELECTED,
+                                       false);
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
+            RaiseSelectedEffectChanged(ef);
+            mSelectedEffect = ef;
+            if (!ef->GetPaletteMap().empty()) {
+                sendRenderEvent(el->GetParentElement()->GetName(),
+                                mDropStartTimeMS,
+                                mDropEndTimeMS, true);
+            }
+            RaiseSelectedEffectChanged(ef);
+            mPartialCellSelected = false;
         }
     }
 }
@@ -921,7 +945,6 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
             {
                 mSequenceElements->get_undo_mgr().CreateUndoStep();
                 Effect* ef = new_el->AddEffect(0,
-                                               mSelectedEffect->GetEffectIndex(),
                                                mSelectedEffect->GetEffectName(),
                                                mSelectedEffect->GetSettingsAsString(),
                                                mSelectedEffect->GetPaletteAsString(),
@@ -978,7 +1001,6 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
             {
                 mSequenceElements->get_undo_mgr().CreateUndoStep();
                 Effect* ef = new_el->AddEffect(0,
-                                               mSelectedEffect->GetEffectIndex(),
                                                mSelectedEffect->GetEffectName(),
                                                mSelectedEffect->GetSettingsAsString(),
                                                mSelectedEffect->GetPaletteAsString(),
@@ -1189,7 +1211,6 @@ void EffectsGrid::Paste(const wxString &data) {
                     int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                     if (effectIndex >= 0) {
                         Effect* ef = el->AddEffect(0,
-                                      effectIndex,
                                       efdata[0],
                                       efdata[1],
                                       efdata[2],
@@ -1234,7 +1255,6 @@ void EffectsGrid::Paste(const wxString &data) {
                     if( el->GetRangeIsClearMS(mDropStartTimeMS, end_time) )
                     {
                         Effect* ef = el->AddEffect(0,
-                                      effectIndex,
                                       efdata[0],
                                       efdata[1],
                                       efdata[2],
@@ -1297,7 +1317,6 @@ void EffectsGrid::Paste(const wxString &data) {
                         int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                         if (effectIndex >= 0) {
                             Effect* ef = el->AddEffect(0,
-                                      effectIndex,
                                       efdata[0],
                                       efdata[1],
                                       efdata[2],

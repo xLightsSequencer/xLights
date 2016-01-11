@@ -5,8 +5,6 @@
 		<minsize>150,150</minsize>
 		<maxsize>150,150</maxsize>
 		<id_arg>0</id_arg>
-		<handler function="OnPaint1" entry="EVT_PAINT" />
-		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
 			<growablecols>0</growablecols>

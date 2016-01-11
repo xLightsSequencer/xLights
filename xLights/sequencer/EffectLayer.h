@@ -18,8 +18,6 @@ class EffectLayer
 
         Effect *AddEffect(int id, const wxString &name, const wxString &settings, const wxString &palette,
                           int startTimeMS, int endTimeMS, int Selected, bool Protected);
-        Effect *AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
-                          int startTimeMS, int endTimeMS, int Selected, bool Protected);
         Effect* GetEffect(int index);
         Effect* GetEffectByTime(int ms);
         Effect* GetEffectFromID(int id);

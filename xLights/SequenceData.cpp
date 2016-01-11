@@ -44,11 +44,9 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         unsigned long tmp = numChannels;
         tmp *= numFrames;
         size_t sz = tmp;
-        data = (unsigned char *)malloc(sz);
-        memset(data, 0, sz);
+        data = (unsigned char *)calloc(1, sz);
     }
-    invalidData = (unsigned char *)malloc(numChannels);
-    memset(invalidData, 0, numChannels);
+    invalidData = (unsigned char *)calloc(1, numChannels);
 }
 
 FrameData SequenceData::operator[](unsigned int frame) {

@@ -427,7 +427,7 @@ void MainSequencer::InsertTimingMarkFromRange()
             if(!el->HitTestEffectByTime(t1,index) && !el->HitTestEffectByTime(t2,index))
             {
                 wxString name,settings;
-                el->AddEffect(0,0,name,settings,"",t1,t2,false,false);
+                el->AddEffect(0,name,settings,"",t1,t2,false,false);
                 PanelEffectGrid->ForceRefresh();
             }
             else
@@ -456,7 +456,7 @@ void MainSequencer::InsertTimingMarkFromRange()
                 if(effect!=nullptr)
                 {
                     int t1 = effect->GetEndTimeMS();
-                    el->AddEffect(0,0,name,settings,"",t1,t2,false,false);
+                    el->AddEffect(0,name,settings,"",t1,t2,false,false);
                 }
                 // No effect to left start at time = 0
                 else
@@ -466,7 +466,7 @@ void MainSequencer::InsertTimingMarkFromRange()
                         Effect *e = el->GetEffect(el->GetEffectCount() - 1);
                         t1 = e->GetEndTimeMS();
                     }
-                    el->AddEffect(0,0,name,settings,"",t1,t2,false,false);
+                    el->AddEffect(0,name,settings,"",t1,t2,false,false);
                 }
                 PanelEffectGrid->ForceRefresh();
             }
@@ -511,7 +511,7 @@ void MainSequencer::SplitTimingMark()
                 {
                     eff1->SetEndTimeMS(t1);
                     wxString name,settings;
-                    el->AddEffect(0,0,name,settings,"",t2,old_end_time,false,false);
+                    el->AddEffect(0,name,settings,"",t2,old_end_time,false,false);
                     PanelEffectGrid->ForceRefresh();
                 }
             }

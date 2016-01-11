@@ -81,6 +81,9 @@ EffectManager::EffectManager() : std::vector<RenderableEffect*>()
     add(new TreeEffect(eff_TREE));
     add(new TwinkleEffect(eff_TWINKLE));
     add(new WaveEffect(eff_WAVE));
+    
+    //Map an old name
+    effectsByName["CoroFaces"] = GetEffect("Faces");
 }
 
 EffectManager::~EffectManager()
@@ -89,7 +92,6 @@ EffectManager::~EffectManager()
         delete *it;
     }
 }
-
 void EffectManager::add(RenderableEffect *eff) {
     int id = eff->GetId();
     if (id >= size()) {
@@ -97,6 +99,7 @@ void EffectManager::add(RenderableEffect *eff) {
     }
     (*this)[id] = eff;
     effectsByName[eff->Name()] = eff;
+    effectsByName[eff->ToolTip()] = eff;
 }
 
 RenderableEffect *EffectManager::GetEffect(const std::string &str) const {
@@ -105,9 +108,6 @@ RenderableEffect *EffectManager::GetEffect(const std::string &str) const {
 
 int EffectManager::GetEffectIndex(const std::string &effectName) const {
     RenderableEffect *eff = GetEffect(effectName);
-    if (eff == nullptr && effectName == "CoroFaces") {
-        eff = GetEffect("Faces");
-    }
     if (eff != nullptr) {
         return eff->GetId();
     }
@@ -118,7 +118,7 @@ const std::string &EffectManager::GetEffectName(int idx) const {
     if (eff != nullptr) {
         return eff->Name();
     }
-    return "Off";
+    return GetEffect(0)->Name();
 }
 
 

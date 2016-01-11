@@ -316,12 +316,15 @@ void xLightsFrame::RenameModelInViews(const wxString& old_name, const wxString& 
 
 void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
 {
-    for(size_t i=0; i<cb->GetPageCount(); i++)
-    {
-        if (cb->GetPageText(i) == PageName)
+    RenderableEffect *reff = effectManager.GetEffect(PageName.ToStdString());
+    if (reff != nullptr) {
+        for(size_t i=0; i<cb->GetPageCount(); i++)
         {
-            cb->ChangeSelection(i);
-            return;
+            if (cb->GetPageText(i) == reff->ToolTip())
+            {
+                cb->ChangeSelection(i);
+                return;
+            }
         }
     }
 }

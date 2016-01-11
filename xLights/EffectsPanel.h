@@ -59,26 +59,10 @@ protected:
 
 
 private:
-    void enableControlsByName(const wxString &name, bool enable);
 
     //(*Handlers(EffectsPanel)
-    void OnCheckBox_PaletteClick(wxCommandEvent& event);
-    void OnButton_PaletteNumberClick(wxCommandEvent& event);
-    void OnPaint(wxPaintEvent& event);
-    void OnTextCtrl2Text(wxCommandEvent& event);
-    void OnTextCtrl1Text(wxCommandEvent& event);
-    void OnTextCtrl_Eff_On_StartText(wxCommandEvent& event);
-    void OnTextCtrl_Eff_On_EndText(wxCommandEvent& event);
-    void OnResize(wxSizeEvent& event);
-    void OnPaint1(wxPaintEvent& event);
-    void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
     void EffectSelected(wxChoicebookEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
+    void OnLockButtonClick(wxCommandEvent& event);
     //*)
 
     int GetRandomSliderValue(wxSlider* slider);

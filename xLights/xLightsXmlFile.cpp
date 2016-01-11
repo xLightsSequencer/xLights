@@ -5,6 +5,7 @@
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
 #include "effects/EffectManager.h"
+#include "effects/RenderableEffect.h"
 
 #define string_format wxString::Format
 
@@ -75,19 +76,6 @@ bool xLightsXmlFile::NeedsTimesCorrected()
         return false;
     }
     return true;
-}
-
-// return true if version string is older than compare string
-bool xLightsXmlFile::IsVersionOlder(const wxString& compare, const wxString& version)
-{
-    wxArrayString compare_parts = wxSplit(compare, '.');
-    wxArrayString version_parts = wxSplit(version, '.');
-    if( wxAtoi(version_parts[0]) < wxAtoi(compare_parts[0]) ) return true;
-    if( wxAtoi(version_parts[0]) > wxAtoi(compare_parts[0]) ) return false;
-    if( wxAtoi(version_parts[1]) < wxAtoi(compare_parts[1]) ) return true;
-    if( wxAtoi(version_parts[1]) > wxAtoi(compare_parts[1]) ) return false;
-    if( wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]) ) return true;
-    return false;
 }
 
 int xLightsXmlFile::GetLastView()
@@ -1502,7 +1490,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
             if( sequence_loaded )
             {
-                effectLayer->AddEffect(0,0,labels[k],wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                effectLayer->AddEffect(0,labels[k],wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
             }
             else
             {
@@ -1631,7 +1619,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
                                     endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k+1]),xLightsParent->GetSequenceElements().GetFrequency());
                                     if( sequence_loaded )
                                     {
-                                        effectLayer->AddEffect(0,0,"",wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                                        effectLayer->AddEffect(0,"",wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
                                     }
                                     else
                                     {
@@ -1938,7 +1926,7 @@ void xLightsXmlFile::AddNewTimingSection(wxString filename, xLightsFrame* xLight
 
         if( sequence_loaded )
         {
-            effectLayer->AddEffect(0,0,labels[k],wxEmptyString,"",starts[k],ends[k],EFFECT_NOT_SELECTED,false);
+            effectLayer->AddEffect(0,labels[k],wxEmptyString,"",starts[k],ends[k],EFFECT_NOT_SELECTED,false);
         }
         else
         {
@@ -1989,7 +1977,7 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame*
                 next_time = (time + interval <= end_time) ? time + interval : end_time;
                 startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
                 endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
-                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                effectLayer->AddEffect(0,wxEmptyString,wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
                 time += interval;
             }
         }
@@ -2053,66 +2041,28 @@ bool xLightsXmlFile::ExtractMetaTagsFromMP3(const wxString &filename)
     return modified;
 }
 
-void xLightsXmlFile::CheckUpdateMorphPositions(SequenceElements& elements, xLightsFrame* xLightsParent)
+void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent)
 {
-    wxString morph_change = "4.1.10";
-    if( IsVersionOlder(morph_change, GetVersion()) )
-    {
-        for( int i = 0; i < elements.GetElementCount(); i++ )
-        {
+    std::string ver = GetVersion().ToStdString();
+    std::vector<RenderableEffect*> effects(xLightsParent->GetEffectManager().size());
+    int count = 0;
+    for (int x = 0; x < xLightsParent->GetEffectManager().size(); x++) {
+        RenderableEffect *eff = xLightsParent->GetEffectManager()[x];
+        if (eff->needToAdjustSettings(ver)) {
+            effects[x] = eff;
+            count++;
+        }
+    }
+    if (count > 0) {
+        for( int i = 0; i < elements.GetElementCount(); i++ )  {
             Element* elem = elements.GetElement(i);
-            if( elem->GetType() == "model" )
-            {
-                for( int j = 0; j < elem->GetEffectLayerCount(); j++ )
-                {
+            if( elem->GetType() == "model" ) {
+                for( int j = 0; j < elem->GetEffectLayerCount(); j++ ) {
                     EffectLayer* layer = elem->GetEffectLayer(j);
-                    for( int k = 0; k < layer->GetEffectCount(); k++ )
-                    {
+                    for( int k = 0; k < layer->GetEffectCount(); k++ ) {
                         Effect* eff = layer->GetEffect(k);
-                        if( eff->GetEffectIndex() == EffectManager::eff_MORPH )
-                        {
-                            wxString model_name = elem->GetName();
-                            ModelClass *cls = xLightsParent->GetModelClass(model_name);
-                            int width = cls->BufferWi;
-                            int height = cls->BufferHt;
-                            double width_band = 101.0 / width;
-                            double height_band = 101.0 / height;
-                            wxString settings = eff->GetSettingsAsString();
-                            wxArrayString all_settings = wxSplit(settings, ',');
-                            for( int s = 0; s < all_settings.size(); s++ )
-                            {
-                                wxArrayString parts = wxSplit(all_settings[s], '=');
-                                if( parts[0] == "E_SLIDER_Morph_Start_X1" ||
-                                    parts[0] == "E_SLIDER_Morph_End_X1" ||
-                                    parts[0] == "E_SLIDER_Morph_Start_X2" ||
-                                    parts[0] == "E_SLIDER_Morph_End_X2" )
-                                {
-                                    int value = wxAtoi(parts[1]);
-                                    if( value > 0 && value < 100 ) // ignore ends since those values will always work
-                                    {
-                                        int old_location = (width-1) * (value / 100.0);
-                                        int new_percentage = (int)(((double)old_location + 0.5) * width_band);
-                                        parts[1] = wxString::Format("%d", new_percentage);
-                                        all_settings[s] = wxJoin(parts, '=');
-                                    }
-                                }
-                                if( parts[0] == "E_SLIDER_Morph_Start_Y1" ||
-                                    parts[0] == "E_SLIDER_Morph_End_Y1" ||
-                                    parts[0] == "E_SLIDER_Morph_Start_Y2" ||
-                                    parts[0] == "E_SLIDER_Morph_End_Y2" )
-                                {
-                                    int value = wxAtoi(parts[1]);
-                                    if( value > 0 && value < 100 ) // ignore ends since those values will always work
-                                    {
-                                        int old_location = (height-1) * (value / 100.0);
-                                        int new_percentage = (int)(((double)old_location + 0.5) * height_band);
-                                        parts[1] = wxString::Format("%d", new_percentage);
-                                        all_settings[s] = wxJoin(parts, '=');
-                                    }
-                                }
-                            }
-                            settings = wxJoin(all_settings, ',');
-                            eff->SetSettings(settings);
+                        if ( effects[eff->GetEffectIndex()] != nullptr ) {
+                            effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                         }
                     }
                 }

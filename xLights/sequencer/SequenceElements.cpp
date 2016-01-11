@@ -440,7 +440,6 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
             wxString effectName;
             wxString settings;
             int id = 0;
-            int effectIndex = 0;
             long palette = -1;
             bool bProtected=false;
 
@@ -458,7 +457,6 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
             {
                 // Name
                 effectName = effect->GetAttribute(STR_NAME);
-                effectIndex = Effect::GetEffectIndex(effectName);
                 // ID
                 id = wxAtoi(effect->GetAttribute(STR_ID, STR_ZERO));
                 if (effect->GetAttribute(STR_REF) != STR_EMPTY) {
@@ -478,7 +476,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                 effectName = effect->GetAttribute(STR_LABEL);
 
             }
-            effectLayer->AddEffect(id,effectIndex,effectName,settings,
+            effectLayer->AddEffect(id,effectName,settings,
                                    palette == -1 ? STR_EMPTY : colorPalettes[palette],
                                    startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
         } else if (effect->GetName() == STR_NODE && effectLayerNode->GetName() == STR_STRAND) {
@@ -579,7 +577,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                 next_time = (time + interval <= end_time) ? time + interval : end_time;
                                 startTime = TimeLine::RoundToMultipleOfPeriod(time,mFrequency);
                                 endTime = TimeLine::RoundToMultipleOfPeriod(next_time,mFrequency);
-                                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                                effectLayer->AddEffect(0,wxEmptyString,wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
                                 time += interval;
                             }
                         }
@@ -1231,7 +1229,7 @@ void SequenceElements::ImportLyrics(Element* element, wxWindow* parent)
             {
                 xframe->dictionary.InsertSpacesAfterPunctuation(line);
                 end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, GetFrequency());
-                phrase_layer->AddEffect(0,0,line,wxEmptyString,"",start_time,end_time,EFFECT_NOT_SELECTED,false);
+                phrase_layer->AddEffect(0,line,wxEmptyString,"",start_time,end_time,EFFECT_NOT_SELECTED,false);
                 start_time = end_time;
             }
         }
@@ -1254,7 +1252,7 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
             {
                 word_end_time = end_time;
             }
-            word_layer->AddEffect(0,0,words[i],wxEmptyString,"",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
+            word_layer->AddEffect(0,words[i],wxEmptyString,"",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
             word_start_time = word_end_time;
         }
     }
@@ -1276,7 +1274,7 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
             {
                 phoneme_end_time = end_time;
             }
-            phoneme_layer->AddEffect(0,0,phonemes[i],wxEmptyString,"",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
+            phoneme_layer->AddEffect(0,phonemes[i],wxEmptyString,"",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
             phoneme_start_time = phoneme_end_time;
         }
     }
@@ -1319,5 +1317,9 @@ bool SequenceElements::GetElementsToRender(std::vector<Element *> &models) {
 void SequenceElements::AddRenderDependency(const wxString &layer, const wxString &model) {
     wxMutexLocker locker(renderDepLock);
     renderDependency[layer].insert(model);
+}
+
+EffectManager &SequenceElements::GetEffectManager() {
+    return xframe->GetEffectManager();
 }
 

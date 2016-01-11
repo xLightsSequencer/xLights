@@ -49,6 +49,7 @@ struct EventPlayEffectArgs
 class wxXmlNode;
 class EffectLayer;
 class xLightsFrame;
+class EffectManager;
 
 class SequenceElements : public ChangeListener
 {
@@ -154,6 +155,7 @@ class SequenceElements : public ChangeListener
         bool GetElementsToRender(std::vector<Element *> &models);
     
         wxFileName &GetFileName() { return mFilename;}
+        EffectManager &GetEffectManager();
     protected:
     private:
         void LoadEffects(EffectLayer *layer,

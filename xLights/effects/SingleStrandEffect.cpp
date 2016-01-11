@@ -8,9 +8,11 @@
 
 #include "../../include/singleStrand.xpm"
 
-SingleStrandEffect::SingleStrandEffect(int id) : RenderableEffect(id, "Single Strand", singleStrand, singleStrand, singleStrand, singleStrand, singleStrand)
+SingleStrandEffect::SingleStrandEffect(int id)
+    : RenderableEffect(id, "SingleStrand", singleStrand, singleStrand, singleStrand, singleStrand, singleStrand)
 {
     //ctor
+    tooltip = "Single Strand";
 }
 
 SingleStrandEffect::~SingleStrandEffect()

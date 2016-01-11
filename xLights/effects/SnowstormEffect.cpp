@@ -14,7 +14,7 @@
 
 SnowstormEffect::SnowstormEffect(int id) : RenderableEffect(id, "Snowstorm", snowstorm_16, snowstorm_24, snowstorm_32, snowstorm_48, snowstorm_64)
 {
-    //ctor
+    tooltip = "Snow Storm";
 }
 
 SnowstormEffect::~SnowstormEffect()

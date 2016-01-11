@@ -260,7 +260,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mSequenceElements.SetModelsNode(ModelsNode, this);
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file);
-    //xml_file.CheckUpdateMorphPositions(mSequenceElements, this);  everyone should have had time to fix their older sequences prior to May 20th, 2015.  Delete once we know this function is no longer needed.
+    xml_file.AdjustEffectSettingsForVersion(mSequenceElements, this);
     mSequenceElements.PopulateRowInformation();
 
     Menu_Settings_Sequence->Enable(true);
@@ -528,7 +528,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         if ("Random" == effect->GetEffectName()) {
             wxString settings, palette;
             wxString effectName = CreateEffectStringRandom(settings, palette);
-            effect->SetEffectName(effectName);
+            effect->SetEffectName(effectName.ToStdString());
             effect->SetEffectIndex(effectManager.GetEffectIndex(effectName.ToStdString()));
             effect->SetPalette(palette);
             effect->SetSettings(settings);
@@ -596,7 +596,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                                      mSequenceElements.GetSelectedRange(i)->EndTime);
         el->DeleteSelectedEffects(mSequenceElements.get_undo_mgr());
         // Add dropped effect
-        Effect* effect = el->AddEffect(0,effectIndex,name,settings,palette,
+        Effect* effect = el->AddEffect(0,name,settings,palette,
                                        mSequenceElements.GetSelectedRange(i)->StartTime,
                                        mSequenceElements.GetSelectedRange(i)->EndTime,
                                        EFFECT_SELECTED,false);
@@ -881,7 +881,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                 {
                     el->GetEffect(j)->SetSettings(effectText);
                     el->GetEffect(j)->SetEffectIndex(effectIndex);
-                    el->GetEffect(j)->SetEffectName(effectName);
+                    el->GetEffect(j)->SetEffectName(effectName.ToStdString());
                     el->GetEffect(j)->SetPalette(palette);
 
                     if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
@@ -988,7 +988,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
             if (name !=  selectedEffect->GetEffectName()) {
-                selectedEffect->SetEffectName(name);
+                selectedEffect->SetEffectName(name.ToStdString());
                 selectedEffect->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
             }
 

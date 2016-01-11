@@ -7,7 +7,7 @@
 #include "../UtilClasses.h"
 #include "../Color.h"
 #include "../DrawGLUtils.h"
-
+#include <string>
 
 class EffectLayer;
 
@@ -22,7 +22,7 @@ class Effect
         Effect();  //don't allow default or copy constructor
         Effect(const Effect &e);
     public:
-        Effect(EffectLayer* parent, int id, int effectIndex, const wxString & name, const wxString &settings, const wxString &palette,
+    Effect(EffectLayer* parent, int id, const wxString & name, const wxString &settings, const wxString &palette,
                int startTimeMS, int endTimeMS, int Selected, bool Protected);
         virtual ~Effect();
 
@@ -32,8 +32,8 @@ class Effect
         int GetEffectIndex() const;
         void SetEffectIndex(int effectIndex);
 
-        const wxString &GetEffectName() const;
-        void SetEffectName(const wxString & name);
+        const std::string &GetEffectName() const;
+        void SetEffectName(const std::string & name);
 
         int GetStartTimeMS() const;
         void SetStartTimeMS(int startTimeMS);
@@ -41,16 +41,13 @@ class Effect
         int GetEndTimeMS() const;
         void SetEndTimeMS(int endTimeMS);
 
-        int GetSelected();
+        int GetSelected() const;
         void SetSelected(int selected);
 
-        bool GetProtected();
+        bool GetProtected() const;
         void SetProtected(bool Protected);
 
-        static int GetEffectIndex(const wxString &effectName);
-        static const wxString &GetEffectName(int idx);
-
-        EffectLayer* GetParentEffectLayer();
+        EffectLayer* GetParentEffectLayer() const;
         void SetParentEffectLayer(EffectLayer* parent);
 
         void IncrementChangeCount();
@@ -58,10 +55,14 @@ class Effect
         wxString GetSettingsAsString() const;
         void SetSettings(const wxString &settings);
 
-        /* Do NOT call these on any thread other than the main thread */
         const SettingsMap &GetSettings() const { return mSettings;}
-        const xlColorVector GetPalette() const { return mColors;}
+        const xlColorVector &GetPalette() const { return mColors;}
         const SettingsMap &GetPaletteMap() const { return mPaletteMap;}
+
+        /* Do NOT call these on any thread other than the main thread */
+        SettingsMap &GetSettings() { return mSettings;}
+        xlColorVector &GetPalette() { return mColors;}
+        SettingsMap &GetPaletteMap() { return mPaletteMap;}
 
         void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
         void CopyPaletteMap(SettingsMap &target, bool stripPfx = false) const;
@@ -86,7 +87,7 @@ class Effect
         int mEndTime;
         int mSelected;
         int mID;
-        wxString *mName;
+        std::string *mName;
         short mEffectIndex;
         bool mProtected;
         EffectLayer* mParentLayer;

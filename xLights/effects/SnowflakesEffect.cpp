@@ -14,7 +14,7 @@
 
 SnowflakesEffect::SnowflakesEffect(int id) : RenderableEffect(id, "Snowflakes", snowflakes_16, snowflakes_24, snowflakes_32, snowflakes_48, snowflakes_64)
 {
-    //ctor
+    tooltip = "Snow Flakes";
 }
 
 SnowflakesEffect::~SnowflakesEffect()

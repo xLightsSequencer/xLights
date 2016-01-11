@@ -27,7 +27,7 @@ void DragEffectBitmapButton::SetEffect(RenderableEffect *eff, int sz)
     mEffect = eff;
     if (eff != nullptr) {
         SetBitmap(eff->GetEffectIcon(sz));
-        SetToolTip(eff->Name());
+        SetToolTip(eff->ToolTip());
     }
 }
 
