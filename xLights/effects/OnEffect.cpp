@@ -37,7 +37,7 @@ void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
     if (starti == 100 && endi == 100) {
         start = end = newcolor;
     } else {
-        wxImage::HSVValue hsv = newcolor.asHSV();
+        HSVValue hsv = newcolor.asHSV();
         hsv.value = (hsv.value * starti) / 100;
         start = hsv;
         hsv = newcolor.asHSV();
@@ -81,7 +81,7 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
     if (start == 100 && end == 100) {
         buffer.palette.GetColor(cidx, color);
     } else {
-        wxImage::HSVValue hsv;
+        HSVValue hsv;
         buffer.palette.GetHSV(cidx,hsv);
         double d = adjust;
         d = start + (end - start) * d;
@@ -109,7 +109,7 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
             buffer.palette.GetColor(0, color);
             buffer.SetDisplayListHRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, color);
         } else {
-            wxImage::HSVValue hsv;
+            HSVValue hsv;
             buffer.palette.GetHSV(cidx,hsv);
             hsv.value = hsv.value * start / 100.0;
             color = hsv;

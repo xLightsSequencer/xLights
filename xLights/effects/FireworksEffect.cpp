@@ -42,10 +42,10 @@ public:
     float angle;
     bool _bActive;
     int _cycles;
-    wxImage::HSVValue _hsv;
+    HSVValue _hsv;
     int startPeriod;
     
-    void Reset(int x, int y, bool active, float velocity, wxImage::HSVValue hsv, int start)
+    void Reset(int x, int y, bool active, float velocity, HSVValue hsv, int start)
     {
         _x       = x;
         _y       = y;
@@ -89,7 +89,7 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     int startX;
     int startY,ColorIdx;
     float v;
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     size_t colorcnt = buffer.GetColorCount();
     
     if (buffer.needToInit) {

@@ -62,7 +62,7 @@ void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             if (buffer.allowAlpha) {
                 color.alpha = 255.0 * V;
             } else {
-                wxImage::HSVValue hsv = color.asHSV();
+                HSVValue hsv = color.asHSV();
                 hsv.value = V; // we have now set the color for the background tree
                 color = hsv;
             }
@@ -112,7 +112,7 @@ void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 ))
                 if((odd_even ==0 && x<=f_mod) || (odd_even ==1 && s_odd_row<=f_mod))
                 {
-                    wxImage::HSVValue hsv;
+                    HSVValue hsv;
                     hsv.hue = H;
                     hsv.saturation=1.0;
                     hsv.value=1.0;

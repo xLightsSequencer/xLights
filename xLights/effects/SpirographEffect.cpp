@@ -38,7 +38,7 @@ void SpirographEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     int mod1440,d_mod;
     float R,r,d,d_orig,t;
     double hyp,x2,y2;
-    wxImage::HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+    HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
     size_t colorcnt=buffer.GetColorCount();
     
     int state = (buffer.curPeriod - buffer.curEffStartPer) * sspeed * buffer.frameTimeInMs / 50;

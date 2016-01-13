@@ -37,6 +37,8 @@
 					<Add directory="../xLights" />
 					<Add directory="effects" />
 					<Add directory="effects/" />
+					<Add directory="models" />
+					<Add directory="modesl" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -108,6 +110,8 @@
 					<Add directory="../xLights" />
 					<Add directory="effects" />
 					<Add directory="effects/" />
+					<Add directory="models" />
+					<Add directory="modesl" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -171,6 +175,8 @@
 					<Add directory="../xLights" />
 					<Add directory="effects" />
 					<Add directory="effects/" />
+					<Add directory="models" />
+					<Add directory="modesl" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -183,10 +189,10 @@
 					<Add option="-Wl,--large-address-aware" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/libmpg123-0.lib" />
-					<Add library="../lib/windows/glut32.lib" />
+					<Add library="..\lib\windows\DbgHelp.Lib" />
+					<Add library="..\lib\windows\ImageHlp.Lib" />
+					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="..\lib\windows\glut32.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -218,6 +224,8 @@
 					<Add directory="../xLights" />
 					<Add directory="effects" />
 					<Add directory="effects/" />
+					<Add directory="models" />
+					<Add directory="modesl" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -232,10 +240,10 @@
 					<Add option="-Wl,--large-address-aware" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/libmpg123-0.lib" />
-					<Add library="../lib/windows/glut32.lib" />
+					<Add library="..\lib\windows\DbgHelp.Lib" />
+					<Add library="..\lib\windows\ImageHlp.Lib" />
+					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="..\lib\windows\glut32.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -264,6 +272,8 @@
 					<Add directory="../xLights" />
 					<Add directory="effects" />
 					<Add directory="effects/" />
+					<Add directory="models" />
+					<Add directory="modesl" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 " />
@@ -290,6 +300,8 @@
 					<Add directory="../xLights" />
 					<Add directory="effects" />
 					<Add directory="effects/" />
+					<Add directory="models" />
+					<Add directory="modesl" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -321,6 +333,8 @@
 					<Add directory="../xLights" />
 					<Add directory="effects" />
 					<Add directory="effects/" />
+					<Add directory="models" />
+					<Add directory="modesl" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -333,10 +347,10 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/libmpg123-0.lib" />
-					<Add library="../lib/windows/glut32.lib" />
+					<Add library="..\lib\windows\DbgHelp.Lib" />
+					<Add library="..\lib\windows\ImageHlp.Lib" />
+					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="..\lib\windows\glut32.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -367,6 +381,8 @@
 					<Add directory="../xLights" />
 					<Add directory="effects" />
 					<Add directory="effects/" />
+					<Add directory="models" />
+					<Add directory="modesl" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -378,9 +394,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/libmpg123-0.lib" />
+					<Add library="..\lib\windows\DbgHelp.Lib" />
+					<Add library="..\lib\windows\ImageHlp.Lib" />
+					<Add library="..\lib\windows\libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -401,6 +417,7 @@
 		<Unit filename="BitmapCache.cpp" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />
+		<Unit filename="Color.cpp" />
 		<Unit filename="ColorPanel.cpp" />
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="CurrentPreviewModels.cpp" />
@@ -699,6 +716,18 @@
 		<Unit filename="effects/WavePanel.h" />
 		<Unit filename="heartbeat.cpp" />
 		<Unit filename="heartbeat.h" />
+		<Unit filename="models/ArchesModel.cpp" />
+		<Unit filename="models/ArchesModel.h" />
+		<Unit filename="models/Model.cpp" />
+		<Unit filename="models/Model.h" />
+		<Unit filename="models/ModelManager.cpp" />
+		<Unit filename="models/ModelManager.h" />
+		<Unit filename="models/Node.h" />
+		<Unit filename="models/StarModel.cpp" />
+		<Unit filename="models/StarModel.h" />
+		<Unit filename="models/TreeModel.cpp" />
+		<Unit filename="models/TreeModel.h" />
+		<Unit filename="modesl/StarModel.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />

@@ -70,7 +70,7 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     double  fractpart, intpart;
     
     xlColour color;
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     int maxframe=buffer.BufferHt*2;
     
     int curState = (buffer.curPeriod - buffer.curEffStartPer) * butterFlySpeed * buffer.frameTimeInMs / 50;

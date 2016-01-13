@@ -29,7 +29,7 @@ public:
     
     int x,y;
     int duration; // How frames strobe light stays on. Will be decremented each frame
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     xlColor color;
 };
 
@@ -69,7 +69,7 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     
     int ColorIdx;
     StrobeClass m;
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     size_t colorcnt=buffer.GetColorCount();
     
     // create new strobe, randomly place a strobe

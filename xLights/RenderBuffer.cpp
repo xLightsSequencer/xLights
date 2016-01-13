@@ -258,14 +258,13 @@ double RenderBuffer::RandomRange(double num1, double num2)
     return rand01()*(hi-lo)+ lo;
 }
 
-void RenderBuffer::Color2HSV(const xlColour& color, wxImage::HSVValue& hsv)
+void RenderBuffer::Color2HSV(const xlColour& color, HSVValue& hsv)
 {
-    wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
-    hsv=wxImage::RGBtoHSV(rgb);
+    color.toHSV(hsv);
 }
 
 // sets newcolor to a random color between hsv1 and hsv2
-void RenderBuffer::SetRangeColor(const wxImage::HSVValue& hsv1, const wxImage::HSVValue& hsv2, wxImage::HSVValue& newhsv)
+void RenderBuffer::SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSVValue& newhsv)
 {
     newhsv.hue=RandomRange(hsv1.hue,hsv2.hue);
     newhsv.saturation=RandomRange(hsv1.saturation,hsv2.saturation);
@@ -293,13 +292,13 @@ void RenderBuffer::Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, d
 
 HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
 {
-    wxImage::RGBValue rgb;
-    wxImage::RGBValue rgb1 = wxImage::HSVtoRGB(hsv1);
-    wxImage::RGBValue rgb2 = wxImage::HSVtoRGB(hsv2);
+    xlColor rgb;
+    xlColor rgb1(hsv1);
+    xlColor rgb2(hsv2);
     rgb.red = rgb1.red + rgb2.red;
     rgb.green = rgb1.green + rgb2.green;
     rgb.blue = rgb1.blue + rgb2.blue;
-    return wxImage::RGBtoHSV(rgb);
+    return rgb.asHSV();
 }
 // 0 <= n < 1
 void RenderBuffer::GetMultiColorBlend(double n, bool circular, xlColour &color)
@@ -355,7 +354,7 @@ void RenderBuffer::ProcessPixel(int x_pos, int y_pos, const xlColour &color, boo
 }
 
 // 0,0 is lower left
-void RenderBuffer::SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap)
+void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
 {
     if (wrap) {
         while (x < 0) {
@@ -496,7 +495,7 @@ void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, c
 
 void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap)
 {
-    HSVValue hsv = wxImage::RGBtoHSV(rgb);
+    HSVValue hsv(rgb);
     xlColor color(rgb);
     int r = radius;
     if (allowAlpha) {
@@ -513,7 +512,7 @@ void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& r
             hsv.value = full_brightness * (1.0 - (double)(r) / (double)radius);
             if( hsv.value > 0.0 )
             {
-                color = wxImage::HSVtoRGB(hsv);
+                color = hsv;
                 DrawCircle(x0, y0, r, color, wrap);
             }
             r--;

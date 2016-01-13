@@ -346,7 +346,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
         pixels_per_chase = 1;
     }
     
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     buffer.palette.GetHSV(0, hsv);
     orig_v = hsv.value;
     xlColor color;

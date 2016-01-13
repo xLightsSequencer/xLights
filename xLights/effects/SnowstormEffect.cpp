@@ -30,8 +30,8 @@ wxPanel *SnowstormEffect::CreatePanel(wxWindow *parent) {
 class SnowstormClass
 {
 public:
-    wxPointVector points;
-    wxImage::HSVValue hsv;
+    std::vector<wxPoint> points;
+    HSVValue hsv;
     int idx,ssDecay;
     ~SnowstormClass()
     {
@@ -130,7 +130,7 @@ void SnowstormEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     int sSpeed = SettingsMap.GetInt("SLIDER_Snowstorm_Speed", 0);
 
     // create new meteors
-    wxImage::HSVValue hsv,hsv0,hsv1;
+    HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
     buffer.palette.GetHSV(1,hsv1);
     SnowstormClass ssItem;

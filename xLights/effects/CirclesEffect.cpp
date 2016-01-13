@@ -36,9 +36,9 @@ public:
     float _radius;
     float _t;
     float dir;
-    wxImage::HSVValue hsvcolor;
+    HSVValue hsvcolor;
     
-    void Reset(float x, float y, float speed, float angle, float radius, wxImage::HSVValue color)
+    void Reset(float x, float y, float speed, float angle, float radius, HSVValue color)
     {
         _x=x;
         _y=y;
@@ -153,7 +153,7 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     int ii=0;
     int colorIdx;
     size_t colorCnt=buffer.GetColorCount();
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     float spd;
     float angle;
     
@@ -241,7 +241,7 @@ void CirclesEffect::RenderCirclesUpdate(RenderBuffer &buffer, int ballCnt, RgbBa
 
 void CirclesEffect::RenderRadial(RenderBuffer &buffer, int x, int y,int thickness, int colorCnt,int number,bool radial_3D, const int effectState)
 {
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     int ii,n;
     int colorIdx;
     int barht = buffer.BufferHt/(thickness+1);
@@ -283,7 +283,7 @@ void CirclesEffect::RenderMetaBalls(RenderBuffer &buffer, int numBalls, MetaBall
 {
     int row, col, ii;
     float sum, val;
-    wxImage::HSVValue hsv, temp;
+    HSVValue hsv, temp;
     
     for(row=0;row<buffer.BufferHt;row++)
     {

@@ -128,8 +128,8 @@ void LightningEffect::LightningDrawBolt(RenderBuffer &buffer, const int x0_, con
     int y0 = y0_;
     int y1 = y1_;
     xlColor color2;
-    wxImage::HSVValue hsv = color.asHSV();
-    wxImage::HSVValue hsv2 = color2.asHSV();
+    HSVValue hsv = color.asHSV();
+    HSVValue hsv2 = color2.asHSV();
     //   if(x0<0 || x1<0 || y1<0 || y0<0) return;
     
     int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;

@@ -46,7 +46,7 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     int spiralGap = deltaStrands - SpiralThickness;
     long SpiralState;
     long ThicknessState = 0;
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     xlColour color;
     
     int Direction = Movement > 0.001 ? 1 : (Movement < -0.001 ? -1 : 0);

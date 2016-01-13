@@ -71,7 +71,7 @@ class MeteorClass {
 public:
     
     int x,y;
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     int h; //variable length; only used for icicle drip -DJ
 };
 
@@ -81,7 +81,7 @@ public:
     
     double x,y,dx,dy;
     int cnt;
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
 };
 
 typedef std::list<MeteorClass> MeteorList;
@@ -182,7 +182,7 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer &buffer, int ColorSchem
     double swirl_phase;
     
     MeteorClass m;
-    wxImage::HSVValue hsv,hsv0,hsv1;
+    HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
     buffer.palette.GetHSV(1,hsv1);
     size_t colorcnt=buffer.GetColorCount();
@@ -291,7 +291,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme,
     double swirl_phase;
     
     MeteorClass m;
-    wxImage::HSVValue hsv,hsv0,hsv1;
+    HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
     buffer.palette.GetHSV(1,hsv1);
     size_t colorcnt=buffer.GetColorCount();
@@ -375,7 +375,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
     if (want_bkg) Length = -Length; //kludge; too lazy to add another parameter ;)
     
     MeteorClass m;
-    wxImage::HSVValue hsv,hsv0,hsv1;
+    HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
     buffer.palette.GetHSV(1,hsv1);
     size_t colorcnt=buffer.GetColorCount();
@@ -494,7 +494,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
     int centerY=buffer.BufferHt/2;
     
     MeteorRadialClass m;
-    wxImage::HSVValue hsv,hsv0,hsv1;
+    HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
     buffer.palette.GetHSV(1,hsv1);
     size_t colorcnt=buffer.GetColorCount();
@@ -606,7 +606,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
     int halfdiag=(sqrt( (double)buffer.BufferHt*buffer.BufferHt + buffer.BufferWi*buffer.BufferWi))/2; // 1/2 the length of the diagonal
 
     MeteorRadialClass m;
-    wxImage::HSVValue hsv,hsv0,hsv1;
+    HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
     buffer.palette.GetHSV(1,hsv1);
     size_t colorcnt=buffer.GetColorCount();

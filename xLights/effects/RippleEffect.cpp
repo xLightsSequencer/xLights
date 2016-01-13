@@ -46,7 +46,7 @@ void RippleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     int i,ColorIdx;
     int xc,yc;
     
-    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+    HSVValue hsv;
     size_t colorcnt=buffer.GetColorCount();
     
     i=0;
@@ -106,7 +106,7 @@ void RippleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     }
 }
 
-void RippleEffect::Drawsquare(RenderBuffer &buffer, int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,wxImage::HSVValue hsv)
+void RippleEffect::Drawsquare(RenderBuffer &buffer, int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,HSVValue &hsv)
 {
     int i,x,y;
     xlColor color(hsv);
@@ -149,7 +149,7 @@ void RippleEffect::Drawsquare(RenderBuffer &buffer, int Movement, int x1, int x2
         }
     }
 }
-void RippleEffect::Drawcircle(RenderBuffer &buffer, int Movement,int xc,int yc,double radius,wxImage::HSVValue hsv, int Ripple_Thickness,int CheckBox_Ripple3D)
+void RippleEffect::Drawcircle(RenderBuffer &buffer, int Movement,int xc,int yc,double radius,HSVValue &hsv, int Ripple_Thickness,int CheckBox_Ripple3D)
 {
     double degrees,radian;
     int x,y;

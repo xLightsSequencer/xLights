@@ -434,7 +434,7 @@ static xlColor GetColor(const wxString& sRed, const wxString& sGreen, const wxSt
 }
 static wxString GetColorString(const wxString& sRed, const wxString& sGreen, const wxString& sBlue)
 {
-    return (wxString)GetColor(sRed, sGreen, sBlue);
+    return GetColor(sRed, sGreen, sBlue);
 }
 static xlColor GetColor(const wxString& rgb) {
     int i = wxAtoi(rgb);
@@ -876,7 +876,7 @@ void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNo
         }
     } else {
         xlColor c(color.Red(), color.Green(), color.Blue());
-        wxImage::HSVValue hsv = c.asHSV();
+        HSVValue hsv = c.asHSV();
         for (int x = 0; x < frames; x++) {
             int i = redData[x];
             //for ramps up/down, HLS does a 1%-100% so the first cell is not linear and
@@ -963,7 +963,7 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
         }
     } else {
         xlColor c(color.Red(), color.Green(), color.Blue());
-        wxImage::HSVValue hsv = c.asHSV();
+        HSVValue hsv = c.asHSV();
         for (int x = 0; x < numFrames; x++) {
             hsv.value = ((double)data[x + numFrames * channel]) / 255.0;
             colors[x] = hsv;

@@ -3,13 +3,34 @@
 #define XLIGHTS_COLOR_H
 
 #include <vector>
+#include <cstdint>
+#include <string>
 
-#include <wx/colour.h>
-#include <wx/image.h>
+class xlColor;
+class wxString;
+class wxColor;
 
-class xlColor : public wxImage::RGBValue {
+
+class HSVValue
+{
 public:
-    unsigned char alpha;
+    HSVValue(double h=0.0, double s=0.0, double v=0.0)
+        : hue(h), saturation(s), value(v) {}
+    HSVValue(const xlColor &c);
+    HSVValue& operator=(const xlColor& hsv);
+
+    double hue;
+    double saturation;
+    double value;
+};
+
+class xlColor {
+public:
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+    uint8_t alpha;
+
     xlColor() {
         red = green = blue = 0;
         alpha = 255;
@@ -26,20 +47,13 @@ public:
         }
         alpha = 255;
     }
-    xlColor(const wxColor &c) {
-        red = c.Red();
-        green = c.Green();
-        blue = c.Blue();
-        alpha = 255;
-    }
-
-    xlColor(unsigned char r, unsigned char g, unsigned char b) {
+    xlColor(uint8_t r, uint8_t g, uint8_t b) {
         red = r;
         green = g;
         blue = b;
         alpha = 255;
     }
-    xlColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    xlColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         red = r;
         green = g;
         blue = b;
@@ -51,53 +65,29 @@ public:
         green = rgb.green;
         alpha = rgb.alpha;
     }
-    xlColor(const wxString &str) {
+    xlColor(const std::string &str) {
         SetFromString(str);
     }
-    xlColor(const wxImage::RGBValue &rgb) {
-        red = rgb.red;
-        blue = rgb.blue;
-        green = rgb.green;
-        alpha = 255;
+    xlColor(const HSVValue &hsv) {
+        fromHSV(hsv);
     }
-    xlColor(const wxImage::HSVValue &hsv) {
-        wxImage::RGBValue rgb = wxImage::HSVtoRGB(hsv);
-        red = rgb.red;
-        blue = rgb.blue;
-        green = rgb.green;
-        alpha = 255;
-    }
-    unsigned char Red() const { return red; }
-    unsigned char Blue() const { return blue; };
-    unsigned char Green() const { return green; };
-    unsigned char Alpha() const { return alpha; };
 
-    void Set(unsigned char r, unsigned char g, unsigned char b) {
+    uint8_t Red() const { return red; }
+    uint8_t Blue() const { return blue; };
+    uint8_t Green() const { return green; };
+    uint8_t Alpha() const { return alpha; };
+
+    void Set(uint8_t r, uint8_t g, uint8_t b) {
         red = r;
         green = g;
         blue = b;
         alpha = 255;
     }
-    void Set(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    void Set(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         red = r;
         green = g;
         blue = b;
         alpha = a;
-    }
-    xlColor&operator=(const wxImage::HSVValue& hsv) {
-        wxImage::RGBValue rgb = wxImage::HSVtoRGB(hsv);
-        red = rgb.red;
-        blue = rgb.blue;
-        green = rgb.green;
-        alpha = 255;
-        return *this;
-    }
-    xlColor&operator=(const wxImage::RGBValue& rgb) {
-        red = rgb.red;
-        blue = rgb.blue;
-        green = rgb.green;
-        alpha = 255;
-        return *this;
     }
     bool operator==(const xlColor &rgb) const {
         return (red == rgb.red)
@@ -109,22 +99,29 @@ public:
             || (blue != rgb.blue)
             || (green != rgb.green); //don't compare alpha
     }
-    wxColor asWxColor() const {
-        return wxColor(red, green, blue, alpha);
+    xlColor&operator=(const HSVValue& hsv) {
+        fromHSV(hsv);
+        return *this;
     }
-    wxImage::HSVValue asHSV() const {
-        return wxImage::RGBtoHSV(*this);
+
+
+    HSVValue asHSV() const {
+        HSVValue v;
+        toHSV(v);
+        return v;
     }
-    wxUint32 GetRGB(bool BBGGRR = true) const
+    void fromHSV(const HSVValue &v);
+    void toHSV(HSVValue &v) const;
+
+
+
+    uint32_t GetRGB(bool BBGGRR = true) const
     {
         if (BBGGRR) {
             return Red() | (Green() << 8) | (Blue() << 16);
         } else {
             return Blue() | (Green() << 8) | (Red() << 16);
         }
-    }
-    operator wxString() const {
-        return wxString::Format("#%02x%02x%02x", red, green, blue);
     }
     /** AlphaBlend this color onto the background **/
     xlColor AlphaBlend(const xlColor &bc) const {
@@ -137,41 +134,14 @@ public:
         double db = blue * a + bc.blue * (1.0 - a);
         return xlColor(dr, dg, db);
     }
-    void SetFromString(const wxString &str) {
-        alpha = 255;
-        if (str.empty()) {
-            red = blue = green = 0;
-            return;
-        } else if ( str[0] == wxT('#') && wxStrlen(str) == 7 ) {
-            // hexadecimal prefixed with # (HTML syntax)
-            unsigned long tmp;
-            if (wxSscanf(str.wx_str() + 1, wxT("%lx"), &tmp) != 1) {
-                red = blue = green = 0;
-                return;
-            }
 
-            Set((unsigned char)(tmp >> 16),
-                (unsigned char)(tmp >> 8),
-                (unsigned char)tmp);
-        } else if (str[0] == wxT('0') && str[1] == wxT('x') && wxStrlen(str) == 8 ) {
-            // hexadecimal prefixed with 0x
-            unsigned long tmp;
-            if (wxSscanf(str.wx_str() + 2, wxT("%lx"), &tmp) != 1) {
-                red = blue = green = 0;
-                return;
-            }
+    void SetFromString(const std::string &str);
+    operator std::string() const;
 
-            Set((unsigned char)(tmp >> 16),
-                (unsigned char)(tmp >> 8),
-                (unsigned char)tmp);
-        } else {
-            //need to do the slower lookups
-            wxColor c(str);
-            red = c.Red();
-            green = c.Green();
-            blue = c.Blue();
-        }
-    }
+    void SetFromString(const wxString &str);
+    operator wxString() const;
+    wxColor asWxColor() const;
+    xlColor(const wxColor &c);
 };
 
 static const xlColor xlBLUE(0, 0, 255);
@@ -186,9 +156,7 @@ static const xlColor xlCYAN(0, 255, 255);
 typedef xlColor xlColour;
 typedef std::vector<xlColor> xlColorVector;
 typedef std::vector<xlColor> xlColourVector;
-typedef std::vector<wxImage::HSVValue> hsvVector;
-typedef std::vector<wxPoint> wxPointVector;
-typedef wxImage::HSVValue HSVValue;
+typedef std::vector<HSVValue> hsvVector;
 
 enum ColorDisplayMode
 {

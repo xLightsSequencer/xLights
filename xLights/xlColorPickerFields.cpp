@@ -215,7 +215,7 @@ void xlColorPickerFields::SetColor(xlColor& color )
 
 int xlColorPickerFields::GetSliderPos()
 {
-    wxImage::HSVValue hsv = Panel_Slider->GetHSV();
+    HSVValue hsv = Panel_Slider->GetHSV();
     xlColor rgb = Panel_Slider->GetRGB();
     int range = Panel_Slider->GetSize().y-1;
     int position = 0;
@@ -246,7 +246,7 @@ int xlColorPickerFields::GetSliderPos()
 
 void xlColorPickerFields::SetColorFromSliderPos(int position)
 {
-    wxImage::HSVValue hsv = Panel_Slider->GetHSV();
+    HSVValue hsv = Panel_Slider->GetHSV();
     xlColor rgb = Panel_Slider->GetRGB();
     int range = Panel_Slider->GetSize().y-1;
 
@@ -287,7 +287,7 @@ void xlColorPickerFields::SetColorFromSliderPos(int position)
 
 void xlColorPickerFields::UpdateTextFields()
 {
-    wxImage::HSVValue hsv = Panel_Slider->GetHSV();
+    HSVValue hsv = Panel_Slider->GetHSV();
     xlColor rgb = Panel_Slider->GetRGB();
     TextCtrl_Hue->ChangeValue(wxString::Format("%d", int(hsv.hue*359.0)));
     TextCtrl_Saturation->ChangeValue(wxString::Format("%d", int(hsv.saturation*100.0)));
@@ -384,7 +384,7 @@ void xlColorPickerFields::OnTextCtrl_Text(wxCommandEvent& event)
 {
     wxTextCtrl * text_ctrl = (wxTextCtrl*)event.GetEventObject();
     wxString name = text_ctrl->GetName();
-    wxImage::HSVValue hsv = Panel_Slider->GetHSV();
+    HSVValue hsv = Panel_Slider->GetHSV();
     xlColor rgb = Panel_Slider->GetRGB();
     if (name.Contains("ID_TEXTCTRL_Hue")) {
         int hue = RangeLimit( TextCtrl_Hue, 0, 359 );

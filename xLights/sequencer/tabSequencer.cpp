@@ -1494,7 +1494,7 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
                 int stime = x * frameTime;
                 int etime = (x+len)*frameTime;
                 if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK) {
-                    wxImage::HSVValue c = colors[x].asHSV();
+                    HSVValue c = colors[x].asHSV();
                     if (colors[x] == xlBLACK) {
                         c = colors[x + len - 1].asHSV();
                     }

@@ -134,7 +134,7 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         {
             buffer.palette.GetColor(color2, color);
         }
-        HSVValue hsv = wxImage::RGBtoHSV(color);
+        HSVValue hsv(color);
         double full_brightness = hsv.value;
         double pct = i/revs;
         double current_radius = radius2 * pct + radius1 * (1.0 - pct);

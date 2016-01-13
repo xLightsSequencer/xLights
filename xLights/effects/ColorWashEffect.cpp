@@ -106,11 +106,11 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         double HalfWi=double(endX - startX)/2.0;
         
         orig = color;
-        wxImage::HSVValue hsvOrig = color.asHSV();
+        HSVValue hsvOrig = color.asHSV();
         xlColor color2 = color;
         for (x=startX; x <= endX; x++)
         {
-            wxImage::HSVValue hsv = hsvOrig;
+            HSVValue hsv = hsvOrig;
             if (HorizFade) {
                 if (buffer.allowAlpha) {
                     color.alpha = (double)orig.alpha*(1.0-std::abs(HalfWi-x-startX)/HalfWi);
@@ -125,7 +125,7 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     if (buffer.allowAlpha) {
                         color.alpha = (double)color2.alpha*(1.0-std::abs(HalfHt-(y-startY))/HalfHt);
                     } else {
-                        wxImage::HSVValue hsv2 = hsv;
+                        HSVValue hsv2 = hsv;
                         hsv2.value*=1.0-std::abs(HalfHt-(y-startY))/HalfHt;
                         color = hsv2;
                     }

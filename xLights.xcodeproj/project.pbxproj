@@ -10,6 +10,12 @@
 		6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */; };
 		67043A4C1A07D17F00C09B71 /* dlgPreviewSize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67043A4B1A07D17F00C09B71 /* dlgPreviewSize.cpp */; };
 		670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */; };
+		670C82871C45C48B000AA5D8 /* ArchesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */; };
+		670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827F1C45C48B000AA5D8 /* StarModel.cpp */; };
+		670C82891C45C48B000AA5D8 /* TreeModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C82811C45C48B000AA5D8 /* TreeModel.cpp */; };
+		670C828A1C45C48B000AA5D8 /* ModelManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C82831C45C48B000AA5D8 /* ModelManager.cpp */; };
+		670C828B1C45C48B000AA5D8 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C82851C45C48B000AA5D8 /* Model.cpp */; };
+		670C828E1C45CCCF000AA5D8 /* Color.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C828D1C45CCCF000AA5D8 /* Color.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
 		671C0BCD1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.0.3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.0.3.0.dylib */; };
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
@@ -246,6 +252,18 @@
 		6708AB4B1A37F88F008313E3 /* minibasic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = minibasic.cpp; path = include/minibasic.cpp; sourceTree = SOURCE_ROOT; };
 		670B144D1B7128AA0090F1F5 /* ModelFaceDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelFaceDialog.h; sourceTree = "<group>"; };
 		670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelFaceDialog.cpp; sourceTree = "<group>"; };
+		670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ArchesModel.cpp; path = models/ArchesModel.cpp; sourceTree = "<group>"; };
+		670C827E1C45C48B000AA5D8 /* ArchesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ArchesModel.h; path = models/ArchesModel.h; sourceTree = "<group>"; };
+		670C827F1C45C48B000AA5D8 /* StarModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StarModel.cpp; path = models/StarModel.cpp; sourceTree = "<group>"; };
+		670C82801C45C48B000AA5D8 /* StarModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StarModel.h; path = models/StarModel.h; sourceTree = "<group>"; };
+		670C82811C45C48B000AA5D8 /* TreeModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TreeModel.cpp; path = models/TreeModel.cpp; sourceTree = "<group>"; };
+		670C82821C45C48B000AA5D8 /* TreeModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TreeModel.h; path = models/TreeModel.h; sourceTree = "<group>"; };
+		670C82831C45C48B000AA5D8 /* ModelManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelManager.cpp; path = models/ModelManager.cpp; sourceTree = "<group>"; };
+		670C82841C45C48B000AA5D8 /* ModelManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelManager.h; path = models/ModelManager.h; sourceTree = "<group>"; };
+		670C82851C45C48B000AA5D8 /* Model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Model.cpp; path = models/Model.cpp; sourceTree = "<group>"; };
+		670C82861C45C48B000AA5D8 /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Model.h; path = models/Model.h; sourceTree = "<group>"; };
+		670C828C1C45C70B000AA5D8 /* Node.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Node.h; path = models/Node.h; sourceTree = "<group>"; };
+		670C828D1C45CCCF000AA5D8 /* Color.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Color.cpp; sourceTree = "<group>"; };
 		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
 		671B331C1AD5CB7600C9F215 /* UtilClasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UtilClasses.h; sourceTree = "<group>"; };
@@ -684,6 +702,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		670C827C1C44554E000AA5D8 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */,
+				670C827E1C45C48B000AA5D8 /* ArchesModel.h */,
+				670C827F1C45C48B000AA5D8 /* StarModel.cpp */,
+				670C82801C45C48B000AA5D8 /* StarModel.h */,
+				670C82811C45C48B000AA5D8 /* TreeModel.cpp */,
+				670C82821C45C48B000AA5D8 /* TreeModel.h */,
+				670C82831C45C48B000AA5D8 /* ModelManager.cpp */,
+				670C82841C45C48B000AA5D8 /* ModelManager.h */,
+				670C82851C45C48B000AA5D8 /* Model.cpp */,
+				670C82861C45C48B000AA5D8 /* Model.h */,
+				670C828C1C45C70B000AA5D8 /* Node.h */,
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
 		675AB40B1B5ACEC900853A28 /* Vamp */ = {
 			isa = PBXGroup;
 			children = (
@@ -971,6 +1007,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				670C827C1C44554E000AA5D8 /* Models */,
 				679BD3281C37552D000539FE /* Effects */,
 				67D11C7B1BEA692300000A7F /* DimmingCurvePanel.cpp */,
 				67D11C751BEA691900000A7F /* ModelDimmingCurveDialog.cpp */,
@@ -1073,6 +1110,7 @@
 				6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */,
 				679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */,
 				675DE2651B53381800A9BB44 /* xlSlider.cpp */,
+				670C828D1C45CCCF000AA5D8 /* Color.cpp */,
 			);
 			path = xLights;
 			sourceTree = "<group>";
@@ -1264,6 +1302,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				67D8F4591A1A584400522413 /* TabTest.cpp in Sources */,
+				670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */,
 				67B2CF8E1C39D98A003C17CA /* WavePanel.cpp in Sources */,
 				67B845061A9C0E7500564051 /* DisplayElementsPanel.cpp in Sources */,
 				67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */,
@@ -1301,6 +1340,7 @@
 				67B2CFD71C3A186A003C17CA /* SnowstormEffect.cpp in Sources */,
 				67B2CF871C39D98A003C17CA /* SnowstormPanel.cpp in Sources */,
 				67A61A2E17B51C0F008E95BB /* ModelClass.cpp in Sources */,
+				670C828B1C45C48B000AA5D8 /* Model.cpp in Sources */,
 				67B2CF711C39D98A003C17CA /* DMXPanel.cpp in Sources */,
 				677421DD1A6A8FF30082DA5B /* RenameTextDialog.cpp in Sources */,
 				67B845071A9C0E7500564051 /* ModelViewSelector.cpp in Sources */,
@@ -1320,6 +1360,7 @@
 				67A61A3117B51C0F008E95BB /* NetInfo.cpp in Sources */,
 				67A61A3217B51C0F008E95BB /* PaletteMgmtDialog.cpp in Sources */,
 				67B2CF7D1C39D98A003C17CA /* MorphPanel.cpp in Sources */,
+				670C828E1C45CCCF000AA5D8 /* Color.cpp in Sources */,
 				67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */,
 				6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */,
 				67A543FE1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp in Sources */,
@@ -1391,6 +1432,7 @@
 				67B2CF721C39D98A003C17CA /* FacesPanel.cpp in Sources */,
 				67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */,
 				675AB42E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp in Sources */,
+				670C82891C45C48B000AA5D8 /* TreeModel.cpp in Sources */,
 				67B2CF751C39D98A003C17CA /* FireworksPanel.cpp in Sources */,
 				67B2CF7C1C39D98A003C17CA /* MeteorsPanel.cpp in Sources */,
 				672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */,
@@ -1398,6 +1440,7 @@
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
 				67B2CFD61C3A186A003C17CA /* SnowflakesEffect.cpp in Sources */,
 				67B2CFF01C3A186A003C17CA /* FireEffect.cpp in Sources */,
+				670C82871C45C48B000AA5D8 /* ArchesModel.cpp in Sources */,
 				67F4C6171A097A35003E978F /* Image.cpp in Sources */,
 				67402E871B4230360047EDC1 /* NullOutputDialog.cpp in Sources */,
 				67A61A4C17B51C0F008E95BB /* SeqExportDialog.cpp in Sources */,
@@ -1442,6 +1485,7 @@
 				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
 				675DE26D1B53381800A9BB44 /* xlGridCanvasMorph.cpp in Sources */,
 				6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */,
+				670C828A1C45C48B000AA5D8 /* ModelManager.cpp in Sources */,
 				679E52BF1AD2F7520065E6EA /* xlMacUtils.mm in Sources */,
 				67B2CFE81C3A186A003C17CA /* MeteorsEffect.cpp in Sources */,
 				67B2CFF11C3A186A003C17CA /* FanEffect.cpp in Sources */,

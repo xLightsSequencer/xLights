@@ -28,7 +28,7 @@ wxPanel *FireEffect::CreatePanel(wxWindow *parent) {
 class FirePaletteClass {
 public:
     FirePaletteClass() {
-        wxImage::HSVValue hsv;
+        HSVValue hsv;
         int i;
         // calc 100 reds, black to bright red
         hsv.hue=0.0;
@@ -54,7 +54,7 @@ public:
     int size() const {
         return firePalette.size();
     }
-    const wxImage::HSVValue &operator[](int x) const {
+    const HSVValue &operator[](int x) const {
         return firePalette[x];
     }
     const xlColor &asColor(int x) const {
@@ -133,7 +133,7 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     float cycles = SettingsMap.GetFloat("TEXTCTRL_Fire_GrowthCycles", 0.0);
     
     int x,y,i,r,v1,v2,v3,v4,n,new_index;
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     int loc = GetLocation(SettingsMap.Get("CHOICE_Fire_Location", "Bottom"));
     FireRenderCache *cache = GetCache(buffer, id);
     

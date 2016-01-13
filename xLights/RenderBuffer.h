@@ -107,15 +107,9 @@ public:
     {
         color=newcolors;
         hsv.clear();
-        wxImage::RGBValue newrgb;
-        wxImage::HSVValue newhsv;
         for(size_t i=0; i<newcolors.size(); i++)
         {
-            newrgb.red=newcolors[i].Red();
-            newrgb.green=newcolors[i].Green();
-            newrgb.blue=newcolors[i].Blue();
-            newhsv=wxImage::RGBtoHSV(newrgb);
-            hsv.push_back(newhsv);
+            hsv.push_back(newcolors[i].asHSV());
         }
     }
     
@@ -138,7 +132,7 @@ public:
         }
     }
     
-    void GetHSV(size_t idx, wxImage::HSVValue& c)
+    void GetHSV(size_t idx, HSVValue& c)
     {
         if (hsv.size() == 0)
         {
@@ -181,7 +175,7 @@ public:
     
     void GetPixel(int x, int y, xlColor &color);
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
-    void SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap = false);
+    void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
     void CopyPixel(int srcx, int srcy, int destx, int desty);
     void ProcessPixel(int x, int y, const xlColour &color, bool wrap_x, int width);
     
@@ -209,9 +203,9 @@ public:
     void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColor &color);
     void Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, double ratio, xlColour &color);
     void GetMultiColorBlend(double n, bool circular, xlColor &color);
-    void SetRangeColor(const wxImage::HSVValue& hsv1, const wxImage::HSVValue& hsv2, wxImage::HSVValue& newhsv);
+    void SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSVValue& newhsv);
     double RandomRange(double num1, double num2);
-    void Color2HSV(const xlColor& color, wxImage::HSVValue& hsv);
+    void Color2HSV(const xlColor& color, HSVValue& hsv);
 
     HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
     double GetEffectTimeIntervalPosition();

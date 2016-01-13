@@ -4,6 +4,9 @@
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 
+
+#include <cmath>
+
 class BaseDimmingCurve : public DimmingCurve {
 public:
     BaseDimmingCurve(int ch = -1) : DimmingCurve(), channel(ch)  {
@@ -108,7 +111,7 @@ public:
         for (int x = 0; x < 256; x++) {
             float i = x;
             i = i * float(brightness + 100) / 100.0;
-            i = 255 * powf(i / 255.0, gamma);
+            i = 255 * pow(i / 255.0, gamma);
             if (i > 255) {
                 i = 255;
             }

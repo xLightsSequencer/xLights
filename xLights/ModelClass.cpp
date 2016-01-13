@@ -74,7 +74,7 @@ void ModelClass::InitWholeHouse(const wxString &WholeHouseData, bool zeroBased) 
         } else {
             stringType = rgbOrder;
         }
-        Nodes.push_back(NodeBaseClassPtr(createNode(1, stringType, 1, stringType)));
+        Nodes.push_back(NodeBaseClassPtr(createNode(1, stringType.ToStdString(), 1, stringType.ToStdString())));
         Nodes.back()->StringNum = 0;
         Nodes.back()->ActChan = actChn;
         Nodes.back()->Coords[0].bufX = xCoord;
@@ -91,7 +91,7 @@ void ModelClass::InitWholeHouse(const wxString &WholeHouseData, bool zeroBased) 
                 stringType = rgbOrder;
             }
             if(actChn != lastActChn) {
-                Nodes.push_back(NodeBaseClassPtr(createNode(1, stringType, 1, stringType)));
+                Nodes.push_back(NodeBaseClassPtr(createNode(1, stringType.ToStdString(), 1, stringType.ToStdString())));
                 Nodes.back()->StringNum = 0;
                 Nodes.back()->ActChan = actChn;
                 Nodes.back()->Coords[0].bufX = xCoord;
@@ -508,7 +508,7 @@ void ModelClass::InitVMatrix(int firstExportStrand) {
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(PixelsPerStrand,NumStrands);
-    SetNodeCount(parm1,PixelsPerString, rgbOrder);
+    SetNodeCount(parm1,PixelsPerString, rgbOrder.ToStdString());
     SetRenderSize(PixelsPerStrand,NumStrands);
 
     // create output mapping
@@ -567,9 +567,9 @@ void ModelClass::InitArches() {
 
     SetBufferSize(NumArches,SegmentsPerArch);
     if (SingleNode) {
-        SetNodeCount(NumArches * SegmentsPerArch, parm3,rgbOrder);
+        SetNodeCount(NumArches * SegmentsPerArch, parm3,rgbOrder.ToStdString());
     } else {
-        SetNodeCount(NumArches, SegmentsPerArch, rgbOrder);
+        SetNodeCount(NumArches, SegmentsPerArch, rgbOrder.ToStdString());
         if (parm3 > 1) {
             for (int x = 0; x < Nodes.size(); x++) {
                 Nodes[x]->Coords.resize(parm3);
@@ -632,7 +632,7 @@ void ModelClass::InitCircle() {
         }
     }
 
-    SetNodeCount(parm1,parm2,rgbOrder);
+    SetNodeCount(parm1,parm2,rgbOrder.ToStdString());
     SetBufferSize(circleSizes.size(),maxLights);
     int LastStringNum=-1;
     int chan = 0,idx;
@@ -708,7 +708,7 @@ void ModelClass::InitHMatrix() {
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(NumStrands,PixelsPerStrand);
-    SetNodeCount(parm1,PixelsPerString,rgbOrder);
+    SetNodeCount(parm1,PixelsPerString,rgbOrder.ToStdString());
     SetRenderSize(NumStrands,PixelsPerStrand);
 
     // create output mapping
@@ -791,11 +791,11 @@ void ModelClass::InitCustomMatrix(const wxString& customModel) {
                 if (nodemap[idx] < 0) {
                     // unmapped - so add a node
                     nodemap[idx]=Nodes.size();
-                    SetNodeCount(1,0,rgbOrder);  // this creates a node of the correct class
+                    SetNodeCount(1,0,rgbOrder.ToStdString());  // this creates a node of the correct class
                     Nodes.back()->StringNum=idx;
                     Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
                     if (idx < nodeNames.size()) {
-                        Nodes.back()->SetName(nodeNames[idx]);
+                        Nodes.back()->SetName(nodeNames[idx].ToStdString());
                     }
                     Nodes.back()->AddBufCoord(col,height - row - 1);
                 } else {
@@ -813,7 +813,7 @@ void ModelClass::InitCustomMatrix(const wxString& customModel) {
         }
     }
     for (int x = 0; x < Nodes.size(); x++) {
-        Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
+        Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum).ToStdString());
     }
 
     SetBufferSize(height,width);
@@ -923,7 +923,7 @@ void ModelClass::SetTreeCoord(long degrees) {
 }
 
 void ModelClass::InitSphere() {
-    SetNodeCount(parm1,parm2,rgbOrder);
+    SetNodeCount(parm1,parm2,rgbOrder.ToStdString());
     int numlights=parm1*parm2;
     SetBufferSize(numlights+1,numlights+1);
     int LastStringNum=-1;
@@ -967,7 +967,7 @@ void ModelClass::InitSphere() {
 // parm2=Pixels Per String/Arch
 void ModelClass::InitLine() {
     int numLights = parm1 * parm2;
-    SetNodeCount(parm1,parm2,rgbOrder);
+    SetNodeCount(parm1,parm2,rgbOrder.ToStdString());
     SetBufferSize(1,numLights);
     int LastStringNum=-1;
     int chan = 0,idx;
@@ -995,7 +995,7 @@ void ModelClass::InitLine() {
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 void ModelClass::InitStar() {
     if (parm3 < 2) parm3=2; // need at least 2 arms
-    SetNodeCount(parm1,parm2,rgbOrder);
+    SetNodeCount(parm1,parm2,rgbOrder.ToStdString());
 
     int maxLights = 0;
     int numlights=parm1*parm2;
@@ -1104,7 +1104,7 @@ void ModelClass::InitStar() {
 
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 void ModelClass::InitWreath() {
-    SetNodeCount(parm1,parm2,rgbOrder);
+    SetNodeCount(parm1,parm2,rgbOrder.ToStdString());
     int numlights=parm1*parm2;
     SetBufferSize(numlights+1,numlights+1);
     int LastStringNum=-1;
@@ -1166,7 +1166,7 @@ void ModelClass::SetLineCoord() {
 // parm3=Nodes on Bottom
 void ModelClass::InitFrame() {
     int x,y,newx,newy;
-    SetNodeCount(1,parm1+2*parm2+parm3,rgbOrder);
+    SetNodeCount(1,parm1+2*parm2+parm3,rgbOrder.ToStdString());
     int FrameWidth=std::max(parm1,parm3)+2;
     SetBufferSize(parm2,FrameWidth);   // treat as outside of matrix
     //SetBufferSize(1,Nodes.size());   // treat as single string
@@ -1254,7 +1254,7 @@ int ModelClass::ChannelsPerNode() {
     return SingleChannel ? 1 : 3;
 }
 
-ModelClass::NodeBaseClass* ModelClass::createNode(int ns, const wxString &StringType, size_t NodesPerString, const wxString &rgbOrder) {
+NodeBaseClass* ModelClass::createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) {
     if (StringType=="Single Color Red" || StringType == "R") {
         return new NodeClassRed(ns, NodesPerString);
     } else if (StringType=="Single Color Green" || StringType == "G") {
@@ -1263,7 +1263,7 @@ ModelClass::NodeBaseClass* ModelClass::createNode(int ns, const wxString &String
         return new NodeClassBlue(ns,NodesPerString);
     } else if (StringType=="Single Color White" || StringType == "W") {
         return new NodeClassWhite(ns,NodesPerString);
-    } else if (StringType.StartsWith("#")) {
+    } else if (StringType[0] == '#') {
         return new NodeClassCustom(ns,NodesPerString, xlColor(StringType));
     } else if (StringType=="Strobes White 3fps") {
         return new NodeClassWhite(ns,NodesPerString);
@@ -1272,14 +1272,14 @@ ModelClass::NodeBaseClass* ModelClass::createNode(int ns, const wxString &String
     }
     return new NodeBaseClass(ns,1,rgbOrder);
 }
-wxString ModelClass::GetNextName() {
+std::string ModelClass::GetNextName() {
     if (nodeNames.size() > Nodes.size()) {
-        return nodeNames[Nodes.size()];
+        return nodeNames[Nodes.size()].ToStdString();
     }
     return "";
 }
 // set size of Nodes vector and each Node's Coords vector
-void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString, const wxString &rgbOrder) {
+void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string &rgbOrder) {
     size_t n;
     if (SingleNode) {
         if (StringType=="Single Color Red") {

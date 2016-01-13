@@ -28,8 +28,7 @@ xlColorCanvas::xlColorCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos
 xlColorCanvas::~xlColorCanvas()
 {
 }
-
-wxImage::HSVValue xlColorCanvas::GetHSV()
+HSVValue &xlColorCanvas::GetHSV()
 {
     return mHSV;
 }
@@ -48,10 +47,10 @@ void xlColorCanvas::SetMode( ColorDisplayMode mode )
     mDisplayMode = mode;
 }
 
-void xlColorCanvas::SetHSV( wxImage::HSVValue hsv)
+void xlColorCanvas::SetHSV(const HSVValue &hsv)
 {
     mHSV = hsv;
-    mRGB = wxImage::HSVtoRGB(hsv);
+    mRGB = hsv;
     Refresh(false);
     Update();
 }
@@ -59,7 +58,7 @@ void xlColorCanvas::SetHSV( wxImage::HSVValue hsv)
 void xlColorCanvas::SetRGB( xlColor rgb)
 {
     mRGB = rgb;
-    mHSV = wxImage::RGBtoHSV(rgb);
+    rgb.toHSV(mHSV);
     Refresh(false);
     Update();
 }
@@ -135,27 +134,27 @@ void xlColorCanvas::ProcessSliderClick( int row )
     {
     case MODE_HUE:
         mHSV.hue = 1.0 - (double)row/dYrange;
-        mRGB = wxImage::HSVtoRGB(mHSV);
+        mRGB = mHSV;
         break;
     case MODE_SATURATION:
         mHSV.saturation = 1.0 - (double)row/dYrange;
-        mRGB = wxImage::HSVtoRGB(mHSV);
+        mRGB = mHSV;
         break;
     case MODE_BRIGHTNESS:
         mHSV.value = 1.0 - (double)row/dYrange;
-        mRGB = wxImage::HSVtoRGB(mHSV);
+        mRGB = mHSV;
         break;
     case MODE_RED:
         mRGB.red = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-        mHSV = wxImage::RGBtoHSV(mRGB);
+        mHSV = mRGB;
         break;
     case MODE_GREEN:
         mRGB.green = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-        mHSV = wxImage::RGBtoHSV(mRGB);
+        mHSV = mRGB;
         break;
     case MODE_BLUE:
         mRGB.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-        mHSV = wxImage::RGBtoHSV(mRGB);
+        mHSV = mRGB;
         break;
     }
 }
@@ -171,32 +170,32 @@ void xlColorCanvas::ProcessPaletteClick( int row, int column )
     case MODE_HUE:
         mHSV.saturation = (double)column/dXrange;
         mHSV.value = 1.0 - (double)row/dYrange;
-        mRGB = wxImage::HSVtoRGB(mHSV);
+        mRGB = mHSV;
         break;
     case MODE_SATURATION:
         mHSV.hue = (double)column/dXrange;
         mHSV.value = 1.0 - (double)row/dYrange;
-        mRGB = wxImage::HSVtoRGB(mHSV);
+        mRGB = mHSV;
         break;
     case MODE_BRIGHTNESS:
         mHSV.hue = (double)column/dXrange;
         mHSV.saturation = 1.0 - (double)row/dYrange;
-        mRGB = wxImage::HSVtoRGB(mHSV);
+        mRGB = mHSV;
         break;
     case MODE_RED:
         mRGB.green = GetRGBColorFromRangeValue(column, iXrange, 255, false);
         mRGB.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-        mHSV = wxImage::RGBtoHSV(mRGB);
+        mHSV = mRGB;
         break;
     case MODE_GREEN:
         mRGB.red = GetRGBColorFromRangeValue(column, iXrange, 255, false);
         mRGB.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-        mHSV = wxImage::RGBtoHSV(mRGB);
+        mHSV = mRGB;
         break;
     case MODE_BLUE:
         mRGB.red = GetRGBColorFromRangeValue(column, iXrange, 255, false);
         mRGB.green = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-        mHSV = wxImage::RGBtoHSV(mRGB);
+        mHSV = mRGB;
         break;
     }
 }
@@ -263,7 +262,7 @@ void xlColorCanvas::DrawPalette()
             for( int row = 0; row <= iYrange; row++ )
             {
                 hsv.value = (1.0 - (double)row/dYrange);
-                color = wxImage::HSVtoRGB(hsv);
+                color = hsv;
                 DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
             }
         }
@@ -278,7 +277,7 @@ void xlColorCanvas::DrawPalette()
             for( int row = 0; row <= iYrange; row++ )
             {
                 hsv.value = (1.0 - (double)row/dYrange);
-                color = wxImage::HSVtoRGB(hsv);
+                color = hsv;
                 DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
             }
         }
@@ -293,7 +292,7 @@ void xlColorCanvas::DrawPalette()
             for( int row = 0; row <= iYrange; row++ )
             {
                 hsv.saturation = (1.0 - (double)row/dYrange);
-                color = wxImage::HSVtoRGB(hsv);
+                color = hsv;
                 DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
             }
         }
@@ -397,15 +396,15 @@ void xlColorCanvas::DrawSlider()
         {
             case MODE_HUE:
                 hsv.hue = (1.0 - (double)row/dYrange);
-                color = wxImage::HSVtoRGB(hsv);
+                color = hsv;
                 break;
             case MODE_SATURATION:
                 hsv.saturation = (1.0 - (double)row/dYrange);
-                color = wxImage::HSVtoRGB(hsv);
+                color = hsv;
                 break;
             case MODE_BRIGHTNESS:
                 hsv.value = (1.0 - (double)row/dYrange);
-                color = wxImage::HSVtoRGB(hsv);
+                color = hsv;
                 break;
             case MODE_RED:
                 color.red = GetRGBColorFromRangeValue(row, iYrange, 255, true);

@@ -220,12 +220,12 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
     static const int n = 0;  //increase to change the curve of the crossfade
     xlColor c0 = fg;
 
-    wxImage::HSVValue hsv0;
-    wxImage::HSVValue hsv1;
+    HSVValue hsv0;
+    HSVValue hsv1;
     bool handlesAlpha = MixTypeHandlesAlpha(mixType[layer]);
     if (!handlesAlpha && fadeFactor[layer] != 1.0) {
         //need to fade the first here as we're not mixing anything
-        hsv0 = wxImage::RGBtoHSV(c0);
+        hsv0 = c0.asHSV();
         hsv0.value *= fadeFactor[layer];
         c0 = hsv0;
     }
@@ -277,7 +277,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
     }
     case Mix_Mask1:
         // first masks second
-        hsv0 = wxImage::RGBtoHSV(c0);
+        hsv0 = c0.asHSV();
         if (hsv0.value <= effectMixThreshold[layer]) {
             // only if effect 1 is black
             c=c1;  // then show the color of effect 2
@@ -287,7 +287,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         break;
     case Mix_Mask2:
         // second masks first
-        hsv1 = wxImage::RGBtoHSV(c1);
+        hsv1 = c1.asHSV();
         if (hsv1.value <= effectMixThreshold[layer]) {
             c=c0;
         } else {
@@ -296,8 +296,8 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         break;
     case Mix_Unmask1:
         // first unmasks second
-        hsv0 = wxImage::RGBtoHSV(c0);
-        hsv1 = wxImage::RGBtoHSV(c1);
+        c0.toHSV(hsv0);
+        c1.toHSV(hsv1);
         if (hsv0.value > effectMixThreshold[layer]) {
             // if effect 1 is non black
             hsv1.value = hsv0.value;
@@ -308,8 +308,8 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         break;
     case Mix_Unmask2:
         // second unmasks first
-        hsv0 = wxImage::RGBtoHSV(c0);
-        hsv1 = wxImage::RGBtoHSV(c1);
+        c0.toHSV(hsv0);
+        c1.toHSV(hsv1);
         if (hsv1.value > effectMixThreshold[layer]) {
             // if effect 2 is non black
             hsv0.value = hsv1.value;
@@ -320,8 +320,8 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         break;
     case Mix_Shadow_1on2:
         // Effect 1 shadows onto effect 2
-        hsv0 = wxImage::RGBtoHSV(c0);
-        hsv1 = wxImage::RGBtoHSV(c1);
+        c0.toHSV(hsv0);
+        c1.toHSV(hsv1);
         //   if (hsv0.value > effectMixThreshold[layer]) {
         // if effect 1 is non black
         //  to shadow we will shift the hue on the primary layer using the hue and brightness from the
@@ -334,8 +334,8 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         break;
     case Mix_Shadow_2on1:
         // Effect 2 shadows onto effect 1
-        hsv0 = wxImage::RGBtoHSV(c0);
-        hsv1 = wxImage::RGBtoHSV(c1);
+        c0.toHSV(hsv0);
+        c1.toHSV(hsv1);
 //if (hsv1.value > effectMixThreshold[layer]) {
         // if effect 1 is non black
         if(hsv1.value>0.0) hsv0.hue = hsv0.hue + (hsv1.value*(hsv0.hue-hsv1.hue))/2.0;
@@ -345,7 +345,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         //    }
         break;
     case Mix_Layered:
-        hsv1 = wxImage::RGBtoHSV(c1);
+        c1.toHSV(hsv1);
         if (hsv1.value <= effectMixThreshold[layer]) {
             c=c0;
         } else {
@@ -369,11 +369,11 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         c= x < BufferWi/2 ? c0 : c1;
         break;
     case Mix_1_reveals_2:
-        hsv0 = wxImage::RGBtoHSV(c0);
+        c0.toHSV(hsv0);
         c = hsv0.value > effectMixThreshold[layer] ? c0 : c1; // if effect 1 is non black
         break;
     case Mix_2_reveals_1:
-        hsv1 = wxImage::RGBtoHSV(c1);
+        c1.toHSV(hsv1);
         c = hsv1.value > effectMixThreshold[layer] ? c1 : c0; // if effect 2 is non black
         break;
     }
@@ -385,7 +385,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
 
 
 void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, const std::vector<bool> & validLayers, int &sparkle) {
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     int cnt = 0;
     xlColor color;
     c = xlBLACK;
@@ -430,7 +430,7 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
                 if (hsv.value < 0.0) hsv.value=0.0;
                 if (hsv.value > 1.0) hsv.value=1.0;
                 unsigned char alpha = color.Alpha();
-                color = wxImage::HSVtoRGB(hsv);
+                color = hsv;
                 color.alpha = alpha;
             }
 
@@ -439,7 +439,7 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
             } else {
                 if (cnt == 0 && fadeFactor[layer] != 1.0) {
                     //need to fade the first here as we're not mixing anything
-                    hsv = wxImage::RGBtoHSV(color);
+                    color.toHSV(hsv);
                     hsv.value *= fadeFactor[layer];
                     color = hsv;
                 }
@@ -506,7 +506,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata) {
 
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers) {
     xlColor color;
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     int curStep, fadeInSteps, fadeOutSteps;
 
 

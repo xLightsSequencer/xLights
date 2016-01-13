@@ -66,7 +66,7 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     double cycles = SettingsMap.GetDouble("TEXTCTRL_Bars_Cycles", 1.0);
     
     int x,y,n,ColorIdx;
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     size_t colorcnt = buffer.GetColorCount();
     int BarCount = PaletteRepeat * colorcnt;
     double position = buffer.GetEffectTimeIntervalPosition(cycles);

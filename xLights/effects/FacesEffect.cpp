@@ -267,7 +267,7 @@ void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme,int BufferHt, int Buff
 
 void FacesEffect::drawline1(RenderBuffer &buffer, int Phoneme, int x1,int x2,int y1,int y2)
 {
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     int ColorIdx,x=0,y=0;
     size_t colorcnt=buffer.GetColorCount();
     
@@ -295,7 +295,7 @@ void FacesEffect::drawline1(RenderBuffer &buffer, int Phoneme, int x1,int x2,int
 
 void FacesEffect::drawline3(RenderBuffer &buffer, int Phoneme, int x1,int x2,int y6,int y7)
 {
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     
     int ColorIdx,x,y;
     size_t colorcnt=buffer.GetColorCount();
@@ -333,7 +333,7 @@ void FacesEffect::drawline3(RenderBuffer &buffer, int Phoneme, int x1,int x2,int
 void FacesEffect::facesCircle(RenderBuffer &buffer, int Phoneme, int xc,int yc,double radius,int start_degrees, int end_degrees)
 {
     int x,y,degrees;
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     buffer.palette.GetHSV(0, hsv);
     hsv.hue = (float)Phoneme/10.0;
     hsv.value=1.0;
@@ -349,7 +349,7 @@ void FacesEffect::facesCircle(RenderBuffer &buffer, int Phoneme, int xc,int yc,d
 
 void FacesEffect::drawoutline(RenderBuffer &buffer, int Phoneme, bool outline, const std::string &eyes, int BufferHt,int BufferWi)
 {
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     double radius;
     int ColorIdx,x,y,xc,yc;
     int Ht, Wt;
@@ -516,7 +516,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
         return;
     }
     
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     
     xlColor color;
     buffer.palette.GetColor(0, color); //use first color; user must make sure it matches model node type

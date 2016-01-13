@@ -31,7 +31,7 @@ public:
     
     int x,y;
     int duration; // How frames strobe light stays on. Will be decremented each frame
-    wxImage::HSVValue hsv;
+    HSVValue hsv;
     xlColor color;
 };
 
@@ -134,7 +134,7 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             color.alpha = 255.0 * v;
             buffer.SetPixel(strobe[x].x,strobe[x].y,color); // Turn pixel on
         } else {
-            wxImage::HSVValue hsv = strobe[x].hsv;
+            HSVValue hsv = strobe[x].hsv;
             //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
             hsv.value = v;
             buffer.SetPixel(strobe[x].x,strobe[x].y,hsv); // Turn pixel on

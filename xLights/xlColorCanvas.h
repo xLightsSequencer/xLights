@@ -23,8 +23,8 @@ class xlColorCanvas : public xlGLCanvas
 
         void SetType( DisplayType type) { mDisplayType = type; }
         void SetMode( ColorDisplayMode mode );
-        wxImage::HSVValue GetHSV();
-        void SetHSV( wxImage::HSVValue hsv);
+        HSVValue &GetHSV();
+        void SetHSV( const HSVValue &hsv);
         wxColor GetRGB() { return mRGB.asWxColor(); }
         void SetRGB( xlColor rgb);
 
@@ -47,7 +47,7 @@ class xlColorCanvas : public xlGLCanvas
         DisplayType mDisplayType;
         ColorDisplayMode mDisplayMode;
         bool mDragging;
-        wxImage::HSVValue mHSV;
+        HSVValue mHSV;
         xlColor mRGB;
         int iXrange;
         int iYrange;
