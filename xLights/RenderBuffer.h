@@ -163,7 +163,7 @@ public:
     void GetFadeSteps(int& fadeInSteps, int& fadeOutSteps);
     
     void Clear(const xlColor& bgColor);
-    void SetPalette(xlColourVector& newcolors);
+    void SetPalette(xlColorVector& newcolors);
     size_t GetColorCount();
     void SetAllowAlphaChannel(bool a) {allowAlpha = a;};
 
@@ -177,7 +177,7 @@ public:
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
     void CopyPixel(int srcx, int srcy, int destx, int desty);
-    void ProcessPixel(int x, int y, const xlColour &color, bool wrap_x, int width);
+    void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x, int width);
     
     void ClearTempBuf();
     const xlColor &GetTempPixelRGB(int x, int y);
@@ -201,7 +201,7 @@ public:
 
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
     void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColor &color);
-    void Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, double ratio, xlColour &color);
+    void Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, double ratio, xlColor &color);
     void GetMultiColorBlend(double n, bool circular, xlColor &color);
     void SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSVValue& newhsv);
     double RandomRange(double num1, double num2);

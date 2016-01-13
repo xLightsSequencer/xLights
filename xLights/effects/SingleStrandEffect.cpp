@@ -85,7 +85,7 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
                                          const std::string & Skips_Direction, int advances)
 {
     int x = Skips_StartPos - 1;
-    xlColour color;
+    xlColor color;
     int second = 0;
     int max = buffer.BufferWi;
     int direction = mapDirection(Skips_Direction);

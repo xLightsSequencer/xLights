@@ -1783,10 +1783,10 @@ int ModelClass::CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y) {
 
 // display model using colors stored in each node
 // used when preview is running
-void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, bool allowSelected) {
+void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool allowSelected) {
     size_t NodeCount=Nodes.size();
     double sx,sy;
-    xlColour color;
+    xlColor color;
     if (c != NULL) {
         color = *c;
     }

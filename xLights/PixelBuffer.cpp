@@ -156,7 +156,7 @@ void PixelBufferClass::InitNodeBuffer(const ModelClass &pbc, int strand, int nod
 }
 
 void PixelBufferClass::Clear(int which) {
-    xlColour bgColor(0, 0, 0, 0);
+    xlColor bgColor(0, 0, 0, 0);
     if (which != -1) {
         effects[which].Clear(bgColor); //just clear this one
     } else {
@@ -216,7 +216,7 @@ void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
 }
 
 
-xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xlColour &fg, const xlColour &c1, int layer) {
+xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xlColor &fg, const xlColor &c1, int layer) {
     static const int n = 0;  //increase to change the curve of the crossfade
     xlColor c0 = fg;
 
@@ -239,7 +239,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
         effectMixThreshold[layer] = 0;
     }
 
-    xlColour c;
+    xlColor c;
     double emt, emtNot;
     switch (mixType[layer]) {
     case Mix_Normal:
@@ -384,7 +384,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const x
 }
 
 
-void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, const std::vector<bool> & validLayers, int &sparkle) {
+void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColor& c, const std::vector<bool> & validLayers, int &sparkle) {
     HSVValue hsv;
     int cnt = 0;
     xlColor color;
@@ -454,7 +454,7 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
         }
     }
 }
-void PixelBufferClass::SetPalette(int layer, xlColourVector& newcolors) {
+void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors) {
     effects[layer].SetPalette(newcolors);
 }
 

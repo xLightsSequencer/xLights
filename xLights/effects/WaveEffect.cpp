@@ -108,7 +108,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     double a,r,yc,deltay;
     double degree,radian,degree_per_x;
     static const double pi_180 = 0.01745329;
-    xlColour color;
+    xlColor color;
     HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
     buffer.palette.GetHSV(1,hsv1);

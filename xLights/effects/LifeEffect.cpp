@@ -69,7 +69,7 @@ void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     
     int i,x,y,cnt;
     bool isLive;
-    xlColour color;
+    xlColor color;
     
     int BufferHt = buffer.BufferHt;
     int BufferWi = buffer.BufferWi;

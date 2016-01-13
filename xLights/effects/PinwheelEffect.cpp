@@ -42,7 +42,7 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     int a,xc,ColorIdx,base_degrees;
     float t,tmax;
     float radius;
-    HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+    HSVValue hsv,hsv0,hsv1;
     size_t colorcnt=buffer.GetColorCount();
     
     xc= (int)(std::max(buffer.BufferWi, buffer.BufferHt)/2);

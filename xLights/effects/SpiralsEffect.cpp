@@ -47,7 +47,7 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     long SpiralState;
     long ThicknessState = 0;
     HSVValue hsv;
-    xlColour color;
+    xlColor color;
     
     int Direction = Movement > 0.001 ? 1 : (Movement < -0.001 ? -1 : 0);
     double position = buffer.GetEffectTimeIntervalPosition(std::abs(Movement));

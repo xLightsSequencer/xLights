@@ -161,7 +161,7 @@ public:
     wxXmlNode* GetModelXml();
     int GetNumberFromChannelString(wxString sc);
     wxCursor GetResizeCursor(int cornerIndex);
-    void DisplayModelOnWindow(ModelPreview* preview, const xlColour *color =  NULL, bool allowSelected = true);
+    void DisplayModelOnWindow(ModelPreview* preview, const xlColor *color =  NULL, bool allowSelected = true);
     void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     void ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY);
     void RotateWithHandles(ModelPreview* preview,bool ShiftKeyPressed,  int mouseX,int mouseY);

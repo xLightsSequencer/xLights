@@ -43,7 +43,6 @@ static inline int GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
     return PLASMA_NORMAL_COLORS;
 }
 void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-//void RgbEffects::RenderPlasma(const wxString &ColorSchemeStr, int Style, int Line_Density,const wxString & PlasmaDirectionStr, int PlasmaSpeed)
     
     int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 0);
     int Line_Density = SettingsMap.GetInt("SLIDER_Plasma_Line_Density", 1);
@@ -54,8 +53,8 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);
     int x,y,xc,yc;
     double h=0.0;
-    xlColour color;
-    wxImage::HSVValue hsv;
+    xlColor color;
+    HSVValue hsv;
     
     //  These are for Plasma effect
     double rx,ry,cx,cy,v,time,Speed_plasma;
@@ -114,6 +113,7 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
                     h = sin(v*Line_Density*pi+2*pi/3)+1*0.5;
                     buffer.GetMultiColorBlend(h,false,color);
                     hsv.hue=h;
+                    color = hsv;
                     break;
                 case PLASMA_PRESET1:
                     color.red = (sin(v*Line_Density*pi)+1)*128;

@@ -81,7 +81,7 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     bool wrap_x = SettingsMap.GetBool("CHECKBOX_Marquee_WrapX");
     
     int x = 0;
-    xlColour color;
+    xlColor color;
     size_t colorcnt = buffer.GetColorCount();
     int color_size = BandSize +  SkipSize;
     int repeat_size = color_size * colorcnt;

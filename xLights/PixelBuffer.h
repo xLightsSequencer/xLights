@@ -78,8 +78,8 @@ private:
     float *effectMixThreshold;
     bool *effectMixVaries; //allow varying mix threshold -DJ
 
-    void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, const std::vector<bool> & validLayers, int & sparkle);
-    xlColour mixColors(const wxCoord &x, const wxCoord &y, const xlColour &c0, const xlColour &c1, int layer);
+    void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColor& c, const std::vector<bool> & validLayers, int & sparkle);
+    xlColor mixColors(const wxCoord &x, const wxCoord &y, const xlColor &c0, const xlColor &c1, int layer);
     void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
 public:
@@ -95,7 +95,7 @@ public:
     void Clear(int which);
     // not used: size_t GetColorCount(int layer);
     void SetMixType(int layer, const wxString& MixName);
-    void SetPalette(int layer, xlColourVector& newcolors);
+    void SetPalette(int layer, xlColorVector& newcolors);
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
     void SetFadeTimes(int layer, float inTime, float outTime);

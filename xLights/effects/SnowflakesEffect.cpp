@@ -112,7 +112,7 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     bool accumulate = SettingsMap.GetBool("CHECKBOX_Snowflakes_Accumulate");
     
     int i,n,x,x0,y0,y,check,delta_y;
-    xlColour color1,color2, color3;
+    xlColor color1,color2, color3;
     bool wrapx = false; // set to true if you want snowflakes to draw wrapped around when near edges in the accumulate effect.
     
     

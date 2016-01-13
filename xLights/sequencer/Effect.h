@@ -65,7 +65,7 @@ class Effect
         SettingsMap &GetPaletteMap() { return mPaletteMap;}
 
         void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
-        void CopyPaletteMap(SettingsMap &target, bool stripPfx = false) const;
+        void CopyPalette(xlColorVector &target) const;
 
 
         wxString GetPaletteAsString() const;

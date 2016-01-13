@@ -25,7 +25,7 @@ wxPanel *GarlandsEffect::CreatePanel(wxWindow *parent) {
     return new GarlandsPanel(parent);
 }
 
-int GetDirection(const wxString &direction) {
+int GetDirection(const std::string &direction) {
     if ("Up" == direction) {
         return 0;
     } else if ("Down" == direction) {
@@ -56,7 +56,7 @@ void GarlandsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     }
     int x,y,yadj,ylimit,ring;
     double ratio;
-    xlColour color;
+    xlColor color;
     int dir = GetDirection(SettingsMap.Get("CHOICE_Garlands_Direction", "Up"));
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
     if (dir > 3) {

@@ -52,7 +52,7 @@ void xlColor::SetFromString(const std::string &str) {
 static void fromHSV(xlColor & rgb, const HSVValue &hsv) {
     double red, green, blue;
     
-    if (0.0 == hsv.saturation) {
+    if (0.0f == hsv.saturation) {
         // Grey
         red = hsv.value;
         green = hsv.value;
@@ -116,22 +116,22 @@ static void toHSV(const xlColor &c, HSVValue &v)
     double g = c.green / 255.0;
     double b = c.blue / 255.0;
     
-    double K = 0.f;
+    double K = 0.0;
     if (g < b)
     {
         std::swap(g, b);
-        K = -1.f;
+        K = -1.0;
     }
     double min_gb = b;
     if (r < g)
     {
         std::swap(r, g);
-        K = -2.f / 6.f - K;
+        K = -2.0 / 6.0 - K;
         min_gb = std::min(g, b);
     }
     double chroma = r - min_gb;
-    v.hue = fabs(K + (g - b) / (6.f * chroma + 1e-20f));
-    v.saturation = chroma / (r + 1e-20f);
+    v.hue = std::abs(K + (g - b) / (6.0 * chroma + 1e-20));
+    v.saturation = chroma / (r + 1e-20);
     v.value = r;
 }
 

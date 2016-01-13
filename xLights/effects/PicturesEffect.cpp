@@ -420,7 +420,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         yoffset_adj = (yoffset_adj*BufferHt)/100.0; // yc_adj is from -100 to 100
     }
     // copy image to buffer
-    xlColour c;
+    xlColor c;
     bool hasAlpha = image.HasAlpha();
     
     int calc_position_wi = (imgwidth+BufferWi)*position;

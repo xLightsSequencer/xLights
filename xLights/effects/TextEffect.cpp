@@ -159,7 +159,7 @@ static int TextEffectsIndex(const wxString &st) {
     return 0;
 }
 void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    xlColour c;
+    xlColor c;
     buffer.drawingContext->Clear();
     size_t colorcnt=buffer.GetColorCount();
     

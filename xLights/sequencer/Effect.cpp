@@ -138,18 +138,10 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
         target[name] = it->second;
     }
 }
-void Effect::CopyPaletteMap(SettingsMap &target, bool stripPfx) const
+void Effect::CopyPalette(xlColorVector &target) const
 {
     wxMutexLocker lock(settingsLock);
-    for (std::map<std::string,std::string>::const_iterator it=mPaletteMap.begin(); it!=mPaletteMap.end(); ++it)
-    {
-        std::string name = it->first;
-        if (stripPfx && name[1] == '_')
-        {
-            name = name.substr(2);
-        }
-        target[name] = it->second;
-    }
+    target = mColors;
 }
 
 void Effect::SetSettings(const wxString &settings)

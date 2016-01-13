@@ -411,7 +411,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
     //draw some dim icicles for bkg:
     if (want_bkg)
     {
-        xlColour c(100, 100, 255); //light blue
+        xlColor c(100, 100, 255); //light blue
         buffer.Color2HSV(c, m.hsv);
         //        m.hue = 240;
         //        m.hsv.saturation = 0.5;

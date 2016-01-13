@@ -45,10 +45,8 @@ void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         Number_Segments = 1;
     }
     xlColor color;
-    wxImage::HSVValue hsv;
     int x1,x2,y1,y2,x3,y3,xc,yc,step,ystep;
     int i,j,segment,StepSegment, xoffset;
-    wxString str;
     int curState = (buffer.curPeriod - buffer.curEffStartPer);
     int DIRECTION=UP;
     

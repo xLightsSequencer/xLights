@@ -69,7 +69,7 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     
     double  fractpart, intpart;
     
-    xlColour color;
+    xlColor color;
     HSVValue hsv;
     int maxframe=buffer.BufferHt*2;
     

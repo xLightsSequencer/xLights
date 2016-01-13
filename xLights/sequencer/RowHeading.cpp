@@ -605,9 +605,9 @@ int RowHeading::getHeight()
     return GetSize().y;
 }
 
-const xlColour* RowHeading::GetTimingColor(int colorIndex)
+const xlColor* RowHeading::GetTimingColor(int colorIndex)
 {
-    const xlColour* value;
+    const xlColor* value;
     switch(colorIndex%5)
     {
         case 0:

@@ -76,7 +76,7 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     
     
     int x,y;
-    xlColour color, orig;
+    xlColor color, orig;
     
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
     buffer.GetMultiColorBlend(position, circularPalette, color);

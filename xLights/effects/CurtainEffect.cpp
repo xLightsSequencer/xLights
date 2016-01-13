@@ -84,7 +84,6 @@ void CurtainEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBu
     int effect = GetCurtainEffect(SettingsMap["CHOICE_Curtain_Effect"]);
     
     double a;
-    wxImage::HSVValue hsv;
     std::vector<int> SwagArray;
     int CurtainDir,xlimit,middle, ylimit;
     int swaglen=buffer.BufferHt > 1 ? swag * buffer.BufferWi / 40 : 0;
@@ -164,7 +163,7 @@ void CurtainEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBu
 void CurtainEffect::DrawCurtain(RenderBuffer & buffer, bool LeftEdge, int xlimit, const std::vector<int> &SwagArray)
 {
     int i,x,y;
-    xlColour color;
+    xlColor color;
     for (i=0; i<xlimit; i++)
     {
         buffer.GetMultiColorBlend(double(i) / double(buffer.BufferWi), true, color);
@@ -191,7 +190,7 @@ void CurtainEffect::DrawCurtain(RenderBuffer & buffer, bool LeftEdge, int xlimit
 void CurtainEffect::DrawCurtainVertical(RenderBuffer & buffer, bool topEdge, int ylimit, const std::vector<int> &SwagArray)
 {
     int i,x,y;
-    xlColour color;
+    xlColor color;
     for (i=0; i<ylimit; i++)
     {
         buffer.GetMultiColorBlend(double(i) / double(buffer.BufferHt), true, color);

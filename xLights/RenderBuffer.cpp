@@ -216,7 +216,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi)
     tempbuf.resize(NumPixels);
 }
 
-void RenderBuffer::Clear(const xlColour& bgColor)
+void RenderBuffer::Clear(const xlColor& bgColor)
 {
     if (InhibitClear) { InhibitClear = false; return; } //allow canvas to be persistent for piano fx (self-reseting for safety) -DJ
     for(size_t i=0; i<pixels.size(); i++)
@@ -225,7 +225,7 @@ void RenderBuffer::Clear(const xlColour& bgColor)
     }
 }
 
-void RenderBuffer::SetPalette(xlColourVector& newcolors)
+void RenderBuffer::SetPalette(xlColorVector& newcolors)
 {
     palette.Set(newcolors);
 }
@@ -258,7 +258,7 @@ double RenderBuffer::RandomRange(double num1, double num2)
     return rand01()*(hi-lo)+ lo;
 }
 
-void RenderBuffer::Color2HSV(const xlColour& color, HSVValue& hsv)
+void RenderBuffer::Color2HSV(const xlColor& color, HSVValue& hsv)
 {
     color.toHSV(hsv);
 }
@@ -277,15 +277,15 @@ wxByte RenderBuffer::ChannelBlend(wxByte c1, wxByte c2, double ratio)
     return c1 + floor(ratio*(c2-c1)+0.5);
 }
 
-void RenderBuffer::Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColour &color)
+void RenderBuffer::Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColor &color)
 {
-    xlColour c1,c2;
+    xlColor c1,c2;
     palette.GetColor(coloridx1,c1);
     palette.GetColor(coloridx2,c2);
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
 }
 
-void RenderBuffer::Get2ColorAlphaBlend(const xlColour& c1, const xlColour& c2, double ratio, xlColour &color)
+void RenderBuffer::Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, double ratio, xlColor &color)
 {
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
 }
@@ -301,7 +301,7 @@ HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
     return rgb.asHSV();
 }
 // 0 <= n < 1
-void RenderBuffer::GetMultiColorBlend(double n, bool circular, xlColour &color)
+void RenderBuffer::GetMultiColorBlend(double n, bool circular, xlColor &color)
 {
     size_t colorcnt=GetColorCount();
     if (colorcnt <= 1)
@@ -320,7 +320,7 @@ void RenderBuffer::GetMultiColorBlend(double n, bool circular, xlColour &color)
 
 
 // 0,0 is lower left
-void RenderBuffer::SetPixel(int x, int y, const xlColour &color, bool wrap)
+void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
 {
     if (wrap) {
         while (x < 0) {
@@ -342,7 +342,7 @@ void RenderBuffer::SetPixel(int x, int y, const xlColour &color, bool wrap)
     }
 }
 
-void RenderBuffer::ProcessPixel(int x_pos, int y_pos, const xlColour &color, bool wrap_x, int width)
+void RenderBuffer::ProcessPixel(int x_pos, int y_pos, const xlColor &color, bool wrap_x, int width)
 {
     int x_value = x_pos;
     if( wrap_x )  // if set wrap image at boundary
@@ -554,7 +554,7 @@ void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bo
 
 
 // 0,0 is lower left
-void RenderBuffer::GetPixel(int x, int y, xlColour &color)
+void RenderBuffer::GetPixel(int x, int y, xlColor &color)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
@@ -564,7 +564,7 @@ void RenderBuffer::GetPixel(int x, int y, xlColour &color)
 
 
 // 0,0 is lower left
-void RenderBuffer::SetTempPixel(int x, int y, const xlColour &color)
+void RenderBuffer::SetTempPixel(int x, int y, const xlColor &color)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
@@ -572,7 +572,7 @@ void RenderBuffer::SetTempPixel(int x, int y, const xlColour &color)
     }
 }
 
-void RenderBuffer::SetTempPixel(int x, int y, const xlColour & color, int alpha)
+void RenderBuffer::SetTempPixel(int x, int y, const xlColor & color, int alpha)
 {
     xlColor c(color.Red(), color.Green(), color.Blue(), alpha);
 
@@ -580,7 +580,7 @@ void RenderBuffer::SetTempPixel(int x, int y, const xlColour & color, int alpha)
 }
 
 // 0,0 is lower left
-void RenderBuffer::GetTempPixel(int x, int y, xlColour &color)
+void RenderBuffer::GetTempPixel(int x, int y, xlColor &color)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {

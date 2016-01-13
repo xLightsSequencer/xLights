@@ -23,20 +23,6 @@ static const std::string CHECKBOX_LayerMorph("CHECKBOX_LayerMorph");
 static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
 static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
 
-static const std::string CHECKBOX_Palette1("CHECKBOX_Palette1");
-static const std::string CHECKBOX_Palette2("CHECKBOX_Palette2");
-static const std::string CHECKBOX_Palette3("CHECKBOX_Palette3");
-static const std::string CHECKBOX_Palette4("CHECKBOX_Palette4");
-static const std::string CHECKBOX_Palette5("CHECKBOX_Palette5");
-static const std::string CHECKBOX_Palette6("CHECKBOX_Palette6");
-static const std::string BUTTON_Palette1("BUTTON_Palette1");
-static const std::string BUTTON_Palette2("BUTTON_Palette2");
-static const std::string BUTTON_Palette3("BUTTON_Palette3");
-static const std::string BUTTON_Palette4("BUTTON_Palette4");
-static const std::string BUTTON_Palette5("BUTTON_Palette5");
-static const std::string BUTTON_Palette6("BUTTON_Palette6");
-
-
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 
 
@@ -524,7 +510,7 @@ private:
                             el,
                             settingsMap);
         }
-        updateBufferPaletteFromMap(layer, settingsMap, buffer);
+        updateBufferPaletteFromMap(layer, el, buffer);
         updateBufferFadesFromMap(layer, settingsMap, buffer);
 
         if (el != NULL) {
@@ -544,25 +530,10 @@ private:
         buffer->SetMixThreshold(layer, effectMixThreshold, settingsMap.GetInt(CHECKBOX_LayerMorph, 0) != 0); //allow threshold to vary -DJ
     }
 
-    void updateBufferPaletteFromMap(int layer, SettingsMap& settingsMap, PixelBufferClass *buffer) {
+    void updateBufferPaletteFromMap(int layer, Effect *effect, PixelBufferClass *buffer) {
         xlColorVector newcolors;
-        if (settingsMap.GetBool(CHECKBOX_Palette1)) {
-            newcolors.push_back(xlColor(settingsMap.Get(BUTTON_Palette1, STR_EMPTY)));
-        }
-        if (settingsMap.GetBool(CHECKBOX_Palette2)) {
-            newcolors.push_back(xlColor(settingsMap.Get(BUTTON_Palette2, STR_EMPTY)));
-        }
-        if (settingsMap.GetBool(CHECKBOX_Palette3)) {
-            newcolors.push_back(xlColor(settingsMap.Get(BUTTON_Palette3, STR_EMPTY)));
-        }
-        if (settingsMap.GetBool(CHECKBOX_Palette4)) {
-            newcolors.push_back(xlColor(settingsMap.Get(BUTTON_Palette4, STR_EMPTY)));
-        }
-        if (settingsMap.GetBool(CHECKBOX_Palette5)) {
-            newcolors.push_back(xlColor(settingsMap.Get(BUTTON_Palette5, STR_EMPTY)));
-        }
-        if (settingsMap.GetBool(CHECKBOX_Palette6)) {
-            newcolors.push_back(xlColor(settingsMap.Get(BUTTON_Palette6, STR_EMPTY)));
+        if (effect != nullptr) {
+            effect->CopyPalette(newcolors);
         }
         buffer->SetPalette(layer, newcolors);
     }
@@ -596,7 +567,6 @@ private:
 
 
         effect->CopySettingsMap(settingsMap, true);
-        effect->CopyPaletteMap(settingsMap, true);
     }
 
 
