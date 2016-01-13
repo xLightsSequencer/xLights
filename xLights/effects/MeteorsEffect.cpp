@@ -12,6 +12,8 @@
 #include "../../include/meteors-64.xpm"
 
 
+
+
 MeteorsEffect::MeteorsEffect(int id) : RenderableEffect(id, "Meteors", meteors_16, meteors_24, meteors_32, meteors_48, meteors_64)
 {
     //ctor
@@ -233,7 +235,8 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer &buffer, int ColorSchem
             }
             
             swirl_phase=double(it->x)/5.0+double(n)/100.0;
-            dy=int(double(SwirlIntensity*buffer.BufferHt)/80.0*sin(swirl_phase));
+            
+            dy=int(double(SwirlIntensity*buffer.BufferHt)/80.0*buffer.sin(swirl_phase));
             
             x=it->x+ph;
             y=it->y+dy;
@@ -343,7 +346,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme,
             // we adjust x axis with some sine function if swirl1 or swirl2
             // swirling more than 25% of the buffer width doesn't look good
             swirl_phase=double(it->y)/5.0+double(n)/100.0;
-            dx=int(double(SwirlIntensity*buffer.BufferWi)/80.0*sin(swirl_phase));
+            dx=int(double(SwirlIntensity*buffer.BufferWi)/80.0*buffer.sin(swirl_phase));
             x=it->x+dx;
             y=it->y+ph;
             if (MeteorsEffect==1) y=buffer.BufferHt-y;
@@ -449,7 +452,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
             // we adjust x axis with some sine function if swirl1 or swirl2
             // swirling more than 25% of the buffer width doesn't look good
             swirl_phase=double(it->y)/5.0+double(n)/100.0;
-            dx=int(double(SwirlIntensity*buffer.BufferWi)/80.0*sin(swirl_phase));
+            dx=int(double(SwirlIntensity*buffer.BufferWi)/80.0*buffer.sin(swirl_phase));
             
             x=it->x+dx;
             y=it->y+ph;
@@ -516,8 +519,8 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
             } else {
                 angle=buffer.rand01()*2.0*M_PI;
             }
-            m.dx=cos(angle);
-            m.dy=sin(angle);
+            m.dx=buffer.cos(angle);
+            m.dy=buffer.sin(angle);
             m.x=centerX+double(halfdiag+TailLength)*m.dx;
             m.y=centerY+double(halfdiag+TailLength)*m.dy;
             
@@ -630,8 +633,8 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
             } else {
                 angle=buffer.rand01()*2.0*M_PI;
             }
-            m.dx=cos(angle);
-            m.dy=sin(angle);
+            m.dx=buffer.cos(angle);
+            m.dy=buffer.sin(angle);
             
             switch (ColorScheme)
             {

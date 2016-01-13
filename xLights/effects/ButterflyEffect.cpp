@@ -89,7 +89,7 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             {
                 case 1:
                     //  http://mathworld.wolfram.com/ButterflyFunction.html
-                    n = std::abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
+                    n = std::abs((x*x - y*y) * buffer.sin (offset + ((x+y)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
                     d = x*x + y*y;
                     
                     //  This section is to fix the colors on pixels at {0,1} and {1,0}
@@ -97,12 +97,12 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     y0=y+1;
                     if((x==0 && y==1))
                     {
-                        n = std::abs((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
+                        n = std::abs((x*x - y0*y0) * buffer.sin (offset + ((x+y0)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
                         d = x*x + y0*y0;
                     }
                     if((x==1 && y==0))
                     {
-                        n = std::abs((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
+                        n = std::abs((x0*x0 - y*y) * buffer.sin (offset + ((x0+y)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
                         d = x0*x0 + y*y;
                     }
                     // end of fix
@@ -122,12 +122,12 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     f=f*0.1+double(buffer.BufferHt)/60.0;
                     x1 = (x-buffer.BufferWi/2.0)/f;
                     y1 = (y-buffer.BufferHt/2.0)/f;
-                    h=sin(x1) * cos(y1);
+                    h=buffer.sin(x1) * buffer.cos(y1);
                     break;
                     
                 case 4:
                     //  http://mathworld.wolfram.com/ButterflyFunction.html
-                    n = ((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
+                    n = ((x*x - y*y) * buffer.sin (offset + ((x+y)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
                     d = x*x + y*y;
                     
                     //  This section is to fix the colors on pixels at {0,1} and {1,0}
@@ -135,12 +135,12 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     y0=y+1;
                     if((x==0 && y==1))
                     {
-                        n = ((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
+                        n = ((x*x - y0*y0) * buffer.sin (offset + ((x+y0)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
                         d = x*x + y0*y0;
                     }
                     if((x==1 && y==0))
                     {
-                        n = ((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
+                        n = ((x0*x0 - y*y) * buffer.sin (offset + ((x0+y)*pi2 / float(buffer.BufferHt+buffer.BufferWi))));
                         d = x0*x0 + y*y;
                     }
                     // end of fix
@@ -153,7 +153,7 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     
                 case 5:
                     //  http://mathworld.wolfram.com/ButterflyFunction.html
-                    n = std::abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(buffer.BufferHt*buffer.BufferWi))));
+                    n = std::abs((x*x - y*y) * buffer.sin (offset + ((x+y)*pi2 / float(buffer.BufferHt*buffer.BufferWi))));
                     d = x*x + y*y;
                     
                     //  This section is to fix the colors on pixels at {0,1} and {1,0}
@@ -161,12 +161,12 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     y0=y+1;
                     if((x==0 && y==1))
                     {
-                        n = std::abs((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(buffer.BufferHt*buffer.BufferWi))));
+                        n = std::abs((x*x - y0*y0) * buffer.sin (offset + ((x+y0)*pi2 / float(buffer.BufferHt*buffer.BufferWi))));
                         d = x*x + y0*y0;
                     }
                     if((x==1 && y==0))
                     {
-                        n = std::abs((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(buffer.BufferHt*buffer.BufferWi))));
+                        n = std::abs((x0*x0 - y*y) * buffer.sin (offset + ((x0+y)*pi2 / float(buffer.BufferHt*buffer.BufferWi))));
                         d = x0*x0 + y*y;
                     }
                     // end of fix
@@ -215,23 +215,23 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                 
                 
                 // 1st equation
-                v=sin(rx*10+time);
+                v=buffer.sin(rx*10+time);
                 
                 //  second equation
-                v+=sin(10*(rx*sin(time/2)+ry*cos(time/3))+time);
+                v+=buffer.sin(10*(rx*buffer.sin(time/2)+ry*buffer.cos(time/3))+time);
                 
                 //  third equation
-                cx=rx+.5*sin(time/5);
-                cy=ry+.5*cos(time/3);
-                v+=sin ( sqrt(100*((cx*cx)+(cy*cy))+1+time));
+                cx=rx+.5*buffer.sin(time/5);
+                cy=ry+.5*buffer.cos(time/3);
+                v+=buffer.sin ( sqrt(100*((cx*cx)+(cy*cy))+1+time));
                 
                 
                 //    vec2 c = v_coords * u_k - u_k/2.0;
-                v += sin(rx+time);
-                v += sin((ry+time)/2.0);
-                v += sin((rx+ry+time)/2.0);
+                v += buffer.sin(rx+time);
+                v += buffer.sin((ry+time)/2.0);
+                v += buffer.sin((rx+ry+time)/2.0);
                 //   c += u_k/2.0 * vec2(sin(u_time/3.0), cos(u_time/2.0));
-                v += sin(sqrt(rx*rx+ry*ry+1.0)+time);
+                v += buffer.sin(sqrt(rx*rx+ry*ry+1.0)+time);
                 v = v/2.0;
                 // vec3 col = vec3(1, sin(PI*v), cos(PI*v));
                 //   gl_FragColor = vec4(col*.5 + .5, 1);
@@ -241,24 +241,24 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                 switch (Style)
                 {
                     case 6:
-                        color.red = (sin(v*Chunks*pi)+1)*128;
-                        color.green= (cos(v*Chunks*pi)+1)*128;
+                        color.red = (buffer.sin(v*Chunks*pi)+1)*128;
+                        color.green= (buffer.cos(v*Chunks*pi)+1)*128;
                         color.blue =0;
                         break;
                     case 7:
                         color.red = 1;
-                        color.green= (cos(v*Chunks*pi)+1)*128;
-                        color.blue =(sin(v*Chunks*pi)+1)*128;
+                        color.green= (buffer.cos(v*Chunks*pi)+1)*128;
+                        color.blue =(buffer.sin(v*Chunks*pi)+1)*128;
                         break;
                         
                     case 8:
-                        color.red = (sin(v*Chunks*pi)+1)*128;
-                        color.green= (sin(v*Chunks*pi + 2*pi/3)+1)*128;
-                        color.blue =(sin(v*Chunks*pi+4*pi/3)+1)*128;
+                        color.red = (buffer.sin(v*Chunks*pi)+1)*128;
+                        color.green= (buffer.sin(v*Chunks*pi + 2*pi/3)+1)*128;
+                        color.blue =(buffer.sin(v*Chunks*pi+4*pi/3)+1)*128;
                         break;
                         
                     case 9:
-                        color.red=color.green=color.blue=(sin(v*Chunks*pi) +1) * 128;
+                        color.red=color.green=color.blue=(buffer.sin(v*Chunks*pi) +1) * 128;
                         break;
                     case 10:
                         if(colorcnt>=2)
@@ -271,13 +271,13 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                             hue2=1;
                             multiplier=(hue2-hue1)/2;
                             h=hue1+ multiplier*(v+1); // v is between -1 to 1. h
-                            h = sin(v*Chunks*pi+2*pi/3)+1*0.5;
+                            h = buffer.sin(v*Chunks*pi+2*pi/3)+1*0.5;
                             
                             hsv.hue=h;
                             //  hsv.hue=hsv.hue + (v+1)/20.0;
-                            //color.red = (sin(v*color.red)+1)*128;
-                            //color.green = (sin(v*color.green)+1)*128;
-                            //color.blue = (sin(v*color.blue)+1)*128;
+                            //color.red = (buffer.sin(v*color.red)+1)*128;
+                            //color.green = (buffer.sin(v*color.green)+1)*128;
+                            //color.blue = (buffer.sin(v*color.blue)+1)*128;
                             
                         }
                         break;

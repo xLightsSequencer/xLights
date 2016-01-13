@@ -194,6 +194,10 @@ public:
     void DrawLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color );
     void DrawThickLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction );
     
+
+    //aproximation of sin/cos, but much faster
+    float sin(float rad) const;
+    float cos(float rad) const;
     
     double rand01();
     double calcAccel(double ratio, double accel);
