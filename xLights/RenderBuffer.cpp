@@ -268,14 +268,14 @@ public:
     float sinLookup(int a) {
         if (a >= 0) {
             int idx = a%(modulus2);
-            if (idx > modulus) {
+            if (idx >= modulus) {
                 idx -= modulus;
                 return -table[idx];
             }
             return table[idx];
         }
         int idx = -a%(modulus2);
-        if (idx > modulus) {
+        if (idx >= modulus) {
             idx -= modulus;
             return table[idx];
         }

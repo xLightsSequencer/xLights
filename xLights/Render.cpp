@@ -846,11 +846,14 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
 
     buffer.SetLayer(layer, period, resetEffectState);
     resetEffectState = false;
-    int eidx = 0;
+    int eidx = -1;
     if (effectObj != nullptr) {
         eidx = effectObj->GetEffectIndex();
     } else {
-        eidx = effectManager.GetEffectIndex(SettingsMap.Get(STR_EFFECT, STR_NONE));
+        const std::string &effectName = SettingsMap.Get(STR_EFFECT, STR_NONE);
+        if (effectName != STR_NONE) {
+            eidx = effectManager.GetEffectIndex(effectName);
+        }
     }
     if (eidx >= 0) {
         RenderableEffect *reff = effectManager.GetEffect(eidx);
