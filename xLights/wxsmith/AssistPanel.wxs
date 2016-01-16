@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="AssistPanel">
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxTAB_TRAVERSAL|wxWANTS_CHARS</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
+			<cols>1</cols>
+			<rows>1</rows>
+			<object class="sizeritem">
+				<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW_Assist" variable="ScrolledWindowAssist" member="yes">
+					<style>wxWANTS_CHARS|wxVSCROLL|wxHSCROLL</style>
+					<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="yes">
+						<cols>1</cols>
+						<rows>2</rows>
+						<growablecols>0</growablecols>
+						<growablerows>0</growablerows>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

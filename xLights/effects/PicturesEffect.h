@@ -13,15 +13,18 @@ class PicturesEffect : public RenderableEffect
         PicturesEffect(int id);
         virtual ~PicturesEffect();
         virtual bool CanBeRandom() {return false;}
-    
+
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
-    
+
         static void Render(RenderBuffer &buffer,
                            const std::string & dirstr, const std::string &NewPictureName2,
                            float movementSpeed, float frameRateAdj,
                            int xc_adj, int yc_adj,
                            int xce_adj, int yce_adj,
                            bool pixelOffsets, bool wrap_x);
+
+        virtual AssistPanel *GetAssistPanel(wxWindow *parent);
+        virtual bool HasAssistPanel() { return true; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);

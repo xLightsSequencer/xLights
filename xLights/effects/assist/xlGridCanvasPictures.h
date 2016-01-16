@@ -30,13 +30,13 @@ class xlGridCanvasPictures : public xlGridCanvas
 
         virtual void SetEffect(Effect* effect_);
         virtual void ForceRefresh();
-
+        void SetMessageParent(wxWindow* parent) { mMessageParent = parent; }
         void LoadImage();
         void SaveImage();
         void SaveAsImage();
         void ResizeImage();
-        void Copy();
-        void Paste();
+        virtual void Copy();
+        virtual void Paste();
         void CreateNewImage(wxString& image_dir);
         void SetPaintColor( xlColor& color ) { mPaintColor = color; }
         void SetPaintMode( PaintMode mode ) { mPaintMode = mode; Refresh(false); }
@@ -101,6 +101,7 @@ class xlGridCanvasPictures : public xlGridCanvas
         xlColor mEraseColor;
         PaintMode mPaintMode;
         xlColor* mSelectionColor;
+        wxWindow* mMessageParent;
 
         int mDragStartX;
         int mDragStartY;

@@ -274,7 +274,7 @@ bool xLightsFrame::CloseSequence()
     }
 
     // clear everything to prepare for new sequence
-    sEffectAssist->SetEffect(NULL);
+    sEffectAssist->SetPanel(nullptr);
     xlightsFilename = "";
     mediaFilename.Clear();
     previewLoaded = false;
@@ -1410,7 +1410,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     if (dlg.ShowModal() == wxID_CANCEL) {
         return;
     }
-    
+
     wxString model_name = dlg.ChoiceSuperStarImportModel->GetStringSelection();
     if( model_name == "" )
     {
@@ -1430,7 +1430,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
 
     if( !input_xml.Load(bufIn) )  return;
 
-    
+
     if (dlg.TimeAdjSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjSpinCtrl->GetValue();
         AdjustAllTimings(input_xml.GetRoot(), offset  / 10);
@@ -1826,7 +1826,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
         int offset = dlg.TimeAdjustSpinCtrl->GetValue();
         AdjustAllTimings(input_xml.GetRoot(), offset / 10);
     }
-    
+
     int row = 0;
     for (int m = 0; m < dlg.modelNames.size(); m++) {
         wxString modelName = dlg.modelNames[m];
@@ -1928,7 +1928,7 @@ void ScaleImage(wxImage &img, int type,
                 int numCol, int numRow,
                 ImageInfo &imgInfo) {
     bool scale = false;
-    
+
     imgInfo.xOffset = imgInfo.xOffset + (imgInfo.width-numCol)/2;
     imgInfo.yOffset = numRow - imgInfo.yOffset - (numRow+imgInfo.height)/2;
 
@@ -2585,11 +2585,11 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     int yStart = wxAtoi(element->GetAttribute("yStart", "0"));
                     int xEnd = wxAtoi(element->GetAttribute("xEnd", "0"));
                     int yEnd = wxAtoi(element->GetAttribute("yEnd", "0"));
-                    
+
                     xlColor color = GetColor(element->GetAttribute("red"),
                                              element->GetAttribute("green"),
                                              element->GetAttribute("blue"));
-                    
+
                     int layer_index = wxAtoi(element->GetAttribute("layer"));
                     while( model->GetEffectLayerCount() < layer_index ) {
                         model->AddEffectLayer();
@@ -2599,7 +2599,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
                     int lorWidth = text.Length() * fontCellWidth;
                     int lorHeight = fontSize;
-                    
+
                     wxString font = "arial " + wxString::Format("%s%d", (fontName.Contains("Bold") ? "bold " : ""), fontSize + 4);
                     wxString eff = "normal";
                     if (fontName.Contains("Vertical")) {
@@ -2621,15 +2621,15 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     xEnd += round((double)lorWidth / 2.0);
                     yStart += round((double)lorHeight / 2.0);
                     yEnd += round((double)lorHeight / 2.0);
-                    
+
                     yStart = -yStart + num_rows;
                     yEnd = -yEnd + num_rows;
-                    
+
                     xStart = CalcUnBoundedPercentage(xStart, num_columns) - 50;
                     xEnd = CalcUnBoundedPercentage(xEnd, num_columns) - 50;
                     yStart = CalcUnBoundedPercentage(yStart, num_rows) - 50;
                     yEnd = CalcUnBoundedPercentage(yEnd, num_rows) - 50;
-                    
+
                     wxString palette = _("C_BUTTON_Palette1=") + color + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=0"
                         + ",C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
@@ -2655,8 +2655,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         + "E_TEXTCTRL_Text_Speed2=10,E_TEXTCTRL_Text_Speed3=10,E_TEXTCTRL_Text_Speed4=10,"
                         + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
                         + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.0";
-                    
-                    
+
+
                     layer->AddEffect(0, "Text", settings, palette, start_time, end_time, false, false);
                 }
             }

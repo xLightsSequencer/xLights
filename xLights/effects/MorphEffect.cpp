@@ -4,7 +4,8 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-
+#include "assist/AssistPanel.h"
+#include "assist/xlGridCanvasMorph.h"
 
 #include "../../include/morph.xpm"
 
@@ -23,11 +24,17 @@ wxPanel *MorphEffect::CreatePanel(wxWindow *parent) {
     return new MorphPanel(parent);
 }
 
+AssistPanel *MorphEffect::GetAssistPanel(wxWindow *parent) {
+    AssistPanel *assist_panel = new AssistPanel(parent);
+    xlGridCanvas* grid = new xlGridCanvasMorph(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("MorphGrid"));
+    assist_panel->SetGridCanvas(grid);
+    return assist_panel;
+}
 
 void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlColor &start_t, xlColor &end_t) {
     int useHeadStart = e->GetSettings().GetInt("E_CHECKBOX_MorphUseHeadStartColor", 0);
     int useTailStart = e->GetSettings().GetInt("E_CHECKBOX_MorphUseHeadEndColor", 0);
-    
+
     int hcols = 0, hcole = 1;
     int tcols = 2, tcole = 3;
     switch (e->GetPalette().size()) {
@@ -44,17 +51,17 @@ void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlC
             tcole = 2;
             break;
     }
-    
+
     if( useHeadStart > 0 )
     {
         tcols = hcols;
     }
-    
+
     if( useTailStart > 0 )
     {
         tcole = hcole;
     }
-    
+
     start_h = e->GetPalette()[hcols];
     end_h = e->GetPalette()[hcole];
     start_t = e->GetPalette()[tcols];
@@ -85,11 +92,11 @@ static void StoreLine( const int x0_, const int y0_, const int x1_, const int y1
     int x1 = x1_;
     int y0 = y0_;
     int y1 = y1_;
-    
+
     int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
     int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
     int err = (dx>dy ? dx : -dy)/2, e2;
-    
+
     for(;;){
         vx->push_back(x0);
         vy->push_back(y0);
@@ -127,10 +134,10 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     int repeat_count = SettingsMap.GetInt("SLIDER_Morph_Repeat_Count", 0);
     int repeat_skip = SettingsMap.GetInt("SLIDER_Morph_Repeat_Skip", 0);
     int stagger = SettingsMap.GetInt("SLIDER_Morph_Stagger", 0);
-    
+
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     double step_size = 0.1;
-    
+
     int hcols = 0, hcole = 1;
     int tcols = 2, tcole = 3;
     int num_tail_colors = 2;
@@ -156,14 +163,14 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             num_tail_colors = 4;
             break;
     }
-    
+
     int x1a = calcPosition(start_x1, buffer.BufferWi);
     int y1a = calcPosition(start_y1, buffer.BufferHt);
     int x2a = calcPosition(end_x1, buffer.BufferWi);
     int y2a = calcPosition(end_y1, buffer.BufferHt);
-    
+
     int x1b, x2b, y1b, y2b;
-    
+
     if( start_linked )
     {
         x1b = x1a;
@@ -174,7 +181,7 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         x1b = calcPosition(start_x2, buffer.BufferWi);
         y1b = calcPosition(start_y2, buffer.BufferHt);
     }
-    
+
     if( end_linked )
     {
         x2b = x2a;
@@ -185,9 +192,9 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         x2b = calcPosition(end_x2, buffer.BufferWi);
         y2b = calcPosition(end_y2, buffer.BufferHt);
     }
-    
+
     xlColor head_color, tail_color, test_color;
-    
+
     // compute direction
     int delta_xa = x2a - x1a;
     int delta_xb = x2b - x1b;
@@ -212,23 +219,23 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         effect_pct = 1.0 / (1 + stagger_val * repeat_count);
         stagger_pct = effect_pct * stagger_val;
     }
-    
+
     std::vector<int> v_ax;
     std::vector<int> v_ay;
     std::vector<int> v_bx;
     std::vector<int> v_by;
-    
+
     StoreLine(x1a, y1a, x2a, y2a, &v_ax, &v_ay);  // store side a
     StoreLine(x1b, y1b, x2b, y2b, &v_bx, &v_by);  // store side b
-    
+
     int size_a = v_ax.size();
     int size_b = v_bx.size();
-    
+
     std::vector<int> *v_lngx;  // pointer to longest vector x
     std::vector<int> *v_lngy;  // pointer to longest vector y
     std::vector<int> *v_shtx;  // pointer to shorter vector x
     std::vector<int> *v_shty;  // pointer to shorter vector y
-    
+
     if( size_a > size_b )
     {
         v_lngx = &v_ax;
@@ -243,7 +250,7 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         v_shtx = &v_ax;
         v_shty = &v_ay;
     }
-    
+
     double pos_a, pos_b;
     double total_tail_length, alpha_pct;
     double total_length = v_lngx->size();     // total length of longest vector
@@ -252,7 +259,7 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     double tail_end_of_head_pos = total_length + 1;
     double head_end_of_tail_pos = -1;
     double tail_end_of_tail_pos = -1;
-    
+
     for( int repeat = 0; repeat <= repeat_count; repeat++ )
     {
         double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
@@ -296,7 +303,7 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                 tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length;
             }
         }
-        
+
         // draw the tail
         for( double i = std::min(head_end_of_tail_pos, total_length-1); i >= tail_end_of_tail_pos && i >= 0.0; i -= step_size )
         {
@@ -337,7 +344,7 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             }
             buffer.DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), tail_color, direction >= 0);
         }
-        
+
         // draw the head
         for( double i = std::max(tail_end_of_head_pos, 0.0); i <= head_end_of_head_pos && i < total_length; i += step_size )
         {

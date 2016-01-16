@@ -1,7 +1,7 @@
 #include "RenderableEffect.h"
 #include "../sequencer/Effect.h"
 #include "EffectManager.h"
-
+#include "xlGridCanvasEmpty.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
@@ -55,6 +55,14 @@ wxPanel *RenderableEffect::GetPanel(wxWindow *parent) {
     }
     return panel;
 }
+
+AssistPanel *RenderableEffect::GetAssistPanel(wxWindow *parent) {
+    AssistPanel *assist_panel = new AssistPanel(parent);
+    xlGridCanvas* grid = new xlGridCanvasEmpty(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("EmptyGrid"));
+    assist_panel->SetGridCanvas(grid);
+    return assist_panel;
+}
+
 int RenderableEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
     if (e->HasBackgroundDisplayList()) {
         DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList());
@@ -264,7 +272,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
             {
                 settings["E_TEXTCTRL_Text_Speed4"] = settings.Get("T_SLIDER_Speed", "10");
             }
-            
+
             if (settings.Get("E_SLIDER_Text_Position1", "") != "") {
                 int pos = wxAtoi(settings.Get("E_SLIDER_Text_Position1", "50")) * 2 - 100;
                 settings.erase("E_SLIDER_Text_Position1");
@@ -292,7 +300,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 settings.erase("E_CHECKBOX_Spirograph_Animate");
             }
             break;
-            
+
         case EffectManager::eff_COLORWASH:
             if (settings.Get("E_TEXTCTRL_ColorWash_Cycles", "") == "")
             {
@@ -479,7 +487,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                     double cycles = maxState / 300.0;
                     settings["E_TEXTCTRL_Pictures_Speed"] = wxString::Format("%0.2f", cycles);
                 }
-                
+
                 settings.erase("E_CHECKBOX_MovieIs20FPS");
                 settings.erase("E_SLIDER_Pictures_GifSpeed");
             }
@@ -489,7 +497,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
             //Spacing setting as well as the height of the model.  We don't have the height of the model here so really
             //no way to figure out the speed or an appropriate mapping
             break;
-            
+
             //these all need code updated and new sliders and such before we can map them
             //these all have state/speed requirements
         case EffectManager::eff_PIANO:

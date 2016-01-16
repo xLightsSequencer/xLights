@@ -53,7 +53,7 @@ void xLightsFrame::CreateSequencer()
     EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, &effectManager);
     effectsPnl->Refresh();
 
-    sEffectAssist = new EffectAssist(PanelSequencer, this);
+    sEffectAssist = new EffectAssist(PanelSequencer);
     sEffectAssist->SetSize(wxSize(200,200));
     m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).BestSize(wxSize(200,200)).Left());
     sEffectAssist->Layout();
@@ -512,6 +512,7 @@ void xLightsFrame::EffectChanged(wxCommandEvent& event)
 void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 {
     bool OnlyChoiceBookPage = event.GetClientData()==nullptr?true:false;
+    Effect* effect = nullptr;
     if(OnlyChoiceBookPage)
     {
         int pageIndex = event.GetInt();
@@ -523,7 +524,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
     }
     else
     {
-        Effect* effect = (Effect*)event.GetClientData();
+        effect = (Effect*)event.GetClientData();
         bool resetStrings = false;
         if ("Random" == effect->GetEffectName()) {
             wxString settings, palette;
@@ -566,11 +567,13 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,false);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_REPLAY_SECTION,false);
         }
-        UpdateEffectAssistWindow(effect);
     }
     RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
     effectsPnl->SetDragIconBuffer(eff->GetEffectIcon(16));
     effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff);
+    if( effect != nullptr ) {
+        UpdateEffectAssistWindow(effect, eff);
+    }
     mainSequencer->PanelEffectGrid->SetFocus();
 }
 
@@ -636,7 +639,10 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         selectedEffect = last_effect_created;
     }
 
-    UpdateEffectAssistWindow(last_effect_created);
+    if( last_effect_created != nullptr ) {
+        RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
+        UpdateEffectAssistWindow(last_effect_created, eff);
+    }
 
     mainSequencer->PanelEffectGrid->Refresh(false);
 }

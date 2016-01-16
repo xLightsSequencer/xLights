@@ -23,6 +23,7 @@
 
 #include "RenderCommandEvent.h"
 #include "BitmapCache.h"
+#include "effects/RenderableEffect.h"
 
 // scripting language
 #include "xLightsBasic.cpp"
@@ -3153,25 +3154,15 @@ void xLightsFrame::SetEffectAssistWindowState(bool show)
     }
 }
 
-bool xLightsFrame::EffectAssistSupported(Effect* effect)
+void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect)
 {
-    wxString name = effect->GetEffectName();
-    if( name == "Morph" || name == "Pictures" )
+    if( effect == nullptr )
     {
-        return true;
-    }
-    return false;
-}
-
-void xLightsFrame::UpdateEffectAssistWindow(Effect* effect)
-{
-    if( effect == NULL )
-    {
-        sEffectAssist->SetEffect(NULL);
+        sEffectAssist->SetPanel(nullptr);
         return;
     }
 
-    bool effect_is_supported = EffectAssistSupported(effect);
+    bool effect_is_supported = ren_effect->HasAssistPanel();
 
     if( mEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE )
     {
@@ -3185,14 +3176,9 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect)
         }
     }
 
-    if( effect_is_supported )
-    {
-        sEffectAssist->SetEffect(effect);
-    }
-    else
-    {
-        sEffectAssist->SetEffect(NULL);
-    }
+    AssistPanel* panel = ren_effect->GetAssistPanel(sEffectAssist);
+    panel->SetEffectInfo(effect, this);
+    sEffectAssist->SetPanel(panel);
 }
 
 void xLightsFrame::CheckUnsavedChanges()

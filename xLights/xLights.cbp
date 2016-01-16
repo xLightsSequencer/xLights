@@ -39,6 +39,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="modesl" />
+					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -112,6 +113,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="modesl" />
+					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -177,6 +179,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="modesl" />
+					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -226,6 +229,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="modesl" />
+					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -274,6 +278,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="modesl" />
+					<Add directory="effects/assist" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 " />
@@ -302,6 +307,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="modesl" />
+					<Add directory="effects/assist" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -335,6 +341,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="modesl" />
+					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -383,6 +390,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="modesl" />
+					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -714,6 +722,16 @@
 		<Unit filename="effects/WaveEffect.h" />
 		<Unit filename="effects/WavePanel.cpp" />
 		<Unit filename="effects/WavePanel.h" />
+		<Unit filename="effects/assist/AssistPanel.cpp" />
+		<Unit filename="effects/assist/AssistPanel.h" />
+		<Unit filename="effects/assist/PicturesAssistPanel.cpp" />
+		<Unit filename="effects/assist/PicturesAssistPanel.h" />
+		<Unit filename="effects/assist/xlGridCanvasEmpty.cpp" />
+		<Unit filename="effects/assist/xlGridCanvasEmpty.h" />
+		<Unit filename="effects/assist/xlGridCanvasMorph.cpp" />
+		<Unit filename="effects/assist/xlGridCanvasMorph.h" />
+		<Unit filename="effects/assist/xlGridCanvasPictures.cpp" />
+		<Unit filename="effects/assist/xlGridCanvasPictures.h" />
 		<Unit filename="heartbeat.cpp" />
 		<Unit filename="heartbeat.h" />
 		<Unit filename="models/ArchesModel.cpp" />
@@ -814,6 +832,7 @@
 		<Unit filename="wxCheckedListCtrl.cpp" />
 		<Unit filename="wxCheckedListCtrl.h" />
 		<Unit filename="wx_pch.h" />
+		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
@@ -853,6 +872,7 @@
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PerspectivesPanel.wxs" />
 		<Unit filename="wxsmith/PianoPanel.wxs" />
+		<Unit filename="wxsmith/PicturesAssistPanel.wxs" />
 		<Unit filename="wxsmith/PicturesPanel.wxs" />
 		<Unit filename="wxsmith/PinwheelPanel.wxs" />
 		<Unit filename="wxsmith/PixelAppearanceDlg.wxs" />
@@ -908,12 +928,6 @@
 		<Unit filename="xlGLCanvas.h" />
 		<Unit filename="xlGridCanvas.cpp" />
 		<Unit filename="xlGridCanvas.h" />
-		<Unit filename="xlGridCanvasEmpty.cpp" />
-		<Unit filename="xlGridCanvasEmpty.h" />
-		<Unit filename="xlGridCanvasMorph.cpp" />
-		<Unit filename="xlGridCanvasMorph.h" />
-		<Unit filename="xlGridCanvasPictures.cpp" />
-		<Unit filename="xlGridCanvasPictures.h" />
 		<Unit filename="xlSlider.cpp" />
 		<Unit filename="xlSlider.h" />
 		<Unit filename="xlights_out.cpp" />
@@ -1004,6 +1018,8 @@
 					<wxPanel wxs="wxsmith/TreePanel.wxs" src="effects/TreePanel.cpp" hdr="effects/TreePanel.h" fwddecl="1" i18n="1" name="TreePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TwinklePanel.wxs" src="effects/TwinklePanel.cpp" hdr="effects/TwinklePanel.h" fwddecl="1" i18n="1" name="TwinklePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/WavePanel.wxs" src="effects/WavePanel.cpp" hdr="effects/WavePanel.h" fwddecl="1" i18n="1" name="WavePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PicturesAssistPanel.wxs" src="effects/assist/PicturesAssistPanel.cpp" hdr="effects/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/AssistPanel.wxs" src="effects/assist/AssistPanel.cpp" hdr="effects/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

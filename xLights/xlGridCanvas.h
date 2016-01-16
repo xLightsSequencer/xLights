@@ -20,11 +20,14 @@ class xlGridCanvas : public xlGLCanvas
         virtual void SetEffect(Effect* effect_) = 0;
         Effect* GetEffect() {return mEffect;}
         void SetModelClass(ModelClass* cls) {mModelClass = cls;}
+        ModelClass* GetModelClass() {return mModelClass;}
         void SetNumColumns(int columns) {mColumns = columns;}
         void SetNumRows(int rows) {mRows = rows;}
-        int GetCellSize() {return mCellSize;}
+        //int GetCellSize() {return mCellSize;}
         void AdjustSize(wxSize& parent_size);
         virtual void ForceRefresh() = 0;
+        virtual void Copy() {;}
+        virtual void Paste() {;}
 
     protected:
         virtual void InitializeGLCanvas() = 0;

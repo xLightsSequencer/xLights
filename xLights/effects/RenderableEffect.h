@@ -4,6 +4,7 @@
 #include <wx/bitmap.h>
 #include <string>
 #include "../Color.h"
+#include "assist/AssistPanel.h"
 
 class wxPanel;
 class wxWindow;
@@ -25,16 +26,16 @@ class RenderableEffect
                          const char **data48,
                          const char **data64);
         virtual ~RenderableEffect();
-    
+
         virtual const std::string &Name() const { return name;};
-    
+
         virtual const std::string &ToolTip() const { return tooltip;};
-    
+
         virtual const wxBitmap &GetEffectIcon(int size, bool exact = false) const;
         virtual int GetId() const { return id; }
 
         virtual void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
-    
+
         wxPanel *GetPanel(wxWindow *parent);
         virtual void SetDefaultParameters(ModelClass *cls) {}
 
@@ -52,6 +53,9 @@ class RenderableEffect
         virtual bool needToAdjustSettings(const std::string &version);
         virtual void adjustSettings(const std::string &version, Effect *effect);
 
+        virtual AssistPanel *GetAssistPanel(wxWindow *parent);
+        virtual bool HasAssistPanel() { return false; }
+
     protected:
         bool IsVersionOlder(const std::string& compare, const std::string& version);
         void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors);
@@ -61,20 +65,20 @@ class RenderableEffect
                          const char **data32,
                          const char **data48,
                          const char **data64);
-    
+
         virtual wxPanel *CreatePanel(wxWindow *parent) = 0;
         std::string name;
         std::string tooltip;
         int id;
         wxPanel *panel;
         SequenceElements *mSequenceElements;
-    
+
         wxBitmap icon16;
         wxBitmap icon24;
         wxBitmap icon32;
         wxBitmap icon48;
         wxBitmap icon64;
-    
+
 #ifdef __WXOSX__
         wxBitmap icon16e;
         wxBitmap icon24e;

@@ -95,7 +95,7 @@ void xlGridCanvasPictures::ProcessNewImage()
 
     wxCommandEvent eventImage(EVT_IMAGE_FILE_SELECTED);
     eventImage.SetClientData(&NewPictureName);
-    wxPostEvent(GetParent(), eventImage);
+    wxPostEvent(mMessageParent, eventImage);
 
     int imgwidth=image.GetWidth();
     int imght   =image.GetHeight();
@@ -103,7 +103,7 @@ void xlGridCanvasPictures::ProcessNewImage()
     image_size = wxString::Format("Image Size: %d x %d", imgwidth, imght);
     wxCommandEvent eventImageSize(EVT_IMAGE_SIZE);
     eventImageSize.SetString(image_size);
-    wxPostEvent(GetParent(), eventImageSize);
+    wxPostEvent(mMessageParent, eventImageSize);
 
     if( imgwidth > mColumns || imght > mRows )
     {
@@ -314,7 +314,7 @@ void xlGridCanvasPictures::UpdateRenderedImage()
 
     wxCommandEvent eventEffectChanged(EVT_EFFECT_CHANGED);
     eventEffectChanged.SetClientData(mEffect);
-    wxPostEvent(GetParent(), eventEffectChanged);
+    wxPostEvent(mMessageParent, eventEffectChanged);
 }
 
 void xlGridCanvasPictures::CreateNewImage(wxString& image_dir)
@@ -367,7 +367,7 @@ void xlGridCanvasPictures::SetEffect(Effect* effect_)
         missing_file = "File Not Found: " + NewPictureName;
         wxCommandEvent eventImage(EVT_IMAGE_FILE_SELECTED);
         eventImage.SetClientData(&missing_file);
-        wxPostEvent(GetParent(), eventImage);
+        wxPostEvent(mMessageParent, eventImage);
         NewPictureName = "";
     }
 }
@@ -439,7 +439,7 @@ void xlGridCanvasPictures::mouseDown(int x, int y)
                     eyedrop_color.blue = image.GetBlue(column, row);
                     wxCommandEvent eventEyedrop(EVT_EYEDROPPER_COLOR);
                     eventEyedrop.SetInt(eyedrop_color.GetRGB());
-                    wxPostEvent(GetParent(), eventEyedrop);
+                    wxPostEvent(mMessageParent, eventEyedrop);
                 } else if( mPaintMode == PAINT_SELECTCOPY ) {
                     if( !mRightDown ) {
                         if( !mHoverSelection )
@@ -542,7 +542,7 @@ void xlGridCanvasPictures::mouseMoved(wxMouseEvent& event)
                     eyedrop_color.blue = image.GetBlue(column, row);
                     wxCommandEvent eventEyedrop(EVT_EYEDROPPER_COLOR);
                     eventEyedrop.SetClientData(&eyedrop_color);
-                    wxPostEvent(GetParent(), eventEyedrop);
+                    wxPostEvent(mMessageParent, eventEyedrop);
                 } else if( mPaintMode == PAINT_SELECTCOPY && !mRightDown ) {
                     if( !mHoverSelection )
                     {
@@ -772,7 +772,10 @@ void xlGridCanvasPictures::ProcessHoverDrag(int column, int row)
     CalcSelection();
     int height = mEndRow-mStartRow+1;
     int width = mEndCol-mStartCol+1;
-    copy_sprite->setHotspot(-1 - mStartCol, -1 - mStartRow);
+    if( mCopyAvailable )
+    {
+        copy_sprite->setHotspot(-1 - mStartCol, -1 - mStartRow);
+    }
 }
 
 void xlGridCanvasPictures::Copy()

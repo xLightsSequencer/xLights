@@ -383,7 +383,7 @@ public:
     void ImportVix(const wxFileName &filename);
     void ImportXLights(const wxFileName &filename);
     void ImportLSP(const wxFileName &filename);
-    
+
     EffectManager &GetEffectManager() { return effectManager; }
 
 private:
@@ -615,8 +615,7 @@ private:
     void ClearEffectRow(wxCommandEvent& evt); //-DJ
     void ShowHideAllSequencerWindows(bool show);
     void SetEffectAssistWindowState(bool show);
-    bool EffectAssistSupported(Effect* effect);
-    void UpdateEffectAssistWindow(Effect* effect);
+    void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
 
 //    void ConnectOnChar(wxWindow* pclComponent);
 
@@ -1199,7 +1198,7 @@ private:
     NetInfoClass NetInfo;
 
     ModelPreview* modelPreview;
-    
+
     EffectManager effectManager;
 
     int effGridPrevX;

@@ -4,7 +4,8 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-
+#include "assist/xlGridCanvasPictures.h"
+#include "assist/PicturesAssistPanel.h"
 
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
@@ -35,7 +36,16 @@ wxPanel *PicturesEffect::CreatePanel(wxWindow *parent) {
     return new PicturesPanel(parent);
 }
 
-
+AssistPanel *PicturesEffect::GetAssistPanel(wxWindow *parent) {
+    AssistPanel *assist_panel = new AssistPanel(parent);
+    xlGridCanvasPictures* grid = new xlGridCanvasPictures(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("PicturesGrid"));
+    assist_panel->SetGridCanvas(grid);
+    PicturesAssistPanel* picture_panel = new PicturesAssistPanel(assist_panel->GetCanvasParent());
+    assist_panel->AddPanel(picture_panel);
+    picture_panel->SetGridCanvas(grid);
+    grid->SetMessageParent(picture_panel);
+    return assist_panel;
+}
 
 //CAUTION: these must match EffectDirections exactly:
 #define RENDER_PICTURE_LEFT  0
@@ -125,7 +135,7 @@ class PicturesRenderCache : public EffectRenderCache {
 public:
     PicturesRenderCache() : imageCount(0), imageIndex(0), frame(0), maxmovieframes(0) {};
     virtual ~PicturesRenderCache() {};
-    
+
     wxImage image;
     int imageCount;
     int imageIndex;
@@ -166,15 +176,15 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
     cache->imageIndex = 0;
     wxImage &image = cache->image;
     std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
-    
+
     if (image.GetWidth() && image.GetHeight()) image.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
-    
+
     if (!cache->PictureName.CmpNoCase(filename)) { wrdebug("no change: " + filename); return; }
     if (!wxFileExists(filename)) { wrdebug("not found: " + filename); return; }
     wxTextFile f;
     cache->PixelsByFrame.clear();
     if (!f.Open(filename.c_str())) { wrdebug("can't open: " + filename); return; }
-    
+
     //read channel values from Vixen grid or routine:
     //    std::vector<std::vector<std::pair<int, byte>>> ChannelsByFrame; //list of channel#s by frame and their associated value
     int numch = 0, chbase = 0, nodesize = 1;
@@ -184,7 +194,7 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
         if ((ofs = linebuf.find("#")) != std::string::npos) linebuf.erase(ofs); //remove comments
         while (!linebuf.empty() && isspace(linebuf.Last())) linebuf.RemoveLast(); //trim trailing spaces
         if (linebuf.empty()) continue; //skip blank lines
-        
+
         static wxRegEx chbase_re("^\\s*ChannelBase\\s*=\\s*(-?[0-9]+)\\s*$", wxRE_ICASE);
         if (!PixelsByFrame.size() && chbase_re.Matches(linebuf)) //allow channels to be shifted
         {
@@ -197,7 +207,7 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
             nodesize = wxAtoi(nodesize_re.GetMatch(linebuf, 1));
             continue;
         }
-        
+
         PixelVector frame;
         wxStringTokenizer tkz(linebuf, " ");
         for (int chnum = 0; tkz.HasMoreTokens(); ++chnum)
@@ -255,15 +265,15 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     int dir = GetPicturesDirection(dirstr);
     double position = buffer.GetEffectTimeIntervalPosition(movementSpeed);
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
-    
+
     int BufferWi = buffer.BufferWi;
     int BufferHt = buffer.BufferHt;
     int curPeriod = buffer.curPeriod;
     int curEffStartPer = buffer.curEffStartPer;
-    
+
     wxFile f;
     if (NewPictureName2.length()==0) return;
-    
+
     //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
     //  we have a bunch of jpg files made by ffmpeg
     //  movie files can be converted into jpg frames by this command
@@ -271,19 +281,19 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
     //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
     //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
-    
+
     PicturesRenderCache *cache = GetCache(buffer);
     wxImage &image = cache->image;
     std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
     int &frame = cache->frame;
-    
+
     sPicture = NewPictureName2;
     suffix = NewPictureName2.substr(NewPictureName2.length()-6,2);
     extension = NewPictureName2.substr(NewPictureName2.length()-3,3);
     if (suffix == "-1")  {// do we have a movie file?
         //    yes
         BasePicture= NewPictureName2.substr(0,NewPictureName2.length()-6) ;
-        
+
         //  build the next filename. the frame counter is incrementing through all frames
         if (buffer.needToInit) { // only once, try 10000 files to find how high is frame count
             buffer.needToInit = false;
@@ -307,9 +317,9 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         }
         sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
     }
-    
+
     NewPictureName=sPicture;
-    
+
     if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
     {
         LoadPixelsFromTextFile(buffer, f, NewPictureName);
@@ -321,7 +331,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
             }
         return;
     }
-    
+
     if (NewPictureName != cache->PictureName)
     {
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
@@ -350,7 +360,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                 return;
         }
     }
-    
+
     int imgwidth=image.GetWidth();
     int imght   =image.GetHeight();
     int yoffset =(BufferHt+imght)/2; //centered if sizes don't match
@@ -406,7 +416,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
             waveN = waveX / waveW;
             break;
     }
-    
+
     int xoffset_adj = xc_adj;
     int yoffset_adj = yc_adj;
     if (dir == RENDER_PICTURE_VECTOR) {
@@ -422,10 +432,10 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     // copy image to buffer
     xlColor c;
     bool hasAlpha = image.HasAlpha();
-    
+
     int calc_position_wi = (imgwidth+BufferWi)*position;
     int calc_position_ht = (imght+BufferHt)*position;
-    
+
     for(int x=0; x<imgwidth; x++)
     {
         for(int y=0; y<imght; y++)
@@ -466,7 +476,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                     case RENDER_PICTURE_DOWNRIGHT: //8:
                         buffer.ProcessPixel(x+xoffset_adj+calc_position_wi-imgwidth,BufferHt+imght-y-yoffset_adj-calc_position_ht,c, wrap_x, imgwidth);
                         break; // down-right
-                        
+
                     case RENDER_PICTURE_PEEKABOO_0: //10: //up+down 1x (peekaboo) -DJ
                         buffer.ProcessPixel(x - xoffset+xoffset_adj, BufferHt + yoffset - y - yoffset_adj, c, wrap_x, imgwidth); // - BufferHt, c);
                         break;
