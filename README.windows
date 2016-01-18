@@ -41,10 +41,16 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
      2) cd to the build\msw directory under your wxWidgets base directory
      3) Some users have reported that their path variable was too long, which confused the wx buld.
         If so, try: SET Path=C:\Windows\system32;C:\Windows;C:\Program Files (x86)\CodeBlocks\MinGW\bin
-
-     4) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++11" BUILD=debug
-     5) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++11" BUILD=release
-     6) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
+	 4) Edit the wxWidgets-3.0.2\include\wx\msw\setup.h, wxWidgets-3.0.2\lib\gcc_dll\mswu\wx\setup.h and wxWidgets-3.0.2\lib\gcc_dll\mswud\wx\setup.h files to enable GDI+
+	    - search for the line "#   define wxUSE_GRAPHICS_CONTEXT 0" ... not the line "#       define wxUSE_GRAPHICS_CONTEXT 0" ... Please make sure you update the right one.
+		- change it to "#   define wxUSE_GRAPHICS_CONTEXT 1"
+		- save the file
+	 5) If you have built wxQidgets before you may need to delete the following 2 folders to force the setup.h change to be included
+	    - wxWidgets-3.0.2\build\msw\gcc_mswuddll
+		- wxWidgets-3.0.2\build\msw\gcc_mswudll
+     6) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++11" BUILD=debug
+     7) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++11" BUILD=release
+     8) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
         then you need to update your path environment variable to include C:\wxWidgets-3.0.2\lib\gcc_dll
         (assuming C:\wxWidgets-3.0.2 is your wxWidgets base directory).
 

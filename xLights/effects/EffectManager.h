@@ -46,19 +46,20 @@ public:
         eff_SPIRALS,
         eff_SPIROGRAPH,
         eff_STROBE,
+        eff_TENDRIL,
         eff_TEXT,
         eff_TREE,
         eff_TWINKLE,
         eff_WAVE,
         eff_LASTEFFECT //Always the last entry
     };
-    
-    
+
+
     public:
         EffectManager();
         virtual ~EffectManager();
-    
-    
+
+
         RenderableEffect *GetEffect(int i) const {
             if (i >= size()) {
                 return nullptr;
@@ -67,15 +68,15 @@ public:
         }
         RenderableEffect *GetEffect(const std::string &str) const;
         int GetLastEffectId() const { return size() - 1;};
-    
-    
+
+
         int GetEffectIndex(const std::string &effectName) const;
         const std::string &GetEffectName(int idx) const;
 
     protected:
     private:
         void add(RenderableEffect *eff);
-    
+
         mutable std::map<std::string, RenderableEffect *> effectsByName;
 };
 

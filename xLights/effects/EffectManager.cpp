@@ -36,6 +36,7 @@
 #include "SpiralsEffect.h"
 #include "SpirographEffect.h"
 #include "StrobeEffect.h"
+#include "TendrilEffect.h"
 #include "TextEffect.h"
 #include "TreeEffect.h"
 #include "TwinkleEffect.h"
@@ -77,11 +78,12 @@ EffectManager::EffectManager() : std::vector<RenderableEffect*>()
     add(new SpiralsEffect(eff_SPIRALS));
     add(new SpirographEffect(eff_SPIROGRAPH));
     add(new StrobeEffect(eff_STROBE));
+    add(new TendrilEffect(eff_TENDRIL));
     add(new TextEffect(eff_TEXT));
     add(new TreeEffect(eff_TREE));
     add(new TwinkleEffect(eff_TWINKLE));
     add(new WaveEffect(eff_WAVE));
-    
+
     //Map an old name
     effectsByName["CoroFaces"] = GetEffect("Faces");
 }
