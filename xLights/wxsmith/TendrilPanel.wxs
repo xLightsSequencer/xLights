@@ -342,8 +342,9 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Tendril_Speed" variable="Slider_Tendril_Speed" member="yes">
-							<value>100</value>
+							<value>10</value>
 							<min>1</min>
+							<max>10</max>
 							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -352,7 +353,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_Speed" variable="TextCtrl_Tendril_Speed" member="yes">
-							<value>100</value>
+							<value>10</value>
 							<size>20,-1d</size>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>

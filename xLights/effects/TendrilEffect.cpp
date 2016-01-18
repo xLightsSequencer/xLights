@@ -137,7 +137,7 @@ void ATendril::Update(wxPoint* target)
 	}
 }
 
-void ATendril::Draw(wxGraphicsContext* gc)
+void ATendril::Draw(DrawingContext* gc)
 {
     wxColor c(_colour);
     wxPen pen(c, _thickness);
@@ -222,9 +222,6 @@ Tendril::Tendril(float friction, int trails, int size, float dampening, float te
 	}
 }
 
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
 void Tendril::UpdateRandomMove(int tunemovement)
 {
     if (tunemovement < 1)
@@ -246,22 +243,22 @@ void Tendril::UpdateRandomMove(int tunemovement)
 	int realminmovex = minmovex;
 	if (minmovex < 0)
 	{
-		realminmovex = -1 * min(current->x, minmovex * -1);
+		realminmovex = -1 * std::min(current->x, minmovex * -1);
 	}
 	int realmaxmovex = maxmovex;
 	if (maxmovex > 0)
 	{
-		realmaxmovex = min(maxx - current->x, maxmovex);
+		realmaxmovex = std::min(maxx - current->x, maxmovex);
 	}
 	int realminmovey = minmovey;
 	if (minmovey < 0)
 	{
-		realminmovey = -1 * min(current->y, minmovey * -1);
+		realminmovey = -1 * std::min(current->y, minmovey * -1);
 	}
 	int realmaxmovey = maxmovey;
 	if (maxmovey > 0)
 	{
-		realmaxmovey = min(maxy - current->y, maxmovey);
+		realmaxmovey = std::min(maxy - current->y, maxmovey);
 	}
 
 	int xmove = -1 * realminmovex + realmaxmovex;
@@ -314,7 +311,7 @@ void Tendril::Update(int x, int y)
     Update(&pt);
 }
 
-void Tendril::Draw(wxGraphicsContext* gc)
+void Tendril::Draw(DrawingContext* gc)
 {
     for (std::list<ATendril*>::const_iterator ci = _tendrils.begin(); ci != _tendrils.end(); ++ci)
     {
@@ -338,7 +335,7 @@ void TendrilEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     Render(buffer,
            SettingsMap.GetInt("TEXTCTRL_Tendril_Movement", 1),
            SettingsMap.GetInt("TEXTCTRL_Tendril_TuneMovement", 10),
-           SettingsMap.GetInt("TEXTCTRL_Tendril_Speed", 100),
+           SettingsMap.GetInt("TEXTCTRL_Tendril_Speed", 10),
            SettingsMap.GetInt("TEXTCTRL_Tendril_Thickness", 1),
            SettingsMap.GetFloat("TEXTCTRL_Tendril_Friction", 10) / 20 * 0.2 + 0.4, // 0.4->0.6 but on screen 0-20: def 0.5
            SettingsMap.GetFloat("TEXTCTRL_Tendril_Dampening", 10) / 20 * 0.5, // 0->0.5 but on screen 0-20: def 0.25
@@ -374,6 +371,8 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
                            float friction, float dampening,
                            float tension, int trails, int length)
 {
+    buffer.drawingContext->Clear();
+
     if (friction < 0.4)
     {
         friction = 0.4;
@@ -468,7 +467,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
             case 3:
                 // circles
                 _mv1 = 0; // radians
-                _mv2 = min(buffer.BufferWi, buffer.BufferHt) / 2; // radius
+                _mv2 = std::min(buffer.BufferWi, buffer.BufferHt) / 2; // radius
                 _mv3 = tunemovement * 3;
                 if (_mv3 == 0)
                 {
@@ -498,7 +497,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
     }
 
     const double PI  = 3.141592653589793238463;
-    int speed = 100 - movementSpeed;
+    int speed = 10 - movementSpeed;
     if (speed <= 0 || buffer.curPeriod % speed == 0)
     {
         switch(_movement)
@@ -510,28 +509,28 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
                 switch(_mv3)
                 {
                 case 0:
-                    _mv1+=max(buffer.BufferWi/_mv4,1);
+                    _mv1+=std::max(buffer.BufferWi/_mv4,1);
                     if (_mv1 >= buffer.BufferWi - buffer.BufferWi / _mv4)
                     {
                         _mv3++;
                     }
                     break;
                 case 1:
-                    _mv2+=max(buffer.BufferHt/_mv4,1);
+                    _mv2+=std::max(buffer.BufferHt/_mv4,1);
                     if (_mv2 >= buffer.BufferHt - buffer.BufferHt / _mv4)
                     {
                         _mv3++;
                     }
                     break;
                 case 2:
-                    _mv1-=max(buffer.BufferWi/_mv4,1);
+                    _mv1-=std::max(buffer.BufferWi/_mv4,1);
                     if (_mv1 <= buffer.BufferWi / _mv4)
                     {
                         _mv3++;
                     }
                     break;
                 case 3:
-                    _mv2-=max(buffer.BufferHt/_mv4,1);
+                    _mv2-=std::max(buffer.BufferHt/_mv4,1);
                     if (_mv2 <= buffer.BufferHt / _mv4)
                     {
                         _mv3 = 0;
@@ -555,7 +554,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
             case 4:
                 {
                     _mv1 = _mv1 + _mv3;
-                    int x = sin(max((double)buffer.BufferHt / (double)_mv2, 0.5) * PI * (double)_mv1 / (double)buffer.BufferHt) * (double)buffer.BufferWi / 2.0 + (double)buffer.BufferWi / 2.0;
+                    int x = sin(std::max((double)buffer.BufferHt / (double)_mv2, 0.5) * PI * (double)_mv1 / (double)buffer.BufferHt) * (double)buffer.BufferWi / 2.0 + (double)buffer.BufferWi / 2.0;
                     if (_mv1 >= buffer.BufferHt || _mv1 <= 0)
                     {
                         _mv3 = _mv3 * -1;
@@ -570,7 +569,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
             case 5:
                 {
                     _mv1 = _mv1 + _mv3;
-                    int y = sin(max((double)buffer.BufferWi / (double)_mv2, 0.5) * PI * (double)_mv1 / (double)buffer.BufferWi) * (double)buffer.BufferHt / 2.0 + (double)buffer.BufferHt / 2.0;
+                    int y = sin(std::max((double)buffer.BufferWi / (double)_mv2, 0.5) * PI * (double)_mv1 / (double)buffer.BufferWi) * (double)buffer.BufferHt / 2.0 + (double)buffer.BufferHt / 2.0;
                     if (_mv1 >= buffer.BufferWi || _mv1 <= 0)
                     {
                         _mv3 = _mv3 * -1;
@@ -585,17 +584,9 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
         }
     }
 
-    wxBitmap bmp;
-    bmp.Create(buffer.BufferWi, buffer.BufferHt);
-
-    wxMemoryDC dc;
-    dc.SelectObject(bmp);
-    wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
-    _tendril->Draw(gc);
-    dc.SelectObject(wxNullBitmap);
-
-    wxImage image = bmp.ConvertToImage();
-    bool hasAlpha = image.HasAlpha();
+    _tendril->Draw(buffer.drawingContext);
+    wxImage * image = buffer.drawingContext->FlushAndGetImage();
+    bool hasAlpha = image->HasAlpha();
 
     xlColor c;
     for(int y=0; y<buffer.BufferHt; y++)
@@ -604,11 +595,11 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
         {
             if (hasAlpha)
             {
-                c.Set(image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y),image.GetAlpha(x,y));
+                c.Set(image->GetRed(x,y),image->GetGreen(x,y),image->GetBlue(x,y),image->GetAlpha(x,y));
             }
             else
             {
-                c.Set(image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y), 255);
+                c.Set(image->GetRed(x,y),image->GetGreen(x,y),image->GetBlue(x,y), 255);
             }
             buffer.SetPixel(x, y, c);
         }

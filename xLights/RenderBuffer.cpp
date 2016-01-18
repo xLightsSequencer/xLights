@@ -44,34 +44,34 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(wxNullBi
 #endif
     bitmap = new wxBitmap(*image);
     dc = new wxMemoryDC(*bitmap);
-    
-    
+
+
     //make sure we UnShare everything that is being held onto
     //also use "non-normal" defaults to avoid "==" issue that
     //would keep it from using the non-shared versions
     wxFont font(*wxITALIC_FONT);
     unshare(font);
     dc->SetFont(font);
-    
+
     wxBrush brush(*wxYELLOW_BRUSH);
     unshare(brush);
     dc->SetBrush(brush);
     dc->SetBackground(brush);
-    
+
     wxPen pen(*wxGREEN_PEN);
     unshare(pen);
     dc->SetPen(pen);
-    
+
 #ifndef LINUX
     wxColor c(12, 25, 3);
     unshare(c);
     dc->SetTextBackground(c);
-    
+
     wxColor c2(0, 35, 5);
     unshare(c2);
     dc->SetTextForeground(c2);
 #endif
-    
+
     dc->SelectObject(nullBitmap);
     delete bitmap;
     bitmap = nullptr;
@@ -104,7 +104,7 @@ void DrawingContext::Clear() {
         gc = nullptr;
     }
 #endif
-    
+
     dc->SelectObject(nullBitmap);
     if (bitmap != nullptr) {
         delete bitmap;
@@ -121,9 +121,9 @@ void DrawingContext::Clear() {
 #else
     bitmap = new wxBitmap(*image);
 #endif
-    
+
     dc->SelectObject(*bitmap);
-    
+
 #if wxUSE_GRAPHICS_CONTEXT
 #ifdef LINUX
     gc = wxGraphicsContext::Create(*image);
@@ -157,6 +157,32 @@ void DrawingContext::SetFont(wxFont &font, const xlColor &color) {
 #else
     dc->SetFont(font);
     dc->SetTextForeground(color.asWxColor());
+#endif
+}
+
+void DrawingContext::SetPen(wxPen &pen) {
+#if wxUSE_GRAPHICS_CONTEXT
+    gc->SetPen(pen);
+#else
+    dc->SetPen(pen);
+#endif
+}
+
+wxGraphicsPath DrawingContext::CreatePath()
+{
+#if wxUSE_GRAPHICS_CONTEXT
+    return gc->CreatePath();
+#else
+    #error Graphics Paths require wxUSE_GRAPHICS_CONTEXT
+#endif
+}
+
+void DrawingContext::StrokePath(wxGraphicsPath& path)
+{
+#if wxUSE_GRAPHICS_CONTEXT
+    gc->StrokePath(path);
+#else
+    #error Graphics Paths require wxUSE_GRAPHICS_CONTEXT
 #endif
 }
 
@@ -780,12 +806,12 @@ void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex
 double RenderBuffer::calcAccel(double ratio, double accel)
 {
     if( accel == 0 ) return ratio;
-    
+
     double pct_accel = (std::abs(accel) - 1.0) / 9.0;
     double new_accel1 = pct_accel * 5 + (1.0 - pct_accel) * 1.5;
     double new_accel2 = 1.5 + (ratio * new_accel1);
     double final_accel = pct_accel * new_accel2 + (1.0 - pct_accel) * new_accel1;
-    
+
     if( accel > 0 )
     {
         return std::pow(ratio, final_accel);

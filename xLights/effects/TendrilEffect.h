@@ -41,7 +41,8 @@ class ATendril
 	~ATendril();
 	ATendril(float friction, int size, float dampening, float tension, float spring, wxPoint* start, xlColor colour, int thickness, int maxx, int maxy);
 	void Update(wxPoint* target);
-	void Draw(wxGraphicsContext* gc);
+	//void Draw(wxGraphicsContext* gc);
+	void Draw(DrawingContext* gc);
 	wxPoint* LastLocation();
 };
 
@@ -58,7 +59,8 @@ class Tendril
 	void UpdateRandomMove(int tunemovement);
     void Update(wxPoint* target);
     void Update(int x, int y);
-    void Draw(wxGraphicsContext* gc);
+    //void Draw(wxGraphicsContext* gc);
+    void Draw(DrawingContext* gc);
 };
 
 class TendrilEffect : public RenderableEffect
