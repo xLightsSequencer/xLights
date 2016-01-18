@@ -31,6 +31,8 @@
 		672BD5021C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4F21C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib */; };
 		672BD5041C207DC6008F8B36 /* libmpg123.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B7971F1A5AE40B008D5921 /* libmpg123.a */; };
 		672BD5051C208335008F8B36 /* libwx_osx_cocoau_html-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4F11C207D2E008F8B36 /* libwx_osx_cocoau_html-3.0.dylib */; };
+		672E62B01C4D2FCF006A4966 /* TendrilEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E62AC1C4D2FCF006A4966 /* TendrilEffect.cpp */; };
+		672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E62AE1C4D2FCF006A4966 /* TendrilPanel.cpp */; };
 		672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
@@ -286,6 +288,10 @@
 		672BD4F01C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_core-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_core-3.0.dylib"; sourceTree = "<group>"; };
 		672BD4F11C207D2E008F8B36 /* libwx_osx_cocoau_html-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_html-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_html-3.0.dylib"; sourceTree = "<group>"; };
 		672BD4F21C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_media-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_media-3.0.dylib"; sourceTree = "<group>"; };
+		672E62AC1C4D2FCF006A4966 /* TendrilEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TendrilEffect.cpp; path = effects/TendrilEffect.cpp; sourceTree = "<group>"; };
+		672E62AD1C4D2FCF006A4966 /* TendrilEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TendrilEffect.h; path = effects/TendrilEffect.h; sourceTree = "<group>"; };
+		672E62AE1C4D2FCF006A4966 /* TendrilPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TendrilPanel.cpp; path = effects/TendrilPanel.cpp; sourceTree = "<group>"; };
+		672E62AF1C4D2FCF006A4966 /* TendrilPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TendrilPanel.h; path = effects/TendrilPanel.h; sourceTree = "<group>"; };
 		672E7C5C1B4B6B3700409549 /* xlGridCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvas.h; sourceTree = "<group>"; };
 		672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvas.cpp; sourceTree = "<group>"; };
 		672E7C601B4B6B3700409549 /* OptionChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionChooser.h; sourceTree = "<group>"; };
@@ -894,6 +900,10 @@
 				67B2CFA31C3A1869003C17CA /* StrobeEffect.h */,
 				67B2CF571C39D98A003C17CA /* StrobePanel.cpp */,
 				67B2CF581C39D98A003C17CA /* StrobePanel.h */,
+				672E62AC1C4D2FCF006A4966 /* TendrilEffect.cpp */,
+				672E62AD1C4D2FCF006A4966 /* TendrilEffect.h */,
+				672E62AE1C4D2FCF006A4966 /* TendrilPanel.cpp */,
+				672E62AF1C4D2FCF006A4966 /* TendrilPanel.h */,
 				67B2CFA41C3A1869003C17CA /* TextEffect.cpp */,
 				67B2CFA51C3A1869003C17CA /* TextEffect.h */,
 				67B2CF591C39D98A003C17CA /* TextPanel.cpp */,
@@ -1400,7 +1410,9 @@
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,
 				67B2CF771C39D98A003C17CA /* GarlandsPanel.cpp in Sources */,
 				67B2CFE91C3A186A003C17CA /* MarqueeEffect.cpp in Sources */,
+				672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */,
 				67B2CF821C39D98A003C17CA /* RipplePanel.cpp in Sources */,
+				672E62B01C4D2FCF006A4966 /* TendrilEffect.cpp in Sources */,
 				67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */,
 				67B2CF8C1C39D98A003C17CA /* TreePanel.cpp in Sources */,
 				67B2CFDF1C3A186A003C17CA /* SingleStrandEffect.cpp in Sources */,
