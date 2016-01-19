@@ -170,6 +170,9 @@ void AssistPanel::OnCharHook(wxKeyEvent& event)
                         event.StopPropagation();
                     }
                     break;
+                default:
+                    event.Skip();
+                    break;
             }
         }
     }
