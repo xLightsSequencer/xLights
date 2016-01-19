@@ -90,7 +90,7 @@ public:
     void DrawText(const wxString &msg, int x, int y, double rotation);
     void DrawText(const wxString &msg, int x, int y);
     void GetTextExtent(const wxString &msg, double *width, double *height);
-    void Clear();
+    void Clear(bool forceGraphicsContext = false);
 private:
     wxImage *image;
     wxBitmap *bitmap;

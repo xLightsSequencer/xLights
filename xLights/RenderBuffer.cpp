@@ -97,7 +97,7 @@ DrawingContext::~DrawingContext() {
         delete image;
     }
 }
-void DrawingContext::Clear() {
+void DrawingContext::Clear(bool forceGraphicsContext) {
 #if wxUSE_GRAPHICS_CONTEXT
     if (gc != nullptr) {
         delete gc;
@@ -111,13 +111,30 @@ void DrawingContext::Clear() {
     }
     image->Clear();
 #if wxUSE_GRAPHICS_CONTEXT
-    image->SetAlpha();
-    for(wxCoord x=0; x<image->GetWidth(); x++) {
-        for(wxCoord y=0; y<image->GetHeight(); y++) {
-            image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
+    #ifdef __WXMSW__
+        if (forceGraphicsContext)
+        {
+            image->SetAlpha();
+            for(wxCoord x=0; x<image->GetWidth(); x++) {
+                for(wxCoord y=0; y<image->GetHeight(); y++) {
+                    image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
+                }
+            }
+            bitmap = new wxBitmap(*image, 32);
         }
-    }
-    bitmap = new wxBitmap(*image, 32);
+        else
+        {
+            bitmap = new wxBitmap(*image);
+        }
+    #else
+        image->SetAlpha();
+        for(wxCoord x=0; x<image->GetWidth(); x++) {
+            for(wxCoord y=0; y<image->GetHeight(); y++) {
+                image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
+            }
+        }
+        bitmap = new wxBitmap(*image, 32);
+    #endif
 #else
     bitmap = new wxBitmap(*image);
 #endif
@@ -125,15 +142,29 @@ void DrawingContext::Clear() {
     dc->SelectObject(*bitmap);
 
 #if wxUSE_GRAPHICS_CONTEXT
-#ifdef LINUX
-    gc = wxGraphicsContext::Create(*image);
-#else
-    gc = wxGraphicsContext::Create(*dc);
-#endif // LINUX
-    gc->SetAntialiasMode(wxANTIALIAS_NONE);
+    #ifdef LINUX
+        gc = wxGraphicsContext::Create(*image);
+    #else
+        gc = wxGraphicsContext::Create(*dc);
+    #endif // LINUX
+    #ifdef __WXMSW__
+        if (forceGraphicsContext)
+        {
+            gc->SetAntialiasMode(wxANTIALIAS_NONE);
+        }
+        else
+        {
+            // KW: It would be nice if there was an equivalent way to set anti aliasing here on the dc
+            //dc->SetAntialiasMode(wxANTIALIAS_NONE);
+        }
+    #else
+        gc->SetAntialiasMode(wxANTIALIAS_NONE);
+    #endif
+    gc->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_FAST);
+    gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_SOURCE);
+    //gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_OVER);
 #endif
 }
-
 
 wxImage *DrawingContext::FlushAndGetImage() {
 #if wxUSE_GRAPHICS_CONTEXT
@@ -153,7 +184,12 @@ wxImage *DrawingContext::FlushAndGetImage() {
 
 void DrawingContext::SetFont(wxFont &font, const xlColor &color) {
 #if wxUSE_GRAPHICS_CONTEXT
-    gc->SetFont(font, color.asWxColor());
+    #ifdef __WXMSW__
+        dc->SetFont(font);
+        dc->SetTextForeground(color.asWxColor());
+    #else
+        gc->SetFont(font, color.asWxColor());
+    #endif
 #else
     dc->SetFont(font);
     dc->SetTextForeground(color.asWxColor());
@@ -190,14 +226,22 @@ inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
 void DrawingContext::DrawText(const wxString &msg, int x, int y, double rotation) {
 #if wxUSE_GRAPHICS_CONTEXT
-    gc->DrawText(msg, x, y, DegToRad(rotation));
+    #ifdef __WXMSW__
+        dc->DrawRotatedText(msg, x, y, rotation);
+    #else
+        gc->DrawText(msg, x, y, DegToRad(rotation));
+    #endif
 #else
     dc->DrawRotatedText(msg, x, y, rotation);
 #endif
 }
 void DrawingContext::DrawText(const wxString &msg, int x, int y) {
 #if wxUSE_GRAPHICS_CONTEXT
-    gc->DrawText(msg, x, y);
+    #ifdef __WXMSW__
+        dc->DrawText(msg, x, y);
+    #else
+        gc->DrawText(msg, x, y);
+    #endif
 #else
     dc->DrawText(msg, x, y);
 #endif
@@ -205,14 +249,19 @@ void DrawingContext::DrawText(const wxString &msg, int x, int y) {
 
 void DrawingContext::GetTextExtent(const wxString &msg, double *width, double *height) {
 #if wxUSE_GRAPHICS_CONTEXT
-    gc->GetTextExtent(msg, width, height);
+    #ifdef __WXMSW__
+        wxSize size = dc->GetTextExtent(msg);
+        *width = size.GetWidth();
+        *height = size.GetHeight();
+    #else
+        gc->GetTextExtent(msg, width, height);
+    #endif
 #else
     wxSize size = dc->GetTextExtent(msg);
     *width = size.GetWidth();
     *height = size.GetHeight();
 #endif
 }
-
 
 RenderBuffer::RenderBuffer()
 {
