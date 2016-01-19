@@ -86,11 +86,11 @@ public:
     wxGraphicsPath CreatePath();
     void StrokePath(wxGraphicsPath& path);
 
-    void SetFont(wxFont &font, const xlColor &color);
+    void SetFont(wxFontInfo &font, const xlColor &color);
     void DrawText(const wxString &msg, int x, int y, double rotation);
     void DrawText(const wxString &msg, int x, int y);
     void GetTextExtent(const wxString &msg, double *width, double *height);
-    void Clear(bool forceGraphicsContext = false);
+    void Clear();
 private:
     wxImage *image;
     wxBitmap *bitmap;

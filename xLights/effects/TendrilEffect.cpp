@@ -371,7 +371,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
                            float friction, float dampening,
                            float tension, int trails, int length)
 {
-    buffer.drawingContext->Clear(true);
+    buffer.drawingContext->Clear();
 
     if (friction < 0.4)
     {

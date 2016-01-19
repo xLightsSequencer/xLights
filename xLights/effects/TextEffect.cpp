@@ -43,7 +43,7 @@ void TextEffect::SetDefaultParameters(ModelClass *cls) {
     if (tp == nullptr) {
         return;
     }
-    
+
     SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter1, false);
     SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter2, false);
     SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter3, false);
@@ -53,7 +53,7 @@ void TextEffect::SetDefaultParameters(ModelClass *cls) {
 bool TextEffect::CanRenderOnBackgroundThread() {
 #ifdef LINUX
     return false;
-#else 
+#else
     return true;
 #endif
 }
@@ -67,50 +67,41 @@ bool TextEffect::CanRenderOnBackgroundThread() {
 #define WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
 
 wxMutex FONT_MAP_LOCK;
-std::map<wxString, wxFont> FONT_MAP;
+std::map<std::string, wxFontInfo> FONT_MAP;
 
-void SetFont(DrawingContext *dc, const wxString& FontString, const xlColor &color) {
+void SetFont(DrawingContext *dc, const std::string& FontString, const xlColor &color) {
     wxMutexLocker locker(FONT_MAP_LOCK);
     if (FONT_MAP.find(FontString) == FONT_MAP.end()) {
-        wxFont font;
-        if (!FontString.IsEmpty())
+        if (!FontString.empty())
         {
+            wxFont font(FontString);
             font.SetNativeFontInfoUserDesc(FontString);
+
             //we want "Arial 8" to be 8 pixels high and not depend on the System DPI
-            font.SetPixelSize(wxSize(0, font.GetPointSize()));
+            wxFontInfo info(wxSize(0, font.GetPointSize()));
+            info.FaceName(font.GetFaceName());
+            if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
+                info.Bold();
+            } else if (font.GetWeight() == wxFONTWEIGHT_LIGHT) {
+                info.Light();
+            }
+            if (font.GetUnderlined()) {
+                info.Underlined();
+            }
+            if (font.GetStrikethrough()) {
+                info.Strikethrough();
+            }
+            info.AntiAliased(false);
+            info.Encoding(font.GetEncoding());
+            FONT_MAP[FontString] = info;
+        } else {
+            wxFontInfo info(wxSize(0, 12));
+            info.AntiAliased(false);
+            FONT_MAP[FontString] = info;
         }
-#ifdef __WXMSW__
-        /*
-         Here is the format for NativeFontInfo on Windows (taken from the source)
-         We want to change lfQuality from 2 to 3 - this disables antialiasing
-         s.Printf(wxS("%d;%ld;%ld;%ld;%ld;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%s"),
-         0, // version, in case we want to change the format later
-         lf.lfHeight,
-         lf.lfWidth,
-         lf.lfEscapement,
-         lf.lfOrientation,
-         lf.lfWeight,
-         lf.lfItalic,
-         lf.lfUnderline,
-         lf.lfStrikeOut,
-         lf.lfCharSet,
-         lf.lfOutPrecision,
-         lf.lfClipPrecision,
-         lf.lfQuality,
-         lf.lfPitchAndFamily,
-         lf.lfFaceName);*/
-        wxString s = font.GetNativeFontInfoDesc();
-        s.Replace(";2;",";3;",false);
-        font.SetNativeFontInfo(s);
-#endif
-        FONT_MAP[FontString] = font;
-        font.UnShare();
-        dc->SetFont(font, color);
-        return;
+
     }
-    wxFont font = FONT_MAP[FontString];
-    font.UnShare();
-    dc->SetFont(font, color);
+    dc->SetFont(FONT_MAP[FontString], color);
 }
 
 enum TextDirection {
@@ -162,14 +153,14 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     xlColor c;
     buffer.drawingContext->Clear();
     size_t colorcnt=buffer.GetColorCount();
-    
+
     for (int pass = 0; pass < 2; ++pass)
     {
 #ifndef WANT_TEXT_LINES_SYNCED
         if (!pass) continue; //don't need 2 passes
 #endif // WANT_TEXT_LINES_SYNCED
         buffer.palette.GetColor(0,c);
-        
+
         for (int line = 1;  line <= 4; line++) {
             wxString lp = wxString::Format("%d", line);
             wxString text = SettingsMap["TEXTCTRL_Text_Line" + lp];
@@ -177,15 +168,15 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 if (colorcnt >= line) {
                     buffer.palette.GetColor(line - 1, c);
                 }
-                wxString fontString = SettingsMap["FONTPICKER_Text_Font" + lp];
+                std::string fontString = SettingsMap["FONTPICKER_Text_Font" + lp];
                 SetFont(buffer.drawingContext,fontString,c);
-                
+
                 bool pixelOffsets = false;
                 int startx = 0;
                 int starty = 0;
                 int endx = 0;
                 int endy = 0;
-                
+
                 if (line == 1) {
                     starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart" + lp, "0"));
                     startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart" + lp, "0"));
@@ -198,7 +189,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     startx = starty;
                     endx = endy;
                 }
-                
+
                 RenderTextLine(buffer,
                                buffer.drawingContext, line - 1,
                                text,
@@ -212,9 +203,9 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             }
         }
     }
-    
+
     wxImage * i = buffer.drawingContext->FlushAndGetImage();
-    
+
     bool ha = i->HasAlpha();
     for(wxCoord x=0; x<buffer.BufferWi; x++)
     {
@@ -248,7 +239,7 @@ wxSize GetMultiLineTextExtent(DrawingContext *dc,
     double widthTextMax = 0, widthLine;
     double heightTextTotal = 0;
     double heightLineDefault = 0, heightLine = 0;
-    
+
     wxString curLine;
     for ( wxString::const_iterator pc = text.begin(); ; ++pc )
     {
@@ -259,19 +250,19 @@ wxSize GetMultiLineTextExtent(DrawingContext *dc,
                 // we can't use GetTextExtent - it will return 0 for both width
                 // and height and an empty line should count in height
                 // calculation
-                
+
                 // assume that this line has the same height as the previous
                 // one
                 if ( !heightLineDefault )
                     heightLineDefault = heightLine;
-                
+
                 if ( !heightLineDefault )
                 {
                     // but we don't know it yet - choose something reasonable
                     double dummy;
                     dc->GetTextExtent(wxS("W"), &dummy, &heightLineDefault);
                 }
-                
+
                 heightTextTotal += heightLineDefault;
             }
             else
@@ -281,7 +272,7 @@ wxSize GetMultiLineTextExtent(DrawingContext *dc,
                     widthTextMax = widthLine;
                 heightTextTotal += heightLine;
             }
-            
+
             if ( pc == text.end() )
             {
                 break;
@@ -317,11 +308,11 @@ void DrawLabel(DrawingContext *dc,
     // find the text position
     wxCoord widthText, heightText, heightLine;
     GetMultiLineTextExtent(dc, text, &widthText, &heightText, &heightLine);
-    
+
     wxCoord width, height;
     width = widthText;
     height = heightText;
-    
+
     wxCoord x, y;
     if ( alignment & wxALIGN_RIGHT )
     {
@@ -335,7 +326,7 @@ void DrawLabel(DrawingContext *dc,
     {
         x = rect.GetLeft();
     }
-    
+
     if ( alignment & wxALIGN_BOTTOM )
     {
         y = rect.GetBottom() - height;
@@ -348,7 +339,7 @@ void DrawLabel(DrawingContext *dc,
     {
         y = rect.GetTop();
     }
-    
+
     // split the string into lines and draw each of them separately
     //
     // NB: while wxDC::DrawText() on some platforms supports drawing multi-line
@@ -369,7 +360,7 @@ void DrawLabel(DrawingContext *dc,
                 if ( alignment & (wxALIGN_RIGHT | wxALIGN_CENTRE_HORIZONTAL) )
                 {
                     wxCoord widthLine = GetMultiLineTextExtent(dc, curLine).x;
-                    
+
                     if ( alignment & wxALIGN_RIGHT )
                     {
                         xRealStart += width - widthLine;
@@ -380,15 +371,15 @@ void DrawLabel(DrawingContext *dc,
                     }
                 }
                 //else: left aligned, nothing to do
-                
+
                 dc->DrawText(curLine, xRealStart, y);
             }
-            
+
             y += heightLine;
-            
+
             if ( pc == text.end() )
                 break;
-            
+
             curLine.clear();
         }
         else // not end of line
@@ -478,7 +469,7 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
     wxString fmt, Line = Line_orig; //make copy so it can be modified -DJ
     wxChar delim;
     if (Line.IsEmpty()) return;
-    
+
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
     int framesPerSec = 1000 / buffer.frameTimeInMs;
     switch(Countdown)
@@ -494,21 +485,21 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
             if(seconds < 0) seconds=0;
             msg=wxString::Format("%i",seconds);
             break;
-            
+
         case COUNTDOWN_FREEFMT: //free format text with embedded formatting chars -DJ
 #if 0
-            
+
             Aug 14,2015 <scm>
             Sample datestrings that are valid for the countdown timer
                 Wed, 02 Oct 2015 15:00:00 +0200
                 Wed, 02 Oct 2015 15:00:00 EST
-                
+
                 Note, dates must be in the future, any date in the past will show as "Invalid Date" when converted
-                
-                
-                
+
+
+
                 clear(
-                
+
                 )
                 wxTimeSpan format chars are described at:
                 http://docs.wxwidgets.org/trunk/classwx_time_span.html
@@ -520,7 +511,7 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
                 ïD - Number of Days
                 ïE - Number of Weeks
                 ï% - The percent character
-                
+
                 //Format Characters are described at: http://www.cplusplus.com/reference/ctime/strftime/
                 TIME FORMAT CHARACTERS:
                 %a Abbreviated weekday name eg. Thu
@@ -615,7 +606,7 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
             msg.Replace("\\n", "\n", true); //allow vertical spacing (mainly for up/down) -DJ
             break;
     }
-    
+
     double TextRotation=0.0;
     switch(Effect)
     {
@@ -638,7 +629,7 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
             }
             break;
     }
-    
+
     wxSize textsize = GetMultiLineTextExtent(dc, msg);
     int extra_left = IsGoingLeft(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(false)).x: 0; //CAUTION: trim() alters object, so make a copy first
     int extra_right = IsGoingRight(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(true)).x: 0;
@@ -649,7 +640,7 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
     //    wxString debmsg = msg; debmsg.Replace("\n","\\n", true);
     int xoffset=0;
     int yoffset=0;
-    
+
     switch(Effect)
     {
         case 3:
@@ -681,7 +672,7 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
             break;
     }
     //msg.Printf(wxS("w=%d, h=%d"),textsize.GetWidth(),textsize.GetHeight());
-    
+
 #ifdef WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
     if (!WantRender)   //for synced text lines, collect info first and then render after info is available
     {
@@ -698,22 +689,22 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
     else textsize.x = GetCache(buffer,id)->synced_textsize.x;   //use composite size
     //    debug(1, "text[%d]: pass %d, synced txtsiz %d/%d", idx, WantRender, textsize.x, textsize.y);
 #endif // WANT_TEXT_LINES_SYNCED
-    
+
     int txtwidth=textsize.GetWidth();
     int totwidth=buffer.BufferWi+txtwidth;
     int totheight=buffer.BufferHt+textsize.GetHeight();
-    
+
     int OffsetLeft = startx * buffer.BufferWi / 100;
     int OffsetTop = -starty * buffer.BufferHt / 100;
     if (isPixelBased) {
         OffsetLeft = startx;
         OffsetTop =  -starty;
     }
-    
+
     int xlimit=totwidth*8 + 1;
     int ylimit=totheight*8 + 1;
     int state8;
-    
+
     if (TextRotation == 0.0)
     {
         wxRect rect(0,0,buffer.BufferWi,buffer.BufferHt);

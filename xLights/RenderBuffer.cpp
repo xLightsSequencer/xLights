@@ -97,7 +97,7 @@ DrawingContext::~DrawingContext() {
         delete image;
     }
 }
-void DrawingContext::Clear(bool forceGraphicsContext) {
+void DrawingContext::Clear() {
 #if wxUSE_GRAPHICS_CONTEXT
     if (gc != nullptr) {
         delete gc;
@@ -111,30 +111,13 @@ void DrawingContext::Clear(bool forceGraphicsContext) {
     }
     image->Clear();
 #if wxUSE_GRAPHICS_CONTEXT
-    #ifdef __WXMSW__
-        if (forceGraphicsContext)
-        {
-            image->SetAlpha();
-            for(wxCoord x=0; x<image->GetWidth(); x++) {
-                for(wxCoord y=0; y<image->GetHeight(); y++) {
-                    image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
-                }
-            }
-            bitmap = new wxBitmap(*image, 32);
+    image->SetAlpha();
+    for(wxCoord x=0; x<image->GetWidth(); x++) {
+        for(wxCoord y=0; y<image->GetHeight(); y++) {
+            image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
         }
-        else
-        {
-            bitmap = new wxBitmap(*image);
-        }
-    #else
-        image->SetAlpha();
-        for(wxCoord x=0; x<image->GetWidth(); x++) {
-            for(wxCoord y=0; y<image->GetHeight(); y++) {
-                image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
-            }
-        }
-        bitmap = new wxBitmap(*image, 32);
-    #endif
+    }
+    bitmap = new wxBitmap(*image, 32);
 #else
     bitmap = new wxBitmap(*image);
 #endif
@@ -147,19 +130,7 @@ void DrawingContext::Clear(bool forceGraphicsContext) {
     #else
         gc = wxGraphicsContext::Create(*dc);
     #endif // LINUX
-    #ifdef __WXMSW__
-        if (forceGraphicsContext)
-        {
-            gc->SetAntialiasMode(wxANTIALIAS_NONE);
-        }
-        else
-        {
-            // KW: It would be nice if there was an equivalent way to set anti aliasing here on the dc
-            //dc->SetAntialiasMode(wxANTIALIAS_NONE);
-        }
-    #else
-        gc->SetAntialiasMode(wxANTIALIAS_NONE);
-    #endif
+    gc->SetAntialiasMode(wxANTIALIAS_NONE);
     gc->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_FAST);
     gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_SOURCE);
     //gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_OVER);
@@ -182,22 +153,8 @@ wxImage *DrawingContext::FlushAndGetImage() {
     return image;
 }
 
-void DrawingContext::SetFont(wxFont &font, const xlColor &color) {
-#if wxUSE_GRAPHICS_CONTEXT
-    #ifdef __WXMSW__
-        dc->SetFont(font);
-        dc->SetTextForeground(color.asWxColor());
-    #else
-        gc->SetFont(font, color.asWxColor());
-    #endif
-#else
-    dc->SetFont(font);
-    dc->SetTextForeground(color.asWxColor());
-#endif
-}
-
 void DrawingContext::SetPen(wxPen &pen) {
-#if wxUSE_GRAPHICS_CONTEXT
+#if USE_GRAPHICS_CONTEXT_FOR_TEXT
     gc->SetPen(pen);
 #else
     dc->SetPen(pen);
@@ -209,7 +166,7 @@ wxGraphicsPath DrawingContext::CreatePath()
 #if wxUSE_GRAPHICS_CONTEXT
     return gc->CreatePath();
 #else
-    #error Graphics Paths require wxUSE_GRAPHICS_CONTEXT
+#error Graphics Paths require wxUSE_GRAPHICS_CONTEXT
 #endif
 }
 
@@ -218,44 +175,98 @@ void DrawingContext::StrokePath(wxGraphicsPath& path)
 #if wxUSE_GRAPHICS_CONTEXT
     gc->StrokePath(path);
 #else
-    #error Graphics Paths require wxUSE_GRAPHICS_CONTEXT
+#error Graphics Paths require wxUSE_GRAPHICS_CONTEXT
 #endif
 }
+
+
+#if wxUSE_GRAPHICS_CONTEXT
+#ifdef __WXMSW__
+#define USE_GRAPHICS_CONTEXT_FOR_TEXT 0
+#else
+#define USE_GRAPHICS_CONTEXT_FOR_TEXT 1
+#endif
+#else
+#define USE_GRAPHICS_CONTEXT_FOR_TEXT 0
+#endif
+
+
+void DrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
+#if USE_GRAPHICS_CONTEXT_FOR_TEXT
+    int style = wxFONTFLAG_NOT_ANTIALIASED;
+    if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
+        style |= wxFONTFLAG_BOLD;
+    }
+    if (font.GetWeight() == wxFONTWEIGHT_LIGHT) {
+        style |= wxFONTFLAG_LIGHT;
+    }
+    if (font.GetStyle() == wxFONTSTYLE_ITALIC) {
+        style |= wxFONTFLAG_ITALIC;
+    }
+    if (font.GetStyle() == wxFONTSTYLE_SLANT) {
+        style |= wxFONTFLAG_SLANT;
+    }
+    if (font.IsUnderlined()) {
+        style |= wxFONTFLAG_UNDERLINED;
+    }
+    if (font.IsStrikethrough()) {
+        style |= wxFONTFLAG_STRIKETHROUGH;
+    }
+
+    wxGraphicsFont f = gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, color.asWxColor());
+    gc->SetFont(f);
+#else
+    wxFont f(font);
+#ifdef __WXMSW__
+    /*
+     Here is the format for NativeFontInfo on Windows (taken from the source)
+     We want to change lfQuality from 2 to 3 - this disables antialiasing
+     s.Printf(wxS("%d;%ld;%ld;%ld;%ld;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%s"),
+     0, // version, in case we want to change the format later
+     lf.lfHeight,
+     lf.lfWidth,
+     lf.lfEscapement,
+     lf.lfOrientation,
+     lf.lfWeight,
+     lf.lfItalic,
+     lf.lfUnderline,
+     lf.lfStrikeOut,
+     lf.lfCharSet,
+     lf.lfOutPrecision,
+     lf.lfClipPrecision,
+     lf.lfQuality,
+     lf.lfPitchAndFamily,
+     lf.lfFaceName);*/
+    wxString s = f.GetNativeFontInfoDesc();
+    s.Replace(";2;",";3;",false);
+    f.SetNativeFontInfo(s);
+#endif
+    dc->SetFont(f);
+    dc->SetTextForeground(color.asWxColor());
+#endif
+}
+
 
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
 void DrawingContext::DrawText(const wxString &msg, int x, int y, double rotation) {
-#if wxUSE_GRAPHICS_CONTEXT
-    #ifdef __WXMSW__
-        dc->DrawRotatedText(msg, x, y, rotation);
-    #else
-        gc->DrawText(msg, x, y, DegToRad(rotation));
-    #endif
+#if USE_GRAPHICS_CONTEXT_FOR_TEXT
+    gc->DrawText(msg, x, y, DegToRad(rotation));
 #else
     dc->DrawRotatedText(msg, x, y, rotation);
 #endif
 }
 void DrawingContext::DrawText(const wxString &msg, int x, int y) {
-#if wxUSE_GRAPHICS_CONTEXT
-    #ifdef __WXMSW__
-        dc->DrawText(msg, x, y);
-    #else
-        gc->DrawText(msg, x, y);
-    #endif
+#if USE_GRAPHICS_CONTEXT_FOR_TEXT
+    gc->DrawText(msg, x, y);
 #else
     dc->DrawText(msg, x, y);
 #endif
 }
 
 void DrawingContext::GetTextExtent(const wxString &msg, double *width, double *height) {
-#if wxUSE_GRAPHICS_CONTEXT
-    #ifdef __WXMSW__
-        wxSize size = dc->GetTextExtent(msg);
-        *width = size.GetWidth();
-        *height = size.GetHeight();
-    #else
-        gc->GetTextExtent(msg, width, height);
-    #endif
+#if USE_GRAPHICS_CONTEXT_FOR_TEXT
+    gc->GetTextExtent(msg, width, height);
 #else
     wxSize size = dc->GetTextExtent(msg);
     *width = size.GetWidth();
