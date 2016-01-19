@@ -33,11 +33,10 @@ The instructions here suggest compiling with Xcode:
 
 From inside a Terminal window:
 
-    NOTE: If running on OS X Yosemite, the Font dialog for the Text effect will 
-       crash if build with wxWidgets 3.0.2.  You need to checkout the latest
-       wxWidgets code:
-     git clone -b WX_3_0_BRANCH https://github.com/wxWidgets/wxWidgets
-       to get the latest fixes for the Font selection to work.
+    There are a bunch of fixes to wxWidgets that are needed for xLights to work. 
+    Until wxWidgets is released with all the needed fixes, you need to build wxWidgets
+    based on the fixes Dan Kulp has collected in his github repository:
+       git clone -b WX_3_0_BRANCH https://github.com/dkulp/wxWidgets
 
 
   cd <wxMac base dir>
