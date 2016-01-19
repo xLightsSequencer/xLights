@@ -17,7 +17,7 @@
 		670C828B1C45C48B000AA5D8 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C82851C45C48B000AA5D8 /* Model.cpp */; };
 		670C828E1C45CCCF000AA5D8 /* Color.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C828D1C45CCCF000AA5D8 /* Color.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
-		671C0BCD1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.0.3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.0.3.0.dylib */; };
+		671C0BCD1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.dylib */; };
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
 		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; };
@@ -62,12 +62,14 @@
 		675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2591B53381800A9BB44 /* xlColorCanvas.cpp */; };
 		675DE26A1B53381800A9BB44 /* xlColorPicker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE25B1B53381800A9BB44 /* xlColorPicker.cpp */; };
 		675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE25D1B53381800A9BB44 /* xlColorPickerFields.cpp */; };
-		675DE26C1B53381800A9BB44 /* xlGridCanvasEmpty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE25F1B53381800A9BB44 /* xlGridCanvasEmpty.cpp */; };
-		675DE26D1B53381800A9BB44 /* xlGridCanvasMorph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2611B53381800A9BB44 /* xlGridCanvasMorph.cpp */; };
-		675DE26E1B53381800A9BB44 /* xlGridCanvasPictures.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2631B53381800A9BB44 /* xlGridCanvasPictures.cpp */; };
 		675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2651B53381800A9BB44 /* xlSlider.cpp */; };
 		676013E51B9D34F7001179FA /* SaveChangesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */; };
 		6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6760BF121953BAD700704AEA /* TabPapagayo.cpp */; };
+		6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5EB1C4EA041009780DA /* AssistPanel.cpp */; };
+		6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5ED1C4EA041009780DA /* PicturesAssistPanel.cpp */; };
+		6761F5F71C4EA041009780DA /* xlGridCanvasEmpty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5EF1C4EA041009780DA /* xlGridCanvasEmpty.cpp */; };
+		6761F5F81C4EA041009780DA /* xlGridCanvasMorph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5F11C4EA041009780DA /* xlGridCanvasMorph.cpp */; };
+		6761F5F91C4EA041009780DA /* xlGridCanvasPictures.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5F31C4EA041009780DA /* xlGridCanvasPictures.cpp */; };
 		67623E711AD07E320022667B /* KeyBindings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E6F1AD07E320022667B /* KeyBindings.cpp */; };
 		67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E721AD2BF3F0022667B /* BitmapCache.cpp */; };
 		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
@@ -270,24 +272,24 @@
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
 		671B331C1AD5CB7600C9F215 /* UtilClasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UtilClasses.h; sourceTree = "<group>"; };
 		671B331D1AD6071600C9F215 /* BitmapCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BitmapCache.h; sourceTree = "<group>"; };
-		671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.0.3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_qa-3.0.0.3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_qa-3.0.0.3.0.dylib"; sourceTree = "<group>"; };
+		671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_qa-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_qa-3.0.dylib"; sourceTree = "<group>"; };
 		671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DragEffectBitmapButton.cpp; path = sequencer/DragEffectBitmapButton.cpp; sourceTree = "<group>"; };
 		671D814A1A6723CF005819EA /* EffectDropTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectDropTarget.cpp; path = sequencer/EffectDropTarget.cpp; sourceTree = "<group>"; };
 		671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResizeImageDialog.cpp; sourceTree = "<group>"; };
 		671FD62F1BD72014003C2E33 /* ResizeImageDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResizeImageDialog.h; sourceTree = "<group>"; };
-		672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_xml-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_aui-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_aui-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_gl-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_gl-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4E71C207D2E008F8B36 /* libwx_osx_cocoau_propgrid-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_propgrid-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_propgrid-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4E91C207D2E008F8B36 /* libwx_osx_cocoau_ribbon-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_ribbon-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_ribbon-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4EA1C207D2E008F8B36 /* libwx_osx_cocoau_richtext-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_richtext-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_richtext-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4EB1C207D2E008F8B36 /* libwx_osx_cocoau_stc-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_stc-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_stc-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4ED1C207D2E008F8B36 /* libwx_baseu_net-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_net-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_net-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4EE1C207D2E008F8B36 /* libwx_baseu-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4EF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_adv-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_adv-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4F01C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_core-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_core-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4F11C207D2E008F8B36 /* libwx_osx_cocoau_html-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_html-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_html-3.0.dylib"; sourceTree = "<group>"; };
-		672BD4F21C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_media-3.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_media-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.0.dylib"; path = "/opt/local/libdbg/libwx_baseu_xml-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_aui-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_aui-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_gl-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_gl-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4E71C207D2E008F8B36 /* libwx_osx_cocoau_propgrid-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_propgrid-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_propgrid-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4E91C207D2E008F8B36 /* libwx_osx_cocoau_ribbon-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_ribbon-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_ribbon-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4EA1C207D2E008F8B36 /* libwx_osx_cocoau_richtext-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_richtext-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_richtext-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4EB1C207D2E008F8B36 /* libwx_osx_cocoau_stc-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_stc-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_stc-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4ED1C207D2E008F8B36 /* libwx_baseu_net-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_net-3.0.dylib"; path = "/opt/local/libdbg/libwx_baseu_net-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4EE1C207D2E008F8B36 /* libwx_baseu-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu-3.0.dylib"; path = "/opt/local/libdbg/libwx_baseu-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4EF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_adv-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_adv-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4F01C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_core-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_core-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4F11C207D2E008F8B36 /* libwx_osx_cocoau_html-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_html-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_html-3.0.dylib"; sourceTree = "<group>"; };
+		672BD4F21C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_media-3.0.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_media-3.0.dylib"; sourceTree = "<group>"; };
 		672E62AC1C4D2FCF006A4966 /* TendrilEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TendrilEffect.cpp; path = effects/TendrilEffect.cpp; sourceTree = "<group>"; };
 		672E62AD1C4D2FCF006A4966 /* TendrilEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TendrilEffect.h; path = effects/TendrilEffect.h; sourceTree = "<group>"; };
 		672E62AE1C4D2FCF006A4966 /* TendrilPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TendrilPanel.cpp; path = effects/TendrilPanel.cpp; sourceTree = "<group>"; };
@@ -308,7 +310,6 @@
 		672F951A1A7A6619005FF8BF /* NewTimingDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewTimingDialog.h; sourceTree = "<group>"; };
 		672F951B1A7A6619005FF8BF /* RenameTextDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenameTextDialog.h; sourceTree = "<group>"; };
 		672F951C1A7A6619005FF8BF /* CurrentPreviewModels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CurrentPreviewModels.h; sourceTree = "<group>"; };
-		672F951D1A7A6619005FF8BF /* Effects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effects.h; sourceTree = "<group>"; };
 		672F951E1A7A6619005FF8BF /* EffectTreeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectTreeDialog.h; sourceTree = "<group>"; };
 		672F951F1A7A6619005FF8BF /* ExportModelSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExportModelSelect.h; sourceTree = "<group>"; };
 		672F95201A7A6619005FF8BF /* Image_Loader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Image_Loader.h; sourceTree = "<group>"; };
@@ -323,7 +324,7 @@
 		673E425A17F0D23E00F4BC76 /* TabTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabTest.cpp; sourceTree = "<group>"; };
 		67402E851B4230360047EDC1 /* NullOutputDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NullOutputDialog.cpp; sourceTree = "<group>"; };
 		67402E861B4230360047EDC1 /* NullOutputDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NullOutputDialog.h; sourceTree = "<group>"; };
-		674298971C20432600B11478 /* wx */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wx; path = ../../../../opt/local/lib/wx; sourceTree = "<group>"; };
+		674298971C20432600B11478 /* wx */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wx; path = /opt/local/lib/wx; sourceTree = "<group>"; };
 		6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsXmlFile.cpp; sourceTree = "<group>"; };
 		674D3D1C1C207B9F000D632B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		674D3D211C207BCC000D632B /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
@@ -368,16 +369,20 @@
 		675DE25C1B53381800A9BB44 /* xlColorPicker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlColorPicker.h; sourceTree = "<group>"; };
 		675DE25D1B53381800A9BB44 /* xlColorPickerFields.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlColorPickerFields.cpp; sourceTree = "<group>"; };
 		675DE25E1B53381800A9BB44 /* xlColorPickerFields.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlColorPickerFields.h; sourceTree = "<group>"; };
-		675DE25F1B53381800A9BB44 /* xlGridCanvasEmpty.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvasEmpty.cpp; sourceTree = "<group>"; };
-		675DE2601B53381800A9BB44 /* xlGridCanvasEmpty.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvasEmpty.h; sourceTree = "<group>"; };
-		675DE2611B53381800A9BB44 /* xlGridCanvasMorph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvasMorph.cpp; sourceTree = "<group>"; };
-		675DE2621B53381800A9BB44 /* xlGridCanvasMorph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvasMorph.h; sourceTree = "<group>"; };
-		675DE2631B53381800A9BB44 /* xlGridCanvasPictures.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvasPictures.cpp; sourceTree = "<group>"; };
-		675DE2641B53381800A9BB44 /* xlGridCanvasPictures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvasPictures.h; sourceTree = "<group>"; };
 		675DE2651B53381800A9BB44 /* xlSlider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlSlider.cpp; sourceTree = "<group>"; };
 		675DE2661B53381800A9BB44 /* xlSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlSlider.h; sourceTree = "<group>"; };
 		676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SaveChangesDialog.cpp; sourceTree = "<group>"; };
 		6760BF121953BAD700704AEA /* TabPapagayo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = TabPapagayo.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		6761F5EB1C4EA041009780DA /* AssistPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AssistPanel.cpp; path = effects/assist/AssistPanel.cpp; sourceTree = "<group>"; };
+		6761F5EC1C4EA041009780DA /* AssistPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AssistPanel.h; path = effects/assist/AssistPanel.h; sourceTree = "<group>"; };
+		6761F5ED1C4EA041009780DA /* PicturesAssistPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PicturesAssistPanel.cpp; path = effects/assist/PicturesAssistPanel.cpp; sourceTree = "<group>"; };
+		6761F5EE1C4EA041009780DA /* PicturesAssistPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PicturesAssistPanel.h; path = effects/assist/PicturesAssistPanel.h; sourceTree = "<group>"; };
+		6761F5EF1C4EA041009780DA /* xlGridCanvasEmpty.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xlGridCanvasEmpty.cpp; path = effects/assist/xlGridCanvasEmpty.cpp; sourceTree = "<group>"; };
+		6761F5F01C4EA041009780DA /* xlGridCanvasEmpty.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xlGridCanvasEmpty.h; path = effects/assist/xlGridCanvasEmpty.h; sourceTree = "<group>"; };
+		6761F5F11C4EA041009780DA /* xlGridCanvasMorph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xlGridCanvasMorph.cpp; path = effects/assist/xlGridCanvasMorph.cpp; sourceTree = "<group>"; };
+		6761F5F21C4EA041009780DA /* xlGridCanvasMorph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xlGridCanvasMorph.h; path = effects/assist/xlGridCanvasMorph.h; sourceTree = "<group>"; };
+		6761F5F31C4EA041009780DA /* xlGridCanvasPictures.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = xlGridCanvasPictures.cpp; path = effects/assist/xlGridCanvasPictures.cpp; sourceTree = "<group>"; };
+		6761F5F41C4EA041009780DA /* xlGridCanvasPictures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xlGridCanvasPictures.h; path = effects/assist/xlGridCanvasPictures.h; sourceTree = "<group>"; };
 		67623E6F1AD07E320022667B /* KeyBindings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KeyBindings.cpp; sourceTree = "<group>"; };
 		67623E701AD07E320022667B /* KeyBindings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyBindings.h; sourceTree = "<group>"; };
 		67623E721AD2BF3F0022667B /* BitmapCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BitmapCache.cpp; sourceTree = "<group>"; };
@@ -463,7 +468,6 @@
 		67A619DA17B51C0F008E95BB /* PlayerFrame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PlayerFrame.cpp; sourceTree = "<group>"; };
 		67A619DB17B51C0F008E95BB /* PlayerFrame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerFrame.h; sourceTree = "<group>"; };
 		67A619EE17B51C0F008E95BB /* resource.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = resource.rc; sourceTree = "<group>"; };
-		67A619F017B51C0F008E95BB /* RgbEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RgbEffects.h; sourceTree = "<group>"; };
 		67A619F217B51C0F008E95BB /* SeqElementMismatchDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SeqElementMismatchDialog.cpp; sourceTree = "<group>"; };
 		67A619F317B51C0F008E95BB /* SeqElementMismatchDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SeqElementMismatchDialog.h; sourceTree = "<group>"; };
 		67A619F417B51C0F008E95BB /* SeqExportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SeqExportDialog.cpp; sourceTree = "<group>"; };
@@ -684,7 +688,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				671C0BCD1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.0.3.0.dylib in Frameworks */,
+				671C0BCD1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.dylib in Frameworks */,
 				672BD5051C208335008F8B36 /* libwx_osx_cocoau_html-3.0.dylib in Frameworks */,
 				672BD5041C207DC6008F8B36 /* libmpg123.a in Frameworks */,
 				672BD4F41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib in Frameworks */,
@@ -759,9 +763,27 @@
 			name = Vamp;
 			sourceTree = "<group>";
 		};
+		6761F5EA1C4EA032009780DA /* Assist */ = {
+			isa = PBXGroup;
+			children = (
+				6761F5EB1C4EA041009780DA /* AssistPanel.cpp */,
+				6761F5EC1C4EA041009780DA /* AssistPanel.h */,
+				6761F5ED1C4EA041009780DA /* PicturesAssistPanel.cpp */,
+				6761F5EE1C4EA041009780DA /* PicturesAssistPanel.h */,
+				6761F5EF1C4EA041009780DA /* xlGridCanvasEmpty.cpp */,
+				6761F5F01C4EA041009780DA /* xlGridCanvasEmpty.h */,
+				6761F5F11C4EA041009780DA /* xlGridCanvasMorph.cpp */,
+				6761F5F21C4EA041009780DA /* xlGridCanvasMorph.h */,
+				6761F5F31C4EA041009780DA /* xlGridCanvasPictures.cpp */,
+				6761F5F41C4EA041009780DA /* xlGridCanvasPictures.h */,
+			);
+			name = Assist;
+			sourceTree = "<group>";
+		};
 		679BD3281C37552D000539FE /* Effects */ = {
 			isa = PBXGroup;
 			children = (
+				6761F5EA1C4EA032009780DA /* Assist */,
 				679BD33E1C375D9F000539FE /* BarsEffect.cpp */,
 				679BD33F1C375D9F000539FE /* BarsEffect.h */,
 				679BD32D1C37555C000539FE /* BarsPanel.cpp */,
@@ -972,7 +994,7 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.0.3.0.dylib */,
+				671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.dylib */,
 				672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib */,
 				672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.0.dylib */,
 				672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.0.dylib */,
@@ -1110,9 +1132,6 @@
 				675DE25D1B53381800A9BB44 /* xlColorPickerFields.cpp */,
 				67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */,
 				672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */,
-				675DE25F1B53381800A9BB44 /* xlGridCanvasEmpty.cpp */,
-				675DE2611B53381800A9BB44 /* xlGridCanvasMorph.cpp */,
-				675DE2631B53381800A9BB44 /* xlGridCanvasPictures.cpp */,
 				67A61A1D17B51C0F008E95BB /* xlights_out.cpp */,
 				67A61A2117B51C0F008E95BB /* xLightsApp.cpp */,
 				67F4C6151A097A35003E978F /* XlightsDrawable.cpp */,
@@ -1145,7 +1164,6 @@
 				67A619C517B51C0F008E95BB /* E131Dialog.h */,
 				672F95101A7A6619005FF8BF /* EffectIconPanel.h */,
 				67A619C917B51C0F008E95BB /* EffectListDialog.h */,
-				672F951D1A7A6619005FF8BF /* Effects.h */,
 				67A619CB17B51C0F008E95BB /* EffectsPanel.h */,
 				672F951E1A7A6619005FF8BF /* EffectTreeDialog.h */,
 				672F951F1A7A6619005FF8BF /* ExportModelSelect.h */,
@@ -1182,7 +1200,6 @@
 				672F951B1A7A6619005FF8BF /* RenameTextDialog.h */,
 				679BEF1B1A9FCB1D00C37BB4 /* RenderCommandEvent.h */,
 				67A619EE17B51C0F008E95BB /* resource.rc */,
-				67A619F017B51C0F008E95BB /* RgbEffects.h */,
 				67A619F317B51C0F008E95BB /* SeqElementMismatchDialog.h */,
 				67A619F517B51C0F008E95BB /* SeqExportDialog.h */,
 				672F950E1A7A6619005FF8BF /* SeqSettingsDialog.h */,
@@ -1208,9 +1225,6 @@
 				675DE25E1B53381800A9BB44 /* xlColorPickerFields.h */,
 				67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */,
 				672E7C5C1B4B6B3700409549 /* xlGridCanvas.h */,
-				675DE2601B53381800A9BB44 /* xlGridCanvasEmpty.h */,
-				675DE2621B53381800A9BB44 /* xlGridCanvasMorph.h */,
-				675DE2641B53381800A9BB44 /* xlGridCanvasPictures.h */,
 				67A61A1E17B51C0F008E95BB /* xlights_out.h */,
 				67E7087817B51AB400A22034 /* xLights-Info.plist */,
 				67A61A2217B51C0F008E95BB /* xLightsApp.h */,
@@ -1331,9 +1345,9 @@
 				67B2CF931C39D98A003C17CA /* CurtainEffect.cpp in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
 				67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */,
+				6761F5F91C4EA041009780DA /* xlGridCanvasPictures.cpp in Sources */,
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
 				67B2CFF31C3A186A003C17CA /* DMXEffect.cpp in Sources */,
-				675DE26C1B53381800A9BB44 /* xlGridCanvasEmpty.cpp in Sources */,
 				67B2CF991C39E5B0003C17CA /* ButterflyPanel.cpp in Sources */,
 				67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */,
 				67B2CF831C39D98A003C17CA /* ShimmerPanel.cpp in Sources */,
@@ -1343,6 +1357,7 @@
 				67B2CFDB1C3A186A003C17CA /* TextEffect.cpp in Sources */,
 				67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */,
 				675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */,
+				6761F5F71C4EA041009780DA /* xlGridCanvasEmpty.cpp in Sources */,
 				67B2CF781C39D98A003C17CA /* GlediatorPanel.cpp in Sources */,
 				67B2CF901C39D98A003C17CA /* ColorWashPanel.cpp in Sources */,
 				67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */,
@@ -1362,6 +1377,7 @@
 				67A61A2F17B51C0F008E95BB /* ModelDialog.cpp in Sources */,
 				679BD3391C37555C000539FE /* RenderableEffect.cpp in Sources */,
 				67B2CFEF1C3A186A003C17CA /* FireworksEffect.cpp in Sources */,
+				6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */,
 				677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */,
 				67B2CFE31C3A186A003C17CA /* PlasmaEffect.cpp in Sources */,
 				671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */,
@@ -1376,7 +1392,6 @@
 				67A543FE1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp in Sources */,
 				6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */,
 				67B2CFE51C3A186A003C17CA /* PicturesEffect.cpp in Sources */,
-				675DE26E1B53381800A9BB44 /* xlGridCanvasPictures.cpp in Sources */,
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				67B2CF761C39D98A003C17CA /* GalaxyPanel.cpp in Sources */,
 				67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */,
@@ -1393,6 +1408,7 @@
 				679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */,
 				679BD3351C37555C000539FE /* OnPanel.cpp in Sources */,
 				67B2CF8A1C39D98A003C17CA /* StrobePanel.cpp in Sources */,
+				6761F5F81C4EA041009780DA /* xlGridCanvasMorph.cpp in Sources */,
 				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,
@@ -1410,6 +1426,7 @@
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,
 				67B2CF771C39D98A003C17CA /* GarlandsPanel.cpp in Sources */,
 				67B2CFE91C3A186A003C17CA /* MarqueeEffect.cpp in Sources */,
+				6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */,
 				672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */,
 				67B2CF821C39D98A003C17CA /* RipplePanel.cpp in Sources */,
 				672E62B01C4D2FCF006A4966 /* TendrilEffect.cpp in Sources */,
@@ -1495,7 +1512,6 @@
 				679BD3421C375D9F000539FE /* BarsEffect.cpp in Sources */,
 				67B2CF861C39D98A003C17CA /* SnowflakesPanel.cpp in Sources */,
 				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
-				675DE26D1B53381800A9BB44 /* xlGridCanvasMorph.cpp in Sources */,
 				6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */,
 				670C828A1C45C48B000AA5D8 /* ModelManager.cpp in Sources */,
 				679E52BF1AD2F7520065E6EA /* xlMacUtils.mm in Sources */,
@@ -1602,8 +1618,9 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-I/opt/local/lib/wx/include/osx_cocoa-unicode-3.0",
+					"-I/opt/local/libdbg/wx/include/osx_cocoa-unicode-3.0",
 					"-I/opt/local/include/wx-3.0",
+					"-IxLights",
 					"-D_FILE_OFFSET_BITS=64",
 					"-DwxDEBUG_LEVEL=0",
 					"-D__WXMAC__",
@@ -1654,6 +1671,7 @@
 				OTHER_CFLAGS = (
 					"-I/opt/local/lib/wx/include/osx_cocoa-unicode-3.0",
 					"-I/opt/local/include/wx-3.0",
+					"-IxLights",
 					"-D_FILE_OFFSET_BITS=64",
 					"-DwxDEBUG_LEVEL=0",
 					"-D__WXMAC__",

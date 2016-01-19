@@ -571,7 +571,7 @@ void myGridCellChoiceEditor::Create(wxWindow* parent,
                                m_choices,
                                style);
     m_text = new wxStaticText(parent, wxID_ANY /*wxNewId()*/, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_NO_AUTORESIZE);
-//    m_text = new wxTextCtrl(parent, wxID_ANY /*wxNewId()*/, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_AUTO_SCROLL | wxTE_READONLY | wxTE_NOHIDESEL | wxTE_LEFT | wxTE_DONTWRAP); //wxALIGN_LEFT | wxST_NO_AUTORESIZE);
+//    m_text = new wxTextCtrl(parent, wxID_ANY /*wxNewId()*/, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_NOHIDESEL | wxTE_LEFT | wxTE_DONTWRAP); //wxALIGN_LEFT | wxST_NO_AUTORESIZE);
 //    m_text->SetMargins(0, 0);
     m_text->SetForegroundColour(*wxBLUE); //make it easier to see which cell will be changing
     wxColor ltblue(200, 200, 255);
@@ -1630,7 +1630,7 @@ static void delcol(wxGrid* grid, int col)
 #else //kludge: just hide column(s)
     grid->BeginBatch();
     grid->SetColMinimalWidth(col, 0);
-    grid->SetColumnWidth(col, 0); //LabelValue(c, wxT("(none)")); //NoneHint);
+    grid->SetColSize(col, 0); //LabelValue(c, wxT("(none)")); //NoneHint);
     grid->EndBatch();
 #endif // 0
 }
@@ -1639,14 +1639,14 @@ static void delcol(wxGrid* grid, int col)
 //enlarge grid if a new column is needed:
 static void grenlarge(wxGrid* grid, int numcols)
 {
-    if (grid->GetCols() >= numcols) return; //no need to enlarge grid
+    if (grid->GetNumberCols() >= numcols) return; //no need to enlarge grid
     grid->BeginBatch();
-    while (grid->GetCols() < numcols)
+    while (grid->GetNumberCols() < numcols)
     {
-        int newcol = grid->GetCols();
+        int newcol = grid->GetNumberCols();
         grid->InsertCols(newcol, 1); //numcols - grid->GetCols()); //should only need 1, but allow multiple
         grid->SetColLabelValue(newcol, wxString::Format(wxT("Voice %d"), newcol + 1));
-        for (int r = 0; r < grid->GetRows(); ++r)
+        for (int r = 0; r < grid->GetNumberRows(); ++r)
         {
             grid->SetCellEditor(r, newcol, grid->GetCellEditor(r, 0));
             if (r != Model_Row) grid->SetCellRenderer(r, newcol, grid->GetCellRenderer(r, 0));
@@ -1662,17 +1662,17 @@ static void grenlarge(wxGrid* grid, int numcols)
 static void initcol(wxGrid* grid, int col = -1, bool resetvals = true)
 {
     grid->BeginBatch(); //postpone repaint until after all updates
-    if (col >= grid->GetCols()) grenlarge(grid, col + 1);
-    for (int c = (col != -1)? col: 0; c < ((col != -1)? col + 1: grid->GetCols()); ++c)
+    if (col >= grid->GetNumberCols()) grenlarge(grid, col + 1);
+    for (int c = (col != -1)? col: 0; c < ((col != -1)? col + 1: grid->GetNumberCols()); ++c)
     {
 #define sbwidth  16 //TODO: adjust value for Mac or Linux?
         int smallw = (grid->GetSize().x - grid->GetRowLabelSize() - sbwidth)/ 4;
         if (col == 3) smallw += grid->GetSize().x - grid->GetRowLabelSize() - sbwidth - 4 * smallw; //kludge: make it an exact fit to scroll bar looks okay
         debug(10, "init col[%d]: w %d", c, smallw);
-        grid->SetColumnWidth(c, myGridCellChoiceEditor::WantFiles? 180: smallw); //GridCoroFaces->GetColumnWidth(c) + (myGridCellChoiceEditor::WantFiles? 100: -100)); //give a little more room to display file names, but preserve user sizing
+        grid->SetColSize(c, myGridCellChoiceEditor::WantFiles? 180: smallw); //GridCoroFaces->GetColumnWidth(c) + (myGridCellChoiceEditor::WantFiles? 100: -100)); //give a little more room to display file names, but preserve user sizing
         if (grid->GetCellValue(Model_Row, c).IsEmpty()) grid->SetCellValue(Model_Row, c, SelectionHint); //fixup
 //        if (WantFiles || WantCustom) continue;
-        for (int r = Outline_Row; r < grid->GetRows(); ++r)
+        for (int r = Outline_Row; r < grid->GetNumberRows(); ++r)
         {
             if (r > Outline_Row) grid->SetReadOnly(r, c, !myGridCellChoiceEditor::WantFiles && !myGridCellChoiceEditor::WantCustom); //not used for auto-face
             /*if (!WantFiles && !WantCustom)*/
@@ -1707,8 +1707,8 @@ static std::vector<bool> used_cols; //don't use same dest col > 1x per file
 static int AssignCol(wxGrid* grid, const wxString& colname, const wxString& model)
 {
     int candidate = -1;
-    if (used_cols.size() < grid->GetCols() + 1) used_cols.resize(grid->GetCols() + 4);
-    for (int destcol = 0; destcol < grid->GetCols(); ++destcol)
+    if (used_cols.size() < grid->GetNumberCols() + 1) used_cols.resize(grid->GetNumberCols() + 4);
+    for (int destcol = 0; destcol < grid->GetNumberCols(); ++destcol)
     {
         if (!colname.IsEmpty() && (grid->GetColLabelValue(destcol) == colname))
         {
@@ -1721,7 +1721,7 @@ static int AssignCol(wxGrid* grid, const wxString& colname, const wxString& mode
         if (val.IsEmpty() || (val == model) || (val == SelectionHint)) candidate = destcol;
         debug(10, "candidate col %d, model = '%s' vs. '%s'", candidate, (const char*)val.c_str(), (const char*)model.c_str());
     }
-    return (candidate != -1)? candidate: grid->GetCols(); //assign to unused col instead of enlarging grid
+    return (candidate != -1)? candidate: grid->GetNumberCols(); //assign to unused col instead of enlarging grid
 }
 
 
@@ -2585,8 +2585,8 @@ void xLightsFrame::InitPapagayoTab(bool tab_changed)
 //list of choices must be updated upon entry to tab in case other user actions changed list of available models/ or channels
 //    model_chooser->grid_parent = GridCoroFaces;
 //    node_chooser->grid_parent = GridCoroFaces;
-    for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
-        for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+    for (int r = 0; r < GridCoroFaces->GetNumberRows(); ++r)
+        for (int c = 0; c < GridCoroFaces->GetNumberCols(); ++c)
         {
 //            GridCoroFaces->SetCellEditor(r, c, new myGridCellChoiceEditor(0, NULL, r)); //r? node_chooser: model_chooser);
             myGridCellChoiceEditor *chooser = new myGridCellChoiceEditor(0, NULL, r != Model_Row);
@@ -2661,11 +2661,11 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         group = FindNode(Presets, compat? wxT("coro"): wxT("preset"), Name, grpname, !compat);
 //        if (!node) continue;
 //        char mode = (char)node->GetAttribute(LastMode, wxT("Coro")).Lower().GetChar(0); //default
-        for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+        for (int c = 0; c < GridCoroFaces->GetNumberCols(); ++c)
         {
             debug(10, "save grp[%d]: mode '%c', #cols %d vs. #voices %d", c, outmode, GridCoroFaces->GetCols(), voices.size());
             bool non_empty = false;
-            for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
+            for (int r = 0; r < GridCoroFaces->GetNumberRows(); ++r)
             {
                 if (GridCoroFaces->GetCellValue(r, c).empty()) continue;
                 non_empty = true;
@@ -2761,8 +2761,8 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         return;
     }
     if (!SavePgoSettings()) return; //TODO: this should be called from somewhere else as well
-    int numcols = GridCoroFaces->GetCols();
-    for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+    int numcols = GridCoroFaces->GetNumberCols();
+    for (int c = 0; c < GridCoroFaces->GetNumberCols(); ++c)
         if (((myGrid*)GridCoroFaces)->GetColWidth(c) < 1) --numcols; //kludge: don't count hidden cols
     wxMessageBox(wxString::Format(wxT("Preset '%s' saved (%d of %d %s)."), grpname, num_saved, numcols, (numcols == 1)? wxT("voice"): wxT("voices")) + warnings + Save_warnings, wxT("Success"));
 }
@@ -3003,12 +3003,12 @@ void xLightsFrame::OnButton_CoroGroupClearClick(wxCommandEvent& event)
     GridCoroFaces->BeginBatch(); //postpone repaint until after all updates
 //    GridCoroFaces->ClearGrid();
     wxString empty;
-    for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+    for (int c = 0; c < GridCoroFaces->GetNumberCols(); ++c)
     {
 //        GridCoroFaces->SetCellValue(Model_Row, c, SelectionHint);
         if (c >= 4) delcol(GridCoroFaces, c);
         GridCoroFaces->SetColLabelValue(c, wxString::Format(wxT("Voice %d"), c + 1)); //disassociate with pgo voices
-        for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
+        for (int r = 0; r < GridCoroFaces->GetNumberRows(); ++r)
             GridCoroFaces->SetCellValue(r, c, (r == Model_Row)? SelectionHint: empty);
     }
 //reset row labels back to default values:
@@ -3245,8 +3245,8 @@ void xLightsFrame::OnButton_PgoCopyVoicesClick(wxCommandEvent& event)
 
     debug(10, "copy voice1 to other voices 2..%d", GridCoroFaces->GetCols());
     GridCoroFaces->BeginBatch(); //postpone repaint until after all updates
-    for (int c = 1; c < GridCoroFaces->GetCols(); ++c)
-        for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
+    for (int c = 1; c < GridCoroFaces->GetNumberCols(); ++c)
+        for (int r = 0; r < GridCoroFaces->GetNumberRows(); ++r)
         {
             if ((r == Model_Row) && (GridCoroFaces->GetCellValue(r, c) != SelectionHint)) continue; //don't overwrite model selection
             GridCoroFaces->SetCellValue(r, c, GridCoroFaces->GetCellValue(r, 0));

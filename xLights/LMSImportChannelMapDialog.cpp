@@ -28,6 +28,11 @@ BEGIN_EVENT_TABLE(LMSImportChannelMapDialog,wxDialog)
 END_EVENT_TABLE()
 
 
+#ifndef wxEVT_GRID_CELL_CHANGE
+//until CodeBlocks is updated to wxWidgets 3.x
+#define wxEVT_GRID_CELL_CHANGE wxEVT_GRID_CELL_CHANGED
+#endif
+
 LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(LMSImportChannelMapDialog)
@@ -167,12 +172,12 @@ void LMSImportChannelMapDialog::OnMapByStrandClick(wxCommandEvent& event)
 }
 void LMSImportChannelMapDialog::AddModel(ModelClass &cls) {
     ChannelMapGrid->BeginBatch();
-    int i = ChannelMapGrid->GetRows();
+    int i = ChannelMapGrid->GetNumberRows();
     int start = i;
     ChannelMapGrid->AppendRows();
     ChannelMapGrid->SetCellValue(i, 0, cls.name);
     for (int s = 0; s < cls.GetNumStrands(); s++) {
-        i = ChannelMapGrid->GetRows();
+        i = ChannelMapGrid->GetNumberRows();
         ChannelMapGrid->AppendRows();
         ChannelMapGrid->SetCellValue(i, 0, cls.name);
         wxString sn = cls.GetStrandName(s);
@@ -182,7 +187,7 @@ void LMSImportChannelMapDialog::AddModel(ModelClass &cls) {
         ChannelMapGrid->SetCellValue(i, 1, sn);
         if (!MapByStrand->GetValue()) {
             for (int n = 0; n < cls.GetStrandLength(s); n++) {
-                i = ChannelMapGrid->GetRows();
+                i = ChannelMapGrid->GetNumberRows();
                 ChannelMapGrid->AppendRows();
                 ChannelMapGrid->SetCellValue(i, 0, cls.name);
                 ChannelMapGrid->SetCellValue(i, 1, sn);
@@ -194,7 +199,7 @@ void LMSImportChannelMapDialog::AddModel(ModelClass &cls) {
             }
         }
     }
-    for (int r = start; r < ChannelMapGrid->GetRows(); r++) {
+    for (int r = start; r < ChannelMapGrid->GetNumberRows(); r++) {
         ChannelMapGrid->SetReadOnly(r, 0);
         ChannelMapGrid->SetReadOnly(r, 1);
         ChannelMapGrid->SetReadOnly(r, 2);
@@ -231,7 +236,7 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
     int row = event.GetRow();
     int col = event.GetCol();
     wxString s = ChannelMapGrid->GetCellValue(row, col);
-    ChannelMapGrid->SetCellBackgroundColour(channelColors[s].asWxColor(), row, 4);
+    ChannelMapGrid->SetCellBackgroundColour(row, 4, channelColors[s].asWxColor());
     MapByStrand->Enable(false);
     ChannelMapGrid->Refresh();
 }
@@ -312,7 +317,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
             if (modelNames.Index(model) != wxNOT_FOUND) {
                 while (model != ChannelMapGrid->GetCellValue(r, 0)
-                       && r < ChannelMapGrid->GetRows()) {
+                       && r < ChannelMapGrid->GetNumberRows()) {
                     r++;
                 }
 
@@ -342,7 +347,7 @@ void LMSImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
         for (int x = 0; x <  modelNames.size(); x++) {
             text.WriteString(modelNames[x] + "\n");
         }
-        for (int x = 0; x < ChannelMapGrid->GetRows(); x++) {
+        for (int x = 0; x < ChannelMapGrid->GetNumberRows(); x++) {
             wxColor wxc = ChannelMapGrid->GetCellBackgroundColour(x, 4);
             xlColor c(wxc);
             text.WriteString(ChannelMapGrid->GetCellValue(x, 0)

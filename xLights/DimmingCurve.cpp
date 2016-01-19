@@ -135,7 +135,7 @@ public:
         while(fin.Eof() == false){
             wxString data = text.ReadLine();
             if (data != "") {
-                data[count] = wxAtoi(data);
+                data[count] = std::stoi(data.ToStdString());
                 reverseData[data[count]] = count;
                 count++;
                 if (count == 256) {
@@ -197,7 +197,7 @@ DimmingCurve::~DimmingCurve()
 {
 }
 
-static const wxString &validate(const wxString &in, const wxString &def) {
+static const std::string &validate(const std::string &in, const std::string &def) {
     if (in == "") {
         return def;
     }
@@ -210,8 +210,8 @@ DimmingCurve *createCurve(wxXmlNode *dc, int channel = -1) {
             return new FileDimmingCurve(fn);
         }
     } else {
-        return new BasicDimmingCurve(wxAtoi(validate(dc->GetAttribute("brightness", "0"), "0")),
-                                     wxAtof(validate(dc->GetAttribute("gamma", "1.0"), "1.0")));
+        return new BasicDimmingCurve(std::stoi(validate(dc->GetAttribute("brightness", "0").ToStdString(), "0")),
+                                     std::stod(validate(dc->GetAttribute("gamma", "1.0").ToStdString(), "1.0")));
     }
     return nullptr;
 }

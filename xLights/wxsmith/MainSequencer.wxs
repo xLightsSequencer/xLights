@@ -68,7 +68,7 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -85,7 +85,7 @@
 				<object class="wxPanel" name="ID_PANEL2" subclass="EffectsGrid" variable="PanelEffectGrid" member="yes">
 					<style>wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE</style>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -104,11 +104,11 @@
 					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
 					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -128,11 +128,11 @@
 					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
 					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_CHANGED" />
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

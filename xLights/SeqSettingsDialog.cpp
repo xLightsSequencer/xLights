@@ -386,8 +386,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Grid_Timing->GetSize().GetWidth();
 	Grid_Timing->HideRowLabels();
 
-	Grid_Timing->SetColumnWidth(0, 342);
-	Grid_Timing->SetColumnWidth(1, 25);
+	Grid_Timing->SetColSize(0, 342);
+	Grid_Timing->SetColSize(1, 25);
 	//wxGridCellButtonRenderer* btn1 = new wxGridCellButtonRenderer("");
 	//Grid_Timing->SetCellRenderer(0,0, btn1);
 	Grid_Timing->SetColLabelValue(0, "Timing Grids");
@@ -745,7 +745,7 @@ void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
     {
         wxMessageBox(string_format("Timing section %s already exists!", new_name), "Error", wxICON_ERROR | wxOK);
         new_name += "_1";
-        Grid_Timing->SetCellValue(new_name, selection, 0);
+        Grid_Timing->SetCellValue(selection, 0, new_name);
     }
     wxArrayString timing_list;
     if( xml_file->GetSequenceLoaded() )

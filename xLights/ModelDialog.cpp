@@ -68,6 +68,10 @@ BEGIN_EVENT_TABLE(ModelDialog,wxDialog)
     //*)
 END_EVENT_TABLE()
 
+#ifndef wxEVT_GRID_CELL_CHANGE
+//until CodeBlocks is updated to wxWidgets 3.x
+#define wxEVT_GRID_CELL_CHANGE wxEVT_GRID_CELL_CHANGED
+#endif
 
 ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 {
@@ -1024,9 +1028,9 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
     wxFont font = GridCustom->GetDefaultCellFont();
     GridCustom->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
     GridCustom->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-    for (int c = 0; c < GridCustom->GetCols(); ++c)
+    for (int c = 0; c < GridCustom->GetNumberCols(); ++c)
         GridCustom->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 4/5);
-    for (int r = 0; r < GridCustom->GetRows(); ++r)
+    for (int r = 0; r < GridCustom->GetNumberRows(); ++r)
         GridCustom->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 4/5);
     font = GridCustom->GetLabelFont();
     GridCustom->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
@@ -1195,10 +1199,10 @@ void ModelDialog::CutOrCopyToClipboard(bool IsCut)
     wxString copy_data;
     bool something_in_this_line;
 
-    for (i=0; i< GridCustom->GetRows(); i++)        // step through all lines
+    for (i=0; i< GridCustom->GetNumberRows(); i++)        // step through all lines
     {
         something_in_this_line = false;             // nothing found yet
-        for (k=0; k<GridCustom->GetCols(); k++)     // step through all colums
+        for (k=0; k<GridCustom->GetNumberCols(); k++)     // step through all colums
         {
             if (GridCustom->IsInSelection(i,k))     // this field is selected!!!
             {
@@ -1279,9 +1283,9 @@ void ModelDialog::OnButton_CustomModelZoomOutClick(wxCommandEvent& event)
     GridCustom->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
 //    GridCustom->AutoSizeColumns(true);
 //    GridCustom->AutoSizeRows(true);
-    for (int c = 0; c < GridCustom->GetCols(); ++c)
+    for (int c = 0; c < GridCustom->GetNumberCols(); ++c)
         GridCustom->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 4/5);
-    for (int r = 0; r < GridCustom->GetRows(); ++r)
+    for (int r = 0; r < GridCustom->GetNumberRows(); ++r)
         GridCustom->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 4/5);
 //    debug(10, "font-: is now size = %d, %d, pt %d, cell w %d, min w %d", font.GetPixelSize().x, font.GetPixelSize().y, font.GetPointSize(), ((myGrid*)GridCustom)->GetColWidth(0), GridCustom->GetColMinimalAcceptableWidth());
     GridCustom->EndBatch();
@@ -1303,9 +1307,9 @@ void ModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
 //            GridCustom->GetCellFont(r, c).MakeLarger();
 //    GridCustom->AutoSizeColumns(true);
 //    GridCustom->AutoSizeRows(true);
-    for (int c = 0; c < GridCustom->GetCols(); ++c)
+    for (int c = 0; c < GridCustom->GetNumberCols(); ++c)
         GridCustom->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 5/4);
-    for (int r = 0; r < GridCustom->GetRows(); ++r)
+    for (int r = 0; r < GridCustom->GetNumberRows(); ++r)
         GridCustom->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 5/4);
 //    debug(10, "font+: is now size = %d, %d, pt %d, cell w %d, min w %d", font.GetPixelSize().x, font.GetPixelSize().y, font.GetPointSize(), ((myGrid*)GridCustom)->GetColWidth(0), GridCustom->GetColMinimalAcceptableWidth());
     GridCustom->EndBatch();

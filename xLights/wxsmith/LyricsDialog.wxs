@@ -29,7 +29,7 @@
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="ID_TEXTCTRL_Lyrics" variable="TextCtrlLyrics" member="yes">
 					<minsize>250,250d</minsize>
-					<style>wxTE_AUTO_SCROLL|wxTE_MULTILINE</style>
+					<style>wxTE_MULTILINE</style>
 				</object>
 				<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>20d</border>

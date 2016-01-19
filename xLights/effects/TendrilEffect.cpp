@@ -415,9 +415,9 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
     float &_friction = cache->_friction;
     float &_dampening = cache->_dampening;
     float &_tension = cache->_tension;
-    xlColour &_colour = cache->_colour;
+    xlColor &_colour = cache->_colour;
     Tendril* &_tendril = cache->_tendril;
-    xlColour color1;
+    xlColor color1;
     buffer.palette.GetColor(0, color1);
 
     if (_tendril == NULL ||

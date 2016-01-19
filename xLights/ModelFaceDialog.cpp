@@ -45,6 +45,12 @@ enum {
 
 #include "ModelClass.h"
 
+#ifndef wxEVT_GRID_CELL_CHANGE
+//until CodeBlocks is updated to wxWidgets 3.x
+#define wxEVT_GRID_CELL_CHANGE wxEVT_GRID_CELL_CHANGED
+#endif
+
+
 ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ModelFaceDialog)

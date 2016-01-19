@@ -34,7 +34,7 @@ LyricsDialog::LyricsDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 	FlexGridSizer1->Add(StaticText1, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(20,0)).GetWidth());
 	wxSize __SpacerSize_1 = wxDLG_UNIT(this,wxSize(0,5));
 	FlexGridSizer1->Add(__SpacerSize_1.GetWidth(),__SpacerSize_1.GetHeight(),1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	TextCtrlLyrics = new wxTextCtrl(this, ID_TEXTCTRL_Lyrics, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_AUTO_SCROLL|wxTE_MULTILINE, wxDefaultValidator, _T("ID_TEXTCTRL_Lyrics"));
+	TextCtrlLyrics = new wxTextCtrl(this, ID_TEXTCTRL_Lyrics, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE, wxDefaultValidator, _T("ID_TEXTCTRL_Lyrics"));
 	TextCtrlLyrics->SetMinSize(wxDLG_UNIT(this,wxSize(250,250)));
 	FlexGridSizer1->Add(TextCtrlLyrics, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(20,0)).GetWidth());
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Caution:  All timings/labels on this track will be replaced."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));

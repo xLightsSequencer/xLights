@@ -432,12 +432,12 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -516,7 +516,7 @@
 															<option>1</option>
 														</object>
 													</object>
-													<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+													<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
@@ -561,12 +561,12 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -1605,7 +1605,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -1724,7 +1724,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -1744,7 +1744,7 @@
 														<label>Select Model Groups</label>
 														<handler function="OnButtonSelectModelGroupsClick" entry="EVT_BUTTON" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -1763,7 +1763,7 @@
 														<handler function="OnListBoxElementListItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 														<handler function="OnListBoxElementListColumnClick" entry="EVT_LIST_COL_CLICK" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -1781,7 +1781,7 @@
 														<label>Models</label>
 														<handler function="OnButtonModelsPreviewClick" entry="EVT_BUTTON" />
 													</object>
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -1790,7 +1790,7 @@
 														<label>Save</label>
 														<handler function="OnButtonSavePreviewClick" entry="EVT_BUTTON" />
 													</object>
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -1827,7 +1827,7 @@
 														<max>700</max>
 														<handler function="OnSliderPreviewScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -1865,7 +1865,7 @@
 														<max>700</max>
 														<handler function="OnSliderPreviewScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -1904,7 +1904,7 @@
 														<style>wxTRANSPARENT_WINDOW</style>
 														<handler function="OnSliderPreviewRotateCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -1947,7 +1947,7 @@
 											</object>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -1987,7 +1987,7 @@
 															<item2>ListBoxSched</item2>
 															<item2></item2>
 														</items_text>
-														<style>wxTR_HAS_BUTTONS|wxTR_NO_LINES|wxTR_HIDE_ROOT|wxTR_MULTIPLE|wxTR_EXTENDED|wxTR_DEFAULT_STYLE</style>
+														<style>wxTR_HAS_BUTTONS|wxTR_NO_LINES|wxTR_HIDE_ROOT|wxTR_MULTIPLE|wxTR_DEFAULT_STYLE</style>
 													</object>
 													<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 												</object>
