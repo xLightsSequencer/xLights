@@ -15,7 +15,7 @@
 
 #include <map>
 
-#include "effects/Effectmanager.h"
+#include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
 #include "EffectsPanel.h"
 #include "../include/padlock16x16-green.xpm" //-DJ
@@ -81,8 +81,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
     //*)
 
     this->SetName("Effect");
-    
-    
+
+
     for (auto it = effectManager->begin(); it != effectManager->end(); it++) {
         RenderableEffect *p = *it;
         wxScrolledWindow* sw = new wxScrolledWindow(EffectChoicebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL" + p->Name()));
@@ -91,15 +91,15 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
         fgs->AddGrowableCol(0);
         fgs->AddGrowableRow(0);
         fgs->Add(panel, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 2);
-        
+
         sw->SetSizer(fgs);
         fgs->Fit(sw);
         fgs->SetSizeHints(sw);
-        
-        
+
+
         EffectChoicebook->AddPage(sw, p->ToolTip(), false);
     }
-    
+
     EffectChoicebook->SetSelection(0);
 }
 

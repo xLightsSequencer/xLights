@@ -192,10 +192,10 @@
 					<Add option="-Wl,--large-address-aware" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
-					<Add library="..\lib\windows\glut32.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
+					<Add library="../lib/windows/glut32.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -244,10 +244,10 @@
 					<Add option="-Wl,--large-address-aware" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
-					<Add library="..\lib\windows\glut32.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
+					<Add library="../lib/windows/glut32.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -263,9 +263,9 @@
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
-					<Add option="-std=gnu++11" />
 					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-std=gnu++11" />
 					<Add option="`wx-config --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
@@ -281,7 +281,7 @@
 					<Add directory="effects/assist" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 " />
+					<Add option="-lGL -lGLU -lglut -ldl -lmpg123" />
 					<Add option="`wx-config --libs std,media,gl,aui`" />
 				</Linker>
 			</Target>
@@ -354,10 +354,10 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
-					<Add library="..\lib\windows\glut32.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
+					<Add library="../lib/windows/glut32.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -402,9 +402,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -452,7 +452,7 @@
 		<Unit filename="EffectTreeDialog.h" />
 		<Unit filename="Effects.h" />
 		<Unit filename="EffectsPanel.cpp">
-			<Option compiler="gcc" use="1" buildCommand="$compiler -O1 -DwxUSE_UNICODE -march=i586 -pipe -mthreads -std=gnu++11 -static-libgcc -D__GNUWIN32__ -D__WXMSW__ -DWXUSINGDLL -DNDEBUG $includes -c $file -o $object\n" />
+			<Option compiler="gcc" use="0" buildCommand="$compiler -O1 -DwxUSE_UNICODE -march=i586 -pipe -mthreads -std=gnu++11 -static-libgcc -D__GNUWIN32__ -D__WXMSW__ -DWXUSINGDLL -DNDEBUG $includes -c $file -o $object\n" />
 		</Unit>
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />

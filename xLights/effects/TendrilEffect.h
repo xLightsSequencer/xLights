@@ -73,7 +73,7 @@ class TendrilEffect : public RenderableEffect
                     int movement, int tunemovement, int movementSpeed, int thickness,
                     float friction, float dampening,
                     float tension, int trails, int length);
-
+        virtual bool CanRenderOnBackgroundThread();
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
 };
