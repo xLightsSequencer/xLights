@@ -154,11 +154,10 @@ wxImage *DrawingContext::FlushAndGetImage() {
 }
 
 void DrawingContext::SetPen(wxPen &pen) {
-#if USE_GRAPHICS_CONTEXT_FOR_TEXT
+#if wxUSE_GRAPHICS_CONTEXT
     gc->SetPen(pen);
-#else
-    dc->SetPen(pen);
 #endif
+    dc->SetPen(pen);
 }
 
 wxGraphicsPath DrawingContext::CreatePath()
@@ -333,7 +332,7 @@ public:
     static constexpr float precision = 300.0f; // gradations per Pi, 942 entries of size float is under 4K or less than a memory page
     static constexpr int modulus = (int)(M_PI * precision) + 1;
     static constexpr int modulus2 = modulus * 2;
-    
+
     SinTable() {
         for (int i = 0; i<modulus; i++) {
             float f = i;
@@ -350,7 +349,7 @@ public:
     ~SinTable() {
     }
     float table[modulus]; // lookup table
-    
+
     float sinLookup(int a) {
         if (a >= 0) {
             int idx = a%(modulus2);
