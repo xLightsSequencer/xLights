@@ -51,11 +51,7 @@ void TextEffect::SetDefaultParameters(ModelClass *cls) {
 }
 
 bool TextEffect::CanRenderOnBackgroundThread() {
-#ifdef LINUX
-    return false;
-#else
     return true;
-#endif
 }
 
 //formatting notes:

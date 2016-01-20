@@ -328,7 +328,7 @@ TendrilEffect::~TendrilEffect()
 }
 bool TendrilEffect::CanRenderOnBackgroundThread() {
 #ifdef LINUX
-    return false;
+    return true;
 #else
     return true;
 #endif

@@ -112,9 +112,19 @@ wxString windows_get_stacktrace(void *data)
 
 #endif
 
-
-IMPLEMENT_APP(xLightsApp)
-
+#ifdef LINUX
+    #include <X11/Xlib.h>
+#endif // LINUX
+//IMPLEMENT_APP(xLightsApp)
+int main(int argc, char **argv)
+{
+#ifdef LINUX
+    XInitThreads();
+#endif
+    wxDISABLE_DEBUG_SUPPORT();
+    return wxEntry(argc, argv);
+}
+wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 
 #include <wx/debugrpt.h>
 

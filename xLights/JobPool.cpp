@@ -6,6 +6,10 @@
 #include "JobPool.h"
 #include "wx/string.h"
 
+#ifdef LINUX
+    #include <X11/Xlib.h>
+#endif
+
 class JobPoolWorker : public wxThread
 {
     wxMutex *lock;
@@ -13,9 +17,9 @@ class JobPoolWorker : public wxThread
     volatile int &idleThreads;
     volatile int &numThreads;
     std::deque<Job*> *queue;
-    
+
     Job *currentJob;
-    
+
 public:
     JobPoolWorker(wxMutex *l,
                   wxCondition *signal,
@@ -23,13 +27,13 @@ public:
                   volatile int &idleThreadPtr,
                   volatile int &numThreadsPtr);
     virtual ~JobPoolWorker();
-    
+
     void Stop();
     void Start(int priority = WXTHREAD_DEFAULT_PRIORITY);
     void* Entry();
-    
+
     Job *GetJob();
-    
+
     void ProcessJob(Job *job);
     wxString GetStatus();
 };
@@ -58,7 +62,7 @@ void JobPoolWorker::Stop()
 {
     if ( IsAlive() )
         Delete();
-    
+
     while ( IsAlive() ) {
         wxThread::Sleep( 5 );
     }
@@ -89,11 +93,14 @@ Job *JobPoolWorker::GetJob()
 
 void* JobPoolWorker::Entry()
 {
+#ifdef LINUX
+    XInitThreads();
+#endif
     while ( true ) {
         // Did we get a request to terminate?
         if (TestDestroy())
             break;
-        
+
         Job *job = GetJob();
         if (job) {
             // Call user's implementation for processing request
@@ -145,7 +152,7 @@ void JobPool::PushJob(Job *job)
     wxMutexLocker locker(lock);
     if (idleThreads == 0 && numThreads < maxNumThreads) {
         numThreads++;
-        
+
         JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue, idleThreads, numThreads);
         worker->Start(threadPriority);
         threads.push_back(worker);
