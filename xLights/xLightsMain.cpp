@@ -2957,6 +2957,7 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
         size = 32;
     }
 
+    mIconSize = size;
     #ifdef LINUX
         if (size>=32) {
             size = 48;
@@ -2965,7 +2966,6 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
         }
     #endif // LINUX
 
-    mIconSize = size;
     for (int x = 0; x < EffectsToolBar->GetToolCount(); x++)
     {
         EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
