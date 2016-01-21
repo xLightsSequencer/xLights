@@ -281,7 +281,7 @@
 					<Add directory="effects/assist" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lmpg123" />
+					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 -lX11" />
 					<Add option="`wx-config --libs std,media,gl,aui`" />
 				</Linker>
 			</Target>
