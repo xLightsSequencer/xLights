@@ -485,6 +485,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
     for (int x = 0; x < manager.size(); x++) {
         DragEffectBitmapButton *BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(16,16),
                                                     wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
+        BitmapButton34->SetBitmapMargins(0,0);
         int size = 16;
         BitmapButton34->SetMinSize(wxSize(size,size));
         BitmapButton34->SetMaxSize(wxSize(size,size));
@@ -1902,20 +1903,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     config->Read("xLightsIconSize", &mIconSize, 16);
-    if (mIconSize != 16)
-    {
-        int id = ID_MENUITEM_ICON_MEDIUM;
-        if (mIconSize == 32)
-        {
-            id = ID_MENUITEM_ICON_LARGE;
-        }
-        else if (mIconSize == 48)
-        {
-            id = ID_MENUITEM_ICON_XLARGE;
-        }
-        wxCommandEvent event(wxEVT_NULL, id);
-        SetToolIconSize(event);
+    int isid = ID_MENUITEM_ICON_SMALL;
+    if (mIconSize == 24) {
+        isid = ID_MENUITEM_ICON_MEDIUM;
+    } else if (mIconSize == 32) {
+        isid = ID_MENUITEM_ICON_LARGE;
+    } else if (mIconSize == 48) {
+        isid = ID_MENUITEM_ICON_XLARGE;
     }
+    wxCommandEvent event(wxEVT_NULL, isid);
+    SetToolIconSize(event);
+
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
     if (mGridSpacing != 16)
     {
@@ -2958,20 +2956,11 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
     }
 
     mIconSize = size;
-    #ifdef LINUX
-        if (size>=32) {
-            size = 48;
-        } else {
-            size = size + 8;
-        }
-    #endif // LINUX
 
     for (int x = 0; x < EffectsToolBar->GetToolCount(); x++)
     {
-        EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);
-        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMinSize(wxSize(size, size));
-        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMaxSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(x)->SetMinSize(EffectsToolBar->FindToolByIndex(x)->GetWindow()->GetMinSize());
     }
     EffectsToolBar->Realize();
     wxSize sz = EffectsToolBar->GetSize();

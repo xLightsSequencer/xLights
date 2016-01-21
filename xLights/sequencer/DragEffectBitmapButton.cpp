@@ -19,7 +19,17 @@ DragEffectBitmapButton::~DragEffectBitmapButton()
 void DragEffectBitmapButton::DoSetSizeHints(int minW, int minH,
                                             int maxW, int maxH,
                                             int incW, int incH ) {
-    wxBitmapButton::DoSetSizeHints(minW, minH, maxW, maxH, incW, incH);
+    int offset = 0;
+    #ifdef LINUX
+        offset = 12; //Linux puts a 6 pixel border around it
+    #endif // LINUX
+
+    printf("Size hints %d %d\n", minW, offset);
+    wxBitmapButton::DoSetSizeHints(minW + offset,
+                                   minH + offset,
+                                   maxW + offset,
+                                   maxH + offset,
+                                   incW, incH);
     SetEffect(mEffect, minW);
 }
 void DragEffectBitmapButton::SetEffect(RenderableEffect *eff, int sz)
