@@ -1,7 +1,7 @@
 #include "RenderableEffect.h"
 #include "../sequencer/Effect.h"
 #include "EffectManager.h"
-#include "xlGridCanvasEmpty.h"
+#include "assist/xlGridCanvasEmpty.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
