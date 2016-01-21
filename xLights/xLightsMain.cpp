@@ -2975,6 +2975,9 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
     }
     effectPalettePanel->Layout();
     ToolIconSizeMenu->Check(event.GetId(), true);
+    
+    effectsPnl->BitmapButtonSelectedEffect->SetSizeHints(size, size, size, size);
+    effectsPnl->Layout();
 }
 
 void xLightsFrame::OnMenuItemRenderEraseModeSelected(wxCommandEvent& event)

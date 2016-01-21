@@ -7,6 +7,14 @@
 
 #include <cmath>
 
+#ifdef __WXMSW__
+/* the c++11 runtime in mingw is broken.  It doesn't include these as the spec says it should */
+#include <cstdlib>
+#define stod(x) atof(x.c_str())
+#define stof(x) atof(x.c_str())
+#define stoi(x) strtol(x.c_str(), nullptr, 10)
+#endif
+
 class BaseDimmingCurve : public DimmingCurve {
 public:
     BaseDimmingCurve(int ch = -1) : DimmingCurve(), channel(ch)  {
@@ -135,7 +143,7 @@ public:
         while(fin.Eof() == false){
             wxString data = text.ReadLine();
             if (data != "") {
-                data[count] = std::stoi(data.ToStdString());
+                data[count] = stoi(data.ToStdString());
                 reverseData[data[count]] = count;
                 count++;
                 if (count == 256) {
@@ -210,8 +218,8 @@ DimmingCurve *createCurve(wxXmlNode *dc, int channel = -1) {
             return new FileDimmingCurve(fn);
         }
     } else {
-        return new BasicDimmingCurve(std::stoi(validate(dc->GetAttribute("brightness", "0").ToStdString(), "0")),
-                                     std::stod(validate(dc->GetAttribute("gamma", "1.0").ToStdString(), "1.0")));
+        return new BasicDimmingCurve(stoi(validate(dc->GetAttribute("brightness", "0").ToStdString(), "0")),
+                                     stod(validate(dc->GetAttribute("gamma", "1.0").ToStdString(), "1.0")));
     }
     return nullptr;
 }

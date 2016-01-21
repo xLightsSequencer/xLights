@@ -79,39 +79,23 @@ void AdjustAndSetBitmap(int size, wxImage &image, wxImage &dbl, wxBitmap&bitmap)
     } else if (dbl.GetHeight() > (2*size)) {
         wxImage scaled = image.Scale(size*2, size*2, wxIMAGE_QUALITY_HIGH);
         bitmap = wxBitmap(scaled, -1, 2.0);
-    } else if (image.GetHeight() == size) {
-        bitmap = wxBitmap(image, -1, 1.0);
-    } else {
-        wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
-        bitmap = wxBitmap(scaled, -1, 1.0);
-    }
-#else
+    } else
+#endif
     if (image.GetHeight() == size) {
         bitmap = wxBitmap(image);
     } else {
         wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
         bitmap = wxBitmap(scaled);
     }
-#endif
 }
 
 void AdjustAndSetBitmap(int size, wxImage &image, wxBitmap&bitmap) {
-#ifdef __WXOSX__
-    if (image.GetHeight() == size) {
-        bitmap = wxBitmap(image, -1, 1.0);
-    } else {
-        wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
-        bitmap = wxBitmap(scaled, -1, 1.0);
-    }
-#else
     if (image.GetHeight() == size) {
         bitmap = wxBitmap(image);
     } else {
         wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
         bitmap = wxBitmap(scaled);
     }
-#endif
-
 }
 
 void RenderableEffect::initBitmaps(const char **data16,

@@ -7,7 +7,7 @@
 DragEffectBitmapButton::DragEffectBitmapButton (wxWindow *parent, wxWindowID id, const wxBitmap &bitmap, const wxPoint &pos,
                                 const wxSize &size, long style, const wxValidator &validator,
                                 const wxString &name)
-    : wxBitmapButton (parent, id, bitmap,pos,size,style,validator,name), mDragIconBuffer(&bitmap)
+    : wxBitmapButton (parent, id, bitmap,pos,size,style,validator,name)
 {
     Connect (wxEVT_LEFT_DOWN, wxMouseEventHandler (DragEffectBitmapButton::OnMouseLeftDown));
     mEffect = nullptr;
@@ -23,8 +23,6 @@ void DragEffectBitmapButton::DoSetSizeHints(int minW, int minH,
     #ifdef LINUX
         offset = 12; //Linux puts a 6 pixel border around it
     #endif // LINUX
-
-    printf("Size hints %d %d\n", minW, offset);
     wxBitmapButton::DoSetSizeHints(minW + offset,
                                    minH + offset,
                                    maxW + offset,
@@ -36,13 +34,16 @@ void DragEffectBitmapButton::SetEffect(RenderableEffect *eff, int sz)
 {
     mEffect = eff;
     if (eff != nullptr) {
-        SetBitmap(eff->GetEffectIcon(sz));
+        SetBitmap(eff->GetEffectIcon(sz, GetContentScaleFactor() < 1.5));
         SetToolTip(eff->ToolTip());
     }
 }
 
 void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
 {
+    if (mEffect == nullptr) {
+        return;
+    }
     wxString data;
     wxTextDataObject dragData(data);
 
@@ -50,10 +51,8 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
     wxCommandEvent unselectEffect(EVT_UNSELECTED_EFFECT);
     wxPostEvent(GetParent(), unselectEffect);
 
-    int id = 0;
-    if (mEffect != nullptr) {
-        id = mEffect->GetId();
-    }
+    int id = mEffect->GetId();
+    
     // Change the Choicebook to correct page
     wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
     eventEffectChanged.SetInt(id);
@@ -63,9 +62,9 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
 
 #ifdef __linux__
     wxIcon dragCursor;
-    dragCursor.CopyFromBitmap(*mDragIconBuffer);
+    dragCursor.CopyFromBitmap(mEffect->GetEffectIcon(16, true));
 #else
-    wxCursor dragCursor(mDragIconBuffer->ConvertToImage());
+    wxCursor dragCursor(mEffect->GetEffectIcon(16, true).ConvertToImage());
 #endif
 
     wxDropSource dragSource(this,dragCursor,dragCursor,dragCursor );
@@ -76,7 +75,6 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
 
 void DragEffectBitmapButton::SetBitmap(const wxBitmap &bpm)
 {
-    mDragIconBuffer = &bpm;
     wxBitmapButton::SetBitmap(bpm);
     wxBitmapButton::SetBitmapDisabled(bpm.ConvertToDisabled());
 }

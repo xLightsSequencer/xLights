@@ -26,8 +26,6 @@ class DragEffectBitmapButton : public wxBitmapButton
 
     protected:
     private:
-        const wxBitmap *mDragIconBuffer;
-
         wxString (*GetStringFunction)();
 
         RenderableEffect *mEffect;

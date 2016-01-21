@@ -50,6 +50,7 @@ void xLightsFrame::CreateSequencer()
                    BestSize(wxSize(200,200)).Left());
 
     effectsPnl = new TopEffectsPanel(PanelSequencer);
+    effectsPnl->BitmapButtonSelectedEffect->SetEffect(effectManager[0], mIconSize);
     EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, &effectManager);
     effectsPnl->Refresh();
 
@@ -570,7 +571,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
     }
     RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
     effectsPnl->SetDragIconBuffer(eff->GetEffectIcon(16));
-    effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff);
+    effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff, mIconSize);
     if( effect != nullptr ) {
         UpdateEffectAssistWindow(effect, eff);
     }
