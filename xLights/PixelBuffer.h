@@ -57,7 +57,7 @@ class SequenceElements;
 class SettingsMap;
 class DimmingCurve;
 
-class PixelBufferClass : public ModelClass
+class PixelBufferClass
 {
 private:
     PixelBufferClass(const PixelBufferClass &cls);
@@ -82,13 +82,18 @@ private:
     xlColor mixColors(const wxCoord &x, const wxCoord &y, const xlColor &c0, const xlColor &c1, int layer);
     void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
+    
+    ModelClass model;
 public:
     PixelBufferClass();
     virtual ~PixelBufferClass();
     
+    
+    ModelClass &GetModel() { return model;};
+    
     RenderBuffer &BufferForLayer(int i);
     
-    void InitBuffer(wxXmlNode* ModelNode, int layers, int timing, NetInfoClass &netInfo, bool zeroBased=false);
+    void InitBuffer(ModelClass &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased=false);
     void InitStrandBuffer(const ModelClass &pbc, int strand, int timing);
     void InitNodeBuffer(const ModelClass &pbc, int strand, int node, int timing);
     

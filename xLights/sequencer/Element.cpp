@@ -31,6 +31,7 @@ Element::~Element()
     for (int x = 0; x < mStrandLayers.size(); x++) {
         delete mStrandLayers[x];
     }
+    renderLock.Unlock();
 }
 
 

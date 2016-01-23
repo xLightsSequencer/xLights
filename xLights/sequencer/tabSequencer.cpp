@@ -145,7 +145,7 @@ bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &
     if (model->GetModelXml() == nullptr) {
         return false;
     }
-    buffer.InitBuffer(model->GetModelXml(), layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
+    buffer.InitBuffer(*model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
     return true;
 }
 
@@ -1034,13 +1034,13 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
-    int nn = playBuffer.GetNodeCount();
+    int nn = playBuffer.GetModel().GetNodeCount();
     for (int node = 0; node < nn; node++) {
-        int start = playBuffer.NodeStartChannel(node);
-        playBuffer.SetNodeChannelValues(node, &SeqData[frame][start]);
+        int start = playBuffer.GetModel().NodeStartChannel(node);
+        playBuffer.GetModel().SetNodeChannelValues(node, &SeqData[frame][start]);
     }
     TimerOutput(frame);
-    playBuffer.DisplayEffectOnWindow(sPreview1, mPointSize);
+    playBuffer.GetModel().DisplayEffectOnWindow(sPreview1, mPointSize);
     sPreview2->Render(&SeqData[frame][0]);
 }
 
@@ -1573,10 +1573,11 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
 
     xlColorVector colors;
     PixelBufferClass ncls;
-    ncls.InitNodeBuffer(*GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
+    ModelClass *model = GetModelClass(el->GetName());
+    ncls.InitNodeBuffer(*model, strand, node, SeqData.FrameTime());
     for (int f = 0; f < SeqData.NumFrames(); f++) {
-        ncls.SetNodeChannelValues(0, &SeqData[f][ncls.NodeStartChannel(0)]);
-        xlColor c = ncls.GetNodeColor(0);
+        ncls.GetModel().SetNodeChannelValues(0, &SeqData[f][ncls.GetModel().NodeStartChannel(0)]);
+        xlColor c = ncls.GetModel().GetNodeColor(0);
         colors.push_back(c);
     }
     ConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
