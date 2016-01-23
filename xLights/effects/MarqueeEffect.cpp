@@ -79,14 +79,14 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     int yc_adj = SettingsMap.GetInt("SLIDER_MarqueeYC", 0);
     bool pixelOffsets = SettingsMap.GetBool("CHECKBOX_Marquee_PixelOffsets");
     bool wrap_x = SettingsMap.GetBool("CHECKBOX_Marquee_WrapX");
-    
+
     int x = 0;
     xlColor color;
     size_t colorcnt = buffer.GetColorCount();
     int color_size = BandSize +  SkipSize;
     int repeat_size = color_size * colorcnt;
     int eff_pos = buffer.curPeriod - buffer.curEffStartPer;
-    
+
     x = (mSpeed * eff_pos) / 5;
     int corner_x1 = 0;
     int corner_y1 = 0;
@@ -96,22 +96,23 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     if( reverse_dir ) {
         sign = -1;
     }
-    
+
     int xoffset_adj = xc_adj;
     int yoffset_adj = yc_adj;
     if (!pixelOffsets) {
         xoffset_adj = (xoffset_adj*buffer.BufferWi)/100.0; // xc_adj is from -100 to 100
         yoffset_adj = (yoffset_adj*buffer.BufferHt)/100.0; // yc_adj is from -100 to 100
     }
-    
+
     for( int thick = 0; thick < Thickness; thick++ )
     {
         int current_color = ((x + mStart) % repeat_size) / color_size;
         int current_pos = (((x + mStart) % repeat_size) % color_size);
         if( sign < 0 )
         {
-            current_color = color_size - current_color;
+            current_color = colorcnt - current_color - 1;
         }
+       // wxLogDebug(wxString::Format("Color: %d,  Pos: %d", current_color, current_pos));
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*(stagger+1) * sign);
         for( int x_pos = corner_x1; x_pos <= corner_x2; x_pos++ )
         {
@@ -146,7 +147,7 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
-        for( int y_pos = corner_y1; y_pos <= corner_y2; y_pos++ )
+        for( int y_pos = corner_y1; y_pos <= corner_y2-1; y_pos++ )
         {
             color = xlBLACK;
             if( current_pos < BandSize )
