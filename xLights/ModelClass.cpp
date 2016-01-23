@@ -448,7 +448,7 @@ void ModelClass::GetNodeChannelValues(size_t nodenum, unsigned char *buf) {
 void ModelClass::SetNodeChannelValues(size_t nodenum, const unsigned char *buf) {
     Nodes[nodenum]->SetFromChannels(buf);
 }
-xlColor ModelClass::GetNodeColor(size_t nodenum) {
+xlColor ModelClass::GetNodeColor(size_t nodenum) const {
     xlColor color;
     Nodes[nodenum]->GetColor(color);
     return color;

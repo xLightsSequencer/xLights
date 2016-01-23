@@ -166,6 +166,23 @@ void PixelBufferClass::Clear(int which) {
         }
     }
 }
+
+void PixelBufferClass::GetNodeChannelValues(size_t nodenum, unsigned char *buf) {
+    return model.GetNodeChannelValues(nodenum, buf);
+}
+void PixelBufferClass::SetNodeChannelValues(size_t nodenum, const unsigned char *buf) {
+    return model.SetNodeChannelValues(nodenum, buf);
+}
+xlColor PixelBufferClass::GetNodeColor(size_t nodenum) const {
+    return model.GetNodeColor(nodenum);
+}
+int PixelBufferClass::NodeStartChannel(size_t nodenum) const {
+    return model.NodeStartChannel(nodenum);
+}
+int PixelBufferClass::GetNodeCount() const {
+    return model.GetNodeCount();
+}
+
 bool MixTypeHandlesAlpha(MixTypes mt) {
     switch (mt) {
     case Mix_Normal:
@@ -176,7 +193,7 @@ bool MixTypeHandlesAlpha(MixTypes mt) {
 }
 
 // convert MixName to MixType enum
-void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
+void PixelBufferClass::SetMixType(int layer, const std::string& MixName) {
     MixTypes MixType;
     if (MixName == "Effect 1") {
         MixType=Mix_Effect1;

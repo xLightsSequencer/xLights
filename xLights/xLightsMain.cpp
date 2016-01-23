@@ -485,12 +485,12 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
     for (int x = 0; x < manager.size(); x++) {
         DragEffectBitmapButton *BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(16,16),
                                                     wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
-        BitmapButton34->SetBitmapMargins(0,0);
         int size = 16;
         BitmapButton34->SetMinSize(wxSize(size,size));
         BitmapButton34->SetMaxSize(wxSize(size,size));
         BitmapButton34->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
         BitmapButton34->SetEffect(manager[x]);
+        BitmapButton34->SetBitmapMargins(0,0);
         EffectsToolBar->AddControl(BitmapButton34, BitmapButton34->GetToolTipText());
 
         EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
@@ -1767,6 +1767,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     playStartTime = playEndTime = 0;
     replaySection = false;
     playType = 0;
+    playModel = nullptr;
 
     UnsavedRgbEffectsChanges = false;
     UnsavedPlaylistChanges = false;
@@ -2975,7 +2976,7 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
     }
     effectPalettePanel->Layout();
     ToolIconSizeMenu->Check(event.GetId(), true);
-    
+
     effectsPnl->BitmapButtonSelectedEffect->SetSizeHints(size, size, size, size);
     effectsPnl->Layout();
 }

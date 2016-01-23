@@ -397,10 +397,10 @@ public:
                 if (effectsToUpdate) {
                     SetCalOutputStatus(frame);
                     mainBuffer->CalcOutput(frame, validLayers);
-                    size_t nodeCnt = mainBuffer->GetModel().GetNodeCount();
+                    size_t nodeCnt = mainBuffer->GetNodeCount();
                     for(size_t n = 0; n < nodeCnt; n++) {
-                        int start = mainBuffer->GetModel().NodeStartChannel(n);
-                        mainBuffer->GetModel().GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                        int start = mainBuffer->NodeStartChannel(n);
+                        mainBuffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
                     }
                 }
                 if (!strandBuffers.empty()) {
@@ -797,13 +797,13 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     } else {
         ModelClass *m = GetModelClass(model);
         for (int frame = 0; frame < SeqData.NumFrames(); frame++) {
-            for (int x = 0; x < job->getBuffer()->GetModel().GetNodeCount(); x++) {
+            for (int x = 0; x < job->getBuffer()->GetNodeCount(); x++) {
                 //chan in main buffer
                 int ostart = m->NodeStartChannel(x);
-                int nstart = job->getBuffer()->GetModel().NodeStartChannel(x);
+                int nstart = job->getBuffer()->NodeStartChannel(x);
                 //copy to render buffer for export
-                job->getBuffer()->GetModel().SetNodeChannelValues(x, &SeqData[frame][ostart]);
-                job->getBuffer()->GetModel().GetNodeChannelValues(x, &((*data)[frame][nstart]));
+                job->getBuffer()->SetNodeChannelValues(x, &SeqData[frame][ostart]);
+                job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
             }
         }
         delete job;

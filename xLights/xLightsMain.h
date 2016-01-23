@@ -1510,7 +1510,7 @@ protected:
     bool mGridNodeValues;
     int mEffectAssistMode;
 
-    PixelBufferClass playBuffer;
+    ModelClass *playModel;
     int playType;
     int playStartMS;
     int playStartTime;

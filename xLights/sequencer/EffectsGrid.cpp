@@ -1783,8 +1783,8 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
         ncls.InitNodeBuffer(*xlights->GetModelClass(ri->element->GetName()), ri->strandIndex, ri->nodeIndex, seqData->FrameTime());
         xlColor lastColor;
         for (int f = 0; f < seqData->NumFrames(); f++) {
-            ncls.GetModel().SetNodeChannelValues(0, (*seqData)[f][ncls.GetModel().NodeStartChannel(0)]);
-            xlColor c = ncls.GetModel().GetNodeColor(0);
+            ncls.SetNodeChannelValues(0, (*seqData)[f][ncls.NodeStartChannel(0)]);
+            xlColor c = ncls.GetNodeColor(0);
             if (f == 0) {
                 colors.push_back(c);
                 lastColor = c;

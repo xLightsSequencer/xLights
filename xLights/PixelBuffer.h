@@ -83,8 +83,15 @@ private:
     void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
     
+    
     ModelClass model;
 public:
+    void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
+    void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
+    xlColor GetNodeColor(size_t nodenum) const;
+    int NodeStartChannel(size_t nodenum) const;
+    int GetNodeCount() const;
+
     PixelBufferClass();
     virtual ~PixelBufferClass();
     
@@ -99,7 +106,7 @@ public:
     
     void Clear(int which);
     // not used: size_t GetColorCount(int layer);
-    void SetMixType(int layer, const wxString& MixName);
+    void SetMixType(int layer, const std::string& MixName);
     void SetPalette(int layer, xlColorVector& newcolors);
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
