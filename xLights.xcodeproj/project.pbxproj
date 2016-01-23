@@ -1041,6 +1041,7 @@
 			children = (
 				670C827C1C44554E000AA5D8 /* Models */,
 				679BD3281C37552D000539FE /* Effects */,
+				67DB87F71AD6CFD100595194 /* EffectRendering */,
 				67D11C7B1BEA692300000A7F /* DimmingCurvePanel.cpp */,
 				67D11C751BEA691900000A7F /* ModelDimmingCurveDialog.cpp */,
 				67D11C781BEA691900000A7F /* DimmingCurve.cpp */,
@@ -1063,7 +1064,6 @@
 				6778F3E41A601CA7008C2086 /* EffectLayer.cpp */,
 				67A619C817B51C0F008E95BB /* EffectListDialog.cpp */,
 				677421D81A6A8FBE0082DA5B /* EffectIconPanel.cpp */,
-				67DB87F71AD6CFD100595194 /* EffectRendering */,
 				6784F9201A5653670018EC0C /* EffectsGrid.cpp */,
 				67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */,
 				67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */,

@@ -187,7 +187,7 @@ public:
 
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
-    xlColor GetNodeColor(size_t nodenum);
+    xlColor GetNodeColor(size_t nodenum) const;
     wxChar GetChannelColorLetter(wxByte chidx);
 
     wxString ChannelLayoutHtml();

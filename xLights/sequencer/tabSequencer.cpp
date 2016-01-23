@@ -145,7 +145,7 @@ bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &
     if (model->GetModelXml() == nullptr) {
         return false;
     }
-    buffer.InitBuffer(model->GetModelXml(), layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
+    buffer.InitBuffer(*model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
     return true;
 }
 
@@ -557,11 +557,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             playStartTime = effect->GetStartTimeMS();
             playEndTime = effect->GetEndTimeMS();
             playStartMS = -1;
-
-            InitPixelBuffer(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
-                            playBuffer,
-                            effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount());
-
+            playModel = GetModelClass(effect->GetParentEffectLayer()->GetParentElement()->GetName());
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,true);
@@ -621,8 +617,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             playStartMS = -1;
             RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
 
-            InitPixelBuffer(el->GetParentElement()->GetName(), playBuffer,
-                            el->GetParentElement()->GetEffectLayerCount());
+            playModel = GetModelClass(el->GetParentElement()->GetName());
 
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
@@ -651,7 +646,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
     wxString model = event.GetString();
-    if (InitPixelBuffer(model, playBuffer, mSequenceElements.GetElement(model)->GetEffectLayerCount())
+    playModel = GetModelClass(model);
+    if (playModel != nullptr
         && playType != PLAY_TYPE_MODEL) {
         wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
         wxPostEvent(this, playEvent);
@@ -673,7 +669,7 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
     if (playType == PLAY_TYPE_MODEL)
     {
         wxString model = event.GetString();
-        InitPixelBuffer(model, playBuffer, mSequenceElements.GetElement(model)->GetEffectLayerCount());
+        playModel = GetModelClass(model);
     }
 }
 
@@ -827,15 +823,19 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
     if( playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
     {
         EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
-        playType = PLAY_TYPE_EFFECT;
-        playStartTime = (int)(args->effect->GetStartTimeMS());
-        playEndTime = (int)(args->effect->GetEndTimeMS());
-        if(args->renderEffect)
-        {
-            RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
+        playModel = GetModelClass(args->element->GetName());
+        if (playModel != nullptr) {
+            playType = PLAY_TYPE_EFFECT;
+            playStartTime = (int)(args->effect->GetStartTimeMS());
+            playEndTime = (int)(args->effect->GetEndTimeMS());
+            if(args->renderEffect)
+            {
+                RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
+            }
+            playStartMS = -1;
+        } else {
+            playType = PLAY_TYPE_STOPPED;
         }
-        playStartMS = -1;
-        InitPixelBuffer(args->element->GetName(), playBuffer, args->element->GetEffectLayerCount());
     }
 }
 void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
@@ -1034,13 +1034,13 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
-    int nn = playBuffer.GetNodeCount();
+    int nn = playModel->GetNodeCount();
     for (int node = 0; node < nn; node++) {
-        int start = playBuffer.NodeStartChannel(node);
-        playBuffer.SetNodeChannelValues(node, &SeqData[frame][start]);
+        int start = playModel->NodeStartChannel(node);
+        playModel->SetNodeChannelValues(node, &SeqData[frame][start]);
     }
     TimerOutput(frame);
-    playBuffer.DisplayEffectOnWindow(sPreview1, mPointSize);
+    playModel->DisplayEffectOnWindow(sPreview1, mPointSize);
     sPreview2->Render(&SeqData[frame][0]);
 }
 
@@ -1573,10 +1573,10 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
 
     xlColorVector colors;
     PixelBufferClass ncls;
-    ncls.InitNodeBuffer(*GetModelClass(el->GetName()), strand, node, SeqData.FrameTime());
+    ModelClass *model = GetModelClass(el->GetName());
     for (int f = 0; f < SeqData.NumFrames(); f++) {
-        ncls.SetNodeChannelValues(0, &SeqData[f][ncls.NodeStartChannel(0)]);
-        xlColor c = ncls.GetNodeColor(0);
+        model->SetNodeChannelValues(0, &SeqData[f][model->NodeStartChannel(0)]);
+        xlColor c = model->GetNodeColor(0);
         colors.push_back(c);
     }
     ConvertDataRowToEffects(layer, colors, SeqData.FrameTime());

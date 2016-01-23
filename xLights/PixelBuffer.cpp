@@ -108,48 +108,48 @@ void PixelBufferClass::reset(int layers, int timing) {
     effectMixVaries = new bool[numLayers]; //allow varying mix threshold -DJ
 
     for(size_t i = 0; i < numLayers; i++) {
-        effects[i].InitBuffer(BufferHt, BufferWi);
+        effects[i].InitBuffer(model.BufferHt, model.BufferWi);
     }
 }
 
 
-void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, NetInfoClass &netInfo, bool zeroBased) {
-    SetFromXml(ModelNode, netInfo, zeroBased);
-    SetDimmingCurve(modelDimmingCurve);
+void PixelBufferClass::InitBuffer(ModelClass &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased) {
+    model.SetFromXml(pbc.GetModelXml(), netInfo, zeroBased);
+    SetDimmingCurve(model.modelDimmingCurve);
     reset(layers, timing);
 }
 void PixelBufferClass::InitStrandBuffer(const ModelClass &pbc, int strand, int timing) {
-    parm1 = pbc.GetStrandLength(strand);
-    parm2 = 1;
-    parm3 = 1;
-    StringType = pbc.GetStringType();
-    rgbOrder = pbc.rgbOrder;
-    SingleNode = pbc.SingleNode;
-    SingleChannel = pbc.SingleChannel;
-    IsLtoR = pbc.IsLtoR;
-    customColor = pbc.customColor;
+    model.parm1 = pbc.GetStrandLength(strand);
+    model.parm2 = 1;
+    model.parm3 = 1;
+    model.StringType = pbc.GetStringType();
+    model.rgbOrder = pbc.rgbOrder;
+    model.SingleNode = pbc.SingleNode;
+    model.SingleChannel = pbc.SingleChannel;
+    model.IsLtoR = pbc.IsLtoR;
+    model.customColor = pbc.customColor;
 
-    stringStartChan.resize(parm1);
-    for (int x = 0; x < parm1; x++) {
-        stringStartChan[x] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, x));
+    model.stringStartChan.resize(model.parm1);
+    for (int x = 0; x < model.parm1; x++) {
+        model.stringStartChan[x] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, x));
     }
-    InitLine();
-    SetDimmingCurve(pbc.modelDimmingCurve);
+    model.InitLine();
+    SetDimmingCurve(model.modelDimmingCurve);
     reset(2, timing);
 }
 void PixelBufferClass::InitNodeBuffer(const ModelClass &pbc, int strand, int node, int timing) {
-    parm1 = 1;
-    parm2 = 1;
-    parm3 = 1;
-    StringType = pbc.GetStringType();
-    rgbOrder = pbc.rgbOrder;
-    SingleNode = pbc.SingleNode;
-    SingleChannel = pbc.SingleChannel;
-    IsLtoR = pbc.IsLtoR;
-    stringStartChan.resize(1);
-    customColor = pbc.customColor;
-    stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, node));
-    InitLine();
+    model.parm1 = 1;
+    model.parm2 = 1;
+    model.parm3 = 1;
+    model.StringType = pbc.GetStringType();
+    model.rgbOrder = pbc.rgbOrder;
+    model.SingleNode = pbc.SingleNode;
+    model.SingleChannel = pbc.SingleChannel;
+    model.IsLtoR = pbc.IsLtoR;
+    model.stringStartChan.resize(1);
+    model.customColor = pbc.customColor;
+    model.stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, node));
+    model.InitLine();
 
     SetDimmingCurve(pbc.modelDimmingCurve);
     reset(2, timing);
@@ -166,6 +166,23 @@ void PixelBufferClass::Clear(int which) {
         }
     }
 }
+
+void PixelBufferClass::GetNodeChannelValues(size_t nodenum, unsigned char *buf) {
+    return model.GetNodeChannelValues(nodenum, buf);
+}
+void PixelBufferClass::SetNodeChannelValues(size_t nodenum, const unsigned char *buf) {
+    return model.SetNodeChannelValues(nodenum, buf);
+}
+xlColor PixelBufferClass::GetNodeColor(size_t nodenum) const {
+    return model.GetNodeColor(nodenum);
+}
+int PixelBufferClass::NodeStartChannel(size_t nodenum) const {
+    return model.NodeStartChannel(nodenum);
+}
+int PixelBufferClass::GetNodeCount() const {
+    return model.GetNodeCount();
+}
+
 bool MixTypeHandlesAlpha(MixTypes mt) {
     switch (mt) {
     case Mix_Normal:
@@ -176,7 +193,7 @@ bool MixTypeHandlesAlpha(MixTypes mt) {
 }
 
 // convert MixName to MixType enum
-void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
+void PixelBufferClass::SetMixType(int layer, const std::string& MixName) {
     MixTypes MixType;
     if (MixName == "Effect 1") {
         MixType=Mix_Effect1;
@@ -363,10 +380,10 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
         }
         break;
     case Mix_BottomTop:
-        c= y < BufferHt/2 ? c0 : c1;
+        c= y < model.BufferHt/2 ? c0 : c1;
         break;
     case Mix_LeftRight:
-        c= x < BufferWi/2 ? c0 : c1;
+        c= x < model.BufferWi/2 ? c0 : c1;
         break;
     case Mix_1_reveals_2:
         c0.toHSV(hsv0);
@@ -484,7 +501,7 @@ RenderBuffer& PixelBufferClass::BufferForLayer(int layer) {
 }
 void PixelBufferClass::SetLayer(int newlayer, int period, bool resetState) {
     CurrentLayer=newlayer;
-    effects[CurrentLayer].SetState(period, resetState, name);
+    effects[CurrentLayer].SetState(period, resetState, model.name);
 }
 void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime) {
     effects[layer].SetFadeTimes(inTime, outTime);
@@ -493,13 +510,14 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime) {
     effects[layer].SetEffectDuration(startTime, endTime);
 }
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata) {
-    for (int n = 0; n < Nodes.size(); n++) {
-        int start = NodeStartChannel(n);
-        SetNodeChannelValues(n, &fdata[start]);
+    for (int n = 0; n < model.Nodes.size(); n++) {
+        int start = model.NodeStartChannel(n);
+        model.SetNodeChannelValues(n, &fdata[start]);
         xlColor color;
-        Nodes[n]->GetColor(color);
-        for (int x = 0; x < Nodes[n]->Coords.size(); x++) {
-            effects[layer].SetPixel(Nodes[n]->Coords[x].bufX, Nodes[n]->Coords[x].bufY, color);
+        model.Nodes[n]->GetColor(color);
+        for (int x = 0; x < model.Nodes[n]->Coords.size(); x++) {
+            effects[layer].SetPixel(model.Nodes[n]->Coords[x].bufX,
+                                    model.Nodes[n]->Coords[x].bufY, color);
         }
     }
 }
@@ -535,14 +553,17 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         }
     }
     // layer calculation and map to output
-    size_t NodeCount = Nodes.size();
+    size_t NodeCount = model.Nodes.size();
     for(size_t i = 0; i < NodeCount; i++) {
-        if (!Nodes[i]->IsVisible()) {
+        if (!model.Nodes[i]->IsVisible()) {
             // unmapped pixel - set to black
-            Nodes[i]->SetColor(xlBLACK);
+            model.Nodes[i]->SetColor(xlBLACK);
         } else {
             // get blend of two effects
-            GetMixedColor(Nodes[i]->Coords[0].bufX, Nodes[i]->Coords[0].bufY, color, validLayers, Nodes[i]->sparkle);
+            GetMixedColor(model.Nodes[i]->Coords[0].bufX,
+                          model.Nodes[i]->Coords[0].bufY,
+                          color, validLayers,
+                          model.Nodes[i]->sparkle);
 
             // Apply dimming curve
             if (dimmingCurve != nullptr) {
@@ -550,7 +571,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             }
 
             // set color for physical output
-            Nodes[i]->SetColor(color);
+            model.Nodes[i]->SetColor(color);
         }
     }
 }

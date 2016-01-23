@@ -57,7 +57,7 @@ class SequenceElements;
 class SettingsMap;
 class DimmingCurve;
 
-class PixelBufferClass : public ModelClass
+class PixelBufferClass
 {
 private:
     PixelBufferClass(const PixelBufferClass &cls);
@@ -82,19 +82,31 @@ private:
     xlColor mixColors(const wxCoord &x, const wxCoord &y, const xlColor &c0, const xlColor &c1, int layer);
     void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
+    
+    
+    ModelClass model;
 public:
+    void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
+    void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
+    xlColor GetNodeColor(size_t nodenum) const;
+    int NodeStartChannel(size_t nodenum) const;
+    int GetNodeCount() const;
+
     PixelBufferClass();
     virtual ~PixelBufferClass();
     
+    
+    ModelClass &GetModel() { return model;};
+    
     RenderBuffer &BufferForLayer(int i);
     
-    void InitBuffer(wxXmlNode* ModelNode, int layers, int timing, NetInfoClass &netInfo, bool zeroBased=false);
+    void InitBuffer(ModelClass &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased=false);
     void InitStrandBuffer(const ModelClass &pbc, int strand, int timing);
     void InitNodeBuffer(const ModelClass &pbc, int strand, int node, int timing);
     
     void Clear(int which);
     // not used: size_t GetColorCount(int layer);
-    void SetMixType(int layer, const wxString& MixName);
+    void SetMixType(int layer, const std::string& MixName);
     void SetPalette(int layer, xlColorVector& newcolors);
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
