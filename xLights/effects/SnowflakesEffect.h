@@ -13,6 +13,8 @@ class SnowflakesEffect : public RenderableEffect
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual bool needToAdjustSettings(const std::string &version);
+        virtual void adjustSettings(const std::string &version, Effect *effect);
     private:
 };
 

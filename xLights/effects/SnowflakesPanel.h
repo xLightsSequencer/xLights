@@ -3,12 +3,12 @@
 
 //(*Headers(SnowflakesPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
 class wxStaticText;
 class wxSlider;
 class wxBitmapButton;
 class wxFlexGridSizer;
+class wxChoice;
 //*)
 
 class SnowflakesPanel: public wxPanel
@@ -20,11 +20,14 @@ class SnowflakesPanel: public wxPanel
 
 		//(*Declarations(SnowflakesPanel)
 		wxSlider* Slider_Snowflakes_Type;
+		wxChoice* ChoiceFalling;
 		wxStaticText* StaticText80;
 		wxBitmapButton* BitmapButton16;
 		wxBitmapButton* BitmapButton_SnowflakesType;
+		wxStaticText* StaticText2;
 		wxBitmapButton* BitmapButton_SnowflakesCount;
-		wxCheckBox* CheckBox5;
+		wxStaticText* StaticText1;
+		wxBitmapButton* BitmapButton1;
 		wxStaticText* StaticText79;
 		//*)
 
@@ -42,7 +45,10 @@ class SnowflakesPanel: public wxPanel
 		static const long ID_SLIDER_Snowflakes_Speed;
 		static const long IDD_TEXTCTRL_Snowflakes_Speed;
 		static const long ID_BITMAPBUTTON34;
-		static const long ID_CHECKBOX_Snowflakes_Accumulate;
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE_Falling;
+		static const long ID_STATICTEXT2;
+		static const long ID_BITMAPBUTTON1;
 		//*)
 
 	public:

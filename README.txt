@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
     -- enh(keithsw) Add tendrils effect. Also includes introduction of GraphicsContext. Builders please see README.Windows for rebuild instructions.
+	-- enh(keithsw) Add natural snowfall without accumulating to the snowflakes effect
 4.3.02  Jan 8, 2016
     -- enh(gil)   Add copy/paste tool to the Picture Effect Assist window.
 4.3.01  Jan 3, 2016
