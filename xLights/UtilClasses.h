@@ -12,6 +12,7 @@
 /* the c++11 runtime in mingw is broken.  It doesn't include these as the spec says it should */
 #include <cstdlib>
 #define stof(x) atof(x.c_str())
+#define stod(x) atof(x.c_str())
 #define stoi(x) strtol(x.c_str(), nullptr, 10)
 #endif
 
@@ -32,14 +33,33 @@ public:
         if (i == end() || i->second.length() == 0) {
             return def;
         }
-        return stoi(i->second);
-    }
-    double GetDouble(const std::string &key, const double &def) const {
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end()) {
+        try {
+            return stoi(i->second);
+        } catch ( ... ) {
             return def;
         }
-        return stof(i->second);
+    }
+    float GetFloat(const std::string &key, const double &def) const {
+        std::map<std::string,std::string>::const_iterator i(find(key));
+        if (i == end() || i->second.length() == 0) {
+            return def;
+        }
+        try {
+            return stof(i->second);
+        } catch ( ... ) {
+            return def;
+        }
+    }
+    double GetDouble(const std::string &key, const double def = 0.0) const {
+        std::map<std::string,std::string>::const_iterator i(find(key));
+        if (i == end() || i->second.length() == 0) {
+            return def;
+        }
+        try {
+            return stod(i->second);
+        } catch ( ... ) {
+            return def;
+        }
     }
     bool GetBool(const std::string &key, const bool def = false) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
@@ -72,37 +92,20 @@ public:
         std::string key(ckey);
         return std::map<std::string, std::string>::operator[](key);
     }
-    int GetInt(const char * ckey, const int def) const {
-        std::string key(ckey);
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end() || i->second.length() == 0) {
-            return def;
-        }
-        return stoi(i->second);
+    int GetInt(const char * ckey, const int def = 0) const {
+        return GetInt(std::string(ckey), def);
     }
-    double GetDouble(const char *ckey, const double &def) const {
-        std::string key(ckey);
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end()) {
-            return def;
-        }
-        return stof(i->second);
+    double GetDouble(const char *ckey, const double &def = 0.0) const {
+        return GetDouble(std::string(ckey), def);
+    }
+    float GetFloat(const char *ckey, const float &def = 0.0) const {
+        return GetFloat(std::string(ckey), def);
     }
     bool GetBool(const char *ckey, const bool def = false) const {
-        std::string key(ckey);
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end()) {
-            return def;
-        }
-        return i->second.length() >= 1 && i->second.at(0) == '1';
+        return GetBool(std::string(ckey), def);
     }
     const std::string &Get(const char *ckey, const std::string &def) const {
-        std::string key(ckey);
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end()) {
-            return def;
-        }
-        return i->second;
+        return Get(std::string(ckey), def);
     }
     std::string Get(const char *ckey, const char *def) const {
         std::string key(ckey);
