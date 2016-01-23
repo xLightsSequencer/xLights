@@ -347,150 +347,157 @@ public:
             mainBuffer->Clear(0);
         }
 
-        for (int layer = 0; layer < numLayers; layer++) {
-            SetStatus(wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame));
-            currentEffects[layer] = findEffectForFrame(layer, startFrame);
-            SetStatus(wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame));
-            initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer], mainBuffer);
-            effectStates[layer] = true;
-        }
-
-        for (int frame = startFrame; frame < endFrame; frame++) {
-            SetGenericStatus("%s: Starting frame %d\n", frame);
-
-            if (next == nullptr &&
-                    (origChangeCount != rowToRender->getChangeCount()
-                     || rowToRender->GetWaitCount())) {
-                //we're bailing out but make sure this range is reconsidered
-                rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
-                break;
-            }
-            //make sure we can do this frame
-            if (frame >= maxFrameBeforeCheck) {
-                maxFrameBeforeCheck = waitForFrame(frame);
-            }
-            bool effectsToUpdate = false;
+        try {
             for (int layer = 0; layer < numLayers; layer++) {
-                SetGenericStatus("%s: Starting frame %d, layer %d\n", frame, layer);
-                Effect *el = findEffectForFrame(layer, frame);
-                if (el != currentEffects[layer]) {
-                    currentEffects[layer] = el;
-                    SetInializingStatus(frame, layer);
-                    initialize(layer, frame, el, settingsMaps[layer], mainBuffer);
-                    effectStates[layer] = true;
-                }
-                bool persist = settingsMaps[layer].GetBool(CHECKBOX_OverlayBkg);
-                if (!persist || STR_NONE == settingsMaps[layer][STR_EFFECT]) {
-                    mainBuffer->Clear(layer);
-                }
-                SetRenderingStatus(frame, &settingsMaps[layer], layer);
-                bool b = effectStates[layer];
-                validLayers[layer] = xLights->RenderEffectFromMap(el, layer, frame, settingsMaps[layer], *mainBuffer, b, true, &renderEvent);
-                effectStates[layer] = b;
-                effectsToUpdate |= validLayers[layer];
+                SetStatus(wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame));
+                currentEffects[layer] = findEffectForFrame(layer, startFrame);
+                SetStatus(wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame));
+                initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer], mainBuffer);
+                effectStates[layer] = true;
             }
-            if (!effectsToUpdate && clearAllFrames) {
-                validLayers[0] = true;
-                effectsToUpdate = true;
-            }
-            if (effectsToUpdate) {
-                SetCalOutputStatus(frame);
-                mainBuffer->CalcOutput(frame, validLayers);
-                size_t nodeCnt = mainBuffer->GetModel().GetNodeCount();
-                for(size_t n = 0; n < nodeCnt; n++) {
-                    int start = mainBuffer->GetModel().NodeStartChannel(n);
-                    mainBuffer->GetModel().GetNodeChannelValues(n, &((*seqData)[frame][start]));
-                }
-            }
-            if (!strandBuffers.empty()) {
-                for (std::map<int, PixelBufferClassPtr>::iterator it = strandBuffers.begin(); it != strandBuffers.end(); it++) {
-                    int strand = it->first;
 
-                    PixelBufferClass *buffer = it->second.get();
-                    StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
-                    Effect *el = findEffectForFrame(slayer, frame);
-                    if (el != strandEffects[strand] || frame == startFrame) {
-                        strandEffects[strand] = el;
-                        SetInializingStatus(frame, -1, strand);
-                        initialize(0, frame, el, strandSettingsMaps[strand], buffer);
-                        strandEffectStates[strand] = true;
-                    }
-                    bool persist=strandSettingsMaps[strand].GetBool(CHECKBOX_OverlayBkg);
-                    if (!persist || STR_NONE == strandSettingsMaps[strand][STR_EFFECT]) {
-                        buffer->Clear(0);
-                    }
-                    SetRenderingStatus(frame, &strandSettingsMaps[strand], -1, strand);
+            for (int frame = startFrame; frame < endFrame; frame++) {
+                SetGenericStatus("%s: Starting frame %d\n", frame);
 
-                    if (xLights->RenderEffectFromMap(el, 0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
-                        //copy to output
-                        std::vector<bool> valid(2, true);
-                        SetCalOutputStatus(frame, strand);
-                        buffer->SetColors(1, &((*seqData)[frame][0]));
-                        buffer->CalcOutput(frame, valid);
-                        size_t nodeCnt = buffer->GetModel().GetNodeCount();
-                        for(size_t n = 0; n < nodeCnt; n++) {
-                            int start = buffer->GetModel().NodeStartChannel(n);
-                            buffer->GetModel().GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                if (next == nullptr &&
+                        (origChangeCount != rowToRender->getChangeCount()
+                         || rowToRender->GetWaitCount())) {
+                    //we're bailing out but make sure this range is reconsidered
+                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                    break;
+                }
+                //make sure we can do this frame
+                if (frame >= maxFrameBeforeCheck) {
+                    maxFrameBeforeCheck = waitForFrame(frame);
+                }
+                bool effectsToUpdate = false;
+                for (int layer = 0; layer < numLayers; layer++) {
+                    SetGenericStatus("%s: Starting frame %d, layer %d\n", frame, layer);
+                    Effect *el = findEffectForFrame(layer, frame);
+                    if (el != currentEffects[layer]) {
+                        currentEffects[layer] = el;
+                        SetInializingStatus(frame, layer);
+                        initialize(layer, frame, el, settingsMaps[layer], mainBuffer);
+                        effectStates[layer] = true;
+                    }
+                    bool persist = settingsMaps[layer].GetBool(CHECKBOX_OverlayBkg);
+                    if (!persist || STR_NONE == settingsMaps[layer][STR_EFFECT]) {
+                        mainBuffer->Clear(layer);
+                    }
+                    SetRenderingStatus(frame, &settingsMaps[layer], layer);
+                    bool b = effectStates[layer];
+                    validLayers[layer] = xLights->RenderEffectFromMap(el, layer, frame, settingsMaps[layer], *mainBuffer, b, true, &renderEvent);
+                    effectStates[layer] = b;
+                    effectsToUpdate |= validLayers[layer];
+                }
+                if (!effectsToUpdate && clearAllFrames) {
+                    validLayers[0] = true;
+                    effectsToUpdate = true;
+                }
+                if (effectsToUpdate) {
+                    SetCalOutputStatus(frame);
+                    mainBuffer->CalcOutput(frame, validLayers);
+                    size_t nodeCnt = mainBuffer->GetModel().GetNodeCount();
+                    for(size_t n = 0; n < nodeCnt; n++) {
+                        int start = mainBuffer->GetModel().NodeStartChannel(n);
+                        mainBuffer->GetModel().GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                    }
+                }
+                if (!strandBuffers.empty()) {
+                    for (std::map<int, PixelBufferClassPtr>::iterator it = strandBuffers.begin(); it != strandBuffers.end(); it++) {
+                        int strand = it->first;
+
+                        PixelBufferClass *buffer = it->second.get();
+                        StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
+                        Effect *el = findEffectForFrame(slayer, frame);
+                        if (el != strandEffects[strand] || frame == startFrame) {
+                            strandEffects[strand] = el;
+                            SetInializingStatus(frame, -1, strand);
+                            initialize(0, frame, el, strandSettingsMaps[strand], buffer);
+                            strandEffectStates[strand] = true;
+                        }
+                        bool persist=strandSettingsMaps[strand].GetBool(CHECKBOX_OverlayBkg);
+                        if (!persist || STR_NONE == strandSettingsMaps[strand][STR_EFFECT]) {
+                            buffer->Clear(0);
+                        }
+                        SetRenderingStatus(frame, &strandSettingsMaps[strand], -1, strand);
+
+                        if (xLights->RenderEffectFromMap(el, 0, frame, strandSettingsMaps[strand], *buffer, strandEffectStates[strand], true, &renderEvent)) {
+                            //copy to output
+                            std::vector<bool> valid(2, true);
+                            SetCalOutputStatus(frame, strand);
+                            buffer->SetColors(1, &((*seqData)[frame][0]));
+                            buffer->CalcOutput(frame, valid);
+                            size_t nodeCnt = buffer->GetModel().GetNodeCount();
+                            for(size_t n = 0; n < nodeCnt; n++) {
+                                int start = buffer->GetModel().NodeStartChannel(n);
+                                buffer->GetModel().GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                            }
                         }
                     }
                 }
-            }
-            if (!nodeBuffers.empty()) {
-                for (std::map<SNPair, PixelBufferClassPtr>::iterator it = nodeBuffers.begin(); it != nodeBuffers.end(); it++) {
-                    SNPair node = it->first;
-                    PixelBufferClass *buffer = it->second.get();
-                    int strand = node.strand;
-                    int inode = node.node;
-                    StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
-                    if (slayer == nullptr) {
-                        //deleted strand
-                        continue;
-                    }
-                    EffectLayer *nlayer = slayer->GetNodeLayer(inode, false);
-                    if (nlayer == nullptr) {
-                        //deleted node
-                        continue;
-                    }
-                    Effect *el = findEffectForFrame(nlayer, frame);
-                    if (el != nodeEffects[node] || frame == startFrame) {
-                        nodeEffects[node] = el;
-                        SetInializingStatus(frame, -1, strand, inode);
-                        initialize(0, frame, el, nodeSettingsMaps[node], buffer);
-                        nodeEffectStates[node] = true;
-                    }
-                    bool persist=nodeSettingsMaps[node].GetBool(CHECKBOX_OverlayBkg);
-                    if (!persist || STR_NONE == nodeSettingsMaps[node][STR_EFFECT]) {
-                        buffer->Clear(0);
-                    }
+                if (!nodeBuffers.empty()) {
+                    for (std::map<SNPair, PixelBufferClassPtr>::iterator it = nodeBuffers.begin(); it != nodeBuffers.end(); it++) {
+                        SNPair node = it->first;
+                        PixelBufferClass *buffer = it->second.get();
+                        int strand = node.strand;
+                        int inode = node.node;
+                        StrandLayer *slayer = rowToRender->GetStrandLayer(strand);
+                        if (slayer == nullptr) {
+                            //deleted strand
+                            continue;
+                        }
+                        EffectLayer *nlayer = slayer->GetNodeLayer(inode, false);
+                        if (nlayer == nullptr) {
+                            //deleted node
+                            continue;
+                        }
+                        Effect *el = findEffectForFrame(nlayer, frame);
+                        if (el != nodeEffects[node] || frame == startFrame) {
+                            nodeEffects[node] = el;
+                            SetInializingStatus(frame, -1, strand, inode);
+                            initialize(0, frame, el, nodeSettingsMaps[node], buffer);
+                            nodeEffectStates[node] = true;
+                        }
+                        bool persist=nodeSettingsMaps[node].GetBool(CHECKBOX_OverlayBkg);
+                        if (!persist || STR_NONE == nodeSettingsMaps[node][STR_EFFECT]) {
+                            buffer->Clear(0);
+                        }
 
-                    SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, strand, inode);
-                    if (xLights->RenderEffectFromMap(el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
-                        SetCalOutputStatus(frame, strand, inode);
-                        //copy to output
-                        std::vector<bool> valid(2, true);
-                        buffer->SetColors(1, &((*seqData)[frame][0]));
-                        buffer->CalcOutput(frame, valid);
-                        size_t nodeCnt = buffer->GetModel().GetNodeCount();
-                        for(size_t n = 0; n < nodeCnt; n++) {
-                            int start = buffer->GetModel().NodeStartChannel(n);
-                            buffer->GetModel().GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                        SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, strand, inode);
+                        if (xLights->RenderEffectFromMap(el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
+                            SetCalOutputStatus(frame, strand, inode);
+                            //copy to output
+                            std::vector<bool> valid(2, true);
+                            buffer->SetColors(1, &((*seqData)[frame][0]));
+                            buffer->CalcOutput(frame, valid);
+                            size_t nodeCnt = buffer->GetModel().GetNodeCount();
+                            for(size_t n = 0; n < nodeCnt; n++) {
+                                int start = buffer->GetModel().NodeStartChannel(n);
+                                buffer->GetModel().GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                            }
                         }
                     }
                 }
+                if (next) {
+                    SetGenericStatus("%s: Notifying next renderer of frame %d done\n", frame);
+                    next->setPreviousFrameDone(frame);
+                }
             }
-            if (next) {
-                SetGenericStatus("%s: Notifying next renderer of frame %d done\n", frame);
-                next->setPreviousFrameDone(frame);
-            }
+        } catch ( std::exception &ex) {
+            printf("Caught an exception %s\n", ex.what());
+        } catch ( ... ) {
+            printf("Caught an unknown exception\n");
         }
         if (next) {
-            //let the next know we're done
-            SetGenericStatus("%s: Notifying next renderer of final frame\n", 0);
-            next->setPreviousFrameDone(END_OF_RENDER_FRAME);
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
             //may try sending the END_OF_RENDER_FRAME to us and we'll have been deleted
             SetGenericStatus("%s: Waiting on previous renderer for final frame\n", 0);
             waitForFrame(END_OF_RENDER_FRAME);
+
+            //let the next know we're done
+            SetGenericStatus("%s: Notifying next renderer of final frame\n", 0);
+            next->setPreviousFrameDone(END_OF_RENDER_FRAME);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
 
         } else {

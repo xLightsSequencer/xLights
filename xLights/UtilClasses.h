@@ -33,21 +33,33 @@ public:
         if (i == end() || i->second.length() == 0) {
             return def;
         }
-        return stoi(i->second);
+        try {
+            return stoi(i->second);
+        } catch ( ... ) {
+            return def;
+        }
     }
     float GetFloat(const std::string &key, const float def = 0.0) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end()) {
+        if (i == end() || i->second.length() == 0) {
             return def;
         }
-        return stof(i->second);
+        try {
+            return stof(i->second);
+        } catch ( ... ) {
+            return def;
+        }
     }
     double GetDouble(const std::string &key, const double def = 0.0) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end()) {
+        if (i == end() || i->second.length() == 0) {
             return def;
         }
-        return stod(i->second);
+        try {
+            return stod(i->second);
+        } catch ( ... ) {
+            return def;
+        }
     }
     bool GetBool(const std::string &key, const bool def = false) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
@@ -81,44 +93,19 @@ public:
         return std::map<std::string, std::string>::operator[](key);
     }
     int GetInt(const char * ckey, const int def = 0) const {
-        std::string key(ckey);
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end() || i->second.length() == 0) {
-            return def;
-        }
-        return stoi(i->second);
+        return GetInt(std::string(ckey), def);
     }
     double GetDouble(const char *ckey, const double &def = 0.0) const {
-        std::string key(ckey);
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end()) {
-            return def;
-        }
-        return stod(i->second);
+        return GetDouble(std::string(ckey), def);
     }
     float GetFloat(const char *ckey, const float &def = 0.0) const {
-        std::string key(ckey);
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end()) {
-            return def;
-        }
-        return stof(i->second);
+        return GetFloat(std::string(ckey), def);
     }
     bool GetBool(const char *ckey, const bool def = false) const {
-        std::string key(ckey);
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end()) {
-            return def;
-        }
-        return i->second.length() >= 1 && i->second.at(0) == '1';
+        return GetBool(std::string(ckey), def);
     }
     const std::string &Get(const char *ckey, const std::string &def) const {
-        std::string key(ckey);
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end()) {
-            return def;
-        }
-        return i->second;
+        return Get(std::string(ckey), def);
     }
     std::string Get(const char *ckey, const char *def) const {
         std::string key(ckey);
