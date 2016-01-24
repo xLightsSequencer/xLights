@@ -9,13 +9,15 @@
 #ifndef xLights_RenderCommandEvent_h
 #define xLights_RenderCommandEvent_h
 
+#include <string>
+
 class RenderCommandEvent;
 wxDECLARE_EVENT(EVT_RENDER_RANGE, RenderCommandEvent);
 
 class RenderCommandEvent : public wxCommandEvent {
 public:
     RenderCommandEvent() :  wxCommandEvent(EVT_RENDER_RANGE) {}
-    RenderCommandEvent(const wxString &name,
+    RenderCommandEvent(const std::string &name,
                        int s,
                        int e,
                        bool c = true,
@@ -36,7 +38,7 @@ public:
     
     
     int start, end;
-    wxString model;
+    std::string model;
     bool clear;
     bool deleted;
     

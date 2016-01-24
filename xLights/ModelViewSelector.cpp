@@ -105,7 +105,7 @@ void ModelViewSelector::PopulateModelsToAdd()
         if (e->GetName() == "model")
         {
             wxString name=e->GetAttribute("name");
-            if (!mSequenceElements->ElementExists(name, mWhichView))
+            if (!mSequenceElements->ElementExists(name.ToStdString(), mWhichView))
             {
                 ListBoxElements->Append(name,e);
             }
@@ -116,7 +116,7 @@ void ModelViewSelector::PopulateModelsToAdd()
         if (e->GetName() == "modelGroup")
         {
             wxString name=e->GetAttribute("name");
-            if (!mSequenceElements->ElementExists(name, mWhichView))
+            if (!mSequenceElements->ElementExists(name.ToStdString(), mWhichView))
             {
                 ListBoxElements->Append(name,e);
             }
@@ -143,14 +143,14 @@ void ModelViewSelector::OnButtonAddClick(wxCommandEvent& eevent)
     {
         if (ListBoxTimings->IsSelected(i))
         {
-            TimingsToAdd.push_back(ListBoxTimings->GetString(i));
+            TimingsToAdd.push_back(ListBoxTimings->GetString(i).ToStdString());
         }
     }
     for(int i=0;i<ListBoxElements->GetCount();i++)
     {
         if (ListBoxElements->IsSelected(i))
         {
-            ModelsToAdd.push_back(ListBoxElements->GetString(i));
+            ModelsToAdd.push_back(ListBoxElements->GetString(i).ToStdString());
         }
     }
     this->EndModal(wxID_OK);

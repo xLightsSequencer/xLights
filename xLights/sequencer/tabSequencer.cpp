@@ -201,9 +201,9 @@ void xLightsFrame::CheckForValidModels()
                 dialog.ShowModal();
                 if (dialog.RadioButtonAdd->GetValue()) {
                 } else if (dialog.RadioButtonDelete->GetValue()) {
-                    mSequenceElements.DeleteElement(name);
+                    mSequenceElements.DeleteElement(name.ToStdString());
                 } else {
-                    wxString newName = dialog.ChoiceModels->GetStringSelection();
+                    std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
                     mSequenceElements.GetElement(x)->SetName(newName);
                 }
             }
@@ -407,7 +407,7 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
         for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
             if (e->GetName() == "modelGroup") {
                 if (s == e->GetAttribute("name")) {
-                    wxString modelString = e->GetAttribute("models");
+                    std::string modelString = e->GetAttribute("models").ToStdString();
                     mSequenceElements.AddMissingModelsToSequence(modelString, false);
                 }
             }
@@ -507,7 +507,7 @@ void xLightsFrame::EffectChanged(wxCommandEvent& event)
     Effect* effect = (Effect*)event.GetClientData();
     SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
                       effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
-    selectedEffectString = wxEmptyString;  // force update to effect rendering
+    selectedEffectString = "";  // force update to effect rendering
 }
 
 void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
@@ -528,10 +528,10 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         effect = (Effect*)event.GetClientData();
         bool resetStrings = false;
         if ("Random" == effect->GetEffectName()) {
-            wxString settings, palette;
-            wxString effectName = CreateEffectStringRandom(settings, palette);
-            effect->SetEffectName(effectName.ToStdString());
-            effect->SetEffectIndex(effectManager.GetEffectIndex(effectName.ToStdString()));
+            std::string settings, palette;
+            std::string effectName = CreateEffectStringRandom(settings, palette);
+            effect->SetEffectName(effectName);
+            effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
             effect->SetPalette(palette);
             effect->SetSettings(settings);
             resetStrings = true;
@@ -578,9 +578,9 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 {
     int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
     mSequenceElements.UnSelectAllEffects();
-    wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
-    wxString palette;
-    wxString settings = GetEffectTextFromWindows(palette);
+    std::string name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex).ToStdString();
+    std::string palette;
+    std::string settings = GetEffectTextFromWindows(palette);
     selectedEffect = NULL;
     Effect* last_effect_created = NULL;
 
@@ -839,8 +839,8 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
     }
 }
 void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
-    wxString palette;
-    wxString effectText = GetEffectTextFromWindows(palette);
+    std::string palette;
+    std::string effectText = GetEffectTextFromWindows(palette);
     for(int i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
     {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
@@ -871,10 +871,10 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
 
 void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 {
-    wxString palette;
-    wxString effectText = GetEffectTextFromWindows(palette);
+    std::string palette;
+    std::string effectText = GetEffectTextFromWindows(palette);
     int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
-    wxString effectName = EffectsPanel1->EffectChoicebook->GetPageText(EffectsPanel1->EffectChoicebook->GetSelection());
+    std::string effectName = EffectsPanel1->EffectChoicebook->GetPageText(EffectsPanel1->EffectChoicebook->GetSelection()).ToStdString();
 
     for(int i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
     {
@@ -888,7 +888,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                 {
                     el->GetEffect(j)->SetSettings(effectText);
                     el->GetEffect(j)->SetEffectIndex(effectIndex);
-                    el->GetEffect(j)->SetEffectName(effectName.ToStdString());
+                    el->GetEffect(j)->SetEffectName(effectName);
                     el->GetEffect(j)->SetPalette(palette);
 
                     if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
@@ -987,8 +987,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 
     if (selectedEffect != NULL && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
-        wxString palette;
-        wxString effectText = GetEffectTextFromWindows(palette);
+        std::string palette;
+        std::string effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette) {
 
@@ -1206,12 +1206,12 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     FadesChanged=true;
 }
 
-wxString xLightsFrame::GetEffectTextFromWindows(wxString &palette)
+std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
 {
     wxWindow*  window = (wxWindow*)EffectsPanel1->EffectChoicebook->GetPage(EffectsPanel1->EffectChoicebook->GetSelection());
     // This is needed because of the "Off" effect that does not return any text.
-    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window);
-    if (effectText.size() > 0 && !effectText.EndsWith(",")) {
+    std::string effectText = EffectsPanel1->GetEffectStringFromWindow(window).ToStdString();
+    if (effectText.size() > 0 && effectText[effectText.size()-1] != ',') {
         effectText += ",";
     }
     effectText += timingPanel->GetTimingString();
@@ -1394,12 +1394,12 @@ void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
     m_mgr->Update();
 }
 
-Element* xLightsFrame::AddTimingElement(wxString& name)
+Element* xLightsFrame::AddTimingElement(const std::string& name)
 {
     // Deactivate active timing mark so new one is selected;
     mSequenceElements.DeactivateAllTimingElements();
     int timingCount = mSequenceElements.GetNumberOfTimingElements();
-    wxString type = "timing";
+    std::string type = "timing";
     Element* e = mSequenceElements.AddElement(timingCount,name,type,true,false,true,false);
     e->AddEffectLayer();
     mSequenceElements.AddTimingToAllViews(name);
@@ -1408,14 +1408,14 @@ Element* xLightsFrame::AddTimingElement(wxString& name)
     return e;
 }
 
-void xLightsFrame::DeleteTimingElement(wxString& name)
+void xLightsFrame::DeleteTimingElement(const std::string& name)
 {
     mSequenceElements.DeleteElement(name);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
 }
 
-void xLightsFrame::RenameTimingElement(wxString& old_name, wxString& new_name)
+void xLightsFrame::RenameTimingElement(const std::string& old_name, const std::string& new_name)
 {
     Element* element = mSequenceElements.GetElement(old_name);
     if( element ) element->SetName(new_name);
@@ -1510,27 +1510,27 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
 
                     int i = colors[x].asHSV().value * 100.0;
                     int i2 = colors[x + len - 1].asHSV().value * 100.0;
-                    wxString settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2)
+                    std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2).ToStdString()
                         + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,E_TEXTCTRL_On_Cycles=1.0,"
-                        + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                        + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_CircularPalette=0,E_TEXTCTRL_ColorWash_Cycles=1.0";
-                    wxString palette = "C_BUTTON_Palette1=" + c2 + ",C_CHECKBOX_Palette1=1,"
-                        + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
-                        + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                        + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                        "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                        "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_CircularPalette=0,E_TEXTCTRL_ColorWash_Cycles=1.0";
+                    std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1,"
+                        "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
+                        "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                        "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
                     layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
                 } else {
 
-                    wxString settings = _("E_CHECKBOX_ColorWash_EntireModel=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,")
-                        + "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
-                        + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                        + "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                    std::string settings = "E_CHECKBOX_ColorWash_EntireModel=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
+                        "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
+                        "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                        "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
 
-                    wxString palette = "C_BUTTON_Palette1=" + colors[x] + ",C_CHECKBOX_Palette1=1,"
-                        + "C_BUTTON_Palette2=" + colors[x + len - 1] + ",C_CHECKBOX_Palette2=1,"
-                        + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                        + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                    std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
+                        "C_BUTTON_Palette2=" + (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1,"
+                        "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                        "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
                     layer->AddEffect(0, "Color Wash", settings, palette, stime, etime, false, false);
                 }
@@ -1542,18 +1542,18 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
         }
     }
 
-    wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
-        + ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-        + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-        + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+    std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100"
+        ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+        "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+        "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
     for (int x = 0; x < colors.size(); x++) {
         if (lastColor != colors[x]) {
             int time = x * frameTime;
             if (lastColor != xlBLACK) {
-                wxString palette = "C_BUTTON_Palette1=" + lastColor + ",C_CHECKBOX_Palette1=1,"
-                + "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
-                + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1,"
+                    "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
+                    "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                    "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
                 if (time != startTime) {
                     layer->AddEffect(0, "On", settings, palette, startTime, time, false, false);
@@ -1636,15 +1636,15 @@ void xLightsFrame::PromoteEffects(Element *element) {
             NodeLayer *base = layer->GetNodeLayer(0);
             for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
                 Effect *eff = base->GetEffect(e);
-                const wxString &name = eff->GetEffectName();
+                const std::string &name = eff->GetEffectName();
 
                 if (layer->HasEffectsInTimeRange(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
                     //cannot promote, already an effect there
                     continue;
                 }
                 if (name == "On" || name == "Color Wash") {
-                    const wxString pal = eff->GetPaletteAsString();
-                    const wxString set = eff->GetSettingsAsString();
+                    const std::string pal = eff->GetPaletteAsString();
+                    const std::string set = eff->GetSettingsAsString();
                     int mp = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
                     bool collapse = true;
 
@@ -1685,11 +1685,11 @@ void xLightsFrame::PromoteEffects(Element *element) {
     EffectLayer *target = element->GetEffectLayer(0);
     for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
         Effect *eff = base->GetEffect(e);
-        const wxString &name = eff->GetEffectName();
+        const std::string &name = eff->GetEffectName();
 
         if (name == "On" || name == "Color Wash") {
-            const wxString pal = eff->GetPaletteAsString();
-            const wxString set = eff->GetSettingsAsString();
+            const std::string pal = eff->GetPaletteAsString();
+            const std::string set = eff->GetSettingsAsString();
             int mp = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
             bool collapse = true;
 

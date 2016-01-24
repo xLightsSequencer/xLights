@@ -749,7 +749,7 @@ const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
     return xlBLACK;
 }
 
-void RenderBuffer::SetState(int period, bool ResetState, const wxString& model_name)
+void RenderBuffer::SetState(int period, bool ResetState, const std::string& model_name)
 {
     if (ResetState)
     {

@@ -26,8 +26,8 @@ class ModelDimmingCurveDialog: public wxDialog
 		ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ModelDimmingCurveDialog();
     
-        void Init(std::map<wxString, std::map<wxString,wxString>> &dimmingInfo);
-        void Update(std::map<wxString, std::map<wxString,wxString>> &dimmingInfo);
+        void Init(std::map<std::string, std::map<std::string,std::string>> &dimmingInfo);
+        void Update(std::map<std::string, std::map<std::string,std::string>> &dimmingInfo);
 
 		//(*Declarations(ModelDimmingCurveDialog)
 		wxStaticText* StaticText10;

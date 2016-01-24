@@ -426,7 +426,7 @@ void MainSequencer::InsertTimingMarkFromRange()
             int index;
             if(!el->HitTestEffectByTime(t1,index) && !el->HitTestEffectByTime(t2,index))
             {
-                wxString name,settings;
+                std::string name,settings;
                 el->AddEffect(0,name,settings,"",t1,t2,false,false);
                 PanelEffectGrid->ForceRefresh();
             }
@@ -444,7 +444,7 @@ void MainSequencer::InsertTimingMarkFromRange()
             if(!el->HitTestEffectByTime(t2,index))
             {
                 // if there is an effect to left
-                wxString name,settings;
+                std::string name,settings;
                 Effect * effect = nullptr;
                 for (int x = 0; x < el->GetEffectCount(); x++) {
                     Effect * e = el->GetEffect(x);
@@ -510,7 +510,7 @@ void MainSequencer::SplitTimingMark()
                 if( t1 != t2 || ((t1 == t2) && t1 != eff1->GetStartTimeMS() && t1 != eff1->GetEndTimeMS()) )
                 {
                     eff1->SetEndTimeMS(t1);
-                    wxString name,settings;
+                    std::string name,settings;
                     el->AddEffect(0,name,settings,"",t2,old_end_time,false,false);
                     PanelEffectGrid->ForceRefresh();
                 }

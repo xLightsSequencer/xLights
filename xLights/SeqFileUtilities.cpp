@@ -42,7 +42,7 @@ void xLightsFrame::NewSequence()
     int ms = atoi(mss.c_str());
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
-    wxString new_timing = "New Timing";
+    std::string new_timing = "New Timing";
     CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
     mSequenceElements.AddTimingToAllViews(new_timing);
     MenuItem_File_Save_Sequence->Enable(true);
@@ -385,7 +385,7 @@ void xLightsFrame::SetSequenceEnd(int ms)
     mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
 }
 
-static bool CalcPercentage(wxString& value, double base, bool reverse, int offset)
+static bool CalcPercentage(std::string& value, double base, bool reverse, int offset)
 {
     int val = wxAtoi(value);
     val -= offset;
@@ -400,7 +400,7 @@ static bool CalcPercentage(wxString& value, double base, bool reverse, int offse
     value = wxString::Format("%d",(int)percent);
     return true;
 }
-static bool CalcBoundedPercentage(wxString& value, int base, bool reverse, int offset) {
+static bool CalcBoundedPercentage(std::string& value, int base, bool reverse, int offset) {
     int val = wxAtoi(value);
     val -= offset;
     val %= (int)base;
@@ -420,23 +420,23 @@ static int CalcUnBoundedPercentage(int val, int base) {
 
     return percent;
 }
-static xlColor GetColor(const wxString& sRed, const wxString& sGreen, const wxString& sBlue)
+static xlColor GetColor(const std::string& sRed, const std::string& sGreen, const std::string& sBlue)
 {
     double red,green,blue;
-    sRed.ToDouble(&red);
+    red = atof(sRed.c_str());
     red = red / 100.0 * 255.0;
-    sGreen.ToDouble(&green);
+    green = atof(sGreen.c_str());
     green = green / 100.0 * 255.0;
-    sBlue.ToDouble(&blue);
+    blue = atof(sBlue.c_str());
     blue = blue / 100.0 * 255.0;
     xlColor color(red, green, blue);
     return color;
 }
-static wxString GetColorString(const wxString& sRed, const wxString& sGreen, const wxString& sBlue)
+static wxString GetColorString(const std::string& sRed, const std::string& sGreen, const std::string& sBlue)
 {
     return GetColor(sRed, sGreen, sBlue);
 }
-static xlColor GetColor(const wxString& rgb) {
+static xlColor GetColor(const std::string& rgb) {
     int i = wxAtoi(rgb);
     xlColor cl;
     cl.red = (i & 0xff);
@@ -652,7 +652,7 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src) {
                           ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, 0);
     }
 }
-void MapXLightsStrandEffects(EffectLayer *target, wxString name, std::map<wxString, EffectLayer *> &layerMap, SequenceElements &seqEl) {
+void MapXLightsStrandEffects(EffectLayer *target, const std::string &name, std::map<std::string, EffectLayer *> &layerMap, SequenceElements &seqEl) {
     EffectLayer *src = layerMap[name];
     if (src == nullptr) {
         Element * srcEl = seqEl.GetElement(name);
@@ -660,7 +660,7 @@ void MapXLightsStrandEffects(EffectLayer *target, wxString name, std::map<wxStri
     }
     MapXLightsEffects(target, src);
 }
-void MapXLightsEffects(Element *target, wxString name, SequenceElements &seqEl, std::map<wxString, EffectLayer *> &layerMap) {
+void MapXLightsEffects(Element *target, const std::string &name, SequenceElements &seqEl, std::map<std::string, EffectLayer *> &layerMap) {
     EffectLayer *src = layerMap[name];
     if (src != nullptr) {
         MapXLightsEffects(target->GetEffectLayer(0), src);
@@ -677,7 +677,7 @@ void MapXLightsEffects(Element *target, wxString name, SequenceElements &seqEl, 
 
 void xLightsFrame::ImportXLights(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
-    std::map<wxString, EffectLayer *> layerMap;
+    std::map<std::string, EffectLayer *> layerMap;
 
     LMSImportChannelMapDialog dlg(this);
     dlg.mSequenceElements = &mSequenceElements;
@@ -700,19 +700,19 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
         }
         for (int s = 0; s < el->getStrandLayerCount(); s++) {
             StrandLayer *sl = el->GetStrandLayer(s, true);
-            wxString strandName = sl->GetName();
+            std::string strandName = sl->GetName();
             if (strandName == "") {
                 strandName = wxString::Format("Strand %d", (s + 1));
             }
             if (sl->GetEffectCount() > 0) {
-                wxString name = sl->GetName();
+                std::string name = sl->GetName();
                 dlg.channelNames.push_back(el->GetName() + "/" + strandName);
                 layerMap[el->GetName() + "/" + strandName] = sl;
             }
             for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                 NodeLayer *nl = sl->GetNodeLayer(n, true);
                 if (nl->GetEffectCount() > 0) {
-                    wxString nodeName = nl->GetName();
+                    std::string nodeName = nl->GetName();
                     if (nodeName == "") {
                         nodeName = wxString::Format("Node %d", (n + 1));
                     }
@@ -747,7 +747,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
             }
         }
         if (dlg.ChannelMapGrid->GetCellValue(row, 3) != "") {
-            MapXLightsEffects(model, dlg.ChannelMapGrid->GetCellValue(row, 3), se, layerMap);
+            MapXLightsEffects(model, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), se, layerMap);
         }
         row++;
 
@@ -756,13 +756,13 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
 
             if( sl != nullptr ) {
                 if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                    MapXLightsStrandEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap, se);
+                    MapXLightsStrandEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), layerMap, se);
                 }
                 row++;
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                         NodeLayer *nl = sl->GetNodeLayer(n, true);
-                        MapXLightsStrandEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3), layerMap, se);
+                        MapXLightsStrandEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), layerMap, se);
                     }
                     row++;
                 }
@@ -1642,48 +1642,52 @@ void LoadRGBData(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *rc
 
         if (ec == sc) {
             if (ec != xlBLACK) {
-                wxString palette = "C_BUTTON_Palette1=" + sc + ",C_CHECKBOX_Palette1=1,"
+                std::string palette = "C_BUTTON_Palette1=" + (std::string)sc + ",C_CHECKBOX_Palette1=1,"
                     + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
                     + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                     + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
-                wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
-                    + ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                    + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                    + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
+                std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100"
+                    ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                    "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                    "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=";
+                settings += (isShimmer ? "1" : "0");
                 layer->AddEffect(0, "On", settings, palette, starttime, endtime, false, false);
             }
         } else if (sc == xlBLACK) {
-            wxString palette = "C_BUTTON_Palette1=" + ec + ",C_CHECKBOX_Palette1=1,"
-                + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
-                + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-            wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0")
-                + ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
+            std::string palette = "C_BUTTON_Palette1=" + (std::string)ec + ",C_CHECKBOX_Palette1=1,"
+                "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
+                "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+            std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0"
+                ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=";
+            settings += (isShimmer ? "1" : "0");
             layer->AddEffect(0, "On", settings, palette, starttime, endtime, false, false);
         } else if (ec == xlBLACK) {
-            wxString palette = "C_BUTTON_Palette1=" + sc + ",C_CHECKBOX_Palette1=1,"
-                + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
-                + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-            wxString settings = _("E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100")
-                + ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
+            std::string palette = "C_BUTTON_Palette1=" + (std::string)sc + ",C_CHECKBOX_Palette1=1,"
+                "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
+                "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+            std::string settings = "E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100"
+                ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=";
+            settings += (isShimmer ? "1" : "0");
             layer->AddEffect(0, "On", settings, palette, starttime, endtime, false, false);
         } else {
-            wxString palette = "C_BUTTON_Palette1=" + sc + ",C_CHECKBOX_Palette1=1,"
-                + "C_BUTTON_Palette2=" + ec + ",C_CHECKBOX_Palette2=1,"
-                + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+            std::string palette = "C_BUTTON_Palette1=" + (std::string)sc + ",C_CHECKBOX_Palette1=1,"
+                "C_BUTTON_Palette2=" + (std::string)ec + ",C_CHECKBOX_Palette2=1,"
+                "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
-            wxString settings = _("E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,E_TEXTCTRL_ColorWash_Cycles=1.00,")
-                + "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
-                + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,"
-                + "T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00"
-                + ",E_CHECKBOX_ColorWash_Shimmer=" + (isShimmer ? "1" : "0");
+            std::string settings = "E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,E_TEXTCTRL_ColorWash_Cycles=1.00,"
+                "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
+                "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,"
+                "T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00"
+                ",E_CHECKBOX_ColorWash_Shimmer=";
+            settings += (isShimmer ? "1" : "0");
             layer->AddEffect(0, "Color Wash", settings, palette, starttime, endtime, false, false);
         }
     }
@@ -1699,9 +1703,9 @@ void MapRGBEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *
     LoadRGBData(effectManager, layer, re, ge, be);
 }
 void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
-    wxString palette = _("C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1,")
-        + "C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-        + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+    std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1,"
+            "C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+            "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
     if (chancountpernode > 1) {
         wxString c = wxString::Format("#%06lx",color.GetRGB());
         xlColor color(c);
@@ -1714,18 +1718,18 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
         if (ch->GetName() == "effect") {
             int starttime = (wxAtoi(ch->GetAttribute("startCentisecond"))) * 10;
             int endtime = (wxAtoi(ch->GetAttribute("endCentisecond"))) * 10;
-            wxString intensity = ch->GetAttribute("intensity", "-1");
-            wxString starti, endi;
+            std::string intensity = ch->GetAttribute("intensity", "-1").ToStdString();
+            std::string starti, endi;
             if (intensity == "-1") {
-                starti = ch->GetAttribute("startIntensity");
-                endi = ch->GetAttribute("endIntensity");
+                starti = ch->GetAttribute("startIntensity").ToStdString();
+                endi = ch->GetAttribute("endIntensity").ToStdString();
             } else {
                 starti = endi = intensity;
             }
-            wxString settings = "E_TEXTCTRL_Eff_On_End=" + endi +",E_TEXTCTRL_Eff_On_Start=" + starti
-                + ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,";
+            std::string settings = "E_TEXTCTRL_Eff_On_End=" + endi +",E_TEXTCTRL_Eff_On_Start=" + starti +
+                ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,";
             if ("intensity" == ch->GetAttribute("type")) {
                 settings += "E_CHECKBOX_On_Shimmer=0";
             } else {
@@ -1783,7 +1787,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
                     if (chan->GetName() == "rgbChannel") {
                         dlg.channelColors[name] = xlBLACK;
                     } else {
-                        wxString color = chan->GetAttribute("color");
+                        std::string color = chan->GetAttribute("color").ToStdString();
                         dlg.channelColors[name] = GetColor(color);
                     }
 
@@ -1909,9 +1913,9 @@ public:
     int height;
     double scaleY;
     double scaleX;
-    wxString imageName;
+    std::string imageName;
 
-    void Set(int x, int y, int w, int h, const wxString &n) {
+    void Set(int x, int y, int w, int h, const std::string &n) {
         xOffset = x;
         yOffset = y;
         width = w;
@@ -1983,7 +1987,7 @@ void ScaleImage(wxImage &img, int type,
     }
 }
 
-wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
+wxString CreateSceneImage(const std::string &imagePfx, const std::string &postFix,
                           wxXmlNode *element, int numCols,
                           int numRows, bool reverse, const xlColor &color, int y_offset,
                           int resizeType, const wxSize &modelSize) {
@@ -2005,7 +2009,7 @@ wxString CreateSceneImage(const wxString &imagePfx, const wxString &postFix,
             }
         }
     }
-    wxString name = imagePfx + "_s" + element->GetAttribute("savedIndex") + postFix + ".png";
+    std::string name = imagePfx + "_s" + element->GetAttribute("savedIndex").ToStdString() + postFix + ".png";
     ImageInfo im;
     im.Set(0, 0, numCols, numRows, name);
     ScaleImage(i, resizeType, modelSize, numCols, numRows, im);
@@ -2067,7 +2071,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
     wxXmlNode* input_root=input_xml.GetRoot();
     EffectLayer* layer = model->AddEffectLayer();
     std::map<int, ImageInfo> imageInfo;
-    wxString imagePfx;
+    std::string imagePfx;
     std::vector<bool> reserved;
     for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext()) {
         if ("imageActions" == e->GetName()) {
@@ -2094,7 +2098,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         if (fd.ShowModal() == wxID_CANCEL) {
                             return false;
                         }
-                        imagePfx = fd.GetPath();
+                        imagePfx = fd.GetPath().ToStdString();
                     }
                 }
             }
@@ -2142,12 +2146,13 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 double layer_val;
                 wxString name_attr;
                 wxString acceleration;
-                wxString state1_time, state2_time, ramp_time_ext, attr;
+                wxString state1_time, state2_time, ramp_time_ext;
+                std::string attr;
                 int start_time, end_time, ramp_time;
                 element->GetAttribute("name", &name_attr);
                 element->GetAttribute("acceleration", &acceleration);
-                element->GetAttribute("layer", &attr);
-                attr.ToDouble(&layer_val);
+                attr = element->GetAttribute("layer");
+                layer_val = atof(attr.c_str());
                 layer_index = (int)layer_val;
                 wxXmlNode* state1=element->GetChildren();
                 wxXmlNode* state2=state1->GetNext();
@@ -2160,57 +2165,57 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 ramp_time = wxAtoi(ramp_time_ext) * 10;
                 end_time += ramp_time;
                 double head_duration = (1.0 - (double)ramp_time/((double)end_time-(double)start_time)) * 100.0;
-                wxString settings = "E_CHECKBOX_Morph_End_Link=0,E_CHECKBOX_Morph_Start_Link=0,E_CHECKBOX_ShowHeadAtStart=0,E_NOTEBOOK_Morph=Start,E_SLIDER_MorphAccel=0,E_SLIDER_Morph_Repeat_Count=0,E_SLIDER_Morph_Repeat_Skip=1,E_SLIDER_Morph_Stagger=0";
+                std::string settings = "E_CHECKBOX_Morph_End_Link=0,E_CHECKBOX_Morph_Start_Link=0,E_CHECKBOX_ShowHeadAtStart=0,E_NOTEBOOK_Morph=Start,E_SLIDER_MorphAccel=0,E_SLIDER_Morph_Repeat_Count=0,E_SLIDER_Morph_Repeat_Skip=1,E_SLIDER_Morph_Stagger=0";
                 settings += acceleration + ",";
                 wxString duration = wxString::Format("E_SLIDER_MorphDuration=%d,",(int)head_duration);
                 settings += duration;
-                state2->GetAttribute("trailLen", &attr);
+                attr = state2->GetAttribute("trailLen");
                 settings += "E_SLIDER_MorphEndLength=" + attr + ",";
-                state1->GetAttribute("trailLen", &attr);
+                attr = state1->GetAttribute("trailLen");
                 settings += "E_SLIDER_MorphStartLength=" + attr + ",";
-                state2->GetAttribute("x1", &attr);
+                attr = state2->GetAttribute("x1");
                 if( !CalcPercentage(attr, num_columns, false, x_offset) ) continue;
                 settings += "E_SLIDER_Morph_End_X1=" + attr + ",";
-                state2->GetAttribute("x2", &attr);
+                attr = state2->GetAttribute("x2");
                 if( !CalcPercentage(attr, num_columns, false, x_offset) ) continue;
                 settings += "E_SLIDER_Morph_End_X2=" + attr + ",";
-                state2->GetAttribute("y1", &attr);
+                attr = state2->GetAttribute("y1");
                 if( !CalcPercentage(attr, num_rows, reverse_rows, y_offset) ) continue;
                 settings += "E_SLIDER_Morph_End_Y1=" + attr + ",";
-                state2->GetAttribute("y2", &attr);
+                attr = state2->GetAttribute("y2");
                 if( !CalcPercentage(attr, num_rows, reverse_rows, y_offset) ) continue;
                 settings += "E_SLIDER_Morph_End_Y2=" + attr + ",";
-                state1->GetAttribute("x1", &attr);
+                attr = state1->GetAttribute("x1");
                 if( !CalcPercentage(attr, num_columns, false, x_offset) ) continue;
                 settings += "E_SLIDER_Morph_Start_X1=" + attr + ",";
-                state1->GetAttribute("x2", &attr);
+                attr = state1->GetAttribute("x2");
                 if( !CalcPercentage(attr, num_columns, false, x_offset) ) continue;
                 settings += "E_SLIDER_Morph_Start_X2=" + attr + ",";
-                state1->GetAttribute("y1", &attr);
+                attr = state1->GetAttribute("y1");
                 if( !CalcPercentage(attr, num_rows, reverse_rows, y_offset) ) continue;
                 settings += "E_SLIDER_Morph_Start_Y1=" + attr + ",";
-                state1->GetAttribute("y2", &attr);
+                attr = state1->GetAttribute("y2");
                 if( !CalcPercentage(attr, num_rows, reverse_rows, y_offset) ) continue;
                 settings += "E_SLIDER_Morph_Start_Y2=" + attr + ",";
-                wxString sRed, sGreen, sBlue,color;
-                state1->GetAttribute("red", &sRed);
-                state1->GetAttribute("green", &sGreen);
-                state1->GetAttribute("blue", &sBlue);
+                std::string sRed, sGreen, sBlue,color;
+                sRed = state1->GetAttribute("red");
+                sGreen = state1->GetAttribute("green");
+                sBlue = state1->GetAttribute("blue");
                 color = GetColorString(sRed, sGreen, sBlue);
-                wxString palette = "C_BUTTON_Palette1=" + color + ",";
-                state2->GetAttribute("red", &sRed);
-                state2->GetAttribute("green", &sGreen);
-                state2->GetAttribute("blue", &sBlue);
+                std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",";
+                sRed = state2->GetAttribute("red");
+                sGreen = state2->GetAttribute("green");
+                sBlue = state2->GetAttribute("blue");
                 color = GetColorString(sRed, sGreen, sBlue);
                 palette += "C_BUTTON_Palette2=" + color + ",";
-                ramp->GetAttribute("red1", &sRed);
-                ramp->GetAttribute("green1", &sGreen);
-                ramp->GetAttribute("blue1", &sBlue);
+                sRed = ramp->GetAttribute("red1");
+                sGreen = ramp->GetAttribute("green1");
+                sBlue = ramp->GetAttribute("blue1");
                 color = GetColorString(sRed, sGreen, sBlue);
                 palette += "C_BUTTON_Palette3=" + color + ",";
-                ramp->GetAttribute("red2", &sRed);
-                ramp->GetAttribute("green2", &sGreen);
-                ramp->GetAttribute("blue2", &sBlue);
+                sRed = ramp->GetAttribute("red2");
+                sGreen = ramp->GetAttribute("green2");
+                sBlue = ramp->GetAttribute("blue2");
                 color = GetColorString(sRed, sGreen, sBlue);
                 palette += "C_BUTTON_Palette4=" + color + ",";
                 palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
@@ -2283,7 +2288,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                 }
                                 imagePfx = fd.GetPath();
                             }
-                            wxString fname = imagePfx + "_" + wxString::Format("%d.png", idx);
+                            std::string fname = imagePfx + "_" + wxString::Format("%d.png", idx).ToStdString();
                             imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
                             ScaleImage(image, imageResizeType, modelSize, num_columns, num_rows, imageInfo[idx]);
 
@@ -2295,13 +2300,13 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
         } else if ("flowys" == e->GetName()) {
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
                 if ("flowy" == element->GetName()) {
-                    wxString centerX, centerY;
+                    std::string centerX, centerY;
                     int startms = wxAtoi(element->GetAttribute("startTime")) * 10;
                     int endms = wxAtoi(element->GetAttribute("endTime")) * 10;
                     wxString type = element->GetAttribute("flowyType");
                     wxString color_string = element->GetAttribute("Colors");
-                    wxString sRed, sGreen, sBlue, color;
-                    wxString palette = "C_BUTTON_Palette1=" + color + ",";
+                    std::string sRed, sGreen, sBlue, color;
+                    std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",";
                     int cnt = 1;
                     wxStringTokenizer tokenizer(color_string, " ");
                     while (tokenizer.HasMoreTokens() && cnt <=6) {
@@ -2329,9 +2334,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
 
                     int layer_index = wxAtoi(element->GetAttribute("layer"));
                     int acceleration = wxAtoi(element->GetAttribute("acceleration"));
-                    element->GetAttribute("centerX", &centerX);
+                    centerX = element->GetAttribute("centerX").ToStdString();
                     if( !CalcPercentage(centerX, num_columns, false, x_offset) ) continue;
-                    element->GetAttribute("centerY", &centerY);
+                    centerY = element->GetAttribute("centerY").ToStdString();
                     if( !CalcPercentage(centerY, num_rows, reverse_rows, y_offset) ) continue;
                     int startAngle = wxAtoi(element->GetAttribute("startAngle"));
                     int endAngle = wxAtoi(element->GetAttribute("endAngle"));
@@ -2347,19 +2352,19 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         double duration = (1.0 - (double)tailms/((double)endms-(double)startms)) * 100.0;
                         int startWidth = wxAtoi(element->GetAttribute("startDotSize"));
                         int endWidth = wxAtoi(element->GetAttribute("endDotSize"));
-                        wxString settings = "E_CHECKBOX_Galaxy_Reverse=" + wxString::Format("%d", startAngle < endAngle)
+                        std::string settings = "E_CHECKBOX_Galaxy_Reverse=" + wxString::Format("%d", startAngle < endAngle).ToStdString()
                                             + ",E_CHECKBOX_Galaxy_Blend_Edges=1"
                                             + ",E_CHECKBOX_Galaxy_Inward=1"
-                                            + ",E_NOTEBOOK_Galaxy=Start,E_SLIDER_Galaxy_Accel=" + wxString::Format("%d", acceleration)
+                                            + ",E_NOTEBOOK_Galaxy=Start,E_SLIDER_Galaxy_Accel=" + wxString::Format("%d", acceleration).ToStdString()
                                             + ",E_SLIDER_Galaxy_CenterX=" + centerX
                                             + ",E_SLIDER_Galaxy_CenterY=" + centerY
-                                            + ",E_SLIDER_Galaxy_Duration=" + wxString::Format("%d", (int)duration)
-                                            + ",E_SLIDER_Galaxy_End_Radius=" + wxString::Format("%d", endRadius)
-                                            + ",E_SLIDER_Galaxy_End_Width=" + wxString::Format("%d", endWidth)
-                                            + ",E_SLIDER_Galaxy_Revolutions=" + wxString::Format("%d", revolutions)
-                                            + ",E_SLIDER_Galaxy_Start_Angle=" + wxString::Format("%d", startAngle)
-                                            + ",E_SLIDER_Galaxy_Start_Radius=" + wxString::Format("%d", startRadius)
-                                            + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth)
+                                            + ",E_SLIDER_Galaxy_Duration=" + wxString::Format("%d", (int)duration).ToStdString()
+                                            + ",E_SLIDER_Galaxy_End_Radius=" + wxString::Format("%d", endRadius).ToStdString()
+                                            + ",E_SLIDER_Galaxy_End_Width=" + wxString::Format("%d", endWidth).ToStdString()
+                                            + ",E_SLIDER_Galaxy_Revolutions=" + wxString::Format("%d", revolutions).ToStdString()
+                                            + ",E_SLIDER_Galaxy_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString()
+                                            + ",E_SLIDER_Galaxy_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
+                                            + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth).ToStdString()
                                             + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                                             + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00"
                                             + ",T_TEXTCTRL_Fadeout=0.00";
@@ -2369,14 +2374,14 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     {
                         int startWidth = wxAtoi(element->GetAttribute("headWidth"));
                         int endWidth = wxAtoi(element->GetAttribute("tailWidth"));
-                        wxString settings = "E_CHECKBOX_Shockwave_Blend_Edges=1"
-                                            + _(",E_NOTEBOOK_Shockwave=Position,E_SLIDER_Shockwave_Accel=") + wxString::Format("%d", acceleration)
+                        std::string settings = "E_CHECKBOX_Shockwave_Blend_Edges=1,E_NOTEBOOK_Shockwave=Position,E_SLIDER_Shockwave_Accel="
+                                            + wxString::Format("%d", acceleration).ToStdString()
                                             + ",E_SLIDER_Shockwave_CenterX=" + centerX
                                             + ",E_SLIDER_Shockwave_CenterY=" + centerY
-                                            + ",E_SLIDER_Shockwave_End_Radius=" + wxString::Format("%d", endRadius)
-                                            + ",E_SLIDER_Shockwave_End_Width=" + wxString::Format("%d", endWidth)
-                                            + ",E_SLIDER_Shockwave_Start_Radius=" + wxString::Format("%d", startRadius)
-                                            + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth)
+                                            + ",E_SLIDER_Shockwave_End_Radius=" + wxString::Format("%d", endRadius).ToStdString()
+                                            + ",E_SLIDER_Shockwave_End_Width=" + wxString::Format("%d", endWidth).ToStdString()
+                                            + ",E_SLIDER_Shockwave_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
+                                            + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth).ToStdString()
                                             + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                                             + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00"
                                             + ",T_TEXTCTRL_Fadeout=0.00";
@@ -2394,21 +2399,21 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         numElements = std::min(numElements, 4);
                         blades = std::max(1, blades);
                         blades = std::min(blades, 16);
-                        wxString settings = "E_CHECKBOX_Fan_Reverse=" + wxString::Format("%d", startAngle > endAngle)
+                        std::string settings = "E_CHECKBOX_Fan_Reverse=" + wxString::Format("%d", startAngle > endAngle).ToStdString()
                                             + ",E_CHECKBOX_Fan_Blend_Edges=1"
-                                            + ",E_NOTEBOOK_Fan=Position,E_SLIDER_Fan_Accel=" + wxString::Format("%d", acceleration)
-                                            + ",E_SLIDER_Fan_Blade_Angle=" + wxString::Format("%d", elementAngle)
-                                            + ",E_SLIDER_Fan_Blade_Width=" + wxString::Format("%d", blade_width)
+                                            + ",E_NOTEBOOK_Fan=Position,E_SLIDER_Fan_Accel=" + wxString::Format("%d", acceleration).ToStdString()
+                                            + ",E_SLIDER_Fan_Blade_Angle=" + wxString::Format("%d", elementAngle).ToStdString()
+                                            + ",E_SLIDER_Fan_Blade_Width=" + wxString::Format("%d", blade_width).ToStdString()
                                             + ",E_SLIDER_Fan_CenterX=" + centerX
                                             + ",E_SLIDER_Fan_CenterY=" + centerY
                                             + ",E_SLIDER_Fan_Duration=100"
-                                            + ",E_SLIDER_Fan_Element_Width=" + wxString::Format("%d", 100)
-                                            + ",E_SLIDER_Fan_Num_Blades=" + wxString::Format("%d", blades)
-                                            + ",E_SLIDER_Fan_Num_Elements=" + wxString::Format("%d", numElements)
-                                            + ",E_SLIDER_Fan_End_Radius=" + wxString::Format("%d", endRadius)
-                                            + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond*((double)(endms-startms)/1000.0)*3.6))
-                                            + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle)
-                                            + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius)
+                                            + ",E_SLIDER_Fan_Element_Width=" + wxString::Format("%d", 100).ToStdString()
+                                            + ",E_SLIDER_Fan_Num_Blades=" + wxString::Format("%d", blades).ToStdString()
+                                            + ",E_SLIDER_Fan_Num_Elements=" + wxString::Format("%d", numElements).ToStdString()
+                                            + ",E_SLIDER_Fan_End_Radius=" + wxString::Format("%d", endRadius).ToStdString()
+                                            + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond*((double)(endms-startms)/1000.0)*3.6)).ToStdString()
+                                            + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString()
+                                            + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
                                             + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
                                             + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00"
                                             + ",T_TEXTCTRL_Fadeout=0.00";
@@ -2423,12 +2428,12 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     wxString endms = element->GetAttribute("endCentisecond") + "0";
                     wxString type = element->GetAttribute("type");
                     int layer_index = wxAtoi(element->GetAttribute("layer"));
-                    xlColor startc = GetColor(element->GetAttribute("red1"),
-                                             element->GetAttribute("green1"),
-                                             element->GetAttribute("blue1"));
-                    xlColor endc = GetColor(element->GetAttribute("red2"),
-                                             element->GetAttribute("green2"),
-                                             element->GetAttribute("blue2"));
+                    xlColor startc = GetColor(element->GetAttribute("red1").ToStdString(),
+                                             element->GetAttribute("green1").ToStdString(),
+                                             element->GetAttribute("blue1").ToStdString());
+                    xlColor endc = GetColor(element->GetAttribute("red2").ToStdString(),
+                                             element->GetAttribute("green2").ToStdString(),
+                                             element->GetAttribute("blue2").ToStdString());
                     while( model->GetEffectLayerCount() < layer_index ) {
                         model->AddEffectLayer();
                     }
@@ -2448,9 +2453,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         imagePfx = fd.GetPath();
                     }
 
-                    wxString ru = "0.0";
-                    wxString rd = "0.0";
-                    wxString imageName;
+                    std::string ru = "0.0";
+                    std::string rd = "0.0";
+                    std::string imageName;
                     bool isFull = false;
                     wxRect rect;
 
@@ -2460,47 +2465,50 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         //Every pixel in the model is specified, we can use a color wash or on instead of images
 
 
-                        wxString palette = _("C_BUTTON_Palette1=") + startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + endc
+                        std::string palette = "C_BUTTON_Palette1=" + (std::string)startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2="
+                            + (std::string)endc
                             + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
 
                         if (startc == endc) {
-                            wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100")
-                                + ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                            std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100"
+                                ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
                             layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
                         } else if (startc == xlBLACK) {
-                            wxString palette = _("C_BUTTON_Palette1=") + endc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + startc
-                                + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                                + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                            wxString settings = _("E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0")
-                                + ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                            std::string palette = "C_BUTTON_Palette1=" + (std::string)endc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2="
+                                + (std::string)startc +
+                                ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
+                                "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                            std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0"
+                                ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
                             layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
                         } else if (endc == xlBLACK) {
-                            wxString settings = _("E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100")
-                                + ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                            std::string settings = "E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100"
+                                ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
                             layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
                         } else {
-                            wxString settings = _("T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,")
-                                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_HFade=0,"
-                                + "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
-                                + "E_CHECKBOX_ColorWash_VFade=0,E_CHECKBOX_ColorWash_EntireModel=1";
+                            std::string settings = "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_HFade=0,"
+                                "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
+                                "E_CHECKBOX_ColorWash_VFade=0,E_CHECKBOX_ColorWash_EntireModel=1";
                             layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                         }
                     } else if (isPartOfModel && rect.x != -1) {
                         //forms a simple rectangle, we can use a ColorWash affect for this with a partial rectangle
-                        wxString palette = _("C_BUTTON_Palette1=") + startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + endc
+                        std::string palette = "C_BUTTON_Palette1=" + (std::string)startc
+                            + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + (std::string)endc
                             + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                             + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
-                        wxString settings = "";
-                        wxString val = wxString::Format("%d", rect.x);
+                        std::string settings = "";
+                        std::string val = wxString::Format("%d", rect.x).ToStdString();
                         if( !CalcBoundedPercentage(val, num_columns, false, x_offset) ) continue;
                         settings += ",E_SLIDER_ColorWash_X1=" + val;
                         val = wxString::Format("%d", rect.width);
@@ -2513,10 +2521,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         if( !CalcBoundedPercentage(val, num_rows, true, y_offset) ) continue;
                         settings += ",E_SLIDER_ColorWash_Y2=" + val;
 
-                        settings = _("T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,")
-                            + "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
-                            + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
-                            + "E_CHECKBOX_ColorWash_EntireModel=0" + settings;
+                        settings = "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
+                            "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
+                            "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
+                            "E_CHECKBOX_ColorWash_EntireModel=0" + settings;
 
 
                         layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
@@ -2542,7 +2550,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                 color.Set(ChannelBlend(startc.Red(),endc.Red(),ratio),
                                           ChannelBlend(startc.Green(),endc.Green(),ratio),
                                           ChannelBlend(startc.Blue(),endc.Blue(),ratio));
-                                wxString s = CreateSceneImage(imagePfx, wxString::Format("-%d", x+1),
+                                wxString s = CreateSceneImage(imagePfx, wxString::Format("-%d", x+1).ToStdString(),
                                                               element,
                                                               num_columns, num_rows, reverse_rows,
                                                               color, y_offset,
@@ -2553,16 +2561,16 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             }
                         }
 
-                        wxString settings = _("E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=scaled,")
-                            + "E_SLIDER_PicturesXC=0"
-                            + ",E_SLIDER_PicturesYC=0"
-                            + ",E_CHECKBOX_Pictures_PixelOffsets=1"
-                            + ",E_TEXTCTRL_Pictures_Speed=1.0"
-                            + ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
-                            + ",E_TEXTCTRL_Pictures_Filename=" + imageName
-                            + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=" + ru
-                            + ",T_TEXTCTRL_Fadeout=" + rd;
+                        std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=scaled,"
+                            "E_SLIDER_PicturesXC=0"
+                            ",E_SLIDER_PicturesYC=0"
+                            ",E_CHECKBOX_Pictures_PixelOffsets=1"
+                            ",E_TEXTCTRL_Pictures_Speed=1.0"
+                            ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
+                            ",E_TEXTCTRL_Pictures_Filename=" + imageName +
+                            ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
+                            "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=" + ru +
+                            ",T_TEXTCTRL_Fadeout=" + rd;
 
                         layer->AddEffect(0, "Pictures", settings, "", start_time, end_time, false, false);
                     }
@@ -2573,7 +2581,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 if ("textAction" == element->GetName()) {
                     wxString startms = element->GetAttribute("startCentisecond") + "0";
                     wxString endms = element->GetAttribute("endCentisecond") + "0";
-                    wxString text = element->GetAttribute("text");
+                    std::string text = element->GetAttribute("text").ToStdString();
                     wxString fontName = element->GetAttribute("fontName");
                     int fontSize = wxAtoi(element->GetAttribute("fontCapsHeight", "6"));
                     int fontCellWidth = wxAtoi(element->GetAttribute("fontCellWidth", "6"));
@@ -2585,9 +2593,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     int xEnd = wxAtoi(element->GetAttribute("xEnd", "0"));
                     int yEnd = wxAtoi(element->GetAttribute("yEnd", "0"));
 
-                    xlColor color = GetColor(element->GetAttribute("red"),
-                                             element->GetAttribute("green"),
-                                             element->GetAttribute("blue"));
+                    xlColor color = GetColor(element->GetAttribute("red").ToStdString(),
+                                             element->GetAttribute("green").ToStdString(),
+                                             element->GetAttribute("blue").ToStdString());
 
                     int layer_index = wxAtoi(element->GetAttribute("layer"));
                     while( model->GetEffectLayerCount() < layer_index ) {
@@ -2596,23 +2604,23 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     int start_time = wxAtoi(startms);
                     int end_time = wxAtoi(endms);
                     layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
-                    int lorWidth = text.Length() * fontCellWidth;
+                    int lorWidth = text.size() * fontCellWidth;
                     int lorHeight = fontSize;
 
-                    wxString font = "arial " + wxString::Format("%s%d", (fontName.Contains("Bold") ? "bold " : ""), fontSize + 4);
-                    wxString eff = "normal";
+                    std::string font = "arial " + wxString::Format("%s%d", (fontName.Contains("Bold") ? "bold " : ""), fontSize + 4).ToStdString();
+                    std::string eff = "normal";
                     if (fontName.Contains("Vertical")) {
                         eff = "vert text down";
                         lorWidth = fontSize;
-                        lorHeight = text.Length() * fontCellWidth;
+                        lorHeight = text.size() * fontCellWidth;
                     } else if (rotation == 90) {
                         eff = "rotate down 90";
                         lorWidth = fontSize;
-                        lorHeight = text.Length() * fontCellWidth;
+                        lorHeight = text.size() * fontCellWidth;
                     } else if (rotation == 270 || rotation == -90) {
                         eff = "rotate up 90";
                         lorWidth = fontSize;
-                        lorHeight = text.Length() * fontCellWidth;
+                        lorHeight = text.size() * fontCellWidth;
                     }
 
                     // calculate everything off the LOR center
@@ -2629,20 +2637,20 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     yStart = CalcUnBoundedPercentage(yStart, num_rows) - 50;
                     yEnd = CalcUnBoundedPercentage(yEnd, num_rows) - 50;
 
-                    wxString palette = _("C_BUTTON_Palette1=") + color + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=0"
+                    std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=0"
                         + ",C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
                         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                    wxString settings = _("")
-                        + "E_CHECKBOX_TextToCenter1=0,E_TEXTCTRL_Text_Line1=" + text
+                    std::string settings =
+                        "E_CHECKBOX_TextToCenter1=0,E_TEXTCTRL_Text_Line1=" + text
                         + ",E_TEXTCTRL_Text_Speed1=26,"
                         + "E_CHOICE_Text_Count1=none,"
                         + "E_CHOICE_Text_Dir1=vector,E_CHECKBOX_Text_PixelOffsets1=0,"
                         + "E_CHOICE_Text_Effect1=" + eff + ","
                         + "E_FONTPICKER_Text_Font1=" + font + ","
-                        + "E_SLIDER_Text_XStart1=" + wxString::Format("%d", xStart) + ","
-                        + "E_SLIDER_Text_YStart1=" + wxString::Format("%d", yStart) + ","
-                        + "E_SLIDER_Text_XEnd1=" + wxString::Format("%d", xEnd) + ","
-                        + "E_SLIDER_Text_YEnd1=" + wxString::Format("%d", yEnd) + ","
+                        + "E_SLIDER_Text_XStart1=" + wxString::Format("%d", xStart).ToStdString() + ","
+                        + "E_SLIDER_Text_YStart1=" + wxString::Format("%d", yStart).ToStdString() + ","
+                        + "E_SLIDER_Text_XEnd1=" + wxString::Format("%d", xEnd).ToStdString() + ","
+                        + "E_SLIDER_Text_YEnd1=" + wxString::Format("%d", yEnd).ToStdString() + ","
                         + "E_CHECKBOX_TextToCenter2=0,E_CHECKBOX_TextToCenter3=0,E_CHECKBOX_TextToCenter4=0,"
                         + "E_CHOICE_Text_Count2=none,E_CHOICE_Text_Count3=none,E_CHOICE_Text_Count4=none,"
                         + "E_CHOICE_Text_Dir2=left,E_CHOICE_Text_Dir3=left,E_CHOICE_Text_Dir4=left,"
@@ -2676,21 +2684,17 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     while( model->GetEffectLayerCount() <= layer_index ) {
                         model->AddEffectLayer();
                     }
-                    wxString rampUpTimeString = "0";
+                    std::string rampUpTimeString = "0";
                     if (rampUpTime) {
                         double fadeIn = rampUpTime;
                         fadeIn /= 1000;  //FadeIn is in seconds
                         rampUpTimeString = wxString::Format("%lf", fadeIn);
                     }
-                    wxString rampDownTimeString = "0";
+                    std::string rampDownTimeString = "0";
                     if (rampDownTime) {
                         double fade = rampDownTime;
                         fade /= 1000;  //FadeIn is in seconds
                         rampDownTimeString = wxString::Format("%lf", fade);
-                    }
-
-                    if (imageInfo[idx].imageName.Contains("_71")) {
-                        printf("found\n");
                     }
 
                     int startx = wxAtoi(element->GetAttribute("xStart"));
@@ -2706,9 +2710,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     if (endy == starty && endx == startx) {
                         x += round((double)startx*imgInfo.scaleX);
                         y -= round((double)starty*imgInfo.scaleY);
-                        wxString settings = _("E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,")
-                            + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x)
-                            + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y)
+                        std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,"
+                            "E_SLIDER_PicturesXC=" + wxString::Format("%d", x).ToStdString()
+                            + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y).ToStdString()
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
                             + ",E_TEXTCTRL_Pictures_Filename=" + imgInfo.imageName
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"
@@ -2719,11 +2723,11 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
 
                         layer->AddEffect(0, "Pictures", settings, "", startms, endms, false, false);
                     } else {
-                        wxString settings = _("E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=vector,")
-                            + "E_SLIDER_PicturesXC=" + wxString::Format("%d", x + (int)round((double)startx*imgInfo.scaleX))
-                            + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - (int)round((double)starty*imgInfo.scaleY))
-                            + ",E_SLIDER_PicturesEndXC=" + wxString::Format("%d", x + (int)round((double)endx*imgInfo.scaleX))
-                            + ",E_SLIDER_PicturesEndYC=" + wxString::Format("%d", y - (int)round((double)endy*imgInfo.scaleY))
+                        std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=vector,"
+                            "E_SLIDER_PicturesXC=" + wxString::Format("%d", x + (int)round((double)startx*imgInfo.scaleX)).ToStdString()
+                            + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - (int)round((double)starty*imgInfo.scaleY)).ToStdString()
+                            + ",E_SLIDER_PicturesEndXC=" + wxString::Format("%d", x + (int)round((double)endx*imgInfo.scaleX)).ToStdString()
+                            + ",E_SLIDER_PicturesEndYC=" + wxString::Format("%d", y - (int)round((double)endy*imgInfo.scaleY)).ToStdString()
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"
                             + ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
@@ -2750,8 +2754,8 @@ void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int ef
     xlColor color2(xlBLACK);
 
     bool isShimmer = eff == 5 || eff == 6;
-    wxString effect = "On";
-    wxString settings = wxString::Format("E_TEXTCTRL_Eff_On_End=%d,E_TEXTCTRL_Eff_On_Start=%d", out, in)
+    std::string effect = "On";
+    std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_End=%d,E_TEXTCTRL_Eff_On_Start=%d", out, in).ToStdString()
         + ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
         + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
         + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
@@ -2777,7 +2781,7 @@ void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int ef
         return;
     }
 
-    wxString palette = _("C_BUTTON_Palette1=" + color + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=") + color2
+    std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + (std::string)color2
         + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
         + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 

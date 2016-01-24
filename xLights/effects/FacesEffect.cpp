@@ -42,7 +42,7 @@ void FacesEffect::SetDefaultParameters(ModelClass *cls) {
     }
     bool addRender = true;
     if (cls != nullptr) {
-        for (std::map<wxString, std::map<wxString, wxString> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); it++) {
+        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); it++) {
             fp->Face_FaceDefinitonChoice->Append(it->first);
             if (it->second["Type"] == "Coro" || it->second["Type"] == "SingleNode" || it->second["Type"] == "NodeRange") {
                 addRender = false;
@@ -532,12 +532,12 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     std::unordered_map<std::string, std::string>& map = model_xy[(const char*)buffer.cur_model.c_str()];
     if (Phoneme == "(test)")
     {
-        /*static*/ wxString info = eyes;
+        /*static*/ std::string info = eyes;
         ModelClass::ParseFaceElement(info, first_xy);
     }
     if (!Phoneme.empty())
     {
-        wxString info = map[(const char*)Phoneme.c_str()];
+        std::string info = map[(const char*)Phoneme.c_str()];
         ModelClass::ParseFaceElement(info, first_xy);
     }
     if (!eyes.empty())
@@ -545,12 +545,12 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
         std::string eyesLower(eyes);
         std::transform(eyesLower.begin(), eyesLower.end(), eyesLower.begin(), ::tolower);
         
-        wxString info = map[(const char*)wxString::Format(wxT("Eyes_%s"), eyesLower.c_str())];
+        std::string info = map[(const char*)wxString::Format(wxT("Eyes_%s"), eyesLower.c_str())];
         ModelClass::ParseFaceElement(info, first_xy);
     }
     if (face_outline)
     {
-        wxString info = map["Outline"];
+        std::string info = map["Outline"];
         ModelClass::ParseFaceElement(info, first_xy);
     }
     for (auto it = first_xy.begin(); it != first_xy.end(); ++it)
@@ -589,12 +589,12 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         return;
     }
     
-    wxString definition = faceDefinition;
+    std::string definition = faceDefinition;
     if (definition == "Default" && !model_info->faceInfo.empty()) {
         definition = model_info->faceInfo.begin()->first;
     }
     bool found = true;
-    std::map<wxString, std::map<wxString, wxString> >::iterator it = model_info->faceInfo.find(definition);
+    std::map<std::string, std::map<std::string, std::string> >::iterator it = model_info->faceInfo.find(definition);
     if (it == model_info->faceInfo.end()) {
         //not found
         found = false;
@@ -608,7 +608,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             found = true;
         }
     }
-    wxString modelType = found ? model_info->faceInfo[definition]["Type"] : definition;
+    std::string modelType = found ? model_info->faceInfo[definition]["Type"] : definition;
     if (modelType == "") {
         modelType = definition;
     }
@@ -705,11 +705,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     
     bool customColor = found ? model_info->faceInfo[definition]["CustomColors"] == "1" : false;
     
-    wxArrayString todo;
+    std::vector<std::string> todo;
     std::vector<xlColor> colors;
     todo.push_back("Mouth-" + phoneme);
     if (customColor) {
-        wxString cname = model_info->faceInfo[definition][ "Mouth-" + phoneme + "-Color"];
+        std::string cname = model_info->faceInfo[definition][ "Mouth-" + phoneme + "-Color"];
         if (cname == "") {
             colors.push_back(xlWHITE);
         } else {
@@ -724,7 +724,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     if (eyes == "Open" || eyes == "Auto") {
         todo.push_back("Eyes-Open");
         if (customColor) {
-            wxString cname = model_info->faceInfo[definition][ "Eyes-Open-Color"];
+            std::string cname = model_info->faceInfo[definition][ "Eyes-Open-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
             } else {
@@ -737,7 +737,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     if (eyes == "Closed") {
         todo.push_back("Eyes-Closed");
         if (customColor) {
-            wxString cname = model_info->faceInfo[definition][ "Eyes-Closed-Color"];
+            std::string cname = model_info->faceInfo[definition][ "Eyes-Closed-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
             } else {
@@ -756,7 +756,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     if (face_outline) {
         todo.push_back("FaceOutline");
         if (customColor) {
-            wxString cname = model_info->faceInfo[definition][ "FaceOutline-Color"];
+            std::string cname = model_info->faceInfo[definition][ "FaceOutline-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
             } else {
@@ -774,7 +774,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
     if (type == 3) {
         //picture
-        wxString e = eyes;
+        std::string e = eyes;
         if (eyes == "Auto") {
             e = "Open";
         }
@@ -782,7 +782,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             e = "Closed";
         }
         std::string key = "Mouth-" + phoneme + "-Eyes";
-        wxString picture = model_info->faceInfo[definition][key + e];
+        std::string picture = model_info->faceInfo[definition][key + e];
         if (picture == "" && e == "Closed") {
             picture = model_info->faceInfo[definition][key + "Open"];
         }
@@ -790,10 +790,10 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
             i = "none"; /*RENDER_PICTURE_NONE */
         }
-        PicturesEffect::Render(buffer, i, picture.ToStdString(), 0, 0, 0, 0, 0, 0, 0, false);
+        PicturesEffect::Render(buffer, i, picture, 0, 0, 0, 0, 0, 0, 0, false);
     }
     for (int t = 0; t < todo.size(); t++) {
-        wxString channels = model_info->faceInfo[definition][todo[t]];
+        std::string channels = model_info->faceInfo[definition][todo[t]];
         wxStringTokenizer wtkz(channels, ",");
         while (wtkz.HasMoreTokens()) {
             wxString valstr = wtkz.GetNextToken();

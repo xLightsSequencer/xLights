@@ -393,7 +393,7 @@ void xLightsFrame::UpdateModelsList()
                                     {
                                         long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
                                         start_channel = e->GetAttribute("StartChannel");
-                                        model->SetModelStartChan(start_channel);
+                                        model->SetModelStartChan(start_channel.ToStdString());
                                         wxString string_type = e->GetAttribute("StringType");
                                         int parm1 = wxAtoi(e->GetAttribute("parm1"));
                                         int parm2 = wxAtoi(e->GetAttribute("parm2"));
@@ -435,7 +435,7 @@ void xLightsFrame::UpdateModelsList()
                     {
                         long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
                         start_channel = e->GetAttribute("StartChannel");
-                        model->SetModelStartChan(start_channel);
+                        model->SetModelStartChan(start_channel.ToStdString());
                         wxString string_type = e->GetAttribute("StringType");
                         int parm1 = wxAtoi(e->GetAttribute("parm1"));
                         int parm2 = wxAtoi(e->GetAttribute("parm2"));
@@ -685,7 +685,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 
 //modifed for partially random -DJ
 //void djdebug(const char* fmt, ...); //_DJ
-wxString xLightsFrame::CreateEffectStringRandom(wxString &settings, wxString &palette)
+std::string xLightsFrame::CreateEffectStringRandom(std::string &settings, std::string &palette)
 {
     int eff1;
     if (EffectsPanel1->isRandom_()) { //avoid a few types of random effects
@@ -698,7 +698,7 @@ wxString xLightsFrame::CreateEffectStringRandom(wxString &settings, wxString &pa
 
 
     palette = colorPanel->GetRandomColorString();
-    return EffectNames[eff1];
+    return effectManager[eff1]->Name();
 }
 
 int xLightsFrame::ChooseRandomEffect()

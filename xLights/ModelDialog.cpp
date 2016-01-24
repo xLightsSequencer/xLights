@@ -425,8 +425,8 @@ int ModelDialog::GetCustomMaxChannel()
 // for models that are not custom
 int ModelDialog::GetChannelsPerStringStd()
 {
-    wxString StringType=Choice_StringType->GetStringSelection();
-    wxString DisplayAs=Choice_DisplayAs->GetStringSelection();
+    std::string StringType=Choice_StringType->GetStringSelection().ToStdString();
+    std::string DisplayAs=Choice_DisplayAs->GetStringSelection().ToStdString();
     if ("Arches" == DisplayAs) {
         int chanCountPerString = ModelClass::GetNodeChannelCount(StringType);
         return chanCountPerString * SpinCtrl_parm2->GetValue();
@@ -449,17 +449,17 @@ int ModelDialog::GetChannelsPerStringStd()
 
 int ModelDialog::GetNumberOfStrings()
 {
-    wxString DisplayAs=Choice_DisplayAs->GetStringSelection();
+    std::string DisplayAs=Choice_DisplayAs->GetStringSelection().ToStdString();
     return (ModelClass::HasOneString(DisplayAs)) ? 1 : SpinCtrl_parm1->GetValue();
 }
 
 
 void ModelDialog::UpdateLabels()
 {
-    wxString DisplayAs=Choice_DisplayAs->GetStringSelection();
-    wxString StringType=Choice_StringType->GetStringSelection();
-    wxString NodeLabel = ModelClass::HasSingleChannel(StringType) ? _("lights") : _("RGB Nodes");
-    wxString s;
+    std::string DisplayAs=Choice_DisplayAs->GetStringSelection().ToStdString();
+    std::string StringType=Choice_StringType->GetStringSelection().ToStdString();
+    std::string NodeLabel = ModelClass::HasSingleChannel(StringType) ? "lights" : "RGB Nodes";
+    std::string s;
 
     ExtraParameterLabel->Hide();
     StarSizes->Hide();
@@ -906,20 +906,20 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         }
     }
     if (!faceInfo.empty()) {
-        for (std::map<wxString, std::map<wxString,wxString> >::iterator it = faceInfo.begin(); it != faceInfo.end(); it++) {
+        for (std::map<std::string, std::map<std::string,std::string> >::iterator it = faceInfo.begin(); it != faceInfo.end(); it++) {
             f = new wxXmlNode(e, wxXML_ELEMENT_NODE , "faceInfo");
-            wxString name = it->first;
+            std::string name = it->first;
             f->AddAttribute("Name", name);
-            for (std::map<wxString,wxString>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+            for (std::map<std::string,std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
                 f->AddAttribute(it2->first, it2->second);
             }
         }
     }
     if (!dimmingInfo.empty()) {
         f = new wxXmlNode(e, wxXML_ELEMENT_NODE , "dimmingCurve");
-        for (std::map<wxString, std::map<wxString,wxString> >::iterator it = dimmingInfo.begin(); it != dimmingInfo.end(); it++) {
+        for (std::map<std::string, std::map<std::string,std::string> >::iterator it = dimmingInfo.begin(); it != dimmingInfo.end(); it++) {
             wxXmlNode *dc = new wxXmlNode(f, wxXML_ELEMENT_NODE , it->first);
-            for (std::map<wxString,wxString>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+            for (std::map<std::string,std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
                 dc->AddAttribute(it2->first, it2->second);
             }
         }
@@ -1043,8 +1043,8 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
     wxXmlNode *f = e->GetChildren();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
-            wxString name = f->GetAttribute("Name");
-            wxString type = f->GetAttribute("Type", "SingleNode");
+            std::string name = f->GetAttribute("Name").ToStdString();
+            std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
             if (name == "") {
                 name = type;
                 f->DeleteAttribute("Name");
@@ -1062,17 +1062,17 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
             wxXmlAttribute *att = f->GetAttributes();
             while (att != nullptr) {
                 if (att->GetName() != "Name") {
-                    faceInfo[name][att->GetName()] = att->GetValue();
+                    faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
                 }
                 att = att->GetNext();
             }
         } else if ("dimmingCurve" == f->GetName()) {
             wxXmlNode *dc = f->GetChildren();
             while (dc != nullptr) {
-                wxString name = dc->GetName();
+                std::string name = dc->GetName().ToStdString();
                 wxXmlAttribute *att = dc->GetAttributes();
                 while (att != nullptr) {
-                    dimmingInfo[name][att->GetName()] = att->GetValue();
+                    dimmingInfo[name][att->GetName().ToStdString()] = att->GetValue();
                     att = att->GetNext();
                 }
                 dc = dc->GetNext();

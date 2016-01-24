@@ -2,24 +2,24 @@
 #include "Element.h"
 #include "SequenceElements.h"
 
-DeletedEffectInfo::DeletedEffectInfo( const wxString &element_name_, int layer_index_, const wxString &name_, const wxString &settings_,
-                                      const wxString &palette_, int &startTimeMS_, int &endTimeMS_, int Selected_, bool Protected_ )
+DeletedEffectInfo::DeletedEffectInfo( const std::string &element_name_, int layer_index_, const std::string &name_, const std::string &settings_,
+                                      const std::string &palette_, int &startTimeMS_, int &endTimeMS_, int Selected_, bool Protected_ )
 : element_name(element_name_), layer_index(layer_index_), name(name_), settings(settings_),
   palette(palette_), startTimeMS(startTimeMS_), endTimeMS(endTimeMS_), Selected(Selected_), Protected(Protected_)
 {
 }
 
-AddedEffectInfo::AddedEffectInfo( const wxString &element_name_, int layer_index_, int id_ )
+AddedEffectInfo::AddedEffectInfo( const std::string &element_name_, int layer_index_, int id_ )
 : element_name(element_name_), layer_index(layer_index_), id(id_)
 {
 }
 
-MovedEffectInfo::MovedEffectInfo( const wxString &element_name_, int layer_index_, int id_, int &startTimeMS_, int &endTimeMS_ )
+MovedEffectInfo::MovedEffectInfo( const std::string &element_name_, int layer_index_, int id_, int &startTimeMS_, int &endTimeMS_ )
 : element_name(element_name_), layer_index(layer_index_), id(id_), startTimeMS(startTimeMS_), endTimeMS(endTimeMS_)
 {
 }
 
-ModifiedEffectInfo::ModifiedEffectInfo( const wxString &element_name_, int layer_index_, int id_, const wxString &settings_, const wxString &palette_ )
+ModifiedEffectInfo::ModifiedEffectInfo( const std::string &element_name_, int layer_index_, int id_, const std::string &settings_, const std::string &palette_ )
 : element_name(element_name_), layer_index(layer_index_), id(id_), settings(settings_), palette(palette_)
 {
 }
@@ -110,29 +110,29 @@ void UndoManager::CreateUndoStep()
     mUndoSteps.push_back(action);
 }
 
-void UndoManager::CaptureEffectToBeDeleted( const wxString &element_name, int layer_index, const wxString &name, const wxString &settings,
-                                            const wxString &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected )
+void UndoManager::CaptureEffectToBeDeleted( const std::string &element_name, int layer_index, const std::string &name, const std::string &settings,
+                                            const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected )
 {
     DeletedEffectInfo* effect_undo_action = new DeletedEffectInfo( element_name, layer_index, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected );
     UndoStep* action = new UndoStep(UNDO_EFFECT_DELETED, effect_undo_action);
     mUndoSteps.push_back(action);
 }
 
-void UndoManager::CaptureAddedEffect( const wxString &element_name, int layer_index, int id )
+void UndoManager::CaptureAddedEffect( const std::string &element_name, int layer_index, int id )
 {
     AddedEffectInfo* effect_undo_action = new AddedEffectInfo( element_name, layer_index, id );
     UndoStep* action = new UndoStep(UNDO_EFFECT_ADDED, effect_undo_action);
     mUndoSteps.push_back(action);
 }
 
-void UndoManager::CaptureEffectToBeMoved( const wxString &element_name, int layer_index, int id, int startTimeMS, int endTimeMS )
+void UndoManager::CaptureEffectToBeMoved( const std::string &element_name, int layer_index, int id, int startTimeMS, int endTimeMS )
 {
     MovedEffectInfo* effect_undo_action = new MovedEffectInfo( element_name, layer_index, id, startTimeMS, endTimeMS );
     UndoStep* action = new UndoStep(UNDO_EFFECT_MOVED, effect_undo_action);
     mUndoSteps.push_back(action);
 }
 
-void UndoManager::CaptureModifiedEffect( const wxString &element_name, int layer_index, int id, const wxString &settings, const wxString &palette )
+void UndoManager::CaptureModifiedEffect( const std::string &element_name, int layer_index, int id, const std::string &settings, const std::string &palette )
 {
     ModifiedEffectInfo* effect_undo_action = new ModifiedEffectInfo( element_name, layer_index, id, settings, palette );
     UndoStep* action = new UndoStep(UNDO_EFFECT_MODIFIED, effect_undo_action);
@@ -194,9 +194,9 @@ void UndoManager::UndoLastStep()
     }
 }
 
-wxString UndoManager::GetUndoString()
+std::string UndoManager::GetUndoString()
 {
-    wxString undo_string = "Undo";
+    std::string undo_string = "Undo";
 
     if( mUndoSteps.size() > 0 )
     {

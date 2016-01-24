@@ -707,7 +707,7 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
 
     if (dialog.ShowModal() == wxID_OK)
     {
-        wxString selected_timing = dialog.GetTiming();
+        std::string selected_timing = dialog.GetTiming().ToStdString();
         if (plugins.Index(selected_timing) != wxNOT_FOUND) {
             wxString name = vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMediaFile());
             if (name != "") {
@@ -740,7 +740,7 @@ void SeqSettingsDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
 {
     int selection = event.GetId();
-    wxString new_name = Grid_Timing->GetCellValue(selection, 0);
+    std::string new_name = Grid_Timing->GetCellValue(selection, 0).ToStdString();
     if( xml_file->TimingAlreadyExists(new_name, xLightsParent) )
     {
         wxMessageBox(string_format("Timing section %s already exists!", new_name), "Error", wxICON_ERROR | wxOK);
@@ -756,8 +756,8 @@ void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
     {
         timing_list = xml_file->GetTimingList();
     }
-    xLightsParent->RenameTimingElement(timing_list[selection], new_name);
-    xml_file->SetTimingSectionName(timing_list[selection], new_name);
+    xLightsParent->RenameTimingElement(timing_list[selection].ToStdString(), new_name);
+    xml_file->SetTimingSectionName(timing_list[selection].ToStdString(), new_name);
 }
 
 void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
@@ -769,13 +769,13 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
         if( xml_file->GetSequenceLoaded() )
         {
             timing_list = xml_file->GetTimingList(xLightsParent->GetSequenceElements());
-            xLightsParent->DeleteTimingElement(timing_list[row]);
+            xLightsParent->DeleteTimingElement(timing_list[row].ToStdString());
         }
         else
         {
             timing_list = xml_file->GetTimingList();
         }
-        xml_file->DeleteTimingSection(timing_list[row]);
+        xml_file->DeleteTimingSection(timing_list[row].ToStdString());
         Grid_Timing->DeleteRows(row);
         Refresh();
     }

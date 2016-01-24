@@ -1980,7 +1980,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
     basic.setFrame(this);
     PlayerDlg = new PlayerFrame(this, ID_PLAYER_DIALOG);
-    EffectNames=EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStrings();
 
     if (RunFlag && !ShowEvents.IsEmpty())
     {

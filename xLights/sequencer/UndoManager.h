@@ -20,48 +20,48 @@ enum UNDO_ACTIONS
 class DeletedEffectInfo
 {
 public:
-    wxString element_name;
+    std::string element_name;
     int layer_index;
-    wxString name;
-    wxString settings;
-    wxString palette;
+    std::string name;
+    std::string settings;
+    std::string palette;
     int startTimeMS;
     int endTimeMS;
     int Selected;
     bool Protected;
-    DeletedEffectInfo( const wxString &element_name_, int layer_index_, const wxString &name_, const wxString &settings_,
-                       const wxString &palette_, int &startTimeMS_, int &endTimeMS_, int Selected_, bool Protected_ );
+    DeletedEffectInfo( const std::string &element_name_, int layer_index_, const std::string &name_, const std::string &settings_,
+                       const std::string &palette_, int &startTimeMS_, int &endTimeMS_, int Selected_, bool Protected_ );
 };
 
 class AddedEffectInfo
 {
 public:
-    wxString element_name;
+    std::string element_name;
     int layer_index;
     int id;
-    AddedEffectInfo( const wxString &element_name_, int layer_index_, int id_ );
+    AddedEffectInfo( const std::string &element_name_, int layer_index_, int id_ );
 };
 
 class MovedEffectInfo
 {
 public:
-    wxString element_name;
+    std::string element_name;
     int layer_index;
     int id;
     int startTimeMS;
     int endTimeMS;
-    MovedEffectInfo( const wxString &element_name_, int layer_index_, int id_, int &startTimeMS_, int &endTimeMS_ );
+    MovedEffectInfo( const std::string &element_name_, int layer_index_, int id_, int &startTimeMS_, int &endTimeMS_ );
 };
 
 class ModifiedEffectInfo
 {
 public:
-    wxString element_name;
+    std::string element_name;
     int layer_index;
     int id;
-    wxString settings;
-    wxString palette;
-    ModifiedEffectInfo( const wxString &element_name_, int layer_index_, int id_, const wxString &settings_, const wxString &palette_ );
+    std::string settings;
+    std::string palette;
+    ModifiedEffectInfo( const std::string &element_name_, int layer_index_, int id_, const std::string &settings_, const std::string &palette_ );
 };
 
 class UndoStep
@@ -93,15 +93,15 @@ class UndoManager
         bool CanUndo();
         void SetCaptureUndo( bool value );
         bool GetCaptureUndo() { return mCaptureUndo; }
-        wxString GetUndoString();
+        std::string GetUndoString();
 
-        void CaptureEffectToBeDeleted( const wxString &element_name, int layer_index, const wxString &name, const wxString &settings,
-                                       const wxString &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected );
+        void CaptureEffectToBeDeleted( const std::string &element_name, int layer_index, const std::string &name, const std::string &settings,
+                                       const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected );
 
-        void CaptureAddedEffect( const wxString &element_name, int layer_index, int id );
+        void CaptureAddedEffect( const std::string &element_name, int layer_index, int id );
 
-        void CaptureEffectToBeMoved( const wxString &element_name, int layer_index, int id, int startTimeMS, int endTimeMS );
-        void CaptureModifiedEffect( const wxString &element_name, int layer_index, int id, const wxString &settings, const wxString &palette );
+        void CaptureEffectToBeMoved( const std::string &element_name, int layer_index, int id, int startTimeMS, int endTimeMS );
+        void CaptureModifiedEffect( const std::string &element_name, int layer_index, int id, const std::string &settings, const std::string &palette );
 
     protected:
 

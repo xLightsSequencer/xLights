@@ -162,7 +162,7 @@ void LoadTrackData(mpg123_handle *mh,char  * data, int maxSize)
     }
     free(buffer);
 }
-int OpenMediaFile(const char* filename, wxString& error, float *data[2], long &rate, int extra)
+int OpenMediaFile(const char* filename, std::string& error, float *data[2], long &rate, int extra)
 {
     mpg123_handle *mh = NULL;
     int err;
@@ -341,7 +341,7 @@ public:
 
 };
 #ifdef HASVAMP
-void processFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, wxArrayString &labels) {
+void processFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels) {
     bool hadDuration = true;
     for (int x = 0; x < feature.size(); x++) {
         int start = feature[x].timestamp.msec() + feature[x].timestamp.sec * 1000;
@@ -451,7 +451,7 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
     Fit();
     int res = ShowModal();
     if (res == wxID_OK) {
-        while (xml_file->TimingAlreadyExists(TimingName->GetValue(), xLightsParent)) {
+        while (xml_file->TimingAlreadyExists(TimingName->GetValue().ToStdString(), xLightsParent)) {
             wxMessageBox("Timing track " + TimingName->GetValue() + " already exists");
             res = ShowModal();
             if (res != wxID_OK) {
@@ -460,7 +460,7 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
         }
         std::vector<int> starts;
         std::vector<int> ends;
-        wxArrayString labels;
+        std::vector<std::string> labels;
 
         size_t step = p->getPreferredStepSize();
         size_t block = p->getPreferredBlockSize();
@@ -476,7 +476,7 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
         }
         float *data[2];
         float *pdata[2];
-        wxString error;
+        std::string error;
         long rate;
         int len = OpenMediaFile(media.c_str(), error, data, rate, std::max(step, block) + 1);
 
@@ -543,7 +543,7 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
         processFeatures(features[output], starts, ends, labels);
         progress.Update(100);
 
-        xml_file->AddNewTimingSection(TimingName->GetValue(), xLightsParent, starts, ends, labels);
+        xml_file->AddNewTimingSection(TimingName->GetValue().ToStdString(), xLightsParent, starts, ends, labels);
         free(data[0]);
         if (data[1] != data[0]) {
             free(data[1]);

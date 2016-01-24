@@ -346,7 +346,7 @@ void ModelDimmingCurveDialog::UpdateLinkedSlider(wxCommandEvent& event)
     slider->SetValue(value);
 }
 
-void ModelDimmingCurveDialog::Init(std::map<wxString, std::map<wxString,wxString>> &dimmingInfo) {
+void ModelDimmingCurveDialog::Init(std::map<std::string, std::map<std::string,std::string>> &dimmingInfo) {
     if (dimmingInfo.find("all") != dimmingInfo.end()) {
         if (dimmingInfo["all"].find("filename") != dimmingInfo["all"].end()) {
             DimmingTypeChoice->SetSelection(1);
@@ -379,7 +379,7 @@ static const wxString &validate(const wxString &in, const wxString &def) {
     }
     return in;
 }
-void ModelDimmingCurveDialog::Update(std::map<wxString, std::map<wxString,wxString>> &dimmingInfo) {
+void ModelDimmingCurveDialog::Update(std::map<std::string, std::map<std::string,std::string>> &dimmingInfo) {
     switch (DimmingTypeChoice->GetSelection()) {
     case 0:
         dimmingInfo["all"]["brightness"] = validate(SingleBrightnessBox->GetValue(), "0");

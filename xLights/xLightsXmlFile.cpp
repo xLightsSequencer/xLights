@@ -632,7 +632,7 @@ void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& 
     }
 }
 
-void xLightsXmlFile::SetTimingSectionName(wxString section, wxString name)
+void xLightsXmlFile::SetTimingSectionName(const std::string & section, const std::string & name)
 {
     bool found = false;
     wxXmlNode* root=seqDocument.GetRoot();
@@ -699,7 +699,7 @@ void xLightsXmlFile::SetTimingSectionName(wxString section, wxString name)
     }
 }
 
-void xLightsXmlFile::DeleteTimingSection(wxString section)
+void xLightsXmlFile::DeleteTimingSection(const std::string & section)
 {
     bool found = false;
     wxXmlNode* root=seqDocument.GetRoot();
@@ -1410,7 +1410,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             return;
         }
 
-        wxString filename = next_file.GetName();
+        std::string filename = next_file.GetName().ToStdString();
 
         while( TimingAlreadyExists(filename, xLightsParent) )
         {
@@ -1434,7 +1434,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
         wxArrayString start_times;
         wxArrayString end_times;
-        wxArrayString labels;
+        std::vector<std::string> labels;
 
         for(r=0, line = f.GetFirstLine(); !f.Eof(); line = f.GetNextLine(), r++)
         {
@@ -1451,10 +1451,10 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             start_times.push_back(tkz.GetNextToken()); //first column = start time
             //pull in lyrics or other label text
             end_times.push_back(tkz.GetNextToken()); //second column = end time;
-            wxString label = tkz.GetNextToken(); //third column = label/text
+            std::string label = tkz.GetNextToken().ToStdString(); //third column = label/text
             for (;;) //collect remaining tokens into label
             {
-                wxString more = tkz.GetNextToken();
+                std::string more = tkz.GetNextToken().ToStdString();
                 if (more.empty()) break;
                 label += " " + more;
             }
@@ -1490,7 +1490,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
             if( sequence_loaded )
             {
-                effectLayer->AddEffect(0,labels[k],wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                effectLayer->AddEffect(0,labels[k],"","",startTime,endTime,EFFECT_NOT_SELECTED,false);
             }
             else
             {
@@ -1517,7 +1517,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
             return;
         }
 
-        wxString filename = next_file.GetName();
+        std::string filename = next_file.GetName().ToStdString();
 
         wxArrayString grid_times;
         wxArrayString timing_options;
@@ -1576,8 +1576,8 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
                 {
                     if (grids->GetName() == "timingGrid")
                     {
-                        wxString grid_name = grids->GetAttribute("name");
-                        wxString grid_id = grids->GetAttribute("saveID");
+                        std::string grid_name = grids->GetAttribute("name").ToStdString();
+                        std::string grid_id = grids->GetAttribute("saveID").ToStdString();
                         if( grid_name == "" )
                         {
                             grid_name = "Unnamed" + grid_id;
@@ -1586,7 +1586,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
                         {
                             if( grid_name == timing_grids[i] )
                             {
-                                wxString new_timing_name = filename + ": " + grid_name;
+                                std::string new_timing_name = filename + ": " + grid_name;
                                 Element* element;
                                 EffectLayer* effectLayer;
                                 wxXmlNode* layer;
@@ -1619,7 +1619,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
                                     endTime = TimeLine::RoundToMultipleOfPeriod(wxAtoi(grid_times[k+1]),xLightsParent->GetSequenceElements().GetFrequency());
                                     if( sequence_loaded )
                                     {
-                                        effectLayer->AddEffect(0,"",wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                                        effectLayer->AddEffect(0,"","","",startTime,endTime,EFFECT_NOT_SELECTED,false);
                                     }
                                     else
                                     {
@@ -1884,7 +1884,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     seqDocument.Save(GetFullPath());
 }
 
-bool xLightsXmlFile::TimingAlreadyExists(wxString section, xLightsFrame* xLightsParent)
+bool xLightsXmlFile::TimingAlreadyExists(const std::string & section, xLightsFrame* xLightsParent)
 {
     if( sequence_loaded )
     {
@@ -1906,8 +1906,8 @@ bool xLightsXmlFile::TimingAlreadyExists(wxString section, xLightsFrame* xLights
 
 
 
-void xLightsXmlFile::AddNewTimingSection(wxString filename, xLightsFrame* xLightsParent,
-                                               std::vector<int> &starts, std::vector<int> &ends, wxArrayString &labels) {
+void xLightsXmlFile::AddNewTimingSection(const std::string & filename, xLightsFrame* xLightsParent,
+                                         std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels) {
     Element* element;
     EffectLayer* effectLayer;
     wxXmlNode* layer;
@@ -1926,7 +1926,7 @@ void xLightsXmlFile::AddNewTimingSection(wxString filename, xLightsFrame* xLight
 
         if( sequence_loaded )
         {
-            effectLayer->AddEffect(0,labels[k],wxEmptyString,"",starts[k],ends[k],EFFECT_NOT_SELECTED,false);
+            effectLayer->AddEffect(0,labels[k],"","",starts[k],ends[k],EFFECT_NOT_SELECTED,false);
         }
         else
         {
@@ -1934,7 +1934,7 @@ void xLightsXmlFile::AddNewTimingSection(wxString filename, xLightsFrame* xLight
         }
     }
 }
-void xLightsXmlFile::AddNewTimingSection(wxString interval_name, xLightsFrame* xLightsParent)
+void xLightsXmlFile::AddNewTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent)
 {
     AddTimingDisplayElement( interval_name, "1", "0" );
     wxXmlNode* node;
@@ -1948,7 +1948,7 @@ void xLightsXmlFile::AddNewTimingSection(wxString interval_name, xLightsFrame* x
     AddChildXmlNode(node, "EffectLayer");
 }
 
-void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame* xLightsParent)
+void xLightsXmlFile::AddFixedTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent)
 {
     AddTimingDisplayElement( interval_name, "1", "0" );
     wxXmlNode* node;
@@ -1977,7 +1977,7 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame*
                 next_time = (time + interval <= end_time) ? time + interval : end_time;
                 startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
                 endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
-                effectLayer->AddEffect(0,wxEmptyString,wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                effectLayer->AddEffect(0,"","","",startTime,endTime,EFFECT_NOT_SELECTED,false);
                 time += interval;
             }
         }

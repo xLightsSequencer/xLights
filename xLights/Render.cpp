@@ -715,7 +715,7 @@ void xLightsFrame::RenderGridToSeqData() {
 void xLightsFrame::RenderDone() {
     mainSequencer->PanelEffectGrid->Refresh();
 }
-void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int endms, bool clear) {
+void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
     //printf("render model %d %d   %d\n", startms,endms, clear);
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
@@ -779,7 +779,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
     wxYield();
 
-    Element * el = mSequenceElements.GetElement(model);
+    Element * el = mSequenceElements.GetElement(model.ToStdString());
     NextRenderer wait;
     RenderJob *job = new RenderJob(el, SeqData, this, true);
     SequenceData *data = job->createExportBuffer();

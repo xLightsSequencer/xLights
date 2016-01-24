@@ -35,7 +35,7 @@ class DisplayElementsPanel: public wxPanel
                                             wxXmlNode* modelGroups,
                                             wxXmlNode* views);
         void Initialize();
-        void SelectView(const wxString& name);
+        void SelectView(const std::string& name);
         void MarkViewsChanged();
 
 		//(*Declarations(DisplayElementsPanel)

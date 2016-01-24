@@ -83,12 +83,13 @@ class xLightsXmlFile : public wxFileName
         void SetSequenceLoaded(bool value) { sequence_loaded = value; }
         bool GetSequenceLoaded() { return sequence_loaded; }
 
-        void AddNewTimingSection(wxString interval_name, xLightsFrame* xLightsParent);
-        void AddNewTimingSection(wxString interval_name, xLightsFrame* xLightsParent, std::vector<int> &starts, std::vector<int> &ends, wxArrayString &labels);
-        void AddFixedTimingSection(wxString interval_name, xLightsFrame* xLightsParent);
-        void DeleteTimingSection(wxString section);
-        void SetTimingSectionName(wxString section, wxString name);
-        bool TimingAlreadyExists(wxString section, xLightsFrame* xLightsParent);
+        void AddNewTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent);
+        void AddNewTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent, std::vector<int> &starts,
+                                 std::vector<int> &ends, std::vector<std::string> &labels);
+        void AddFixedTimingSection(const std::string &interval_name, xLightsFrame* xLightsParent);
+        void DeleteTimingSection(const std::string & section);
+        void SetTimingSectionName(const std::string & section, const std::string & name);
+        bool TimingAlreadyExists(const std::string & section, xLightsFrame* xLightsParent);
         wxArrayString GetTimingList() { return timing_list; }
         wxArrayString GetTimingList(SequenceElements& seq_elements);
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);

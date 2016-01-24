@@ -356,7 +356,6 @@ public:
         EFFECT_ASSIST_NOT_IN_PERSPECTIVE
     };
 
-    wxArrayString EffectNames;
     wxArrayString EffectLayerOptions;
     static wxString CurrentDir; //expose current folder name -DJ
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
@@ -1405,16 +1404,16 @@ public:
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false, RenderEvent *event = NULL);
     void RenderEffectOnMainThread(RenderEvent *evt);
-    void RenderEffectForModel(const wxString &model, int startms, int endms, bool clear = false);
+    void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);
 
     void RenderRange(RenderCommandEvent &cmd);
     void RenderDone();
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return mSequenceElements; }
-    Element* AddTimingElement(wxString& name);
-    void DeleteTimingElement(wxString& name);
-    void RenameTimingElement(wxString& old_name, wxString& new_name);
+    Element* AddTimingElement(const std::string& name);
+    void DeleteTimingElement(const std::string& name);
+    void RenameTimingElement(const std::string& old_name, const std::string& new_name);
     void ImportTimingElement();
     void ExecuteImportTimingElement(wxCommandEvent &command);
     void ConvertDataRowToEffects(wxCommandEvent &command);
@@ -1437,7 +1436,7 @@ protected:
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
     void ResetEffectsXml();
     void SeqLoadXlightsXSEQ(const wxString& filename);
-    wxString CreateEffectStringRandom(wxString &settings, wxString &palette);
+    std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
     void BackupDirectory(wxString targetDirName);
     void NewSequence();
     void OpenSequence(wxString passed_filename);
@@ -1518,12 +1517,12 @@ protected:
     int playEndTime;
     bool replaySection;
 
-    wxString selectedEffectName;
-    wxString selectedEffectString;
-    wxString selectedEffectPalette;
+    std::string selectedEffectName;
+    std::string selectedEffectString;
+    std::string selectedEffectPalette;
     Effect *selectedEffect;
 
-    wxString lastPlayEffect;
+    std::string lastPlayEffect;
     double mPointSize = 2.0;
 
 //    std::vector<ModelClassPtr> PreviewModels;
@@ -1613,7 +1612,7 @@ protected:
     void ResizeMainSequencer();
     void UpdateEffectGridHorizontalScrollBar();
     void UpdateEffectGridVerticalScrollBar();
-    wxString GetEffectTextFromWindows(wxString &palette);
+    std::string GetEffectTextFromWindows(std::string &palette);
 
     void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);
     // Panels

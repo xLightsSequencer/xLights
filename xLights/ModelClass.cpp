@@ -43,7 +43,7 @@ ModelClass::~ModelClass() {
     }
 }
 
-void ModelClass::InitWholeHouse(const wxString &WholeHouseData, bool zeroBased) {
+void ModelClass::InitWholeHouse(const std::string &WholeHouseData, bool zeroBased) {
     long xCoord,yCoord,actChn;
     int lastActChn=0;
     wxArrayString data;
@@ -54,7 +54,7 @@ void ModelClass::InitWholeHouse(const wxString &WholeHouseData, bool zeroBased) 
     Nodes.clear();
     int minChan = 9999999;
     int maxChan = -1;
-    if(WholeHouseData.Length()> 0) {
+    if(WholeHouseData.length()> 0) {
         wxArrayString wholeHouseDataArr=wxSplit(WholeHouseData,';');
         int coordinateCount=wholeHouseDataArr.size();
 
@@ -112,11 +112,11 @@ wxXmlNode* ModelClass::GetModelXml() {
     return this->ModelXml;
 }
 
-int ModelClass::GetNumberFromChannelString(wxString sc) {
+int ModelClass::GetNumberFromChannelString(std::string sc) {
     int output = 1;
-    if (sc.Contains(":")) {
-        output = wxAtoi(sc.SubString(0, sc.Find(":") - 1));
-        sc = sc.SubString(sc.Find(":") + 1, sc.size());
+    if (sc.find(":") != std::string::npos) {
+        output = wxAtoi(sc.substr(0, sc.find(":") - 1));
+        sc = sc.substr(sc.find(":") + 1);
     }
     int returnChannel = wxAtoi(sc);
     if (output > 1) {
@@ -127,7 +127,7 @@ int ModelClass::GetNumberFromChannelString(wxString sc) {
 
 void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBased) {
     wxString tempstr,channelstr;
-    wxString customModel,WholeHouseData;
+    std::string customModel,WholeHouseData;
     long degrees, StartChannel;
     size_t i;
     long i2;
@@ -148,7 +148,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     }
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
-    rgbOrder = SingleNode ? "RGB" : StringType.Left(3);
+    rgbOrder = SingleNode ? "RGB" : StringType.substr(0, 3);
 
     if(ModelNode->HasAttribute("versionNumber")) {
         tempstr=ModelNode->GetAttribute("versionNumber");
@@ -206,7 +206,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     tempstr=ModelNode->GetAttribute("StrandNames");
     strandNames.clear();
     while (tempstr.size() > 0) {
-        wxString t2 = tempstr;
+        std::string t2 = tempstr.ToStdString();
         if (tempstr[0] == ',') {
             t2 = "";
             tempstr = tempstr(1, tempstr.length());
@@ -221,7 +221,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     tempstr=ModelNode->GetAttribute("NodeNames");
     nodeNames.clear();
     while (tempstr.size() > 0) {
-        wxString t2 = tempstr;
+        std::string t2 = tempstr.ToStdString();
         if (tempstr[0] == ',') {
             t2 = "";
             tempstr = tempstr(1, tempstr.length());
@@ -234,7 +234,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
         nodeNames.push_back(t2);
     }
 
-    StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1"));
+    StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString());
     tempstr=ModelNode->GetAttribute("Dir");
     IsLtoR=tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
@@ -323,7 +323,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     for (i=0; i<NumberOfStrings; i++) {
         tempstr=StartChanAttrName(i);
         if (!zeroBased && HasIndividualStartChans && ModelNode->HasAttribute(tempstr)) {
-            stringStartChan[i] = GetNumberFromChannelString(ModelNode->GetAttribute(tempstr, "1"))-1;
+            stringStartChan[i] = GetNumberFromChannelString(ModelNode->GetAttribute(tempstr, "1").ToStdString())-1;
         } else {
             stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + i*ChannelsPerString;
         }
@@ -404,8 +404,8 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
     faceInfo.clear();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
-            wxString name = f->GetAttribute("Name", "SingleNode");
-            wxString type = f->GetAttribute("Type", "SingleNode");
+            std::string name = f->GetAttribute("Name", "SingleNode").ToStdString();
+            std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
             if (name == "") {
                 name = type;
                 f->DeleteAttribute("Name");
@@ -424,7 +424,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool ze
             wxXmlAttribute *att = f->GetAttributes();
             while (att != nullptr) {
                 if (att->GetName() != "Name") {
-                    faceInfo[name][att->GetName()] = att->GetValue();
+                    faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
                 }
                 att = att->GetNext();
             }
@@ -457,7 +457,7 @@ xlColor ModelClass::GetNodeColor(size_t nodenum) const {
 
 // only valid for rgb nodes and dumb strings (not traditional strings)
 wxChar ModelClass::GetChannelColorLetter(wxByte chidx) {
-    return rgbOrder.GetChar(chidx);
+    return rgbOrder[chidx];
 }
 
 int ModelClass::GetLastChannel() {
@@ -508,7 +508,7 @@ void ModelClass::InitVMatrix(int firstExportStrand) {
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(PixelsPerStrand,NumStrands);
-    SetNodeCount(parm1,PixelsPerString, rgbOrder.ToStdString());
+    SetNodeCount(parm1,PixelsPerString, rgbOrder);
     SetRenderSize(PixelsPerStrand,NumStrands);
 
     // create output mapping
@@ -567,9 +567,9 @@ void ModelClass::InitArches() {
 
     SetBufferSize(NumArches,SegmentsPerArch);
     if (SingleNode) {
-        SetNodeCount(NumArches * SegmentsPerArch, parm3,rgbOrder.ToStdString());
+        SetNodeCount(NumArches * SegmentsPerArch, parm3,rgbOrder);
     } else {
-        SetNodeCount(NumArches, SegmentsPerArch, rgbOrder.ToStdString());
+        SetNodeCount(NumArches, SegmentsPerArch, rgbOrder);
         if (parm3 > 1) {
             for (int x = 0; x < Nodes.size(); x++) {
                 Nodes[x]->Coords.resize(parm3);
@@ -632,7 +632,7 @@ void ModelClass::InitCircle() {
         }
     }
 
-    SetNodeCount(parm1,parm2,rgbOrder.ToStdString());
+    SetNodeCount(parm1,parm2,rgbOrder);
     SetBufferSize(circleSizes.size(),maxLights);
     int LastStringNum=-1;
     int chan = 0,idx;
@@ -667,7 +667,7 @@ void ModelClass::InitCircle() {
 
 // Set screen coordinates for circles
 void ModelClass::SetCircleCoord() {
-    double xoffset,x,y;
+    double x,y;
     size_t NodeCount=GetNodeCount();
     SetRenderSize(circleSizes[0]*2,circleSizes[0]*2);
     int nodesToMap = NodeCount;
@@ -708,7 +708,7 @@ void ModelClass::InitHMatrix() {
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(NumStrands,PixelsPerStrand);
-    SetNodeCount(parm1,PixelsPerString,rgbOrder.ToStdString());
+    SetNodeCount(parm1,PixelsPerString,rgbOrder);
     SetRenderSize(NumStrands,PixelsPerStrand);
 
     // create output mapping
@@ -744,7 +744,7 @@ void ModelClass::InitHMatrix() {
     }
 }
 
-int ModelClass::GetCustomMaxChannel(const wxString& customModel) {
+int ModelClass::GetCustomMaxChannel(const std::string& customModel) {
     wxString value;
     wxArrayString cols;
     long val,maxval=0;
@@ -763,7 +763,7 @@ int ModelClass::GetCustomMaxChannel(const wxString& customModel) {
     }
     return maxval;
 }
-void ModelClass::InitCustomMatrix(const wxString& customModel) {
+void ModelClass::InitCustomMatrix(const std::string& customModel) {
     wxString value;
     wxArrayString cols;
     long idx;
@@ -791,11 +791,11 @@ void ModelClass::InitCustomMatrix(const wxString& customModel) {
                 if (nodemap[idx] < 0) {
                     // unmapped - so add a node
                     nodemap[idx]=Nodes.size();
-                    SetNodeCount(1,0,rgbOrder.ToStdString());  // this creates a node of the correct class
+                    SetNodeCount(1,0,rgbOrder);  // this creates a node of the correct class
                     Nodes.back()->StringNum=idx;
                     Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
                     if (idx < nodeNames.size()) {
-                        Nodes.back()->SetName(nodeNames[idx].ToStdString());
+                        Nodes.back()->SetName(nodeNames[idx]);
                     }
                     Nodes.back()->AddBufCoord(col,height - row - 1);
                 } else {
@@ -813,7 +813,7 @@ void ModelClass::InitCustomMatrix(const wxString& customModel) {
         }
     }
     for (int x = 0; x < Nodes.size(); x++) {
-        Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum).ToStdString());
+        Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
     }
 
     SetBufferSize(height,width);
@@ -923,7 +923,7 @@ void ModelClass::SetTreeCoord(long degrees) {
 }
 
 void ModelClass::InitSphere() {
-    SetNodeCount(parm1,parm2,rgbOrder.ToStdString());
+    SetNodeCount(parm1,parm2,rgbOrder);
     int numlights=parm1*parm2;
     SetBufferSize(numlights+1,numlights+1);
     int LastStringNum=-1;
@@ -967,7 +967,7 @@ void ModelClass::InitSphere() {
 // parm2=Pixels Per String/Arch
 void ModelClass::InitLine() {
     int numLights = parm1 * parm2;
-    SetNodeCount(parm1,parm2,rgbOrder.ToStdString());
+    SetNodeCount(parm1,parm2,rgbOrder);
     SetBufferSize(1,numLights);
     int LastStringNum=-1;
     int chan = 0,idx;
@@ -995,7 +995,7 @@ void ModelClass::InitLine() {
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 void ModelClass::InitStar() {
     if (parm3 < 2) parm3=2; // need at least 2 arms
-    SetNodeCount(parm1,parm2,rgbOrder.ToStdString());
+    SetNodeCount(parm1,parm2,rgbOrder);
 
     int maxLights = 0;
     int numlights=parm1*parm2;
@@ -1104,7 +1104,7 @@ void ModelClass::InitStar() {
 
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 void ModelClass::InitWreath() {
-    SetNodeCount(parm1,parm2,rgbOrder.ToStdString());
+    SetNodeCount(parm1,parm2,rgbOrder);
     int numlights=parm1*parm2;
     SetBufferSize(numlights+1,numlights+1);
     int LastStringNum=-1;
@@ -1166,7 +1166,7 @@ void ModelClass::SetLineCoord() {
 // parm3=Nodes on Bottom
 void ModelClass::InitFrame() {
     int x,y,newx,newy;
-    SetNodeCount(1,parm1+2*parm2+parm3,rgbOrder.ToStdString());
+    SetNodeCount(1,parm1+2*parm2+parm3,rgbOrder);
     int FrameWidth=std::max(parm1,parm3)+2;
     SetBufferSize(parm2,FrameWidth);   // treat as outside of matrix
     //SetBufferSize(1,Nodes.size());   // treat as single string
@@ -1247,7 +1247,7 @@ int ModelClass::NodeStartChannel(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->ActChan: 0; //avoid memory access error if no nods -DJ
 }
 
-wxString ModelClass::NodeType(size_t nodenum) const {
+std::string ModelClass::NodeType(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType(): "RGB"; //avoid memory access error if no nods -DJ
 }
 int ModelClass::ChannelsPerNode() {
@@ -1274,7 +1274,7 @@ NodeBaseClass* ModelClass::createNode(int ns, const std::string &StringType, siz
 }
 std::string ModelClass::GetNextName() {
     if (nodeNames.size() > Nodes.size()) {
-        return nodeNames[Nodes.size()].ToStdString();
+        return nodeNames[Nodes.size()];
     }
     return "";
 }
@@ -1318,8 +1318,8 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString, const st
     }
 }
 
-int ModelClass::GetNodeChannelCount(const wxString & nodeType) {
-    if (nodeType.StartsWith("Single Color")) {
+int ModelClass::GetNodeChannelCount(const std::string & nodeType) {
+    if (nodeType.compare(0, 12, "Single Color") == 0) {
         return 1;
     } else if (nodeType == "Strobes White 3fps") {
         return 1;
@@ -1443,33 +1443,37 @@ size_t ModelClass::GetChannelCoords(wxArrayString& choices) { //wxChoice* choice
     return choices.GetCount(); //choices1? choices1->GetCount(): 0) + (choices2? choices2->GetCount(): 0);
 }
 //get parsed node info:
-wxString ModelClass::GetNodeXY(const wxString& nodenumstr) {
+std::string ModelClass::GetNodeXY(const std::string& nodenumstr) {
     long nodenum;
     size_t NodeCount = GetNodeCount();
-    if (nodenumstr.ToLong(&nodenum))
+    try {
+        nodenum = std::stod(nodenumstr);
         for (size_t inx = 0; inx < NodeCount; inx++) {
             if (Nodes[inx]->Coords.empty()) continue;
             if (GetNodeNumber(inx) == nodenum) return GetNodeXY(inx);
         }
+    } catch ( ... ) {
+        
+    }
     return nodenumstr; //not found?
 }
-wxString ModelClass::GetNodeXY(int nodeinx) {
-    if ((nodeinx < 0) || (nodeinx >= GetNodeCount())) return wxEmptyString;
-    if (Nodes[nodeinx]->Coords.empty()) return wxEmptyString;
+std::string ModelClass::GetNodeXY(int nodeinx) {
+    if ((nodeinx < 0) || (nodeinx >= GetNodeCount())) return "";
+    if (Nodes[nodeinx]->Coords.empty()) return "";
     if (GetCoordCount(nodeinx) > 1) //show count and first + last coordinates
         if (IsCustom())
-            return wxString::Format(wxT("%d: %d# @%s%d-%s%d"), GetNodeNumber(nodeinx), GetCoordCount(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY, AA(Nodes[nodeinx]->Coords.back().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+            return wxString::Format(wxT("%d: %d# @%s%d-%s%d"), GetNodeNumber(nodeinx), GetCoordCount(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY, AA(Nodes[nodeinx]->Coords.back().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.back().bufY).ToStdString(); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
         else
-            return wxString::Format(wxT("%d: %d# @(%d,%d)-(%d,%d"), GetNodeNumber(nodeinx), GetCoordCount(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY, Nodes[nodeinx]->Coords.back().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+            return wxString::Format(wxT("%d: %d# @(%d,%d)-(%d,%d"), GetNodeNumber(nodeinx), GetCoordCount(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY, Nodes[nodeinx]->Coords.back().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.back().bufY).ToStdString(); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
     else //just show singleton
         if (IsCustom())
-            return wxString::Format(wxT("%d: @%s%d"), GetNodeNumber(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY);
+            return wxString::Format(wxT("%d: @%s%d"), GetNodeNumber(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY).ToStdString();
         else
-            return wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY);
+            return wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY).ToStdString();
 }
 
 //extract first (X,Y) from string formatted above:
-bool ModelClass::ParseFaceElement(const wxString& multi_str, std::vector<wxPoint>& first_xy) {
+bool ModelClass::ParseFaceElement(const std::string& multi_str, std::vector<wxPoint>& first_xy) {
 //    first_xy->x = first_xy->y = 0;
 //    first_xy.clear();
     wxStringTokenizer wtkz(multi_str, "+");
@@ -1510,7 +1514,7 @@ bool ModelClass::ParseFaceElement(const wxString& multi_str, std::vector<wxPoint
 }
 
 
-wxString ModelClass::ChannelLayoutHtml() {
+std::string ModelClass::ChannelLayoutHtml() {
     size_t NodeCount=GetNodeCount();
     size_t i,idx;
     int n,x,y,s;
@@ -1518,7 +1522,7 @@ wxString ModelClass::ChannelLayoutHtml() {
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi,0);
     bool IsCustom = DisplayAs == "Custom";
-    wxString direction;
+    std::string direction;
     if (IsCustom) {
         direction="n/a";
     } else if (!IsLtoR) {
@@ -1533,7 +1537,7 @@ wxString ModelClass::ChannelLayoutHtml() {
             direction="Bottom Left";
     }
 
-    wxString html = "<html><body><table border=0>";
+    std::string html = "<html><body><table border=0>";
     html+="<tr><td>Name:</td><td>"+name+"</td></tr>";
     html+="<tr><td>Display As:</td><td>"+DisplayAs+"</td></tr>";
     html+="<tr><td>String Type:</td><td>"+StringType+"</td></tr>";
@@ -1541,7 +1545,6 @@ wxString ModelClass::ChannelLayoutHtml() {
     html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",NodeCount);
     html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
     html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
-
 
     int Ibufx,Ibufy;
 
@@ -1552,7 +1555,7 @@ wxString ModelClass::ChannelLayoutHtml() {
             n=IsLtoR ? i : NodeCount-i+1;
             s=Nodes[n-1]->StringNum+1;
             bgcolor=s%2 == 1 ? "#ADD8E6" : "#90EE90";
-            html+=wxString::Format("<td bgcolor='"+bgcolor+"'>n%ds%d</td>",n,s);
+            html += wxString::Format("<td bgcolor='"+bgcolor+"'>n%ds%d</td>",n,s);
         }
         html+="</tr>";
     } else if (BufferHt > 1) {
@@ -1625,7 +1628,7 @@ void ModelClass::UpdateXmlWithScale() {
 }
 
 void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,
-                                      std::vector<int>& actChannel, std::vector<wxString>& nodeTypes) {
+                                      std::vector<int>& actChannel, std::vector<std::string>& nodeTypes) {
     size_t NodeCount=Nodes.size();
     double sx,sy;
     int w, h;
@@ -2260,7 +2263,7 @@ int ModelClass::MapToNodeIndex(int strand, int node) const {
 }
 
 
-void ModelClass::SetModelStartChan(wxString start_channel) {
+void ModelClass::SetModelStartChan(const std::string &start_channel) {
 	ModelStartChannel = start_channel;
 }
 

@@ -8,7 +8,7 @@
 
 
 std::atomic_int EffectLayer::exclusive_index(0);
-const wxString NamedLayer::NO_NAME("");
+const std::string NamedLayer::NO_NAME("");
 
 EffectLayer::EffectLayer(Element* parent)
 {
@@ -78,7 +78,7 @@ void EffectLayer::RemoveEffect(int index)
 }
 
 
-Effect* EffectLayer::AddEffect(int id, const wxString &name, const wxString &settings, const wxString &palette,
+Effect* EffectLayer::AddEffect(int id, const std::string &name, const std::string &settings, const std::string &palette,
                                int startTimeMS, int endTimeMS, int Selected, bool Protected)
 {
     wxMutexLocker locker(lock);
@@ -435,7 +435,7 @@ int EffectLayer::GetSelectedEffectCount()
     return count;
 }
 
-void EffectLayer::UpdateAllSelectedEffects(const wxString& palette)
+void EffectLayer::UpdateAllSelectedEffects(const std::string& palette)
 {
     for(int i=0; i<mEffects.size();i++)
     {

@@ -310,7 +310,7 @@ void xlGridCanvasPictures::UpdateRenderedImage()
         all_settings[s] = wxJoin(parts, '=');
     }
     settings = wxJoin(all_settings, ',');
-    mEffect->SetSettings(settings);
+    mEffect->SetSettings(settings.ToStdString());
 
     wxCommandEvent eventEffectChanged(EVT_EFFECT_CHANGED);
     eventEffectChanged.SetClientData(mEffect);

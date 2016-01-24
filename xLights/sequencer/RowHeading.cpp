@@ -265,7 +265,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if(id == ID_ROW_MNU_ADD_TIMING_TRACK)
     {
-        wxString name = wxGetTextFromUser("What is name of new timing track?", "Timing Track Name");
+        std::string name = wxGetTextFromUser("What is name of new timing track?", "Timing Track Name").ToStdString();
         if( mSequenceElements->ElementExists(name) )
         {
             wxMessageBox("Timing name already exists in sequence as a model or another timing.", "ERROR");
@@ -275,8 +275,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             // Deactivate active timing mark so new one is selected;
             mSequenceElements->DeactivateAllTimingElements();
             int timingCount = mSequenceElements->GetNumberOfTimingElements();
-            wxString type = "timing";
-            Element* e = mSequenceElements->AddElement(timingCount,name,type,true,false,true,false);
+            Element* e = mSequenceElements->AddElement(timingCount,name,
+                                                       "timing",true,false,true,false);
             e->AddEffectLayer();
             mSequenceElements->AddTimingToAllViews(name);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -382,7 +382,7 @@ void RowHeading::BreakdownTimingPhrases(Element* element)
     for( int i = 0; i < layer->GetEffectCount(); i++ )
     {
         Effect* effect = layer->GetEffect(i);
-        wxString phrase = effect->GetEffectName();
+        std::string phrase = effect->GetEffectName();
         mSequenceElements->BreakdownPhrase(word_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), phrase);
     }
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -400,7 +400,7 @@ void RowHeading::BreakdownTimingWords(Element* element)
     for( int i = 0; i < word_layer->GetEffectCount(); i++ )
     {
         Effect* effect = word_layer->GetEffect(i);
-        wxString word = effect->GetEffectName();
+        std::string word = effect->GetEffectName();
         mSequenceElements->BreakdownWord(phoneme_layer, effect->GetStartTimeMS(), effect->GetEndTimeMS(), word);
     }
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);

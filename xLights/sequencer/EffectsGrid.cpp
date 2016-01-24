@@ -212,7 +212,7 @@ void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
 void EffectsGrid::keyReleased(wxKeyEvent& event){}
 void EffectsGrid::keyPressed(wxKeyEvent& event){}
 
-void EffectsGrid::sendRenderEvent(const wxString &model, int start, int end, bool clear) {
+void EffectsGrid::sendRenderEvent(const std::string &model, int start, int end, bool clear) {
     RenderCommandEvent event(model, start, end, clear, false);
     wxPostEvent(mParent, event);
 }
@@ -1211,9 +1211,9 @@ void EffectsGrid::Paste(const wxString &data) {
                     int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                     if (effectIndex >= 0) {
                         Effect* ef = el->AddEffect(0,
-                                      efdata[0],
-                                      efdata[1],
-                                      efdata[2],
+                                      efdata[0].ToStdString(),
+                                      efdata[1].ToStdString(),
+                                      efdata[2].ToStdString(),
                                       new_start_time,
                                       new_end_time,
                                       EFFECT_NOT_SELECTED,
@@ -1255,9 +1255,9 @@ void EffectsGrid::Paste(const wxString &data) {
                     if( el->GetRangeIsClearMS(mDropStartTimeMS, end_time) )
                     {
                         Effect* ef = el->AddEffect(0,
-                                      efdata[0],
-                                      efdata[1],
-                                      efdata[2],
+                                      efdata[0].ToStdString(),
+                                      efdata[1].ToStdString(),
+                                      efdata[2].ToStdString(),
                                       mDropStartTimeMS,
                                       end_time,
                                       EFFECT_SELECTED,
@@ -1317,9 +1317,9 @@ void EffectsGrid::Paste(const wxString &data) {
                         int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                         if (effectIndex >= 0) {
                             Effect* ef = el->AddEffect(0,
-                                      efdata[0],
-                                      efdata[1],
-                                      efdata[2],
+                                      efdata[0].ToStdString(),
+                                      efdata[1].ToStdString(),
+                                      efdata[2].ToStdString(),
                                       start_time,
                                       end_time,
                                       EFFECT_SELECTED,

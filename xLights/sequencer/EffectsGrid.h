@@ -88,7 +88,7 @@ private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
     int GetClippedPositionFromTimeMS(int ms);
 
-    void sendRenderEvent(const wxString &model, int start, int end, bool clear = true);
+    void sendRenderEvent(const std::string &model, int start, int end, bool clear = true);
     void render(wxPaintEvent& evt);
 	void mouseMoved(wxMouseEvent& event);
 	void mouseDown(wxMouseEvent& event);

@@ -72,13 +72,37 @@ void SettingsMap::RemapChangedSettingKey(std::string &n,  std::string &value)
 }
 
 
-Effect::Effect(EffectLayer* parent,int id, const wxString & name, const wxString &settings, const wxString &palette,
+static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors) {
+    mColors.clear();
+    if (!mPaletteMap.empty()) {
+        if (mPaletteMap.GetBool("C_CHECKBOX_Palette1")) {
+             mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette1"]));
+        }
+        if (mPaletteMap.GetBool("C_CHECKBOX_Palette2")) {
+            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette2"]));
+        }
+        if (mPaletteMap.GetBool("C_CHECKBOX_Palette3")) {
+            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette3"]));
+        }
+        if (mPaletteMap.GetBool("C_CHECKBOX_Palette4")) {
+            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette4"]));
+        }
+        if (mPaletteMap.GetBool("C_CHECKBOX_Palette5")) {
+            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette5"]));
+        }
+        if (mPaletteMap.GetBool("C_CHECKBOX_Palette6")) {
+            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette6"]));
+        }
+    }
+}
+
+Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette,
                int startTimeMS, int endTimeMS, int Selected, bool Protected)
     : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mProtected(Protected)
 {
-    mEffectIndex = parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name.ToStdString());
-    mSettings.Parse(settings.ToStdString());
+    mEffectIndex = parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
+    mSettings.Parse(settings);
 
     if (mEndTime < mStartTime)
     {
@@ -92,18 +116,8 @@ Effect::Effect(EffectLayer* parent,int id, const wxString & name, const wxString
         mName = new std::string(name);
     }
 
-    mPaletteMap.Parse(palette.ToStdString());
-    mColors.clear();
-    if (!mPaletteMap.empty())
-    {
-        for (int i = 1; i <= 6; i++)
-        {
-            if (mPaletteMap[wxString::Format("C_CHECKBOX_Palette%d",i)] ==  "1")
-            {
-                mColors.push_back(xlColor(mPaletteMap[wxString::Format("C_BUTTON_Palette%d",i)]));
-            }
-        }
-    }
+    mPaletteMap.Parse(palette);
+    ParseColorMap(mPaletteMap, mColors);
 }
 
 
@@ -144,39 +158,33 @@ void Effect::CopyPalette(xlColorVector &target) const
     target = mColors;
 }
 
-void Effect::SetSettings(const wxString &settings)
+void Effect::SetSettings(const std::string &settings)
 {
     wxMutexLocker lock(settingsLock);
-    mSettings.Parse(settings.ToStdString());
+    mSettings.Parse(settings);
     IncrementChangeCount();
 }
 
-wxString Effect::GetSettingsAsString() const
+std::string Effect::GetSettingsAsString() const
 {
     wxMutexLocker lock(settingsLock);
     return mSettings.AsString();
 }
 
-void Effect::SetPalette(const wxString& i)
+void Effect::SetPalette(const std::string& i)
 {
     wxMutexLocker lock(settingsLock);
-    mPaletteMap.Parse(i.ToStdString());
+    mPaletteMap.Parse(i);
     mColors.clear();
     IncrementChangeCount();
     if (mPaletteMap.empty())
     {
         return;
     }
-    for (int i = 1; i <= 6; i++)
-    {
-        if (mPaletteMap[wxString::Format("C_CHECKBOX_Palette%d",i)] ==  "1")
-        {
-            mColors.push_back(xlColor(mPaletteMap[wxString::Format("C_BUTTON_Palette%d",i)]));
-        }
-    }
+    ParseColorMap(mPaletteMap, mColors);
 }
 
-wxString Effect::GetPaletteAsString() const
+std::string Effect::GetPaletteAsString() const
 {
     wxMutexLocker lock(settingsLock);
     return mPaletteMap.AsString();

@@ -2455,7 +2455,7 @@ void myGridCellChoiceEditor::GetChoices(wxArrayString& choices, int row, int col
     for (auto iter = xLightsFrame::AllModels.begin(); iter != xLightsFrame::AllModels.end(); ++iter)
     {
         ModelClass *it = iter->second.get();
-        if (it->name.IsEmpty()) continue;
+        if (it->name.empty()) continue;
         if (WantCustom && !it->IsCustom()) continue; //coro faces only wants custom models for now
         if (row == Model_Row) choices.Add(prefix + it->name); //get list of models
 //        else if (!WantCustom && !WantFiles && (row == Outline_Row)) //auto-face: only option is face shape currently
@@ -2609,7 +2609,7 @@ static wxString addxy(ModelClass* model, const char* desc, wxString nodestr)
     wxStringTokenizer wtkz(nodestr, "+");
     while (wtkz.HasMoreTokens())
     {
-        wxString nextnode = wtkz.GetNextToken().BeforeFirst(':');
+        std::string nextnode = wtkz.GetNextToken().BeforeFirst(':').ToStdString();
         if (nextnode.empty()) continue;
         if (!retval.empty()) retval += wxT("+");
 //        long node;
@@ -2898,7 +2898,7 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
             for (auto iter = xLightsFrame::AllModels.begin(); iter != xLightsFrame::AllModels.end(); ++iter)
             {
                 ModelClass *it = iter->second.get();
-                if (it->name.IsEmpty()) continue;
+                if (it->name.empty()) continue;
                 if ((outmode == 'c') && !it->IsCustom()) continue; //coro faces only wants custom models for now
 //            choices.Add((*it)->name);
                 if (it->name == model_name)

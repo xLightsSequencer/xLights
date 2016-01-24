@@ -22,7 +22,7 @@ class Effect
         Effect();  //don't allow default or copy constructor
         Effect(const Effect &e);
     public:
-    Effect(EffectLayer* parent, int id, const wxString & name, const wxString &settings, const wxString &palette,
+    Effect(EffectLayer* parent, int id, const std::string & name, const std::string &settings, const std::string &palette,
                int startTimeMS, int endTimeMS, int Selected, bool Protected);
         virtual ~Effect();
 
@@ -52,8 +52,8 @@ class Effect
 
         void IncrementChangeCount();
 
-        wxString GetSettingsAsString() const;
-        void SetSettings(const wxString &settings);
+        std::string GetSettingsAsString() const;
+        void SetSettings(const std::string &settings);
 
         const SettingsMap &GetSettings() const { return mSettings;}
         const xlColorVector &GetPalette() const { return mColors;}
@@ -68,8 +68,8 @@ class Effect
         void CopyPalette(xlColorVector &target) const;
 
 
-        wxString GetPaletteAsString() const;
-        void SetPalette(const wxString& i);
+        std::string GetPaletteAsString() const;
+        void SetPalette(const std::string& i);
 
         DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() {
             return background;

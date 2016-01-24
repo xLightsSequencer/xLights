@@ -11,26 +11,26 @@
 #include "../xLightsXmlFile.h"
 
 
-static const wxString STR_EMPTY("");
-static const wxString STR_NAME("name");
-static const wxString STR_EFFECT("Effect");
-static const wxString STR_ELEMENT("Element");
-static const wxString STR_EFFECTLAYER("EffectLayer");
-static const wxString STR_COLORPALETTE("ColorPalette");
-static const wxString STR_NODE("Node");
-static const wxString STR_STRAND("Strand");
-static const wxString STR_INDEX("index");
-static const wxString STR_TYPE("type");
-static const wxString STR_TIMING("timing");
+static const std::string STR_EMPTY("");
+static const std::string STR_NAME("name");
+static const std::string STR_EFFECT("Effect");
+static const std::string STR_ELEMENT("Element");
+static const std::string STR_EFFECTLAYER("EffectLayer");
+static const std::string STR_COLORPALETTE("ColorPalette");
+static const std::string STR_NODE("Node");
+static const std::string STR_STRAND("Strand");
+static const std::string STR_INDEX("index");
+static const std::string STR_TYPE("type");
+static const std::string STR_TIMING("timing");
 
-static const wxString STR_STARTTIME("startTime");
-static const wxString STR_ENDTIME("endTime");
-static const wxString STR_PROTECTED("protected");
-static const wxString STR_ID("id");
-static const wxString STR_REF("ref");
-static const wxString STR_PALETTE("palette");
-static const wxString STR_LABEL("label");
-static const wxString STR_ZERO("0");
+static const std::string STR_STARTTIME("startTime");
+static const std::string STR_ENDTIME("endTime");
+static const std::string STR_PROTECTED("protected");
+static const std::string STR_ID("id");
+static const std::string STR_REF("ref");
+static const std::string STR_PALETTE("palette");
+static const std::string STR_LABEL("label");
+static const std::string STR_ZERO("0");
 
 
 SequenceElements::SequenceElements()
@@ -114,7 +114,8 @@ EffectLayer* SequenceElements::GetVisibleEffectLayer(int row) {
     return GetEffectLayer(GetVisibleRowInformation(row));
 }
 
-Element* SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed,bool active, bool selected)
+Element* SequenceElements::AddElement(const std::string &name, const std::string &type,
+                                      bool visible,bool collapsed,bool active, bool selected)
 {
     if(!ElementExists(name))
     {
@@ -126,7 +127,9 @@ Element* SequenceElements::AddElement(wxString &name,wxString &type,bool visible
     return NULL;
 }
 
-Element* SequenceElements::AddElement(int index,wxString &name,wxString &type,bool visible,bool collapsed,bool active, bool selected)
+Element* SequenceElements::AddElement(int index, const std::string &name,
+                                      const std::string &type,
+                                      bool visible,bool collapsed,bool active, bool selected)
 {
     if(!ElementExists(name) && index <= mAllViews[MASTER_VIEW].size())
     {
@@ -143,7 +146,7 @@ int SequenceElements::GetElementCount(int view)
     return mAllViews[view].size();
 }
 
-bool SequenceElements::ElementExists(wxString elementName, int view)
+bool SequenceElements::ElementExists(const std::string &elementName, int view)
 {
     for(int i=0;i<mAllViews[view].size();i++)
     {
@@ -157,12 +160,11 @@ bool SequenceElements::ElementExists(wxString elementName, int view)
 
 bool SequenceElements::TimingIsPartOfView(Element* timing, int view)
 {
-    wxString view_name = GetViewName(view);
+    std::string view_name = GetViewName(view);
     wxArrayString views = wxSplit(timing->GetViews(),',');
     for(int v=0;v<views.size();v++)
     {
-        wxString viewName = views[v];
-        if( view_name == viewName )
+        if( views[v] == view_name )
         {
             return true;
         }
@@ -170,9 +172,9 @@ bool SequenceElements::TimingIsPartOfView(Element* timing, int view)
     return false;
 }
 
-wxString SequenceElements::GetViewName(int which_view)
+std::string SequenceElements::GetViewName(int which_view) const
 {
-    wxString view_name = "Master View";
+    std::string view_name = "Master View";
     int view_index = 1;
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
     {
@@ -202,9 +204,9 @@ void SequenceElements::SetEffectsNode(wxXmlNode* effectsNode)
     mEffectsNode = effectsNode;
 }
 
-wxString SequenceElements::GetViewModels(wxString viewName)
+std::string SequenceElements::GetViewModels(const std::string &viewName) const 
 {
-    wxString result="";
+    std::string result="";
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
     {
         if(view->GetAttribute(STR_NAME)==viewName)
@@ -216,7 +218,7 @@ wxString SequenceElements::GetViewModels(wxString viewName)
     return result;
 }
 
-Element* SequenceElements::GetElement(const wxString &name)
+Element* SequenceElements::GetElement(const std::string &name)
 {
     for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
@@ -240,7 +242,7 @@ Element* SequenceElements::GetElement(int index, int view)
     }
 }
 
-void SequenceElements::DeleteElement(const wxString &name)
+void SequenceElements::DeleteElement(const std::string &name)
 {
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
     {
@@ -286,7 +288,7 @@ void SequenceElements::DeleteElement(const wxString &name)
     PopulateRowInformation();
 }
 
-void SequenceElements::DeleteElementFromView(const wxString &name, int view)
+void SequenceElements::DeleteElementFromView(const std::string &name, int view)
 {
     // delete element pointer from all views
     for(int j=0;j<mAllViews[view].size();j++)
@@ -301,13 +303,13 @@ void SequenceElements::DeleteElementFromView(const wxString &name, int view)
     PopulateRowInformation();
 }
 
-void SequenceElements::DeleteTimingFromView(const wxString &name, int view)
+void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
 {
-    wxString viewName = GetViewName(view);
+    std::string viewName = GetViewName(view);
     Element* elem = GetElement(name);
     if( elem != nullptr && elem->GetType() == "timing" )
     {
-        wxString views = elem->GetViews();
+        std::string views = elem->GetViews();
         wxArrayString all_views = wxSplit(views,',');
         int found = -1;
         for( int j = 0; j < all_views.size(); j++ )
@@ -327,7 +329,7 @@ void SequenceElements::DeleteTimingFromView(const wxString &name, int view)
     }
 }
 
-void SequenceElements::RenameModelInViews(const wxString& old_name, const wxString& new_name)
+void SequenceElements::RenameModelInViews(const std::string& old_name, const std::string& new_name)
 {
     // renames models in any views that have been loaded for a sequence
     for(int view=0; view < mAllViews.size(); view++)
@@ -429,16 +431,16 @@ void SequenceElements::MoveElement(int index,int destinationIndex)
 }
 
 void SequenceElements::LoadEffects(EffectLayer *effectLayer,
-                                   const wxString &type,
+                                   const std::string &type,
                                    wxXmlNode *effectLayerNode,
-                                   const std::vector<wxString> & effectStrings,
-                                   const std::vector<wxString> & colorPalettes) {
+                                   const std::vector<std::string> & effectStrings,
+                                   const std::vector<std::string> & colorPalettes) {
     for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
     {
         if (effect->GetName() == STR_EFFECT)
         {
-            wxString effectName;
-            wxString settings;
+            std::string effectName;
+            std::string settings;
             int id = 0;
             long palette = -1;
             bool bProtected=false;
@@ -482,7 +484,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
         } else if (effect->GetName() == STR_NODE && effectLayerNode->GetName() == STR_STRAND) {
             EffectLayer* neffectLayer = ((StrandLayer*)effectLayer)->GetNodeLayer(wxAtoi(effect->GetAttribute(STR_INDEX)), true);
             if (effect->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
-                ((NodeLayer*)neffectLayer)->SetName(effect->GetAttribute(STR_NAME));
+                ((NodeLayer*)neffectLayer)->SetName(effect->GetAttribute(STR_NAME).ToStdString());
             }
 
             LoadEffects(neffectLayer, type, effect, effectStrings, colorPalettes);
@@ -496,8 +498,8 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
     wxXmlDocument& seqDocument = xml_file.GetXmlDocument();
 
     wxXmlNode* root=seqDocument.GetRoot();
-    std::vector<wxString> effectStrings;
-    std::vector<wxString> colorPalettes;
+    std::vector<std::string> effectStrings;
+    std::vector<std::string> colorPalettes;
     Clear();
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -508,8 +510,8 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                 bool active=false;
                 bool selected=false;
                 bool collapsed=false;
-                wxString name = element->GetAttribute(STR_NAME);
-                wxString type = element->GetAttribute(STR_TYPE);
+                std::string name = element->GetAttribute(STR_NAME).ToStdString();
+                std::string type = element->GetAttribute(STR_TYPE).ToStdString();
                 bool visible = element->GetAttribute("visible")=='1'?true:false;
 
                 if (type==STR_TIMING)
@@ -523,7 +525,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                 Element* elem = AddElement(name,type,visible,collapsed,active,selected);
                 if (type==STR_TIMING)
                 {
-                    wxString views = element->GetAttribute("views", "");
+                    std::string views = element->GetAttribute("views", "").ToStdString();
                     elem->SetViews(views);
                 }
             }
@@ -535,7 +537,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
            {
                if(elementNode->GetName()==STR_EFFECT)
                {
-                   effectStrings.push_back(elementNode->GetNodeContent());
+                   effectStrings.push_back(elementNode->GetNodeContent().ToStdString());
                }
            }
        }
@@ -546,7 +548,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
            {
                if(elementNode->GetName() == STR_COLORPALETTE)
                {
-                   colorPalettes.push_back(elementNode->GetNodeContent());
+                   colorPalettes.push_back(elementNode->GetNodeContent().ToStdString());
                }
            }
        }
@@ -556,7 +558,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
             {
                 if(elementNode->GetName()==STR_ELEMENT)
                 {
-                    Element* element = GetElement(elementNode->GetAttribute(STR_NAME));
+                    Element* element = GetElement(elementNode->GetAttribute(STR_NAME).ToStdString());
                     if (element !=NULL)
                     {
                         // check for fixed timing interval
@@ -577,7 +579,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                 next_time = (time + interval <= end_time) ? time + interval : end_time;
                                 startTime = TimeLine::RoundToMultipleOfPeriod(time,mFrequency);
                                 endTime = TimeLine::RoundToMultipleOfPeriod(next_time,mFrequency);
-                                effectLayer->AddEffect(0,wxEmptyString,wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                                effectLayer->AddEffect(0,"","","",startTime,endTime,EFFECT_NOT_SELECTED,false);
                                 time += interval;
                             }
                         }
@@ -593,10 +595,10 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                     } else {
                                         effectLayer = element->GetStrandLayer(wxAtoi(effectLayerNode->GetAttribute(STR_INDEX)), true);
                                         if (effectLayerNode->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
-                                            ((StrandLayer*)effectLayer)->SetName(effectLayerNode->GetAttribute(STR_NAME));
+                                            ((StrandLayer*)effectLayer)->SetName(effectLayerNode->GetAttribute(STR_NAME).ToStdString());
                                         }
                                     }
-                                    LoadEffects(effectLayer, elementNode->GetAttribute(STR_TYPE), effectLayerNode, effectStrings, colorPalettes);
+                                    LoadEffects(effectLayer, elementNode->GetAttribute(STR_TYPE).ToStdString(), effectLayerNode, effectStrings, colorPalettes);
                                 }
                             }
                         }
@@ -610,8 +612,8 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
     int last_view = xml_file.GetLastView();
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
     {
-        wxString viewName = view->GetAttribute(STR_NAME);
-        wxString models = view->GetAttribute("models");
+        std::string viewName = view->GetAttribute(STR_NAME).ToStdString();
+        std::string models = view->GetAttribute("models").ToStdString();
         std::vector <Element*> new_view;
         mAllViews.push_back(new_view);
         int view_index = mAllViews.size()-1;
@@ -631,7 +633,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
     return true;
 }
 
-void SequenceElements::AddView(const wxString &viewName)
+void SequenceElements::AddView(const std::string &viewName)
 {
     std::vector <Element*> new_view;
     mAllViews.push_back(new_view);
@@ -648,17 +650,17 @@ void SequenceElements::SetCurrentView(int view)
     mCurrentView = view;
 }
 
-void SequenceElements::AddMissingModelsToSequence(const wxString &models, bool visible)
+void SequenceElements::AddMissingModelsToSequence(const std::string &models, bool visible)
 {
     if(models.length()> 0)
     {
         wxArrayString model=wxSplit(models,',');
         for(int m=0;m<model.size();m++)
         {
-            wxString modelName = model[m];
+            std::string modelName = model[m].ToStdString();
             if(!ElementExists(modelName))
             {
-               wxString elementType = "model";
+               std::string elementType = "model";
                Element* elem = AddElement(modelName,elementType,visible,false,false,false);
                elem->AddEffectLayer();
             }
@@ -666,7 +668,7 @@ void SequenceElements::AddMissingModelsToSequence(const wxString &models, bool v
     }
 }
 
-void SequenceElements::SetTimingVisibility(const wxString& name)
+void SequenceElements::SetTimingVisibility(const std::string& name)
 {
     for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
@@ -685,7 +687,7 @@ void SequenceElements::SetTimingVisibility(const wxString& name)
             wxArrayString views = wxSplit(elem->GetViews(),',');
             for(int v=0;v<views.size();v++)
             {
-                wxString viewName = views[v];
+                std::string viewName = views[v].ToStdString();
                 if( name == viewName )
                 {
                     elem->SetVisible(true);
@@ -696,16 +698,16 @@ void SequenceElements::SetTimingVisibility(const wxString& name)
     }
 }
 
-void SequenceElements::AddTimingToAllViews(wxString& timing)
+void SequenceElements::AddTimingToAllViews(const std::string& timing)
 {
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
     {
-        wxString name = view->GetAttribute(STR_NAME);
+        std::string name = view->GetAttribute(STR_NAME).ToStdString();
         AddTimingToView(timing, name);
     }
 }
 
-void SequenceElements::AddViewToTimings(wxArrayString& timings, const wxString& name)
+void SequenceElements::AddViewToTimings(std::vector<std::string>& timings, const std::string& name)
 {
     for( int i = 0; i < timings.size(); i++ )
     {
@@ -713,12 +715,12 @@ void SequenceElements::AddViewToTimings(wxArrayString& timings, const wxString& 
     }
 }
 
-void SequenceElements::AddTimingToView(wxString& timing, const wxString& name)
+void SequenceElements::AddTimingToView(const std::string& timing, const std::string& name)
 {
     Element* elem = GetElement(timing);
     if( elem != nullptr && elem->GetType() == "timing" )
     {
-        wxString views = elem->GetViews();
+        std::string views = elem->GetViews();
         wxArrayString all_views = wxSplit(views,',');
         bool found = false;
         for( int j = 0; j < all_views.size(); j++ )
@@ -738,7 +740,7 @@ void SequenceElements::AddTimingToView(wxString& timing, const wxString& name)
     }
 }
 
-void SequenceElements::PopulateView(const wxString &models, int view)
+void SequenceElements::PopulateView(const std::string &models, int view)
 {
     mAllViews[view].clear();
 
@@ -747,7 +749,7 @@ void SequenceElements::PopulateView(const wxString &models, int view)
         wxArrayString model=wxSplit(models,',');
         for(int m=0;m<model.size();m++)
         {
-            wxString modelName = model[m];
+            std::string modelName = model[m].ToStdString();
             Element* elem = GetElement(modelName);
             mAllViews[view].push_back(elem);
         }
@@ -779,7 +781,7 @@ int SequenceElements::GetSelectedTimingRow()
     return mSelectedTimingRow;
 }
 
-wxXmlNode *GetModelNode(wxXmlNode *root, const wxString & name) {
+wxXmlNode *GetModelNode(wxXmlNode *root, const std::string & name) {
     wxXmlNode* e;
     for(e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -1158,7 +1160,7 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
     }
 }
 
-void SequenceElements::MoveElementUp(const wxString &name, int view)
+void SequenceElements::MoveElementUp(const std::string &name, int view)
 {
     IncrementChangeCount(nullptr);
 
@@ -1176,7 +1178,7 @@ void SequenceElements::MoveElementUp(const wxString &name, int view)
     }
 }
 
-void SequenceElements::MoveElementDown(const wxString &name, int view)
+void SequenceElements::MoveElementDown(const std::string &name, int view)
 {
     IncrementChangeCount(nullptr);
 
@@ -1213,7 +1215,7 @@ void SequenceElements::ImportLyrics(Element* element, wxWindow* parent)
         int num_phrases = total_num_phrases;
         for( int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++ )
         {
-            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
+            std::string line = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToStdString();
             if( line == "" )
             {
                 num_phrases--;
@@ -1224,19 +1226,19 @@ void SequenceElements::ImportLyrics(Element* element, wxWindow* parent)
         int interval_ms = (end_time-start_time) / num_phrases;
         for( int i = 0; i < total_num_phrases; i++ )
         {
-            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
+            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToStdString();
             if( line != "" )
             {
                 xframe->dictionary.InsertSpacesAfterPunctuation(line);
                 end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, GetFrequency());
-                phrase_layer->AddEffect(0,line,wxEmptyString,"",start_time,end_time,EFFECT_NOT_SELECTED,false);
+                phrase_layer->AddEffect(0,line.ToStdString(),"","",start_time,end_time,EFFECT_NOT_SELECTED,false);
                 start_time = end_time;
             }
         }
     }
 }
 
-void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const wxString& phrase)
+void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const std::string& phrase)
 {
     if( phrase != "" )
     {
@@ -1252,13 +1254,13 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
             {
                 word_end_time = end_time;
             }
-            word_layer->AddEffect(0,words[i],wxEmptyString,"",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
+            word_layer->AddEffect(0,words[i].ToStdString(),"","",word_start_time,word_end_time,EFFECT_NOT_SELECTED,false);
             word_start_time = word_end_time;
         }
     }
 }
 
-void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word)
+void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word)
 {
     xframe->dictionary.LoadDictionaries(xframe->CurrentDir);
     wxArrayString phonemes;
@@ -1274,7 +1276,7 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
             {
                 phoneme_end_time = end_time;
             }
-            phoneme_layer->AddEffect(0,phonemes[i],wxEmptyString,"",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
+            phoneme_layer->AddEffect(0,phonemes[i].ToStdString(),"","",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
             phoneme_start_time = phoneme_end_time;
         }
     }
@@ -1285,11 +1287,11 @@ void SequenceElements::IncrementChangeCount(Element *el) {
     if (el != nullptr && el->GetType() == "timing") {
         //need to check if we need to have some models re-rendered due to timing being changed
         wxMutexLocker locker(renderDepLock);
-        std::map<wxString, std::set<wxString>>::iterator it = renderDependency.find(el->GetName());
+        std::map<std::string, std::set<std::string>>::iterator it = renderDependency.find(el->GetName());
         if (it != renderDependency.end()) {
             int origChangeCount, ss, es;
             el->GetAndResetDirtyRange(origChangeCount, ss, es);
-            for (std::set<wxString>::iterator sit = it->second.begin(); sit != it->second.end(); sit++) {
+            for (std::set<std::string>::iterator sit = it->second.begin(); sit != it->second.end(); sit++) {
                 Element *el = this->GetElement(*sit);
                 if (el != nullptr) {
                     el->IncrementChangeCount(ss, es);
@@ -1302,7 +1304,7 @@ void SequenceElements::IncrementChangeCount(Element *el) {
 bool SequenceElements::GetElementsToRender(std::vector<Element *> &models) {
     wxMutexLocker locker(renderDepLock);
     if (!modelsToRender.empty()) {
-        for (std::set<wxString>::iterator sit = modelsToRender.begin(); sit != modelsToRender.end(); sit++) {
+        for (std::set<std::string>::iterator sit = modelsToRender.begin(); sit != modelsToRender.end(); sit++) {
             Element *el = this->GetElement(*sit);
             if (el != nullptr) {
                 models.push_back(el);
@@ -1314,7 +1316,7 @@ bool SequenceElements::GetElementsToRender(std::vector<Element *> &models) {
     return false;
 }
 
-void SequenceElements::AddRenderDependency(const wxString &layer, const wxString &model) {
+void SequenceElements::AddRenderDependency(const std::string &layer, const std::string &model) {
     wxMutexLocker locker(renderDepLock);
     renderDependency[layer].insert(model);
 }

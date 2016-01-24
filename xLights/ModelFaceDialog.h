@@ -39,8 +39,8 @@ class ModelFaceDialog: public wxDialog
 		wxChoice* NameChoice;
 		//*)
 
-        void SetFaceInfo(ModelClass *cls, std::map<wxString, std::map<wxString, wxString> > &info);
-        void GetFaceInfo(std::map<wxString, std::map<wxString, wxString> > &info);
+        void SetFaceInfo(ModelClass *cls, std::map<std::string, std::map<std::string, std::string> > &info);
+        void GetFaceInfo(std::map<std::string, std::map<std::string, std::string> > &info);
 	protected:
 
 		//(*Identifiers(ModelFaceDialog)
@@ -80,8 +80,8 @@ class ModelFaceDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
     
-    std::map<wxString, std::map<wxString, wxString> > faceData;
-    void SelectFaceModel(const wxString &s);
+    std::map<std::string, std::map<std::string, std::string> > faceData;
+    void SelectFaceModel(const std::string &s);
 };
 
 #endif

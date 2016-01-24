@@ -110,8 +110,8 @@ public:
             }
         }
     }
-    virtual wxString GetNodeType() {
-        wxString nt("   ");
+    virtual std::string GetNodeType() const {
+        std::string nt("   ");
         nt[offsets[0]] = 'R';
         nt[offsets[1]] = 'G';
         nt[offsets[2]] = 'B';
@@ -144,7 +144,7 @@ public:
             name = new std::string(n);
         }
     }
-    wxString GetName() {
+    std::string GetName() {
         if (name == nullptr) {
             return "";
         }
@@ -178,7 +178,7 @@ public:
     {
         color.Set(c[0],0,0);
     }
-    virtual wxString GetNodeType() {
+    virtual std::string GetNodeType() {
         return "R";
     }
 
@@ -198,7 +198,7 @@ public:
     {
         color.Set(0,c[1],0);
     }
-    virtual wxString GetNodeType() {
+    virtual std::string GetNodeType() {
         return "G";
     }
 };
@@ -217,7 +217,7 @@ public:
     {
         color.Set(0,0,c[2]);
     }
-    virtual wxString GetNodeType() {
+    virtual std::string GetNodeType() {
         return "B";
     }
 };
@@ -239,7 +239,7 @@ public:
         hsv2.value /= 255.0;
         color = hsv2;
     }
-    virtual wxString GetNodeType() {
+    virtual std::string GetNodeType() {
         return xlColor(hsv);
     }
     virtual void SetColor(const xlColor& color)
@@ -280,7 +280,7 @@ public:
     virtual void GetForChannels(unsigned char *buf) {
         buf[0] = std::min(c[0],std::min(c[1],c[2]));
     }
-    virtual wxString GetNodeType() {
+    virtual std::string GetNodeType() {
         return "W";
     }
 };
@@ -316,7 +316,7 @@ public:
             buf[3] = 0;
         }
     }
-    virtual wxString GetNodeType() {
+    virtual std::string GetNodeType() {
         return "RGBW";
     }
 };

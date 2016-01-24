@@ -6,6 +6,7 @@
 #include <atomic>
 #include "wx/xml/xml.h"
 #include "EffectLayer.h"
+#include <string>
 
 
 enum ElementType
@@ -27,13 +28,13 @@ class SequenceElements;
 class Element
 {
     public:
-        Element(SequenceElements *p, wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected);
+        Element(SequenceElements *p, const std::string &name, const std::string &type,bool visible,bool collapsed, bool active, bool selected);
         virtual ~Element();
     
         SequenceElements *GetSequenceElements() {return parent;}
 
-        wxString GetName();
-        void SetName(const wxString &name);
+        const std::string &GetName() const ;
+        void SetName(const std::string &name);
 
         bool GetVisible();
         void SetVisible(bool visible);
@@ -50,11 +51,11 @@ class Element
         int GetFixedTiming();
         void SetFixedTiming(int fixed);
 
-        wxString GetType();
-        void SetType(wxString &type);
+        const std::string &GetType() const;
+        void SetType(const std::string &type);
 
-        wxString GetViews();
-        void SetViews(wxString &views);
+        const std::string &GetViews() const;
+        void SetViews(const std::string &views);
 
         EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
         EffectLayer* GetEffectLayer(int index);
@@ -115,9 +116,9 @@ class Element
     protected:
     private:
         int mIndex;
-        wxString mName;
-        wxString mElementType;
-        wxString mViews;
+        std::string mName;
+        std::string mElementType;
+        std::string mViews;
         bool mVisible;
         bool mCollapsed;
         bool mStrandsVisible = false;

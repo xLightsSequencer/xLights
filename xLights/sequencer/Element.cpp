@@ -1,6 +1,6 @@
 #include "Element.h"
 #include "ModelClass.h"
-Element::Element(SequenceElements *l, wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected)
+Element::Element(SequenceElements *l, const std::string &name, const std::string &type,bool visible,bool collapsed, bool active, bool selected)
 :   mEffectLayers(),
     mName(name),
     mElementType(type),
@@ -46,12 +46,12 @@ void Element::DecWaitCount() {
 }
 
 
-wxString Element::GetName()
+const std::string &Element::GetName() const
 {
     return mName;
 }
 
-void Element::SetName(const wxString &name)
+void Element::SetName(const std::string &name)
 {
     mName = name;
 }
@@ -106,22 +106,22 @@ void Element::SetCollapsed(bool collapsed)
     mCollapsed = collapsed;
 }
 
-wxString Element::GetType()
+const std::string &Element::GetType() const
 {
     return mElementType;
 }
 
-void Element::SetType(wxString &type)
+void Element::SetType(const std::string &type)
 {
     mElementType = type;
 }
 
-wxString Element::GetViews()
+const std::string &Element::GetViews() const
 {
     return mViews;
 }
 
-void Element::SetViews(wxString &views)
+void Element::SetViews(const std::string &views)
 {
     mViews = views;
 }

@@ -2,6 +2,7 @@
 #define EFFECTLAYER_H
 #include "wx/wx.h"
 #include <atomic>
+#include <string>
 #include "Effect.h"
 #include "UndoManager.h"
 
@@ -16,7 +17,7 @@ class EffectLayer
         EffectLayer(Element* parent);
         virtual ~EffectLayer();
 
-        Effect *AddEffect(int id, const wxString &name, const wxString &settings, const wxString &palette,
+    Effect *AddEffect(int id, const std::string &name, const std::string &settings, const std::string &palette,
                           int startTimeMS, int endTimeMS, int Selected, bool Protected);
         Effect* GetEffect(int index);
         Effect* GetEffectByTime(int ms);
@@ -58,7 +59,7 @@ class EffectLayer
         void DeleteEffectByIndex(int idx);
         static bool ShouldDeleteSelected(Effect *eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
-        void UpdateAllSelectedEffects(const wxString& palette);
+        void UpdateAllSelectedEffects(const std::string& palette);
 
         void IncrementChangeCount(int startMS, int endMS);
 
@@ -83,38 +84,38 @@ class EffectLayer
 class NamedLayer: public EffectLayer {
 public:
     NamedLayer(Element *parent) : EffectLayer(parent), name(nullptr) {}
-    NamedLayer(Element *parent, const wxString &n) : EffectLayer(parent) {
+    NamedLayer(Element *parent, const std::string &n) : EffectLayer(parent) {
         if ("" == n) {
             name = nullptr;
         } else {
-            name = new wxString(n);
+            name = new std::string(n);
         }
     }
     virtual ~NamedLayer() { if (name != nullptr) delete name;}
-    const wxString &GetName() const {
+    const std::string &GetName() const {
         if (name == nullptr) {
             return NO_NAME;
         }
         return *name;
     }
-    void SetName(const wxString &n) {
+    void SetName(const std::string &n) {
         if (name != nullptr) {
             delete name;
             name = nullptr;
         }
         if ("" != n) {
-            name = new wxString(n);
+            name = new std::string(n);
         }
     }
 private:
-    wxString *name;
-    static const wxString NO_NAME;
+    std::string *name;
+    static const std::string NO_NAME;
 };
 
 class NodeLayer: public NamedLayer {
 public:
     NodeLayer(Element *parent) : NamedLayer(parent) {}
-    NodeLayer(Element *parent, const wxString &n) : NamedLayer(parent, n) {}
+    NodeLayer(Element *parent, const std::string &n) : NamedLayer(parent, n) {}
     virtual ~NodeLayer() {};
 private:
 };

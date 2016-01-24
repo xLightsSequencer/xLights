@@ -196,9 +196,9 @@ void ModelListDialog::OnButton_DeleteClick(wxCommandEvent& event)
     }
 
     wxXmlNode* e = models[ListBox1->GetString(sel)];
-    wxString attr;
+    std::string attr;
     int result = wxNO;
-    e->GetAttribute("name", &attr);
+    attr = e->GetAttribute("name");
     Element* elem_to_delete = mSequenceElements->GetElement(attr);
     if( elem_to_delete != NULL )
     {
@@ -225,7 +225,7 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
     wxTextEntryDialog dialog(this,_("Enter new name"),_("Rename Model"), ListBox1->GetString(sel));
     int DlgResult;
     bool ok;
-    wxString NewName;
+    std::string NewName;
     do
     {
         ok=true;
@@ -233,8 +233,7 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
         if (DlgResult == wxID_OK)
         {
             // validate inputs
-            NewName=dialog.GetValue();
-            NewName.Trim();
+            NewName=dialog.GetValue().Trim();
             ok=ValidateModelName(NewName);
         }
     }
@@ -242,8 +241,8 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
     if (DlgResult != wxID_OK) return;
     wxXmlNode* e = models[ListBox1->GetString(sel)];
 
-    wxString OldName;
-    e->GetAttribute("name", &OldName);
+    std::string OldName;
+    OldName = e->GetAttribute("name");
 
     Element* elem_to_rename = mSequenceElements->GetElement(OldName);
     if( elem_to_rename != NULL )

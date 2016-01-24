@@ -168,10 +168,10 @@ private:
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;
-    wxString strandNames;
-    wxString nodeNames;
-    std::map<wxString, std::map<wxString,wxString> > faceInfo;
-    std::map<wxString, std::map<wxString,wxString> > dimmingInfo;
+    std::string strandNames;
+    std::string nodeNames;
+    std::map<std::string, std::map<std::string,std::string> > faceInfo;
+    std::map<std::string, std::map<std::string,std::string> > dimmingInfo;
 };
 
 #endif

@@ -12,14 +12,18 @@
 #include <wx/dialog.h>
 //*)
 
+
+#include <vector>
+#include <string>
+
 class ModelViewSelector: public wxDialog
 {
 	public:
 
 		ModelViewSelector(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ModelViewSelector();
-		wxArrayString ModelsToAdd;
-		wxArrayString TimingsToAdd;
+        std::vector<std::string> ModelsToAdd;
+		std::vector<std::string> TimingsToAdd;
 
 		void SetSequenceElementsModelsViews(SequenceElements* elements,wxXmlNode* models, wxXmlNode *modelGroups, wxXmlNode* views, int which_view = MASTER_VIEW);
         void Initialize();

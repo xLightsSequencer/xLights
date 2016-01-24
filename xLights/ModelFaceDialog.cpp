@@ -429,20 +429,20 @@ wxString NodesGridCellEditor::GetValue() const
     return retval;
 }
 
-void ModelFaceDialog::SetFaceInfo(ModelClass *cls, std::map< wxString, std::map<wxString, wxString> > &finfo) {
+void ModelFaceDialog::SetFaceInfo(ModelClass *cls, std::map< std::string, std::map<std::string, std::string> > &finfo) {
     NodeRangeGrid->SetColSize(1, 50);
     SingleNodeGrid->SetColSize(1, 50);
     NameChoice->Clear();
     
-    for (std::map< wxString, std::map<wxString, wxString> >::iterator it = finfo.begin();
+    for (std::map< std::string, std::map<std::string, std::string> >::iterator it = finfo.begin();
          it != finfo.end(); it++) {
 
-        wxString name = it->first;
-        std::map<wxString, wxString> &info = it->second;
+        std::string name = it->first;
+        std::map<std::string, std::string> &info = it->second;
 
         NameChoice->Append(name);
 
-        wxString type2 = info["Type"];
+        std::string type2 = info["Type"];
         if (type2 == "") {
             //old style, map
             if (name == "Coro" || name == "SingleNode") {
@@ -460,7 +460,7 @@ void ModelFaceDialog::SetFaceInfo(ModelClass *cls, std::map< wxString, std::map<
         DeleteButton->Enable();
         FaceTypeChoice->Enable();
         NameChoice->SetSelection(0);
-        SelectFaceModel(NameChoice->GetString(NameChoice->GetSelection()));
+        SelectFaceModel(NameChoice->GetString(NameChoice->GetSelection()).ToStdString());
     } else {
         DeleteButton->Disable();
         FaceTypeChoice->Disable();
@@ -492,9 +492,9 @@ void ModelFaceDialog::SetFaceInfo(ModelClass *cls, std::map< wxString, std::map<
 }
 
 
-void ModelFaceDialog::GetFaceInfo(std::map< wxString, std::map<wxString, wxString> > &finfo) {
+void ModelFaceDialog::GetFaceInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
     finfo.clear();
-    for (std::map<wxString, std::map<wxString, wxString> >::iterator it = faceData.begin();
+    for (std::map<std::string, std::map<std::string, std::string> >::iterator it = faceData.begin();
          it != faceData.end(); it++) {
         if (!it->second.empty()) {
             finfo[it->first] = it->second;
@@ -502,7 +502,7 @@ void ModelFaceDialog::GetFaceInfo(std::map< wxString, std::map<wxString, wxStrin
     }
 }
 
-static bool SetGrid(wxGrid *grid, std::map<wxString, wxString> &info) {
+static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
     bool customColor = false;
     if (info["CustomColors"] == "1") {
         grid->ShowCol(1);
@@ -513,9 +513,9 @@ static bool SetGrid(wxGrid *grid, std::map<wxString, wxString> &info) {
     for (int x = 0; x < grid->GetNumberRows(); x++) {
         wxString pname = grid->GetRowLabelValue(x);
         pname.Replace(" ", "");
-        grid->SetCellValue(x, 0, info[pname]);
+        grid->SetCellValue(x, 0, info[pname.ToStdString()]);
 
-        wxString c = info[pname + "-Color"];
+        wxString c = info[pname.ToStdString() + "-Color"];
         if (c == "") {
             c = "#FFFFFF";
         }
@@ -525,7 +525,7 @@ static bool SetGrid(wxGrid *grid, std::map<wxString, wxString> &info) {
     return customColor;
 }
 
-void ModelFaceDialog::SelectFaceModel(const wxString &name) {
+void ModelFaceDialog::SelectFaceModel(const std::string &name) {
     FaceTypeChoice->Enable();
     wxString type = faceData[name]["Type"];
     if (type == "") {
@@ -534,11 +534,11 @@ void ModelFaceDialog::SelectFaceModel(const wxString &name) {
     }
     if (type == "SingleNode") {
         FaceTypeChoice->ChangeSelection(SINGLE_NODE_FACE);
-        std::map<wxString, wxString> &info = faceData[name];
+        std::map<std::string, std::string> &info = faceData[name];
         CustomColorSingleNode->SetValue(SetGrid(SingleNodeGrid, info));
     } else if (type == "NodeRange") {
         FaceTypeChoice->ChangeSelection(NODE_RANGE_FACE);
-        std::map<wxString, wxString> &info = faceData[name];
+        std::map<std::string, std::string> &info = faceData[name];
         CustomColorNodeRanges->SetValue(SetGrid(NodeRangeGrid, info));
     } else {
         FaceTypeChoice->ChangeSelection(MATRIX_FACE);
@@ -546,10 +546,10 @@ void ModelFaceDialog::SelectFaceModel(const wxString &name) {
             for (int c = 0; c < MatrixModelsGrid->GetNumberCols(); c++) {
                 wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
                 key.Replace(" ", "");
-                MatrixModelsGrid->SetCellValue(r, c, faceData[name][key]);
+                MatrixModelsGrid->SetCellValue(r, c, faceData[name][key.ToStdString()]);
             }
         }
-        wxString w = faceData[name]["ImagePlacement"];
+        std::string w = faceData[name]["ImagePlacement"];
         if (w == "") {
             w = "Centered";
         }
@@ -560,14 +560,14 @@ void ModelFaceDialog::SelectFaceModel(const wxString &name) {
 
 void ModelFaceDialog::OnMatrixNameChoiceSelect(wxCommandEvent& event)
 {
-    SelectFaceModel(NameChoice->GetString(NameChoice->GetSelection()));
+    SelectFaceModel(NameChoice->GetString(NameChoice->GetSelection()).ToStdString());
 }
 
 void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "New Face", "Enter name for new face definition");
     if (dlg.ShowModal() == wxID_OK) {
-        wxString n = dlg.GetValue();
+        std::string n = dlg.GetValue().ToStdString();
         if (NameChoice->FindString(n) == wxNOT_FOUND) {
             NameChoice->Append(n);
             NameChoice->SetStringSelection(n);
@@ -580,7 +580,7 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
 }
 void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
 {
-    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     int i = wxMessageBox("Delete face definion?", "Are you sure you want to delete " + name + "?",
                          wxICON_WARNING | wxOK , this);
     if (i == wxID_OK || i == wxOK) {
@@ -589,7 +589,7 @@ void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
         NameChoice->Delete(NameChoice->GetSelection());
         if (NameChoice->GetCount() > 0) {
             NameChoice->SetSelection(0);
-            SelectFaceModel(NameChoice->GetString(0));
+            SelectFaceModel(NameChoice->GetString(0).ToStdString());
         } else {
             NameChoice->SetSelection(wxNOT_FOUND);
             NameChoice->Disable();
@@ -601,19 +601,19 @@ void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
 
 void ModelFaceDialog::OnMatrixModelsGridCellChange(wxGridEvent& event)
 {
-    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     int r = event.GetRow();
     int c = event.GetCol();
     wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
     key.Replace(" ", "");
-    faceData[name][key] = MatrixModelsGrid->GetCellValue(r, c);
+    faceData[name][key.ToStdString()] = MatrixModelsGrid->GetCellValue(r, c);
 }
 
 
 static const wxString strSupportedImageTypes = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp|JPG files(*.jpg)|*.jpg|All files (*.*)|*.*";
 void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
 {
-    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     int r = event.GetRow();
     int c = event.GetCol();
     wxString key = MatrixModelsGrid->GetRowLabelValue(r) + "-" + MatrixModelsGrid->GetColLabelValue(c);
@@ -625,7 +625,7 @@ void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
     if (dlg.ShowModal() == wxID_OK) {
         wxString new_filename = dlg.GetPath();
         key.Replace(" ", "");
-        faceData[name][key] = new_filename;
+        faceData[name][key.ToStdString()] = new_filename;
         MatrixModelsGrid->SetCellValue(r, c, new_filename);
     }
 }
@@ -633,13 +633,13 @@ void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
 
 void ModelFaceDialog::OnMatricImagePlacementChoiceSelect(wxCommandEvent& event)
 {
-    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     faceData[name]["ImagePlacement"] = NameChoice->GetString(MatrixImagePlacementChoice->GetSelection());
 }
 
 void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
 {
-    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (FaceTypeChoice->GetSelection() == SINGLE_NODE_FACE) {
         if (CustomColorSingleNode->IsChecked()) {
             SingleNodeGrid->ShowCol(1);
@@ -659,35 +659,35 @@ void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
     }
 }
 
-static void GetValue(wxGrid *grid, wxGridEvent &event, std::map<wxString, wxString> &info) {
+static void GetValue(wxGrid *grid, wxGridEvent &event, std::map<std::string, std::string> &info) {
     int r = event.GetRow();
     int c = event.GetCol();
-    wxString key = grid->GetRowLabelValue(r);
+    wxString key = grid->GetRowLabelValue(r).ToStdString();
     key.Replace(" ", "");
     if (c == 1) {
         key += "-Color";
         xlColor color = grid->GetCellBackgroundColour(r, c);
-        info[key] = color;
+        info[key.ToStdString()] = color;
     } else {
-        info[key] = grid->GetCellValue(r, c);
+        info[key.ToStdString()] = grid->GetCellValue(r, c);
     }
 }
 
 void ModelFaceDialog::OnNodeRangeGridCellChange(wxGridEvent& event)
 {
-    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     GetValue(NodeRangeGrid, event, faceData[name]);
 }
 
 void ModelFaceDialog::OnSingleNodeGridCellChange(wxGridEvent& event)
 {
-    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     GetValue(SingleNodeGrid, event, faceData[name]);
 }
 
 void ModelFaceDialog::OnFaceTypeChoicePageChanged(wxChoicebookEvent& event)
 {
-    wxString name = NameChoice->GetString(NameChoice->GetSelection());
+    std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     faceData[name].clear();
     switch (FaceTypeChoice->GetSelection()) {
         case SINGLE_NODE_FACE:
@@ -705,7 +705,7 @@ void ModelFaceDialog::OnFaceTypeChoicePageChanged(wxChoicebookEvent& event)
 void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 {
     if (event.GetCol() == 1) {
-        wxString name = NameChoice->GetString(NameChoice->GetSelection());
+        std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), 1);
         wxColourData data;
         data.SetColour(c);
@@ -722,7 +722,7 @@ void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 void ModelFaceDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
 {
     if (event.GetCol() == 1) {
-        wxString name = NameChoice->GetString(NameChoice->GetSelection());
+        std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), 1);
         wxColourData data;
         data.SetColour(c);

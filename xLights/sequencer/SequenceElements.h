@@ -6,6 +6,7 @@
 #include "wx/wx.h"
 #include <vector>
 #include <set>
+#include <string>
 #include "wx/xml/xml.h"
 #include "wx/filename.h"
 #include "UndoManager.h"
@@ -27,7 +28,7 @@ public:
     int layerIndex;
     int strandIndex = -1;
     int nodeIndex = -1;
-    wxString displayName;
+    std::string displayName;
     bool submodel = false;
 };
 
@@ -58,9 +59,9 @@ class SequenceElements : public ChangeListener
         virtual ~SequenceElements();
         bool LoadSequencerFile(xLightsXmlFile& xml_file);
         void Clear();
-        Element* AddElement(wxString &name, wxString &type,bool visible,bool collapsed,bool active, bool selected);
-        Element* AddElement(int index,wxString &name, wxString &type,bool visible,bool collapsed,bool active, bool selected);
-        Element* GetElement(const wxString &name);
+        Element* AddElement(const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
+        Element* AddElement(int index, const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
+        Element* GetElement(const std::string &name);
         Element* GetElement(int index, int view = MASTER_VIEW);
         int GetElementCount(int view = MASTER_VIEW);
         Row_Information_Struct* GetVisibleRowInformation(int index);
@@ -75,25 +76,25 @@ class SequenceElements : public ChangeListener
         void SetMaxRowsDisplayed(int maxRows);
         void SetVisibilityForAllModels(bool visibility, int view = MASTER_VIEW);
         void MoveSequenceElement(int index, int dest, int view);
-        void MoveElementUp(const wxString &name, int view);
-        void MoveElementDown(const wxString &name, int view);
+        void MoveElementUp(const std::string &name, int view);
+        void MoveElementDown(const std::string &name, int view);
         void SetFirstVisibleModelRow(int row);
         void SetCurrentView(int view);
-        void AddMissingModelsToSequence(const wxString &models, bool visible = true);
+        void AddMissingModelsToSequence(const std::string &models, bool visible = true);
         int GetCurrentView() {return mCurrentView;}
-        void SetTimingVisibility(const wxString& name);
-        void PopulateView(const wxString &models, int view);
-        void AddView(const wxString &viewName);
+        void SetTimingVisibility(const std::string& name);
+        void PopulateView(const std::string &models, int view);
+        void AddView(const std::string &viewName);
         void RemoveView(int view_index);
-        void AddViewToTimings(wxArrayString& timings, const wxString& name);
-        void AddTimingToAllViews(wxString& timing);
-        void AddTimingToView(wxString& timing, const wxString& name);
+        void AddViewToTimings(std::vector<std::string> & timings, const std::string& name);
+        void AddTimingToAllViews(const std::string& timing);
+        void AddTimingToView(const std::string& timing, const std::string& name);
 
-        void RenameModelInViews(const wxString& old_name, const wxString& new_name);
+        void RenameModelInViews(const std::string& old_name, const std::string& new_name);
 
-        void DeleteElement(const wxString &name);
-        void DeleteElementFromView(const wxString &name, int view);
-        void DeleteTimingFromView(const wxString &name, int view);
+        void DeleteElement(const std::string &name);
+        void DeleteElementFromView(const std::string &name, int view);
+        void DeleteTimingFromView(const std::string &name, int view);
 
         void PopulateRowInformation();
         void PopulateVisibleRowInformation();
@@ -101,8 +102,8 @@ class SequenceElements : public ChangeListener
         void SetSequenceEnd(int ms);
         int GetSequenceEnd();
         void ImportLyrics(Element* element, wxWindow* parent);
-        void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const wxString& phrase);
-        void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const wxString& word);
+        void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time, const std::string& phrase);
+        void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word);
 
         // Selected Ranges
         int GetSelectedRangeCount();
@@ -116,13 +117,13 @@ class SequenceElements : public ChangeListener
 
         int GetNumberOfTimingRows();
         int GetNumberOfTimingElements();
-        bool ElementExists(wxString elementName, int view = MASTER_VIEW);
+        bool ElementExists(const std::string &elementName, int view = MASTER_VIEW);
         bool TimingIsPartOfView(Element* timing, int view);
-        wxString GetViewName(int view);
+        std::string GetViewName(int view) const;
 
         void SetViewsNode(wxXmlNode* viewsNode);
         void SetModelsNode(wxXmlNode *modelsNode, xLightsFrame *frame);
-        wxString GetViewModels(wxString viewName);
+        std::string GetViewModels(const std::string &viewName) const;
         void SetEffectsNode(wxXmlNode* effectsNode);
         wxXmlNode* GetEffectsNode() { return mEffectsNode; }
 
@@ -151,7 +152,7 @@ class SequenceElements : public ChangeListener
         UndoManager& get_undo_mgr() { return undo_mgr; }
 
 
-        void AddRenderDependency(const wxString &layer, const wxString &model);
+        void AddRenderDependency(const std::string &layer, const std::string &model);
         bool GetElementsToRender(std::vector<Element *> &models);
     
         wxFileName &GetFileName() { return mFilename;}
@@ -159,10 +160,10 @@ class SequenceElements : public ChangeListener
     protected:
     private:
         void LoadEffects(EffectLayer *layer,
-                         const wxString &type,
+                         const std::string &type,
                          wxXmlNode *effectLayerNode,
-                         const std::vector<wxString> & effectStrings,
-                         const std::vector<wxString> & colorPalettes);
+                         const std::vector<std::string> & effectStrings,
+                         const std::vector<std::string> & colorPalettes);
         static bool SortElementsByIndex(const Element *element1,const Element *element2)
         {
             return (element1->GetIndex() < element2->GetIndex());
@@ -202,8 +203,8 @@ class SequenceElements : public ChangeListener
         int mChangeCount;
         UndoManager undo_mgr;
 
-        std::map<wxString, std::set<wxString>> renderDependency;
-        std::set<wxString> modelsToRender;
+        std::map<std::string, std::set<std::string>> renderDependency;
+        std::set<std::string> modelsToRender;
         wxMutex renderDepLock;
 };
 

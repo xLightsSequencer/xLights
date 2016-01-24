@@ -27,6 +27,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <string>
 #include <wx/xml/xml.h>
 #include <wx/gdicmn.h>
 #include <wx/colour.h>
@@ -68,7 +69,7 @@ private:
     void InitStar();
     void InitWreath();
     void InitSphere();
-    void InitWholeHouse(const wxString &data, bool zeroBased = false);
+    void InitWholeHouse(const std::string &data, bool zeroBased = false);
 
     void SetBufferSize(int NewHt, int NewWi);
     void SetRenderSize(int NewHt, int NewWi);
@@ -79,8 +80,8 @@ private:
     void SetLineCoord();
     void SetArchCoord();
     void SetCircleCoord();
-    int GetCustomMaxChannel(const wxString& customModel);
-    void InitCustomMatrix(const wxString& customModel);
+    int GetCustomMaxChannel(const std::string& customModel);
+    void InitCustomMatrix(const std::string& customModel);
     double toRadians(long degrees);
     long toDegrees(double radians);
     std::string GetNextName();
@@ -115,9 +116,9 @@ protected:
 
     xlColor customColor;
     std::vector<NodeBaseClassPtr> Nodes;
-    std::vector<wxString> strandNames;
-    std::vector<wxString> nodeNames;
-    wxString rgbOrder;
+    std::vector<std::string> strandNames;
+    std::vector<std::string> nodeNames;
+    std::string rgbOrder;
     long parm1;         /* Number of strings in the model or number of arches (except for frames & custom) */
     long parm2;         /* Number of nodes per string in the model or number of segments per arch (except for frames & custom) */
     long parm3;         /* Number of strands per string in the model or number of lights per arch segment (except for frames & custom) */
@@ -126,23 +127,23 @@ protected:
     bool SingleChannel;  // true for traditional single-color strings
     StartChannelVector_t stringStartChan;
     bool isBotToTop;
-    wxString StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
-    wxString DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
+    std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
+    std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
 
     friend class PixelBufferClass;
 public:
     ModelClass();
     virtual ~ModelClass();
 
-    wxString name;       // user-designated model name
+    std::string name;       // user-designated model name
     int BufferHt,BufferWi;  // size of the buffer
     int RenderHt,RenderWi;  // size of the rendered output
-    std::map<wxString, std::map<wxString, wxString> > faceInfo;
+    std::map<std::string, std::map<std::string, std::string> > faceInfo;
     DimmingCurve *modelDimmingCurve;
     bool MyDisplay;
     bool Selected=false;
     bool GroupSelected=false;
-    wxString ModelStartChannel;
+    std::string ModelStartChannel;
     NetInfoClass *ModelNetInfo;
     bool Overlapping=false;
     void SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBased=false);
@@ -159,7 +160,7 @@ public:
     int GetLastChannel();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml();
-    int GetNumberFromChannelString(wxString sc);
+    int GetNumberFromChannelString(std::string sc);
     wxCursor GetResizeCursor(int cornerIndex);
     void DisplayModelOnWindow(ModelPreview* preview, const xlColor *color =  NULL, bool allowSelected = true);
     void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
@@ -168,37 +169,37 @@ public:
     bool HitTest(ModelPreview* preview,int x,int y);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,
-                              std::vector<int>& actChannel,std::vector<wxString>& nodeTypes);
+                              std::vector<int>& actChannel,std::vector<std::string>& nodeTypes);
     void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
     bool CanRotate();
     void Rotate(int degrees);
-    const wxString& GetStringType(void) const { return StringType; }
-    const wxString& GetDisplayAs(void) const { return DisplayAs; }
+    const std::string& GetStringType(void) const { return StringType; }
+    const std::string& GetDisplayAs(void) const { return DisplayAs; }
     int NodesPerString();
     void SetModelCoord(int degrees);
     int CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y);
     int GetRotation();
     int ChannelsPerNode();
     int NodeStartChannel(size_t nodenum) const;
-    wxString NodeType(size_t nodenum) const;
+    std::string NodeType(size_t nodenum) const;
     int MapToNodeIndex(int strand, int node) const;
-	void SetModelStartChan(wxString start_channel);
-    int ChannelStringToNumber(wxString channel);
+	void SetModelStartChan(const std::string &start_channel);
+    int ChannelStringToNumber(std::string channel);
 
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
     xlColor GetNodeColor(size_t nodenum) const;
     wxChar GetChannelColorLetter(wxByte chidx);
 
-    wxString ChannelLayoutHtml();
+    std::string ChannelLayoutHtml();
 //    int FindChannelAt(int x, int y);
 //    wxSize GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink); //for pgo RenderFaces
     bool IsCustom(void);
     size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
-    static bool ParseFaceElement(const wxString& str, std::vector<wxPoint>& first_xy);
+    static bool ParseFaceElement(const std::string& str, std::vector<wxPoint>& first_xy);
 //    int FindChannelAtXY(int x, int y, const wxString& model);
-    wxString GetNodeXY(const wxString& nodenumstr);
-    wxString GetNodeXY(int nodeinx);
+    std::string GetNodeXY(const std::string& nodenumstr);
+    std::string GetNodeXY(int nodeinx);
 
     void GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts);
 
@@ -262,21 +263,21 @@ public:
     int GetCircleSize(int circleLayer) const {
         return circleSizes[circleLayer];
     }
-    wxString GetStrandName(int x, bool def = false) const {
+    std::string GetStrandName(int x, bool def = false) const {
         if (x < strandNames.size()) {
             return strandNames[x];
         }
         if (def) {
-            return wxString::Format("Strand %d", x + 1);
+            return wxString::Format("Strand %d", x + 1).ToStdString();
         }
         return "";
     }
-    wxString GetNodeName(int x, bool def = false) const {
+    std::string GetNodeName(int x, bool def = false) const {
         if (x < nodeNames.size()) {
             return nodeNames[x];
         }
         if (def) {
-            return wxString::Format("Node %d", x + 1);
+            return wxString::Format("Node %d", x + 1).ToStdString();
         }
         return "";
     }
@@ -289,26 +290,28 @@ public:
         ModelNode->DeleteAttribute(wxT("MyDisplay"));
         ModelNode->AddAttribute(wxT("MyDisplay"), NewValue ? wxT("1") : wxT("0"));
     }
-    static wxString StartChanAttrName(int idx)
+    static std::string StartChanAttrName(int idx)
     {
-        return wxString::Format(wxT("String%d"),idx+1);
+        return wxString::Format(wxT("String%d"),idx+1).ToStdString();
     }
     // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
-    static bool HasOneString(const wxString& DispAs)
+    static bool HasOneString(const std::string& DispAs)
     {
-        return (DispAs == wxT("Window Frame") || DispAs == wxT("Custom"));
+        return (DispAs == "Window Frame" || DispAs == "Custom");
     }
     // true for dumb strings and traditional strings
-    static bool HasSingleNode(const wxString& StrType)
+    static bool HasSingleNode(const std::string& StrType)
     {
-        return !StrType.EndsWith(wxT(" Nodes"));
+        static std::string Nodes(" Nodes");
+        if (Nodes.size() > StrType.size()) return false;
+        return !std::equal(Nodes.rbegin(), Nodes.rend(), StrType.rbegin());
     }
     // true for traditional strings
-    static bool HasSingleChannel(const wxString& StrType)
+    static bool HasSingleChannel(const std::string& StrType)
     {
         return GetNodeChannelCount(StrType) == 1;
     }
-    static int GetNodeChannelCount(const wxString & nodeType);
+    static int GetNodeChannelCount(const std::string & nodeType);
 
 };
 typedef std::unique_ptr<ModelClass> ModelClassPtr;

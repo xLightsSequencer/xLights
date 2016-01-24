@@ -75,7 +75,7 @@ wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const w
     std::vector<int> xPos;
     std::vector<int> yPos;
     std::vector<int> actChannel;
-    std::vector<wxString> nodeType;
+    std::vector<std::string> nodeType;
 
 
     wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
@@ -223,7 +223,7 @@ void xLightsFrame::SelectModel(wxString name)
             TextCtrlModelStartChannel->SetValue(m->ModelStartChannel);
             if (CheckBoxOverlap->GetValue()== true) {
                 foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
-                foundEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
+                foundEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2).ToStdString());
             }
             break;
         }
@@ -235,8 +235,8 @@ void xLightsFrame::SelectModel(wxString name)
             if (name.Cmp(ListBoxElementList->GetItemText(i)) != 0) {
                 ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
                 if (m != NULL) {
-                    int startChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,1));
-                    int endChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2));
+                    int startChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,1).ToStdString());
+                    int endChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2).ToStdString());
                     if ((startChan >= foundStart) && (endChan <= foundEnd)) {
                         m->Overlapping = true;
                     } else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
@@ -995,9 +995,9 @@ void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
         wxString oldName = node->GetAttribute("oldName", "");
         node->DeleteAttribute("oldName");
         if (oldName != "") {
-            Element* elem_to_rename = mSequenceElements.GetElement(oldName);
+            Element* elem_to_rename = mSequenceElements.GetElement(oldName.ToStdString());
             if( elem_to_rename != NULL ) {
-                elem_to_rename->SetName(node->GetAttribute("name"));
+                elem_to_rename->SetName(node->GetAttribute("name").ToStdString());
             }
         }
     }
@@ -1065,13 +1065,13 @@ void xLightsFrame::OnScaleImageCheckboxClick(wxCommandEvent& event)
 
 void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
 {
-	wxString newStartChannel = TextCtrlModelStartChannel->GetValue();
+    std::string newStartChannel = TextCtrlModelStartChannel->GetValue().ToStdString();
 	int sel = ListBoxElementList->GetFirstSelected();
 	if (sel == wxNOT_FOUND) return;
 	ModelClass* m = (ModelClass*)ListBoxElementList->GetItemData(sel);
 	wxString name = ListBoxElementList->GetItemText(sel);
-	int oldStart = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(sel,1));
-    int oldEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(sel,2));
+	int oldStart = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(sel,1).ToStdString());
+    int oldEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(sel,2).ToStdString());
     int newEnd = (m->GetNumberFromChannelString(newStartChannel) - oldStart) + oldEnd;
 	m->SetModelStartChan(newStartChannel);
 	for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
@@ -1114,7 +1114,7 @@ int wxCALLBACK SortElementsFunctionASC(wxIntPtr item1, wxIntPtr item2, wxIntPtr 
             return -1;
         return 0;
     } else {
-        return a->name.CmpNoCase(b->name);
+        return strcasecmp(a->name.c_str(), b->name.c_str());
     }
 	return 0;
 }

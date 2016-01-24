@@ -172,7 +172,7 @@ public:
     size_t GetColorCount();
     void SetAllowAlphaChannel(bool a) {allowAlpha = a;};
 
-    void SetState(int period, bool reset, const wxString& model_name);
+    void SetState(int period, bool reset, const std::string& model_name);
 
     void SetEffectDuration(int startMsec, int endMsec);
     void GetEffectPeriods( int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
@@ -237,7 +237,7 @@ public:
     xlColorVector tempbuf;
     PaletteClass palette;
 
-    wxString cur_model; //model currently in effect
+    std::string cur_model; //model currently in effect
 
     int curPeriod;
     int curEffStartPer;    /**< Start period of current effect. */
