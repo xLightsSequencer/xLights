@@ -218,7 +218,7 @@ void xLightsFrame::CreateDefaultEffectsXml()
     EffectsXml.SetRoot( root );
 }
 
-wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
+wxXmlNode* xLightsFrame::GetModelNode(const std::string& name)
 {
     wxXmlNode* e;
     for(e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
@@ -230,10 +230,10 @@ wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
     }
     return NULL;
 }
-wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const wxString &name) {
+wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const std::string &name) {
     wxXmlNode* element;
     std::vector<ModelClass*> models;
-    wxString modelString;
+    std::string modelString;
     for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
         if (e->GetName() == "modelGroup") {
             if (name == e->GetAttribute("name")) {
@@ -241,7 +241,7 @@ wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const wxString &name) {
                 modelString = e->GetAttribute("models");
                 wxArrayString modelNames = wxSplit(modelString, ',');
                 for (int x = 0; x < modelNames.size(); x++) {
-                    ModelClass *c = GetModelClass(modelNames[x]);
+                    ModelClass *c = GetModelClass(modelNames[x].ToStdString());
                     if (c != nullptr) {
                         models.push_back(c);
                     }
@@ -293,7 +293,7 @@ void xLightsFrame::ShowModelsDialog()
     EnableSequenceControls(true);
 }
 
-void xLightsFrame::RenameModelInViews(const wxString& old_name, const wxString& new_name)
+void xLightsFrame::RenameModelInViews(const std::string& old_name, const std::string& new_name)
 {
     // renames view in the rgbeffects xml node
     for(wxXmlNode* view=ViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
@@ -344,7 +344,7 @@ int wxCALLBACK MyCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr WXUNUS
 
 void xLightsFrame::UpdateModelsList()
 {
-    wxString name, start_channel;
+    std::string name, start_channel;
     int end_channel;
     wxArrayString model_names;
     ModelClass *model;
@@ -393,7 +393,7 @@ void xLightsFrame::UpdateModelsList()
                                     {
                                         long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
                                         start_channel = e->GetAttribute("StartChannel");
-                                        model->SetModelStartChan(start_channel.ToStdString());
+                                        model->SetModelStartChan(start_channel);
                                         wxString string_type = e->GetAttribute("StringType");
                                         int parm1 = wxAtoi(e->GetAttribute("parm1"));
                                         int parm2 = wxAtoi(e->GetAttribute("parm2"));
@@ -423,7 +423,7 @@ void xLightsFrame::UpdateModelsList()
             if (e->GetName() == "model")
             {
                 name=e->GetAttribute("name");
-                if (!name.IsEmpty())
+                if (!name.empty())
                 {
                     model=new ModelClass;
                     model->SetFromXml(e, NetInfo);
@@ -435,7 +435,7 @@ void xLightsFrame::UpdateModelsList()
                     {
                         long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
                         start_channel = e->GetAttribute("StartChannel");
-                        model->SetModelStartChan(start_channel.ToStdString());
+                        model->SetModelStartChan(start_channel);
                         wxString string_type = e->GetAttribute("StringType");
                         int parm1 = wxAtoi(e->GetAttribute("parm1"));
                         int parm2 = wxAtoi(e->GetAttribute("parm2"));

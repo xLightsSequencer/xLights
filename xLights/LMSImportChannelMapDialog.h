@@ -14,6 +14,7 @@
 //*)
 
 #include <map>
+#include <vector>
 #include "Color.h"
 
 class SequenceElements;
@@ -44,10 +45,11 @@ class LMSImportChannelMapDialog: public wxDialog
 
         SequenceElements *mSequenceElements;
         xLightsFrame * xlights;
-        wxArrayString channelNames;
-        std::map<wxString, xlColor> channelColors;
-        wxArrayString ccrNames;
-        wxArrayString modelNames;
+    
+        std::vector<std::string> channelNames;
+        std::map<std::string, xlColor> channelColors;
+        std::vector<std::string> ccrNames;
+        std::vector<std::string> modelNames;
 	protected:
 
 		//(*Identifiers(LMSImportChannelMapDialog)

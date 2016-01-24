@@ -122,7 +122,7 @@ void xLightsFrame::InitSequencer()
     sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 
-ModelClass *xLightsFrame::GetModelClass(const wxString& name) {
+ModelClass *xLightsFrame::GetModelClass(const std::string& name) {
     ModelClass *cls = AllModels[name].get();
     if (cls == nullptr) {
         wxXmlNode *model = GetModelNode(name);
@@ -140,7 +140,7 @@ ModelClass *xLightsFrame::GetModelClass(const wxString& name) {
     return cls;
 }
 
-bool xLightsFrame::InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
+bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
     ModelClass *model = GetModelClass(modelName);
     if (model->GetModelXml() == nullptr) {
         return false;
@@ -645,7 +645,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
 void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
-    wxString model = event.GetString();
+    std::string model = event.GetString().ToStdString();
     playModel = GetModelClass(model);
     if (playModel != nullptr
         && playType != PLAY_TYPE_MODEL) {
@@ -668,8 +668,7 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
 {
     if (playType == PLAY_TYPE_MODEL)
     {
-        wxString model = event.GetString();
-        playModel = GetModelClass(model);
+        playModel = GetModelClass(event.GetString().ToStdString());
     }
 }
 
@@ -1044,7 +1043,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
     sPreview2->Render(&SeqData[frame][0]);
 }
 
-void xLightsFrame::SetEffectControls(const wxString &modelName, const wxString &effectName, const SettingsMap &settings, const SettingsMap &palette) {
+void xLightsFrame::SetEffectControls(const std::string &modelName, const std::string &effectName, const SettingsMap &settings, const SettingsMap &palette) {
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
     if (modelName == "") {
         EffectsPanel1->SetDefaultEffectValues(nullptr, effectName);

@@ -578,7 +578,7 @@ private:
 
 
     Element *rowToRender;
-    wxString name;
+    std::string name;
     int startFrame;
     int endFrame;
     PixelBufferClass *mainBuffer;
@@ -743,7 +743,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 
 
 void xLightsFrame::ExportModel(wxCommandEvent &command) {
-    wxString model = command.GetString();
+     std::string model = command.GetString().ToStdString();
 
 
     SeqExportDialog dialog(this);
@@ -779,7 +779,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
     wxYield();
 
-    Element * el = mSequenceElements.GetElement(model.ToStdString());
+    Element * el = mSequenceElements.GetElement(model);
     NextRenderer wait;
     RenderJob *job = new RenderJob(el, SeqData, this, true);
     SequenceData *data = job->createExportBuffer();
