@@ -21,8 +21,13 @@
     along with xLights.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************/
 #include <cmath>
+#ifdef _MSC_VER
+	// required so M_PI will be defined by MSC
+	#define _USE_MATH_DEFINES
+	#include <math.h>
+#endif
 #include "RenderBuffer.h"
-#include "Effect.h"
+#include "sequencer/Effect.h"
 
 inline void unshare(wxObject &o) {
     if (o.GetRefData() != nullptr) {

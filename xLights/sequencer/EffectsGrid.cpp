@@ -12,7 +12,11 @@
 #else
  #include <GL/glu.h>
  #include <GL/gl.h>
- #include <GL/glut.h>
+ #ifdef _MSC_VER
+  #include "../GL/glut.h"
+ #else
+  #include <GL/glut.h>
+ #endif
 #endif
 
 #include  "RowHeading.h"
@@ -22,7 +26,7 @@
 #include "EffectLayer.h"
 #include "EffectDropTarget.h"
 #include "../DrawGLUtils.h"
-#include "RenderCommandEvent.h"
+#include "../RenderCommandEvent.h"
 #include "../BitmapCache.h"
 #include "../effects/RenderableEffect.h"
 

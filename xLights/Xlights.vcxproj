@@ -1,0 +1,554 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{48F219FA-C28E-457B-9A85-DC3A8F949F9B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Xlights</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Users\keith\Documents\wxWidgets-3.0.2\include;C:\Users\keith\Documents\wxWidgets-3.0.2\include\msvc;C:\Users\keith\Documents\vamp-plugin-sdk-2.6;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\keith\Documents\wxWidgets-3.0.2\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AddShowDialog.cpp" />
+    <ClCompile Include="BitmapCache.cpp" />
+    <ClCompile Include="ChannelLayoutDialog.cpp" />
+    <ClCompile Include="Color.cpp" />
+    <ClCompile Include="ColorPanel.cpp" />
+    <ClCompile Include="CurrentPreviewModels.cpp" />
+    <ClCompile Include="DataLayer.cpp" />
+    <ClCompile Include="DimmingCurve.cpp" />
+    <ClCompile Include="DimmingCurvePanel.cpp" />
+    <ClCompile Include="DisplayElementsPanel.cpp" />
+    <ClCompile Include="djdebug.cpp" />
+    <ClCompile Include="dlgPreviewSize.cpp" />
+    <ClCompile Include="DrawGLUtils.cpp" />
+    <ClCompile Include="E131Dialog.cpp" />
+    <ClCompile Include="EffectAssist.cpp" />
+    <ClCompile Include="EffectIconPanel.cpp" />
+    <ClCompile Include="EffectListDialog.cpp" />
+    <ClCompile Include="EffectsPanel.cpp" />
+    <ClCompile Include="effects\BarsEffect.cpp" />
+    <ClCompile Include="effects\BarsPanel.cpp" />
+    <ClCompile Include="effects\ButterflyEffect.cpp" />
+    <ClCompile Include="effects\ButterflyPanel.cpp" />
+    <ClCompile Include="effects\CirclesEffect.cpp" />
+    <ClCompile Include="effects\CirclesPanel.cpp" />
+    <ClCompile Include="effects\ColorWashEffect.cpp" />
+    <ClCompile Include="effects\ColorWashPanel.cpp" />
+    <ClCompile Include="effects\CurtainEffect.cpp" />
+    <ClCompile Include="effects\CurtainPanel.cpp" />
+    <ClCompile Include="effects\DMXEffect.cpp" />
+    <ClCompile Include="effects\DMXPanel.cpp" />
+    <ClCompile Include="effects\EffectManager.cpp" />
+    <ClCompile Include="effects\EffectPanelUtils.cpp" />
+    <ClCompile Include="effects\FacesEffect.cpp" />
+    <ClCompile Include="effects\FacesPanel.cpp" />
+    <ClCompile Include="effects\FanEffect.cpp" />
+    <ClCompile Include="effects\FanPanel.cpp" />
+    <ClCompile Include="effects\FireEffect.cpp" />
+    <ClCompile Include="effects\FirePanel.cpp" />
+    <ClCompile Include="effects\FireworksEffect.cpp" />
+    <ClCompile Include="effects\FireworksPanel.cpp" />
+    <ClCompile Include="effects\GalaxyEffect.cpp" />
+    <ClCompile Include="effects\GalaxyPanel.cpp" />
+    <ClCompile Include="effects\GarlandsEffect.cpp" />
+    <ClCompile Include="effects\GarlandsPanel.cpp" />
+    <ClCompile Include="effects\GlediatorEffect.cpp" />
+    <ClCompile Include="effects\GlediatorPanel.cpp" />
+    <ClCompile Include="effects\LifeEffect.cpp" />
+    <ClCompile Include="effects\LifePanel.cpp" />
+    <ClCompile Include="effects\LightningEffect.cpp" />
+    <ClCompile Include="effects\LightningPanel.cpp" />
+    <ClCompile Include="effects\MarqueeEffect.cpp" />
+    <ClCompile Include="effects\MarqueePanel.cpp" />
+    <ClCompile Include="effects\MeteorsEffect.cpp" />
+    <ClCompile Include="effects\MeteorsPanel.cpp" />
+    <ClCompile Include="effects\MorphEffect.cpp" />
+    <ClCompile Include="effects\MorphPanel.cpp" />
+    <ClCompile Include="effects\OffEffect.cpp" />
+    <ClCompile Include="effects\OffPanel.cpp" />
+    <ClCompile Include="effects\OnEffect.cpp" />
+    <ClCompile Include="effects\OnPanel.cpp" />
+    <ClCompile Include="effects\PianoEffect.cpp" />
+    <ClCompile Include="effects\PianoPanel.cpp" />
+    <ClCompile Include="effects\PicturesEffect.cpp" />
+    <ClCompile Include="effects\PicturesPanel.cpp" />
+    <ClCompile Include="effects\PinwheelEffect.cpp" />
+    <ClCompile Include="effects\PinwheelPanel.cpp" />
+    <ClCompile Include="effects\PlasmaEffect.cpp" />
+    <ClCompile Include="effects\PlasmaPanel.cpp" />
+    <ClCompile Include="effects\RenderableEffect.cpp" />
+    <ClCompile Include="effects\RippleEffect.cpp" />
+    <ClCompile Include="effects\RipplePanel.cpp" />
+    <ClCompile Include="effects\ShimmerEffect.cpp" />
+    <ClCompile Include="effects\ShimmerPanel.cpp" />
+    <ClCompile Include="effects\ShockwaveEffect.cpp" />
+    <ClCompile Include="effects\ShockwavePanel.cpp" />
+    <ClCompile Include="effects\SingleStrandEffect.cpp" />
+    <ClCompile Include="effects\SingleStrandPanel.cpp" />
+    <ClCompile Include="effects\SnowflakesEffect.cpp" />
+    <ClCompile Include="effects\SnowflakesPanel.cpp" />
+    <ClCompile Include="effects\SnowstormEffect.cpp" />
+    <ClCompile Include="effects\SnowstormPanel.cpp" />
+    <ClCompile Include="effects\SpiralsEffect.cpp" />
+    <ClCompile Include="effects\SpiralsPanel.cpp" />
+    <ClCompile Include="effects\SpirographEffect.cpp" />
+    <ClCompile Include="effects\SpirographPanel.cpp" />
+    <ClCompile Include="effects\StrobeEffect.cpp" />
+    <ClCompile Include="effects\StrobePanel.cpp" />
+    <ClCompile Include="effects\TendrilEffect.cpp" />
+    <ClCompile Include="effects\TendrilPanel.cpp" />
+    <ClCompile Include="effects\TextEffect.cpp" />
+    <ClCompile Include="effects\TextPanel.cpp" />
+    <ClCompile Include="effects\TreeEffect.cpp" />
+    <ClCompile Include="effects\TreePanel.cpp" />
+    <ClCompile Include="effects\TwinkleEffect.cpp" />
+    <ClCompile Include="effects\TwinklePanel.cpp" />
+    <ClCompile Include="effects\WaveEffect.cpp" />
+    <ClCompile Include="effects\WavePanel.cpp" />
+    <ClCompile Include="EffectTreeDialog.cpp" />
+    <ClCompile Include="ExportModelSelect.cpp" />
+    <ClCompile Include="FileConverter.cpp" />
+    <ClCompile Include="FlickerFreeBitmapButton.cpp" />
+    <ClCompile Include="heartbeat.cpp" />
+    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="Image_Loader.cpp" />
+    <ClCompile Include="JobPool.cpp" />
+    <ClCompile Include="KeyBindings.cpp" />
+    <ClCompile Include="LMSImportChannelMapDialog.cpp" />
+    <ClCompile Include="LorConvertDialog.cpp" />
+    <ClCompile Include="LyricsDialog.cpp" />
+    <ClCompile Include="ModelClass.cpp" />
+    <ClCompile Include="ModelDialog.cpp" />
+    <ClCompile Include="ModelDimmingCurveDialog.cpp" />
+    <ClCompile Include="ModelFaceDialog.cpp" />
+    <ClCompile Include="ModelListDialog.cpp" />
+    <ClCompile Include="ModelPreview.cpp" />
+    <ClCompile Include="models\ArchesModel.cpp" />
+    <ClCompile Include="models\Model.cpp" />
+    <ClCompile Include="models\ModelManager.cpp" />
+    <ClCompile Include="models\StarModel.cpp" />
+    <ClCompile Include="models\TreeModel.cpp" />
+    <ClCompile Include="ModelViewSelector.cpp" />
+    <ClCompile Include="NetInfo.cpp" />
+    <ClCompile Include="NewTimingDialog.cpp" />
+    <ClCompile Include="NullOutputDialog.cpp" />
+    <ClCompile Include="OptionChooser.cpp" />
+    <ClCompile Include="PaletteMgmtDialog.cpp" />
+    <ClCompile Include="PerspectivesPanel.cpp" />
+    <ClCompile Include="PhonemeDictionary.cpp" />
+    <ClCompile Include="PixelAppearanceDlg.cpp" />
+    <ClCompile Include="PixelBuffer.cpp" />
+    <ClCompile Include="PlaybackOptionsDialog.cpp" />
+    <ClCompile Include="PlayerFrame.cpp" />
+    <ClCompile Include="PreviewModels.cpp" />
+    <ClCompile Include="RenameTextDialog.cpp" />
+    <ClCompile Include="Render.cpp" />
+    <ClCompile Include="RenderBuffer.cpp" />
+    <ClCompile Include="ResizeImageDialog.cpp" />
+    <ClCompile Include="SaveChangesDialog.cpp" />
+    <ClCompile Include="SeqElementMismatchDialog.cpp" />
+    <ClCompile Include="SeqExportDialog.cpp" />
+    <ClCompile Include="SeqFileUtilities.cpp" />
+    <ClCompile Include="SeqSettingsDialog.cpp" />
+    <ClCompile Include="SequenceData.cpp" />
+    <ClCompile Include="sequencer\DragEffectBitmapButton.cpp" />
+    <ClCompile Include="sequencer\Effect.cpp" />
+    <ClCompile Include="sequencer\EffectDropTarget.cpp" />
+    <ClCompile Include="sequencer\EffectLayer.cpp" />
+    <ClCompile Include="sequencer\EffectsGrid.cpp" />
+    <ClCompile Include="sequencer\Element.cpp" />
+    <ClCompile Include="sequencer\MainSequencer.cpp" />
+    <ClCompile Include="sequencer\RowHeading.cpp" />
+    <ClCompile Include="sequencer\SequenceElements.cpp" />
+    <ClCompile Include="sequencer\tabSequencer.cpp" />
+    <ClCompile Include="sequencer\TimeLine.cpp" />
+    <ClCompile Include="sequencer\UndoManager.cpp" />
+    <ClCompile Include="sequencer\Waveform.cpp" />
+    <ClCompile Include="serial.cpp" />
+    <ClCompile Include="SerialPortWithRate.cpp" />
+    <ClCompile Include="ShowDatesDialog.cpp" />
+    <ClCompile Include="StrandNodeNamesDialog.cpp" />
+    <ClCompile Include="SuperStarImportDialog.cpp" />
+    <ClCompile Include="TabConvert.cpp" />
+    <ClCompile Include="TabPapagayo.cpp" />
+    <ClCompile Include="TabPreview.cpp" />
+    <ClCompile Include="TabSequence.cpp" />
+    <ClCompile Include="TabSetup.cpp" />
+    <ClCompile Include="TabTest.cpp" />
+    <ClCompile Include="TimingPanel.cpp" />
+    <ClCompile Include="tmGridCell.cpp" />
+    <ClCompile Include="TopEffectsPanel.cpp" />
+    <ClCompile Include="vamp-hostsdk\acsymbols.c" />
+    <ClCompile Include="vamp-hostsdk\FFT.cpp" />
+    <ClCompile Include="vamp-hostsdk\FFTimpl.cpp" />
+    <ClCompile Include="vamp-hostsdk\Files.cpp" />
+    <ClCompile Include="vamp-hostsdk\host-c.cpp" />
+    <ClCompile Include="vamp-hostsdk\PluginBufferingAdapter.cpp" />
+    <ClCompile Include="vamp-hostsdk\PluginChannelAdapter.cpp" />
+    <ClCompile Include="vamp-hostsdk\PluginHostAdapter.cpp" />
+    <ClCompile Include="vamp-hostsdk\PluginInputDomainAdapter.cpp" />
+    <ClCompile Include="vamp-hostsdk\PluginLoader.cpp" />
+    <ClCompile Include="vamp-hostsdk\PluginSummarisingAdapter.cpp" />
+    <ClCompile Include="vamp-hostsdk\PluginWrapper.cpp" />
+    <ClCompile Include="vamp-hostsdk\RealTime.cpp" />
+    <ClCompile Include="VAMPPluginDialog.cpp" />
+    <ClCompile Include="ViewsDialog.cpp" />
+    <ClCompile Include="WholeHouseModelNameDialog.cpp" />
+    <ClCompile Include="wxCheckedListCtrl.cpp" />
+    <ClCompile Include="xlColorCanvas.cpp" />
+    <ClCompile Include="xlColorPicker.cpp" />
+    <ClCompile Include="xlColorPickerFields.cpp" />
+    <ClCompile Include="xlGLCanvas.cpp" />
+    <ClCompile Include="xlGridCanvas.cpp" />
+    <ClCompile Include="xLightsApp.cpp" />
+    <ClCompile Include="XlightsDrawable.cpp" />
+    <ClCompile Include="xLightsXmlFile.cpp" />
+    <ClCompile Include="xlights_out.cpp" />
+    <ClCompile Include="xlSlider.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AddShowDialog.h" />
+    <ClInclude Include="BitmapCache.h" />
+    <ClInclude Include="ChannelLayoutDialog.h" />
+    <ClInclude Include="Color.h" />
+    <ClInclude Include="ColorPanel.h" />
+    <ClInclude Include="CurrentPreviewModels.h" />
+    <ClInclude Include="DataLayer.h" />
+    <ClInclude Include="DimmingCurve.h" />
+    <ClInclude Include="DimmingCurvePanel.h" />
+    <ClInclude Include="DisplayElementsPanel.h" />
+    <ClInclude Include="dlgPreviewSize.h" />
+    <ClInclude Include="DrawGLUtils.h" />
+    <ClInclude Include="E131Dialog.h" />
+    <ClInclude Include="EffectAssist.h" />
+    <ClInclude Include="EffectDialogv2.h" />
+    <ClInclude Include="EffectIconPanel.h" />
+    <ClInclude Include="EffectListDialog.h" />
+    <ClInclude Include="EffectsPanel.h" />
+    <ClInclude Include="effects\BarsEffect.h" />
+    <ClInclude Include="effects\BarsPanel.h" />
+    <ClInclude Include="effects\ButterflyEffect.h" />
+    <ClInclude Include="effects\ButterflyPanel.h" />
+    <ClInclude Include="effects\CirclesEffect.h" />
+    <ClInclude Include="effects\CirclesPanel.h" />
+    <ClInclude Include="effects\ColorWashEffect.h" />
+    <ClInclude Include="effects\ColorWashPanel.h" />
+    <ClInclude Include="effects\CurtainEffect.h" />
+    <ClInclude Include="effects\CurtainPanel.h" />
+    <ClInclude Include="effects\DMXEffect.h" />
+    <ClInclude Include="effects\DMXPanel.h" />
+    <ClInclude Include="effects\EffectManager.h" />
+    <ClInclude Include="effects\EffectPanelUtils.h" />
+    <ClInclude Include="effects\FacesEffect.h" />
+    <ClInclude Include="effects\FacesPanel.h" />
+    <ClInclude Include="effects\FanEffect.h" />
+    <ClInclude Include="effects\FanPanel.h" />
+    <ClInclude Include="effects\FireEffect.h" />
+    <ClInclude Include="effects\FirePanel.h" />
+    <ClInclude Include="effects\FireworksEffect.h" />
+    <ClInclude Include="effects\FireworksPanel.h" />
+    <ClInclude Include="effects\GalaxyEffect.h" />
+    <ClInclude Include="effects\GalaxyPanel.h" />
+    <ClInclude Include="effects\GarlandsEffect.h" />
+    <ClInclude Include="effects\GarlandsPanel.h" />
+    <ClInclude Include="effects\GlediatorEffect.h" />
+    <ClInclude Include="effects\GlediatorPanel.h" />
+    <ClInclude Include="effects\LifeEffect.h" />
+    <ClInclude Include="effects\LifePanel.h" />
+    <ClInclude Include="effects\LightningEffect.h" />
+    <ClInclude Include="effects\LightningPanel.h" />
+    <ClInclude Include="effects\MarqueeEffect.h" />
+    <ClInclude Include="effects\MarqueePanel.h" />
+    <ClInclude Include="effects\MeteorsEffect.h" />
+    <ClInclude Include="effects\MeteorsPanel.h" />
+    <ClInclude Include="effects\MorphEffect.h" />
+    <ClInclude Include="effects\MorphPanel.h" />
+    <ClInclude Include="effects\OffEffect.h" />
+    <ClInclude Include="effects\OffPanel.h" />
+    <ClInclude Include="effects\OnEffect.h" />
+    <ClInclude Include="effects\OnPanel.h" />
+    <ClInclude Include="effects\PianoEffect.h" />
+    <ClInclude Include="effects\PianoPanel.h" />
+    <ClInclude Include="effects\PicturesEffect.h" />
+    <ClInclude Include="effects\PicturesPanel.h" />
+    <ClInclude Include="effects\PinwheelEffect.h" />
+    <ClInclude Include="effects\PinwheelPanel.h" />
+    <ClInclude Include="effects\PlasmaEffect.h" />
+    <ClInclude Include="effects\PlasmaPanel.h" />
+    <ClInclude Include="effects\RenderableEffect.h" />
+    <ClInclude Include="effects\RippleEffect.h" />
+    <ClInclude Include="effects\RipplePanel.h" />
+    <ClInclude Include="effects\ShimmerEffect.h" />
+    <ClInclude Include="effects\ShimmerPanel.h" />
+    <ClInclude Include="effects\ShockwaveEffect.h" />
+    <ClInclude Include="effects\ShockwavePanel.h" />
+    <ClInclude Include="effects\SingleStrandEffect.h" />
+    <ClInclude Include="effects\SingleStrandPanel.h" />
+    <ClInclude Include="effects\SnowflakesEffect.h" />
+    <ClInclude Include="effects\SnowflakesPanel.h" />
+    <ClInclude Include="effects\SnowstormEffect.h" />
+    <ClInclude Include="effects\SnowstormPanel.h" />
+    <ClInclude Include="effects\SpiralsEffect.h" />
+    <ClInclude Include="effects\SpiralsPanel.h" />
+    <ClInclude Include="effects\SpirographEffect.h" />
+    <ClInclude Include="effects\SpirographPanel.h" />
+    <ClInclude Include="effects\StrobeEffect.h" />
+    <ClInclude Include="effects\StrobePanel.h" />
+    <ClInclude Include="effects\TendrilEffect.h" />
+    <ClInclude Include="effects\TendrilPanel.h" />
+    <ClInclude Include="effects\TextEffect.h" />
+    <ClInclude Include="effects\TextPanel.h" />
+    <ClInclude Include="effects\TreeEffect.h" />
+    <ClInclude Include="effects\TreePanel.h" />
+    <ClInclude Include="effects\TwinkleEffect.h" />
+    <ClInclude Include="effects\TwinklePanel.h" />
+    <ClInclude Include="effects\WaveEffect.h" />
+    <ClInclude Include="effects\WavePanel.h" />
+    <ClInclude Include="EffectTreeDialog.h" />
+    <ClInclude Include="ExportModelSelect.h" />
+    <ClInclude Include="FileConverter.h" />
+    <ClInclude Include="FlickerFreeBitmapButton.h" />
+    <ClInclude Include="heartbeat.h" />
+    <ClInclude Include="Image.h" />
+    <ClInclude Include="Images_png.h" />
+    <ClInclude Include="Image_Loader.h" />
+    <ClInclude Include="JobPool.h" />
+    <ClInclude Include="KeyBindings.h" />
+    <ClInclude Include="LMSImportChannelMapDialog.h" />
+    <ClInclude Include="LorConvertDialog.h" />
+    <ClInclude Include="LyricsDialog.h" />
+    <ClInclude Include="ModelClass.h" />
+    <ClInclude Include="ModelDialog.h" />
+    <ClInclude Include="ModelDimmingCurveDialog.h" />
+    <ClInclude Include="ModelFaceDialog.h" />
+    <ClInclude Include="ModelListDialog.h" />
+    <ClInclude Include="ModelPreview.h" />
+    <ClInclude Include="models\ArchesModel.h" />
+    <ClInclude Include="models\Model.h" />
+    <ClInclude Include="models\ModelManager.h" />
+    <ClInclude Include="models\Node.h" />
+    <ClInclude Include="models\StarModel.h" />
+    <ClInclude Include="models\TreeModel.h" />
+    <ClInclude Include="ModelViewSelector.h" />
+    <ClInclude Include="NetInfo.h" />
+    <ClInclude Include="NewTimingDialog.h" />
+    <ClInclude Include="NullOutputDialog.h" />
+    <ClInclude Include="OptionChooser.h" />
+    <ClInclude Include="osxMacUtils.h" />
+    <ClInclude Include="PaletteMgmtDialog.h" />
+    <ClInclude Include="PerspectivesPanel.h" />
+    <ClInclude Include="PhonemeDictionary.h" />
+    <ClInclude Include="PixelAppearanceDlg.h" />
+    <ClInclude Include="PixelBuffer.h" />
+    <ClInclude Include="PlaybackOptionsDialog.h" />
+    <ClInclude Include="PlayerFrame.h" />
+    <ClInclude Include="PreviewModels.h" />
+    <ClInclude Include="RenameTextDialog.h" />
+    <ClInclude Include="RenderBuffer.h" />
+    <ClInclude Include="RenderCommandEvent.h" />
+    <ClInclude Include="ResizeImageDialog.h" />
+    <ClInclude Include="SaveChangesDialog.h" />
+    <ClInclude Include="SeqElementMismatchDialog.h" />
+    <ClInclude Include="SeqExportDialog.h" />
+    <ClInclude Include="SeqSettingsDialog.h" />
+    <ClInclude Include="SequenceData.h" />
+    <ClInclude Include="sequencer\DragEffectBitmapButton.h" />
+    <ClInclude Include="sequencer\Effect.h" />
+    <ClInclude Include="sequencer\EffectDropTarget.h" />
+    <ClInclude Include="sequencer\EffectLayer.h" />
+    <ClInclude Include="sequencer\EffectsGrid.h" />
+    <ClInclude Include="sequencer\Element.h" />
+    <ClInclude Include="sequencer\ElementLayers.h" />
+    <ClInclude Include="sequencer\MainSequencer.h" />
+    <ClInclude Include="sequencer\mpg123.h" />
+    <ClInclude Include="sequencer\RowHeading.h" />
+    <ClInclude Include="sequencer\SequenceElements.h" />
+    <ClInclude Include="sequencer\TimeLine.h" />
+    <ClInclude Include="sequencer\UndoManager.h" />
+    <ClInclude Include="sequencer\Waveform.h" />
+    <ClInclude Include="serial.h" />
+    <ClInclude Include="SerialPortWithRate.h" />
+    <ClInclude Include="ShowDatesDialog.h" />
+    <ClInclude Include="StrandNodeNamesDialog.h" />
+    <ClInclude Include="SuperStarImportDialog.h" />
+    <ClInclude Include="TimingPanel.h" />
+    <ClInclude Include="tmGridCell.h" />
+    <ClInclude Include="TopEffectsPanel.h" />
+    <ClInclude Include="UtilClasses.h" />
+    <ClInclude Include="vamp-hostsdk\Files.h" />
+    <ClInclude Include="vamp-hostsdk\host-c.h" />
+    <ClInclude Include="vamp-hostsdk\hostguard.h" />
+    <ClInclude Include="vamp-hostsdk\plugguard.h" />
+    <ClInclude Include="vamp-hostsdk\Plugin.h" />
+    <ClInclude Include="vamp-hostsdk\Plugin2.h" />
+    <ClInclude Include="vamp-hostsdk\PluginBase.h" />
+    <ClInclude Include="vamp-hostsdk\PluginBase2.h" />
+    <ClInclude Include="vamp-hostsdk\PluginBufferingAdapter.h" />
+    <ClInclude Include="vamp-hostsdk\PluginChannelAdapter.h" />
+    <ClInclude Include="vamp-hostsdk\PluginHostAdapter.h" />
+    <ClInclude Include="vamp-hostsdk\PluginInputDomainAdapter.h" />
+    <ClInclude Include="vamp-hostsdk\PluginLoader.h" />
+    <ClInclude Include="vamp-hostsdk\PluginSummarisingAdapter.h" />
+    <ClInclude Include="vamp-hostsdk\PluginWrapper.h" />
+    <ClInclude Include="vamp-hostsdk\RealTime.h" />
+    <ClInclude Include="vamp-hostsdk\RealTime2.h" />
+    <ClInclude Include="vamp-hostsdk\vamp-hostsdk.h" />
+    <ClInclude Include="vamp-hostsdk\vamp.h" />
+    <ClInclude Include="vamp-hostsdk\Window.h" />
+    <ClInclude Include="VAMPPluginDialog.h" />
+    <ClInclude Include="ViewsDialog.h" />
+    <ClInclude Include="WholeHouseModelNameDialog.h" />
+    <ClInclude Include="wininet.h" />
+    <ClInclude Include="wxCheckedListCtrl.h" />
+    <ClInclude Include="xlColorCanvas.h" />
+    <ClInclude Include="xlColorPicker.h" />
+    <ClInclude Include="xlColorPickerFields.h" />
+    <ClInclude Include="xlGLCanvas.h" />
+    <ClInclude Include="xlGridCanvas.h" />
+    <ClInclude Include="xLightsApp.h" />
+    <ClInclude Include="XlightsDrawable.h" />
+    <ClInclude Include="xLightsMain.h" />
+    <ClInclude Include="xLightsXmlFile.h" />
+    <ClInclude Include="xlights_out.h" />
+    <ClInclude Include="xlSlider.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

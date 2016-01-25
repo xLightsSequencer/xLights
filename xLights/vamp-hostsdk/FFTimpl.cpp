@@ -1,5 +1,11 @@
 
 /* Public domain FFT implementation from Don Cross. */
+#ifdef _MSC_VER
+ // required so M_PI will be defined by MSC
+ #define _USE_MATH_DEFINES
+ #include <math.h>
+ #include <malloc.h>
+#endif
 
 static void
 fft(unsigned int n, bool inverse,

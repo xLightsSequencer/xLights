@@ -41,6 +41,11 @@
 
 #include <cmath>
 #include <cstdlib>
+#ifdef _MSC_VER
+ // required so M_PI will be defined by MSC
+ #define _USE_MATH_DEFINES
+ #include <math.h>
+#endif
 
 _VAMP_SDK_HOSTSPACE_BEGIN(Window.h)
 
