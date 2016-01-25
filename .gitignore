@@ -16,3 +16,4 @@ build
 *.opendb
 *.exp
 xLights/Debug/
+xLights/Release/
