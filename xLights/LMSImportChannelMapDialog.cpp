@@ -1,5 +1,5 @@
 #include "LMSImportChannelMapDialog.h"
-#include "SequenceElements.h"
+#include "sequencer/SequenceElements.h"
 #include "xLightsMain.h"
 #include "ModelClass.h"
 

@@ -4,7 +4,7 @@
 #include "wx/brush.h"
 #include "../xLightsMain.h"
 #include "EffectDropTarget.h"
-#include "BitmapCache.h"
+#include "../BitmapCache.h"
 #include "TimeLine.h"
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)

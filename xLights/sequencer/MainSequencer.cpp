@@ -1,6 +1,6 @@
 
 #include "MainSequencer.h"
-#include "RenderCommandEvent.h"
+#include "../RenderCommandEvent.h"
 #include "TimeLine.h"
 #include <wx/event.h>
 #include <wx/clipbrd.h>

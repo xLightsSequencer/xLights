@@ -1,5 +1,6 @@
 #include "Element.h"
-#include "ModelClass.h"
+#include "../ModelClass.h"
+
 Element::Element(SequenceElements *l, const std::string &name, const std::string &type,bool visible,bool collapsed, bool active, bool selected)
 :   mEffectLayers(),
     mName(name),

@@ -161,7 +161,7 @@ void xlGLCanvas::SetCurrentGLContext() {
 
 #ifdef __WXMSW__
 bool xlGLCanvas::SwapBuffers() {
-    m_context->SwapBuffers();
+    return m_context->SwapBuffers();
 }
 #endif
 

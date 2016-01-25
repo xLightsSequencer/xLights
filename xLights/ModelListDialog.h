@@ -12,7 +12,7 @@
 
 #include <wx/html/htmprint.h>
 #include "ModelClass.h"
-#include "SequenceElements.h"
+#include "sequencer/SequenceElements.h"
 
 class xLightsFrame;
 

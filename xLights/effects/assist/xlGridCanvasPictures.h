@@ -2,10 +2,10 @@
 #define XLGRIDCANVASPICTURES_H
 
 #include "wx/wx.h"
-#include "xlGridCanvas.h"
-#include "Effect.h"
-#include "Image.h"
-#include "XlightsDrawable.h"
+#include "../../xlGridCanvas.h"
+#include "../../sequencer/Effect.h"
+#include "../Image.h"
+#include "../XlightsDrawable.h"
 
 wxDECLARE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMAGE_FILE_SELECTED, wxCommandEvent);

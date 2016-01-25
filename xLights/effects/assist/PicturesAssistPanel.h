@@ -9,9 +9,9 @@
 #include <wx/button.h>
 //*)
 
-#include "FlickerFreeBitmapButton.h"
-#include "effects/assist/xlGridCanvasPictures.h"
-#include "Effect.h"
+#include "../../FlickerFreeBitmapButton.h"
+#include "xlGridCanvasPictures.h"
+#include "../../sequencer/Effect.h"
 
 class xlColorPicker;
 class xLightsFrame;

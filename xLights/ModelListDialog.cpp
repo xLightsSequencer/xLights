@@ -1,7 +1,7 @@
 #include "ModelListDialog.h"
 #include "ModelDialog.h"
 #include "ChannelLayoutDialog.h"
-#include "Element.h"
+#include "sequencer/Element.h"
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
 #include <wx/textdlg.h>

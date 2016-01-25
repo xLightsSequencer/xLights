@@ -12,7 +12,7 @@
 #include <wx/slider.h>
 #include <wx/progdlg.h>
 
-#include "mpg123.h"
+#include "sequencer/mpg123.h"
 
 
 //(*IdInit(VAMPPluginDialog)

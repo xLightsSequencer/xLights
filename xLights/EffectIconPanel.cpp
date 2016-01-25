@@ -1,5 +1,5 @@
 #include "EffectIconPanel.h"
-#include "DragEffectBitmapButton.h"
+#include "sequencer/DragEffectBitmapButton.h"
 #include "BitmapCache.h"
 
 //(*InternalHeaders(EffectIconPanel)

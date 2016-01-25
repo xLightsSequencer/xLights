@@ -1,5 +1,6 @@
 #include "xlColorCanvas.h"
 #include "DrawGLUtils.h"
+#include <algorithm>
 
 BEGIN_EVENT_TABLE(xlColorCanvas, xlGLCanvas)
 EVT_PAINT(xlColorCanvas::render)

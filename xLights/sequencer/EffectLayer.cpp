@@ -4,7 +4,7 @@
 #include "EffectsGrid.h"
 #include "Effect.h"
 #include "RowHeading.h"
-#include "ModelClass.h"
+#include "../ModelClass.h"
 
 
 std::atomic_int EffectLayer::exclusive_index(0);

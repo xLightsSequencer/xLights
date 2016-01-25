@@ -13,8 +13,9 @@
 #include <string>
 #include <cmath>
 #include <memory>
+#include <algorithm>
 
-#include <../Color.h>
+#include "../Color.h"
 
 #include <wx/string.h>
 
@@ -271,14 +272,14 @@ public:
 
     virtual void GetColor(xlColor& color)
     {
-        uint8_t cmin=std::min(c[0],std::min(c[1],c[2]));
+        uint8_t cmin =  std::min(c[0], std::min(c[1],c[2]));
         color.Set(cmin,cmin,cmin);
     }
     virtual void SetFromChannels(const unsigned char *buf) {
         c[0] = c[1] = c[2] = buf[0];
     }
     virtual void GetForChannels(unsigned char *buf) {
-        buf[0] = std::min(c[0],std::min(c[1],c[2]));
+        buf[0] = std::min(c[0], std::min(c[1],c[2]));
     }
     virtual std::string GetNodeType() {
         return "W";

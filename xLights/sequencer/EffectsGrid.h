@@ -8,14 +8,14 @@
 
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
-#include "xlGLCanvas.h"
-#include "Color.h"
+#include "../xlGLCanvas.h"
+#include "../Color.h"
 #include "SequenceElements.h"
 #include "TimeLine.h"
 #include "EffectLayer.h"
 #include "Effect.h"
 #include "Element.h"
-#include "EffectTreeDialog.h"
+#include "../EffectTreeDialog.h"
 
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 

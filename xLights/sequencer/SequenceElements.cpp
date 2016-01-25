@@ -6,8 +6,8 @@
 
 #include "SequenceElements.h"
 #include "TimeLine.h"
-#include "xLightsMain.h"
-#include "LyricsDialog.h"
+#include "../xLightsMain.h"
+#include "../LyricsDialog.h"
 #include "../xLightsXmlFile.h"
 
 

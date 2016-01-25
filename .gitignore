@@ -10,3 +10,6 @@ xcuserdata
 xcshareddata
 build
 .DS_Store
+*.tlog
+*.idb
+*.sdf

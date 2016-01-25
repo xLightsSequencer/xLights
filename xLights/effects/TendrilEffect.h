@@ -2,7 +2,7 @@
 #define TENDRILEFFECT_H
 
 #include "RenderableEffect.h"
-#include "RenderBuffer.h"
+#include "../RenderBuffer.h"
 #include <string>
 #include <list>
 #include <wx/gdicmn.h>

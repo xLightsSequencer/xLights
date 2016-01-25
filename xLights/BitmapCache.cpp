@@ -9,8 +9,8 @@
 #include <map>
 #include "BitmapCache.h"
 
-#include "../../include/padlock16x16-blue.xpm"
-#include "../../include/padlock16x16-red.xpm"
+#include "../include/padlock16x16-blue.xpm"
+#include "../include/padlock16x16-red.xpm"
 
 
 

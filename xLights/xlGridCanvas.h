@@ -3,7 +3,7 @@
 
 #include "wx/wx.h"
 #include "xlGLCanvas.h"
-#include "Effect.h"
+#include "sequencer/Effect.h"
 #include "Image.h"
 #include "XlightsDrawable.h"
 

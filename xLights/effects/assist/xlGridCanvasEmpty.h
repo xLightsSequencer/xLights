@@ -2,8 +2,8 @@
 #define XLGRIDCANVASEMPTY_H
 
 #include "wx/wx.h"
-#include "xlGridCanvas.h"
-#include "Effect.h"
+#include "../../xlGridCanvas.h"
+#include "../../sequencer/Effect.h"
 
 class xlGridCanvasEmpty : public xlGridCanvas
 {

@@ -6,7 +6,7 @@
 #include <wx/panel.h>
 //*)
 
-#include "DragEffectBitmapButton.h"
+#include "sequencer/DragEffectBitmapButton.h"
 class EffectManager;
 
 class EffectIconPanel: public wxPanel

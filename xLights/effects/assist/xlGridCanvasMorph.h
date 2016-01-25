@@ -2,8 +2,8 @@
 #define XLGRIDCANVASMORPH_H
 
 #include "wx/wx.h"
-#include "xlGridCanvas.h"
-#include "Effect.h"
+#include "../../xlGridCanvas.h"
+#include "../../sequencer/Effect.h"
 
 wxDECLARE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 

@@ -3,7 +3,7 @@
 
 #include "wx/wx.h"
 
-#include "xlGLCanvas.h"
+#include "../xlGLCanvas.h"
 #include "mpg123.h"
 #include <vector>
 #include <string>

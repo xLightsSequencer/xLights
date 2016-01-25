@@ -2,7 +2,7 @@
 #include "xLightsMain.h"
 #include "effects/EffectManager.h"
 #include "effects/assist/xlGridCanvasEmpty.h"
-#include "../xLightsXmlFile.h"
+#include "xLightsXmlFile.h"
 
 //(*InternalHeaders(EffectAssist)
 #include <wx/intl.h>

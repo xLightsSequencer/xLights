@@ -1,4 +1,5 @@
 #include "xlColorPickerFields.h"
+#include <algorithm>
 
 //(*InternalHeaders(xlColorPickerFields)
 #include <wx/font.h>
