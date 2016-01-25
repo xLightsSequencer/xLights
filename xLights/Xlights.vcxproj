@@ -71,8 +71,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\keith\Documents\wxWidgets-3.0.2\include;C:\Users\keith\Documents\wxWidgets-3.0.2\include\msvc;C:\Users\keith\Documents\vamp-plugin-sdk-2.6;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\keith\Documents\wxWidgets-3.0.2\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\wxWidgets-3.0.2\include;..\..\wxWidgets-3.0.2\include\msvc;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\wxWidgets-3.0.2\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -554,6 +554,9 @@
     <ClInclude Include="xLightsXmlFile.h" />
     <ClInclude Include="xlights_out.h" />
     <ClInclude Include="xlSlider.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\wxWidgets-3.0.2\include\wx\msw\wx.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
