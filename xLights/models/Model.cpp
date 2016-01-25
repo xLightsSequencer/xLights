@@ -1993,6 +1993,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     if(success) {
         // layer calculation and map to output
         size_t NodeCount=Nodes.size();
+        DrawGLUtils::PreAlloc(NodeCount);
         double sx,sy;
         bool started = false;
         int first = 0; int last = NodeCount;

@@ -79,6 +79,7 @@ int NetInfoClass::GetTotChannels()
 void NetInfoClass::GetAllChannelNames(wxArrayString& names)
 {
     int ChNum=0;
+    names.reserve(GetTotChannels());
     for(size_t NetNum=0; NetNum < NetMaxChannel.size(); NetNum++)
     {
         for(size_t NetCh=0; NetCh < NetMaxChannel[NetNum]; NetCh++)
