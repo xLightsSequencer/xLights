@@ -118,6 +118,14 @@ LMSImportChannelMapDialog::~LMSImportChannelMapDialog()
 	//*)
 }
 
+
+static wxArrayString Convert(const std::vector<std::string> arr) {
+    wxArrayString ret;
+    for (auto it = arr.begin(); it != arr.end(); it++) {
+        ret.push_back(*it);
+    }
+    return ret;
+}
 void LMSImportChannelMapDialog::Init() {
     for (int i=0;i<mSequenceElements->GetElementCount();i++) {
         if (mSequenceElements->GetElement(i)->GetType() == "model") {
@@ -133,7 +141,7 @@ void LMSImportChannelMapDialog::Init() {
     ChannelMapGrid->SetColSize(4, sz / 2);
     ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     ChannelMapGrid->SetRowLabelSize(0);
-    wxGridCellChoiceEditor *editor = new wxGridCellChoiceEditor(MapByStrand->GetValue() ? ccrNames : channelNames);
+    wxGridCellChoiceEditor *editor = new wxGridCellChoiceEditor(Convert(MapByStrand->GetValue() ? ccrNames : channelNames));
     ChannelMapGrid->SetDefaultEditor(editor);
 }
 
@@ -157,11 +165,10 @@ void LMSImportChannelMapDialog::SetupByStrand() {
 }
 
 
-
 void LMSImportChannelMapDialog::OnMapByStrandClick(wxCommandEvent& event)
 {
     ChannelMapGrid->BeginBatch();
-    wxGridCellChoiceEditor *editor = new wxGridCellChoiceEditor(MapByStrand->GetValue() ? ccrNames : channelNames);
+    wxGridCellChoiceEditor *editor = new wxGridCellChoiceEditor(Convert(MapByStrand->GetValue() ? ccrNames : channelNames));
     ChannelMapGrid->SetDefaultEditor(editor);
     if (MapByStrand->GetValue()) {
         SetupByStrand();
@@ -210,7 +217,7 @@ void LMSImportChannelMapDialog::AddModel(ModelClass &cls) {
 
 void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
 {
-    wxString name = ModelsChoice->GetStringSelection();
+    std::string name = ModelsChoice->GetStringSelection().ToStdString();
     if (name == "") {
         return;
     }
@@ -235,7 +242,7 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
 {
     int row = event.GetRow();
     int col = event.GetCol();
-    wxString s = ChannelMapGrid->GetCellValue(row, col);
+    std::string s = ChannelMapGrid->GetCellValue(row, col).ToStdString();
     ChannelMapGrid->SetCellBackgroundColour(row, 4, channelColors[s].asWxColor());
     MapByStrand->Enable(false);
     ChannelMapGrid->Refresh();
@@ -291,7 +298,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
         int count = wxAtoi(text.ReadLine());
         modelNames.clear();
         for (int x = 0; x < count; x++) {
-            wxString mn = text.ReadLine();
+            std::string mn = text.ReadLine().ToStdString();
             int idx = ModelsChoice->FindString(mn);
             if (idx == wxNOT_FOUND) {
                 wxMessageBox("Model " + mn + " not part of sequence.  Not mapping channels to this model.", "", wxICON_WARNING | wxOK , this);
@@ -315,7 +322,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             wxString mapping = FindTab(line);
             xlColor color(FindTab(line));
 
-            if (modelNames.Index(model) != wxNOT_FOUND) {
+            if (std::find(modelNames.begin(), modelNames.end(), model.ToStdString()) != modelNames.end()) {
                 while (model != ChannelMapGrid->GetCellValue(r, 0)
                        && r < ChannelMapGrid->GetNumberRows()) {
                     r++;

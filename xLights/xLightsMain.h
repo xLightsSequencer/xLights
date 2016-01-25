@@ -328,7 +328,7 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(const wxString &modelName, const wxString &name, const SettingsMap &settings, const SettingsMap &palette);
+    void SetEffectControls(const std::string &modelName, const std::string &name, const SettingsMap &settings, const SettingsMap &palette);
     void SetEffectControls(const SettingsMap &settings);
     bool SaveEffectsFile();
     void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }
@@ -1379,7 +1379,7 @@ private:
     void ChooseModelsForSequence();
     void GetGridColumnLabels(wxArrayString& a);
     void GetModelNames(wxArrayString& a, bool includeGroups = false);
-    wxXmlNode* CreateModelNodeFromGroup(const wxString &name);
+    wxXmlNode* CreateModelNodeFromGroup(const std::string &name);
     void DisplayXlightsFilename(const wxString& filename);
     void CopyRow(int row1, int row2);
     void NumericSort();
@@ -1396,9 +1396,9 @@ private:
 
 
 public:
-    wxXmlNode* GetModelNode(const wxString& name);
-    bool InitPixelBuffer(const wxString &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
-    ModelClass *GetModelClass(const wxString& name);
+    wxXmlNode* GetModelNode(const std::string& name);
+    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
+    ModelClass *GetModelClass(const std::string& name);
     void RenderGridToSeqData();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
@@ -1423,7 +1423,7 @@ public:
     wxXmlNode* CreateEffectNode(wxString& name);
     void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data);
-    void RenameModelInViews(const wxString& old_name, const wxString& new_name);
+    void RenameModelInViews(const std::string& old_name, const std::string& new_name);
 
     void SetSequenceEnd(int ms);
     void UpdateRenderMode();
@@ -1445,7 +1445,7 @@ protected:
     bool CloseSequence();
     void InsertRow();
     void UpdatePreview();
-    wxXmlNode *BuildWholeHouseModel(const wxString &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models);
+    wxXmlNode *BuildWholeHouseModel(const std::string &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models);
     void ShowModelsDialog();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
@@ -1464,7 +1464,7 @@ protected:
     void PgoGridCellSelect(int row, int col, int where);
     void PreviewRotationUpdated(int newRotation);
     int FindModelsClicked(int x,int y,wxArrayInt* found);
-    void SelectModel(wxString name);
+    void SelectModel(const std::string &name);
     bool SelectSingleModel(int x,int y);
     bool SelectMultipleModels(int x,int y);
     void SetSelectedModelToGroupSelected();
@@ -1633,7 +1633,7 @@ protected:
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
 public:
     static std::vector<ModelClass *> PreviewModels;
-    static std::map<wxString, ModelClassPtr> AllModels; //make public and static for easier access -DJ
+    static std::map<std::string, ModelClassPtr> AllModels; //make public and static for easier access -DJ
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
 
     wxString GetSeqXmlFileName();

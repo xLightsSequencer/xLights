@@ -1,4 +1,4 @@
-﻿xLights is a program that allows you to play the sequence files from Vixen and
+xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler.
 Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches.
 
@@ -7,8 +7,12 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp) Refactor Effect rendering code to make it easier to create new effects
+    -- enh(dkulp) Update Linux Text effect to render on background thread
+    -- bug(dkulp) Linux toolbar buttons sizing problem and buttons on effect panel
+    -- enh(dkulp) Plasma/Butterfly/Meteors render performance enhancements
     -- enh(keithsw) Add tendrils effect. Also includes introduction of GraphicsContext. Builders please see README.Windows for rebuild instructions.
-	-- enh(keithsw) Add natural snowfall without accumulating to the snowflakes effect
+    -- enh(keithsw) Add natural snowfall without accumulating to the snowflakes effect
 4.3.02  Jan 8, 2016
     -- enh(gil)   Add copy/paste tool to the Picture Effect Assist window.
 4.3.01  Jan 3, 2016

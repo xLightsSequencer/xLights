@@ -2498,7 +2498,7 @@ wxString xLightsFrame::CurrentDir = "";
 wxString xLightsFrame::PlaybackMarker = "";
 wxString xLightsFrame::xlightsFilename = "";
 std::vector<ModelClass*> xLightsFrame::PreviewModels;
-std::map<wxString, ModelClassPtr> xLightsFrame::AllModels;
+std::map<std::string, ModelClassPtr> xLightsFrame::AllModels;
 xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = NULL;
 
 void xLightsFrame::OnButtonSaveScheduleClick(wxCommandEvent& event)

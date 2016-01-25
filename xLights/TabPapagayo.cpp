@@ -2697,7 +2697,7 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
 //            }
             AddNonDupAttr(voice, Name, voice_model); //NOTE: should not be blank
 //            if (voice_model.empty()) continue;
-            ModelClass* model_info = (outmode == 'c')? xLightsFrame::AllModels[voice_model].get(): 0; //only need parsed model info for Coro faces
+            ModelClass* model_info = (outmode == 'c')? xLightsFrame::AllModels[voice_model.ToStdString()].get(): 0; //only need parsed model info for Coro faces
             AddNonDupAttr(voice, wxT("Outline"), addxy(model_info, "outline", GridCoroFaces->GetCellValue(Outline_Row, c)));
             if (outmode != 'a')
             {

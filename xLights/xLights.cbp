@@ -311,7 +311,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 " />
+					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 -lX11" />
 					<Add option="`wx-config --version=3.0 --libs std,media,gl,aui`" />
 				</Linker>
 			</Target>

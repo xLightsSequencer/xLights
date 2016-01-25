@@ -61,7 +61,7 @@ void xLightsFrame::UpdatePreview()
     modelPreview->EndDrawing();
 }
 
-wxXmlNode *xLightsFrame::BuildWholeHouseModel(const wxString &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models)
+wxXmlNode *xLightsFrame::BuildWholeHouseModel(const std::string &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models)
 {
     size_t numberOfNodes=0;
     int w,h;
@@ -189,16 +189,16 @@ void xLightsFrame::OnListBoxElementListItemSelect(wxListEvent& event)
     UnSelectAllModels();
     int sel = ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND) return;
-    SelectModel(ListBoxElementList->GetItemText(sel));
+    SelectModel(ListBoxElementList->GetItemText(sel).ToStdString());
 }
 
-void xLightsFrame::SelectModel(wxString name)
+void xLightsFrame::SelectModel(const std::string & name)
 {
 	int foundStart = 0;
 	int foundEnd = 0;
 	for(int i=0;i<ListBoxElementList->GetItemCount();i++)
     {
-        if (name.Cmp(ListBoxElementList->GetItemText(i)) == 0)
+        if (name == ListBoxElementList->GetItemText(i))
         {
             if (ListBoxElementList->GetItemState(i, wxLIST_STATE_SELECTED) == false) {
                 ListBoxElementList->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
@@ -232,7 +232,7 @@ void xLightsFrame::SelectModel(wxString name)
     if (CheckBoxOverlap->GetValue()) {
         for(int i=0;i<ListBoxElementList->GetItemCount();i++)
         {
-            if (name.Cmp(ListBoxElementList->GetItemText(i)) != 0) {
+            if (name != ListBoxElementList->GetItemText(i)) {
                 ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
                 if (m != NULL) {
                     int startChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,1).ToStdString());
