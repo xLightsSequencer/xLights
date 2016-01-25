@@ -3,8 +3,12 @@
  #include "OpenGL/gl.h"
 #else
 // #define GLEW_STATIC
- #include <GL/glu.h>
- #include <GL/gl.h>
+#ifdef _MSC_VER
+#include "../GL/glut.h"
+#else
+#include <GL/glu.h>
+#include <GL/gl.h>
+#endif
 // #include <GL/glext.h>
 #endif
 
@@ -29,7 +33,7 @@
 #include "TimeLine.h"
 #include <wx/file.h>
 
-#include "DrawGLUtils.h"
+#include "../DrawGLUtils.h"
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 
