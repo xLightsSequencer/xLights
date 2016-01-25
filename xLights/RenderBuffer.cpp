@@ -29,6 +29,11 @@
 #include "RenderBuffer.h"
 #include "sequencer/Effect.h"
 
+EffectRenderCache::EffectRenderCache() {}
+EffectRenderCache::~EffectRenderCache() {}
+void RenderBuffer::SetAllowAlphaChannel(bool a) { allowAlpha = a; }
+void RenderBuffer::SetFrameTimeInMs(int i) { frameTimeInMs = i; }
+
 inline void unshare(wxObject &o) {
     if (o.GetRefData() != nullptr) {
         o.UnShare();

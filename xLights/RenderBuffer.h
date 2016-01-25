@@ -154,10 +154,10 @@ public:
     }
 };
 
-class NCCDLLEXPORT EffectRenderCache {
+class /*NCCDLLEXPORT*/ EffectRenderCache {
 public:
-    EffectRenderCache() {}
-    virtual ~EffectRenderCache() {}
+	EffectRenderCache();
+	virtual ~EffectRenderCache();
 };
 
 class NCCDLLEXPORT RenderBuffer {
@@ -171,13 +171,13 @@ public:
     void Clear(const xlColor& bgColor);
     void SetPalette(xlColorVector& newcolors);
     size_t GetColorCount();
-    void SetAllowAlphaChannel(bool a) {allowAlpha = a;};
+	void SetAllowAlphaChannel(bool a);
 
     void SetState(int period, bool reset, const std::string& model_name);
 
     void SetEffectDuration(int startMsec, int endMsec);
     void GetEffectPeriods( int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
-    void SetFrameTimeInMs(int i) { frameTimeInMs = i;};
+    void SetFrameTimeInMs(int i);
 
     void GetPixel(int x, int y, xlColor &color);
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false);

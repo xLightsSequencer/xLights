@@ -124,7 +124,11 @@ int main(int argc, char **argv)
     wxDISABLE_DEBUG_SUPPORT();
     return wxEntry(argc, argv);
 }
+#ifdef _MSC_VER
+IMPLEMENT_APP(xLightsApp);
+#else
 wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
+#endif
 
 #include <wx/debugrpt.h>
 

@@ -37,6 +37,9 @@
     <Filter Include="Source Files\vamp-hostsdk">
       <UniqueIdentifier>{61caa229-3642-4eab-aa37-95b83a4c43bf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\effects\assist">
+      <UniqueIdentifier>{93f86346-0f11-4214-b25a-cc5a1c6a20be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="effects\BarsEffect.cpp">
@@ -629,6 +632,24 @@
     </ClCompile>
     <ClCompile Include="xlSlider.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="xLightsMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\AssistPanel.cpp">
+      <Filter>Source Files\effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\PicturesAssistPanel.cpp">
+      <Filter>Source Files\effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\xlGridCanvasEmpty.cpp">
+      <Filter>Source Files\effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\xlGridCanvasMorph.cpp">
+      <Filter>Source Files\effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp">
+      <Filter>Source Files\effects\assist</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

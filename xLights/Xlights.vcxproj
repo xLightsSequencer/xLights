@@ -72,7 +72,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\Users\keith\Documents\wxWidgets-3.0.2\include;C:\Users\keith\Documents\wxWidgets-3.0.2\include\msvc;C:\Users\keith\Documents\vamp-plugin-sdk-2.6;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\keith\Documents\wxWidgets-3.0.2\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Users\keith\Documents\wxWidgets-3.0.2\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -94,6 +94,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);libmpg123-0.lib;ImageHlp.Lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -162,6 +163,11 @@
     <ClCompile Include="EffectIconPanel.cpp" />
     <ClCompile Include="EffectListDialog.cpp" />
     <ClCompile Include="EffectsPanel.cpp" />
+    <ClCompile Include="effects\assist\AssistPanel.cpp" />
+    <ClCompile Include="effects\assist\PicturesAssistPanel.cpp" />
+    <ClCompile Include="effects\assist\xlGridCanvasEmpty.cpp" />
+    <ClCompile Include="effects\assist\xlGridCanvasMorph.cpp" />
+    <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp" />
     <ClCompile Include="effects\BarsEffect.cpp" />
     <ClCompile Include="effects\BarsPanel.cpp" />
     <ClCompile Include="effects\ButterflyEffect.cpp" />
@@ -338,6 +344,7 @@
     <ClCompile Include="xlGridCanvas.cpp" />
     <ClCompile Include="xLightsApp.cpp" />
     <ClCompile Include="XlightsDrawable.cpp" />
+    <ClCompile Include="xLightsMain.cpp" />
     <ClCompile Include="xLightsXmlFile.cpp" />
     <ClCompile Include="xlights_out.cpp" />
     <ClCompile Include="xlSlider.cpp" />
