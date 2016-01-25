@@ -9,6 +9,7 @@
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
+#include <wx/tokenzr.h>
 
 void xLightsFrame::NewSequence()
 {
@@ -738,7 +739,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     int row = 0;
     for (int m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
-        ModelClass *mc = GetModelClass(modelName);
+        Model *mc = GetModel(modelName);
         Element * model = nullptr;
         for (int i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
@@ -824,7 +825,7 @@ void ReadHLSData(wxXmlNode *chand, std::vector<unsigned char> & data) {
     }
 }
 void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNode* tuniv, int frames, int frameTime,
-                              const wxString &cn, wxColor color, ModelClass &mc, bool byStrand) {
+                              const wxString &cn, wxColor color, Model &mc, bool byStrand) {
     if (cn == "") {
         return;
     }
@@ -953,7 +954,7 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
                               const std::string & channelName,
                               const std::vector<std::string> &channels,
                               wxColor color,
-                              ModelClass &mc) {
+                              Model &mc) {
     if (channelName == "") {
         return;
     }
@@ -1169,7 +1170,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int row = 0;
     for (int m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
-        ModelClass *mc = GetModelClass(modelName);
+        Model *mc = GetModel(modelName);
         Element * model = nullptr;
         for (int i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
@@ -1302,7 +1303,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
     int row = 0;
     for (int m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
-        ModelClass *mc = GetModelClass(modelName);
+        Model *mc = GetModel(modelName);
         Element * model = nullptr;
         for (int i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
@@ -1470,7 +1471,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         int x_offset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
         int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
         bool flip_y = dlg.CheckBox_SS_FlipY->GetValue();
-        ModelClass *cls = GetModelClass(model->GetName());
+        Model *cls = GetModel(model->GetName());
         wxSize modelSize(cls->BufferWi, cls->BufferHt);
         ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, flip_y, dlg.ImageResizeChoice->GetSelection(), modelSize);
     }
@@ -1756,7 +1757,7 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
         }
     }
 }
-bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const ModelClass &mc) {
+bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const Model &mc) {
     if ("" == nm) {
         return false;
     }
@@ -1850,7 +1851,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml)
     int row = 0;
     for (int m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
-        ModelClass *mc = GetModelClass(modelName);
+        Model *mc = GetModel(modelName);
         Element * model = nullptr;
         for (int i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"
@@ -2948,7 +2949,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
     int row = 0;
     for (int m = 0; m < dlg.modelNames.size(); m++) {
         std::string modelName = dlg.modelNames[m];
-        ModelClass *mc = GetModelClass(modelName);
+        Model *mc = GetModel(modelName);
         Element * model = nullptr;
         for (int i=0;i<mSequenceElements.GetElementCount();i++) {
             if (mSequenceElements.GetElement(i)->GetType() == "model"

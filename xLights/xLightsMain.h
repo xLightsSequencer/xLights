@@ -100,6 +100,7 @@
 #include "EffectIconPanel.h"
 #include "DisplayElementsPanel.h"
 #include "effects/EffectManager.h"
+#include "models/ModelManager.h"
 
 #include "wx/aui/aui.h"
 
@@ -1398,7 +1399,7 @@ private:
 public:
     wxXmlNode* GetModelNode(const std::string& name);
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
-    ModelClass *GetModelClass(const std::string& name);
+    Model *GetModel(const std::string& name);
     void RenderGridToSeqData();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
@@ -1445,7 +1446,7 @@ protected:
     bool CloseSequence();
     void InsertRow();
     void UpdatePreview();
-    wxXmlNode *BuildWholeHouseModel(const std::string &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models);
+    wxXmlNode *BuildWholeHouseModel(const std::string &modelName, const wxXmlNode *node, std::vector<Model*> &models);
     void ShowModelsDialog();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
@@ -1509,7 +1510,7 @@ protected:
     bool mGridNodeValues;
     int mEffectAssistMode;
 
-    ModelClass *playModel;
+    Model *playModel;
     int playType;
     int playStartMS;
     int playStartTime;
@@ -1525,7 +1526,6 @@ protected:
     std::string lastPlayEffect;
     double mPointSize = 2.0;
 
-//    std::vector<ModelClassPtr> PreviewModels;
     wxHtmlEasyPrinting* HtmlEasyPrint;
     int NextGridRowToPlay;
     int SeqPlayColumn;
@@ -1632,8 +1632,8 @@ protected:
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
 public:
-    static std::vector<ModelClass *> PreviewModels;
-    static std::map<std::string, ModelClassPtr> AllModels; //make public and static for easier access -DJ
+    static std::vector<Model *> PreviewModels;
+    static ModelManager AllModels; //make public and static for easier access -DJ
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
 
     wxString GetSeqXmlFileName();

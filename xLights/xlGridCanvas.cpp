@@ -1,7 +1,7 @@
 #include "xlGridCanvas.h"
 #include "BitmapCache.h"
 #include "DrawGLUtils.h"
-#include "ModelClass.h"
+#include "models/Model.h"
 
 BEGIN_EVENT_TABLE(xlGridCanvas, xlGLCanvas)
 END_EVENT_TABLE()
@@ -9,7 +9,7 @@ END_EVENT_TABLE()
 xlGridCanvas::xlGridCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
     : xlGLCanvas(parent, id, pos, size, style, name),
       mEffect(nullptr),
-      mModelClass(nullptr),
+      mModel(nullptr),
       mGridlineColor(new xlColor(0,153,153)),
       mCellSize(20),
       mColumns(0),
@@ -40,7 +40,7 @@ void xlGridCanvas::AdjustSize(wxSize& parent_size)
 int xlGridCanvas::GetRowCenter(int percent)
 {
     int row = calcCellFromPercent(percent, mRows);
-    if( mModelClass->GetIsBtoT()) {
+    if( mModel->GetIsBtoT()) {
         return ((mRows-row-1)* mCellSize) + (1.5 * mCellSize);
     }
     else {
@@ -51,7 +51,7 @@ int xlGridCanvas::GetRowCenter(int percent)
 int xlGridCanvas::GetColumnCenter(int percent)
 {
     int col = calcCellFromPercent(percent, mColumns);
-    if( mModelClass->GetIsLtoR()) {
+    if( mModel->GetIsLtoR()) {
         return (col * mCellSize) + (1.5 * mCellSize);
     }
     else {
@@ -68,7 +68,7 @@ int xlGridCanvas::SetRowCenter(int position)
 {
     int row = GetCellFromPosition(position);
 
-    if( mModelClass->GetIsBtoT()) {
+    if( mModel->GetIsBtoT()) {
         row = mRows - row - 1;
     }
 
@@ -79,7 +79,7 @@ int xlGridCanvas::SetColumnCenter(int position)
 {
     int col = GetCellFromPosition(position);
 
-    if( !mModelClass->GetIsLtoR()) {
+    if( !mModel->GetIsLtoR()) {
         col = mColumns - col - 1;
     }
 

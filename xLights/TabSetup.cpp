@@ -270,7 +270,7 @@ void xLightsFrame::UpdateNetworkList()
 void xLightsFrame::UpdateChannelNames()
 {
     wxArrayString ChNames;
-    ModelClass model;
+    Model model;
     wxString FormatSpec,RGBFormatSpec;
     int ChannelNum,ChanPerNode,NodeNum,AbsoluteNodeNum;
     size_t NodeCount,n,c;
@@ -325,7 +325,7 @@ void xLightsFrame::UpdateChannelNames()
     if (ModelsNode != nullptr) {
         for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
         {
-            if (e->GetName() == "model" && ModelClass::IsMyDisplay(e))
+            if (e->GetName() == "model" && Model::IsMyDisplay(e))
             {
                 model.SetFromXml(e, NetInfo);
                 NodeCount=model.GetNodeCount();

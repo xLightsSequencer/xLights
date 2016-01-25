@@ -17,7 +17,7 @@
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 
 class SequenceElements;
-class ModelClass;
+class Model;
 class wxSlider;
 class EffectManager;
 
@@ -30,7 +30,7 @@ public:
     bool EffectChanged;
     void SetDefaultPalette();
     wxString* CurrentDir;
-    void SetDefaultEffectValues(ModelClass *cls, const wxString &name);
+    void SetDefaultEffectValues(Model *cls, const wxString &name);
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
     wxString GetEffectStringFromWindow(wxWindow *ParentWin);

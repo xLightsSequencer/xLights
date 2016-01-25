@@ -13,7 +13,7 @@
 #endif
 
 #include "ModelPreview.h"
-#include "ModelClass.h"
+#include "models/Model.h"
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 EVT_MOTION(ModelPreview::mouseMoved)
@@ -106,7 +106,7 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
-ModelPreview::ModelPreview(wxPanel* parent, std::vector<ModelClass*> &models, bool a, int styles)
+ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a, int styles)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, ""), PreviewModels(&models), allowSelected(a)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);

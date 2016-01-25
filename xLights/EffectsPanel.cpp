@@ -109,7 +109,7 @@ EffectsPanel::~EffectsPanel()
     //*)
 }
 
-void EffectsPanel::SetDefaultEffectValues(ModelClass *cls, const wxString &name) {
+void EffectsPanel::SetDefaultEffectValues(Model *cls, const wxString &name) {
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
         eff->SetDefaultParameters(cls);

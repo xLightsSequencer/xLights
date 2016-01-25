@@ -4,7 +4,7 @@
 #include "EffectsGrid.h"
 #include "Effect.h"
 #include "RowHeading.h"
-#include "../ModelClass.h"
+#include "../models/Model.h"
 
 
 std::atomic_int EffectLayer::exclusive_index(0);
@@ -541,7 +541,7 @@ NodeLayer *StrandLayer::GetNodeLayer(int n, bool create) {
     }
     return nullptr;
 }
-void StrandLayer::InitFromModel(ModelClass &model) {
+void StrandLayer::InitFromModel(Model &model) {
     int nc = model.GetStrandLength(strand);
     SetName(model.GetStrandName(strand));
     for (int x = 0; x < mNodeLayers.size(); x++) {

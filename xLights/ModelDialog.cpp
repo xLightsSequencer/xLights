@@ -1,5 +1,5 @@
 #include "ModelDialog.h"
-#include "ModelClass.h"
+#include "models/Model.h"
 #include <wx/msgdlg.h>
 #include <wx/clipbrd.h>
 
@@ -428,14 +428,14 @@ int ModelDialog::GetChannelsPerStringStd()
     std::string StringType=Choice_StringType->GetStringSelection().ToStdString();
     std::string DisplayAs=Choice_DisplayAs->GetStringSelection().ToStdString();
     if ("Arches" == DisplayAs) {
-        int chanCountPerString = ModelClass::GetNodeChannelCount(StringType);
+        int chanCountPerString = Model::GetNodeChannelCount(StringType);
         return chanCountPerString * SpinCtrl_parm2->GetValue();
     }
-    int chanCountPerString = ModelClass::GetNodeChannelCount(StringType);
+    int chanCountPerString = Model::GetNodeChannelCount(StringType);
     if (chanCountPerString != 3) {
         return chanCountPerString;
     }
-    if (ModelClass::HasSingleNode(StringType)) return 3;
+    if (Model::HasSingleNode(StringType)) return 3;
     if (DisplayAs == "Window Frame")
     {
         return (SpinCtrl_parm1->GetValue()+2*SpinCtrl_parm2->GetValue()+SpinCtrl_parm3->GetValue())*3;
@@ -450,7 +450,7 @@ int ModelDialog::GetChannelsPerStringStd()
 int ModelDialog::GetNumberOfStrings()
 {
     std::string DisplayAs=Choice_DisplayAs->GetStringSelection().ToStdString();
-    return (ModelClass::HasOneString(DisplayAs)) ? 1 : SpinCtrl_parm1->GetValue();
+    return (Model::HasOneString(DisplayAs)) ? 1 : SpinCtrl_parm1->GetValue();
 }
 
 
@@ -458,7 +458,7 @@ void ModelDialog::UpdateLabels()
 {
     std::string DisplayAs=Choice_DisplayAs->GetStringSelection().ToStdString();
     std::string StringType=Choice_StringType->GetStringSelection().ToStdString();
-    std::string NodeLabel = ModelClass::HasSingleChannel(StringType) ? "lights" : "RGB Nodes";
+    std::string NodeLabel = Model::HasSingleChannel(StringType) ? "lights" : "RGB Nodes";
     std::string s;
 
     ExtraParameterLabel->Hide();
@@ -476,9 +476,9 @@ void ModelDialog::UpdateLabels()
     if (DisplayAs == "Arches")
     {
         StaticText_Strings->SetLabelText(_("# of Arches"));
-        s=_("# of ") + (ModelClass::HasSingleChannel(StringType) ? "Segments" : "Nodes") + _(" per Arch");
+        s=_("# of ") + (Model::HasSingleChannel(StringType) ? "Segments" : "Nodes") + _(" per Arch");
         StaticText_Nodes->SetLabelText(s);
-        StaticText_Strands->SetLabelText(_("# of lights per ") + (ModelClass::HasSingleChannel(StringType) ? "Segment" : "Node"));
+        StaticText_Strands->SetLabelText(_("# of lights per ") + (Model::HasSingleChannel(StringType) ? "Segment" : "Node"));
         //SpinCtrl_parm3->SetValue(1);
         SpinCtrl_parm3->Enable(true);
     }
@@ -805,7 +805,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         tempStr.ToLong(&numStrings);
         for(ii=0; ii < numStrings; ii++)
         {
-            e->DeleteAttribute(ModelClass::StartChanAttrName(ii));
+            e->DeleteAttribute(Model::StartChanAttrName(ii));
         }
     }
     if (e->HasAttribute("CustomModel"))
@@ -817,7 +817,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         e->AddAttribute("Advanced", "1");
         for(ii=0; ii < gridStartChannels->GetNumberRows(); ii++)
         {
-            e->AddAttribute(ModelClass::StartChanAttrName(ii),gridStartChannels->GetCellValue(ii,0));
+            e->AddAttribute(Model::StartChanAttrName(ii),gridStartChannels->GetCellValue(ii,0));
         }
     }
     if (e->HasAttribute("StartSide")) e->DeleteAttribute("StartSide");
@@ -892,7 +892,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     if ("" != strandNames) {
         e->AddAttribute("StrandNames", strandNames);
     }
-    ModelClass::SetMyDisplay(e,CheckBox_MyDisplay->GetValue());
+    Model::SetMyDisplay(e,CheckBox_MyDisplay->GetValue());
 
 
     wxXmlNode *f = e->GetChildren();
@@ -1000,7 +1000,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
         for(int ii=0; ii < n; ii++)
         {
             gridStartChannels->AppendRows();
-            gridStartChannels->SetCellValue(ii,0,e->GetAttribute(ModelClass::StartChanAttrName(ii)));
+            gridStartChannels->SetCellValue(ii,0,e->GetAttribute(Model::StartChanAttrName(ii)));
         }
     }
 
@@ -1023,7 +1023,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
         e->GetAttribute("CustomModel",&tempStr);
         SetCustomGridData(tempStr);
     }
-    CheckBox_MyDisplay->SetValue(ModelClass::IsMyDisplay(e));
+    CheckBox_MyDisplay->SetValue(Model::IsMyDisplay(e));
 
     wxFont font = GridCustom->GetDefaultCellFont();
     GridCustom->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
@@ -1339,7 +1339,7 @@ void ModelDialog::OnNamesButtonClick(wxCommandEvent& event)
 {
     wxXmlNode xml;
     UpdateXml(&xml);
-    ModelClass md;
+    Model md;
     md.SetFromXml(&xml, *netInfo);
 
     StrandNodeNamesDialog dlg(this);
@@ -1430,7 +1430,7 @@ void ModelDialog::OnFacesButtonClick(wxCommandEvent& event)
 {
     wxXmlNode xml;
     UpdateXml(&xml);
-    ModelClass md;
+    Model md;
     md.SetFromXml(&xml, *netInfo);
 
     ModelFaceDialog dlg(this);

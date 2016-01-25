@@ -10,8 +10,7 @@
 #include "Color.h"
 #include "xlGLCanvas.h"
 
-class ModelClass;
-typedef std::unique_ptr<ModelClass> ModelClassPtr;
+class Model;
 
 class ModelPreview : public xlGLCanvas
 {
@@ -19,7 +18,7 @@ class ModelPreview : public xlGLCanvas
 public:
     ModelPreview(wxPanel* parent);
 	ModelPreview(wxPanel* parent,
-                 std::vector<ModelClass*> &previewModels,
+                 std::vector<Model*> &previewModels,
                  bool allowSelected,
                  int style = 0);
 	virtual ~ModelPreview();
@@ -75,7 +74,7 @@ private:
     Image* image = NULL;
     bool scaleImage = false;
     xLightsDrawable* sprite;
-    std::vector<ModelClass*> *PreviewModels;
+    std::vector<Model*> *PreviewModels;
     bool allowSelected;
     
     double currentPixelScaleFactor = 1.0;

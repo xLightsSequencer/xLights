@@ -113,12 +113,12 @@ void PixelBufferClass::reset(int layers, int timing) {
 }
 
 
-void PixelBufferClass::InitBuffer(ModelClass &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased) {
+void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased) {
     model.SetFromXml(pbc.GetModelXml(), netInfo, zeroBased);
     SetDimmingCurve(model.modelDimmingCurve);
     reset(layers, timing);
 }
-void PixelBufferClass::InitStrandBuffer(const ModelClass &pbc, int strand, int timing) {
+void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing) {
     model.parm1 = pbc.GetStrandLength(strand);
     model.parm2 = 1;
     model.parm3 = 1;
@@ -137,7 +137,7 @@ void PixelBufferClass::InitStrandBuffer(const ModelClass &pbc, int strand, int t
     SetDimmingCurve(model.modelDimmingCurve);
     reset(2, timing);
 }
-void PixelBufferClass::InitNodeBuffer(const ModelClass &pbc, int strand, int node, int timing) {
+void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing) {
     model.parm1 = 1;
     model.parm2 = 1;
     model.parm3 = 1;

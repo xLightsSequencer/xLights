@@ -115,7 +115,6 @@
 		67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619C417B51C0F008E95BB /* E131Dialog.cpp */; };
 		67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619C817B51C0F008E95BB /* EffectListDialog.cpp */; };
 		67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */; };
-		67A61A2E17B51C0F008E95BB /* ModelClass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619CC17B51C0F008E95BB /* ModelClass.cpp */; };
 		67A61A2F17B51C0F008E95BB /* ModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619CE17B51C0F008E95BB /* ModelDialog.cpp */; };
 		67A61A3017B51C0F008E95BB /* ModelListDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619D017B51C0F008E95BB /* ModelListDialog.cpp */; };
 		67A61A3117B51C0F008E95BB /* NetInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619D217B51C0F008E95BB /* NetInfo.cpp */; };
@@ -451,8 +450,6 @@
 		67A619C917B51C0F008E95BB /* EffectListDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectListDialog.h; sourceTree = "<group>"; };
 		67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = EffectsPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67A619CB17B51C0F008E95BB /* EffectsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = EffectsPanel.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		67A619CC17B51C0F008E95BB /* ModelClass.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelClass.cpp; sourceTree = "<group>"; };
-		67A619CD17B51C0F008E95BB /* ModelClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelClass.h; sourceTree = "<group>"; };
 		67A619CE17B51C0F008E95BB /* ModelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelDialog.cpp; sourceTree = "<group>"; };
 		67A619CF17B51C0F008E95BB /* ModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelDialog.h; sourceTree = "<group>"; };
 		67A619D017B51C0F008E95BB /* ModelListDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelListDialog.cpp; sourceTree = "<group>"; };
@@ -1080,7 +1077,6 @@
 				676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */,
 				67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */,
 				6784F9231A5653670018EC0C /* MainSequencer.cpp */,
-				67A619CC17B51C0F008E95BB /* ModelClass.cpp */,
 				67A619CE17B51C0F008E95BB /* ModelDialog.cpp */,
 				670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */,
 				67A619D017B51C0F008E95BB /* ModelListDialog.cpp */,
@@ -1179,7 +1175,6 @@
 				676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */,
 				67AAF8FE1B642E7D00585431 /* LyricsDialog.h */,
 				6708AB4B1A37F88F008313E3 /* minibasic.cpp */,
-				67A619CD17B51C0F008E95BB /* ModelClass.h */,
 				67A619CF17B51C0F008E95BB /* ModelDialog.h */,
 				670B144D1B7128AA0090F1F5 /* ModelFaceDialog.h */,
 				67A619D117B51C0F008E95BB /* ModelListDialog.h */,
@@ -1364,7 +1359,6 @@
 				67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */,
 				67B2CFD71C3A186A003C17CA /* SnowstormEffect.cpp in Sources */,
 				67B2CF871C39D98A003C17CA /* SnowstormPanel.cpp in Sources */,
-				67A61A2E17B51C0F008E95BB /* ModelClass.cpp in Sources */,
 				670C828B1C45C48B000AA5D8 /* Model.cpp in Sources */,
 				67B2CF711C39D98A003C17CA /* DMXPanel.cpp in Sources */,
 				677421DD1A6A8FF30082DA5B /* RenameTextDialog.cpp in Sources */,

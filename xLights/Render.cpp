@@ -795,7 +795,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             wxYield();
         }
     } else {
-        ModelClass *m = GetModelClass(model);
+        Model *m = GetModel(model);
         for (int frame = 0; frame < SeqData.NumFrames(); frame++) {
             for (int x = 0; x < job->getBuffer()->GetNodeCount(); x++) {
                 //chan in main buffer

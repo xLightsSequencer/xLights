@@ -50,7 +50,7 @@ static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
 }
 
 
-void ColorWashEffect::SetDefaultParameters(ModelClass *cls) {
+void ColorWashEffect::SetDefaultParameters(Model *cls) {
     ColorWashPanel *cwp = (ColorWashPanel*)panel;
     if (cwp == nullptr) {
         return;

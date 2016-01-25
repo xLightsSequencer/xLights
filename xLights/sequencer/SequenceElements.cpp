@@ -826,7 +826,7 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
         ri.submodel = submodel;
         mRowInformation.push_back(ri);
     }
-    ModelClass *cls = xframe->GetModelClass(elem->GetName());
+    Model *cls = xframe->GetModel(elem->GetName());
     elem->InitStrands(*cls);
     if (cls->GetDisplayAs() == "WholeHouse" && elem->ShowStrands()) {
         wxString models = cls->GetModelXml()->GetAttribute("models");

@@ -16,7 +16,7 @@
 
 #include <map>
 
-class ModelClass;
+class Model;
 
 class ModelFaceDialog: public wxDialog
 {
@@ -39,7 +39,7 @@ class ModelFaceDialog: public wxDialog
 		wxChoice* NameChoice;
 		//*)
 
-        void SetFaceInfo(ModelClass *cls, std::map<std::string, std::map<std::string, std::string> > &info);
+        void SetFaceInfo(Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
         void GetFaceInfo(std::map<std::string, std::map<std::string, std::string> > &info);
 	protected:
 
@@ -61,7 +61,7 @@ class ModelFaceDialog: public wxDialog
 		//*)
 
 	private:
-        ModelClass *modelClass;
+        Model *model;
 
 		//(*Handlers(ModelFaceDialog)
 		void OnMatrixNameChoiceSelect(wxCommandEvent& event);

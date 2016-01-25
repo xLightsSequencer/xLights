@@ -476,8 +476,6 @@
 		<Unit filename="LorConvertDialog.h" />
 		<Unit filename="LyricsDialog.cpp" />
 		<Unit filename="LyricsDialog.h" />
-		<Unit filename="ModelClass.cpp" />
-		<Unit filename="ModelClass.h" />
 		<Unit filename="ModelDialog.cpp" />
 		<Unit filename="ModelDialog.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />

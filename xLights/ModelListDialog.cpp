@@ -329,7 +329,7 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
         return;
     }
     wxXmlNode* ModelNode = models[ListBox1->GetString(sel)];
-    ModelClass model;
+    Model model;
     model.SetFromXml(ModelNode, *netInfo);
     wxString html=model.ChannelLayoutHtml();
 
@@ -374,7 +374,7 @@ brightness
     for (int i = first; i < last; ++i)
     {
         wxXmlNode* node = models[ListBox1->GetString(i)];
-        ModelClass model;
+        Model model;
         model.SetFromXml(node, *netInfo);
         wxString stch = node->GetAttribute("StartChannel", wxString::Format("%d?", model.NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %d\n", model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), stch, /*WRONG:*/ model.NodeStartChannel(0) / model.NodesPerString() + 1, model.MyDisplay));

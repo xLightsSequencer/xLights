@@ -122,26 +122,24 @@ void xLightsFrame::InitSequencer()
     sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 
-ModelClass *xLightsFrame::GetModelClass(const std::string& name) {
-    ModelClass *cls = AllModels[name].get();
+Model *xLightsFrame::GetModel(const std::string& name) {
+    Model *cls = AllModels[name];
     if (cls == nullptr) {
         wxXmlNode *model = GetModelNode(name);
         if (model == NULL) {
             model = CreateModelNodeFromGroup(name);
         }
-        cls = new ModelClass();
         if (model == nullptr) {
             wxMessageBox("Could not find a model or group named " + name);
         } else {
-            cls->SetFromXml(model, NetInfo);
+            return AllModels.createModel(model, NetInfo);
         }
-        AllModels[name].reset(cls);
     }
     return cls;
 }
 
 bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
-    ModelClass *model = GetModelClass(modelName);
+    Model *model = GetModel(modelName);
     if (model->GetModelXml() == nullptr) {
         return false;
     }
@@ -557,7 +555,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             playStartTime = effect->GetStartTimeMS();
             playEndTime = effect->GetEndTimeMS();
             playStartMS = -1;
-            playModel = GetModelClass(effect->GetParentEffectLayer()->GetParentElement()->GetName());
+            playModel = GetModel(effect->GetParentEffectLayer()->GetParentElement()->GetName());
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,true);
@@ -617,7 +615,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             playStartMS = -1;
             RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
 
-            playModel = GetModelClass(el->GetParentElement()->GetName());
+            playModel = GetModel(el->GetParentElement()->GetName());
 
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
@@ -646,7 +644,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
     std::string model = event.GetString().ToStdString();
-    playModel = GetModelClass(model);
+    playModel = GetModel(model);
     if (playModel != nullptr
         && playType != PLAY_TYPE_MODEL) {
         wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
@@ -668,7 +666,7 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
 {
     if (playType == PLAY_TYPE_MODEL)
     {
-        playModel = GetModelClass(event.GetString().ToStdString());
+        playModel = GetModel(event.GetString().ToStdString());
     }
 }
 
@@ -822,7 +820,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
     if( playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
     {
         EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
-        playModel = GetModelClass(args->element->GetName());
+        playModel = GetModel(args->element->GetName());
         if (playModel != nullptr) {
             playType = PLAY_TYPE_EFFECT;
             playStartTime = (int)(args->effect->GetStartTimeMS());
@@ -1033,13 +1031,17 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
-    int nn = playModel->GetNodeCount();
-    for (int node = 0; node < nn; node++) {
-        int start = playModel->NodeStartChannel(node);
-        playModel->SetNodeChannelValues(node, &SeqData[frame][start]);
+    if (playModel != nullptr) {
+        int nn = playModel->GetNodeCount();
+        for (int node = 0; node < nn; node++) {
+            int start = playModel->NodeStartChannel(node);
+            playModel->SetNodeChannelValues(node, &SeqData[frame][start]);
+        }
     }
     TimerOutput(frame);
-    playModel->DisplayEffectOnWindow(sPreview1, mPointSize);
+    if (playModel != nullptr) {
+        playModel->DisplayEffectOnWindow(sPreview1, mPointSize);
+    }
     sPreview2->Render(&SeqData[frame][0]);
 }
 
@@ -1048,7 +1050,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     if (modelName == "") {
         EffectsPanel1->SetDefaultEffectValues(nullptr, effectName);
     } else {
-        EffectsPanel1->SetDefaultEffectValues(GetModelClass(modelName), effectName);
+        EffectsPanel1->SetDefaultEffectValues(GetModel(modelName), effectName);
     }
     SetEffectControls(settings);
     SetEffectControls(palette);
@@ -1572,7 +1574,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
 
     xlColorVector colors;
     PixelBufferClass ncls;
-    ModelClass *model = GetModelClass(el->GetName());
+    Model *model = GetModel(el->GetName());
     for (int f = 0; f < SeqData.NumFrames(); f++) {
         model->SetNodeChannelValues(0, &SeqData[f][model->NodeStartChannel(0)]);
         xlColor c = model->GetNodeColor(0);

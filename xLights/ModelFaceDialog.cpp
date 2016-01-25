@@ -12,6 +12,8 @@
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
 #include <wx/colordlg.h>
+#include <wx/tokenzr.h>
+#include <wx/listbox.h>
 
 //(*IdInit(ModelFaceDialog)
 const long ModelFaceDialog::ID_STATICTEXT2 = wxNewId();
@@ -43,7 +45,7 @@ enum {
 };
 
 
-#include "ModelClass.h"
+#include "models/Model.h"
 
 #ifndef wxEVT_GRID_CELL_CHANGE
 //until CodeBlocks is updated to wxWidgets 3.x
@@ -429,7 +431,7 @@ wxString NodesGridCellEditor::GetValue() const
     return retval;
 }
 
-void ModelFaceDialog::SetFaceInfo(ModelClass *cls, std::map< std::string, std::map<std::string, std::string> > &finfo) {
+void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<std::string, std::string> > &finfo) {
     NodeRangeGrid->SetColSize(1, 50);
     SingleNodeGrid->SetColSize(1, 50);
     NameChoice->Clear();

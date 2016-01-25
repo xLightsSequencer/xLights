@@ -241,7 +241,7 @@ void PicturesAssistPanel::OnImageSize(wxCommandEvent& event)
 {
    wxString image_size = event.GetString();
    StaticText_ImageSize->SetLabelText( image_size );
-   StaticText_ModelSize->SetLabelText(wxString::Format("Model Size: %d x %d", mGridCanvas->GetModelClass()->BufferWi, mGridCanvas->GetModelClass()->BufferHt));
+   StaticText_ModelSize->SetLabelText(wxString::Format("Model Size: %d x %d", mGridCanvas->GetModel()->BufferWi, mGridCanvas->GetModel()->BufferHt));
 }
 
 void PicturesAssistPanel::OnButton_SaveImageClick(wxCommandEvent& event)

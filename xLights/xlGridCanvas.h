@@ -7,7 +7,7 @@
 #include "Image.h"
 #include "XlightsDrawable.h"
 
-class ModelClass;  // forward declaration
+class Model;  // forward declaration
 
 class xlGridCanvas : public xlGLCanvas
 {
@@ -19,8 +19,8 @@ class xlGridCanvas : public xlGLCanvas
 
         virtual void SetEffect(Effect* effect_) = 0;
         Effect* GetEffect() {return mEffect;}
-        void SetModelClass(ModelClass* cls) {mModelClass = cls;}
-        ModelClass* GetModelClass() {return mModelClass;}
+        void SetModel(Model* cls) {mModel = cls;}
+        Model* GetModel() {return mModel;}
         void SetNumColumns(int columns) {mColumns = columns;}
         void SetNumRows(int rows) {mRows = rows;}
         //int GetCellSize() {return mCellSize;}
@@ -43,7 +43,7 @@ class xlGridCanvas : public xlGLCanvas
         int calcPercentFromCell(int value, int base);
 
         Effect* mEffect;
-        ModelClass* mModelClass;
+        Model* mModel;
         xlColor* mGridlineColor;
         int mCellSize;
         int mColumns;

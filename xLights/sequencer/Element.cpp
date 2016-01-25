@@ -1,5 +1,5 @@
 #include "Element.h"
-#include "../ModelClass.h"
+#include "../models/Model.h"
 
 Element::Element(SequenceElements *l, const std::string &name, const std::string &type,bool visible,bool collapsed, bool active, bool selected)
 :   mEffectLayers(),
@@ -192,7 +192,7 @@ void Element::IncrementChangeCount(int sms, int ems)
 
     listener->IncrementChangeCount(this);
 }
-void Element::InitStrands(ModelClass &model) {
+void Element::InitStrands(Model &model) {
     if (model.GetDisplayAs() == "WholeHouse") {
         //no strands for a whole house model
         return;
@@ -206,7 +206,7 @@ void Element::InitStrands(wxXmlNode *node, NetInfoClass &netInfo) {
     if (node == NULL) {
         return;
     }
-    ModelClass model;
+    Model model;
     model.SetFromXml(node, netInfo);
     InitStrands(model);
 }

@@ -9,7 +9,7 @@
 class wxPanel;
 class wxWindow;
 class wxBitmap;
-class ModelClass;
+class Model;
 class SequenceElements;
 class Effect;
 class SettingsMap;
@@ -37,7 +37,7 @@ class RenderableEffect
         virtual void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 
         wxPanel *GetPanel(wxWindow *parent);
-        virtual void SetDefaultParameters(ModelClass *cls) {}
+        virtual void SetDefaultParameters(Model *cls) {}
 
         //Methods for rendering the effect
         virtual bool CanRenderOnBackgroundThread() { return true; }

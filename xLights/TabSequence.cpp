@@ -232,7 +232,7 @@ wxXmlNode* xLightsFrame::GetModelNode(const std::string& name)
 }
 wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const std::string &name) {
     wxXmlNode* element;
-    std::vector<ModelClass*> models;
+    std::vector<Model*> models;
     std::string modelString;
     for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
         if (e->GetName() == "modelGroup") {
@@ -241,7 +241,7 @@ wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const std::string &name) {
                 modelString = e->GetAttribute("models");
                 wxArrayString modelNames = wxSplit(modelString, ',');
                 for (int x = 0; x < modelNames.size(); x++) {
-                    ModelClass *c = GetModelClass(modelNames[x].ToStdString());
+                    Model *c = GetModel(modelNames[x].ToStdString());
                     if (c != nullptr) {
                         models.push_back(c);
                     }
@@ -336,8 +336,8 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 
 int wxCALLBACK MyCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr WXUNUSED(sortData))
 {
-	wxString a = ((ModelClass*)item1)->name;
-	wxString b = ((ModelClass*)item2)->name;
+	wxString a = ((Model*)item1)->name;
+	wxString b = ((Model*)item2)->name;
 	return a.CmpNoCase(b);
 }
 
@@ -347,7 +347,7 @@ void xLightsFrame::UpdateModelsList()
     std::string name, start_channel;
     int end_channel;
     wxArrayString model_names;
-    ModelClass *model;
+    Model *model;
 	ListBoxElementList->DeleteAllItems();
     PreviewModels.clear();
     AllModels.clear();
@@ -383,13 +383,12 @@ void xLightsFrame::UpdateModelsList()
                                 }
                                 if( !model_already_added )
                                 {
-                                    model=new ModelClass;
-                                    model->SetFromXml(e, NetInfo);
+                                    model = AllModels.createModel(e, NetInfo);
 
                                     if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
                                         msg += wxString::Format("%s - last channel: %u\n",name, model->GetLastChannel());
                                     }
-                                    if (ModelClass::IsMyDisplay(e))
+                                    if (Model::IsMyDisplay(e))
                                     {
                                         long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
                                         start_channel = e->GetAttribute("StartChannel");
@@ -404,7 +403,6 @@ void xLightsFrame::UpdateModelsList()
                                         ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
                                         PreviewModels.push_back(model);
                                     }
-                                    AllModels[name].reset(model);
                                     model_names.push_back(name);
                                     num_group_models++;
                                 }
@@ -425,13 +423,12 @@ void xLightsFrame::UpdateModelsList()
                 name=e->GetAttribute("name");
                 if (!name.empty())
                 {
-                    model=new ModelClass;
-                    model->SetFromXml(e, NetInfo);
+                    model = AllModels.createModel(e, NetInfo);
 
                     if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
                         msg += wxString::Format("%s - last channel: %u\n",name, model->GetLastChannel());
                     }
-                    if (ModelClass::IsMyDisplay(e))
+                    if (Model::IsMyDisplay(e))
                     {
                         long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
                         start_channel = e->GetAttribute("StartChannel");
@@ -446,7 +443,6 @@ void xLightsFrame::UpdateModelsList()
                         ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
                         PreviewModels.push_back(model);
                     }
-                    AllModels[name].reset(model);
                 }
             }
         }

@@ -26,7 +26,7 @@
 
 #include <wx/xml/xml.h>
 
-#include "ModelClass.h"
+#include "models/Model.h"
 #include "RenderBuffer.h"
 
 /**
@@ -84,7 +84,7 @@ private:
     void reset(int layers, int timing);
     
     
-    ModelClass model;
+    Model model;
 public:
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
@@ -96,13 +96,13 @@ public:
     virtual ~PixelBufferClass();
     
     
-    ModelClass &GetModel() { return model;};
+    Model &GetModel() { return model;};
     
     RenderBuffer &BufferForLayer(int i);
     
-    void InitBuffer(ModelClass &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased=false);
-    void InitStrandBuffer(const ModelClass &pbc, int strand, int timing);
-    void InitNodeBuffer(const ModelClass &pbc, int strand, int node, int timing);
+    void InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased=false);
+    void InitStrandBuffer(const Model &pbc, int strand, int timing);
+    void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
     
     void Clear(int which);
     // not used: size_t GetColorCount(int layer);

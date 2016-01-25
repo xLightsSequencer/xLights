@@ -19,7 +19,7 @@
 
 class SequenceElements;
 class xLightsFrame;
-class ModelClass;
+class Model;
 
 class LMSImportChannelMapDialog: public wxDialog
 {
@@ -66,7 +66,7 @@ class LMSImportChannelMapDialog: public wxDialog
 	private:
         void SetupByNode();
         void SetupByStrand();
-        void AddModel(ModelClass &cls);
+        void AddModel(Model &cls);
 
 		//(*Handlers(LMSImportChannelMapDialog)
 		void OnMapByStrandClick(wxCommandEvent& event);

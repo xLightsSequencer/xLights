@@ -1,6 +1,6 @@
 #include "FacesEffect.h"
 #include "FacesPanel.h"
-#include "../ModelClass.h"
+#include "../models/Model.h"
 #include "../sequencer/SequenceElements.h"
 
 #include "../sequencer/Effect.h"
@@ -14,6 +14,9 @@
 
 #include "../../include/corofaces.xpm"
 
+
+#include <wx/tokenzr.h>
+
 FacesEffect::FacesEffect(int id) : RenderableEffect(id, "Faces", corofaces, corofaces, corofaces, corofaces, corofaces)
 {
     //ctor
@@ -24,7 +27,7 @@ FacesEffect::~FacesEffect()
     //dtor
 }
 
-void FacesEffect::SetDefaultParameters(ModelClass *cls) {
+void FacesEffect::SetDefaultParameters(Model *cls) {
     FacesPanel *fp = (FacesPanel*)panel;
     if (fp == nullptr) {
         return;
@@ -109,8 +112,8 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
     //    std::vector<int> chmap;
     //    std::vector<std::vector<int>> chmap; //array of arrays
     //    chmap.resize(BufferHt * BufferWi,0);
-    //    ModelClass mc;
-    //    mc.GetChannelCoords(chmap, true); //method is on ModelClass object
+    //    Model mc;
+    //    mc.GetChannelCoords(chmap, true); //method is on Model object
     
     
     
@@ -127,7 +130,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
     
     //size_t NodeCount=GetNodeCount();
     
-    //    above is from ModelClass::ChannelLayoutHtml()
+    //    above is from Model::ChannelLayoutHtml()
 #if 0 //sample code for Sean
     std::vector<std::vector<int>> face_channels;
     wxString model_name = "(change this)";
@@ -143,7 +146,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
     //get list of models:
     wxString buf;
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
-        buf += ", " + (*it)->name; //ModelClassPtr*
+        buf += ", " + (*it)->name; //ModelPtr*
     debug(1, "faces: models = %s", (CmpNoCaseconst char*)buf + 2);
     
     //get info about one of the models:
@@ -501,7 +504,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     //    const wxString& parsed_xy = IsParsed(x_y)? x_y: wxEmptyString;
     //NOTE:
     //PixelBufferClass contains 2 RgbEffects members, which this method is a member of
-    //xLightsFrame contains a PixelBufferClass member named buffer, which is derived from ModelClass and gives the name of the model currently being used
+    //xLightsFrame contains a PixelBufferClass member named buffer, which is derived from Model and gives the name of the model currently being used
     //therefore we can access the model info by going to parent object's buffer member
     //    wxString model_name = "???";
     if (!buffer.curPeriod) model_xy.clear(); //flush cache once at start of each effect
@@ -524,7 +527,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     buffer.Color2HSV(color, hsv);
     
     std::vector<wxPoint> first_xy;
-    ModelClass* model_info = xLightsFrame::AllModels[buffer.cur_model].get();
+    Model* model_info = xLightsFrame::AllModels[buffer.cur_model];
     if (!model_info || !parse_model(buffer.cur_model))
     {
         return;
@@ -533,12 +536,12 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     if (Phoneme == "(test)")
     {
         /*static*/ std::string info = eyes;
-        ModelClass::ParseFaceElement(info, first_xy);
+        Model::ParseFaceElement(info, first_xy);
     }
     if (!Phoneme.empty())
     {
         std::string info = map[(const char*)Phoneme.c_str()];
-        ModelClass::ParseFaceElement(info, first_xy);
+        Model::ParseFaceElement(info, first_xy);
     }
     if (!eyes.empty())
     {
@@ -546,12 +549,12 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
         std::transform(eyesLower.begin(), eyesLower.end(), eyesLower.begin(), ::tolower);
         
         std::string info = map[(const char*)wxString::Format(wxT("Eyes_%s"), eyesLower.c_str())];
-        ModelClass::ParseFaceElement(info, first_xy);
+        Model::ParseFaceElement(info, first_xy);
     }
     if (face_outline)
     {
         std::string info = map["Outline"];
-        ModelClass::ParseFaceElement(info, first_xy);
+        Model::ParseFaceElement(info, first_xy);
     }
     for (auto it = first_xy.begin(); it != first_xy.end(); ++it)
     {
@@ -584,7 +587,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     if (buffer.cur_model == "") {
         return;
     }
-    ModelClass* model_info = xLightsFrame::AllModels[buffer.cur_model].get();
+    Model* model_info = xLightsFrame::AllModels[buffer.cur_model];
     if (model_info == nullptr) {
         return;
     }

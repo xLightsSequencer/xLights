@@ -38,7 +38,7 @@ static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
     c->ProcessWindowEvent(evt);
 }
 
-void TextEffect::SetDefaultParameters(ModelClass *cls) {
+void TextEffect::SetDefaultParameters(Model *cls) {
     TextPanel *tp = (TextPanel*)panel;
     if (tp == nullptr) {
         return;
@@ -48,10 +48,6 @@ void TextEffect::SetDefaultParameters(ModelClass *cls) {
     SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter2, false);
     SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter3, false);
     SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter4, false);
-}
-
-bool TextEffect::CanRenderOnBackgroundThread() {
-    return true;
 }
 
 //formatting notes:

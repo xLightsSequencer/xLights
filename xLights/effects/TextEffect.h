@@ -11,14 +11,13 @@ class TextEffect : public RenderableEffect
     public:
         TextEffect(int id);
         virtual ~TextEffect();
-        virtual void SetDefaultParameters(ModelClass *cls);
+        virtual void SetDefaultParameters(Model *cls) override;
     
-        virtual bool CanRenderOnBackgroundThread();
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
-        virtual bool CanBeRandom() {return false;}
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual bool CanBeRandom() override {return false;}
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
     
         void RenderTextLine(RenderBuffer &buffer,

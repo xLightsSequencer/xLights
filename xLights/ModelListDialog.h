@@ -11,7 +11,6 @@
 //*)
 
 #include <wx/html/htmprint.h>
-#include "ModelClass.h"
 #include "sequencer/SequenceElements.h"
 
 class xLightsFrame;

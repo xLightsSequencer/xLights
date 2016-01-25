@@ -9,7 +9,10 @@
 #define NO_MIN_MAX_TIME      0
 
 #define NO_MAX                  1000000
+
 class Element;
+class Model;
+
 
 class EffectLayer
 {
@@ -17,7 +20,7 @@ class EffectLayer
         EffectLayer(Element* parent);
         virtual ~EffectLayer();
 
-    Effect *AddEffect(int id, const std::string &name, const std::string &settings, const std::string &palette,
+        Effect *AddEffect(int id, const std::string &name, const std::string &settings, const std::string &palette,
                           int startTimeMS, int endTimeMS, int Selected, bool Protected);
         Effect* GetEffect(int index);
         Effect* GetEffectByTime(int ms);
@@ -120,7 +123,6 @@ public:
 private:
 };
 
-class ModelClass;
 class StrandLayer: public NamedLayer
 {
 public:
@@ -132,7 +134,7 @@ public:
     bool ShowNodes() { return mShowNodes;}
     void ShowNodes(bool b) { mShowNodes = b;}
 
-    void InitFromModel(ModelClass &model);
+    void InitFromModel(Model &model);
 
     NodeLayer *GetNodeLayer(int n, bool create = false);
     int GetNodeLayerCount() {

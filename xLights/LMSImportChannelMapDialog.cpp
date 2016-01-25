@@ -1,7 +1,7 @@
 #include "LMSImportChannelMapDialog.h"
 #include "sequencer/SequenceElements.h"
 #include "xLightsMain.h"
-#include "ModelClass.h"
+#include "models/Model.h"
 
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
@@ -151,7 +151,7 @@ void LMSImportChannelMapDialog::SetupByNode() {
         ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     }
     for (int x = 0; x < modelNames.size(); x++) {
-        AddModel(*xlights->GetModelClass(modelNames[x]));
+        AddModel(*xlights->GetModel(modelNames[x]));
     }
 }
 void LMSImportChannelMapDialog::SetupByStrand() {
@@ -160,7 +160,7 @@ void LMSImportChannelMapDialog::SetupByStrand() {
         ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     }
     for (int x = 0; x < modelNames.size(); x++) {
-        AddModel(*xlights->GetModelClass(modelNames[x]));
+        AddModel(*xlights->GetModel(modelNames[x]));
     }
 }
 
@@ -177,7 +177,7 @@ void LMSImportChannelMapDialog::OnMapByStrandClick(wxCommandEvent& event)
     }
     ChannelMapGrid->EndBatch();
 }
-void LMSImportChannelMapDialog::AddModel(ModelClass &cls) {
+void LMSImportChannelMapDialog::AddModel(Model &cls) {
     ChannelMapGrid->BeginBatch();
     int i = ChannelMapGrid->GetNumberRows();
     int start = i;
@@ -233,7 +233,7 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
         return;
     }
     modelNames.push_back(name);
-    ModelClass *cls = xlights->GetModelClass(name);
+    Model *cls = xlights->GetModel(name);
     AddModel(*cls);
     Refresh();
 }

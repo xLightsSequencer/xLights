@@ -94,8 +94,8 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
         EffectLayer* layer = mEffect->GetParentEffectLayer();
         Element* elem = layer->GetParentElement();
         std::string model_name = elem->GetName();
-        ModelClass *cls = xlights_parent->GetModelClass(model_name);
-        mGridCanvas->SetModelClass(cls);
+        Model *cls = xlights_parent->GetModel(model_name);
+        mGridCanvas->SetModel(cls);
         mGridCanvas->SetNumColumns(cls->BufferWi);
         mGridCanvas->SetNumRows(cls->BufferHt);
         mGridCanvas->SetEffect(mEffect);

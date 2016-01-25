@@ -10,12 +10,12 @@ class ColorWashEffect : public RenderableEffect
         ColorWashEffect(int id);
         virtual ~ColorWashEffect();
     
-        virtual void SetDefaultParameters(ModelClass *cls);
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
-        virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2);
+        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) override;
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
 };
 

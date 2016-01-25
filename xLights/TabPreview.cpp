@@ -3,6 +3,7 @@
 #include "heartbeat.h"
 #include "DrawGLUtils.h"
 #include "SaveChangesDialog.h"
+#include "models/Model.h"
 
 #define PREVIEWROTATIONFACTOR 3
 
@@ -61,7 +62,7 @@ void xLightsFrame::UpdatePreview()
     modelPreview->EndDrawing();
 }
 
-wxXmlNode *xLightsFrame::BuildWholeHouseModel(const std::string &modelName, const wxXmlNode *node, std::vector<ModelClass*> &models)
+wxXmlNode *xLightsFrame::BuildWholeHouseModel(const std::string &modelName, const wxXmlNode *node, std::vector<Model*> &models)
 {
     size_t numberOfNodes=0;
     int w,h;
@@ -204,7 +205,7 @@ void xLightsFrame::SelectModel(const std::string & name)
                 ListBoxElementList->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
                 return;
             }
-            ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
+            Model* m=(Model*)ListBoxElementList->GetItemData(i);
             m->Selected = true;
             double newscalex, newscaley;
             m->GetScales(newscalex, newscaley);
@@ -233,7 +234,7 @@ void xLightsFrame::SelectModel(const std::string & name)
         for(int i=0;i<ListBoxElementList->GetItemCount();i++)
         {
             if (name != ListBoxElementList->GetItemText(i)) {
-                ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
+                Model* m=(Model*)ListBoxElementList->GetItemData(i);
                 if (m != NULL) {
                     int startChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,1).ToStdString());
                     int endChan = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2).ToStdString());
@@ -507,7 +508,7 @@ void xLightsFrame::ShowModelProperties()
 {
     int sel = ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND) return;
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(sel);
+    Model* m=(Model*)ListBoxElementList->GetItemData(sel);
 
     wxXmlNode* e=m->GetModelXml();
     int DlgResult;
@@ -674,7 +675,7 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
 
     int sel=ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND) return;
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(sel);
+    Model* m=(Model*)ListBoxElementList->GetItemData(sel);
 
     if(m_rotating)
     {
@@ -741,7 +742,7 @@ void xLightsFrame::PreviewScaleUpdated(float xscale, float yscale)
 {
     int sel=ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND) return;
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(sel);
+    Model* m=(Model*)ListBoxElementList->GetItemData(sel);
     m->SetScale(xscale/100.0, yscale/100.0);
     m->UpdateXmlWithScale();
     UnsavedRgbEffectsChanges = true;
@@ -763,7 +764,7 @@ void xLightsFrame::PreviewRotationUpdated(int newRotation)
 {
     int sel=ListBoxElementList->GetFirstSelected();
     if (sel == wxNOT_FOUND) return;
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(sel);
+    Model* m=(Model*)ListBoxElementList->GetItemData(sel);
     m->SetModelCoord(newRotation);
     m->UpdateXmlWithScale();
     UnsavedRgbEffectsChanges = true;
@@ -1068,7 +1069,7 @@ void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
     std::string newStartChannel = TextCtrlModelStartChannel->GetValue().ToStdString();
 	int sel = ListBoxElementList->GetFirstSelected();
 	if (sel == wxNOT_FOUND) return;
-	ModelClass* m = (ModelClass*)ListBoxElementList->GetItemData(sel);
+	Model* m = (Model*)ListBoxElementList->GetItemData(sel);
 	wxString name = ListBoxElementList->GetItemText(sel);
 	int oldStart = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(sel,1).ToStdString());
     int oldEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(sel,2).ToStdString());
@@ -1094,8 +1095,8 @@ void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
 
 int wxCALLBACK SortElementsFunctionASC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortColumn)
 {
-    ModelClass* a = (ModelClass *)item1;
-    ModelClass* b = (ModelClass *)item2;
+    Model* a = (Model *)item1;
+    Model* b = (Model *)item2;
 
     if (sortColumn == 1) {
         int ia = a->GetNumberFromChannelString(a->ModelStartChannel);
@@ -1139,7 +1140,7 @@ void xLightsFrame::OnCheckBoxOverlapClick(wxCommandEvent& event)
     if (CheckBoxOverlap->GetValue() == false) {
         for(int i=0;i<ListBoxElementList->GetItemCount();i++)
         {
-            ModelClass* m=(ModelClass*)ListBoxElementList->GetItemData(i);
+            Model* m=(Model*)ListBoxElementList->GetItemData(i);
             if (m != NULL) {
                 m->Overlapping = false;
             }
