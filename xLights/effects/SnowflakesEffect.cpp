@@ -304,7 +304,7 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 
     // move snowflakes
     int movement = (buffer.curPeriod - buffer.curEffStartPer) * sSpeed * buffer.frameTimeInMs / 50;
-    int new_x,new_y;
+    int new_x,new_y,new_x2,new_y2;
     int starty = 0;
     if (falling == "Falling & Accumulating")
     {
@@ -313,6 +313,8 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 
     for (x=0; x<buffer.BufferWi; x++) {
         new_x = (x+movement/20) % buffer.BufferWi; // CW
+        new_x2 = (x-movement/20) % buffer.BufferWi; // CCW
+        if (new_x2 < 0) new_x2 += buffer.BufferWi;
 
         for (y=starty; y<buffer.BufferHt; y++) {
             if (falling != "Driving") {
@@ -420,8 +422,10 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                 }
             } else {
                 new_y = (y+movement/10) % buffer.BufferHt;
-                // strip off the alpha channel
-                buffer.SetPixel(x, y, buffer.GetTempPixel(new_x, new_y));
+                new_y2 = (new_y+buffer.BufferHt/2) % buffer.BufferHt;
+                buffer.GetTempPixel(new_x,new_y,color1);
+                if (color1 == xlBLACK) buffer.GetTempPixel(new_x2,new_y2,color1);                // strip off the alpha channel
+                buffer.SetPixel(x, y, color1);
             }
         }
     }
