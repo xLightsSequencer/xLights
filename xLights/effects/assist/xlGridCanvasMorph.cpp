@@ -1,6 +1,6 @@
 #include "xlGridCanvasMorph.h"
-#include "BitmapCache.h"
-#include "DrawGLUtils.h"
+#include "../../BitmapCache.h"
+#include "../../DrawGLUtils.h"
 
 BEGIN_EVENT_TABLE(xlGridCanvasMorph, xlGridCanvas)
 EVT_PAINT(xlGridCanvasMorph::render)

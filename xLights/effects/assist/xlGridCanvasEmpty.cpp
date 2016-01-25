@@ -1,5 +1,5 @@
 #include "xlGridCanvasEmpty.h"
-#include "DrawGLUtils.h"
+#include "../../DrawGLUtils.h"
 
 BEGIN_EVENT_TABLE(xlGridCanvasEmpty, xlGridCanvas)
 EVT_PAINT(xlGridCanvasEmpty::render)

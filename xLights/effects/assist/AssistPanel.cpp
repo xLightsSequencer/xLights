@@ -1,5 +1,5 @@
 #include "AssistPanel.h"
-#include "xLightsMain.h"
+#include "../../xLightsMain.h"
 
 //(*InternalHeaders(AssistPanel)
 #include <wx/intl.h>

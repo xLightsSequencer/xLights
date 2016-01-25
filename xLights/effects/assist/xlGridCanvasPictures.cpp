@@ -1,10 +1,10 @@
 #include "xlGridCanvasPictures.h"
-#include "BitmapCache.h"
-#include "DrawGLUtils.h"
+#include "../../BitmapCache.h"
+#include "../../DrawGLUtils.h"
 #include <wx/filefn.h>
 #include <wx/filename.h>
 
-#include "ResizeImageDialog.h"
+#include "../../ResizeImageDialog.h"
 
 static const wxString strSupportedImageTypes = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp|JPG files(*.jpg)|*.jpg|All files (*.*)|*.*";
 

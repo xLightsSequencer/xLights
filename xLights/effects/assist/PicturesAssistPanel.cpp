@@ -1,9 +1,9 @@
 #include "PicturesAssistPanel.h"
-#include "xlColorPicker.h"
-#include "xlColorPickerFields.h"
-#include "../include/PaintToolIcons.h"
-#include "xLightsMain.h"
-#include "xLightsXmlFile.h"
+#include "../../xlColorPicker.h"
+#include "../../xlColorPickerFields.h"
+#include "../../../include/PaintToolIcons.h"
+#include "../../xLightsMain.h"
+#include "../../xLightsXmlFile.h"
 
 //(*InternalHeaders(PicturesAssistPanel)
 #include <wx/intl.h>
