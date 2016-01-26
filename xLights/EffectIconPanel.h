@@ -18,6 +18,7 @@ class EffectIconPanel: public wxPanel
 		virtual ~EffectIconPanel();
 
 		//(*Declarations(EffectIconPanel)
+		wxGridSizer* GridSizer1;
 		//*)
 
 	protected:
@@ -26,8 +27,9 @@ class EffectIconPanel: public wxPanel
 		//*)
 
 	private:
-
+        const EffectManager &manager;
 		//(*Handlers(EffectIconPanel)
+		void OnResize(wxSizeEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
