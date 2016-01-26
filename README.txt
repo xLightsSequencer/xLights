@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.1  Jan 25, 2016
     -- enh(dkulp) Refactor Effect rendering code to make it easier to create new effects
     -- enh(dkulp) Update Linux Text effect to render on background thread
     -- bug(dkulp) Linux toolbar buttons sizing problem and buttons on effect panel
