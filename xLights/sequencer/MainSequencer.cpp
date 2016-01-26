@@ -370,7 +370,15 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                 wxString row = wxString::Format("%d",row_number);
                 wxString column_start = wxString::Format("%d",column_start_time);
                 copy_data += ef->GetEffectName() + "\t" + ef->GetSettingsAsString() + "\t" + ef->GetPaletteAsString() +
-                            "\t" + start_time + "\t" + end_time + "\t" + row + "\t" + column_start + "\n";
+                            "\t" + start_time + "\t" + end_time + "\t" + row + "\t" + column_start;
+                if (tel != nullptr) {
+                    Effect* te_start = tel->GetEffectByTime(ef->GetStartTimeMS() + 1); // if we don't add 1ms, it picks up the end of the previous timing instead of the start of this one
+                    Effect* te_end = tel->GetEffectByTime(ef->GetEndTimeMS());
+                    if (te_start != nullptr && te_end != nullptr) {
+                        copy_data += wxString::Format("\t%d\t%d",te_start->GetID()-start_column,te_end->GetID()-start_column);
+                    }
+                }
+                copy_data += "\n";
             }
         }
     }
