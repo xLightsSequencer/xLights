@@ -129,9 +129,7 @@ Model *xLightsFrame::GetModel(const std::string& name) {
         if (model == NULL) {
             model = CreateModelNodeFromGroup(name);
         }
-        if (model == nullptr) {
-            wxMessageBox("Could not find a model or group named " + name);
-        } else {
+        if (model != nullptr) {
             return AllModels.createModel(model, NetInfo);
         }
     }
