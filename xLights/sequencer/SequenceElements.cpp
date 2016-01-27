@@ -33,8 +33,8 @@ static const std::string STR_LABEL("label");
 static const std::string STR_ZERO("0");
 
 
-SequenceElements::SequenceElements()
-: undo_mgr(this)
+SequenceElements::SequenceElements(xLightsFrame *f)
+: undo_mgr(this), xframe(f)
 {
     mSelectedTimingRow = -1;
     mTimingRowCount = 0;
@@ -45,7 +45,6 @@ SequenceElements::SequenceElements()
     mCurrentView = 0;
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);  // first view must remain as master view that determines render order
-    xframe = nullptr;
     hasPapagayoTiming = false;
 }
 
@@ -193,10 +192,9 @@ void SequenceElements::SetViewsNode(wxXmlNode* viewsNode)
     mViewsNode = viewsNode;
 }
 
-void SequenceElements::SetModelsNode(wxXmlNode* node, xLightsFrame *f)
+void SequenceElements::SetModelsNode(wxXmlNode* node)
 {
     mModelsNode = node;
-    xframe = f;
 }
 
 void SequenceElements::SetEffectsNode(wxXmlNode* effectsNode)

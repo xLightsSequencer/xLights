@@ -55,7 +55,7 @@ class EffectManager;
 class SequenceElements : public ChangeListener
 {
     public:
-        SequenceElements();
+        SequenceElements(xLightsFrame *frame);
         virtual ~SequenceElements();
         bool LoadSequencerFile(xLightsXmlFile& xml_file);
         void Clear();
@@ -122,7 +122,7 @@ class SequenceElements : public ChangeListener
         std::string GetViewName(int view) const;
 
         void SetViewsNode(wxXmlNode* viewsNode);
-        void SetModelsNode(wxXmlNode *modelsNode, xLightsFrame *frame);
+        void SetModelsNode(wxXmlNode *modelsNode);
         std::string GetViewModels(const std::string &viewName) const;
         void SetEffectsNode(wxXmlNode* effectsNode);
         wxXmlNode* GetEffectsNode() { return mEffectsNode; }

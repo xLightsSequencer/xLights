@@ -503,7 +503,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 }
 
 
-xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
+xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this)
 {
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 

@@ -686,7 +686,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
 
     xLightsXmlFile xlf(filename);
     xlf.Open();
-    SequenceElements se;
+    SequenceElements se(this);
     se.SetFrequency(mSequenceElements.GetFrequency());
     se.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     se.LoadSequencerFile(xlf);
