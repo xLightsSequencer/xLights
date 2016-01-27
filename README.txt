@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.2  Jan 26, 2016
+    -- bug(sean) Fixed self install script to overwrite wxwidgets library files. wxmsm*.dll
 2016.1  Jan 25, 2016
     -- enh(dkulp) Refactor Effect rendering code to make it easier to create new effects
     -- enh(dkulp) Update Linux Text effect to render on background thread

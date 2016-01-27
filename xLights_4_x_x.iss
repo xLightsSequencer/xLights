@@ -10,16 +10,16 @@
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
 AppName=xLights
-AppVersion=2016.1
+AppVersion=2016.2
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
-SetupIconFile=include\xLights.ico
+SetupIconFile=include\xlights.ico
 
 UninstallDisplayIcon={app}\xLights.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-OutputBaseFilename=xLights_Nutcracker_4_x_x
+OutputBaseFilename=xLights_Nutcracker_2016_x
 
 
 [Tasks]
@@ -28,29 +28,29 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"
-Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
-Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gl_gcc_custom.dll"; DestDir: "{app}"
-;Source: "C:\Users\Sean_Dell\wxwidgets-3.0.2\lib\gcc_dll\wxmsw30ud_gl_gcc_custom.dll"; DestDir: "{app}"
-Source: "C:\Users\Sean_Dell\Documents\xLights\bin\glut32.dll"; DestDir: "{app}"
-Source: "C:\Users\Sean_Dell\Documents\xLights\bin\libmpg123-0.dll"; DestDir: "{app}"
-Source: "bin/ffmpeg.exe";       DestDir: "{app}"
-Source: "bin/xlights.map";      DestDir: "{app}"
+
+Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gcc_custom.dll";DestDir: "{app}";     Flags: "ignoreversion"
+Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "C:\Users\Sean_Dell\Documents\xLights\bin\glut32.dll"; DestDir: "{app}";       Flags: "ignoreversion"
+Source: "C:\Users\Sean_Dell\Documents\xLights\bin\libmpg123-0.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/ffmpeg.exe";          DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin/xlights.map";         DestDir: "{app}"; Flags: "ignoreversion"
 ; Added files for doing Papagayo effects
-Source: "bin/extended_dictionary";      DestDir: "{app}"
-Source: "bin/phoneme_mapping";      DestDir: "{app}"
-Source: "bin/standard_dictionary";      DestDir: "{app}"
-Source: "bin/user_dictionary";      DestDir: "{app}"
+Source: "bin/extended_dictionary"; DestDir: "{app}"
+Source: "bin/phoneme_mapping";     DestDir: "{app}"
+Source: "bin/standard_dictionary"; DestDir: "{app}"
+Source: "bin/user_dictionary";     DestDir: "{app}"
 ;
 Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}"
-Source: "bin/gawk.exe";         DestDir: "{app}"
-Source: "bin/coroface.awk";     DestDir: "{app}"
-Source: "bin/corofaces.bat";    DestDir: "{app}"
-Source: "bin/picturefaces.awk"; DestDir: "{app}"
-Source: "bin/modelxls.awk";     DestDir: "{app}"
-Source: "bin/modelxls.bat";     DestDir: "{app}"
-Source: "bin/merge_xml.awk";    DestDir: "{app}"
-Source: "bin/PathEditor.exe";   DestDir: "{app}"
-Source: "include\xLights.ico";  DestDir: "{app}"
+Source: "bin/gawk.exe";            DestDir: "{app}"
+Source: "bin/coroface.awk";        DestDir: "{app}"
+Source: "bin/corofaces.bat";       DestDir: "{app}"
+Source: "bin/picturefaces.awk";    DestDir: "{app}"
+Source: "bin/modelxls.awk";        DestDir: "{app}"
+Source: "bin/modelxls.bat";        DestDir: "{app}"
+Source: "bin/merge_xml.awk";       DestDir: "{app}"
+Source: "bin/PathEditor.exe";      DestDir: "{app}"
+Source: "include\xLights.ico";     DestDir: "{app}"
 Source: "include\xLights_orig.ico"; DestDir: "{app}"
 Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
