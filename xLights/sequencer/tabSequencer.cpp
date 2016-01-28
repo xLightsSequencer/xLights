@@ -123,17 +123,7 @@ void xLightsFrame::InitSequencer()
 }
 
 Model *xLightsFrame::GetModel(const std::string& name) {
-    Model *cls = AllModels[name];
-    if (cls == nullptr) {
-        wxXmlNode *model = GetModelNode(name);
-        if (model == NULL) {
-            model = CreateModelNodeFromGroup(name);
-        }
-        if (model != nullptr) {
-            return AllModels.createModel(model, NetInfo);
-        }
-    }
-    return cls;
+    return AllModels[name];
 }
 
 bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
@@ -185,19 +175,21 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
 void xLightsFrame::CheckForValidModels()
 {
     wxArrayString ModelNames;
-    GetModelNames(ModelNames, true);
+    for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
+        ModelNames.push_back(it->first);
+    }
     SeqElementMismatchDialog dialog(this);
     dialog.ChoiceModels->Set(ModelNames);
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
         if ("model" == mSequenceElements.GetElement(x)->GetType()) {
-            wxString name = mSequenceElements.GetElement(x)->GetName();
-            if (ModelNames.Index(name) == wxNOT_FOUND) {
+            std::string name = mSequenceElements.GetElement(x)->GetName();
+            if (AllModels[name] == nullptr) {
                 dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
                 dialog.Fit();
                 dialog.ShowModal();
                 if (dialog.RadioButtonAdd->GetValue()) {
                 } else if (dialog.RadioButtonDelete->GetValue()) {
-                    mSequenceElements.DeleteElement(name.ToStdString());
+                    mSequenceElements.DeleteElement(name);
                 } else {
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
                     mSequenceElements.GetElement(x)->SetName(newName);

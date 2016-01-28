@@ -3,6 +3,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 class Model;
 class wxXmlNode;
@@ -16,15 +17,23 @@ class ModelManager
     
     
         Model *operator[](const std::string &name) const;
+        Model *GetModel(const std::string &name) const;
     
-        Model *createModel(wxXmlNode *node, NetInfoClass &ni);
+    
+        void Load(wxXmlNode *modelNode, wxXmlNode *groupNode, NetInfoClass &ni,
+                  int previewW, int previewH);
     
         void clear();
     
         std::map<std::string, Model*>::const_iterator begin() const;
         std::map<std::string, Model*>::const_iterator end() const;
         int size() const;
+    
     protected:
+        Model *createModel(wxXmlNode *node, NetInfoClass &ni);
+        wxXmlNode* CreateModelNodeFromGroup(int previewW, int previewH, wxXmlNode *node);
+        wxXmlNode *BuildWholeHouseModel(int previewW, int previewH,
+                                        const std::string &modelName, const wxXmlNode *node, std::vector<Model*> &models);
     private:
     
     

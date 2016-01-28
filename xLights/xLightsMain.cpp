@@ -2255,8 +2255,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     }
     else if (pagenum == CONVERTTAB)
     {
-        wxArrayString ModelNames;
-        GetModelNames(ModelNames);
+        StatusBar1->SetStatusText(_(""));
     }
     else
     {

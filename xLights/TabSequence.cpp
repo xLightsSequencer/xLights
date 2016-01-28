@@ -217,45 +217,6 @@ void xLightsFrame::CreateDefaultEffectsXml()
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
     EffectsXml.SetRoot( root );
 }
-
-wxXmlNode* xLightsFrame::GetModelNode(const std::string& name)
-{
-    wxXmlNode* e;
-    for(e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "model")
-        {
-            if (name == e->GetAttribute("name")) return e;
-        }
-    }
-    return NULL;
-}
-wxXmlNode* xLightsFrame::CreateModelNodeFromGroup(const std::string &name) {
-    wxXmlNode* element;
-    std::vector<Model*> models;
-    std::string modelString;
-    for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() ) {
-        if (e->GetName() == "modelGroup") {
-            if (name == e->GetAttribute("name")) {
-                element = e;
-                modelString = e->GetAttribute("models");
-                wxArrayString modelNames = wxSplit(modelString, ',');
-                for (int x = 0; x < modelNames.size(); x++) {
-                    Model *c = GetModel(modelNames[x].ToStdString());
-                    if (c != nullptr) {
-                        models.push_back(c);
-                    }
-                }
-            }
-        }
-    }
-    if (models.size() == 0) {
-        return NULL;
-    }
-    wxXmlNode * ret = BuildWholeHouseModel(name, element, models);
-    ret->AddAttribute("models", modelString);
-    return ret;
-}
 void xLightsFrame::ShowModelsDialog()
 {
     ModelListDialog dialog(this);
@@ -344,109 +305,31 @@ int wxCALLBACK MyCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr WXUNUS
 
 void xLightsFrame::UpdateModelsList()
 {
-    std::string name, start_channel;
-    int end_channel;
-    wxArrayString model_names;
-    Model *model;
-	ListBoxElementList->DeleteAllItems();
-    PreviewModels.clear();
-    AllModels.clear();
+    AllModels.Load(ModelsNode, ModelGroupsNode, NetInfo,
+                   modelPreview->GetVirtualCanvasWidth(), modelPreview->GetVirtualCanvasHeight());
+    
     wxString msg;
-    int num_group_models = 0;
-	int itemCount = 0;
-
-    // Set models in selected modelgroups as part of display.
-    for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "modelGroup")
-        {
-            if(e->GetAttribute("selected") == "1")
-            {
-                wxArrayString ModelsInGroup=wxSplit(e->GetAttribute("models"),',');
-                for(int i=0;i<ModelsInGroup.size();i++)
-                {
-                    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-                    {
-                        if (e->GetName() == "model")
-                        {
-                            name=e->GetAttribute("name");
-                            if (name == ModelsInGroup[i])
-                            {
-                                bool model_already_added = false;
-                                for(int k = 0; k < model_names.size(); k++)
-                                {
-                                    if( model_names[k] == name )
-                                    {
-                                        model_already_added = true;
-                                        break;
-                                    }
-                                }
-                                if( !model_already_added )
-                                {
-                                    model = AllModels.createModel(e, NetInfo);
-
-                                    if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
-                                        msg += wxString::Format("%s - last channel: %u\n",name, model->GetLastChannel());
-                                    }
-                                    if (Model::IsMyDisplay(e))
-                                    {
-                                        long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
-                                        start_channel = e->GetAttribute("StartChannel");
-                                        model->SetModelStartChan(start_channel);
-                                        wxString string_type = e->GetAttribute("StringType");
-                                        int parm1 = wxAtoi(e->GetAttribute("parm1"));
-                                        int parm2 = wxAtoi(e->GetAttribute("parm2"));
-                                        wxString display_as = e->GetAttribute("DisplayAs");
-                                        end_channel = model->GetLastChannel()+1;
-                                        ListBoxElementList->SetItem(itemIndex,1,start_channel);
-                                        ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
-                                        ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
-                                        PreviewModels.push_back(model);
-                                    }
-                                    model_names.push_back(name);
-                                    num_group_models++;
-                                }
-                            }
-                        }
-                    }
-                }
+    ListBoxElementList->DeleteAllItems();
+    PreviewModels.clear();
+    
+    for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
+        Model *model = it->second;
+        if (model->IsMyDisplay(model->GetModelXml())) {
+            if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
+                msg += wxString::Format("%s - last channel: %u\n",model->name, model->GetLastChannel());
             }
+            long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(), model->name);
+            
+            std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
+            model->SetModelStartChan(start_channel);
+            int end_channel = model->GetLastChannel()+1;
+            ListBoxElementList->SetItem(itemIndex,1, start_channel);
+            ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
+            ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
+            PreviewModels.push_back(model);
         }
     }
-
-    if( num_group_models == 0 )
-    {
-        for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-        {
-            if (e->GetName() == "model")
-            {
-                name=e->GetAttribute("name");
-                if (!name.empty())
-                {
-                    model = AllModels.createModel(e, NetInfo);
-
-                    if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
-                        msg += wxString::Format("%s - last channel: %u\n",name, model->GetLastChannel());
-                    }
-                    if (Model::IsMyDisplay(e))
-                    {
-                        long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(),name);
-                        start_channel = e->GetAttribute("StartChannel");
-                        model->SetModelStartChan(start_channel);
-                        wxString string_type = e->GetAttribute("StringType");
-                        int parm1 = wxAtoi(e->GetAttribute("parm1"));
-                        int parm2 = wxAtoi(e->GetAttribute("parm2"));
-                        wxString display_as = e->GetAttribute("DisplayAs");
-                        end_channel = model->GetLastChannel()+1;
-                        ListBoxElementList->SetItem(itemIndex,1,start_channel);
-                        ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
-                        ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
-                        PreviewModels.push_back(model);
-                    }
-                }
-            }
-        }
-    }
+    
     ListBoxElementList->SortItems(MyCompareFunction,0);
     ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
     ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
@@ -584,36 +467,6 @@ void xLightsFrame::RenderAll()
     CallAfter(&xLightsFrame::SetStatusText, displayBuff);
     EnableSequenceControls(true);
 }
-
-void xLightsFrame::GetModelNames(wxArrayString& a, bool includeGroups)
-{
-    wxString name;
-    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "model")
-        {
-            name=e->GetAttribute("name");
-            if (!name.IsEmpty())
-            {
-                a.Add(name);
-            }
-        }
-    }
-    if (includeGroups) {
-        for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-        {
-            if (e->GetName() == "modelGroup")
-            {
-                name=e->GetAttribute("name");
-                if (!name.IsEmpty())
-                {
-                    a.Add(name);
-                }
-            }
-        }
-    }
-}
-
 
 static void enableAllChildControls(wxWindow *parent, bool enable) {
     wxWindowList &ChildList = parent->GetChildren();

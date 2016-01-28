@@ -828,13 +828,8 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         fullpath=oName.GetFullPath();
         WriteHLSFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
     } else if (Out3 == "Fal") {
-        wxString tempstr;
-        long stChan = 1;
-        wxXmlNode *modelNode = GetModelNode(model);
-        if (modelNode != NULL) {
-            tempstr=modelNode->GetAttribute("StartChannel","1");
-            tempstr.ToLong(&stChan);
-        }
+        wxString tempstr = GetModel(model)->ModelStartChannel;
+        int stChan = wxAtoi(tempstr);
         oName.SetExt(_("eseq"));
         fullpath=oName.GetFullPath();
         WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());

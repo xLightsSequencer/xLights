@@ -139,7 +139,7 @@ public:
     void RotateWithHandles(ModelPreview* preview,bool ShiftKeyPressed,  int mouseX,int mouseY);
     bool HitTest(ModelPreview* preview,int x,int y);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
-    void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,
+    void AddToWholeHouseModel(int pw, int ph, std::vector<int>& xPos,std::vector<int>& yPos,
                               std::vector<int>& actChannel,std::vector<std::string>& nodeTypes);
     void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
     bool CanRotate();

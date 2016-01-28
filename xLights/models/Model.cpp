@@ -141,6 +141,8 @@ int Model::GetNumberFromChannelString(std::string sc) {
 }
 
 void Model::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBased) {
+    
+    
     wxString tempstr,channelstr;
     std::string customModel,WholeHouseData;
     long degrees, StartChannel;
@@ -308,7 +310,8 @@ void Model::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBas
         //PreviewRotation *= 3; //Fix for formerversion of model rotation
         ModelVersion = 1;
     }
-    
+    ModelStartChannel = ModelNode->GetAttribute("StartChannel");
+
     // calculate starting channel numbers for each string
     size_t NumberOfStrings= HasOneString(DisplayAs) ? 1 : parm1;
     int ChannelsPerString=parm2*GetNodeChannelCount(StringType);
@@ -1642,12 +1645,10 @@ void Model::UpdateXmlWithScale() {
     ModelXml->AddAttribute("StartChannel", ModelStartChannel);
 }
 
-void Model::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,
+void Model::AddToWholeHouseModel(int w, int h, std::vector<int>& xPos,std::vector<int>& yPos,
                                       std::vector<int>& actChannel, std::vector<std::string>& nodeTypes) {
     size_t NodeCount=Nodes.size();
     double sx,sy;
-    int w, h;
-    preview->GetVirtualCanvasSize(w,h);
     
     if (singleScale) {
         //we now have the virtual size so we can flip to non-single scale

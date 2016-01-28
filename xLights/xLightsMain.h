@@ -1379,8 +1379,7 @@ private:
     void OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer);
     void ChooseModelsForSequence();
     void GetGridColumnLabels(wxArrayString& a);
-    void GetModelNames(wxArrayString& a, bool includeGroups = false);
-    wxXmlNode* CreateModelNodeFromGroup(const std::string &name);
+
     void DisplayXlightsFilename(const wxString& filename);
     void CopyRow(int row1, int row2);
     void NumericSort();
@@ -1397,7 +1396,6 @@ private:
 
 
 public:
-    wxXmlNode* GetModelNode(const std::string& name);
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     Model *GetModel(const std::string& name);
     void RenderGridToSeqData();
@@ -1446,7 +1444,6 @@ protected:
     bool CloseSequence();
     void InsertRow();
     void UpdatePreview();
-    wxXmlNode *BuildWholeHouseModel(const std::string &modelName, const wxXmlNode *node, std::vector<Model*> &models);
     void ShowModelsDialog();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
