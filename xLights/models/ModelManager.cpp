@@ -192,8 +192,9 @@ wxXmlNode *ModelManager::BuildWholeHouseModel(int previewW, int previewH,
 
 wxXmlNode* ModelManager::CreateModelNodeFromGroup(int previewW, int previewH, wxXmlNode *e) {
     std::vector<Model*> models;
-    wxString modelString = e->GetAttribute("models");
-    wxArrayString modelNames = wxSplit(modelString, ',');
+    std::string name = e->GetAttribute("name").ToStdString();
+    
+    wxArrayString modelNames = wxSplit(e->GetAttribute("models"), ',');
     for (int x = 0; x < modelNames.size(); x++) {
         Model *c = GetModel(modelNames[x].ToStdString());
         if (c != nullptr) {
@@ -203,8 +204,8 @@ wxXmlNode* ModelManager::CreateModelNodeFromGroup(int previewW, int previewH, wx
     if (models.size() == 0) {
         return NULL;
     }
-    wxXmlNode * ret = BuildWholeHouseModel(previewW, previewH, e->GetAttribute("name").ToStdString(), e, models);
-    ret->AddAttribute("models", modelString);
+    wxXmlNode * ret = BuildWholeHouseModel(previewW, previewH, name, e, models);
+    ret->AddAttribute("models", e->GetAttribute("models"));
     return ret;
 }
 

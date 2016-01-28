@@ -1668,6 +1668,8 @@ void Model::AddToWholeHouseModel(int w, int h, std::vector<int>& xPos,std::vecto
     
     for(size_t n=0; n<NodeCount; n++) {
         size_t CoordCount=GetCoordCount(n);
+        std::string type = Nodes[n]->GetNodeType();
+        int channel = Nodes[n]->ActChan;
         for(size_t c=0; c < CoordCount; c++) {
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
@@ -1680,8 +1682,8 @@ void Model::AddToWholeHouseModel(int w, int h, std::vector<int>& xPos,std::vecto
             
             xPos.push_back(sx);
             yPos.push_back(sy);
-            actChannel.push_back(Nodes[n]->ActChan);
-            nodeTypes.push_back(Nodes[n]->GetNodeType());
+            actChannel.push_back(channel);
+            nodeTypes.push_back(type);
         }
     }
 }
