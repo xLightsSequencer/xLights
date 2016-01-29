@@ -548,7 +548,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
         std::string eyesLower(eyes);
         std::transform(eyesLower.begin(), eyesLower.end(), eyesLower.begin(), ::tolower);
         
-        std::string info = map[(const char*)wxString::Format(wxT("Eyes_%s"), eyesLower.c_str())];
+        std::string info = map[wxString::Format(wxT("Eyes_%s"), eyesLower.c_str()).ToStdString()];
         Model::ParseFaceElement(info, first_xy);
     }
     if (face_outline)

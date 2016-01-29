@@ -142,6 +142,9 @@ public:
     operator wxString() const;
     wxColor asWxColor() const;
     xlColor(const wxColor &c);
+    xlColor(const wxString &str) {
+        SetFromString(str);
+    }
 };
 
 static const xlColor xlBLUE(0, 0, 255);

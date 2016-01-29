@@ -154,15 +154,9 @@ void Model::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBas
     StrobeRate=0;
     Nodes.clear();
     
-    name=ModelNode->GetAttribute("name");
-    DisplayAs=ModelNode->GetAttribute("DisplayAs");
-    if (ModelNode->HasAttribute("StringType")) {
-        // post 3.1.4
-        StringType=ModelNode->GetAttribute("StringType");
-    } else {
-        // 3.1.4 and earlier
-        StringType=ModelNode->GetAttribute("Order","RGB")+" Nodes";
-    }
+    name=ModelNode->GetAttribute("name").ToStdString();
+    DisplayAs=ModelNode->GetAttribute("DisplayAs").ToStdString();
+    StringType=ModelNode->GetAttribute("StringType").ToStdString();
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
     rgbOrder = SingleNode ? "RGB" : StringType.substr(0, 3);
@@ -1265,8 +1259,8 @@ int Model::NodeStartChannel(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->ActChan: 0; //avoid memory access error if no nods -DJ
 }
 
-std::string Model::NodeType(size_t nodenum) const {
-    return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType(): "RGB"; //avoid memory access error if no nods -DJ
+const std::string &Model::NodeType(size_t nodenum) const {
+    return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType(): NodeBaseClass::RGB; //avoid memory access error if no nods -DJ
 }
 int Model::ChannelsPerNode() {
     return SingleChannel ? 1 : 3;

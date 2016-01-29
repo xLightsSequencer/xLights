@@ -742,6 +742,7 @@
 		<Unit filename="models/Model.h" />
 		<Unit filename="models/ModelManager.cpp" />
 		<Unit filename="models/ModelManager.h" />
+		<Unit filename="models/Node.cpp" />
 		<Unit filename="models/Node.h" />
 		<Unit filename="models/StarModel.cpp" />
 		<Unit filename="models/StarModel.h" />

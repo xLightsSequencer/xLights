@@ -152,7 +152,7 @@ public:
     int GetRotation();
     int ChannelsPerNode();
     int NodeStartChannel(size_t nodenum) const;
-    std::string NodeType(size_t nodenum) const;
+    const std::string &NodeType(size_t nodenum) const;
     int MapToNodeIndex(int strand, int node) const;
     void SetModelStartChan(const std::string &start_channel);
     int ChannelStringToNumber(std::string channel);
