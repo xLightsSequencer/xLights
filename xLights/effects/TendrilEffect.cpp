@@ -350,7 +350,13 @@ void TendrilEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
 class TendrilRenderCache : public EffectRenderCache {
 public:
     TendrilRenderCache() { _tendril = NULL; };
-    virtual ~TendrilRenderCache() {};
+    virtual ~TendrilRenderCache() {
+		if (_tendril != NULL)
+		{
+			delete _tendril;
+			_tendril = NULL;
+		}
+	};
 
     int _mv1;
     int _mv2;
@@ -436,6 +442,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
         if (_tendril != NULL)
         {
             delete _tendril;
+			_tendril = NULL;
         }
         _thickness = thickness;
         _friction = friction;
