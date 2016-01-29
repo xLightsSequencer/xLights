@@ -1,3 +1,7 @@
+
+
+#include "wx/wx.h"
+
 #ifdef __WXMAC__
  #include "OpenGL/glu.h"
  #include "OpenGL/gl.h"
@@ -12,7 +16,6 @@
 // #include <GL/glext.h>
 #endif
 
-#include "wx/wx.h"
 #include "wx/sizer.h"
 #include "wx/glcanvas.h"
 #define INBUFF  16384
@@ -610,7 +613,7 @@ void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, float*sampleD
         float maximum=-1;
         int totalMinMaxs = (int)((float)trackSize/SamplesPerPixel)+1;
         MinMaxs.clear();
-        
+
         for(int i = 0; i < totalMinMaxs; i++) {
             // Use float calculation to minimize compounded rounding of position
             int start = (int)((float)i*SamplesPerPixel);

@@ -1,5 +1,10 @@
 #ifndef IMAGE_H
 #define IMAGE_H
+
+
+
+#include "wx/wx.h"
+
 // include OpenGL
 #ifdef __WXMAC__
 #include "OpenGL/gl.h"
@@ -10,7 +15,6 @@
 #include <GL/gl.h>
 #endif
 #endif
-#include "wx/wx.h"
 
 class Image
 {
@@ -37,7 +41,7 @@ public:
     Image();
     Image(wxString path);
     Image(wxImage &path);
-    
+
     ~Image();
     void load(wxImage &path);
     void load(wxString path);
