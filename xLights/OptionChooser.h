@@ -2,10 +2,10 @@
 #define OPTIONCHOOSER_H
 
 //(*Headers(OptionChooser)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/listbox.h>
-#include <wx/dialog.h>
 //*)
 
 class OptionChooser: public wxDialog
@@ -20,8 +20,8 @@ class OptionChooser: public wxDialog
 		void GetSelectedOptions(wxArrayString& options);
 
 		//(*Declarations(OptionChooser)
-		wxListBox* ListBox_Options;
 		wxStaticText* StaticText_Option_Select;
+		wxListBox* ListBox_Options;
 		//*)
 
 	protected:

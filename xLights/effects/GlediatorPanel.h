@@ -4,8 +4,8 @@
 //(*Headers(GlediatorPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
 class wxButton;
 //*)
 
@@ -17,9 +17,9 @@ class GlediatorPanel: public wxPanel
 		virtual ~GlediatorPanel();
 
 		//(*Declarations(GlediatorPanel)
-		wxTextCtrl* TextCtrl_Glediator_Filename;
-		wxButton* ButtonGledFile;
 		wxBitmapButton* BitmapButton_Glediator_Filename;
+		wxButton* ButtonGledFile;
+		wxTextCtrl* TextCtrl_Glediator_Filename;
 		//*)
     
         wxString defaultDir;

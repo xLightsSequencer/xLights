@@ -3,19 +3,19 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(SingleStrandPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(SingleStrandPanel)
@@ -70,32 +70,32 @@ END_EVENT_TABLE()
 SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 {
 	//(*Initialize(SingleStrandPanel)
-	wxStaticText* StaticText10;
-	wxTextCtrl* TextCtrl42;
-	wxTextCtrl* TextCtrl4;
-	wxSlider* Slider_Skips_BandSize;
-	wxFlexGridSizer* FlexGridSizer24;
-	wxStaticText* StaticText106;
-	wxTextCtrl* TextCtrl45;
-	wxStaticText* StaticText101;
-	wxStaticText* StaticText179;
-	wxStaticText* StaticText105;
-	wxChoice* Choice_Chase_Type1;
-	wxFlexGridSizer* FlexGridSizer81;
-	wxSlider* Slider15;
-	wxSlider* Slider16;
 	wxFlexGridSizer* FlexGridSizer21;
-	wxSlider* Slider_Skips_StartPos;
-	wxTextCtrl* TextCtrl44;
-	wxTextCtrl* TextCtrl43;
-	wxFlexGridSizer* FlexGridSizer82;
-	wxSlider* Slider_Skips_SkipSize;
-	wxFlexGridSizer* FlexGridSizer89;
-	wxTextCtrl* TextCtrl5;
-	wxFlexGridSizer* FlexGridSizer84;
+	wxTextCtrl* TextCtrl45;
 	wxTextCtrl* TextCtrl3;
 	wxFlexGridSizer* FlexGridSizer79;
+	wxTextCtrl* TextCtrl43;
+	wxStaticText* StaticText101;
+	wxStaticText* StaticText179;
+	wxSlider* Slider15;
+	wxStaticText* StaticText10;
+	wxTextCtrl* TextCtrl5;
+	wxSlider* Slider_Skips_SkipSize;
+	wxStaticText* StaticText105;
+	wxTextCtrl* TextCtrl42;
+	wxFlexGridSizer* FlexGridSizer81;
+	wxSlider* Slider_Skips_StartPos;
+	wxSlider* Slider16;
+	wxTextCtrl* TextCtrl44;
+	wxStaticText* StaticText106;
+	wxSlider* Slider_Skips_BandSize;
 	wxFlexGridSizer* FlexGridSizer83;
+	wxFlexGridSizer* FlexGridSizer89;
+	wxFlexGridSizer* FlexGridSizer84;
+	wxChoice* Choice_Chase_Type1;
+	wxFlexGridSizer* FlexGridSizer24;
+	wxTextCtrl* TextCtrl4;
+	wxFlexGridSizer* FlexGridSizer82;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer89 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -118,7 +118,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	FlexGridSizer24->Add(StaticText60, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Number_Chases = new wxSlider(Panel1, ID_SLIDER_Number_Chases, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Chases"));
 	Slider_Number_Chases->SetSelection(1, 20);
-	FlexGridSizer24->Add(Slider_Number_Chases, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer24->Add(Slider_Number_Chases, 1, wxALL|wxEXPAND, 2);
 	TextCtrl44 = new wxTextCtrl(Panel1, IDD_TEXTCTRL_Number_Chases, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Number_Chases"));
 	TextCtrl44->SetMaxLength(3);
 	FlexGridSizer24->Add(TextCtrl44, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -128,7 +128,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	StaticText9 = new wxStaticText(Panel1, ID_STATICTEXT8, _("Chase Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer24->Add(StaticText9, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Color_Mix1 = new wxSlider(Panel1, ID_SLIDER_Color_Mix1, 10, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_Mix1"));
-	FlexGridSizer24->Add(Slider_Color_Mix1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer24->Add(Slider_Color_Mix1, 1, wxALL|wxEXPAND, 2);
 	TextCtrl45 = new wxTextCtrl(Panel1, IDD_TEXTCTRL_Color_Mix1, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_Mix1"));
 	TextCtrl45->SetMaxLength(4);
 	FlexGridSizer24->Add(TextCtrl45, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -139,7 +139,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	StaticText10 = new wxStaticText(Panel1, wxID_ANY, _("Cycles"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer24->Add(StaticText10, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider16 = new wxSlider(Panel1, IDD_SLIDER_Chase_Rotations, 10, 1, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Chase_Rotations"));
-	FlexGridSizer24->Add(Slider16, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer24->Add(Slider16, 1, wxALL|wxEXPAND, 2);
 	TextCtrl43 = new wxTextCtrl(Panel1, ID_TEXTCTRL_Chase_Rotations, _("1.0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Chase_Rotations"));
 	TextCtrl43->SetMaxLength(3);
 	FlexGridSizer24->Add(TextCtrl43, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -194,53 +194,53 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	StaticText101 = new wxStaticText(Panel2, wxID_ANY, _("Band size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer81->Add(StaticText101, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Skips_BandSize = new wxSlider(Panel2, ID_SLIDER_Skips_BandSize, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Skips_BandSize"));
-	FlexGridSizer81->Add(Slider_Skips_BandSize, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer81->Add(Slider_Skips_BandSize, 1, wxALL|wxEXPAND, 5);
 	TextCtrl3 = new wxTextCtrl(Panel2, IDD_TEXTCTRL_Skips_BandSize, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Skips_BandSize"));
 	TextCtrl3->SetMaxLength(3);
 	FlexGridSizer81->Add(TextCtrl3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Skips_BandSize = new wxBitmapButton(Panel2, ID_BITMAPBUTTON44, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON44"));
 	BitmapButton_Skips_BandSize->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer81->Add(BitmapButton_Skips_BandSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer79->Add(FlexGridSizer81, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer79->Add(FlexGridSizer81, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer82 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer82->AddGrowableCol(1);
 	StaticText105 = new wxStaticText(Panel2, wxID_ANY, _("Skip size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer82->Add(StaticText105, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Skips_SkipSize = new wxSlider(Panel2, ID_SLIDER_Skips_SkipSize, 1, 0, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Skips_SkipSize"));
-	FlexGridSizer82->Add(Slider_Skips_SkipSize, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer82->Add(Slider_Skips_SkipSize, 1, wxALL|wxEXPAND, 5);
 	TextCtrl4 = new wxTextCtrl(Panel2, IDD_TEXTCTRL_Skips_SkipSize, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Skips_SkipSize"));
 	TextCtrl4->SetMaxLength(3);
 	FlexGridSizer82->Add(TextCtrl4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Skips_SkipSize = new wxBitmapButton(Panel2, ID_BITMAPBUTTON46, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON46"));
 	BitmapButton_Skips_SkipSize->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer82->Add(BitmapButton_Skips_SkipSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer79->Add(FlexGridSizer82, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer79->Add(FlexGridSizer82, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer83 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer83->AddGrowableCol(1);
 	StaticText106 = new wxStaticText(Panel2, wxID_ANY, _("Starting Position"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer83->Add(StaticText106, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Skips_StartPos = new wxSlider(Panel2, ID_SLIDER_Skips_StartPos, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Skips_StartPos"));
-	FlexGridSizer83->Add(Slider_Skips_StartPos, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer83->Add(Slider_Skips_StartPos, 1, wxALL|wxEXPAND, 5);
 	TextCtrl5 = new wxTextCtrl(Panel2, IDD_TEXTCTRL_Skips_StartPos, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Skips_StartPos"));
 	TextCtrl5->SetMaxLength(3);
 	FlexGridSizer83->Add(TextCtrl5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Skips_StartingPosition = new wxBitmapButton(Panel2, ID_BITMAPBUTTON47, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON47"));
 	BitmapButton_Skips_StartingPosition->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer83->Add(BitmapButton_Skips_StartingPosition, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer79->Add(FlexGridSizer83, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer79->Add(FlexGridSizer83, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer21 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer21->AddGrowableCol(1);
 	StaticText179 = new wxStaticText(Panel2, wxID_ANY, _("Number of Advances"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer21->Add(StaticText179, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider15 = new wxSlider(Panel2, ID_SLIDER_Skips_Advance, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Skips_Advance"));
-	FlexGridSizer21->Add(Slider15, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer21->Add(Slider15, 1, wxALL|wxEXPAND, 5);
 	TextCtrl42 = new wxTextCtrl(Panel2, IDD_TEXTCTRL_Skips_Advance, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Skips_Advance"));
 	TextCtrl42->SetMaxLength(3);
 	FlexGridSizer21->Add(TextCtrl42, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton3 = new wxBitmapButton(Panel2, ID_BITMAPBUTTON22, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON22"));
 	BitmapButton3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer21->Add(BitmapButton3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer79->Add(FlexGridSizer21, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer79->Add(FlexGridSizer21, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer84 = new wxFlexGridSizer(0, 3, 0, 0);
 	StaticText109 = new wxStaticText(Panel2, ID_STATICTEXT111, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT111"));
 	FlexGridSizer84->Add(StaticText109, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -253,13 +253,13 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 	BitmapButton_Skips_Direction = new wxBitmapButton(Panel2, ID_BITMAPBUTTON48, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON48"));
 	BitmapButton_Skips_Direction->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer84->Add(BitmapButton_Skips_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer79->Add(FlexGridSizer84, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer79->Add(FlexGridSizer84, 1, wxALL|wxEXPAND, 2);
 	Panel2->SetSizer(FlexGridSizer79);
 	FlexGridSizer79->Fit(Panel2);
 	FlexGridSizer79->SetSizeHints(Panel2);
 	SingleStrandEffectType->AddPage(Panel1, _("Chase"), false);
 	SingleStrandEffectType->AddPage(Panel2, _("Skips"), false);
-	FlexGridSizer89->Add(SingleStrandEffectType, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer89->Add(SingleStrandEffectType, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer89);
 	FlexGridSizer89->Fit(this);
 	FlexGridSizer89->SetSizeHints(this);

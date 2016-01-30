@@ -1,9 +1,9 @@
 #include "ModelDimmingCurveDialog.h"
 
 //(*InternalHeaders(ModelDimmingCurveDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(ModelDimmingCurveDialog)
@@ -54,27 +54,27 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 {
 	//(*Initialize(ModelDimmingCurveDialog)
 	wxStaticBoxSizer* StaticBoxSizer2;
-	wxFlexGridSizer* FlexGridSizer4;
-	wxStaticBoxSizer* GreenPanelBox;
-	wxStaticText* StaticText2;
-	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText1;
-	wxStaticBoxSizer* StaticBoxSizer3;
 	wxFlexGridSizer* FlexGridSizer8;
-	wxBoxSizer* BoxSizer1;
-	wxStaticBoxSizer* RedPanelBox;
-	wxFlexGridSizer* FlexGridSizer13;
-	wxFlexGridSizer* FlexGridSizer12;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxStaticBoxSizer* StaticBoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxStaticText* StaticText1;
+	wxStaticBoxSizer* RedPanelBox;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxStaticBoxSizer* StaticBoxSizer3;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxStaticBoxSizer* BluePanelBox;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxStaticBoxSizer* GreenPanelBox;
+	wxFlexGridSizer* FlexGridSizer10;
+	wxBoxSizer* BoxSizer1;
+	wxFlexGridSizer* FlexGridSizer13;
+	wxStaticText* StaticText2;
+	wxFlexGridSizer* FlexGridSizer12;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
+	wxStaticBoxSizer* StaticBoxSizer1;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -96,11 +96,11 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 	StaticText1 = new wxStaticText(GammaPanel, wxID_ANY, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SingleBrightnessSlider = new wxSlider(GammaPanel, IDD_SLIDER_SINGLEBRIGHTNESS, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_SINGLEBRIGHTNESS"));
-	FlexGridSizer3->Add(SingleBrightnessSlider, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(SingleBrightnessSlider, 1, wxALL|wxEXPAND, 5);
 	SingleBrightnessBox = new wxTextCtrl(GammaPanel, ID_TEXTCTRL_SINGLEBRIGHTNESS, _("0"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_SINGLEBRIGHTNESS"));
 	SingleBrightnessBox->SetMaxLength(4);
 	FlexGridSizer3->Add(SingleBrightnessBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	GammaPanel->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(GammaPanel);
 	FlexGridSizer2->SetSizeHints(GammaPanel);
@@ -108,7 +108,7 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer8->AddGrowableCol(0);
 	SingleFilePicker = new wxFilePickerCtrl(FromFilePanel, ID_FILEPICKERCTRL1, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
-	FlexGridSizer8->Add(SingleFilePicker, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(SingleFilePicker, 1, wxALL|wxEXPAND, 5);
 	FromFilePanel->SetSizer(FlexGridSizer8);
 	FlexGridSizer8->Fit(FromFilePanel);
 	FlexGridSizer8->SetSizeHints(FromFilePanel);
@@ -126,12 +126,12 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 	StaticText7 = new wxStaticText(RGBGammaPanel, ID_STATICTEXT7, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer11->Add(StaticText7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	RGBRedSlider = new wxSlider(RGBGammaPanel, IDD_SLIDER_RGBRED, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_RGBRED"));
-	FlexGridSizer11->Add(RGBRedSlider, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer11->Add(RGBRedSlider, 1, wxALL|wxEXPAND, 5);
 	RGBRedTextCtrl = new wxTextCtrl(RGBGammaPanel, ID_TEXTCTRL_RGBRED, _("0"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_RGBRED"));
 	RGBRedTextCtrl->SetMaxLength(4);
 	FlexGridSizer11->Add(RGBRedTextCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer10->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	StaticBoxSizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 1);
+	FlexGridSizer10->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 0);
 	StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, RGBGammaPanel, _("Green"));
 	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer12->AddGrowableCol(1);
@@ -143,12 +143,12 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 	StaticText9 = new wxStaticText(RGBGammaPanel, ID_STATICTEXT9, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer12->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	RGBGreenSlider = new wxSlider(RGBGammaPanel, IDD_SLIDER_RGBGREEN, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_RGBGREEN"));
-	FlexGridSizer12->Add(RGBGreenSlider, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer12->Add(RGBGreenSlider, 1, wxALL|wxEXPAND, 5);
 	RGBGreenTextCtrl = new wxTextCtrl(RGBGammaPanel, ID_TEXTCTRL_RGBGREEN, _("0"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_RGBGREEN"));
 	RGBGreenTextCtrl->SetMaxLength(4);
 	FlexGridSizer12->Add(RGBGreenTextCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer2->Add(FlexGridSizer12, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer10->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer2->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 1);
+	FlexGridSizer10->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
 	StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, RGBGammaPanel, _("Blue"));
 	FlexGridSizer13 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer13->AddGrowableCol(1);
@@ -160,12 +160,12 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 	StaticText11 = new wxStaticText(RGBGammaPanel, ID_STATICTEXT11, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
 	FlexGridSizer13->Add(StaticText11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	RGBBlueSlider = new wxSlider(RGBGammaPanel, IDD_SLIDER_RGBBLUE, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_RGBBLUE"));
-	FlexGridSizer13->Add(RGBBlueSlider, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer13->Add(RGBBlueSlider, 1, wxALL|wxEXPAND, 5);
 	RGBBlueTextCtrl = new wxTextCtrl(RGBGammaPanel, ID_TEXTCTRL_RGBBLUE, _("0"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_RGBBLUE"));
 	RGBBlueTextCtrl->SetMaxLength(4);
 	FlexGridSizer13->Add(RGBBlueTextCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer3->Add(FlexGridSizer13, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer10->Add(StaticBoxSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	StaticBoxSizer3->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 1);
+	FlexGridSizer10->Add(StaticBoxSizer3, 1, wxALL|wxEXPAND, 1);
 	RGBGammaPanel->SetSizer(FlexGridSizer10);
 	FlexGridSizer10->Fit(RGBGammaPanel);
 	FlexGridSizer10->SetSizeHints(RGBGammaPanel);
@@ -175,15 +175,15 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 	StaticText3 = new wxStaticText(RGBFromFilePanel, ID_STATICTEXT3, _("Red"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer9->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	RGBRedFilePicker = new wxFilePickerCtrl(RGBFromFilePanel, ID_FILEPICKERCTRL2, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL2"));
-	FlexGridSizer9->Add(RGBRedFilePicker, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(RGBRedFilePicker, 1, wxALL|wxEXPAND, 5);
 	StaticText4 = new wxStaticText(RGBFromFilePanel, ID_STATICTEXT4, _("Green"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer9->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	RGBGreenFilePicker = new wxFilePickerCtrl(RGBFromFilePanel, ID_FILEPICKERCTRL3, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL3"));
-	FlexGridSizer9->Add(RGBGreenFilePicker, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(RGBGreenFilePicker, 1, wxALL|wxEXPAND, 5);
 	StaticText5 = new wxStaticText(RGBFromFilePanel, ID_STATICTEXT5, _("Blue"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer9->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	RGBBlueFilePicker = new wxFilePickerCtrl(RGBFromFilePanel, ID_FILEPICKERCTRL4, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL4"));
-	FlexGridSizer9->Add(RGBBlueFilePicker, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(RGBBlueFilePicker, 1, wxALL|wxEXPAND, 5);
 	RGBFromFilePanel->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(RGBFromFilePanel);
 	FlexGridSizer9->SetSizeHints(RGBFromFilePanel);
@@ -191,7 +191,7 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 	DimmingTypeChoice->AddPage(FromFilePanel, _("Single Curve From File"), false);
 	DimmingTypeChoice->AddPage(RGBGammaPanel, _("RGB Brightness/Gamma"), false);
 	DimmingTypeChoice->AddPage(RGBFromFilePanel, _("RGB From File"), false);
-	FlexGridSizer1->Add(DimmingTypeChoice, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(DimmingTypeChoice, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	RedPanel = new wxPanel(this, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -206,8 +206,8 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 		0, 0 };
 	redDCPanel = new DimmingCurvePanel(RedPanel, ID_GLCANVAS2, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, _T("ID_GLCANVAS2"), GLCanvasAttributes_1);
 	redDCPanel->SetMinSize(wxSize(100,100));
-	RedPanelBox->Add(redDCPanel, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer4->Add(RedPanelBox, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	RedPanelBox->Add(redDCPanel, 1, wxEXPAND, 0);
+	FlexGridSizer4->Add(RedPanelBox, 1, wxALL|wxEXPAND, 1);
 	RedPanel->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(RedPanel);
 	FlexGridSizer4->SetSizeHints(RedPanel);
@@ -225,8 +225,8 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 		0, 0 };
 	greenDCPanel = new DimmingCurvePanel(GreenPanel, ID_GLCANVAS1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, _T("ID_GLCANVAS1"), GLCanvasAttributes_2);
 	greenDCPanel->SetMinSize(wxSize(100,100));
-	GreenPanelBox->Add(greenDCPanel, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer5->Add(GreenPanelBox, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	GreenPanelBox->Add(greenDCPanel, 1, wxEXPAND, 0);
+	FlexGridSizer5->Add(GreenPanelBox, 1, wxALL|wxEXPAND, 1);
 	GreenPanel->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(GreenPanel);
 	FlexGridSizer5->SetSizeHints(GreenPanel);
@@ -245,12 +245,12 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
 	blueDCPanel = new DimmingCurvePanel(BluePanel, ID_GLCANVAS3, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, _T("ID_GLCANVAS3"), GLCanvasAttributes_3);
 	blueDCPanel->SetMinSize(wxSize(100,100));
 	BluePanelBox->Add(blueDCPanel, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer6->Add(BluePanelBox, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer6->Add(BluePanelBox, 1, wxALL|wxEXPAND, 1);
 	BluePanel->SetSizer(FlexGridSizer6);
 	FlexGridSizer6->Fit(BluePanel);
 	FlexGridSizer6->SetSizeHints(BluePanel);
 	BoxSizer1->Add(BluePanel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));

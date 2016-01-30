@@ -1,9 +1,9 @@
 #include "SerialPortWithRate.h"
 
 //(*InternalHeaders(SerialPortWithRate)
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 #include <wx/valtext.h>
 #include <wx/msgdlg.h>
@@ -29,12 +29,12 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
 {
     //(*Initialize(SerialPortWithRate)
     wxStaticBoxSizer* StaticBoxSizer2;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer3;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxStaticBoxSizer* StaticBoxSizer1;
-    wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
+    wxStaticBoxSizer* StaticBoxSizer1;
 
     Create(parent, wxID_ANY, _("USB Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -48,9 +48,9 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     ChoiceProtocol->Append(_("Renard"));
     FlexGridSizer3->Add(ChoiceProtocol, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticTextExplanation = new wxStaticText(this, ID_STATICTEXT_EXPLANATION, _("DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an Entec DMX USB Pro, Lynx DMX dongle,\nDIYC RPM, DMXking.com, or DIY Blinky dongle.\n\nLast Channel should be 512 or less, unless you are using\na DIY Blinky dongle (in which case it can be up to 3036)."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_EXPLANATION"));
-    FlexGridSizer3->Add(StaticTextExplanation, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(StaticTextExplanation, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Connection Details"));
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticTextPort = new wxStaticText(this, ID_STATICTEXT_PORT, _("Port"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PORT"));
@@ -75,9 +75,9 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     FlexGridSizer4->Add(TextCtrlLastChannel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("(3/rgb)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer4->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    StaticBoxSizer2->Add(FlexGridSizer2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
+    StaticBoxSizer2->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));

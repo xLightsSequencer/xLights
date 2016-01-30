@@ -2,11 +2,11 @@
 #define PICTURESASSISTPANEL_H
 
 //(*Headers(PicturesAssistPanel)
-#include <wx/scrolwin.h>
 #include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/panel.h>
 #include <wx/button.h>
+#include <wx/panel.h>
+#include <wx/scrolwin.h>
+#include <wx/stattext.h>
 //*)
 
 #include "../../FlickerFreeBitmapButton.h"
@@ -28,20 +28,20 @@ class PicturesAssistPanel: public wxPanel
         void SetxLightsFrame(xLightsFrame* xlights_parent) { mxLightsParent = xlights_parent; }
 
 		//(*Declarations(PicturesAssistPanel)
-		wxButton* Button_LoadImage;
-		wxStaticText* StaticText_ImageSize;
-		wxButton* Button_NewImage;
-		wxPanel* Panel_Sizer;
-		wxScrolledWindow* ScrolledWindowEffectAssist;
-		wxButton* Button_Resize;
-		wxStaticText* StaticText_CurrentImage;
-		wxButton* Button_SaveAs;
-		wxFlexGridSizer* FlexGridSizer_RightSide;
-		wxStaticText* StaticText_ModelSize;
 		wxFlexGridSizer* FlexGridSizer1;
-		wxPanel* Panel_RightSide;
-		wxButton* Button_SaveImage;
+		wxButton* Button_Resize;
+		wxScrolledWindow* ScrolledWindowEffectAssist;
+		wxButton* Button_NewImage;
 		wxFlexGridSizer* FlexGridSizer_Container;
+		wxButton* Button_SaveAs;
+		wxPanel* Panel_Sizer;
+		wxStaticText* StaticText_CurrentImage;
+		wxStaticText* StaticText_ImageSize;
+		wxButton* Button_LoadImage;
+		wxStaticText* StaticText_ModelSize;
+		wxButton* Button_SaveImage;
+		wxPanel* Panel_RightSide;
+		wxFlexGridSizer* FlexGridSizer_RightSide;
 		//*)
 
 	protected:

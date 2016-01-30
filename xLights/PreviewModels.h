@@ -2,15 +2,15 @@
 #define PREVIEWMODELS_H
 
 //(*Headers(PreviewModels)
+#include <wx/bmpbuttn.h>
+#include <wx/spinctrl.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/button.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/listbox.h>
-#include <wx/spinctrl.h>
 #include <wx/choice.h>
-#include <wx/bmpbuttn.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
+#include <wx/listbox.h>
 //*)
 
 #include <wx/xml/xml.h>
@@ -23,20 +23,20 @@ class PreviewModels: public wxDialog
 		virtual ~PreviewModels();
 
 		//(*Declarations(PreviewModels)
-		wxTextCtrl* TextModelGroupName;
-		wxButton* ButtonUpdateGroup;
-		wxButton* ButtonClose;
-		wxStaticText* StaticText2;
-		wxListBox* ListBoxModelGroups;
-		wxChoice* ChoiceModelLayoutType;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxStaticText* GridSizeLabel;
-		wxSpinCtrl* SizeSpinCtrl;
 		wxButton* ButtonRemoveModelGroup;
-		wxListBox* ListBoxModelsInGroup;
-		wxListBox* ListBoxAddToModelGroup;
 		wxButton* ButtonAddModelGroup;
+		wxButton* ButtonClose;
+		wxListBox* ListBoxModelGroups;
+		wxStaticText* StaticText1;
+		wxChoice* ChoiceModelLayoutType;
+		wxStaticText* StaticText3;
+		wxListBox* ListBoxModelsInGroup;
+		wxButton* ButtonUpdateGroup;
+		wxStaticText* GridSizeLabel;
+		wxStaticText* StaticText2;
+		wxTextCtrl* TextModelGroupName;
+		wxSpinCtrl* SizeSpinCtrl;
+		wxListBox* ListBoxAddToModelGroup;
 		//*)
 
 	protected:

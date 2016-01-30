@@ -3,13 +3,13 @@
 
 //(*Headers(WavePanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class WavePanel: public wxPanel
@@ -20,26 +20,26 @@ class WavePanel: public wxPanel
 		virtual ~WavePanel();
 
 		//(*Declarations(WavePanel)
-		wxBitmapButton* BitmapButton_Wave_Direction;
-		wxBitmapButton* BitmapButton_Wave_Height;
-		wxStaticText* StaticText50;
-		wxBitmapButton* BitmapButton13;
-		wxBitmapButton* BitmapButton_Wave_MirrorWave;
-		wxStaticText* StaticText56;
-		wxCheckBox* CheckBox_Mirror_Wave;
-		wxStaticText* StaticText55;
-		wxStaticText* StaticText49;
 		wxSlider* Slider_Thickness_Percentage;
-		wxStaticText* StaticText189;
-		wxStaticText* StaticText47;
-		wxStaticText* StaticText52;
-		wxBitmapButton* BitmapButton_Wave_Thickness;
-		wxBitmapButton* BitmapButton_NumberWaves;
-		wxBitmapButton* BitmapButton_Wave_FillColors;
-		wxSlider* Slider_Number_Waves;
-		wxBitmapButton* BitmapButton_WaveType;
-		wxStaticText* StaticText48;
+		wxStaticText* StaticText50;
 		wxSlider* Slider_Wave_Height;
+		wxStaticText* StaticText49;
+		wxStaticText* StaticText47;
+		wxBitmapButton* BitmapButton_Wave_Direction;
+		wxStaticText* StaticText48;
+		wxStaticText* StaticText56;
+		wxBitmapButton* BitmapButton13;
+		wxBitmapButton* BitmapButton_Wave_Height;
+		wxStaticText* StaticText55;
+		wxSlider* Slider_Number_Waves;
+		wxBitmapButton* BitmapButton_Wave_Thickness;
+		wxBitmapButton* BitmapButton_WaveType;
+		wxBitmapButton* BitmapButton_NumberWaves;
+		wxStaticText* StaticText189;
+		wxCheckBox* CheckBox_Mirror_Wave;
+		wxBitmapButton* BitmapButton_Wave_FillColors;
+		wxStaticText* StaticText52;
+		wxBitmapButton* BitmapButton_Wave_MirrorWave;
 		//*)
 
 	protected:

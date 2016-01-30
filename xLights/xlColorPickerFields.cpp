@@ -2,9 +2,9 @@
 #include <algorithm>
 
 //(*InternalHeaders(xlColorPickerFields)
-#include <wx/font.h>
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/font.h>
 //*)
 
 //(*IdInit(xlColorPickerFields)
@@ -73,58 +73,58 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	Panel_CurrentColor->SetMinSize(wxSize(75,55));
 	GridBagSizer1->Add(Panel_CurrentColor, wxGBPosition(0, 13), wxGBSpan(3, 2), wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP, wxDLG_UNIT(this,wxSize(17,0)).GetWidth());
 	RadioButton_Hue = new wxRadioButton(this, ID_RADIOBUTTON_Hue, _("H:"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON_Hue"));
-	wxFont RadioButton_HueFont(13,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont RadioButton_HueFont(13,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	RadioButton_Hue->SetFont(RadioButton_HueFont);
 	GridBagSizer1->Add(RadioButton_Hue, wxGBPosition(4, 13), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	RadioButton_Saturation = new wxRadioButton(this, ID_RADIOBUTTON_Saturation, _("S:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Saturation"));
 	RadioButton_Saturation->SetValue(true);
-	wxFont RadioButton_SaturationFont(13,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont RadioButton_SaturationFont(13,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	RadioButton_Saturation->SetFont(RadioButton_SaturationFont);
 	GridBagSizer1->Add(RadioButton_Saturation, wxGBPosition(5, 13), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	RadioButton_Brightness = new wxRadioButton(this, ID_RADIOBUTTON_Brightness, _("B:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Brightness"));
-	wxFont RadioButton_BrightnessFont(13,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont RadioButton_BrightnessFont(13,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	RadioButton_Brightness->SetFont(RadioButton_BrightnessFont);
 	GridBagSizer1->Add(RadioButton_Brightness, wxGBPosition(6, 13), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	RadioButton_Red = new wxRadioButton(this, ID_RADIOBUTTON_Red, _("R:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Red"));
-	wxFont RadioButton_RedFont(13,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont RadioButton_RedFont(13,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	RadioButton_Red->SetFont(RadioButton_RedFont);
 	GridBagSizer1->Add(RadioButton_Red, wxGBPosition(7, 13), wxDefaultSpan, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	RadioButton_Green = new wxRadioButton(this, ID_RADIOBUTTON_Green, _("G:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Green"));
-	wxFont RadioButton_GreenFont(13,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont RadioButton_GreenFont(13,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	RadioButton_Green->SetFont(RadioButton_GreenFont);
 	GridBagSizer1->Add(RadioButton_Green, wxGBPosition(8, 13), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	RadioButton_Blue = new wxRadioButton(this, ID_RADIOBUTTON_Blue, _("B:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Blue"));
-	wxFont RadioButton_BlueFont(13,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont RadioButton_BlueFont(13,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	RadioButton_Blue->SetFont(RadioButton_BlueFont);
 	GridBagSizer1->Add(RadioButton_Blue, wxGBPosition(9, 13), wxDefaultSpan, wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Hue = new wxTextCtrl(this, ID_TEXTCTRL_Hue, _("0"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Hue"));
 	TextCtrl_Hue->SetMinSize(wxSize(40,23));
-	wxFont TextCtrl_HueFont(12,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont TextCtrl_HueFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Hue->SetFont(TextCtrl_HueFont);
 	GridBagSizer1->Add(TextCtrl_Hue, wxGBPosition(4, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Saturation = new wxTextCtrl(this, ID_TEXTCTRL_Saturation, _("100"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Saturation"));
 	TextCtrl_Saturation->SetMinSize(wxSize(40,23));
-	wxFont TextCtrl_SaturationFont(12,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont TextCtrl_SaturationFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Saturation->SetFont(TextCtrl_SaturationFont);
 	GridBagSizer1->Add(TextCtrl_Saturation, wxGBPosition(5, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Brightness = new wxTextCtrl(this, ID_TEXTCTRL_Brightness, _("100"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Brightness"));
 	TextCtrl_Brightness->SetMinSize(wxSize(40,23));
-	wxFont TextCtrl_BrightnessFont(12,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont TextCtrl_BrightnessFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Brightness->SetFont(TextCtrl_BrightnessFont);
 	GridBagSizer1->Add(TextCtrl_Brightness, wxGBPosition(6, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Red = new wxTextCtrl(this, ID_TEXTCTRL_Red, _("255"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Red"));
 	TextCtrl_Red->SetMinSize(wxSize(40,23));
-	wxFont TextCtrl_RedFont(12,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont TextCtrl_RedFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Red->SetFont(TextCtrl_RedFont);
 	GridBagSizer1->Add(TextCtrl_Red, wxGBPosition(7, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Green = new wxTextCtrl(this, ID_TEXTCTRL_Green, _("0"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Green"));
 	TextCtrl_Green->SetMinSize(wxSize(40,23));
-	wxFont TextCtrl_GreenFont(12,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont TextCtrl_GreenFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Green->SetFont(TextCtrl_GreenFont);
 	GridBagSizer1->Add(TextCtrl_Green, wxGBPosition(8, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Blue = new wxTextCtrl(this, ID_TEXTCTRL_Blue, _("0"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Blue"));
 	TextCtrl_Blue->SetMinSize(wxSize(40,23));
-	wxFont TextCtrl_BlueFont(12,wxMODERN,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont TextCtrl_BlueFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Blue->SetFont(TextCtrl_BlueFont);
 	GridBagSizer1->Add(TextCtrl_Blue, wxGBPosition(9, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	BitmapButton_Swatch2 = new wxBitmapButton(this, ID_BITMAPBUTTON_Swatch2, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Swatch2"));

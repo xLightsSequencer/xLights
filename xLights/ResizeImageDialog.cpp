@@ -1,9 +1,9 @@
 #include "ResizeImageDialog.h"
 
 //(*InternalHeaders(ResizeImageDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(ResizeImageDialog)
@@ -23,8 +23,8 @@ END_EVENT_TABLE()
 ResizeImageDialog::ResizeImageDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ResizeImageDialog)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));

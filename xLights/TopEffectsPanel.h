@@ -4,10 +4,10 @@
 
 
 //(*Headers(TopEffectsPanel)
-#include <wx/sizer.h>
-#include <wx/panel.h>
 #include <wx/bmpbuttn.h>
+#include <wx/sizer.h>
 #include <wx/button.h>
+#include <wx/panel.h>
 //*)
 
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
@@ -25,8 +25,8 @@ class TopEffectsPanel: public wxPanel
 
 		//(*Declarations(TopEffectsPanel)
 		DragEffectBitmapButton* BitmapButtonSelectedEffect;
-		wxButton* ButtonUpdateEffect;
 		wxPanel* Panel_EffectContainer;
+		wxButton* ButtonUpdateEffect;
 		//*)
 
 

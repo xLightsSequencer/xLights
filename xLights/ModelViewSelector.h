@@ -5,11 +5,11 @@
 
 #include "wx/xml/xml.h"
 //(*Headers(ModelViewSelector)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/button.h>
 #include <wx/stattext.h>
 #include <wx/listbox.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 
@@ -29,13 +29,13 @@ class ModelViewSelector: public wxDialog
         void Initialize();
 
 		//(*Declarations(ModelViewSelector)
-		wxStaticText* StaticTextType;
 		wxButton* ButtonClose;
-		wxStaticText* StaticText2;
-		wxListBox* ListBoxElements;
+		wxListBox* ListBoxTimings;
 		wxStaticText* StaticText1;
 		wxButton* ButtonAdd;
-		wxListBox* ListBoxTimings;
+		wxStaticText* StaticTextType;
+		wxListBox* ListBoxElements;
+		wxStaticText* StaticText2;
 		//*)
 
 	protected:

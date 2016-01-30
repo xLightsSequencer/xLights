@@ -3,18 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(CurtainPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(CurtainPanel)
@@ -42,14 +42,14 @@ END_EVENT_TABLE()
 CurtainPanel::CurtainPanel(wxWindow* parent)
 {
 	//(*Initialize(CurtainPanel)
-	wxFlexGridSizer* FlexGridSizer76;
-	wxTextCtrl* TextCtrl41;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxFlexGridSizer* FlexGridSizer20;
-	wxStaticText* StaticText178;
-	wxTextCtrl* TextCtrl40;
 	wxSlider* Slider_Curtain_Swag;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxTextCtrl* TextCtrl41;
+	wxStaticText* StaticText178;
 	wxSlider* Slider14;
+	wxFlexGridSizer* FlexGridSizer76;
+	wxTextCtrl* TextCtrl40;
+	wxFlexGridSizer* FlexGridSizer20;
 
 	Create(parent, wxID_ANY, wxPoint(150,14), wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -87,7 +87,7 @@ CurtainPanel::CurtainPanel(wxWindow* parent)
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT7, _("Swag Width"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer20->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Curtain_Swag = new wxSlider(this, ID_SLIDER_Curtain_Swag, 3, 0, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Curtain_Swag"));
-	FlexGridSizer20->Add(Slider_Curtain_Swag, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer20->Add(Slider_Curtain_Swag, 1, wxALL|wxEXPAND, 5);
 	TextCtrl40 = new wxTextCtrl(this, IDD_TEXTCTRL_Curtain_Swag, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Curtain_Swag"));
 	TextCtrl40->SetMaxLength(2);
 	FlexGridSizer20->Add(TextCtrl40, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -98,11 +98,11 @@ CurtainPanel::CurtainPanel(wxWindow* parent)
 	StaticText178 = new wxStaticText(this, wxID_ANY, _("Swag Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer20->Add(StaticText178, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider14 = new wxSlider(this, IDD_SLIDER_Curtain_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Curtain_Speed"));
-	FlexGridSizer20->Add(Slider14, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer20->Add(Slider14, 1, wxALL|wxEXPAND, 5);
 	TextCtrl41 = new wxTextCtrl(this, ID_TEXTCTRL_Curtain_Speed, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Curtain_Speed"));
 	TextCtrl41->SetMaxLength(4);
 	FlexGridSizer20->Add(TextCtrl41, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer7->Add(FlexGridSizer20, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7->Add(FlexGridSizer20, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer76 = new wxFlexGridSizer(0, 3, 0, 0);
 	CheckBox_Curtain_Repeat = new wxCheckBox(this, ID_CHECKBOX_Curtain_Repeat, _("Repeat"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Curtain_Repeat"));
 	CheckBox_Curtain_Repeat->SetValue(false);

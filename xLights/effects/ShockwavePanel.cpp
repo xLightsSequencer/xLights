@@ -3,18 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(ShockwavePanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(ShockwavePanel)
@@ -59,26 +59,26 @@ END_EVENT_TABLE()
 ShockwavePanel::ShockwavePanel(wxWindow* parent)
 {
 	//(*Initialize(ShockwavePanel)
-	wxFlexGridSizer* FlexGridSizer110;
-	wxSlider* Slider_Shockwave_End_Width;
-	wxTextCtrl* TextCtrl_Shockwave_Accel;
-	wxTextCtrl* TextCtrl_Shockwave_CenterX;
-	wxStaticText* StaticText154;
-	wxSlider* Slider_Shockwave_End_Radius;
-	wxTextCtrl* TextCtrl_Shockwave_CenterY;
-	wxSlider* Slider_Shockwave_Start_Width;
-	wxTextCtrl* TextCtrl_Shockwave_Start_Width;
-	wxFlexGridSizer* FlexGridSizer100;
-	wxSlider* Slider_Shockwave_CenterY;
-	wxSlider* Slider_Shockwave_Start_Radius;
-	wxTextCtrl* TextCtrl_Shockwave_Start_Radius;
 	wxSlider* Slider_Shockwave_Accel;
-	wxPanel* Panel14;
-	wxSlider* Slider_Shockwave_CenterX;
-	wxPanel* Panel10;
 	wxTextCtrl* TextCtrl_Shockwave_End_Width;
-	wxTextCtrl* TextCtrl_Shockwave_End_Radius;
+	wxSlider* Slider_Shockwave_Start_Radius;
 	wxFlexGridSizer* FlexGridSizer101;
+	wxTextCtrl* TextCtrl_Shockwave_CenterX;
+	wxPanel* Panel10;
+	wxTextCtrl* TextCtrl_Shockwave_End_Radius;
+	wxSlider* Slider_Shockwave_CenterY;
+	wxFlexGridSizer* FlexGridSizer100;
+	wxSlider* Slider_Shockwave_Start_Width;
+	wxTextCtrl* TextCtrl_Shockwave_Accel;
+	wxTextCtrl* TextCtrl_Shockwave_CenterY;
+	wxPanel* Panel14;
+	wxSlider* Slider_Shockwave_End_Width;
+	wxStaticText* StaticText154;
+	wxTextCtrl* TextCtrl_Shockwave_Start_Radius;
+	wxTextCtrl* TextCtrl_Shockwave_Start_Width;
+	wxSlider* Slider_Shockwave_CenterX;
+	wxSlider* Slider_Shockwave_End_Radius;
+	wxFlexGridSizer* FlexGridSizer110;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer110 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -90,7 +90,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	StaticText154 = new wxStaticText(Panel10, wxID_ANY, _("Center X:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer100->Add(StaticText154, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Shockwave_CenterX = new wxSlider(Panel10, ID_SLIDER_Shockwave_CenterX, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_CenterX"));
-	FlexGridSizer100->Add(Slider_Shockwave_CenterX, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer100->Add(Slider_Shockwave_CenterX, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Shockwave_CenterX = new wxTextCtrl(Panel10, IDD_TEXTCTRL_Shockwave_CenterX, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel10,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Shockwave_CenterX"));
 	TextCtrl_Shockwave_CenterX->SetMaxLength(3);
 	FlexGridSizer100->Add(TextCtrl_Shockwave_CenterX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(Panel10,wxSize(5,0)).GetWidth());
@@ -100,7 +100,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	StaticText155 = new wxStaticText(Panel10, ID_STATICTEXT151, _("Center Y:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT151"));
 	FlexGridSizer100->Add(StaticText155, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Shockwave_CenterY = new wxSlider(Panel10, ID_SLIDER_Shockwave_CenterY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_CenterY"));
-	FlexGridSizer100->Add(Slider_Shockwave_CenterY, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer100->Add(Slider_Shockwave_CenterY, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Shockwave_CenterY = new wxTextCtrl(Panel10, IDD_TEXTCTRL_Shockwave_CenterY, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel10,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Shockwave_CenterY"));
 	TextCtrl_Shockwave_CenterY->SetMaxLength(3);
 	FlexGridSizer100->Add(TextCtrl_Shockwave_CenterY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -110,7 +110,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	StaticText156 = new wxStaticText(Panel10, ID_STATICTEXT152, _("Radius1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT152"));
 	FlexGridSizer100->Add(StaticText156, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Shockwave_Start_Radius = new wxSlider(Panel10, ID_SLIDER_Shockwave_Start_Radius, 1, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_Start_Radius"));
-	FlexGridSizer100->Add(Slider_Shockwave_Start_Radius, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer100->Add(Slider_Shockwave_Start_Radius, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Shockwave_Start_Radius = new wxTextCtrl(Panel10, IDD_TEXTCTRL_Shockwave_Start_Radius, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel10,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Shockwave_Start_Radius"));
 	TextCtrl_Shockwave_Start_Radius->SetMaxLength(3);
 	FlexGridSizer100->Add(TextCtrl_Shockwave_Start_Radius, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -120,7 +120,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	StaticText158 = new wxStaticText(Panel10, ID_STATICTEXT154, _("Radius2:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT154"));
 	FlexGridSizer100->Add(StaticText158, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Shockwave_End_Radius = new wxSlider(Panel10, ID_SLIDER_Shockwave_End_Radius, 10, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_End_Radius"));
-	FlexGridSizer100->Add(Slider_Shockwave_End_Radius, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer100->Add(Slider_Shockwave_End_Radius, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Shockwave_End_Radius = new wxTextCtrl(Panel10, IDD_TEXTCTRL_Shockwave_End_Radius, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel10,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Shockwave_End_Radius"));
 	TextCtrl_Shockwave_End_Radius->SetMaxLength(3);
 	FlexGridSizer100->Add(TextCtrl_Shockwave_End_Radius, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -130,7 +130,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	StaticText157 = new wxStaticText(Panel10, ID_STATICTEXT153, _("Width1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT153"));
 	FlexGridSizer100->Add(StaticText157, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Shockwave_Start_Width = new wxSlider(Panel10, ID_SLIDER_Shockwave_Start_Width, 5, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_Start_Width"));
-	FlexGridSizer100->Add(Slider_Shockwave_Start_Width, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer100->Add(Slider_Shockwave_Start_Width, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Shockwave_Start_Width = new wxTextCtrl(Panel10, IDD_TEXTCTRL_Shockwave_Start_Width, _("5"), wxDefaultPosition, wxDLG_UNIT(Panel10,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Shockwave_Start_Width"));
 	TextCtrl_Shockwave_Start_Width->SetMaxLength(3);
 	FlexGridSizer100->Add(TextCtrl_Shockwave_Start_Width, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -140,7 +140,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	StaticText159 = new wxStaticText(Panel10, ID_STATICTEXT155, _("Width2:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT155"));
 	FlexGridSizer100->Add(StaticText159, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Shockwave_End_Width = new wxSlider(Panel10, ID_SLIDER_Shockwave_End_Width, 10, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_End_Width"));
-	FlexGridSizer100->Add(Slider_Shockwave_End_Width, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer100->Add(Slider_Shockwave_End_Width, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Shockwave_End_Width = new wxTextCtrl(Panel10, IDD_TEXTCTRL_Shockwave_End_Width, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel10,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Shockwave_End_Width"));
 	TextCtrl_Shockwave_End_Width->SetMaxLength(3);
 	FlexGridSizer100->Add(TextCtrl_Shockwave_End_Width, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -156,7 +156,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	StaticText166 = new wxStaticText(Panel14, ID_STATICTEXT162, _("Acceleration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT162"));
 	FlexGridSizer101->Add(StaticText166, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Shockwave_Accel = new wxSlider(Panel14, ID_SLIDER_Shockwave_Accel, 0, -10, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_Accel"));
-	FlexGridSizer101->Add(Slider_Shockwave_Accel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer101->Add(Slider_Shockwave_Accel, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Shockwave_Accel = new wxTextCtrl(Panel14, IDD_TEXTCTRL_Shockwave_Accel, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel14,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Shockwave_Accel"));
 	TextCtrl_Shockwave_Accel->SetMaxLength(3);
 	FlexGridSizer101->Add(TextCtrl_Shockwave_Accel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -171,7 +171,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	FlexGridSizer101->SetSizeHints(Panel14);
 	Notebook3->AddPage(Panel10, _("Position"), false);
 	Notebook3->AddPage(Panel14, _("Options"), false);
-	FlexGridSizer110->Add(Notebook3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer110->Add(Notebook3, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer110);
 	FlexGridSizer110->Fit(this);
 	FlexGridSizer110->SetSizeHints(this);

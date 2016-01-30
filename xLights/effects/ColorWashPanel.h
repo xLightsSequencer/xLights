@@ -3,15 +3,15 @@
 
 //(*Headers(ColorWashPanel)
 #include <wx/panel.h>
-class wxGridBagSizer;
-class wxCheckBox;
 class wxTextCtrl;
-class wxNotebookEvent;
 class wxNotebook;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxGridBagSizer;
+class wxNotebookEvent;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class ColorWashPanel: public wxPanel
@@ -22,13 +22,13 @@ class ColorWashPanel: public wxPanel
 		virtual ~ColorWashPanel();
 
 		//(*Declarations(ColorWashPanel)
-		wxCheckBox* CheckBox_ColorWash_VFade;
+		wxCheckBox* CheckBox4;
 		wxBitmapButton* BitmapButton_ColorWashVFade;
 		wxCheckBox* CheckBox_ColorWash_HFade;
-		wxBitmapButton* BitmapButton_ColorWashHFade;
 		wxStaticText* StaticText5;
-		wxCheckBox* CheckBox4;
+		wxBitmapButton* BitmapButton_ColorWashHFade;
 		wxBitmapButton* BitmapButton_ColorWashCount;
+		wxCheckBox* CheckBox_ColorWash_VFade;
 		//*)
 
 

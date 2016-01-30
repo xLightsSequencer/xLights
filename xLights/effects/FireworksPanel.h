@@ -3,10 +3,10 @@
 
 //(*Headers(FireworksPanel)
 #include <wx/panel.h>
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 class FireworksPanel: public wxPanel
@@ -17,17 +17,17 @@ class FireworksPanel: public wxPanel
 		virtual ~FireworksPanel();
 
 		//(*Declarations(FireworksPanel)
-		wxSlider* Slider_Fireworks_Velocity;
+		wxStaticText* StaticText91;
 		wxBitmapButton* BitmapButton_FireworksCount;
+		wxStaticText* StaticText93;
+		wxSlider* Slider_Fireworks_Count;
+		wxBitmapButton* BitmapButton_FireworksFade;
+		wxStaticText* StaticText95;
+		wxBitmapButton* BitmapButton_FireworksVelocity;
+		wxBitmapButton* BitmapButton_FireworksNumberExplosions;
+		wxSlider* Slider_Fireworks_Velocity;
 		wxSlider* Slider_Fireworks_Fade;
 		wxStaticText* StaticText94;
-		wxBitmapButton* BitmapButton_FireworksVelocity;
-		wxStaticText* StaticText91;
-		wxStaticText* StaticText93;
-		wxStaticText* StaticText95;
-		wxBitmapButton* BitmapButton_FireworksFade;
-		wxSlider* Slider_Fireworks_Count;
-		wxBitmapButton* BitmapButton_FireworksNumberExplosions;
 		//*)
 
 	protected:

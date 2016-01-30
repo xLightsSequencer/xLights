@@ -1,9 +1,9 @@
 #include "SaveChangesDialog.h"
 
 //(*InternalHeaders(SaveChangesDialog)
-#include <wx/font.h>
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/font.h>
 //*)
 
 //(*IdInit(SaveChangesDialog)
@@ -23,20 +23,20 @@ SaveChangesDialog::SaveChangesDialog(wxWindow* parent)
 : mSaveChanges(false)
 {
 	//(*Initialize(SaveChangesDialog)
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 
 	Create(parent, wxID_ANY, _("Save Sequence Changes\?"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("*** The sequence you are closing has unsaved changes. ***"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	StaticText2->SetForegroundColour(wxColour(255,0,0));
-	wxFont StaticText2Font(12,wxSWISS,wxFONTSTYLE_NORMAL,wxNORMAL,false,_T("Arial"),wxFONTENCODING_DEFAULT);
+	wxFont StaticText2Font(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Arial"),wxFONTENCODING_DEFAULT);
 	StaticText2->SetFont(StaticText2Font);
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Please choose whether you would like to Save or Discard the changes \nor hit Cancel to return to the sequence."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	wxFont StaticText1Font(12,wxSWISS,wxFONTSTYLE_NORMAL,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont StaticText1Font(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	StaticText1->SetFont(StaticText1Font);
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

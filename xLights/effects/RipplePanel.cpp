@@ -3,18 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(RipplePanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(RipplePanel)
@@ -43,11 +43,11 @@ RipplePanel::RipplePanel(wxWindow* parent)
 {
 	//(*Initialize(RipplePanel)
 	wxTextCtrl* TextCtrl34;
-	wxFlexGridSizer* FlexGridSizer57;
-	wxSlider* Slider12;
 	wxStaticText* StaticText176;
 	wxFlexGridSizer* FlexGridSizer60;
 	wxTextCtrl* TextCtrl33;
+	wxSlider* Slider12;
+	wxFlexGridSizer* FlexGridSizer57;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer57 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -77,7 +77,7 @@ RipplePanel::RipplePanel(wxWindow* parent)
 	StaticText72 = new wxStaticText(this, ID_STATICTEXT74, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT74"));
 	FlexGridSizer57->Add(StaticText72, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Ripple_Thickness = new wxSlider(this, ID_SLIDER_Ripple_Thickness, 3, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Thickness"));
-	FlexGridSizer57->Add(Slider_Ripple_Thickness, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer57->Add(Slider_Ripple_Thickness, 1, wxALL|wxEXPAND, 2);
 	TextCtrl33 = new wxTextCtrl(this, IDD_TEXTCTRL_Ripple_Thickness, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Ripple_Thickness"));
 	TextCtrl33->SetMaxLength(3);
 	FlexGridSizer57->Add(TextCtrl33, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -88,7 +88,7 @@ RipplePanel::RipplePanel(wxWindow* parent)
 	StaticText176 = new wxStaticText(this, wxID_ANY, _("Cycle Count"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer57->Add(StaticText176, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider12 = new wxSlider(this, IDD_SLIDER_Ripple_Cycles, 10, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Ripple_Cycles"));
-	FlexGridSizer57->Add(Slider12, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer57->Add(Slider12, 1, wxALL|wxEXPAND, 2);
 	TextCtrl34 = new wxTextCtrl(this, ID_TEXTCTRL_Ripple_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Ripple_Cycles"));
 	TextCtrl34->SetMaxLength(4);
 	FlexGridSizer57->Add(TextCtrl34, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -101,7 +101,7 @@ RipplePanel::RipplePanel(wxWindow* parent)
 	BitmapButton_Ripple3D->SetDefault();
 	BitmapButton_Ripple3D->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer60->Add(BitmapButton_Ripple3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer57->Add(FlexGridSizer60, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(FlexGridSizer60, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer57);
 	FlexGridSizer57->Fit(this);
 	FlexGridSizer57->SetSizeHints(this);

@@ -1,9 +1,9 @@
 #include "E131Dialog.h"
 
 //(*InternalHeaders(E131Dialog)
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(E131Dialog)
@@ -31,9 +31,9 @@ END_EVENT_TABLE()
 E131Dialog::E131Dialog(wxWindow* parent)
 {
     //(*Initialize(E131Dialog)
+    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer1;
-    wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("E1.31 Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
@@ -48,15 +48,15 @@ E131Dialog::E131Dialog(wxWindow* parent)
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);
     RadioButtonMulticast = new wxRadioButton(this, ID_RADIOBUTTON1, _("Multicast"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
     RadioButtonMulticast->SetValue(true);
-    BoxSizer1->Add(RadioButtonMulticast, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1->Add(RadioButtonMulticast, 1, wxALL|wxALIGN_LEFT, 5);
     RadioButtonUnicast = new wxRadioButton(this, ID_RADIOBUTTON2, _("Unicast"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
-    BoxSizer1->Add(RadioButtonUnicast, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1->Add(RadioButtonUnicast, 1, wxALL|wxALIGN_LEFT, 5);
     FlexGridSizer2->Add(BoxSizer1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("IP Address"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrlIpAddr = new wxTextCtrl(this, ID_TEXTCTRL_IP_ADDR, _("MULTICAST"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_IP_ADDR"));
     TextCtrlIpAddr->Disable();
-    FlexGridSizer2->Add(TextCtrlIpAddr, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(TextCtrlIpAddr, 1, wxALL|wxEXPAND, 5);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Starting Universe #"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_StartUniv = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 65535, 1, _T("ID_SPINCTRL1"));
@@ -69,7 +69,7 @@ E131Dialog::E131Dialog(wxWindow* parent)
     FlexGridSizer2->Add(SpinCtrl_NumUniv, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("One Output"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     FlexGridSizer2->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    MultiE131CheckBox = new wxCheckBox(this, ID_CHECKBOX1, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    MultiE131CheckBox = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     MultiE131CheckBox->SetValue(false);
     FlexGridSizer2->Add(MultiE131CheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Last Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));

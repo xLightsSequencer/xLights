@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(ShimmerPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(ShimmerPanel)
@@ -38,11 +38,11 @@ END_EVENT_TABLE()
 ShimmerPanel::ShimmerPanel(wxWindow* parent)
 {
 	//(*Initialize(ShimmerPanel)
-	wxSlider* Slider17;
-	wxFlexGridSizer* FlexGridSizer56;
 	wxSlider* Slider_Shimmer_Duty_Factor;
+	wxFlexGridSizer* FlexGridSizer56;
 	wxTextCtrl* TextCtrl47;
 	wxTextCtrl* TextCtrl46;
+	wxSlider* Slider17;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer56 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -50,7 +50,7 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	StaticText66 = new wxStaticText(this, ID_STATICTEXT68, _("Duty Factor"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT68"));
 	FlexGridSizer56->Add(StaticText66, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Shimmer_Duty_Factor = new wxSlider(this, ID_SLIDER_Shimmer_Duty_Factor, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shimmer_Duty_Factor"));
-	FlexGridSizer56->Add(Slider_Shimmer_Duty_Factor, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer56->Add(Slider_Shimmer_Duty_Factor, 1, wxALL|wxEXPAND, 5);
 	TextCtrl46 = new wxTextCtrl(this, IDD_TEXTCTRL_Shimmer_Duty_Factor, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shimmer_Duty_Factor"));
 	TextCtrl46->SetMaxLength(3);
 	FlexGridSizer56->Add(TextCtrl46, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -60,7 +60,7 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	StaticText65 = new wxStaticText(this, ID_STATICTEXT9, _("Cycle Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer56->Add(StaticText65, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider17 = new wxSlider(this, IDD_SLIDER_Shimmer_Cycles, 10, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Shimmer_Cycles"));
-	FlexGridSizer56->Add(Slider17, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer56->Add(Slider17, 1, wxALL|wxEXPAND, 5);
 	TextCtrl47 = new wxTextCtrl(this, ID_TEXTCTRL_Shimmer_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shimmer_Cycles"));
 	TextCtrl47->SetMaxLength(4);
 	FlexGridSizer56->Add(TextCtrl47, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

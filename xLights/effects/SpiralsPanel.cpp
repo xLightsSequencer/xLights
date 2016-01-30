@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(SpiralsPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(SpiralsPanel)
@@ -50,16 +50,16 @@ END_EVENT_TABLE()
 SpiralsPanel::SpiralsPanel(wxWindow* parent)
 {
 	//(*Initialize(SpiralsPanel)
-	wxFlexGridSizer* FlexGridSizer45;
-	wxTextCtrl* TextCtrl37;
-	wxFlexGridSizer* FlexGridSizer130;
-	wxTextCtrl* TextCtrl39;
-	wxFlexGridSizer* FlexGridSizer129;
-	wxSlider* Slider_Spirals_Direction;
-	wxStaticText* StaticText36;
 	wxTextCtrl* TextCtrl38;
-	wxTextCtrl* TextCtrl36;
+	wxSlider* Slider_Spirals_Direction;
+	wxFlexGridSizer* FlexGridSizer130;
+	wxFlexGridSizer* FlexGridSizer129;
 	wxSlider* Slider_Spirals_Rotation;
+	wxTextCtrl* TextCtrl39;
+	wxTextCtrl* TextCtrl37;
+	wxStaticText* StaticText36;
+	wxFlexGridSizer* FlexGridSizer45;
+	wxTextCtrl* TextCtrl36;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer45 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -69,7 +69,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	StaticText34 = new wxStaticText(this, ID_STATICTEXT38, _("Palette Rep"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT38"));
 	FlexGridSizer129->Add(StaticText34, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Spirals_Count = new wxSlider(this, ID_SLIDER_Spirals_Count, 1, 1, 5, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Spirals_Count"));
-	FlexGridSizer129->Add(Slider_Spirals_Count, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer129->Add(Slider_Spirals_Count, 1, wxALL|wxEXPAND, 2);
 	TextCtrl36 = new wxTextCtrl(this, IDD_TEXTCTRL_Spirals_Count, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Spirals_Count"));
 	TextCtrl36->SetMaxLength(2);
 	FlexGridSizer129->Add(TextCtrl36, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -81,7 +81,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	FlexGridSizer129->Add(StaticText36, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Spirals_Rotation = new wxSlider(this, ID_SLIDER_Spirals_Rotation, 20, -300, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Spirals_Rotation"));
 	Slider_Spirals_Rotation->SetToolTip(_("Number of times a band wraps around the matrix"));
-	FlexGridSizer129->Add(Slider_Spirals_Rotation, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer129->Add(Slider_Spirals_Rotation, 1, wxALL|wxEXPAND, 2);
 	TextCtrl37 = new wxTextCtrl(this, IDD_TEXTCTRL_Spirals_Rotation, _("2.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Spirals_Rotation"));
 	TextCtrl37->SetMaxLength(5);
 	FlexGridSizer129->Add(TextCtrl37, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -92,7 +92,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	StaticText38 = new wxStaticText(this, ID_STATICTEXT42, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT42"));
 	FlexGridSizer129->Add(StaticText38, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Spirals_Thickness = new wxSlider(this, ID_SLIDER_Spirals_Thickness, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Spirals_Thickness"));
-	FlexGridSizer129->Add(Slider_Spirals_Thickness, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer129->Add(Slider_Spirals_Thickness, 1, wxALL|wxEXPAND, 2);
 	TextCtrl38 = new wxTextCtrl(this, IDD_TEXTCTRL_Spirals_Thickness, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Spirals_Thickness"));
 	TextCtrl38->SetMaxLength(3);
 	FlexGridSizer129->Add(TextCtrl38, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -103,7 +103,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	StaticText40 = new wxStaticText(this, ID_STATICTEXT44, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT44"));
 	FlexGridSizer129->Add(StaticText40, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Spirals_Direction = new wxSlider(this, IDD_SLIDER_Spirals_Movement, 10, -200, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Spirals_Movement"));
-	FlexGridSizer129->Add(Slider_Spirals_Direction, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer129->Add(Slider_Spirals_Direction, 1, wxALL|wxEXPAND, 5);
 	TextCtrl39 = new wxTextCtrl(this, ID_TEXTCTRL_Spirals_Movement, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Spirals_Movement"));
 	TextCtrl39->SetMaxLength(4);
 	FlexGridSizer129->Add(TextCtrl39, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -111,7 +111,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	BitmapButton_SpiralsDirection->SetDefault();
 	BitmapButton_SpiralsDirection->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer129->Add(BitmapButton_SpiralsDirection, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer45->Add(FlexGridSizer129, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer45->Add(FlexGridSizer129, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer130 = new wxFlexGridSizer(0, 5, 0, 0);
 	CheckBox_Spirals_Blend = new wxCheckBox(this, ID_CHECKBOX_Spirals_Blend, _("Blend"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Spirals_Blend"));
 	CheckBox_Spirals_Blend->SetValue(false);
@@ -145,7 +145,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	BitmapButton_SpiralsShrink->SetDefault();
 	BitmapButton_SpiralsShrink->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer130->Add(BitmapButton_SpiralsShrink, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer45->Add(FlexGridSizer130, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer45->Add(FlexGridSizer130, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer45);
 	FlexGridSizer45->Fit(this);
 	FlexGridSizer45->SetSizeHints(this);

@@ -3,15 +3,15 @@
 
 //(*Headers(MorphPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxNotebookEvent;
-class wxNotebook;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxNotebook;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxNotebookEvent;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class MorphPanel: public wxPanel
@@ -22,49 +22,49 @@ class MorphPanel: public wxPanel
 		virtual ~MorphPanel();
 
 		//(*Declarations(MorphPanel)
-		wxTextCtrl* TextCtrl_Morph_End_X2;
-		wxBitmapButton* BitmapButton_Morph_End_Y1;
-		wxBitmapButton* BitmapButton_MorphAccel;
-		wxTextCtrl* TextCtrl_Morph_Start_X2;
-		wxStaticText* StaticText117;
-		wxTextCtrl* TextCtrl_Morph_End_Y1;
-		wxStaticText* StaticText121;
-		wxStaticText* StaticText120;
-		wxCheckBox* CheckBox_Morph_Start_Link;
-		wxBitmapButton* BitmapButton_Morph_Repeat_Count;
-		wxStaticText* StaticText124;
+		wxBitmapButton* BitmapButton_Morph_Stagger;
 		wxTextCtrl* TextCtrl_Morph_Start_Y1;
+		wxBitmapButton* BitmapButton_ShowHeadAtStart;
+		wxStaticText* StaticText173;
+		wxStaticText* StaticText99;
+		wxCheckBox* CheckBox_Morph_End_Link;
+		wxStaticText* StaticText115;
+		wxNotebook* Notebook_Morph;
 		wxBitmapButton* BitmapButton_MorphStartLength;
-		wxStaticText* StaticText3;
-		wxBitmapButton* BitmapButton_MorphEndLength;
+		wxBitmapButton* BitmapButton_Morph_Repeat_Skip;
+		wxStaticText* StaticText117;
+		wxStaticText* StaticText171;
 		wxTextCtrl* TextCtrl_Morph_Start_Y2;
 		wxStaticText* StaticText123;
-		wxBitmapButton* BitmapButton_Morph_Start_Y2;
-		wxBitmapButton* BitmapButton_Morph_Start_X2;
-		wxTextCtrl* TextCtrl_Morph_End_X1;
-		wxStaticText* StaticText115;
-		wxStaticText* StaticText119;
 		wxBitmapButton* BitmapButton_Morph_Start_X1;
-		wxStaticText* StaticText122;
-		wxStaticText* StaticText171;
-		wxBitmapButton* BitmapButton_MorphDuration;
-		wxNotebook* Notebook_Morph;
-		wxStaticText* StaticText172;
-		wxCheckBox* CheckBox_Morph_End_Link;
-		wxBitmapButton* BitmapButton_Morph_End_X1;
+		wxStaticText* StaticText121;
+		wxTextCtrl* TextCtrl_Morph_End_X2;
+		wxBitmapButton* BitmapButton_Morph_End_Y1;
+		wxBitmapButton* BitmapButton_Morph_Repeat_Count;
 		wxTextCtrl* TextCtrl_Morph_End_Y2;
-		wxCheckBox* CheckBox_ShowHeadAtStart;
-		wxChoice* Choice_Morph_QuickSet;
-		wxTextCtrl* TextCtrl_Morph_Start_X1;
-		wxBitmapButton* BitmapButton_ShowHeadAtStart;
-		wxBitmapButton* BitmapButton_Morph_End_Y2;
-		wxStaticText* StaticText59;
-		wxBitmapButton* BitmapButton_Morph_Stagger;
-		wxStaticText* StaticText173;
-		wxBitmapButton* BitmapButton_Morph_Repeat_Skip;
+		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_Morph_End_X2;
-		wxStaticText* StaticText99;
 		wxBitmapButton* BitmapButton_Morph_Start_Y1;
+		wxCheckBox* CheckBox_ShowHeadAtStart;
+		wxBitmapButton* BitmapButton_Morph_Start_Y2;
+		wxStaticText* StaticText124;
+		wxBitmapButton* BitmapButton_Morph_End_Y2;
+		wxBitmapButton* BitmapButton_Morph_Start_X2;
+		wxStaticText* StaticText122;
+		wxTextCtrl* TextCtrl_Morph_End_X1;
+		wxStaticText* StaticText59;
+		wxTextCtrl* TextCtrl_Morph_End_Y1;
+		wxStaticText* StaticText172;
+		wxTextCtrl* TextCtrl_Morph_Start_X2;
+		wxBitmapButton* BitmapButton_Morph_End_X1;
+		wxStaticText* StaticText119;
+		wxChoice* Choice_Morph_QuickSet;
+		wxStaticText* StaticText120;
+		wxCheckBox* CheckBox_Morph_Start_Link;
+		wxBitmapButton* BitmapButton_MorphDuration;
+		wxBitmapButton* BitmapButton_MorphAccel;
+		wxTextCtrl* TextCtrl_Morph_Start_X1;
+		wxBitmapButton* BitmapButton_MorphEndLength;
 		//*)
 
 	protected:

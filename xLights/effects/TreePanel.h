@@ -4,10 +4,10 @@
 //(*Headers(TreePanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 class TreePanel: public wxPanel
@@ -18,9 +18,9 @@ class TreePanel: public wxPanel
 		virtual ~TreePanel();
 
 		//(*Declarations(TreePanel)
-		wxSlider* Slider_Tree_Branches;
-		wxBitmapButton* BitmapButton_TreeBranches;
 		wxStaticText* StaticText86;
+		wxBitmapButton* BitmapButton_TreeBranches;
+		wxSlider* Slider_Tree_Branches;
 		//*)
 
 	protected:

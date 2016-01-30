@@ -3,14 +3,14 @@
 
 //(*Headers(PinwheelPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
-class wxBoxSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxBoxSizer;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class PinwheelPanel: public wxPanel
@@ -21,29 +21,29 @@ class PinwheelPanel: public wxPanel
 		virtual ~PinwheelPanel();
 
 		//(*Declarations(PinwheelPanel)
-		wxChoice* Choice_Pinwheel_3D;
-		wxBitmapButton* BitmapButton_Pinwheel_ArmSize;
-		wxSlider* Slider_PinwheelYC;
-		wxStaticText* StaticText74;
-		wxStaticText* StaticText75;
-		wxStaticText* StaticText76;
-		wxStaticText* StaticText82;
-		wxSlider* Slider_PinwheelXC;
 		wxSlider* Slider_Pinwheel_Twist;
-		wxStaticText* StaticText81;
-		wxSlider* Slider_Pinwheel_ArmSize;
-		wxBitmapButton* BitmapButton_PinwheelTwist;
-		wxStaticText* StaticText84;
-		wxSlider* Slider_Pinwheel_Arms;
 		wxBitmapButton* BitmapButton_Pinwheel3D;
-		wxBitmapButton* BitmapButton_PinwheelRotation;
-		wxBitmapButton* BitmapButton7;
-		wxBitmapButton* BitmapButton_PinwheelThickness;
-		wxCheckBox* CheckBox_Pinwheel_Rotation;
+		wxStaticText* StaticText76;
+		wxSlider* Slider_PinwheelYC;
 		wxSlider* Slider_Pinwheel_Thickness;
-		wxBitmapButton* BitmapButton_PinwheelNumberArms;
+		wxSlider* Slider_PinwheelXC;
+		wxChoice* Choice_Pinwheel_3D;
 		wxStaticText* StaticText63;
+		wxBitmapButton* BitmapButton_PinwheelNumberArms;
+		wxSlider* Slider_Pinwheel_Arms;
 		wxStaticText* StaticText77;
+		wxBitmapButton* BitmapButton_PinwheelThickness;
+		wxBitmapButton* BitmapButton_PinwheelRotation;
+		wxStaticText* StaticText75;
+		wxBitmapButton* BitmapButton_PinwheelTwist;
+		wxBitmapButton* BitmapButton7;
+		wxStaticText* StaticText84;
+		wxStaticText* StaticText81;
+		wxBitmapButton* BitmapButton_Pinwheel_ArmSize;
+		wxSlider* Slider_Pinwheel_ArmSize;
+		wxStaticText* StaticText74;
+		wxCheckBox* CheckBox_Pinwheel_Rotation;
+		wxStaticText* StaticText82;
 		//*)
 
 	protected:

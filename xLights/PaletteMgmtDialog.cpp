@@ -1,9 +1,9 @@
 #include "PaletteMgmtDialog.h"
 
 //(*InternalHeaders(PaletteMgmtDialog)
-#include <wx/font.h>
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/font.h>
 //*)
 
 //(*IdInit(PaletteMgmtDialog)
@@ -26,9 +26,9 @@ END_EVENT_TABLE()
 PaletteMgmtDialog::PaletteMgmtDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     //(*Initialize(PaletteMgmtDialog)
+    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer3;
     wxBoxSizer* BoxSizer1;
-    wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("Color Palettes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
@@ -36,7 +36,7 @@ PaletteMgmtDialog::PaletteMgmtDialog(wxWindow* parent,wxWindowID id,const wxPoin
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(1);
     StaticText14 = new wxStaticText(this, ID_STATICTEXT14, _("Palette Management"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
-    wxFont StaticText14Font(12,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+    wxFont StaticText14Font(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText14->SetFont(StaticText14Font);
     FlexGridSizer1->Add(StaticText14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -46,22 +46,22 @@ PaletteMgmtDialog::PaletteMgmtDialog(wxWindow* parent,wxWindowID id,const wxPoin
     FlexGridSizer3->Add(StaticText1, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3->Add(-1,-1,1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ListBox1 = new wxListBox(this, ID_LISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX1"));
-    FlexGridSizer3->Add(ListBox1, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+    FlexGridSizer3->Add(ListBox1, 1, wxALL|wxEXPAND, 5);
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);
     ButtonCopy12 = new wxButton(this, ID_BUTTON5, _("Copy palette 1 to palette 2"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    BoxSizer1->Add(ButtonCopy12, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1->Add(ButtonCopy12, 1, wxALL|wxEXPAND, 5);
     ButtonSavePalette1 = new wxButton(this, ID_BUTTON3, _("Save palette 1 as..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    BoxSizer1->Add(ButtonSavePalette1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1->Add(ButtonSavePalette1, 1, wxALL|wxEXPAND, 5);
     ButtonSavePalette2 = new wxButton(this, ID_BUTTON4, _("Save palette 2 as..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    BoxSizer1->Add(ButtonSavePalette2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1->Add(ButtonSavePalette2, 1, wxALL|wxEXPAND, 5);
     ButtonLoadPalette1 = new wxButton(this, ID_BUTTON1, _("Load saved palette to palette 1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    BoxSizer1->Add(ButtonLoadPalette1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1->Add(ButtonLoadPalette1, 1, wxALL|wxEXPAND, 5);
     ButtonLoadPalette2 = new wxButton(this, ID_BUTTON2, _("Load saved palette to palette 2"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    BoxSizer1->Add(ButtonLoadPalette2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1->Add(ButtonLoadPalette2, 1, wxALL|wxEXPAND, 5);
     ButtonDelete = new wxButton(this, ID_BUTTON6, _("Delete saved palette"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
-    BoxSizer1->Add(ButtonDelete, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1->Add(ButtonDelete, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3->Add(BoxSizer1, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
     StdDialogButtonSizer1->Realize();

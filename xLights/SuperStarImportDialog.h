@@ -2,14 +2,14 @@
 #define SUPERSTARIMPORTDIALOG_H
 
 //(*Headers(SuperStarImportDialog)
+#include <wx/spinctrl.h>
+#include <wx/checkbox.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/gbsizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
 #include <wx/choice.h>
-#include <wx/gbsizer.h>
-#include <wx/dialog.h>
 //*)
 
 class SuperStarImportDialog: public wxDialog
@@ -20,21 +20,21 @@ class SuperStarImportDialog: public wxDialog
 		virtual ~SuperStarImportDialog();
 
 		//(*Declarations(SuperStarImportDialog)
-		wxCheckBox* CheckBox_SS_FlipY;
-		wxTextCtrl* TextCtrl_SS_Y_Size;
-		wxStaticText* StaticText37;
-		wxStaticText* StaticText40;
-		wxStaticText* StaticText42;
 		wxTextCtrl* TextCtrl_SS_X_Size;
-		wxSpinCtrl* TimeAdjSpinCtrl;
-		wxStaticText* StaticText1;
 		wxStaticText* StaticText44;
-		wxStaticText* StaticText39;
-		wxChoice* ChoiceSuperStarImportModel;
+		wxStaticText* StaticText37;
 		wxChoice* ImageResizeChoice;
-		wxTextCtrl* TextCtrl_SS_X_Offset;
-		wxStaticText* StaticText41;
 		wxTextCtrl* TextCtrl_SS_Y_Offset;
+		wxChoice* ChoiceSuperStarImportModel;
+		wxTextCtrl* TextCtrl_SS_X_Offset;
+		wxTextCtrl* TextCtrl_SS_Y_Size;
+		wxStaticText* StaticText41;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText42;
+		wxCheckBox* CheckBox_SS_FlipY;
+		wxStaticText* StaticText40;
+		wxSpinCtrl* TimeAdjSpinCtrl;
+		wxStaticText* StaticText39;
 		//*)
 
 	protected:

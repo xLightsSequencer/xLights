@@ -2,8 +2,8 @@
 #include <wx/wx.h>
 
 //(*InternalHeaders(PerspectivesPanel)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(PerspectivesPanel)
@@ -23,17 +23,17 @@ END_EVENT_TABLE()
 PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(PerspectivesPanel)
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(1);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 6, 0, 0);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	ButtonAddPerspective = new wxButton(this, ID_BUTTON_ADD_PERSPECTIVE, _("+"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_ADD_PERSPECTIVE"));
 	ButtonAddPerspective->SetToolTip(_("Add Perspective"));
 	FlexGridSizer3->Add(ButtonAddPerspective, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -46,18 +46,18 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	ButtonSavePerspective = new wxButton(this, ID_BUTTON_SAVE_PERSPECTIVE, _("Save"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_SAVE_PERSPECTIVE"));
 	ButtonSavePerspective->SetToolTip(_("Save Perspective"));
 	FlexGridSizer3->Add(ButtonSavePerspective, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(0);
 	ListBoxPerspectives = new wxListBox(this, ID_LISTBOX_PERSPECTIVES, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_PERSPECTIVES"));
-	FlexGridSizer2->Add(ListBoxPerspectives, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(ListBoxPerspectives, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Dbl-Clk to load"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer4->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);

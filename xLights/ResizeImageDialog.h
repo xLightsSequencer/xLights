@@ -2,11 +2,11 @@
 #define RESIZEIMAGEDIALOG_H
 
 //(*Headers(ResizeImageDialog)
+#include <wx/spinctrl.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/spinctrl.h>
 #include <wx/choice.h>
-#include <wx/dialog.h>
 //*)
 
 class ResizeImageDialog: public wxDialog
@@ -17,12 +17,12 @@ class ResizeImageDialog: public wxDialog
 		virtual ~ResizeImageDialog();
 
 		//(*Declarations(ResizeImageDialog)
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		wxSpinCtrl* WidthSpinCtrl;
+		wxStaticText* StaticText1;
 		wxChoice* ResizeChoice;
+		wxStaticText* StaticText3;
 		wxSpinCtrl* HeightSpinCtrl;
+		wxStaticText* StaticText2;
 		//*)
 
 	protected:

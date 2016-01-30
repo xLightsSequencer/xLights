@@ -1,8 +1,8 @@
 #include "ModelFaceDialog.h"
 
 //(*InternalHeaders(ModelFaceDialog)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 #include <wx/filefn.h>
@@ -56,16 +56,16 @@ enum {
 ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ModelFaceDialog)
-	wxPanel* CoroPanel;
-	wxStaticText* StaticText2;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxPanel* NodeRangePanel;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxButton* AddButton;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxButton* AddButton;
+	wxPanel* CoroPanel;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxPanel* NodeRangePanel;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxStaticText* StaticText2;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, _("Face Definition"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
@@ -119,7 +119,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	SingleNodeGrid->SetRowLabelValue(12, _("Eyes - Closed"));
 	SingleNodeGrid->SetDefaultCellFont( SingleNodeGrid->GetFont() );
 	SingleNodeGrid->SetDefaultCellTextColour( SingleNodeGrid->GetForegroundColour() );
-	FlexGridSizer2->Add(SingleNodeGrid, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(SingleNodeGrid, 1, wxALL|wxEXPAND, 5);
 	CoroPanel->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(CoroPanel);
 	FlexGridSizer2->SetSizeHints(CoroPanel);
@@ -155,7 +155,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	NodeRangeGrid->SetRowLabelValue(12, _("Eyes - Closed"));
 	NodeRangeGrid->SetDefaultCellFont( NodeRangeGrid->GetFont() );
 	NodeRangeGrid->SetDefaultCellTextColour( NodeRangeGrid->GetForegroundColour() );
-	FlexGridSizer5->Add(NodeRangeGrid, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(NodeRangeGrid, 1, wxALL|wxEXPAND, 5);
 	NodeRangePanel->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(NodeRangePanel);
 	FlexGridSizer5->SetSizeHints(NodeRangePanel);
@@ -193,14 +193,14 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	MatrixModelsGrid->SetRowLabelValue(9, _("Mouth - WQ"));
 	MatrixModelsGrid->SetDefaultCellFont( MatrixModelsGrid->GetFont() );
 	MatrixModelsGrid->SetDefaultCellTextColour( MatrixModelsGrid->GetForegroundColour() );
-	FlexGridSizer3->Add(MatrixModelsGrid, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(MatrixModelsGrid, 1, wxALL|wxEXPAND, 5);
 	Matrix->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Matrix);
 	FlexGridSizer3->SetSizeHints(Matrix);
 	FaceTypeChoice->AddPage(CoroPanel, _("Single Nodes"), false);
 	FaceTypeChoice->AddPage(NodeRangePanel, _("Node Ranges"), false);
 	FaceTypeChoice->AddPage(Matrix, _("Matrix"), false);
-	FlexGridSizer1->Add(FaceTypeChoice, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FaceTypeChoice, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));

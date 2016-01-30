@@ -1,9 +1,9 @@
 #include "dlgPreviewSize.h"
 
 //(*InternalHeaders(dlgPreviewSize)
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(dlgPreviewSize)
@@ -21,8 +21,8 @@ END_EVENT_TABLE()
 dlgPreviewSize::dlgPreviewSize(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(dlgPreviewSize)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, _("Set Preview Size"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));

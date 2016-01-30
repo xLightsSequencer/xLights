@@ -2,11 +2,11 @@
 #define SHOWDATESDIALOG_H
 
 //(*Headers(ShowDatesDialog)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/statline.h>
 #include <wx/stattext.h>
 #include <wx/calctrl.h>
-#include <wx/statline.h>
-#include <wx/dialog.h>
 //*)
 
 class ShowDatesDialog: public wxDialog
@@ -17,11 +17,11 @@ public:
     virtual ~ShowDatesDialog();
 
     //(*Declarations(ShowDatesDialog)
-    wxStaticText* StaticText2;
-    wxStaticText* StaticText1;
     wxCalendarCtrl* CalendarCtrlStart;
-    wxStaticLine* StaticLine1;
     wxCalendarCtrl* CalendarCtrlEnd;
+    wxStaticText* StaticText1;
+    wxStaticLine* StaticLine1;
+    wxStaticText* StaticText2;
     //*)
 
 protected:

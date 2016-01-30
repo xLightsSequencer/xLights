@@ -2,10 +2,10 @@
 #define VAMPPLUGINDIALOG_H
 
 //(*Headers(VAMPPluginDialog)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/dialog.h>
 //*)
 
 #include "xLightsXmlFile.h"
@@ -26,10 +26,10 @@ class VAMPPluginDialog: public wxDialog
 		virtual ~VAMPPluginDialog();
 
 		//(*Declarations(VAMPPluginDialog)
-		wxStaticText* Label1;
-		wxStaticText* Label2;
 		wxTextCtrl* TimingName;
 		wxFlexGridSizer* SettingsSizer;
+		wxStaticText* Label1;
+		wxStaticText* Label2;
 		//*)
 
     wxArrayString GetAvailablePlugins(const wxString &media);

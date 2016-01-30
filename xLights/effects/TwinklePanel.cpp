@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h" 
 
 //(*InternalHeaders(TwinklePanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(TwinklePanel)
@@ -39,10 +39,10 @@ END_EVENT_TABLE()
 TwinklePanel::TwinklePanel(wxWindow* parent)
 {
 	//(*Initialize(TwinklePanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxTextCtrl* TextCtrl80;
 	wxCheckBox* CheckBoxTwinkleReRandom;
+	wxFlexGridSizer* FlexGridSizer4;
 	wxTextCtrl* TextCtrl79;
+	wxTextCtrl* TextCtrl80;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -50,7 +50,7 @@ TwinklePanel::TwinklePanel(wxWindow* parent)
 	StaticText85 = new wxStaticText(this, ID_STATICTEXT86, _("Number Lights"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT86"));
 	FlexGridSizer4->Add(StaticText85, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Twinkle_Count = new wxSlider(this, ID_SLIDER_Twinkle_Count, 3, 2, 100, wxDefaultPosition, wxSize(117,24), 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle_Count"));
-	FlexGridSizer4->Add(Slider_Twinkle_Count, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(Slider_Twinkle_Count, 1, wxALL|wxEXPAND, 5);
 	TextCtrl79 = new wxTextCtrl(this, IDD_TEXTCTRL_Twinkle_Count, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Twinkle_Count"));
 	TextCtrl79->SetMaxLength(3);
 	FlexGridSizer4->Add(TextCtrl79, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -61,7 +61,7 @@ TwinklePanel::TwinklePanel(wxWindow* parent)
 	StaticText104 = new wxStaticText(this, ID_STATICTEXT105, _("Twinkle Steps"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT105"));
 	FlexGridSizer4->Add(StaticText104, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Twinkle_Steps = new wxSlider(this, ID_SLIDER_Twinkle_Steps, 30, 2, 200, wxDefaultPosition, wxSize(119,24), 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle_Steps"));
-	FlexGridSizer4->Add(Slider_Twinkle_Steps, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(Slider_Twinkle_Steps, 1, wxALL|wxEXPAND, 5);
 	TextCtrl80 = new wxTextCtrl(this, IDD_TEXTCTRL_Twinkle_Steps, _("30"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Twinkle_Steps"));
 	TextCtrl80->SetMaxLength(3);
 	FlexGridSizer4->Add(TextCtrl80, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

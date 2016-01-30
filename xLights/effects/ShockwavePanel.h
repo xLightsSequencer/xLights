@@ -3,14 +3,14 @@
 
 //(*Headers(ShockwavePanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxNotebookEvent;
 class wxNotebook;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxNotebookEvent;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class ShockwavePanel: public wxPanel
@@ -21,21 +21,21 @@ class ShockwavePanel: public wxPanel
 		virtual ~ShockwavePanel();
 
 		//(*Declarations(ShockwavePanel)
+		wxBitmapButton* BitmapButton_Shockwave_End_Radius;
+		wxStaticText* StaticText155;
+		wxCheckBox* CheckBox_Shockwave_Blend_Edges;
 		wxStaticText* StaticText156;
+		wxStaticText* StaticText159;
+		wxBitmapButton* BitmapButton_Shockwave_CenterX;
+		wxBitmapButton* BitmapButton_Shockwave_CenterY;
+		wxBitmapButton* BitmapButton_Shockwave_Accel;
+		wxStaticText* StaticText157;
+		wxStaticText* StaticText166;
+		wxNotebook* Notebook3;
 		wxBitmapButton* BitmapButton_Shockwave_End_Width;
 		wxBitmapButton* BitmapButton_Shockwave_Start_Width;
-		wxCheckBox* CheckBox_Shockwave_Blend_Edges;
-		wxBitmapButton* BitmapButton_Shockwave_Accel;
-		wxBitmapButton* BitmapButton_Shockwave_CenterX;
 		wxStaticText* StaticText158;
-		wxBitmapButton* BitmapButton_Shockwave_End_Radius;
-		wxBitmapButton* BitmapButton_Shockwave_CenterY;
 		wxBitmapButton* BitmapButton_Shockwave_Start_Radius;
-		wxStaticText* StaticText159;
-		wxStaticText* StaticText157;
-		wxNotebook* Notebook3;
-		wxStaticText* StaticText155;
-		wxStaticText* StaticText166;
 		//*)
 
 	protected:

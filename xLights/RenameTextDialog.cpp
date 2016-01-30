@@ -1,10 +1,10 @@
 #include "RenameTextDialog.h"
 
 //(*InternalHeaders(RenameTextDialog)
-#include <wx/font.h>
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/font.h>
 //*)
 
 //(*IdInit(RenameTextDialog)
@@ -26,11 +26,11 @@ RenameTextDialog::RenameTextDialog(wxWindow* parent,wxWindowID id)
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	StaticText_Rename_Label = new wxStaticText(this, ID_STATICTEXT_Rename_Label, _("Modify Text then hit OK"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Rename_Label"));
-	wxFont StaticText_Rename_LabelFont(12,wxSWISS,wxFONTSTYLE_NORMAL,wxNORMAL,false,_T("Arial"),wxFONTENCODING_DEFAULT);
+	wxFont StaticText_Rename_LabelFont(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Arial"),wxFONTENCODING_DEFAULT);
 	StaticText_Rename_Label->SetFont(StaticText_Rename_LabelFont);
 	FlexGridSizer1->Add(StaticText_Rename_Label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Rename_Text = new wxTextCtrl(this, ID_TEXTCTRL_Rename_Text, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Rename_Text"));
-	FlexGridSizer1->Add(TextCtrl_Rename_Text, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 15);
+	FlexGridSizer1->Add(TextCtrl_Rename_Text, 1, wxALL|wxEXPAND, 15);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));

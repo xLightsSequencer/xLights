@@ -7,8 +7,8 @@
 #include <wx/txtstrm.h>
 
 //(*InternalHeaders(LMSImportChannelMapDialog)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(LMSImportChannelMapDialog)
@@ -37,9 +37,9 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 {
 	//(*Initialize(LMSImportChannelMapDialog)
 	wxButton* Button01;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxStaticText* StaticText1;
 	wxButton* Button02;
+	wxStaticText* StaticText1;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
@@ -63,7 +63,7 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	TimeAdjustPanel->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(TimeAdjustPanel);
 	FlexGridSizer3->SetSizeHints(TimeAdjustPanel);
-	FlexGridSizer1->Add(TimeAdjustPanel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer1->Add(TimeAdjustPanel, 1, wxALL|wxEXPAND, 1);
 	Sizer->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SizerMap = new wxFlexGridSizer(0, 1, 0, 0);
 	MapByStrand = new wxCheckBox(this, ID_CHECKBOX1, _("Map by Strand/CCR"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
@@ -81,8 +81,8 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent,wxWindowID
 	ChannelMapGrid->SetColLabelValue(4, _("Color"));
 	ChannelMapGrid->SetDefaultCellFont( ChannelMapGrid->GetFont() );
 	ChannelMapGrid->SetDefaultCellTextColour( ChannelMapGrid->GetForegroundColour() );
-	SizerMap->Add(ChannelMapGrid, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
-	Sizer->Add(SizerMap, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
+	SizerMap->Add(ChannelMapGrid, 1, wxALL|wxEXPAND, 5);
+	Sizer->Add(SizerMap, 0, wxEXPAND, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 5, 0, 0);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));

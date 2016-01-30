@@ -2,10 +2,10 @@
 #define RENAMETEXTDIALOG_H
 
 //(*Headers(RenameTextDialog)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/dialog.h>
 //*)
 
 class RenameTextDialog: public wxDialog
@@ -19,8 +19,8 @@ class RenameTextDialog: public wxDialog
         wxString GetRenameText() {return rename_text; }
 
 		//(*Declarations(RenameTextDialog)
-		wxTextCtrl* TextCtrl_Rename_Text;
 		wxStaticText* StaticText_Rename_Label;
+		wxTextCtrl* TextCtrl_Rename_Text;
 		//*)
 
 	protected:

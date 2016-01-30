@@ -10,8 +10,8 @@
 #include "xLightsMain.h"
 
 //(*InternalHeaders(ModelListDialog)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(ModelListDialog)
@@ -35,9 +35,9 @@ ModelListDialog::ModelListDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
   mSequenceElements(NULL)
 {
     //(*Initialize(ModelListDialog)
-    wxFlexGridSizer* FlexGridSizer3;
-    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer3;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, id, _("Model List"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
@@ -47,20 +47,20 @@ ModelListDialog::ModelListDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     ListBox1 = new wxListBox(this, ID_LISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX1"));
     ListBox1->SetMinSize(wxSize(150,150));
-    FlexGridSizer2->Add(ListBox1, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+    FlexGridSizer2->Add(ListBox1, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
     Button_New = new wxButton(this, ID_BUTTON1, _("New"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer3->Add(Button_New, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(Button_New, 1, wxALL|wxEXPAND, 5);
     Button_Modify = new wxButton(this, ID_BUTTON3, _("Modify"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    FlexGridSizer3->Add(Button_Modify, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(Button_Modify, 1, wxALL|wxEXPAND, 5);
     Button_Delete = new wxButton(this, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizer3->Add(Button_Delete, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(Button_Delete, 1, wxALL|wxEXPAND, 5);
     Button_Rename = new wxButton(this, ID_BUTTON2, _("Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    FlexGridSizer3->Add(Button_Rename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(Button_Rename, 1, wxALL|wxEXPAND, 5);
     Button_Copy = new wxButton(this, ID_BUTTON5, _("Copy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    FlexGridSizer3->Add(Button_Copy, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(Button_Copy, 1, wxALL|wxEXPAND, 5);
     Button_Layout = new wxButton(this, ID_BUTTON_LAYOUT, _("Node Layout"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LAYOUT"));
-    FlexGridSizer3->Add(Button_Layout, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(Button_Layout, 1, wxALL|wxEXPAND, 5);
     Button_ExportCsv = new wxButton(this, ID_BUTTON_ExportCsv, _("Export CSV"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ExportCsv"));
     FlexGridSizer3->Add(Button_ExportCsv, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);

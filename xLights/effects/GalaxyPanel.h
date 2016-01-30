@@ -3,14 +3,14 @@
 
 //(*Headers(GalaxyPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxNotebookEvent;
 class wxNotebook;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxNotebookEvent;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class GalaxyPanel: public wxPanel
@@ -21,29 +21,29 @@ class GalaxyPanel: public wxPanel
 		virtual ~GalaxyPanel();
 
 		//(*Declarations(GalaxyPanel)
-		wxCheckBox* CheckBox_Galaxy_Reverse;
-		wxBitmapButton* BitmapButton_Galaxy_Accel;
-		wxStaticText* StaticText131;
-		wxBitmapButton* BitmapButton_Galaxy_Start_Radius;
-		wxStaticText* StaticText129;
-		wxStaticText* StaticText140;
-		wxStaticText* StaticText141;
-		wxBitmapButton* BitmapButton_Galaxy_Revolutions;
-		wxBitmapButton* BitmapButton_Galaxy_Start_Width;
-		wxBitmapButton* BitmapButton_Galaxy_End_Radius;
-		wxNotebook* Notebook_Galaxy;
-		wxStaticText* StaticText127;
-		wxCheckBox* CheckBox_Galaxy_Inward;
-		wxCheckBox* CheckBox_Galaxy_Blend_Edges;
+		wxStaticText* StaticText139;
 		wxBitmapButton* BitmapButton_Galaxy_CenterX;
+		wxBitmapButton* BitmapButton_Galaxy_End_Radius;
 		wxStaticText* StaticText126;
-		wxBitmapButton* BitmapButton_Galaxy_Duration;
+		wxCheckBox* CheckBox_Galaxy_Reverse;
+		wxBitmapButton* BitmapButton_Galaxy_Revolutions;
+		wxStaticText* StaticText131;
+		wxStaticText* StaticText141;
+		wxBitmapButton* BitmapButton_Galaxy_Start_Width;
+		wxNotebook* Notebook_Galaxy;
+		wxCheckBox* CheckBox_Galaxy_Inward;
+		wxStaticText* StaticText127;
+		wxStaticText* StaticText138;
 		wxBitmapButton* BitmapButton_Galaxy_End_Width;
 		wxBitmapButton* BitmapButton_Galaxy_Start_Angle;
-		wxStaticText* StaticText139;
-		wxStaticText* StaticText138;
-		wxBitmapButton* BitmapButton_Galaxy_CenterY;
+		wxBitmapButton* BitmapButton_Galaxy_Start_Radius;
 		wxStaticText* StaticText142;
+		wxStaticText* StaticText140;
+		wxBitmapButton* BitmapButton_Galaxy_Accel;
+		wxCheckBox* CheckBox_Galaxy_Blend_Edges;
+		wxStaticText* StaticText129;
+		wxBitmapButton* BitmapButton_Galaxy_Duration;
+		wxBitmapButton* BitmapButton_Galaxy_CenterY;
 		//*)
 
 	protected:

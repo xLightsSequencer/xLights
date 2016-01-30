@@ -3,10 +3,10 @@
 
 //(*Headers(StrobePanel)
 #include <wx/panel.h>
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 class StrobePanel: public wxPanel
@@ -19,13 +19,13 @@ class StrobePanel: public wxPanel
 		//(*Declarations(StrobePanel)
 		wxBitmapButton* BitmapButton_StrobeDuration;
 		wxStaticText* StaticText111;
-		wxStaticText* StaticText110;
 		wxSlider* Slider_Strobe_Type;
-		wxBitmapButton* BitmapButton_Strobe_Type;
+		wxSlider* Slider_Strobe_Duration;
 		wxStaticText* StaticText112;
 		wxBitmapButton* BitmapButton_NumberStrobes;
+		wxStaticText* StaticText110;
+		wxBitmapButton* BitmapButton_Strobe_Type;
 		wxSlider* Slider_Number_Strobes;
-		wxSlider* Slider_Strobe_Duration;
 		//*)
 
 	protected:

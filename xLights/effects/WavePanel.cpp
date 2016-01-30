@@ -4,18 +4,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(WavePanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(WavePanel)
@@ -58,14 +58,14 @@ WavePanel::WavePanel(wxWindow* parent)
 {
 	//(*Initialize(WavePanel)
 	wxFlexGridSizer* FlexGridSizer51;
-	wxTextCtrl* TextCtrl78;
-	wxTextCtrl* TextCtrl76;
-	wxTextCtrl* TextCtrl75;
 	wxTextCtrl* TextCtrl77;
-	wxChoice* Choice_Wave_Direction;
 	wxChoice* Choice_Fill_Colors;
 	wxChoice* Choice_Wave_Type;
+	wxChoice* Choice_Wave_Direction;
+	wxTextCtrl* TextCtrl78;
+	wxTextCtrl* TextCtrl75;
 	wxSlider* Slider29;
+	wxTextCtrl* TextCtrl76;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer51 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -106,7 +106,7 @@ WavePanel::WavePanel(wxWindow* parent)
 	StaticText50 = new wxStaticText(this, ID_STATICTEXT55, _("Number of Waves"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT55"));
 	FlexGridSizer51->Add(StaticText50, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Number_Waves = new wxSlider(this, ID_SLIDER_Number_Waves, 900, 180, 3600, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Waves"));
-	FlexGridSizer51->Add(Slider_Number_Waves, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer51->Add(Slider_Number_Waves, 1, wxALL|wxEXPAND, 2);
 	TextCtrl75 = new wxTextCtrl(this, IDD_TEXTCTRL_Number_Waves, _("900"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Number_Waves"));
 	TextCtrl75->SetMaxLength(4);
 	FlexGridSizer51->Add(TextCtrl75, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -116,7 +116,7 @@ WavePanel::WavePanel(wxWindow* parent)
 	StaticText52 = new wxStaticText(this, ID_STATICTEXT56, _("Thickness of Wave"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT56"));
 	FlexGridSizer51->Add(StaticText52, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Thickness_Percentage = new wxSlider(this, ID_SLIDER_Thickness_Percentage, 5, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Thickness_Percentage"));
-	FlexGridSizer51->Add(Slider_Thickness_Percentage, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer51->Add(Slider_Thickness_Percentage, 1, wxALL|wxEXPAND, 2);
 	TextCtrl76 = new wxTextCtrl(this, IDD_TEXTCTRL_Thickness_Percentage, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Thickness_Percentage"));
 	TextCtrl76->SetMaxLength(3);
 	FlexGridSizer51->Add(TextCtrl76, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -126,7 +126,7 @@ WavePanel::WavePanel(wxWindow* parent)
 	StaticText55 = new wxStaticText(this, ID_STATICTEXT58, _("Scale Height of Wave"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT58"));
 	FlexGridSizer51->Add(StaticText55, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Wave_Height = new wxSlider(this, ID_SLIDER_Wave_Height, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Wave_Height"));
-	FlexGridSizer51->Add(Slider_Wave_Height, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer51->Add(Slider_Wave_Height, 1, wxALL|wxEXPAND, 2);
 	TextCtrl77 = new wxTextCtrl(this, IDD_TEXTCTRL_Wave_Height, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Wave_Height"));
 	TextCtrl77->SetMaxLength(3);
 	FlexGridSizer51->Add(TextCtrl77, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -136,7 +136,7 @@ WavePanel::WavePanel(wxWindow* parent)
 	StaticText189 = new wxStaticText(this, ID_STATICTEXT32, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT32"));
 	FlexGridSizer51->Add(StaticText189, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider29 = new wxSlider(this, IDD_SLIDER_Wave_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Wave_Speed"));
-	FlexGridSizer51->Add(Slider29, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer51->Add(Slider29, 1, wxALL|wxEXPAND, 2);
 	TextCtrl78 = new wxTextCtrl(this, ID_TEXTCTRL_Wave_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Wave_Speed"));
 	TextCtrl78->SetMaxLength(3);
 	FlexGridSizer51->Add(TextCtrl78, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

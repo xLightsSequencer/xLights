@@ -2,8 +2,8 @@
 #include "../../xLightsMain.h"
 
 //(*InternalHeaders(AssistPanel)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(AssistPanel)
@@ -28,7 +28,7 @@ AssistPanel::AssistPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	ScrolledWindowAssist->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(ScrolledWindowAssist);
 	FlexGridSizer2->SetSizeHints(ScrolledWindowAssist);
-	FlexGridSizer1->Add(ScrolledWindowAssist, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(ScrolledWindowAssist, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);

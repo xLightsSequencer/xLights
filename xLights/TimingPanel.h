@@ -2,15 +2,15 @@
 #define TIMINGPANEL_H
 
 //(*Headers(TimingPanel)
-#include <wx/scrolwin.h>
+#include <wx/bmpbuttn.h>
+#include <wx/checkbox.h>
 #include <wx/sizer.h>
+#include <wx/panel.h>
+#include <wx/scrolwin.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
 #include <wx/choice.h>
-#include <wx/bmpbuttn.h>
 //*)
 
 class TimingPanel: public wxPanel
@@ -24,23 +24,23 @@ class TimingPanel: public wxPanel
         wxString GetTimingString();
 
 		//(*Declarations(TimingPanel)
-		wxStaticText* StaticText2;
-		wxPanel* Panel_Sizer;
-		wxTextCtrl* TextCtrl_Fadein;
-		wxBitmapButton* BitmapButton_OverlayBkg;
-		wxStaticText* StaticText1;
 		wxSlider* Slider_EffectLayerMix;
-		wxStaticText* StaticText3;
-		wxBitmapButton* BitmapButton_FadeOut;
-		wxBitmapButton* BitmapButton_FadeIn;
-		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
-		wxCheckBox* CheckBox_LayerMorph;
-		wxChoice* Choice_LayerMethod;
-		wxBitmapButton* BitmapButton_EffectLayerMix;
 		wxTextCtrl* TextCtrl_Fadeout;
-		wxScrolledWindow* ScrolledWindowTiming;
-		wxCheckBox* CheckBox_OverlayBkg;
+		wxPanel* Panel_Sizer;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText3;
+		wxTextCtrl* TextCtrl_Fadein;
 		wxTextCtrl* txtCtlEffectMix;
+		wxBitmapButton* BitmapButton_FadeIn;
+		wxCheckBox* CheckBox_OverlayBkg;
+		wxCheckBox* CheckBox_LayerMorph;
+		wxStaticText* StaticText2;
+		wxBitmapButton* BitmapButton_FadeOut;
+		wxBitmapButton* BitmapButton_EffectLayerMix;
+		wxChoice* Choice_LayerMethod;
+		wxScrolledWindow* ScrolledWindowTiming;
+		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
+		wxBitmapButton* BitmapButton_OverlayBkg;
 		//*)
 
 	protected:

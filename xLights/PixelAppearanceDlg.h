@@ -2,13 +2,13 @@
 #define PIXELAPPEARANCEDLG_H
 
 //(*Headers(PixelAppearanceDlg)
+#include <wx/spinctrl.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/spinctrl.h>
-#include <wx/slider.h>
 #include <wx/choice.h>
-#include <wx/dialog.h>
 //*)
 
 class PixelAppearanceDlg: public wxDialog
@@ -19,14 +19,14 @@ class PixelAppearanceDlg: public wxDialog
 		virtual ~PixelAppearanceDlg();
 
 		//(*Declarations(PixelAppearanceDlg)
-		wxChoice* PixelStyleBox;
+		wxSpinCtrl* PixelSizeSpinner;
 		wxStaticText* StaticText1;
 		wxTextCtrl* BlackTransparencyText;
 		wxTextCtrl* TransparencyText;
 		wxSlider* TransparencySlider;
-		wxSpinCtrl* PixelSizeSpinner;
-		wxStaticText* StaticText4;
 		wxSlider* BlackTransparency;
+		wxStaticText* StaticText4;
+		wxChoice* PixelStyleBox;
 		//*)
 
 	protected:

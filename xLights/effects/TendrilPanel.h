@@ -4,10 +4,10 @@
 //(*Headers(TendrilPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 class TendrilPanel: public wxPanel
@@ -18,42 +18,42 @@ class TendrilPanel: public wxPanel
 		virtual ~TendrilPanel();
 
 		//(*Declarations(TendrilPanel)
-		wxTextCtrl* TextCtrl_Tendril_Length;
-		wxTextCtrl* TextCtrl_Tendril_Dampening;
-		wxStaticText* StaticText2;
-		wxTextCtrl* TextCtrl_Tendril_Movement;
-		wxBitmapButton* BitmapButton_TendrilSpeed;
-		wxStaticText* StaticText6;
-		wxTextCtrl* TextCtrl_Tendril_Trails;
-		wxSlider* Slider_Tendril_Dampening;
-		wxStaticText* StaticText8;
-		wxBitmapButton* BitmapButton_TendrilDampening;
-		wxTextCtrl* TextCtrl_Tendril_Thickness;
-		wxStaticText* StaticText1;
-		wxTextCtrl* TextCtrl_Tendril_Tension;
-		wxTextCtrl* TextCtrl_Tendril_Speed;
-		wxStaticText* StaticText3;
-		wxSlider* Slider_Tendril_TuneMovement;
-		wxBitmapButton* BitmapButton_TendrilTension;
 		wxBitmapButton* BitmapButton_TendrilFriction;
-		wxSlider* Slider_Tendril_Speed;
-		wxStaticText* StaticText5;
-		wxBitmapButton* BitmapButton_TendrilLength;
-		wxStaticText* StaticText7;
-		wxBitmapButton* BitmapButton_Tendril_Movement;
-		wxBitmapButton* BitmapButton_Tendril_Thickness;
-		wxSlider* Slider_Tendril_Friction;
-		wxTextCtrl* TextCtrl_Tendril_Friction;
-		wxStaticText* StaticText68;
-		wxSlider* Slider_Tendril_Thickness;
+		wxTextCtrl* TextCtrl_Tendril_Length;
+		wxTextCtrl* TextCtrl_Tendril_Trails;
 		wxSlider* Slider_Tendril_Length;
-		wxSlider* Slider_Tendril_Movement;
-		wxBitmapButton* BitmapButton_TendrilTrails;
-		wxStaticText* StaticText4;
-		wxSlider* Slider_Tendril_Trails;
-		wxBitmapButton* BitmapButton_Tendril_TuneMovement;
+		wxTextCtrl* TextCtrl_Tendril_Tension;
+		wxSlider* Slider_Tendril_Friction;
+		wxSlider* Slider_Tendril_Speed;
+		wxSlider* Slider_Tendril_Thickness;
+		wxTextCtrl* TextCtrl_Tendril_Friction;
+		wxBitmapButton* BitmapButton_Tendril_Movement;
 		wxTextCtrl* TextCtrl_Tendril_TuneMovement;
+		wxBitmapButton* BitmapButton_Tendril_Thickness;
+		wxBitmapButton* BitmapButton_TendrilSpeed;
+		wxBitmapButton* BitmapButton_Tendril_TuneMovement;
+		wxStaticText* StaticText1;
+		wxBitmapButton* BitmapButton_TendrilTension;
+		wxTextCtrl* TextCtrl_Tendril_Thickness;
+		wxStaticText* StaticText3;
 		wxSlider* Slider_Tendril_Tension;
+		wxStaticText* StaticText68;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText7;
+		wxSlider* Slider_Tendril_Movement;
+		wxSlider* Slider_Tendril_TuneMovement;
+		wxTextCtrl* TextCtrl_Tendril_Dampening;
+		wxSlider* Slider_Tendril_Dampening;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText2;
+		wxSlider* Slider_Tendril_Trails;
+		wxTextCtrl* TextCtrl_Tendril_Movement;
+		wxTextCtrl* TextCtrl_Tendril_Speed;
+		wxBitmapButton* BitmapButton_TendrilDampening;
+		wxBitmapButton* BitmapButton_TendrilTrails;
+		wxStaticText* StaticText6;
+		wxBitmapButton* BitmapButton_TendrilLength;
 		//*)
 
 	protected:

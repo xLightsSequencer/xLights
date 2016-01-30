@@ -2,16 +2,16 @@
 #define MODELFACEDIALOG_H
 
 //(*Headers(ModelFaceDialog)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/checkbox.h>
-#include <wx/panel.h>
 #include <wx/grid.h>
-#include <wx/choice.h>
-#include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/notebook.h>
+#include <wx/button.h>
+#include <wx/panel.h>
 #include <wx/choicebk.h>
+#include <wx/stattext.h>
+#include <wx/choice.h>
 //*)
 
 #include <map>
@@ -26,17 +26,17 @@ class ModelFaceDialog: public wxDialog
 		virtual ~ModelFaceDialog();
 
 		//(*Declarations(ModelFaceDialog)
-		wxCheckBox* CustomColorNodeRanges;
-		wxChoice* MatrixImagePlacementChoice;
-		wxGrid* MatrixModelsGrid;
-		wxGrid* SingleNodeGrid;
-		wxStaticText* StaticText3;
 		wxPanel* Matrix;
-		wxCheckBox* CustomColorSingleNode;
-		wxButton* DeleteButton;
+		wxGrid* SingleNodeGrid;
+		wxGrid* MatrixModelsGrid;
 		wxChoicebook* FaceTypeChoice;
-		wxGrid* NodeRangeGrid;
+		wxButton* DeleteButton;
+		wxStaticText* StaticText3;
+		wxChoice* MatrixImagePlacementChoice;
 		wxChoice* NameChoice;
+		wxGrid* NodeRangeGrid;
+		wxCheckBox* CustomColorSingleNode;
+		wxCheckBox* CustomColorNodeRanges;
 		//*)
 
         void SetFaceInfo(Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);

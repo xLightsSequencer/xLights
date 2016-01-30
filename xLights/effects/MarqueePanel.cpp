@@ -3,20 +3,20 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(MarqueePanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/statline.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/gbsizer.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/statline.h>
+#include <wx/gbsizer.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(MarqueePanel)
@@ -65,47 +65,47 @@ END_EVENT_TABLE()
 MarqueePanel::MarqueePanel(wxWindow* parent)
 {
 	//(*Initialize(MarqueePanel)
-	wxTextCtrl* TextCtrl_Marquee_Skip_Size;
-	wxSlider* Slider_MarqueeXC;
-	wxTextCtrl* TextCtrl_Marquee_Band_Size;
-	wxCheckBox* CheckBox_Marquee_WrapX;
-	wxSlider* Slider_Marquee_Speed;
-	wxFlexGridSizer* FlexGridSizer138;
-	wxStaticText* StaticText200;
-	wxFlexGridSizer* FlexGridSizer23;
-	wxStaticText* StaticText195;
-	wxStaticText* StaticText62;
-	wxFlexGridSizer* FlexGridSizer135;
-	wxBitmapButton* BitmapButton_Marquee_Band_Size;
-	wxStaticText* StaticText244;
-	wxSlider* Slider_Marquee_Stagger;
-	wxSlider* Slider_Marquee_Start;
-	wxTextCtrl* TextCtrl_Marquee_Start;
-	wxSlider* Slider_Marquee_ScaleY;
-	wxStaticText* StaticText194;
-	wxSlider* Slider_Marquee_Band_Size;
-	wxSlider* Slider_MarqueeYC;
-	wxFlexGridSizer* FlexGridSizer137;
-	wxCheckBox* CheckBox_Marquee_PixelOffsets;
-	wxTextCtrl* TextCtrl_Marquee_Speed;
-	wxStaticText* StaticText116;
-	wxSlider* Slider_Marquee_Skip_Size;
-	wxTextCtrl* TextCtrl_MarqueeYC;
-	wxTextCtrl* TextCtrl_Marquee_Thickness;
-	wxStaticText* StaticText196;
-	wxCheckBox* CheckBox_Marquee_Reverse;
-	wxTextCtrl* TextCtrl_Marquee_Stagger;
-	wxStaticText* StaticText201;
-	wxTextCtrl* TextCtrl_Marquee_ScaleX;
-	wxGridBagSizer* GridBagSizer5;
-	wxSlider* Slider_Marquee_Thickness;
-	wxTextCtrl* TextCtrl_MarqueeXC;
-	wxStaticText* StaticText198;
-	wxFlexGridSizer* FlexGridSizer136;
-	wxFlexGridSizer* FlexGridSizer58;
 	wxTextCtrl* TextCtrl_Marquee_ScaleY;
+	wxTextCtrl* TextCtrl_Marquee_ScaleX;
+	wxTextCtrl* TextCtrl_Marquee_Speed;
+	wxFlexGridSizer* FlexGridSizer138;
+	wxSlider* Slider_Marquee_Start;
+	wxStaticText* StaticText201;
+	wxSlider* Slider_MarqueeYC;
+	wxStaticText* StaticText196;
+	wxTextCtrl* TextCtrl_Marquee_Stagger;
+	wxCheckBox* CheckBox_Marquee_PixelOffsets;
+	wxTextCtrl* TextCtrl_MarqueeYC;
+	wxTextCtrl* TextCtrl_Marquee_Band_Size;
+	wxStaticText* StaticText116;
+	wxSlider* Slider_Marquee_Band_Size;
+	wxStaticText* StaticText195;
+	wxGridBagSizer* GridBagSizer5;
+	wxStaticText* StaticText198;
+	wxSlider* Slider_Marquee_Skip_Size;
+	wxSlider* Slider_Marquee_Stagger;
+	wxStaticText* StaticText244;
+	wxStaticText* StaticText194;
+	wxBitmapButton* BitmapButton_Marquee_Band_Size;
+	wxTextCtrl* TextCtrl_Marquee_Start;
+	wxTextCtrl* TextCtrl_Marquee_Skip_Size;
+	wxCheckBox* CheckBox_Marquee_WrapX;
+	wxFlexGridSizer* FlexGridSizer137;
+	wxSlider* Slider_MarqueeXC;
+	wxFlexGridSizer* FlexGridSizer58;
 	wxSlider* Slider_Marquee_ScaleX;
+	wxStaticText* StaticText62;
+	wxSlider* Slider_Marquee_Thickness;
 	wxStaticText* StaticText199;
+	wxFlexGridSizer* FlexGridSizer135;
+	wxFlexGridSizer* FlexGridSizer23;
+	wxCheckBox* CheckBox_Marquee_Reverse;
+	wxFlexGridSizer* FlexGridSizer136;
+	wxStaticText* StaticText200;
+	wxTextCtrl* TextCtrl_MarqueeXC;
+	wxSlider* Slider_Marquee_Speed;
+	wxSlider* Slider_Marquee_ScaleY;
+	wxTextCtrl* TextCtrl_Marquee_Thickness;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer23 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -117,7 +117,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	StaticText116 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Band Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer58->Add(StaticText116, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Marquee_Band_Size = new wxSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Band_Size, 3, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Band_Size"));
-	FlexGridSizer58->Add(Slider_Marquee_Band_Size, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(Slider_Marquee_Band_Size, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Band_Size = new wxTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Band_Size, _("3"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Band_Size"));
 	TextCtrl_Marquee_Band_Size->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Band_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -128,7 +128,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	StaticText194 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Skip Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer58->Add(StaticText194, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Marquee_Skip_Size = new wxSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Skip_Size, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Skip_Size"));
-	FlexGridSizer58->Add(Slider_Marquee_Skip_Size, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(Slider_Marquee_Skip_Size, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Skip_Size = new wxTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Skip_Size, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Skip_Size"));
 	TextCtrl_Marquee_Skip_Size->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Skip_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -139,7 +139,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	StaticText195 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Thickness:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer58->Add(StaticText195, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Marquee_Thickness = new wxSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Thickness, 1, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Thickness"));
-	FlexGridSizer58->Add(Slider_Marquee_Thickness, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(Slider_Marquee_Thickness, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Thickness = new wxTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Thickness, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Thickness"));
 	TextCtrl_Marquee_Thickness->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Thickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -150,7 +150,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	StaticText62 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Stagger:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer58->Add(StaticText62, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Marquee_Stagger = new wxSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Stagger, 0, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Stagger"));
-	FlexGridSizer58->Add(Slider_Marquee_Stagger, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(Slider_Marquee_Stagger, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Stagger = new wxTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Stagger, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Stagger"));
 	TextCtrl_Marquee_Stagger->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Stagger, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -161,7 +161,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	StaticText196 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Speed:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer58->Add(StaticText196, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Marquee_Speed = new wxSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Speed, 3, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Speed"));
-	FlexGridSizer58->Add(Slider_Marquee_Speed, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(Slider_Marquee_Speed, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Speed = new wxTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Speed, _("3"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Speed"));
 	TextCtrl_Marquee_Speed->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -172,7 +172,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	StaticText244 = new wxStaticText(Panel_Marquee_Settings, wxID_ANY, _("Start Pos:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer58->Add(StaticText244, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Marquee_Start = new wxSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Start, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Start"));
-	FlexGridSizer58->Add(Slider_Marquee_Start, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(Slider_Marquee_Start, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Start = new wxTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Start, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Start"));
 	TextCtrl_Marquee_Start->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Start, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -194,7 +194,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	StaticText198 = new wxStaticText(Panel_Marquee_Position, wxID_ANY, _("Scale X:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer138->Add(StaticText198, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Marquee_ScaleX = new wxSlider(Panel_Marquee_Position, ID_SLIDER_Marquee_ScaleX, 100, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_ScaleX"));
-	FlexGridSizer138->Add(Slider_Marquee_ScaleX, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer138->Add(Slider_Marquee_ScaleX, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_ScaleX = new wxTextCtrl(Panel_Marquee_Position, IDD_TEXTCTRL_Marquee_ScaleX, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Position,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_ScaleX"));
 	TextCtrl_Marquee_ScaleX->SetMaxLength(3);
 	FlexGridSizer138->Add(TextCtrl_Marquee_ScaleX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -205,7 +205,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	StaticText199 = new wxStaticText(Panel_Marquee_Position, wxID_ANY, _("Scale Y:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer138->Add(StaticText199, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Marquee_ScaleY = new wxSlider(Panel_Marquee_Position, ID_SLIDER_Marquee_ScaleY, 100, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_ScaleY"));
-	FlexGridSizer138->Add(Slider_Marquee_ScaleY, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer138->Add(Slider_Marquee_ScaleY, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_ScaleY = new wxTextCtrl(Panel_Marquee_Position, IDD_TEXTCTRL_Marquee_ScaleY, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Position,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_ScaleY"));
 	TextCtrl_Marquee_ScaleY->SetMaxLength(3);
 	FlexGridSizer138->Add(TextCtrl_Marquee_ScaleY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -213,9 +213,9 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	BitmapButton_Marquee_ScaleY->SetDefault();
 	BitmapButton_Marquee_ScaleY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer138->Add(BitmapButton_Marquee_ScaleY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer135->Add(FlexGridSizer138, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer135->Add(FlexGridSizer138, 1, wxALL|wxEXPAND, 5);
 	StaticLine1 = new wxStaticLine(Panel_Marquee_Position, ID_STATICLINE1, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE1"));
-	FlexGridSizer135->Add(StaticLine1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer135->Add(StaticLine1, 1, wxALL|wxEXPAND, 5);
 	CheckBox_Marquee_PixelOffsets = new wxCheckBox(Panel_Marquee_Position, ID_CHECKBOX_Marquee_PixelOffsets, _("Offsets In Pixels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Marquee_PixelOffsets"));
 	CheckBox_Marquee_PixelOffsets->SetValue(false);
 	FlexGridSizer135->Add(CheckBox_Marquee_PixelOffsets, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -226,14 +226,14 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	StaticText200 = new wxStaticText(Panel_Marquee_Position, wxID_ANY, _("X-axis Center"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer137->Add(StaticText200, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_MarqueeXC = new wxSlider(Panel_Marquee_Position, ID_SLIDER_MarqueeXC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MarqueeXC"));
-	FlexGridSizer137->Add(Slider_MarqueeXC, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer137->Add(Slider_MarqueeXC, 1, wxALL|wxEXPAND, 5);
 	CheckBox_Marquee_WrapX = new wxCheckBox(Panel_Marquee_Position, ID_CHECKBOX_Marquee_WrapX, _("Wrap X"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Marquee_WrapX"));
 	CheckBox_Marquee_WrapX->SetValue(false);
 	FlexGridSizer137->Add(CheckBox_Marquee_WrapX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_MarqueeXC = new wxTextCtrl(Panel_Marquee_Position, IDD_TEXTCTRL_MarqueeXC, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Position,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_MarqueeXC"));
 	TextCtrl_MarqueeXC->SetMaxLength(3);
 	FlexGridSizer137->Add(TextCtrl_MarqueeXC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer136->Add(FlexGridSizer137, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer136->Add(FlexGridSizer137, 1, wxALL|wxEXPAND, 5);
 	GridBagSizer5 = new wxGridBagSizer(0, 0);
 	StaticText201 = new wxStaticText(Panel_Marquee_Position, wxID_ANY, _("Y-axis Center"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	GridBagSizer5->Add(StaticText201, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

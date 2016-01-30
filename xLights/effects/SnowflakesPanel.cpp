@@ -3,16 +3,16 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(SnowflakesPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/sizer.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(SnowflakesPanel)
@@ -42,12 +42,12 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 {
 	//(*Initialize(SnowflakesPanel)
 	wxTextCtrl* TextCtrl58;
-	wxTextCtrl* TextCtrl57;
 	wxStaticText* StaticText181;
-	wxSlider* Slider_Snowflakes_Count;
-	wxTextCtrl* TextCtrl56;
-	wxSlider* Slider21;
+	wxTextCtrl* TextCtrl57;
 	wxFlexGridSizer* FlexGridSizer43;
+	wxSlider* Slider_Snowflakes_Count;
+	wxSlider* Slider21;
+	wxTextCtrl* TextCtrl56;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer43 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -55,7 +55,7 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 	StaticText79 = new wxStaticText(this, ID_STATICTEXT80, _("Max flakes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT80"));
 	FlexGridSizer43->Add(StaticText79, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Snowflakes_Count = new wxSlider(this, ID_SLIDER_Snowflakes_Count, 5, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Snowflakes_Count"));
-	FlexGridSizer43->Add(Slider_Snowflakes_Count, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer43->Add(Slider_Snowflakes_Count, 1, wxALL|wxEXPAND, 2);
 	TextCtrl56 = new wxTextCtrl(this, IDD_TEXTCTRL_Snowflakes_Count, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_Count"));
 	TextCtrl56->SetMaxLength(3);
 	FlexGridSizer43->Add(TextCtrl56, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -65,7 +65,7 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 	StaticText80 = new wxStaticText(this, ID_STATICTEXT81, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT81"));
 	FlexGridSizer43->Add(StaticText80, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Snowflakes_Type = new wxSlider(this, ID_SLIDER_Snowflakes_Type, 1, 0, 5, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Snowflakes_Type"));
-	FlexGridSizer43->Add(Slider_Snowflakes_Type, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer43->Add(Slider_Snowflakes_Type, 1, wxALL|wxEXPAND, 2);
 	TextCtrl57 = new wxTextCtrl(this, IDD_TEXTCTRL_Snowflakes_Type, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_Type"));
 	TextCtrl57->SetMaxLength(3);
 	FlexGridSizer43->Add(TextCtrl57, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -75,7 +75,7 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 	StaticText181 = new wxStaticText(this, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer43->Add(StaticText181, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider21 = new wxSlider(this, ID_SLIDER_Snowflakes_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Snowflakes_Speed"));
-	FlexGridSizer43->Add(Slider21, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer43->Add(Slider21, 1, wxALL|wxEXPAND, 5);
 	TextCtrl58 = new wxTextCtrl(this, IDD_TEXTCTRL_Snowflakes_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_Speed"));
 	TextCtrl58->SetMaxLength(3);
 	FlexGridSizer43->Add(TextCtrl58, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

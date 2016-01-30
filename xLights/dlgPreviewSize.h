@@ -2,10 +2,10 @@
 #define DLGPREVIEWSIZE_H
 
 //(*Headers(dlgPreviewSize)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/dialog.h>
 //*)
 
 class dlgPreviewSize: public wxDialog
@@ -16,9 +16,9 @@ class dlgPreviewSize: public wxDialog
 		virtual ~dlgPreviewSize();
 
 		//(*Declarations(dlgPreviewSize)
-		wxTextCtrl* TextCtrl_PreviewWidth;
-		wxStaticText* StaticText2;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxTextCtrl* TextCtrl_PreviewWidth;
 		wxTextCtrl* TextCtrl_PreviewHeight;
 		//*)
 
