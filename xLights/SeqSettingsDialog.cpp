@@ -659,6 +659,7 @@ void SeqSettingsDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
 void SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event)
 {
     xml_file->SetSequenceDuration(TextCtrl_Xml_Seq_Duration->GetValue());
+    xLightsParent->UpdateSequenceLength();
     xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
 }
 

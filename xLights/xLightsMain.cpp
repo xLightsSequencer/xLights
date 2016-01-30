@@ -3192,3 +3192,11 @@ void xLightsFrame::CheckUnsavedChanges()
         SaveEffectsFile();
     }
 }
+
+void xLightsFrame::UpdateSequenceLength()
+{
+    wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+    int ms = atoi(mss);
+    SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+}
+
