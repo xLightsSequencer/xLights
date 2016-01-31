@@ -3,13 +3,13 @@
 
 //(*Headers(CurtainPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class CurtainPanel: public wxPanel
@@ -20,16 +20,16 @@ class CurtainPanel: public wxPanel
 		virtual ~CurtainPanel();
 
 		//(*Declarations(CurtainPanel)
+		wxBitmapButton* BitmapButton_CurtainEdge;
 		wxChoice* Choice_Curtain_Edge;
-		wxStaticText* StaticText6;
 		wxStaticText* StaticText8;
-		wxChoice* Choice_Curtain_Effect;
-		wxCheckBox* CheckBox_Curtain_Repeat;
 		wxStaticText* StaticText7;
 		wxBitmapButton* BitmapButton_CurtainEffect;
-		wxBitmapButton* BitmapButton_CurtainEdge;
+		wxCheckBox* CheckBox_Curtain_Repeat;
+		wxStaticText* StaticText6;
 		wxBitmapButton* BitmapButton_CurtainRepeat;
 		wxBitmapButton* BitmapButton_CurtainSwag;
+		wxChoice* Choice_Curtain_Effect;
 		//*)
 
 	protected:

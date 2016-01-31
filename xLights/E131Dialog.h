@@ -2,13 +2,13 @@
 #define E131DIALOG_H
 
 //(*Headers(E131Dialog)
+#include <wx/spinctrl.h>
+#include <wx/checkbox.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/radiobut.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/radiobut.h>
-#include <wx/dialog.h>
 //*)
 
 class E131Dialog: public wxDialog
@@ -19,20 +19,20 @@ public:
     virtual ~E131Dialog();
 
     //(*Declarations(E131Dialog)
-    wxRadioButton* RadioButtonUnicast;
     wxTextCtrl* TextCtrlIpAddr;
-    wxStaticText* StaticText2;
-    wxStaticText* StaticText6;
+    wxRadioButton* RadioButtonMulticast;
+    wxSpinCtrl* SpinCtrl_NumUniv;
+    wxRadioButton* RadioButtonUnicast;
+    wxSpinCtrl* SpinCtrl_StartUniv;
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
-    wxRadioButton* RadioButtonMulticast;
-    wxStaticText* StaticText5;
-    wxStaticText* StaticText7;
-    wxSpinCtrl* SpinCtrl_NumUniv;
-    wxSpinCtrl* SpinCtrl_StartUniv;
     wxCheckBox* MultiE131CheckBox;
-    wxStaticText* StaticText4;
     wxSpinCtrl* SpinCtrl_LastChannel;
+    wxStaticText* StaticText7;
+    wxStaticText* StaticText4;
+    wxStaticText* StaticText5;
+    wxStaticText* StaticText2;
+    wxStaticText* StaticText6;
     //*)
 
 protected:

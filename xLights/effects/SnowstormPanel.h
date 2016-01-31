@@ -4,10 +4,10 @@
 //(*Headers(SnowstormPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 class SnowstormPanel: public wxPanel
@@ -18,11 +18,11 @@ class SnowstormPanel: public wxPanel
 		virtual ~SnowstormPanel();
 
 		//(*Declarations(SnowstormPanel)
-		wxStaticText* StaticText45;
-		wxSlider* Slider_Snowstorm_Count;
 		wxSlider* Slider_Snowstorm_Length;
+		wxSlider* Slider_Snowstorm_Count;
 		wxBitmapButton* BitmapButton_SnowstormCount;
 		wxBitmapButton* BitmapButton_SnowstormLength;
+		wxStaticText* StaticText45;
 		wxStaticText* StaticText51;
 		//*)
 

@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(PlasmaPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(PlasmaPanel)
@@ -38,21 +38,21 @@ END_EVENT_TABLE()
 PlasmaPanel::PlasmaPanel(wxWindow* parent)
 {
 	//(*Initialize(PlasmaPanel)
+	wxSlider* Slider33;
 	wxStaticText* StaticText204;
-	wxStaticText* StaticText202;
 	wxBitmapButton* BitmapButton17;
 	wxBitmapButton* BitmapButton19;
-	wxStaticText* StaticText64;
-	wxTextCtrl* TextCtrl84;
-	wxSlider* Slider34;
 	wxBitmapButton* BitmapButton21;
-	wxStaticText* StaticText197;
-	wxBitmapButton* BitmapButton18;
-	wxFlexGridSizer* FlexGridSizer139;
-	wxTextCtrl* TextCtrl87;
-	wxSlider* Slider33;
-	wxTextCtrl* TextCtrl85;
 	wxSlider* Slider36;
+	wxSlider* Slider34;
+	wxStaticText* StaticText202;
+	wxBitmapButton* BitmapButton18;
+	wxStaticText* StaticText64;
+	wxFlexGridSizer* FlexGridSizer139;
+	wxTextCtrl* TextCtrl84;
+	wxTextCtrl* TextCtrl85;
+	wxTextCtrl* TextCtrl87;
+	wxStaticText* StaticText197;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer139 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -74,7 +74,7 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	StaticText197 = new wxStaticText(this, wxID_ANY, _("Add Twist to Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer139->Add(StaticText197, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider33 = new wxSlider(this, ID_SLIDER_Plasma_Style, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Plasma_Style"));
-	FlexGridSizer139->Add(Slider33, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer139->Add(Slider33, 1, wxALL|wxEXPAND, 2);
 	TextCtrl84 = new wxTextCtrl(this, IDD_TEXTCTRL_Plasma_Style, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Plasma_Style"));
 	TextCtrl84->SetMaxLength(1);
 	FlexGridSizer139->Add(TextCtrl84, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -85,7 +85,7 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	StaticText202 = new wxStaticText(this, wxID_ANY, _("Line Density"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer139->Add(StaticText202, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider34 = new wxSlider(this, ID_SLIDER_Plasma_Line_Density, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Plasma_Line_Density"));
-	FlexGridSizer139->Add(Slider34, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer139->Add(Slider34, 1, wxALL|wxEXPAND, 2);
 	TextCtrl85 = new wxTextCtrl(this, IDD_TEXTCTRL_Plasma_Line_Density, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Plasma_Line_Density"));
 	TextCtrl85->SetMaxLength(2);
 	FlexGridSizer139->Add(TextCtrl85, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -96,7 +96,7 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 	StaticText204 = new wxStaticText(this, wxID_ANY, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer139->Add(StaticText204, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider36 = new wxSlider(this, ID_SLIDER_Plasma_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Plasma_Speed"));
-	FlexGridSizer139->Add(Slider36, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer139->Add(Slider36, 1, wxALL|wxEXPAND, 2);
 	TextCtrl87 = new wxTextCtrl(this, IDD_TEXTCTRL_Plasma_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Plasma_Speed"));
 	TextCtrl87->SetMaxLength(3);
 	FlexGridSizer139->Add(TextCtrl87, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);

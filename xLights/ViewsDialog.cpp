@@ -21,8 +21,8 @@
 
 
 //(*InternalHeaders(ViewsDialog)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(ViewsDialog)
@@ -51,19 +51,19 @@ ViewsDialog::ViewsDialog(wxWindow* parent,wxWindowID id)
 {
 	//(*Initialize(ViewsDialog)
 	wxStaticBoxSizer* StaticBoxSizer2;
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer13;
-	wxFlexGridSizer* FlexGridSizer12;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxStaticBoxSizer* StaticBoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer13;
+	wxFlexGridSizer* FlexGridSizer12;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxStaticBoxSizer* StaticBoxSizer1;
 
 	Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -85,9 +85,9 @@ ViewsDialog::ViewsDialog(wxWindow* parent,wxWindowID id)
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Views:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer6->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	lstViews = new wxListBox(this, ID_LST_VIEWS, wxDefaultPosition, wxSize(-1,100), 0, 0, 0, wxDefaultValidator, _T("ID_LST_VIEWS"));
-	FlexGridSizer6->Add(lstViews, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer9->Add(FlexGridSizer6, 1, wxALL|wxEXPAND|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer10->Add(FlexGridSizer9, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(lstViews, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer9->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer10->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("View Details:"));
 	FlexGridSizer12 = new wxFlexGridSizer(3, 1, 0, 0);
 	FlexGridSizer12->AddGrowableCol(0);
@@ -97,8 +97,8 @@ ViewsDialog::ViewsDialog(wxWindow* parent,wxWindowID id)
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer13->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Text_ViewName = new wxTextCtrl(this, ID_TEXT_VIEW_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXT_VIEW_NAME"));
-	FlexGridSizer13->Add(Text_ViewName, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer13->Add(Text_ViewName, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
+	FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableCol(2);
@@ -108,8 +108,8 @@ ViewsDialog::ViewsDialog(wxWindow* parent,wxWindowID id)
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Models to add:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer11->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	lstAddModelToViews = new wxListBox(this, ID_LST_ADD_MODEL_VIEWS, wxDefaultPosition, wxSize(-1,120), 0, 0, wxLB_SORT|wxVSCROLL, wxDefaultValidator, _T("ID_LST_ADD_MODEL_VIEWS"));
-	FlexGridSizer11->Add(lstAddModelToViews, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(FlexGridSizer11, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer11->Add(lstAddModelToViews, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(2, 1, 0, 0);
 	btAddModelToView = new wxButton(this, ID_BT_ADD_MODEL_VIEW, _("->"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BT_ADD_MODEL_VIEW"));
 	FlexGridSizer4->Add(btAddModelToView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -122,19 +122,19 @@ ViewsDialog::ViewsDialog(wxWindow* parent,wxWindowID id)
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Models in View:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer5->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	lstModelsInView = new wxListBox(this, ID_LST_MODELS_VIEW, wxDefaultPosition, wxSize(-1,120), 0, 0, wxLB_SORT|wxVSCROLL, wxDefaultValidator, _T("ID_LST_MODELS_VIEW"));
-	FlexGridSizer5->Add(lstModelsInView, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer12->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(lstModelsInView, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer12->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
 	btnUpdateView = new wxButton(this, ID_BUTTON_UPDATE_VIEW, _("Update View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_UPDATE_VIEW"));
 	FlexGridSizer7->Add(btnUpdateView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	btCloseViews = new wxButton(this, ID_BUTTON1, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer7->Add(btCloseViews, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer12->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer1->Add(FlexGridSizer12, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer10->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer2->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer1->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer10->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
+	StaticBoxSizer2->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);

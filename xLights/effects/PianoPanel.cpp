@@ -3,20 +3,20 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(PianoPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/notebook.h>
 #include <wx/button.h>
-#include <wx/image.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 
@@ -64,14 +64,14 @@ END_EVENT_TABLE()
 PianoPanel::PianoPanel(wxWindow* parent)
 {
 	//(*Initialize(PianoPanel)
-	wxFlexGridSizer* FlexGridSizer27;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer34;
-	wxFlexGridSizer* FlexGridSizer33;
-	wxFlexGridSizer* FlexGridSizer32;
+	wxFlexGridSizer* FlexGridSizer30;
 	wxFlexGridSizer* FlexGridSizer28;
 	wxFlexGridSizer* FlexGridSizer26;
-	wxFlexGridSizer* FlexGridSizer30;
+	wxFlexGridSizer* FlexGridSizer33;
+	wxFlexGridSizer* FlexGridSizer27;
+	wxFlexGridSizer* FlexGridSizer34;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer32;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -92,14 +92,14 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	StaticText_Piano_NumKeys = new wxStaticText(this, ID_STATICTEXT_Piano_NumKeys, _("# Keys:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Piano_NumKeys"));
 	FlexGridSizer27->Add(StaticText_Piano_NumKeys, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Piano_NumKeys = new wxSlider(this, ID_SLIDER_Piano_NumKeys, 10, 1, 95, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_NumKeys"));
-	FlexGridSizer27->Add(Slider_Piano_NumKeys, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer27->Add(Slider_Piano_NumKeys, 1, wxALL|wxEXPAND, 5);
 	BitmapButton_Piano_NumKeys = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_NumKeys, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_NumKeys"));
 	BitmapButton_Piano_NumKeys->SetDefault();
 	FlexGridSizer27->Add(BitmapButton_Piano_NumKeys, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Piano_NumRows = new wxStaticText(this, ID_STATICTEXT_Piano_NumRows, _("# Rows:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Piano_NumRows"));
 	FlexGridSizer27->Add(StaticText_Piano_NumRows, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Piano_NumRows = new wxSlider(this, ID_SLIDER_Piano_KeyWidth, 10, 1, 95, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_KeyWidth"));
-	FlexGridSizer27->Add(Slider_Piano_NumRows, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer27->Add(Slider_Piano_NumRows, 1, wxALL|wxEXPAND, 5);
 	BitmapButton_Piano_NumRows = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_NumRows, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_NumRows"));
 	BitmapButton_Piano_NumRows->SetDefault();
 	FlexGridSizer27->Add(BitmapButton_Piano_NumRows, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -117,11 +117,11 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	Choice_Piano_KeyPlacement->Append(_("Bottom left"));
 	Choice_Piano_KeyPlacement->Append(_("Bottom middle"));
 	Choice_Piano_KeyPlacement->Append(_("Bottom right"));
-	FlexGridSizer27->Add(Choice_Piano_KeyPlacement, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer27->Add(Choice_Piano_KeyPlacement, 1, wxALL|wxEXPAND, 5);
 	BitmapButton_Piano_KeyPlacement = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_KeyPlacement, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_KeyPlacement"));
 	BitmapButton_Piano_KeyPlacement->SetDefault();
 	FlexGridSizer27->Add(BitmapButton_Piano_KeyPlacement, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer5->Add(FlexGridSizer27, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(FlexGridSizer27, 1, wxALL|wxEXPAND, 5);
 	Notebook2 = new wxNotebook(this, ID_NOTEBOOK2, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK2"));
 	Notebook2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
 	Panel3 = new wxPanel(Notebook2, ID_PANEL9, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL9"));
@@ -137,9 +137,9 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	StaticText15_layout_kludge_1 = new wxStaticText(Panel3, ID_STATICTEXT14, _("                                    x"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
 	StaticText15_layout_kludge_1->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	FlexGridSizer26->Add(StaticText15_layout_kludge_1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer28->Add(FlexGridSizer26, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer28->Add(FlexGridSizer26, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Piano_CueFilename = new wxTextCtrl(Panel3, ID_TEXTCTRL_Piano_CueFilename, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Piano_CueFilename"));
-	FlexGridSizer28->Add(TextCtrl_Piano_CueFilename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer28->Add(TextCtrl_Piano_CueFilename, 1, wxALL|wxEXPAND, 5);
 	Panel3->SetSizer(FlexGridSizer28);
 	FlexGridSizer28->Fit(Panel3);
 	FlexGridSizer28->SetSizeHints(Panel3);
@@ -156,9 +156,9 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	StaticText14_layout_kludge2 = new wxStaticText(Panel4, ID_STATICTEXT13, _("                                    x"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
 	StaticText14_layout_kludge2->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	FlexGridSizer33->Add(StaticText14_layout_kludge2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer30->Add(FlexGridSizer33, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer30->Add(FlexGridSizer33, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Piano_MapFilename = new wxTextCtrl(Panel4, ID_TEXTCTRL_Piano_MapFilename, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Piano_MapFilename"));
-	FlexGridSizer30->Add(TextCtrl_Piano_MapFilename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer30->Add(TextCtrl_Piano_MapFilename, 1, wxALL|wxEXPAND, 5);
 	Panel4->SetSizer(FlexGridSizer30);
 	FlexGridSizer30->Fit(Panel4);
 	FlexGridSizer30->SetSizeHints(Panel4);
@@ -178,16 +178,16 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	BitmapButton_Piano_Clipping = new wxBitmapButton(Panel5, ID_BITMAPBUTTON_Piano_Clipping, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_Clipping"));
 	BitmapButton_Piano_Clipping->SetDefault();
 	FlexGridSizer34->Add(BitmapButton_Piano_Clipping, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer32->Add(FlexGridSizer34, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer32->Add(FlexGridSizer34, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_Piano_ShapeFilename = new wxTextCtrl(Panel5, ID_TEXTCTRL_Piano_ShapeFilename, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Piano_ShapeFilename"));
-	FlexGridSizer32->Add(TextCtrl_Piano_ShapeFilename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer32->Add(TextCtrl_Piano_ShapeFilename, 1, wxALL|wxEXPAND, 5);
 	Panel5->SetSizer(FlexGridSizer32);
 	FlexGridSizer32->Fit(Panel5);
 	FlexGridSizer32->SetSizeHints(Panel5);
 	Notebook2->AddPage(Panel3, _("Cues"), false);
 	Notebook2->AddPage(Panel4, _("Cue-Shape Map"), false);
 	Notebook2->AddPage(Panel5, _("Shapes"), false);
-	FlexGridSizer5->Add(Notebook2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(Notebook2, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(this);
 	FlexGridSizer5->SetSizeHints(this);

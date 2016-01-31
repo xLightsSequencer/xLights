@@ -4,11 +4,11 @@
 
 //(*Headers(OnPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
 class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 

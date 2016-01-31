@@ -6,8 +6,8 @@
 #include <wx/clipbrd.h>
 
 //(*InternalHeaders(MainSequencer)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(MainSequencer)
@@ -65,10 +65,10 @@ void MainSequencer::SetHandlers(wxWindow *window)
 MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(MainSequencer)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxStaticText* StaticText1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(3, 3, 0, 0);
@@ -82,34 +82,34 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_SeqTime = new wxStaticText(this, ID_STATICTEXT_Time, _("Time:"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(60,20)), 0, _T("ID_STATICTEXT_Time"));
 	FlexGridSizer2->Add(StaticText_SeqTime, 0, wxALIGN_RIGHT|wxALIGN_BOTTOM, 0);
-	FlexGridSizer1->Add(FlexGridSizer2, 0, wxEXPAND|wxALIGN_RIGHT|wxALIGN_BOTTOM, 0);
+	FlexGridSizer1->Add(FlexGridSizer2, 0, wxEXPAND, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
 	FlexGridSizer4->AddGrowableRow(1);
 	PanelTimeLine = new TimeLine(this, ID_PANEL1, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,15)), wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	PanelTimeLine->SetMinSize(wxDLG_UNIT(this,wxSize(-1,15)));
 	PanelTimeLine->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,15)));
-	FlexGridSizer4->Add(PanelTimeLine, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer4->Add(PanelTimeLine, 1, wxALL|wxEXPAND, 0);
 	PanelWaveForm = new Waveform(this, ID_PANEL3, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,40)), wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	PanelWaveForm->SetMinSize(wxDLG_UNIT(this,wxSize(-1,40)));
 	PanelWaveForm->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,40)));
-	FlexGridSizer4->Add(PanelWaveForm, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
+	FlexGridSizer4->Add(PanelWaveForm, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	PanelRowHeadings = new RowHeading(this, ID_PANEL6, wxDefaultPosition, wxDLG_UNIT(this,wxSize(90,-1)), wxTAB_TRAVERSAL, _T("ID_PANEL6"));
 	PanelRowHeadings->SetMinSize(wxDLG_UNIT(this,wxSize(90,-1)));
 	PanelRowHeadings->SetMaxSize(wxDLG_UNIT(this,wxSize(90,-1)));
-	FlexGridSizer1->Add(PanelRowHeadings, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
+	FlexGridSizer1->Add(PanelRowHeadings, 1, wxALL|wxEXPAND, 0);
 	PanelEffectGrid = new EffectsGrid(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL2"));
-	FlexGridSizer1->Add(PanelEffectGrid, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
+	FlexGridSizer1->Add(PanelEffectGrid, 1, wxALL|wxEXPAND, 0);
 	ScrollBarEffectsVertical = new wxScrollBar(this, ID_SCROLLBAR_EFFECTS_VERTICAL, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECTS_VERTICAL"));
 	ScrollBarEffectsVertical->SetScrollbar(0, 1, 10, 1);
-	FlexGridSizer1->Add(ScrollBarEffectsVertical, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
+	FlexGridSizer1->Add(ScrollBarEffectsVertical, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	ScrollBarEffectsHorizontal = new wxScrollBar(this, ID_SCROLLBAR_EFFECT_GRID_HORZ, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECT_GRID_HORZ"));
 	ScrollBarEffectsHorizontal->SetScrollbar(0, 1, 100, 1);
-	FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
+	FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);

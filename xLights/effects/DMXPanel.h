@@ -3,14 +3,14 @@
 
 //(*Headers(DMXPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxNotebookEvent;
-class wxNotebook;
-class wxStaticText;
-class wxSlider;
-class wxFlexGridSizer;
 class wxChoice;
+class wxNotebook;
+class wxFlexGridSizer;
+class wxSlider;
+class wxNotebookEvent;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class DMXPanel: public wxPanel
@@ -21,13 +21,13 @@ class DMXPanel: public wxPanel
 		virtual ~DMXPanel();
 
 		//(*Declarations(DMXPanel)
-		wxPanel* Panel20;
-		wxNotebook* Notebook7;
-		wxCheckBox* CheckBox_Use_Dmx_Ramps;
 		wxPanel* Panel21;
-		wxChoice* Choice_Num_Dmx_Channels;
+		wxCheckBox* CheckBox_Use_Dmx_Ramps;
+		wxPanel* Panel20;
 		wxPanel* Panel18;
+		wxChoice* Choice_Num_Dmx_Channels;
 		wxPanel* Panel19;
+		wxNotebook* Notebook7;
 		//*)
 
 	protected:

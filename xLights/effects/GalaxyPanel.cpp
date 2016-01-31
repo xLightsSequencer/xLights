@@ -3,18 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(GalaxyPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(GalaxyPanel)
@@ -74,34 +74,34 @@ END_EVENT_TABLE()
 GalaxyPanel::GalaxyPanel(wxWindow* parent)
 {
 	//(*Initialize(GalaxyPanel)
-	wxSlider* Slider_Galaxy_Accel;
-	wxFlexGridSizer* FlexGridSizer108;
-	wxSlider* Slider_Galaxy_Start_Width;
-	wxSlider* Slider_Galaxy_Start_Radius;
-	wxSlider* Slider_Galaxy_End_Width;
-	wxSlider* Slider_Galaxy_CenterX;
+	wxTextCtrl* TextCtrl_Galaxy_Accel;
+	wxPanel* Panel6;
+	wxPanel* Panel7;
+	wxTextCtrl* TextCtrl_Galaxy_End_Width;
+	wxTextCtrl* TextCtrl_Galaxy_Start_Width;
 	wxFlexGridSizer* GridBagSizerGalaxyOptions;
-	wxStaticText* StaticText125;
-	wxFlexGridSizer* GridBagSizerGalaxyEnd;
+	wxTextCtrl* TextCtrl_Galaxy_Duration;
+	wxSlider* Slider_Galaxy_End_Radius;
+	wxFlexGridSizer* FlexGridSizer108;
+	wxTextCtrl* TextCtrl_Galaxy_CenterY;
 	wxPanel* Panel8;
+	wxSlider* Slider_Galaxy_CenterX;
+	wxSlider* Slider_Galaxy_Duration;
+	wxSlider* Slider_Galaxy_Revolutions;
+	wxSlider* Slider_Galaxy_End_Width;
+	wxSlider* Slider_Galaxy_Start_Angle;
 	wxSlider* Slider_Galaxy_CenterY;
 	wxTextCtrl* TextCtrl_Galaxy_CenterX;
-	wxSlider* Slider_Galaxy_End_Radius;
-	wxPanel* Panel6;
-	wxTextCtrl* TextCtrl_Galaxy_CenterY;
-	wxSlider* Slider_Galaxy_Revolutions;
-	wxPanel* Panel7;
-	wxTextCtrl* TextCtrl_Galaxy_Duration;
-	wxTextCtrl* TextCtrl_Galaxy_Accel;
-	wxTextCtrl* TextCtrl_Galaxy_Start_Width;
-	wxSlider* Slider_Galaxy_Duration;
-	wxTextCtrl* TextCtrl_Galaxy_End_Width;
-	wxTextCtrl* TextCtrl_Galaxy_Start_Radius;
+	wxSlider* Slider_Galaxy_Start_Width;
 	wxTextCtrl* TextCtrl_Galaxy_Revolutions;
-	wxTextCtrl* TextCtrl_Galaxy_End_Radius;
 	wxTextCtrl* TextCtrl_Galaxy_Start_Angle;
-	wxSlider* Slider_Galaxy_Start_Angle;
+	wxTextCtrl* TextCtrl_Galaxy_End_Radius;
 	wxFlexGridSizer* GridBagSizerGalaxyStart;
+	wxStaticText* StaticText125;
+	wxTextCtrl* TextCtrl_Galaxy_Start_Radius;
+	wxFlexGridSizer* GridBagSizerGalaxyEnd;
+	wxSlider* Slider_Galaxy_Accel;
+	wxSlider* Slider_Galaxy_Start_Radius;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer108 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -113,7 +113,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	StaticText125 = new wxStaticText(Panel6, wxID_ANY, _("Center X:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	GridBagSizerGalaxyStart->Add(StaticText125, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_CenterX = new wxSlider(Panel6, ID_SLIDER_Galaxy_CenterX, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_CenterX"));
-	GridBagSizerGalaxyStart->Add(Slider_Galaxy_CenterX, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizerGalaxyStart->Add(Slider_Galaxy_CenterX, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Galaxy_CenterX = new wxTextCtrl(Panel6, IDD_TEXTCTRL_Galaxy_CenterX, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel6,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_CenterX"));
 	TextCtrl_Galaxy_CenterX->SetMaxLength(3);
 	GridBagSizerGalaxyStart->Add(TextCtrl_Galaxy_CenterX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(Panel6,wxSize(5,0)).GetWidth());
@@ -123,7 +123,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	StaticText126 = new wxStaticText(Panel6, ID_STATICTEXT2, _("Center Y:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	GridBagSizerGalaxyStart->Add(StaticText126, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_CenterY = new wxSlider(Panel6, ID_SLIDER_Galaxy_CenterY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_CenterY"));
-	GridBagSizerGalaxyStart->Add(Slider_Galaxy_CenterY, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizerGalaxyStart->Add(Slider_Galaxy_CenterY, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Galaxy_CenterY = new wxTextCtrl(Panel6, IDD_TEXTCTRL_Galaxy_CenterY, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel6,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_CenterY"));
 	TextCtrl_Galaxy_CenterY->SetMaxLength(3);
 	GridBagSizerGalaxyStart->Add(TextCtrl_Galaxy_CenterY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -133,7 +133,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	StaticText127 = new wxStaticText(Panel6, ID_STATICTEXT125, _("Radius:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT125"));
 	GridBagSizerGalaxyStart->Add(StaticText127, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_Start_Radius = new wxSlider(Panel6, ID_SLIDER_Galaxy_Start_Radius, 1, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Start_Radius"));
-	GridBagSizerGalaxyStart->Add(Slider_Galaxy_Start_Radius, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizerGalaxyStart->Add(Slider_Galaxy_Start_Radius, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Galaxy_Start_Radius = new wxTextCtrl(Panel6, IDD_TEXTCTRL_Galaxy_Start_Radius, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel6,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_Start_Radius"));
 	TextCtrl_Galaxy_Start_Radius->SetMaxLength(3);
 	GridBagSizerGalaxyStart->Add(TextCtrl_Galaxy_Start_Radius, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -143,7 +143,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	StaticText131 = new wxStaticText(Panel6, ID_STATICTEXT127, _("Width:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT127"));
 	GridBagSizerGalaxyStart->Add(StaticText131, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_Start_Width = new wxSlider(Panel6, ID_SLIDER_Galaxy_Start_Width, 5, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Start_Width"));
-	GridBagSizerGalaxyStart->Add(Slider_Galaxy_Start_Width, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizerGalaxyStart->Add(Slider_Galaxy_Start_Width, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Galaxy_Start_Width = new wxTextCtrl(Panel6, IDD_TEXTCTRL_Galaxy_Start_Width, _("5"), wxDefaultPosition, wxDLG_UNIT(Panel6,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_Start_Width"));
 	TextCtrl_Galaxy_Start_Width->SetMaxLength(3);
 	GridBagSizerGalaxyStart->Add(TextCtrl_Galaxy_Start_Width, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -153,7 +153,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	StaticText129 = new wxStaticText(Panel6, ID_STATICTEXT126, _("Angle:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT126"));
 	GridBagSizerGalaxyStart->Add(StaticText129, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_Start_Angle = new wxSlider(Panel6, ID_SLIDER_Galaxy_Start_Angle, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Start_Angle"));
-	GridBagSizerGalaxyStart->Add(Slider_Galaxy_Start_Angle, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizerGalaxyStart->Add(Slider_Galaxy_Start_Angle, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Galaxy_Start_Angle = new wxTextCtrl(Panel6, IDD_TEXTCTRL_Galaxy_Start_Angle, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel6,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_Start_Angle"));
 	TextCtrl_Galaxy_Start_Angle->SetMaxLength(3);
 	GridBagSizerGalaxyStart->Add(TextCtrl_Galaxy_Start_Angle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -169,7 +169,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	StaticText138 = new wxStaticText(Panel7, ID_STATICTEXT130, _("Radius:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT130"));
 	GridBagSizerGalaxyEnd->Add(StaticText138, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_End_Radius = new wxSlider(Panel7, ID_SLIDER_Galaxy_End_Radius, 10, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_End_Radius"));
-	GridBagSizerGalaxyEnd->Add(Slider_Galaxy_End_Radius, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizerGalaxyEnd->Add(Slider_Galaxy_End_Radius, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Galaxy_End_Radius = new wxTextCtrl(Panel7, IDD_TEXTCTRL_Galaxy_End_Radius, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel7,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_End_Radius"));
 	TextCtrl_Galaxy_End_Radius->SetMaxLength(3);
 	GridBagSizerGalaxyEnd->Add(TextCtrl_Galaxy_End_Radius, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -179,7 +179,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	StaticText139 = new wxStaticText(Panel7, ID_STATICTEXT132, _("Width:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT132"));
 	GridBagSizerGalaxyEnd->Add(StaticText139, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_End_Width = new wxSlider(Panel7, ID_SLIDER_Galaxy_End_Width, 5, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_End_Width"));
-	GridBagSizerGalaxyEnd->Add(Slider_Galaxy_End_Width, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizerGalaxyEnd->Add(Slider_Galaxy_End_Width, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Galaxy_End_Width = new wxTextCtrl(Panel7, IDD_TEXTCTRL_Galaxy_End_Width, _("5"), wxDefaultPosition, wxDLG_UNIT(Panel7,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_End_Width"));
 	TextCtrl_Galaxy_End_Width->SetMaxLength(3);
 	GridBagSizerGalaxyEnd->Add(TextCtrl_Galaxy_End_Width, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -189,7 +189,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	StaticText140 = new wxStaticText(Panel7, ID_STATICTEXT134, _("Rev\'s:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT134"));
 	GridBagSizerGalaxyEnd->Add(StaticText140, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_Revolutions = new wxSlider(Panel7, ID_SLIDER_Galaxy_Revolutions, 1440, 0, 3600, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Revolutions"));
-	GridBagSizerGalaxyEnd->Add(Slider_Galaxy_Revolutions, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizerGalaxyEnd->Add(Slider_Galaxy_Revolutions, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Galaxy_Revolutions = new wxTextCtrl(Panel7, IDD_TEXTCTRL_Galaxy_Revolutions, _("4.0"), wxDefaultPosition, wxDLG_UNIT(Panel7,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_Revolutions"));
 	TextCtrl_Galaxy_Revolutions->SetMaxLength(4);
 	GridBagSizerGalaxyEnd->Add(TextCtrl_Galaxy_Revolutions, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -205,7 +205,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	StaticText141 = new wxStaticText(Panel8, ID_STATICTEXT139, _("Head Duration:"), wxDefaultPosition, wxSize(-1,-1), 0, _T("ID_STATICTEXT139"));
 	GridBagSizerGalaxyOptions->Add(StaticText141, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_Duration = new wxSlider(Panel8, ID_SLIDER_Galaxy_Duration, 20, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Duration"));
-	GridBagSizerGalaxyOptions->Add(Slider_Galaxy_Duration, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizerGalaxyOptions->Add(Slider_Galaxy_Duration, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Galaxy_Duration = new wxTextCtrl(Panel8, IDD_TEXTCTRL_Galaxy_Duration, _("20"), wxDefaultPosition, wxDLG_UNIT(Panel8,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_Duration"));
 	TextCtrl_Galaxy_Duration->SetMaxLength(3);
 	GridBagSizerGalaxyOptions->Add(TextCtrl_Galaxy_Duration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -215,7 +215,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	StaticText142 = new wxStaticText(Panel8, ID_STATICTEXT140, _("Acceleration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT140"));
 	GridBagSizerGalaxyOptions->Add(StaticText142, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_Accel = new wxSlider(Panel8, ID_SLIDER_Galaxy_Accel, 0, -10, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Accel"));
-	GridBagSizerGalaxyOptions->Add(Slider_Galaxy_Accel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizerGalaxyOptions->Add(Slider_Galaxy_Accel, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Galaxy_Accel = new wxTextCtrl(Panel8, IDD_TEXTCTRL_Galaxy_Accel, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel8,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Galaxy_Accel"));
 	TextCtrl_Galaxy_Accel->SetMaxLength(3);
 	GridBagSizerGalaxyOptions->Add(TextCtrl_Galaxy_Accel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -245,7 +245,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	Notebook_Galaxy->AddPage(Panel6, _("Start"), false);
 	Notebook_Galaxy->AddPage(Panel7, _("End"), false);
 	Notebook_Galaxy->AddPage(Panel8, _("Options"), false);
-	FlexGridSizer108->Add(Notebook_Galaxy, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer108->Add(Notebook_Galaxy, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer108);
 	FlexGridSizer108->Fit(this);
 	FlexGridSizer108->SetSizeHints(this);

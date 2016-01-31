@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)  Fix the sequence length when duration is changed so user doesn't need to delete fseq file. Fixes #196 and #442.
 2016.2  Jan 26, 2016
     -- bug(sean) Fixed self install script to overwrite wxwidgets library files. wxmsm*.dll
 2016.1  Jan 25, 2016

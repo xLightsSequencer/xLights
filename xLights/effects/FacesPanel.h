@@ -3,12 +3,12 @@
 
 //(*Headers(FacesPanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxRadioButton;
-class wxStaticText;
-class wxFlexGridSizer;
 class wxStaticBoxSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxStaticText;
+class wxRadioButton;
+class wxCheckBox;
 //*)
 
 class FacesPanel: public wxPanel
@@ -19,15 +19,15 @@ class FacesPanel: public wxPanel
 		virtual ~FacesPanel();
 
 		//(*Declarations(FacesPanel)
-		wxRadioButton* RadioButton1;
 		wxChoice* Choice_Faces_Phoneme;
-		wxChoice* Choice_Faces_Eyes;
+		wxRadioButton* RadioButton1;
 		wxStaticText* StaticText14;
+		wxChoice* Choice_Faces_Eyes;
 		wxRadioButton* RadioButton2;
-		wxChoice* Choice_Faces_TimingTrack;
-		wxStaticText* StaticText71;
-		wxCheckBox* CheckBox_Faces_Outline;
 		wxChoice* Face_FaceDefinitonChoice;
+		wxChoice* Choice_Faces_TimingTrack;
+		wxCheckBox* CheckBox_Faces_Outline;
+		wxStaticText* StaticText71;
 		//*)
 
 	protected:

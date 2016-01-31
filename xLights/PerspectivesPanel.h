@@ -3,10 +3,10 @@
 
 //(*Headers(PerspectivesPanel)
 #include <wx/sizer.h>
+#include <wx/button.h>
+#include <wx/panel.h>
 #include <wx/stattext.h>
 #include <wx/listbox.h>
-#include <wx/panel.h>
-#include <wx/button.h>
 //*)
 
 #include <wx/xml/xml.h>
@@ -25,11 +25,11 @@ class PerspectivesPanel: public wxPanel
 		virtual ~PerspectivesPanel();
 
 		//(*Declarations(PerspectivesPanel)
-		wxListBox* ListBoxPerspectives;
-		wxButton* ButtonAddPerspective;
-		wxStaticText* StaticText1;
-		wxButton* ButtonRenamePerspective;
 		wxButton* ButtonDeletePerspective;
+		wxStaticText* StaticText1;
+		wxButton* ButtonAddPerspective;
+		wxButton* ButtonRenamePerspective;
+		wxListBox* ListBoxPerspectives;
 		wxButton* ButtonSavePerspective;
 		//*)
 

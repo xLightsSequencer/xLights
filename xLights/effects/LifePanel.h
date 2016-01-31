@@ -4,10 +4,10 @@
 //(*Headers(LifePanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 class LifePanel: public wxPanel
@@ -18,12 +18,12 @@ class LifePanel: public wxPanel
 		virtual ~LifePanel();
 
 		//(*Declarations(LifePanel)
-		wxBitmapButton* BitmapButton_LifeSpeed;
-		wxStaticText* StaticText37;
 		wxBitmapButton* BitmapButton_LifeCount;
-		wxSlider* Slider_Life_Count;
 		wxStaticText* StaticText35;
+		wxStaticText* StaticText37;
 		wxSlider* Slider_Life_Seed;
+		wxSlider* Slider_Life_Count;
+		wxBitmapButton* BitmapButton_LifeSpeed;
 		//*)
 
 	protected:

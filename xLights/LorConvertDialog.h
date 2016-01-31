@@ -2,10 +2,10 @@
 #define LORCONVERTDIALOG_H
 
 //(*Headers(LorConvertDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
 //*)
 
 class LorConvertDialog: public wxDialog
@@ -16,12 +16,12 @@ class LorConvertDialog: public wxDialog
 		virtual ~LorConvertDialog();
 
 		//(*Declarations(LorConvertDialog)
-		wxStaticText* StaticText20;
-		wxStaticText* StaticText31;
-		wxCheckBox* CheckBoxMapEmptyChannels;
-		wxCheckBox* MapLORChannelsWithNoNetwork;
 		wxStaticText* StaticText17;
+		wxStaticText* StaticText20;
+		wxCheckBox* CheckBoxMapEmptyChannels;
 		wxCheckBox* CheckBoxOffAtEnd;
+		wxCheckBox* MapLORChannelsWithNoNetwork;
+		wxStaticText* StaticText31;
 		//*)
 
 	protected:

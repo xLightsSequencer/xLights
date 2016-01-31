@@ -2,9 +2,9 @@
 #define PLAYBACKOPTIONSDIALOG_H
 
 //(*Headers(PlaybackOptionsDialog)
-#include <wx/sizer.h>
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
 //*)
 
 class PlaybackOptionsDialog: public wxDialog
@@ -15,11 +15,11 @@ public:
     virtual ~PlaybackOptionsDialog();
 
     //(*Declarations(PlaybackOptionsDialog)
-    wxCheckBox* CheckBoxFirstItem;
-    wxCheckBox* CheckBoxRepeat;
     wxCheckBox* CheckBoxLastItem;
-    wxCheckBox* CheckBoxLightsOff;
+    wxCheckBox* CheckBoxFirstItem;
     wxCheckBox* CheckBoxRandom;
+    wxCheckBox* CheckBoxLightsOff;
+    wxCheckBox* CheckBoxRepeat;
     //*)
 
 protected:

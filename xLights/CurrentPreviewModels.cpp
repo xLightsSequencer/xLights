@@ -3,8 +3,8 @@
 #include <wx/xml/xml.h>
 
 //(*InternalHeaders(CurrentPreviewModels)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(CurrentPreviewModels)
@@ -21,11 +21,11 @@ END_EVENT_TABLE()
 CurrentPreviewModels::CurrentPreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode* Models, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(CurrentPreviewModels)
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
@@ -37,8 +37,8 @@ CurrentPreviewModels::CurrentPreviewModels(wxWindow* parent,wxXmlNode* ModelGrou
 	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	CheckListBoxCurrentGroups = new wxCheckListBox(this, ID_CHECKLISTBOX_CURRENT_GROUPS, wxDefaultPosition, wxSize(150,140), 0, 0, wxLB_SORT|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX_CURRENT_GROUPS"));
-	FlexGridSizer2->Add(CheckListBoxCurrentGroups, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(CheckListBoxCurrentGroups, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();

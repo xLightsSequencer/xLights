@@ -4,8 +4,8 @@
 #include <wx/xml/xml.h>
 
 //(*InternalHeaders(EffectListDialog)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(EffectListDialog)
@@ -22,9 +22,9 @@ END_EVENT_TABLE()
 EffectListDialog::EffectListDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     //(*Initialize(EffectListDialog)
-    wxFlexGridSizer* FlexGridSizer3;
-    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer3;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, id, _("Presets List"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
@@ -34,7 +34,7 @@ EffectListDialog::EffectListDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     ListBox1 = new wxListBox(this, ID_LISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX1"));
     ListBox1->SetMinSize(wxSize(150,200));
-    FlexGridSizer2->Add(ListBox1, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+    FlexGridSizer2->Add(ListBox1, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
     Button_Delete = new wxButton(this, ID_BUTTON3, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     FlexGridSizer3->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

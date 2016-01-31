@@ -3,8 +3,8 @@
 
 //(*Headers(OffPanel)
 #include <wx/panel.h>
-class wxStaticText;
 class wxFlexGridSizer;
+class wxStaticText;
 //*)
 
 class OffPanel: public wxPanel

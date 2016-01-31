@@ -1,9 +1,9 @@
 #include "PixelAppearanceDlg.h"
 
 //(*InternalHeaders(PixelAppearanceDlg)
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(PixelAppearanceDlg)
@@ -25,11 +25,11 @@ END_EVENT_TABLE()
 PixelAppearanceDlg::PixelAppearanceDlg(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(PixelAppearanceDlg)
-	wxStaticText* StaticText2;
-	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText3;
-	wxFlexGridSizer* FlexGridSizer1;
+	wxStaticText* StaticText2;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, _("Pixel Appearance"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
@@ -52,23 +52,23 @@ PixelAppearanceDlg::PixelAppearanceDlg(wxWindow* parent,wxWindowID id,const wxPo
 	PixelStyleBox->Append(_("Smooth"));
 	PixelStyleBox->Append(_("Solid Circle"));
 	PixelStyleBox->Append(_("Blended Circle"));
-	FlexGridSizer5->Add(PixelStyleBox, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(PixelStyleBox, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText3 = new wxStaticText(this, wxID_ANY, _("Transparency:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer5->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TransparencySlider = new wxSlider(this, ID_SLIDER_TRANSPARENCY, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_TRANSPARENCY"));
-	FlexGridSizer5->Add(TransparencySlider, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(TransparencySlider, 1, wxALL|wxEXPAND, 5);
 	TransparencyText = new wxTextCtrl(this, IDD_TEXTCTRL_TRANSPARENCY, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_TRANSPARENCY"));
 	TransparencyText->SetMaxLength(4);
 	FlexGridSizer5->Add(TransparencyText, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT2, _("Black Transparency:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer5->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BlackTransparency = new wxSlider(this, ID_SLIDER_BLACKT, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BLACKT"));
-	FlexGridSizer5->Add(BlackTransparency, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(BlackTransparency, 1, wxALL|wxEXPAND, 5);
 	BlackTransparencyText = new wxTextCtrl(this, IDD_TEXTCTRL_BLACKT, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_BLACKT"));
 	BlackTransparencyText->SetMaxLength(4);
 	FlexGridSizer5->Add(BlackTransparencyText, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
@@ -76,7 +76,7 @@ PixelAppearanceDlg::PixelAppearanceDlg(wxWindow* parent,wxWindowID id,const wxPo
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer2->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);

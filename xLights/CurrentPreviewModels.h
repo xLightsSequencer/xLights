@@ -2,11 +2,11 @@
 #define CURRENTPREVIEWMODELS_H
 
 //(*Headers(CurrentPreviewModels)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
 #include <wx/checklst.h>
-#include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/button.h>
+#include <wx/stattext.h>
 //*)
 #include <wx/xml/xml.h>
 
@@ -18,8 +18,8 @@ class CurrentPreviewModels: public wxDialog
 		virtual ~CurrentPreviewModels();
 
 		//(*Declarations(CurrentPreviewModels)
-		wxButton* ButtonEditGroups;
 		wxStaticText* StaticText1;
+		wxButton* ButtonEditGroups;
 		wxCheckListBox* CheckListBoxCurrentGroups;
 		//*)
 

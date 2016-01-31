@@ -4,11 +4,11 @@
 //(*Headers(GarlandsPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 class GarlandsPanel: public wxPanel
@@ -19,13 +19,13 @@ class GarlandsPanel: public wxPanel
 		virtual ~GarlandsPanel();
 
 		//(*Declarations(GarlandsPanel)
-		wxBitmapButton* BitmapButton_GarlandsType;
-		wxStaticText* StaticText33;
-		wxBitmapButton* BitmapButton_GarlandsSpacing;
-		wxStaticText* StaticText192;
 		wxStaticText* StaticText32;
-		wxSlider* Slider_Garlands_Spacing;
+		wxBitmapButton* BitmapButton_GarlandsType;
+		wxStaticText* StaticText192;
 		wxSlider* Slider_Garlands_Type;
+		wxSlider* Slider_Garlands_Spacing;
+		wxBitmapButton* BitmapButton_GarlandsSpacing;
+		wxStaticText* StaticText33;
 		//*)
 
 	protected:

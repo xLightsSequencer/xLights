@@ -4,11 +4,11 @@
 //(*Headers(SnowflakesPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 class SnowflakesPanel: public wxPanel
@@ -19,16 +19,16 @@ class SnowflakesPanel: public wxPanel
 		virtual ~SnowflakesPanel();
 
 		//(*Declarations(SnowflakesPanel)
-		wxSlider* Slider_Snowflakes_Type;
-		wxChoice* ChoiceFalling;
-		wxStaticText* StaticText80;
 		wxBitmapButton* BitmapButton16;
-		wxBitmapButton* BitmapButton_SnowflakesType;
-		wxStaticText* StaticText2;
-		wxBitmapButton* BitmapButton_SnowflakesCount;
-		wxStaticText* StaticText1;
-		wxBitmapButton* BitmapButton1;
 		wxStaticText* StaticText79;
+		wxStaticText* StaticText80;
+		wxBitmapButton* BitmapButton_SnowflakesType;
+		wxChoice* ChoiceFalling;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxBitmapButton* BitmapButton1;
+		wxSlider* Slider_Snowflakes_Type;
+		wxBitmapButton* BitmapButton_SnowflakesCount;
 		//*)
 
 	protected:

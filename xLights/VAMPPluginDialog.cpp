@@ -1,9 +1,9 @@
 #include "VAMPPluginDialog.h"
 
 //(*InternalHeaders(VAMPPluginDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 #include <wx/wx.h>
@@ -30,11 +30,11 @@ using namespace Vamp;
 VAMPPluginDialog::VAMPPluginDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(VAMPPluginDialog)
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
-	wxStaticBoxSizer* StaticBoxSizer1;
-	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
+	wxStaticBoxSizer* StaticBoxSizer1;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -47,7 +47,7 @@ VAMPPluginDialog::VAMPPluginDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TimingName = new wxTextCtrl(this, ID_TEXTCTRL1, _("Timing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer2->Add(TimingName, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	Label1 = new wxStaticText(this, ID_STATICTEXT1, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(Label1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Label2 = new wxStaticText(this, ID_STATICTEXT2, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
@@ -55,8 +55,8 @@ VAMPPluginDialog::VAMPPluginDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Plugin Settings"));
 	SettingsSizer = new wxFlexGridSizer(0, 2, 0, 0);
 	SettingsSizer->AddGrowableCol(1);
-	StaticBoxSizer1->Add(SettingsSizer, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer1->Add(SettingsSizer, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));

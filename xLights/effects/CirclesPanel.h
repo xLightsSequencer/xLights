@@ -3,12 +3,12 @@
 
 //(*Headers(CirclesPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class CirclesPanel: public wxPanel
@@ -19,27 +19,27 @@ class CirclesPanel: public wxPanel
 		virtual ~CirclesPanel();
 
 		//(*Declarations(CirclesPanel)
-		wxCheckBox* CheckBox_Circles_Radial_3D;
-		wxCheckBox* CheckBox_Circles_Linear_Fade;
+		wxBitmapButton* BitmapButton2;
+		wxCheckBox* CheckBox_Circles_Radial;
+		wxBitmapButton* BitmapButton_CirclesBounce;
 		wxStaticText* StaticText137;
+		wxBitmapButton* BitmapButton_CirclesRadial3D;
+		wxBitmapButton* BitmapButton_Circles_Linear_Fade;
 		wxBitmapButton* BitmapButton_CirclesSize;
 		wxBitmapButton* BitmapButton_CirclesRadial;
-		wxBitmapButton* BitmapButton2;
-		wxBitmapButton* BitmapButton_CirclesCollide;
-		wxBitmapButton* BitmapButton_RandomMotion;
 		wxStaticText* StaticText136;
-		wxCheckBox* CheckBox_Circles_Collide;
-		wxCheckBox* CheckBox_Circles_Plasma;
-		wxCheckBox* CheckBox_Circles_Bounce;
-		wxBitmapButton* BitmapButton_CirclesBounce;
-		wxBitmapButton* BitmapButton_CirclesBubbles;
-		wxCheckBox* CheckBox_Circles_Radial;
-		wxBitmapButton* BitmapButton_CirclesCount;
-		wxBitmapButton* BitmapButton_Circles_Linear_Fade;
-		wxBitmapButton* BitmapButton_CirclesRadial3D;
-		wxCheckBox* CheckBox_Circles_Random_m;
-		wxBitmapButton* BitmapButton_CirclesPlasma;
 		wxCheckBox* CheckBox_Circles_Bubbles;
+		wxCheckBox* CheckBox_Circles_Random_m;
+		wxBitmapButton* BitmapButton_CirclesCount;
+		wxCheckBox* CheckBox_Circles_Bounce;
+		wxCheckBox* CheckBox_Circles_Linear_Fade;
+		wxBitmapButton* BitmapButton_CirclesPlasma;
+		wxBitmapButton* BitmapButton_CirclesCollide;
+		wxBitmapButton* BitmapButton_CirclesBubbles;
+		wxCheckBox* CheckBox_Circles_Radial_3D;
+		wxCheckBox* CheckBox_Circles_Collide;
+		wxBitmapButton* BitmapButton_RandomMotion;
+		wxCheckBox* CheckBox_Circles_Plasma;
 		//*)
 
 	protected:

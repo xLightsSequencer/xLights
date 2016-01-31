@@ -4,11 +4,11 @@
 //(*Headers(FirePanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 class FirePanel: public wxPanel
@@ -19,12 +19,12 @@ class FirePanel: public wxPanel
 		virtual ~FirePanel();
 
 		//(*Declarations(FirePanel)
-		wxBitmapButton* BitmapButton_FireWidth;
-		wxStaticText* StaticText83;
-		wxBitmapButton* BitmapButton_FireGrow;
-		wxSlider* Slider_Fire_Height;
 		wxStaticText* StaticText132;
+		wxBitmapButton* BitmapButton_FireGrow;
+		wxStaticText* StaticText83;
+		wxBitmapButton* BitmapButton_FireWidth;
 		wxBitmapButton* BitmapButton_FireHeight;
+		wxSlider* Slider_Fire_Height;
 		//*)
 
 	protected:

@@ -2,9 +2,9 @@
 #define ASSISTPANEL_H
 
 //(*Headers(AssistPanel)
-#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
+#include <wx/scrolwin.h>
 //*)
 
 #include "../../xlGridCanvas.h"
@@ -25,9 +25,9 @@ class AssistPanel: public wxPanel
         void AddPanel(wxPanel* panel);
 
 		//(*Declarations(AssistPanel)
+		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer2;
 		wxScrolledWindow* ScrolledWindowAssist;
-		wxFlexGridSizer* FlexGridSizer1;
 		//*)
 
 	protected:

@@ -2,15 +2,15 @@
 #define COLORPANEL_H
 
 //(*Headers(ColorPanel)
-#include <wx/scrolwin.h>
+#include <wx/bmpbuttn.h>
+#include <wx/checkbox.h>
 #include <wx/sizer.h>
+#include <wx/button.h>
+#include <wx/panel.h>
+#include <wx/scrolwin.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
-#include <wx/bmpbuttn.h>
-#include <wx/button.h>
 //*)
 
 #include <wx/colordlg.h>
@@ -39,42 +39,42 @@ class ColorPanel: public wxPanel
         static const int PALETTE_SIZE = 6;
 
 		//(*Declarations(ColorPanel)
+		wxCheckBox* CheckBox_Palette3;
+		wxCheckBox* CheckBox_Palette2;
+		wxCheckBox* CheckBox_Palette1;
 		wxStaticText* StaticText22;
+		wxTextCtrl* txtCtlBrightness;
+		wxTextCtrl* txtCtrlSparkleFreq;
+		wxScrolledWindow* ColorScrollWindow;
+		wxStaticText* StaticText126;
+		wxBitmapButton* BitmapButton_normal;
+		wxBitmapButton* Button_Palette4;
+		wxTextCtrl* txtCtlContrast;
+		wxBitmapButton* BitmapButton_SparkleFrequency;
+		wxSlider* Slider_Contrast;
+		wxSlider* Slider_SparkleFrequency;
 		wxBitmapButton* BitmapButton_Contrast;
+		wxPanel* Panel_Sizer;
+		wxBitmapButton* BitmapButton_Palette2;
+		wxBitmapButton* BitmapButton_random;
+		wxStaticText* StaticText127;
 		wxBitmapButton* BitmapButton_Brightness;
-		wxFlexGridSizer* FlexGridSizer_Palette;
-		wxCheckBox* CheckBox_Palette6;
+		wxBitmapButton* BitmapButton_Palette1;
+		wxBitmapButton* BitmapButton_Palette4;
+		wxBitmapButton* Button_Palette1;
+		wxBitmapButton* BitmapButton_locked;
+		wxCheckBox* CheckBox_Palette4;
+		wxBitmapButton* BitmapButton_Palette6;
+		wxBitmapButton* BitmapButton_Palette5;
+		wxCheckBox* CheckBox_Palette5;
 		wxBitmapButton* BitmapButton_Palette3;
 		wxBitmapButton* Button_Palette3;
-		wxBitmapButton* BitmapButton_random;
-		wxBitmapButton* BitmapButton_Palette2;
-		wxCheckBox* CheckBox_Palette1;
-		wxBitmapButton* BitmapButton_normal;
-		wxPanel* Panel_Sizer;
-		wxBitmapButton* Button_Palette5;
-		wxBitmapButton* Button_Palette6;
-		wxBitmapButton* Button_Palette1;
-		wxBitmapButton* BitmapButton_SparkleFrequency;
-		wxCheckBox* CheckBox_Palette5;
-		wxStaticText* StaticText127;
-		wxTextCtrl* txtCtlBrightness;
-		wxTextCtrl* txtCtlContrast;
-		wxBitmapButton* BitmapButton_locked;
-		wxBitmapButton* BitmapButton_Palette1;
-		wxCheckBox* CheckBox_Palette3;
-		wxCheckBox* CheckBox_Palette4;
-		wxSlider* Slider_Brightness;
-		wxBitmapButton* BitmapButton_Palette4;
+		wxFlexGridSizer* FlexGridSizer_Palette;
 		wxBitmapButton* Button_Palette2;
-		wxStaticText* StaticText126;
-		wxSlider* Slider_SparkleFrequency;
-		wxBitmapButton* BitmapButton_Palette5;
-		wxScrolledWindow* ColorScrollWindow;
-		wxCheckBox* CheckBox_Palette2;
-		wxTextCtrl* txtCtrlSparkleFreq;
-		wxSlider* Slider_Contrast;
-		wxBitmapButton* BitmapButton_Palette6;
-		wxBitmapButton* Button_Palette4;
+		wxBitmapButton* Button_Palette5;
+		wxCheckBox* CheckBox_Palette6;
+		wxBitmapButton* Button_Palette6;
+		wxSlider* Slider_Brightness;
 		//*)
 
 	protected:

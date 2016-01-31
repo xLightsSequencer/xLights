@@ -4,11 +4,11 @@
 #include <wx/clipbrd.h>
 
 //(*InternalHeaders(ModelDialog)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/artprov.h>
 //*)
 
 #include "ModelPreview.h"
@@ -78,19 +78,19 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     netInfo = nullptr;
 
     //(*Initialize(ModelDialog)
-    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
     wxButton* Button01;
-    wxFlexGridSizer* FlexGridSizer10;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxBoxSizer* BoxSizer2;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxButton* Button03;
     wxFlexGridSizer* FlexGridSizer3;
     wxButton* Button04;
-    wxFlexGridSizer* FlexGridSizer5;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxBoxSizer* BoxSizer2;
-    wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer10;
     wxBoxSizer* BoxSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer2;
-    wxFlexGridSizer* FlexGridSizer1;
-    wxButton* Button03;
+    wxFlexGridSizer* FlexGridSizer5;
 
     Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     SetHelpText(_("Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical."));
@@ -102,7 +102,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Model Name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     LeftGridSizer->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Name = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    LeftGridSizer->Add(TextCtrl_Name, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    LeftGridSizer->Add(TextCtrl_Name, 1, wxALL|wxEXPAND, 5);
     StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Display As"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
     LeftGridSizer->Add(StaticText5, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_DisplayAs = new wxChoice(this, ID_CHOICE_DisplayAs, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_DisplayAs"));
@@ -124,7 +124,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_DisplayAs->Append(_("Sphere 360"));
     Choice_DisplayAs->Append(_("Sphere 270"));
     Choice_DisplayAs->Append(_("Sphere 180"));
-    LeftGridSizer->Add(Choice_DisplayAs, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    LeftGridSizer->Add(Choice_DisplayAs, 1, wxALL|wxEXPAND, 5);
     StaticText9 = new wxStaticText(this, ID_STATICTEXT12, _("Type of String"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
     LeftGridSizer->Add(StaticText9, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -144,10 +144,10 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_StringType->Append(_("Single Color White"));
     Choice_StringType->Append(_("Single Color Custom"));
     Choice_StringType->Append(_("Strobes White 3fps"));
-    FlexGridSizer1->Add(Choice_StringType, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(Choice_StringType, 1, wxALL|wxEXPAND, 5);
     ColorPicker = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL1, wxColour(255,0,255), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL1"));
     FlexGridSizer1->Add(ColorPicker, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    LeftGridSizer->Add(FlexGridSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    LeftGridSizer->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
     StaticText_Strings = new wxStaticText(this, ID_STATICTEXT2, _("Actual # of Strings"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     LeftGridSizer->Add(StaticText_Strings, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_parm1 = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(35,-1)), 0, 1, 1000, 1, _T("ID_SPINCTRL1"));
@@ -176,7 +176,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     OutputSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL6, _T("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(45,-1)), 0, 1, 64000, 1, _T("ID_SPINCTRL6"));
     OutputSpinCtrl->SetValue(_T("1"));
     FlexGridSizer2->Add(OutputSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    LeftGridSizer->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT8, _("Starting Corner"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
     StaticText3->SetHelpText(_("The point at which pixels in your model start."));
     LeftGridSizer->Add(StaticText3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -186,7 +186,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     BoxSizer1->Add(RadioButton_TopLeft, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     RadioButton_TopRight = new wxRadioButton(this, ID_RADIOBUTTON2, _("Top Right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
     BoxSizer1->Add(RadioButton_TopRight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(BoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    LeftGridSizer->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
     StaticText8 = new wxStaticText(this, ID_STATICTEXT11, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
     LeftGridSizer->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
@@ -194,10 +194,10 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     BoxSizer2->Add(RadioButton_BotLeft, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     RadioButton_BotRight = new wxRadioButton(this, ID_RADIOBUTTON3, _("Bottom Right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
     BoxSizer2->Add(RadioButton_BotRight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(BoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    LeftGridSizer->Add(BoxSizer2, 1, wxALL|wxEXPAND, 5);
     StaticText7 = new wxStaticText(this, ID_STATICTEXT10, _("Part of my display"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
     LeftGridSizer->Add(StaticText7, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_MyDisplay = new wxCheckBox(this, ID_CHECKBOX1, _(" "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBox_MyDisplay = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_MyDisplay->SetValue(true);
     LeftGridSizer->Add(CheckBox_MyDisplay, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ExtraParameterLabel = new wxStaticText(this, ID_STATICTEXT15, _("Star Sizes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
@@ -207,12 +207,12 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer10->Add(TreeFirstStringForExport, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StarSizes = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
     FlexGridSizer10->Add(StarSizes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    LeftGridSizer->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
+    LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     ButtonDimCurve = new wxButton(this, ID_BUTTON2, _("Dimming Curves"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     LeftGridSizer->Add(ButtonDimCurve, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    LeftGridSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     StdDialogButtonSizer2 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer2->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
     StdDialogButtonSizer2->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
@@ -226,7 +226,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Button01 = new wxButton(this, ID_BUTTON1, _("Faces"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer7->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     LeftGridSizer->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    OuterSizer->Add(LeftGridSizer, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+    OuterSizer->Add(LeftGridSizer, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer3->AddGrowableCol(0);
     FlexGridSizer3->AddGrowableRow(1);
@@ -242,8 +242,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     gridStartChannels->SetColLabelValue(1, _("End"));
     gridStartChannels->SetDefaultCellFont( gridStartChannels->GetFont() );
     gridStartChannels->SetDefaultCellTextColour( gridStartChannels->GetForegroundColour() );
-    FlexGridSizer3->Add(gridStartChannels, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
-    OuterSizer->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(gridStartChannels, 0, wxEXPAND, 0);
+    OuterSizer->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer4 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer4->AddGrowableRow(1);
     FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
@@ -277,8 +277,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     GridCustom->SetDefaultColSize(30, true);
     GridCustom->SetDefaultCellFont( GridCustom->GetFont() );
     GridCustom->SetDefaultCellTextColour( GridCustom->GetForegroundColour() );
-    FlexGridSizer4->Add(GridCustom, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
-    OuterSizer->Add(FlexGridSizer4, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(GridCustom, 0, wxEXPAND, 0);
+    OuterSizer->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
     SetSizer(OuterSizer);
     OuterSizer->Fit(this);
     OuterSizer->SetSizeHints(this);

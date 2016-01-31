@@ -3,15 +3,15 @@
 
 //(*Headers(SingleStrandPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxNotebookEvent;
-class wxNotebook;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxNotebook;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxNotebookEvent;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class SingleStrandPanel: public wxPanel
@@ -22,34 +22,34 @@ class SingleStrandPanel: public wxPanel
 		virtual ~SingleStrandPanel();
 
 		//(*Declarations(SingleStrandPanel)
-		wxStaticText* StaticText9;
 		wxBitmapButton* BitmapButton_Chase_3dFade1;
+		wxBitmapButton* BitmapButton_Skips_Direction;
+		wxSlider* Slider_Color_Mix1;
+		wxStaticText* StaticText60;
+		wxPanel* Panel1;
+		wxBitmapButton* BitmapButton3;
+		wxStaticText* StaticText13;
+		wxBitmapButton* BitmapButton_Color_Mix1;
+		wxStaticText* StaticText109;
+		wxChoice* Choice_SingleStrand_Colors;
+		wxPanel* Panel2;
+		wxChoice* Choice_Skips_Direction;
+		wxBitmapButton* BitmapButton_Chase_Type1;
+		wxNotebook* SingleStrandEffectType;
+		wxCheckBox* CheckBox_Chase_Group_All;
+		wxStaticText* StaticText12;
+		wxBitmapButton* BitmapButton4;
 		wxBitmapButton* BitmapButton_Chase_Group_All;
 		wxBitmapButton* BitmapButton_SingleStrand_Colors;
-		wxStaticText* StaticText13;
-		wxNotebook* SingleStrandEffectType;
 		wxSlider* Slider_Number_Chases;
-		wxBitmapButton* BitmapButton_Color_Mix1;
-		wxBitmapButton* BitmapButton_Skips_StartingPosition;
-		wxStaticText* StaticText11;
-		wxCheckBox* CheckBox_Chase_3dFade1;
-		wxPanel* Panel1;
-		wxCheckBox* CheckBox_Chase_Group_All;
-		wxStaticText* StaticText109;
-		wxBitmapButton* BitmapButton_Skips_Direction;
-		wxChoice* Choice_SingleStrand_Colors;
-		wxSlider* Slider_Color_Mix1;
 		wxStaticText* StaticText61;
-		wxBitmapButton* BitmapButton_Skips_SkipSize;
-		wxBitmapButton* BitmapButton4;
-		wxStaticText* StaticText12;
-		wxBitmapButton* BitmapButton3;
-		wxStaticText* StaticText60;
-		wxBitmapButton* BitmapButton_Number_Chases;
-		wxPanel* Panel2;
+		wxCheckBox* CheckBox_Chase_3dFade1;
 		wxBitmapButton* BitmapButton_Skips_BandSize;
-		wxBitmapButton* BitmapButton_Chase_Type1;
-		wxChoice* Choice_Skips_Direction;
+		wxStaticText* StaticText9;
+		wxStaticText* StaticText11;
+		wxBitmapButton* BitmapButton_Skips_StartingPosition;
+		wxBitmapButton* BitmapButton_Skips_SkipSize;
+		wxBitmapButton* BitmapButton_Number_Chases;
 		//*)
 
 	protected:

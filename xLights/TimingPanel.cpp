@@ -4,12 +4,12 @@
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include <wx/msgdlg.h>
 //(*InternalHeaders(TimingPanel)
-#include <wx/bitmap.h>
 #include <wx/settings.h>
-#include <wx/font.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/font.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(TimingPanel)
@@ -40,11 +40,11 @@ END_EVENT_TABLE()
 TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(TimingPanel)
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer6;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(778,707), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -58,12 +58,12 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer6->AddGrowableCol(0);
 	FlexGridSizer6->AddGrowableCol(1);
 	FlexGridSizer6->AddGrowableCol(2);
-	FlexGridSizer6->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer6->Add(-1,-1,1, wxALL|wxEXPAND, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableCol(2);
 	StaticText1 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT4, _("Blending:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-	wxFont StaticText1Font(10,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont StaticText1Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	StaticText1->SetFont(StaticText1Font);
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -99,7 +99,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_LayerMethod->SetToolTip(_("Layering defines how Effect 1 and Effect 2 will be mixed together.\nHere are the Choices\n* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. \n* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.\n* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.\n* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.\n* 1 is UnMask:  (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.\n* 2 is UnMask:  (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.\n* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2\n* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1\n* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2\n* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1\n* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum\n* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display\n* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model."));
 	FlexGridSizer2->Add(Choice_LayerMethod, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_EffectLayerMix = new wxSlider(ScrolledWindowTiming, ID_SLIDER_EffectLayerMix, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectLayerMix"));
-	FlexGridSizer2->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer2->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND, 1);
 	txtCtlEffectMix = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_LayerMix, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("ID_TEXTCTRL_LayerMix"));
 	FlexGridSizer2->Add(txtCtlEffectMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	BitmapButton_EffectLayerMix = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
@@ -136,8 +136,8 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BitmapButton_OverlayBkg->SetDefault();
 	BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer2->Add(BitmapButton_OverlayBkg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer6->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer6->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer6->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer6->Add(-1,-1,1, wxALL|wxEXPAND, 0);
 	FlexGridSizer5->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	ScrolledWindowTiming->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(ScrolledWindowTiming);
@@ -146,7 +146,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Panel_Sizer->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel_Sizer);
 	FlexGridSizer4->SetSizeHints(Panel_Sizer);
-	FlexGridSizer3->Add(Panel_Sizer, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer3->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer3);
 	SetSizer(FlexGridSizer3);
 	Layout();

@@ -30,12 +30,12 @@ class MainSequencer: public wxPanel
 
 		//(*Declarations(MainSequencer)
 		wxScrollBar* ScrollBarEffectsHorizontal;
-		wxScrollBar* ScrollBarEffectsVertical;
-		wxChoice* ViewChoice;
-		EffectsGrid* PanelEffectGrid;
-		wxStaticText* StaticText_SeqTime;
-		RowHeading* PanelRowHeadings;
 		Waveform* PanelWaveForm;
+		EffectsGrid* PanelEffectGrid;
+		wxChoice* ViewChoice;
+		RowHeading* PanelRowHeadings;
+		wxScrollBar* ScrollBarEffectsVertical;
+		wxStaticText* StaticText_SeqTime;
 		TimeLine* PanelTimeLine;
 		//*)
 

@@ -3,15 +3,15 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(GlediatorPanel)
-#include <wx/sizer.h>
-#include <wx/textctrl.h>
-#include <wx/bitmap.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/sizer.h>
 #include <wx/button.h>
-#include <wx/image.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 #include "wx/filedlg.h"
@@ -31,8 +31,8 @@ END_EVENT_TABLE()
 GlediatorPanel::GlediatorPanel(wxWindow* parent)
 {
 	//(*Initialize(GlediatorPanel)
-	wxFlexGridSizer* FlexGridSizer54;
 	wxFlexGridSizer* FlexGridSizer53;
+	wxFlexGridSizer* FlexGridSizer54;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer53 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -45,7 +45,7 @@ GlediatorPanel::GlediatorPanel(wxWindow* parent)
 	FlexGridSizer53->Add(FlexGridSizer54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer53->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Glediator_Filename = new wxTextCtrl(this, ID_TEXTCTRL_Glediator_Filename, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(this,wxSize(200,-1)), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Glediator_Filename"));
-	FlexGridSizer53->Add(TextCtrl_Glediator_Filename, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer53->Add(TextCtrl_Glediator_Filename, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer53->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer53);
 	FlexGridSizer53->Fit(this);

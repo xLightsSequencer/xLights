@@ -6,8 +6,8 @@
 #include "../../xLightsXmlFile.h"
 
 //(*InternalHeaders(PicturesAssistPanel)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(PicturesAssistPanel)
@@ -57,10 +57,10 @@ PicturesAssistPanel::PicturesAssistPanel(wxWindow* parent, wxWindowID id,const w
     paint_selectcopy_selected = wxBITMAP_PNG_FROM_DATA(selectcopy_sel);
 
 	//(*Initialize(PicturesAssistPanel)
-	wxFlexGridSizer* PaintFuntionsSizer;
-	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* PaintToolsSizer;
+	wxFlexGridSizer* PaintFuntionsSizer;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* ColorPickerSizer;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("id"));
@@ -76,7 +76,7 @@ PicturesAssistPanel::PicturesAssistPanel(wxWindow* parent, wxWindowID id,const w
 	ColorPickerSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer_RightSide->Add(ColorPickerSizer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	PaintToolsSizer = new wxFlexGridSizer(0, 4, 0, 10);
-	FlexGridSizer_RightSide->Add(PaintToolsSizer, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_RightSide->Add(PaintToolsSizer, 1, wxALL|wxEXPAND, 5);
 	PaintFuntionsSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 6, 0, 0);
 	Button_NewImage = new wxButton(Panel_RightSide, ID_BUTTON_NewImage, _("New\nImage"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NewImage"));
@@ -96,7 +96,7 @@ PicturesAssistPanel::PicturesAssistPanel(wxWindow* parent, wxWindowID id,const w
 	PaintFuntionsSizer->Add(StaticText_ImageSize, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_ModelSize = new wxStaticText(Panel_RightSide, ID_STATICTEXT_ModelSize, _("Model Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_ModelSize"));
 	PaintFuntionsSizer->Add(StaticText_ModelSize, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer_RightSide->Add(PaintFuntionsSizer, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_RightSide->Add(PaintFuntionsSizer, 1, wxALL|wxEXPAND, 5);
 	Panel_RightSide->SetSizer(FlexGridSizer_RightSide);
 	FlexGridSizer_RightSide->Fit(Panel_RightSide);
 	FlexGridSizer_RightSide->SetSizeHints(Panel_RightSide);
@@ -108,7 +108,7 @@ PicturesAssistPanel::PicturesAssistPanel(wxWindow* parent, wxWindowID id,const w
 	Panel_Sizer->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel_Sizer);
 	FlexGridSizer2->SetSizeHints(Panel_Sizer);
-	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);

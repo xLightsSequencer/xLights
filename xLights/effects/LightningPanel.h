@@ -3,12 +3,12 @@
 
 //(*Headers(LightningPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 class LightningPanel: public wxPanel
@@ -19,29 +19,29 @@ class LightningPanel: public wxPanel
 		virtual ~LightningPanel();
 
 		//(*Declarations(LightningPanel)
-		wxTextCtrl* TextCtrl88;
-		wxStaticText* StaticText203;
-		wxCheckBox* ForkedLightning;
-		wxBitmapButton* BitmapButton22;
-		wxStaticText* StaticText209;
-		wxSlider* Slider_Lightning_TopY;
-		wxStaticText* StaticText205;
-		wxBitmapButton* BitmapButton26;
 		wxBitmapButton* BitmapButton20;
-		wxStaticText* StaticText208;
-		wxBitmapButton* BitmapButton28;
-		wxTextCtrl* TextCtrl90;
-		wxStaticText* StaticText210;
 		wxTextCtrl* TextCtrl86;
-		wxSlider* Lightning_BOTX;
-		wxStaticText* StaticText206;
-		wxSlider* Lightning_TopX;
-		wxBitmapButton* BitmapButton23;
-		wxStaticText* StaticText207;
-		wxBitmapButton* BitmapButton27;
+		wxTextCtrl* TextCtrl88;
 		wxTextCtrl* TextCtrl89;
+		wxStaticText* StaticText205;
+		wxStaticText* StaticText210;
+		wxSlider* Lightning_BOTX;
+		wxSlider* Slider_Lightning_TopY;
+		wxStaticText* StaticText208;
+		wxBitmapButton* BitmapButton26;
+		wxBitmapButton* BitmapButton27;
 		wxBitmapButton* BitmapButton25;
+		wxBitmapButton* BitmapButton28;
+		wxBitmapButton* BitmapButton22;
+		wxStaticText* StaticText207;
+		wxBitmapButton* BitmapButton23;
+		wxTextCtrl* TextCtrl90;
 		wxSlider* Slider_Lightning_BOTX;
+		wxSlider* Lightning_TopX;
+		wxStaticText* StaticText203;
+		wxStaticText* StaticText209;
+		wxCheckBox* ForkedLightning;
+		wxStaticText* StaticText206;
 		//*)
 
 	protected:

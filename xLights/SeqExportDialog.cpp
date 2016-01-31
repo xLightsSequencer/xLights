@@ -1,9 +1,9 @@
 #include "SeqExportDialog.h"
 
 //(*InternalHeaders(SeqExportDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(SeqExportDialog)
@@ -21,8 +21,8 @@ END_EVENT_TABLE()
 SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     //(*Initialize(SeqExportDialog)
-    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("Export Sequence"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
@@ -43,8 +43,8 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("File name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrlFilename = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-    FlexGridSizer2->Add(TextCtrlFilename, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(TextCtrlFilename, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));

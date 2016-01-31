@@ -1,9 +1,9 @@
 #include "SuperStarImportDialog.h"
 
 //(*InternalHeaders(SuperStarImportDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(SuperStarImportDialog)
@@ -32,9 +32,9 @@ END_EVENT_TABLE()
 SuperStarImportDialog::SuperStarImportDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(SuperStarImportDialog)
+	wxFlexGridSizer* FlexGridSizer1;
 	wxStaticText* StaticText2;
 	wxGridBagSizer* GridBagSizer1;
-	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, _("SuperStar Import"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));

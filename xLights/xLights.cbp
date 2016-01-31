@@ -38,7 +38,6 @@
 					<Add directory="effects" />
 					<Add directory="effects/" />
 					<Add directory="models" />
-					<Add directory="modesl" />
 					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
@@ -112,7 +111,6 @@
 					<Add directory="effects" />
 					<Add directory="effects/" />
 					<Add directory="models" />
-					<Add directory="modesl" />
 					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
@@ -178,7 +176,6 @@
 					<Add directory="effects" />
 					<Add directory="effects/" />
 					<Add directory="models" />
-					<Add directory="modesl" />
 					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
@@ -192,15 +189,11 @@
 					<Add option="-Wl,--large-address-aware" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
-					<Add library="..\lib\windows\glut32.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
+					<Add library="../lib/windows/glut32.lib" />
 				</Linker>
-				<ExtraCommands>
-					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
-					<Mode after="always" />
-				</ExtraCommands>
 			</Target>
 			<Target title="MinGW_Release">
 				<Option platforms="Windows;" />
@@ -210,7 +203,8 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-march=i586" />
-					<Add option="-Os" />
+					<Add option="-O2" />
+					<Add option="-pedantic" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++11" />
@@ -228,7 +222,6 @@
 					<Add directory="effects" />
 					<Add directory="effects/" />
 					<Add directory="models" />
-					<Add directory="modesl" />
 					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
@@ -237,24 +230,19 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
-					<Add option="-lglut32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add option="-Wl,--large-address-aware" />
+					<Add option="-lpthread" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
-					<Add library="..\lib\windows\glut32.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
+					<Add library="../lib/windows/glut32.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
-				<ExtraCommands>
-					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
-					<Mode after="always" />
-				</ExtraCommands>
 			</Target>
 			<Target title="Linux_Debug">
 				<Option platforms="Unix;" />
@@ -277,7 +265,6 @@
 					<Add directory="effects" />
 					<Add directory="effects/" />
 					<Add directory="models" />
-					<Add directory="modesl" />
 					<Add directory="effects/assist" />
 				</Compiler>
 				<Linker>
@@ -306,7 +293,6 @@
 					<Add directory="effects" />
 					<Add directory="effects/" />
 					<Add directory="models" />
-					<Add directory="modesl" />
 					<Add directory="effects/assist" />
 				</Compiler>
 				<Linker>
@@ -340,7 +326,6 @@
 					<Add directory="effects" />
 					<Add directory="effects/" />
 					<Add directory="models" />
-					<Add directory="modesl" />
 					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
@@ -354,10 +339,10 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
-					<Add library="..\lib\windows\glut32.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
+					<Add library="../lib/windows/glut32.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -389,7 +374,6 @@
 					<Add directory="effects" />
 					<Add directory="effects/" />
 					<Add directory="models" />
-					<Add directory="modesl" />
 					<Add directory="effects/assist" />
 				</Compiler>
 				<ResourceCompiler>
@@ -402,9 +386,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -417,9 +401,6 @@
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
-		<Linker>
-			<Add option="-static-libgcc" />
-		</Linker>
 		<Unit filename="AddShowDialog.cpp" />
 		<Unit filename="AddShowDialog.h" />
 		<Unit filename="BitmapCache.cpp" />
@@ -451,9 +432,7 @@
 		<Unit filename="EffectTreeDialog.cpp" />
 		<Unit filename="EffectTreeDialog.h" />
 		<Unit filename="Effects.h" />
-		<Unit filename="EffectsPanel.cpp">
-			<Option compiler="gcc" use="0" buildCommand="$compiler -O1 -DwxUSE_UNICODE -march=i586 -pipe -mthreads -std=gnu++11 -static-libgcc -D__GNUWIN32__ -D__WXMSW__ -DWXUSINGDLL -DNDEBUG $includes -c $file -o $object\n" />
-		</Unit>
+		<Unit filename="EffectsPanel.cpp" />
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
@@ -748,7 +727,6 @@
 		<Unit filename="models/StarModel.h" />
 		<Unit filename="models/TreeModel.cpp" />
 		<Unit filename="models/TreeModel.h" />
-		<Unit filename="modesl/StarModel.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />

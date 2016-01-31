@@ -2,11 +2,11 @@
 #define PALETTEMGMTDIALOG_H
 
 //(*Headers(PaletteMgmtDialog)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/button.h>
 #include <wx/stattext.h>
 #include <wx/listbox.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 #include <wx/xml/xml.h>
@@ -24,15 +24,15 @@ public:
 
 
     //(*Declarations(PaletteMgmtDialog)
-    wxButton* ButtonLoadPalette2;
-    wxButton* ButtonSavePalette2;
     wxStaticText* StaticText14;
-    wxStaticText* StaticText1;
-    wxButton* ButtonCopy12;
-    wxButton* ButtonLoadPalette1;
+    wxListBox* ListBox1;
     wxButton* ButtonSavePalette1;
     wxButton* ButtonDelete;
-    wxListBox* ListBox1;
+    wxStaticText* StaticText1;
+    wxButton* ButtonSavePalette2;
+    wxButton* ButtonLoadPalette1;
+    wxButton* ButtonCopy12;
+    wxButton* ButtonLoadPalette2;
     //*)
 
 protected:

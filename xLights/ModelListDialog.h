@@ -4,10 +4,10 @@
 #include <map>
 
 //(*Headers(ModelListDialog)
-#include <wx/sizer.h>
-#include <wx/listbox.h>
-#include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/button.h>
+#include <wx/listbox.h>
 //*)
 
 #include <wx/html/htmprint.h>
@@ -30,14 +30,14 @@ public:
     wxXmlNode *GetXMLForModel(const wxString &name);
     
     //(*Declarations(ModelListDialog)
-    wxButton* Button_ExportCsv;
-    wxButton* Button_Modify;
+    wxButton* Button_Rename;
+    wxListBox* ListBox1;
     wxButton* Button_Layout;
     wxButton* Button_Delete;
     wxButton* Button_New;
+    wxButton* Button_ExportCsv;
+    wxButton* Button_Modify;
     wxButton* Button_Copy;
-    wxButton* Button_Rename;
-    wxListBox* ListBox1;
     //*)
 
 protected:

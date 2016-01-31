@@ -4,10 +4,10 @@
 //(*Headers(SpirographPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 class SpirographPanel: public wxPanel
@@ -18,17 +18,17 @@ class SpirographPanel: public wxPanel
 		virtual ~SpirographPanel();
 
 		//(*Declarations(SpirographPanel)
-		wxBitmapButton* BitmapButton15;
-		wxBitmapButton* BitmapButton_Spirographd;
-		wxStaticText* StaticText87;
-		wxStaticText* StaticText90;
-		wxBitmapButton* BitmapButton14;
-		wxBitmapButton* BitmapButton_SpirographAnimate;
-		wxBitmapButton* BitmapButton_Spirographr;
-		wxStaticText* StaticText190;
-		wxStaticText* StaticText88;
 		wxStaticText* StaticText89;
+		wxBitmapButton* BitmapButton_Spirographr;
+		wxStaticText* StaticText88;
+		wxBitmapButton* BitmapButton15;
+		wxStaticText* StaticText190;
+		wxBitmapButton* BitmapButton14;
+		wxStaticText* StaticText87;
+		wxBitmapButton* BitmapButton_SpirographAnimate;
 		wxBitmapButton* BitmapButton_SpirographR;
+		wxBitmapButton* BitmapButton_Spirographd;
+		wxStaticText* StaticText90;
 		//*)
 
 	protected:

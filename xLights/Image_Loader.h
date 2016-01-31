@@ -1,5 +1,9 @@
 #ifndef _image_loader
 #define _image_loader
+
+
+#include "wx/wx.h"
+
 #ifdef __WXMAC__
 #include "OpenGL/gl.h"
 #else
@@ -9,7 +13,6 @@
 #include <GL/gl.h>
 #endif
 #endif
-#include "wx/wx.h"
 
 GLuint* loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight, bool &scaledW, bool &scaledH, bool &hasAlpha);
 

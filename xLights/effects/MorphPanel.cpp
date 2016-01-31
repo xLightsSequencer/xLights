@@ -3,19 +3,19 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(MorphPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(MorphPanel)
@@ -97,38 +97,38 @@ END_EVENT_TABLE()
 MorphPanel::MorphPanel(wxWindow* parent)
 {
 	//(*Initialize(MorphPanel)
-	wxSlider* Slider_Morph_Start_X1;
 	wxPanel* MorphPanelStart;
+	wxFlexGridSizer* FlexGridSizer86;
+	wxSlider* Slider_Morph_Start_Y2;
+	wxSlider* Slider_Morph_Stagger;
+	wxSlider* Slider_Morph_End_Y2;
+	wxSlider* Slider_Morph_Start_X2;
+	wxPanel* MorphPanelEnd;
+	wxFlexGridSizer* FlexGridSizer78;
+	wxTextCtrl* TextCtrl_MorphStartLength;
+	wxTextCtrl* TextCtrl_MorphEndLength;
+	wxSlider* Slider_MorphAccel;
+	wxTextCtrl* TextCtrl_MorphAccel;
+	wxFlexGridSizer* FlexGridSizer104;
+	wxSlider* Slider_MorphEndLength;
+	wxSlider* Slider_Morph_End_X1;
+	wxPanel* MorphPanelOptions;
+	wxTextCtrl* TextCtrl_MorphDuration;
+	wxSlider* Slider_MorphStartLength;
+	wxTextCtrl* TextCtrl_Morph_Repeat_Skip;
+	wxStaticText* StaticText2;
+	wxTextCtrl* TextCtrl_Morph_Repeat_Count;
+	wxFlexGridSizer* FlexGridSizer99;
+	wxSlider* Slider_Morph_Repeat_Count;
 	wxFlexGridSizer* FlexGridSizer105;
 	wxTextCtrl* TextCtrl_Morph_Stagger;
-	wxSlider* Slider_MorphAccel;
-	wxSlider* Slider_Morph_End_X1;
-	wxStaticText* StaticText2;
-	wxSlider* Slider_Morph_Start_X2;
-	wxTextCtrl* TextCtrl_Morph_Repeat_Count;
-	wxTextCtrl* TextCtrl_MorphAccel;
 	wxSlider* Slider_Morph_Start_Y1;
-	wxPanel* MorphPanelOptions;
-	wxPanel* MorphPanelEnd;
-	wxSlider* Slider_Morph_End_Y1;
 	wxSlider* Slider_Morph_End_X2;
-	wxFlexGridSizer* FlexGridSizer86;
+	wxSlider* Slider_Morph_Start_X1;
 	wxSlider* Slider_MorphDuration;
 	wxSlider* Slider_Morph_Repeat_Skip;
-	wxTextCtrl* TextCtrl_Morph_Repeat_Skip;
-	wxTextCtrl* TextCtrl_MorphStartLength;
-	wxSlider* Slider_Morph_Start_Y2;
-	wxSlider* Slider_Morph_End_Y2;
-	wxSlider* Slider_Morph_Stagger;
-	wxSlider* Slider_MorphEndLength;
-	wxFlexGridSizer* FlexGridSizer99;
-	wxFlexGridSizer* FlexGridSizer78;
-	wxTextCtrl* TextCtrl_MorphDuration;
-	wxTextCtrl* TextCtrl_MorphEndLength;
-	wxFlexGridSizer* FlexGridSizer104;
-	wxSlider* Slider_MorphStartLength;
-	wxSlider* Slider_Morph_Repeat_Count;
 	wxFlexGridSizer* FlexGridSizer94;
+	wxSlider* Slider_Morph_End_Y1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer78 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -140,7 +140,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText2 = new wxStaticText(MorphPanelStart, wxID_ANY, _("X1a:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer86->Add(StaticText2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_Start_X1 = new wxSlider(MorphPanelStart, ID_SLIDER_Morph_Start_X1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Start_X1"));
-	FlexGridSizer86->Add(Slider_Morph_Start_X1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer86->Add(Slider_Morph_Start_X1, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_Start_X1 = new wxTextCtrl(MorphPanelStart, IDD_TEXTCTRL_Morph_Start_X1, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelStart,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Start_X1"));
 	TextCtrl_Morph_Start_X1->SetMaxLength(3);
 	FlexGridSizer86->Add(TextCtrl_Morph_Start_X1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -150,7 +150,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText3 = new wxStaticText(MorphPanelStart, ID_STATICTEXT3, _("Y1a:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer86->Add(StaticText3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_Start_Y1 = new wxSlider(MorphPanelStart, ID_SLIDER_Morph_Start_Y1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Start_Y1"));
-	FlexGridSizer86->Add(Slider_Morph_Start_Y1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer86->Add(Slider_Morph_Start_Y1, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_Start_Y1 = new wxTextCtrl(MorphPanelStart, IDD_TEXTCTRL_Morph_Start_Y1, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelStart,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Start_Y1"));
 	TextCtrl_Morph_Start_Y1->SetMaxLength(3);
 	FlexGridSizer86->Add(TextCtrl_Morph_Start_Y1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -160,7 +160,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText59 = new wxStaticText(MorphPanelStart, ID_STATICTEXT61, _("X1b:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT61"));
 	FlexGridSizer86->Add(StaticText59, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_Start_X2 = new wxSlider(MorphPanelStart, ID_SLIDER_Morph_Start_X2, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Start_X2"));
-	FlexGridSizer86->Add(Slider_Morph_Start_X2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer86->Add(Slider_Morph_Start_X2, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_Start_X2 = new wxTextCtrl(MorphPanelStart, IDD_TEXTCTRL_Morph_Start_X2, _("100"), wxDefaultPosition, wxDLG_UNIT(MorphPanelStart,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Start_X2"));
 	TextCtrl_Morph_Start_X2->SetMaxLength(3);
 	FlexGridSizer86->Add(TextCtrl_Morph_Start_X2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -170,7 +170,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText99 = new wxStaticText(MorphPanelStart, ID_STATICTEXT102, _("Y1b:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT102"));
 	FlexGridSizer86->Add(StaticText99, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_Start_Y2 = new wxSlider(MorphPanelStart, ID_SLIDER_Morph_Start_Y2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Start_Y2"));
-	FlexGridSizer86->Add(Slider_Morph_Start_Y2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer86->Add(Slider_Morph_Start_Y2, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_Start_Y2 = new wxTextCtrl(MorphPanelStart, IDD_TEXTCTRL_Morph_Start_Y2, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelStart,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Start_Y2"));
 	TextCtrl_Morph_Start_Y2->SetMaxLength(3);
 	FlexGridSizer86->Add(TextCtrl_Morph_Start_Y2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -180,7 +180,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText115 = new wxStaticText(MorphPanelStart, ID_STATICTEXT115, _("Head Length:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT115"));
 	FlexGridSizer86->Add(StaticText115, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_MorphStartLength = new wxSlider(MorphPanelStart, ID_SLIDER_MorphStartLength, 1, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphStartLength"));
-	FlexGridSizer86->Add(Slider_MorphStartLength, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer86->Add(Slider_MorphStartLength, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_MorphStartLength = new wxTextCtrl(MorphPanelStart, IDD_TEXTCTRL_MorphStartLength, _("1"), wxDefaultPosition, wxDLG_UNIT(MorphPanelStart,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_MorphStartLength"));
 	TextCtrl_MorphStartLength->SetMaxLength(3);
 	FlexGridSizer86->Add(TextCtrl_MorphStartLength, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -204,7 +204,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	Choice_Morph_QuickSet->Append(_("Single Sweep Down"));
 	Choice_Morph_QuickSet->Append(_("Single Sweep Right"));
 	Choice_Morph_QuickSet->Append(_("Single Sweep Left"));
-	FlexGridSizer86->Add(Choice_Morph_QuickSet, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer86->Add(Choice_Morph_QuickSet, 1, wxALL|wxEXPAND, 5);
 	MorphPanelStart->SetSizer(FlexGridSizer86);
 	FlexGridSizer86->Fit(MorphPanelStart);
 	FlexGridSizer86->SetSizeHints(MorphPanelStart);
@@ -214,7 +214,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText117 = new wxStaticText(MorphPanelEnd, ID_STATICTEXT116, _("X2a:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT116"));
 	FlexGridSizer94->Add(StaticText117, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_End_X1 = new wxSlider(MorphPanelEnd, ID_SLIDER_Morph_End_X1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_End_X1"));
-	FlexGridSizer94->Add(Slider_Morph_End_X1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer94->Add(Slider_Morph_End_X1, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_End_X1 = new wxTextCtrl(MorphPanelEnd, IDD_TEXTCTRL_Morph_End_X1, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelEnd,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_End_X1"));
 	TextCtrl_Morph_End_X1->SetMaxLength(3);
 	FlexGridSizer94->Add(TextCtrl_Morph_End_X1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -224,7 +224,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText119 = new wxStaticText(MorphPanelEnd, ID_STATICTEXT117, _("Y2a:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT117"));
 	FlexGridSizer94->Add(StaticText119, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_End_Y1 = new wxSlider(MorphPanelEnd, ID_SLIDER_Morph_End_Y1, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_End_Y1"));
-	FlexGridSizer94->Add(Slider_Morph_End_Y1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer94->Add(Slider_Morph_End_Y1, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_End_Y1 = new wxTextCtrl(MorphPanelEnd, IDD_TEXTCTRL_Morph_End_Y1, _("100"), wxDefaultPosition, wxDLG_UNIT(MorphPanelEnd,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_End_Y1"));
 	TextCtrl_Morph_End_Y1->SetMaxLength(3);
 	FlexGridSizer94->Add(TextCtrl_Morph_End_Y1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -234,7 +234,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText120 = new wxStaticText(MorphPanelEnd, ID_STATICTEXT119, _("X2b:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT119"));
 	FlexGridSizer94->Add(StaticText120, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_End_X2 = new wxSlider(MorphPanelEnd, ID_SLIDER_Morph_End_X2, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_End_X2"));
-	FlexGridSizer94->Add(Slider_Morph_End_X2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer94->Add(Slider_Morph_End_X2, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_End_X2 = new wxTextCtrl(MorphPanelEnd, IDD_TEXTCTRL_Morph_End_X2, _("100"), wxDefaultPosition, wxDLG_UNIT(MorphPanelEnd,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_End_X2"));
 	TextCtrl_Morph_End_X2->SetMaxLength(3);
 	FlexGridSizer94->Add(TextCtrl_Morph_End_X2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -244,7 +244,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText121 = new wxStaticText(MorphPanelEnd, ID_STATICTEXT121, _("Y2b:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT121"));
 	FlexGridSizer94->Add(StaticText121, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_End_Y2 = new wxSlider(MorphPanelEnd, ID_SLIDER_Morph_End_Y2, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_End_Y2"));
-	FlexGridSizer94->Add(Slider_Morph_End_Y2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer94->Add(Slider_Morph_End_Y2, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_End_Y2 = new wxTextCtrl(MorphPanelEnd, IDD_TEXTCTRL_Morph_End_Y2, _("100"), wxDefaultPosition, wxDLG_UNIT(MorphPanelEnd,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_End_Y2"));
 	TextCtrl_Morph_End_Y2->SetMaxLength(3);
 	FlexGridSizer94->Add(TextCtrl_Morph_End_Y2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -254,7 +254,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText122 = new wxStaticText(MorphPanelEnd, ID_STATICTEXT122, _("Head Length:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT122"));
 	FlexGridSizer94->Add(StaticText122, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_MorphEndLength = new wxSlider(MorphPanelEnd, ID_SLIDER_MorphEndLength, 1, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphEndLength"));
-	FlexGridSizer94->Add(Slider_MorphEndLength, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer94->Add(Slider_MorphEndLength, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_MorphEndLength = new wxTextCtrl(MorphPanelEnd, IDD_TEXTCTRL_MorphEndLength, _("1"), wxDefaultPosition, wxDLG_UNIT(MorphPanelEnd,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_MorphEndLength"));
 	TextCtrl_MorphEndLength->SetMaxLength(3);
 	FlexGridSizer94->Add(TextCtrl_MorphEndLength, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -276,7 +276,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText123 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT123, _("Head Duration:"), wxDefaultPosition, wxSize(-1,-1), 0, _T("ID_STATICTEXT123"));
 	FlexGridSizer99->Add(StaticText123, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_MorphDuration = new wxSlider(MorphPanelOptions, ID_SLIDER_MorphDuration, 20, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphDuration"));
-	FlexGridSizer99->Add(Slider_MorphDuration, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer99->Add(Slider_MorphDuration, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_MorphDuration = new wxTextCtrl(MorphPanelOptions, IDD_TEXTCTRL_MorphDuration, _("20"), wxDefaultPosition, wxDLG_UNIT(MorphPanelOptions,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_MorphDuration"));
 	TextCtrl_MorphDuration->SetMaxLength(3);
 	FlexGridSizer99->Add(TextCtrl_MorphDuration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -286,7 +286,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText124 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT124, _("Acceleration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT124"));
 	FlexGridSizer99->Add(StaticText124, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_MorphAccel = new wxSlider(MorphPanelOptions, ID_SLIDER_MorphAccel, 0, -10, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphAccel"));
-	FlexGridSizer99->Add(Slider_MorphAccel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer99->Add(Slider_MorphAccel, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_MorphAccel = new wxTextCtrl(MorphPanelOptions, IDD_TEXTCTRL_MorphAccel, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelOptions,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_MorphAccel"));
 	TextCtrl_MorphAccel->SetMaxLength(3);
 	FlexGridSizer99->Add(TextCtrl_MorphAccel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -296,7 +296,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText171 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT97, _("Repeat Count:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT97"));
 	FlexGridSizer99->Add(StaticText171, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_Repeat_Count = new wxSlider(MorphPanelOptions, ID_SLIDER_Morph_Repeat_Count, 0, 0, 250, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Repeat_Count"));
-	FlexGridSizer99->Add(Slider_Morph_Repeat_Count, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer99->Add(Slider_Morph_Repeat_Count, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_Repeat_Count = new wxTextCtrl(MorphPanelOptions, IDD_TEXTCTRL_Morph_Repeat_Count, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelOptions,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Repeat_Count"));
 	TextCtrl_Morph_Repeat_Count->SetMaxLength(3);
 	FlexGridSizer99->Add(TextCtrl_Morph_Repeat_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -306,7 +306,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText172 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT156, _("Repeat Skip:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT156"));
 	FlexGridSizer99->Add(StaticText172, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_Repeat_Skip = new wxSlider(MorphPanelOptions, ID_SLIDER_Morph_Repeat_Skip, 1, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Repeat_Skip"));
-	FlexGridSizer99->Add(Slider_Morph_Repeat_Skip, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer99->Add(Slider_Morph_Repeat_Skip, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_Repeat_Skip = new wxTextCtrl(MorphPanelOptions, IDD_TEXTCTRL_Morph_Repeat_Skip, _("1"), wxDefaultPosition, wxDLG_UNIT(MorphPanelOptions,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Repeat_Skip"));
 	TextCtrl_Morph_Repeat_Skip->SetMaxLength(3);
 	FlexGridSizer99->Add(TextCtrl_Morph_Repeat_Skip, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -316,14 +316,14 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	StaticText173 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT157, _("Stagger:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT157"));
 	FlexGridSizer99->Add(StaticText173, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Morph_Stagger = new wxSlider(MorphPanelOptions, ID_SLIDER_Morph_Stagger, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Morph_Stagger"));
-	FlexGridSizer99->Add(Slider_Morph_Stagger, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer99->Add(Slider_Morph_Stagger, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Morph_Stagger = new wxTextCtrl(MorphPanelOptions, IDD_TEXTCTRL_Morph_Stagger, _("0"), wxDefaultPosition, wxDLG_UNIT(MorphPanelOptions,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Morph_Stagger"));
 	TextCtrl_Morph_Stagger->SetMaxLength(3);
 	FlexGridSizer99->Add(TextCtrl_Morph_Stagger, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Morph_Stagger = new wxBitmapButton(MorphPanelOptions, ID_BITMAPBUTTON_SLIDER_Morph_Stagger, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Morph_Stagger"));
 	BitmapButton_Morph_Stagger->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer99->Add(BitmapButton_Morph_Stagger, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer104->Add(FlexGridSizer99, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer104->Add(FlexGridSizer99, 1, wxALL|wxEXPAND, 1);
 	FlexGridSizer105 = new wxFlexGridSizer(0, 2, 0, 0);
 	CheckBox_ShowHeadAtStart = new wxCheckBox(MorphPanelOptions, ID_CHECKBOX_ShowHeadAtStart, _("Show Head at Start"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ShowHeadAtStart"));
 	CheckBox_ShowHeadAtStart->SetValue(false);
@@ -338,7 +338,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	Notebook_Morph->AddPage(MorphPanelStart, _("Start"), false);
 	Notebook_Morph->AddPage(MorphPanelEnd, _("End"), false);
 	Notebook_Morph->AddPage(MorphPanelOptions, _("Options"), false);
-	FlexGridSizer78->Add(Notebook_Morph, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer78->Add(Notebook_Morph, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer78);
 	FlexGridSizer78->Fit(this);
 	FlexGridSizer78->SetSizeHints(this);

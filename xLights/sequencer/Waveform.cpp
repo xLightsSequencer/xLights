@@ -1,3 +1,7 @@
+
+
+#include "wx/wx.h"
+
 #ifdef __WXMAC__
  #include "OpenGL/glu.h"
  #include "OpenGL/gl.h"
@@ -12,7 +16,6 @@
 // #include <GL/glext.h>
 #endif
 
-#include "wx/wx.h"
 #include "wx/sizer.h"
 #include "wx/glcanvas.h"
 #define INBUFF  16384
