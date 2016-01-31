@@ -12,9 +12,7 @@
 #include <vector>
 #include <map>
 
-
-#define HASVAMP
-#include "vamp-hostsdk/PluginLoader.h"
+#include "AudioManager.h"
 
 class xLightsFrame;
 
@@ -32,10 +30,8 @@ class VAMPPluginDialog: public wxDialog
 		wxFlexGridSizer* SettingsSizer;
 		//*)
 
-    wxArrayString GetAvailablePlugins(const wxString &media);
-
     wxString ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLightsParent,
-                       const wxString &plugin, const wxString &media);
+                       const wxString &plugin, AudioManager* media);
 
 	protected:
 
@@ -46,10 +42,6 @@ class VAMPPluginDialog: public wxDialog
 		//*)
 
 	private:
-#ifdef HASVAMP
-        std::map<wxString, Vamp::Plugin *> plugins;
-        std::vector<Vamp::Plugin *> loadedPlugins;
-#endif
 
 		//(*Handlers(VAMPPluginDialog)
 		//*)

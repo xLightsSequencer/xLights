@@ -4,9 +4,10 @@
 #include "wx/wx.h"
 
 #include "../xlGLCanvas.h"
-#include "mpg123.h"
 #include <vector>
 #include <string>
+
+#include "../AudioManager.h"
 
 #define VERTICAL_PADDING            10
 #define NO_WAVE_VIEW_SELECTED       -1
@@ -27,12 +28,8 @@ enum DRAG_MODE {
 class Waveform : public xlGLCanvas
 {
     public:
-
-        static int GetLengthOfMusicFileInMS(const wxString &filename);
-        static int GetTrackSize(mpg123_handle *mh,int bits, int channels);
-
-        int OpenfileMediaFile(const wxString &filename, wxString& error);
-        void CloseMediaFile();
+		int OpenfileMedia(AudioManager* media, wxString& error);
+		void CloseMedia();
 
         void SetZoomLevel(int level);
         int GetZoomLevel();
@@ -50,8 +47,7 @@ class Waveform : public xlGLCanvas
 
         Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
-        virtual ~Waveform();
-
+		virtual ~Waveform();
 
         struct MINMAX
         {
@@ -59,50 +55,40 @@ class Waveform : public xlGLCanvas
             float max;
         };
 
-
-
     protected:
-        virtual void InitializeGLCanvas();
+		virtual void InitializeGLCanvas();
 
     private:
       	DECLARE_EVENT_TABLE()
-        void LoadTrackData(mpg123_handle *mh,char  * data, int maxSize);
-        void SplitTrackDataAndNormalize(signed short* trackData,int trackSize,float* leftData,float* rightData);
-        void NormalizeMonoTrackData(signed short* trackData,int trackSize,float* leftData);
-        void cleanup(mpg123_handle *mh);
         void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);
         float GetSamplesPerLineFromZoomLevel(int ZoomLevel);
-        TimeLine* mTimeline;
+		TimeLine* mTimeline;
         wxPanel* mParent;
         wxWindow* mMainWindow;
-        bool mAudioIsLoaded;
         int mStartPixelOffset;
         int mCurrentWaveView;
         int mMediaTrackSize;
         int mFrequency;
         int mZoomLevel;
-        int m_bits;
-        int m_rate;
-        int m_channels;
         bool mPointSize;
         bool m_dragging;
         DRAG_MODE m_drag_mode;
-        float* m_left_data;
-        float* m_right_data;
+		AudioManager* _media;
 
         class WaveView
         {
             private:
             float mSamplesPerPixel;
             int mZoomLevel;
+
             public:
 
             std::vector<MINMAX> MinMaxs;
-            WaveView(int ZoomLevel,float SamplesPerPixel, float*sampleData, int trackSize)
+            WaveView(int ZoomLevel,float SamplesPerPixel, AudioManager* media)
             {
                 mZoomLevel = ZoomLevel;
                 mSamplesPerPixel = SamplesPerPixel;
-                SetMinMaxSampleSet(SamplesPerPixel,sampleData,trackSize);
+                SetMinMaxSampleSet(SamplesPerPixel, media);
             }
 
 
@@ -120,7 +106,7 @@ class Waveform : public xlGLCanvas
                 return  mZoomLevel;
             }
 
-            void SetMinMaxSampleSet(float SamplesPerPixel, float*sampleData, int trackSize);
+            void SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media);
 
         };
 

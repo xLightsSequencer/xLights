@@ -462,9 +462,6 @@
     <ClCompile Include="LyricsDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ModelClass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ModelDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -650,6 +647,15 @@
     </ClCompile>
     <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp">
       <Filter>Source Files\effects\assist</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\ChromaEffect.cpp">
+      <Filter>Source Files\effects</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioManager.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="models\Node.cpp">
+      <Filter>Source Files\models</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1264,6 +1270,9 @@
     </ClInclude>
     <ClInclude Include="xlSlider.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ChromaEffect.h">
+      <Filter>Header Files\effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

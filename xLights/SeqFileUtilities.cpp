@@ -36,7 +36,7 @@ void xLightsFrame::NewSequence()
     // load media if available
     if( CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->HasAudioMedia() )
     {
-        SetMediaFilename(CurrentSeqXmlFile->GetMediaFile());
+        SetMediaFilename(CurrentSeqXmlFile->GetMedia()->FileName());
     }
 
     wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
@@ -135,12 +135,10 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         CurrentSeqXmlFile->Open();
 
         // if fseq didn't have media check xml
-        if( CurrentSeqXmlFile->HasAudioMedia()
-           || !CurrentSeqXmlFile->GetMediaFile().IsEmpty())
+        if( CurrentSeqXmlFile->HasAudioMedia())
         {
-            media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
+            media_file = mapFileName(wxString(CurrentSeqXmlFile->GetMedia()->FileName().c_str(), wxConvUTF8));
         }
-
 
         // still no media file?  look for an XSEQ file and load if found
         if( !wxFileName(media_file).Exists() )
@@ -211,7 +209,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         if( !CurrentSeqXmlFile->HasAudioMedia() && wxFileName(media_file).Exists() )
         {
             CurrentSeqXmlFile->SetMediaFile(media_file.GetFullPath(), true);
-            int length_ms = Waveform::GetLengthOfMusicFileInMS(media_file.GetFullPath());
+            int length_ms = CurrentSeqXmlFile->GetMedia()->LengthMS();
             CurrentSeqXmlFile->SetSequenceDurationMS(length_ms);
         }
 
@@ -291,7 +289,7 @@ bool xLightsFrame::CloseSequence()
     mSequenceElements.Clear();
     mSavedChangeCount = mSequenceElements.GetChangeCount();
 
-    mainSequencer->PanelWaveForm->CloseMediaFile();
+    mainSequencer->PanelWaveForm->CloseMedia();
 
     EnableSequenceControls(true);  // let it re-evaluate menu state
     MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, false);

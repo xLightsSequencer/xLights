@@ -6,6 +6,7 @@
 #include <wx/textctrl.h>
 #include "sequencer/SequenceElements.h"
 #include "DataLayer.h"
+#include "AudioManager.h"
 
 class SequenceElements;  // forward declaration needed due to circular dependency
 class xLightsFrame;
@@ -71,8 +72,9 @@ class xLightsXmlFile : public wxFileName
         const wxString GetSequenceType() const { return seq_type; }
         void SetSequenceType( const wxString& type );
 
-        const wxString GetMediaFile() const { return media_file; }
-        void SetMediaFile( const wxString& filename, bool overwrite_tags );
+        //const wxString GetMediaFile() const { return media_file; }
+		AudioManager* GetMedia() const { return audio; }
+		void SetMediaFile( const wxString& filename, bool overwrite_tags );
 
         wxString GetHeaderInfo(HEADER_INFO_TYPES node_type) { return header_info[node_type]; }
         void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);
@@ -105,7 +107,7 @@ class xLightsXmlFile : public wxFileName
         bool IsV3Sequence();
         bool NeedsTimesCorrected();
         void ConvertToFixedPointTiming();
-        bool ExtractMetaTagsFromMP3(const wxString &filename);
+        void SetMetaMP3Tags();
 
         void SetRenderMode(const wxString& mode);
         wxString GetRenderMode();
@@ -134,6 +136,7 @@ class xLightsXmlFile : public wxFileName
         bool was_converted;
         bool sequence_loaded;  // flag to indicate the sequencer has been loaded with this xml data
         DataLayerSet mDataLayers;
+		AudioManager* audio;
 
         void CreateNew();
         bool LoadSequence();

@@ -13,17 +13,18 @@ const wxString xLightsXmlFile::ERASE_MODE = "<rendered: erase-mode>";
 const wxString xLightsXmlFile::CANVAS_MODE = "<rendered: canvas-mode>";
 
 xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
-: wxFileName(filename),
-    version_string(wxEmptyString),
-    seq_duration(0.0),
-    media_file(wxEmptyString),
-    seq_type("Media"),
-    seq_timing("50 ms"),
-    image_dir(wxEmptyString),
-    is_open(false),
-    has_audio_media(false),
-    was_converted(false),
-    sequence_loaded(false)
+	: wxFileName(filename),
+	version_string(wxEmptyString),
+	seq_duration(0.0),
+	media_file(wxEmptyString),
+	seq_type("Media"),
+	seq_timing("50 ms"),
+	image_dir(wxEmptyString),
+	is_open(false),
+	has_audio_media(false),
+	was_converted(false),
+	sequence_loaded(false),
+	audio(NULL)
 {
     for(int i = 0; i < NUM_TYPES; ++i )
     {
@@ -37,6 +38,11 @@ xLightsXmlFile::~xLightsXmlFile()
     models.Clear();
     header_info.Clear();
     timing_list.Clear();
+	if (audio != NULL)
+	{
+		delete audio;
+		audio = NULL;
+	}
 }
 
 bool xLightsXmlFile::IsXmlSequence(wxFileName &fname)
@@ -181,9 +187,15 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename, bool overwrite_tags
        }
     }
 
+	if (audio != NULL)
+	{
+		delete audio;
+	}
+	audio = new AudioManager(std::string(filename.c_str()), 1024, 1024);
+
     if( overwrite_tags )
     {
-        ExtractMetaTagsFromMP3(filename);
+		SetMetaMP3Tags();
     }
     has_audio_media = true;
 }
@@ -1987,58 +1999,11 @@ void xLightsXmlFile::AddFixedTimingSection(const std::string & interval_name, xL
     AddChildXmlNode(node, "EffectLayer");
 }
 
-bool xLightsXmlFile::ExtractMetaTagsFromMP3(const wxString &filename)
+void xLightsXmlFile::SetMetaMP3Tags()
 {
-    bool modified = false;
-    mpg123_handle *mh;
-    mpg123_id3v1 *v1;
-    mpg123_id3v2 *v2;
-    int err;
-
-    mpg123_init();
-    mh = mpg123_new(NULL, &err);
-
-    mpg123_open(mh, filename.c_str());
-
-    if( err == MPG123_OK )
-    {
-        // get meta tags
-        mpg123_scan(mh);
-        int meta = mpg123_meta_check(mh);
-
-        if( meta == MPG123_ID3 && mpg123_id3(mh, &v1, &v2) == MPG123_OK )
-        {
-            wxString title = "";
-            wxString artist = "";
-            wxString album = "";
-
-            if( v2 != NULL ) // "ID3V2 tag found"
-            {
-                title = v2->title == NULL ? "" : v2->title->p;
-                artist = v2->artist == NULL ? "" : v2->artist->p;
-                album = v2->album == NULL ? "" : v2->album->p;
-                modified = true;
-            }
-
-            else if( v1 != NULL ) // "ID3V1 tag found"
-            {
-                title = v1->title[0];
-                artist = v1->artist[0];
-                album = v1->album[0];
-                modified = true;
-            }
-
-            SetHeaderInfo(SONG, title);
-            SetHeaderInfo(ARTIST, artist);
-            SetHeaderInfo(ALBUM, album);
-        }
-    }
-
-    mpg123_close(mh);
-    mpg123_delete(mh);
-    mpg123_exit();
-
-    return modified;
+	SetHeaderInfo(SONG, audio->Title());
+	SetHeaderInfo(ARTIST, audio->Artist());
+	SetHeaderInfo(ALBUM, audio->Album());
 }
 
 void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent)

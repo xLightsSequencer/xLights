@@ -76,6 +76,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\..\wxWidgets-3.0.2\include;..\..\wxWidgets-3.0.2\include\msvc;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets-3.0.2\lib\vc_x64_lib;..\lib\windows;GL</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -150,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AddShowDialog.cpp" />
+    <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
     <ClCompile Include="ChannelLayoutDialog.cpp" />
     <ClCompile Include="Color.cpp" />
@@ -176,6 +179,7 @@
     <ClCompile Include="effects\BarsPanel.cpp" />
     <ClCompile Include="effects\ButterflyEffect.cpp" />
     <ClCompile Include="effects\ButterflyPanel.cpp" />
+    <ClCompile Include="effects\ChromaEffect.cpp" />
     <ClCompile Include="effects\CirclesEffect.cpp" />
     <ClCompile Include="effects\CirclesPanel.cpp" />
     <ClCompile Include="effects\ColorWashEffect.cpp" />
@@ -263,7 +267,6 @@
     <ClCompile Include="LMSImportChannelMapDialog.cpp" />
     <ClCompile Include="LorConvertDialog.cpp" />
     <ClCompile Include="LyricsDialog.cpp" />
-    <ClCompile Include="ModelClass.cpp" />
     <ClCompile Include="ModelDialog.cpp" />
     <ClCompile Include="ModelDimmingCurveDialog.cpp" />
     <ClCompile Include="ModelFaceDialog.cpp" />
@@ -272,6 +275,7 @@
     <ClCompile Include="models\ArchesModel.cpp" />
     <ClCompile Include="models\Model.cpp" />
     <ClCompile Include="models\ModelManager.cpp" />
+    <ClCompile Include="models\Node.cpp" />
     <ClCompile Include="models\StarModel.cpp" />
     <ClCompile Include="models\TreeModel.cpp" />
     <ClCompile Include="ModelViewSelector.cpp" />
@@ -376,6 +380,7 @@
     <ClInclude Include="effects\BarsPanel.h" />
     <ClInclude Include="effects\ButterflyEffect.h" />
     <ClInclude Include="effects\ButterflyPanel.h" />
+    <ClInclude Include="effects\ChromaEffect.h" />
     <ClInclude Include="effects\CirclesEffect.h" />
     <ClInclude Include="effects\CirclesPanel.h" />
     <ClInclude Include="effects\ColorWashEffect.h" />

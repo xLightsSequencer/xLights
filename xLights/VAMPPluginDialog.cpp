@@ -12,8 +12,7 @@
 #include <wx/slider.h>
 #include <wx/progdlg.h>
 
-#include "sequencer/mpg123.h"
-
+#include "vamp-hostsdk/PluginLoader.h"
 
 //(*IdInit(VAMPPluginDialog)
 const long VAMPPluginDialog::ID_TEXTCTRL1 = wxNewId();
@@ -26,9 +25,7 @@ BEGIN_EVENT_TABLE(VAMPPluginDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-#ifdef HASVAMP
 using namespace Vamp;
-#endif
 
 VAMPPluginDialog::VAMPPluginDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
@@ -76,226 +73,8 @@ VAMPPluginDialog::~VAMPPluginDialog()
 {
 	//(*Destroy(VAMPPluginDialog)
 	//*)
-
-#ifdef HASVAMP
-    for (int x = 0; x < loadedPlugins.size(); x++) {
-        delete loadedPlugins[x];
-    }
-#endif
 }
 
-
-
-void cleanup(mpg123_handle *mh)
-{
-    /* It's really to late for error checks here;-) */
-    mpg123_close(mh);
-    mpg123_delete(mh);
-    mpg123_exit();
-}
-int GetTrackSize(mpg123_handle *mh,int bits, int channels)
-{
-    size_t buffer_size;
-    unsigned char *buffer;
-    size_t done;
-    int trackSize=0;
-    int fileSize=0;
-
-    if(mpg123_length(mh) > 0)
-    {
-        return mpg123_length(mh);
-    }
-
-    buffer_size = mpg123_outblock(mh);
-    buffer = (unsigned char*) malloc(buffer_size * sizeof(unsigned char));
-
-    mpg123_seek(mh,0,SEEK_SET);
-    for (fileSize = 0 ; mpg123_read(mh, buffer, buffer_size, &done) == MPG123_OK ; )
-    {
-        fileSize += done;
-    }
-
-    free(buffer);
-    trackSize = fileSize/(bits*channels);
-    return trackSize;
-}
-void SplitTrackDataAndNormalize(signed short* trackData,int trackSize, float* leftData, float* rightData)
-{
-    signed short lSample,rSample;
-    for(int i=0;i<trackSize;i++)
-    {
-        lSample = trackData[i*2];
-        leftData[i] = (float)lSample/(float)32768;
-        rSample = trackData[(i*2)+1];
-        rightData[i] = (float)rSample/(float)32768;
-    }
-}
-
-void NormalizeMonoTrackData(signed short* trackData,int trackSize,float* leftData)
-{
-    signed short lSample;
-    for(int i=0;i<trackSize;i++)
-    {
-        lSample = trackData[i];
-        leftData[i] = (float)lSample/(float)32768;
-    }
-}
-
-void LoadTrackData(mpg123_handle *mh,char  * data, int maxSize)
-{
-    size_t buffer_size;
-    unsigned char *buffer;
-    size_t done;
-    int bytesRead=0;
-    buffer_size = mpg123_outblock(mh);
-    buffer = (unsigned char*) malloc(buffer_size * sizeof(unsigned char));
-    mpg123_seek(mh,0,SEEK_SET);
-    for (bytesRead = 0 ; mpg123_read(mh, buffer, buffer_size, &done) == MPG123_OK ; )
-    {
-        if ((bytesRead + done) >= maxSize) {
-            wxMessageBox("Error reading data from mp3, too much data read.");
-            free(buffer);
-            return;
-        }
-        memcpy(data+bytesRead,buffer,done);
-        bytesRead+=done;
-    }
-    free(buffer);
-}
-int OpenMediaFile(const char* filename, std::string& error, float *data[2], long &rate, int extra)
-{
-    mpg123_handle *mh = NULL;
-    int err;
-    size_t buffer_size;
-    int channels, encoding;
-
-    err = mpg123_init();
-    if(err != MPG123_OK || (mh = mpg123_new(NULL, &err)) == NULL)
-    {
-        error = wxString::Format("Basic setup goes wrong: %s", mpg123_plain_strerror(err));
-        if (mh != NULL) {
-            cleanup(mh);
-        }
-        return -1;
-    }
-
-    /* open the file and get the decoding format */
-    if( mpg123_open(mh, filename) != MPG123_OK ||
-       mpg123_getformat(mh, &rate, &channels, &encoding) != MPG123_OK )
-    {
-        error = wxString::Format("Trouble with mpg123: %s", mpg123_strerror(mh));
-        cleanup(mh);
-        return -1;
-    }
-
-    if( encoding != MPG123_ENC_SIGNED_16 )
-    {
-        error = "Encoding unsupported.  Must be signed 16 bit.";
-        cleanup(mh);
-        return -2;
-    }
-
-    /* set the output format and open the output device */
-    int m_bits = mpg123_encsize(encoding);
-    int m_channels = channels;
-    /* Get Track Size */
-    int mMediaTrackSize = GetTrackSize(mh,m_bits,m_channels);
-    buffer_size = mpg123_outblock(mh);
-    int size = (mMediaTrackSize+buffer_size)*m_bits*m_channels;
-    char * trackData = (char*)malloc(size);
-    LoadTrackData(mh,trackData, size);
-    // Split data into left and right and normalize -1 to 1
-    data[0] = (float*)calloc(sizeof(float)*(mMediaTrackSize + extra), 1);
-    if( m_channels == 2 )
-    {
-        data[1] = (float*)calloc(sizeof(float)*(mMediaTrackSize + extra), 1);
-        SplitTrackDataAndNormalize((signed short*)trackData,mMediaTrackSize,data[0],data[1]);
-    }
-    else if( m_channels == 1 )
-    {
-        NormalizeMonoTrackData((signed short*)trackData,mMediaTrackSize,data[0]);
-        data[1] = data[0];
-    }
-    else
-    {
-        error = "More than 2 audio channels is not supported yet.";
-    }
-
-    mpg123_close(mh);
-    mpg123_delete(mh);
-    mpg123_exit();
-    free(trackData);
-    return mMediaTrackSize;
-}
-
-
-
-wxArrayString VAMPPluginDialog::GetAvailablePlugins(const wxString &media) {
-    wxArrayString ret;
-#ifdef HASVAMP
-    mpg123_handle *mh = NULL;
-    int err;
-    int channels, encoding;
-
-    long rate = 44100;
-    err = mpg123_init();
-    if(err != MPG123_OK || (mh = mpg123_new(NULL, &err)) == NULL)
-    {
-        if (mh != NULL) {
-            cleanup(mh);
-        }
-    }
-
-    /* open the file and get the decoding format */
-    if( mpg123_open(mh, media.c_str()) != MPG123_OK ||
-       mpg123_getformat(mh, &rate, &channels, &encoding) != MPG123_OK )
-    {
-        cleanup(mh);
-    }
-    cleanup(mh);
-
-    Vamp::HostExt::PluginLoader *loader = Vamp::HostExt::PluginLoader::getInstance();
-    Vamp::HostExt::PluginLoader::PluginKeyList pluginList = loader->listPlugins();
-    for (int x = 0; x < pluginList.size(); x++) {
-        Vamp::Plugin *p = loader->loadPlugin(pluginList[x], rate);
-        if (p == nullptr) {
-            continue;
-        }
-        loadedPlugins.push_back(p);
-        Plugin::OutputList outputs = p->getOutputDescriptors();
-
-        for (Plugin::OutputList::iterator j = outputs.begin(); j != outputs.end(); ++j) {
-            if (j->sampleType == Plugin::OutputDescriptor::FixedSampleRate ||
-                j->sampleType == Plugin::OutputDescriptor::OneSamplePerStep ||
-                !j->hasFixedBinCount ||
-                (j->hasFixedBinCount && j->binCount > 1)) {
-
-                continue;
-            }
-
-            wxString name = wxString::FromUTF8(p->getName().c_str());
-
-            if (outputs.size() > 1) {
-                // This is not the plugin's only output.
-                // Use "plugin name: output name" as the effect name,
-                // unless the output name is the same as the plugin name
-                wxString outputName = wxString::FromUTF8(j->name.c_str());
-                if (outputName != name) {
-                    name = wxString::Format(wxT("%s: %s"),
-                                            name.c_str(), outputName.c_str());
-                }
-            }
-
-            plugins[name] = p;
-        }
-    }
-
-    for (std::map<wxString, Vamp::Plugin *>::iterator it = plugins.begin(); it != plugins.end(); ++it) {
-        ret.push_back(it->first);
-    }
-#endif
-    return ret;
-}
 class FloatSliderControl : public wxEvtHandler, public wxFlexGridSizer {
 public:
     FloatSliderControl(wxWindow *parent, float val, float minv, float maxv, const wxString &tip) : wxFlexGridSizer(2,3,0,0) {
@@ -340,7 +119,6 @@ public:
     wxStaticText *value;
 
 };
-#ifdef HASVAMP
 void processFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels) {
     bool hadDuration = true;
     for (int x = 0; x < feature.size(); x++) {
@@ -360,11 +138,10 @@ void processFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &star
         ends.push_back(starts[starts.size() - 1]);
     }
 }
-#endif
 
-wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLightsParent, const wxString &name, const wxString &media) {
-#ifdef HASVAMP
-    Plugin *p = plugins[name];
+wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame *xLightsParent, const wxString &name, AudioManager* media) 
+{
+    Vamp::Plugin *p = media->GetVamp()->GetPlugin(std::string(name.c_str()));
     Label1->SetLabel(p->getName());
     Label2->SetLabel(p->getDescription());
 
@@ -458,6 +235,7 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
                 return "";
             }
         }
+
         std::vector<int> starts;
         std::vector<int> ends;
         std::vector<std::string> labels;
@@ -474,11 +252,9 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
         if (step == 0) {
             step = block;
         }
-        float *data[2];
         float *pdata[2];
         std::string error;
-        long rate;
-        int len = OpenMediaFile(media.c_str(), error, data, rate, std::max(step, block) + 1);
+		media->SetStepBlock(step, block);
 
         for (int x = 0; x < params.size(); x++) {
 
@@ -503,26 +279,27 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
                 p->setParameter(params[x].identifier, slider->GetValue());
             }
         }
-        int channels = 2;
+        int channels = media->GetChannels();
         if (channels > p->getMaxChannelCount()) {
             channels = 1;
         }
         p->initialise(channels, step, block);
-        pdata[0] = data[0];
-        pdata[1] = data[1];
+        pdata[0] =media->GetLeftDataPtr(0);
+        pdata[1] = media->GetRightDataPtr(0);
         
         wxProgressDialog progress("Processing Audio", "");
-        int totalLen = len;
-        int percent = 0;
+		int totalLen = media->LengthMS();
+		int len = media->LengthMS();
+		int percent = 0;
         int start = 0;
         while (len) {
             int request = block;
             if (request > len) request = len;
 
-            pdata[0] = &data[0][start];
-            pdata[1] = &data[1][start];
+			pdata[0] = media->GetLeftDataPtr(start);
+			pdata[1] = media->GetRightDataPtr(start);
 
-            Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, rate);
+            Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, media->GetRate());
             Vamp::Plugin::FeatureSet features = p->process(pdata, timestamp);
             processFeatures(features[output], starts, ends, labels);
 
@@ -544,13 +321,8 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
         progress.Update(100);
 
         xml_file->AddNewTimingSection(TimingName->GetValue().ToStdString(), xLightsParent, starts, ends, labels);
-        free(data[0]);
-        if (data[1] != data[0]) {
-            free(data[1]);
-        }
         return TimingName->GetValue();
     }
     return "";
-#endif
 }
 
