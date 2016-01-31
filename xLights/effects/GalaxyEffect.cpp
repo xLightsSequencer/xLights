@@ -70,37 +70,37 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Galaxy_Reverse");
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Galaxy_Blend_Edges");
     bool inward = SettingsMap.GetBool("CHECKBOX_Galaxy_Inward");
-    
+
     if( revolutions == 0 ) return;
     std::vector< std::vector<double> > temp_colors_pct(buffer.BufferWi, std::vector<double>(buffer.BufferHt));
     std::vector< std::vector<double> > pixel_age(buffer.BufferWi, std::vector<double>(buffer.BufferHt));
-    
+
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int num_colors = buffer.palette.Size();
     xlColor color, c_old, c_new;
     HSVValue hsv1;
     double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
     double revs = (double)revolutions;
-    
+
     double pos_x = buffer.BufferWi * center_x/100.0;
     double pos_y = buffer.BufferHt * center_y/100.0;
-    
+
     double head_duration = duration/100.0;    // time the head is in the frame
     double tail_length = revs * (1.0 - head_duration);
     double color_length = tail_length / num_colors;
     if(color_length < 1.0) color_length = 1.0;
-    
-    
+
+
     double tail_end_of_tail = ((revs + tail_length) * eff_pos_adj) - tail_length;
     double head_end_of_tail = tail_end_of_tail + tail_length;
-    
+
     double radius1 = start_radius;
     double radius2 = end_radius;
     double width1 = start_width;
     double width2 = end_width;
-    
+
     double step = buffer.GetStepAngle(radius1, radius2);
-    
+
     for( int x = 0; x < buffer.BufferWi; x++ )
     {
         for( int y = 0; y < buffer.BufferHt; y++ )
@@ -110,9 +110,9 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         }
     }
     buffer.ClearTempBuf();
-    
+
     double last_check = (inward ? std::min(head_end_of_tail,revs) : std::max(0.0, tail_end_of_tail) ) + (double)start_angle;
-    
+
     for( double i = (inward ? std::min(head_end_of_tail,revs) : std::max(0.0, tail_end_of_tail));
         (inward ? i >= std::max(0.0, tail_end_of_tail) : i <= std::min(head_end_of_tail,revs));
         (inward ? i -= step : i += step) )
@@ -144,11 +144,11 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         for( double r = inside_radius; ; r += 0.5 )
         {
             if( r > current_radius ) r = current_radius;
-            double x1 = std::sin(ToRadians(adj_angle)) * r + (double)pos_x;
-            double y1 = std::cos(ToRadians(adj_angle)) * r + (double)pos_y;
+            double x1 = buffer.sin(ToRadians(adj_angle)) * r + (double)pos_x;
+            double y1 = buffer.cos(ToRadians(adj_angle)) * r + (double)pos_y;
             double outside_radius = current_radius + (current_radius - r);
-            double x2 = std::sin(ToRadians(adj_angle)) * outside_radius + (double)pos_x;
-            double y2 = std::cos(ToRadians(adj_angle)) * outside_radius + (double)pos_y;
+            double x2 = buffer.sin(ToRadians(adj_angle)) * outside_radius + (double)pos_x;
+            double y2 = buffer.cos(ToRadians(adj_angle)) * outside_radius + (double)pos_y;
             double color_pct2 = (r-inside_radius)/(current_radius-inside_radius);
             if( blend_edges )
             {
@@ -200,7 +200,7 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
             last_check = adj_angle;
         }
     }
-    
+
     // blend remaining data down into final buffer
     if( blend_edges )
     {
@@ -218,7 +218,7 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
             }
         }
     }
-    
+
 }
-    
+
 

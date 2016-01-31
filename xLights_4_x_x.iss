@@ -10,7 +10,7 @@
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
 AppName=xLights
-AppVersion=2016.2
+AppVersion=2016.3
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights.ico
@@ -31,8 +31,13 @@ Source: "bin/xLights.exe"; DestDir: "{app}"
 
 Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gcc_custom.dll";DestDir: "{app}";     Flags: "ignoreversion"
 Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "C:\Users\Sean_Dell\Documents\xLights\bin\glut32.dll"; DestDir: "{app}";       Flags: "ignoreversion"
-Source: "C:\Users\Sean_Dell\Documents\xLights\bin\libmpg123-0.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin\glut32.dll"; DestDir: "{app}";       Flags: "ignoreversion"
+
+Source: "bin\libgcc_s_dw2-1.dll"; DestDir: "{app}";       Flags: "ignoreversion"
+Source: "bin\libstdc++-6.dll";     DestDir: "{app}";       Flags: "ignoreversion"
+Source: "bin\libwinpthread-1.dll"; DestDir: "{app}";       Flags: "ignoreversion"
+
+Source: "bin\libmpg123-0.dll";     DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/ffmpeg.exe";          DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xlights.map";         DestDir: "{app}"; Flags: "ignoreversion"
 ; Added files for doing Papagayo effects
