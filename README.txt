@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil)  Allow easier selection of effect edges.  Now only half the effect is selected until you cross the midpoint.
     -- bug(gil)  Fix bug that was allowing effect overlaps.  Occurred when moving effects on the grid when they were displayed in multiple rows.
     -- enh(gil)  Rename Copy Model and Paste Model to Copy Row and Paste Row
     -- bug(gil)  Fix the sequence length when duration is changed so user doesn't need to delete fseq file. Fixes #196 and #442.
