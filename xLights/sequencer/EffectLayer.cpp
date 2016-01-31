@@ -451,7 +451,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
     wxMutexLocker locker(lock);
     for(int i=0; i<mEffects.size();i++)
     {
-        if(mEffects[i]->GetSelected() == EFFECT_LT_SELECTED)
+        if(mEffects[i]->GetSelected() == EFFECT_LT_SELECTED && mEffects[i]->GetTagged())
         {
             if( undo_mgr.GetCaptureUndo() ) {
                 undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
@@ -459,7 +459,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
             }
             mEffects[i]->SetStartTimeMS( mEffects[i]->GetStartTimeMS() + deltaMS);
         }
-        else if(mEffects[i]->GetSelected() == EFFECT_RT_SELECTED)
+        else if(mEffects[i]->GetSelected() == EFFECT_RT_SELECTED && mEffects[i]->GetTagged())
         {
             if( undo_mgr.GetCaptureUndo() ) {
                 undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
@@ -467,7 +467,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
             }
             mEffects[i]->SetEndTimeMS( mEffects[i]->GetEndTimeMS() + deltaMS);
         }
-        else if(mEffects[i]->GetSelected() == EFFECT_SELECTED)
+        else if(mEffects[i]->GetSelected() == EFFECT_SELECTED && mEffects[i]->GetTagged())
         {
             if( undo_mgr.GetCaptureUndo() ) {
                 undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
@@ -475,6 +475,21 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
             }
             mEffects[i]->SetStartTimeMS( mEffects[i]->GetStartTimeMS() + deltaMS);
             mEffects[i]->SetEndTimeMS( mEffects[i]->GetEndTimeMS() + deltaMS);
+        }
+        mEffects[i]->SetTagged(false);
+    }
+}
+
+void EffectLayer::TagAllSelectedEffects()
+{
+    wxMutexLocker locker(lock);
+    for(int i=0; i<mEffects.size();i++)
+    {
+        if( (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_SELECTED) )
+        {
+            mEffects[i]->SetTagged(true);
         }
     }
 }

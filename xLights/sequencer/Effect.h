@@ -44,6 +44,9 @@ class Effect
         int GetSelected() const;
         void SetSelected(int selected);
 
+        bool GetTagged() const;
+        void SetTagged(bool tagged);  // used to tag effects to aid in making sure they don't get processed twice for some actions
+
         bool GetProtected() const;
         void SetProtected(bool Protected);
 
@@ -86,6 +89,7 @@ class Effect
         int mStartTime;
         int mEndTime;
         int mSelected;
+        bool mTagged;
         int mID;
         std::string *mName;
         short mEffectIndex;

@@ -99,7 +99,7 @@ static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors
 Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette,
                int startTimeMS, int endTimeMS, int Selected, bool Protected)
     : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
-      mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mProtected(Protected)
+      mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected)
 {
     mEffectIndex = parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
     mSettings.Parse(settings);
@@ -287,6 +287,16 @@ int Effect::GetSelected() const
 void Effect::SetSelected(int selected)
 {
     mSelected = selected;
+}
+
+bool Effect::GetTagged() const
+{
+    return mTagged;
+}
+
+void Effect::SetTagged(bool tagged)
+{
+    mTagged = tagged;
 }
 
 bool Effect::GetProtected() const
