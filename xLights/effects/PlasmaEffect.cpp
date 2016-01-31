@@ -54,7 +54,6 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     int x,y,xc,yc;
     double h=0.0;
     xlColor color;
-    HSVValue hsv;
 
     //  These are for Plasma effect
     double rx,ry,cx,cy,v,time,Speed_plasma;
@@ -112,8 +111,6 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
 
                     h = buffer.sin (v*Line_Density*pi+2*pi/3)+1*0.5;
                     buffer.GetMultiColorBlend(h,false,color);
-                    hsv.hue=h;
-                    color = hsv;
                     break;
                 case PLASMA_PRESET1:
                     color.red = (buffer.sin (v*Line_Density*pi)+1)*128;
