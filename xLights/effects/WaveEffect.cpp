@@ -46,7 +46,7 @@ class WaveRenderCache : public EffectRenderCache {
 public:
     WaveRenderCache() {};
     virtual ~WaveRenderCache() {};
-    
+
     std::vector<int> WaveBuffer;
 };
 
@@ -73,26 +73,26 @@ static inline int GetWaveFillColor(const std::string &color) {
     return 0; //None
 }
 void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    
+
     int WaveType = GetWaveType(SettingsMap["CHOICE_Wave_Type"]);
     int FillColor = GetWaveFillColor(SettingsMap["CHOICE_Fill_Colors"]);
-    
+
     bool MirrorWave = SettingsMap.GetBool("CHECKBOX_Mirror_Wave");
     int NumberWaves = SettingsMap.GetInt("SLIDER_Number_Waves", 1);
     int ThicknessWave = SettingsMap.GetInt("SLIDER_Thickness_Percentage", 50);
     int WaveHeight = SettingsMap.GetInt("SLIDER_Wave_Height", 50);
     int wspeed = SettingsMap.GetInt("TEXTCTRL_Wave_Speed", 10);
-    
+
     int WaveDirection = "Left to Right" == SettingsMap["CHOICE_Wave_Direction"] ? 1 : 0;
-    
-    
+
+
     WaveRenderCache *cache = (WaveRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new WaveRenderCache();
         buffer.infoCache[id] = cache;
     }
     std::vector<int> &WaveBuffer0 = cache->WaveBuffer;
-    
+
     /*
      WaveType.Add("Sine");       // 0
      WaveType.Add("Triangle");   // 1
@@ -103,7 +103,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
      FillColors.Add("Rainbow");  // 1
      FillColors.Add("Palette");  // 2
      */
-    
+
     int x,y,y1,y2,y1mirror,y2mirror,ystart,dy,modx,modx2;
     double a,r,yc,deltay;
     double degree,radian,degree_per_x;
@@ -112,12 +112,12 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     HSVValue hsv,hsv0,hsv1;
     buffer.palette.GetHSV(0,hsv0);
     buffer.palette.GetHSV(1,hsv1);
-    
+
     if (NumberWaves == 0) {
         NumberWaves = 1;
     }
     int state = (buffer.curPeriod - buffer.curEffStartPer) * wspeed * buffer.frameTimeInMs / 50;
-    
+
     yc = buffer.BufferHt/2.0;
     r=yc;
     if (WaveType == WAVETYPE_DECAYSINE) {
@@ -173,22 +173,22 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
              .
              .
              */
-            
+
             a = buffer.BufferWi/(NumberWaves/180) ;
             if (a <1) a=1;
-            
+
             dy = a/2;
             if(dy<1) dy=1;
-            
+
             modx = state%(int) dy;
             modx2 = state%(int) a;
             if(modx2>dy)
                 ystart = yc - modx*dy ;
             else
                 ystart = yc + modx*dy ;
-            
-            
-            //  if( sin(radian)<0.0) ystart=-ystart;
+
+
+            //  if( buffer.sin(radian)<0.0) ystart=-ystart;
         } else if (WaveType == WAVETYPE_IVYFRACTAL) {
             int eff_x = (WaveDirection? x: buffer.BufferWi - x - 1) + buffer.BufferWi * (state / 2 / buffer.BufferWi); //effective x before wrap
             if (eff_x >= NumberWaves * buffer.BufferWi) break;
@@ -197,13 +197,13 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             if (!ok) continue;
             ystart = WaveBuffer0[eff_x] / 2;
         } else {
-            ystart = (int) (r*(WaveHeight/100.0) * sin(radian) +yc);
+            ystart = (int) (r*(WaveHeight/100.0) * buffer.sin(radian) +yc);
         }
-        
+
         if(x>=0 && x<buffer.BufferWi && ystart>=0 && ystart <buffer.BufferHt) {
             //  SetPixel(x,ystart,hsv0);  // just leading edge
             /*
-             
+
              BufferHt
              .
              .
@@ -224,19 +224,19 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
              .
              0
              */
-            
-            
+
+
             y1=(int) (ystart - (r*(ThicknessWave/100.0)));
             y2=(int) (ystart + (r*(ThicknessWave/100.0)));
             if (y2 <= y1) y2 = y1 + 1; //minimum height
             y1mirror= yc + (yc -y1);
             y2mirror= yc + (yc -y2);
             deltay = y2-y1;
-            
+
             if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
-            
+
             if(WaveType==WAVETYPE_SQUARE) { // Square Wave
-                if(sin(radian)>0.0) {
+                if(buffer.sin(radian)>0.0) {
                     y1=yc+1;
                     y2=yc + yc*(WaveHeight/100.0);
                 } else {
@@ -249,7 +249,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     buffer.SetPixel(x,y,hsv0);  // fill with color 2
                     //       hsv.hue=(double)(BufferHt-y)/deltay;
                 } else if(FillColor==1) {
-                    
+
                     hsv.hue=(double)(y-y1)/deltay;
                     buffer.SetPixel(x,y,hsv); // rainbow
                 } else if(FillColor==2) {
@@ -258,7 +258,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     buffer.SetPixel(x,y,color); // palete fill
                 }
             }
-            
+
             if (MirrorWave) {
                 if(y1mirror<y2mirror) {
                     y1=y1mirror;
@@ -267,13 +267,13 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     y2=y1mirror;
                     y1=y2mirror;
                 }
-                
+
                 for (y=y1; y<y2; y++) {
                     if(FillColor<=0) { //default to this if no selection -DJ
                         buffer.SetPixel(x,y,hsv0);  // fill with color 2
                         //       hsv.hue=(double)(BufferHt-y)/deltay;
                     } else if(FillColor==1) {
-                        
+
                         hsv.hue=(double)(y-y1)/deltay;
                         buffer.SetPixel(x,y,hsv); // rainbow
                     } else if(FillColor==2) {
