@@ -1776,8 +1776,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     CreateSequencer();
 
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, PreviewModels, true);
-    PreviewGLSizer->Add(modelPreview, 1, wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL, 5);
-
+    PreviewGLSizer->Add(modelPreview, 1, wxALL|wxEXPAND, 5);
+    PreviewGLSizer->Fit(PreviewGLPanel);
+    PreviewGLSizer->SetSizeHints(PreviewGLPanel);
+    
     modelPreview->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewPaint,0,this);
     modelPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftDown,0,this);
     modelPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftUp,0,this);

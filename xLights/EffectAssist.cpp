@@ -63,7 +63,7 @@ void EffectAssist::SetPanel(AssistPanel* panel_)
 
     if( mAssistPanel != nullptr )
     {
-        FlexGridSizer1->Add(mAssistPanel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+        FlexGridSizer1->Add(mAssistPanel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL, 2);
         AdjustClientSizes(s);
     }
 }
