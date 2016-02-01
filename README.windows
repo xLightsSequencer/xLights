@@ -48,8 +48,8 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
 	 5) If you have built wxQidgets before you may need to delete the following 2 folders to force the setup.h change to be included
 	    - wxWidgets-3.0.2\build\msw\gcc_mswuddll
 		- wxWidgets-3.0.2\build\msw\gcc_mswudll
-     6) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++11" BUILD=debug
-     7) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++11" BUILD=release
+     6) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=debug
+     7) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release
      8) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
         then you need to update your path environment variable to include C:\wxWidgets-3.0.2\lib\gcc_dll
         (assuming C:\wxWidgets-3.0.2 is your wxWidgets base directory).

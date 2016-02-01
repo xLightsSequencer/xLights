@@ -3,21 +3,21 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(PicturesPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/notebook.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
-#include <wx/filepicker.h>
-#include <wx/gbsizer.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/filepicker.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
+#include <wx/gbsizer.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(PicturesPanel)
@@ -75,37 +75,37 @@ public:
 PicturesPanel::PicturesPanel(wxWindow* parent)
 {
 	//(*Initialize(PicturesPanel)
-	wxTextCtrl* TextCtrl_PicturesXC;
-	wxTextCtrl* TextCtrl48;
-	wxFlexGridSizer* FlexGridSizer102;
-	wxFlexGridSizer* FlexGridSizer111;
-	wxSlider* Slider_Pictures_FR;
-	wxSlider* Slider_PicturesXC;
-	wxFlexGridSizer* FlexGridSizer19;
+	wxSlider* Slider1;
 	wxFlexGridSizer* FlexGridSizer112;
-	wxSlider* Slider_PicturesYC;
+	wxTextCtrl* TextCtrl_Pictures_FR;
+	wxSlider* Slider2;
+	wxFlexGridSizer* FlexGridSizer19;
+	wxGridBagSizer* GridBagSizer2;
+	wxSlider* Slider18;
 	wxStaticText* StaticText_Pictures_YC;
-	wxCheckBox* CheckBox1;
-	xlPictureFilePickerCtrl* FilePickerCtrl1;
-	wxStaticText* StaticText161;
-	wxStaticText* StaticText_Pictures_XC;
 	wxPanel* PictureStartPositionPanel;
+	wxFlexGridSizer* FlexGridSizer102;
+	wxTextCtrl* TextCtrl_PicturesXC;
+	wxCheckBox* CheckBox1;
+	wxSlider* Slider_PicturesXC;
+	wxTextCtrl* TextCtrl48;
+	xlPictureFilePickerCtrl* FilePickerCtrl1;
+	wxSlider* Slider_PicturesYC;
+	wxTextCtrl* TextCtrl_PicturesYC;
+	wxFlexGridSizer* FlexGridSizer111;
+	wxTextCtrl* TextCtrl2;
+	wxStaticText* StaticText96;
+	wxTextCtrl* TextCtrl1;
+	wxSlider* Slider_Pictures_FR;
+	wxStaticText* StaticText160;
+	wxFlexGridSizer* FlexGridSizer106;
+	wxStaticText* StaticText_Pictures_XC;
+	wxGridBagSizer* GridBagSizer3;
+	wxStaticText* StaticText161;
 	wxFlexGridSizer* FlexGridSizer42;
 	wxNotebook* Notebook4;
 	wxFlexGridSizer* FlexGridSizer31;
-	wxSlider* Slider18;
-	wxTextCtrl* TextCtrl1;
-	wxFlexGridSizer* FlexGridSizer106;
-	wxSlider* Slider2;
-	wxStaticText* StaticText160;
-	wxSlider* Slider1;
-	wxTextCtrl* TextCtrl_PicturesYC;
-	wxGridBagSizer* GridBagSizer2;
-	wxTextCtrl* TextCtrl2;
-	wxTextCtrl* TextCtrl_Pictures_FR;
 	wxFlexGridSizer* FlexGridSizer113;
-	wxGridBagSizer* GridBagSizer3;
-	wxStaticText* StaticText96;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);

@@ -91,7 +91,7 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
             //  third equation
             cx=rx+.5*buffer.sin (time/5);
             cy=ry+.5*buffer.cos (time/3);
-            v+=sin ( sqrt((Style*50)*((cx*cx)+(cy*cy))+time));
+            v+=buffer.sin ( sqrt((Style*50)*((cx*cx)+(cy*cy))+time));
 
 
             //    vec2 c = v_coords * u_k - u_k/2.0;

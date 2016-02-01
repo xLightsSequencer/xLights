@@ -4,16 +4,16 @@
 //(*Headers(PicturesPanel)
 #include <wx/panel.h>
 class wxFilePickerCtrl;
-class wxTextCtrl;
-class wxChoice;
-class wxNotebook;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
 class wxGridBagSizer;
-class wxNotebookEvent;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxNotebookEvent;
+class wxNotebook;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
 
 class PicturesPanel: public wxPanel
@@ -24,15 +24,15 @@ class PicturesPanel: public wxPanel
 		virtual ~PicturesPanel();
 
 		//(*Declarations(PicturesPanel)
-		wxBitmapButton* BitmapButton_PicturesDirection;
 		wxCheckBox* CheckBox_Pictures_WrapX;
-		wxBitmapButton* BitmapButton_PicturesSpeed;
-		wxStaticText* StaticText46;
 		wxChoice* Choice_Pictures_Direction;
-		wxStaticText* StaticText68;
-		wxBitmapButton* BitmapButton_PicturesFilename;
-		wxPanel* PictureEndPositionPanel;
+		wxBitmapButton* BitmapButton_PicturesDirection;
+		wxBitmapButton* BitmapButton_PicturesSpeed;
 		wxBitmapButton* BitmapButton6;
+		wxPanel* PictureEndPositionPanel;
+		wxBitmapButton* BitmapButton_PicturesFilename;
+		wxStaticText* StaticText68;
+		wxStaticText* StaticText46;
 		//*)
 
 	protected:
