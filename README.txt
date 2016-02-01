@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
 2016.3  Jan 31, 2016
+    -- bug(dan)  Slight optization, fix plasma
     -- enh(all)  Upgrade our build environment. Compiler from gcc 4.7.1 to gcc 5.3.0. 
 	             Code::Blocks from 12.02 to 16.1. Recompile every file and every library. 
     -- enh (all) Update Butterfly, Fan, Galaxy, Morph, Pinwheel, Plasma, Shockwave,Spiragraph,
