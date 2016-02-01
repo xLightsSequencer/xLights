@@ -3,20 +3,20 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(PianoPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/notebook.h>
-#include <wx/button.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
+#include <wx/button.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 
@@ -64,14 +64,14 @@ END_EVENT_TABLE()
 PianoPanel::PianoPanel(wxWindow* parent)
 {
 	//(*Initialize(PianoPanel)
-	wxFlexGridSizer* FlexGridSizer30;
+	wxFlexGridSizer* FlexGridSizer27;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer34;
+	wxFlexGridSizer* FlexGridSizer33;
+	wxFlexGridSizer* FlexGridSizer32;
 	wxFlexGridSizer* FlexGridSizer28;
 	wxFlexGridSizer* FlexGridSizer26;
-	wxFlexGridSizer* FlexGridSizer33;
-	wxFlexGridSizer* FlexGridSizer27;
-	wxFlexGridSizer* FlexGridSizer34;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer32;
+	wxFlexGridSizer* FlexGridSizer30;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
