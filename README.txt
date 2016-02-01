@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) Fix sparkle, Fix "Normal" Plasma
     -- enh(gil)  Allow easier selection of effect edges.  Now only half the effect is selected until you cross the midpoint.
     -- bug(gil)  Fix bug that was allowing effect overlaps.  Occurred when moving effects on the grid when they were displayed in multiple rows.
     -- enh(gil)  Rename Copy Model and Paste Model to Copy Row and Paste Row
