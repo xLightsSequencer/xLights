@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.4  Feb 02, 2016
     -- bug(dkulp) Fix crash if model group has no models.
 2016.3  Jan 31, 2016
     -- bug(dan)  Slight optization, fix plasma
