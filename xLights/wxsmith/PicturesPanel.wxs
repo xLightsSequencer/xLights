@@ -14,7 +14,7 @@
 							<message></message>
 							<wildcard></wildcard>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -30,7 +30,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -113,7 +113,7 @@
 							<max>200</max>
 							<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -154,7 +154,7 @@
 							<value>10</value>
 							<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -184,7 +184,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -225,7 +225,7 @@
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -250,7 +250,7 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -325,7 +325,7 @@
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -347,7 +347,7 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -400,12 +400,12 @@
 								<label>End Position</label>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

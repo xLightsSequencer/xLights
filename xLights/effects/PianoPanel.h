@@ -3,16 +3,16 @@
 
 //(*Headers(PianoPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxChoice;
-class wxNotebook;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxButton;
-class wxSlider;
-class wxNotebookEvent;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxNotebookEvent;
+class wxNotebook;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxButton;
+class wxChoice;
 //*)
 
 class PianoPanel: public wxPanel
@@ -25,35 +25,35 @@ class PianoPanel: public wxPanel
         wxString defaultDir;
     
 		//(*Declarations(PianoPanel)
+		wxBitmapButton* BitmapButton_Piano_ShapeFilename;
+		wxChoice* Choice_Piano_Style;
+		wxStaticText* StaticText15_layout_kludge_1;
+		wxPanel* Panel5;
+		wxCheckBox* CheckBox_Piano_Clipping;
+		wxPanel* Panel4;
+		wxStaticText* StaticText_Piano_NumKeys;
+		wxSlider* Slider_Piano_NumKeys;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText_Piano_NumRows;
+		wxButton* Button_Piano_MapFilename;
+		wxBitmapButton* BitmapButton_Piano_Style;
+		wxPanel* Panel3;
+		wxButton* Button_Piano_CueFilename;
+		wxStaticText* StaticText21;
+		wxBitmapButton* BitmapButton_Piano_MapFilename;
+		wxTextCtrl* TextCtrl_Piano_MapFilename;
+		wxTextCtrl* TextCtrl_Piano_CueFilename;
+		wxStaticText* StaticText14_layout_kludge2;
 		wxTextCtrl* TextCtrl_Piano_ShapeFilename;
+		wxBitmapButton* BitmapButton_Piano_CueFilename;
+		wxButton* Button_Piano_ShapeFilename;
+		wxNotebook* Notebook2;
+		wxSlider* Slider_Piano_NumRows;
+		wxBitmapButton* BitmapButton_Piano_Clipping;
+		wxBitmapButton* BitmapButton_Piano_NumKeys;
 		wxBitmapButton* BitmapButton_Piano_NumRows;
 		wxChoice* Choice_Piano_KeyPlacement;
-		wxStaticText* StaticText21;
-		wxStaticText* StaticText_Piano_NumRows;
-		wxStaticText* StaticText15_layout_kludge_1;
-		wxButton* Button_Piano_CueFilename;
-		wxSlider* Slider_Piano_NumRows;
-		wxCheckBox* CheckBox_Piano_Clipping;
-		wxTextCtrl* TextCtrl_Piano_MapFilename;
-		wxStaticText* StaticText_Piano_NumKeys;
-		wxStaticText* StaticText1;
-		wxBitmapButton* BitmapButton_Piano_ShapeFilename;
-		wxButton* Button_Piano_ShapeFilename;
-		wxPanel* Panel4;
-		wxBitmapButton* BitmapButton_Piano_Style;
-		wxPanel* Panel5;
 		wxBitmapButton* BitmapButton_Piano_KeyPlacement;
-		wxSlider* Slider_Piano_NumKeys;
-		wxPanel* Panel3;
-		wxNotebook* Notebook2;
-		wxStaticText* StaticText14_layout_kludge2;
-		wxTextCtrl* TextCtrl_Piano_CueFilename;
-		wxBitmapButton* BitmapButton_Piano_Clipping;
-		wxBitmapButton* BitmapButton_Piano_CueFilename;
-		wxButton* Button_Piano_MapFilename;
-		wxBitmapButton* BitmapButton_Piano_MapFilename;
-		wxChoice* Choice_Piano_Style;
-		wxBitmapButton* BitmapButton_Piano_NumKeys;
 		//*)
 
 	protected:

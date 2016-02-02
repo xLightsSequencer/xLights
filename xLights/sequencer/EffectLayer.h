@@ -57,6 +57,7 @@ class EffectLayer
         void SetParentElement(Element* parent);
         int GetSelectedEffectCount();
         void MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr);
+        void TagAllSelectedEffects();
         void DeleteSelectedEffects(UndoManager& undo_mgr);
         void DeleteEffect(int id);
         void DeleteEffectByIndex(int idx);

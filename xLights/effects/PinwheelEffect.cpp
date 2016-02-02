@@ -37,21 +37,21 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     int yc_adj = SettingsMap.GetInt("SLIDER_PinwheelYC", 0);
     int pinwheel_armsize = SettingsMap.GetInt("SLIDER_Pinwheel_ArmSize", 1);
     int pspeed = SettingsMap.GetInt("TEXTCTRL_Pinwheel_Speed", 1);
-    
-    
+
+
     int a,xc,ColorIdx,base_degrees;
     float t,tmax;
     float radius;
     HSVValue hsv,hsv0,hsv1;
     size_t colorcnt=buffer.GetColorCount();
-    
+
     xc= (int)(std::max(buffer.BufferWi, buffer.BufferHt)/2);
     //
     //  phi = a +b*phi
     radius = xc/100.0;
-    
+
     double pos = (buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs / 50;
-    
+
     int degrees_per_arm=1;
     if(pinwheel_arms>0) degrees_per_arm= 360/pinwheel_arms;
     float armsize = (pinwheel_armsize/100.0);
@@ -112,15 +112,15 @@ void PinwheelEffect::Draw_arm(RenderBuffer &buffer,
     yc= (int)(buffer.BufferHt/2);
     xc = xc + (xc_adj/100.0)*xc; // xc_adj is from -100 to 100
     yc = yc + (yc_adj/100.0)*yc;
-    
-    
+
+
     for(r=0.0; r<=max_radius; r+=0.5)
     {
         degrees_twist=(r/max_radius)*pinwheel_twist;
         degrees = base_degrees + degrees_twist;
         phi = degrees * pi_180;
-        x = r * cos (phi) + xc;
-        y = r * sin (phi) + yc;
+        x = r * buffer.cos (phi) + xc;
+        y = r * buffer.sin (phi) + yc;
         buffer.SetPixel(x, y, rgb);
     }
 }

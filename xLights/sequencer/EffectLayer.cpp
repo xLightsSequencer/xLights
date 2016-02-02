@@ -297,14 +297,29 @@ int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
     int num_selected = 0;
     for(int i=0;i<mEffects.size();i++)
     {
+        int midpoint = mEffects[i]->GetStartTimeMS() + ((mEffects[i]->GetEndTimeMS() - mEffects[i]->GetStartTimeMS()) / 2);
         if(mEffects[i]->GetStartTimeMS() >= startTimeMS &&  mEffects[i]->GetStartTimeMS() < endTimeMS)
         {
-            mEffects[i]->SetSelected(EFFECT_SELECTED);
+            if( endTimeMS < midpoint )
+            {
+                mEffects[i]->SetSelected(EFFECT_LT_SELECTED);
+            }
+            else
+            {
+                mEffects[i]->SetSelected(EFFECT_SELECTED);
+            }
             num_selected++;
         }
         else if(mEffects[i]->GetEndTimeMS() <= endTimeMS &&  mEffects[i]->GetEndTimeMS() > startTimeMS)
         {
-            mEffects[i]->SetSelected(EFFECT_SELECTED);
+            if( startTimeMS > midpoint )
+            {
+                mEffects[i]->SetSelected(EFFECT_RT_SELECTED);
+            }
+            else
+            {
+                mEffects[i]->SetSelected(EFFECT_SELECTED);
+            }
             num_selected++;
         }
     }
@@ -451,7 +466,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
     wxMutexLocker locker(lock);
     for(int i=0; i<mEffects.size();i++)
     {
-        if(mEffects[i]->GetSelected() == EFFECT_LT_SELECTED)
+        if(mEffects[i]->GetSelected() == EFFECT_LT_SELECTED && mEffects[i]->GetTagged())
         {
             if( undo_mgr.GetCaptureUndo() ) {
                 undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
@@ -459,7 +474,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
             }
             mEffects[i]->SetStartTimeMS( mEffects[i]->GetStartTimeMS() + deltaMS);
         }
-        else if(mEffects[i]->GetSelected() == EFFECT_RT_SELECTED)
+        else if(mEffects[i]->GetSelected() == EFFECT_RT_SELECTED && mEffects[i]->GetTagged())
         {
             if( undo_mgr.GetCaptureUndo() ) {
                 undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
@@ -467,7 +482,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
             }
             mEffects[i]->SetEndTimeMS( mEffects[i]->GetEndTimeMS() + deltaMS);
         }
-        else if(mEffects[i]->GetSelected() == EFFECT_SELECTED)
+        else if(mEffects[i]->GetSelected() == EFFECT_SELECTED && mEffects[i]->GetTagged())
         {
             if( undo_mgr.GetCaptureUndo() ) {
                 undo_mgr.CaptureEffectToBeMoved( mParentElement->GetName(), mIndex, mEffects[i]->GetID(),
@@ -475,6 +490,21 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
             }
             mEffects[i]->SetStartTimeMS( mEffects[i]->GetStartTimeMS() + deltaMS);
             mEffects[i]->SetEndTimeMS( mEffects[i]->GetEndTimeMS() + deltaMS);
+        }
+        mEffects[i]->SetTagged(false);
+    }
+}
+
+void EffectLayer::TagAllSelectedEffects()
+{
+    wxMutexLocker locker(lock);
+    for(int i=0; i<mEffects.size();i++)
+    {
+        if( (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_SELECTED) )
+        {
+            mEffects[i]->SetTagged(true);
         }
     }
 }

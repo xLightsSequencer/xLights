@@ -1753,7 +1753,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     info.BestSize(sz);
     MainAuiManager->Update();
 
-    SetTitle( xlights_base_name + " (Ver " + xlights_version_string + ") " + xlights_build_date );
+    SetTitle( xlights_base_name + " BETA (Ver " + xlights_version_string + ") " + xlights_build_date );
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonGracefulStop = new AUIToolbarButtonWrapper(OutputToolBar, ID_BUTTON_GRACEFUL_STOP);
@@ -1776,7 +1776,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     CreateSequencer();
 
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, PreviewModels, true);
-    PreviewGLSizer->Add(modelPreview, 1, wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL, 5);
+    PreviewGLSizer->Add(modelPreview, 1, wxALL|wxEXPAND, 5);
+    PreviewGLSizer->Fit(PreviewGLPanel);
+    PreviewGLSizer->SetSizeHints(PreviewGLPanel);
 
     modelPreview->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewPaint,0,this);
     modelPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftDown,0,this);

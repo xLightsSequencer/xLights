@@ -2095,7 +2095,7 @@ void EffectsGrid::CreateEffectIconTextures()
                                            eff->GetEffectIcon(32, true),
                                            eff->GetEffectIcon(16, true),
                                            &m_EffectTextures[eff->GetId()]);
-        
+
     }
 }
 
@@ -2208,6 +2208,13 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight
 
 void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
 {
+    // Tag all selected effects so we don't move them twice
+    for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
+    {
+        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+        el->TagAllSelectedEffects();
+    }
+
     if( !offset ) {
         for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
         {
@@ -2215,14 +2222,12 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
             el->MoveAllSelectedEffects(deltaMS, mSequenceElements->get_undo_mgr());
         }
     } else {
-        int num_rows_with_selections = 0;
         int start_row = -1;
         int end_row = -1;
         for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
         {
             EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
             if( el->GetSelectedEffectCount() > 0 ) {
-                num_rows_with_selections++;
                 if( start_row == -1 ) {
                     start_row = row;
                 } else {

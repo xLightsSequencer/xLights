@@ -53,25 +53,25 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         num_colors = 1;
     xlColor color, c_old, c_new;
     double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
-    
+
     double blend_pct = 1.0 / (num_colors-1);
     double color_pct1 = eff_pos_adj / blend_pct;
     int color_index = (int)color_pct1;
     blend_pct = color_pct1 - (double)color_index;
     buffer.Get2ColorBlend(color_index, std::min(color_index+1,num_colors-1), std::min( blend_pct, 1.0), color);
-    
+
     double pos_x = buffer.BufferWi * center_x/100.0;
     double pos_y = buffer.BufferHt * center_y/100.0;
-    
+
     double radius1 = start_radius;
     double radius2 = end_radius;
     double radius_center = radius1 + (radius2 - radius1) * eff_pos_adj;
     double half_width = (start_width + (end_width - start_width) * eff_pos_adj) / 2.0;
     radius1 = radius_center - half_width;
     radius2 = radius_center + half_width;
-    
+
     double step = buffer.GetStepAngle(radius1, radius2);
-    
+
     for( int x = 0; x < buffer.BufferWi; x++ )
     {
         for( int y = 0; y < buffer.BufferHt; y++ )
@@ -80,14 +80,14 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
     }
     buffer.ClearTempBuf();
-    
+
     for( double current_angle = 0.0; current_angle <= 360.0; current_angle += step )
     {
         for( double r = std::max(0.0, radius1); r <= radius2; r += 0.5 )
         {
-            double x1 = std::sin(ToRadians(current_angle)) * r + (double)pos_x;
-            double y1 = std::cos(ToRadians(current_angle)) * r + (double)pos_y;
-            
+            double x1 = buffer.sin(ToRadians(current_angle)) * r + (double)pos_x;
+            double y1 = buffer.cos(ToRadians(current_angle)) * r + (double)pos_y;
+
             if( blend_edges )
             {
                 double color_pct = 1.0 - std::abs(r-radius_center)/half_width;
@@ -111,7 +111,7 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             }
         }
     }
-    
+
     // blend element data into final buffer
     if( blend_edges && !buffer.allowAlpha )
     {

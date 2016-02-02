@@ -85,23 +85,23 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     xlColor color, c_old, c_new;
     double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
     double revs = (double)revolutions;
-    
+
     double pos_x = buffer.BufferWi * center_x/100.0;
     double pos_y = buffer.BufferHt * center_y/100.0;
-    
+
     double effect_duration = duration/100.0;    // time the head is in the frame
     double radius_rampup = (1.0 - effect_duration)/2.0;
-    
+
     double radius1 = start_radius;
     double radius2 = end_radius;
-    
+
     double blade_div_angle = 360.0 / (double)num_blades;
     double blade_width_angle = blade_div_angle * (double)blade_width / 100.0;
     double color_angle = blade_width_angle / (double)num_colors;
     double angle_offset = eff_pos_adj * revs;
     double element_angle = color_angle / (double)num_elements;
     double element_size = element_angle * (double)element_width/ 100.0;
-    
+
     for( int x = 0; x < buffer.BufferWi; x++ )
     {
         for( int y = 0; y < buffer.BufferHt; y++ )
@@ -110,12 +110,12 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
         }
     }
     buffer.ClearTempBuf();
-    
+
     if( reverse_dir ^ (blade_angle < 0) )
     {
         angle_offset *= -1.0;
     }
-    
+
     if( effect_duration < 1.0 )
     {
         double radius_delta = std::abs(radius2 - radius1);
@@ -136,16 +136,16 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
                 radius1 = radius2 + radius_delta * pct;
         }
     }
-    
+
     if( radius1 > radius2 )
     {
         std::swap(radius1, radius2);
     }
-    
+
     double step = buffer.GetStepAngle(radius1, radius2);
-    
+
     double a_const = radius2 / ToRadians(std::abs((double)blade_angle));
-    
+
     for( int blade = 0; blade < num_blades; blade++ )
     {
         for( int section = 0; section < num_colors; section++ )
@@ -166,10 +166,10 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
                             adj_angle *= -1.0;
                         }
                         buffer.palette.GetColor(section, color);
-                        
-                        double x1 = std::sin(ToRadians(adj_angle)) * i + (double)pos_x;
-                        double y1 = std::cos(ToRadians(adj_angle)) * i + (double)pos_y;
-                        
+
+                        double x1 = buffer.sin(ToRadians(adj_angle)) * i + (double)pos_x;
+                        double y1 = buffer.cos(ToRadians(adj_angle)) * i + (double)pos_y;
+
                         if( blend_edges )
                         {
                             if( color_pct > 0.0 )

@@ -43,31 +43,30 @@ static inline int GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
     return PLASMA_NORMAL_COLORS;
 }
 void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    
+
     int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 0);
     int Line_Density = SettingsMap.GetInt("SLIDER_Plasma_Line_Density", 1);
     std::string PlasmaDirectionStr = SettingsMap["CHOICE_Plasma_Direction"];
     int PlasmaSpeed = SettingsMap.GetInt("SLIDER_Plasma_Speed", 10);
-    
+
     int PlasmaDirection = 0; //fixme?
     int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);
     int x,y,xc,yc;
     double h=0.0;
     xlColor color;
-    HSVValue hsv;
-    
+
     //  These are for Plasma effect
     double rx,ry,cx,cy,v,time,Speed_plasma;
     static const double pi=3.1415926535897932384626433832;
-    
+
     int curState = (buffer.curPeriod - buffer.curEffStartPer) * PlasmaSpeed * buffer.frameTimeInMs / 50;
     double offset=double(curState)/200.0;
 
     int state = (buffer.curPeriod - buffer.curEffStartPer); // frames 0 to N
     Speed_plasma = (101-PlasmaSpeed)*3; // we want a large number to divide by
     time = (state+1.0)/Speed_plasma;
-    
-    
+
+
     if (PlasmaDirection==1) offset = -offset;
     xc=buffer.BufferWi/2;
     yc=buffer.BufferHt/2;
@@ -78,61 +77,59 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         for (y=0; y<buffer.BufferHt; y++)
         {
             // reference: http://www.bidouille.org/prog/plasma
-            
+
             v=0;
             rx = ((float)x/(buffer.BufferWi-1)) ; // rx is now in the range 0.0 to 1.0
             ry = ((float)y/(buffer.BufferHt-1)) ;
-            
+
             // 1st equation
-            v=sin(rx*10+time);
-            
+            v=buffer.sin (rx*10+time);
+
             //  second equation
-            v+=sin(10*(rx*sin(time/2)+ry*cos(time/3))+time);
-            
+            v+=buffer.sin (10*(rx*buffer.sin (time/2)+ry*buffer.cos (time/3))+time);
+
             //  third equation
-            cx=rx+.5*sin(time/5);
-            cy=ry+.5*cos(time/3);
-            v+=sin ( sqrt((Style*50)*((cx*cx)+(cy*cy))+time));
-            
-            
+            cx=rx+.5*buffer.sin (time/5);
+            cy=ry+.5*buffer.cos (time/3);
+            v+=buffer.sin ( sqrt((Style*50)*((cx*cx)+(cy*cy))+time));
+
+
             //    vec2 c = v_coords * u_k - u_k/2.0;
-            v += sin(rx+time);
-            v += sin((ry+time)/2.0);
-            v += sin((rx+ry+time)/2.0);
-            //   c += u_k/2.0 * vec2(sin(u_time/3.0), cos(u_time/2.0));
-            v += sin(sqrt(rx*rx+ry*ry)+time);
+            v += buffer.sin (rx+time);
+            v += buffer.sin ((ry+time)/2.0);
+            v += buffer.sin ((rx+ry+time)/2.0);
+            //   c += u_k/2.0 * vec2(buffer.sin (u_time/3.0), buffer.cos (u_time/2.0));
+            v += buffer.sin (sqrt(rx*rx+ry*ry)+time);
             v = v/2.0;
-            // vec3 col = vec3(1, sin(PI*v), cos(PI*v));
+            // vec3 col = vec3(1, buffer.sin (PI*v), buffer.cos (PI*v));
             //   gl_FragColor = vec4(col*.5 + .5, 1);
-            
-            
+
+
             switch (ColorScheme)
             {
                 case PLASMA_NORMAL_COLORS:
-                    
-                    h = sin(v*Line_Density*pi+2*pi/3)+1*0.5;
+
+                    h = buffer.sin (v*Line_Density*pi+2*pi/3)+1*0.5;
                     buffer.GetMultiColorBlend(h,false,color);
-                    hsv.hue=h;
-                    color = hsv;
                     break;
                 case PLASMA_PRESET1:
-                    color.red = (sin(v*Line_Density*pi)+1)*128;
-                    color.green= (cos(v*Line_Density*pi)+1)*128;
+                    color.red = (buffer.sin (v*Line_Density*pi)+1)*128;
+                    color.green= (buffer.cos (v*Line_Density*pi)+1)*128;
                     color.blue =0;
                     break;
                 case PLASMA_PRESET2:
                     color.red = 1;
-                    color.green= (cos(v*Line_Density*pi)+1)*128;
-                    color.blue =(sin(v*Line_Density*pi)+1)*128;
+                    color.green= (buffer.cos (v*Line_Density*pi)+1)*128;
+                    color.blue =(buffer.sin (v*Line_Density*pi)+1)*128;
                     break;
-                    
+
                 case PLASMA_PRESET3:
-                    color.red = (sin(v*Line_Density*pi)+1)*128;
-                    color.green= (sin(v*Line_Density*pi + 2*pi/3)+1)*128;
-                    color.blue =(sin(v*Line_Density*pi+4*pi/3)+1)*128;
+                    color.red = (buffer.sin (v*Line_Density*pi)+1)*128;
+                    color.green= (buffer.sin (v*Line_Density*pi + 2*pi/3)+1)*128;
+                    color.blue =(buffer.sin (v*Line_Density*pi+4*pi/3)+1)*128;
                     break;
                 case PLASMA_PRESET4:
-                    color.red=color.green=color.blue=(sin(v*Line_Density*pi) +1) * 128;
+                    color.red=color.green=color.blue=(buffer.sin (v*Line_Density*pi) +1) * 128;
                     break;
             }
             buffer.SetPixel(x,y,color);

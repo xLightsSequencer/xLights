@@ -201,9 +201,6 @@ wxXmlNode* ModelManager::CreateModelNodeFromGroup(int previewW, int previewH, wx
             models.push_back(c);
         }
     }
-    if (models.size() == 0) {
-        return NULL;
-    }
     wxXmlNode * ret = BuildWholeHouseModel(previewW, previewH, name, e, models);
     ret->AddAttribute("models", e->GetAttribute("models"));
     return ret;
