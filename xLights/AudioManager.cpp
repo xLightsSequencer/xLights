@@ -12,7 +12,7 @@ xLightsVamp::xLightsVamp()
 
 xLightsVamp::~xLightsVamp()
 {
-	for (int i = 0; i < _loadedPlugins.size(); i++) 
+	for (int i = 0; i < _loadedPlugins.size(); i++)
 	{
 		delete _loadedPlugins[i];
 	}
@@ -133,7 +133,7 @@ void AudioManager::LoadTrackData(char* data, int maxSize)
     mpg123_seek(_phm, 0, SEEK_SET);
     for (bytesRead = 0 ; mpg123_read(_phm, buffer, buffer_size, &done) == MPG123_OK ; )
     {
-        if ((bytesRead + done) >= maxSize) 
+        if ((bytesRead + done) >= maxSize)
 		{
 			_resultMessage = "Error reading data from mp3, too much data read.";
 			_state = 0;
@@ -192,7 +192,7 @@ int AudioManager::OpenMediaFile()
 	_lengthMS = CalcLengthMS();
     buffer_size = mpg123_outblock(_phm);
     int size = (_trackSize+buffer_size)*_bits*_channels;
-    
+
 	if (_data[0] != NULL)
 	{
 		free(_data[0]);
@@ -206,7 +206,7 @@ int AudioManager::OpenMediaFile()
 
 	char * trackData = (char*)malloc(size);
     LoadTrackData(trackData, size);
-    
+
 	// Split data into left and right and normalize -1 to 1
     _data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
     if( _channels == 2 )
@@ -261,14 +261,14 @@ std::list<std::string> xLightsVamp::GetAvailablePlugins(AudioManager* paudio)
                 continue;
             }
 
-            std::string name = wxString::FromUTF8(p->getName().c_str());
+            std::string name = std::string(wxString::FromUTF8(p->getName().c_str()).c_str());
 
             if (outputs.size() > 1) {
                 // This is not the plugin's only output.
                 // Use "plugin name: output name" as the effect name,
                 // unless the output name is the same as the plugin name
-                std::string outputName = wxString::FromUTF8(j->name.c_str());
-                if (outputName != name) 
+                std::string outputName = std::string(wxString::FromUTF8(j->name.c_str()).c_str());
+                if (outputName != name)
 				{
 					std::ostringstream stringStream;
 					stringStream << name << ": " << outputName.c_str();

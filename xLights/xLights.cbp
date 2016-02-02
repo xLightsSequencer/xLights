@@ -405,6 +405,8 @@
 		</Compiler>
 		<Unit filename="AddShowDialog.cpp" />
 		<Unit filename="AddShowDialog.h" />
+		<Unit filename="AudioManager.cpp" />
+		<Unit filename="AudioManager.h" />
 		<Unit filename="BitmapCache.cpp" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />

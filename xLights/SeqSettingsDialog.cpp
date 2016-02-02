@@ -21,8 +21,8 @@
 #include <wx/artprov.h>
 //*)
 
-#include <list>;
-#include <string>;
+#include <list>
+#include <string>
 
 //(*IdInit(SeqSettingsDialog)
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();
@@ -707,7 +707,7 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
 
     VAMPPluginDialog vamp(this);
     std::list<std::string> plugins;
-    if (xml_file->HasAudioMedia()) 
+    if (xml_file->HasAudioMedia())
 	{
         plugins = xml_file->GetMedia()->GetVamp()->GetAvailablePlugins(xml_file->GetMedia());
 		for (std::list<std::string>::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
