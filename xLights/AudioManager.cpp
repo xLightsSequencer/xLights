@@ -193,22 +193,22 @@ int AudioManager::OpenMediaFile()
     buffer_size = mpg123_outblock(_phm);
     int size = (_trackSize+buffer_size)*_bits*_channels;
 
+	if (_data[1] != NULL && _data[1] != _data[0])
+	{
+		free(_data[1]);
+		_data[1] = NULL;
+	}
 	if (_data[0] != NULL)
 	{
 		free(_data[0]);
 		_data[0] = NULL;
-	}
-	if (_data[1] != NULL)
-	{
-		free(_data[1]);
-		_data[1] = NULL;
 	}
 
 	char * trackData = (char*)malloc(size);
     LoadTrackData(trackData, size);
 
 	// Split data into left and right and normalize -1 to 1
-    _data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
+	_data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
     if( _channels == 2 )
     {
         _data[1] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
@@ -339,6 +339,10 @@ void AudioManager::ExtractMP3Tags()
 
 float AudioManager::GetLeftData(int offset)
 {
+	if (offset > _trackSize)
+	{
+		int a = 0;
+	}
 	return _data[0][offset];
 }
 
@@ -349,6 +353,10 @@ float AudioManager::GetRightData(int offset)
 
 float* AudioManager::GetLeftDataPtr(int offset)
 {
+	if (offset > _trackSize)
+	{
+		int a = 0;
+	}
 	return &_data[0][offset];
 }
 
