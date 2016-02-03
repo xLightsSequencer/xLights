@@ -80,8 +80,9 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
      8) select Settings > Debugger
      9) click 'Default' under GDB/CDB debugger
      10) uncheck the box for 'Disable startup scripts...'
-     11) select Settings > Global Variables
-     11) Make sure "wx" is defined as described in the Code::Blocks documentation.
+	 11) Update the path to gdb.exe similar to step 7 above
+     12) select Settings > Global Variables
+     13) Make sure "wx" is defined as described in the Code::Blocks documentation.
          wx should be set to your wxWidgets base directory. Just the "Base" field
          needs to be filled in - to something like "C:\wxWidgets-3.0.2",
          assuming that is where your copy of wxWidgets is located.
