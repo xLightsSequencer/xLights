@@ -329,7 +329,7 @@ void xLightsFrame::UpdateChannelNames()
             {
                 model.SetFromXml(e, NetInfo);
                 NodeCount=model.GetNodeCount();
-                ChanPerNode = model.ChannelsPerNode();
+                ChanPerNode = model.GetChanCountPerNode();
                 FormatSpec = "Ch %d: "+model.name+" #%d";
                 for(n=0; n < NodeCount; n++)
                 {

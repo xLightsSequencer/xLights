@@ -31,9 +31,6 @@ class ModelManager
     
     protected:
         Model *createModel(wxXmlNode *node, NetInfoClass &ni);
-        wxXmlNode* CreateModelNodeFromGroup(int previewW, int previewH, wxXmlNode *node);
-        wxXmlNode *BuildWholeHouseModel(int previewW, int previewH,
-                                        const std::string &modelName, const wxXmlNode *node, std::vector<Model*> &models);
     private:
     
     

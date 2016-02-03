@@ -78,7 +78,6 @@
 #include "PaletteMgmtDialog.h"
 #include "ExportModelSelect.h"
 #include "ViewsDialog.h"
-#include "WholeHouseModelNameDialog.h"
 #include "CurrentPreviewModels.h"
 #include "PreviewModels.h"
 #include "ModelPreview.h"
@@ -1630,7 +1629,7 @@ protected:
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
 public:
-    static std::vector<Model *> PreviewModels;
+    std::vector<Model *> PreviewModels;
     static ModelManager AllModels; //make public and static for easier access -DJ
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
 

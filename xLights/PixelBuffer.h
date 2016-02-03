@@ -85,16 +85,19 @@ private:
     
     
     Model model;
+    int BufferHt,BufferWi;  // size of the buffer
+    std::vector<NodeBaseClassPtr> Nodes;
+
 public:
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
     xlColor GetNodeColor(size_t nodenum) const;
     int NodeStartChannel(size_t nodenum) const;
     int GetNodeCount() const;
+    int GetChanCountPerNode() const;
 
     PixelBufferClass();
     virtual ~PixelBufferClass();
-    
     
     Model &GetModel() { return model;};
     

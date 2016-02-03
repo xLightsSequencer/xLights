@@ -7,7 +7,7 @@
 class StarModel : public Model
 {
     public:
-        StarModel();
+        StarModel(wxXmlNode *node, NetInfoClass &netInfo);
         virtual ~StarModel();
     protected:
     private:

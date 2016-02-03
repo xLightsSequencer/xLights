@@ -784,7 +784,7 @@ void Model::InitCustomMatrix(const std::string& customModel) {
     
     wxArrayString rows=wxSplit(customModel,';');
     int height=rows.size();
-    int cpn = ChannelsPerNode();
+    int cpn = GetChanCountPerNode();
     for(size_t row=0; row < rows.size(); row++) {
         cols=wxSplit(rows[row],',');
         if (cols.size() > width) width=cols.size();
@@ -1262,9 +1262,6 @@ int Model::NodeStartChannel(size_t nodenum) const {
 const std::string &Model::NodeType(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType(): NodeBaseClass::RGB; //avoid memory access error if no nods -DJ
 }
-int Model::ChannelsPerNode() {
-    return SingleChannel ? 1 : 3;
-}
 
 NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) {
     if (StringType=="Single Color Red" || StringType == "R") {
@@ -1284,6 +1281,16 @@ NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t N
     }
     return new NodeBaseClass(ns,1,rgbOrder);
 }
+
+void Model::InitRenderBufferNodes(int type, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) const {
+    bufferHi = this->BufferHt;
+    bufferWi = this->BufferWi;
+    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+        newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
+    }
+}
+
+
 std::string Model::GetNextName() {
     if (nodeNames.size() > Nodes.size()) {
         return nodeNames[Nodes.size()];

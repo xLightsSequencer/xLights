@@ -1,8 +1,8 @@
 #include "StarModel.h"
 
-StarModel::StarModel()
+StarModel::StarModel(wxXmlNode *node, NetInfoClass &netInfo)
 {
-    //ctor
+    SetFromXml(node, netInfo);
 }
 
 StarModel::~StarModel()

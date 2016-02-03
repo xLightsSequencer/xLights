@@ -32,7 +32,7 @@ public:
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
     DimmingCurve *modelDimmingCurve;
     
-    
+    void InitRenderBufferNodes(int type, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
 private:
     
     static NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
@@ -150,7 +150,6 @@ public:
     void SetModelCoord(int degrees);
     int CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y);
     int GetRotation();
-    int ChannelsPerNode();
     int NodeStartChannel(size_t nodenum) const;
     const std::string &NodeType(size_t nodenum) const;
     int MapToNodeIndex(int strand, int node) const;
