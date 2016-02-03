@@ -1215,6 +1215,7 @@ void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
     mSequenceElements.PopulateRowInformation();
     mainSequencer->PanelRowHeadings->Refresh();
     mainSequencer->PanelEffectGrid->ForceRefresh();
+    ResizeMainSequencer();
 }
 
 void xLightsFrame::LoadPerspective(wxCommandEvent& event)
