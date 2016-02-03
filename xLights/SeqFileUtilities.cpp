@@ -290,10 +290,8 @@ bool xLightsFrame::CloseSequence()
     mSavedChangeCount = mSequenceElements.GetChangeCount();
 
     mainSequencer->PanelWaveForm->CloseMedia();
-
+    SeqData.init(0,0,50);
     EnableSequenceControls(true);  // let it re-evaluate menu state
-    MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, false);
-    Menu_Settings_Sequence->Enable(false);
     return true;
 }
 
@@ -724,7 +722,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
     dlg.channelNames.insert(dlg.channelNames.begin(), "");
-    
+
     dlg.MapByStrand->Hide();
     dlg.Init();
     // no color colum so remove it and expand the 3rd colum into its space
@@ -1286,7 +1284,7 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
             }
         }
     }
-    
+
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
     dlg.channelNames.insert(dlg.channelNames.begin(), "");
     std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end());

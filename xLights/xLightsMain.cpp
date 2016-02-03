@@ -3197,8 +3197,19 @@ void xLightsFrame::CheckUnsavedChanges()
 
 void xLightsFrame::UpdateSequenceLength()
 {
-    wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
-    int ms = wxAtoi(mss);
-    SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+    if( CurrentSeqXmlFile->GetSequenceLoaded() )
+    {
+        wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+        int ms = wxAtoi(mss);
+        SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+
+        mainSequencer->PanelTimeLine->SetTimeLength(CurrentSeqXmlFile->GetSequenceDurationMS());
+        mainSequencer->PanelTimeLine->Initialize();
+        int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
+        mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
+        mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
+        mainSequencer->PanelTimeLine->RaiseChangeTimeline();
+        mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    }
 }
 

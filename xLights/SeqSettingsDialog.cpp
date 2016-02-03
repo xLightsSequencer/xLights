@@ -417,7 +417,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	{
 		TextCtrl_Xml_Media_File->SetValue(xml_file->GetMedia()->FileName());
 	}
-    TextCtrl_Xml_Seq_Duration->SetValue(xml_file->GetSequenceDurationString());
+	TextCtrl_Xml_Seq_Duration->ChangeValue(xml_file->GetSequenceDurationString());
 
     DataLayerSet& data_layers = xml_file->GetDataLayers();
     wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
@@ -1156,7 +1156,7 @@ void SeqSettingsDialog::MediaChooser()
 		int length_ms = xml_file->GetMedia()->LengthMS();
         double length = length_ms / 1000.0f;
         xml_file->SetSequenceDuration(length);
-        TextCtrl_Xml_Seq_Duration->SetValue(string_format("%.3f", length));
+        TextCtrl_Xml_Seq_Duration->ChangeValue(string_format("%.3f", length));
         if( xml_file->GetSequenceLoaded() )
         {
             xLightsParent->LoadAudioData(*xml_file);
@@ -1185,7 +1185,7 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Type->SetSelection(1);
     xml_file->SetSequenceType("Animation");
-    TextCtrl_Xml_Seq_Duration->SetValue("30.0");
+    TextCtrl_Xml_Seq_Duration->ChangeValue("30.0");
     xml_file->SetSequenceDuration(30.0);
     xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
     ProcessSequenceType();

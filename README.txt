@@ -7,19 +7,23 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Correct Save and other buttons not greying out when closing sequence.  Fixes #402.
+    -- bug(gil)   Fix not being able to scroll to all models on grid in some instances.  Fixes #405.
+    -- bug(gil)   Fix ability to zoom after changing sequence duration.  Fixes #439.
+2016.4  Feb 02, 2016
     -- bug(dkulp) Fix crash if model group has no models.
 2016.3  Jan 31, 2016
     -- bug(dan)  Slight optization, fix plasma
-    -- enh(all)  Upgrade our build environment. Compiler from gcc 4.7.1 to gcc 5.3.0. 
-	             Code::Blocks from 12.02 to 16.1. Recompile every file and every library. 
+    -- enh(all)  Upgrade our build environment. Compiler from gcc 4.7.1 to gcc 5.3.0.
+	             Code::Blocks from 12.02 to 16.1. Recompile every file and every library.
     -- enh (all) Update Butterfly, Fan, Galaxy, Morph, Pinwheel, Plasma, Shockwave,Spiragraph,
 	             Wave to use table lookup for sine and cosine functions. Performance Improvement.
-    -- enh(gil)  Allow easier selection of effect edges.  Now only half the effect is selected 
+    -- enh(gil)  Allow easier selection of effect edges.  Now only half the effect is selected
 	             until you cross the midpoint.
-    -- bug(gil)  Fix bug that was allowing effect overlaps.  Occurred when moving effects on 
+    -- bug(gil)  Fix bug that was allowing effect overlaps.  Occurred when moving effects on
 	             the grid when they were displayed in multiple rows.
     -- enh(gil)  Rename Copy Model and Paste Model to Copy Row and Paste Row
-    -- bug(gil)  Fix the sequence length when duration is changed so user doesn't need 
+    -- bug(gil)  Fix the sequence length when duration is changed so user doesn't need
 	             to delete fseq file. Fixes #196 and #442.
 2016.2  Jan 26, 2016
     -- bug(sean) Fixed self install script to overwrite wxwidgets library files. wxmsm*.dll
@@ -28,7 +32,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh(dkulp) Update Linux Text effect to render on background thread
     -- bug(dkulp) Linux toolbar buttons sizing problem and buttons on effect panel
     -- enh(dkulp) Plasma/Butterfly/Meteors render performance enhancements
-    -- enh(keithsw) Add tendrils effect. Also includes introduction of GraphicsContext. 
+    -- enh(keithsw) Add tendrils effect. Also includes introduction of GraphicsContext.
 	              Builders please see README.Windows for rebuild instructions.
     -- enh(keithsw) Add natural snowfall without accumulating to the snowflakes effect
 4.3.02  Jan 8, 2016
