@@ -51,6 +51,17 @@ public:
         offsets[1] = 1;
         offsets[2] = 2;
     }
+    NodeBaseClass(const NodeBaseClass &c): sparkle(c.sparkle), ActChan(c.ActChan), StringNum(c.StringNum),
+        Coords(c.Coords), OrigCoords(c.OrigCoords), name(nullptr), chanCnt(c.chanCnt)
+    {
+        if (c.name != nullptr) {
+            name = new std::string(*(c.name));
+        }
+        for (int x = 0; x < 3; x++) {
+            this->offsets[x] = c.offsets[x];
+            this->c[x] = c.c[x];
+        }
+    }
 
     NodeBaseClass(int StringNumber, size_t NodesPerString)
     {

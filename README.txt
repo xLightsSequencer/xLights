@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) Fix Ripple implode/explode.  Fixes #460
     -- bug(dkulp) Restore model group selection for layout/preview
     -- bug(gil)   Correct Save and other buttons not greying out when closing sequence.  Fixes #402.
     -- bug(gil)   Fix not being able to scroll to all models on grid in some instances.  Fixes #405.
