@@ -6,6 +6,7 @@
 #include "ModelManager.h"
 
 ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &manager, int previewW, int previewH)
+    : WholeHouseModel()
 {
     wxXmlNode *e = CreateModelNodeFromGroup(manager, previewW, previewH, node);
     SetFromXml(e, netInfo);

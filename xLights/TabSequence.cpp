@@ -337,7 +337,7 @@ void xLightsFrame::UpdateModelsList()
     if (PreviewModels.size() == 0) {
         for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
             Model *model = it->second;
-            if (model->IsMyDisplay(model->GetModelXml())) {
+            if (model->IsMyDisplay()) {
                 PreviewModels.push_back(model);
             }
         }

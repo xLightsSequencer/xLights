@@ -39,90 +39,17 @@ void Model::SetMyDisplay(wxXmlNode* ModelNode,bool NewValue)
 int Model::GetNumStrands() const {
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();
-    if (DisplayAs == wxT("Arches"))
-        return parm1;
-    else if (token == wxT("Tree"))
-        return parm1*parm3;
-    else if (DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix")) {
+    if (DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix")) {
         if (SingleChannel) {
             return 1;
         }
         return parm1*parm3;
-    } else if (token == wxT("Star"))
-        return starSizes.size();
-    else if (token == wxT("Circle"))
-        return circleSizes.size();
-    else
+    } else
         return 1;
 }
 
 
 
-void Model::InitWholeHouse(const std::string &WholeHouseData, bool zeroBased) {
-    long xCoord,yCoord,actChn;
-    int lastActChn=0;
-    wxArrayString data;
-    SetBufferSize(parm2,parm1);
-    SetRenderSize(parm2,parm1);
-    wxString stringType;
-    
-    Nodes.clear();
-    int minChan = 9999999;
-    int maxChan = -1;
-    if(WholeHouseData.length()> 0) {
-        wxArrayString wholeHouseDataArr=wxSplit(WholeHouseData,';');
-        int coordinateCount=wholeHouseDataArr.size();
-        
-        // Load first coordinate
-        data=wxSplit(wholeHouseDataArr[0],',');
-        data[0].ToLong(&actChn);
-        if (actChn > maxChan) {
-            maxChan = actChn;
-        }
-        if (actChn < minChan) {
-            minChan = actChn;
-        }
-        data[1].ToLong(&xCoord);
-        data[2].ToLong(&yCoord);
-        if (data.size() > 3) {
-            stringType = data[3];
-        } else {
-            stringType = rgbOrder;
-        }
-        Nodes.push_back(NodeBaseClassPtr(createNode(1, stringType.ToStdString(), 1, stringType.ToStdString())));
-        Nodes.back()->StringNum = 0;
-        Nodes.back()->ActChan = actChn;
-        Nodes.back()->Coords[0].bufX = xCoord;
-        Nodes.back()->Coords[0].bufY = yCoord;
-        lastActChn = actChn;
-        for(size_t i=1; i < coordinateCount; i++) {
-            data=wxSplit(wholeHouseDataArr[i],',');
-            data[0].ToLong(&actChn);
-            data[1].ToLong(&xCoord);
-            data[2].ToLong(&yCoord);
-            if (data.size() > 3) {
-                stringType = data[3];
-            } else {
-                stringType = rgbOrder;
-            }
-            if(actChn != lastActChn) {
-                Nodes.push_back(NodeBaseClassPtr(createNode(1, stringType.ToStdString(), 1, stringType.ToStdString())));
-                Nodes.back()->StringNum = 0;
-                Nodes.back()->ActChan = actChn;
-                Nodes.back()->Coords[0].bufX = xCoord;
-                Nodes.back()->Coords[0].bufY = yCoord;
-            } else {
-                Nodes.back()->AddBufCoord(xCoord,yCoord);
-            }
-            lastActChn = actChn;
-        }
-    }
-    if (zeroBased && minChan != 0) {
-        for (int x = 0; x < Nodes.size(); x++) {
-            Nodes[x]->ActChan -= minChan;
-        }
-    }
-}
 wxXmlNode* Model::GetModelXml() const {
     return this->ModelXml;
 }
@@ -145,13 +72,14 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
     
     wxString tempstr,channelstr;
     long degrees, StartChannel;
-    long i2;
     
     zeroBased = zb;
     ModelXml=ModelNode;
     ModelNetInfo = &netInfo;
     StrobeRate=0;
     Nodes.clear();
+    
+    isMyDisplay = IsMyDisplay(ModelNode);
     
     name=ModelNode->GetAttribute("name").ToStdString();
     DisplayAs=ModelNode->GetAttribute("DisplayAs").ToStdString();
@@ -173,46 +101,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
     tempstr.ToLong(&parm2);
     tempstr=ModelNode->GetAttribute("parm3");
     tempstr.ToLong(&parm3);
-    if( ModelNode->HasAttribute("circleSizes") )
-    {
-        tempstr=ModelNode->GetAttribute("circleSizes");
-        circleSizes.resize(0);
-        while (tempstr.size() > 0) {
-            wxString t2 = tempstr;
-            if (tempstr.Contains(",")) {
-                t2 = tempstr.SubString(0, tempstr.Find(","));
-                tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-            } else {
-                tempstr = "";
-            }
-            i2 = 0;
-            t2.ToLong(&i2);
-            if ( i2 > 0) {
-                circleSizes.resize(circleSizes.size() + 1);
-                circleSizes[circleSizes.size() - 1] = i2;
-            }
-        }
-    }
-    else
-    {
-        tempstr=ModelNode->GetAttribute("starSizes");
-        starSizes.resize(0);
-        while (tempstr.size() > 0) {
-            wxString t2 = tempstr;
-            if (tempstr.Contains(",")) {
-                t2 = tempstr.SubString(0, tempstr.Find(","));
-                tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-            } else {
-                tempstr = "";
-            }
-            i2 = 0;
-            t2.ToLong(&i2);
-            if ( i2 > 0) {
-                starSizes.resize(starSizes.size() + 1);
-                starSizes[starSizes.size() - 1] = i2;
-            }
-        }
-    }
     tempstr=ModelNode->GetAttribute("StrandNames");
     strandNames.clear();
     while (tempstr.size() > 0) {
@@ -307,16 +195,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings= HasOneString(DisplayAs) ? 1 : parm1;
-    int ChannelsPerString=parm2*GetNodeChannelCount(StringType);
-    if (SingleChannel)
-        ChannelsPerString=1;
-    else if (SingleNode)
-        ChannelsPerString=GetNodeChannelCount(StringType);
-    
-    if ("Arches" == DisplayAs) {
-        SingleChannel = false;
-        ChannelsPerString=GetNodeChannelCount(StringType) * parm2;
-    }
+    int ChannelsPerString=CalcCannelsPerString();
     
     SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     
@@ -369,17 +248,17 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
         }
     }
 }
+int Model::CalcCannelsPerString() {
+    int ChannelsPerString = parm2*GetNodeChannelCount(StringType);
+    if (SingleChannel)
+        ChannelsPerString=1;
+    else if (SingleNode)
+        ChannelsPerString=GetNodeChannelCount(StringType);
+    
+    return ChannelsPerString;
+}
+
 void Model::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
-    if (DisplayAs == "Custom") {
-        std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
-        int maxval=GetCustomMaxChannel(customModel);
-        // fix NumberOfStrings
-        if (SingleNode) {
-            NumberOfStrings=maxval;
-        } else {
-            ChannelsPerString=maxval*GetNodeChannelCount(StringType);
-        }
-    }
     std::string tempstr = ModelXml->GetAttribute("Advanced", "0").ToStdString();
     bool HasIndividualStartChans=tempstr == "1";
     stringStartChan.clear();
@@ -398,34 +277,8 @@ void Model::InitModel() {
     // initialize model based on the DisplayAs value
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();
-    if(DisplayAs=="WholeHouse") {
-        std::string WholeHouseData = ModelXml->GetAttribute("WholeHouseData").ToStdString();
-        InitWholeHouse(WholeHouseData, zeroBased);
-        CopyBufCoord2ScreenCoord();
-    } else if (token == "Tree") {
-        int firstStrand = 0;
-        if (zeroBased && ModelXml->GetAttribute("exportFirstStrand") != "") {
-            firstStrand = wxAtoi(ModelXml->GetAttribute("exportFirstStrand")) - 1;
-        }
-        if (firstStrand < 0) {
-            firstStrand = 0;
-        }
-        InitVMatrix(firstStrand);
-        long degrees;
-        token = tkz.GetNextToken();
-        token.ToLong(&degrees);
-        if (token == "Flat") {
-            degrees = 0;
-        } else if (token == "Ribbon") {
-            degrees = -1;
-        }
-        SetTreeCoord(degrees);
-    } else if (token == "Sphere") {
+    if (token == "Sphere") {
         InitSphere();
-        CopyBufCoord2ScreenCoord();
-    } else if (DisplayAs == "Custom") {
-        std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
-        InitCustomMatrix(customModel);
         CopyBufCoord2ScreenCoord();
     } else if (DisplayAs == "Vert Matrix") {
         InitVMatrix();
@@ -433,16 +286,6 @@ void Model::InitModel() {
     } else if (DisplayAs == "Horiz Matrix") {
         InitHMatrix();
         CopyBufCoord2ScreenCoord();
-    } else if (DisplayAs == "Single Line") {
-        InitLine();
-        CopyBufCoord2ScreenCoord();
-        //SetLineCoord();
-    } else if (DisplayAs == "Arches") {
-        InitArches();
-        SetArchCoord();
-    } else if (DisplayAs == "Circle") {
-        InitCircle();
-        SetCircleCoord();
     } else if (DisplayAs == "Window Frame") {
         InitFrame();
         CopyBufCoord2ScreenCoord();
@@ -576,139 +419,7 @@ void Model::InitVMatrix(int firstExportStrand) {
         }
     }
 }
-void Model::InitArches() {
-    int NumArches=parm1;
-    int SegmentsPerArch=parm2;
-    
-    SetBufferSize(NumArches,SegmentsPerArch);
-    if (SingleNode) {
-        SetNodeCount(NumArches * SegmentsPerArch, parm3,rgbOrder);
-    } else {
-        SetNodeCount(NumArches, SegmentsPerArch, rgbOrder);
-        if (parm3 > 1) {
-            for (int x = 0; x < Nodes.size(); x++) {
-                Nodes[x]->Coords.resize(parm3);
-            }
-        }
-    }
-    SetRenderSize(NumArches,SegmentsPerArch);
-    
-    for (int y=0; y < NumArches; y++) {
-        for(int x=0; x<SegmentsPerArch; x++) {
-            int idx = y * SegmentsPerArch + x;
-            Nodes[idx]->ActChan = stringStartChan[y] + x*GetNodeChannelCount(StringType);
-            Nodes[idx]->StringNum=y;
-            for(size_t c=0; c < GetCoordCount(idx); c++) {
-                Nodes[idx]->Coords[c].bufX=IsLtoR ? x : SegmentsPerArch-x-1;
-                Nodes[idx]->Coords[c].bufY=isBotToTop ? y : NumArches-y-1;
-            }
-        }
-    }
-}
 
-// Set screen coordinates for arches
-void Model::SetArchCoord() {
-    double xoffset,x,y;
-    int numlights=parm1*parm2*parm3;
-    size_t NodeCount=GetNodeCount();
-    SetRenderSize(parm2*parm3,numlights*2);
-    double midpt=parm2*parm3;
-    midpt -= 1.0;
-    midpt /= 2.0;
-    for(size_t n=0; n<NodeCount; n++) {
-        xoffset=Nodes[n]->StringNum*parm2*parm3*2 - numlights;
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++) {
-            double angle=-M_PI/2.0 + M_PI * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c))/midpt/2.0;
-            x=xoffset + midpt*sin(angle)*2.0+parm2*parm3;
-            y=(parm2*parm3)*cos(angle);
-            Nodes[n]->Coords[c].screenX=x;
-            Nodes[n]->Coords[c].screenY=y-(RenderHt/2);
-        }
-    }
-}
-
-void Model::InitCircle() {
-    int maxLights = 0;
-    int numLights = parm1 * parm2;
-    int cnt = 0;
-    
-    if (circleSizes.size() == 0) {
-        circleSizes.resize(1);
-        circleSizes[0] = numLights;
-    }
-    for (int x = 0; x < circleSizes.size(); x++) {
-        if ((cnt + circleSizes[x]) > numLights) {
-            circleSizes[x] = numLights - cnt;
-        }
-        cnt += circleSizes[x];
-        if (circleSizes[x] > maxLights) {
-            maxLights = circleSizes[x];
-        }
-    }
-    
-    SetNodeCount(parm1,parm2,rgbOrder);
-    SetBufferSize(circleSizes.size(),maxLights);
-    int LastStringNum=-1;
-    int chan = 0,idx;
-    int ChanIncr=SingleChannel ?  1 : 3;
-    size_t NodeCount=GetNodeCount();
-    
-    int node = 0;
-    int nodesToMap = NodeCount;
-    for (int circle = 0; circle < circleSizes.size(); circle++) {
-        idx = 0;
-        int loop_count = std::min(nodesToMap, circleSizes[circle]);
-        for(size_t n=0; n<loop_count; n++) {
-            if (Nodes[node]->StringNum != LastStringNum) {
-                LastStringNum=Nodes[node]->StringNum;
-                chan=stringStartChan[LastStringNum];
-            }
-            Nodes[node]->ActChan=chan;
-            chan+=ChanIncr;
-            double pct = (loop_count == 1) ? (double)n : (double)n / (double)(loop_count-1);
-            size_t CoordCount=GetCoordCount(node);
-            for(size_t c=0; c < CoordCount; c++) {
-                int x_pos = (circle == 0) ? idx : (int)(pct*(double)(maxLights-1));
-                Nodes[node]->Coords[c].bufX=x_pos;
-                Nodes[node]->Coords[c].bufY=circle;
-                idx++;
-            }
-            node++;
-        }
-        nodesToMap -= loop_count;
-    }
-}
-
-// Set screen coordinates for circles
-void Model::SetCircleCoord() {
-    double x,y;
-    size_t NodeCount=GetNodeCount();
-    SetRenderSize(circleSizes[0]*2,circleSizes[0]*2);
-    int nodesToMap = NodeCount;
-    int node = 0;
-    double maxRadius = RenderWi / 2.0;
-    double minRadius = (double)parm3/100.0 * maxRadius;
-    for (int circle = 0; circle < circleSizes.size(); circle++) {
-        int loop_count = std::min(nodesToMap, circleSizes[circle]);
-        double midpt=loop_count;
-        midpt -= 1.0;
-        midpt /= 2.0;
-        double radius = (circleSizes.size() == 1) ? maxRadius : (double)minRadius + (maxRadius-minRadius)*(1.0-(double)circle/(double)(circleSizes.size()-1));
-        for(size_t n=0; n<loop_count; n++) {
-            size_t CoordCount=GetCoordCount(node);
-            for(size_t c=0; c < CoordCount; c++) {
-                double angle=-M_PI + M_PI * ((loop_count==1) ? 1 : (double)n / (double)loop_count) * 2.0;
-                x=sin(angle)*radius;
-                y=cos(angle)*radius;
-                Nodes[node]->Coords[c].screenX=x;
-                Nodes[node]->Coords[c].screenY=y;
-            }
-            node++;
-        }
-        nodesToMap -= loop_count;
-    }
-}
 
 // initialize buffer coordinates
 // parm1=NumStrings
@@ -759,81 +470,6 @@ void Model::InitHMatrix() {
     }
 }
 
-int Model::GetCustomMaxChannel(const std::string& customModel) {
-    wxString value;
-    wxArrayString cols;
-    long val,maxval=0;
-    wxString valstr;
-    
-    wxArrayString rows=wxSplit(customModel,';');
-    for(size_t row=0; row < rows.size(); row++) {
-        cols=wxSplit(rows[row],',');
-        for(size_t col=0; col < cols.size(); col++) {
-            valstr=cols[col];
-            if (!valstr.IsEmpty() && valstr != "0") {
-                valstr.ToLong(&val);
-                maxval=std::max(val,maxval);
-            }
-        }
-    }
-    return maxval;
-}
-void Model::InitCustomMatrix(const std::string& customModel) {
-    wxString value;
-    wxArrayString cols;
-    long idx;
-    int width=1;
-    std::vector<int> nodemap;
-    
-    wxArrayString rows=wxSplit(customModel,';');
-    int height=rows.size();
-    int cpn = GetChanCountPerNode();
-    for(size_t row=0; row < rows.size(); row++) {
-        cols=wxSplit(rows[row],',');
-        if (cols.size() > width) width=cols.size();
-        for(size_t col=0; col < cols.size(); col++) {
-            value=cols[col];
-            if (!value.IsEmpty() && value != "0") {
-                value.ToLong(&idx);
-                
-                // increase nodemap size if necessary
-                if (idx > nodemap.size()) {
-                    nodemap.resize(idx, -1);
-                }
-                idx--;  // adjust to 0-based
-                
-                // is node already defined in map?
-                if (nodemap[idx] < 0) {
-                    // unmapped - so add a node
-                    nodemap[idx]=Nodes.size();
-                    SetNodeCount(1,0,rgbOrder);  // this creates a node of the correct class
-                    Nodes.back()->StringNum=idx;
-                    Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
-                    if (idx < nodeNames.size()) {
-                        Nodes.back()->SetName(nodeNames[idx]);
-                    }
-                    Nodes.back()->AddBufCoord(col,height - row - 1);
-                } else {
-                    // mapped - so add a coord to existing node
-                    Nodes[nodemap[idx]]->AddBufCoord(col,height - row - 1);
-                }
-            }
-        }
-    }
-    for (int x = 0; x < Nodes.size(); x++) {
-        for (int y = x+1; y < Nodes.size(); y++) {
-            if (Nodes[y]->StringNum < Nodes[x]->StringNum) {
-                Nodes[x].swap(Nodes[y]);
-            }
-        }
-    }
-    for (int x = 0; x < Nodes.size(); x++) {
-        Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
-    }
-    
-    SetBufferSize(height,width);
-}
-
 double Model::toRadians(long degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
@@ -843,99 +479,7 @@ long Model::toDegrees(double radians) {
 }
 
 
-// initialize screen coordinates for tree
-void Model::SetTreeCoord(long degrees) {
-    double bufferX, bufferY;
-    if (BufferWi < 2) return;
-    if (BufferHt < 1) return; // June 27,2013. added check to not divide by zero
-    if (degrees > 0) {
-        double angle;
-        RenderHt=1000;
-        RenderWi=((double)RenderHt)/1.8;
-        
-        double radians=toRadians(degrees);
-        double radius=RenderWi/2.0;
-        double topradius=RenderWi/12;
-        
-        double StartAngle=-radians/2.0;
-        double AngleIncr=radians/double(BufferWi);
-        if (degrees > 180) {
-            //shift a tiny bit to make the strands in back not line up exactly with the strands in front
-            StartAngle += AngleIncr / 5.0;
-        }
-        double topYoffset = std::abs(0.2 * topradius * cos(M_PI));
-        double ytop = RenderHt - topYoffset;
-        double ybot = std::abs(0.2 * radius * cos(M_PI));
-        
-        size_t NodeCount=GetNodeCount();
-        for(size_t n=0; n<NodeCount; n++) {
-            size_t CoordCount=GetCoordCount(n);
-            for(size_t c=0; c < CoordCount; c++) {
-                bufferX=Nodes[n]->Coords[c].bufX;
-                bufferY=Nodes[n]->Coords[c].bufY;
-                angle=StartAngle + double(bufferX) * AngleIncr;
-                double xb=radius * sin(angle);
-                double xt=topradius * sin(angle);
-                double yb = ybot - 0.2 * radius * cos(angle);
-                double yt = ytop - 0.2 * topradius * cos(angle);
-                double posOnString = (bufferY/(double)(BufferHt-1.0));
-                
-                Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
-                Nodes[n]->Coords[c].screenY = yb + (yt - yb) * posOnString - ((double)RenderHt)/2.0;
-            }
-        }
-    } else {
-        double treeScale = degrees == -1 ? 5.0 : 4.0;
-        double botWid = BufferWi * treeScale;
-        RenderHt=BufferHt * 2.0;
-        RenderWi=(botWid + 2);
-        
-        double offset = 0.5;
-        size_t NodeCount=GetNodeCount();
-        for(size_t n=0; n<NodeCount; n++) {
-            size_t CoordCount=GetCoordCount(n);
-            if (degrees == -1) {
-                for(size_t c=0; c < CoordCount; c++) {
-                    bufferX=Nodes[n]->Coords[c].bufX;
-                    bufferY=Nodes[n]->Coords[c].bufY;
-                    
-                    double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
-                    double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
-                    double h = std::sqrt(RenderHt * RenderHt + (xt - xb)*(xt - xb));
-                    
-                    double posOnString = (bufferY/(double)(BufferHt-1.0));
-                    double newh = RenderHt * posOnString;
-                    Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
-                    Nodes[n]->Coords[c].screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
-                    
-                    posOnString = ((bufferY - 0.33)/(double)(BufferHt-1.0));
-                    newh = RenderHt * posOnString;
-                    Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
-                    Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
-                    Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
-                    
-                    posOnString = ((bufferY + 0.33)/(double)(BufferHt-1.0));
-                    newh = RenderHt * posOnString;
-                    Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
-                    Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
-                    Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
-                }
-                
-            } else {
-                for(size_t c=0; c < CoordCount; c++) {
-                    bufferX=Nodes[n]->Coords[c].bufX;
-                    bufferY=Nodes[n]->Coords[c].bufY;
-                    
-                    double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
-                    double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
-                    double posOnString = (bufferY/(double)(BufferHt-1.0));
-                    Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
-                    Nodes[n]->Coords[c].screenY = RenderHt * posOnString - ((double)RenderHt)/2.0;
-                }
-            }
-        }
-    }
-}
+
 
 void Model::InitSphere() {
     SetNodeCount(parm1,parm2,rgbOrder);
@@ -977,34 +521,6 @@ void Model::InitSphere() {
 }
 
 
-// initialize buffer coordinates
-// parm1=Number of Strings/Arches
-// parm2=Pixels Per String/Arch
-void Model::InitLine() {
-    int numLights = parm1 * parm2;
-    SetNodeCount(parm1,parm2,rgbOrder);
-    SetBufferSize(1,numLights);
-    int LastStringNum=-1;
-    int chan = 0,idx;
-    int ChanIncr=SingleChannel ?  1 : 3;
-    size_t NodeCount=GetNodeCount();
-    
-    idx = 0;
-    for(size_t n=0; n<NodeCount; n++) {
-        if (Nodes[n]->StringNum != LastStringNum) {
-            LastStringNum=Nodes[n]->StringNum;
-            chan=stringStartChan[LastStringNum];
-        }
-        Nodes[n]->ActChan=chan;
-        chan+=ChanIncr;
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++) {
-            Nodes[n]->Coords[c].bufX=IsLtoR ? idx : numLights-idx-1;
-            Nodes[n]->Coords[c].bufY=0;
-            idx++;
-        }
-    }
-}
 
 
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
@@ -1242,12 +758,7 @@ int Model::GetNodeChannelCount(const std::string & nodeType) {
 }
 
 
-bool Model::CanRotate() {
-    return true; // DisplayAs == "Single Line";
-}
-
 void Model::Rotate(int degrees) {
-    if (!CanRotate()) return;
     PreviewRotation=degrees;
     SetLineCoord();
 }
@@ -2141,29 +1652,11 @@ float Model::GetVcenterOffset() {
 }
 
 int Model::GetStrandLength(int strand) const {
-    if ("Custom" == DisplayAs) {
-        return Nodes.size();
-    } else if ("Star" == DisplayAs) {
-        return SingleNode ? 1 : GetStarSize(strand);
-    } else if ("Circle" == DisplayAs) {
-        return SingleNode ? 1 : GetCircleSize(strand);
-    }
     return GetNodeCount() / GetNumStrands();
 }
 
 int Model::MapToNodeIndex(int strand, int node) const {
-    if ("Custom" == DisplayAs) {
-        return node;
-    } else if ("Star" == DisplayAs) {
-        int idx = 0;
-        for (int x = 0; x < strand; x++) {
-            idx += GetStarSize(x);
-        }
-        idx += node;
-        return idx;
-    } else if ("Arches" == DisplayAs) {
-        return strand * parm2 + node;
-    } else if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix")) && SingleChannel) {
+    if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix")) && SingleChannel) {
         return node;
     }
     if (GetNumStrands() == 1) {

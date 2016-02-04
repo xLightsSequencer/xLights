@@ -1,3 +1,5 @@
+
+#include <wx/xml/xml.h>
 #include "StarModel.h"
 
 StarModel::StarModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
@@ -10,10 +12,46 @@ StarModel::~StarModel()
     //dtor
 }
 
+
+int StarModel::GetStrandLength(int strand) const {
+    return SingleNode ? 1 : GetStarSize(strand);
+}
+int StarModel::MapToNodeIndex(int strand, int node) const {
+    int idx = 0;
+    for (int x = 0; x < strand; x++) {
+        idx += GetStarSize(x);
+    }
+    idx += node;
+    return idx;
+}
+int StarModel::GetNumStrands() const {
+    return starSizes.size();
+}
+
+
 // parm3 is number of points
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 
 void StarModel::InitModel() {
+    wxString tempstr=ModelXml->GetAttribute("starSizes");
+    starSizes.resize(0);
+    while (tempstr.size() > 0) {
+        wxString t2 = tempstr;
+        if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(","));
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        } else {
+            tempstr = "";
+        }
+        long i2 = 0;
+        t2.ToLong(&i2);
+        if ( i2 > 0) {
+            starSizes.resize(starSizes.size() + 1);
+            starSizes[starSizes.size() - 1] = i2;
+        }
+    }
+    
+    
     if (parm3 < 2) parm3=2; // need at least 2 arms
     SetNodeCount(parm1,parm2,rgbOrder);
     

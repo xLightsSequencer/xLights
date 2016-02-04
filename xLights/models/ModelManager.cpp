@@ -6,6 +6,11 @@
 
 
 #include "StarModel.h"
+#include "ArchesModel.h"
+#include "TreeModel.h"
+#include "CustomModel.h"
+#include "WholeHouseModel.h"
+#include "SingleLineModel.h"
 #include "ModelGroup.h"
 
 ModelManager::ModelManager()
@@ -66,6 +71,16 @@ Model *ModelManager::CreateModel(wxXmlNode *node, const NetInfoClass &netInfo, b
     Model *model;
     if (type == "Star") {
         model = new StarModel(node, netInfo, zeroBased);
+    } else if (type == "Arches") {
+        model = new ArchesModel(node, netInfo, zeroBased);
+    } else if (type == "Single Line") {
+        model = new SingleLineModel(node, netInfo, zeroBased);
+    } else if (type == "Custom") {
+        model = new CustomModel(node, netInfo, zeroBased);
+    } else if (type.find("Tree") == 0) {
+        model = new TreeModel(node, netInfo, zeroBased);
+    } else if (type == "WholeHouse") {
+        model = new WholeHouseModel(node, netInfo, zeroBased);
     } else {
         model = new Model();
         model->SetFromXml(node, netInfo, zeroBased);
