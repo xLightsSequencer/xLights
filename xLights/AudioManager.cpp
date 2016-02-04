@@ -270,15 +270,15 @@ bool AudioManager::CheckCBR()
 	char fh[4];
 	mp3file.Read(&fh[0], sizeof(fh));
 
-	if (fh[0] == 0xFF && fh[1] & 0xE0 == 0xE0)
+	if (fh[0] == (char)0xFF && (char)(fh[1] & 0xE0) == (char)0xE0)
 	{
 		// this is a valid frame
 		int version = (fh[1] & 0x18) >> 3;
 		int layertype = (fh[1] & 0x06) >> 1;
 		int bitrateindex = (fh[2] & 0xF0) >> 4;
-		int bitrate = decodebitrateindex(bitrateindex, version, layertype);
+		int bitrate = decodebitrateindex(bitrateindex, version, layertype) * 1000;
 		int samplerateindex = (fh[2] & 0x0C) >> 2;
-		int samplerate = decodesamplerateindex(bitrateindex, version);
+		int samplerate = decodesamplerateindex(samplerateindex, version);
 		int padding = (fh[2] & 0x02) >> 1;
 		int mono = fh[3] & 0xC0 >> 6;
 
