@@ -156,8 +156,6 @@ void RippleEffect::Drawcircle(RenderBuffer &buffer, int Movement,int xc,int yc,d
     float i;
     xlColor color(hsv);
     
-    printf("%lf    %d\n", radius, Ripple_Thickness);
-
     for (i=0; i<Ripple_Thickness; i+=.5)
     {
         if(CheckBox_Ripple3D) {
