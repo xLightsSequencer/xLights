@@ -49,7 +49,9 @@ class AudioManager
 	std::string _title;
 	std::string _artist;
 	std::string _album;
+	int _intervalMS;
 	int _lengthMS;
+	bool _isCBR;
 
 	int CalcTrackSize(int bits, int channels);
 	int CalcLengthMS();
@@ -58,8 +60,23 @@ class AudioManager
 	void LoadTrackData(char* data, int maxSize);
 	int OpenMediaFile();
 	void ExtractMP3Tags();
+	bool CheckCBR();
+	void PrepareFrameData();
+	int decodebitrateindex(int bitrateindex, int version, int layertype);
+	int decodesamplerateindex(int samplerateindex, int version);
+	int decodesideinfosize(int version, int mono);
 
 public:
+
+	typedef enum FRAMEDATATYPE  {
+		FRAMEDATA_HIGH,
+		FRAMEDATA_LOW,
+		FRAMEDATA_SPREAD,
+		FRAMEDATA_ISBEAT,
+		FRAMEDATA_ISNOTESTART,
+		FRAMEDATA_VU,
+	} FRAMEDATATYPE;
+
 	xLightsVamp* GetVamp() { return &_vamp; };
 	AudioManager(std::string audio_file, int step, int block);
 	~AudioManager();
@@ -79,6 +96,9 @@ public:
 	float* GetRightDataPtr(int offset);
 	float* GetLeftDataPtr(int offset);
 	void SetStepBlock(int step, int block);
+	void SetFrameInterval(int intervalMS);
+	std::list<float> GetFrameData(int frame, FRAMEDATATYPE fdt);
+	bool IsCBR() { return _isCBR; };
 };
 
 #endif

@@ -594,9 +594,6 @@
     <ClCompile Include="ViewsDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WholeHouseModelNameDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="wxCheckedListCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -651,10 +648,13 @@
     <ClCompile Include="effects\ChromaEffect.cpp">
       <Filter>Source Files\effects</Filter>
     </ClCompile>
-    <ClCompile Include="AudioManager.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="models\Node.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="models\ModelGroup.cpp">
       <Filter>Source Files\models</Filter>
     </ClCompile>
   </ItemGroup>

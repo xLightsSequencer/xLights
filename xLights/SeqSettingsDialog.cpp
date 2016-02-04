@@ -1164,6 +1164,12 @@ void SeqSettingsDialog::MediaChooser()
         xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
         StaticText_Warning->Hide();
         ProcessSequenceType();
+
+		if (!xml_file->GetMedia()->IsCBR())
+		{
+			// warn user that variable bitrate files should be avoided.
+			wxMessageBox(string_format("Using Variable Bitrate audio files can cause playback issues when sequencing. It is recommended you convert them to constant bitrate using softfare like Audacity."), "Warning", wxICON_WARNING | wxOK);
+		}
     }
 
     OpenDialog->Destroy();
@@ -1195,20 +1201,23 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnBitmapButton_25msClick(wxCommandEvent& event)
 {
     xml_file->SetSequenceTiming("25 ms");
-    Choice_Xml_Seq_Timing->SetSelection(0);
+	xml_file->GetMedia()->SetFrameInterval(25);
+	Choice_Xml_Seq_Timing->SetSelection(0);
     WizardPage3();
 }
 
 void SeqSettingsDialog::OnBitmapButton_50msClick(wxCommandEvent& event)
 {
     xml_file->SetSequenceTiming("50 ms");
-    Choice_Xml_Seq_Timing->SetSelection(1);
+	xml_file->GetMedia()->SetFrameInterval(50);
+	Choice_Xml_Seq_Timing->SetSelection(1);
     WizardPage3();
 }
 
 void SeqSettingsDialog::OnBitmapButton_100msClick(wxCommandEvent& event)
 {
     xml_file->SetSequenceTiming("100 ms");
+	xml_file->GetMedia()->SetFrameInterval(100);
     Choice_Xml_Seq_Timing->SetSelection(2);
     WizardPage3();
 }

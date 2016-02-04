@@ -2,6 +2,7 @@
 #include <wx/string.h>
 #include <sstream>
 #include <algorithm>
+#include <wx/ffile.h>
 
 using namespace Vamp;
 
@@ -27,9 +28,12 @@ AudioManager::AudioManager(std::string audio_file, int step = 1024, int block = 
 	_resultMessage = "";
 	_data[0] = NULL;
 	_data[1] = NULL;
+	_intervalMS = -1;
 
 	_extra = std::max(step, block) + 1;
 	OpenMediaFile();
+
+	_isCBR = CheckCBR();
 
 	// if we got here without setting state to zero then all must be good so set state to 1 success
 	if (_state == -1)
@@ -38,11 +42,301 @@ AudioManager::AudioManager(std::string audio_file, int step = 1024, int block = 
 	}
 }
 
+void AudioManager::PrepareFrameData()
+{
+	// process audio data and build data for each frame
+
+	// Max data
+	// Min data
+	// Spread data
+	// beat in frame
+	// Note onset in frame
+	// frequency breakdown
+}
+
+std::list<float> AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt)
+{
+	std::list<float> result;
+
+	switch (fdt)
+	{
+	case FRAMEDATA_HIGH:
+		break;
+	case FRAMEDATA_LOW:
+		break;
+	case FRAMEDATA_SPREAD:
+		break;
+	case FRAMEDATA_ISBEAT:
+		break;
+	case FRAMEDATA_ISNOTESTART:
+		break;
+	case FRAMEDATA_VU:
+		break;
+	}
+
+	return result;
+}
+
+int AudioManager::decodebitrateindex(int bitrateindex, int version, int layertype)
+{
+	switch (version)
+	{
+	case 0: // v2.5
+	case 2: // v2
+		switch (layertype)
+		{
+		case 0:
+			// invalid
+			return 0;
+		case 1: // L3
+		case 2: // L2
+			if (bitrateindex == 0 || bitrateindex == 0x0F)
+			{
+				return 0;
+			}
+			else if (bitrateindex < 8)
+			{
+				return 8 * bitrateindex;
+			}
+			else
+			{
+				return 64 + (bitrateindex - 8) * 16;
+			}
+		case 3: // L1
+			if (bitrateindex == 0 || bitrateindex == 0x0F)
+			{
+				return 0;
+			}
+			else
+			{
+				return 16 + bitrateindex * 16;
+			}
+		}
+		break;
+	case 3: // v1
+		switch (layertype)
+		{
+		case 0:
+			// invalid
+			return 0;
+		case 1: // L3
+			if (bitrateindex == 0 || bitrateindex == 0x0F)
+			{
+				return 0;
+			}
+			else if (bitrateindex < 6)
+			{
+				return 32 + (bitrateindex - 1) * 8;
+			}
+			else if (bitrateindex < 9)
+			{
+				return 64 + (bitrateindex - 6) * 16;
+			}
+			else if (bitrateindex < 14)
+			{
+				return 128 + (bitrateindex - 9) * 32;
+			}
+			else
+			{
+				return 320;
+			}
+		case 2: // L2
+			if (bitrateindex == 0 || bitrateindex == 0x0F)
+			{
+				return 0;
+			}
+			else if (bitrateindex < 3)
+			{
+				return 32 + (bitrateindex - 1) * 16;
+			}
+			else if (bitrateindex < 5)
+			{
+				return 56 + (bitrateindex - 3) * 8;
+			}
+			else if (bitrateindex < 9)
+			{
+				return 80 + (bitrateindex - 5) * 16;
+			}
+			else if (bitrateindex < 13)
+			{
+				return 160 + (bitrateindex - 9) * 32;
+			}
+			else 
+			{
+				return 320 + (bitrateindex - 13) * 64;
+			}
+		case 3: // L1
+			if (bitrateindex == 0 || bitrateindex == 0x0F)
+			{
+				return 0;
+			}
+			else
+			{
+				return bitrateindex * 32;
+			}
+		}
+		break;
+	case 1:
+		// invalid
+		return 0;
+	}
+}
+
+int AudioManager::decodesamplerateindex(int samplerateindex, int version)
+{
+	switch (version)
+	{
+	case 0: // v2.5
+		switch (samplerateindex)
+		{
+		case 0:
+			return 11025;
+		case 1:
+			return 12000;
+		case 2:
+			return 8000;
+		case 3:
+			return 0;
+		}
+		break;
+	case 2: // v2
+		switch (samplerateindex)
+		{
+		case 0:
+			return 22050;
+		case 1:
+			return 24000;
+		case 2:
+			return 16000;
+		case 3:
+			return 0;
+		}
+		break;
+	case 3: // v1
+		switch (samplerateindex)
+		{
+		case 0:
+			return 44100;
+		case 1:
+			return 48000;
+		case 2:
+			return 32000;
+		case 3:
+			return 0;
+		}
+		break;
+	case 1:
+		// invalid
+		return 0;
+	}
+
+	// this should never happen
+	return 0;
+}
+
+int AudioManager::decodesideinfosize(int version, int mono)
+{
+	if (version == 3) // v1
+	{
+		if (mono == 3) // mono
+		{
+			return 17;
+		}
+		else
+		{
+			return 32;
+		}
+	}
+	else
+	{
+		if (mono == 3) // mono
+		{
+			return 9;
+		}
+		else
+		{
+			return 17;
+		}
+	}
+}
+
+bool AudioManager::CheckCBR()
+{
+	bool isCBR = true;
+
+	wxFFile mp3file(_audio_file, "rb");
+
+	// read the header 2 bytes ... the first 11 bits should be set
+	char fh[4];
+	mp3file.Read(&fh[0], sizeof(fh));
+
+	if (fh[0] == 0xFF && fh[1] & 0xE0 == 0xE0)
+	{
+		// this is a valid frame
+		int version = (fh[1] & 0x18) >> 3;
+		int layertype = (fh[1] & 0x06) >> 1;
+		int bitrateindex = (fh[2] & 0xF0) >> 4;
+		int bitrate = decodebitrateindex(bitrateindex, version, layertype);
+		int samplerateindex = (fh[2] & 0x0C) >> 2;
+		int samplerate = decodesamplerateindex(bitrateindex, version);
+		int padding = (fh[2] & 0x02) >> 1;
+		int mono = fh[3] & 0xC0 >> 6;
+
+		int framesize;
+
+		if (layertype == 3)
+		{
+			framesize = (12 * bitrate / samplerate + padding) * 4;
+		}
+		else
+		{
+			framesize = 144 * bitrate / samplerate + padding;
+		}
+
+		int nextframeoffset = 4 + framesize;
+		int vbrtaglocation = nextframeoffset + 4 + 32;
+
+		mp3file.Seek(vbrtaglocation, wxFromStart);
+		mp3file.Read(&fh[0], sizeof(fh));
+
+		if (fh[0] == 'V' && fh[1] == 'B' && fh[2] == 'R' && fh[3] == 'I')
+		{
+			isCBR = false;
+		}
+		else
+		{
+			int xingtagoffset = nextframeoffset + 4 + decodesideinfosize(version, mono);
+			mp3file.Seek(xingtagoffset, wxFromStart);
+			mp3file.Read(&fh[0], sizeof(fh));
+
+			if (fh[0] == 'X' && fh[1] == 'i' && fh[2] == 'n' && fh[3] == 'g')
+			{
+				isCBR = false;
+			}
+		}
+	}
+
+	mp3file.Close();
+
+	return isCBR;
+}
+
+void AudioManager::SetFrameInterval(int intervalMS)
+{
+	if (_intervalMS != intervalMS)
+	{
+		_intervalMS = intervalMS;
+		PrepareFrameData();
+	}
+}
+
 void AudioManager::SetStepBlock(int step, int block)
 {
 	int extra = std::max(step, block) + 1;
 
-	if (extra != _extra)
+	// we only need to reopen if the extra bytes are greater
+	// ... and to be honest I am not even sure this is necessary
+	if (extra > _extra)
 	{
 		_extra = extra;
 		_state = -1;

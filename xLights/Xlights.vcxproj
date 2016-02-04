@@ -274,6 +274,7 @@
     <ClCompile Include="ModelPreview.cpp" />
     <ClCompile Include="models\ArchesModel.cpp" />
     <ClCompile Include="models\Model.cpp" />
+    <ClCompile Include="models\ModelGroup.cpp" />
     <ClCompile Include="models\ModelManager.cpp" />
     <ClCompile Include="models\Node.cpp" />
     <ClCompile Include="models\StarModel.cpp" />
@@ -343,7 +344,6 @@
     <ClCompile Include="vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="VAMPPluginDialog.cpp" />
     <ClCompile Include="ViewsDialog.cpp" />
-    <ClCompile Include="WholeHouseModelNameDialog.cpp" />
     <ClCompile Include="wxCheckedListCtrl.cpp" />
     <ClCompile Include="xlColorCanvas.cpp" />
     <ClCompile Include="xlColorPicker.cpp" />
