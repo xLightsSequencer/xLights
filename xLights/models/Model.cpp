@@ -140,15 +140,14 @@ int Model::GetNumberFromChannelString(std::string sc) {
     return returnChannel;
 }
 
-void Model::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBased) {
+void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool zb) {
     
     
     wxString tempstr,channelstr;
-    std::string customModel,WholeHouseData;
     long degrees, StartChannel;
-    size_t i;
     long i2;
     
+    zeroBased = zb;
     ModelXml=ModelNode;
     ModelNetInfo = &netInfo;
     StrobeRate=0;
@@ -317,96 +316,13 @@ void Model::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBas
     if ("Arches" == DisplayAs) {
         SingleChannel = false;
         ChannelsPerString=GetNodeChannelCount(StringType) * parm2;
-    } else if (ModelNode->HasAttribute("CustomModel")) {
-        customModel = ModelNode->GetAttribute("CustomModel");
-        int maxval=GetCustomMaxChannel(customModel);
-        // fix NumberOfStrings
-        if (SingleNode) {
-            NumberOfStrings=maxval;
-        } else {
-            ChannelsPerString=maxval*GetNodeChannelCount(StringType);
-        }
     }
     
-    tempstr=ModelNode->GetAttribute("Advanced","0");
-    bool HasIndividualStartChans=tempstr == "1";
-    stringStartChan.clear();
-    stringStartChan.resize(NumberOfStrings);
-    for (i=0; i<NumberOfStrings; i++) {
-        tempstr=StartChanAttrName(i);
-        if (!zeroBased && HasIndividualStartChans && ModelNode->HasAttribute(tempstr)) {
-            stringStartChan[i] = GetNumberFromChannelString(ModelNode->GetAttribute(tempstr, "1").ToStdString())-1;
-        } else {
-            stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + i*ChannelsPerString;
-        }
-    }
+    SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     
+    InitModel();
     
-    // initialize model based on the DisplayAs value
-    wxStringTokenizer tkz(DisplayAs, " ");
-    wxString token = tkz.GetNextToken();
-    if(DisplayAs=="WholeHouse") {
-        WholeHouseData = ModelNode->GetAttribute("WholeHouseData");
-        InitWholeHouse(WholeHouseData, zeroBased);
-        CopyBufCoord2ScreenCoord();
-    } else if (token == "Tree") {
-        int firstStrand = 0;
-        if (zeroBased && ModelNode->GetAttribute("exportFirstStrand") != "") {
-            firstStrand = wxAtoi(ModelNode->GetAttribute("exportFirstStrand")) - 1;
-        }
-        if (firstStrand < 0) {
-            firstStrand = 0;
-        }
-        InitVMatrix(firstStrand);
-        token = tkz.GetNextToken();
-        token.ToLong(&degrees);
-        if (token == "Flat") {
-            degrees = 0;
-        } else if (token == "Ribbon") {
-            degrees = -1;
-        }
-        SetTreeCoord(degrees);
-    } else if (token == "Sphere") {
-        InitSphere();
-        CopyBufCoord2ScreenCoord();
-    } else if (DisplayAs == "Custom") {
-        InitCustomMatrix(customModel);
-        CopyBufCoord2ScreenCoord();
-    } else if (DisplayAs == "Vert Matrix") {
-        InitVMatrix();
-        CopyBufCoord2ScreenCoord();
-    } else if (DisplayAs == "Horiz Matrix") {
-        InitHMatrix();
-        CopyBufCoord2ScreenCoord();
-    } else if (DisplayAs == "Single Line") {
-        InitLine();
-        CopyBufCoord2ScreenCoord();
-        //SetLineCoord();
-    } else if (DisplayAs == "Arches") {
-        InitArches();
-        SetArchCoord();
-    } else if (DisplayAs == "Circle") {
-        InitCircle();
-        SetCircleCoord();
-    } else if (DisplayAs == "Window Frame") {
-        InitFrame();
-        CopyBufCoord2ScreenCoord();
-    } else if (DisplayAs == "Star") {
-        InitStar();
-        CopyBufCoord2ScreenCoord();
-    } else if (DisplayAs == "Wreath") {
-        InitWreath();
-        CopyBufCoord2ScreenCoord();
-    } else {
-        wxMessageBox(DisplayAs + " is not a valid model type for model " + name);
-        DisplayAs = "Vert Matrix";
-        InitVMatrix();  //init something to avoid some crashes
-    }
-    
-    //if (DisplayAs != "Single Line")
-    //{
     SetModelCoord(PreviewRotation);
-    //}
     size_t NodeCount=GetNodeCount();
     for(size_t i=0; i<NodeCount; i++) {
         Nodes[i]->sparkle = rand() % 10000;
@@ -453,6 +369,93 @@ void Model::SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBas
         }
     }
 }
+void Model::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
+    if (DisplayAs == "Custom") {
+        std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
+        int maxval=GetCustomMaxChannel(customModel);
+        // fix NumberOfStrings
+        if (SingleNode) {
+            NumberOfStrings=maxval;
+        } else {
+            ChannelsPerString=maxval*GetNodeChannelCount(StringType);
+        }
+    }
+    std::string tempstr = ModelXml->GetAttribute("Advanced", "0").ToStdString();
+    bool HasIndividualStartChans=tempstr == "1";
+    stringStartChan.clear();
+    stringStartChan.resize(NumberOfStrings);
+    for (int i=0; i<NumberOfStrings; i++) {
+        tempstr = StartChanAttrName(i);
+        if (!zeroBased && HasIndividualStartChans && ModelXml->HasAttribute(tempstr)) {
+            stringStartChan[i] = GetNumberFromChannelString(ModelXml->GetAttribute(tempstr, "1").ToStdString())-1;
+        } else {
+            stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + i*ChannelsPerString;
+        }
+    }
+}
+
+void Model::InitModel() {
+    // initialize model based on the DisplayAs value
+    wxStringTokenizer tkz(DisplayAs, " ");
+    wxString token = tkz.GetNextToken();
+    if(DisplayAs=="WholeHouse") {
+        std::string WholeHouseData = ModelXml->GetAttribute("WholeHouseData").ToStdString();
+        InitWholeHouse(WholeHouseData, zeroBased);
+        CopyBufCoord2ScreenCoord();
+    } else if (token == "Tree") {
+        int firstStrand = 0;
+        if (zeroBased && ModelXml->GetAttribute("exportFirstStrand") != "") {
+            firstStrand = wxAtoi(ModelXml->GetAttribute("exportFirstStrand")) - 1;
+        }
+        if (firstStrand < 0) {
+            firstStrand = 0;
+        }
+        InitVMatrix(firstStrand);
+        long degrees;
+        token = tkz.GetNextToken();
+        token.ToLong(&degrees);
+        if (token == "Flat") {
+            degrees = 0;
+        } else if (token == "Ribbon") {
+            degrees = -1;
+        }
+        SetTreeCoord(degrees);
+    } else if (token == "Sphere") {
+        InitSphere();
+        CopyBufCoord2ScreenCoord();
+    } else if (DisplayAs == "Custom") {
+        std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
+        InitCustomMatrix(customModel);
+        CopyBufCoord2ScreenCoord();
+    } else if (DisplayAs == "Vert Matrix") {
+        InitVMatrix();
+        CopyBufCoord2ScreenCoord();
+    } else if (DisplayAs == "Horiz Matrix") {
+        InitHMatrix();
+        CopyBufCoord2ScreenCoord();
+    } else if (DisplayAs == "Single Line") {
+        InitLine();
+        CopyBufCoord2ScreenCoord();
+        //SetLineCoord();
+    } else if (DisplayAs == "Arches") {
+        InitArches();
+        SetArchCoord();
+    } else if (DisplayAs == "Circle") {
+        InitCircle();
+        SetCircleCoord();
+    } else if (DisplayAs == "Window Frame") {
+        InitFrame();
+        CopyBufCoord2ScreenCoord();
+    } else if (DisplayAs == "Wreath") {
+        InitWreath();
+        CopyBufCoord2ScreenCoord();
+    } else {
+        wxMessageBox(DisplayAs + " is not a valid model type for model " + name);
+        DisplayAs = "Vert Matrix";
+        InitVMatrix();  //init something to avoid some crashes
+    }
+}
+
 
 void Model::GetNodeChannelValues(size_t nodenum, unsigned char *buf) {
     Nodes[nodenum]->GetForChannels(buf);
@@ -1003,116 +1006,6 @@ void Model::InitLine() {
     }
 }
 
-// parm3 is number of points
-// top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
-void Model::InitStar() {
-    if (parm3 < 2) parm3=2; // need at least 2 arms
-    SetNodeCount(parm1,parm2,rgbOrder);
-    
-    int maxLights = 0;
-    int numlights=parm1*parm2;
-    int cnt = 0;
-    if (starSizes.size() == 0) {
-        starSizes.resize(1);
-        starSizes[0] = numlights;
-    }
-    for (int x = 0; x < starSizes.size(); x++) {
-        if ((cnt + starSizes[x]) > numlights) {
-            starSizes[x] = numlights - cnt;
-        }
-        cnt += starSizes[x];
-        if (starSizes[x] > maxLights) {
-            maxLights = starSizes[x];
-        }
-    }
-    SetBufferSize(maxLights+1,maxLights+1);
-    
-    
-    int LastStringNum=-1;
-    int chan = 0,cursegment,nextsegment,x,y;
-    int start = 0;
-    
-    for (int cur = 0; cur < starSizes.size(); cur++) {
-        numlights = starSizes[cur];
-        if (numlights == 0) {
-            continue;
-        }
-        
-        int offset=numlights/2;
-        
-        int coffset = (maxLights - numlights) / 2;
-        /*
-         if (cur > 0) {
-         for (int f = cur; f > 0; f--) {
-         int i = starSizes[f];
-         int i2 = starSizes[f - 1];
-         coffset += (i2 - i) / 2;
-         }
-         }
-         */
-        
-        int numsegments=parm3*2;
-        double segstart_x,segstart_y,segend_x,segend_y,segstart_pct,segend_pct,r,segpct,dseg;
-        double dpct=1.0/(double)numsegments;
-        double OuterRadius=offset;
-        double InnerRadius=OuterRadius/2.618034;    // divide by golden ratio squared
-        double pct=isBotToTop ? 0.5 : 0.0;          // % of circle, 0=top
-        double pctIncr=1.0 / (double)numlights;     // this is cw
-        if (IsLtoR != isBotToTop) pctIncr*=-1.0;    // adjust to ccw
-        int ChanIncr=SingleChannel ?  1 : 3;
-        for(size_t cnt=0; cnt<numlights; cnt++) {
-            int n = cur;
-            if (!SingleNode) {
-                n = start + cnt;
-            } else {
-                n = cur;
-                if (n >= Nodes.size()) {
-                    n = Nodes.size() - 1;
-                }
-            }
-            if (Nodes[n]->StringNum != LastStringNum) {
-                LastStringNum=Nodes[n]->StringNum;
-                chan=stringStartChan[LastStringNum];
-            }
-            Nodes[n]->ActChan=chan;
-            if (!SingleNode) {
-                chan+=ChanIncr;
-            }
-            size_t CoordCount=GetCoordCount(n);
-            int lastx = 0, lasty = 0;
-            for(size_t c=0; c < CoordCount; c++) {
-                if (c >= numlights) {
-                    Nodes[n]->Coords[c].bufX=lastx;
-                    Nodes[n]->Coords[c].bufY=lasty;
-                } else {
-                    cursegment=(int)((double)numsegments*pct) % numsegments;
-                    nextsegment=(cursegment+1) % numsegments;
-                    segstart_pct=(double)cursegment / numsegments;
-                    segend_pct=(double)nextsegment / numsegments;
-                    dseg=pct - segstart_pct;
-                    segpct=dseg / dpct;
-                    r=cursegment%2==0 ? OuterRadius : InnerRadius;
-                    segstart_x=r*sin(segstart_pct*2.0*M_PI);
-                    segstart_y=r*cos(segstart_pct*2.0*M_PI);
-                    r=nextsegment%2==0 ? OuterRadius : InnerRadius;
-                    segend_x=r*sin(segend_pct*2.0*M_PI);
-                    segend_y=r*cos(segend_pct*2.0*M_PI);
-                    // now interpolate between segstart and segend
-                    x=(segend_x - segstart_x)*segpct + segstart_x + offset + 0.5 + coffset;
-                    y=(segend_y - segstart_y)*segpct + segstart_y + offset + 0.5 + coffset;
-                    Nodes[n]->Coords[c].bufX=x;
-                    Nodes[n]->Coords[c].bufY=y;
-                    lastx = x;
-                    lasty = y;
-                    pct+=pctIncr;
-                    if (pct >= 1.0) pct-=1.0;
-                    if (pct < 0.0) pct+=1.0;
-                }
-            }
-        }
-        start += numlights;
-    }
-}
 
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 void Model::InitWreath() {

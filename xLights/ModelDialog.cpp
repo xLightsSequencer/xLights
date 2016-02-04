@@ -17,6 +17,7 @@
 #include "NetInfo.h"
 #include "ModelFaceDialog.h"
 #include "ModelDimmingCurveDialog.h"
+#include "models/ModelManager.h"
 
 //(*IdInit(ModelDialog)
 const long ModelDialog::ID_STATICTEXT1 = wxNewId();
@@ -1339,8 +1340,7 @@ void ModelDialog::OnNamesButtonClick(wxCommandEvent& event)
 {
     wxXmlNode xml;
     UpdateXml(&xml);
-    Model md;
-    md.SetFromXml(&xml, *netInfo);
+    std::auto_ptr<Model> md(ModelManager::CreateModel(&xml, *netInfo));
 
     StrandNodeNamesDialog dlg(this);
     std::vector<wxString> strands;
@@ -1359,8 +1359,8 @@ void ModelDialog::OnNamesButtonClick(wxCommandEvent& event)
         }
         strands.push_back(t2);
     }
-    if (strands.size() < md.GetNumStrands()) {
-        strands.resize(md.GetNumStrands());
+    if (strands.size() < md->GetNumStrands()) {
+        strands.resize(md->GetNumStrands());
     }
     dlg.StrandsGrid->BeginBatch();
     dlg.StrandsGrid->SetMaxSize(dlg.StrandsGrid->GetSize());
@@ -1389,8 +1389,8 @@ void ModelDialog::OnNamesButtonClick(wxCommandEvent& event)
         }
         nodes.push_back(t2);
     }
-    if (nodes.size() < md.GetNodeCount()) {
-        nodes.resize(md.GetNodeCount());
+    if (nodes.size() < md->GetNodeCount()) {
+        nodes.resize(md->GetNodeCount());
     }
     dlg.NodesGrid->BeginBatch();
     dlg.NodesGrid->SetMaxSize(dlg.StrandsGrid->GetSize());
@@ -1430,11 +1430,10 @@ void ModelDialog::OnFacesButtonClick(wxCommandEvent& event)
 {
     wxXmlNode xml;
     UpdateXml(&xml);
-    Model md;
-    md.SetFromXml(&xml, *netInfo);
+    std::auto_ptr<Model> md(ModelManager::CreateModel(&xml, *netInfo));
 
     ModelFaceDialog dlg(this);
-    dlg.SetFaceInfo(&md, faceInfo);
+    dlg.SetFaceInfo(md.get(), faceInfo);
     if (dlg.ShowModal()) {
         faceInfo.clear();
         dlg.GetFaceInfo(faceInfo);

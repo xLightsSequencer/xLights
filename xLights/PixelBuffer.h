@@ -84,7 +84,7 @@ private:
     void reset(int layers, int timing);
     
     
-    Model model;
+    std::string modelName;
     int BufferHt,BufferWi;  // size of the buffer
     std::vector<NodeBaseClassPtr> Nodes;
 
@@ -99,7 +99,7 @@ public:
     PixelBufferClass();
     virtual ~PixelBufferClass();
     
-    Model &GetModel() { return model;};
+    const std::string &GetModelName() { return modelName;};
     
     RenderBuffer &BufferForLayer(int i);
     

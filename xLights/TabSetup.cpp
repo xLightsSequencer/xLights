@@ -270,7 +270,6 @@ void xLightsFrame::UpdateNetworkList()
 void xLightsFrame::UpdateChannelNames()
 {
     wxArrayString ChNames;
-    Model model;
     wxString FormatSpec,RGBFormatSpec;
     int ChannelNum,ChanPerNode,NodeNum,AbsoluteNodeNum;
     size_t NodeCount,n,c;
@@ -321,40 +320,36 @@ void xLightsFrame::UpdateChannelNames()
     CheckListBoxTestChannels->Set(ChNames);
 #endif //
 
-//  Original code
-    if (ModelsNode != nullptr) {
-        for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-        {
-            if (e->GetName() == "model" && Model::IsMyDisplay(e))
+    
+    for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
+        Model *model = it->second;
+        if (Model::IsMyDisplay(model->GetModelXml())) {
+            NodeCount=model->GetNodeCount();
+            ChanPerNode = model->GetChanCountPerNode();
+            FormatSpec = "Ch %d: "+model->name+" #%d";
+            for(n=0; n < NodeCount; n++)
             {
-                model.SetFromXml(e, NetInfo);
-                NodeCount=model.GetNodeCount();
-                ChanPerNode = model.GetChanCountPerNode();
-                FormatSpec = "Ch %d: "+model.name+" #%d";
-                for(n=0; n < NodeCount; n++)
+                ChannelNum=model->NodeStartChannel(n);
+                
+                NodeNum=n+1;
+                if (ChanPerNode==1)
                 {
-                    ChannelNum=model.NodeStartChannel(n);
-
-                    NodeNum=n+1;
-                    if (ChanPerNode==1)
+                    if (ChannelNum < ChNames.Count())
+                    {
+                        AbsoluteNodeNum=ChannelNum+1;
+                        ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum);
+                    }
+                }
+                else
+                {
+                    for(c=0; c < ChanPerNode; c++)
                     {
                         if (ChannelNum < ChNames.Count())
                         {
-                            AbsoluteNodeNum=ChannelNum+1;
-                            ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum);
+                            AbsoluteNodeNum=(ChannelNum/3)+1;
+                            ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum)+model->GetChannelColorLetter(c);
                         }
-                    }
-                    else
-                    {
-                        for(c=0; c < ChanPerNode; c++)
-                        {
-                            if (ChannelNum < ChNames.Count())
-                            {
-                                AbsoluteNodeNum=(ChannelNum/3)+1;
-                                ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum)+model.GetChannelColorLetter(c);
-                            }
-                            ChannelNum++;
-                        }
+                        ChannelNum++;
                     }
                 }
             }

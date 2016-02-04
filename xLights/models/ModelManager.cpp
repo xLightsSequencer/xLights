@@ -43,7 +43,7 @@ void ModelManager::Load(wxXmlNode *modelNode, wxXmlNode *groupNode, NetInfoClass
         if (e->GetName() == "model") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
-                createModel(e, netInfo);
+                createAndAddModel(e, netInfo);
             }
         }
     }
@@ -61,16 +61,19 @@ void ModelManager::Load(wxXmlNode *modelNode, wxXmlNode *groupNode, NetInfoClass
         }
     }
 }
-
-Model *ModelManager::createModel(wxXmlNode *node, NetInfoClass &netInfo) {
+Model *ModelManager::CreateModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) {
     std::string type = node->GetAttribute("DisplayAs").ToStdString();
     Model *model;
     if (type == "Star") {
-        model = new StarModel(node, netInfo);
+        model = new StarModel(node, netInfo, zeroBased);
     } else {
         model = new Model();
-        model->SetFromXml(node, netInfo);
+        model->SetFromXml(node, netInfo, zeroBased);
     }
+    return model;
+}
+Model *ModelManager::createAndAddModel(wxXmlNode *node, const NetInfoClass &netInfo) {
+    Model *model = CreateModel(node, netInfo);
     auto it = models.find(model->name);
     if (it != models.end()) {
         delete it->second;

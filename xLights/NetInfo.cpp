@@ -33,13 +33,13 @@ void NetInfoClass::AddNetwork(size_t NumChannels)
     NetMaxChannel.push_back(NumChannels);
 }
 
-size_t NetInfoClass::GetNumNetworks()
+size_t NetInfoClass::GetNumNetworks() const
 {
     return NetMaxChannel.size();
 }
 
 // returns -1 if NetNum is invalid
-int NetInfoClass::GetNumChannels(size_t NetNum)
+int NetInfoClass::GetNumChannels(size_t NetNum) const
 {
     if (NetNum < NetMaxChannel.size())
     {
@@ -52,7 +52,7 @@ int NetInfoClass::GetNumChannels(size_t NetNum)
 }
 
 // first channel starts with 0
-int NetInfoClass::CalcAbsChannel(int NetNum, int NetCh)
+int NetInfoClass::CalcAbsChannel(int NetNum, int NetCh) const
 {
     int AbsChannel = -1;
     if (NetNum>=0 && NetNum<NetMaxChannel.size() && NetCh>=0 && NetCh<NetMaxChannel[NetNum])
@@ -66,7 +66,7 @@ int NetInfoClass::CalcAbsChannel(int NetNum, int NetCh)
     return AbsChannel;
 }
 
-int NetInfoClass::GetTotChannels()
+int NetInfoClass::GetTotChannels() const
 {
     int tot=0;
     for(size_t NetNum=0; NetNum < NetMaxChannel.size(); NetNum++)
@@ -76,7 +76,7 @@ int NetInfoClass::GetTotChannels()
     return tot;
 }
 
-void NetInfoClass::GetAllChannelNames(wxArrayString& names)
+void NetInfoClass::GetAllChannelNames(wxArrayString& names) const
 {
     int ChNum=0;
     names.reserve(GetTotChannels());
@@ -91,7 +91,7 @@ void NetInfoClass::GetAllChannelNames(wxArrayString& names)
 }
 
 // first ChNum is 0
-wxString NetInfoClass::GetChannelName(int ChNum)
+wxString NetInfoClass::GetChannelName(int ChNum) const
 {
     int NetCh=ChNum;
     for (size_t NetNum=0; NetNum < NetMaxChannel.size(); NetNum++)
@@ -105,7 +105,7 @@ wxString NetInfoClass::GetChannelName(int ChNum)
     return string_format("Ch %d: invalid",ChNum);
 }
 
-bool NetInfoClass::GetEndNetworkAndChannel(int netNum,int startChannel, int totalChannels,int& endNetNum, int& endChannel)
+bool NetInfoClass::GetEndNetworkAndChannel(int netNum,int startChannel, int totalChannels,int& endNetNum, int& endChannel) const
 {
     if(netNum >= GetNumNetworks())
     {
@@ -142,7 +142,7 @@ bool NetInfoClass::GetEndNetworkAndChannel(int netNum,int startChannel, int tota
     return true;
 }
 
-bool NetInfoClass::GetStartNetworkAndChannelFromEndInfo(int endNetNum, int endChannel,int& netNum,int& startChannel)
+bool NetInfoClass::GetStartNetworkAndChannelFromEndInfo(int endNetNum, int endChannel,int& netNum,int& startChannel) const
 {
     if(endChannel+1 < GetNumChannels(endNetNum))
     {

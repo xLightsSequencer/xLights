@@ -20,14 +20,14 @@ protected:
 public:
     void Clear();
     void AddNetwork(size_t NumChannels);
-    size_t GetNumNetworks();
-    int GetNumChannels(size_t NetNum);
-    int CalcAbsChannel(int NetNum, int NetCh);
-    int GetTotChannels();
-    void GetAllChannelNames(wxArrayString& names);
-    wxString GetChannelName(int ChNum);
-    bool GetEndNetworkAndChannel(int netNum,int startChannel, int totalChannels,int& endNetNum, int& endChannel);
-    bool GetStartNetworkAndChannelFromEndInfo(int endNetNum, int endChannel,int& netNum,int& startChannel);
+    size_t GetNumNetworks() const;
+    int GetNumChannels(size_t NetNum) const;
+    int CalcAbsChannel(int NetNum, int NetCh) const;
+    int GetTotChannels() const;
+    void GetAllChannelNames(wxArrayString& names) const;
+    wxString GetChannelName(int ChNum) const;
+    bool GetEndNetworkAndChannel(int netNum,int startChannel, int totalChannels,int& endNetNum, int& endChannel) const;
+    bool GetStartNetworkAndChannelFromEndInfo(int endNetNum, int endChannel,int& netNum,int& startChannel) const;
 };
 
 #endif // XLIGHTSNETINFO_H

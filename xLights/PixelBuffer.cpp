@@ -25,6 +25,7 @@
 #include <wx/image.h>
 #include <wx/tokenzr.h>
 #include "DimmingCurve.h"
+#include "models/ModelManager.h"
 
 PixelBufferClass::PixelBufferClass() {
     numLayers = 0;
@@ -114,9 +115,10 @@ void PixelBufferClass::reset(int layers, int timing) {
 
 
 void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased) {
+    modelName = pbc.name;
     if (zeroBased) {
-        model.SetFromXml(pbc.GetModelXml(), netInfo, zeroBased);
-        model.InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);
+        std::auto_ptr<Model> model(ModelManager::CreateModel(pbc.GetModelXml(), netInfo, zeroBased));
+        model->InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);
     } else {
         SetDimmingCurve(pbc.modelDimmingCurve);
         pbc.InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);
@@ -124,6 +126,7 @@ void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetI
     reset(layers, timing);
 }
 void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing) {
+    Model model;
     model.parm1 = pbc.GetStrandLength(strand);
     model.parm2 = 1;
     model.parm3 = 1;
@@ -144,6 +147,7 @@ void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing
     reset(2, timing);
 }
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing) {
+    Model model;
     model.parm1 = 1;
     model.parm2 = 1;
     model.parm3 = 1;
@@ -518,7 +522,7 @@ RenderBuffer& PixelBufferClass::BufferForLayer(int layer) {
 }
 void PixelBufferClass::SetLayer(int newlayer, int period, bool resetState) {
     CurrentLayer=newlayer;
-    effects[CurrentLayer].SetState(period, resetState, model.name);
+    effects[CurrentLayer].SetState(period, resetState, modelName);
 }
 void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime) {
     effects[layer].SetFadeTimes(inTime, outTime);
