@@ -69,7 +69,6 @@ class Element
 
         StrandLayer* GetStrandLayer(int index, bool create = false);
         int getStrandLayerCount();
-        void InitStrands(wxXmlNode *node, NetInfoClass &netInfo);
         void InitStrands(Model &cls);
         bool ShowStrands() { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}

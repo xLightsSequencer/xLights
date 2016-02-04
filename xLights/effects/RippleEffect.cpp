@@ -34,7 +34,7 @@ wxPanel *RippleEffect::CreatePanel(wxWindow *parent) {
 
 void RippleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     const std::string &Object_To_DrawStr = SettingsMap["CHOICE_Ripple_Object_To_Draw"];
-    const std::string &MovementStr = SettingsMap["CHOICE_Ripple_Object_To_Draw"];
+    const std::string &MovementStr = SettingsMap["CHOICE_Ripple_Movement"];
     int Ripple_Thickness = SettingsMap.GetInt("SLIDER_Ripple_Thickness", 1);
     bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D");
     float cycles = SettingsMap.GetFloat("TEXTCTRL_Ripple_Cycles", 1.0);
@@ -168,11 +168,11 @@ void RippleEffect::Drawcircle(RenderBuffer &buffer, int Movement,int xc,int yc,d
         }
         if(Movement==MOVEMENT_EXPLODE)
         {
-            radius = radius - i;
+            radius = radius + i;
         }
         else
         {
-            radius = radius + i;
+            radius = radius - i;
         }
         for (degrees=0.0; degrees<360.0; degrees+=1.0)
         {

@@ -155,20 +155,21 @@ public:
         if (row != NULL) {
             name = row->GetName();
             mainBuffer = new PixelBufferClass();
+            Model *model = xframe->GetModel(name);
             if (xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), zeroBased)) {
 
                 for (int x = 0; x < row->getStrandLayerCount(); x++) {
                     StrandLayer *sl = row->GetStrandLayer(x);
                     if (sl -> GetEffectCount() > 0) {
                         strandBuffers[x].reset(new PixelBufferClass());
-                        strandBuffers[x]->InitStrandBuffer(mainBuffer->GetModel(), x, data.FrameTime());
+                        strandBuffers[x]->InitStrandBuffer(*model, x, data.FrameTime());
                     }
                     for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
-                        if (n < mainBuffer->GetModel().GetStrandLength(x)) {
+                        if (n < model->GetStrandLength(x)) {
                             EffectLayer *nl = sl->GetNodeLayer(n);
                             if (nl -> GetEffectCount() > 0) {
                                 nodeBuffers[SNPair(x, n)].reset(new PixelBufferClass());
-                                nodeBuffers[SNPair(x, n)]->InitNodeBuffer(mainBuffer->GetModel(), x, n, data.FrameTime());
+                                nodeBuffers[SNPair(x, n)]->InitNodeBuffer(*model, x, n, data.FrameTime());
                             }
                         }
                     }
@@ -285,7 +286,7 @@ public:
     }
     SequenceData *createExportBuffer() {
         SequenceData *sb = new SequenceData();
-        sb->init(mainBuffer->GetModel().GetChanCount(), seqData->NumFrames(), seqData->FrameTime());
+        sb->init(xLights->GetModel(mainBuffer->GetModelName())->GetChanCount(), seqData->NumFrames(), seqData->FrameTime());
         seqData = sb;
         return sb;
     }
@@ -428,10 +429,10 @@ public:
                             SetCalOutputStatus(frame, strand);
                             buffer->SetColors(1, &((*seqData)[frame][0]));
                             buffer->CalcOutput(frame, valid);
-                            size_t nodeCnt = buffer->GetModel().GetNodeCount();
+                            size_t nodeCnt = buffer->GetNodeCount();
                             for(size_t n = 0; n < nodeCnt; n++) {
-                                int start = buffer->GetModel().NodeStartChannel(n);
-                                buffer->GetModel().GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                                int start = buffer->NodeStartChannel(n);
+                                buffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
                             }
                         }
                     }
@@ -471,10 +472,10 @@ public:
                             std::vector<bool> valid(2, true);
                             buffer->SetColors(1, &((*seqData)[frame][0]));
                             buffer->CalcOutput(frame, valid);
-                            size_t nodeCnt = buffer->GetModel().GetNodeCount();
+                            size_t nodeCnt = buffer->GetNodeCount();
                             for(size_t n = 0; n < nodeCnt; n++) {
-                                int start = buffer->GetModel().NodeStartChannel(n);
-                                buffer->GetModel().GetNodeChannelValues(n, &((*seqData)[frame][start]));
+                                int start = buffer->NodeStartChannel(n);
+                                buffer->GetNodeChannelValues(n, &((*seqData)[frame][start]));
                             }
                         }
                     }
@@ -654,9 +655,9 @@ void xLightsFrame::RenderGridToSeqData() {
                 delete job;
                 continue;
             }
-            size_t cn = buffer->GetModel().ChannelsPerNode();
-            for (int node = 0; node < buffer->GetModel().GetNodeCount(); node++) {
-                int start = buffer->GetModel().NodeStartChannel(node);
+            size_t cn = buffer->GetChanCountPerNode();
+            for (int node = 0; node < buffer->GetNodeCount(); node++) {
+                int start = buffer->NodeStartChannel(node);
                 for (int c = 0; c < cn; c++) {
                     int cnum = start + c;
                     if (cnum < SeqData.NumChannels()) {
@@ -783,7 +784,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     NextRenderer wait;
     RenderJob *job = new RenderJob(el, SeqData, this, true);
     SequenceData *data = job->createExportBuffer();
-    int cpn = job->getBuffer()->GetModel().GetChanCountPerNode();
+    int cpn = job->getBuffer()->GetChanCountPerNode();
 
     if (command.GetInt()) {
         job->setRenderRange(0, SeqData.NumFrames());

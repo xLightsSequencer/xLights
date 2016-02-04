@@ -32,20 +32,23 @@ public:
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
     DimmingCurve *modelDimmingCurve;
     
+    void InitRenderBufferNodes(int type, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
     
-private:
     
-    static NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
     
 protected:
+    static NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
+    
     void InitLine();
-private:
+    
+    virtual void InitModel();
+    void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
+
     void InitVMatrix(int firstExportStrand = 0);
     void InitHMatrix();
     void InitArches();
     void InitCircle();
     void InitFrame();
-    void InitStar();
     void InitWreath();
     void InitSphere();
     void InitWholeHouse(const std::string &data, bool zeroBased = false);
@@ -82,6 +85,7 @@ private:
     double PreviewScaleX, PreviewScaleY;
     int PreviewRotation;
     long ModelVersion;
+    bool zeroBased;
     
     int mMinScreenX;
     int mMinScreenY;
@@ -91,7 +95,6 @@ private:
     int mDragMode;
     int mLastResizeX;
     wxXmlNode* ModelXml;
-protected:
     
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
@@ -115,9 +118,9 @@ public:
     bool Selected=false;
     bool GroupSelected=false;
     std::string ModelStartChannel;
-    NetInfoClass *ModelNetInfo;
+    const NetInfoClass * ModelNetInfo;
     bool Overlapping=false;
-    void SetFromXml(wxXmlNode* ModelNode, NetInfoClass &netInfo, bool zeroBased=false);
+    void SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool zeroBased=false);
     size_t GetNodeCount() const;
     int GetChanCount() const;
     int GetChanCountPerNode() const;
@@ -150,7 +153,6 @@ public:
     void SetModelCoord(int degrees);
     int CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y);
     int GetRotation();
-    int ChannelsPerNode();
     int NodeStartChannel(size_t nodenum) const;
     const std::string &NodeType(size_t nodenum) const;
     int MapToNodeIndex(int strand, int node) const;

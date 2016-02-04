@@ -541,8 +541,6 @@
 		<Unit filename="VAMPPluginDialog.h" />
 		<Unit filename="ViewsDialog.cpp" />
 		<Unit filename="ViewsDialog.h" />
-		<Unit filename="WholeHouseModelNameDialog.cpp" />
-		<Unit filename="WholeHouseModelNameDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="djdebug.cpp" />
@@ -723,6 +721,8 @@
 		<Unit filename="models/ArchesModel.h" />
 		<Unit filename="models/Model.cpp" />
 		<Unit filename="models/Model.h" />
+		<Unit filename="models/ModelGroup.cpp" />
+		<Unit filename="models/ModelGroup.h" />
 		<Unit filename="models/ModelManager.cpp" />
 		<Unit filename="models/ModelManager.h" />
 		<Unit filename="models/Node.cpp" />
@@ -890,7 +890,6 @@
 		<Unit filename="wxsmith/VAMPPluginDialog.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
-		<Unit filename="wxsmith/WholeHouseModelNameDialog.wxs" />
 		<Unit filename="wxsmith/dlgPreviewSize.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="wxsmith/xlColorPickerFields.wxs" />

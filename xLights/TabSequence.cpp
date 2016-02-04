@@ -8,6 +8,8 @@
 #include "xLightsXmlFile.h"
 #include "effects/RenderableEffect.h"
 
+#include "models/ModelGroup.h"
+
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
     xlightsFilename=filename;
@@ -312,22 +314,47 @@ void xLightsFrame::UpdateModelsList()
     ListBoxElementList->DeleteAllItems();
     PreviewModels.clear();
     
+    
+    std::set<std::string> modelsAdded;
+    
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         Model *model = it->second;
-        if (model->IsMyDisplay(model->GetModelXml())) {
-            if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
-                msg += wxString::Format("%s - last channel: %u\n",model->name, model->GetLastChannel());
+        if (model->GetDisplayAs() == "WholeHouse") {
+            ModelGroup *grp = (ModelGroup*)model;
+            if (grp->IsSelected()) {
+                for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+                    if (modelsAdded.find(*it) == modelsAdded.end()) {
+                        Model *m = AllModels[*it];
+                        if (m != nullptr) {
+                            modelsAdded.insert(*it);
+                            PreviewModels.push_back(m);
+                        }
+                    }
+                }
             }
-            long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(), model->name);
-            
-            std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
-            model->SetModelStartChan(start_channel);
-            int end_channel = model->GetLastChannel()+1;
-            ListBoxElementList->SetItem(itemIndex,1, start_channel);
-            ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
-            ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
-            PreviewModels.push_back(model);
         }
+    }
+    if (PreviewModels.size() == 0) {
+        for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
+            Model *model = it->second;
+            if (model->IsMyDisplay(model->GetModelXml())) {
+                PreviewModels.push_back(model);
+            }
+        }
+    }
+    for (auto it = PreviewModels.begin(); it != PreviewModels.end(); it++) {
+        Model *model = *it;
+        if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
+            msg += wxString::Format("%s - last channel: %u\n",model->name, model->GetLastChannel());
+        }
+        long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(), model->name);
+        
+        std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
+        model->SetModelStartChan(start_channel);
+        int end_channel = model->GetLastChannel()+1;
+        ListBoxElementList->SetItem(itemIndex,1, start_channel);
+        ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
+        ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
     }
     
     ListBoxElementList->SortItems(MyCompareFunction,0);

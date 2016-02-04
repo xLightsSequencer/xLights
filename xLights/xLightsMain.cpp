@@ -2498,7 +2498,6 @@ void xLightsFrame::OnButtonGracefulStopClick(wxCommandEvent& event)
 wxString xLightsFrame::CurrentDir = "";
 wxString xLightsFrame::PlaybackMarker = "";
 wxString xLightsFrame::xlightsFilename = "";
-std::vector<Model*> xLightsFrame::PreviewModels;
 ModelManager xLightsFrame::AllModels;
 xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = NULL;
 

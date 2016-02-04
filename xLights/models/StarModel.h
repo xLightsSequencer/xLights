@@ -7,9 +7,11 @@
 class StarModel : public Model
 {
     public:
-        StarModel();
+        StarModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
         virtual ~StarModel();
     protected:
+        virtual void InitModel() override;
+
     private:
 };
 

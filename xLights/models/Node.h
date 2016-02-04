@@ -51,6 +51,17 @@ public:
         offsets[1] = 1;
         offsets[2] = 2;
     }
+    NodeBaseClass(const NodeBaseClass &c): sparkle(c.sparkle), ActChan(c.ActChan), StringNum(c.StringNum),
+        Coords(c.Coords), OrigCoords(c.OrigCoords), name(nullptr), chanCnt(c.chanCnt)
+    {
+        if (c.name != nullptr) {
+            name = new std::string(*(c.name));
+        }
+        for (int x = 0; x < 3; x++) {
+            this->offsets[x] = c.offsets[x];
+            this->c[x] = c.c[x];
+        }
+    }
 
     NodeBaseClass(int StringNumber, size_t NodesPerString)
     {
@@ -74,6 +85,10 @@ public:
         } else {
             name = nullptr;
         }
+    }
+    
+    virtual NodeBaseClass *clone() const {
+        return new NodeBaseClass(*this);
     }
 
     // only for use in initializing the custom model
@@ -181,7 +196,9 @@ public:
     virtual const std::string &GetNodeType() const override {
         return RED;
     }
-
+    virtual NodeBaseClass *clone() const override {
+        return new NodeClassRed(*this);
+    }
 };
 
 class NodeClassGreen : public NodeBaseClass
@@ -200,6 +217,9 @@ public:
     virtual const std::string &GetNodeType() const override {
         return GREEN;
     }
+    virtual NodeBaseClass *clone() const override {
+        return new NodeClassGreen(*this);
+    }
 };
 
 class NodeClassBlue : public NodeBaseClass
@@ -217,6 +237,9 @@ public:
     }
     virtual const std::string &GetNodeType() const override {
         return BLUE;
+    }
+    virtual NodeBaseClass *clone() const override {
+        return new NodeClassBlue(*this);
     }
 };
 class NodeClassCustom : public NodeBaseClass
@@ -254,6 +277,9 @@ public:
             c[0] = 0;
         }
     }
+    virtual NodeBaseClass *clone() const override {
+        return new NodeClassCustom(*this);
+    }
 private:
     HSVValue hsv;
     std::string type;
@@ -280,6 +306,9 @@ public:
     }
     virtual const std::string &GetNodeType() const override {
         return WHITE;
+    }
+    virtual NodeBaseClass *clone() const override {
+        return new NodeClassWhite(*this);
     }
 };
 class NodeClassRGBW : public NodeBaseClass
@@ -316,6 +345,9 @@ public:
     }
     virtual const std::string &GetNodeType() const override {
         return RGBW;
+    }
+    virtual NodeBaseClass *clone() const override {
+        return new NodeClassRGBW(*this);
     }
 };
 

@@ -202,14 +202,6 @@ void Element::InitStrands(Model &model) {
         GetStrandLayer(x, true)->InitFromModel(model);
     }
 }
-void Element::InitStrands(wxXmlNode *node, NetInfoClass &netInfo) {
-    if (node == NULL) {
-        return;
-    }
-    Model model;
-    model.SetFromXml(node, netInfo);
-    InitStrands(model);
-}
 
 StrandLayer* Element::GetStrandLayer(int index, bool create) {
     while (create && index >= mStrandLayers.size()) {

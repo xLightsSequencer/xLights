@@ -234,6 +234,7 @@ public:
 
 
     int BufferHt,BufferWi;  // size of the buffer
+    
     xlColorVector pixels; // this is the calculation buffer
     xlColorVector tempbuf;
     PaletteClass palette;

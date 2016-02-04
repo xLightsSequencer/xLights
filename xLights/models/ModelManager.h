@@ -29,11 +29,10 @@ class ModelManager
         std::map<std::string, Model*>::const_iterator end() const;
         int size() const;
     
+        //Make sure the Model is deleted when done with
+        static Model *CreateModel(wxXmlNode *node, const NetInfoClass &ni, bool zeroBased = false);
     protected:
-        Model *createModel(wxXmlNode *node, NetInfoClass &ni);
-        wxXmlNode* CreateModelNodeFromGroup(int previewW, int previewH, wxXmlNode *node);
-        wxXmlNode *BuildWholeHouseModel(int previewW, int previewH,
-                                        const std::string &modelName, const wxXmlNode *node, std::vector<Model*> &models);
+        Model *createAndAddModel(wxXmlNode *node, const NetInfoClass &ni);
     private:
     
     

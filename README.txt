@@ -7,6 +7,10 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Fix effect movement that could allow overlaps.
+    -- bug(gil)   Prevent ability to crush effect size to zero when left and right edges of joined effects are moved.
+    -- bug(dkulp) Fix Ripple implode/explode.  Fixes #460
+    -- bug(dkulp) Restore model group selection for layout/preview
     -- bug(gil)   Correct Save and other buttons not greying out when closing sequence.  Fixes #402.
     -- bug(gil)   Fix not being able to scroll to all models on grid in some instances.  Fixes #405.
     -- bug(gil)   Fix ability to zoom after changing sequence duration.  Fixes #439.
