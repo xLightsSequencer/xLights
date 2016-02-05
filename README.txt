@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Fix morph effect assist orientation.  Fixes #462.
     -- bug(gil)   Fix creating new image with Pictures Effect Assist.
     -- bug(dkulp) The v3 importer always generates in an "older" v4 format, not the current.   Adjust accordingly.
     -- bug(gil)   Fix effect movement that could allow overlaps.

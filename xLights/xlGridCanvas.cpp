@@ -40,23 +40,13 @@ void xlGridCanvas::AdjustSize(wxSize& parent_size)
 int xlGridCanvas::GetRowCenter(int percent)
 {
     int row = calcCellFromPercent(percent, mRows);
-    if( mModel->GetIsBtoT()) {
-        return ((mRows-row-1)* mCellSize) + (1.5 * mCellSize);
-    }
-    else {
-        return (row * mCellSize) + (1.5 * mCellSize);
-    }
+    return ((mRows-row-1)* mCellSize) + (1.5 * mCellSize);
 }
 
 int xlGridCanvas::GetColumnCenter(int percent)
 {
     int col = calcCellFromPercent(percent, mColumns);
-    if( mModel->GetIsLtoR()) {
-        return (col * mCellSize) + (1.5 * mCellSize);
-    }
-    else {
-        return ((mColumns-col-1)* mCellSize) + (1.5 * mCellSize);
-    }
+    return (col * mCellSize) + (1.5 * mCellSize);
 }
 
 int xlGridCanvas::GetCellFromPosition(int position)
@@ -67,22 +57,13 @@ int xlGridCanvas::GetCellFromPosition(int position)
 int xlGridCanvas::SetRowCenter(int position)
 {
     int row = GetCellFromPosition(position);
-
-    if( mModel->GetIsBtoT()) {
-        row = mRows - row - 1;
-    }
-
+    row = mRows - row - 1;
     return calcPercentFromCell(row, mRows);
 }
 
 int xlGridCanvas::SetColumnCenter(int position)
 {
     int col = GetCellFromPosition(position);
-
-    if( !mModel->GetIsLtoR()) {
-        col = mColumns - col - 1;
-    }
-
     return calcPercentFromCell(col, mColumns);
 }
 
