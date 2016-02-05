@@ -95,6 +95,7 @@ class xLightsXmlFile : public wxFileName
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void UpdateVersion();
+        void UpdateVersion(const std::string &version);
         void AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent);
 
         bool IsOpen() { return is_open; }

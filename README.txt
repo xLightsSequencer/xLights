@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) The v3 importer always generates in an "older" v4 format, not the current.   Adjust accordingly.
     -- bug(gil)   Fix effect movement that could allow overlaps.
     -- bug(gil)   Prevent ability to crush effect size to zero when left and right edges of joined effects are moved.
     -- bug(dkulp) Fix Ripple implode/explode.  Fixes #460
