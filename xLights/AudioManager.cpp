@@ -262,56 +262,140 @@ int AudioManager::decodesideinfosize(int version, int mono)
 
 bool AudioManager::CheckCBR()
 {
-	bool isCBR = true;
+	// MP3 files are nasty
+	// The spec is not public
+
+	unsigned int checkvalidmask = 0xFFFF0DFF; // this mask removes things that can vary between frames
+	unsigned int master = 0; // this is the master header we use to verify that the frame header is a header
+	int masterbitrate = -1; // this is the bitrate we first believe the file to be ... it is used to find VBR files which dont contain the Xing frame
+	bool isCBR = true; // we start assuming the file is CBR ... and look for evidence it isnt
 
 	wxFFile mp3file(_audio_file, "rb");
 
-	// read the header 2 bytes ... the first 11 bits should be set
-	char fh[4];
-	mp3file.Read(&fh[0], sizeof(fh));
-
-	if (fh[0] == (char)0xFF && (char)(fh[1] & 0xE0) == (char)0xE0)
+	// we are going to scan the whole file looking for evidence it isnt CBR
+	while (!mp3file.Eof())
 	{
-		// this is a valid frame
-		int version = (fh[1] & 0x18) >> 3;
-		int layertype = (fh[1] & 0x06) >> 1;
-		int bitrateindex = (fh[2] & 0xF0) >> 4;
-		int bitrate = decodebitrateindex(bitrateindex, version, layertype) * 1000;
-		int samplerateindex = (fh[2] & 0x0C) >> 2;
-		int samplerate = decodesamplerateindex(samplerateindex, version);
-		int padding = (fh[2] & 0x02) >> 1;
-		int mono = fh[3] & 0xC0 >> 6;
-
-		int framesize;
-
-		if (layertype == 3)
+		// scan until I find the next header frame ... this has a 0xFF byte followed by a byte with the first 3 bits high ... even then you cant be sure it is a header
+		bool atstart = false;
+		while (!atstart && !mp3file.Eof())
 		{
-			framesize = (12 * bitrate / samplerate + padding) * 4;
+			char start = ' ';
+			while (start != (char)0xFF && !mp3file.Eof())
+			{
+				mp3file.Read(&start, 1);
+			}
+			if (!mp3file.Eof())
+			{
+				mp3file.Read(&start, 1);
+				if ((char)(start & 0xE0) == (char)0xE0)
+				{
+					atstart = true;
+					mp3file.Seek(-2, wxFromCurrent);
+				}
+				else
+				{
+					mp3file.Seek(-1, wxFromCurrent);
+				}
+			}
 		}
-		else
-		{
-			framesize = 144 * bitrate / samplerate + padding;
-		}
 
-		int nextframeoffset = 4 + framesize;
-		int vbrtaglocation = nextframeoffset + 4 + 32;
-
-		mp3file.Seek(vbrtaglocation, wxFromStart);
-		mp3file.Read(&fh[0], sizeof(fh));
-
-		if (fh[0] == 'V' && fh[1] == 'B' && fh[2] == 'R' && fh[3] == 'I')
+		// At this point we have found a possible header ... and reset the file pointer to the start of the header
+		if (!mp3file.Eof())
 		{
-			isCBR = false;
-		}
-		else
-		{
-			int xingtagoffset = nextframeoffset + 4 + decodesideinfosize(version, mono);
-			mp3file.Seek(xingtagoffset, wxFromStart);
+			// read the header 4 bytes
+			char fh[4];
 			mp3file.Read(&fh[0], sizeof(fh));
 
-			if (fh[0] == 'X' && fh[1] == 'i' && fh[2] == 'n' && fh[3] == 'g')
+			// this must be true
+			if (fh[0] == (char)0xFF && (char)(fh[1] & 0xE0) == (char)0xE0)
 			{
-				isCBR = false;
+				// if we have not found a header before work out what the non variant parts of the header are and save them
+				if (master == 0)
+				{
+					master = ((((unsigned int)fh[0]) << 24) + (((unsigned int)fh[1]) << 16) + (((unsigned int)fh[2]) << 8) + ((unsigned int)fh[3])) & checkvalidmask;
+				}
+
+				// extract the non variant parts of the header for the current record
+				unsigned int compare = ((((unsigned int)fh[0]) << 24) + (((unsigned int)fh[1]) << 16) + (((unsigned int)fh[2]) << 8) + ((unsigned int)fh[3])) & checkvalidmask;
+
+				// check all the fields that should match across frames do
+				// this is the best way to be reasonably sure this really is a new frame
+				if (compare == master)
+				{
+					// now extract the frame attributes
+					int version = (fh[1] & 0x18) >> 3;
+					int layertype = (fh[1] & 0x06) >> 1;
+					int bitrateindex = (fh[2] & 0xF0) >> 4;
+					int bitrate = decodebitrateindex(bitrateindex, version, layertype) * 1000;
+					int samplerateindex = (fh[2] & 0x0C) >> 2;
+					int samplerate = decodesamplerateindex(samplerateindex, version);
+					int padding = (fh[2] & 0x02) >> 1;
+					int mono = fh[3] & 0xC0 >> 6;
+
+					int framesize;
+
+					// reject anything that looks invalid
+					if (samplerate == 0 || layertype == 0 || version == 1 || bitrate == 0 || samplerate == 3)
+					{
+						// frame header is not valid
+						framesize = 0;
+						// this was a false first header so reset our master frame header
+						if (masterbitrate == -1)
+						{
+							master = 0;
+						}
+					}
+					else
+					{
+						// calculate the frame size ... this is the full size including the header
+						if (layertype == 3)
+						{
+							framesize = (12 * bitrate / samplerate + padding) * 4;
+						}
+						else
+						{
+							framesize = 144 * bitrate / samplerate + padding;
+						}
+					}
+
+					// if framesize is zero then this clearly isnt a proper frame
+					if (framesize != 0)
+					{
+						// if we have not saved the bitrate we think it is from the first frame do so
+						if (masterbitrate == -1)
+						{
+							masterbitrate = bitrate;
+						}
+
+						// if this frame has a different bitrate to the first frame ... then this is a VBR file
+						if (masterbitrate != bitrate)
+						{
+							isCBR = false;
+
+							// jump to the end of the file
+							mp3file.Seek(0, wxFromEnd);
+							break;
+						}
+
+						// seek to Xing tag offset
+						mp3file.Seek(32, wxFromCurrent);
+						mp3file.Read(&fh[0], sizeof(fh));
+
+						if (fh[0] == 'X' && fh[1] == 'i' && fh[2] == 'n' && fh[3] == 'g')
+						{
+							isCBR = false;
+
+							// jump to the end of the file
+							mp3file.Seek(0, wxFromEnd);
+							break;
+						}
+						else
+						{
+							// jump over the rest of the frame ... this helps avoiding find false headers in the music data
+							mp3file.Seek(framesize - 32 - 2 * sizeof(fh), wxFromCurrent);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -635,13 +719,17 @@ float AudioManager::GetLeftData(int offset)
 {
 	if (offset > _trackSize)
 	{
-		int a = 0;
+		return 0;
 	}
 	return _data[0][offset];
 }
 
 float AudioManager::GetRightData(int offset)
 {
+	if (offset > _trackSize)
+	{
+		return 0;
+	}
 	return _data[1][offset];
 }
 
@@ -649,12 +737,16 @@ float* AudioManager::GetLeftDataPtr(int offset)
 {
 	if (offset > _trackSize)
 	{
-		int a = 0;
+		return 0;
 	}
 	return &_data[0][offset];
 }
 
 float* AudioManager::GetRightDataPtr(int offset)
 {
+	if (offset > _trackSize)
+	{
+		return 0;
+	}
 	return &_data[1][offset];
 }

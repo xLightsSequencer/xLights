@@ -657,6 +657,18 @@
     <ClCompile Include="models\ModelGroup.cpp">
       <Filter>Source Files\models</Filter>
     </ClCompile>
+    <ClCompile Include="models\WholeHouseModel.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\CircleModel.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\CustomModel.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\SingleLineModel.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">

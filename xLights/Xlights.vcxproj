@@ -273,12 +273,16 @@
     <ClCompile Include="ModelListDialog.cpp" />
     <ClCompile Include="ModelPreview.cpp" />
     <ClCompile Include="models\ArchesModel.cpp" />
+    <ClCompile Include="models\CircleModel.cpp" />
+    <ClCompile Include="models\CustomModel.cpp" />
     <ClCompile Include="models\Model.cpp" />
     <ClCompile Include="models\ModelGroup.cpp" />
     <ClCompile Include="models\ModelManager.cpp" />
     <ClCompile Include="models\Node.cpp" />
+    <ClCompile Include="models\SingleLineModel.cpp" />
     <ClCompile Include="models\StarModel.cpp" />
     <ClCompile Include="models\TreeModel.cpp" />
+    <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="ModelViewSelector.cpp" />
     <ClCompile Include="NetInfo.cpp" />
     <ClCompile Include="NewTimingDialog.cpp" />
