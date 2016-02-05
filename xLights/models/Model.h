@@ -33,44 +33,30 @@ public:
     DimmingCurve *modelDimmingCurve;
     
     void InitRenderBufferNodes(int type, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
-    
-    
-    
+    bool IsMyDisplay() { return isMyDisplay;}
 protected:
     static NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
     
-    void InitLine();
     
     virtual void InitModel();
-    void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
+    virtual int CalcCannelsPerString();
+    virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
 
     void InitVMatrix(int firstExportStrand = 0);
     void InitHMatrix();
-    void InitArches();
-    void InitCircle();
     void InitFrame();
     void InitWreath();
     void InitSphere();
-    void InitWholeHouse(const std::string &data, bool zeroBased = false);
     
     void SetBufferSize(int NewHt, int NewWi);
     void SetRenderSize(int NewHt, int NewWi);
     void SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string &rgbOrder);
     void CopyBufCoord2ScreenCoord();
-    void SetTreeCoord(long degrees);
     
     void SetLineCoord();
-    void SetArchCoord();
-    void SetCircleCoord();
-    int GetCustomMaxChannel(const std::string& customModel);
-    void InitCustomMatrix(const std::string& customModel);
     double toRadians(long degrees);
     long toDegrees(double radians);
     std::string GetNextName();
-    
-    
-    std::vector<int> starSizes;
-    std::vector<int> circleSizes;
     
     int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
     int pixelSize = 2;
@@ -86,6 +72,7 @@ protected:
     int PreviewRotation;
     long ModelVersion;
     bool zeroBased;
+    bool isMyDisplay;
     
     int mMinScreenX;
     int mMinScreenY;
@@ -98,20 +85,19 @@ protected:
     
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
-    std::string rgbOrder;
     long parm1;         /* Number of strings in the model or number of arches (except for frames & custom) */
     long parm2;         /* Number of nodes per string in the model or number of segments per arch (except for frames & custom) */
     long parm3;         /* Number of strands per string in the model or number of lights per arch segment (except for frames & custom) */
     bool IsLtoR;         // true=left to right, false=right to left
-    bool SingleNode;     // true for dumb strings and single channel strings
-    bool SingleChannel;  // true for traditional single-color strings
     std::vector<long> stringStartChan;
     bool isBotToTop;
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
     
-    friend class PixelBufferClass;
 public:
+    std::string rgbOrder;
+    bool SingleNode;     // true for dumb strings and single channel strings
+    bool SingleChannel;  // true for traditional single-color strings
     
     int RenderHt,RenderWi;  // size of the rendered output
     bool MyDisplay;
@@ -145,7 +131,6 @@ public:
     void AddToWholeHouseModel(int pw, int ph, std::vector<int>& xPos,std::vector<int>& yPos,
                               std::vector<int>& actChannel,std::vector<std::string>& nodeTypes);
     void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
-    bool CanRotate();
     void Rotate(int degrees);
     const std::string& GetStringType(void) const { return StringType; }
     const std::string& GetDisplayAs(void) const { return DisplayAs; }
@@ -155,7 +140,7 @@ public:
     int GetRotation();
     int NodeStartChannel(size_t nodenum) const;
     const std::string &NodeType(size_t nodenum) const;
-    int MapToNodeIndex(int strand, int node) const;
+    virtual int MapToNodeIndex(int strand, int node) const;
     void SetModelStartChan(const std::string &start_channel);
     int ChannelStringToNumber(std::string channel);
     
@@ -190,34 +175,12 @@ public:
     float GetHcenterOffset();
     float GetVcenterOffset();
     
-    bool GetIsLtoR() {return IsLtoR;}
-    bool GetIsBtoT() {return isBotToTop;}
+    bool GetIsLtoR() const {return IsLtoR;}
+    bool GetIsBtoT() const {return isBotToTop;}
     
-    int GetStrandLength(int strand) const;
-    
-    long GetNumArches() const
-    {
-        if (DisplayAs == wxT("Arches"))
-            return parm1;
-        else
-            return 0;
-    }
-    
-    long GetNodesPerArch() const
-    {
-        if (DisplayAs == wxT("Arches"))
-            return parm2;
-        else
-            return 0;
-    }
-    
-    int GetNumStrands() const;
-    int GetStarSize(int starLayer) const {
-        return starSizes[starLayer];
-    }
-    int GetCircleSize(int circleLayer) const {
-        return circleSizes[circleLayer];
-    }
+    virtual int GetStrandLength(int strand) const;
+
+    virtual int GetNumStrands() const;
     std::string GetStrandName(int x, bool def = false) const {
         if (x < strandNames.size()) {
             return strandNames[x];

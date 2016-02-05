@@ -323,7 +323,7 @@ void xLightsFrame::UpdateChannelNames()
     
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         Model *model = it->second;
-        if (Model::IsMyDisplay(model->GetModelXml())) {
+        if (model->IsMyDisplay()) {
             NodeCount=model->GetNodeCount();
             ChanPerNode = model->GetChanCountPerNode();
             FormatSpec = "Ch %d: "+model->name+" #%d";

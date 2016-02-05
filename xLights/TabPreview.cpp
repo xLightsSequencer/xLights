@@ -95,9 +95,8 @@ void xLightsFrame::SelectModel(const std::string & name)
             TextCtrlPreviewElementHeight->SetValue(wxString::Format( "%0.1f",newscaley));
             SliderPreviewRotate->SetValue(m->GetRotation());
             TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",m->GetRotation()));
-            bool canrotate=m->CanRotate();
-            SliderPreviewRotate->Enable(canrotate);
-            StaticTextPreviewRotation->Enable(canrotate);
+            SliderPreviewRotate->Enable(true);
+            StaticTextPreviewRotation->Enable(true);
             TextCtrlModelStartChannel->SetValue(m->ModelStartChannel);
             if (CheckBoxOverlap->GetValue()== true) {
                 foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);

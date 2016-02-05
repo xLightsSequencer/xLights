@@ -17,6 +17,7 @@
 		670C828B1C45C48B000AA5D8 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C82851C45C48B000AA5D8 /* Model.cpp */; };
 		670C828E1C45CCCF000AA5D8 /* Color.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C828D1C45CCCF000AA5D8 /* Color.cpp */; };
 		670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E473E1C62A901008F4C60 /* ModelGroup.cpp */; };
+		670E47421C62F4AD008F4C60 /* CircleModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E47411C62F4AD008F4C60 /* CircleModel.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
 		671C0BCD1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.dylib */; };
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
@@ -138,6 +139,9 @@
 		67AAF8FA1B63785900585431 /* phoneme_mapping in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F61B63785900585431 /* phoneme_mapping */; };
 		67AAF8FB1B63785900585431 /* standard_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F71B63785900585431 /* standard_dictionary */; };
 		67AAF8FD1B642E6C00585431 /* LyricsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */; };
+		67ACBAB21C63D84500BFA7D6 /* CustomModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67ACBAB11C63D84500BFA7D6 /* CustomModel.cpp */; };
+		67ACBAB51C63DAD400BFA7D6 /* WholeHouseModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67ACBAB41C63DAD400BFA7D6 /* WholeHouseModel.cpp */; };
+		67ACBAB81C63DDA400BFA7D6 /* SingleLineModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67ACBAB71C63DDA400BFA7D6 /* SingleLineModel.cpp */; };
 		67B2CF711C39D98A003C17CA /* DMXPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CF251C39D98A003C17CA /* DMXPanel.cpp */; };
 		67B2CF721C39D98A003C17CA /* FacesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CF271C39D98A003C17CA /* FacesPanel.cpp */; };
 		67B2CF731C39D98A003C17CA /* FanPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CF291C39D98A003C17CA /* FanPanel.cpp */; };
@@ -270,6 +274,8 @@
 		670C828D1C45CCCF000AA5D8 /* Color.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Color.cpp; sourceTree = "<group>"; };
 		670E473D1C62A901008F4C60 /* ModelGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelGroup.h; path = models/ModelGroup.h; sourceTree = "<group>"; };
 		670E473E1C62A901008F4C60 /* ModelGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelGroup.cpp; path = models/ModelGroup.cpp; sourceTree = "<group>"; };
+		670E47401C62F4AD008F4C60 /* CircleModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CircleModel.h; path = models/CircleModel.h; sourceTree = "<group>"; };
+		670E47411C62F4AD008F4C60 /* CircleModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CircleModel.cpp; path = models/CircleModel.cpp; sourceTree = "<group>"; };
 		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
 		671B331C1AD5CB7600C9F215 /* UtilClasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UtilClasses.h; sourceTree = "<group>"; };
@@ -492,6 +498,12 @@
 		67AAF8F71B63785900585431 /* standard_dictionary */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = standard_dictionary; path = bin/standard_dictionary; sourceTree = "<group>"; };
 		67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LyricsDialog.cpp; sourceTree = "<group>"; };
 		67AAF8FE1B642E7D00585431 /* LyricsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LyricsDialog.h; sourceTree = "<group>"; };
+		67ACBAB01C63D84500BFA7D6 /* CustomModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CustomModel.h; path = models/CustomModel.h; sourceTree = "<group>"; };
+		67ACBAB11C63D84500BFA7D6 /* CustomModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CustomModel.cpp; path = models/CustomModel.cpp; sourceTree = "<group>"; };
+		67ACBAB31C63DAD400BFA7D6 /* WholeHouseModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WholeHouseModel.h; path = models/WholeHouseModel.h; sourceTree = "<group>"; };
+		67ACBAB41C63DAD400BFA7D6 /* WholeHouseModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WholeHouseModel.cpp; path = models/WholeHouseModel.cpp; sourceTree = "<group>"; };
+		67ACBAB61C63DDA400BFA7D6 /* SingleLineModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SingleLineModel.h; path = models/SingleLineModel.h; sourceTree = "<group>"; };
+		67ACBAB71C63DDA400BFA7D6 /* SingleLineModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SingleLineModel.cpp; path = models/SingleLineModel.cpp; sourceTree = "<group>"; };
 		67B2CF251C39D98A003C17CA /* DMXPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DMXPanel.cpp; path = effects/DMXPanel.cpp; sourceTree = "<group>"; };
 		67B2CF261C39D98A003C17CA /* DMXPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DMXPanel.h; path = effects/DMXPanel.h; sourceTree = "<group>"; };
 		67B2CF271C39D98A003C17CA /* FacesPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FacesPanel.cpp; path = effects/FacesPanel.cpp; sourceTree = "<group>"; };
@@ -714,6 +726,14 @@
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				67ACBAB61C63DDA400BFA7D6 /* SingleLineModel.h */,
+				67ACBAB71C63DDA400BFA7D6 /* SingleLineModel.cpp */,
+				67ACBAB31C63DAD400BFA7D6 /* WholeHouseModel.h */,
+				67ACBAB41C63DAD400BFA7D6 /* WholeHouseModel.cpp */,
+				67ACBAB01C63D84500BFA7D6 /* CustomModel.h */,
+				67ACBAB11C63D84500BFA7D6 /* CustomModel.cpp */,
+				670E47401C62F4AD008F4C60 /* CircleModel.h */,
+				670E47411C62F4AD008F4C60 /* CircleModel.cpp */,
 				670E473D1C62A901008F4C60 /* ModelGroup.h */,
 				670E473E1C62A901008F4C60 /* ModelGroup.cpp */,
 				670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */,
@@ -1341,6 +1361,7 @@
 				67AAF8FD1B642E6C00585431 /* LyricsDialog.cpp in Sources */,
 				67B2CFF21C3A186A003C17CA /* FacesEffect.cpp in Sources */,
 				679BD33D1C3757F6000539FE /* EffectManager.cpp in Sources */,
+				67ACBAB81C63DDA400BFA7D6 /* SingleLineModel.cpp in Sources */,
 				67B2CF931C39D98A003C17CA /* CurtainEffect.cpp in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
 				67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */,
@@ -1363,6 +1384,7 @@
 				67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */,
 				67B2CFD71C3A186A003C17CA /* SnowstormEffect.cpp in Sources */,
 				67B2CF871C39D98A003C17CA /* SnowstormPanel.cpp in Sources */,
+				67ACBAB21C63D84500BFA7D6 /* CustomModel.cpp in Sources */,
 				670C828B1C45C48B000AA5D8 /* Model.cpp in Sources */,
 				67B2CF711C39D98A003C17CA /* DMXPanel.cpp in Sources */,
 				677421DD1A6A8FF30082DA5B /* RenameTextDialog.cpp in Sources */,
@@ -1404,6 +1426,7 @@
 				675AB42D1B5ACEDA00853A28 /* PluginLoader.cpp in Sources */,
 				679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */,
 				679BD3351C37555C000539FE /* OnPanel.cpp in Sources */,
+				670E47421C62F4AD008F4C60 /* CircleModel.cpp in Sources */,
 				67B2CF8A1C39D98A003C17CA /* StrobePanel.cpp in Sources */,
 				6761F5F81C4EA041009780DA /* xlGridCanvasMorph.cpp in Sources */,
 				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
@@ -1417,6 +1440,7 @@
 				67B2CF841C39D98A003C17CA /* ShockwavePanel.cpp in Sources */,
 				67B2CF891C39D98A003C17CA /* SpirographPanel.cpp in Sources */,
 				677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */,
+				67ACBAB51C63DAD400BFA7D6 /* WholeHouseModel.cpp in Sources */,
 				675AB42B1B5ACEDA00853A28 /* PluginHostAdapter.cpp in Sources */,
 				67AAF8F21B63767B00585431 /* PhonemeDictionary.cpp in Sources */,
 				67B2CF911C39D98A003C17CA /* CirclesPanel.cpp in Sources */,

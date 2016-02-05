@@ -26,6 +26,7 @@
 #include <wx/tokenzr.h>
 #include "DimmingCurve.h"
 #include "models/ModelManager.h"
+#include "models/SingleLineModel.h"
 
 PixelBufferClass::PixelBufferClass() {
     numLayers = 0;
@@ -126,41 +127,13 @@ void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetI
     reset(layers, timing);
 }
 void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing) {
-    Model model;
-    model.parm1 = pbc.GetStrandLength(strand);
-    model.parm2 = 1;
-    model.parm3 = 1;
-    model.StringType = pbc.GetStringType();
-    model.rgbOrder = pbc.rgbOrder;
-    model.SingleNode = pbc.SingleNode;
-    model.SingleChannel = pbc.SingleChannel;
-    model.IsLtoR = pbc.IsLtoR;
-    model.customColor = pbc.customColor;
-
-    model.stringStartChan.resize(model.parm1);
-    for (int x = 0; x < model.parm1; x++) {
-        model.stringStartChan[x] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, x));
-    }
-    model.InitLine();
-    SetDimmingCurve(model.modelDimmingCurve);
+    SingleLineModel model(pbc.GetStrandLength(strand), pbc, strand);
+    SetDimmingCurve(pbc.modelDimmingCurve);
     model.InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);
     reset(2, timing);
 }
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing) {
-    Model model;
-    model.parm1 = 1;
-    model.parm2 = 1;
-    model.parm3 = 1;
-    model.StringType = pbc.GetStringType();
-    model.rgbOrder = pbc.rgbOrder;
-    model.SingleNode = pbc.SingleNode;
-    model.SingleChannel = pbc.SingleChannel;
-    model.IsLtoR = pbc.IsLtoR;
-    model.stringStartChan.resize(1);
-    model.customColor = pbc.customColor;
-    model.stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, node));
-    model.InitLine();
-
+    SingleLineModel model(1, pbc, strand, node);
     SetDimmingCurve(pbc.modelDimmingCurve);
     model.InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);
     reset(2, timing);

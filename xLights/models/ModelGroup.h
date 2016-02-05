@@ -5,10 +5,11 @@
 #include <string>
 
 #include "Model.h"
+#include "WholeHouseModel.h"
 
 class ModelManager;
 
-class ModelGroup : public Model
+class ModelGroup : public WholeHouseModel
 {
     public:
         ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &manager, int previewW, int previewH);
