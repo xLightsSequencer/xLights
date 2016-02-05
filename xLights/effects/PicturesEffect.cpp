@@ -36,11 +36,12 @@ wxPanel *PicturesEffect::CreatePanel(wxWindow *parent) {
     return new PicturesPanel(parent);
 }
 
-AssistPanel *PicturesEffect::GetAssistPanel(wxWindow *parent) {
+AssistPanel *PicturesEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) {
     AssistPanel *assist_panel = new AssistPanel(parent);
     xlGridCanvasPictures* grid = new xlGridCanvasPictures(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("PicturesGrid"));
     assist_panel->SetGridCanvas(grid);
     PicturesAssistPanel* picture_panel = new PicturesAssistPanel(assist_panel->GetCanvasParent());
+    picture_panel->SetxLightsFrame(xl_frame);
     assist_panel->AddPanel(picture_panel);
     picture_panel->SetGridCanvas(grid);
     grid->SetMessageParent(picture_panel);

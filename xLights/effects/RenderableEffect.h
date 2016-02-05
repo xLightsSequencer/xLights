@@ -53,7 +53,7 @@ class RenderableEffect
         virtual bool needToAdjustSettings(const std::string &version);
         virtual void adjustSettings(const std::string &version, Effect *effect);
 
-        virtual AssistPanel *GetAssistPanel(wxWindow *parent);
+        virtual AssistPanel *GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame);
         virtual bool HasAssistPanel() { return false; }
 
     protected:

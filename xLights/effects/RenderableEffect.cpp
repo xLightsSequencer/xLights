@@ -56,7 +56,7 @@ wxPanel *RenderableEffect::GetPanel(wxWindow *parent) {
     return panel;
 }
 
-AssistPanel *RenderableEffect::GetAssistPanel(wxWindow *parent) {
+AssistPanel *RenderableEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) {
     AssistPanel *assist_panel = new AssistPanel(parent);
     xlGridCanvas* grid = new xlGridCanvasEmpty(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("EmptyGrid"));
     assist_panel->SetGridCanvas(grid);

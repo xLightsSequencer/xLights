@@ -24,7 +24,7 @@ wxPanel *MorphEffect::CreatePanel(wxWindow *parent) {
     return new MorphPanel(parent);
 }
 
-AssistPanel *MorphEffect::GetAssistPanel(wxWindow *parent) {
+AssistPanel *MorphEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) {
     AssistPanel *assist_panel = new AssistPanel(parent);
     xlGridCanvas* grid = new xlGridCanvasMorph(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("MorphGrid"));
     assist_panel->SetGridCanvas(grid);
