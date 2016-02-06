@@ -1053,8 +1053,11 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
     if (modelName == "") {
         EffectsPanel1->SetDefaultEffectValues(nullptr, effectName);
+        timingPanel->SetDefaultControls(nullptr);
     } else {
-        EffectsPanel1->SetDefaultEffectValues(GetModel(modelName), effectName);
+        Model *model = GetModel(modelName);
+        EffectsPanel1->SetDefaultEffectValues(model, effectName);
+        timingPanel->SetDefaultControls(model);
     }
     SetEffectControls(settings);
     SetEffectControls(palette);

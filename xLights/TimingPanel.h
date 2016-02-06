@@ -13,6 +13,8 @@
 #include <wx/choice.h>
 //*)
 
+class Model;
+
 class TimingPanel: public wxPanel
 {
 	public:
@@ -42,6 +44,9 @@ class TimingPanel: public wxPanel
 		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
 		wxBitmapButton* BitmapButton_OverlayBkg;
 		//*)
+    
+    
+        void SetDefaultControls(const Model *model);
 
 	protected:
 
