@@ -207,22 +207,43 @@ void TimingPanel::OnResize(wxSizeEvent& event)
     ScrolledWindowTiming->Refresh();
 }
 
+void TimingPanel::SetDefaultControls(const Model *model) {
+    CheckBox_LayerMorph->SetValue(false);
+    Choice_LayerMethod->SetSelection(0);
+    Slider_EffectLayerMix->SetValue(0);
+    TextCtrl_Fadein->SetValue("");
+    TextCtrl_Fadeout->SetValue("");
+    CheckBox_OverlayBkg->SetValue(false);
+}
+
 wxString TimingPanel::GetTimingString()
 {
     wxString s,ChildName,AttrName;
     // Layer Morph
-    s+=wxString::Format("T_CHECKBOX_LayerMorph=%d",CheckBox_LayerMorph->IsChecked()?1:0) + ",";
+    if (CheckBox_LayerMorph->IsChecked()) {
+        s += "T_CHECKBOX_LayerMorph=1,";
+    }
     // Layer Method
-    s+=wxString::Format("T_CHOICE_LayerMethod=%s",
-                          Choice_LayerMethod->GetString(Choice_LayerMethod->GetSelection())) + ",";
+    if (Choice_LayerMethod->GetSelection() != 0) {
+        s += wxString::Format("T_CHOICE_LayerMethod=%s,",
+                              Choice_LayerMethod->GetString(Choice_LayerMethod->GetSelection()));
+    }
     // Effect Mix
-    s+=wxString::Format("T_SLIDER_EffectLayerMix=%d",Slider_EffectLayerMix->GetValue()) + ",";
+    if (Slider_EffectLayerMix->GetValue() != 0) {
+        s += wxString::Format("T_SLIDER_EffectLayerMix=%d,",Slider_EffectLayerMix->GetValue());
+    }
     // Fade in
-    s+="T_TEXTCTRL_Fadein="+TextCtrl_Fadein->GetValue() + ",";
+    if ("" != TextCtrl_Fadein->GetValue()) {
+        s+="T_TEXTCTRL_Fadein=" + TextCtrl_Fadein->GetValue() + ",";
+    }
     // Fade Out
-    s+="T_TEXTCTRL_Fadeout="+TextCtrl_Fadeout->GetValue() + ",";
-    // Fit to time
-    s+=wxString::Format("T_CHECKBOX_OverlayBkg=%d",CheckBox_OverlayBkg->GetValue()?1:0);
+    if ("" != TextCtrl_Fadeout->GetValue()) {
+        s += "T_TEXTCTRL_Fadeout=" + TextCtrl_Fadeout->GetValue() + ",";
+    }
+    // Persistent
+    if (CheckBox_OverlayBkg->GetValue()) {
+        s += "T_CHECKBOX_OverlayBkg=1,";
+    }
     return s;
 }
 
