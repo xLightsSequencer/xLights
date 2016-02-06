@@ -265,7 +265,7 @@ bool AudioManager::CheckCBR()
 	// MP3 files are nasty
 	// The spec is not public
 
-	unsigned int checkvalidmask = 0xFFFF0DFF; // this mask removes things that can vary between frames
+	unsigned int checkvalidmask = 0xFFFF0DCF; // this mask removes things that can vary between frames
 	unsigned int master = 0; // this is the master header we use to verify that the frame header is a header
 	int masterbitrate = -1; // this is the bitrate we first believe the file to be ... it is used to find VBR files which dont contain the Xing frame
 	bool isCBR = true; // we start assuming the file is CBR ... and look for evidence it isnt
