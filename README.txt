@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Add missing Circle model to new ModelManager.
 2016.5  Feb 05, 2016
     -- bug(gil)   Fix morph effect assist orientation.  Fixes #462.
     -- bug(gil)   Fix creating new image with Pictures Effect Assist.

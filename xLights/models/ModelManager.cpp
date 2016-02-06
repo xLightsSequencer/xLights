@@ -7,6 +7,7 @@
 
 #include "StarModel.h"
 #include "ArchesModel.h"
+#include "CircleModel.h"
 #include "TreeModel.h"
 #include "CustomModel.h"
 #include "WholeHouseModel.h"
@@ -73,6 +74,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, const NetInfoClass &netInfo, b
         model = new StarModel(node, netInfo, zeroBased);
     } else if (type == "Arches") {
         model = new ArchesModel(node, netInfo, zeroBased);
+    } else if (type == "Circle") {
+        model = new CircleModel(node, netInfo, zeroBased);
     } else if (type == "Single Line") {
         model = new SingleLineModel(node, netInfo, zeroBased);
     } else if (type == "Custom") {
