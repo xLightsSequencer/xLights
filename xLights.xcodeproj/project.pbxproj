@@ -39,6 +39,9 @@
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		67402E871B4230360047EDC1 /* NullOutputDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67402E851B4230360047EDC1 /* NullOutputDialog.cpp */; };
+		67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D951C6664900095CDB5 /* WreathModel.cpp */; };
+		67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D971C6664900095CDB5 /* WindowFrameModel.cpp */; };
+		67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D9B1C6666A00095CDB5 /* SphereModel.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
 		674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674ACA7B1C5ADE4000B54B32 /* Node.cpp */; };
 		674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D1C1C207B9F000D632B /* OpenGL.framework */; };
@@ -332,6 +335,12 @@
 		67402E851B4230360047EDC1 /* NullOutputDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NullOutputDialog.cpp; sourceTree = "<group>"; };
 		67402E861B4230360047EDC1 /* NullOutputDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NullOutputDialog.h; sourceTree = "<group>"; };
 		674298971C20432600B11478 /* wx */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wx; path = /opt/local/lib/wx; sourceTree = "<group>"; };
+		67447D941C6664900095CDB5 /* WreathModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WreathModel.h; path = models/WreathModel.h; sourceTree = "<group>"; };
+		67447D951C6664900095CDB5 /* WreathModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WreathModel.cpp; path = models/WreathModel.cpp; sourceTree = "<group>"; };
+		67447D961C6664900095CDB5 /* WindowFrameModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WindowFrameModel.h; path = models/WindowFrameModel.h; sourceTree = "<group>"; };
+		67447D971C6664900095CDB5 /* WindowFrameModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WindowFrameModel.cpp; path = models/WindowFrameModel.cpp; sourceTree = "<group>"; };
+		67447D9A1C6666970095CDB5 /* SphereModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SphereModel.h; path = models/SphereModel.h; sourceTree = "<group>"; };
+		67447D9B1C6666A00095CDB5 /* SphereModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SphereModel.cpp; path = models/SphereModel.cpp; sourceTree = "<group>"; };
 		6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsXmlFile.cpp; sourceTree = "<group>"; };
 		674ACA7B1C5ADE4000B54B32 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = models/Node.cpp; sourceTree = "<group>"; };
 		674D3D1C1C207B9F000D632B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -726,28 +735,34 @@
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				67ACBAB61C63DDA400BFA7D6 /* SingleLineModel.h */,
-				67ACBAB71C63DDA400BFA7D6 /* SingleLineModel.cpp */,
-				67ACBAB31C63DAD400BFA7D6 /* WholeHouseModel.h */,
-				67ACBAB41C63DAD400BFA7D6 /* WholeHouseModel.cpp */,
-				67ACBAB01C63D84500BFA7D6 /* CustomModel.h */,
-				67ACBAB11C63D84500BFA7D6 /* CustomModel.cpp */,
-				670E47401C62F4AD008F4C60 /* CircleModel.h */,
-				670E47411C62F4AD008F4C60 /* CircleModel.cpp */,
-				670E473D1C62A901008F4C60 /* ModelGroup.h */,
-				670E473E1C62A901008F4C60 /* ModelGroup.cpp */,
 				670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */,
 				670C827E1C45C48B000AA5D8 /* ArchesModel.h */,
+				670E47411C62F4AD008F4C60 /* CircleModel.cpp */,
+				670E47401C62F4AD008F4C60 /* CircleModel.h */,
+				67ACBAB11C63D84500BFA7D6 /* CustomModel.cpp */,
+				67ACBAB01C63D84500BFA7D6 /* CustomModel.h */,
+				670C82851C45C48B000AA5D8 /* Model.cpp */,
+				670C82861C45C48B000AA5D8 /* Model.h */,
+				670E473E1C62A901008F4C60 /* ModelGroup.cpp */,
+				670E473D1C62A901008F4C60 /* ModelGroup.h */,
+				670C82831C45C48B000AA5D8 /* ModelManager.cpp */,
+				670C82841C45C48B000AA5D8 /* ModelManager.h */,
+				674ACA7B1C5ADE4000B54B32 /* Node.cpp */,
+				670C828C1C45C70B000AA5D8 /* Node.h */,
+				67ACBAB71C63DDA400BFA7D6 /* SingleLineModel.cpp */,
+				67ACBAB61C63DDA400BFA7D6 /* SingleLineModel.h */,
+				67447D9B1C6666A00095CDB5 /* SphereModel.cpp */,
+				67447D9A1C6666970095CDB5 /* SphereModel.h */,
 				670C827F1C45C48B000AA5D8 /* StarModel.cpp */,
 				670C82801C45C48B000AA5D8 /* StarModel.h */,
 				670C82811C45C48B000AA5D8 /* TreeModel.cpp */,
 				670C82821C45C48B000AA5D8 /* TreeModel.h */,
-				670C82831C45C48B000AA5D8 /* ModelManager.cpp */,
-				670C82841C45C48B000AA5D8 /* ModelManager.h */,
-				670C82851C45C48B000AA5D8 /* Model.cpp */,
-				670C82861C45C48B000AA5D8 /* Model.h */,
-				670C828C1C45C70B000AA5D8 /* Node.h */,
-				674ACA7B1C5ADE4000B54B32 /* Node.cpp */,
+				67ACBAB41C63DAD400BFA7D6 /* WholeHouseModel.cpp */,
+				67ACBAB31C63DAD400BFA7D6 /* WholeHouseModel.h */,
+				67447D971C6664900095CDB5 /* WindowFrameModel.cpp */,
+				67447D961C6664900095CDB5 /* WindowFrameModel.h */,
+				67447D951C6664900095CDB5 /* WreathModel.cpp */,
+				67447D941C6664900095CDB5 /* WreathModel.h */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -1430,6 +1445,7 @@
 				67B2CF8A1C39D98A003C17CA /* StrobePanel.cpp in Sources */,
 				6761F5F81C4EA041009780DA /* xlGridCanvasMorph.cpp in Sources */,
 				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
+				67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,
@@ -1446,6 +1462,7 @@
 				67B2CF911C39D98A003C17CA /* CirclesPanel.cpp in Sources */,
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,
 				67B2CF771C39D98A003C17CA /* GarlandsPanel.cpp in Sources */,
+				67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */,
 				67B2CFE91C3A186A003C17CA /* MarqueeEffect.cpp in Sources */,
 				6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */,
 				672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */,
@@ -1539,6 +1556,7 @@
 				679E52BF1AD2F7520065E6EA /* xlMacUtils.mm in Sources */,
 				67B2CFE81C3A186A003C17CA /* MeteorsEffect.cpp in Sources */,
 				67B2CFF11C3A186A003C17CA /* FanEffect.cpp in Sources */,
+				67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */,
 				67B2CF741C39D98A003C17CA /* FirePanel.cpp in Sources */,
 				67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */,
 				67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */,

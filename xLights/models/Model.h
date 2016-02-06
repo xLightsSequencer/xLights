@@ -44,9 +44,6 @@ protected:
 
     void InitVMatrix(int firstExportStrand = 0);
     void InitHMatrix();
-    void InitFrame();
-    void InitWreath();
-    void InitSphere();
     
     void SetBufferSize(int NewHt, int NewWi);
     void SetRenderSize(int NewHt, int NewWi);
@@ -63,7 +60,6 @@ protected:
     int transparency = 0;
     int blackTransparency = 0;
     
-    int FrameWidth;
     bool modelv2;
     int StrobeRate;      // 0=no strobing
     double offsetXpct,offsetYpct;
