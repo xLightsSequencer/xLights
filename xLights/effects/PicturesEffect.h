@@ -23,7 +23,7 @@ class PicturesEffect : public RenderableEffect
                            int xce_adj, int yce_adj,
                            bool pixelOffsets, bool wrap_x);
 
-        virtual AssistPanel *GetAssistPanel(wxWindow *parent);
+        virtual AssistPanel *GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame);
         virtual bool HasAssistPanel() { return true; }
 
     protected:

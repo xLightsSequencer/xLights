@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(MeteorsPanel)
-#include <wx/bmpbuttn.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(MeteorsPanel)
@@ -47,15 +47,15 @@ END_EVENT_TABLE()
 MeteorsPanel::MeteorsPanel(wxWindow* parent)
 {
 	//(*Initialize(MeteorsPanel)
-	wxTextCtrl* TextCtrl49;
-	wxSlider* Slider19;
 	wxFlexGridSizer* FlexGridSizer41;
 	wxChoice* Choice_Meteors_Effect;
-	wxTextCtrl* TextCtrl51;
+	wxSlider* Slider19;
 	wxTextCtrl* TextCtrl50;
-	wxChoice* Choice_Meteors_Type;
 	wxTextCtrl* TextCtrl52;
+	wxTextCtrl* TextCtrl51;
 	wxStaticText* StaticText4;
+	wxTextCtrl* TextCtrl49;
+	wxChoice* Choice_Meteors_Type;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer41 = new wxFlexGridSizer(0, 4, 0, 0);

@@ -12,7 +12,7 @@ class MorphEffect : public RenderableEffect
 
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2);
-        virtual AssistPanel *GetAssistPanel(wxWindow *parent);
+        virtual AssistPanel *GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame);
         virtual bool HasAssistPanel() { return true; }
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);

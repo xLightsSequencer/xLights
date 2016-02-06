@@ -983,7 +983,7 @@ bool xLightsXmlFile::LoadV3Sequence()
     is_open = true;
 
 
-    version_string = xlights_version_string;
+    version_string = "4.2.19";
 
     timing_protection.Clear();
     timing.Clear();
@@ -993,7 +993,10 @@ bool xLightsXmlFile::LoadV3Sequence()
     effects.Clear();
 
     SaveCopy();
-    Save();
+    
+    UpdateVersion("4.2.19");
+    seqDocument.Save(GetFullPath());
+
 
     was_converted = true;
 
@@ -1385,7 +1388,10 @@ void xLightsXmlFile::SetImageDir(const wxString& dir)
     }
 }
 
-void xLightsXmlFile::UpdateVersion()
+void xLightsXmlFile::UpdateVersion() {
+    UpdateVersion(xlights_version_string.ToStdString());
+}
+void xLightsXmlFile::UpdateVersion(const std::string &version)
 {
     wxXmlNode* root=seqDocument.GetRoot();
 
@@ -1397,7 +1403,7 @@ void xLightsXmlFile::UpdateVersion()
             {
                 if( element->GetName() == "version")
                 {
-                    SetNodeContent(element, xlights_version_string);
+                    SetNodeContent(element, version);
                     return;
                 }
             }

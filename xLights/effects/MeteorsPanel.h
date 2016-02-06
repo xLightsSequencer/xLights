@@ -4,11 +4,11 @@
 //(*Headers(MeteorsPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxChoice;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
 class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
 
 class MeteorsPanel: public wxPanel
@@ -19,19 +19,19 @@ class MeteorsPanel: public wxPanel
 		virtual ~MeteorsPanel();
 
 		//(*Declarations(MeteorsPanel)
-		wxStaticText* StaticText43;
 		wxSlider* Slider_Meteors_Count;
-		wxBitmapButton* BitmapButton_MeteorsEffect;
-		wxStaticText* StaticText130;
-		wxBitmapButton* BitmapButton_MeteorsType;
-		wxStaticText* StaticText41;
-		wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
-		wxStaticText* StaticText128;
-		wxSlider* Slider_Meteors_Length;
-		wxSlider* Slider_Meteors_Swirl_Intensity;
-		wxBitmapButton* BitmapButton_MeteorsLength;
-		wxStaticText* StaticText39;
 		wxBitmapButton* BitmapButton_MeteorsCount;
+		wxBitmapButton* BitmapButton_MeteorsEffect;
+		wxSlider* Slider_Meteors_Length;
+		wxStaticText* StaticText128;
+		wxBitmapButton* BitmapButton_MeteorsType;
+		wxStaticText* StaticText39;
+		wxStaticText* StaticText130;
+		wxStaticText* StaticText43;
+		wxStaticText* StaticText41;
+		wxSlider* Slider_Meteors_Swirl_Intensity;
+		wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
+		wxBitmapButton* BitmapButton_MeteorsLength;
 		//*)
 
 	protected:
