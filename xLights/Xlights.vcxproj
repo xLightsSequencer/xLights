@@ -280,9 +280,12 @@
     <ClCompile Include="models\ModelManager.cpp" />
     <ClCompile Include="models\Node.cpp" />
     <ClCompile Include="models\SingleLineModel.cpp" />
+    <ClCompile Include="models\SphereModel.cpp" />
     <ClCompile Include="models\StarModel.cpp" />
     <ClCompile Include="models\TreeModel.cpp" />
     <ClCompile Include="models\WholeHouseModel.cpp" />
+    <ClCompile Include="models\WindowFrameModel.cpp" />
+    <ClCompile Include="models\WreathModel.cpp" />
     <ClCompile Include="ModelViewSelector.cpp" />
     <ClCompile Include="NetInfo.cpp" />
     <ClCompile Include="NewTimingDialog.cpp" />

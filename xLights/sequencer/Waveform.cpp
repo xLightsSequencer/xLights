@@ -213,11 +213,18 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 {
 	_media = media;
     views.clear();
-    float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-    WaveView wv(mZoomLevel, samplesPerLine, media);
-    views.push_back(wv);
-    mCurrentWaveView = 0;
-    return media->LengthMS();
+	if (_media != NULL)
+	{
+		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+		WaveView wv(mZoomLevel, samplesPerLine, media);
+		views.push_back(wv);
+		mCurrentWaveView = 0;
+		return media->LengthMS();
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 void Waveform::InitializeGLCanvas()
@@ -424,43 +431,53 @@ float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel)
     // The number of periods for each Zoomlevel is held in ZoomLevelValues array
     int periodsPerMajorHash = TimeLine::ZoomLevelValues[mZoomLevel];
     float timePerPixel = ((float)periodsPerMajorHash/(float)mFrequency)/(float)PIXELS_PER_MAJOR_HASH;
-    float samplesPerPixel = (float)timePerPixel * (float)_media->GetRate();
-    return samplesPerPixel;
+	if (_media != NULL)
+	{
+		return (float)timePerPixel * (float)_media->GetRate();
+	}
+	else
+	{
+		return 0.0f;
+	}
 }
 
 void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media) 
 {
-    float minimum=1;
-    float maximum=-1;
-	int trackSize = media->GetTrackSize();
-    int totalMinMaxs = (int)((float)trackSize/SamplesPerPixel)+1;
-    MinMaxs.clear();
+	MinMaxs.clear();
+
+	if (media != NULL)
+	{
+		float minimum=1;
+		float maximum=-1;
+		int trackSize = media->GetTrackSize();
+		int totalMinMaxs = (int)((float)trackSize/SamplesPerPixel)+1;
         
-    for(int i = 0; i < totalMinMaxs; i++) {
-        // Use float calculation to minimize compounded rounding of position
-        int start = (int)((float)i*SamplesPerPixel);
-        if (start >= trackSize) {
-            return;
-        }
-        int end = start + SamplesPerPixel;
-        if (end >= trackSize) {
-            end = trackSize;
-        }
-        minimum=1;
-        maximum=-1;
-        for (int j = start;j < end; j++) {
-			float data = media->GetLeftData(j);
-            if (data< minimum) {
-                minimum = data;
-            }
-            if (data> maximum) {
-                maximum = data;
-            }
-        }
-        MINMAX mm;
-        mm.min = minimum;
-        mm.max = maximum;
-        MinMaxs.push_back(mm);
+		for (int i = 0; i < totalMinMaxs; i++) {
+			// Use float calculation to minimize compounded rounding of position
+			int start = (int)((float)i*SamplesPerPixel);
+			if (start >= trackSize) {
+				return;
+			}
+			int end = start + SamplesPerPixel;
+			if (end >= trackSize) {
+				end = trackSize;
+			}
+			minimum = 1;
+			maximum = -1;
+			for (int j = start; j < end; j++) {
+				float data = media->GetLeftData(j);
+				if (data < minimum) {
+					minimum = data;
+				}
+				if (data > maximum) {
+					maximum = data;
+				}
+			}
+			MINMAX mm;
+			mm.min = minimum;
+			mm.max = maximum;
+			MinMaxs.push_back(mm);
+		}
     }
 }
 

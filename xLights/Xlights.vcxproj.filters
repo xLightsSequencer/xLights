@@ -669,6 +669,15 @@
     <ClCompile Include="models\SingleLineModel.cpp">
       <Filter>Source Files\models</Filter>
     </ClCompile>
+    <ClCompile Include="models\SphereModel.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\WindowFrameModel.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\WreathModel.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">

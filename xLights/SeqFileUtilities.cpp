@@ -137,7 +137,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         // if fseq didn't have media check xml
         if( CurrentSeqXmlFile->HasAudioMedia())
         {
-            media_file = mapFileName(wxString(CurrentSeqXmlFile->GetMedia()->FileName().c_str(), wxConvUTF8));
+            media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
         }
 
         // still no media file?  look for an XSEQ file and load if found

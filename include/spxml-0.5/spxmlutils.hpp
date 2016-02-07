@@ -71,5 +71,10 @@ private:
 	int mSize;
 };
 
+// These are needed to compile with Visual Studio
+#ifdef _MSC_VER
+#define strcasecmp stricmp
+#endif
+
 #endif
 

@@ -1111,6 +1111,11 @@ bool xLightsXmlFile::LoadSequence()
                     {
                         has_audio_media = true;
                     }
+					if (audio != NULL)
+					{
+						delete audio;
+					}
+					audio = new AudioManager(std::string(media_file.c_str()), 1024, 1024);
                 }
                 else if( element->GetName() == "sequenceDuration")
                 {
