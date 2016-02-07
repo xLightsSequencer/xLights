@@ -851,7 +851,7 @@ void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, double x1, double y1
     eff->GetBackgroundDisplayList()[idx+3].usage = GL_QUADS;
 }
 void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex, int inc) {
-    wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
+    std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
     int count = curEffEndPer - curEffStartPer + 1;
 
 

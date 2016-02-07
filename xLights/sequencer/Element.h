@@ -1,13 +1,12 @@
 #ifndef ELEMENT_H
 #define ELEMENT_H
 
-#include "wx/wx.h"
 #include <vector>
 #include <atomic>
-#include "wx/xml/xml.h"
-#include "EffectLayer.h"
+#include <mutex>
 #include <string>
 
+#include "EffectLayer.h"
 
 enum ElementType
 {
@@ -109,7 +108,7 @@ class Element
             dirtyStart = dirtyEnd = -1;
         }
     
-        wxMutex &GetRenderLock() { return renderLock; }
+        std::recursive_mutex &GetRenderLock() { return renderLock; }
         int GetWaitCount();
         void IncWaitCount();
         void DecWaitCount();
@@ -128,7 +127,7 @@ class Element
         std::vector<EffectLayer*> mEffectLayers;
         std::vector<StrandLayer*> mStrandLayers;
     
-        wxMutex renderLock;
+        std::recursive_mutex renderLock;
         std::atomic_int waitCount;
 
         SequenceElements *parent;

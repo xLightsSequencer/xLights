@@ -118,7 +118,7 @@ void PixelBufferClass::reset(int layers, int timing) {
 void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased) {
     modelName = pbc.name;
     if (zeroBased) {
-        std::auto_ptr<Model> model(ModelManager::CreateModel(pbc.GetModelXml(), netInfo, zeroBased));
+        std::unique_ptr<Model> model(ModelManager::CreateModel(pbc.GetModelXml(), netInfo, zeroBased));
         model->InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);
     } else {
         SetDimmingCurve(pbc.modelDimmingCurve);

@@ -7,6 +7,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <mutex>
 #include "wx/xml/xml.h"
 #include "wx/filename.h"
 #include "UndoManager.h"
@@ -205,7 +206,7 @@ class SequenceElements : public ChangeListener
 
         std::map<std::string, std::set<std::string>> renderDependency;
         std::set<std::string> modelsToRender;
-        wxMutex renderDepLock;
+        std::mutex renderDepLock;
 };
 
 

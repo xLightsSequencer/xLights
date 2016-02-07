@@ -136,7 +136,7 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     } else {
         orig = xlBLACK;
     }
-    wxMutexLocker lock(effect->GetBackgroundDisplayList().lock);
+    std::unique_lock<std::recursive_mutex> lock(effect->GetBackgroundDisplayList().lock);
     if (VertFade || HorizFade) {
         effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 4 * 2);
         int total = buffer.curEffEndPer - buffer.curEffStartPer + 1;

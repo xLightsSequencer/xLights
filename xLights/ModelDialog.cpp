@@ -1340,7 +1340,7 @@ void ModelDialog::OnNamesButtonClick(wxCommandEvent& event)
 {
     wxXmlNode xml;
     UpdateXml(&xml);
-    std::auto_ptr<Model> md(ModelManager::CreateModel(&xml, *netInfo));
+    std::unique_ptr<Model> md(ModelManager::CreateModel(&xml, *netInfo));
 
     StrandNodeNamesDialog dlg(this);
     std::vector<wxString> strands;
@@ -1430,7 +1430,7 @@ void ModelDialog::OnFacesButtonClick(wxCommandEvent& event)
 {
     wxXmlNode xml;
     UpdateXml(&xml);
-    std::auto_ptr<Model> md(ModelManager::CreateModel(&xml, *netInfo));
+    std::unique_ptr<Model> md(ModelManager::CreateModel(&xml, *netInfo));
 
     ModelFaceDialog dlg(this);
     dlg.SetFaceInfo(md.get(), faceInfo);

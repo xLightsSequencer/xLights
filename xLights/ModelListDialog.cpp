@@ -329,7 +329,7 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
         return;
     }
     wxXmlNode* ModelNode = models[ListBox1->GetString(sel)];
-    std::auto_ptr<Model> md(ModelManager::CreateModel(ModelNode, *netInfo));
+    std::unique_ptr<Model> md(ModelManager::CreateModel(ModelNode, *netInfo));
     wxString html=md->ChannelLayoutHtml();
 
     ChannelLayoutDialog dialog(this);
@@ -373,7 +373,7 @@ brightness
     for (int i = first; i < last; ++i)
     {
         wxXmlNode* node = models[ListBox1->GetString(i)];
-        std::auto_ptr<Model> model(ModelManager::CreateModel(node, *netInfo));
+        std::unique_ptr<Model> model(ModelManager::CreateModel(node, *netInfo));
         wxString stch = node->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %d\n", model->name, model->GetDisplayAs(), model->GetStringType(), model->GetNodeCount() / model->NodesPerString(), model->GetNodeCount(), stch, /*WRONG:*/ model->NodeStartChannel(0) / model->NodesPerString() + 1, model->MyDisplay));
 //no worky        f.Flush(); //paranoid: write out data in case model loop crashes

@@ -7,29 +7,31 @@
 #ifndef __xLights__JobPool__
 #define __xLights__JobPool__
 
-#include <wx/thread.h>
+
 #include <deque>
 #include <vector>
+#include <string>
+#include <mutex>
+#include <condition_variable>
 
 class Job {
 public:
     Job() {}
     virtual ~Job() {};
     virtual void Process() = 0;
-    virtual wxString GetStatus() = 0;
+    virtual std::string GetStatus() = 0;
 };
 
 
 class JobPoolWorker;
 class JobPool
 {
-    wxMutex lock;
-    wxCondition signal;
+    std::mutex lock;
+    std::condition_variable signal;
     std::vector<JobPoolWorker*> threads;
     std::deque<Job*> queue;
     int numThreads;
     int maxNumThreads;
-    int threadPriority;
     volatile int idleThreads;
     
 public:
@@ -38,10 +40,10 @@ public:
     
     virtual void PushJob(Job *job);
     
-    virtual void Start(size_t poolSize = 1, int priority = WXTHREAD_DEFAULT_PRIORITY);
+    virtual void Start(size_t poolSize = 1);
     virtual void Stop();
     
-    virtual wxString GetThreadStatus();
+    virtual std::string GetThreadStatus();
 };
 
 

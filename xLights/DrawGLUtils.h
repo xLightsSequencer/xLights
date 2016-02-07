@@ -2,7 +2,7 @@
 #ifndef __XL_DRAWGLUTILS
 #define __XL_DRAWGLUTILS
 
-#include <wx/thread.h>
+#include <mutex>
 #include "wx/glcanvas.h"
 #include "Color.h"
 
@@ -20,7 +20,7 @@ namespace DrawGLUtils
     public:
         xlDisplayList() : iconSize(2) {};
         int iconSize;
-        mutable wxMutex lock;
+        mutable std::recursive_mutex lock;
     };
 
     void DrawText(double x, double y, void *glutBitmapFont, const wxString &text);

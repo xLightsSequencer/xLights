@@ -3,6 +3,7 @@
 #include "wx/wx.h"
 #include <atomic>
 #include <string>
+#include <mutex>
 #include "Effect.h"
 #include "UndoManager.h"
 
@@ -67,7 +68,7 @@ class EffectLayer
 
         void IncrementChangeCount(int startMS, int endMS);
 
-        wxMutex &GetLock() {return lock;}
+        std::recursive_mutex &GetLock() {return lock;}
     protected:
     private:
         void SortEffects();
@@ -82,7 +83,7 @@ class EffectLayer
         std::vector<Effect*> mEffects;
         int mIndex;
         Element* mParentElement;
-        wxMutex lock;
+        std::recursive_mutex lock;
 };
 
 class NamedLayer: public EffectLayer {

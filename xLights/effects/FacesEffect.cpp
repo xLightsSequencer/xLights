@@ -577,12 +577,12 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     std::string eyes = eyesIn;
     
     Element *track = elements->GetElement(trackName);
-    wxMutex tmpLock;
-    wxMutex *lock = &tmpLock;
+    std::recursive_mutex tmpLock;
+    std::recursive_mutex *lock = &tmpLock;
     if (track != nullptr) {
         lock = &track->GetRenderLock();
     }
-    wxMutexLocker locker(*lock);
+    std::unique_lock<std::recursive_mutex> locker(*lock);
     
     if (buffer.cur_model == "") {
         return;
@@ -651,7 +651,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             int endms = -1;
             
             EffectLayer *layer = track->GetEffectLayer(2);
-            wxMutexLocker locker(layer->GetLock());
+            std::unique_lock<std::recursive_mutex> locker(layer->GetLock());
             int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
             Effect *ef = layer->GetEffectByTime(time);
             if (ef == nullptr) {

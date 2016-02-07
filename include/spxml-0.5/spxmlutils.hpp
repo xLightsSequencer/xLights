@@ -68,15 +68,8 @@ private:
 
 	char * mBuffer;
 	int mMaxSize;
-	int mSize;	
+	int mSize;
 };
-
-#ifdef WIN32
-
-#define snprintf _snprintf
-#define strncasecmp strnicmp
-#define strcasecmp  stricmp
-#endif
 
 #endif
 

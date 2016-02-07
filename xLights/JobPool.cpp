@@ -3,17 +3,24 @@
 //  xLights
 
 
+#include <string>
+#include <mutex>
+#include <condition_variable>
+#include <sstream> 
+#include <iomanip>
+
 #include "JobPool.h"
-#include "wx/string.h"
 
 #ifdef LINUX
     #include <X11/Xlib.h>
 #endif
 
+#include <wx/thread.h>
+
 class JobPoolWorker : public wxThread
 {
-    wxMutex *lock;
-    wxCondition *signal;
+    std::mutex *lock;
+    std::condition_variable *signal;
     volatile int &idleThreads;
     volatile int &numThreads;
     std::deque<Job*> *queue;
@@ -21,24 +28,24 @@ class JobPoolWorker : public wxThread
     Job *currentJob;
 
 public:
-    JobPoolWorker(wxMutex *l,
-                  wxCondition *signal,
+    JobPoolWorker(std::mutex *l,
+                  std::condition_variable *signal,
                   std::deque<Job*> *queue,
                   volatile int &idleThreadPtr,
                   volatile int &numThreadsPtr);
     virtual ~JobPoolWorker();
 
     void Stop();
-    void Start(int priority = WXTHREAD_DEFAULT_PRIORITY);
+    void Start();
     void* Entry();
 
     Job *GetJob();
 
     void ProcessJob(Job *job);
-    wxString GetStatus();
+    std::string GetStatus();
 };
 
-JobPoolWorker::JobPoolWorker(wxMutex *l, wxCondition *s, std::deque<Job*> *queue,
+JobPoolWorker::JobPoolWorker(std::mutex *l, std::condition_variable *s, std::deque<Job*> *queue,
                              volatile int &idleThreadPtr, volatile int &numThreadsPtr)
 : wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr), numThreads(numThreadsPtr), currentJob(nullptr)
 {
@@ -48,15 +55,23 @@ JobPoolWorker::~JobPoolWorker()
 {
 }
 
-wxString JobPoolWorker::GetStatus()
+std::string JobPoolWorker::GetStatus()
 {
-    wxString ret = wxString::Format("Thread: %X\n    ", GetId());
+    std::stringstream ret;
+    ret << "Thread: ";
+    
+    
+    ret << std::showbase // show the 0x prefix
+        << std::internal // fill between the prefix and the number
+        << std::setfill('0') << std::setw(10)
+        << std::hex << GetId()
+        << "    ";
     if (currentJob != nullptr) {
-        ret += currentJob->GetStatus();
+        ret << currentJob->GetStatus();
     } else {
-        ret += "<idle>";
+        ret << "<idle>";
     }
-    return ret;
+    return ret.str();
 }
 void JobPoolWorker::Stop()
 {
@@ -68,20 +83,19 @@ void JobPoolWorker::Stop()
     }
 }
 
-void JobPoolWorker::Start(int priority)
+void JobPoolWorker::Start()
 {
     Create();
-    SetPriority(priority);
     Run();
 }
 
 Job *JobPoolWorker::GetJob()
 {
-    wxMutexLocker mutLock(*lock);
+    std::unique_lock<std::mutex> mutLock(*lock);
     Job *req(NULL);
     if (queue->empty()) {
         idleThreads++;
-        signal->WaitTimeout(100);
+        signal->wait_for(mutLock, std::chrono::milliseconds(100));
         idleThreads--;
     }
     if ( !queue->empty() ) {
@@ -108,13 +122,13 @@ void* JobPoolWorker::Entry()
             delete job;
             job = NULL;
         } else {
-            wxMutexLocker mutLock(*lock);
+            std::unique_lock<std::mutex> mutLock(*lock);
             if (idleThreads > 5) {
                 break;
             }
         }
     }
-    wxMutexLocker mutLock(*lock);
+    std::unique_lock<std::mutex> mutLock(*lock);
     numThreads--;
     return NULL;
 }
@@ -128,7 +142,7 @@ void JobPoolWorker::ProcessJob(Job *job)
     }
 }
 
-JobPool::JobPool() : lock(), signal(lock), queue()
+JobPool::JobPool() : lock(), signal(), queue()
 {
     idleThreads = 0;
     numThreads = 0;
@@ -149,22 +163,21 @@ JobPool::~JobPool()
 
 void JobPool::PushJob(Job *job)
 {
-    wxMutexLocker locker(lock);
+    std::unique_lock<std::mutex> locker(lock);
     if (idleThreads == 0 && numThreads < maxNumThreads) {
         numThreads++;
 
         JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue, idleThreads, numThreads);
-        worker->Start(threadPriority);
+        worker->Start();
         threads.push_back(worker);
     }
     queue.push_back(job);
-    signal.Broadcast();
+    signal.notify_all();
 }
 
-void JobPool::Start(size_t poolSize, int priority)
+void JobPool::Start(size_t poolSize)
 {
     maxNumThreads = poolSize > 250 ? 250 : poolSize;
-    threadPriority = priority;
     idleThreads = 0;
     numThreads = 0;
 }
@@ -179,13 +192,14 @@ void JobPool::Stop()
     threads.clear();
 }
 
-wxString JobPool::GetThreadStatus() {
-    wxString ret = "\n";
+std::string JobPool::GetThreadStatus() {
+    std::stringstream ret;
+    ret << "\n";
     for(size_t i=0; i<threads.size(); i++){
         JobPoolWorker *worker = threads.at(i);
-        ret += worker->GetStatus();
-        ret += "\n\n";
+        ret << worker->GetStatus();
+        ret << "\n\n";
     }
-    return ret;
+    return ret.str();
 }
 

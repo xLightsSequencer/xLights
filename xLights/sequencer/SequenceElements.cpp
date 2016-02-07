@@ -1287,7 +1287,7 @@ void SequenceElements::IncrementChangeCount(Element *el) {
     mChangeCount++;
     if (el != nullptr && el->GetType() == "timing") {
         //need to check if we need to have some models re-rendered due to timing being changed
-        wxMutexLocker locker(renderDepLock);
+        std::unique_lock<std::mutex> locker(renderDepLock);
         std::map<std::string, std::set<std::string>>::iterator it = renderDependency.find(el->GetName());
         if (it != renderDependency.end()) {
             int origChangeCount, ss, es;
@@ -1303,7 +1303,7 @@ void SequenceElements::IncrementChangeCount(Element *el) {
     }
 }
 bool SequenceElements::GetElementsToRender(std::vector<Element *> &models) {
-    wxMutexLocker locker(renderDepLock);
+    std::unique_lock<std::mutex> locker(renderDepLock);
     if (!modelsToRender.empty()) {
         for (std::set<std::string>::iterator sit = modelsToRender.begin(); sit != modelsToRender.end(); sit++) {
             Element *el = this->GetElement(*sit);
@@ -1318,7 +1318,7 @@ bool SequenceElements::GetElementsToRender(std::vector<Element *> &models) {
 }
 
 void SequenceElements::AddRenderDependency(const std::string &layer, const std::string &model) {
-    wxMutexLocker locker(renderDepLock);
+    std::unique_lock<std::mutex> locker(renderDepLock);
     renderDependency[layer].insert(model);
 }
 

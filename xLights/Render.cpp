@@ -4,6 +4,9 @@
 //
 //
 
+#include <mutex>
+#include <condition_variable>
+
 #include "xLightsMain.h"
 #include "RenderCommandEvent.h"
 #include "BitmapCache.h"
@@ -35,10 +38,10 @@ static const std::string STR_EMPTY("");
 
 class RenderEvent {
 public:
-    RenderEvent() : mutex(), signal(mutex) {
+    RenderEvent() : mutex(), signal() {
     }
-    wxMutex mutex;
-    wxCondition signal;
+    std::mutex mutex;
+    std::condition_variable signal;
 
     int layer;
     int period;
@@ -52,7 +55,7 @@ public:
 
 class NextRenderer {
 public:
-    NextRenderer() : nextLock(), nextSignal(nextLock) {
+    NextRenderer() : nextLock(), nextSignal() {
         previousFrameDone = -1;
         next = NULL;
     }
@@ -64,24 +67,24 @@ public:
         return next;
     }
     virtual void setPreviousFrameDone(int i) {
-        wxMutexLocker lock(nextLock);
+        std::unique_lock<std::mutex> lock(nextLock);
         previousFrameDone = i;
-        nextSignal.Broadcast();
+        nextSignal.notify_all();
     }
     int waitForFrame(int frame) {
-        wxMutexLocker lock(nextLock);
+        std::unique_lock<std::mutex> lock(nextLock);
         while (frame > previousFrameDone) {
-            nextSignal.WaitTimeout(5);
+            nextSignal.wait_for(lock, std::chrono::milliseconds(10));
         }
         return previousFrameDone;
     }
     bool checkIfDone(int frame, int timeout = 5) {
-        wxMutexLocker lock(nextLock);
+        std::unique_lock<std::mutex> lock(nextLock);
         return previousFrameDone >= frame;
     }
 protected:
-    wxMutex nextLock;
-    wxCondition nextSignal;
+    std::mutex nextLock;
+    std::condition_variable nextSignal;
     volatile long previousFrameDone;
     NextRenderer *next;
 };
@@ -109,7 +112,7 @@ public:
         if (idx % 10 == 0 || idx == finalFrame) {
             //only record every 10th frame and the final frame to
             //avoid a lot of lock contention
-            wxMutexLocker lock(nextLock);
+            std::unique_lock<std::mutex> lock(nextLock);
             data[idx]++;
             if (data[idx] == max) {
                 previousFrameDone = frame;
@@ -243,7 +246,10 @@ public:
         statusMsgChars = st;
         statusType = 8;
     }
-    wxString GetStatus() {
+    std::string GetStatus() {
+        return GetwxStatus().ToStdString();
+    }
+    wxString GetwxStatus() {
         switch (statusType) {
         case 0:
             return statusMsg;
@@ -307,7 +313,7 @@ public:
         int ss, es;
 
         rowToRender->IncWaitCount();
-        wxMutexLocker lock(rowToRender->GetRenderLock());
+        std::unique_lock<std::recursive_mutex> lock(rowToRender->GetRenderLock());
         rowToRender->DecWaitCount();
         SetGenericStatus("Got lock on rendering thread for %s\n", 0);
 
@@ -618,7 +624,7 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
                                         ev->period,
                                         *ev->settingsMap,
                                         *ev->buffer, *ev->ResetEffectState, false, ev);
-    ev->signal.Broadcast();
+    ev->signal.notify_all();
 }
 
 void xLightsFrame::RenderGridToSeqData() {
@@ -871,11 +877,10 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             event->settingsMap = &SettingsMap;
             event->ResetEffectState = &resetEffectState;
             
-            event->mutex.Lock();
+            std::unique_lock<std::mutex> lock(event->mutex);
             CallAfter(&xLightsFrame::RenderEffectOnMainThread, event);
-            if (event->signal.Wait() == wxCOND_NO_ERROR) {
+            if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {
                 retval = event->returnVal;
-                event->mutex.Unlock();
             } else {
                 printf("HELP!!!!\n");
             }

@@ -140,7 +140,7 @@ void Effect::SetID(int id)
 }
 void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 {
-    wxMutexLocker lock(settingsLock);
+    std::unique_lock<std::mutex> lock(settingsLock);
 
     for (std::map<std::string,std::string>::const_iterator it=mSettings.begin(); it!=mSettings.end(); ++it)
     {
@@ -163,26 +163,26 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 }
 void Effect::CopyPalette(xlColorVector &target) const
 {
-    wxMutexLocker lock(settingsLock);
+    std::unique_lock<std::mutex> lock(settingsLock);
     target = mColors;
 }
 
 void Effect::SetSettings(const std::string &settings)
 {
-    wxMutexLocker lock(settingsLock);
+    std::unique_lock<std::mutex> lock(settingsLock);
     mSettings.Parse(settings);
     IncrementChangeCount();
 }
 
 std::string Effect::GetSettingsAsString() const
 {
-    wxMutexLocker lock(settingsLock);
+    std::unique_lock<std::mutex> lock(settingsLock);
     return mSettings.AsString();
 }
 
 void Effect::SetPalette(const std::string& i)
 {
-    wxMutexLocker lock(settingsLock);
+    std::unique_lock<std::mutex> lock(settingsLock);
     mPaletteMap.Parse(i);
     mColors.clear();
     IncrementChangeCount();
@@ -195,7 +195,7 @@ void Effect::SetPalette(const std::string& i)
 
 std::string Effect::GetPaletteAsString() const
 {
-    wxMutexLocker lock(settingsLock);
+    std::unique_lock<std::mutex> lock(settingsLock);
     return mPaletteMap.AsString();
 }
 
