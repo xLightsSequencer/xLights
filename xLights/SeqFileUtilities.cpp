@@ -1004,7 +1004,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     long MaxIntensity = 255;
 
     int time = 0;
-    int frameTime = 0;
+    int frameTime = 50;
 
 
     LMSImportChannelMapDialog dlg(this);

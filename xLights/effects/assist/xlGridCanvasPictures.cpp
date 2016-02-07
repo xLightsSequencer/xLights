@@ -770,8 +770,6 @@ void xlGridCanvasPictures::ProcessHoverDrag(int column, int row)
         }
     }
     CalcSelection();
-    int height = mEndRow-mStartRow+1;
-    int width = mEndCol-mStartCol+1;
     if( mCopyAvailable )
     {
         copy_sprite->setHotspot(-1 - mStartCol, -1 - mStartRow);

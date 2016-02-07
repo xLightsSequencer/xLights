@@ -829,7 +829,7 @@ void addModelElement(Element *elem, std::vector<Row_Information_Struct> &mRowInf
         return;
     }
     elem->InitStrands(*cls);
-    if (cls->GetDisplayAs() == "WholeHouse" && elem->ShowStrands()) {
+    if (cls->GetDisplayAs() == "ModelGroup" && elem->ShowStrands()) {
         wxString models = cls->GetModelXml()->GetAttribute("models");
         wxArrayString model=wxSplit(models,',');
         for(int m=0;m<model.size();m++) {

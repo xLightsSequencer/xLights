@@ -319,7 +319,7 @@ void xLightsFrame::UpdateModelsList()
     
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         Model *model = it->second;
-        if (model->GetDisplayAs() == "WholeHouse") {
+        if (model->GetDisplayAs() == "ModelGroup") {
             ModelGroup *grp = (ModelGroup*)model;
             if (grp->IsSelected()) {
                 for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {

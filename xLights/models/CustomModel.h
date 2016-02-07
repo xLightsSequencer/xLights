@@ -15,7 +15,7 @@ class CustomModel : public Model
 
     protected:
         virtual void InitModel() override;
-        virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
+        virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
     private:
         int GetCustomMaxChannel(const std::string& customModel);

@@ -11,6 +11,7 @@ ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &man
     wxXmlNode *e = CreateModelNodeFromGroup(manager, previewW, previewH, node);
     SetFromXml(e, netInfo);
     selected = node->GetAttribute("selected", "0") == "1";
+    DisplayAs = "ModelGroup";
 }
 
 ModelGroup::~ModelGroup()
