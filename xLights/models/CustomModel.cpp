@@ -74,7 +74,8 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     
     wxArrayString rows=wxSplit(customModel,';');
     int height=rows.size();
-    int cpn = GetChanCountPerNode();
+    int cpn = -1;
+   
     for(size_t row=0; row < rows.size(); row++) {
         cols=wxSplit(rows[row],',');
         if (cols.size() > width) width=cols.size();
@@ -95,6 +96,9 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
                     nodemap[idx]=Nodes.size();
                     SetNodeCount(1,0,rgbOrder);  // this creates a node of the correct class
                     Nodes.back()->StringNum=idx;
+                    if (cpn == -1) {
+                        cpn = GetChanCountPerNode();
+                    }
                     Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
                     if (idx < nodeNames.size()) {
                         Nodes.back()->SetName(nodeNames[idx]);

@@ -3,15 +3,19 @@
 
 #include <wx/xml/xml.h>
 #include <wx/arrstr.h>
-
+#include <wx/msgdlg.h>
 
 #include "StarModel.h"
 #include "ArchesModel.h"
+#include "CircleModel.h"
 #include "TreeModel.h"
 #include "CustomModel.h"
 #include "WholeHouseModel.h"
 #include "SingleLineModel.h"
 #include "ModelGroup.h"
+#include "WindowFrameModel.h"
+#include "WreathModel.h"
+#include "SphereModel.h"
 
 ModelManager::ModelManager()
 {
@@ -73,6 +77,14 @@ Model *ModelManager::CreateModel(wxXmlNode *node, const NetInfoClass &netInfo, b
         model = new StarModel(node, netInfo, zeroBased);
     } else if (type == "Arches") {
         model = new ArchesModel(node, netInfo, zeroBased);
+    } else if (type == "Circle") {
+        model = new CircleModel(node, netInfo, zeroBased);
+    } else if (type == "Window Frame") {
+        model = new WindowFrameModel(node, netInfo, zeroBased);
+    } else if (type == "Wreath") {
+        model = new WreathModel(node, netInfo, zeroBased);
+    } else if (type.find("Sphere") == 0) {
+        model = new SphereModel(node, netInfo, zeroBased);
     } else if (type == "Single Line") {
         model = new SingleLineModel(node, netInfo, zeroBased);
     } else if (type == "Custom") {
@@ -81,19 +93,24 @@ Model *ModelManager::CreateModel(wxXmlNode *node, const NetInfoClass &netInfo, b
         model = new TreeModel(node, netInfo, zeroBased);
     } else if (type == "WholeHouse") {
         model = new WholeHouseModel(node, netInfo, zeroBased);
-    } else {
+    } else if (type == "Vert Matrix" || type == "Horiz Matrix") {
         model = new Model();
         model->SetFromXml(node, netInfo, zeroBased);
+    } else {
+        wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
+        return nullptr;
     }
     return model;
 }
 Model *ModelManager::createAndAddModel(wxXmlNode *node, const NetInfoClass &netInfo) {
     Model *model = CreateModel(node, netInfo);
-    auto it = models.find(model->name);
-    if (it != models.end()) {
-        delete it->second;
+    if (model != nullptr) {
+        auto it = models.find(model->name);
+        if (it != models.end()) {
+            delete it->second;
+        }
+        models[model->name] = model;
     }
-    models[model->name] = model;
     return model;
 }
 

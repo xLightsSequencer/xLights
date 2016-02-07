@@ -99,11 +99,11 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
         }
     }
     if (shimmer || cycles != 1.0) {
-        wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
+        std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
         eff->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 4);
         buffer.CopyPixelsToDisplayListX(eff, 0, 0, 0);
     } else if (buffer.needToInit) {
-        wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
+        std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
         eff->GetBackgroundDisplayList().resize(4);
         if (start == 100 && end == 100) {
             buffer.palette.GetColor(0, color);

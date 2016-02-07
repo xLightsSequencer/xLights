@@ -19,11 +19,11 @@ Element::Element(SequenceElements *l, const std::string &name, const std::string
 Element::~Element()
 {
     //make sure none of the render threads are rendering this model
-    renderLock.Lock();
+    std::unique_lock<std::recursive_mutex> lock(renderLock);
     while (waitCount > 0) {
-        renderLock.Unlock();
+        lock.unlock();
         wxSleep(1);
-        renderLock.Lock();
+        lock.lock();
     }
     
     for (int x = 0; x < mEffectLayers.size(); x++) {
@@ -32,7 +32,6 @@ Element::~Element()
     for (int x = 0; x < mStrandLayers.size(); x++) {
         delete mStrandLayers[x];
     }
-    renderLock.Unlock();
 }
 
 

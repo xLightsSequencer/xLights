@@ -1,5 +1,7 @@
 #include "TextEffect.h"
 
+#include <mutex>
+
 #include "TextPanel.h"
 #include <wx/checkbox.h>
 
@@ -58,11 +60,11 @@ void TextEffect::SetDefaultParameters(Model *cls) {
 
 #define WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
 
-wxMutex FONT_MAP_LOCK;
+std::mutex FONT_MAP_LOCK;
 std::map<std::string, wxFontInfo> FONT_MAP;
 
 void SetFont(DrawingContext *dc, const std::string& FontString, const xlColor &color) {
-    wxMutexLocker locker(FONT_MAP_LOCK);
+    std::unique_lock<std::mutex> locker(FONT_MAP_LOCK);
     if (FONT_MAP.find(FontString) == FONT_MAP.end()) {
         if (!FontString.empty())
         {

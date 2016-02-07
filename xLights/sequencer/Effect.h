@@ -2,12 +2,12 @@
 #define EFFECT_H
 
 #include "wx/wx.h"
-#include <wx/thread.h>
 #include <vector>
 #include "../UtilClasses.h"
 #include "../Color.h"
 #include "../DrawGLUtils.h"
 #include <string>
+#include <mutex>
 
 class EffectLayer;
 
@@ -81,7 +81,7 @@ class Effect
             return background;
         }
         bool HasBackgroundDisplayList() const {
-            wxMutexLocker (background.lock);
+            std::lock_guard<std::recursive_mutex> (background.lock);
             return !background.empty();
         }
     protected:
@@ -96,7 +96,7 @@ class Effect
         bool mProtected;
         EffectLayer* mParentLayer;
 
-        mutable wxMutex settingsLock;
+        mutable std::mutex settingsLock;
         SettingsMap mSettings;
         SettingsMap mPaletteMap;
         xlColorVector mColors;

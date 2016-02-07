@@ -7,13 +7,6 @@
 
 #include <cmath>
 
-#ifdef __WXMSW__
-/* the c++11 runtime in mingw is broken.  It doesn't include these as the spec says it should */
-#include <cstdlib>
-#define stod(x) atof(x.c_str())
-#define stof(x) atof(x.c_str())
-#define stoi(x) strtol(x.c_str(), nullptr, 10)
-#endif
 
 class BaseDimmingCurve : public DimmingCurve {
 public:

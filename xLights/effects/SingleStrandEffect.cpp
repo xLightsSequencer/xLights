@@ -103,7 +103,7 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
     
     if (buffer.needToInit) {
         buffer.needToInit = false;
-        wxMutexLocker lock(eff->GetBackgroundDisplayList().lock);
+        std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
         int rects = (Skips_SkipSize + Skips_BandSize) * (buffer.curEffEndPer - buffer.curEffStartPer + 1);
         eff->GetBackgroundDisplayList().resize(rects * 4);
     }

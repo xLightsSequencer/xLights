@@ -468,7 +468,7 @@ void DrawGLUtils::CreateOrUpdateTexture(const wxBitmap &bmp48,
 void DrawGLUtils::DrawDisplayList(double xOffset, double yOffset,
                                   double width, double height,
                                   const DrawGLUtils::xlDisplayList & dl) {
-    wxMutexLocker lock(dl.lock);
+    std::lock_guard<std::recursive_mutex> lock(dl.lock);
     if (dl.empty()) {
         return;
     }

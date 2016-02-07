@@ -5,16 +5,6 @@
 #include <string>
 #include <algorithm>
 
-/* for now, to determine if we need the wxString variants */
-#include <wx/string.h>
-
-#ifdef __WXMSW__
-/* the c++11 runtime in mingw is broken.  It doesn't include these as the spec says it should */
-#include <cstdlib>
-#define stod(x) atof(x.c_str())
-#define stof(x) atof(x.c_str())
-#define stoi(x) strtol(x.c_str(), nullptr, 10)
-#endif
 
 class MapStringString: public std::map<std::string,std::string> {
 public:
@@ -158,40 +148,6 @@ public:
         }
         return ret;
     }
-
-#ifndef wxUSE_STD_STRING
-    /* deprecated wxString versions, need to rebuild wxWidgets with --with-stl */
-    /* On platforms that use the std::string, we don't need these */
-    const std::string &operator[](const wxString &wkey) const {
-        std::map<std::string,std::string>::const_iterator i(find(wkey.ToStdString()));
-        if (i == end()) {
-            return EMPTY_STRING;
-        }
-        return i->second;
-    }
-    std::string &operator[](const wxString &wkey) {
-        return std::map<std::string, std::string>::operator[](wkey.ToStdString());
-    }
-    int GetInt(const wxString &wkey, const int def) const {
-        return GetInt(wkey.ToStdString(), def);
-    }
-    double GetDouble(const wxString &wkey, const double &def) const {
-        return GetDouble(wkey.ToStdString(), def);
-    }
-    bool GetBool(const wxString &wkey, const bool def = false) const {
-        return GetBool(wkey.ToStdString(), def);
-    }
-    const std::string Get(const wxString &wkey, const wxString &def) const {
-        std::map<std::string,std::string>::const_iterator i(find(wkey.ToStdString()));
-        if (i == end()) {
-            return def.ToStdString();
-        }
-        return i->second;
-    }
-    std::string Get(const wxString &wkey, const char *def) const {
-        return Get(wkey.ToStdString(), def);
-    }
-#endif
 
 private:
 
