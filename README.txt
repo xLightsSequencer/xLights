@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.6  Feb 07, 2016
     -- enh(keithsw) Add warning when using variable bit rate audio files
     -- bug(dkulp) Fix channel number on nodes in CustomModel
     -- bug(gil)   Add missing Circle model to new ModelManager.
