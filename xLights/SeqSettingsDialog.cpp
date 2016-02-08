@@ -1287,7 +1287,7 @@ void SeqSettingsDialog::OnButton_ImportTimingsClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_Button_WizardDoneClick(wxCommandEvent& event)
 {
-    EndModal(wxID_OK);
+	EndModal(wxID_OK);
 }
 
 void SeqSettingsDialog::OnButton_CancelClick(wxCommandEvent& event)

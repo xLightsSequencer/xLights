@@ -50,7 +50,8 @@ public:
         eff_TEXT,
         eff_TREE,
         eff_TWINKLE,
-        eff_WAVE,
+		eff_VUMETER,
+		eff_WAVE,
         eff_LASTEFFECT //Always the last entry
     };
 

@@ -40,6 +40,11 @@ inline void unshare(wxObject &o) {
     }
 }
 
+AudioManager* RenderBuffer::GetMedia()
+{
+	return _audio;
+}
+
 DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(wxNullBitmap)
 {
     unshare(nullBitmap);
@@ -301,8 +306,9 @@ RenderBuffer::~RenderBuffer()
     }
 }
 
-void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi)
+void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, AudioManager* audio)
 {
+	_audio = audio;
     BufferHt=newBufferHt;
     BufferWi=newBufferWi;
     drawingContext = new DrawingContext(newBufferWi, newBufferHt);

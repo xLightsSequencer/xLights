@@ -126,12 +126,12 @@ Model *xLightsFrame::GetModel(const std::string& name) {
     return AllModels[name];
 }
 
-bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
+bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, AudioManager* audio, bool zeroBased) {
     Model *model = GetModel(modelName);
     if (model->GetModelXml() == nullptr) {
         return false;
     }
-    buffer.InitBuffer(*model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
+    buffer.InitBuffer(*model, layerCount, SeqData.FrameTime(), NetInfo, audio, zeroBased);
     return true;
 }
 
@@ -213,6 +213,10 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
             setting_dlg.Fit();
             setting_dlg.ShowModal();
             mediaFilename = xml_file.GetMedia()->FileName();
+			if (xml_file.GetMedia()->GetFrameInterval() < 0)
+			{
+				xml_file.GetMedia()->SetFrameInterval(xml_file.GetSequenceTimingAsInt());
+			}
         }
         if( mediaFilename != wxEmptyString )
         {

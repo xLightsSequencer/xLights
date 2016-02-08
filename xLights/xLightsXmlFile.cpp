@@ -142,6 +142,11 @@ int xLightsXmlFile::GetFrequency()
     return (int)(1000/freq_ms);
 }
 
+int xLightsXmlFile::GetSequenceTimingAsInt()
+{
+	return wxAtoi(seq_timing);
+}
+
 void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
 {
     seq_timing = timing;
@@ -191,9 +196,9 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename, bool overwrite_tags
 	{
 		delete audio;
 	}
-	audio = new AudioManager(std::string(filename.c_str()), 1024, 1024);
+	audio = new AudioManager(std::string(filename.c_str()), this, 1024, 1024);
 
-    if( overwrite_tags )
+	if( overwrite_tags )
     {
 		SetMetaMP3Tags();
     }
@@ -1115,7 +1120,7 @@ bool xLightsXmlFile::LoadSequence()
 					{
 						delete audio;
 					}
-					audio = new AudioManager(std::string(media_file.c_str()), 1024, 1024);
+					audio = new AudioManager(std::string(media_file.c_str()), this, 1024, 1024);
                 }
                 else if( element->GetName() == "sequenceDuration")
                 {
@@ -1175,6 +1180,15 @@ bool xLightsXmlFile::LoadSequence()
             }
        }
     }
+
+	if (audio != NULL)
+	{
+		if (audio->GetFrameInterval() < 0 && GetSequenceTimingAsInt() > 0)
+		{
+			audio->SetFrameInterval(GetSequenceTimingAsInt());
+		}
+	}
+
     return is_open;
 }
 

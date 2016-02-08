@@ -179,7 +179,6 @@
     <ClCompile Include="effects\BarsPanel.cpp" />
     <ClCompile Include="effects\ButterflyEffect.cpp" />
     <ClCompile Include="effects\ButterflyPanel.cpp" />
-    <ClCompile Include="effects\ChromaEffect.cpp" />
     <ClCompile Include="effects\CirclesEffect.cpp" />
     <ClCompile Include="effects\CirclesPanel.cpp" />
     <ClCompile Include="effects\ColorWashEffect.cpp" />
@@ -253,6 +252,8 @@
     <ClCompile Include="effects\TreePanel.cpp" />
     <ClCompile Include="effects\TwinkleEffect.cpp" />
     <ClCompile Include="effects\TwinklePanel.cpp" />
+    <ClCompile Include="effects\VUMeterEffect.cpp" />
+    <ClCompile Include="effects\VUMeterPanel.cpp" />
     <ClCompile Include="effects\WaveEffect.cpp" />
     <ClCompile Include="effects\WavePanel.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />

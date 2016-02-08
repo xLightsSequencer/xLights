@@ -8,6 +8,7 @@
 #include <condition_variable>
 
 #include "xLightsMain.h"
+#include "xLightsXmlFile.h"
 #include "RenderCommandEvent.h"
 #include "BitmapCache.h"
 #include <map>
@@ -153,13 +154,13 @@ public:
 
 class RenderJob: public Job, public NextRenderer {
 public:
-    RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
+    RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, AudioManager* audio, bool zeroBased = false, bool clear = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe) {
         if (row != NULL) {
             name = row->GetName();
             mainBuffer = new PixelBufferClass();
             Model *model = xframe->GetModel(name);
-            if (xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), zeroBased)) {
+            if (xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), audio, zeroBased)) {
 
                 for (int x = 0; x < row->getStrandLayerCount(); x++) {
                     StrandLayer *sl = row->GetStrandLayer(x);
@@ -652,7 +653,7 @@ void xLightsFrame::RenderGridToSeqData() {
         Element *rowEl = mSequenceElements.GetElement(row);
         if (rowEl->GetType() == "model" && rowEl != lastRowEl) {
             lastRowEl = rowEl;
-            RenderJob *job = new RenderJob(rowEl, SeqData, this);
+            RenderJob *job = new RenderJob(rowEl, SeqData, this, xLightsFrame::CurrentSeqXmlFile->GetMedia());
             job->setRenderRange(0, SeqData.NumFrames());
 
             bool hasDep = false;
@@ -727,7 +728,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
     if( el->GetType() != "timing") {
-        job = new RenderJob(el, SeqData, this, false, clear);
+        job = new RenderJob(el, SeqData, this, CurrentSeqXmlFile->GetMedia(), false, clear);
         if (job->getBuffer() == nullptr) {
             delete job;
             return;
@@ -788,7 +789,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 
     Element * el = mSequenceElements.GetElement(model);
     NextRenderer wait;
-    RenderJob *job = new RenderJob(el, SeqData, this, true);
+    RenderJob *job = new RenderJob(el, SeqData, this, xLightsFrame::CurrentSeqXmlFile->GetMedia(), true);
     SequenceData *data = job->createExportBuffer();
     int cpn = job->getBuffer()->GetChanCountPerNode();
 
@@ -876,7 +877,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             event->period = period;
             event->settingsMap = &SettingsMap;
             event->ResetEffectState = &resetEffectState;
-            
+
             std::unique_lock<std::mutex> lock(event->mutex);
             CallAfter(&xLightsFrame::RenderEffectOnMainThread, event);
             if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {

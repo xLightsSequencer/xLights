@@ -1,8 +1,10 @@
 #include "AudioManager.h"
-#include <wx/string.h>
 #include <sstream>
 #include <algorithm>
+#include <wx/wx.h>
+#include <wx/string.h>
 #include <wx/ffile.h>
+#include "xLightsXmlFile.h"
 
 using namespace Vamp;
 
@@ -20,8 +22,10 @@ xLightsVamp::~xLightsVamp()
 	_loadedPlugins.empty();
 }
 
-AudioManager::AudioManager(std::string audio_file, int step = 1024, int block = 1024)
+AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int step = 1024, int block = 1024)
 {
+	_job = NULL;
+	_xml_file = xml_file;
 	_audio_file = audio_file;
 	_phm = NULL;
 	_state = -1; // state uninitialised. 0 is error. 1 is loaded ok
@@ -29,11 +33,17 @@ AudioManager::AudioManager(std::string audio_file, int step = 1024, int block = 
 	_data[0] = NULL;
 	_data[1] = NULL;
 	_intervalMS = -1;
+	_frameDataPrepared = false;
 
 	_extra = std::max(step, block) + 1;
 	OpenMediaFile();
 
 	_isCBR = CheckCBR();
+
+	if (_intervalMS > 0)
+	{
+		PrepareFrameData();
+	}
 
 	// if we got here without setting state to zero then all must be good so set state to 1 success
 	if (_state == -1)
@@ -42,39 +52,311 @@ AudioManager::AudioManager(std::string audio_file, int step = 1024, int block = 
 	}
 }
 
-void AudioManager::PrepareFrameData()
-{
-	// process audio data and build data for each frame
 
-	// Max data
-	// Min data
-	// Spread data
-	// beat in frame
-	// Note onset in frame
-	// frequency breakdown
+AudioScanJob::AudioScanJob(AudioManager* audio)
+{
+	_audio = audio;
+	_status = "Idle.";
 }
 
-std::list<float> AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt)
+void AudioScanJob::Process()
 {
-	std::list<float> result;
+	_status = "Processing.";
+	_audio->DoPrepareFrameData();
+	_status = "Done.";
+}
+
+void AudioManager::DoPrepareFrameData()
+{
+	// grab the mutex
+	_mutex.lock();
+
+	// process audio data and build data for each frame
+
+	// samples per frame
+	int samplesperframe = _rate * _intervalMS / 1000;
+	int frames = _lengthMS / _intervalMS;
+	if (frames * _intervalMS < _lengthMS)
+	{
+		frames++;
+	}
+
+	// these are used to normalise output
+	_bigmax = -1;
+	_bigspread = -1;
+	_bigmin = 1;
+
+	std::list<std::string> plugins = _vamp.GetAllAvailablePlugins(this);
+	Vamp::Plugin *p1 = _vamp.GetPlugin("Chromagram");
+	Vamp::Plugin *p2 = _vamp.GetPlugin("Chromagram: Chroma Means");
+	Vamp::Plugin *p3 = _vamp.GetPlugin("Constant-Q Spectrogram");
+	Vamp::Plugin *p4 = _vamp.GetPlugin("Adaptive Spectrogram");
+	Vamp::Plugin *p5 = _vamp.GetPlugin("Mel-Frequency Cepstral Coefficients: Coefficients");
+	Vamp::Plugin *p6 = _vamp.GetPlugin("Mel-Frequency Cepstral Coefficients: Means of Coefficients");
+	float *pdata[2];
+	int output = 0;
+
+	if (p1 != NULL)
+	{
+		Plugin::OutputList outputs = p1->getOutputDescriptors();
+		PluginBase::ParameterList params = p1->getParameterDescriptors();
+		//p->setParameter("minpitch", 0);
+		//p->setParameter("maxpitch", 127);
+		//p->setParameter("tuning", 440);
+		//p->setParameter("bpo", 12);
+		//p->setParameter("normalization", 0);
+		p4->setParameter("n", 10);
+		p4->setParameter("w", 1);
+		p4->setParameter("coarse", 0);
+		p4->setParameter("threaded", 1);
+		p5->setParameter("nceps", 40);
+		p5->setParameter("logpower", 1);
+		p5->setParameter("wantc0", 1);
+		p6->setParameter("nceps", 40);
+		p6->setParameter("logpower", 1);
+		p6->setParameter("wantc0", 1);
+		int channels = GetChannels();
+		if (channels > p1->getMaxChannelCount()) {
+			channels = 1;
+		}
+		size_t step = p1->getPreferredStepSize();
+		size_t block = p1->getPreferredBlockSize();
+		if (block == 0) {
+			if (step != 0) {
+				block = step;
+			}
+			else {
+				block = 1024;
+			}
+		}
+		if (step == 0) {
+			step = block;
+		}
+		//p->initialise(channels, samplesperframe, samplesperframe);
+		p1->initialise(channels, samplesperframe, samplesperframe);
+		p2->initialise(channels, samplesperframe, samplesperframe);
+		p3->initialise(channels, samplesperframe, samplesperframe);
+		p4->initialise(channels, samplesperframe, samplesperframe);
+		p5->initialise(channels, samplesperframe, samplesperframe);
+		p6->initialise(channels, samplesperframe, samplesperframe);
+	}
+
+	for (int i = 0; i < frames; i++)
+	{
+		std::vector<std::list<float>> aFrameData;
+		float max = -100.0;
+		float min = 100.0;
+		float spread = -100;
+		std::list<float> spectrogram;
+
+		if (p1 != NULL)
+		{
+			pdata[0] = GetLeftDataPtr(i * samplesperframe);
+			pdata[1] = GetRightDataPtr(i * samplesperframe);
+			Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(i * samplesperframe, GetRate());
+			Vamp::Plugin::FeatureSet features1 = p1->process(pdata, timestamp);
+			Vamp::Plugin::FeatureSet features2 = p2->process(pdata, timestamp);
+			Vamp::Plugin::FeatureSet features3 = p3->process(pdata, timestamp);
+			Vamp::Plugin::FeatureSet features4 = p4->process(pdata, timestamp);
+			Vamp::Plugin::FeatureSet features5 = p5->process(pdata, timestamp);
+			Vamp::Plugin::FeatureSet features6 = p6->process(pdata, timestamp);
+			spectrogram = ProcessFeatures(features5[output]);
+			if (features1.size() > 0 || features2.size() > 0 || features3.size() > 0 ) //|| features4.size() > 0)
+			{
+				int a = 0;
+				if (features1[0].size() > 0)
+				{
+					int b = 0;
+				}
+				if (features2[0].size() > 0)
+				{
+					int b = 0;
+				}
+				if (features3[0].size() > 0)
+				{
+					int b = 0;
+				}
+				if (features4[0].size() > 0)
+				{
+					int b = 0;
+				}
+				if (features5[0].size() > 0)
+				{
+					int b = 0;
+				}
+				if (features6[0].size() > 0)
+				{
+					int b = 0;
+				}
+			}
+		}
+
+		for (int j = 0; j < samplesperframe; j++)
+		{
+			float data = GetLeftData(i * samplesperframe + j);
+
+			// Max data
+			if (data > max)
+			{
+				max = data;
+			}
+
+			// Min data
+			if (data < min)
+			{
+				min = data;
+			}
+
+			// Spread data
+			if (max - min > spread)
+			{
+				spread = max - min;
+			}
+		}
+
+		if (max > _bigmax)
+		{
+			_bigmax = max;
+		}
+		if (min < _bigmin)
+		{
+			_bigmin = min;
+		}
+		if (spread > _bigspread)
+		{
+			_bigspread = spread;
+		}
+
+		std::list<float> maxlist;
+		maxlist.push_back(max);
+		std::list<float> minlist;
+		minlist.push_back(min);
+		std::list<float> spreadlist;
+		spreadlist.push_back(spread);
+		aFrameData.push_back(maxlist);
+		aFrameData.push_back(minlist);
+		aFrameData.push_back(spreadlist);
+		aFrameData.push_back(spectrogram);
+
+		_frameData.push_back(aFrameData);
+	}
+
+	//if (p1 != NULL)
+	//{
+	//	Vamp::Plugin::FeatureSet features1 = p1->getRemainingFeatures();
+	//	Vamp::Plugin::FeatureSet features2 = p2->getRemainingFeatures();
+	//	Vamp::Plugin::FeatureSet features3 = p3->getRemainingFeatures();
+	//	Vamp::Plugin::FeatureSet features4 = p4->getRemainingFeatures();
+	//	Vamp::Plugin::FeatureSet features5 = p5->getRemainingFeatures();
+	//	Vamp::Plugin::FeatureSet features6 = p6->getRemainingFeatures();
+	//	ProcessFeatures(features5[output]);
+	//}
+
+	// normalise data
+	for (std::vector<std::vector<std::list<float>>>::iterator itframe = _frameData.begin(); itframe != _frameData.end(); ++itframe) 
+	{
+		std::list<float> fl = (*itframe)[0];
+		float f = fl.back();
+		fl.pop_back();
+		fl.push_back(f * 1 / _bigmax);
+
+		fl = (*itframe)[1];
+		f = fl.back();
+		fl.pop_back();
+		fl.push_back(f * 1 / _bigmin);
+
+		fl = (*itframe)[2];
+		f = fl.back();
+		fl.pop_back();
+		fl.push_back(f * 1 / _bigspread);
+	}
+
+	wxArrayString timings = _xml_file->GetTimingList();
+
+	_frameDataPrepared = true;
+	_mutex.unlock();
+}
+
+std::list<float> AudioManager::ProcessFeatures(Vamp::Plugin::FeatureList &feature) 
+{
+	std::list<float> res;
+
+	if (feature.size() > 0)
+	{
+		for (std::vector<float>::iterator j = feature[0].values.begin(); j != feature[0].values.end(); ++j) 
+		{
+			res.push_back((*j));
+		}
+	}
+	return res;
+}
+
+void AudioManager::PrepareFrameData()
+{
+	if (!_frameDataPrepared && _job == NULL)
+	{
+		_job = (Job*)new AudioScanJob(this);
+		jobPool.PushJob(_job);
+	}
+}
+
+std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing)
+{
+	while (!_mutex.try_lock()) 
+	{
+		wxYield();
+	}
+
+	if (!_frameDataPrepared)
+	{
+		_mutex.unlock();
+		PrepareFrameData();
+
+		// wait until the new thread grabs the lock
+		while (_mutex.try_lock())
+		{
+			_mutex.unlock();
+			wxYield();
+		}
+
+		// now wait for the new thread to exit
+		while (!_mutex.try_lock()) 
+		{
+			wxYield();
+		}
+	}
+	_mutex.unlock();
+
+	std::vector<std::list<float>> framedata = _frameData[frame];
+	std::list<float>* rc = NULL;
 
 	switch (fdt)
 	{
 	case FRAMEDATA_HIGH:
+		rc = &framedata[0];
 		break;
 	case FRAMEDATA_LOW:
+		rc = &framedata[1];
 		break;
 	case FRAMEDATA_SPREAD:
-		break;
-	case FRAMEDATA_ISBEAT:
-		break;
-	case FRAMEDATA_ISNOTESTART:
+		rc = &framedata[2];
 		break;
 	case FRAMEDATA_VU:
+		rc = &framedata[3];
+		break;
+	case FRAMEDATA_ISTIMINGMARK:
+		wxArrayString timings = _xml_file->GetTimingList();
+		for (int i = 0; i < timings.Count(); i++)
+		{
+			wxString timing = timings[i];
+			int a = 0;
+		}
 		break;
 	}
 
-	return result;
+	_mutex.unlock();
+
+	return rc;
 }
 
 int AudioManager::decodebitrateindex(int bitrateindex, int version, int layertype)
@@ -614,7 +896,14 @@ int AudioManager::OpenMediaFile()
 
 Vamp::Plugin* xLightsVamp::GetPlugin(std::string name)
 {
-	return plugins[name];
+	Plugin* p = _plugins[name];
+
+	if (p == NULL)
+	{
+		p = _allplugins[name];
+	}
+
+	return p;
 }
 
 std::list<std::string> xLightsVamp::GetAvailablePlugins(AudioManager* paudio)
@@ -654,15 +943,62 @@ std::list<std::string> xLightsVamp::GetAvailablePlugins(AudioManager* paudio)
                 }
             }
 
-            plugins[name] = p;
+            _plugins[name] = p;
         }
     }
 
-    for (std::map<std::string, Vamp::Plugin *>::iterator it = plugins.begin(); it != plugins.end(); ++it) {
+    for (std::map<std::string, Vamp::Plugin *>::iterator it = _plugins.begin(); it != _plugins.end(); ++it) {
         ret.push_back(it->first);
     }
 
     return ret;
+}
+
+std::list<std::string> xLightsVamp::GetAllAvailablePlugins(AudioManager* paudio)
+{
+	std::list<std::string> ret;
+
+	Vamp::HostExt::PluginLoader::PluginKeyList pluginList = _loader->listPlugins();
+	for (int x = 0; x < pluginList.size(); x++) {
+		Vamp::Plugin *p = _loader->loadPlugin(pluginList[x], paudio->GetRate());
+		if (p == nullptr) {
+			continue;
+		}
+		_allloadedPlugins.push_back(p);
+		Plugin::OutputList outputs = p->getOutputDescriptors();
+
+		for (Plugin::OutputList::iterator j = outputs.begin(); j != outputs.end(); ++j) {
+			//if (j->sampleType == Plugin::OutputDescriptor::FixedSampleRate ||
+			//	j->sampleType == Plugin::OutputDescriptor::OneSamplePerStep ||
+			//	!j->hasFixedBinCount ||
+			//	(j->hasFixedBinCount && j->binCount > 1)) {
+			//	continue;
+			//}
+
+			std::string name = std::string(wxString::FromUTF8(p->getName().c_str()).c_str());
+
+			if (outputs.size() > 1) {
+				// This is not the plugin's only output.
+				// Use "plugin name: output name" as the effect name,
+				// unless the output name is the same as the plugin name
+				std::string outputName = std::string(wxString::FromUTF8(j->name.c_str()).c_str());
+				if (outputName != name)
+				{
+					std::ostringstream stringStream;
+					stringStream << name << ": " << outputName.c_str();
+					name = stringStream.str();
+				}
+			}
+
+			_allplugins[name] = p;
+		}
+	}
+
+	for (std::map<std::string, Vamp::Plugin *>::iterator it = _allplugins.begin(); it != _allplugins.end(); ++it) {
+		ret.push_back(it->first);
+	}
+
+	return ret;
 }
 
 void xLightsVamp::ProcessFeatures( Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels) {

@@ -67,6 +67,7 @@ private:
 
     int CurrentLayer;  // 0 or 1
     DimmingCurve *dimmingCurve;
+	AudioManager* _audio;
 
     //bunch of per layer settings
     RenderBuffer *effects;
@@ -103,7 +104,7 @@ public:
     
     RenderBuffer &BufferForLayer(int i);
     
-    void InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased=false);
+    void InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, AudioManager* audio, bool zeroBased=false);
     void InitStrandBuffer(const Model &pbc, int strand, int timing);
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
     

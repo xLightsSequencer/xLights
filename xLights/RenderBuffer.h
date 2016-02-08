@@ -38,6 +38,7 @@
 #include "../include/globals.h"
 
 #include "Color.h"
+#include "AudioManager.h"
 
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
@@ -159,14 +160,15 @@ public:
 	EffectRenderCache();
 	virtual ~EffectRenderCache();
 };
-
+ 
 class NCCDLLEXPORT RenderBuffer {
 public:
     RenderBuffer();
     ~RenderBuffer();
-    void InitBuffer(int newBufferHt, int newBufferWi);
+    void InitBuffer(int newBufferHt, int newBufferWi, AudioManager* audio);
     void SetFadeTimes(float fadeIn, float fadeOut);
     void GetFadeSteps(int& fadeInSteps, int& fadeOutSteps);
+	AudioManager* GetMedia();
 
     void Clear(const xlColor& bgColor);
     void SetPalette(xlColorVector& newcolors);
@@ -254,6 +256,7 @@ public:
     bool needToInit;
     bool allowAlpha;
     bool InhibitClear;
+	AudioManager* _audio;
 
     /* Places to store and data that is needed from one frame to another */
     std::map<int, EffectRenderCache*> infoCache;

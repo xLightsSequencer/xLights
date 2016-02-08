@@ -3,17 +3,34 @@
 
 #include <string>
 #include <list>
+#include <mutex>
 
 #include "sequencer/mpg123.h"
 #include "vamp-hostsdk/PluginLoader.h"
+#include "JobPool.h"
 
 class AudioManager;
+class xLightsXmlFile;
+
+class AudioScanJob : Job
+{
+private:
+	AudioManager* _audio;
+	std::string _status;
+public:
+	AudioScanJob(AudioManager* audio);
+	virtual ~AudioScanJob() {};
+	virtual void Process();
+	virtual std::string GetStatus() { return _status; }
+};
 
 class xLightsVamp
 {
 	Vamp::HostExt::PluginLoader *_loader;
-	std::map<std::string, Vamp::Plugin *> plugins;
+	std::map<std::string, Vamp::Plugin *> _plugins;
 	std::vector<Vamp::Plugin *> _loadedPlugins;
+	std::map<std::string, Vamp::Plugin *> _allplugins;
+	std::vector<Vamp::Plugin *> _allloadedPlugins;
 
 public:
 
@@ -29,11 +46,24 @@ public:
 	std::string ProcessPlugin(AudioManager* paudio, std::string& plugin);
 	void ProcessFeatures(Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels);
 	std::list<std::string> GetAvailablePlugins(AudioManager* paudio);
+	std::list<std::string> GetAllAvailablePlugins(AudioManager* paudio);
 	Vamp::Plugin* GetPlugin(std::string name);
 };
 
+typedef enum FRAMEDATATYPE {
+	FRAMEDATA_HIGH,
+	FRAMEDATA_LOW,
+	FRAMEDATA_SPREAD,
+	FRAMEDATA_VU,
+	FRAMEDATA_ISTIMINGMARK
+} FRAMEDATATYPE;
+
 class AudioManager
 {
+	JobPool jobPool;
+	Job* _job;
+	std::mutex _mutex;
+	std::vector<std::vector<std::list<float>>> _frameData;
 	std::string _audio_file;
 	xLightsVamp _vamp;
 	mpg123_handle *_phm;
@@ -52,6 +82,11 @@ class AudioManager
 	int _intervalMS;
 	int _lengthMS;
 	bool _isCBR;
+	bool _frameDataPrepared;
+	xLightsXmlFile* _xml_file;
+	float _bigmax;
+	float _bigspread;
+	float _bigmin;
 
 	int CalcTrackSize(int bits, int channels);
 	int CalcLengthMS();
@@ -65,20 +100,12 @@ class AudioManager
 	int decodebitrateindex(int bitrateindex, int version, int layertype);
 	int decodesamplerateindex(int samplerateindex, int version);
 	int decodesideinfosize(int version, int mono);
+	std::list<float> ProcessFeatures(Vamp::Plugin::FeatureList &feature);
 
 public:
 
-	typedef enum FRAMEDATATYPE  {
-		FRAMEDATA_HIGH,
-		FRAMEDATA_LOW,
-		FRAMEDATA_SPREAD,
-		FRAMEDATA_ISBEAT,
-		FRAMEDATA_ISNOTESTART,
-		FRAMEDATA_VU,
-	} FRAMEDATATYPE;
-
 	xLightsVamp* GetVamp() { return &_vamp; };
-	AudioManager(std::string audio_file, int step, int block);
+	AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int step, int block);
 	~AudioManager();
 	int GetTrackSize() { return _trackSize; };
 	long GetRate() { return _rate; };
@@ -97,8 +124,10 @@ public:
 	float* GetLeftDataPtr(int offset);
 	void SetStepBlock(int step, int block);
 	void SetFrameInterval(int intervalMS);
-	std::list<float> GetFrameData(int frame, FRAMEDATATYPE fdt);
+	int GetFrameInterval() { return _intervalMS; }
+	std::list<float>* GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing);
 	bool IsCBR() { return _isCBR; };
+	void DoPrepareFrameData();
 };
 
 #endif

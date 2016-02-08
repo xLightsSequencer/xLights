@@ -3,17 +3,17 @@
 #include "EffectPanelUtils.h" 
 
 //(*InternalHeaders(TwinklePanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(TwinklePanel)
@@ -39,10 +39,10 @@ END_EVENT_TABLE()
 TwinklePanel::TwinklePanel(wxWindow* parent)
 {
 	//(*Initialize(TwinklePanel)
-	wxCheckBox* CheckBoxTwinkleReRandom;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxTextCtrl* TextCtrl79;
 	wxTextCtrl* TextCtrl80;
+	wxCheckBox* CheckBoxTwinkleReRandom;
+	wxTextCtrl* TextCtrl79;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);

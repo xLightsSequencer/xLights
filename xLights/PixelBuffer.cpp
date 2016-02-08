@@ -38,6 +38,7 @@ PixelBufferClass::PixelBufferClass() {
     effectMixThreshold = NULL;
     effectMixVaries = NULL;
     fadeFactor = NULL;
+	_audio = NULL;
 }
 
 PixelBufferClass::~PixelBufferClass() {
@@ -110,13 +111,14 @@ void PixelBufferClass::reset(int layers, int timing) {
     effectMixVaries = new bool[numLayers]; //allow varying mix threshold -DJ
 
     for(size_t i = 0; i < numLayers; i++) {
-        effects[i].InitBuffer(BufferHt, BufferWi);
+        effects[i].InitBuffer(BufferHt, BufferWi, _audio);
     }
 }
 
 
-void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased) {
-    modelName = pbc.name;
+void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, AudioManager* audio, bool zeroBased) {
+	_audio = audio;
+	modelName = pbc.name;
     if (zeroBased) {
         std::unique_ptr<Model> model(ModelManager::CreateModel(pbc.GetModelXml(), netInfo, zeroBased));
         model->InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);

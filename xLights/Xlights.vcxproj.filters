@@ -645,9 +645,6 @@
     <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp">
       <Filter>Source Files\effects\assist</Filter>
     </ClCompile>
-    <ClCompile Include="effects\ChromaEffect.cpp">
-      <Filter>Source Files\effects</Filter>
-    </ClCompile>
     <ClCompile Include="models\Node.cpp">
       <Filter>Source Files\models</Filter>
     </ClCompile>
@@ -677,6 +674,12 @@
     </ClCompile>
     <ClCompile Include="models\WreathModel.cpp">
       <Filter>Source Files\models</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\VUMeterEffect.cpp">
+      <Filter>Source Files\effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\VUMeterPanel.cpp">
+      <Filter>Source Files\effects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

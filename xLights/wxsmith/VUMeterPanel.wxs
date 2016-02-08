@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="VUMeterPanel">
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer42" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer31" member="no">
+					<cols>4</cols>
+					<growablecols>1</growablecols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+							<label>Bars</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_VUMeter_Bars" variable="Slider_VUMeter_Bars" member="yes">
+							<value>5</value>
+							<min>3</min>
+							<max>20</max>
+							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_Bars" variable="TextCtrl_VUMeter_Bars" member="yes">
+							<value>1</value>
+							<size>20,-1d</size>
+							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_VUMeter_Bars" variable="BitmapButton_VUMeter_Bars" member="yes">
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxEXPAND</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

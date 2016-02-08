@@ -32,6 +32,13 @@ void xLightsFrame::NewSequence()
         CurrentSeqXmlFile = NULL;
         return;
     }
+	else
+	{
+		if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
+		{
+			CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetSequenceTimingAsInt());
+		}
+	}
 
     // load media if available
     if( CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->HasAudioMedia() )
@@ -216,9 +223,13 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         if( CurrentSeqXmlFile->WasConverted() )
         {
             SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("V3 file was converted. Please check settings!"));
-            setting_dlg.Fit();
+			setting_dlg.Fit();
             setting_dlg.ShowModal();
-        }
+			if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
+			{
+				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetSequenceTimingAsInt());
+			}
+		}
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
