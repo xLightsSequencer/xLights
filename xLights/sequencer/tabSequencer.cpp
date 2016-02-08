@@ -233,7 +233,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
         }
     }
 
-    mainSequencer->PanelTimeLine->SetTimeLength(xml_file.GetMedia()->LengthMS());
+    mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
     mainSequencer->PanelTimeLine->Initialize();
     int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
     mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
