@@ -1,15 +1,18 @@
-#include "ModelDialog.h"
-#include "models/Model.h"
 #include <wx/msgdlg.h>
 #include <wx/clipbrd.h>
+#include <wx/colordlg.h>
+
 
 //(*InternalHeaders(ModelDialog)
-#include <wx/string.h>
-#include <wx/intl.h>
-#include <wx/bitmap.h>
-#include <wx/image.h>
 #include <wx/artprov.h>
+#include <wx/bitmap.h>
+#include <wx/intl.h>
+#include <wx/image.h>
+#include <wx/string.h>
 //*)
+
+#include "ModelDialog.h"
+#include "models/Model.h"
 
 #include "ModelPreview.h"
 #include "PixelAppearanceDlg.h"
@@ -26,7 +29,7 @@ const long ModelDialog::ID_STATICTEXT5 = wxNewId();
 const long ModelDialog::ID_CHOICE_DisplayAs = wxNewId();
 const long ModelDialog::ID_STATICTEXT12 = wxNewId();
 const long ModelDialog::ID_CHOICE_STRING_TYPE = wxNewId();
-const long ModelDialog::ID_COLOURPICKERCTRL1 = wxNewId();
+const long ModelDialog::ID_BITMAPBUTTON1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT2 = wxNewId();
 const long ModelDialog::ID_SPINCTRL1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT3 = wxNewId();
@@ -74,24 +77,24 @@ END_EVENT_TABLE()
 #define wxEVT_GRID_CELL_CHANGE wxEVT_GRID_CELL_CHANGED
 #endif
 
-ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
+ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id) : customColor(255, 0, 255), pixelStyle(1)
 {
     netInfo = nullptr;
 
     //(*Initialize(ModelDialog)
-    wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxButton* Button01;
-    wxFlexGridSizer* FlexGridSizer7;
-    wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer4;
-    wxButton* Button03;
+    wxButton* Button01;
+    wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer3;
     wxButton* Button04;
-    wxFlexGridSizer* FlexGridSizer10;
+    wxFlexGridSizer* FlexGridSizer5;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxBoxSizer* BoxSizer2;
+    wxFlexGridSizer* FlexGridSizer7;
     wxBoxSizer* BoxSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer2;
-    wxFlexGridSizer* FlexGridSizer5;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxButton* Button03;
 
     Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     SetHelpText(_("Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical."));
@@ -146,8 +149,9 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_StringType->Append(_("Single Color Custom"));
     Choice_StringType->Append(_("Strobes White 3fps"));
     FlexGridSizer1->Add(Choice_StringType, 1, wxALL|wxEXPAND, 5);
-    ColorPicker = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL1, wxColour(255,0,255), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL1"));
-    FlexGridSizer1->Add(ColorPicker, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    ColorPickerButton = new wxBitmapButton(this, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
+    ColorPickerButton->SetMinSize(wxDLG_UNIT(this,wxSize(24,12)));
+    FlexGridSizer1->Add(ColorPickerButton, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     LeftGridSizer->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
     StaticText_Strings = new wxStaticText(this, ID_STATICTEXT2, _("Actual # of Strings"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     LeftGridSizer->Add(StaticText_Strings, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -287,6 +291,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 
     Connect(ID_CHOICE_DisplayAs,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelDialog::OnChoice_DisplayAsSelect);
     Connect(ID_CHOICE_STRING_TYPE,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelDialog::OnChoice_StringTypeSelect);
+    Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnColorPickerButtonClick);
     Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm1Change);
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
     Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm3Change);
@@ -454,6 +459,19 @@ int ModelDialog::GetNumberOfStrings()
     return (Model::HasOneString(DisplayAs)) ? 1 : SpinCtrl_parm1->GetValue();
 }
 
+static void SetBitmapButtonColor(wxBitmapButton *btn, xlColor &clr) {
+    wxColor c = clr.asWxColor();
+    btn->SetBackgroundColour(c);
+    btn->SetForegroundColour(c);
+    
+    wxImage image(18, 24);
+    image.SetRGB(wxRect(0, 0, 18, 24),
+                 c.Red(), c.Green(), c.Blue());
+    wxBitmap bmp(image);
+    
+    btn->SetBitmap(bmp);
+}
+
 
 void ModelDialog::UpdateLabels()
 {
@@ -467,11 +485,12 @@ void ModelDialog::UpdateLabels()
     TreeFirstStringForExport->Hide();
 
     if (StringType == "Single Color Custom") {
-        ColorPicker->Enable(true);
-        ColorPicker->Show();
+        ColorPickerButton->Enable(true);
+        ColorPickerButton->Show();
+        SetBitmapButtonColor(ColorPickerButton, customColor);
     } else {
-        ColorPicker->Enable(false);
-        ColorPicker->Hide();
+        ColorPickerButton->Enable(false);
+        ColorPickerButton->Hide();
     }
 
     if (DisplayAs == "Arches")
@@ -873,8 +892,8 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         e->AddAttribute("Dir","R");
 
 
-    if (ColorPicker->IsEnabled()) {
-        e->AddAttribute("CustomColor", xlColor(ColorPicker->GetColour()));
+    if (ColorPickerButton->IsEnabled()) {
+        e->AddAttribute("CustomColor", customColor);
     }
     e->AddAttribute("Antialias", wxString::Format("%d", pixelStyle));
     e->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));
@@ -964,11 +983,11 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
         TreeFirstStringForExport->SetValue(e->GetAttribute("exportFirstStrand"));
     }
     if (e->GetAttribute("CustomColor") != "") {
-        xlColor c(e->GetAttribute("CustomColor"));
-        ColorPicker->SetColour(c.asWxColor());
+        customColor.SetFromString(e->GetAttribute("CustomColor"));
+        SetBitmapButtonColor(ColorPickerButton, customColor);
     }
     //Choice_Order->SetStringSelection(e->GetAttribute("Order"));
-    tempStr=e->GetAttribute("Antialias","0");
+    tempStr=e->GetAttribute("Antialias","1");
     tempStr.ToLong(&n);
     pixelStyle = n;
     tempStr=e->GetAttribute("PixelSize","2");
@@ -1447,5 +1466,20 @@ void ModelDialog::OnDimmingCurvesClick(wxCommandEvent& event)
     if (d.ShowModal()) {
         dimmingInfo.clear();
         d.Update(dimmingInfo);
+    }
+}
+
+void ModelDialog::OnColorPickerButtonClick(wxCommandEvent& event)
+{
+    wxColourData data;
+    data.SetColour(customColor.asWxColor());
+    
+    // create the colour dialog and display it
+    wxColourDialog dlg(this, &data);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        data = dlg.GetColourData();
+        customColor = data.GetColour();
+        SetBitmapButtonColor(ColorPickerButton, customColor);
     }
 }

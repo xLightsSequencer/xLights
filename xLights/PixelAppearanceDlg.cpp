@@ -48,8 +48,8 @@ PixelAppearanceDlg::PixelAppearanceDlg(wxWindow* parent,wxWindowID id,const wxPo
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Pixel Style:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer5->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PixelStyleBox = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-	PixelStyleBox->SetSelection( PixelStyleBox->Append(_("Default (fastest)")) );
-	PixelStyleBox->Append(_("Smooth"));
+	PixelStyleBox->SetSelection( PixelStyleBox->Append(_("Square (fastest)")) );
+	PixelStyleBox->Append(_("Smooth "));
 	PixelStyleBox->Append(_("Solid Circle"));
 	PixelStyleBox->Append(_("Blended Circle"));
 	FlexGridSizer5->Add(PixelStyleBox, 1, wxALL|wxEXPAND, 5);

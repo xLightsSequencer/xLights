@@ -1118,6 +1118,8 @@ void EffectsGrid::DeleteSelectedEffects()
     }
     mSelectedEffect = nullptr;
     mSelectedRow = -1;
+    mResizing = false;
+    mDragging = false;
     ForceRefresh();
 }
 
