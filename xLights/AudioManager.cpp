@@ -93,13 +93,14 @@ void AudioManager::DoPrepareFrameData()
 	Vamp::Plugin *p4 = _vamp.GetPlugin("Adaptive Spectrogram");
 	Vamp::Plugin *p5 = _vamp.GetPlugin("Mel-Frequency Cepstral Coefficients: Coefficients");
 	Vamp::Plugin *p6 = _vamp.GetPlugin("Mel-Frequency Cepstral Coefficients: Means of Coefficients");
+	Vamp::Plugin *p7 = _vamp.GetPlugin("Discrete Wavelet Transform");
 	float *pdata[2];
 	int output = 0;
 
-	if (p1 != NULL)
+	if (p7 != NULL)
 	{
-		Plugin::OutputList outputs = p1->getOutputDescriptors();
-		PluginBase::ParameterList params = p1->getParameterDescriptors();
+		Plugin::OutputList outputs = p7->getOutputDescriptors();
+		PluginBase::ParameterList params = p7->getParameterDescriptors();
 		//p->setParameter("minpitch", 0);
 		//p->setParameter("maxpitch", 127);
 		//p->setParameter("tuning", 440);
@@ -115,12 +116,16 @@ void AudioManager::DoPrepareFrameData()
 		p6->setParameter("nceps", 40);
 		p6->setParameter("logpower", 1);
 		p6->setParameter("wantc0", 1);
+		p7->setParameter("scales", 16);
+		p7->setParameter("wavelet", 0);
+		p7->setParameter("threshold", 0);
+		p7->setParameter("absolute", 1);
 		int channels = GetChannels();
-		if (channels > p1->getMaxChannelCount()) {
+		if (channels > p7->getMaxChannelCount()) {
 			channels = 1;
 		}
-		size_t step = p1->getPreferredStepSize();
-		size_t block = p1->getPreferredBlockSize();
+		size_t step = p7->getPreferredStepSize();
+		size_t block = p7->getPreferredBlockSize();
 		if (block == 0) {
 			if (step != 0) {
 				block = step;
@@ -139,6 +144,7 @@ void AudioManager::DoPrepareFrameData()
 		p4->initialise(channels, samplesperframe, samplesperframe);
 		p5->initialise(channels, samplesperframe, samplesperframe);
 		p6->initialise(channels, samplesperframe, samplesperframe);
+		p7->initialise(channels, samplesperframe, samplesperframe);
 	}
 
 	for (int i = 0; i < frames; i++)
@@ -149,42 +155,23 @@ void AudioManager::DoPrepareFrameData()
 		float spread = -100;
 		std::list<float> spectrogram;
 
-		if (p1 != NULL)
+		if (p7 != NULL)
 		{
 			pdata[0] = GetLeftDataPtr(i * samplesperframe);
 			pdata[1] = GetRightDataPtr(i * samplesperframe);
 			Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(i * samplesperframe, GetRate());
-			Vamp::Plugin::FeatureSet features1 = p1->process(pdata, timestamp);
-			Vamp::Plugin::FeatureSet features2 = p2->process(pdata, timestamp);
-			Vamp::Plugin::FeatureSet features3 = p3->process(pdata, timestamp);
-			Vamp::Plugin::FeatureSet features4 = p4->process(pdata, timestamp);
-			Vamp::Plugin::FeatureSet features5 = p5->process(pdata, timestamp);
-			Vamp::Plugin::FeatureSet features6 = p6->process(pdata, timestamp);
-			spectrogram = ProcessFeatures(features5[output]);
-			if (features1.size() > 0 || features2.size() > 0 || features3.size() > 0 ) //|| features4.size() > 0)
+			//Vamp::Plugin::FeatureSet features1 = p1->process(pdata, timestamp);
+			//Vamp::Plugin::FeatureSet features2 = p2->process(pdata, timestamp);
+			//Vamp::Plugin::FeatureSet features3 = p3->process(pdata, timestamp);
+			//Vamp::Plugin::FeatureSet features4 = p4->process(pdata, timestamp);
+			//Vamp::Plugin::FeatureSet features5 = p5->process(pdata, timestamp);
+			//Vamp::Plugin::FeatureSet features6 = p6->process(pdata, timestamp);
+			Vamp::Plugin::FeatureSet features7 = p7->process(pdata, timestamp);
+			spectrogram = ProcessFeatures(features7[output]);
+			if (features7.size() > 0)
 			{
 				int a = 0;
-				if (features1[0].size() > 0)
-				{
-					int b = 0;
-				}
-				if (features2[0].size() > 0)
-				{
-					int b = 0;
-				}
-				if (features3[0].size() > 0)
-				{
-					int b = 0;
-				}
-				if (features4[0].size() > 0)
-				{
-					int b = 0;
-				}
-				if (features5[0].size() > 0)
-				{
-					int b = 0;
-				}
-				if (features6[0].size() > 0)
+				if (features7[0].size() > 0)
 				{
 					int b = 0;
 				}
@@ -241,16 +228,17 @@ void AudioManager::DoPrepareFrameData()
 		_frameData.push_back(aFrameData);
 	}
 
-	//if (p1 != NULL)
-	//{
+	if (p7 != NULL)
+	{
 	//	Vamp::Plugin::FeatureSet features1 = p1->getRemainingFeatures();
 	//	Vamp::Plugin::FeatureSet features2 = p2->getRemainingFeatures();
 	//	Vamp::Plugin::FeatureSet features3 = p3->getRemainingFeatures();
 	//	Vamp::Plugin::FeatureSet features4 = p4->getRemainingFeatures();
 	//	Vamp::Plugin::FeatureSet features5 = p5->getRemainingFeatures();
 	//	Vamp::Plugin::FeatureSet features6 = p6->getRemainingFeatures();
-	//	ProcessFeatures(features5[output]);
-	//}
+		Vamp::Plugin::FeatureSet features7 = p7->getRemainingFeatures();
+		ProcessFeatures(features7[output]);
+	}
 
 	// normalise data
 	for (std::vector<std::vector<std::list<float>>>::iterator itframe = _frameData.begin(); itframe != _frameData.end(); ++itframe) 
