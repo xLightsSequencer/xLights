@@ -192,7 +192,8 @@ void Element::IncrementChangeCount(int sms, int ems)
     listener->IncrementChangeCount(this);
 }
 void Element::InitStrands(Model &model) {
-    if (model.GetDisplayAs() == "WholeHouse") {
+    if (model.GetDisplayAs() == "WholeHouse"
+        || model.GetDisplayAs() == "ModelGroup") {
         //no strands for a whole house model
         return;
     }

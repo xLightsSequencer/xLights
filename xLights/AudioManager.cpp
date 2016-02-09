@@ -462,6 +462,7 @@ int AudioManager::decodebitrateindex(int bitrateindex, int version, int layertyp
 		// invalid
 		return 0;
 	}
+    return 0;
 }
 
 int AudioManager::decodesamplerateindex(int samplerateindex, int version)
@@ -612,7 +613,7 @@ bool AudioManager::CheckCBR()
 					int samplerateindex = (fh[2] & 0x0C) >> 2;
 					int samplerate = decodesamplerateindex(samplerateindex, version);
 					int padding = (fh[2] & 0x02) >> 1;
-					int mono = fh[3] & 0xC0 >> 6;
+					//int mono = fh[3] & 0xC0 >> 6;
 
 					int framesize;
 

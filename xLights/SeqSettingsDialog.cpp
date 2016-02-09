@@ -1201,7 +1201,9 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnBitmapButton_25msClick(wxCommandEvent& event)
 {
     xml_file->SetSequenceTiming("25 ms");
-	xml_file->GetMedia()->SetFrameInterval(25);
+    if (xml_file->HasAudioMedia()) {
+        xml_file->GetMedia()->SetFrameInterval(25);
+    }
 	Choice_Xml_Seq_Timing->SetSelection(0);
     WizardPage3();
 }
@@ -1209,7 +1211,9 @@ void SeqSettingsDialog::OnBitmapButton_25msClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnBitmapButton_50msClick(wxCommandEvent& event)
 {
     xml_file->SetSequenceTiming("50 ms");
-	xml_file->GetMedia()->SetFrameInterval(50);
+    if (xml_file->HasAudioMedia()) {
+        xml_file->GetMedia()->SetFrameInterval(50);
+    }
 	Choice_Xml_Seq_Timing->SetSelection(1);
     WizardPage3();
 }
@@ -1217,7 +1221,9 @@ void SeqSettingsDialog::OnBitmapButton_50msClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnBitmapButton_100msClick(wxCommandEvent& event)
 {
     xml_file->SetSequenceTiming("100 ms");
-	xml_file->GetMedia()->SetFrameInterval(100);
+    if (xml_file->HasAudioMedia()) {
+        xml_file->GetMedia()->SetFrameInterval(100);
+    }
     Choice_Xml_Seq_Timing->SetSelection(2);
     WizardPage3();
 }

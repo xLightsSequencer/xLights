@@ -13,7 +13,7 @@ class ArchesModel : public Model
         virtual void InitModel() override;
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual int GetNumStrands() const override;
-        virtual int CalcCannelsPerString();
+        virtual int CalcCannelsPerString() override;
 
     private:
         void SetArchCoord();

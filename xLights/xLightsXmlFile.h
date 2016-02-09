@@ -55,7 +55,7 @@ class xLightsXmlFile : public wxFileName
         wxXmlDocument& GetXmlDocument() { return seqDocument; }
         DataLayerSet& GetDataLayers() { return mDataLayers; }
 
-        const wxString GetVersion() { return version_string; };
+        const wxString &GetVersion() { return version_string; };
 
         int GetSequenceDurationMS() const { return int(seq_duration * 1000); }
         double GetSequenceDurationDouble() const { return seq_duration; }
@@ -65,17 +65,17 @@ class xLightsXmlFile : public wxFileName
         void SetSequenceDuration(const wxString& length);
         void SetSequenceDuration(double length);
 
-        const wxString GetSequenceTiming() const { return seq_timing; }
+        const wxString &GetSequenceTiming() const { return seq_timing; }
 		void SetSequenceTiming(const wxString& timing);
 		int GetSequenceTimingAsInt();
 		int GetFrequency();
 
-        const wxString GetSequenceType() const { return seq_type; }
+        const wxString &GetSequenceType() const { return seq_type; }
         void SetSequenceType( const wxString& type );
 
         //const wxString GetMediaFile() const { return media_file; }
 		AudioManager* GetMedia() const { return audio; }
-		const wxString GetMediaFile() const { return media_file; }
+		const wxString &GetMediaFile() const { return media_file; }
 		void SetMediaFile( const wxString& filename, bool overwrite_tags );
 
         wxString GetHeaderInfo(HEADER_INFO_TYPES node_type) { return header_info[node_type]; }
@@ -103,7 +103,7 @@ class xLightsXmlFile : public wxFileName
         void AdjustEffectSettingsForVersion(SequenceElements& elements, xLightsFrame* xLightsParent);
 
         bool IsOpen() { return is_open; }
-        bool HasAudioMedia() { return has_audio_media; }
+        bool HasAudioMedia() { return audio != nullptr; }
         int GetNumModels() { return models.GetCount(); }
         bool WasConverted() { return was_converted; }
         void AcknowledgeConversion() { was_converted = false; }  // called to turn off conversion warning
@@ -135,7 +135,6 @@ class xLightsXmlFile : public wxFileName
         wxString seq_timing;
         wxString image_dir;
         bool is_open;
-        bool has_audio_media;
         bool was_converted;
         bool sequence_loaded;  // flag to indicate the sequencer has been loaded with this xml data
         DataLayerSet mDataLayers;

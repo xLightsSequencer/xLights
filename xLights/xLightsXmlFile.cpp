@@ -21,7 +21,6 @@ xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
 	seq_timing("50 ms"),
 	image_dir(wxEmptyString),
 	is_open(false),
-	has_audio_media(false),
 	was_converted(false),
 	sequence_loaded(false),
 	audio(NULL)
@@ -202,7 +201,6 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename, bool overwrite_tags
     {
 		SetMetaMP3Tags();
     }
-    has_audio_media = true;
 }
 
 void xLightsXmlFile::SetRenderMode(const wxString& mode)
@@ -1112,15 +1110,15 @@ bool xLightsXmlFile::LoadSequence()
                 {
                     media_file = element->GetNodeContent();
                     wxFileName mf = media_file;
-                    if( mf.FileExists() )
-                    {
-                        has_audio_media = true;
-                    }
 					if (audio != NULL)
 					{
 						delete audio;
+                        audio = nullptr;
 					}
-					audio = new AudioManager(std::string(media_file.c_str()), this, 1024, 1024);
+                    if( mf.FileExists() )
+                    {
+                        audio = new AudioManager(std::string(media_file.c_str()), this, 1024, 1024);
+                    }
                 }
                 else if( element->GetName() == "sequenceDuration")
                 {
