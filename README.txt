@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(dkulp) DisplayElements panel default display is not sized correctly on Mac.  Fixes #466
+    -- bug(dkulp) Check to make sure a model exists before adding it to a sequence
     -- enh(keithsw) Add VUMeter effect (very much beta in this release. Appearance may change in near future releases. Please do not rely on it at this stage)
     -- bug(gil)   Fix selected cells moving into timing area when vertically scrolling.  Fixes #419.
     -- bug(gil)   Fix arrow keys not moving selection properly which could cause hotkey paste in wrong locations. Fixes #432.

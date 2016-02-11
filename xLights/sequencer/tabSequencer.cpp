@@ -78,6 +78,7 @@ void xLightsFrame::CreateSequencer()
     // DisplayElements Panel
     displayElementsPanel = new DisplayElementsPanel(PanelSequencer);
     displayElementsPanel->SetViewChoice(mainSequencer->ViewChoice);
+    displayElementsPanel->Fit();
 
     m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements"))
                    .Float());
@@ -128,7 +129,7 @@ Model *xLightsFrame::GetModel(const std::string& name) {
 
 bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, AudioManager* audio, bool zeroBased) {
     Model *model = GetModel(modelName);
-    if (model->GetModelXml() == nullptr) {
+    if (model == nullptr || model->GetModelXml() == nullptr) {
         return false;
     }
     buffer.InitBuffer(*model, layerCount, SeqData.FrameTime(), NetInfo, audio, zeroBased);
@@ -232,7 +233,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
                 wxMessageBox(wxString::Format("Media File Missing or Corrupted.\n\nDetails: %s", error));
             }
         }
-        else
+        else if (xml_file.GetSequenceType() == "Media")
         {
            wxMessageBox("Media File must be specified");
         }
@@ -1287,7 +1288,8 @@ void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
 {
     displayElementsPanel->Initialize();
-    m_mgr->GetPane("DisplayElements").Show();
+    wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
+    info.Show();
     m_mgr->Update();
 }
 

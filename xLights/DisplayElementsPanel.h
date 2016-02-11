@@ -44,7 +44,6 @@ class DisplayElementsPanel: public wxPanel
 		wxButton* ButtonMoveDown;
 		wxButton* ButtonDeleteModels;
 		wxButton* ButtonAddModels;
-		wxPanel* Panel_Sizer;
 		wxButton* ButtonHideAll;
 		wxStaticText* StaticText3;
 		wxScrolledWindow* ScrolledWindowDisplayElements;
@@ -75,7 +74,6 @@ class DisplayElementsPanel: public wxPanel
 		static const long ID_BUTTON_MOVE_UP;
 		static const long ID_BUTTON_MOVE_DOWN;
 		static const long ID_SCROLLED_Display_Elements;
-		static const long ID_PANEL1;
 		//*)
 
 	private:

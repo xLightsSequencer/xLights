@@ -29,7 +29,6 @@ const long DisplayElementsPanel::ID_STATICTEXT3 = wxNewId();
 const long DisplayElementsPanel::ID_BUTTON_MOVE_UP = wxNewId();
 const long DisplayElementsPanel::ID_BUTTON_MOVE_DOWN = wxNewId();
 const long DisplayElementsPanel::ID_SCROLLED_Display_Elements = wxNewId();
-const long DisplayElementsPanel::ID_PANEL1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(DisplayElementsPanel,wxPanel)
@@ -42,7 +41,6 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 {
 	//(*Initialize(DisplayElementsPanel)
 	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer4;
@@ -53,10 +51,10 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	wxFlexGridSizer* FlexGridSizer5;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
-	Panel_Sizer = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
-	ScrolledWindowDisplayElements = new wxScrolledWindow(Panel_Sizer, ID_SCROLLED_Display_Elements, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLED_Display_Elements"));
+	FlexGridSizer2 = new wxFlexGridSizer(1, 1, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
+	FlexGridSizer2->AddGrowableRow(0);
+	ScrolledWindowDisplayElements = new wxScrolledWindow(this, ID_SCROLLED_Display_Elements, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLED_Display_Elements"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
 	FlexGridSizer5->AddGrowableRow(1);
@@ -111,14 +109,10 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	ScrolledWindowDisplayElements->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(ScrolledWindowDisplayElements);
 	FlexGridSizer5->SetSizeHints(ScrolledWindowDisplayElements);
-	FlexGridSizer2->Add(ScrolledWindowDisplayElements, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	Panel_Sizer->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel_Sizer);
-	FlexGridSizer2->SetSizeHints(Panel_Sizer);
-	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 5);
-	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
+	FlexGridSizer2->Add(ScrolledWindowDisplayElements, 1, wxALL|wxEXPAND, 0);
+	SetSizer(FlexGridSizer2);
+	FlexGridSizer2->Fit(this);
+	FlexGridSizer2->SetSizeHints(this);
 
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&DisplayElementsPanel::OnListCtrlViewsItemSelect);
 	Connect(ID_BUTTON_ADD_VIEWS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonAddViewsClick);
@@ -182,6 +176,8 @@ void DisplayElementsPanel::Initialize()
     if (mSeqData->NumFrames() == 0) return;
     PopulateViews();
     PopulateModels();
+    Fit();
+    FitInside();
 }
 
 void DisplayElementsPanel::AddViewToList(const wxString& viewName, bool isChecked)
@@ -759,10 +755,6 @@ void DisplayElementsPanel::UpdateModelsForSelectedView()
 void DisplayElementsPanel::OnResize(wxSizeEvent& event)
 {
     wxSize s = GetSize();
-    Panel_Sizer->SetSize(s);
-    Panel_Sizer->SetMinSize(s);
-    Panel_Sizer->SetMaxSize(s);
-    Panel_Sizer->Refresh();
 
     ScrolledWindowDisplayElements->SetSize(s);
     ScrolledWindowDisplayElements->SetMinSize(s);

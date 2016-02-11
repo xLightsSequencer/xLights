@@ -222,6 +222,8 @@
 		67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */; };
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
+		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
+		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
 		67CF20CF1C3D8D71000FCDF7 /* RenderBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CF20CE1C3D8D71000FCDF7 /* RenderBuffer.cpp */; };
 		67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D11C751BEA691900000A7F /* ModelDimmingCurveDialog.cpp */; };
 		67D11C7A1BEA691900000A7F /* DimmingCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D11C781BEA691900000A7F /* DimmingCurve.cpp */; };
@@ -672,6 +674,10 @@
 		67C7969017B5791700CEE775 /* TabConvert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabConvert.cpp; sourceTree = "<group>"; };
 		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
 		67CA857F18BE86B800A6268C /* heartbeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heartbeat.h; sourceTree = "<group>"; };
+		67CB9F271C6E1FF400390753 /* VUMeterPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VUMeterPanel.h; path = effects/VUMeterPanel.h; sourceTree = "<group>"; };
+		67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VUMeterPanel.cpp; path = effects/VUMeterPanel.cpp; sourceTree = "<group>"; };
+		67CB9F291C6E1FF400390753 /* VUMeterEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VUMeterEffect.h; path = effects/VUMeterEffect.h; sourceTree = "<group>"; };
+		67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VUMeterEffect.cpp; path = effects/VUMeterEffect.cpp; sourceTree = "<group>"; };
 		67CF20CD1C3D8D71000FCDF7 /* RenderBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderBuffer.h; sourceTree = "<group>"; };
 		67CF20CE1C3D8D71000FCDF7 /* RenderBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderBuffer.cpp; sourceTree = "<group>"; };
 		67D11C741BEA691900000A7F /* ModelDimmingCurveDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelDimmingCurveDialog.h; sourceTree = "<group>"; };
@@ -978,6 +984,10 @@
 				67B2CFA91C3A1869003C17CA /* TwinkleEffect.h */,
 				67B2CF5D1C39D98A003C17CA /* TwinklePanel.cpp */,
 				67B2CF5E1C39D98A003C17CA /* TwinklePanel.h */,
+				67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */,
+				67CB9F291C6E1FF400390753 /* VUMeterEffect.h */,
+				67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */,
+				67CB9F271C6E1FF400390753 /* VUMeterPanel.h */,
 				67B2CFAA1C3A1869003C17CA /* WaveEffect.cpp */,
 				67B2CFAB1C3A1869003C17CA /* WaveEffect.h */,
 				67B2CF5F1C39D98A003C17CA /* WavePanel.cpp */,
@@ -1458,6 +1468,7 @@
 				675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */,
 				67B2CF951C39D98A003C17CA /* CirclesEffect.cpp in Sources */,
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
+				67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */,
 				675878DB1A89297200205A75 /* DataLayer.cpp in Sources */,
 				67B2CF841C39D98A003C17CA /* ShockwavePanel.cpp in Sources */,
 				67B2CF891C39D98A003C17CA /* SpirographPanel.cpp in Sources */,
@@ -1536,6 +1547,7 @@
 				6784F9311A5653670018EC0C /* Waveform.cpp in Sources */,
 				6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */,
 				671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */,
+				67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */,
 				67B2CFE61C3A186A003C17CA /* PianoEffect.cpp in Sources */,
 				67B2CF811C39D98A003C17CA /* PlasmaPanel.cpp in Sources */,
 				6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */,
