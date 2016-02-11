@@ -727,6 +727,16 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             }
         }
 
+        if( mSequenceElements->GetSelectedTimingRow() >= 0 ) {
+            switch (selectionType) {
+                case HitLocation::NONE:
+                case HitLocation::LEFT:
+                case HitLocation::RIGHT:
+                    selectedEffect = nullptr;
+                    break;
+            }
+        }
+
         if( selectedEffect != nullptr )
         {
             mEffectLayer = mSequenceElements->GetVisibleEffectLayer(row);
