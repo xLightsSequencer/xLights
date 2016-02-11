@@ -80,6 +80,7 @@ void AudioManager::DoPrepareFrameData()
 	{
 		frames++;
 	}
+	int totalsamples = frames * samplesperframe;
 
 	// these are used to normalise output
 	_bigmax = -1;
@@ -88,25 +89,28 @@ void AudioManager::DoPrepareFrameData()
 	_bigspectogrammax = -1;
 
 	std::list<std::string> plugins = _vamp.GetAllAvailablePlugins(this);
-	//Vamp::Plugin *p1 = _vamp.GetPlugin("Chromagram");
+	Vamp::Plugin *p = _vamp.GetPlugin("Chromagram");
 	//Vamp::Plugin *p2 = _vamp.GetPlugin("Chromagram: Chroma Means");
 	//Vamp::Plugin *p3 = _vamp.GetPlugin("Constant-Q Spectrogram");
 	//Vamp::Plugin *p = _vamp.GetPlugin("Adaptive Spectrogram");
 	//Vamp::Plugin *p5 = _vamp.GetPlugin("Mel-Frequency Cepstral Coefficients: Coefficients");
 	//Vamp::Plugin *p6 = _vamp.GetPlugin("Mel-Frequency Cepstral Coefficients: Means of Coefficients");
-	Vamp::Plugin *p = _vamp.GetPlugin("Discrete Wavelet Transform");
+	//Vamp::Plugin *p = _vamp.GetPlugin("Discrete Wavelet Transform");
 	float *pdata[2];
 	int output = 0;
 
+	size_t step = 0;
+	size_t block = 0;
 	if (p != NULL)
 	{
 		//Plugin::OutputList outputs = p->getOutputDescriptors();
 		//PluginBase::ParameterList params = p->getParameterDescriptors();
-		//p->setParameter("minpitch", 0);
-		//p->setParameter("maxpitch", 127);
-		//p->setParameter("tuning", 440);
-		//p->setParameter("bpo", 12);
-		//p->setParameter("normalization", 0);
+		// Chromagram
+		p->setParameter("minpitch", 36);
+		p->setParameter("maxpitch", 96);
+		p->setParameter("tuning", 440);
+		p->setParameter("bpo", 12);
+		p->setParameter("normalization", 1);
 		//Adaptive Spectrum
 		//p->setParameter("n", 3);
 		//p->setParameter("w", 4);
@@ -118,36 +122,81 @@ void AudioManager::DoPrepareFrameData()
 		//p6->setParameter("nceps", 40);
 		//p6->setParameter("logpower", 1);
 		//p6->setParameter("wantc0", 1);
-		p->setParameter("scales", (int)log2(samplesperframe));
-		p->setParameter("wavelet", 0);
-		p->setParameter("threshold", 0);
-		p->setParameter("absolute", 1);
+		//p->setParameter("scales", (int)log2(samplesperframe));
+		//p->setParameter("wavelet", 0);
+		//p->setParameter("threshold", 0);
+		//p->setParameter("absolute", 1);
 		int channels = GetChannels();
 		if (channels > p->getMaxChannelCount()) {
 			channels = 1;
 		}
-		p->initialise(channels, samplesperframe, samplesperframe);
+		step = p->getPreferredStepSize();
+		block = p->getPreferredBlockSize();
+		if (block == 0) {
+			if (step != 0) {
+				block = step;
+			}
+			else {
+				block = 1024;
+			}
+		}
+		if (step == 0) {
+			step = block;
+		}
+		//p->initialise(channels, samplesperframe, samplesperframe);
+		p->initialise(channels, step, block);
+		SetStepBlock(step, block);
 	}
 
+	int pos = 0;
+	std::list<float> spectrogram;
 	for (int i = 0; i < frames; i++)
 	{
 		std::vector<std::list<float>> aFrameData;
 		float max = -100.0;
 		float min = 100.0;
 		float spread = -100;
-		std::list<float> spectrogram;
 
 		if (p != NULL)
 		{
-			pdata[0] = GetLeftDataPtr(i * samplesperframe);
-			pdata[1] = GetRightDataPtr(i * samplesperframe);
-			Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(i * samplesperframe, GetRate());
-			Vamp::Plugin::FeatureSet features4 = p->process(pdata, timestamp);
-			float max = 0;
-			spectrogram = ProcessFeatures(features4[output], max);
-			if (max > _bigspectogrammax)
+			int count = 0;
+
+			// clear the data if we are about to get new data ... dont clear it if we wont
+			if (pos < i * samplesperframe + samplesperframe  && pos + step < totalsamples)
 			{
-				_bigspectogrammax = max;
+				spectrogram.clear();
+			}
+
+			// only get the data if we are not ahead of the music
+			while (pos < i * samplesperframe + samplesperframe && pos + step < totalsamples)
+			{
+				std::list<float> subspectrogram;
+				pdata[0] = GetLeftDataPtr(pos);
+				pdata[1] = GetRightDataPtr(pos);
+				Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(pos, GetRate());
+				Vamp::Plugin::FeatureSet features = p->process(pdata, timestamp);
+				float max = 0;
+				subspectrogram = ProcessFeatures(features[output], max);
+				if (max > _bigspectogrammax)
+				{
+					_bigspectogrammax = max;
+				}
+				pos += step;
+				if (spectrogram.size() == 0)
+				{
+					spectrogram = subspectrogram;
+				}
+				else
+				{
+					std::list<float>::iterator sub = subspectrogram.begin();
+					for (std::list<float>::iterator fr = spectrogram.begin(); fr != spectrogram.end(); ++fr)
+					{
+						if (*sub > *fr)
+						{
+							*fr = *sub;
+						}
+					}
+				}
 			}
 		}
 
@@ -216,20 +265,20 @@ void AudioManager::DoPrepareFrameData()
 	// normalise data
 	for (std::vector<std::vector<std::list<float>>>::iterator itframe = _frameData.begin(); itframe != _frameData.end(); ++itframe)
 	{
-		std::list<float> fl = (*itframe)[0];
-		std::list<float>::iterator f = fl.begin();
+		std::list<float>* fl = &(*itframe)[0];
+		std::list<float>::iterator f = fl->begin();
 		*f = (*f * 1 / (_bigmax * 1.1));
 
-		fl = (*itframe)[1];
-		f = fl.begin();
+		fl = &(*itframe)[1];
+		f = fl->begin();
 		*f = (*f * 1 / (_bigmin * 1.1));
 
-		fl = (*itframe)[2];
-		f = fl.begin();
+		fl = &(*itframe)[2];
+		f = fl->begin();
 		*f = (*f * 1 / (_bigspread * 1.1));
 
-		fl = (*itframe)[3];
-		for (std::list<float>::iterator ff = fl.begin(); ff != fl.end(); ++ff)
+		fl = &(*itframe)[3];
+		for (std::list<float>::iterator ff = fl->begin(); ff != fl->end(); ++ff)
 		{
 			*ff = *ff * 1 / (_bigspectogrammax * 1.1);
 		}

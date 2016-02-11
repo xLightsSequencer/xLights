@@ -261,7 +261,11 @@ void Waveform::renderGL( wxPaintEvent& event )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     }
-    DrawWaveView(views[mCurrentWaveView]);
+
+	if (mCurrentWaveView >= 0)
+	{
+		DrawWaveView(views[mCurrentWaveView]);
+	}
 
     glFlush();
     SwapBuffers();

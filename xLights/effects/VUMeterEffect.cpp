@@ -74,40 +74,51 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars)
         _bars = bars;
     }
 
-	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
-
-	int per = pdata->size() / _bars;
-	int cols = buffer.BufferWi / _bars;
-	
-	std::list<float>::iterator it = pdata->begin();
-	int x = 0;
-
-	for (int j = 0; j < _bars; j++)
+	if (buffer.GetMedia() != NULL)
 	{
-		float f = 0;
-		for (int k = 0; k < per; k++)
+		std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+
+		if (pdata->size() != 0)
 		{
-			// use the max within the frequency range
-			if (*it > f)
+			if (_bars > pdata->size())
 			{
-				f = *it;
+				_bars = pdata->size();
 			}
-			++it;
-		}
-		for (int k = 0; k < cols; k++)
-		{
-			for (int y = 0; y < buffer.BufferHt; y++)
+
+			int per = pdata->size() / _bars;
+			int cols = buffer.BufferWi / _bars;
+
+			std::list<float>::iterator it = pdata->begin();
+			int x = 0;
+
+			for (int j = 0; j < _bars; j++)
 			{
-				if (y < buffer.BufferHt * f)
+				float f = 0;
+				for (int k = 0; k < per; k++)
 				{
-					buffer.SetPixel(x, y, color1);
+					// use the max within the frequency range
+					if (*it > f)
+					{
+						f = *it;
+					}
+					++it;
 				}
-				else
+				for (int k = 0; k < cols; k++)
 				{
-					break;
+					for (int y = 0; y < buffer.BufferHt; y++)
+					{
+						if (y < buffer.BufferHt * f)
+						{
+							buffer.SetPixel(x, y, color1);
+						}
+						else
+						{
+							break;
+						}
+					}
+					x++;
 				}
 			}
-			x++;
 		}
 	}
 }

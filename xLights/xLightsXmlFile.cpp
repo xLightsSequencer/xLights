@@ -194,8 +194,9 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename, bool overwrite_tags
 	if (audio != NULL)
 	{
 		delete audio;
+		audio = NULL;
 	}
-	audio = new AudioManager(std::string(filename.c_str()), this, 1024, 1024);
+	audio = new AudioManager(std::string(filename.c_str()), this, 4096, 32768);
 
 	if( overwrite_tags )
     {
@@ -1113,11 +1114,11 @@ bool xLightsXmlFile::LoadSequence()
 					if (audio != NULL)
 					{
 						delete audio;
-                        audio = nullptr;
+                        audio = NULL;
 					}
                     if( mf.FileExists() )
                     {
-                        audio = new AudioManager(std::string(media_file.c_str()), this, 1024, 1024);
+                        audio = new AudioManager(std::string(media_file.c_str()), this, 4096, 32768);
                     }
                 }
                 else if( element->GetName() == "sequenceDuration")

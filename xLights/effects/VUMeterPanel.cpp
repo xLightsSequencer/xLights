@@ -38,9 +38,9 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Bars"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer31->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_VUMeter_Bars = new wxSlider(this, IDD_SLIDER_VUMeter_Bars, 5, 3, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_VUMeter_Bars"));
+	Slider_VUMeter_Bars = new wxSlider(this, IDD_SLIDER_VUMeter_Bars, 6, 1, 24, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_VUMeter_Bars"));
 	FlexGridSizer31->Add(Slider_VUMeter_Bars, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_VUMeter_Bars = new wxTextCtrl(this, ID_TEXTCTRL_VUMeter_Bars, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_Bars"));
+	TextCtrl_VUMeter_Bars = new wxTextCtrl(this, ID_TEXTCTRL_VUMeter_Bars, _("6"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_Bars"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_VUMeter_Bars = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_VUMeter_Bars, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_VUMeter_Bars"));
 	BitmapButton_VUMeter_Bars->SetDefault();
