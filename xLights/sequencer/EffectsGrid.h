@@ -119,6 +119,7 @@ private:
     void Resize(int position, bool offset);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
     void UpdateTimePosition(int time);
+    void UpdateMousePosition(int time);
     void UpdateZoomPosition(int time);
     void EstablishSelectionRectangle();
     void UpdateSelectionRectangle();

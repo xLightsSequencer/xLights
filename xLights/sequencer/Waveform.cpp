@@ -45,6 +45,7 @@ EVT_LEFT_DOWN(Waveform::mouseLeftDown)
 EVT_LEFT_UP(Waveform::mouseLeftUp)
 EVT_LEFT_DCLICK(Waveform::OnLeftDClick)
 EVT_MOUSE_CAPTURE_LOST(Waveform::OnLostMouseCapture)
+EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
 EVT_SIZE(Waveform::Resized)
 EVT_MOUSEWHEEL(Waveform::mouseWheelMoved)
 EVT_PAINT(Waveform::renderGL)
@@ -181,6 +182,8 @@ void Waveform::mouseMoved( wxMouseEvent& event)
             m_drag_mode = DRAG_NORMAL;
         }
     }
+    int mouseTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+    UpdateMousePosition(mouseTimeMS);
 }
 
 void Waveform::mouseWheelMoved(wxMouseEvent& event)
@@ -358,6 +361,17 @@ void Waveform::DrawWaveView(const WaveView &wv)
         glEnd();
     }
 
+    // draw mouse position line
+    int mouse_marker = mTimeline->GetMousePosition();
+    if( mouse_marker != -1 )
+    {
+        glColor4ub(0,0,255,255);
+        glBegin(GL_LINES);
+        glVertex2f(mouse_marker, 1);
+        glVertex2f(mouse_marker,mWindowHeight-1);
+        glEnd();
+    }
+
     // draw play marker line
     int play_marker = mTimeline->GetPlayMarker();
     if( play_marker != -1 )
@@ -441,7 +455,7 @@ float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel)
 	}
 }
 
-void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media) 
+void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media)
 {
 	MinMaxs.clear();
 
@@ -451,7 +465,7 @@ void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager*
 		float maximum=-1;
 		int trackSize = media->GetTrackSize();
 		int totalMinMaxs = (int)((float)trackSize/SamplesPerPixel)+1;
-        
+
 		for (int i = 0; i < totalMinMaxs; i++) {
 			// Use float calculation to minimize compounded rounding of position
 			int start = (int)((float)i*SamplesPerPixel);
@@ -479,6 +493,19 @@ void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager*
 			MinMaxs.push_back(mm);
 		}
     }
+}
+
+void Waveform::mouseLeftWindow(wxMouseEvent& event)
+{
+    UpdateMousePosition(-1);
+}
+
+void Waveform::UpdateMousePosition(int time)
+{
+    // Update time selection
+    wxCommandEvent eventMousePos(EVT_MOUSE_POSITION);
+    eventMousePos.SetInt(time);
+    wxPostEvent(mParent, eventMousePos);
 }
 
 

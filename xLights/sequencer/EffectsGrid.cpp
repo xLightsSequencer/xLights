@@ -47,7 +47,7 @@ EVT_LEFT_UP(EffectsGrid::mouseReleased)
 EVT_MOUSE_CAPTURE_LOST(EffectsGrid::OnLostMouseCapture)
 EVT_RIGHT_DOWN(EffectsGrid::rightClick)
 EVT_LEFT_DCLICK(EffectsGrid::mouseLeftDClick)
-//EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
+EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
 //EVT_KEY_DOWN(EffectsGrid::keyPressed)
 //EVT_KEY_UP(EffectsGrid::keyReleased)
 EVT_PAINT(EffectsGrid::render)
@@ -212,7 +212,6 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
     }
 }
 
-void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
 void EffectsGrid::keyReleased(wxKeyEvent& event){}
 void EffectsGrid::keyPressed(wxKeyEvent& event){}
 
@@ -556,6 +555,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
             UpdateSelectionRectangle();
         }
         Refresh(false);
+        Update();
     }
     else
     {
@@ -568,7 +568,16 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
             }
         }
     }
+
+    int mouseTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+    UpdateMousePosition(mouseTimeMS);
 }
+
+void EffectsGrid::mouseLeftWindow(wxMouseEvent& event)
+{
+    UpdateMousePosition(-1);
+}
+
 int EffectsGrid::GetClippedPositionFromTimeMS(int ms) {
     int i = mTimeline->GetPositionFromTimeMS(ms);
     if (i < -10) {
@@ -1528,6 +1537,14 @@ void EffectsGrid::UpdateTimePosition(int time)
     wxCommandEvent eventTimeSelected(EVT_TIME_SELECTED);
     eventTimeSelected.SetInt(time);
     wxPostEvent(mParent, eventTimeSelected);
+}
+
+void EffectsGrid::UpdateMousePosition(int time)
+{
+    // Update time selection
+    wxCommandEvent eventMousePos(EVT_MOUSE_POSITION);
+    eventMousePos.SetInt(time);
+    wxPostEvent(mParent, eventMousePos);
 }
 
 void EffectsGrid::UpdateZoomPosition(int time)

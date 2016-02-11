@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil)   Show mouse position in waveform.
 2016.7  Feb 08, 2016
     -- bug(dkulp) Fix crashes on animations
     -- bug(dkulp) Fix crashes caused by old Whole House Models

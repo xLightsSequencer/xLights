@@ -16,6 +16,7 @@ wxDECLARE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
+wxDECLARE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 
 class TimeLine;
 
@@ -113,12 +114,14 @@ class Waveform : public xlGLCanvas
         void DrawWaveView(const WaveView &wv);
         void StartDrawing(wxDouble pointSize);
         void renderGL( wxPaintEvent& event );
+        void UpdateMousePosition(int time);
       	void mouseMoved(wxMouseEvent& event);
         void mouseWheelMoved(wxMouseEvent& event);
       	void mouseLeftDown(wxMouseEvent& event);
       	void mouseLeftUp( wxMouseEvent& event);
       	void OnLeftDClick(wxMouseEvent& event);
         void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
+        void mouseLeftWindow(wxMouseEvent& event);
         void OutputText(GLfloat x, GLfloat y, char *text);
         void drawString (void * font, char *s, float x, float y, float z);
         std::vector<WaveView> views;
