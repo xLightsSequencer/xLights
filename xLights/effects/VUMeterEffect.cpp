@@ -84,17 +84,30 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars)
 
 	for (int j = 0; j < _bars; j++)
 	{
+		float f = 0;
+		for (int k = 0; k < per; k++)
+		{
+			// use the max within the frequency range
+			if (*it > f)
+			{
+				f = *it;
+			}
+			++it;
+		}
 		for (int k = 0; k < cols; k++)
 		{
 			for (int y = 0; y < buffer.BufferHt; y++)
 			{
-				if (y < buffer.BufferHt * (*it))
+				if (y < buffer.BufferHt * f)
 				{
 					buffer.SetPixel(x, y, color1);
+				}
+				else
+				{
+					break;
 				}
 			}
 			x++;
 		}
-		++it;
 	}
 }

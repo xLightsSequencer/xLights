@@ -206,18 +206,22 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
     if(xml_file.GetSequenceType()=="Media")
     {
         int musicLength = 0;
-        mediaFilename = xml_file.GetMedia()->FileName();
-        if( (mediaFilename == wxEmptyString) || (!wxFileExists(mediaFilename)))
-        {
-            SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
-            setting_dlg.Fit();
-            setting_dlg.ShowModal();
-            mediaFilename = xml_file.GetMedia()->FileName();
-			if (xml_file.GetMedia()->GetFrameInterval() < 0)
+		mediaFilename = wxEmptyString;
+		if (xml_file.GetMedia() != NULL)
+		{
+			mediaFilename = xml_file.GetMedia()->FileName();
+			if ((mediaFilename == wxEmptyString) || (!wxFileExists(mediaFilename)))
 			{
-				xml_file.GetMedia()->SetFrameInterval(xml_file.GetSequenceTimingAsInt());
+				SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
+				setting_dlg.Fit();
+				setting_dlg.ShowModal();
+				mediaFilename = xml_file.GetMedia()->FileName();
+				if (xml_file.GetMedia()->GetFrameInterval() < 0)
+				{
+					xml_file.GetMedia()->SetFrameInterval(xml_file.GetSequenceTimingAsInt());
+				}
 			}
-        }
+		}
         if( mediaFilename != wxEmptyString )
         {
             PlayerDlg->Load(mediaFilename);

@@ -5,6 +5,7 @@
 #include <wx/string.h>
 #include <wx/ffile.h>
 #include "xLightsXmlFile.h"
+#include <wx/log.h>
 
 using namespace Vamp;
 
@@ -27,7 +28,6 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	_job = NULL;
 	_xml_file = xml_file;
 	_audio_file = audio_file;
-	_phm = NULL;
 	_state = -1; // state uninitialised. 0 is error. 1 is loaded ok
 	_resultMessage = "";
 	_data[0] = NULL;
@@ -85,66 +85,48 @@ void AudioManager::DoPrepareFrameData()
 	_bigmax = -1;
 	_bigspread = -1;
 	_bigmin = 1;
+	_bigspectogrammax = -1;
 
 	std::list<std::string> plugins = _vamp.GetAllAvailablePlugins(this);
-	Vamp::Plugin *p1 = _vamp.GetPlugin("Chromagram");
-	Vamp::Plugin *p2 = _vamp.GetPlugin("Chromagram: Chroma Means");
-	Vamp::Plugin *p3 = _vamp.GetPlugin("Constant-Q Spectrogram");
-	Vamp::Plugin *p4 = _vamp.GetPlugin("Adaptive Spectrogram");
-	Vamp::Plugin *p5 = _vamp.GetPlugin("Mel-Frequency Cepstral Coefficients: Coefficients");
-	Vamp::Plugin *p6 = _vamp.GetPlugin("Mel-Frequency Cepstral Coefficients: Means of Coefficients");
-	Vamp::Plugin *p7 = _vamp.GetPlugin("Discrete Wavelet Transform");
+	//Vamp::Plugin *p1 = _vamp.GetPlugin("Chromagram");
+	//Vamp::Plugin *p2 = _vamp.GetPlugin("Chromagram: Chroma Means");
+	//Vamp::Plugin *p3 = _vamp.GetPlugin("Constant-Q Spectrogram");
+	//Vamp::Plugin *p = _vamp.GetPlugin("Adaptive Spectrogram");
+	//Vamp::Plugin *p5 = _vamp.GetPlugin("Mel-Frequency Cepstral Coefficients: Coefficients");
+	//Vamp::Plugin *p6 = _vamp.GetPlugin("Mel-Frequency Cepstral Coefficients: Means of Coefficients");
+	Vamp::Plugin *p = _vamp.GetPlugin("Discrete Wavelet Transform");
 	float *pdata[2];
 	int output = 0;
 
-	if (p7 != NULL)
+	if (p != NULL)
 	{
-		Plugin::OutputList outputs = p7->getOutputDescriptors();
-		PluginBase::ParameterList params = p7->getParameterDescriptors();
+		//Plugin::OutputList outputs = p->getOutputDescriptors();
+		//PluginBase::ParameterList params = p->getParameterDescriptors();
 		//p->setParameter("minpitch", 0);
 		//p->setParameter("maxpitch", 127);
 		//p->setParameter("tuning", 440);
 		//p->setParameter("bpo", 12);
 		//p->setParameter("normalization", 0);
-		p4->setParameter("n", 10);
-		p4->setParameter("w", 1);
-		p4->setParameter("coarse", 0);
-		p4->setParameter("threaded", 1);
-		p5->setParameter("nceps", 40);
-		p5->setParameter("logpower", 1);
-		p5->setParameter("wantc0", 1);
-		p6->setParameter("nceps", 40);
-		p6->setParameter("logpower", 1);
-		p6->setParameter("wantc0", 1);
-		p7->setParameter("scales", 16);
-		p7->setParameter("wavelet", 0);
-		p7->setParameter("threshold", 0);
-		p7->setParameter("absolute", 1);
+		//Adaptive Spectrum
+		//p->setParameter("n", 3);
+		//p->setParameter("w", 4);
+		//p->setParameter("coarse", 0);
+		//p->setParameter("threaded", 1);
+		//p5->setParameter("nceps", 40);
+		//p5->setParameter("logpower", 1);
+		//p5->setParameter("wantc0", 1);
+		//p6->setParameter("nceps", 40);
+		//p6->setParameter("logpower", 1);
+		//p6->setParameter("wantc0", 1);
+		p->setParameter("scales", (int)log2(samplesperframe));
+		p->setParameter("wavelet", 0);
+		p->setParameter("threshold", 0);
+		p->setParameter("absolute", 1);
 		int channels = GetChannels();
-		if (channels > p7->getMaxChannelCount()) {
+		if (channels > p->getMaxChannelCount()) {
 			channels = 1;
 		}
-		size_t step = p7->getPreferredStepSize();
-		size_t block = p7->getPreferredBlockSize();
-		if (block == 0) {
-			if (step != 0) {
-				block = step;
-			}
-			else {
-				block = 1024;
-			}
-		}
-		if (step == 0) {
-			step = block;
-		}
-		//p->initialise(channels, samplesperframe, samplesperframe);
-		p1->initialise(channels, samplesperframe, samplesperframe);
-		p2->initialise(channels, samplesperframe, samplesperframe);
-		p3->initialise(channels, samplesperframe, samplesperframe);
-		p4->initialise(channels, samplesperframe, samplesperframe);
-		p5->initialise(channels, samplesperframe, samplesperframe);
-		p6->initialise(channels, samplesperframe, samplesperframe);
-		p7->initialise(channels, samplesperframe, samplesperframe);
+		p->initialise(channels, samplesperframe, samplesperframe);
 	}
 
 	for (int i = 0; i < frames; i++)
@@ -155,26 +137,17 @@ void AudioManager::DoPrepareFrameData()
 		float spread = -100;
 		std::list<float> spectrogram;
 
-		if (p7 != NULL)
+		if (p != NULL)
 		{
 			pdata[0] = GetLeftDataPtr(i * samplesperframe);
 			pdata[1] = GetRightDataPtr(i * samplesperframe);
 			Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(i * samplesperframe, GetRate());
-			//Vamp::Plugin::FeatureSet features1 = p1->process(pdata, timestamp);
-			//Vamp::Plugin::FeatureSet features2 = p2->process(pdata, timestamp);
-			//Vamp::Plugin::FeatureSet features3 = p3->process(pdata, timestamp);
-			//Vamp::Plugin::FeatureSet features4 = p4->process(pdata, timestamp);
-			//Vamp::Plugin::FeatureSet features5 = p5->process(pdata, timestamp);
-			//Vamp::Plugin::FeatureSet features6 = p6->process(pdata, timestamp);
-			Vamp::Plugin::FeatureSet features7 = p7->process(pdata, timestamp);
-			spectrogram = ProcessFeatures(features7[output]);
-			if (features7.size() > 0)
+			Vamp::Plugin::FeatureSet features4 = p->process(pdata, timestamp);
+			float max = 0;
+			spectrogram = ProcessFeatures(features4[output], max);
+			if (max > _bigspectogrammax)
 			{
-				int a = 0;
-				if (features7[0].size() > 0)
-				{
-					int b = 0;
-				}
+				_bigspectogrammax = max;
 			}
 		}
 
@@ -228,35 +201,38 @@ void AudioManager::DoPrepareFrameData()
 		_frameData.push_back(aFrameData);
 	}
 
-	if (p7 != NULL)
-	{
+	//if (p != NULL)
+	//{
 	//	Vamp::Plugin::FeatureSet features1 = p1->getRemainingFeatures();
 	//	Vamp::Plugin::FeatureSet features2 = p2->getRemainingFeatures();
 	//	Vamp::Plugin::FeatureSet features3 = p3->getRemainingFeatures();
-	//	Vamp::Plugin::FeatureSet features4 = p4->getRemainingFeatures();
+	//	Vamp::Plugin::FeatureSet features4 = p->getRemainingFeatures();
 	//	Vamp::Plugin::FeatureSet features5 = p5->getRemainingFeatures();
 	//	Vamp::Plugin::FeatureSet features6 = p6->getRemainingFeatures();
-		Vamp::Plugin::FeatureSet features7 = p7->getRemainingFeatures();
-		ProcessFeatures(features7[output]);
-	}
+	//	Vamp::Plugin::FeatureSet features7 = p7->getRemainingFeatures();
+	//	ProcessFeatures(features4[output]);
+	//}
 
 	// normalise data
-	for (std::vector<std::vector<std::list<float>>>::iterator itframe = _frameData.begin(); itframe != _frameData.end(); ++itframe) 
+	for (std::vector<std::vector<std::list<float>>>::iterator itframe = _frameData.begin(); itframe != _frameData.end(); ++itframe)
 	{
 		std::list<float> fl = (*itframe)[0];
-		float f = fl.back();
-		fl.pop_back();
-		fl.push_back(f * 1 / _bigmax);
+		std::list<float>::iterator f = fl.begin();
+		*f = (*f * 1 / (_bigmax * 1.1));
 
 		fl = (*itframe)[1];
-		f = fl.back();
-		fl.pop_back();
-		fl.push_back(f * 1 / _bigmin);
+		f = fl.begin();
+		*f = (*f * 1 / (_bigmin * 1.1));
 
 		fl = (*itframe)[2];
-		f = fl.back();
-		fl.pop_back();
-		fl.push_back(f * 1 / _bigspread);
+		f = fl.begin();
+		*f = (*f * 1 / (_bigspread * 1.1));
+
+		fl = (*itframe)[3];
+		for (std::list<float>::iterator ff = fl.begin(); ff != fl.end(); ++ff)
+		{
+			*ff = *ff * 1 / (_bigspectogrammax * 1.1);
+		}
 	}
 
 	wxArrayString timings = _xml_file->GetTimingList();
@@ -265,17 +241,42 @@ void AudioManager::DoPrepareFrameData()
 	_mutex.unlock();
 }
 
-std::list<float> AudioManager::ProcessFeatures(Vamp::Plugin::FeatureList &feature) 
+std::list<float> AudioManager::ProcessFeatures(Vamp::Plugin::FeatureList &feature, float& max) 
 {
+	max = 0;
 	std::list<float> res;
 
-	if (feature.size() > 0)
+	for (int i = 0; i < feature.size(); i++)
 	{
-		for (std::vector<float>::iterator j = feature[0].values.begin(); j != feature[0].values.end(); ++j) 
+		std::list<float>::iterator rp = res.begin();
+		for (std::vector<float>::iterator j = feature[i].values.begin(); j != feature[i].values.end(); ++j) 
 		{
-			res.push_back((*j));
+			if (i == 0)
+			{
+				res.push_back((*j));
+			}
+			else
+			{
+				if (*j > *rp)
+				{
+					*rp = *j;
+				}
+				//*rp = *rp + *j;
+				++rp;
+			}
 		}
 	}
+
+	// turn it into an average
+	for (std::list<float>::iterator j = res.begin(); j != res.end(); ++j)
+	{
+		//*j = *j / feature.size();
+		if (*j > max)
+		{
+			max = *j;
+		}
+	}
+
 	return res;
 }
 
@@ -313,24 +314,23 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 			wxYield();
 		}
 	}
-	_mutex.unlock();
 
-	std::vector<std::list<float>> framedata = _frameData[frame];
+	std::vector<std::list<float>>* framedata = &_frameData[frame];
 	std::list<float>* rc = NULL;
 
 	switch (fdt)
 	{
 	case FRAMEDATA_HIGH:
-		rc = &framedata[0];
+		rc = &framedata->at(0);
 		break;
 	case FRAMEDATA_LOW:
-		rc = &framedata[1];
+		rc = &framedata->at(1);
 		break;
 	case FRAMEDATA_SPREAD:
-		rc = &framedata[2];
+		rc = &framedata->at(2);
 		break;
 	case FRAMEDATA_VU:
-		rc = &framedata[3];
+		rc = &framedata->at(3);
 		break;
 	case FRAMEDATA_ISTIMINGMARK:
 		wxArrayString timings = _xml_file->GetTimingList();
@@ -701,27 +701,19 @@ void AudioManager::SetStepBlock(int step, int block)
 
 AudioManager::~AudioManager()
 {
-	if (_phm != NULL)
+	if (_data[1] != _data[0] && _data[1] != NULL)
 	{
-		mpg123_close(_phm);
-		mpg123_delete(_phm);
-		mpg123_exit();
-		_phm = NULL;
+		delete _data[1];
+		_data[1] = NULL;
 	}
-
 	if (_data[0] != NULL)
 	{
 		delete _data[0];
 		_data[0] = NULL;
 	}
-	if (_data[1] != NULL)
-	{
-		delete _data[1];
-		_data[1] = NULL;
-	}
 }
 
-int AudioManager::CalcTrackSize(int bits, int channels)
+int AudioManager::CalcTrackSize(mpg123_handle *phm, int bits, int channels)
 {
     size_t buffer_size;
     unsigned char *buffer;
@@ -729,16 +721,16 @@ int AudioManager::CalcTrackSize(int bits, int channels)
     int trackSize = 0;
     int fileSize = 0;
 
-    if(mpg123_length(_phm) > 0)
+    if(mpg123_length(phm) > 0)
     {
-        return mpg123_length(_phm);
+        return mpg123_length(phm);
     }
 
-    buffer_size = mpg123_outblock(_phm);
+    buffer_size = mpg123_outblock(phm);
     buffer = (unsigned char*) malloc(buffer_size * sizeof(unsigned char));
 
-    mpg123_seek(_phm,0,SEEK_SET);
-    for (fileSize = 0 ; mpg123_read(_phm, buffer, buffer_size, &done) == MPG123_OK ; )
+    mpg123_seek(phm,0,SEEK_SET);
+    for (fileSize = 0 ; mpg123_read(phm, buffer, buffer_size, &done) == MPG123_OK ; )
     {
         fileSize += done;
     }
@@ -771,16 +763,16 @@ void AudioManager::NormalizeMonoTrackData(signed short* trackData, int trackSize
     }
 }
 
-void AudioManager::LoadTrackData(char* data, int maxSize)
+void AudioManager::LoadTrackData(mpg123_handle *phm, char* data, int maxSize)
 {
     size_t buffer_size;
     unsigned char *buffer;
     size_t done;
     int bytesRead=0;
-    buffer_size = mpg123_outblock(_phm);
+    buffer_size = mpg123_outblock(phm);
     buffer = (unsigned char*) malloc(buffer_size * sizeof(unsigned char));
-    mpg123_seek(_phm, 0, SEEK_SET);
-    for (bytesRead = 0 ; mpg123_read(_phm, buffer, buffer_size, &done) == MPG123_OK ; )
+    mpg123_seek(phm, 0, SEEK_SET);
+    for (bytesRead = 0 ; mpg123_read(phm, buffer, buffer_size, &done) == MPG123_OK ; )
     {
         if ((bytesRead + done) >= maxSize)
 		{
@@ -805,26 +797,38 @@ int AudioManager::OpenMediaFile()
 {
     int err;
     size_t buffer_size;
+	mpg123_handle *phm;
 
     err = mpg123_init();
-    if(err != MPG123_OK || (_phm = mpg123_new(NULL, &err)) == NULL)
+    if(err != MPG123_OK || (phm = mpg123_new(NULL, &err)) == NULL)
     {
 		std::ostringstream stringStream;
 		stringStream << "Basic setup goes wrong: " << mpg123_plain_strerror(err);
 		_resultMessage = stringStream.str();
 		_state = 0;
-        return -1;
+		if (phm != NULL)
+		{
+			mpg123_delete(phm);
+			mpg123_exit();
+		}
+		return -1;
     }
 
     /* open the file and get the decoding format */
-    if( mpg123_open(_phm, _audio_file.c_str()) != MPG123_OK ||
-       mpg123_getformat(_phm, &_rate, &_channels, &_encoding) != MPG123_OK )
+    if( mpg123_open(phm, _audio_file.c_str()) != MPG123_OK ||
+       mpg123_getformat(phm, &_rate, &_channels, &_encoding) != MPG123_OK )
     {
 		std::ostringstream stringStream;
-		stringStream << "Trouble with mpg123: " << mpg123_strerror(_phm);
+		stringStream << "Trouble with mpg123: " << mpg123_strerror(phm);
 		_resultMessage = stringStream.str();
 		_state = 0;
-        return -1;
+		if (phm != NULL)
+		{
+			mpg123_close(phm);
+			mpg123_delete(phm);
+			mpg123_exit();
+		}
+		return -1;
     }
 
     if(_encoding != MPG123_ENC_SIGNED_16 )
@@ -837,9 +841,9 @@ int AudioManager::OpenMediaFile()
     _bits = mpg123_encsize(_encoding);
 
     /* Get Track Size */
-    _trackSize = CalcTrackSize(_bits, _channels);
+    _trackSize = CalcTrackSize(phm, _bits, _channels);
 	_lengthMS = CalcLengthMS();
-    buffer_size = mpg123_outblock(_phm);
+    buffer_size = mpg123_outblock(phm);
     int size = (_trackSize+buffer_size)*_bits*_channels;
 
 	if (_data[1] != NULL && _data[1] != _data[0])
@@ -854,7 +858,7 @@ int AudioManager::OpenMediaFile()
 	}
 
 	char * trackData = (char*)malloc(size);
-    LoadTrackData(trackData, size);
+    LoadTrackData(phm, trackData, size);
 
 	// Split data into left and right and normalize -1 to 1
 	_data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
@@ -875,10 +879,10 @@ int AudioManager::OpenMediaFile()
     }
 	free(trackData);
 
-    mpg123_close(_phm);
-    mpg123_delete(_phm);
+    mpg123_close(phm);
+    mpg123_delete(phm);
     mpg123_exit();
-	_phm = NULL;
+	phm = NULL;
 
 	return _trackSize;
 }
@@ -1010,7 +1014,7 @@ void xLightsVamp::ProcessFeatures( Vamp::Plugin::FeatureList &feature, std::vect
     }
 }
 
-void AudioManager::ExtractMP3Tags()
+void AudioManager::ExtractMP3Tags(mpg123_handle *phm)
 {
 	_title = "";
 	_album = "";
@@ -1020,10 +1024,10 @@ void AudioManager::ExtractMP3Tags()
 	mpg123_id3v1* v1;
 	mpg123_id3v2* v2;
 
-	mpg123_scan(_phm);
-	int meta = mpg123_meta_check(_phm);
+	mpg123_scan(phm);
+	int meta = mpg123_meta_check(phm);
 
-	if (meta == MPG123_ID3 && mpg123_id3(_phm, &v1, &v2) == MPG123_OK)
+	if (meta == MPG123_ID3 && mpg123_id3(phm, &v1, &v2) == MPG123_OK)
 	{
 		if (v2 != NULL) // "ID3V2 tag found"
 		{

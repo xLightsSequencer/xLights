@@ -34,9 +34,12 @@ void xLightsFrame::NewSequence()
     }
 	else
 	{
-		if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
+		if (CurrentSeqXmlFile->GetMedia() != NULL)
 		{
-			CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetSequenceTimingAsInt());
+			if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
+			{
+				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetSequenceTimingAsInt());
+			}
 		}
 	}
 

@@ -66,7 +66,6 @@ class AudioManager
 	std::vector<std::vector<std::list<float>>> _frameData;
 	std::string _audio_file;
 	xLightsVamp _vamp;
-	mpg123_handle *_phm;
 	long _rate;
 	int _channels;
 	int _trackSize;
@@ -87,20 +86,21 @@ class AudioManager
 	float _bigmax;
 	float _bigspread;
 	float _bigmin;
+	float _bigspectogrammax;
 
-	int CalcTrackSize(int bits, int channels);
+	int CalcTrackSize(mpg123_handle *phm, int bits, int channels);
 	int CalcLengthMS();
 	void SplitTrackDataAndNormalize(signed short* trackData, int trackSize, float* leftData, float* rightData);
 	void NormalizeMonoTrackData(signed short* trackData, int trackSize, float* leftData);
-	void LoadTrackData(char* data, int maxSize);
+	void LoadTrackData(mpg123_handle *phm, char* data, int maxSize);
 	int OpenMediaFile();
-	void ExtractMP3Tags();
+	void ExtractMP3Tags(mpg123_handle *phm);
 	bool CheckCBR();
 	void PrepareFrameData();
 	int decodebitrateindex(int bitrateindex, int version, int layertype);
 	int decodesamplerateindex(int samplerateindex, int version);
 	int decodesideinfosize(int version, int mono);
-	std::list<float> ProcessFeatures(Vamp::Plugin::FeatureList &feature);
+	std::list<float> ProcessFeatures(Vamp::Plugin::FeatureList &feature, float& max);
 
 public:
 
