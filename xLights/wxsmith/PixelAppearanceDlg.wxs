@@ -46,14 +46,14 @@
 					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE1" variable="PixelStyleBox" member="yes">
 							<content>
-								<item>Default (fastest)</item>
-								<item>Smooth</item>
+								<item>Square (fastest)</item>
+								<item>Smooth </item>
 								<item>Solid Circle</item>
 								<item>Blended Circle</item>
 							</content>
 							<selection>0</selection>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -74,7 +74,7 @@
 						<object class="wxSlider" name="ID_SLIDER_TRANSPARENCY" variable="TransparencySlider" member="yes">
 							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -101,7 +101,7 @@
 						<object class="wxSlider" name="ID_SLIDER_BLACKT" variable="BlackTransparency" member="yes">
 							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -117,7 +117,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -143,7 +143,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

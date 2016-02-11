@@ -44,6 +44,8 @@ class TimeLine : public wxWindow
         int GetSelectedPositionStart() { return mSelectedPlayMarkerStart; }
         int GetSelectedPositionEnd() { return mSelectedPlayMarkerEnd; }
         void LatchSelectedPositions();
+        void SetMousePositionMS(int ms);
+        int GetMousePosition() { return mMousePosition; }
 
         void ResetMarkers(int ms);
 
@@ -126,6 +128,8 @@ class TimeLine : public wxWindow
         int mSequenceEndMarker;
         int mSequenceEndMarkerMS;
         int mZoomMarkerMS;
+        int mMousePositionMS;
+        int mMousePosition;
         bool m_dragging;
         bool timeline_initiated_play;
 

@@ -141,6 +141,7 @@ wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
@@ -1572,6 +1573,7 @@ protected:
     void ScrollRight( wxCommandEvent& event);
     void VerticalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
+    void MousePositionUpdated( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
     void EffectChanged( wxCommandEvent& event);
     void UnselectedEffect( wxCommandEvent& event);

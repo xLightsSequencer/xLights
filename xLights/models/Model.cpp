@@ -144,7 +144,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
     customColor = xlColor(ModelNode->GetAttribute("CustomColor", "#000000").ToStdString());
     
     long n;
-    tempstr=ModelNode->GetAttribute("Antialias","0");
+    tempstr=ModelNode->GetAttribute("Antialias","1");
     tempstr.ToLong(&n);
     pixelStyle = n;
     tempstr=ModelNode->GetAttribute("PixelSize","2");

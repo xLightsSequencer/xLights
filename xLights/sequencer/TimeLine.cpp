@@ -178,6 +178,17 @@ void TimeLine::SetSelectedPositionEnd(int pos)
     Refresh(false);
 }
 
+void TimeLine::SetMousePositionMS(int ms)
+{
+    mMousePositionMS = ms;
+    if( ms < mStartTimeMS ) {
+        mMousePosition = -1;
+    } else {
+        mMousePosition = GetPositionFromTimeMS(ms);
+    }
+    Refresh(false);
+}
+
 void TimeLine::LatchSelectedPositions()
 {
     if( mSelectedPlayMarkerEndMS != -1 && mSelectedPlayMarkerStartMS > mSelectedPlayMarkerEndMS )
@@ -282,6 +293,8 @@ void TimeLine::ResetMarkers(int ms)
     mCurrentPlayMarkerStart = mSelectedPlayMarkerStart;
     mCurrentPlayMarkerStartMS = mSelectedPlayMarkerStartMS;
     mZoomMarkerMS = mStartTimeMS + (mEndTimeMS - mStartTimeMS)/2;
+    mMousePositionMS = -1;
+    mMousePosition = -1;
 }
 
 int TimeLine::GetStartPixelOffset()
