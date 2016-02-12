@@ -242,7 +242,7 @@ void PicturesAssistPanel::OnImageSize(wxCommandEvent& event)
     wxString image_size = event.GetString();
     StaticText_ImageSize->SetLabelText( image_size );
     int bw, bh;
-    mGridCanvas->GetModel()->GetBufferSize(mEffect->GetSettings().Get("T_CHOICE_BufferStyle", "Default"), bw, bh);
+    mGridCanvas->GetModel()->GetBufferSize(mGridCanvas->GetEffect()->GetSettings().Get("T_CHOICE_BufferStyle", "Default"), bw, bh);
     StaticText_ModelSize->SetLabelText(wxString::Format("Model Size: %d x %d", bw, bh));
 }
 
