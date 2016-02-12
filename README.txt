@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(keithsw) Add VUMeter effect (very much beta in this release. Appearance may change in near future releases. Please do not rely on it at this stage)
     -- bug(gil)   Fix selected cells moving into timing area when vertically scrolling.  Fixes #419.
     -- bug(gil)   Fix arrow keys not moving selection properly which could cause hotkey paste in wrong locations. Fixes #432.
     -- bug(gil)   Fix effect duplicating when using arrow keys on grid.  Fixes #424.

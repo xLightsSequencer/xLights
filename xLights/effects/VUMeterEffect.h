@@ -13,9 +13,10 @@ class VUMeterEffect : public RenderableEffect
         virtual ~VUMeterEffect();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
         void Render(RenderBuffer &buffer,
-                    int bars);
+                    int bars, int type, const std::string& timingtrack);
         virtual bool CanRenderOnBackgroundThread();
-    protected:
+		virtual void SetDefaultParameters(Model *cls);
+	protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
 };
 

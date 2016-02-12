@@ -16,11 +16,11 @@ xLightsVamp::xLightsVamp()
 
 xLightsVamp::~xLightsVamp()
 {
-	for (int i = 0; i < _loadedPlugins.size(); i++)
-	{
-		delete _loadedPlugins[i];
-	}
-	_loadedPlugins.empty();
+	//for (int i = 0; i < _loadedPlugins.size(); i++)
+	//{
+	//	delete _loadedPlugins[i];
+	//}
+	//_loadedPlugins.empty();
 }
 
 AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int step = 1024, int block = 1024)
@@ -284,8 +284,6 @@ void AudioManager::DoPrepareFrameData()
 		}
 	}
 
-	wxArrayString timings = _xml_file->GetTimingList();
-
 	_frameDataPrepared = true;
 	_mutex.unlock();
 }
@@ -306,6 +304,7 @@ std::list<float> AudioManager::ProcessFeatures(Vamp::Plugin::FeatureList &featur
 			}
 			else
 			{
+				// this is not actually used
 				if (*j > *rp)
 				{
 					*rp = *j;
@@ -316,10 +315,9 @@ std::list<float> AudioManager::ProcessFeatures(Vamp::Plugin::FeatureList &featur
 		}
 	}
 
-	// turn it into an average
+	// work out the maximum for normalisation
 	for (std::list<float>::iterator j = res.begin(); j != res.end(); ++j)
 	{
-		//*j = *j / feature.size();
 		if (*j > max)
 		{
 			max = *j;
@@ -334,7 +332,7 @@ void AudioManager::PrepareFrameData()
 	if (!_frameDataPrepared && _job == NULL)
 	{
 		_job = (Job*)new AudioScanJob(this);
-		jobPool.PushJob(_job);
+		_jobPool.PushJob(_job);
 	}
 }
 
@@ -342,7 +340,7 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 {
 	while (!_mutex.try_lock()) 
 	{
-		wxYield();
+		wxMilliSleep(1);
 	}
 
 	if (!_frameDataPrepared)
@@ -354,13 +352,13 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 		while (_mutex.try_lock())
 		{
 			_mutex.unlock();
-			wxYield();
+			wxMilliSleep(1);
 		}
 
 		// now wait for the new thread to exit
 		while (!_mutex.try_lock()) 
 		{
-			wxYield();
+			wxMilliSleep(1);
 		}
 	}
 
@@ -382,12 +380,6 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 		rc = &framedata->at(3);
 		break;
 	case FRAMEDATA_ISTIMINGMARK:
-		wxArrayString timings = _xml_file->GetTimingList();
-		for (int i = 0; i < timings.Count(); i++)
-		{
-			wxString timing = timings[i];
-			int a = 0;
-		}
 		break;
 	}
 
@@ -752,12 +744,12 @@ AudioManager::~AudioManager()
 {
 	if (_data[1] != _data[0] && _data[1] != NULL)
 	{
-		delete _data[1];
+		free(_data[1]);
 		_data[1] = NULL;
 	}
 	if (_data[0] != NULL)
 	{
-		delete _data[0];
+		free(_data[0]);
 		_data[0] = NULL;
 	}
 }

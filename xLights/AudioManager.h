@@ -60,7 +60,7 @@ typedef enum FRAMEDATATYPE {
 
 class AudioManager
 {
-	JobPool jobPool;
+	JobPool _jobPool;
 	Job* _job;
 	std::mutex _mutex;
 	std::vector<std::vector<std::list<float>>> _frameData;
