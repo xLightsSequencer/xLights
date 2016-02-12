@@ -239,9 +239,11 @@ void PicturesAssistPanel::OnImageFileSelected(wxCommandEvent& event)
 
 void PicturesAssistPanel::OnImageSize(wxCommandEvent& event)
 {
-   wxString image_size = event.GetString();
-   StaticText_ImageSize->SetLabelText( image_size );
-   StaticText_ModelSize->SetLabelText(wxString::Format("Model Size: %d x %d", mGridCanvas->GetModel()->BufferWi, mGridCanvas->GetModel()->BufferHt));
+    wxString image_size = event.GetString();
+    StaticText_ImageSize->SetLabelText( image_size );
+    int bw, bh;
+    mGridCanvas->GetModel()->GetBufferSize(mEffect->GetSettings().Get("T_CHOICE_BufferStyle", "Default"), bw, bh);
+    StaticText_ModelSize->SetLabelText(wxString::Format("Model Size: %d x %d", bw, bh));
 }
 
 void PicturesAssistPanel::OnButton_SaveImageClick(wxCommandEvent& event)

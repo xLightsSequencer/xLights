@@ -20,14 +20,6 @@
 
 class NodeBaseClass
 {
-private:
-
-    // buffer and screen coordinates for displayed nodes
-    struct CoordStruct
-    {
-        unsigned short bufX, bufY;
-        float screenX, screenY;
-    };
 
 protected:
     // color values in rgb order
@@ -37,6 +29,13 @@ protected:
     unsigned short chanCnt;
 
 public:
+    // buffer and screen coordinates for displayed nodes
+    struct CoordStruct
+    {
+        unsigned short bufX, bufY;
+        float screenX, screenY;
+    };
+    
     int sparkle;
     int ActChan = 0;   // 0 is the first channel
     int StringNum; // node is part of this string (0 is the first string)

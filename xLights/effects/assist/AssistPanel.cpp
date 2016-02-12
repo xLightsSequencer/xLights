@@ -96,8 +96,12 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
         std::string model_name = elem->GetName();
         Model *cls = xlights_parent->GetModel(model_name);
         mGridCanvas->SetModel(cls);
-        mGridCanvas->SetNumColumns(cls->BufferWi);
-        mGridCanvas->SetNumRows(cls->BufferHt);
+        
+        int bw, bh;
+        cls->GetBufferSize(mEffect->GetSettings().Get("T_CHOICE_BufferStyle", "Default"), bw, bh);
+        
+        mGridCanvas->SetNumColumns(bw);
+        mGridCanvas->SetNumRows(bh);
         mGridCanvas->SetEffect(mEffect);
     }
 }
