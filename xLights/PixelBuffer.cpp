@@ -85,6 +85,7 @@ void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing) {
     ssModel.Reset(1, pbc, strand, node);
     SetDimmingCurve(pbc.modelDimmingCurve);
+    model = &ssModel;
     reset(2, timing);
 }
 
