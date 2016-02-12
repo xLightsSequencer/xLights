@@ -7,6 +7,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Fix selected cells moving into timing area when vertically scrolling.  Fixes #419.
+    -- bug(gil)   Fix arrow keys not moving selection properly which could cause hotkey paste in wrong locations. Fixes #432.
     -- bug(gil)   Fix effect duplicating when using arrow keys on grid.  Fixes #424.
     -- enh(gil)   Show mouse position in waveform.
 2016.7  Feb 08, 2016
