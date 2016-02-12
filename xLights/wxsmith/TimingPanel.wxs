@@ -21,31 +21,6 @@
 											<cols>3</cols>
 											<growablecols>1</growablecols>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText1" member="yes">
-													<label>Blending:</label>
-													<font>
-														<size>10</size>
-														<style>normal</style>
-														<weight>bold</weight>
-														<underlined>0</underlined>
-														<family>swiss</family>
-													</font>
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="spacer">
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="spacer">
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
 												<object class="wxCheckBox" name="ID_CHECKBOX_LayerMorph" variable="CheckBox_LayerMorph" member="yes">
 													<label>Morph</label>
 													<tooltip>Gradual cross-fade from Effect1 to Effect2</tooltip>
@@ -128,7 +103,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton1" member="yes">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
 													<size>13,13</size>
@@ -137,7 +112,7 @@
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -166,7 +141,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_BufferStyle" variable="BitmapButtonBufferStyle" member="no">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
 													<size>13,13</size>
@@ -175,7 +150,7 @@
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
+												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
