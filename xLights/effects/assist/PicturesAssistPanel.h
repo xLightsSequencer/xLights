@@ -96,7 +96,6 @@ class PicturesAssistPanel: public wxPanel
         xLightsFrame* mxLightsParent;
         xlGridCanvasPictures* mGridCanvas;
         xlColorPicker* mColorPicker;
-        Effect* mEffect;
         xlGridCanvasPictures::PaintMode mPaintMode;
         xlColor mPaintColor;
         wxPanel* mPaintTools;

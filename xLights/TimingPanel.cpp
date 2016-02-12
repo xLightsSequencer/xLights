@@ -215,8 +215,8 @@ void TimingPanel::SetDefaultControls(const Model *model) {
     CheckBox_LayerMorph->SetValue(false);
     Choice_LayerMethod->SetSelection(0);
     Slider_EffectLayerMix->SetValue(0);
-    TextCtrl_Fadein->SetValue("");
-    TextCtrl_Fadeout->SetValue("");
+    TextCtrl_Fadein->SetValue("0.00");
+    TextCtrl_Fadeout->SetValue("0.00");
     CheckBox_OverlayBkg->SetValue(false);
     BufferStyleChoice->Clear();
     const std::vector<std::string> &types = model->GetBufferStyles();
@@ -246,11 +246,17 @@ wxString TimingPanel::GetTimingString()
         s += wxString::Format("T_SLIDER_EffectLayerMix=%d,",Slider_EffectLayerMix->GetValue());
     }
     // Fade in
-    if ("" != TextCtrl_Fadein->GetValue()) {
+    if ("" != TextCtrl_Fadein->GetValue()
+        && "0" != TextCtrl_Fadein->GetValue()
+        && "0.0" != TextCtrl_Fadein->GetValue()
+        && "0.00" != TextCtrl_Fadein->GetValue()) {
         s+="T_TEXTCTRL_Fadein=" + TextCtrl_Fadein->GetValue() + ",";
     }
     // Fade Out
-    if ("" != TextCtrl_Fadeout->GetValue()) {
+    if ("" != TextCtrl_Fadeout->GetValue()
+        && "0" != TextCtrl_Fadeout->GetValue()
+        && "0.0" != TextCtrl_Fadeout->GetValue()
+        && "0.00" != TextCtrl_Fadeout->GetValue()) {
         s += "T_TEXTCTRL_Fadeout=" + TextCtrl_Fadeout->GetValue() + ",";
     }
     // Persistent
