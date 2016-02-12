@@ -564,12 +564,28 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 }
 
 
+class FacesRenderCache : public EffectRenderCache {
+public:
+    FacesRenderCache() : blinkEndTime(0), nextBlinkTime(0) {
+    };
+    virtual ~FacesRenderCache() {
+    };
+    int blinkEndTime;
+    int nextBlinkTime;
+};
+
+
 void FacesEffect::RenderFaces(RenderBuffer &buffer,
                              SequenceElements *elements, const std::string &faceDefinition,
                              const std::string& Phoneme, const std::string &trackName,
                              const std::string& eyesIn, bool face_outline)
 {
-    
+    FacesRenderCache *cache = (FacesRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
+        cache = new FacesRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+
     if (buffer.needToInit) {
         buffer.needToInit = false;
         elements->AddRenderDependency(trackName, buffer.cur_model);
@@ -626,21 +642,18 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         type = 2;
     }
     
-    int &blinkEndTime = buffer.tempInt;
-    int &nextBlinkTime = buffer.tempInt2;
-    
     std::string phoneme = Phoneme;
     if (phoneme == "") {
         //GET Phoneme from timing track
         if (track == nullptr || track->GetEffectLayerCount() < 3) {
             phoneme = "rest";
             if ("Auto" == eyes) {
-                if ((buffer.curPeriod * buffer.frameTimeInMs) >= nextBlinkTime) {
+                if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                     //roughly every 5 seconds we'll blink
-                    nextBlinkTime += (4500 + (rand() % 1000));
-                    blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
+                    cache->nextBlinkTime += (4500 + (rand() % 1000));
+                    cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
                     eyes = "Closed";
-                } else if ((buffer.curPeriod * buffer.frameTimeInMs) < blinkEndTime) {
+                } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                     eyes = "Closed";
                 } else {
                     eyes = "Open";
@@ -677,24 +690,24 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                     }
                 }
                 
-                if ((buffer.curPeriod * buffer.frameTimeInMs) >= nextBlinkTime) {
+                if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                     if ((startms + 150) >= (buffer.curPeriod * buffer.frameTimeInMs)) {
                         //don't want to blink RIGHT at the start of the rest, delay a little bie
                         int tmp =  (buffer.curPeriod * buffer.frameTimeInMs) + 150 + rand() % 400;
                         
                         //also don't want it right at the end
                         if ((tmp + 130) > endms) {
-                            nextBlinkTime = (startms + endms) / 2;
+                            cache->nextBlinkTime = (startms + endms) / 2;
                         } else {
-                            nextBlinkTime = tmp;
+                            cache->nextBlinkTime = tmp;
                         }
                     } else {
                         //roughly every 5 seconds we'll blink
-                        nextBlinkTime += (4500 + (rand() % 1000));
-                        blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
+                        cache->nextBlinkTime += (4500 + (rand() % 1000));
+                        cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
                         eyes = "Closed";
                     }
-                } else if ((buffer.curPeriod * buffer.frameTimeInMs) < blinkEndTime) {
+                } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                     eyes = "Closed";
                 } else {
                     eyes = "Open";

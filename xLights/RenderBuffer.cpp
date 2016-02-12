@@ -293,6 +293,7 @@ RenderBuffer::RenderBuffer()
     frameTimeInMs = 50;
     drawingContext = NULL;
     InhibitClear = false;
+    tempInt = tempInt2 = 0;
 }
 
 RenderBuffer::~RenderBuffer()

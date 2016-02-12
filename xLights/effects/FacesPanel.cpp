@@ -74,7 +74,7 @@ FacesPanel::FacesPanel(wxWindow* parent)
 	FlexGridSizer98->Add(Face_FaceDefinitonChoice, 1, wxALL|wxEXPAND, 5);
 	StaticText71 = new wxStaticText(this, ID_STATICTEXT66, _("Eyes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT66"));
 	FlexGridSizer98->Add(StaticText71, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Faces_Eyes = new wxChoice(this, ID_CHOICE_Faces_Eyes, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_Faces_Eyes"));
+	Choice_Faces_Eyes = new wxChoice(this, ID_CHOICE_Faces_Eyes, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_Eyes"));
 	Choice_Faces_Eyes->Append(_("Open"));
 	Choice_Faces_Eyes->Append(_("Closed"));
 	Choice_Faces_Eyes->Append(_("Auto"));
