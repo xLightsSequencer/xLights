@@ -1482,7 +1482,9 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
         bool flip_y = dlg.CheckBox_SS_FlipY->GetValue();
         Model *cls = GetModel(model->GetName());
-        wxSize modelSize(cls->BufferWi, cls->BufferHt);
+        int bw, bh;
+        cls->GetBufferSize("Default", bw, bh);
+        wxSize modelSize(bw, bh);
         ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, flip_y, dlg.ImageResizeChoice->GetSelection(), modelSize);
     }
     float elapsedTime = sw.Time()/1000.0; //msec => sec

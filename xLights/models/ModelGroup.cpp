@@ -68,7 +68,7 @@ wxXmlNode *ModelGroup::BuildWholeHouseModel(ModelManager &manager, int previewW,
         // Add node position and channel number to arrays
         for (int i=0; i<models.size(); i++)
         {
-            models[i]->AddToWholeHouseModel(previewW, previewH, xPos,yPos,actChannel,nodeType);
+            models[i]->AddToWholeHouseModel(previewW, previewH, xPos, yPos, actChannel, nodeType);
             index+=models[i]->GetNodeCount();
         }
         int wScaled = node == nullptr ? 400 : wxAtoi(node->GetAttribute("GridSize", "400"));

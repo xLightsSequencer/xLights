@@ -52,7 +52,10 @@ void ModelManager::Load(wxXmlNode *modelNode, wxXmlNode *groupNode, NetInfoClass
         if (e->GetName() == "model") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
-                createAndAddModel(e, netInfo);
+                Model *m = createAndAddModel(e, netInfo);
+                if (m != nullptr) {
+                    m->SetMinMaxModelScreenCoordinates(previewW, previewH);
+                }
             }
         }
     }

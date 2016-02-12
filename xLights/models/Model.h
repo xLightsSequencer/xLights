@@ -25,16 +25,22 @@ public:
     
     
     std::string name;
-    int BufferHt,BufferWi;  // size of the buffer
     xlColor customColor;
-    std::vector<NodeBaseClassPtr> Nodes;
     
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
     DimmingCurve *modelDimmingCurve;
     
-    void InitRenderBufferNodes(int type, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
+    virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
+    virtual void GetBufferSize(const std::string &type, int &BufferWi, int &BufferHi) const;
+    virtual void InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
     bool IsMyDisplay() { return isMyDisplay;}
 protected:
+    static std::vector<std::string> DEFAULT_BUFFER_STYLES;
+    
+    int BufferHt,BufferWi;  // size of the buffer
+    std::vector<NodeBaseClassPtr> Nodes;
+
+    
     static NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
     
     
@@ -51,8 +57,6 @@ protected:
     void CopyBufCoord2ScreenCoord();
     
     void SetLineCoord();
-    double toRadians(long degrees);
-    long toDegrees(double radians);
     std::string GetNextName();
     
     int pixelStyle;  //0 - default, 1 - smooth, 2 - circle
@@ -60,16 +64,16 @@ protected:
     int transparency = 0;
     int blackTransparency = 0;
     
-    bool modelv2;
     int StrobeRate;      // 0=no strobing
     double offsetXpct,offsetYpct;
     bool singleScale;
     double PreviewScaleX, PreviewScaleY;
     int PreviewRotation;
-    long ModelVersion;
     bool zeroBased;
     bool isMyDisplay;
     
+    int previewW;
+    int previewH;
     int mMinScreenX;
     int mMinScreenY;
     int mMaxScreenX;
@@ -127,6 +131,7 @@ public:
     void AddToWholeHouseModel(int pw, int ph, std::vector<int>& xPos,std::vector<int>& yPos,
                               std::vector<int>& actChannel,std::vector<std::string>& nodeTypes);
     void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
+    void SetMinMaxModelScreenCoordinates(int w, int y);
     void Rotate(int degrees);
     const std::string& GetStringType(void) const { return StringType; }
     const std::string& GetDisplayAs(void) const { return DisplayAs; }

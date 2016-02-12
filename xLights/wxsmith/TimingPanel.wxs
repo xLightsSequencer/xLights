@@ -17,112 +17,98 @@
 									<cols>1</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 											<cols>3</cols>
-											<growablecols>0,1,2</growablecols>
+											<growablecols>1</growablecols>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText1" member="yes">
+													<label>Blending:</label>
+													<font>
+														<size>10</size>
+														<style>normal</style>
+														<weight>bold</weight>
+														<underlined>0</underlined>
+														<family>swiss</family>
+													</font>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
 											<object class="spacer">
-												<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-													<cols>4</cols>
-													<growablecols>1,2</growablecols>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText1" member="yes">
-															<label>Blending:</label>
-															<font>
-																<size>10</size>
-																<style>normal</style>
-																<weight>bold</weight>
-																<underlined>0</underlined>
-																<family>swiss</family>
-															</font>
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxCheckBox" name="ID_CHECKBOX_LayerMorph" variable="CheckBox_LayerMorph" member="yes">
-															<label>Morph</label>
-															<tooltip>Gradual cross-fade from Effect1 to Effect2</tooltip>
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
-															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
-															<size>13,13</size>
-															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_LayerMethod" variable="Choice_LayerMethod" member="yes">
-															<content>
-																<item>Normal</item>
-																<item>Effect 1</item>
-																<item>Effect 2</item>
-																<item>1 is Mask</item>
-																<item>2 is Mask</item>
-																<item>1 is Unmask</item>
-																<item>2 is Unmask</item>
-																<item>1 reveals 2</item>
-																<item>2 reveals 1</item>
-																<item>Shadow 1 on 2</item>
-																<item>Shadow 2 on 1</item>
-																<item>Layered</item>
-																<item>Average</item>
-																<item>Bottom-Top</item>
-																<item>Left-Right</item>
-															</content>
-															<selection>0</selection>
-															<tooltip>Layering defines how Effect 1 and Effect 2 will be mixed together.&#x0A;Here are the Choices&#x0A;* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. &#x0A;* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.&#x0A;* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.&#x0A;* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.&#x0A;* 1 is UnMask:  (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.&#x0A;* 2 is UnMask:  (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.&#x0A;* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2&#x0A;* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1&#x0A;* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2&#x0A;* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1&#x0A;* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum&#x0A;* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display&#x0A;* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.</tooltip>
-															<style>wxFULL_REPAINT_ON_RESIZE</style>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
+												<object class="wxCheckBox" name="ID_CHECKBOX_LayerMorph" variable="CheckBox_LayerMorph" member="yes">
+													<label>Morph</label>
+													<tooltip>Gradual cross-fade from Effect1 to Effect2</tooltip>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxChoice" name="ID_CHOICE_LayerMethod" variable="Choice_LayerMethod" member="yes">
+													<content>
+														<item>Normal</item>
+														<item>Effect 1</item>
+														<item>Effect 2</item>
+														<item>1 is Mask</item>
+														<item>2 is Mask</item>
+														<item>1 is Unmask</item>
+														<item>2 is Unmask</item>
+														<item>1 reveals 2</item>
+														<item>2 reveals 1</item>
+														<item>Shadow 1 on 2</item>
+														<item>Shadow 2 on 1</item>
+														<item>Layered</item>
+														<item>Average</item>
+														<item>Bottom-Top</item>
+														<item>Left-Right</item>
+													</content>
+													<selection>0</selection>
+													<tooltip>Layering defines how Effect 1 and Effect 2 will be mixed together.&#x0A;Here are the Choices&#x0A;* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. &#x0A;* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.&#x0A;* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.&#x0A;* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.&#x0A;* 1 is UnMask:  (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.&#x0A;* 2 is UnMask:  (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.&#x0A;* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2&#x0A;* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1&#x0A;* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2&#x0A;* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1&#x0A;* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum&#x0A;* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display&#x0A;* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.</tooltip>
+													<style>wxFULL_REPAINT_ON_RESIZE</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+													<cols>2</cols>
+													<growablecols>0</growablecols>
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" variable="Slider_EffectLayerMix" member="yes">
 															<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SCROLL" />
 															<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND</flag>
 														<border>1</border>
 														<option>1</option>
 													</object>
@@ -136,144 +122,161 @@
 														<border>1</border>
 														<option>1</option>
 													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
-															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
-															<size>13,13</size>
-															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-															<label>Fade In</label>
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" variable="TextCtrl_Fadein" member="yes">
-															<value>0.00</value>
-															<maxlength>4</maxlength>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadein" variable="BitmapButton_FadeOut" member="yes">
-															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
-															<size>13,13</size>
-															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-															<label>Fade Out</label>
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" variable="TextCtrl_Fadeout" member="yes">
-															<value>0.00</value>
-															<maxlength>4</maxlength>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadeout" variable="BitmapButton_FadeIn" member="yes">
-															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
-															<size>13,13</size>
-															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxCheckBox" name="ID_CHECKBOX_OverlayBkg" variable="CheckBox_OverlayBkg" member="yes">
-															<label>Persistent</label>
-															<handler function="OnCheckBox_OverlayBkgClick" entry="EVT_CHECKBOX" />
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_OverlayBkg" variable="BitmapButton_OverlayBkg" member="yes">
-															<bitmap code="padlock16x16_blue_xpm" />
-															<default>1</default>
-															<size>13,13</size>
-															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_OverlayBkgClick" entry="EVT_BUTTON" />
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
-														<option>1</option>
-													</object>
 												</object>
-												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton1" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="wxID_ANY" variable="StaticText4" member="no">
+													<label>Buffer Style</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxChoice" name="ID_CHOICE_BufferStyle" variable="BufferStyleChoice" member="yes">
+													<content>
+														<item>Default</item>
+														<item>Per Preview</item>
+														<item>Rotate Up 90</item>
+														<item>Rotate Down 90</item>
+														<item>Rotate 180</item>
+														<item>Flip Vertical</item>
+														<item>Flip Horizontal</item>
+													</content>
+													<selection>0</selection>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+													<label>Fade In</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" variable="TextCtrl_Fadein" member="yes">
+													<value>0.00</value>
+													<maxlength>4</maxlength>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadein" variable="BitmapButton_FadeOut" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>1</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+													<label>Fade Out</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" variable="TextCtrl_Fadeout" member="yes">
+													<value>0.00</value>
+													<maxlength>4</maxlength>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadeout" variable="BitmapButton_FadeIn" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>1</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_OverlayBkg" variable="CheckBox_OverlayBkg" member="yes">
+													<label>Persistent</label>
+													<handler function="OnCheckBox_OverlayBkgClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="spacer">
-												<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_OverlayBkg" variable="BitmapButton_OverlayBkg" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnBitmapButton_OverlayBkgClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>1</border>
 												<option>1</option>
 											</object>
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 								</object>
 							</object>
-							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-							<option>1</option>
+							<flag>wxALIGN_LEFT</flag>
 						</object>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<option>1</option>
+				<flag>wxALIGN_LEFT</flag>
 			</object>
 		</object>
 	</object>
