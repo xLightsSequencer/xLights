@@ -87,6 +87,7 @@
 #include "../include/papagayo-64.xpm"
 
 #include "../include/model-16.xpm"
+#include "../include/model-64.xpm"
 
 #include "wx/artprov.h"
 
@@ -316,7 +317,7 @@ const wxBitmap &BitmapCache::GetPapgayoIcon(wxString &toolTip, int size, bool ex
 
 const wxBitmap &BitmapCache::GetModelGroupIcon(wxString &toolTip, int size, bool exact) {
     toolTip = "Model Group";
-    return effectBitmaps.get(size, exact, "ModelGroup", model_16, model_16, model_16, model_16, model_16);
+    return effectBitmaps.get(size, exact, "ModelGroup", model_16, model_64, model_64, model_64, model_64);
 }
 
 const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int size, bool exact) {
