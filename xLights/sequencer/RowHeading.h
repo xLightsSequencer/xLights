@@ -51,6 +51,7 @@ class RowHeading : public wxWindow
         const xlColor * mHeaderColorTiming;
         const xlColor * mHeaderSelectedColor;
         wxBitmap papagayo_icon;
+        wxBitmap model_group_icon;
 
         int mSelectedRow;
         SequenceElements* mSequenceElements;

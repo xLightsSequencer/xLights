@@ -52,6 +52,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
     wxString tooltip;
     papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, true);
+    model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, true);
     mCanPaste = false;
 }
 
@@ -531,6 +532,11 @@ void RowHeading::Draw()
                 }
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush);
+            }
+            // draw Model Group icon if necessary
+            if( xLightsFrame::AllModels[mSequenceElements->GetVisibleRowInformation(i)->element->GetName()]->GetDisplayAs() == "ModelGroup" )
+            {
+                dc.DrawBitmap(model_group_icon, getWidth()-25, startY+3, true);
             }
         }
         else if(mSequenceElements->GetVisibleRowInformation(i)->element->GetType()=="timing")
