@@ -25,7 +25,8 @@ inline long toDegrees(double radians) {
     return (radians/(2*M_PI))*360.0;
 }
 
-std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Preview", "Rotate CC 90", "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal"};
+std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Preview", "Rotate CC 90",
+    "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal", "Single Line"};
 
 Model::Model() : modelDimmingCurve(nullptr) {
 }
@@ -536,6 +537,9 @@ void Model::GetBufferSize(const std::string &type, int &bufferWi, int &bufferHi)
     if (type == "Rotate CC 90" || type == "Rotate CW 90") {
         bufferHi = this->BufferWi;
         bufferWi = this->BufferHt;
+    } else if (type == "Single Line") {
+        bufferHi = 1;
+        bufferWi = Nodes.size();
     } else {
         //if (type == "Per Preview") {
         //default is to go ahead and build the full node buffer
@@ -594,6 +598,16 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
         for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
             for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
                 SetCoords(*it2, it2->bufY, this->BufferWi - it2->bufX - 1);
+            }
+        }
+    } else if (type == "Single Line") {
+        bufferHi = 1;
+        bufferWi = newNodes.size();
+        int cnt = 0;
+        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
+            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
+                SetCoords(*it2, cnt, 0);
+                cnt++;
             }
         }
     } else if (type == "Per Preview") {

@@ -12,6 +12,7 @@ std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES {
         "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal",
         "Horizontal Per Model", "Vertical Per Model",
         "Horizontal Per Model/Strand", "Vertical Per Model/Strand",
+        "Single Line"
         };
 
 ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, int previewW, int previewH)
@@ -21,6 +22,7 @@ ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, 
     SetFromXml(e, netInfo);
     selected = node->GetAttribute("selected", "0") == "1";
     DisplayAs = "ModelGroup";
+    SetMinMaxModelScreenCoordinates(previewW, previewH);
 }
 
 ModelGroup::~ModelGroup()
@@ -33,11 +35,13 @@ void ModelGroup::GetBufferSize(const std::string &type, int &BufferWi, int &Buff
     int strands = 0;
     int maxStrandLen = 0;
     int maxNodes = 0;
+    int total = 0;
     for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
         Model* m = manager[*it];
         if (m != nullptr) {
             models++;
             strands += m->GetNumStrands();
+            total += m->GetNodeCount();
             if (m->GetNodeCount() > maxNodes) {
                 maxNodes = m->GetNodeCount();
             }
@@ -60,6 +64,9 @@ void ModelGroup::GetBufferSize(const std::string &type, int &BufferWi, int &Buff
     } else if (type == "Vertical Per Model/Strand") {
         BufferHi = strands;
         BufferWi = maxStrandLen;
+    } else if (type == "Single Line") {
+        BufferHi = 1;
+        BufferWi = total;
     } else {
         Model::GetBufferSize(type, BufferWi, BufferHi);
     }
@@ -145,6 +152,25 @@ void ModelGroup::InitRenderBufferNodes(const std::string &type, std::vector<Node
                         start++;
                     }
                     curS++;
+                }
+            }
+        }
+    } else if (type == "Single Line") {
+        BufferHi = 1;
+        BufferWi = 0;
+        for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
+            Model* m = manager[*it];
+            if (m != nullptr) {
+                int start = Nodes.size();
+                int x, y;
+                m->InitRenderBufferNodes("Single Line", Nodes, x, y);
+                while (start < Nodes.size()) {
+                    for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
+                        it->bufX = BufferWi;
+                        it->bufY = 0;
+                    }
+                    start++;
+                    BufferWi++;
                 }
             }
         }
