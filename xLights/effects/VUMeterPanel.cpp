@@ -47,7 +47,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Bars"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer31->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_VUMeter_Bars = new wxSlider(this, IDD_SLIDER_VUMeter_Bars, 6, 1, 24, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_VUMeter_Bars"));
+	Slider_VUMeter_Bars = new wxSlider(this, IDD_SLIDER_VUMeter_Bars, 6, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_VUMeter_Bars"));
 	FlexGridSizer31->Add(Slider_VUMeter_Bars, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_Bars = new wxTextCtrl(this, ID_TEXTCTRL_VUMeter_Bars, _("6"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_Bars"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -63,6 +63,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->SetSelection( Choice_VUMeter_Type->Append(_("Waveform")) );
 	Choice_VUMeter_Type->Append(_("Timing Event Spike"));
 	Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
+	Choice_VUMeter_Type->Append(_("On"));
+	Choice_VUMeter_Type->Append(_("Pulse"));
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -113,7 +115,7 @@ static inline void EnableControl(wxWindow *w, int id, bool e) {
 
 void VUMeterPanel::ValidateWindow()
 {
-	if (Choice_VUMeter_Type->GetStringSelection() == "Timing Event Spike" || Choice_VUMeter_Type->GetStringSelection() == "Timing Event Sweep")
+	if (Choice_VUMeter_Type->GetStringSelection() == "Timing Event Spike" || Choice_VUMeter_Type->GetStringSelection() == "Timing Event Sweep" || Choice_VUMeter_Type->GetStringSelection() == "Pulse")
 	{
 		Choice_VUMeter_TimingTrack->Enable();
 	}

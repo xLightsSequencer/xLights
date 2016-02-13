@@ -50,6 +50,10 @@ void VUMeterEffect::SetDefaultParameters(Model *cls) {
 			fp->Choice_VUMeter_TimingTrack->Append(e->GetName());
 		}
 	}
+	if (fp->Choice_VUMeter_TimingTrack->GetCount() > 0)
+	{
+		fp->Choice_VUMeter_TimingTrack->Select(0);
+	}
 	fp->ValidateWindow();
 }
 
@@ -73,6 +77,7 @@ public:
 	int _type;
 	std::string _timingtrack;
 	std::list<int> _timingmarks;
+	int _lasttimingmark;
 };
 
 void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack)
@@ -106,6 +111,14 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	{
 		nType = 5;
 	}
+	else if (type == "On")
+	{
+		nType = 6;
+	}
+	else if (type == "Pulse")
+	{
+		nType = 7;
+	}
 
 	VUMeterRenderCache *cache = (VUMeterRenderCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
@@ -117,6 +130,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	int &_type = cache->_type;
 	std::string& _timingtrack = cache->_timingtrack;
 	std::list<int>& _timingmarks = cache->_timingmarks;
+	int &_lasttimingmark = cache->_lasttimingmark;
 
 	if (_bars != bars || _type != nType || _timingtrack != timingtrack)
 	{
@@ -124,6 +138,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		_type = nType;
 		_timingtrack = timingtrack;
 		_timingmarks.clear();
+		_lasttimingmark = -1;
 	}
 
 	int usebars = _bars;
@@ -379,6 +394,92 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 				}
 			}
 		}
+		break;
+		// On
+		case 6:
+		{
+			float f = 0.0;
+			std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+			if (pf != NULL)
+			{
+				f = *pf->begin();
+			}
+			xlColor color1;
+			buffer.palette.GetColor(0, color1);
+			color1.alpha = f * 255;
+
+			for (int x = 0; x < buffer.BufferWi; x++)
+			{
+				for (int y = 0; y < buffer.BufferHt; y++)
+				{
+					buffer.SetPixel(x, y, color1);
+				}
+			}
+		}
+		break;
+		// Pulse
+		case 7:
+		{
+			if (_timingtrack != "")
+			{
+				Element* t = NULL;
+				for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+				{
+					Element* e = mSequenceElements->GetElement(i);
+					if (e->GetEffectLayerCount() == 1 && e->GetType() == "timing" && e->GetName() == _timingtrack)
+					{
+						t = e;
+						break;
+					}
+				}
+
+				if (t != NULL)
+				{
+					EffectLayer* el = t->GetEffectLayer(0);
+					int ms = buffer.curPeriod*buffer.GetMedia()->GetFrameInterval();
+					bool effectPresent = false;
+					for (int j = 0; j < el->GetEffectCount(); j++)
+					{
+						if (el->GetEffect(j)->GetStartTimeMS() == ms)
+						{
+							effectPresent = true;
+							break;
+						}
+					}
+					if (effectPresent)
+					{
+						_lasttimingmark = buffer.curPeriod;
+					}
+
+					float f = 0.0;
+					
+					if (_lasttimingmark >= 0)
+					{
+						f = 1.0 - (((float)buffer.curPeriod - (float)_lasttimingmark) / (float)usebars);
+						if (f < 0)
+						{
+							f = 0;
+						}
+					}
+
+					if (f > 0.0)
+					{
+						xlColor color1;
+						buffer.palette.GetColor(0, color1);
+						color1.alpha = f * 255;
+
+						for (int x = 0; x < buffer.BufferWi; x++)
+						{
+							for (int y = 0; y < buffer.BufferHt; y++)
+							{
+								buffer.SetPixel(x, y, color1);
+							}
+						}
+					}
+				}
+			}
+		}
+		break;
 		}
 	}
 }

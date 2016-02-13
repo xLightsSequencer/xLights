@@ -21,7 +21,6 @@
 						<object class="wxSlider" name="IDD_SLIDER_VUMeter_Bars" variable="Slider_VUMeter_Bars" member="yes">
 							<value>6</value>
 							<min>1</min>
-							<max>24</max>
 							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -66,6 +65,8 @@
 								<item>Waveform</item>
 								<item>Timing Event Spike</item>
 								<item>Timing Event Sweep</item>
+								<item>On</item>
+								<item>Pulse</item>
 							</content>
 							<selection>2</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />
