@@ -28,8 +28,7 @@ static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
 static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
 
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
-static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
-static const std::string STR_DEFAULT("Default");
+
 
 //other common strings
 static const std::string STR_NORMAL("Normal");
@@ -527,13 +526,25 @@ private:
                             settingsMap);
         }
         updateBufferPaletteFromMap(layer, el, buffer);
-        updateBufferFromMap(layer, settingsMap, buffer);
+        updateBufferFadesFromMap(layer, settingsMap, buffer);
 
         if (el != NULL) {
             buffer->SetTimes(layer, el->GetStartTimeMS(), el->GetEndTimeMS());
         }
 
+        int freq=settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
+        buffer->SetSparkle(layer, freq);
+
+        int brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
+        buffer->SetBrightness(layer, brightness);
+
+        int contrast=settingsMap.GetInt(SLIDER_Contrast, 0);
+        buffer->SetContrast(layer, contrast);
+        buffer->SetMixType(layer, settingsMap.Get(CHOICE_LayerMethod, STR_NORMAL));
+        int effectMixThreshold=settingsMap.GetInt(SLIDER_EffectLayerMix, 0);
+        buffer->SetMixThreshold(layer, effectMixThreshold, settingsMap.GetInt(CHECKBOX_LayerMorph, 0) != 0); //allow threshold to vary -DJ
     }
+
     void updateBufferPaletteFromMap(int layer, Effect *effect, PixelBufferClass *buffer) {
         xlColorVector newcolors;
         if (effect != nullptr) {
@@ -541,25 +552,11 @@ private:
         }
         buffer->SetPalette(layer, newcolors);
     }
-    void updateBufferFromMap(int layer, SettingsMap& settingsMap, PixelBufferClass *buffer) {
+    void updateBufferFadesFromMap(int layer, SettingsMap& settingsMap, PixelBufferClass *buffer) {
         double fadeIn, fadeOut;
         fadeIn = settingsMap.GetDouble(TEXTCTRL_Fadein, 0.0);
         fadeOut = settingsMap.GetDouble(TEXTCTRL_Fadeout, 0.0);
         buffer->SetFadeTimes(layer, fadeIn, fadeOut);
-        
-        int freq=settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
-        buffer->SetSparkle(layer, freq);
-        
-        int brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
-        buffer->SetBrightness(layer, brightness);
-        
-        int contrast=settingsMap.GetInt(SLIDER_Contrast, 0);
-        buffer->SetContrast(layer, contrast);
-        buffer->SetMixType(layer, settingsMap.Get(CHOICE_LayerMethod, STR_NORMAL));
-        int effectMixThreshold=settingsMap.GetInt(SLIDER_EffectLayerMix, 0);
-        buffer->SetMixThreshold(layer, effectMixThreshold, settingsMap.GetInt(CHECKBOX_LayerMorph, 0) != 0); //allow threshold to vary -DJ
-        
-        buffer->SetBufferType(layer, settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT));
     }
 
     Effect *findEffectForFrame(EffectLayer* layer, int frame) {

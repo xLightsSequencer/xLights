@@ -17,16 +17,6 @@ static inline void TranslatePointDoubles(double radians,double x, double y,doubl
     y1 = sin(radians)*x+(cos(radians)*y);
 }
 
-inline double toRadians(long degrees) {
-    return 2.0*M_PI*double(degrees)/360.0;
-}
-
-inline long toDegrees(double radians) {
-    return (radians/(2*M_PI))*360.0;
-}
-
-std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Preview", "Rotate CC 90", "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal"};
-
 Model::Model() : modelDimmingCurve(nullptr) {
 }
 
@@ -97,7 +87,14 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
     rgbOrder = SingleNode ? "RGB" : StringType.substr(0, 3);
-
+    
+    if(ModelNode->HasAttribute("versionNumber")) {
+        tempstr=ModelNode->GetAttribute("versionNumber");
+        tempstr.ToLong(&ModelVersion);
+    } else {
+        ModelVersion=0;
+    }
+    
     tempstr=ModelNode->GetAttribute("parm1");
     tempstr.ToLong(&parm1);
     tempstr=ModelNode->GetAttribute("parm2");
@@ -190,6 +187,10 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
     tempstr.ToLong(&degrees);
     
     PreviewRotation=degrees;
+    if (ModelVersion == 0) {
+        //PreviewRotation *= 3; //Fix for formerversion of model rotation
+        ModelVersion = 1;
+    }
     ModelStartChannel = ModelNode->GetAttribute("StartChannel");
 
     // calculate starting channel numbers for each string
@@ -460,6 +461,13 @@ void Model::InitHMatrix() {
     }
 }
 
+double Model::toRadians(long degrees) {
+    return 2.0*M_PI*double(degrees)/360.0;
+}
+
+long Model::toDegrees(double radians) {
+    return (radians/(2*M_PI))*360.0;
+}
 
 
 
@@ -531,138 +539,12 @@ NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t N
     return new NodeBaseClass(ns,1,rgbOrder);
 }
 
-
-void Model::GetBufferSize(const std::string &type, int &bufferWi, int &bufferHi) const {
-    if (type == "Rotate CC 90" || type == "Rotate CW 90") {
-        bufferHi = this->BufferWi;
-        bufferWi = this->BufferHt;
-    } else {
-        //if (type == "Per Preview") {
-        //default is to go ahead and build the full node buffer
-        std::vector<NodeBaseClassPtr> newNodes;
-        InitRenderBufferNodes(type, newNodes, bufferWi, bufferHi);
-    }
-}
-
-static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y) {
-    it2.bufX = x;
-    it2.bufY = y;
-}
-
-void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) const {
+void Model::InitRenderBufferNodes(int type, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) const {
+    bufferHi = this->BufferHt;
+    bufferWi = this->BufferWi;
     for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
         newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
     }
-    if (type == "Default") {
-        bufferHi = this->BufferHt;
-        bufferWi = this->BufferWi;
-    } else if (type == "Rotate 180") {
-        bufferHi = this->BufferHt;
-        bufferWi = this->BufferWi;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
-                SetCoords(*it2, bufferWi - it2->bufX - 1, bufferHi - it2->bufY - 1);
-            }
-        }
-    } else if (type == "Flip Vertical") {
-        bufferHi = this->BufferHt;
-        bufferWi = this->BufferWi;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
-                SetCoords(*it2, it2->bufX, bufferHi - it2->bufY - 1);
-            }
-        }
-    } else if (type == "Flip Horizontal") {
-        bufferHi = this->BufferHt;
-        bufferWi = this->BufferWi;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
-                SetCoords(*it2, bufferWi - it2->bufX - 1, it2->bufY);
-            }
-        }
-    } else if (type == "Rotate CW 90") {
-        bufferHi = this->BufferWi;
-        bufferWi = this->BufferHt;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
-                SetCoords(*it2, this->BufferHt - it2->bufY - 1, it2->bufX);
-            }
-        }
-    } else if (type == "Rotate CC 90") {
-        bufferHi = this->BufferWi;
-        bufferWi = this->BufferHt;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
-                SetCoords(*it2, it2->bufY, this->BufferWi - it2->bufX - 1);
-            }
-        }
-    } else if (type == "Per Preview") {
-        //FIXME
-        
-        double maxX = -1000000;
-        double minX = 1000000;
-        double maxY = -1000000;
-        double minY = 1000000;
-        
-        
-        double sx,sy;
-        
-        double w = previewW;
-        double h = previewH;
-        double scalex = w / RenderWi * PreviewScaleX;
-        double scaley = h / RenderHt * PreviewScaleY;
-        double radians=toRadians(PreviewRotation);
-        double w1 = int(offsetXpct*w);
-        double h1 = int(offsetYpct*h);
-
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
-                sx = it2->screenX;
-                sy = it2->screenY;
-                
-                sx = (sx*scalex);
-                sy = (sy*scaley);
-                TranslatePointDoubles(radians,sx,sy,sx,sy);
-                sx += w1;
-                sy += h1;
-
-                if (sx > maxX) {
-                    maxX = sx;
-                }
-                if (sx < minX) {
-                    minX = sx;
-                }
-                if (sy > maxY) {
-                    maxY = sy;
-                }
-                if (sy < minY) {
-                    minY = sy;
-                }
-            }
-        }
-        
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
-                sx = it2->screenX;
-                sy = it2->screenY;
-                
-                sx = (sx*scalex);
-                sy = (sy*scaley);
-                TranslatePointDoubles(radians,sx,sy,sx,sy);
-                sx += w1;
-                sy += h1;
-                
-                SetCoords(*it2, sx - minX, sy - minY);
-            }
-        }
-        bufferHi = maxY - minY + 1;
-        bufferWi = maxX - minX + 1;
-    } else {
-        bufferHi = this->BufferHt;
-        bufferWi = this->BufferWi;
-    }
-    
-    //"Default", "Per Preview", "Rotate Up 90", "Rotate Down 90", "Rotate 180", "Flip Vertical", "Flip Horizontal"
 }
 
 
@@ -1012,7 +894,7 @@ void Model::UpdateXmlWithScale() {
         ModelXml->AddAttribute("PreviewScaleY", wxString::Format("%6.4f",PreviewScaleY));
     }
     ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
-    ModelXml->AddAttribute("versionNumber", "1");
+    ModelXml->AddAttribute("versionNumber", wxString::Format("%ld",ModelVersion));
     ModelXml->AddAttribute("StartChannel", ModelStartChannel);
 }
 
@@ -1444,16 +1326,10 @@ void Model::SetModelCoord(int degrees) {
 }
 
 void Model::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
-    int w, h;
-    preview->GetVirtualCanvasSize(w, h);
-    SetMinMaxModelScreenCoordinates(w, h);
-}
-void Model::SetMinMaxModelScreenCoordinates(int w, int h) {
-    previewW = w;
-    previewH = h;
-    
     size_t NodeCount=Nodes.size();
     double sx,sy;
+    int w, h;
+    preview->GetVirtualCanvasSize(w, h);
     
     if (singleScale) {
         //we now have the virtual size so we can flip to non-single scale

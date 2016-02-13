@@ -1,17 +1,10 @@
 #include "SingleLineModel.h"
 
-SingleLineModel::SingleLineModel() {
-    parm1 = parm2 = parm3 = 0;
-}
 SingleLineModel::SingleLineModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
 {
     SetFromXml(node, netInfo, zeroBased);
 }
 SingleLineModel::SingleLineModel(int lights, const Model &pbc, int strand, int node)
-{
-    Reset(lights, pbc, strand, node);
-}
-void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node)
 {
     parm1 = lights;
     parm2 = 1;
@@ -32,7 +25,7 @@ void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node)
     } else {
         stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, node));
     }
-    InitModel();
+    InitLine();
 }
 
 SingleLineModel::~SingleLineModel()

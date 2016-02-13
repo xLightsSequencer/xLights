@@ -30,36 +30,88 @@
 
 PixelBufferClass::PixelBufferClass() {
     numLayers = 0;
-	_audio = nullptr;
-    zbModel = nullptr;
+    effects = NULL;
+    sparkle_count = NULL;
+    brightness = NULL;
+    contrast = NULL;
+    mixType = NULL;
+    effectMixThreshold = NULL;
+    effectMixVaries = NULL;
+    fadeFactor = NULL;
+	_audio = NULL;
 }
 
 PixelBufferClass::~PixelBufferClass() {
-    if (zbModel != nullptr) {
-        delete zbModel;
+    if (effects != NULL) {
+        delete [] effects;
     }
-    for (int x = 0; x < numLayers; x++) {
-        delete layers[x];
+    if (sparkle_count != NULL) {
+        delete [] sparkle_count;
+    }
+    if (brightness != NULL) {
+        delete [] brightness;
+    }
+    if (contrast != NULL) {
+        delete [] contrast;
+    }
+    if (mixType != NULL) {
+        delete [] mixType;
+    }
+    if (fadeFactor != NULL) {
+        delete [] fadeFactor;
+    }
+    if (effectMixThreshold != NULL) {
+        delete [] effectMixThreshold;
+    }
+    if (effectMixVaries != NULL) {
+        delete [] effectMixVaries;
     }
 }
 
 
-void PixelBufferClass::reset(int nlayers, int timing) {
-    for (int x = 0; x < numLayers; x++) {
-        delete layers[x];
+void PixelBufferClass::reset(int layers, int timing) {
+    if (effects != NULL) {
+        delete [] effects;
     }
-    layers.clear();
+    if (fadeFactor != NULL) {
+        delete [] fadeFactor;
+    }
+    if (sparkle_count != NULL) {
+        delete [] sparkle_count;
+    }
+    if (brightness != NULL) {
+        delete [] brightness;
+    }
+    if (contrast != NULL) {
+        delete [] contrast;
+    }
+    if (mixType != NULL) {
+        delete [] mixType;
+    }
+    if (effectMixThreshold != NULL) {
+        delete [] effectMixThreshold;
+    }
+    if (effectMixVaries != NULL) {
+        delete [] effectMixVaries;
+    }
+
     frameTimeInMs = timing;
 
-    numLayers = nlayers;
-    layers.resize(nlayers);
-    
+    numLayers = layers;
+    effects = new RenderBuffer[numLayers];
     for (int x = 0; x < numLayers; x++) {
-        layers[x] = new LayerInfo();
-        layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
-        model->InitRenderBufferNodes("Default", layers[x]->Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
-        layers[x]->bufferType = "Default";
-        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, _audio);
+        effects[x].SetFrameTimeInMs(frameTimeInMs);
+    }
+    sparkle_count = new int[numLayers];
+    brightness = new int[numLayers];
+    contrast = new int[numLayers];
+    mixType = new MixTypes[numLayers];
+    effectMixThreshold = new float[numLayers];
+    fadeFactor = new double[numLayers];
+    effectMixVaries = new bool[numLayers]; //allow varying mix threshold -DJ
+
+    for(size_t i = 0; i < numLayers; i++) {
+        effects[i].InitBuffer(BufferHt, BufferWi, _audio);
     }
 }
 
@@ -68,62 +120,62 @@ void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetI
 	_audio = audio;
 	modelName = pbc.name;
     if (zeroBased) {
-        zbModel = ModelManager::CreateModel(pbc.GetModelXml(), netInfo, zeroBased);
-        model = zbModel;
+        std::unique_ptr<Model> model(ModelManager::CreateModel(pbc.GetModelXml(), netInfo, zeroBased));
+        model->InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);
     } else {
         SetDimmingCurve(pbc.modelDimmingCurve);
-        model = &pbc;
+        pbc.InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);
     }
     reset(layers, timing);
 }
 void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing) {
-    ssModel.Reset(pbc.GetStrandLength(strand), pbc, strand);
+    SingleLineModel model(pbc.GetStrandLength(strand), pbc, strand);
     SetDimmingCurve(pbc.modelDimmingCurve);
-    model = &ssModel;
+    model.InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);
     reset(2, timing);
 }
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing) {
-    ssModel.Reset(1, pbc, strand, node);
+    SingleLineModel model(1, pbc, strand, node);
     SetDimmingCurve(pbc.modelDimmingCurve);
-    model = &ssModel;
+    model.InitRenderBufferNodes(0, Nodes, BufferWi, BufferHt);
     reset(2, timing);
 }
 
 void PixelBufferClass::Clear(int which) {
     xlColor bgColor(0, 0, 0, 0);
     if (which != -1) {
-        layers[which]->buffer.Clear(bgColor); //just clear this one
+        effects[which].Clear(bgColor); //just clear this one
     } else {
         //clear them all
         for (size_t i = 0; i < numLayers; i++) {
-            layers[i]->buffer.Clear(bgColor);
+            effects[i].Clear(bgColor);
         }
     }
 }
 
 void PixelBufferClass::GetNodeChannelValues(size_t nodenum, unsigned char *buf) {
-    layers[0]->Nodes[nodenum]->GetForChannels(buf);
+    Nodes[nodenum]->GetForChannels(buf);
 }
 void PixelBufferClass::SetNodeChannelValues(size_t nodenum, const unsigned char *buf) {
-    layers[0]->Nodes[nodenum]->SetFromChannels(buf);
+    Nodes[nodenum]->SetFromChannels(buf);
 }
 xlColor PixelBufferClass::GetNodeColor(size_t nodenum) const {
     xlColor color;
-    layers[0]->Nodes[nodenum]->GetColor(color);
+    Nodes[nodenum]->GetColor(color);
     return color;
 }
 int PixelBufferClass::NodeStartChannel(size_t nodenum) const {
-    return layers[0]->Nodes.size() && nodenum < layers[0]->Nodes.size() ? layers[0]->Nodes[nodenum]->ActChan: 0;
+    return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->ActChan: 0;
 }
 int PixelBufferClass::GetNodeCount() const {
-    return layers[0]->Nodes.size();
+    return Nodes.size();
 }
 int PixelBufferClass::GetChanCountPerNode() const {
     size_t NodeCnt=GetNodeCount();
     if (NodeCnt == 0) {
         return 0;
     }
-    return layers[0]->Nodes[0]->GetChanCount();
+    return Nodes[0]->GetChanCount();
 }
 
 
@@ -172,8 +224,8 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName) {
     } else {
         MixType=Mix_Effect1;
     }
-    layers[layer]->mixType = MixType;
-    layers[layer]->buffer.SetAllowAlphaChannel(MixTypeHandlesAlpha(MixType));
+    mixType[layer] = MixType;
+    effects[layer].SetAllowAlphaChannel(MixTypeHandlesAlpha(MixType));
 }
 
 
@@ -183,50 +235,50 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
 
     HSVValue hsv0;
     HSVValue hsv1;
-    bool handlesAlpha = MixTypeHandlesAlpha(layers[layer]->mixType);
-    if (!handlesAlpha && layers[layer]->fadeFactor != 1.0) {
+    bool handlesAlpha = MixTypeHandlesAlpha(mixType[layer]);
+    if (!handlesAlpha && fadeFactor[layer] != 1.0) {
         //need to fade the first here as we're not mixing anything
         hsv0 = c0.asHSV();
-        hsv0.value *= layers[layer]->fadeFactor;
+        hsv0.value *= fadeFactor[layer];
         c0 = hsv0;
     }
 
-    float svthresh = layers[layer]->effectMixThreshold;
-    if (layers[layer]->effectMixVaries) {
+    float svthresh = effectMixThreshold[layer];
+    if (effectMixVaries[layer]) {
         //vary mix threshold gradually during effect interval -DJ
-        layers[layer]->effectMixThreshold = layers[layer]->buffer.GetEffectTimeIntervalPosition();
+        effectMixThreshold[layer] = effects[layer].GetEffectTimeIntervalPosition();
     }
-    if (layers[layer]->effectMixThreshold < 0) {
-        layers[layer]->effectMixThreshold = 0;
+    if (effectMixThreshold[layer] < 0) {
+        effectMixThreshold[layer] = 0;
     }
 
     xlColor c;
     double emt, emtNot;
-    switch (layers[layer]->mixType) {
+    switch (mixType[layer]) {
     case Mix_Normal:
-        c0.alpha = c0.alpha * layers[layer]->fadeFactor * (1.0 - layers[layer]->effectMixThreshold);
+        c0.alpha = c0.alpha * fadeFactor[layer] * (1.0 - effectMixThreshold[layer]);
         c = c0.AlphaBlend(c1);
         break;
     case Mix_Effect1:
     case Mix_Effect2: {
-        if (!layers[layer]->effectMixVaries) {
-            emt = layers[layer]->effectMixThreshold;
+        if (!effectMixVaries[layer]) {
+            emt = effectMixThreshold[layer];
             if ((emt > 0.000001) && (emt < 0.99999)) {
-                emtNot = 1-layers[layer]->effectMixThreshold;
+                emtNot = 1-effectMixThreshold[layer];
                 //make cross-fade linear
                 emt = cos((M_PI/4)*(pow(2*emt-1,2*n+1)+1));
                 emtNot = cos((M_PI/4)*(pow(2*emtNot-1,2*n+1)+1));
             } else {
-                emtNot = layers[layer]->effectMixThreshold;
-                emt = 1 - layers[layer]->effectMixThreshold;
+                emtNot = effectMixThreshold[layer];
+                emt = 1 - effectMixThreshold[layer];
             }
         } else {
-            emt = layers[layer]->effectMixThreshold;
-            emtNot = 1-layers[layer]->effectMixThreshold;
+            emt = effectMixThreshold[layer];
+            emtNot = 1-effectMixThreshold[layer];
         }
 
         xlColor c2(c1);
-        if (layers[layer]->mixType == Mix_Effect2) {
+        if (mixType[layer] == Mix_Effect2) {
             c0.Set(c0.Red()*(emtNot) ,c0.Green()*(emtNot), c0.Blue()*(emtNot));
             c2.Set(c1.Red()*(emt) ,c1.Green()*(emt), c1.Blue()*(emt));
         } else {
@@ -239,7 +291,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
     case Mix_Mask1:
         // first masks second
         hsv0 = c0.asHSV();
-        if (hsv0.value <= layers[layer]->effectMixThreshold) {
+        if (hsv0.value <= effectMixThreshold[layer]) {
             // only if effect 1 is black
             c=c1;  // then show the color of effect 2
         } else {
@@ -249,7 +301,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
     case Mix_Mask2:
         // second masks first
         hsv1 = c1.asHSV();
-        if (hsv1.value <= layers[layer]->effectMixThreshold) {
+        if (hsv1.value <= effectMixThreshold[layer]) {
             c=c0;
         } else {
             c.Set(0, 0, 0);
@@ -259,7 +311,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
         // first unmasks second
         c0.toHSV(hsv0);
         c1.toHSV(hsv1);
-        if (hsv0.value > layers[layer]->effectMixThreshold) {
+        if (hsv0.value > effectMixThreshold[layer]) {
             // if effect 1 is non black
             hsv1.value = hsv0.value;
             c = hsv1;
@@ -271,7 +323,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
         // second unmasks first
         c0.toHSV(hsv0);
         c1.toHSV(hsv1);
-        if (hsv1.value > layers[layer]->effectMixThreshold) {
+        if (hsv1.value > effectMixThreshold[layer]) {
             // if effect 2 is non black
             hsv0.value = hsv1.value;
             c = hsv0;
@@ -307,7 +359,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
         break;
     case Mix_Layered:
         c1.toHSV(hsv1);
-        if (hsv1.value <= layers[layer]->effectMixThreshold) {
+        if (hsv1.value <= effectMixThreshold[layer]) {
             c=c0;
         } else {
             c=c1;
@@ -324,44 +376,39 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
         }
         break;
     case Mix_BottomTop:
-        c= y < layers[layer]->BufferHt/2 ? c0 : c1;
+        c= y < BufferHt/2 ? c0 : c1;
         break;
     case Mix_LeftRight:
-        c= x < layers[layer]->BufferWi/2 ? c0 : c1;
+        c= x < BufferWi/2 ? c0 : c1;
         break;
     case Mix_1_reveals_2:
         c0.toHSV(hsv0);
-        c = hsv0.value > layers[layer]->effectMixThreshold ? c0 : c1; // if effect 1 is non black
+        c = hsv0.value > effectMixThreshold[layer] ? c0 : c1; // if effect 1 is non black
         break;
     case Mix_2_reveals_1:
         c1.toHSV(hsv1);
-        c = hsv1.value > layers[layer]->effectMixThreshold ? c1 : c0; // if effect 2 is non black
+        c = hsv1.value > effectMixThreshold[layer] ? c1 : c0; // if effect 2 is non black
         break;
     }
-    if (layers[layer]->effectMixVaries) {
-        layers[layer]->effectMixThreshold = svthresh; //put it back afterwards in case next row didn't change it
+    if (effectMixVaries[layer]) {
+        effectMixThreshold[layer] = svthresh; //put it back afterwards in case next row didn't change it
     }
     return c;
 }
 
 
-void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers) {
-    
-    int &sparkle = layers[0]->Nodes[node]->sparkle;
+void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColor& c, const std::vector<bool> & validLayers, int &sparkle) {
     HSVValue hsv;
     int cnt = 0;
     xlColor color;
     c = xlBLACK;
     for (int layer = numLayers - 1; layer >= 0; layer--) {
         if (validLayers[layer]) {
-            int x = layers[layer]->Nodes[node]->Coords[0].bufX;
-            int y = layers[layer]->Nodes[node]->Coords[0].bufY;
-            
-            layers[layer]->buffer.GetPixel(x, y, color);
+            effects[layer].GetPixel(x, y, color);
 
             // add sparkles
-            if (layers[layer]->sparkle_count > 0 && color != xlBLACK) {
-                switch (sparkle % (208 - layers[layer]->sparkle_count)) {
+            if (sparkle_count[layer] > 0 && color != xlBLACK) {
+                switch (sparkle % (208 - sparkle_count[layer])) {
                 case 1:
                 case 7:
                     // too dim
@@ -381,16 +428,16 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 }
                 sparkle++;
             }
-            if (layers[layer]->brightness != 100 || layers[layer]->contrast != 0) {
+            if (brightness[layer] != 100 || contrast[layer] != 0) {
                 hsv = color.asHSV();
-                hsv.value = hsv.value * ((double)layers[layer]->brightness/(double)100);
+                hsv.value = hsv.value * ((double)brightness[layer]/(double)100);
 
                 // Apply Contrast
                 if (hsv.value< 0.5) {
                     // reduce brightness when below 0.5 in the V value or increase if > 0.5
-                    hsv.value = hsv.value - (hsv.value* ((double)layers[layer]->contrast/(double)100));
+                    hsv.value = hsv.value - (hsv.value* ((double)contrast[layer]/(double)100));
                 } else {
-                    hsv.value = hsv.value + (hsv.value* ((double)layers[layer]->contrast/(double)100));
+                    hsv.value = hsv.value + (hsv.value* ((double)contrast[layer]/(double)100));
                 }
 
                 if (hsv.value < 0.0) hsv.value=0.0;
@@ -400,13 +447,13 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 color.alpha = alpha;
             }
 
-            if (MixTypeHandlesAlpha(layers[layer]->mixType)) {
+            if (MixTypeHandlesAlpha(mixType[layer])) {
                 c = mixColors(x, y, color, c, layer);
             } else {
-                if (cnt == 0 && layers[layer]->fadeFactor != 1.0) {
+                if (cnt == 0 && fadeFactor[layer] != 1.0) {
                     //need to fade the first here as we're not mixing anything
                     color.toHSV(hsv);
-                    hsv.value *= layers[layer]->fadeFactor;
+                    hsv.value *= fadeFactor[layer];
                     color = hsv;
                 }
                 if (cnt > 0) {
@@ -421,16 +468,16 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
     }
 }
 void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors) {
-    layers[layer]->buffer.SetPalette(newcolors);
+    effects[layer].SetPalette(newcolors);
 }
 
 // 10-200 or so, or 0 for no sparkle
 void PixelBufferClass::SetSparkle(int layer, int freq) {
-    layers[layer]->sparkle_count=freq;
+    sparkle_count[layer]=freq;
 }
 
 void PixelBufferClass::SetBrightness(int layer, int value) {
-    layers[layer]->brightness=value;
+    brightness[layer]=value;
 }
 
 void PixelBufferClass::SetDimmingCurve(DimmingCurve *value) {
@@ -438,44 +485,35 @@ void PixelBufferClass::SetDimmingCurve(DimmingCurve *value) {
 }
 
 void PixelBufferClass::SetContrast(int layer, int value) {
-    layers[layer]->contrast=value;
+    contrast[layer]=value;
 }
 
 void PixelBufferClass::SetMixThreshold(int layer, int value, bool varies) {
-    layers[layer]->effectMixThreshold = (float)value/100.0;
-    layers[layer]->effectMixVaries = varies;
+    effectMixThreshold[layer] = (float)value/100.0;
+    effectMixVaries[layer] = varies;
 }
-void PixelBufferClass::SetBufferType(int layer, const std::string &type) {
-    if (layers[layer]->bufferType != type) {
-        layers[layer]->Nodes.clear();
-        model->InitRenderBufferNodes(type, layers[layer]->Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
-        layers[layer]->bufferType = type;
-        layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi, _audio);
-    }
-}
-
 RenderBuffer& PixelBufferClass::BufferForLayer(int layer) {
-    return layers[layer]->buffer;
+    return effects[layer];
 }
 void PixelBufferClass::SetLayer(int newlayer, int period, bool resetState) {
     CurrentLayer=newlayer;
-    layers[CurrentLayer]->buffer.SetState(period, resetState, modelName);
+    effects[CurrentLayer].SetState(period, resetState, modelName);
 }
 void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime) {
-    layers[layer]->buffer.SetFadeTimes(inTime, outTime);
+    effects[layer].SetFadeTimes(inTime, outTime);
 }
 void PixelBufferClass::SetTimes(int layer, int startTime, int endTime) {
-    layers[layer]->buffer.SetEffectDuration(startTime, endTime);
+    effects[layer].SetEffectDuration(startTime, endTime);
 }
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata) {
-    for (int n = 0; n < layers[layer]->Nodes.size(); n++) {
+    for (int n = 0; n < Nodes.size(); n++) {
         int start = NodeStartChannel(n);
         SetNodeChannelValues(n, &fdata[start]);
         xlColor color;
-        layers[layer]->Nodes[n]->GetColor(color);
-        for (int x = 0; x < layers[layer]->Nodes[n]->Coords.size(); x++) {
-            layers[layer]->buffer.SetPixel(layers[layer]->Nodes[n]->Coords[x].bufX,
-                                          layers[layer]->Nodes[n]->Coords[x].bufY, color);
+        Nodes[n]->GetColor(color);
+        for (int x = 0; x < Nodes[n]->Coords.size(); x++) {
+            effects[layer].SetPixel(Nodes[n]->Coords[x].bufX,
+                                    Nodes[n]->Coords[x].bufY, color);
         }
     }
 }
@@ -488,11 +526,11 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 
     for(int ii=0; ii < numLayers; ii++) {
         double fadeInFactor=1, fadeOutFactor=1;
-        layers[ii]->fadeFactor = 1.0;
-        layers[ii]->buffer.GetFadeSteps( fadeInSteps, fadeOutSteps);
+        fadeFactor[ii] = 1.0;
+        effects[ii].GetFadeSteps( fadeInSteps, fadeOutSteps);
         if( fadeInSteps > 0 || fadeOutSteps > 0) {
             int effStartPer, effEndPer;
-            layers[ii]->buffer.GetEffectPeriods( effStartPer, effEndPer);
+            effects[ii].GetEffectPeriods( effStartPer, effEndPer);
             if (EffectPeriod < (effStartPer)+fadeInSteps) {
                 curStep = EffectPeriod - effStartPer;
                 fadeInFactor = (double)curStep/(double)fadeInSteps;
@@ -502,25 +540,26 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                 fadeOutFactor = 1-(double)curStep/(double)fadeOutSteps;
             }
             if(fadeInFactor < 1 && fadeOutFactor < 1) {
-                layers[ii]->fadeFactor = (fadeInFactor+fadeOutFactor)/(double)2.0;
+                fadeFactor[ii] = (fadeInFactor+fadeOutFactor)/(double)2.0;
             } else if (fadeInFactor<1) {
-                layers[ii]->fadeFactor = fadeInFactor;
+                fadeFactor[ii] = fadeInFactor;
             } else {
-                layers[ii]->fadeFactor = fadeOutFactor;
+                fadeFactor[ii] = fadeOutFactor;
             }
         }
     }
     // layer calculation and map to output
-    size_t NodeCount = layers[0]->Nodes.size();
+    size_t NodeCount = Nodes.size();
     for(size_t i = 0; i < NodeCount; i++) {
-        if (!layers[0]->Nodes[i]->IsVisible()) {
+        if (!Nodes[i]->IsVisible()) {
             // unmapped pixel - set to black
-            layers[0]->Nodes[i]->SetColor(xlBLACK);
+            Nodes[i]->SetColor(xlBLACK);
         } else {
             // get blend of two effects
-            GetMixedColor(i,
-                          color,
-                          validLayers);
+            GetMixedColor(Nodes[i]->Coords[0].bufX,
+                          Nodes[i]->Coords[0].bufY,
+                          color, validLayers,
+                          Nodes[i]->sparkle);
 
             // Apply dimming curve
             if (dimmingCurve != nullptr) {
@@ -528,7 +567,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             }
 
             // set color for physical output
-            layers[0]->Nodes[i]->SetColor(color);
+            Nodes[i]->SetColor(color);
         }
     }
 }

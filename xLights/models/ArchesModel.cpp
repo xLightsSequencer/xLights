@@ -2,14 +2,6 @@
 
 #include "ArchesModel.h"
 
-
-std::vector<std::string> ArchesModel::ARCHES_BUFFER_STYLES {
-    "Default", "Per Preview", "Rotate CC 90",
-    "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal",
-    "Single Line"
-};
-
-
 ArchesModel::ArchesModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
 {
     SetFromXml(node, netInfo, zeroBased);
@@ -19,37 +11,6 @@ ArchesModel::~ArchesModel()
 {
 }
 
-void ArchesModel::GetBufferSize(const std::string &type, int &BufferWi, int &BufferHi) const {
-    if (type == "Single Line") {
-        BufferHi = 1;
-        BufferWi = this->BufferWi * this->BufferHt;
-    } else {
-        Model::GetBufferSize(type, BufferWi, BufferHi);
-    }
-}
-void ArchesModel::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
-    if (type == "Single Line") {
-        BufferHi = 1;
-        BufferWi = GetNodeCount();
-        
-        int NumArches=parm1;
-        int SegmentsPerArch=parm2;
-        int cur = 0;
-        for (int y=0; y < NumArches; y++) {
-            for(int x=0; x<SegmentsPerArch; x++) {
-                int idx = y * SegmentsPerArch + x;
-                newNodes.push_back(NodeBaseClassPtr(Nodes[idx]->clone()));
-                for(size_t c=0; c < newNodes[cur]->Coords.size(); c++) {
-                    newNodes[cur]->Coords[c].bufX=cur;
-                    newNodes[cur]->Coords[c].bufY=0;
-                }
-                cur++;
-            }
-        }
-    } else {
-        Model::InitRenderBufferNodes(type, newNodes, BufferWi, BufferHi);
-    }
-}
 
 void ArchesModel::InitModel() {
     int NumArches=parm1;

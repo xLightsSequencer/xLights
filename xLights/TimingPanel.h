@@ -13,8 +13,6 @@
 #include <wx/choice.h>
 //*)
 
-class Model;
-
 class TimingPanel: public wxPanel
 {
 	public:
@@ -28,8 +26,8 @@ class TimingPanel: public wxPanel
 		//(*Declarations(TimingPanel)
 		wxSlider* Slider_EffectLayerMix;
 		wxTextCtrl* TextCtrl_Fadeout;
-		wxChoice* BufferStyleChoice;
 		wxPanel* Panel_Sizer;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Fadein;
 		wxTextCtrl* txtCtlEffectMix;
@@ -44,21 +42,17 @@ class TimingPanel: public wxPanel
 		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
 		wxBitmapButton* BitmapButton_OverlayBkg;
 		//*)
-    
-    
-        void SetDefaultControls(const Model *model);
 
 	protected:
 
 		//(*Identifiers(TimingPanel)
+		static const long ID_STATICTEXT4;
 		static const long ID_CHECKBOX_LayerMorph;
 		static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
 		static const long ID_CHOICE_LayerMethod;
 		static const long ID_SLIDER_EffectLayerMix;
 		static const long ID_TEXTCTRL_LayerMix;
 		static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
-		static const long ID_CHOICE_BufferStyle;
-		static const long ID_BITMAPBUTTON_CHOICE_BufferStyle;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL_Fadein;
 		static const long ID_BITMAPBUTTON_TEXTCTRL_Fadein;

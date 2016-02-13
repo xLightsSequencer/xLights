@@ -27,7 +27,6 @@
 #include <wx/xml/xml.h>
 
 #include "models/Model.h"
-#include "models/SingleLineModel.h"
 #include "RenderBuffer.h"
 
 /**
@@ -61,52 +60,35 @@ class DimmingCurve;
 class PixelBufferClass
 {
 private:
-    class LayerInfo {
-    public:
-        LayerInfo() {
-            sparkle_count = 0;
-            brightness = 0;
-            contrast = 0;
-            fadeFactor = 0.0;
-            mixType = Mix_Normal;
-            effectMixThreshold = 0.0;
-            effectMixVaries = false;
-            BufferHt = BufferWi = 0;
-        }
-        RenderBuffer buffer;
-        std::string bufferType;
-        int BufferHt;
-        int BufferWi;
-        std::vector<NodeBaseClassPtr> Nodes;
-        int sparkle_count;
-        int brightness;
-        int contrast;
-        double fadeFactor;
-        MixTypes mixType;
-        float effectMixThreshold;
-        bool effectMixVaries;
-    };
-    
     PixelBufferClass(const PixelBufferClass &cls);
     PixelBufferClass &operator=(const PixelBufferClass &);
     int numLayers;
-    std::vector<LayerInfo*> layers;
     int frameTimeInMs;
 
-    int CurrentLayer;
+    int CurrentLayer;  // 0 or 1
     DimmingCurve *dimmingCurve;
 	AudioManager* _audio;
 
-    void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers);
+    //bunch of per layer settings
+    RenderBuffer *effects;
+    int *sparkle_count;
+    int *brightness;
+    int *contrast;
+    double *fadeFactor;
+    MixTypes *mixType;
+    float *effectMixThreshold;
+    bool *effectMixVaries; //allow varying mix threshold -DJ
+
+    void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColor& c, const std::vector<bool> & validLayers, int & sparkle);
     xlColor mixColors(const wxCoord &x, const wxCoord &y, const xlColor &c0, const xlColor &c1, int layer);
     void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
     
+    
     std::string modelName;
-    std::string lastBufferType;
-    const Model *model;
-    Model *zbModel;
-    SingleLineModel ssModel;
+    int BufferHt,BufferWi;  // size of the buffer
+    std::vector<NodeBaseClassPtr> Nodes;
+
 public:
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
@@ -137,7 +119,6 @@ public:
     void SetBrightness(int layer, int value);
     void SetContrast(int layer, int value);
     void SetMixThreshold(int layer, int value, bool varies);
-    void SetBufferType(int layer, const std::string &type);
 
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers);
     

@@ -39,9 +39,7 @@ void TreeModel::InitModel() {
     SetTreeCoord(degrees);
 }
 
-inline double toRadians(long degrees) {
-    return 2.0*M_PI*double(degrees)/360.0;
-}
+
 // initialize screen coordinates for tree
 void TreeModel::SetTreeCoord(long degrees) {
     double bufferX, bufferY;

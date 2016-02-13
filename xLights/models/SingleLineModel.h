@@ -10,12 +10,9 @@ class SingleLineModel : public Model
         SingleLineModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
     
         SingleLineModel(int lights, const Model &base, int strand, int node = -1);
-        SingleLineModel();
         virtual ~SingleLineModel();
 
         void InitLine();
-    
-        void Reset(int lights, const Model &base, int strand, int node = -1);
 
     protected:
         virtual void InitModel() override;

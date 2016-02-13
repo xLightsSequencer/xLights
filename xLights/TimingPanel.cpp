@@ -7,21 +7,19 @@
 #include <wx/settings.h>
 #include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/font.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 //*)
 
-#include "models/Model.h"
-
 //(*IdInit(TimingPanel)
+const long TimingPanel::ID_STATICTEXT4 = wxNewId();
 const long TimingPanel::ID_CHECKBOX_LayerMorph = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_CHECKBOX_LayerMorph = wxNewId();
 const long TimingPanel::ID_CHOICE_LayerMethod = wxNewId();
 const long TimingPanel::ID_SLIDER_EffectLayerMix = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_LayerMix = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_SLIDER_EffectLayerMix = wxNewId();
-const long TimingPanel::ID_CHOICE_BufferStyle = wxNewId();
-const long TimingPanel::ID_BITMAPBUTTON_CHOICE_BufferStyle = wxNewId();
 const long TimingPanel::ID_STATICTEXT2 = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadein = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_TEXTCTRL_Fadein = wxNewId();
@@ -42,12 +40,10 @@ END_EVENT_TABLE()
 TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(TimingPanel)
-	wxBitmapButton* BitmapButtonBufferStyle;
-	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxStaticText* StaticText4;
 	wxFlexGridSizer* FlexGridSizer5;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(778,707), wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -58,12 +54,26 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	ScrolledWindowTiming = new wxScrolledWindow(Panel_Sizer, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer6->AddGrowableCol(0);
+	FlexGridSizer6->AddGrowableCol(1);
+	FlexGridSizer6->AddGrowableCol(2);
+	FlexGridSizer6->Add(-1,-1,1, wxALL|wxEXPAND, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
+	FlexGridSizer2->AddGrowableCol(2);
+	StaticText1 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT4, _("Blending:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	wxFont StaticText1Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	StaticText1->SetFont(StaticText1Font);
+	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_LayerMorph = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_LayerMorph, _("Morph"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LayerMorph"));
 	CheckBox_LayerMorph->SetValue(false);
 	CheckBox_LayerMorph->SetToolTip(_("Gradual cross-fade from Effect1 to Effect2"));
 	FlexGridSizer2->Add(CheckBox_LayerMorph, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_CheckBox_LayerMorph = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_CHECKBOX_LayerMorph, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_LayerMorph"));
 	BitmapButton_CheckBox_LayerMorph->SetDefault();
@@ -88,39 +98,21 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_LayerMethod->Append(_("Left-Right"));
 	Choice_LayerMethod->SetToolTip(_("Layering defines how Effect 1 and Effect 2 will be mixed together.\nHere are the Choices\n* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. \n* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.\n* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.\n* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.\n* 1 is UnMask:  (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.\n* 2 is UnMask:  (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.\n* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2\n* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1\n* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2\n* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1\n* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum\n* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display\n* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model."));
 	FlexGridSizer2->Add(Choice_LayerMethod, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer1->AddGrowableCol(0);
 	Slider_EffectLayerMix = new wxSlider(ScrolledWindowTiming, ID_SLIDER_EffectLayerMix, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectLayerMix"));
-	FlexGridSizer1->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND, 1);
+	FlexGridSizer2->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND, 1);
 	txtCtlEffectMix = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_LayerMix, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("ID_TEXTCTRL_LayerMix"));
-	FlexGridSizer1->Add(txtCtlEffectMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(txtCtlEffectMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	BitmapButton_EffectLayerMix = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
 	BitmapButton_EffectLayerMix->SetDefault();
 	BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButton_EffectLayerMix->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_EffectLayerMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText4 = new wxStaticText(ScrolledWindowTiming, wxID_ANY, _("Buffer Style"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	BufferStyleChoice = new wxChoice(ScrolledWindowTiming, ID_CHOICE_BufferStyle, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_BufferStyle"));
-	BufferStyleChoice->SetSelection( BufferStyleChoice->Append(_("Default")) );
-	BufferStyleChoice->Append(_("Per Preview"));
-	BufferStyleChoice->Append(_("Rotate Up 90"));
-	BufferStyleChoice->Append(_("Rotate Down 90"));
-	BufferStyleChoice->Append(_("Rotate 180"));
-	BufferStyleChoice->Append(_("Flip Vertical"));
-	BufferStyleChoice->Append(_("Flip Horizontal"));
-	FlexGridSizer2->Add(BufferStyleChoice, 1, wxALL|wxEXPAND, 5);
-	BitmapButtonBufferStyle = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_CHOICE_BufferStyle, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferStyle"));
-	BitmapButtonBufferStyle->SetDefault();
-	BitmapButtonBufferStyle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	BitmapButtonBufferStyle->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
-	FlexGridSizer2->Add(BitmapButtonBufferStyle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT2, _("Fade In"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Fadein = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_Fadein, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadein"));
 	TextCtrl_Fadein->SetMaxLength(4);
-	FlexGridSizer2->Add(TextCtrl_Fadein, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(TextCtrl_Fadein, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_FadeOut = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_TEXTCTRL_Fadein, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Fadein"));
 	BitmapButton_FadeOut->SetDefault();
 	BitmapButton_FadeOut->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -129,7 +121,8 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Fadeout = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_Fadeout, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadeout"));
 	TextCtrl_Fadeout->SetMaxLength(4);
-	FlexGridSizer2->Add(TextCtrl_Fadeout, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(TextCtrl_Fadeout, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_FadeIn = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_TEXTCTRL_Fadeout, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Fadeout"));
 	BitmapButton_FadeIn->SetDefault();
 	BitmapButton_FadeIn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -138,19 +131,22 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	CheckBox_OverlayBkg->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_OverlayBkg, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_OverlayBkg = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_OverlayBkg, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_OverlayBkg"));
 	BitmapButton_OverlayBkg->SetDefault();
 	BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer2->Add(BitmapButton_OverlayBkg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer5->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer6->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer6->Add(-1,-1,1, wxALL|wxEXPAND, 0);
+	FlexGridSizer5->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	ScrolledWindowTiming->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(ScrolledWindowTiming);
 	FlexGridSizer5->SetSizeHints(ScrolledWindowTiming);
-	FlexGridSizer4->Add(ScrolledWindowTiming, 0, wxALIGN_LEFT, 0);
+	FlexGridSizer4->Add(ScrolledWindowTiming, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	Panel_Sizer->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel_Sizer);
 	FlexGridSizer4->SetSizeHints(Panel_Sizer);
-	FlexGridSizer3->Add(Panel_Sizer, 0, wxALIGN_LEFT, 0);
+	FlexGridSizer3->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer3);
 	SetSizer(FlexGridSizer3);
 	Layout();
@@ -211,63 +207,22 @@ void TimingPanel::OnResize(wxSizeEvent& event)
     ScrolledWindowTiming->Refresh();
 }
 
-void TimingPanel::SetDefaultControls(const Model *model) {
-    CheckBox_LayerMorph->SetValue(false);
-    Choice_LayerMethod->SetSelection(0);
-    Slider_EffectLayerMix->SetValue(0);
-    TextCtrl_Fadein->SetValue("0.00");
-    TextCtrl_Fadeout->SetValue("0.00");
-    CheckBox_OverlayBkg->SetValue(false);
-    BufferStyleChoice->Clear();
-    const std::vector<std::string> &types = model->GetBufferStyles();
-    for (auto it = types.begin(); it != types.end(); it++) {
-        BufferStyleChoice->Append(*it);
-    }
-    if (BufferStyleChoice->IsEmpty()) {
-        BufferStyleChoice->Append("Default");
-    }
-    BufferStyleChoice->SetSelection(0);
-}
-
 wxString TimingPanel::GetTimingString()
 {
     wxString s,ChildName,AttrName;
     // Layer Morph
-    if (CheckBox_LayerMorph->IsChecked()) {
-        s += "T_CHECKBOX_LayerMorph=1,";
-    }
+    s+=wxString::Format("T_CHECKBOX_LayerMorph=%d",CheckBox_LayerMorph->IsChecked()?1:0) + ",";
     // Layer Method
-    if (Choice_LayerMethod->GetSelection() != 0) {
-        s += wxString::Format("T_CHOICE_LayerMethod=%s,",
-                              Choice_LayerMethod->GetString(Choice_LayerMethod->GetSelection()));
-    }
+    s+=wxString::Format("T_CHOICE_LayerMethod=%s",
+                          Choice_LayerMethod->GetString(Choice_LayerMethod->GetSelection())) + ",";
     // Effect Mix
-    if (Slider_EffectLayerMix->GetValue() != 0) {
-        s += wxString::Format("T_SLIDER_EffectLayerMix=%d,",Slider_EffectLayerMix->GetValue());
-    }
+    s+=wxString::Format("T_SLIDER_EffectLayerMix=%d",Slider_EffectLayerMix->GetValue()) + ",";
     // Fade in
-    if ("" != TextCtrl_Fadein->GetValue()
-        && "0" != TextCtrl_Fadein->GetValue()
-        && "0.0" != TextCtrl_Fadein->GetValue()
-        && "0.00" != TextCtrl_Fadein->GetValue()) {
-        s+="T_TEXTCTRL_Fadein=" + TextCtrl_Fadein->GetValue() + ",";
-    }
+    s+="T_TEXTCTRL_Fadein="+TextCtrl_Fadein->GetValue() + ",";
     // Fade Out
-    if ("" != TextCtrl_Fadeout->GetValue()
-        && "0" != TextCtrl_Fadeout->GetValue()
-        && "0.0" != TextCtrl_Fadeout->GetValue()
-        && "0.00" != TextCtrl_Fadeout->GetValue()) {
-        s += "T_TEXTCTRL_Fadeout=" + TextCtrl_Fadeout->GetValue() + ",";
-    }
-    // Persistent
-    if (CheckBox_OverlayBkg->GetValue()) {
-        s += "T_CHECKBOX_OverlayBkg=1,";
-    }
-    if (BufferStyleChoice->GetSelection() != 0) {
-        s += "T_CHOICE_BufferStyle=";
-        s += BufferStyleChoice->GetStringSelection();
-        s += ",";
-    }
+    s+="T_TEXTCTRL_Fadeout="+TextCtrl_Fadeout->GetValue() + ",";
+    // Fit to time
+    s+=wxString::Format("T_CHECKBOX_OverlayBkg=%d",CheckBox_OverlayBkg->GetValue()?1:0);
     return s;
 }
 
