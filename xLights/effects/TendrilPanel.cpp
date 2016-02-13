@@ -70,7 +70,7 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 	FlexGridSizer31->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer31->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Tendril_Movement = new wxSlider(this, IDD_SLIDER_Tendril_Movement, 1, 1, 5, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Tendril_Movement"));
+	Slider_Tendril_Movement = new wxSlider(this, IDD_SLIDER_Tendril_Movement, 1, 1, 7, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Tendril_Movement"));
 	FlexGridSizer31->Add(Slider_Tendril_Movement, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_Tendril_Movement = new wxTextCtrl(this, ID_TEXTCTRL_Tendril_Movement, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Tendril_Movement"));
 	FlexGridSizer31->Add(TextCtrl_Tendril_Movement, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);

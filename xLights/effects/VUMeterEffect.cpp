@@ -79,6 +79,12 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 {
 	buffer.drawingContext->Clear();
 
+	// no point if we have no media
+	if (buffer.GetMedia() == NULL)
+	{
+		return;
+	}
+
 	VUMeterRenderCache *cache = (VUMeterRenderCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
 		cache = new VUMeterRenderCache();
@@ -116,7 +122,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 		{
 			std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
 
-			if (pdata->size() != 0)
+			if (pdata != NULL && pdata->size() != 0)
 			{
 				if (_bars > pdata->size())
 				{
@@ -169,7 +175,12 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 			{
 				if (start + i >= 0)
 				{
-					float f = *buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "")->begin();
+					float f = 0.0;
+					std::list<float>* pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "");
+					if (pf != NULL)
+					{
+						f = *pf->begin();
+					}
 					for (int j = 0; j < cols; j++)
 					{
 						for (int y = 0; y <= buffer.BufferHt * f; y++)
@@ -195,8 +206,18 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 			{
 				if (start + i >= 0)
 				{
-					float fh = *buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "")->begin();
-					float fl = *buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_LOW, "")->begin();
+					float fh = 0.0;
+					std::list<float>* pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "");
+					if (pf != NULL)
+					{
+						fh = *pf->begin();
+					}
+					float fl = 0.0;
+					pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_LOW, "");
+					if (pf != NULL)
+					{
+						fl = *pf->begin();
+					}
 					int s = (1.0 - fl) * buffer.BufferHt / 2;
 					int e = (1.0 + fh) * buffer.BufferHt / 2;
 					if (e < s)

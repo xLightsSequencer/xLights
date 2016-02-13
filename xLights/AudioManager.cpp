@@ -362,25 +362,33 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 		}
 	}
 
-	std::vector<std::list<float>>* framedata = &_frameData[frame];
 	std::list<float>* rc = NULL;
-
-	switch (fdt)
+	try
 	{
-	case FRAMEDATA_HIGH:
-		rc = &framedata->at(0);
-		break;
-	case FRAMEDATA_LOW:
-		rc = &framedata->at(1);
-		break;
-	case FRAMEDATA_SPREAD:
-		rc = &framedata->at(2);
-		break;
-	case FRAMEDATA_VU:
-		rc = &framedata->at(3);
-		break;
-	case FRAMEDATA_ISTIMINGMARK:
-		break;
+		std::vector<std::list<float>>* framedata = &_frameData[frame];
+
+		switch (fdt)
+		{
+		case FRAMEDATA_HIGH:
+			rc = &framedata->at(0);
+			break;
+		case FRAMEDATA_LOW:
+			rc = &framedata->at(1);
+			break;
+		case FRAMEDATA_SPREAD:
+			rc = &framedata->at(2);
+			break;
+		case FRAMEDATA_VU:
+			rc = &framedata->at(3);
+			break;
+		case FRAMEDATA_ISTIMINGMARK:
+			// we dont need to do anything here
+			break;
+		}
+	}
+	catch (...)
+	{
+		rc = NULL;
 	}
 
 	_mutex.unlock();
