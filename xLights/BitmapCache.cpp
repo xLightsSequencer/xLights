@@ -183,6 +183,8 @@ public:
             wxImage image(dc);
             if (image.GetHeight() == size) {
                 (*data)[eff] = wxBitmap(image, -1, scale);
+            } else if (!exact && image.GetHeight() == size*2) {
+                (*data)[eff] = wxBitmap(image, -1, scale * 2.0);
             } else {
                 wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
                 (*data)[eff] = wxBitmap(scaled, -1, scale);
