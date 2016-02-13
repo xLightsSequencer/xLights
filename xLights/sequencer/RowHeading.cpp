@@ -51,8 +51,8 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     mHeaderSelectedColor = new xlColor(130,178,207);
     SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
     wxString tooltip;
-    papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, true);
-    model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, true);
+    papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, false);
+    model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, false);
     mCanPaste = false;
 }
 
