@@ -49,7 +49,7 @@ class xlGridCanvas : public xlGLCanvas
         int mColumns;
         int mRows;
         bool mDragging;
-
+        const int mMinCornerSize = 15;
         DECLARE_EVENT_TABLE()
 };
 

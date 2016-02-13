@@ -48,7 +48,8 @@ void xlGridCanvasMorph::SetEffect(Effect* effect_)
 
 int xlGridCanvasMorph::CheckForCornerHit(int x, int y)
 {
-    int half = mCellSize/2;
+    int corner_size = std::max(mMinCornerSize, mCellSize);
+    int half = corner_size/2;
     if( x > x1a-half && x < x1a + half && y > y1a-half && y < y1a + half)
     {
         return CORNER_1A_SELECTED;
@@ -438,23 +439,24 @@ void xlGridCanvasMorph::DrawMorphEffect()
     glDisable(GL_BLEND);
 
     // draw the corners
+    int corner_size = std::max(mMinCornerSize, mCellSize);
     if( mMorphEndLinked )
     {
-        DrawGLUtils::DrawTexture(&mCornerTextures[5], x2a-mCellSize/2, y2a-mCellSize/2, x2a+mCellSize/2, y2a+mCellSize/2);
+        DrawGLUtils::DrawTexture(&mCornerTextures[5], x2a-corner_size/2, y2a-corner_size/2, x2a+corner_size/2, y2a+corner_size/2);
     }
     else
     {
-        DrawGLUtils::DrawTexture(&mCornerTextures[3], x2b-mCellSize/2, y2b-mCellSize/2, x2b+mCellSize/2, y2b+mCellSize/2);
-        DrawGLUtils::DrawTexture(&mCornerTextures[2], x2a-mCellSize/2, y2a-mCellSize/2, x2a+mCellSize/2, y2a+mCellSize/2);
+        DrawGLUtils::DrawTexture(&mCornerTextures[3], x2b-corner_size/2, y2b-corner_size/2, x2b+corner_size/2, y2b+corner_size/2);
+        DrawGLUtils::DrawTexture(&mCornerTextures[2], x2a-corner_size/2, y2a-corner_size/2, x2a+corner_size/2, y2a+corner_size/2);
     }
     if( mMorphStartLinked )
     {
-        DrawGLUtils::DrawTexture(&mCornerTextures[4], x1a-mCellSize/2, y1a-mCellSize/2, x1a+mCellSize/2, y1a+mCellSize/2);
+        DrawGLUtils::DrawTexture(&mCornerTextures[4], x1a-corner_size/2, y1a-corner_size/2, x1a+corner_size/2, y1a+corner_size/2);
     }
     else
     {
-        DrawGLUtils::DrawTexture(&mCornerTextures[1], x1b-mCellSize/2, y1b-mCellSize/2, x1b+mCellSize/2, y1b+mCellSize/2);
-        DrawGLUtils::DrawTexture(&mCornerTextures[0], x1a-mCellSize/2, y1a-mCellSize/2, x1a+mCellSize/2, y1a+mCellSize/2);
+        DrawGLUtils::DrawTexture(&mCornerTextures[1], x1b-corner_size/2, y1b-corner_size/2, x1b+corner_size/2, y1b+corner_size/2);
+        DrawGLUtils::DrawTexture(&mCornerTextures[0], x1a-corner_size/2, y1a-corner_size/2, x1a+corner_size/2, y1a+corner_size/2);
     }
 }
 

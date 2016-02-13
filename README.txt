@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil)   Morph corner images now have a minimum size so they are always easily seen.
     -- bug(dkulp) Fix faces not blinking properly. Fixes #458
     -- bug(dkulp) DisplayElements panel default display is not sized correctly on Mac.  Fixes #466
     -- bug(dkulp) Check to make sure a model exists before adding it to a sequence
