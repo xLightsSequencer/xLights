@@ -25,10 +25,10 @@ class VUMeterPanel: public wxPanel
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_VUMeter_Bars;
 		wxBitmapButton* BitmapButton_VUMeter_Type;
+		wxStaticText* StaticText5;
 		wxBitmapButton* BitmapButton_VUMeter_TimingTrack;
-		wxSlider* Slider_VUMeter_Type;
 		wxTextCtrl* TextCtrl_VUMeter_Bars;
-		wxTextCtrl* TextCtrl_VUMeter_Type;
+		wxChoice* Choice_VUMeter_Type;
 		wxChoice* Choice_VUMeter_TimingTrack;
 		wxStaticText* StaticText4;
 		//*)
@@ -41,8 +41,8 @@ class VUMeterPanel: public wxPanel
 		static const long ID_TEXTCTRL_VUMeter_Bars;
 		static const long ID_BITMAPBUTTON_CHOICE_VUMeter_Bars;
 		static const long ID_STATICTEXT2;
-		static const long IDD_SLIDER_VUMeter_Type;
-		static const long ID_TEXTCTRL_VUMeter_Type;
+		static const long ID_CHOICE_VUMeter_Type;
+		static const long ID_STATICTEXT5;
 		static const long ID_BITMAPBUTTON_CHOICE_VUMeter_Type;
 		static const long ID_STATICTEXT3;
 		static const long ID_CHOICE_VUMeter_TimingTrack;
@@ -62,7 +62,7 @@ class VUMeterPanel: public wxPanel
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnChoiceVUMeterDirectionSelect(wxCommandEvent& event);
 		void OnTextCtrl1Text(wxCommandEvent& event);
-		void OnSlider_VUMeter_TypeCmdSliderUpdated(wxScrollEvent& event);
+		void OnChoice_VUMeter_TypeSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

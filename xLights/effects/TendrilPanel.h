@@ -8,6 +8,7 @@ class wxStaticText;
 class wxSlider;
 class wxBitmapButton;
 class wxFlexGridSizer;
+class wxChoice;
 //*)
 
 class TendrilPanel: public wxPanel
@@ -18,10 +19,10 @@ class TendrilPanel: public wxPanel
 		virtual ~TendrilPanel();
 
 		//(*Declarations(TendrilPanel)
+		wxStaticText* StaticText9;
 		wxTextCtrl* TextCtrl_Tendril_Length;
 		wxTextCtrl* TextCtrl_Tendril_Dampening;
 		wxStaticText* StaticText2;
-		wxTextCtrl* TextCtrl_Tendril_Movement;
 		wxBitmapButton* BitmapButton_TendrilSpeed;
 		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtrl_Tendril_Trails;
@@ -45,9 +46,9 @@ class TendrilPanel: public wxPanel
 		wxSlider* Slider_Tendril_Friction;
 		wxTextCtrl* TextCtrl_Tendril_Friction;
 		wxStaticText* StaticText68;
+		wxChoice* Choice_Tendril_Movement;
 		wxSlider* Slider_Tendril_Thickness;
 		wxSlider* Slider_Tendril_Length;
-		wxSlider* Slider_Tendril_Movement;
 		wxBitmapButton* BitmapButton_TendrilTrails;
 		wxStaticText* StaticText4;
 		wxSlider* Slider_Tendril_Trails;
@@ -60,8 +61,8 @@ class TendrilPanel: public wxPanel
 
 		//(*Identifiers(TendrilPanel)
 		static const long ID_STATICTEXT1;
-		static const long IDD_SLIDER_Tendril_Movement;
-		static const long ID_TEXTCTRL_Tendril_Movement;
+		static const long ID_CHOICE_Tendril_Movement;
+		static const long ID_STATICTEXT9;
 		static const long ID_BITMAPBUTTON_CHOICE_Tendril_Movement;
 		static const long ID_STATICTEXT8;
 		static const long IDD_SLIDER_Tendril_TuneMovement;

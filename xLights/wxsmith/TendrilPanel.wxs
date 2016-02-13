@@ -18,24 +18,28 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Tendril_Movement" variable="Slider_Tendril_Movement" member="yes">
-							<value>1</value>
-							<min>1</min>
-							<max>7</max>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxChoice" name="ID_CHOICE_Tendril_Movement" variable="Choice_Tendril_Movement" member="yes">
+							<content>
+								<item>Random</item>
+								<item>Square</item>
+								<item>Circle</item>
+								<item>Horizontal Zig Zag</item>
+								<item>Vertical Zig Zag</item>
+								<item>Music Line</item>
+								<item>Music Circle</item>
+							</content>
+							<selection>0</selection>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_Movement" variable="TextCtrl_Tendril_Movement" member="yes">
-							<value>1</value>
-							<size>20,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+						<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText9" member="yes">
+							<label></label>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -74,7 +78,7 @@
 							<size>20,-1d</size>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>

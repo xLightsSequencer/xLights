@@ -19,6 +19,52 @@
 
 #define wrdebug(...)
 
+bool TendrilEffect::needToAdjustSettings(const std::string &version)
+{
+	return IsVersionOlder("2016.8", version);
+}
+
+void TendrilEffect::adjustSettings(const std::string &version, Effect *effect)
+{
+	SettingsMap &settings = effect->GetSettings();
+	int movement = settings.GetInt("SLIDER_Tendril_Movement", -1);
+
+	if (movement != -1)
+	{
+		settings.erase("E_SLIDER_Tendril_Movement");
+		switch (movement)
+		{
+		case 1:
+			settings["E_CHOICE_Tendril_Movement"] = "Random";
+			break;
+		case 2:
+			settings["E_CHOICE_Tendril_Movement"] = "Square";
+			break;
+		case 3:
+			settings["E_CHOICE_Tendril_Movement"] = "Circle";
+			break;
+		case 4:
+			settings["E_CHOICE_Tendril_Movement"] = "Horizontal Zig Zag";
+			break;
+		case 5:
+			settings["E_CHOICE_Tendril_Movement"] = "Vertical Zig Zag";
+			break;
+		case 6:
+			settings["E_CHOICE_Tendril_Movement"] = "Music Line";
+			break;
+		case 7:
+			settings["E_CHOICE_Tendril_Movement"] = "Music Circle";
+			break;
+		}
+	}
+
+	// also give the base class a chance to adjust any settings
+	if (RenderableEffect::needToAdjustSettings(version))
+	{
+		RenderableEffect::adjustSettings(version, effect);
+	}
+}
+
 TendrilNode::TendrilNode(float x_, float y_)
 {
     x = x_;
@@ -337,7 +383,7 @@ wxPanel *TendrilEffect::CreatePanel(wxWindow *parent) {
 
 void TendrilEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     Render(buffer,
-           SettingsMap.GetInt("TEXTCTRL_Tendril_Movement", 1),
+		   SettingsMap.Get("CHOICE_Tendril_Movement", "Random"),
            SettingsMap.GetInt("TEXTCTRL_Tendril_TuneMovement", 10),
            SettingsMap.GetInt("TEXTCTRL_Tendril_Speed", 10),
            SettingsMap.GetInt("TEXTCTRL_Tendril_Thickness", 1),
@@ -376,7 +422,7 @@ public:
     Tendril* _tendril;
 };
 
-void TendrilEffect::Render(RenderBuffer &buffer, int movement,
+void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                             int tunemovement, int movementSpeed, int thickness,
                            float friction, float dampening,
                            float tension, int trails, int length)
@@ -430,8 +476,38 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
     xlColor color1;
     buffer.palette.GetColor(0, color1);
 
+	int nMovement = 1;
+	if (movement == "Random")
+	{
+		nMovement = 1;
+	}
+	else if (movement == "Square")
+	{
+		nMovement = 2;
+	}
+	else if (movement == "Circle")
+	{
+		nMovement = 3;
+	}
+	else if (movement == "Horizontal Zig Zag")
+	{
+		nMovement = 4;
+	}
+	else if (movement == "Vertical Zig Zag")
+	{
+		nMovement = 5;
+	}
+	else if (movement == "Music Line")
+	{
+		nMovement = 6;
+	}
+	else if (movement == "Music Circle")
+	{
+		nMovement = 7;
+	}
+
     if (_tendril == NULL ||
-        _movement != movement ||
+        _movement != nMovement ||
         _tunemovement != tunemovement ||
         _thickness != thickness ||
         _friction != friction ||
@@ -460,9 +536,9 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
 			_tendril = NULL;
 		}
 
-        if (_movement != movement || _tunemovement != tunemovement)
+        if (_movement != nMovement || _tunemovement != tunemovement)
         {
-            switch(movement)
+            switch(nMovement)
             {
             case 1:
                 // random
@@ -532,7 +608,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, int movement,
 				break;
             }
         }
-        _movement = movement;
+        _movement = nMovement;
         _tunemovement = tunemovement;
     }
 

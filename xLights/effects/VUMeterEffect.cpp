@@ -56,7 +56,7 @@ void VUMeterEffect::SetDefaultParameters(Model *cls) {
 void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     Render(buffer,
            SettingsMap.GetInt("TEXTCTRL_VUMeter_Bars", 6),
-	   	   SettingsMap.GetInt("TEXTCTRL_VUMeter_Type", 1),
+		   SettingsMap.Get("CHOICE_VUMeter_Type", "Waveform"),
 		   SettingsMap.Get("CHOICE_VUMeter_TimingTrack", "")
 		);
 }
@@ -75,7 +75,7 @@ public:
 	std::list<int> _timingmarks;
 };
 
-void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::string &timingtrack)
+void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack)
 {
 	buffer.drawingContext->Clear();
 
@@ -83,6 +83,28 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 	if (buffer.GetMedia() == NULL)
 	{
 		return;
+	}
+
+	int nType = 2;
+	if (type == "Chromagram")
+	{
+		nType = 1;
+	}
+	else if (type == "Volume Bars")
+	{
+		nType = 2;
+	}
+	else if (type == "Waveform")
+	{
+		nType = 3;
+	}
+	else if (type == "Timing Event Spike")
+	{
+		nType = 4;
+	}
+	else if (type == "Timing Event Sweep")
+	{
+		nType = 5;
 	}
 
 	VUMeterRenderCache *cache = (VUMeterRenderCache*)buffer.infoCache[id];
@@ -95,23 +117,19 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 	int &_type = cache->_type;
 	std::string& _timingtrack = cache->_timingtrack;
 	std::list<int>& _timingmarks = cache->_timingmarks;
-	xlColor color1;
-	xlColor color2;
-	xlColor color3;
-	xlColor color4;
-	xlColor color5;
-	buffer.palette.GetColor(0, color1);
-	buffer.palette.GetColor(1, color2);
-	buffer.palette.GetColor(2, color3);
-	buffer.palette.GetColor(3, color4);
-	buffer.palette.GetColor(4, color5);
 
-	if (_bars != bars || _type != type || _timingtrack != timingtrack)
+	if (_bars != bars || _type != nType || _timingtrack != timingtrack)
 	{
 		_bars = bars;
-		_type = type;
+		_type = nType;
 		_timingtrack = timingtrack;
 		_timingmarks.clear();
+	}
+
+	int usebars = _bars;
+	if (usebars > buffer.BufferWi)
+	{
+		usebars = buffer.BufferWi;
 	}
 
 	if (buffer.GetMedia() != NULL)
@@ -124,18 +142,18 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 
 			if (pdata != NULL && pdata->size() != 0)
 			{
-				if (_bars > pdata->size())
+				if (usebars > pdata->size())
 				{
-					_bars = pdata->size();
+					usebars = pdata->size();
 				}
 
-				int per = pdata->size() / _bars;
-				int cols = buffer.BufferWi / _bars;
+				int per = pdata->size() / usebars;
+				int cols = buffer.BufferWi / usebars;
 
 				std::list<float>::iterator it = pdata->begin();
 				int x = 0;
 
-				for (int j = 0; j < _bars; j++)
+				for (int j = 0; j < usebars; j++)
 				{
 					float f = 0;
 					for (int k = 0; k < per; k++)
@@ -153,6 +171,8 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 						{
 							if (y < buffer.BufferHt * f)
 							{
+								xlColor color1;
+								buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
 								buffer.SetPixel(x, y, color1);
 							}
 							else
@@ -168,10 +188,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 		break;
 		case 2:
 		{
-			int start = buffer.curPeriod - _bars;
-			int cols = buffer.BufferWi / _bars;
+			int start = buffer.curPeriod - usebars;
+			int cols = buffer.BufferWi / usebars;
 			int x = 0;
-			for (int i = 0; i < _bars; i++)
+			for (int i = 0; i < usebars; i++)
 			{
 				if (start + i >= 0)
 				{
@@ -185,6 +205,8 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 					{
 						for (int y = 0; y <= buffer.BufferHt * f; y++)
 						{
+							xlColor color1;
+							buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
 							buffer.SetPixel(x, y, color1);
 						}
 						x++;
@@ -199,10 +221,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 		break;
 		case 3:
 		{
-			int start = buffer.curPeriod - _bars;
-			int cols = buffer.BufferWi / _bars;
+			int start = buffer.curPeriod - usebars;
+			int cols = buffer.BufferWi / usebars;
 			int x = 0;
-			for (int i = 0; i < _bars; i++)
+			for (int i = 0; i < usebars; i++)
 			{
 				if (start + i >= 0)
 				{
@@ -228,6 +250,8 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 					{
 						for (int y = s; y <= e; y++)
 						{
+							xlColor color1;
+							buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
 							buffer.SetPixel(x, y, color1);
 						}
 						x++;
@@ -258,10 +282,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 
 				if (t != NULL)
 				{
-					int start = buffer.curPeriod - _bars;
-					int cols = buffer.BufferWi / _bars;
+					int start = buffer.curPeriod - usebars;
+					int cols = buffer.BufferWi / usebars;
 					int x = 0;
-					for (int i = 0; i < _bars; i++)
+					for (int i = 0; i < usebars; i++)
 					{
 						if (start + i >= 0)
 						{
@@ -284,6 +308,15 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 								{
 									for (int y = 0; y < buffer.BufferHt; y++)
 									{
+										xlColor color1;
+										if (_type == 4)
+										{
+											buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
+										}
+										else
+										{
+											buffer.GetMultiColorBlend(0, false, color1);
+										}
 										buffer.SetPixel(x, y, color1);
 									}
 									x++;
@@ -316,9 +349,9 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, int type, const std::
 												{
 													for (int y = 0; y < buffer.BufferHt; y++)
 													{
-														color1.alpha = yt * 255;
+														xlColor color1;
+														buffer.GetMultiColorBlend(1.0-yt, false, color1);
 														buffer.SetPixel(x, y, color1);
-														color1.alpha = 255;
 													}
 													x++;
 													left--;

@@ -59,24 +59,27 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_VUMeter_Type" variable="Slider_VUMeter_Type" member="yes">
-							<value>1</value>
-							<min>1</min>
-							<max>5</max>
-							<handler function="OnSlider_VUMeter_TypeCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						<object class="wxChoice" name="ID_CHOICE_VUMeter_Type" variable="Choice_VUMeter_Type" member="yes">
+							<content>
+								<item>Chromagram</item>
+								<item>Volume Bars</item>
+								<item>Waveform</item>
+								<item>Timing Event Spike</item>
+								<item>Timing Event Sweep</item>
+							</content>
+							<selection>2</selection>
+							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_Type" variable="TextCtrl_VUMeter_Type" member="yes">
-							<value>1</value>
-							<size>20,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+							<label></label>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">

@@ -365,25 +365,28 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 	std::list<float>* rc = NULL;
 	try
 	{
-		std::vector<std::list<float>>* framedata = &_frameData[frame];
-
-		switch (fdt)
+		if (_frameData.size() > 0)
 		{
-		case FRAMEDATA_HIGH:
-			rc = &framedata->at(0);
-			break;
-		case FRAMEDATA_LOW:
-			rc = &framedata->at(1);
-			break;
-		case FRAMEDATA_SPREAD:
-			rc = &framedata->at(2);
-			break;
-		case FRAMEDATA_VU:
-			rc = &framedata->at(3);
-			break;
-		case FRAMEDATA_ISTIMINGMARK:
-			// we dont need to do anything here
-			break;
+			std::vector<std::list<float>>* framedata = &_frameData[frame];
+
+			switch (fdt)
+			{
+			case FRAMEDATA_HIGH:
+				rc = &framedata->at(0);
+				break;
+			case FRAMEDATA_LOW:
+				rc = &framedata->at(1);
+				break;
+			case FRAMEDATA_SPREAD:
+				rc = &framedata->at(2);
+				break;
+			case FRAMEDATA_VU:
+				rc = &framedata->at(3);
+				break;
+			case FRAMEDATA_ISTIMINGMARK:
+				// we dont need to do anything here
+				break;
+			}
 		}
 	}
 	catch (...)

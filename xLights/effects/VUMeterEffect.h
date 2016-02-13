@@ -13,7 +13,7 @@ class VUMeterEffect : public RenderableEffect
         virtual ~VUMeterEffect();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
         void Render(RenderBuffer &buffer,
-                    int bars, int type, const std::string& timingtrack);
+                    int bars, const std::string& type, const std::string& timingtrack);
         virtual bool CanRenderOnBackgroundThread();
 		virtual void SetDefaultParameters(Model *cls);
 	protected:

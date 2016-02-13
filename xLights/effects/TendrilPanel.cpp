@@ -8,6 +8,7 @@
 #include <wx/textctrl.h>
 #include <wx/slider.h>
 #include <wx/settings.h>
+#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -15,8 +16,8 @@
 
 //(*IdInit(TendrilPanel)
 const long TendrilPanel::ID_STATICTEXT1 = wxNewId();
-const long TendrilPanel::IDD_SLIDER_Tendril_Movement = wxNewId();
-const long TendrilPanel::ID_TEXTCTRL_Tendril_Movement = wxNewId();
+const long TendrilPanel::ID_CHOICE_Tendril_Movement = wxNewId();
+const long TendrilPanel::ID_STATICTEXT9 = wxNewId();
 const long TendrilPanel::ID_BITMAPBUTTON_CHOICE_Tendril_Movement = wxNewId();
 const long TendrilPanel::ID_STATICTEXT8 = wxNewId();
 const long TendrilPanel::IDD_SLIDER_Tendril_TuneMovement = wxNewId();
@@ -70,10 +71,17 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 	FlexGridSizer31->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer31->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Tendril_Movement = new wxSlider(this, IDD_SLIDER_Tendril_Movement, 1, 1, 7, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Tendril_Movement"));
-	FlexGridSizer31->Add(Slider_Tendril_Movement, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Tendril_Movement = new wxTextCtrl(this, ID_TEXTCTRL_Tendril_Movement, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Tendril_Movement"));
-	FlexGridSizer31->Add(TextCtrl_Tendril_Movement, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Choice_Tendril_Movement = new wxChoice(this, ID_CHOICE_Tendril_Movement, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Tendril_Movement"));
+	Choice_Tendril_Movement->SetSelection( Choice_Tendril_Movement->Append(_("Random")) );
+	Choice_Tendril_Movement->Append(_("Square"));
+	Choice_Tendril_Movement->Append(_("Circle"));
+	Choice_Tendril_Movement->Append(_("Horizontal Zig Zag"));
+	Choice_Tendril_Movement->Append(_("Vertical Zig Zag"));
+	Choice_Tendril_Movement->Append(_("Music Line"));
+	Choice_Tendril_Movement->Append(_("Music Circle"));
+	FlexGridSizer31->Add(Choice_Tendril_Movement, 1, wxALL|wxEXPAND, 2);
+	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+	FlexGridSizer31->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Tendril_Movement = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Tendril_Movement, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Tendril_Movement"));
 	BitmapButton_Tendril_Movement->SetDefault();
 	BitmapButton_Tendril_Movement->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -83,7 +91,7 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 	Slider_Tendril_TuneMovement = new wxSlider(this, IDD_SLIDER_Tendril_TuneMovement, 10, 0, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Tendril_TuneMovement"));
 	FlexGridSizer31->Add(Slider_Tendril_TuneMovement, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_Tendril_TuneMovement = new wxTextCtrl(this, ID_TEXTCTRL_Tendril_TuneMovement, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Tendril_TuneMovement"));
-	FlexGridSizer31->Add(TextCtrl_Tendril_TuneMovement, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer31->Add(TextCtrl_Tendril_TuneMovement, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Tendril_TuneMovement = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Tendril_TuneMovement, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Tendril_TuneMovement"));
 	BitmapButton_Tendril_TuneMovement->SetDefault();
 	BitmapButton_Tendril_TuneMovement->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -163,8 +171,6 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 	FlexGridSizer42->Fit(this);
 	FlexGridSizer42->SetSizeHints(this);
 
-	Connect(IDD_SLIDER_Tendril_Movement,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedTextCtrl);
-	Connect(ID_TEXTCTRL_Tendril_Movement,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_CHOICE_Tendril_Movement,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TendrilPanel::OnLockButtonClick);
 	Connect(IDD_SLIDER_Tendril_TuneMovement,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedTextCtrl);
 	Connect(ID_TEXTCTRL_Tendril_TuneMovement,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedSlider);

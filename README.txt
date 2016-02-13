@@ -9,6 +9,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
     -- enh(gil)   Model groups are now indicated with an icon on sequencer grid.
     -- enh(gil)   Morph corner images now have a minimum size so they are always easily seen.
+    -- enh(keithsw) Add music suppport to Tendril effect.
     -- bug(dkulp) Fix faces not blinking properly. Fixes #458
     -- bug(dkulp) DisplayElements panel default display is not sized correctly on Mac.  Fixes #466
     -- bug(dkulp) Check to make sure a model exists before adding it to a sequence

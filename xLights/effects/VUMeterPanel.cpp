@@ -20,8 +20,8 @@ const long VUMeterPanel::IDD_SLIDER_VUMeter_Bars = wxNewId();
 const long VUMeterPanel::ID_TEXTCTRL_VUMeter_Bars = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_CHOICE_VUMeter_Bars = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT2 = wxNewId();
-const long VUMeterPanel::IDD_SLIDER_VUMeter_Type = wxNewId();
-const long VUMeterPanel::ID_TEXTCTRL_VUMeter_Type = wxNewId();
+const long VUMeterPanel::ID_CHOICE_VUMeter_Type = wxNewId();
+const long VUMeterPanel::ID_STATICTEXT5 = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_CHOICE_VUMeter_Type = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT3 = wxNewId();
 const long VUMeterPanel::ID_CHOICE_VUMeter_TimingTrack = wxNewId();
@@ -57,10 +57,15 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(BitmapButton_VUMeter_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer31->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_VUMeter_Type = new wxSlider(this, IDD_SLIDER_VUMeter_Type, 1, 1, 5, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_VUMeter_Type"));
-	FlexGridSizer31->Add(Slider_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_VUMeter_Type = new wxTextCtrl(this, ID_TEXTCTRL_VUMeter_Type, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_Type"));
-	FlexGridSizer31->Add(TextCtrl_VUMeter_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Choice_VUMeter_Type = new wxChoice(this, ID_CHOICE_VUMeter_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VUMeter_Type"));
+	Choice_VUMeter_Type->Append(_("Chromagram"));
+	Choice_VUMeter_Type->Append(_("Volume Bars"));
+	Choice_VUMeter_Type->SetSelection( Choice_VUMeter_Type->Append(_("Waveform")) );
+	Choice_VUMeter_Type->Append(_("Timing Event Spike"));
+	Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
+	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_VUMeter_Type = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_VUMeter_Type, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_VUMeter_Type"));
 	BitmapButton_VUMeter_Type->SetDefault();
 	BitmapButton_VUMeter_Type->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -84,8 +89,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Connect(IDD_SLIDER_VUMeter_Bars,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VUMeterPanel::UpdateLinkedTextCtrl);
 	Connect(ID_TEXTCTRL_VUMeter_Bars,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VUMeterPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_Bars,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
-	Connect(IDD_SLIDER_VUMeter_Type,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnSlider_VUMeter_TypeCmdSliderUpdated);
-	Connect(ID_TEXTCTRL_VUMeter_Type,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VUMeterPanel::UpdateLinkedSlider);
+	Connect(ID_CHOICE_VUMeter_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VUMeterPanel::OnChoice_VUMeter_TypeSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	//*)
@@ -109,7 +113,7 @@ static inline void EnableControl(wxWindow *w, int id, bool e) {
 
 void VUMeterPanel::ValidateWindow()
 {
-	if (Slider_VUMeter_Type->GetValue() == 4 || Slider_VUMeter_Type->GetValue() == 5)
+	if (Choice_VUMeter_Type->GetStringSelection() == "Timing Event Spike" || Choice_VUMeter_Type->GetStringSelection() == "Timing Event Sweep")
 	{
 		Choice_VUMeter_TimingTrack->Enable();
 	}
@@ -119,8 +123,7 @@ void VUMeterPanel::ValidateWindow()
 	}
 }
 
-void VUMeterPanel::OnSlider_VUMeter_TypeCmdSliderUpdated(wxScrollEvent& event)
+void VUMeterPanel::OnChoice_VUMeter_TypeSelect(wxCommandEvent& event)
 {
 	ValidateWindow();
-	UpdateLinkedTextCtrl(event);
 }
