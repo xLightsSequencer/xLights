@@ -58,13 +58,14 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer31->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_VUMeter_Type = new wxChoice(this, ID_CHOICE_VUMeter_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VUMeter_Type"));
-	Choice_VUMeter_Type->Append(_("Chromagram"));
+	Choice_VUMeter_Type->Append(_("Spectrogram"));
 	Choice_VUMeter_Type->Append(_("Volume Bars"));
 	Choice_VUMeter_Type->SetSelection( Choice_VUMeter_Type->Append(_("Waveform")) );
 	Choice_VUMeter_Type->Append(_("Timing Event Spike"));
 	Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
 	Choice_VUMeter_Type->Append(_("On"));
 	Choice_VUMeter_Type->Append(_("Pulse"));
+	Choice_VUMeter_Type->Append(_("Intensity Wave"));
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

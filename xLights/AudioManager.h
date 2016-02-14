@@ -17,6 +17,7 @@ class AudioScanJob : Job
 private:
 	AudioManager* _audio;
 	std::string _status;
+
 public:
 	AudioScanJob(AudioManager* audio);
 	virtual ~AudioScanJob() {};
@@ -31,6 +32,7 @@ class xLightsVamp
 	std::vector<Vamp::Plugin *> _loadedPlugins;
 	std::map<std::string, Vamp::Plugin *> _allplugins;
 	std::vector<Vamp::Plugin *> _allloadedPlugins;
+	void LoadPlugins(AudioManager* paudio);
 
 public:
 
@@ -96,7 +98,7 @@ class AudioManager
 	int OpenMediaFile();
 	void ExtractMP3Tags(mpg123_handle *phm);
 	bool CheckCBR();
-	void PrepareFrameData();
+	void PrepareFrameData(bool separateThread);
 	int decodebitrateindex(int bitrateindex, int version, int layertype);
 	int decodesamplerateindex(int samplerateindex, int version);
 	int decodesideinfosize(int version, int mono);

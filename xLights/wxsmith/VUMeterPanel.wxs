@@ -60,13 +60,14 @@
 					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE_VUMeter_Type" variable="Choice_VUMeter_Type" member="yes">
 							<content>
-								<item>Chromagram</item>
+								<item>Spectrogram</item>
 								<item>Volume Bars</item>
 								<item>Waveform</item>
 								<item>Timing Event Spike</item>
 								<item>Timing Event Sweep</item>
 								<item>On</item>
 								<item>Pulse</item>
+								<item>Intensity Wave</item>
 							</content>
 							<selection>2</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />

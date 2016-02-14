@@ -91,7 +91,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	}
 
 	int nType = 2;
-	if (type == "Chromagram")
+	if (type == "Spectrogram")
 	{
 		nType = 1;
 	}
@@ -118,6 +118,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	else if (type == "Pulse")
 	{
 		nType = 7;
+	}
+	else if (type == "Intensity Wave")
+	{
+		nType = 8;
 	}
 
 	VUMeterRenderCache *cache = (VUMeterRenderCache*)buffer.infoCache[id];
@@ -182,7 +186,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 					}
 					for (int k = 0; k < cols; k++)
 					{
-						for (int y = 0; y <= buffer.BufferHt; y++)
+						for (int y = 0; y < buffer.BufferHt; y++)
 						{
 							if (y < buffer.BufferHt * f)
 							{
@@ -218,7 +222,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 					}
 					for (int j = 0; j < cols; j++)
 					{
-						for (int y = 0; y <= buffer.BufferHt * f; y++)
+						for (int y = 0; y < buffer.BufferHt * f; y++)
 						{
 							xlColor color1;
 							buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
@@ -261,9 +265,13 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 					{
 						e = s;
 					}
+					if (e > buffer.BufferHt)
+					{
+						e = buffer.BufferHt;
+					}
 					for (int j = 0; j < cols; j++)
 					{
-						for (int y = s; y <= e; y++)
+						for (int y = s; y < e; y++)
 						{
 							xlColor color1;
 							buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
@@ -360,12 +368,12 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 												{
 													yt = 0;
 												}
+												xlColor color1;
+												buffer.GetMultiColorBlend(1.0 - yt, false, color1);
 												for (int j = 0; j < cols; j++)
 												{
 													for (int y = 0; y < buffer.BufferHt; y++)
 													{
-														xlColor color1;
-														buffer.GetMultiColorBlend(1.0-yt, false, color1);
 														buffer.SetPixel(x, y, color1);
 													}
 													x++;
@@ -406,7 +414,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 			}
 			xlColor color1;
 			buffer.palette.GetColor(0, color1);
-			color1.alpha = f * 255;
+			color1.alpha = f * (float)255;
 
 			for (int x = 0; x < buffer.BufferWi; x++)
 			{
@@ -466,7 +474,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 					{
 						xlColor color1;
 						buffer.palette.GetColor(0, color1);
-						color1.alpha = f * 255;
+						color1.alpha = f * (float)255;
 
 						for (int x = 0; x < buffer.BufferWi; x++)
 						{
@@ -476,6 +484,48 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 							}
 						}
 					}
+				}
+			}
+		}
+		break;
+		// Intensity wave
+		case 8:
+		{
+			int start = buffer.curPeriod - usebars;
+			int cols = buffer.BufferWi / usebars;
+			int x = 0;
+			for (int i = 0; i < usebars; i++)
+			{
+				if (start + i >= 0)
+				{
+					float f = 0.0;
+					std::list<float>* pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "");
+					if (pf != NULL)
+					{
+						f = *pf->begin();
+					}
+					xlColor color1;
+					if (buffer.palette.Size() < 2)
+					{
+						buffer.palette.GetColor(0, color1);
+						color1.alpha = f * (float)255;
+					}
+					else
+					{
+						buffer.GetMultiColorBlend(1.0 - f, false, color1);
+					}
+					for (int j = 0; j < cols; j++)
+					{
+						for (int y = 0; y < buffer.BufferHt; y++)
+						{
+							buffer.SetPixel(x, y, color1);
+						}
+						x++;
+					}
+				}
+				else
+				{
+					x += cols;
 				}
 			}
 		}
