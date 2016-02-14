@@ -19,7 +19,7 @@ class VUMeterEffect : public RenderableEffect
 	protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
 		int DecodeType(std::string type);
-		void RenderSpectrogramFrame(RenderBuffer &buffer, int bars);
+		void RenderSpectrogramFrame(RenderBuffer &buffer, int bars, std::list<float>& lastvalues, bool gravity);
 		void RenderVolumeBarsFrame(RenderBuffer &buffer, int bars);
 		void RenderWaveformFrame(RenderBuffer &buffer, int bars);
 		void RenderTimingEventFrame(RenderBuffer &buffer, int bars, int type, std::string timingtrack, std::list<int> &timingmarks);

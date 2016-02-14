@@ -68,6 +68,7 @@
 								<item>On</item>
 								<item>Pulse</item>
 								<item>Intensity Wave</item>
+								<item>Spectrogram with Gravity</item>
 							</content>
 							<selection>2</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />

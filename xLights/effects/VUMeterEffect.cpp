@@ -86,6 +86,7 @@ public:
 	std::string _timingtrack;
 	std::list<int> _timingmarks; // collection of recent timing marks ... used for sweep
 	int _lasttimingmark; // last time we saw a timing mark ... used for pulse
+	std::list<float> _lastvalues;
 };
 
 int VUMeterEffect::DecodeType(std::string type)
@@ -122,6 +123,10 @@ int VUMeterEffect::DecodeType(std::string type)
 	{
 		return 8;
 	}
+	else if (type == "Spectrogram with Gravity")
+	{
+		return 9;
+	}
 
 	// default type is volume bars
 	return 2;
@@ -150,6 +155,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	std::string& _timingtrack = cache->_timingtrack;
 	std::list<int>& _timingmarks = cache->_timingmarks;
 	int &_lasttimingmark = cache->_lasttimingmark;
+	std::list<float>& _lastvalues = cache->_lastvalues;
 
 	// Check for config changes which require us to reset
 	if (_bars != bars || _type != nType || _timingtrack != timingtrack)
@@ -159,6 +165,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		_timingtrack = timingtrack;
 		_timingmarks.clear();
 		_lasttimingmark = -1;
+		_lastvalues.clear();
 	}
 
 	// We limit bars to the width of the model
@@ -173,7 +180,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		switch (_type)
 		{
 		case 1:
-			RenderSpectrogramFrame(buffer, usebars);
+			RenderSpectrogramFrame(buffer, usebars, _lastvalues, false);
 			break;
 		case 2:
 			RenderVolumeBarsFrame(buffer, usebars);
@@ -194,6 +201,9 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		case 8:
 			RenderIntensityWaveFrame(buffer, usebars);
 			break;
+		case 9:
+			RenderSpectrogramFrame(buffer, usebars, _lastvalues, true);
+			break;
 		}
 	}
 	catch (...)
@@ -203,12 +213,48 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars)
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, bool gravity)
 {
 	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
 
 	if (pdata != NULL && pdata->size() != 0)
 	{
+		if (gravity)
+		{
+			if (lastvalues.size() == 0)
+			{
+				lastvalues = *pdata;
+			}
+			else
+			{
+				std::list<float>::iterator newdata = pdata->begin();
+				std::list<float>::iterator olddata = lastvalues.begin();
+
+				while (olddata != lastvalues.end())
+				{
+					if (*newdata < *olddata)
+					{
+						*olddata = *olddata - 0.05;
+						if (*olddata < *newdata)
+						{
+							*olddata = *newdata;
+						}
+					}
+					else
+					{
+						*olddata = *newdata;
+					}
+
+					++olddata;
+					++newdata;
+				}
+			}
+		}
+		else
+		{
+			lastvalues = *pdata;
+		}
+
 		if (usebars > pdata->size())
 		{
 			usebars = pdata->size();
@@ -217,7 +263,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars)
 		int per = pdata->size() / usebars;
 		int cols = buffer.BufferWi / usebars;
 
-		std::list<float>::iterator it = pdata->begin();
+		std::list<float>::iterator it = lastvalues.begin();
 		int x = 0;
 
 		for (int j = 0; j < usebars; j++)
