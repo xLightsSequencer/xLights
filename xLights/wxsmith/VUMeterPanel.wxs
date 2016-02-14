@@ -69,6 +69,7 @@
 								<item>Pulse</item>
 								<item>Intensity Wave</item>
 								<item>Spectrogram with Gravity</item>
+								<item>Level Pulse</item>
 							</content>
 							<selection>2</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />
@@ -123,6 +124,45 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack" variable="BitmapButton_VUMeter_TimingTrack" member="yes">
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+							<label>Sensitivity</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_VUMeter_Sensitivity" variable="Slider_VUMeter_Sensitivity" member="yes">
+							<value>70</value>
+							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_Sensitivity" variable="TextCtrl_VUMeter_Sensitivity" member="yes">
+							<value>70</value>
+							<size>20,-1d</size>
+							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity" variable="BitmapButton_VUMeter_Sensitivity" member="yes">
 							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

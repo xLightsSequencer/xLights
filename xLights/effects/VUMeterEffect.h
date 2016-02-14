@@ -13,7 +13,7 @@ class VUMeterEffect : public RenderableEffect
         virtual ~VUMeterEffect();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
         void Render(RenderBuffer &buffer,
-                    int bars, const std::string& type, const std::string& timingtrack);
+                    int bars, const std::string& type, const std::string& timingtrack, int sensitivity);
         virtual bool CanRenderOnBackgroundThread();
 		virtual void SetDefaultParameters(Model *cls);
 	protected:
@@ -26,6 +26,7 @@ class VUMeterEffect : public RenderableEffect
 		void RenderOnFrame(RenderBuffer &buffer);
 		void RenderPulseFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, int& lasttimingmark);
 		void RenderIntensityWaveFrame(RenderBuffer &buffer, int bars);
+		void RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark);
 };
 
 #endif // VUMETEREFFECT_H

@@ -21,16 +21,20 @@ class VUMeterPanel: public wxPanel
 		//(*Declarations(VUMeterPanel)
 		wxSlider* Slider_VUMeter_Bars;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText6;
+		wxBitmapButton* BitmapButton_VUMeter_Sensitivity;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_VUMeter_Bars;
 		wxBitmapButton* BitmapButton_VUMeter_Type;
+		wxSlider* Slider_VUMeter_Sensitivity;
 		wxStaticText* StaticText5;
 		wxBitmapButton* BitmapButton_VUMeter_TimingTrack;
 		wxTextCtrl* TextCtrl_VUMeter_Bars;
 		wxChoice* Choice_VUMeter_Type;
 		wxChoice* Choice_VUMeter_TimingTrack;
 		wxStaticText* StaticText4;
+		wxTextCtrl* TextCtrl_VUMeter_Sensitivity;
 		//*)
 
 	protected:
@@ -48,6 +52,10 @@ class VUMeterPanel: public wxPanel
 		static const long ID_CHOICE_VUMeter_TimingTrack;
 		static const long ID_STATICTEXT4;
 		static const long ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack;
+		static const long ID_STATICTEXT6;
+		static const long IDD_SLIDER_VUMeter_Sensitivity;
+		static const long ID_TEXTCTRL_VUMeter_Sensitivity;
+		static const long ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity;
 		//*)
 
 	public:

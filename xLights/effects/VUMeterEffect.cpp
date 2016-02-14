@@ -69,7 +69,8 @@ void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     Render(buffer,
            SettingsMap.GetInt("TEXTCTRL_VUMeter_Bars", 6),
 		   SettingsMap.Get("CHOICE_VUMeter_Type", "Waveform"),
-		   SettingsMap.Get("CHOICE_VUMeter_TimingTrack", "")
+		   SettingsMap.Get("CHOICE_VUMeter_TimingTrack", ""),
+		   SettingsMap.GetInt("TEXTCTRL_VUMeter_Sensitivity", 70)
 		);
 }
 
@@ -87,6 +88,7 @@ public:
 	std::list<int> _timingmarks; // collection of recent timing marks ... used for sweep
 	int _lasttimingmark; // last time we saw a timing mark ... used for pulse
 	std::list<float> _lastvalues;
+	int _sensitivity;
 };
 
 int VUMeterEffect::DecodeType(std::string type)
@@ -127,12 +129,16 @@ int VUMeterEffect::DecodeType(std::string type)
 	{
 		return 9;
 	}
+	else if (type == "Level Pulse")
+	{
+		return 10;
+	}
 
 	// default type is volume bars
 	return 2;
 }
 
-void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack)
+void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack, int sensitivity)
 {
 	buffer.drawingContext->Clear();
 
@@ -156,9 +162,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	std::list<int>& _timingmarks = cache->_timingmarks;
 	int &_lasttimingmark = cache->_lasttimingmark;
 	std::list<float>& _lastvalues = cache->_lastvalues;
+	int& _sensitivity = cache->_sensitivity;
 
 	// Check for config changes which require us to reset
-	if (_bars != bars || _type != nType || _timingtrack != timingtrack)
+	if (_bars != bars || _type != nType || _timingtrack != timingtrack || _sensitivity != sensitivity)
 	{
 		_bars = bars;
 		_type = nType;
@@ -166,6 +173,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		_timingmarks.clear();
 		_lasttimingmark = -1;
 		_lastvalues.clear();
+		_sensitivity = sensitivity;
 	}
 
 	// We limit bars to the width of the model
@@ -203,6 +211,9 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 			break;
 		case 9:
 			RenderSpectrogramFrame(buffer, usebars, _lastvalues, true);
+			break;
+		case 10:
+			RenderLevelPulseFrame(buffer, usebars, _sensitivity, _lasttimingmark);
 			break;
 		}
 	}
@@ -619,3 +630,43 @@ void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars)
 		}
 	}
 }
+
+void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark)
+{
+	float f = 0.0;
+	std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+	if (pf != NULL)
+	{
+		f = *pf->begin();
+	}
+
+	if (f > (float)sensitivity / 100.0)
+	{
+		lasttimingmark = buffer.curPeriod;
+	}
+
+	if (fadeframes > 0 && buffer.curPeriod - lasttimingmark < fadeframes)
+	{
+		float ff = 1.0 - (((float)buffer.curPeriod - (float)lasttimingmark) / (float)fadeframes);
+		if (ff < 0)
+		{
+			ff = 0;
+		}
+
+		if (ff > 0.0)
+		{
+			xlColor color1;
+			buffer.palette.GetColor(0, color1);
+			color1.alpha = ff * (float)255;
+
+			for (int x = 0; x < buffer.BufferWi; x++)
+			{
+				for (int y = 0; y < buffer.BufferHt; y++)
+				{
+					buffer.SetPixel(x, y, color1);
+				}
+			}
+		}
+	}
+}
+

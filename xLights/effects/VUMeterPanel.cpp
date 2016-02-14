@@ -27,6 +27,10 @@ const long VUMeterPanel::ID_STATICTEXT3 = wxNewId();
 const long VUMeterPanel::ID_CHOICE_VUMeter_TimingTrack = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT4 = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack = wxNewId();
+const long VUMeterPanel::ID_STATICTEXT6 = wxNewId();
+const long VUMeterPanel::IDD_SLIDER_VUMeter_Sensitivity = wxNewId();
+const long VUMeterPanel::ID_TEXTCTRL_VUMeter_Sensitivity = wxNewId();
+const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(VUMeterPanel,wxPanel)
@@ -67,6 +71,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Pulse"));
 	Choice_VUMeter_Type->Append(_("Intensity Wave"));
 	Choice_VUMeter_Type->Append(_("Spectrogram with Gravity"));
+	Choice_VUMeter_Type->Append(_("Level Pulse"));
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -85,6 +90,16 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	BitmapButton_VUMeter_TimingTrack->SetDefault();
 	BitmapButton_VUMeter_TimingTrack->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_TimingTrack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer31->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_VUMeter_Sensitivity = new wxSlider(this, IDD_SLIDER_VUMeter_Sensitivity, 70, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_VUMeter_Sensitivity"));
+	FlexGridSizer31->Add(Slider_VUMeter_Sensitivity, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_VUMeter_Sensitivity = new wxTextCtrl(this, ID_TEXTCTRL_VUMeter_Sensitivity, _("70"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_Sensitivity"));
+	FlexGridSizer31->Add(TextCtrl_VUMeter_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_VUMeter_Sensitivity = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity"));
+	BitmapButton_VUMeter_Sensitivity->SetDefault();
+	BitmapButton_VUMeter_Sensitivity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer31->Add(BitmapButton_VUMeter_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
@@ -96,6 +111,9 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Connect(ID_CHOICE_VUMeter_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VUMeterPanel::OnChoice_VUMeter_TypeSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(IDD_SLIDER_VUMeter_Sensitivity,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VUMeterPanel::UpdateLinkedTextCtrl);
+	Connect(ID_TEXTCTRL_VUMeter_Sensitivity,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VUMeterPanel::UpdateLinkedSlider);
+	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_VUMeter");
 
@@ -124,6 +142,15 @@ void VUMeterPanel::ValidateWindow()
 	else
 	{
 		Choice_VUMeter_TimingTrack->Disable();
+	}
+
+	if (Choice_VUMeter_Type->GetStringSelection() == "Level Pulse")
+	{
+		Slider_VUMeter_Sensitivity->Enable();
+	}
+	else
+	{
+		Slider_VUMeter_Sensitivity->Disable();
 	}
 }
 
