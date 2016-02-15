@@ -6,6 +6,11 @@
 #include <wx/ffile.h>
 #include "xLightsXmlFile.h"
 #include <wx/log.h>
+#include <math.h>
+#include "kiss_fft/tools/kiss_fftr.h"
+
+//#define CONSTANT_Q
+#define KISS_FFT
 
 using namespace Vamp;
 
@@ -46,6 +51,66 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	}
 }
 
+#ifdef KISS_FFT
+std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max)
+{
+	std::list<float> res;
+	int outcount = n / 2 + 1;
+	float scaling = 1.0 / (float)n;
+	kiss_fftr_cfg cfg;
+	kiss_fft_cpx* out = (kiss_fft_cpx*)malloc(sizeof(kiss_fft_cpx) * (outcount));
+	if (out != NULL)
+	{
+		if ((cfg = kiss_fftr_alloc(n, 0/*is_inverse_fft*/, NULL, NULL)) != NULL)
+		{
+			kiss_fftr(cfg, in, out);
+			free(cfg);
+		}
+
+		int start = 65.0 * (1.0 / (float)_rate) * (float)n;
+		int end = 1046.0 * (1.0 / (float)_rate) * (float)n;
+
+		std::map<float, int> freq;
+
+		for (int i = start; i < end; i++)
+		{
+			float val = sqrtf((*(out + i)).r * (*(out + i)).r + (*(out + i)).i * (*(out + i)).i);
+			float valscaled = 2 * val * scaling;
+			float db = abs(log10(val));
+			res.push_back(db);
+			if (db > max)
+			{
+				max = db;
+			}
+
+			freq[db]++;
+		}
+
+		// remove artifacts
+		for (std::map<float, int>::iterator m = freq.begin(); m != freq.end(); ++m)
+		{
+			if (m->first != 0.0)
+			{
+				if (m->second > 10)
+				{
+					for (std::list<float>::iterator it = res.begin(); it != res.end(); ++it)
+					{
+						if (*it == m->first)
+						{
+							*it = 0;
+						}
+					}
+				}
+			}
+		}
+
+		free(out);
+	}
+
+	return res;
+}
+#endif
+
 // Frame Data Extraction Functions
 // process audio data and build data for each frame
 void AudioManager::DoPrepareFrameData()
@@ -75,15 +140,21 @@ void AudioManager::DoPrepareFrameData()
 	_bigmin = 1;
 	_bigspectogrammax = -1;
 
+#ifdef CONSTANT_Q
 	// make sure plugins are loaded
 	_vamp.GetAllAvailablePlugins(this);
-
 	Vamp::Plugin *p = _vamp.GetPlugin("Constant-Q Spectrogram");
-
-	float *pdata[2];
 	size_t step = 0;
 	size_t block = 0;
+#endif
 
+#ifdef KISS_FFT
+	size_t step = 2048;
+#endif
+
+	float *pdata[2];
+
+#ifdef CONSTANT_Q
 	if (p != NULL)
 	{
 		// Constant-Q Sepectogram configuration
@@ -91,7 +162,7 @@ void AudioManager::DoPrepareFrameData()
 		p->setParameter("maxpitch", 84);
 		p->setParameter("tuning", 440);
 		p->setParameter("bpo", 12);
-		p->setParameter("normalized", 1);
+		p->setParameter("normalized", 0);
 
 		// setup the config
 		int channels = GetChannels();
@@ -116,6 +187,7 @@ void AudioManager::DoPrepareFrameData()
 		// make sure our data is ok for this ... basically ensures there is enough extra space for the window at the end of the song
 		SetStepBlock(step, block);
 	}
+#endif
 
 	int pos = 0;
 	std::list<float> spectrogram;
@@ -130,7 +202,9 @@ void AudioManager::DoPrepareFrameData()
 		float min = 100.0;
 		float spread = -100;
 
+#ifdef CONSTANT_Q
 		if (p != NULL)
+#endif
 		{
 			int count = 0;
 
@@ -148,14 +222,27 @@ void AudioManager::DoPrepareFrameData()
 				std::list<float> subspectrogram;
 				pdata[0] = GetLeftDataPtr(pos);
 				pdata[1] = GetRightDataPtr(pos);
+				float max = 0;
+
+#ifdef CONSTANT_Q
 				Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(pos, GetRate());
 
 				// This function processes the data
 				Vamp::Plugin::FeatureSet features = p->process(pdata, timestamp);
-
 				// Now we interpret the results
-				float max = 0;
 				subspectrogram = ProcessFeatures(features[0], max);
+#endif
+
+#ifdef KISS_FFT
+				if (pdata[0] == NULL)
+				{
+					subspectrogram.clear();
+				}
+				else
+				{
+					subspectrogram = CalculateSpectrumAnalysis(pdata[0], step, max);
+				}
+#endif
 
 				// and keep track of the larges value so we can normalise it
 				if (max > _bigspectogrammax)
@@ -171,12 +258,15 @@ void AudioManager::DoPrepareFrameData()
 				}
 				else
 				{
-					std::list<float>::iterator sub = subspectrogram.begin();
-					for (std::list<float>::iterator fr = spectrogram.begin(); fr != spectrogram.end(); ++fr)
+					if (subspectrogram.size() > 0)
 					{
-						if (*sub > *fr)
+						std::list<float>::iterator sub = subspectrogram.begin();
+						for (std::list<float>::iterator fr = spectrogram.begin(); fr != spectrogram.end(); ++fr)
 						{
-							*fr = *sub;
+							if (*sub > *fr)
+							{
+								*fr = *sub;
+							}
 						}
 					}
 				}
@@ -923,9 +1013,17 @@ int AudioManager::OpenMediaFile()
 
 	// Split data into left and right and normalize -1 to 1
 	_data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
-    if( _channels == 2 )
+	for (int i = 0; i < _trackSize + _extra; i++)
+	{
+		(*(_data[0] + i)) = 0.0;
+	}
+	if( _channels == 2 )
     {
         _data[1] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
+		for (int i = 0; i < _trackSize + _extra; i++)
+		{
+			(*(_data[1] + i)) = 0.0;
+		}
         SplitTrackDataAndNormalize((signed short*)trackData, _trackSize, _data[0], _data[1]);
     }
     else if( _channels == 1 )

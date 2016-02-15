@@ -721,6 +721,12 @@
 		<Unit filename="effects/assist/xlGridCanvasPictures.h" />
 		<Unit filename="heartbeat.cpp" />
 		<Unit filename="heartbeat.h" />
+		<Unit filename="kiss_fft/kiss_fft.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="kiss_fft/tools/kiss_fftr.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="models/ArchesModel.cpp" />
 		<Unit filename="models/ArchesModel.h" />
 		<Unit filename="models/CircleModel.cpp" />
@@ -906,8 +912,8 @@
 		<Unit filename="wxsmith/TreePanel.wxs" />
 		<Unit filename="wxsmith/TwinklePanel.wxs" />
 		<Unit filename="wxsmith/VAMPPluginDialog.wxs" />
-		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/VUMeterPanel.wxs" />
+		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
 		<Unit filename="wxsmith/dlgPreviewSize.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />

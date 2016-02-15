@@ -40,6 +40,9 @@
     <Filter Include="Source Files\effects\assist">
       <UniqueIdentifier>{93f86346-0f11-4214-b25a-cc5a1c6a20be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\kiss_fft">
+      <UniqueIdentifier>{f719497b-b42f-48fd-a6b2-1e9401403c3e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="effects\BarsEffect.cpp">
@@ -680,6 +683,12 @@
     </ClCompile>
     <ClCompile Include="effects\VUMeterPanel.cpp">
       <Filter>Source Files\effects</Filter>
+    </ClCompile>
+    <ClCompile Include="kiss_fft\tools\kiss_fftr.c">
+      <Filter>Source Files\kiss_fft</Filter>
+    </ClCompile>
+    <ClCompile Include="kiss_fft\kiss_fft.c">
+      <Filter>Source Files\kiss_fft</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -265,6 +265,8 @@
     <ClCompile Include="Image_Loader.cpp" />
     <ClCompile Include="JobPool.cpp" />
     <ClCompile Include="KeyBindings.cpp" />
+    <ClCompile Include="kiss_fft\kiss_fft.c" />
+    <ClCompile Include="kiss_fft\tools\kiss_fftr.c" />
     <ClCompile Include="LMSImportChannelMapDialog.cpp" />
     <ClCompile Include="LorConvertDialog.cpp" />
     <ClCompile Include="LyricsDialog.cpp" />

@@ -103,6 +103,7 @@ class AudioManager
 	int decodesamplerateindex(int samplerateindex, int version);
 	int decodesideinfosize(int version, int mono);
 	std::list<float> ProcessFeatures(Vamp::Plugin::FeatureList &feature, float& max);
+	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max);
 
 public:
 
