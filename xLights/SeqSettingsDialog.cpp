@@ -1164,6 +1164,7 @@ void SeqSettingsDialog::MediaChooser()
         xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
         StaticText_Warning->Hide();
         ProcessSequenceType();
+        xLightsParent->UpdateSequenceLength();
 
 		if (!xml_file->GetMedia()->IsCBR())
 		{

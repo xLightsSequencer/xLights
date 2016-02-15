@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug(gil)   Rebuild sequence data length when media file is changed.
     -- enh(gil)   Model groups are now indicated with an icon on sequencer grid.
     -- enh(gil)   Morph corner images now have a minimum size so they are always easily seen.
     -- enh(keithsw) Add music suppport to Tendril effect.
