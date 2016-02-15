@@ -13,6 +13,8 @@
 #include "../../include/vumeter-48.xpm"
 #include "../../include/vumeter-64.xpm"
 
+#include <algorithm>
+
 #define wrdebug(...)
 
 VUMeterEffect::VUMeterEffect(int id) : RenderableEffect(id, "VU Meter", vumeter_16, vumeter_24, vumeter_32, vumeter_48, vumeter_64)
@@ -70,7 +72,9 @@ void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
            SettingsMap.GetInt("TEXTCTRL_VUMeter_Bars", 6),
 		   SettingsMap.Get("CHOICE_VUMeter_Type", "Waveform"),
 		   SettingsMap.Get("CHOICE_VUMeter_TimingTrack", ""),
-		   SettingsMap.GetInt("TEXTCTRL_VUMeter_Sensitivity", 70)
+		   SettingsMap.GetInt("TEXTCTRL_VUMeter_Sensitivity", 70),
+ 		   SettingsMap.Get("CHOICE_VUMeter_Shape", "Circle"),
+		   SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", TRUE)
 		);
 }
 
@@ -89,6 +93,8 @@ public:
 	int _lasttimingmark; // last time we saw a timing mark ... used for pulse
 	std::list<float> _lastvalues;
 	int _sensitivity;
+	float _lastsize;
+	bool _slowdownfalls;
 };
 
 int VUMeterEffect::DecodeType(std::string type)
@@ -125,7 +131,7 @@ int VUMeterEffect::DecodeType(std::string type)
 	{
 		return 8;
 	}
-	else if (type == "Spectrogram with Gravity")
+	else if (type == "unused")
 	{
 		return 9;
 	}
@@ -133,12 +139,16 @@ int VUMeterEffect::DecodeType(std::string type)
 	{
 		return 10;
 	}
+	else if (type == "Level Shape")
+	{
+		return 11;
+	}
 
 	// default type is volume bars
 	return 2;
 }
 
-void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack, int sensitivity)
+void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls)
 {
 	buffer.drawingContext->Clear();
 
@@ -163,9 +173,11 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	int &_lasttimingmark = cache->_lasttimingmark;
 	std::list<float>& _lastvalues = cache->_lastvalues;
 	int& _sensitivity = cache->_sensitivity;
+	float& _lastsize = cache->_lastsize;
+	bool& _slowdownfalls = cache->_slowdownfalls;
 
 	// Check for config changes which require us to reset
-	if (_bars != bars || _type != nType || _timingtrack != timingtrack || _sensitivity != sensitivity)
+	if (_bars != bars || _type != nType || _timingtrack != timingtrack || _sensitivity != sensitivity || _slowdownfalls != slowdownfalls)
 	{
 		_bars = bars;
 		_type = nType;
@@ -174,6 +186,8 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		_lasttimingmark = -1;
 		_lastvalues.clear();
 		_sensitivity = sensitivity;
+		_lastsize = 0;
+		_slowdownfalls = slowdownfalls;
 	}
 
 	// We limit bars to the width of the model
@@ -188,7 +202,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		switch (_type)
 		{
 		case 1:
-			RenderSpectrogramFrame(buffer, usebars, _lastvalues, false);
+			RenderSpectrogramFrame(buffer, usebars, _lastvalues, _slowdownfalls);
 			break;
 		case 2:
 			RenderVolumeBarsFrame(buffer, usebars);
@@ -209,11 +223,11 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		case 8:
 			RenderIntensityWaveFrame(buffer, usebars);
 			break;
-		case 9:
-			RenderSpectrogramFrame(buffer, usebars, _lastvalues, true);
-			break;
 		case 10:
 			RenderLevelPulseFrame(buffer, usebars, _sensitivity, _lasttimingmark);
+			break;
+		case 11:
+			RenderLevelShapeFrame(buffer, shape, _lastsize, _sensitivity, _slowdownfalls);
 			break;
 		}
 	}
@@ -224,13 +238,13 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, bool gravity)
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, bool slowdownfalls)
 {
 	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
 
 	if (pdata != NULL && pdata->size() != 0)
 	{
-		if (gravity)
+		if (slowdownfalls)
 		{
 			if (lastvalues.size() == 0)
 			{
@@ -670,3 +684,334 @@ void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, 
 	}
 }
 
+void VUMeterEffect::DrawCircle(RenderBuffer& buffer, int centerx, int centery, float radius, xlColor& color1)
+{
+	if (radius > 0)
+	{
+		float radiussquared = radius * radius;
+
+		// fraction used to remove blank spots
+		for (float x = centerx - radius; x <= centerx + radius; x = x + 0.5)
+		{
+			if (x >= 0 && x < buffer.BufferWi)
+			{
+				float zz = radiussquared - (x - centerx) * (x - centerx);
+				if (zz >= 0)
+				{
+					int y = sqrt(zz);
+					if (y + centery >= 0 && y + centery < buffer.BufferHt)
+					{
+						buffer.SetPixel(x, y + centery, color1);
+					}
+					if (-y + centery >= 0 && -y + centery < buffer.BufferHt)
+					{
+						buffer.SetPixel(x, -y + centery, color1);
+					}
+				}
+			}
+		}
+
+		// do it again from the y side to ensure the circle is complete
+		for (float y = centery - radius; y <= centery + radius; y = y + 0.5)
+		{
+			if (y >= 0 && y < buffer.BufferHt)
+			{
+				float zz = radiussquared - (y - centery) * (y - centery);
+				if (zz >= 0)
+				{
+					int x = sqrt(zz);
+					if (x + centerx >= 0 && x + centerx < buffer.BufferWi)
+					{
+						buffer.SetPixel(x + centerx, y, color1);
+					}
+					if (-x + centerx >= 0 && -x + centerx < buffer.BufferWi)
+					{
+						buffer.SetPixel(-x + centerx, y, color1);
+					}
+				}
+			}
+		}
+	}
+}
+
+void VUMeterEffect::DrawBox(RenderBuffer& buffer, int startx, int endx, int starty, int endy, xlColor& color1)
+{
+	for (int x = startx; x <= endx; x++)
+	{
+		if (x >= 0 && x < buffer.BufferWi)
+		{
+			if (x == startx || x == endx)
+			{
+				for (int y = starty; y <= endy; y++)
+				{
+					if (y >= 0 && y < buffer.BufferHt)
+					{
+						buffer.SetPixel(x, y, color1);
+					}
+				}
+			}
+			else
+			{
+				if (starty >= 0 && starty < buffer.BufferWi)
+				{
+					buffer.SetPixel(x, starty, color1);
+				}
+				if (endy >= 0 && endy < buffer.BufferWi)
+				{
+					buffer.SetPixel(x, endy, color1);
+				}
+			}
+		}
+	}
+}
+
+void VUMeterEffect::DrawDiamond(RenderBuffer& buffer, int centerx, int centery, int size, xlColor& color1)
+{
+	for (int x = -1 * size; x <= size; x++)
+	{
+		if (x + centerx >= 0 && x + centerx < buffer.BufferWi)
+		{
+			int y = size - abs(x);
+
+			if (y + centery >= 0 && y + centery < buffer.BufferHt)
+			{
+				buffer.SetPixel(x + centerx, y + centery, color1);
+			}
+			if (-y + centery >= 0 && -y + centery < buffer.BufferHt)
+			{
+				buffer.SetPixel(x + centerx, -y + centery, color1);
+			}
+		}
+	}
+}
+
+void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls)
+{
+	float scaling = (float)scale / 100.0 * 7.0;
+
+	float f = 0.0;
+	std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+	if (pf != NULL)
+	{
+		f = *pf->begin();
+	}
+
+	if (shape == "Square")
+	{
+		int centerx = (buffer.BufferWi / 2.0);
+		int centery = (buffer.BufferHt / 2.0);
+		float maxside = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+		float side = maxside * f;
+		if (slowdownfalls)
+		{
+			if (side < lastsize)
+			{
+				lastsize = lastsize - std::min(maxside, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+				if (lastsize < side)
+				{
+					lastsize = side;
+				}
+			}
+			else
+			{
+				lastsize = side;
+			}
+		}
+		else
+		{
+			lastsize = side;
+		}
+		int startx = (int)(centerx - lastsize / 2.0);
+		int endx = (int)(centerx + lastsize / 2.0);
+		int starty = (int)(centery - lastsize / 2.0);
+		int endy = (int)(centery + lastsize / 2.0);
+		xlColor color1;
+		buffer.palette.GetColor(0, color1);
+
+		color1.alpha = 0.25 * 255;
+		DrawBox(buffer, startx - 2, endx + 2, starty - 2, endy+2, color1);
+		DrawBox(buffer, startx + 2, endx - 2, starty + 2, endy - 2, color1);
+		color1.alpha = 0.5 * 255;
+		DrawBox(buffer, startx - 1, endx + 1, starty - 1, endy + 1, color1);
+		DrawBox(buffer, startx + 1, endx - 1, starty + 1, endy - 1, color1);
+		color1.alpha = 255;
+		DrawBox(buffer, startx, endx, starty, endy, color1);
+	}
+	else if (shape == "Filled Square")
+	{
+		int centerx = (buffer.BufferWi / 2.0);
+		int centery = (buffer.BufferHt / 2.0);
+		float maxside = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+		float side = maxside * f;
+		if (slowdownfalls)
+		{
+			if (side < lastsize)
+			{
+				lastsize = lastsize - std::min(maxside, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+				if (lastsize < side)
+				{
+					lastsize = side;
+				}
+			}
+			else
+			{
+				lastsize = side;
+			}
+		}
+		else
+		{
+			lastsize = side;
+		}
+		int startx = (int)(centerx - lastsize / 2.0);
+		int endx = (int)(centerx + lastsize / 2.0);
+		int starty = (int)(centery - lastsize / 2.0);
+		int endy = (int)(centery + lastsize / 2.0);
+		for (int x = 0; x <= lastsize / 2.0; x++)
+		{
+			float distance = x / (lastsize / 2.0);
+			xlColor color1;
+			buffer.GetMultiColorBlend(distance, false, color1);
+			DrawBox(buffer, startx + x, endx - x, starty + x, endy - x, color1);
+		}
+	}
+	else if (shape == "Circle")
+	{
+		float maxradius = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+		float radius = maxradius * f;
+		if (slowdownfalls)
+		{
+			if (radius < lastsize)
+			{
+				lastsize = lastsize - std::min(maxradius, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+				if (lastsize < radius)
+				{
+					lastsize = radius;
+				}
+			}
+			else
+			{
+				lastsize = radius;
+			}
+		}
+		else
+		{
+			lastsize = radius;
+		}
+
+		xlColor color1;
+		buffer.palette.GetColor(0, color1);
+
+		int centerx = (buffer.BufferWi / 2.0);
+		int centery = (buffer.BufferHt / 2.0);
+		color1.alpha = 0.25 * 255;
+		DrawCircle(buffer, centerx, centery, lastsize-2, color1);
+		DrawCircle(buffer, centerx, centery, lastsize+2, color1);
+		color1.alpha = 0.5 * 255;
+		DrawCircle(buffer, centerx, centery, lastsize - 1, color1);
+		DrawCircle(buffer, centerx, centery, lastsize + 1, color1);
+		color1.alpha = 255;
+		DrawCircle(buffer, centerx, centery, lastsize, color1);
+	}
+	else if (shape == "Filled Circle")
+	{
+		float maxradius = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+		float radius = maxradius * f;
+		if (slowdownfalls)
+		{
+			if (radius < lastsize)
+			{
+				lastsize = lastsize - std::min(maxradius, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+				if (lastsize < radius)
+				{
+					lastsize = radius;
+				}
+			}
+			else
+			{
+				lastsize = radius;
+			}
+		}
+		else
+		{
+			lastsize = radius;
+		}
+		int centerx = (buffer.BufferWi / 2.0);
+		int centery = (buffer.BufferHt / 2.0);
+
+		for (int x = 0; x <= lastsize; x++)
+		{
+			float distance = (float)x / lastsize;
+			xlColor color1;
+			buffer.GetMultiColorBlend(distance, false, color1);
+			DrawCircle(buffer, centerx, centery, x, color1);
+		}
+	}
+	else if (shape == "Diamond")
+	{
+		int centerx = (buffer.BufferWi / 2.0);
+		int centery = (buffer.BufferHt / 2.0);
+		float maxside = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+		float side = maxside * f;
+		if (slowdownfalls)
+		{
+			if (side < lastsize)
+			{
+				lastsize = lastsize - std::min(maxside, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+				if (lastsize < side)
+				{
+					lastsize = side;
+				}
+			}
+			else
+			{
+				lastsize = side;
+			}
+		}
+		else
+		{
+			lastsize = side;
+		}
+		xlColor color1;
+		buffer.palette.GetColor(0, color1);
+		color1.alpha = 0.25 * 255;
+		DrawDiamond(buffer, centerx, centery, lastsize - 2, color1);
+		DrawDiamond(buffer, centerx, centery, lastsize + 2, color1);
+		color1.alpha = 0.5 * 255;
+		DrawDiamond(buffer, centerx, centery, lastsize - 1, color1);
+		DrawDiamond(buffer, centerx, centery, lastsize + 1, color1);
+		color1.alpha = 255;
+		DrawDiamond(buffer, centerx, centery, lastsize, color1);
+	}
+	else if (shape == "Filled Diamond")
+	{
+		int centerx = (buffer.BufferWi / 2.0);
+		int centery = (buffer.BufferHt / 2.0);
+		float maxside = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+		float side = maxside * f;
+		if (slowdownfalls)
+		{
+			if (side < lastsize)
+			{
+				lastsize = lastsize - std::min(maxside, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+				if (lastsize < side)
+				{
+					lastsize = side;
+				}
+			}
+			else
+			{
+				lastsize = side;
+			}
+		}
+		else
+		{
+			lastsize = side;
+		}
+		for (int xx = 0; xx <= lastsize; xx++)
+		{
+			xlColor color1;
+			buffer.GetMultiColorBlend(xx / lastsize, false, color1);
+			DrawDiamond(buffer, centerx, centery, xx, color1);
+		}
+	}
+}
