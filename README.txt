@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(gil)   Add Layered description to tooltip.  Fixes #179.
     -- bug(gil)   Remove incorrect hover tips from main menus. Fixes #242.
     -- bug(gil)   Rebuild sequence data length when media file is changed.
     -- enh(gil)   Model groups are now indicated with an icon on sequencer grid.
