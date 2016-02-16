@@ -966,14 +966,14 @@ void xLightsFrame::TimerRgbSeq(long msec)
     if (playType == PLAY_TYPE_MODEL) {
 
         int current_play_time = 0;
-        if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
-            current_play_time = PlayerDlg->GetState() != wxMEDIASTATE_PLAYING ? playEndTime + 1 : PlayerDlg->Tell();
+        if( CurrentSeqXmlFile->GetSequenceType() == "Media" && PlayerDlg->GetState() == wxMEDIASTATE_PLAYING) {
+            current_play_time = PlayerDlg->Tell();
             curt = current_play_time;
         } else {
             current_play_time = curt;
         }
         // see if its time to stop model play
-        if ((curt > playEndTime) || (CurrentSeqXmlFile->GetSequenceType() == "Media" && PlayerDlg->GetState() != wxMEDIASTATE_PLAYING)) {
+        if (curt > playEndTime) {
             playStartTime = playEndTime = 0;
             playStartMS = -1;
             wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
