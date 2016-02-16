@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.8  Feb 16, 2016
     -- bug(gil)   Allow media sequence to play to defined duration and not stop at media length. Fixes #138.
     -- enh(gil)   Add Layered description to tooltip.  Fixes #179.
     -- bug(gil)   Remove incorrect hover tips from main menus. Fixes #242.
