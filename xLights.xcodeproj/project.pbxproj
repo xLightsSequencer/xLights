@@ -81,6 +81,12 @@
 		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
+		676D0F711C72BB11009C66FC /* kiss_fft.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F6E1C72BB11009C66FC /* kiss_fft.c */; };
+		676D0F7E1C72BEBD009C66FC /* kiss_fftr.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F741C72BEBD009C66FC /* kiss_fftr.c */; };
+		676D0F7F1C72BEBD009C66FC /* kiss_fftndr.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F761C72BEBD009C66FC /* kiss_fftndr.c */; };
+		676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F781C72BEBD009C66FC /* kiss_fftnd.c */; };
+		676D0F811C72BEBD009C66FC /* kiss_fastfir.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F791C72BEBD009C66FC /* kiss_fastfir.c */; };
+		676D0F821C72BEBD009C66FC /* kfc.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F7B1C72BEBD009C66FC /* kfc.c */; };
 		676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBF81A98E53800FBA86B /* FileConverter.cpp */; };
 		676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */; };
 		677421D41A68AB3E0082DA5B /* Render.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D31A68AB3E0082DA5B /* Render.cpp */; };
@@ -409,6 +415,19 @@
 		67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurrentPreviewModels.cpp; sourceTree = "<group>"; };
 		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
+		676D0F6C1C72BB11009C66FC /* kissfft.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = kissfft.hh; path = kiss_fft/kissfft.hh; sourceTree = "<group>"; };
+		676D0F6D1C72BB11009C66FC /* kiss_fft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = kiss_fft.h; path = kiss_fft/kiss_fft.h; sourceTree = "<group>"; };
+		676D0F6E1C72BB11009C66FC /* kiss_fft.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kiss_fft.c; path = kiss_fft/kiss_fft.c; sourceTree = "<group>"; };
+		676D0F6F1C72BB11009C66FC /* _kiss_fft_guts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = _kiss_fft_guts.h; path = kiss_fft/_kiss_fft_guts.h; sourceTree = "<group>"; };
+		676D0F731C72BEBD009C66FC /* kiss_fftr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = kiss_fftr.h; path = kiss_fft/tools/kiss_fftr.h; sourceTree = "<group>"; };
+		676D0F741C72BEBD009C66FC /* kiss_fftr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kiss_fftr.c; path = kiss_fft/tools/kiss_fftr.c; sourceTree = "<group>"; };
+		676D0F751C72BEBD009C66FC /* kiss_fftndr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = kiss_fftndr.h; path = kiss_fft/tools/kiss_fftndr.h; sourceTree = "<group>"; };
+		676D0F761C72BEBD009C66FC /* kiss_fftndr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kiss_fftndr.c; path = kiss_fft/tools/kiss_fftndr.c; sourceTree = "<group>"; };
+		676D0F771C72BEBD009C66FC /* kiss_fftnd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = kiss_fftnd.h; path = kiss_fft/tools/kiss_fftnd.h; sourceTree = "<group>"; };
+		676D0F781C72BEBD009C66FC /* kiss_fftnd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kiss_fftnd.c; path = kiss_fft/tools/kiss_fftnd.c; sourceTree = "<group>"; };
+		676D0F791C72BEBD009C66FC /* kiss_fastfir.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kiss_fastfir.c; path = kiss_fft/tools/kiss_fastfir.c; sourceTree = "<group>"; };
+		676D0F7A1C72BEBD009C66FC /* kfc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = kfc.h; path = kiss_fft/tools/kfc.h; sourceTree = "<group>"; };
+		676D0F7B1C72BEBD009C66FC /* kfc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kfc.c; path = kiss_fft/tools/kfc.c; sourceTree = "<group>"; };
 		676DCBF81A98E53800FBA86B /* FileConverter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileConverter.cpp; sourceTree = "<group>"; };
 		676DCBF91A98E53800FBA86B /* FileConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileConverter.h; sourceTree = "<group>"; };
 		676DCBFA1A98E53800FBA86B /* Images_png.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Images_png.h; sourceTree = "<group>"; };
@@ -826,6 +845,26 @@
 			name = Assist;
 			sourceTree = "<group>";
 		};
+		676D0F6A1C72BAFA009C66FC /* kiss_fft */ = {
+			isa = PBXGroup;
+			children = (
+				676D0F731C72BEBD009C66FC /* kiss_fftr.h */,
+				676D0F741C72BEBD009C66FC /* kiss_fftr.c */,
+				676D0F751C72BEBD009C66FC /* kiss_fftndr.h */,
+				676D0F761C72BEBD009C66FC /* kiss_fftndr.c */,
+				676D0F771C72BEBD009C66FC /* kiss_fftnd.h */,
+				676D0F781C72BEBD009C66FC /* kiss_fftnd.c */,
+				676D0F791C72BEBD009C66FC /* kiss_fastfir.c */,
+				676D0F7A1C72BEBD009C66FC /* kfc.h */,
+				676D0F7B1C72BEBD009C66FC /* kfc.c */,
+				676D0F6C1C72BB11009C66FC /* kissfft.hh */,
+				676D0F6D1C72BB11009C66FC /* kiss_fft.h */,
+				676D0F6E1C72BB11009C66FC /* kiss_fft.c */,
+				676D0F6F1C72BB11009C66FC /* _kiss_fft_guts.h */,
+			);
+			name = kiss_fft;
+			sourceTree = "<group>";
+		};
 		679BD3281C37552D000539FE /* Effects */ = {
 			isa = PBXGroup;
 			children = (
@@ -1089,6 +1128,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				676D0F6A1C72BAFA009C66FC /* kiss_fft */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
 				67623E721AD2BF3F0022667B /* BitmapCache.cpp */,
@@ -1373,6 +1413,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				676D0F811C72BEBD009C66FC /* kiss_fastfir.c in Sources */,
 				67D8F4591A1A584400522413 /* TabTest.cpp in Sources */,
 				670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */,
 				67B2CF8E1C39D98A003C17CA /* WavePanel.cpp in Sources */,
@@ -1387,12 +1428,14 @@
 				67B2CF7E1C39D98A003C17CA /* PianoPanel.cpp in Sources */,
 				67B2CF7B1C39D98A003C17CA /* MarqueePanel.cpp in Sources */,
 				673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */,
+				676D0F7F1C72BEBD009C66FC /* kiss_fftndr.c in Sources */,
 				67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */,
 				67AAF8FD1B642E6C00585431 /* LyricsDialog.cpp in Sources */,
 				67B2CFF21C3A186A003C17CA /* FacesEffect.cpp in Sources */,
 				679BD33D1C3757F6000539FE /* EffectManager.cpp in Sources */,
 				67ACBAB81C63DDA400BFA7D6 /* SingleLineModel.cpp in Sources */,
 				67B2CF931C39D98A003C17CA /* CurtainEffect.cpp in Sources */,
+				676D0F711C72BB11009C66FC /* kiss_fft.c in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
 				67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */,
 				6761F5F91C4EA041009780DA /* xlGridCanvasPictures.cpp in Sources */,
@@ -1425,8 +1468,10 @@
 				67B2CFDD1C3A186A003C17CA /* TwinkleEffect.cpp in Sources */,
 				671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */,
 				67A61A2F17B51C0F008E95BB /* ModelDialog.cpp in Sources */,
+				676D0F7E1C72BEBD009C66FC /* kiss_fftr.c in Sources */,
 				679BD3391C37555C000539FE /* RenderableEffect.cpp in Sources */,
 				67B2CFEF1C3A186A003C17CA /* FireworksEffect.cpp in Sources */,
+				676D0F821C72BEBD009C66FC /* kfc.c in Sources */,
 				6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */,
 				677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */,
 				67B2CFE31C3A186A003C17CA /* PlasmaEffect.cpp in Sources */,
@@ -1537,6 +1582,7 @@
 				677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */,
 				67B2CF961C39D98A003C17CA /* ButterflyEffect.cpp in Sources */,
 				67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */,
+				676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */,
 				67A61A5217B51C0F008E95BB /* serial.cpp in Sources */,
 				67B2CFE71C3A186A003C17CA /* MorphEffect.cpp in Sources */,
 				670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */,
