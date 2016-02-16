@@ -80,7 +80,6 @@ ModelViewSelector::~ModelViewSelector()
 void ModelViewSelector::Initialize()
 {
     SetLabel("Add Timings/Models");
-    StaticTextType->SetLabel("Timings/Models:");
     PopulateModelsToAdd();
 }
 
