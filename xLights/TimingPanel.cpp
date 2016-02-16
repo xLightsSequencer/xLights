@@ -94,7 +94,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer1->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND, 1);
 	txtCtlEffectMix = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_LayerMix, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("ID_TEXTCTRL_LayerMix"));
 	FlexGridSizer1->Add(txtCtlEffectMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_EffectLayerMix = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
 	BitmapButton_EffectLayerMix->SetDefault();
 	BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -110,7 +110,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BufferStyleChoice->Append(_("Rotate 180"));
 	BufferStyleChoice->Append(_("Flip Vertical"));
 	BufferStyleChoice->Append(_("Flip Horizontal"));
-	FlexGridSizer2->Add(BufferStyleChoice, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(BufferStyleChoice, 1, wxALL|wxEXPAND, 2);
 	BitmapButtonBufferStyle = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_CHOICE_BufferStyle, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferStyle"));
 	BitmapButtonBufferStyle->SetDefault();
 	BitmapButtonBufferStyle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
