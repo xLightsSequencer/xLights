@@ -51,6 +51,8 @@
 		674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D231C207BD7000D632B /* AudioToolbox.framework */; };
 		674D3D261C207C25000D632B /* libpthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D251C207C25000D632B /* libpthread.tbd */; };
 		674E27A51B5B37B000274B20 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674E27A41B5B37B000274B20 /* GLUT.framework */; };
+		67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC71C73643900850363 /* osx_shared_mutex.cpp */; };
+		67582ECA1C73646300850363 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
 		675878DB1A89297200205A75 /* DataLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675878D91A89297200205A75 /* DataLayer.cpp */; };
 		675AB4261B5ACEDA00853A28 /* PluginBufferingAdapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB40C1B5ACEDA00853A28 /* PluginBufferingAdapter.cpp */; };
 		675AB4271B5ACEDA00853A28 /* acsymbols.c in Sources */ = {isa = PBXBuildFile; fileRef = 675AB40D1B5ACEDA00853A28 /* acsymbols.c */; };
@@ -118,7 +120,6 @@
 		679BD3421C375D9F000539FE /* BarsEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD33E1C375D9F000539FE /* BarsEffect.cpp */; };
 		679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3401C375D9F000539FE /* OnEffect.cpp */; };
 		679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92B17B53DE70006B951 /* QTKit.framework */; };
-		679E52BF1AD2F7520065E6EA /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */; };
 		67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */; };
 		67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */; };
 		67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */; };
@@ -357,6 +358,8 @@
 		674D3D231C207BD7000D632B /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		674D3D251C207C25000D632B /* libpthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpthread.tbd; path = usr/lib/libpthread.tbd; sourceTree = SDKROOT; };
 		674E27A41B5B37B000274B20 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		67582EC71C73643900850363 /* osx_shared_mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = osx_shared_mutex.cpp; path = osx_utils/osx_shared_mutex.cpp; sourceTree = "<group>"; };
+		67582EC91C73646300850363 /* xlMacUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = xlMacUtils.mm; path = osx_utils/xlMacUtils.mm; sourceTree = "<group>"; };
 		675878D91A89297200205A75 /* DataLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataLayer.cpp; sourceTree = "<group>"; };
 		675878DA1A89297200205A75 /* DataLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataLayer.h; sourceTree = "<group>"; };
 		675AB40C1B5ACEDA00853A28 /* PluginBufferingAdapter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PluginBufferingAdapter.cpp; path = "vamp-hostsdk/PluginBufferingAdapter.cpp"; sourceTree = "<group>"; };
@@ -475,7 +478,6 @@
 		679BD3401C375D9F000539FE /* OnEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OnEffect.cpp; path = effects/OnEffect.cpp; sourceTree = "<group>"; };
 		679BD3411C375D9F000539FE /* OnEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OnEffect.h; path = effects/OnEffect.h; sourceTree = "<group>"; };
 		679BEF1B1A9FCB1D00C37BB4 /* RenderCommandEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderCommandEvent.h; sourceTree = "<group>"; };
-		679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = xlMacUtils.mm; sourceTree = "<group>"; };
 		67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils.cpp; sourceTree = "<group>"; };
 		67A260ED1AB71EE3006B140D /* DrawGLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DrawGLUtils.h; sourceTree = "<group>"; };
 		67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExportModelSelect.cpp; sourceTree = "<group>"; };
@@ -793,6 +795,15 @@
 				67447D941C6664900095CDB5 /* WreathModel.h */,
 			);
 			name = Models;
+			sourceTree = "<group>";
+		};
+		67582EC61C7363FF00850363 /* osx_utils */ = {
+			isa = PBXGroup;
+			children = (
+				67582EC91C73646300850363 /* xlMacUtils.mm */,
+				67582EC71C73643900850363 /* osx_shared_mutex.cpp */,
+			);
+			name = osx_utils;
 			sourceTree = "<group>";
 		};
 		675AB40B1B5ACEC900853A28 /* Vamp */ = {
@@ -1128,6 +1139,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67582EC61C7363FF00850363 /* osx_utils */,
 				676D0F6A1C72BAFA009C66FC /* kiss_fft */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
@@ -1225,7 +1237,6 @@
 				6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */,
 				675DE2651B53381800A9BB44 /* xlSlider.cpp */,
 				67FA9FD11C67837500FED13B /* AudioManager.h */,
-				679E52BE1AD2F7520065E6EA /* xlMacUtils.mm */,
 				67DB87F71AD6CFD100595194 /* EffectRendering */,
 				679BD3281C37552D000539FE /* Effects */,
 				670C827C1C44554E000AA5D8 /* Models */,
@@ -1468,6 +1479,7 @@
 				67B2CFDD1C3A186A003C17CA /* TwinkleEffect.cpp in Sources */,
 				671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */,
 				67A61A2F17B51C0F008E95BB /* ModelDialog.cpp in Sources */,
+				67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */,
 				676D0F7E1C72BEBD009C66FC /* kiss_fftr.c in Sources */,
 				679BD3391C37555C000539FE /* RenderableEffect.cpp in Sources */,
 				67B2CFEF1C3A186A003C17CA /* FireworksEffect.cpp in Sources */,
@@ -1573,6 +1585,7 @@
 				67F4C6171A097A35003E978F /* Image.cpp in Sources */,
 				67402E871B4230360047EDC1 /* NullOutputDialog.cpp in Sources */,
 				67A61A4C17B51C0F008E95BB /* SeqExportDialog.cpp in Sources */,
+				67582ECA1C73646300850363 /* xlMacUtils.mm in Sources */,
 				6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */,
 				6784F92A1A5653670018EC0C /* Element.cpp in Sources */,
 				67B2CF791C39D98A003C17CA /* LifePanel.cpp in Sources */,
@@ -1617,7 +1630,6 @@
 				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
 				6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */,
 				670C828A1C45C48B000AA5D8 /* ModelManager.cpp in Sources */,
-				679E52BF1AD2F7520065E6EA /* xlMacUtils.mm in Sources */,
 				67B2CFE81C3A186A003C17CA /* MeteorsEffect.cpp in Sources */,
 				67B2CFF11C3A186A003C17CA /* FanEffect.cpp in Sources */,
 				67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */,
@@ -1733,7 +1745,7 @@
 					"-ferror-limit=0",
 				);
 				OTHER_LDFLAGS = "";
-				"OTHER_LDFLAGS[arch=*]" = "";
+				"OTHER_LDFLAGS[sdk=macosx*]" = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "xLights.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1784,7 +1796,7 @@
 					"-ferror-limit=0",
 				);
 				OTHER_LDFLAGS = "";
-				"OTHER_LDFLAGS[arch=*]" = "";
+				"OTHER_LDFLAGS[sdk=macosx*]" = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "xLights.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

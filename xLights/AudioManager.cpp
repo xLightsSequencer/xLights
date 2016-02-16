@@ -76,7 +76,7 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 		{
 			float val = sqrtf((*(out + i)).r * (*(out + i)).r + (*(out + i)).i * (*(out + i)).i);
 			float valscaled = 2 * val * scaling;
-			float db = abs(log10(val));
+            float db = std::abs(log10(val));
 			res.push_back(db);
 			if (db > max)
 			{
@@ -115,13 +115,12 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 // process audio data and build data for each frame
 void AudioManager::DoPrepareFrameData()
 {
-	// grab the mutex
-	_mutex.lock();
+	// lock the mutex
+    std::unique_lock<std::shared_timed_mutex> locker(_mutex);
 
 	// if we have already done it ... bail
 	if (_frameDataPrepared)
 	{
-		_mutex.unlock();
 		return;
 	}
 
@@ -350,7 +349,6 @@ void AudioManager::DoPrepareFrameData()
 
 	// flag the fact that the data is all ready
 	_frameDataPrepared = true;
-	_mutex.unlock();
 }
 
 // Extract the Vamp data and reduce it to one array of values
@@ -413,30 +411,24 @@ void AudioManager::PrepareFrameData(bool separateThread)
 // Get the pre-prepared data for this frame
 std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing)
 {
-	// Grab the lock so we can safely access the frame data
-	while (!_mutex.try_lock()) 
-	{
-		wxMilliSleep(1);
-	}
+    // Grab the lock so we can safely access the frame data
+    std::shared_lock<std::shared_timed_mutex> lock(_mutex);
+    
 
 	// if the frame data has not been prepared
 	if (!_frameDataPrepared)
 	{
 		// prepare it
-		_mutex.unlock();
+		lock.unlock();
 		PrepareFrameData(false);
 
+        lock.lock();
 		// wait until the new thread grabs the lock
-		while (_mutex.try_lock())
+		while (!_frameDataPrepared)
 		{
-			_mutex.unlock();
-			wxMilliSleep(1);
-		}
-
-		// now wait for the new thread to exit
-		while (!_mutex.try_lock()) 
-		{
-			wxMilliSleep(1);
+			lock.unlock();
+			wxMilliSleep(5);
+            lock.lock();
 		}
 	}
 
@@ -472,8 +464,6 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 	{
 		rc = NULL;
 	}
-
-	_mutex.unlock();
 
 	return rc;
 }

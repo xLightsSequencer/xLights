@@ -3,7 +3,7 @@
 
 #include <string>
 #include <list>
-#include <mutex>
+#include <shared_mutex>
 
 #include "sequencer/mpg123.h"
 #include "vamp-hostsdk/PluginLoader.h"
@@ -64,7 +64,7 @@ class AudioManager
 {
 	JobPool _jobPool;
 	Job* _job;
-	std::mutex _mutex;
+    std::shared_timed_mutex _mutex;
 	std::vector<std::vector<std::list<float>>> _frameData;
 	std::string _audio_file;
 	xLightsVamp _vamp;
