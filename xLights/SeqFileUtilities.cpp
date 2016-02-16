@@ -145,7 +145,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         CurrentSeqXmlFile->Open();
 
         // if fseq didn't have media check xml
-        if( CurrentSeqXmlFile->HasAudioMedia())
+        if (CurrentSeqXmlFile->GetMediaFile() != "")
         {
             media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
         }
