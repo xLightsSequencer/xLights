@@ -13,6 +13,84 @@ StarModel::~StarModel()
 }
 
 
+std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
+
+const std::vector<std::string> &StarModel::GetBufferStyles() const {
+    struct Initializer {
+        Initializer() {
+            STAR_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
+            STAR_BUFFER_STYLES.push_back("Layer Matrix");
+        }
+    };
+    static Initializer ListInitializationGuard;
+    return STAR_BUFFER_STYLES;
+}
+
+void StarModel::GetBufferSize(const std::string &type, int &BufferWi, int &BufferHi) const {
+    if (type == "Layer Matrix") {
+        BufferHi = GetNumStrands();
+        BufferWi = 0;
+        for (int x = 0; x < BufferHi; x++) {
+            int w = GetStarSize(x);
+            if (w > BufferWi) {
+                BufferWi = w;
+            }
+        }
+    } else {
+        Model::GetBufferSize(type, BufferWi, BufferHi);
+    }
+}
+void StarModel::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
+    if (type == "Layer Matrix") {
+        BufferHi = GetNumStrands();
+        BufferWi = 0;
+        for (int x = 0; x < BufferHi; x++) {
+            int w = GetStarSize(x);
+            if (w > BufferWi) {
+                BufferWi = w;
+            }
+        }
+        for (int x = 0; x < BufferHi; x++) {
+            int w = GetStarSize(x);
+            for (int z = 0; z < w; z++) {
+                
+            }
+        }
+        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+            newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
+        }
+
+        int start = 0;
+        for (int cur = 0; cur < starSizes.size(); cur++) {
+            int numlights = starSizes[cur];
+            if (numlights == 0) {
+                continue;
+            }
+            
+            for(size_t cnt=0; cnt<numlights; cnt++) {
+                int n = cur;
+                if (!SingleNode) {
+                    n = cnt + start;
+                } else {
+                    n = cur;
+                    if (n >= Nodes.size()) {
+                        n = Nodes.size() - 1;
+                    }
+                }
+                for (auto it = newNodes[n]->Coords.begin(); it != newNodes[n]->Coords.end(); it++) {
+                    it->bufY = cur;
+                    it->bufX = cnt * BufferWi / numlights;
+                }
+            }
+            start += numlights;
+        }
+    } else {
+        Model::InitRenderBufferNodes(type, newNodes, BufferWi, BufferHi);
+    }
+}
+
+
+
 int StarModel::GetStrandLength(int strand) const {
     return SingleNode ? 1 : GetStarSize(strand);
 }
@@ -160,5 +238,4 @@ void StarModel::InitModel() {
     }
     
     CopyBufCoord2ScreenCoord();
-
 }

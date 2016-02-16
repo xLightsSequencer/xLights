@@ -7,13 +7,7 @@
 #include "SingleLineModel.h"
 
 
-std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES {
-        "Default", "Per Preview", "Rotate CC 90",
-        "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal",
-        "Horizontal Per Model", "Vertical Per Model",
-        "Horizontal Per Model/Strand", "Vertical Per Model/Strand",
-        "Single Line"
-        };
+std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
 
 ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, int previewW, int previewH)
     : WholeHouseModel(), manager(m)
@@ -27,6 +21,19 @@ ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, 
 
 ModelGroup::~ModelGroup()
 {
+}
+const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
+    struct Initializer {
+        Initializer() {
+            GROUP_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
+            GROUP_BUFFER_STYLES.push_back("Horizontal Per Model");
+            GROUP_BUFFER_STYLES.push_back("Vertical Per Model");
+            GROUP_BUFFER_STYLES.push_back("Horizontal Per Model/Strand");
+            GROUP_BUFFER_STYLES.push_back("Vertical Per Model/Strand");
+        }
+    };
+    static Initializer ListInitializationGuard;
+    return GROUP_BUFFER_STYLES;
 }
 
 

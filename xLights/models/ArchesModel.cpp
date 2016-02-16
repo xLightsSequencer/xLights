@@ -2,14 +2,6 @@
 
 #include "ArchesModel.h"
 
-
-std::vector<std::string> ArchesModel::ARCHES_BUFFER_STYLES {
-    "Default", "Per Preview", "Rotate CC 90",
-    "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal",
-    "Single Line"
-};
-
-
 ArchesModel::ArchesModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
 {
     SetFromXml(node, netInfo, zeroBased);

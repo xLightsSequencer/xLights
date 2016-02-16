@@ -20,7 +20,7 @@ class ModelGroup : public WholeHouseModel
         const std::vector<std::string> &ModelNames() const { return modelNames;}
     
     
-        virtual const std::vector<std::string> &GetBufferStyles() const override { return GROUP_BUFFER_STYLES; };
+        virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
     
