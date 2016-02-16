@@ -3,7 +3,6 @@
 	<object class="wxFrame" name="xLightsFrame">
 		<title>&lt;use variables in xLightsMain.h&gt;</title>
 		<size>1411,1103</size>
-		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<handler function="OnResize" entry="EVT_SIZE" />
