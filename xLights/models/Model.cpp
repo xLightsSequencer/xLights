@@ -584,7 +584,7 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
                 SetCoords(*it2, bufferWi - it2->bufX - 1, it2->bufY);
             }
         }
-    } else if (type == "Rotate CW 90") {
+    } else if (type == "Rotate CC 90") {
         bufferHi = this->BufferWi;
         bufferWi = this->BufferHt;
         for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
@@ -592,7 +592,7 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
                 SetCoords(*it2, this->BufferHt - it2->bufY - 1, it2->bufX);
             }
         }
-    } else if (type == "Rotate CC 90") {
+    } else if (type == "Rotate CW 90") {
         bufferHi = this->BufferWi;
         bufferWi = this->BufferHt;
         for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
@@ -611,8 +611,6 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
             }
         }
     } else if (type == "Per Preview") {
-        //FIXME
-        
         double maxX = -1000000;
         double minX = 1000000;
         double maxY = -1000000;
@@ -675,8 +673,6 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
     }
-    
-    //"Default", "Per Preview", "Rotate Up 90", "Rotate Down 90", "Rotate 180", "Flip Vertical", "Flip Horizontal"
 }
 
 
