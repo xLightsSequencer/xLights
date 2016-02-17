@@ -188,8 +188,7 @@ void xLightsFrame::CheckForValidModels()
                 dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
                 dialog.Fit();
                 dialog.ShowModal();
-                if (dialog.RadioButtonAdd->GetValue()) {
-                } else if (dialog.RadioButtonDelete->GetValue()) {
+                if (dialog.RadioButtonDelete->GetValue()) {
                     mSequenceElements.DeleteElement(name);
                 } else {
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();

@@ -8,7 +8,6 @@
 
 //(*IdInit(SeqElementMismatchDialog)
 const long SeqElementMismatchDialog::ID_STATICTEXT1 = wxNewId();
-const long SeqElementMismatchDialog::ID_RADIOBUTTON1 = wxNewId();
 const long SeqElementMismatchDialog::ID_RADIOBUTTON2 = wxNewId();
 const long SeqElementMismatchDialog::ID_RADIOBUTTON3 = wxNewId();
 const long SeqElementMismatchDialog::ID_CHOICE1 = wxNewId();
@@ -36,9 +35,6 @@ SeqElementMismatchDialog::SeqElementMismatchDialog(wxWindow* parent,wxWindowID i
     FlexGridSizer1->Add(StaticTextMessage, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 10);
     StaticText1 = new wxStaticText(this, wxID_ANY, _("What action do you want to take\?"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonAdd = new wxRadioButton(this, ID_RADIOBUTTON1, _("Add as new model/element (future enhancement)"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
-    RadioButtonAdd->Disable();
-    FlexGridSizer1->Add(RadioButtonAdd, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     RadioButtonDelete = new wxRadioButton(this, ID_RADIOBUTTON2, _("Delete this element from the sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
     RadioButtonDelete->SetValue(true);
     FlexGridSizer1->Add(RadioButtonDelete, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

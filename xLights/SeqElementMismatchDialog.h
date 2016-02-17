@@ -18,7 +18,6 @@ public:
 
     //(*Declarations(SeqElementMismatchDialog)
     wxChoice* ChoiceModels;
-    wxRadioButton* RadioButtonAdd;
     wxStaticText* StaticTextMessage;
     wxRadioButton* RadioButtonRename;
     wxRadioButton* RadioButtonDelete;
@@ -28,7 +27,6 @@ protected:
 
     //(*Identifiers(SeqElementMismatchDialog)
     static const long ID_STATICTEXT1;
-    static const long ID_RADIOBUTTON1;
     static const long ID_RADIOBUTTON2;
     static const long ID_RADIOBUTTON3;
     static const long ID_CHOICE1;
