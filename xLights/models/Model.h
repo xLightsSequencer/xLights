@@ -34,8 +34,9 @@ public:
     virtual void GetBufferSize(const std::string &type, int &BufferWi, int &BufferHi) const;
     virtual void InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
     bool IsMyDisplay() { return isMyDisplay;}
+
+    static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
 protected:
-    static std::vector<std::string> DEFAULT_BUFFER_STYLES;
     
     int BufferHt,BufferWi;  // size of the buffer
     std::vector<NodeBaseClassPtr> Nodes;
