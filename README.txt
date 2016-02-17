@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
     -- regr(dkulp) If media from XML doesn't exist but is in the Media directory, use it from there.
+    -- bug (keithsw) Fix false positive VBR file detection
 2016.8  Feb 16, 2016
     -- bug(gil)   Allow media sequence to play to defined duration and not stop at media length. Fixes #138.
     -- enh(gil)   Add Layered description to tooltip.  Fixes #179.

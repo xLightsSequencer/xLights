@@ -1,6 +1,11 @@
 #ifndef AUDIOMANAGER_H
 #define AUDIOMANAGER_H
 
+// uncomment one of the following 2 to select which analysis engine to use
+//#define CONSTANT_Q
+#define KISS_FFT
+
+
 #include <string>
 #include <list>
 #include <shared_mutex>
@@ -102,8 +107,12 @@ class AudioManager
 	int decodebitrateindex(int bitrateindex, int version, int layertype);
 	int decodesamplerateindex(int samplerateindex, int version);
 	int decodesideinfosize(int version, int mono);
+#ifdef CONSTANT_Q
 	std::list<float> ProcessFeatures(Vamp::Plugin::FeatureList &feature, float& max);
-	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max);
+#endif
+#ifdef KISS_FFT
+	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id);
+#endif
 
 public:
 

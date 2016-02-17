@@ -8,9 +8,13 @@
 #include <wx/log.h>
 #include <math.h>
 #include "kiss_fft/tools/kiss_fftr.h"
-
-//#define CONSTANT_Q
-#define KISS_FFT
+#ifdef __WXMSW__
+#include "wx/msw/debughlp.h"
+#include <windows.h>
+//wxString s;
+//s.Printf("%f -> %f", val, db);
+//wxDbgHelpDLL::LogError(s);
+#endif
 
 using namespace Vamp;
 
@@ -52,7 +56,7 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 }
 
 #ifdef KISS_FFT
-std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max)
+std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max, int id)
 {
 	std::list<float> res;
 	int outcount = n / 2 + 1;
@@ -70,39 +74,57 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 		int start = 65.0 * (1.0 / (float)_rate) * (float)n;
 		int end = 1046.0 * (1.0 / (float)_rate) * (float)n;
 
-		std::map<float, int> freq;
+		if (id == 253)
+		{
+			int a = 0;
+		}
+
+		//std::map<int, int> freq;
 
 		for (int i = start; i < end; i++)
 		{
 			float val = sqrtf((*(out + i)).r * (*(out + i)).r + (*(out + i)).i * (*(out + i)).i);
 			float valscaled = 2 * val * scaling;
-            float db = std::abs(log10(val));
+			float db = log10(val);
+			if (db < 0.0)
+			{
+				db = 0.0;
+			}
+
 			res.push_back(db);
 			if (db > max)
 			{
 				max = db;
 			}
 
-			freq[db]++;
+			//freq[(int)(db*100.0)]++;
 		}
 
+		//for (std::map<int, int>::iterator m = freq.begin(); m != freq.end(); ++m)
+		//{
+		//	wxString s;
+		//	s.Printf("%d,%f,%d", id, m->first/100.0, m->second);
+		//	wxDbgHelpDLL::LogError(s);
+		//}
 		// remove artifacts
-		for (std::map<float, int>::iterator m = freq.begin(); m != freq.end(); ++m)
-		{
-			if (m->first != 0.0)
-			{
-				if (m->second > 10)
-				{
-					for (std::list<float>::iterator it = res.begin(); it != res.end(); ++it)
-					{
-						if (*it == m->first)
-						{
-							*it = 0;
-						}
-					}
-				}
-			}
-		}
+		//for (std::map<int, int>::iterator m = freq.begin(); m != freq.end(); ++m)
+		//{
+		//	if (m->first > 0)
+		//	{
+		//		if (m->second > 5)
+		//		{
+		//			for (std::list<float>::iterator it = res.begin(); it != res.end(); ++it)
+		//			{
+		//				if ((int)((*it)*10.0) == m->first)
+		//				{
+		//					*it = 0;
+		//				}
+		//			}
+		//			// only remove the first one that appears a lot
+		//			//break;
+		//		}
+		//	}
+		//}
 
 		free(out);
 	}
@@ -239,7 +261,7 @@ void AudioManager::DoPrepareFrameData()
 				}
 				else
 				{
-					subspectrogram = CalculateSpectrumAnalysis(pdata[0], step, max);
+					subspectrogram = CalculateSpectrumAnalysis(pdata[0], step, max, i);
 				}
 #endif
 
@@ -351,6 +373,7 @@ void AudioManager::DoPrepareFrameData()
 	_frameDataPrepared = true;
 }
 
+#ifdef CONSTANT_Q
 // Extract the Vamp data and reduce it to one array of values
 std::list<float> AudioManager::ProcessFeatures(Vamp::Plugin::FeatureList &feature, float& max) 
 {
@@ -381,6 +404,7 @@ std::list<float> AudioManager::ProcessFeatures(Vamp::Plugin::FeatureList &featur
 	// work out the maximum for normalisation
 	for (std::list<float>::iterator j = res.begin(); j != res.end(); ++j)
 	{
+		*j = log10(*j);
 		if (*j > max)
 		{
 			max = *j;
@@ -389,6 +413,7 @@ std::list<float> AudioManager::ProcessFeatures(Vamp::Plugin::FeatureList &featur
 
 	return res;
 }
+#endif
 
 // Called to trigger frame data creation
 void AudioManager::PrepareFrameData(bool separateThread)
@@ -678,21 +703,58 @@ bool AudioManager::CheckCBR()
 		while (!atstart && !mp3file.Eof())
 		{
 			char start = ' ';
-			while (start != (char)0xFF && !mp3file.Eof())
+			while (start != (char)0xFF && start != 'I' && !mp3file.Eof())
 			{
 				mp3file.Read(&start, 1);
 			}
-			if (!mp3file.Eof())
+			if (start == (char)0xFF)
+			{
+				if (!mp3file.Eof())
+				{
+					mp3file.Read(&start, 1);
+					if ((char)(start & 0xE0) == (char)0xE0)
+					{
+						atstart = true;
+						mp3file.Seek(-2, wxFromCurrent);
+					}
+					else
+					{
+						mp3file.Seek(-1, wxFromCurrent);
+					}
+				}
+			}
+			else if (start =='I')
 			{
 				mp3file.Read(&start, 1);
-				if ((char)(start & 0xE0) == (char)0xE0)
+				if (start == 'D')
 				{
-					atstart = true;
-					mp3file.Seek(-2, wxFromCurrent);
+					mp3file.Read(&start, 1);
+					if (start == '3')
+					{
+						// ID3 tag
+						char v[2];
+						mp3file.Read(&v, 2);
+						char f;
+						mp3file.Read(&f, 1);
+						bool xh = f & 0x40;
+						bool ft = f & 0x10;
+						char sizess[4];
+						mp3file.Read(&sizess, 4);
+						DWORD size;
+						size = ((((DWORD)sizess[0]) & 0x7F) << 21) +
+							((((DWORD)sizess[1]) & 0x7F) << 14) +
+							((((DWORD)sizess[2]) & 0x7F) << 7) +
+							(((DWORD)sizess[3]) & 0x7F);
+						mp3file.Seek(size, wxFromCurrent);
+					}
+					else
+					{
+						mp3file.Seek(-3, wxFromCurrent);
+					}
 				}
 				else
 				{
-					mp3file.Seek(-1, wxFromCurrent);
+					mp3file.Seek(-2, wxFromCurrent);
 				}
 			}
 		}

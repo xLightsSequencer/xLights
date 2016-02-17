@@ -15,7 +15,15 @@
 
 #include <algorithm>
 
-#define wrdebug(...)
+#ifdef __WXMSW__
+#include "wx/msw/debughlp.h"
+#include <windows.h>
+//wxString s;
+//s.Printf("%f -> %f", val, db);
+//wxDbgHelpDLL::LogError(s);
+#endif
+
+//#define wrdebug(...)
 
 VUMeterEffect::VUMeterEffect(int id) : RenderableEffect(id, "VU Meter", vumeter_16, vumeter_24, vumeter_32, vumeter_48, vumeter_64)
 {
@@ -288,6 +296,11 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 		int per = pdata->size() / usebars;
 		int cols = buffer.BufferWi / usebars;
 
+		if (buffer.curPeriod == 253)
+		{
+			int a = 0;
+		}
+
 		std::list<float>::iterator it = lastvalues.begin();
 		int x = 0;
 
@@ -305,6 +318,9 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 			}
 			for (int k = 0; k < cols; k++)
 			{
+				wxString s;
+				s.Printf("%d,%d,%f", buffer.curPeriod, j, f);
+				wxDbgHelpDLL::LogError(s);
 				for (int y = 0; y < buffer.BufferHt; y++)
 				{
 					if (y < buffer.BufferHt * f)
