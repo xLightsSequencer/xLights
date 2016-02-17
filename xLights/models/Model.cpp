@@ -28,7 +28,11 @@ inline long toDegrees(double radians) {
 const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Preview", "Rotate CC 90",
     "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal", "Single Line"};
 
-Model::Model() : modelDimmingCurve(nullptr) {
+Model::Model() : modelDimmingCurve(nullptr), isMyDisplay(false), ModelXml(nullptr),
+    parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
+    offsetXpct(0.5), offsetYpct(0.5), singleScale(false), PreviewScaleX(0.333), PreviewScaleY(0.333),
+    PreviewRotation(0), RenderWi(0), RenderHt(0), StrobeRate(0)
+{
 }
 
 Model::~Model() {
@@ -514,22 +518,26 @@ const std::string &Model::NodeType(size_t nodenum) const {
 }
 
 NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) {
+    NodeBaseClass *ret = nullptr;
     if (StringType=="Single Color Red" || StringType == "R") {
-        return new NodeClassRed(ns, NodesPerString);
+        ret = new NodeClassRed(ns, NodesPerString);
     } else if (StringType=="Single Color Green" || StringType == "G") {
-        return new NodeClassGreen(ns,NodesPerString);
+        ret = new NodeClassGreen(ns,NodesPerString);
     } else if (StringType=="Single Color Blue" || StringType == "B") {
-        return new NodeClassBlue(ns,NodesPerString);
+        ret = new NodeClassBlue(ns,NodesPerString);
     } else if (StringType=="Single Color White" || StringType == "W") {
-        return new NodeClassWhite(ns,NodesPerString);
+        ret = new NodeClassWhite(ns,NodesPerString);
     } else if (StringType[0] == '#') {
-        return new NodeClassCustom(ns,NodesPerString, xlColor(StringType));
+        ret = new NodeClassCustom(ns,NodesPerString, xlColor(StringType));
     } else if (StringType=="Strobes White 3fps") {
-        return new NodeClassWhite(ns,NodesPerString);
+        ret = new NodeClassWhite(ns,NodesPerString);
     } else if (StringType=="4 Channel RGBW" || StringType == "RGBW") {
-        return new NodeClassRGBW(ns,NodesPerString);
+        ret = new NodeClassRGBW(ns,NodesPerString);
+    } else {
+        ret = new NodeBaseClass(ns,1,rgbOrder);
     }
-    return new NodeBaseClass(ns,1,rgbOrder);
+    ret->model = this;
+    return ret;
 }
 
 
@@ -554,6 +562,7 @@ static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y) {
 }
 
 void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) const {
+    int firstNode = newNodes.size();
     for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
         newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
     }
@@ -563,40 +572,40 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
     } else if (type == "Rotate 180") {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
+        for (int x = firstNode; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, bufferWi - it2->bufX - 1, bufferHi - it2->bufY - 1);
             }
         }
     } else if (type == "Flip Vertical") {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
+        for (int x = firstNode; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, it2->bufX, bufferHi - it2->bufY - 1);
             }
         }
     } else if (type == "Flip Horizontal") {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
+        for (int x = firstNode; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, bufferWi - it2->bufX - 1, it2->bufY);
             }
         }
     } else if (type == "Rotate CC 90") {
         bufferHi = this->BufferWi;
         bufferWi = this->BufferHt;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
+        for (int x = firstNode; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, this->BufferHt - it2->bufY - 1, it2->bufX);
             }
         }
     } else if (type == "Rotate CW 90") {
         bufferHi = this->BufferWi;
         bufferWi = this->BufferHt;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
+        for (int x = firstNode; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, it2->bufY, this->BufferWi - it2->bufX - 1);
             }
         }
@@ -604,13 +613,13 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
         bufferHi = 1;
         bufferWi = newNodes.size();
         int cnt = 0;
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
+        for (int x = firstNode; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 SetCoords(*it2, cnt, 0);
                 cnt++;
             }
         }
-    } else if (type == "Per Preview") {
+    } else if (type == "Per Preview" || type == "Per Preview No Offset") {
         double maxX = -1000000;
         double minX = 1000000;
         double maxY = -1000000;
@@ -627,8 +636,9 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
         double w1 = int(offsetXpct*w);
         double h1 = int(offsetYpct*h);
 
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
+        
+        for (int x = firstNode; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 sx = it2->screenX;
                 sy = it2->screenY;
 
@@ -652,9 +662,16 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
                 }
             }
         }
-
-        for (auto it = newNodes.begin(); it != newNodes.end(); it++) {
-            for (auto it2 = it->get()->Coords.begin(); it2 != it->get()->Coords.end(); it2++) {
+        int offx = minX;
+        int offy = minY;
+        bool noOff = type == "Per Preview No Offset";
+        if (noOff) {
+            offx = 0;
+            offy = 0;
+        }
+        
+        for (int x = firstNode; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 sx = it2->screenX;
                 sy = it2->screenY;
 
@@ -664,7 +681,11 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
                 sx += w1;
                 sy += h1;
 
-                SetCoords(*it2, sx - minX, sy - minY);
+                SetCoords(*it2, sx - offx, sy - offy);
+                if (noOff) {
+                    it2->screenX = sx;
+                    it2->screenY = sy;
+                }
             }
         }
         bufferHi = maxY - minY + 1;
@@ -687,38 +708,57 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
     size_t n;
     if (SingleNode) {
         if (StringType=="Single Color Red") {
-            for(n=0; n<NumStrings; n++)
+            for(n=0; n<NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassRed(n,NodesPerString, GetNextName())));
+                Nodes.back()->model = this;
+            }
         } else if (StringType=="Single Color Green") {
-            for(n=0; n<NumStrings; n++)
+            for(n=0; n<NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassGreen(n,NodesPerString, GetNextName())));
+                Nodes.back()->model = this;
+            }
         } else if (StringType=="Single Color Blue") {
-            for(n=0; n<NumStrings; n++)
+            for(n=0; n<NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassBlue(n,NodesPerString, GetNextName())));
+                Nodes.back()->model = this;
+            }
         } else if (StringType=="Single Color White") {
-            for(n=0; n<NumStrings; n++)
+            for(n=0; n<NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString, GetNextName())));
+                Nodes.back()->model = this;
+            }
         } else if (StringType=="Strobes White 3fps") {
             StrobeRate=7;  // 1 out of every 7 frames
-            for(n=0; n<NumStrings; n++)
+            for(n=0; n<NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString, GetNextName())));
+                Nodes.back()->model = this;
+            }
         } else if (StringType=="Single Color Custom") {
-            for(n=0; n<NumStrings; n++)
+            for(n=0; n<NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassCustom(n,NodesPerString, customColor, GetNextName())));
+                Nodes.back()->model = this;
+            }
         } else if (StringType=="4 Channel RGBW") {
-            for(n=0; n<NumStrings; n++)
+            for(n=0; n<NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n,NodesPerString, GetNextName())));
+                Nodes.back()->model = this;
+            }
         } else {
             // 3 Channel RGB
-            for(n=0; n<NumStrings; n++)
+            for(n=0; n<NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n,NodesPerString, "RGB", GetNextName())));
+                Nodes.back()->model = this;
+            }
         }
     } else if (NodesPerString == 0) {
         Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(0, 0, rgbOrder, GetNextName())));
+        Nodes.back()->model = this;
     } else {
         size_t numnodes=NumStrings*NodesPerString;
-        for(n=0; n<numnodes; n++)
+        for(n=0; n<numnodes; n++) {
             Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n/NodesPerString, 1, rgbOrder, GetNextName())));
+            Nodes.back()->model = this;
+        }
     }
 }
 
@@ -1026,49 +1066,6 @@ void Model::UpdateXmlWithScale() {
     ModelXml->AddAttribute("StartChannel", ModelStartChannel);
 }
 
-void Model::AddToWholeHouseModel(int w, int h, std::vector<int>& xPos,std::vector<int>& yPos,
-                                      std::vector<int>& actChannel, std::vector<std::string>& nodeTypes) {
-    size_t NodeCount=Nodes.size();
-    double sx,sy;
-
-    if (singleScale) {
-        //we now have the virtual size so we can flip to non-single scale
-        singleScale = false;
-        if (RenderHt > RenderWi) {
-            PreviewScaleX = double(RenderWi) * double(h) / (double(w) * RenderHt) * PreviewScaleY;
-        } else {
-            PreviewScaleY = double(RenderHt) * double(w) / (double(h) * RenderWi) * PreviewScaleX;
-        }
-    }
-    double scalex = double(w) / RenderWi * PreviewScaleX;
-    double scaley = double(h) / RenderHt * PreviewScaleY;
-    double radians=toRadians(PreviewRotation);
-
-    double w1 = int(offsetXpct*w);
-    double h1 = int(offsetYpct*h);
-
-    for(size_t n=0; n<NodeCount; n++) {
-        size_t CoordCount=GetCoordCount(n);
-        std::string type = Nodes[n]->GetNodeType();
-        int channel = Nodes[n]->ActChan;
-        for(size_t c=0; c < CoordCount; c++) {
-            sx=Nodes[n]->Coords[c].screenX;
-            sy=Nodes[n]->Coords[c].screenY;
-
-            sx = (sx*scalex);
-            sy = (sy*scaley);
-            TranslatePointDoubles(radians,sx,sy,sx,sy);
-            sx += w1;
-            sy += h1;
-
-            xPos.push_back(sx);
-            yPos.push_back(sy);
-            actChannel.push_back(channel);
-            nodeTypes.push_back(type);
-        }
-    }
-}
-
 bool Model::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
     SetMinMaxModelScreenCoordinates(preview);
     int xs = x1<x2?x1:x2;
@@ -1250,10 +1247,10 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
         }
         if (c == NULL) {
             Nodes[n]->GetColor(color);
-            if (modelDimmingCurve != nullptr) {
-                modelDimmingCurve->reverse(color);
+            if (Nodes[n]->model->modelDimmingCurve != nullptr) {
+                Nodes[n]->model->modelDimmingCurve->reverse(color);
             }
-            if (StrobeRate) {
+            if (Nodes[n]->model->StrobeRate) {
                 int r = rand() % 5;
                 if (r != 0) {
                     color = xlBLACK;
@@ -1365,16 +1362,28 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     double scaleY = double(h) * 0.95 / RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
 
+    double pointScale = scale;
+    if (pointScale > 2.5) {
+        pointScale = 2.5;
+    }
+    if (pointScale > RenderHt) {
+        pointScale = RenderHt;
+    }
+    if (pointScale > RenderWi) {
+        pointScale = RenderWi;
+    }
     bool success = preview->StartDrawing(pointSize);
 
     if (pixelStyle == 1) {
         glEnable(GL_POINT_SMOOTH);
     }
-    if (pixelSize != 2) {
-        glPointSize(preview->calcPixelSize(pixelSize));
-    }
+    glPointSize(preview->calcPixelSize(pixelSize*pointScale));
+    int lastPixelStyle = pixelStyle;
+    int lastPixelSize = pixelSize;
 
+    
     if(success) {
+        
         // layer calculation and map to output
         size_t NodeCount=Nodes.size();
         DrawGLUtils::PreAlloc(NodeCount);
@@ -1406,10 +1415,10 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             }
 
             Nodes[n]->GetColor(color);
-            if (modelDimmingCurve != nullptr) {
-                modelDimmingCurve->reverse(color);
+            if (Nodes[n]->model->modelDimmingCurve != nullptr) {
+                Nodes[n]->model->modelDimmingCurve->reverse(color);
             }
-            if (StrobeRate) {
+            if (Nodes[n]->model->StrobeRate) {
                 int r = rand() % 5;
                 if (r != 0) {
                     color = xlBLACK;
@@ -1422,16 +1431,39 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 sy=Nodes[n]->Coords[c].screenY;
 
                 double newsy = ((sy*scale)+(h/2));
-                if (pixelStyle < 2) {
-                    DrawGLUtils::AddVertex((sx*scale)+(w/2), newsy, color, color == xlBLACK ? blackTransparency : transparency);
+                
+                if (lastPixelStyle != Nodes[n]->model->pixelStyle
+                    || lastPixelSize != Nodes[n]->model->pixelSize) {
+                    
+                    if (started) {
+                        DrawGLUtils::End(GL_POINTS);
+                        started = false;
+                    }
+                    if (lastPixelStyle == 1 && Nodes[n]->model->pixelStyle != 1) {
+                        glDisable(GL_POINT_SMOOTH);
+                    } else if (lastPixelStyle != 1 && Nodes[n]->model->pixelStyle == 1) {
+                        glEnable(GL_POINT_SMOOTH);
+                    }
+                    lastPixelStyle = Nodes[n]->model->pixelStyle;
+
+                    if (lastPixelSize != Nodes[n]->model->pixelSize) {
+                        lastPixelSize = Nodes[n]->model->pixelSize;
+                        glPointSize(preview->calcPixelSize(lastPixelSize*pointScale));
+                    }
+                }
+
+                
+                if (lastPixelStyle < 2) {
+                    DrawGLUtils::AddVertex((sx*scale)+(w/2), newsy, color, color == xlBLACK ?
+                                           Nodes[n]->model->blackTransparency : Nodes[n]->model->transparency);
                     started = true;
                 } else {
-                    int trans = transparency;
+                    int trans = Nodes[n]->model->transparency;
                     if (color == xlBLACK) {
-                        trans = blackTransparency;
+                        trans = Nodes[n]->model->blackTransparency;
                     }
-                    DrawGLUtils::DrawCircle(color, (sx*scale)+(w/2), newsy, pixelSize,
-                                            trans, pixelStyle == 2 ? transparency : 100);
+                    DrawGLUtils::DrawCircle(color, (sx*scale)+(w/2), newsy, lastPixelSize*pointScale,
+                                            trans, lastPixelStyle == 2 ? Nodes[n]->model->transparency : 100);
                 }
             }
         }
@@ -1440,10 +1472,10 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         }
         preview->EndDrawing();
     }
-    if (pixelStyle == 1) {
+    if (lastPixelStyle == 1) {
         glDisable(GL_POINT_SMOOTH);
     }
-    if (pixelSize != 2) {
+    if (lastPixelSize != 2) {
         glPointSize(preview->calcPixelSize(2));
     }
 }

@@ -85,15 +85,18 @@ PreviewModels::PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode*
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Group Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer6->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextModelGroupName = new wxTextCtrl(this, ID_TEXTCTRL_MODEL_GROUP_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_MODEL_GROUP_NAME"));
-	FlexGridSizer6->Add(TextModelGroupName, 1, wxALL|wxEXPAND, 5);
-	StaticText4 = new wxStaticText(this, wxID_ANY, _("Layout Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer6->Add(TextModelGroupName, 1, wxALL|wxEXPAND, 2);
+	StaticText4 = new wxStaticText(this, wxID_ANY, _("Default Layout Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoiceModelLayoutType = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	ChoiceModelLayoutType->SetSelection( ChoiceModelLayoutType->Append(_("Grid as per preview")) );
 	ChoiceModelLayoutType->Append(_("Minimal Grid"));
-	ChoiceModelLayoutType->Append(_("Horizontal per model"));
-	ChoiceModelLayoutType->Append(_("Vertical per model"));
-	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	ChoiceModelLayoutType->Append(_("Horizontal Per Model"));
+	ChoiceModelLayoutType->Append(_("Vertical Per Model"));
+	ChoiceModelLayoutType->Append(_("Horizontal Per Model/Strand"));
+	ChoiceModelLayoutType->Append(_("Vertical Per Model/Strand"));
+	ChoiceModelLayoutType->Append(_("Single Line"));
+	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	GridSizeLabel = new wxStaticText(this, ID_STATICTEXT4, _("Grid Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer6->Add(GridSizeLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	SizeSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("400"), wxDefaultPosition, wxDefaultSize, 0, 10, 2000, 400, _T("ID_SPINCTRL1"));
@@ -212,6 +215,14 @@ void PreviewModels::UpdateSelectedModel()
         ChoiceModelLayoutType->SetSelection(2);
     } else if (v == "vertical") {
         ChoiceModelLayoutType->SetSelection(3);
+    } else {
+        int idx = ChoiceModelLayoutType->FindString(v);
+        if (idx >= 0) {
+            ChoiceModelLayoutType->SetSelection(idx);
+        } else {
+            ChoiceModelLayoutType->Append(v);
+            ChoiceModelLayoutType->SetSelection(ChoiceModelLayoutType->GetCount() - 1);
+        }
     }
 
     wxCommandEvent evt;
@@ -325,6 +336,9 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
                 break;
             case 3:
                 e->AddAttribute("layout", "vertical");
+                break;
+            default:
+                e->AddAttribute("layout", ChoiceModelLayoutType->GetStringSelection());
                 break;
         }
 

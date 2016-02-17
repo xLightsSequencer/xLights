@@ -18,6 +18,8 @@
 #define NODE_RGBW_CHAN_CNT          4
 #define NODE_SINGLE_COLOR_CHAN_CNT  1
 
+class Model;
+
 class NodeBaseClass
 {
 
@@ -36,12 +38,13 @@ public:
         float screenX, screenY;
     };
     
-    int sparkle;
     int ActChan = 0;   // 0 is the first channel
-    int StringNum; // node is part of this string (0 is the first string)
+    unsigned short sparkle;
+    unsigned short StringNum; // node is part of this string (0 is the first string)
     std::vector<CoordStruct> Coords;
     std::vector<CoordStruct> OrigCoords;
     std::string *name = nullptr;
+    const Model *model = nullptr;
 
     NodeBaseClass()
     {
@@ -51,7 +54,7 @@ public:
         offsets[2] = 2;
     }
     NodeBaseClass(const NodeBaseClass &c): sparkle(c.sparkle), ActChan(c.ActChan), StringNum(c.StringNum),
-        Coords(c.Coords), OrigCoords(c.OrigCoords), name(nullptr), chanCnt(c.chanCnt)
+        Coords(c.Coords), OrigCoords(c.OrigCoords), name(nullptr), chanCnt(c.chanCnt), model(c.model)
     {
         if (c.name != nullptr) {
             name = new std::string(*(c.name));
@@ -253,6 +256,8 @@ public:
         hsv = c.asHSV();
         type = c;
     }
+    NodeClassCustom(const NodeClassCustom &c) : NodeBaseClass(c), hsv(c.hsv), type(c.type) {}
+    
     virtual void GetColor(xlColor& color) const override {
         HSVValue hsv2 = hsv;
         hsv2.value=c[0];

@@ -18,14 +18,14 @@ public:
     }
     virtual ~BaseDimmingCurve() {}
 
-    void fixupReverseData() {
+    void fixupReverseData(std::vector<bool> &done) {
         int lastIdx = 0;
         
         for (int x = 1; x < 256; x++) {
-            if (reverseData[x] == 0) {
+            if (!done[x]) {
                 //possibly not set, let's average between
                 int origX = x;
-                while (x < 256 && reverseData[x] == 0) {
+                while (x < 256 && !done[x]) {
                     x++;
                 }
                 if (x < 256) {
@@ -109,7 +109,8 @@ public:
     virtual ~BasicDimmingCurve() {}
 
     void init(int brightness, float gamma) {
-        for (int x = 0; x < 256; x++) {
+        std::vector<bool> done(256);
+        for (int x = 128; x < 256; x++) {
             float i = x;
             i = i * float(brightness + 100) / 100.0;
             i = 255 * pow(i / 255.0, gamma);
@@ -121,14 +122,30 @@ public:
             }
             data[x] = i;
             reverseData[(int)i] = x;
+            done[(int)i] = true;
         }
-        fixupReverseData();
+        for (int x = 127; x >= 0; x--) {
+            float i = x;
+            i = i * float(brightness + 100) / 100.0;
+            i = 255 * pow(i / 255.0, gamma);
+            if (i > 255) {
+                i = 255;
+            }
+            if (i < 0) {
+                i = 0;
+            }
+            data[x] = i;
+            reverseData[(int)i] = x;
+            done[(int)i] = true;
+        }
+        fixupReverseData(done);
     }
 };
 
 class FileDimmingCurve : public BaseDimmingCurve {
 public:
     FileDimmingCurve(const wxString &f, int ch = -1) : BaseDimmingCurve(ch) {
+        std::vector<bool> done(256);
         wxFileInputStream fin(f);
         wxTextInputStream text(fin);
         
@@ -137,14 +154,17 @@ public:
             wxString data = text.ReadLine();
             if (data != "") {
                 data[count] = stoi(data.ToStdString());
-                reverseData[data[count]] = count;
+                if (!done[data[count]] || count > 127) {
+                    reverseData[data[count]] = count;
+                    done[data[count]] = true;
+                }
                 count++;
                 if (count == 256) {
-                    return;
+                    break;
                 }
             }
         }
-        fixupReverseData();
+        fixupReverseData(done);
     }
 };
 

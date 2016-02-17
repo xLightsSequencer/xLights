@@ -26,9 +26,9 @@ public:
     
     std::string name;
     xlColor customColor;
+    DimmingCurve *modelDimmingCurve;
     
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
-    DimmingCurve *modelDimmingCurve;
     
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
     virtual void GetBufferSize(const std::string &type, int &BufferWi, int &BufferHi) const;
@@ -37,12 +37,11 @@ public:
 
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
 protected:
-    
     int BufferHt,BufferWi;  // size of the buffer
     std::vector<NodeBaseClassPtr> Nodes;
 
     
-    static NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
+    NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
     
     
     virtual void InitModel();
@@ -129,8 +128,6 @@ public:
     void RotateWithHandles(ModelPreview* preview,bool ShiftKeyPressed,  int mouseX,int mouseY);
     bool HitTest(ModelPreview* preview,int x,int y);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
-    void AddToWholeHouseModel(int pw, int ph, std::vector<int>& xPos,std::vector<int>& yPos,
-                              std::vector<int>& actChannel,std::vector<std::string>& nodeTypes);
     void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
     void SetMinMaxModelScreenCoordinates(int w, int y);
     void Rotate(int degrees);

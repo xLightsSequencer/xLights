@@ -131,7 +131,7 @@ public:
 
     int LastSnowflakeCount;
     int LastSnowflakeType;
-    wxString LastFalling;
+    std::string LastFalling;
     int effectState;
 };
 
@@ -141,7 +141,7 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     int Count = SettingsMap.GetInt("SLIDER_Snowflakes_Count", 0);
     int SnowflakeType = SettingsMap.GetInt("SLIDER_Snowflakes_Type", 0);
     int sSpeed = SettingsMap.GetInt("SLIDER_Snowflakes_Speed", 0);
-    wxString falling = SettingsMap.Get("CHOICE_Falling", "Driving");
+    std::string falling = SettingsMap.Get("CHOICE_Falling", "Driving");
 
     int i,n,x,x0,y0,y,check,delta_y;
     xlColor color1,color2, color3;
@@ -157,7 +157,7 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     int &LastSnowflakeCount = cache->LastSnowflakeCount;
     int &LastSnowflakeType = cache->LastSnowflakeType;
     int &effectState = cache->effectState;
-    wxString& LastFalling = cache->LastFalling;
+    std::string& LastFalling = cache->LastFalling;
 
     buffer.palette.GetColor(0, color1);
     buffer.palette.GetColor(1, color2);
@@ -311,13 +311,14 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
         starty = 1;
     }
 
+    bool driving = falling == "Driving";
     for (x=0; x<buffer.BufferWi; x++) {
         new_x = (x+movement/20) % buffer.BufferWi; // CW
         new_x2 = (x-movement/20) % buffer.BufferWi; // CCW
         if (new_x2 < 0) new_x2 += buffer.BufferWi;
 
         for (y=starty; y<buffer.BufferHt; y++) {
-            if (falling != "Driving") {
+            if (!driving) {
 
                 // this controls the speed by skipping movement when slow
                 if (((buffer.curPeriod-buffer.curEffStartPer) * (sSpeed+1)) / 30 != ((buffer.curPeriod-buffer.curEffStartPer-1) * (sSpeed + 1)) / 30)
@@ -430,7 +431,7 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
         }
     }
 
-    if (falling != "Driving")
+    if (!driving)
     {
         // add new flakes to the top
         check = 0;

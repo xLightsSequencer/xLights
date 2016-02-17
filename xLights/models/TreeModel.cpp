@@ -49,7 +49,7 @@ void TreeModel::SetTreeCoord(long degrees) {
     if (BufferHt < 1) return; // June 27,2013. added check to not divide by zero
     if (degrees > 0) {
         double angle;
-        RenderHt=1000;
+        RenderHt=BufferHt * 3;
         RenderWi=((double)RenderHt)/1.8;
         
         double radians=toRadians(degrees);

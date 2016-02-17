@@ -71,20 +71,17 @@ void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetI
         zbModel = ModelManager::CreateModel(pbc.GetModelXml(), netInfo, zeroBased);
         model = zbModel;
     } else {
-        SetDimmingCurve(pbc.modelDimmingCurve);
         model = &pbc;
     }
     reset(layers, timing);
 }
 void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing) {
     ssModel.Reset(pbc.GetStrandLength(strand), pbc, strand);
-    SetDimmingCurve(pbc.modelDimmingCurve);
     model = &ssModel;
     reset(2, timing);
 }
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing) {
     ssModel.Reset(1, pbc, strand, node);
-    SetDimmingCurve(pbc.modelDimmingCurve);
     model = &ssModel;
     reset(2, timing);
 }
@@ -347,7 +344,7 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
 
 void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers) {
     
-    int &sparkle = layers[0]->Nodes[node]->sparkle;
+    unsigned short &sparkle = layers[0]->Nodes[node]->sparkle;
     HSVValue hsv;
     int cnt = 0;
     xlColor color;
@@ -431,10 +428,6 @@ void PixelBufferClass::SetSparkle(int layer, int freq) {
 
 void PixelBufferClass::SetBrightness(int layer, int value) {
     layers[layer]->brightness=value;
-}
-
-void PixelBufferClass::SetDimmingCurve(DimmingCurve *value) {
-    dimmingCurve=value;
 }
 
 void PixelBufferClass::SetContrast(int layer, int value) {
@@ -523,8 +516,9 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                           validLayers);
 
             // Apply dimming curve
-            if (dimmingCurve != nullptr) {
-                dimmingCurve->apply(color);
+            DimmingCurve *curve = layers[0]->Nodes[i]->model->modelDimmingCurve;
+            if (curve != nullptr) {
+                curve->apply(color);
             }
 
             // set color for physical output
@@ -532,11 +526,6 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         }
     }
 }
-
-
-
-
-
 
 
 

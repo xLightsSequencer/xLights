@@ -5,11 +5,10 @@
 #include <string>
 
 #include "Model.h"
-#include "WholeHouseModel.h"
 
 class ModelManager;
 
-class ModelGroup : public WholeHouseModel
+class ModelGroup : public Model
 {
     public:
         ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &manager, int previewW, int previewH);
@@ -28,14 +27,9 @@ class ModelGroup : public WholeHouseModel
         static std::vector<std::string> GROUP_BUFFER_STYLES;
 
     private:
-        wxXmlNode* CreateModelNodeFromGroup(int previewW, int previewH, wxXmlNode *e);
-        wxXmlNode* BuildWholeHouseModel(int previewW, int previewH,
-                                        const std::string &modelName,
-                                        const wxXmlNode *node,
-                                        std::vector<Model*> &models);
-
         std::vector<std::string> modelNames;
         bool selected;
+        std::string defaultBufferStyle;
         const ModelManager &manager;
 };
 

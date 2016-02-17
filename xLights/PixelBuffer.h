@@ -94,7 +94,6 @@ private:
     int frameTimeInMs;
 
     int CurrentLayer;
-    DimmingCurve *dimmingCurve;
 	AudioManager* _audio;
 
     void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers);

@@ -49,17 +49,17 @@
 											<style>wxLB_SORT</style>
 											<handler function="OnListBoxModelGroupsSelect" entry="EVT_LISTBOX" />
 										</object>
-										<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -84,13 +84,13 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="ID_TEXTCTRL_MODEL_GROUP_NAME" variable="TextModelGroupName" member="yes" />
-												<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="wxID_ANY" variable="StaticText4" member="no">
-													<label>Layout Mode:</label>
+													<label>Default Layout Mode:</label>
 												</object>
 												<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -101,14 +101,17 @@
 													<content>
 														<item>Grid as per preview</item>
 														<item>Minimal Grid</item>
-														<item>Horizontal per model</item>
-														<item>Vertical per model</item>
+														<item>Horizontal Per Model</item>
+														<item>Vertical Per Model</item>
+														<item>Horizontal Per Model/Strand</item>
+														<item>Vertical Per Model/Strand</item>
+														<item>Single Line</item>
 													</content>
 													<selection>0</selection>
 													<handler function="OnChoiceModelLayoutTypeSelect" entry="EVT_CHOICE" />
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -129,7 +132,7 @@
 												<option>1</option>
 											</object>
 										</object>
-										<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxALL|wxEXPAND</flag>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -157,12 +160,12 @@
 															<minsize>75,65d</minsize>
 															<style>wxLB_SORT|wxVSCROLL|wxHSCROLL</style>
 														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 												</object>
-												<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxEXPAND</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
@@ -240,17 +243,17 @@
 															<minsize>75,65d</minsize>
 															<style>wxVSCROLL|wxHSCROLL</style>
 														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 												</object>
-												<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxEXPAND</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 										</object>
-										<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxALL|wxEXPAND</flag>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -280,17 +283,17 @@
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>1</border>
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+				<flag>wxEXPAND</flag>
 			</object>
 		</object>
 	</object>
