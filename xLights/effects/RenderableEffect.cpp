@@ -132,13 +132,25 @@ bool RenderableEffect::needToAdjustSettings(const std::string &version) {
 // return true if version string is older than compare string
 bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::string& version)
 {
-    wxArrayString compare_parts = wxSplit(compare, '.');
-    wxArrayString version_parts = wxSplit(version, '.');
-    if( wxAtoi(version_parts[0]) < wxAtoi(compare_parts[0]) ) return true;
-    if( wxAtoi(version_parts[0]) > wxAtoi(compare_parts[0]) ) return false;
-    if( wxAtoi(version_parts[1]) < wxAtoi(compare_parts[1]) ) return true;
-    if( wxAtoi(version_parts[1]) > wxAtoi(compare_parts[1]) ) return false;
-    if( wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]) ) return true;
+	wxArrayString compare_parts = wxSplit(compare, '.');
+	wxArrayString version_parts = wxSplit(version, '.');
+	if (wxAtoi(version_parts[0]) < wxAtoi(compare_parts[0])) return true;
+	if (wxAtoi(version_parts[0]) > wxAtoi(compare_parts[0])) return false;
+	if (wxAtoi(version_parts[1]) < wxAtoi(compare_parts[1])) return true;
+	if (wxAtoi(version_parts[1]) > wxAtoi(compare_parts[1])) return false;
+	// From 2016 versions only have 2 parts
+	if (version_parts.Count() == 2 || compare_parts.Count() == 2)
+	{
+		if (version_parts.Count() > 2)
+		{
+			return true;
+		}
+		return false;
+	}
+	else
+	{
+		if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2])) return true;
+	}
     return false;
 }
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect) {
