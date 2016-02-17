@@ -9,8 +9,7 @@
 #include <math.h>
 #include "kiss_fft/tools/kiss_fftr.h"
 #ifdef __WXMSW__
-#include "wx/msw/debughlp.h"
-#include <windows.h>
+//#include "wx/msw/debughlp.h"
 //wxString s;
 //s.Printf("%f -> %f", val, db);
 //wxDbgHelpDLL::LogError(s);
@@ -74,13 +73,6 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 		int start = 65.0 * (1.0 / (float)_rate) * (float)n;
 		int end = 1046.0 * (1.0 / (float)_rate) * (float)n;
 
-		if (id == 253)
-		{
-			int a = 0;
-		}
-
-		//std::map<int, int> freq;
-
 		for (int i = start; i < end; i++)
 		{
 			float val = sqrtf((*(out + i)).r * (*(out + i)).r + (*(out + i)).i * (*(out + i)).i);
@@ -96,35 +88,7 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 			{
 				max = db;
 			}
-
-			//freq[(int)(db*100.0)]++;
 		}
-
-		//for (std::map<int, int>::iterator m = freq.begin(); m != freq.end(); ++m)
-		//{
-		//	wxString s;
-		//	s.Printf("%d,%f,%d", id, m->first/100.0, m->second);
-		//	wxDbgHelpDLL::LogError(s);
-		//}
-		// remove artifacts
-		//for (std::map<int, int>::iterator m = freq.begin(); m != freq.end(); ++m)
-		//{
-		//	if (m->first > 0)
-		//	{
-		//		if (m->second > 5)
-		//		{
-		//			for (std::list<float>::iterator it = res.begin(); it != res.end(); ++it)
-		//			{
-		//				if ((int)((*it)*10.0) == m->first)
-		//				{
-		//					*it = 0;
-		//				}
-		//			}
-		//			// only remove the first one that appears a lot
-		//			//break;
-		//		}
-		//	}
-		//}
 
 		free(out);
 	}
@@ -288,6 +252,7 @@ void AudioManager::DoPrepareFrameData()
 							{
 								*fr = *sub;
 							}
+							++sub;
 						}
 					}
 				}

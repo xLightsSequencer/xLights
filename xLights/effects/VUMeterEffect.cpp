@@ -16,8 +16,7 @@
 #include <algorithm>
 
 #ifdef __WXMSW__
-#include "wx/msw/debughlp.h"
-#include <windows.h>
+//#include "wx/msw/debughlp.h"
 //wxString s;
 //s.Printf("%f -> %f", val, db);
 //wxDbgHelpDLL::LogError(s);
@@ -76,7 +75,7 @@ void VUMeterEffect::SetDefaultParameters(Model *cls)
 }
 
 void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    Render(buffer,
+	Render(buffer,
            SettingsMap.GetInt("TEXTCTRL_VUMeter_Bars", 6),
 		   SettingsMap.Get("CHOICE_VUMeter_Type", "Waveform"),
 		   SettingsMap.Get("CHOICE_VUMeter_TimingTrack", ""),
@@ -296,11 +295,6 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 		int per = pdata->size() / usebars;
 		int cols = buffer.BufferWi / usebars;
 
-		if (buffer.curPeriod == 253)
-		{
-			int a = 0;
-		}
-
 		std::list<float>::iterator it = lastvalues.begin();
 		int x = 0;
 
@@ -318,14 +312,14 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 			}
 			for (int k = 0; k < cols; k++)
 			{
-				wxString s;
-				s.Printf("%d,%d,%f", buffer.curPeriod, j, f);
-				wxDbgHelpDLL::LogError(s);
 				for (int y = 0; y < buffer.BufferHt; y++)
 				{
-					if (y < buffer.BufferHt * f)
+					int colheight = buffer.BufferHt * f;
+					if (y < colheight)
 					{
 						xlColor color1;
+						// an alternate colouring
+						//buffer.GetMultiColorBlend((double)y / (double)colheight, false, color1);
 						buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
 						buffer.SetPixel(x, y, color1);
 					}
@@ -357,9 +351,11 @@ void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars)
 			}
 			for (int j = 0; j < cols; j++)
 			{
-				for (int y = 0; y < buffer.BufferHt * f; y++)
+				int colheight = buffer.BufferHt * f;
+				for (int y = 0; y < colheight; y++)
 				{
 					xlColor color1;
+					//buffer.GetMultiColorBlend((double)y / (double)colheight, false, color1);
 					buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
 					buffer.SetPixel(x, y, color1);
 				}
@@ -409,6 +405,7 @@ void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars)
 				for (int y = s; y < e; y++)
 				{
 					xlColor color1;
+					//buffer.GetMultiColorBlend((double)y / (double)e, false, color1);
 					buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
 					buffer.SetPixel(x, y, color1);
 				}
