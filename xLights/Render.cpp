@@ -156,13 +156,13 @@ public:
 
 class RenderJob: public Job, public NextRenderer {
 public:
-    RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, AudioManager* audio, bool zeroBased = false, bool clear = false)
+    RenderJob(Element *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe) {
         if (row != NULL) {
             name = row->GetName();
             mainBuffer = new PixelBufferClass();
             Model *model = xframe->GetModel(name);
-            if (xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), audio, zeroBased)) {
+            if (xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), zeroBased)) {
 
                 for (int x = 0; x < row->getStrandLayerCount(); x++) {
                     StrandLayer *sl = row->GetStrandLayer(x);
@@ -734,7 +734,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
     if( el->GetType() != "timing") {
-        job = new RenderJob(el, SeqData, this, CurrentSeqXmlFile->GetMedia(), false, clear);
+        job = new RenderJob(el, SeqData, this, false, clear);
         if (job->getBuffer() == nullptr) {
             delete job;
             return;

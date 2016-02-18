@@ -95,7 +95,6 @@ private:
     int frameTimeInMs;
 
     int CurrentLayer;
-	AudioManager* _audio;
 
     void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers);
     xlColor mixColors(const wxCoord &x, const wxCoord &y, const xlColor &c0, const xlColor &c1, int layer);
@@ -123,7 +122,7 @@ public:
     
     RenderBuffer &BufferForLayer(int i);
     
-    void InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, AudioManager* audio, bool zeroBased=false);
+    void InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased=false);
     void InitStrandBuffer(const Model &pbc, int strand, int timing);
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
     

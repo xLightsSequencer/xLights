@@ -28,6 +28,8 @@
 #endif
 #include "RenderBuffer.h"
 #include "sequencer/Effect.h"
+#include "xLightsMain.h"
+#include "xLightsXmlFile.h"
 
 EffectRenderCache::EffectRenderCache() {}
 EffectRenderCache::~EffectRenderCache() {}
@@ -42,7 +44,7 @@ inline void unshare(wxObject &o) {
 
 AudioManager* RenderBuffer::GetMedia()
 {
-	return _audio;
+	return xLightsFrame::CurrentSeqXmlFile->GetMedia();
 }
 
 DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(wxNullBitmap)
@@ -307,9 +309,8 @@ RenderBuffer::~RenderBuffer()
     }
 }
 
-void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, AudioManager* audio)
+void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi)
 {
-	_audio = audio;
     BufferHt=newBufferHt;
     BufferWi=newBufferWi;
     drawingContext = new DrawingContext(newBufferWi, newBufferHt);

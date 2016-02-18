@@ -278,6 +278,7 @@
     <ClCompile Include="models\ArchesModel.cpp" />
     <ClCompile Include="models\CircleModel.cpp" />
     <ClCompile Include="models\CustomModel.cpp" />
+    <ClCompile Include="models\MatrixModel.cpp" />
     <ClCompile Include="models\Model.cpp" />
     <ClCompile Include="models\ModelGroup.cpp" />
     <ClCompile Include="models\ModelManager.cpp" />

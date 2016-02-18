@@ -30,7 +30,6 @@
 
 PixelBufferClass::PixelBufferClass() {
     numLayers = 0;
-	_audio = nullptr;
     zbModel = nullptr;
 }
 
@@ -60,13 +59,12 @@ void PixelBufferClass::reset(int nlayers, int timing) {
         model->InitRenderBufferNodes("Default", "None", layers[x]->Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
         layers[x]->bufferType = "Default";
         layers[x]->bufferType = "None";
-        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, _audio);
+        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi);
     }
 }
 
 
-void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, AudioManager* audio, bool zeroBased) {
-	_audio = audio;
+void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased) {
 	modelName = pbc.name;
     if (zeroBased) {
         zbModel = ModelManager::CreateModel(pbc.GetModelXml(), netInfo, zeroBased);
@@ -445,7 +443,7 @@ void PixelBufferClass::SetBufferType(int layer, const std::string &type, const s
         model->InitRenderBufferNodes(type, transform, layers[layer]->Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
         layers[layer]->bufferType = type;
         layers[layer]->bufferTransform = transform;
-        layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi, _audio);
+        layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi);
     }
 }
 

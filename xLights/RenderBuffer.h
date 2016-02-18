@@ -38,7 +38,6 @@
 #include "../include/globals.h"
 
 #include "Color.h"
-#include "AudioManager.h"
 
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
@@ -57,6 +56,7 @@
 #include <vector>
 #define wxPoint_  long //std::pair<int, int> //kludge: wxPoint doesn't work with std::hash_map, so use equiv sttr
 
+class AudioManager;
 
 // eventually this will go in some header..
 // the idea is to define this (currently) for the MS compiler
@@ -165,7 +165,7 @@ class NCCDLLEXPORT RenderBuffer {
 public:
     RenderBuffer();
     ~RenderBuffer();
-    void InitBuffer(int newBufferHt, int newBufferWi, AudioManager* audio);
+    void InitBuffer(int newBufferHt, int newBufferWi);
     void SetFadeTimes(float fadeIn, float fadeOut);
     void GetFadeSteps(int& fadeInSteps, int& fadeOutSteps);
 	AudioManager* GetMedia();
@@ -256,7 +256,6 @@ public:
     bool needToInit;
     bool allowAlpha;
     bool InhibitClear;
-	AudioManager* _audio;
 
     /* Places to store and data that is needed from one frame to another */
     std::map<int, EffectRenderCache*> infoCache;

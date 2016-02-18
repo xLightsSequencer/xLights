@@ -1396,7 +1396,7 @@ private:
 
 
 public:
-    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, AudioManager* audio, bool zeroBased = false);
+    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     Model *GetModel(const std::string& name);
     void RenderGridToSeqData();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,

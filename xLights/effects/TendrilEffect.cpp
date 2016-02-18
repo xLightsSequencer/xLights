@@ -4,6 +4,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../AudioManager.h"
 
 #include <wx/graphics.h>
 #if wxUSE_GRAPHICS_CONTEXT == 0

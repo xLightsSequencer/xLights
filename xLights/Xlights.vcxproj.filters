@@ -690,6 +690,9 @@
     <ClCompile Include="kiss_fft\kiss_fft.c">
       <Filter>Source Files\kiss_fft</Filter>
     </ClCompile>
+    <ClCompile Include="models\MatrixModel.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">

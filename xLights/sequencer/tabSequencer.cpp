@@ -127,12 +127,12 @@ Model *xLightsFrame::GetModel(const std::string& name) {
     return AllModels[name];
 }
 
-bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, AudioManager* audio, bool zeroBased) {
+bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
     Model *model = GetModel(modelName);
     if (model == nullptr || model->GetModelXml() == nullptr) {
         return false;
     }
-    buffer.InitBuffer(*model, layerCount, SeqData.FrameTime(), NetInfo, audio, zeroBased);
+    buffer.InitBuffer(*model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
     return true;
 }
 
