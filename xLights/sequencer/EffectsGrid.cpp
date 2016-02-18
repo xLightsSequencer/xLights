@@ -956,7 +956,7 @@ void EffectsGrid::Resize(int position, bool offset)
 void EffectsGrid::MoveSelectedEffectUp(bool shift)
 {
     bool moved = false;
-    if( !MultipleEffectsSelected() && mSelectedEffect != nullptr )
+    if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow >= 0)
     {
         Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         int row = mSelectedRow-1;
@@ -1014,7 +1014,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
 {
     bool moved = false;
     int first_row = mSequenceElements->GetFirstVisibleModelRow();
-    if( !MultipleEffectsSelected() && mSelectedEffect != nullptr )
+    if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow >= 0)
     {
         Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         int row = mSelectedRow+1;

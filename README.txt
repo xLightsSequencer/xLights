@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug (gil)  Fix crash if down arrow is hit on a timing track.
     -- bug (keithsw) Fix crash if two 2016 versions are compared
     -- regr(dkulp) If media from XML doesn't exist but is in the Media directory, use it from there.
     -- bug (keithsw) Fix false positive VBR file detection
