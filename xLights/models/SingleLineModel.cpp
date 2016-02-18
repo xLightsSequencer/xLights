@@ -1,5 +1,9 @@
 #include "SingleLineModel.h"
 
+
+std::vector<std::string> SingleLineModel::LINE_BUFFER_STYLES;
+
+
 SingleLineModel::SingleLineModel() {
     parm1 = parm2 = parm3 = 0;
 }
@@ -11,8 +15,9 @@ SingleLineModel::SingleLineModel(int lights, const Model &pbc, int strand, int n
 {
     Reset(lights, pbc, strand, node);
 }
-void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node)
+void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, bool forceDirection)
 {
+    Nodes.clear();
     parm1 = lights;
     parm2 = 1;
     parm3 = 1;
@@ -24,6 +29,17 @@ void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node)
     IsLtoR = pbc.GetIsLtoR();
     customColor = pbc.customColor;
     
+    bool flip = false;
+    if (forceDirection) {
+        int sn = pbc.GetNodeStringNumber(pbc.MapToNodeIndex(strand, 0));
+        for (int s = strand - 1; s >= 0; s--) {
+            if (pbc.GetNodeStringNumber(pbc.MapToNodeIndex(s, 0)) == sn) {
+                flip = !flip;
+            } else {
+                break;
+            }
+        }
+    }
     stringStartChan.resize(lights);
     if (node == -1) {
         for (int x = 0; x < lights; x++) {
@@ -33,11 +49,37 @@ void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node)
         stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, node));
     }
     InitModel();
+    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+        (*it)->model = &pbc;
+    }
+    if (flip) {
+        int l = 0;
+        int r = Nodes.size() - 1;
+        while (l < r) {
+            Nodes[l].swap(Nodes[r]);
+            l++;
+            r--;
+        }
+    }
 }
 
 SingleLineModel::~SingleLineModel()
 {
     //dtor
+}
+
+const std::vector<std::string> &SingleLineModel::GetBufferStyles() const {
+    struct Initializer {
+        Initializer() {
+            LINE_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
+            auto it = std::find(LINE_BUFFER_STYLES.begin(), LINE_BUFFER_STYLES.end(), "Single Line");
+            if (it != LINE_BUFFER_STYLES.end()) {
+                LINE_BUFFER_STYLES.erase(it);
+            }
+        }
+    };
+    static Initializer ListInitializationGuard;
+    return LINE_BUFFER_STYLES;
 }
 
 

@@ -1,10 +1,10 @@
 #ifndef TREEMODEL_H
 #define TREEMODEL_H
 
-#include "Model.h"
+#include "MatrixModel.h"
 
 
-class TreeModel : public Model
+class TreeModel : public MatrixModel
 {
     public:
         TreeModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

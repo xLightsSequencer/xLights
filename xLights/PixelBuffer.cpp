@@ -57,8 +57,9 @@ void PixelBufferClass::reset(int nlayers, int timing) {
     for (int x = 0; x < numLayers; x++) {
         layers[x] = new LayerInfo();
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
-        model->InitRenderBufferNodes("Default", layers[x]->Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
+        model->InitRenderBufferNodes("Default", "None", layers[x]->Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
         layers[x]->bufferType = "Default";
+        layers[x]->bufferType = "None";
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, _audio);
     }
 }
@@ -438,11 +439,12 @@ void PixelBufferClass::SetMixThreshold(int layer, int value, bool varies) {
     layers[layer]->effectMixThreshold = (float)value/100.0;
     layers[layer]->effectMixVaries = varies;
 }
-void PixelBufferClass::SetBufferType(int layer, const std::string &type) {
-    if (layers[layer]->bufferType != type) {
+void PixelBufferClass::SetBufferType(int layer, const std::string &type, const std::string &transform) {
+    if (layers[layer]->bufferType != type || layers[layer]->bufferTransform != transform) {
         layers[layer]->Nodes.clear();
-        model->InitRenderBufferNodes(type, layers[layer]->Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
+        model->InitRenderBufferNodes(type, transform, layers[layer]->Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
         layers[layer]->bufferType = type;
+        layers[layer]->bufferTransform = transform;
         layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi, _audio);
     }
 }

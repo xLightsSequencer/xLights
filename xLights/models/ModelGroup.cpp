@@ -7,7 +7,33 @@
 #include "SingleLineModel.h"
 
 
+static const std::string HORIZ_PER_MODEL("Horizontal Per Model");
+static const std::string VERT_PER_MODEL("Vertical Per Model");
+static const std::string HORIZ_PER_MODELSTRAND("Horizontal Per Model/Strand");
+static const std::string VERT_PER_MODELSTRAND("Vertical Per Model/Strand");
+static const std::string OVERLAY_CENTER("Overlay - Centered");
+static const std::string OVERLAY_SCALED("Overlay - Scaled");
+static const std::string SINGLE_LINE("Single Line");
+
+
 std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
+const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
+    struct Initializer {
+        Initializer() {
+            GROUP_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
+            GROUP_BUFFER_STYLES.push_back(HORIZ_PER_MODEL);
+            GROUP_BUFFER_STYLES.push_back(VERT_PER_MODEL);
+            GROUP_BUFFER_STYLES.push_back(HORIZ_PER_MODELSTRAND);
+            GROUP_BUFFER_STYLES.push_back(VERT_PER_MODELSTRAND);
+            GROUP_BUFFER_STYLES.push_back(OVERLAY_CENTER);
+            GROUP_BUFFER_STYLES.push_back(OVERLAY_SCALED);
+        }
+    };
+    static Initializer ListInitializationGuard;
+    return GROUP_BUFFER_STYLES;
+}
+
+
 
 ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, int previewW, int previewH)
     : Model(), manager(m)
@@ -25,9 +51,9 @@ ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, 
     if (layout == "grid" || layout == "minimalGrid") {
         defaultBufferStyle = "Default";
     } else if (layout == "vertical") {
-        defaultBufferStyle = "Vertical Per Model";
+        defaultBufferStyle = VERT_PER_MODEL;
     } else if (layout == "horizontal") {
-        defaultBufferStyle = "Horizontal Per Model";
+        defaultBufferStyle = HORIZ_PER_MODEL;
     }
 
     
@@ -41,7 +67,7 @@ ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, 
             
             
             int bw, bh;
-            c->InitRenderBufferNodes("Per Preview No Offset", Nodes, bw, bh);
+            c->InitRenderBufferNodes("Per Preview No Offset", "None", Nodes, bw, bh);
         }
     }
     
@@ -126,22 +152,9 @@ ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, 
 ModelGroup::~ModelGroup()
 {
 }
-const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
-    struct Initializer {
-        Initializer() {
-            GROUP_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
-            GROUP_BUFFER_STYLES.push_back("Horizontal Per Model");
-            GROUP_BUFFER_STYLES.push_back("Vertical Per Model");
-            GROUP_BUFFER_STYLES.push_back("Horizontal Per Model/Strand");
-            GROUP_BUFFER_STYLES.push_back("Vertical Per Model/Strand");
-        }
-    };
-    static Initializer ListInitializationGuard;
-    return GROUP_BUFFER_STYLES;
-}
 
 
-void ModelGroup::GetBufferSize(const std::string &tp, int &BufferWi, int &BufferHi) const {
+void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transform, int &BufferWi, int &BufferHi) const {
     std::string type = tp;
     if (type == "Default") {
         type = defaultBufferStyle;
@@ -151,6 +164,9 @@ void ModelGroup::GetBufferSize(const std::string &tp, int &BufferWi, int &Buffer
     int maxStrandLen = 0;
     int maxNodes = 0;
     int total = 0;
+    
+    int maxWid = 0;
+    int maxHi = 0;
     for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
         Model* m = manager[*it];
         if (m != nullptr) {
@@ -165,41 +181,51 @@ void ModelGroup::GetBufferSize(const std::string &tp, int &BufferWi, int &Buffer
                     maxStrandLen = m->GetStrandLength(x);
                 }
             }
+            
+            maxWid = std::max(maxWid, m->GetDefaultBufferWi());
+            maxHi = std::max(maxHi, m->GetDefaultBufferHt());
         }
     }
-    if (type == "Horizontal Per Model") {
+    if (type == HORIZ_PER_MODEL) {
         BufferWi = models;
         BufferHi = maxNodes;
-    } else if (type == "Vertical Per Model") {
+    } else if (type == VERT_PER_MODEL) {
         BufferHi = models;
         BufferWi = maxNodes;
-    } else if (type == "Horizontal Per Model/Strand") {
+    } else if (type == HORIZ_PER_MODELSTRAND) {
         BufferWi = strands;
         BufferHi = maxStrandLen;
-    } else if (type == "Vertical Per Model/Strand") {
+    } else if (type == VERT_PER_MODELSTRAND) {
         BufferHi = strands;
         BufferWi = maxStrandLen;
-    } else if (type == "Single Line") {
+    } else if (type == SINGLE_LINE) {
         BufferHi = 1;
         BufferWi = total;
+    } else if (type == OVERLAY_CENTER || type == OVERLAY_SCALED) {
+        BufferHi = maxHi;
+        BufferWi = maxWid;
     } else {
-        Model::GetBufferSize(type, BufferWi, BufferHi);
+        Model::GetBufferSize(type, "None", BufferWi, BufferHi);
     }
+    AdjustForTransform(transform, BufferWi, BufferHi);
 }
-void ModelGroup::InitRenderBufferNodes(const std::string &tp, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const {
+void ModelGroup::InitRenderBufferNodes(const std::string &tp,
+                                       const std::string &transform,
+                                       std::vector<NodeBaseClassPtr> &Nodes,
+                                       int &BufferWi, int &BufferHi) const {
     std::string type = tp;
     if (type == "Default") {
         type = defaultBufferStyle;
     }
     BufferWi = BufferHi = 0;
 
-    if (type == "Horizontal Per Model") {
+    if (type == HORIZ_PER_MODEL) {
         for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
             Model* m = manager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
-                m->InitRenderBufferNodes("Default", Nodes, x, y);
+                m->InitRenderBufferNodes("Default", "None", Nodes, x, y);
                 y = 0;
                 while (start < Nodes.size()) {
                     for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
@@ -215,13 +241,14 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp, std::vector<NodeBa
                 BufferWi++;
             }
         }
-    } else if (type == "Vertical Per Model") {
+        ApplyTransform(transform, Nodes, BufferWi, BufferHi);
+    } else if (type == VERT_PER_MODEL) {
         for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
             Model* m = manager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
-                m->InitRenderBufferNodes("Default", Nodes, x, y);
+                m->InitRenderBufferNodes("Default", "None", Nodes, x, y);
                 y = 0;
                 while (start < Nodes.size()) {
                     for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
@@ -237,9 +264,10 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp, std::vector<NodeBa
                 BufferHi++;
             }
         }
-    } else if (type == "Horizontal Per Model/Strand" || type == "Vertical Per Model/Strand") {
-        GetBufferSize(type, BufferWi, BufferHi);
-        bool horiz = type == "Horizontal Per Model/Strand";
+        ApplyTransform(transform, Nodes, BufferWi, BufferHi);
+    } else if (type == HORIZ_PER_MODELSTRAND || type == VERT_PER_MODELSTRAND) {
+        GetBufferSize(type, "None", BufferWi, BufferHi);
+        bool horiz = type == HORIZ_PER_MODELSTRAND;
         int curS = 0;
         double maxSL = BufferWi;
         if (horiz) {
@@ -251,10 +279,10 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp, std::vector<NodeBa
                 SingleLineModel slm;
                 for (int strand = 0; strand < m->GetNumStrands(); strand++) {
                     int slen = m->GetStrandLength(strand);
-                    slm.Reset(slen, *m, strand);
+                    slm.Reset(slen, *m, strand, -1, true);
                     int start = Nodes.size();
                     int x, y;
-                    slm.InitRenderBufferNodes("Default", Nodes, x, y);
+                    slm.InitRenderBufferNodes("Default", "None", Nodes, x, y);
                     y = 0;
                     while (start < Nodes.size()) {
                         for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
@@ -274,7 +302,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp, std::vector<NodeBa
                 }
             }
         }
-    } else if (type == "Single Line") {
+        ApplyTransform(transform, Nodes, BufferWi, BufferHi);
+    } else if (type == SINGLE_LINE) {
         BufferHi = 1;
         BufferWi = 0;
         for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
@@ -282,7 +311,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp, std::vector<NodeBa
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
-                m->InitRenderBufferNodes("Single Line", Nodes, x, y);
+                m->InitRenderBufferNodes("Single Line", "None", Nodes, x, y);
                 while (start < Nodes.size()) {
                     for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
                         it->bufX = BufferWi;
@@ -293,7 +322,36 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp, std::vector<NodeBa
                 }
             }
         }
+        ApplyTransform(transform, Nodes, BufferWi, BufferHi);
+    } else if (type == OVERLAY_CENTER || type == OVERLAY_SCALED) {
+        bool scale = type == OVERLAY_SCALED;
+        GetBufferSize(type, "None", BufferWi, BufferHi);
+        for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
+            Model* m = manager[*it];
+            if (m != nullptr) {
+                int start = Nodes.size();
+                int bw, bh;
+                m->InitRenderBufferNodes("Default", "None", Nodes, bw, bh);
+                if (bw != BufferWi || bh != BufferHi) {
+                    //need to either scale or center
+                    int offx = (BufferWi - bw)/2;
+                    int offy = (BufferHi - bh)/2;
+                    while (start < Nodes.size()) {
+                        for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
+                            if (scale) {
+                                it->bufX = it->bufX * (BufferWi/bw);
+                                it->bufY = it->bufY * (BufferHi/bh);
+                            } else {
+                                it->bufX += offx;
+                                it->bufY += offy;
+                            }
+                        }
+                        start++;
+                    }
+                }
+            }
+        }
     } else {
-        Model::InitRenderBufferNodes(type, Nodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, transform, Nodes, BufferWi, BufferHi);
     }
 }

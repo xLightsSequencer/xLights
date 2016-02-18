@@ -25,8 +25,7 @@ inline long toDegrees(double radians) {
     return (radians/(2*M_PI))*360.0;
 }
 
-const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Preview", "Rotate CC 90",
-    "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal", "Single Line"};
+const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Preview", "Single Line"};
 
 Model::Model() : modelDimmingCurve(nullptr), isMyDisplay(false), ModelXml(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
@@ -52,18 +51,8 @@ void Model::SetMyDisplay(wxXmlNode* ModelNode,bool NewValue)
 }
 
 int Model::GetNumStrands() const {
-    wxStringTokenizer tkz(DisplayAs, " ");
-    wxString token = tkz.GetNextToken();
-    if (DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix")) {
-        if (SingleChannel) {
-            return 1;
-        }
-        return parm1*parm3;
-    } else
-        return 1;
+    return 1;
 }
-
-
 
 wxXmlNode* Model::GetModelXml() const {
     return this->ModelXml;
@@ -83,8 +72,6 @@ int Model::GetNumberFromChannelString(std::string sc) {
 }
 
 void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool zb) {
-
-
     wxString tempstr,channelstr;
     long degrees, StartChannel;
 
@@ -278,20 +265,6 @@ void Model::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int Star
 }
 
 void Model::InitModel() {
-    // initialize model based on the DisplayAs value
-    wxStringTokenizer tkz(DisplayAs, " ");
-    wxString token = tkz.GetNextToken();
-    if (DisplayAs == "Vert Matrix") {
-        InitVMatrix();
-        CopyBufCoord2ScreenCoord();
-    } else if (DisplayAs == "Horiz Matrix") {
-        InitHMatrix();
-        CopyBufCoord2ScreenCoord();
-    } else {
-        wxMessageBox(DisplayAs + " is not a valid model type for model " + name);
-        DisplayAs = "Vert Matrix";
-        InitVMatrix();  //init something to avoid some crashes
-    }
 }
 
 
@@ -348,125 +321,6 @@ void Model::GetScales(double &x, double &y) {
 int Model::GetPreviewRotation() {
     return PreviewRotation;
 }
-// initialize buffer coordinates
-// parm1=NumStrings
-// parm2=PixelsPerString
-// parm3=StrandsPerString
-void Model::InitVMatrix(int firstExportStrand) {
-    int y,x,idx,stringnum,segmentnum,yincr;
-    if (parm3 > parm2) {
-        parm3 = parm2;
-    }
-    int NumStrands=parm1*parm3;
-    int PixelsPerStrand=parm2/parm3;
-    int PixelsPerString=PixelsPerStrand*parm3;
-    SetBufferSize(PixelsPerStrand,NumStrands);
-    SetNodeCount(parm1,PixelsPerString, rgbOrder);
-    SetRenderSize(PixelsPerStrand,NumStrands);
-
-    // create output mapping
-    if (SingleNode) {
-        x=0;
-        for (size_t n=0; n<Nodes.size(); n++) {
-            Nodes[n]->ActChan = stringStartChan[n];
-            y=0;
-            yincr=1;
-            for (size_t c=0; c<PixelsPerString; c++) {
-                Nodes[n]->Coords[c].bufX=IsLtoR ? x : NumStrands-x-1;
-                Nodes[n]->Coords[c].bufY=y;
-                y+=yincr;
-                if (y < 0 || y >= PixelsPerStrand) {
-                    yincr=-yincr;
-                    y+=yincr;
-                    x++;
-                }
-            }
-        }
-    } else {
-        std::vector<int> strandStartChan;
-        strandStartChan.clear();
-        strandStartChan.resize(NumStrands);
-        for (int x = 0; x < NumStrands; x++) {
-            stringnum = x / parm3;
-            segmentnum = x % parm3;
-            strandStartChan[x] = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * 3;
-        }
-        if (firstExportStrand > 0 && firstExportStrand < NumStrands) {
-            int offset = strandStartChan[firstExportStrand];
-            for (int x = 0; x < NumStrands; x++) {
-                strandStartChan[x] = strandStartChan[x] - offset;
-                if (strandStartChan[x] < 0) {
-                    strandStartChan[x] += (PixelsPerStrand * NumStrands * 3);
-                }
-            }
-        }
-
-        for (x=0; x < NumStrands; x++) {
-            stringnum = x / parm3;
-            segmentnum = x % parm3;
-            for(y=0; y < PixelsPerStrand; y++) {
-                idx=stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
-                Nodes[idx]->ActChan = strandStartChan[x] + y*3;
-                Nodes[idx]->Coords[0].bufX=IsLtoR ? x : NumStrands-x-1;
-                Nodes[idx]->Coords[0].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
-                Nodes[idx]->StringNum=stringnum;
-            }
-        }
-    }
-}
-
-
-// initialize buffer coordinates
-// parm1=NumStrings
-// parm2=PixelsPerString
-// parm3=StrandsPerString
-void Model::InitHMatrix() {
-    int y,x,idx,stringnum,segmentnum,xincr;
-    if (parm3 > parm2) {
-        parm3 = parm2;
-    }
-    int NumStrands=parm1*parm3;
-    int PixelsPerStrand=parm2/parm3;
-    int PixelsPerString=PixelsPerStrand*parm3;
-    SetBufferSize(NumStrands,PixelsPerStrand);
-    SetNodeCount(parm1,PixelsPerString,rgbOrder);
-    SetRenderSize(NumStrands,PixelsPerStrand);
-
-    // create output mapping
-    if (SingleNode) {
-        y=0;
-        for (size_t n=0; n<Nodes.size(); n++) {
-            Nodes[n]->ActChan = stringStartChan[n];
-            x=0;
-            xincr=1;
-            for (size_t c=0; c<PixelsPerString; c++) {
-                Nodes[n]->Coords[c].bufX=x;
-                Nodes[n]->Coords[c].bufY=isBotToTop ? y :NumStrands-y-1;
-                x+=xincr;
-                if (x < 0 || x >= PixelsPerStrand) {
-                    xincr=-xincr;
-                    x+=xincr;
-                    y++;
-                }
-            }
-        }
-    } else {
-        for (y=0; y < NumStrands; y++) {
-            stringnum=y / parm3;
-            segmentnum=y % parm3;
-            for(x=0; x<PixelsPerStrand; x++) {
-                idx=stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
-                Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + x*3;
-                Nodes[idx]->Coords[0].bufX=IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand-x-1 : x;
-                Nodes[idx]->Coords[0].bufY= isBotToTop ? y :NumStrands-y-1;
-                Nodes[idx]->StringNum=stringnum;
-            }
-        }
-    }
-}
-
-
-
 
 // initialize screen coordinates
 // parm1=Number of Strings/Arches
@@ -541,10 +395,10 @@ NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t N
 }
 
 
-void Model::GetBufferSize(const std::string &type, int &bufferWi, int &bufferHi) const {
-    if (type == "Rotate CC 90" || type == "Rotate CW 90") {
-        bufferHi = this->BufferWi;
-        bufferWi = this->BufferHt;
+void Model::GetBufferSize(const std::string &type, const std::string &transform, int &bufferWi, int &bufferHi) const {
+    if (type == "Default") {
+        bufferHi = this->BufferHt;
+        bufferWi = this->BufferWi;
     } else if (type == "Single Line") {
         bufferHi = 1;
         bufferWi = Nodes.size();
@@ -552,7 +406,16 @@ void Model::GetBufferSize(const std::string &type, int &bufferWi, int &bufferHi)
         //if (type == "Per Preview") {
         //default is to go ahead and build the full node buffer
         std::vector<NodeBaseClassPtr> newNodes;
-        InitRenderBufferNodes(type, newNodes, bufferWi, bufferHi);
+        InitRenderBufferNodes(type, "None", newNodes, bufferWi, bufferHi);
+    }
+    AdjustForTransform(transform, bufferWi, bufferHi);
+}
+void Model::AdjustForTransform(const std::string &transform,
+                               int &bufferWi, int &bufferHi) const {
+    if (transform == "Rotate CC 90" || transform == "Rotate CW 90") {
+        int x = bufferHi;
+        bufferHi = bufferWi;
+        bufferWi = x;
     }
 }
 
@@ -560,8 +423,54 @@ static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y) {
     it2.bufX = x;
     it2.bufY = y;
 }
+void Model::ApplyTransform(const std::string &type,
+                    std::vector<NodeBaseClassPtr> &newNodes,
+                    int &bufferWi, int &bufferHi) const {
+    //"Rotate CC 90", "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal",
+    if (type == "None") {
+        return;
+    } else if (type == "Rotate 180") {
+        for (int x = 0; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+                SetCoords(*it2, bufferWi - it2->bufX - 1, bufferHi - it2->bufY - 1);
+            }
+        }
+    } else if (type == "Flip Vertical") {
+        for (int x = 0; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+                SetCoords(*it2, it2->bufX, bufferHi - it2->bufY - 1);
+            }
+        }
+    } else if (type == "Flip Horizontal") {
+        for (int x = 0; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+                SetCoords(*it2, bufferWi - it2->bufX - 1, it2->bufY);
+            }
+        }
+    } else if (type == "Rotate CW 90") {
+        for (int x = 0; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+                SetCoords(*it2, bufferHi - it2->bufY - 1, it2->bufX);
+            }
+        }
+        int tmp = bufferHi;
+        bufferHi = bufferWi;
+        bufferWi = tmp;
+    } else if (type == "Rotate CC 90") {
+        for (int x = 0; x < newNodes.size(); x++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+                SetCoords(*it2, it2->bufY, bufferWi - it2->bufX - 1);
+            }
+        }
+        int tmp = bufferHi;
+        bufferHi = bufferWi;
+        bufferWi = tmp;
+    }
+}
 
-void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) const {
+void Model::InitRenderBufferNodes(const std::string &type,
+                                  const std::string &transform,
+                                  std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) const {
     int firstNode = newNodes.size();
     for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
         newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
@@ -569,46 +478,6 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
     if (type == "Default") {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
-    } else if (type == "Rotate 180") {
-        bufferHi = this->BufferHt;
-        bufferWi = this->BufferWi;
-        for (int x = firstNode; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
-                SetCoords(*it2, bufferWi - it2->bufX - 1, bufferHi - it2->bufY - 1);
-            }
-        }
-    } else if (type == "Flip Vertical") {
-        bufferHi = this->BufferHt;
-        bufferWi = this->BufferWi;
-        for (int x = firstNode; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
-                SetCoords(*it2, it2->bufX, bufferHi - it2->bufY - 1);
-            }
-        }
-    } else if (type == "Flip Horizontal") {
-        bufferHi = this->BufferHt;
-        bufferWi = this->BufferWi;
-        for (int x = firstNode; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
-                SetCoords(*it2, bufferWi - it2->bufX - 1, it2->bufY);
-            }
-        }
-    } else if (type == "Rotate CC 90") {
-        bufferHi = this->BufferWi;
-        bufferWi = this->BufferHt;
-        for (int x = firstNode; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
-                SetCoords(*it2, this->BufferHt - it2->bufY - 1, it2->bufX);
-            }
-        }
-    } else if (type == "Rotate CW 90") {
-        bufferHi = this->BufferWi;
-        bufferWi = this->BufferHt;
-        for (int x = firstNode; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
-                SetCoords(*it2, it2->bufY, this->BufferWi - it2->bufX - 1);
-            }
-        }
     } else if (type == "Single Line") {
         bufferHi = 1;
         bufferWi = newNodes.size();
@@ -694,6 +563,7 @@ void Model::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseC
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
     }
+    ApplyTransform(transform, newNodes, bufferWi, bufferHi);
 }
 
 
@@ -823,8 +693,11 @@ int Model::GetChanCountPerNode() const {
     }
     return Nodes[0]->GetChanCount();
 }
-size_t Model::GetCoordCount(size_t nodenum) {
+size_t Model::GetCoordCount(size_t nodenum) const {
     return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
+}
+int Model::GetNodeStringNumber(size_t nodenum) const {
+    return nodenum < Nodes.size() ? Nodes[nodenum]->StringNum : 0;
 }
 
 void Model::GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts) {

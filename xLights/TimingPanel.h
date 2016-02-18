@@ -33,6 +33,7 @@ class TimingPanel: public wxPanel
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Fadein;
 		wxTextCtrl* txtCtlEffectMix;
+		wxChoice* BufferTransform;
 		wxBitmapButton* BitmapButton_FadeIn;
 		wxCheckBox* CheckBox_OverlayBkg;
 		wxCheckBox* CheckBox_LayerMorph;
@@ -59,6 +60,8 @@ class TimingPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
 		static const long ID_CHOICE_BufferStyle;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferStyle;
+		static const long ID_CHOICE_BufferTransform;
+		static const long ID_BITMAPBUTTON_CHOICE_BufferTransform;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL_Fadein;
 		static const long ID_BITMAPBUTTON_TEXTCTRL_Fadein;

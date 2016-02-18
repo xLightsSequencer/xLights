@@ -22,6 +22,8 @@ const long TimingPanel::ID_TEXTCTRL_LayerMix = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_SLIDER_EffectLayerMix = wxNewId();
 const long TimingPanel::ID_CHOICE_BufferStyle = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_CHOICE_BufferStyle = wxNewId();
+const long TimingPanel::ID_CHOICE_BufferTransform = wxNewId();
+const long TimingPanel::ID_BITMAPBUTTON_CHOICE_BufferTransform = wxNewId();
 const long TimingPanel::ID_STATICTEXT2 = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadein = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_TEXTCTRL_Fadein = wxNewId();
@@ -46,9 +48,11 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
+	wxStaticText* StaticText1;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText4;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxBitmapButton* BitmapButton1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(778,707), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -100,22 +104,32 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButton_EffectLayerMix->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_EffectLayerMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText4 = new wxStaticText(ScrolledWindowTiming, wxID_ANY, _("Buffer Style"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	StaticText4 = new wxStaticText(ScrolledWindowTiming, wxID_ANY, _("Render Style"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	BufferStyleChoice = new wxChoice(ScrolledWindowTiming, ID_CHOICE_BufferStyle, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_BufferStyle"));
 	BufferStyleChoice->SetSelection( BufferStyleChoice->Append(_("Default")) );
 	BufferStyleChoice->Append(_("Per Preview"));
-	BufferStyleChoice->Append(_("Rotate Up 90"));
-	BufferStyleChoice->Append(_("Rotate Down 90"));
-	BufferStyleChoice->Append(_("Rotate 180"));
-	BufferStyleChoice->Append(_("Flip Vertical"));
-	BufferStyleChoice->Append(_("Flip Horizontal"));
 	FlexGridSizer2->Add(BufferStyleChoice, 1, wxALL|wxEXPAND, 2);
 	BitmapButtonBufferStyle = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_CHOICE_BufferStyle, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferStyle"));
 	BitmapButtonBufferStyle->SetDefault();
 	BitmapButtonBufferStyle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButtonBufferStyle->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButtonBufferStyle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(ScrolledWindowTiming, wxID_ANY, _("Transformation"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	BufferTransform = new wxChoice(ScrolledWindowTiming, ID_CHOICE_BufferTransform, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_BufferTransform"));
+	BufferTransform->SetSelection( BufferTransform->Append(_("None")) );
+	BufferTransform->Append(_("Rotate CC 90"));
+	BufferTransform->Append(_("Rotate CW 90"));
+	BufferTransform->Append(_("Rotate 180"));
+	BufferTransform->Append(_("Flip Vertical"));
+	BufferTransform->Append(_("Flip Horizontal"));
+	FlexGridSizer2->Add(BufferTransform, 1, wxALL|wxEXPAND, 2);
+	BitmapButton1 = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_CHOICE_BufferTransform, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferTransform"));
+	BitmapButton1->SetDefault();
+	BitmapButton1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton1->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
+	FlexGridSizer2->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT2, _("Fade In"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Fadein = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_Fadein, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadein"));
@@ -227,6 +241,7 @@ void TimingPanel::SetDefaultControls(const Model *model) {
         BufferStyleChoice->Append("Default");
     }
     BufferStyleChoice->SetSelection(0);
+    BufferTransform->SetSelection(0);
 }
 
 wxString TimingPanel::GetTimingString()
@@ -266,6 +281,11 @@ wxString TimingPanel::GetTimingString()
     if (BufferStyleChoice->GetSelection() != 0) {
         s += "T_CHOICE_BufferStyle=";
         s += BufferStyleChoice->GetStringSelection();
+        s += ",";
+    }
+    if (BufferTransform->GetSelection() != 0) {
+        s += "T_CHOICE_BufferTransform=";
+        s += BufferTransform->GetStringSelection();
         s += ",";
     }
     return s;

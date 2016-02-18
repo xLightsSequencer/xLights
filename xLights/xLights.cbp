@@ -733,6 +733,8 @@
 		<Unit filename="models/CircleModel.h" />
 		<Unit filename="models/CustomModel.cpp" />
 		<Unit filename="models/CustomModel.h" />
+		<Unit filename="models/MatrixModel.cpp" />
+		<Unit filename="models/MatrixModel.h" />
 		<Unit filename="models/Model.cpp" />
 		<Unit filename="models/Model.h" />
 		<Unit filename="models/ModelGroup.cpp" />

@@ -97,8 +97,7 @@ Model *ModelManager::CreateModel(wxXmlNode *node, const NetInfoClass &netInfo, b
     } else if (type == "WholeHouse") {
         model = new WholeHouseModel(node, netInfo, zeroBased);
     } else if (type == "Vert Matrix" || type == "Horiz Matrix") {
-        model = new Model();
-        model->SetFromXml(node, netInfo, zeroBased);
+        model = new MatrixModel(node, netInfo, zeroBased);
     } else {
         wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
         return nullptr;

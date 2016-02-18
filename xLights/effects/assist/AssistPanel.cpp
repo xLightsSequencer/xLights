@@ -98,7 +98,9 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
         mGridCanvas->SetModel(cls);
         
         int bw, bh;
-        cls->GetBufferSize(mEffect->GetSettings().Get("T_CHOICE_BufferStyle", "Default"), bw, bh);
+        cls->GetBufferSize(mEffect->GetSettings().Get("T_CHOICE_BufferStyle", "Default"),
+                           mEffect->GetSettings().Get("T_CHOICE_BufferTransform", "None"),
+                           bw, bh);
         
         mGridCanvas->SetNumColumns(bw);
         mGridCanvas->SetNumRows(bh);

@@ -15,9 +15,11 @@ class SingleLineModel : public Model
 
         void InitLine();
     
-        void Reset(int lights, const Model &base, int strand, int node = -1);
+        void Reset(int lights, const Model &base, int strand, int node = -1, bool forceDirection = false);
+        virtual const std::vector<std::string> &GetBufferStyles() const;
 
     protected:
+        static std::vector<std::string> LINE_BUFFER_STYLES;
         virtual void InitModel() override;
 
     private:

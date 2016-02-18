@@ -11,15 +11,17 @@ ArchesModel::~ArchesModel()
 {
 }
 
-void ArchesModel::GetBufferSize(const std::string &type, int &BufferWi, int &BufferHi) const {
+void ArchesModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = this->BufferWi * this->BufferHt;
+        AdjustForTransform(transform, BufferWi, BufferHi);
     } else {
-        Model::GetBufferSize(type, BufferWi, BufferHi);
+        Model::GetBufferSize(type, transform, BufferWi, BufferHi);
     }
 }
-void ArchesModel::InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
+void ArchesModel::InitRenderBufferNodes(const std::string &type,  const std::string &transform,
+                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = GetNodeCount();
@@ -38,8 +40,9 @@ void ArchesModel::InitRenderBufferNodes(const std::string &type, std::vector<Nod
                 cur++;
             }
         }
+        ApplyTransform(transform, newNodes, BufferWi, BufferHi);
     } else {
-        Model::InitRenderBufferNodes(type, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, transform, newNodes, BufferWi, BufferHi);
     }
 }
 

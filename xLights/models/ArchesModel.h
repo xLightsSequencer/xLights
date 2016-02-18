@@ -10,8 +10,10 @@ class ArchesModel : public Model
         ArchesModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
         virtual ~ArchesModel();
     
-        virtual void GetBufferSize(const std::string &type, int &BufferWi, int &BufferHi) const override;
-        virtual void InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+        virtual void GetBufferSize(const std::string &type, const std::string &transform,
+                                   int &BufferWi, int &BufferHi) const override;
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
     
     protected:
         virtual void InitModel() override;

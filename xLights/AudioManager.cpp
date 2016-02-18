@@ -705,11 +705,11 @@ bool AudioManager::CheckCBR()
 						bool ft = f & 0x10;
 						char sizess[4];
 						mp3file.Read(&sizess, 4);
-						DWORD size;
-						size = ((((DWORD)sizess[0]) & 0x7F) << 21) +
-							((((DWORD)sizess[1]) & 0x7F) << 14) +
-							((((DWORD)sizess[2]) & 0x7F) << 7) +
-							(((DWORD)sizess[3]) & 0x7F);
+						int32_t size;
+						size = ((((int32_t)sizess[0]) & 0x7F) << 21) +
+							((((int32_t)sizess[1]) & 0x7F) << 14) +
+							((((int32_t)sizess[2]) & 0x7F) << 7) +
+							(((int32_t)sizess[3]) & 0x7F);
 						mp3file.Seek(size, wxFromCurrent);
 					}
 					else

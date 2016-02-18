@@ -75,6 +75,7 @@ private:
         }
         RenderBuffer buffer;
         std::string bufferType;
+        std::string bufferTransform;
         int BufferHt;
         int BufferWi;
         std::vector<NodeBaseClassPtr> Nodes;
@@ -103,6 +104,7 @@ private:
     
     std::string modelName;
     std::string lastBufferType;
+    std::string lastBufferTransform;
     const Model *model;
     Model *zbModel;
     SingleLineModel ssModel;
@@ -136,7 +138,7 @@ public:
     void SetBrightness(int layer, int value);
     void SetContrast(int layer, int value);
     void SetMixThreshold(int layer, int value, bool varies);
-    void SetBufferType(int layer, const std::string &type);
+    void SetBufferType(int layer, const std::string &type, const std::string &transform);
 
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers);
     

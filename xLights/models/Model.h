@@ -31,13 +31,25 @@ public:
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
     
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
-    virtual void GetBufferSize(const std::string &type, int &BufferWi, int &BufferHi) const;
-    virtual void InitRenderBufferNodes(const std::string &type, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
+    virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const;
+    virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+                                       std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
     bool IsMyDisplay() { return isMyDisplay;}
 
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
+    
+    
+    virtual bool StrandsZigZagOnString() const { return false;};
+    int GetDefaultBufferWi() const {return BufferWi;}
+    int GetDefaultBufferHt() const {return BufferHt;}
 protected:
-    int BufferHt,BufferWi;  // size of the buffer
+    void ApplyTransform(const std::string &transform,
+                        std::vector<NodeBaseClassPtr> &Nodes,
+                        int &bufferWi, int &bufferHi) const;
+    void AdjustForTransform(const std::string &transform,
+                            int &bufferWi, int &bufferHi) const;
+    
+    int BufferHt,BufferWi;  // size of the default buffer
     std::vector<NodeBaseClassPtr> Nodes;
 
     
@@ -48,8 +60,6 @@ protected:
     virtual int CalcCannelsPerString();
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
 
-    void InitVMatrix(int firstExportStrand = 0);
-    void InitHMatrix();
     
     void SetBufferSize(int NewHt, int NewWi);
     void SetRenderSize(int NewHt, int NewWi);
@@ -110,7 +120,8 @@ public:
     size_t GetNodeCount() const;
     int GetChanCount() const;
     int GetChanCountPerNode() const;
-    size_t GetCoordCount(size_t nodenum);
+    size_t GetCoordCount(size_t nodenum) const;
+    int GetNodeStringNumber(size_t nodenum) const;
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);

@@ -1483,7 +1483,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         bool flip_y = dlg.CheckBox_SS_FlipY->GetValue();
         Model *cls = GetModel(model->GetName());
         int bw, bh;
-        cls->GetBufferSize("Default", bw, bh);
+        cls->GetBufferSize("Default", "None", bw, bh);
         wxSize modelSize(bw, bh);
         ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, flip_y, dlg.ImageResizeChoice->GetSelection(), modelSize);
     }

@@ -29,6 +29,7 @@ static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
 
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
+static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
 static const std::string STR_DEFAULT("Default");
 
 //other common strings
@@ -559,7 +560,9 @@ private:
         int effectMixThreshold=settingsMap.GetInt(SLIDER_EffectLayerMix, 0);
         buffer->SetMixThreshold(layer, effectMixThreshold, settingsMap.GetInt(CHECKBOX_LayerMorph, 0) != 0); //allow threshold to vary -DJ
         
-        buffer->SetBufferType(layer, settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT));
+        buffer->SetBufferType(layer,
+                              settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT),
+                              settingsMap.Get(CHOICE_BufferTransform, STR_NONE));
     }
 
     Effect *findEffectForFrame(EffectLayer* layer, int frame) {
