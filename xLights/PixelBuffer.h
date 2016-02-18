@@ -64,6 +64,7 @@ private:
     class LayerInfo {
     public:
         LayerInfo() {
+			blur = 0;
             sparkle_count = 0;
             brightness = 0;
             contrast = 0;
@@ -80,6 +81,7 @@ private:
         int BufferWi;
         std::vector<NodeBaseClassPtr> Nodes;
         int sparkle_count;
+		int blur;
         int brightness;
         int contrast;
         double fadeFactor;
@@ -100,6 +102,7 @@ private:
     xlColor mixColors(const wxCoord &x, const wxCoord &y, const xlColor &c0, const xlColor &c1, int layer);
     void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
+	void Blur(LayerInfo* layer);
     
     std::string modelName;
     std::string lastBufferType;
@@ -133,8 +136,9 @@ public:
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
     void SetFadeTimes(int layer, float inTime, float outTime);
-    void SetSparkle(int layer, int freq);
-    void SetBrightness(int layer, int value);
+	void SetSparkle(int layer, int freq);
+	void SetBlur(int layer, int blur);
+	void SetBrightness(int layer, int value);
     void SetContrast(int layer, int value);
     void SetMixThreshold(int layer, int value, bool varies);
     void SetBufferType(int layer, const std::string &type, const std::string &transform);

@@ -26,6 +26,7 @@ static const std::string SLIDER_EffectLayerMix("SLIDER_EffectLayerMix");
 static const std::string CHECKBOX_LayerMorph("CHECKBOX_LayerMorph");
 static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
 static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
+static const std::string SLIDER_EffectBlur("SLIDER_EffectBlur");
 
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
@@ -547,7 +548,10 @@ private:
         fadeIn = settingsMap.GetDouble(TEXTCTRL_Fadein, 0.0);
         fadeOut = settingsMap.GetDouble(TEXTCTRL_Fadeout, 0.0);
         buffer->SetFadeTimes(layer, fadeIn, fadeOut);
-        
+
+		int effectBlur = settingsMap.GetInt(SLIDER_EffectBlur, 0);
+		buffer->SetBlur(layer, effectBlur);
+
         int freq=settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
         buffer->SetSparkle(layer, freq);
         

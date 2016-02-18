@@ -412,10 +412,71 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     c = color;
                 }
             }
-            cnt++;
+
+			cnt++;
         }
     }
 }
+
+void PixelBufferClass::Blur(LayerInfo* layer)
+{
+	int b = layer->blur;
+	int d = 0;
+	int u = 0;
+	if (b % 2 == 0)
+	{
+		d = b / 2;
+		u = (b - 1) / 2;
+	}
+	else
+	{
+		d = (b - 1) / 2;
+		u = (b - 1) / 2;
+	}
+	float smear = 1.0 / ((float)(b*b));
+
+	for (int x = 0; x < layer->BufferWi; x++)
+	{
+		for (int y = 0; y < layer->BufferHt; y++)
+		{
+			int r = 0;
+			int g = 0;
+			int b = 0;
+			for (int i = x - d; i <= x + u; i++)
+			{
+				int ii = i;
+				if (i < 0)
+				{
+					ii = 0;
+				}
+				else if (i >= layer->BufferWi)
+				{
+					ii = layer->BufferWi - 1;
+				}
+				for (int j = y - d; j <= y + u; j++)
+				{
+					int jj = j;
+					if (j < 0)
+					{
+						jj = 0;
+					}
+					else if (j >= layer->BufferHt)
+					{
+						jj = layer->BufferHt - 1;
+					}
+					xlColor c;
+					layer->buffer.GetPixel(ii, jj, c);
+					r = r + (int)(smear * ((float)c.Red()));
+					g = g + (int)(smear * ((float)c.Green()));
+					b = b + (int)(smear * ((float)c.Blue()));
+				}
+			}
+			xlColor newc(r, g, b);
+			layer->buffer.SetPixel(x, y, newc);
+		}
+	}
+}
+
 void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors) {
     layers[layer]->buffer.SetPalette(newcolors);
 }
@@ -423,6 +484,10 @@ void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors) {
 // 10-200 or so, or 0 for no sparkle
 void PixelBufferClass::SetSparkle(int layer, int freq) {
     layers[layer]->sparkle_count=freq;
+}
+
+void PixelBufferClass::SetBlur(int layer, int blur) {
+	layers[layer]->blur = blur;
 }
 
 void PixelBufferClass::SetBrightness(int layer, int value) {
@@ -478,6 +543,15 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     HSVValue hsv;
     int curStep, fadeInSteps, fadeOutSteps;
 
+	// blur all the layers if necessary ... before the merge?
+	for (int layer = 0; layer < numLayers; layer++)
+	{
+		// do gausian blur
+		if (layers[layer]->blur > 1)
+		{
+			Blur(layers[layer]);
+		}
+	}
 
     for(int ii=0; ii < numLayers; ii++) {
         double fadeInFactor=1, fadeOutFactor=1;
@@ -503,6 +577,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             }
         }
     }
+
     // layer calculation and map to output
     size_t NodeCount = layers[0]->Nodes.size();
     for(size_t i = 0; i < NodeCount; i++) {

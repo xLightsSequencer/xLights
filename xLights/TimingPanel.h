@@ -2,15 +2,15 @@
 #define TIMINGPANEL_H
 
 //(*Headers(TimingPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/panel.h>
 #include <wx/scrolwin.h>
-#include <wx/slider.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/slider.h>
+#include <wx/panel.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
 //*)
 
 class Model;
@@ -26,24 +26,28 @@ class TimingPanel: public wxPanel
         wxString GetTimingString();
 
 		//(*Declarations(TimingPanel)
-		wxSlider* Slider_EffectLayerMix;
-		wxTextCtrl* TextCtrl_Fadeout;
+		wxBitmapButton* BitmapButton_EffectBlur;
+		wxStaticText* StaticText2;
 		wxChoice* BufferStyleChoice;
 		wxPanel* Panel_Sizer;
-		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_Fadein;
-		wxTextCtrl* txtCtlEffectMix;
+		wxBitmapButton* BitmapButton_OverlayBkg;
+		wxSlider* Slider_EffectLayerMix;
+		wxStaticText* StaticText3;
+		wxBitmapButton* BitmapButton_FadeOut;
 		wxChoice* BufferTransform;
 		wxBitmapButton* BitmapButton_FadeIn;
-		wxCheckBox* CheckBox_OverlayBkg;
-		wxCheckBox* CheckBox_LayerMorph;
-		wxStaticText* StaticText2;
-		wxBitmapButton* BitmapButton_FadeOut;
-		wxBitmapButton* BitmapButton_EffectLayerMix;
-		wxChoice* Choice_LayerMethod;
-		wxScrolledWindow* ScrolledWindowTiming;
 		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
-		wxBitmapButton* BitmapButton_OverlayBkg;
+		wxCheckBox* CheckBox_LayerMorph;
+		wxStaticText* StaticText5;
+		wxChoice* Choice_LayerMethod;
+		wxBitmapButton* BitmapButton_EffectLayerMix;
+		wxTextCtrl* TextCtrl_Fadeout;
+		wxScrolledWindow* ScrolledWindowTiming;
+		wxTextCtrl* txtCtlEffectBlur;
+		wxCheckBox* CheckBox_OverlayBkg;
+		wxTextCtrl* txtCtlEffectMix;
+		wxSlider* Slider_EffectBlur;
 		//*)
     
     
@@ -62,6 +66,10 @@ class TimingPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_CHOICE_BufferStyle;
 		static const long ID_CHOICE_BufferTransform;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferTransform;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_EffectBlur;
+		static const long ID_TEXTCTRL_Blur;
+		static const long ID_BITMAPBUTTON_SLIDER_EffectBlur;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL_Fadein;
 		static const long ID_BITMAPBUTTON_TEXTCTRL_Fadein;
@@ -84,6 +92,7 @@ class TimingPanel: public wxPanel
 		void OnResize(wxSizeEvent& event);
 		void OnLeftDClick(wxMouseEvent& event);
 		void OnSlider_EffectLayerMixCmdScroll(wxScrollEvent& event);
+		void OnSlider_EffectBlurCmdScroll(wxScrollEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

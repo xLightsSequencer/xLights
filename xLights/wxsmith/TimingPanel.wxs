@@ -186,6 +186,57 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText5" member="yes">
+													<label>Blur</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+													<cols>2</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_EffectBlur" variable="Slider_EffectBlur" member="yes">
+															<min>1</min>
+															<max>15</max>
+															<handler function="OnSlider_EffectBlurCmdScroll" entry="EVT_COMMAND_SCROLL" />
+															<handler function="OnSlider_EffectBlurCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>1</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Blur" variable="txtCtlEffectBlur" member="yes">
+															<value>1</value>
+															<size>20,-1d</size>
+															<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectBlur" variable="BitmapButton_EffectBlur" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>13,13</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
 												<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
 													<label>Fade In</label>
 												</object>
