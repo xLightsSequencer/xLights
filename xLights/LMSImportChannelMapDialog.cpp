@@ -126,10 +126,17 @@ static wxArrayString Convert(const std::vector<std::string> arr) {
     }
     return ret;
 }
-void LMSImportChannelMapDialog::Init() {
-    for (int i=0;i<mSequenceElements->GetElementCount();i++) {
-        if (mSequenceElements->GetElement(i)->GetType() == "model") {
-            ModelsChoice->Append(mSequenceElements->GetElement(i)->GetName());
+void LMSImportChannelMapDialog::Init(bool allModels) {
+    allowAddModels = allModels;
+    if (allModels) {
+        for (auto it = xLightsFrame::AllModels.begin(); it != xLightsFrame::AllModels.end(); it++) {
+            ModelsChoice->Append(it->first);
+        }
+    } else {
+        for (int i=0;i<mSequenceElements->GetElementCount();i++) {
+            if (mSequenceElements->GetElement(i)->GetType() == "model") {
+                ModelsChoice->Append(mSequenceElements->GetElement(i)->GetName());
+            }
         }
     }
     int sz = ChannelMapGrid->GetColSize(3);
@@ -228,6 +235,10 @@ void LMSImportChannelMapDialog::OnAddModelButtonClick(wxCommandEvent& event)
             && name == mSequenceElements->GetElement(i)->GetName()) {
             model = mSequenceElements->GetElement(i);
         }
+    }
+    if (model == nullptr && allowAddModels) {
+        model = mSequenceElements->AddElement(name, "model", false, false, false, false);
+        model->AddEffectLayer();
     }
     if (model == nullptr) {
         return;

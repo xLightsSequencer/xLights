@@ -54,6 +54,8 @@ const std::string &Element::GetName() const
 void Element::SetName(const std::string &name)
 {
     mName = name;
+    changeCount++;
+    listener->IncrementChangeCount(this);
 }
 
 bool Element::GetVisible()

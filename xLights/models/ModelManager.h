@@ -20,8 +20,10 @@ class ModelManager
         Model *GetModel(const std::string &name) const;
     
     
-        void Load(wxXmlNode *modelNode, wxXmlNode *groupNode, NetInfoClass &ni,
-                  int previewW, int previewH);
+        void LoadModels(wxXmlNode *modelNode, NetInfoClass &ni,
+                        int previewW, int previewH);
+        void LoadGroups(wxXmlNode *groupNode, NetInfoClass &ni,
+                        int previewW, int previewH);
     
         void clear();
     

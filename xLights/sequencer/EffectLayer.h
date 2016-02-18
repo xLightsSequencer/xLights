@@ -27,6 +27,7 @@ class EffectLayer
         Effect* GetEffectByTime(int ms);
         Effect* GetEffectFromID(int id);
         void RemoveEffect(int index);
+        void RemoveAllEffects();
 
         int GetIndex();
         int GetEffectCount();

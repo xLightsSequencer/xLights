@@ -656,43 +656,46 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     }
 }
 
-void MapXLightsEffects(EffectLayer *target, EffectLayer *src) {
+void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped) {
     for (int x = 0; x < src->GetEffectCount(); x++) {
         Effect *ef = src->GetEffect(x);
         target->AddEffect(0, ef->GetEffectName(), ef->GetSettingsAsString(), ef->GetPaletteAsString(),
                           ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, 0);
     }
+    mapped.push_back(src);
 }
-void MapXLightsStrandEffects(EffectLayer *target, const std::string &name, std::map<std::string, EffectLayer *> &layerMap, SequenceElements &seqEl) {
+void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
+                             std::map<std::string, EffectLayer *> &layerMap,
+                             SequenceElements &seqEl,
+                             std::vector<EffectLayer *> &mapped) {
     EffectLayer *src = layerMap[name];
     if (src == nullptr) {
         Element * srcEl = seqEl.GetElement(name);
         src = srcEl->GetEffectLayer(0);
     }
-    MapXLightsEffects(target, src);
+    if (src != nullptr) {
+        MapXLightsEffects(target, src, mapped);
+    }
 }
-void MapXLightsEffects(Element *target, const std::string &name, SequenceElements &seqEl, std::map<std::string, EffectLayer *> &layerMap) {
+void MapXLightsEffects(Element *target, const std::string &name, SequenceElements &seqEl,
+                       std::map<std::string, EffectLayer *> &layerMap,
+                       std::vector<EffectLayer *> &mapped) {
     EffectLayer *src = layerMap[name];
     if (src != nullptr) {
-        MapXLightsEffects(target->GetEffectLayer(0), src);
+        MapXLightsEffects(target->GetEffectLayer(0), src, mapped);
     } else {
         Element * srcEl = seqEl.GetElement(name);
         while (target->GetEffectLayerCount() < srcEl->GetEffectLayerCount()) {
             target->AddEffectLayer();
         }
         for (int x = 0; x < srcEl->GetEffectLayerCount(); x++) {
-            MapXLightsEffects(target->GetEffectLayer(x), srcEl->GetEffectLayer(x));
+            MapXLightsEffects(target->GetEffectLayer(x), srcEl->GetEffectLayer(x), mapped);
         }
     }
 }
 
 void xLightsFrame::ImportXLights(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
-    std::map<std::string, EffectLayer *> layerMap;
-
-    LMSImportChannelMapDialog dlg(this);
-    dlg.mSequenceElements = &mSequenceElements;
-    dlg.xlights = this;
 
     xLightsXmlFile xlf(filename);
     xlf.Open();
@@ -700,8 +703,27 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     se.SetFrequency(mSequenceElements.GetFrequency());
     se.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     se.LoadSequencerFile(xlf);
+    
+    std::vector<Element *> elements;
     for (int e = 0; e < se.GetElementCount(); e++) {
         Element *el = se.GetElement(e);
+        elements.push_back(el);
+    }
+    ImportXLights(se, elements);
+    
+    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+}
+void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements,
+                                 bool allowAllModels, bool clearSrc) {
+    std::map<std::string, EffectLayer *> layerMap;
+    LMSImportChannelMapDialog dlg(this);
+    dlg.mSequenceElements = &mSequenceElements;
+    dlg.xlights = this;
+    std::vector<EffectLayer *> mapped;
+    
+    for (auto it = elements.begin(); it != elements.end(); it++) {
+        Element *el = *it;
         bool hasEffects = false;
         for (int l = 0; l < el->GetEffectLayerCount(); l++) {
             hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
@@ -738,7 +760,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     dlg.channelNames.insert(dlg.channelNames.begin(), "");
 
     dlg.MapByStrand->Hide();
-    dlg.Init();
+    dlg.Init(allowAllModels);
     // no color colum so remove it and expand the 3rd colum into its space
     dlg.ChannelMapGrid->SetColSize(3, dlg.ChannelMapGrid->GetColSize(3) + dlg.ChannelMapGrid->GetColSize(4));
     dlg.ChannelMapGrid->DeleteCols(4, 1);
@@ -758,7 +780,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
             }
         }
         if (dlg.ChannelMapGrid->GetCellValue(row, 3) != "") {
-            MapXLightsEffects(model, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), se, layerMap);
+            MapXLightsEffects(model, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), se, layerMap, mapped);
         }
         row++;
 
@@ -767,22 +789,24 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
 
             if( sl != nullptr ) {
                 if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
-                    MapXLightsStrandEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), layerMap, se);
+                    MapXLightsStrandEffects(sl, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), layerMap, se, mapped);
                 }
                 row++;
                 for (int n = 0; n < mc->GetStrandLength(str); n++) {
                     if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                         NodeLayer *nl = sl->GetNodeLayer(n, true);
-                        MapXLightsStrandEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), layerMap, se);
+                        MapXLightsStrandEffects(nl, dlg.ChannelMapGrid->GetCellValue(row, 3).ToStdString(), layerMap, se, mapped);
                     }
                     row++;
                 }
             }
         }
     }
-
-    float elapsedTime = sw.Time()/1000.0; //msec => sec
-    StatusBar1->SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    if (clearSrc) {
+        for (auto it = mapped.begin(); it != mapped.end(); it++) {
+            (*it)->RemoveAllEffects();
+        }
+    }
 
 }
 

@@ -7,6 +7,12 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh (dkulp) If "ModelGroup" has node/strand effects in sequence, allow mapping those to new models at load.
+    -- enh (dkulp) Add ability to specify a transform and style for the buffer for each effect
+    -- enh (dkulp) When displaying/preview group, use the pixel styles from the original models
+    -- enh (dkulp) Use dimming curve from individual models when applying effects to Groups
+    -- enh (dkulp) Change to "Smooth" as default for pixel appearance when loading old rgbeffects
+    -- bug (dkulp) Make sure we don't have Models and ModelGroups of the same name when loading rgbeffects
     -- enh (keithsw) Added blur capability in the layer blending window
     -- bug (gil)  Fix crash if down arrow is hit on a timing track.
     -- bug (keithsw) Fix crash if two 2016 versions are compared

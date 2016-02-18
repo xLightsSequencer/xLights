@@ -663,7 +663,7 @@ void xLightsFrame::RenderGridToSeqData() {
         Element *rowEl = mSequenceElements.GetElement(row);
         if (rowEl->GetType() == "model" && rowEl != lastRowEl) {
             lastRowEl = rowEl;
-            RenderJob *job = new RenderJob(rowEl, SeqData, this, xLightsFrame::CurrentSeqXmlFile->GetMedia());
+            RenderJob *job = new RenderJob(rowEl, SeqData, this);
             job->setRenderRange(0, SeqData.NumFrames());
 
             bool hasDep = false;
@@ -799,7 +799,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 
     Element * el = mSequenceElements.GetElement(model);
     NextRenderer wait;
-    RenderJob *job = new RenderJob(el, SeqData, this, xLightsFrame::CurrentSeqXmlFile->GetMedia(), true);
+    RenderJob *job = new RenderJob(el, SeqData, this, true);
     SequenceData *data = job->createExportBuffer();
     int cpn = job->getBuffer()->GetChanCountPerNode();
 

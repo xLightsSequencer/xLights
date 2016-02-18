@@ -46,7 +46,7 @@ Model *ModelManager::operator[](const std::string &name) const {
 }
 
 
-void ModelManager::Load(wxXmlNode *modelNode, wxXmlNode *groupNode, NetInfoClass &netInfo, int previewW, int previewH) {
+void ModelManager::LoadModels(wxXmlNode *modelNode, NetInfoClass &netInfo, int previewW, int previewH) {
     clear();
     for (wxXmlNode* e=modelNode->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "model") {
@@ -59,6 +59,8 @@ void ModelManager::Load(wxXmlNode *modelNode, wxXmlNode *groupNode, NetInfoClass
             }
         }
     }
+}
+void ModelManager::LoadGroups(wxXmlNode *groupNode, NetInfoClass &netInfo, int previewW, int previewH) {
     for (wxXmlNode* e=groupNode->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").ToStdString();

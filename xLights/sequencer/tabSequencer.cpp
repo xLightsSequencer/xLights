@@ -175,17 +175,32 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
 
 void xLightsFrame::CheckForValidModels()
 {
+    wxArrayString AllNames;
     wxArrayString ModelNames;
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
-        ModelNames.push_back(it->first);
+        AllNames.push_back(it->first);
+        if (it->second->GetDisplayAs() != "ModelGroup") {
+            ModelNames.push_back(it->first);
+        }
     }
-    SeqElementMismatchDialog dialog(this);
-    dialog.ChoiceModels->Set(ModelNames);
+    
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
         if ("model" == mSequenceElements.GetElement(x)->GetType()) {
             std::string name = mSequenceElements.GetElement(x)->GetName();
-            if (AllModels[name] == nullptr) {
+            //remove the current models from the list so we don't end up with the same model represented twice
+            std::remove(AllNames.begin(), AllNames.end(), name);
+            std::remove(ModelNames.begin(), ModelNames.end(), name);
+        }
+    }
+    
+    SeqElementMismatchDialog dialog(this);
+    for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
+        if ("model" == mSequenceElements.GetElement(x)->GetType()) {
+            std::string name = mSequenceElements.GetElement(x)->GetName();
+            Model *m = AllModels[name];
+            if (m == nullptr) {
                 dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
+                dialog.ChoiceModels->Set(AllNames);
                 dialog.Fit();
                 dialog.ShowModal();
                 if (dialog.RadioButtonDelete->GetValue()) {
@@ -193,6 +208,67 @@ void xLightsFrame::CheckForValidModels()
                 } else {
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
                     mSequenceElements.GetElement(x)->SetName(newName);
+                    std::remove(AllNames.begin(), AllNames.end(), newName);
+                    std::remove(ModelNames.begin(), ModelNames.end(), newName);
+                    x--;
+                }
+            }
+        }
+    }
+    for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
+        if ("model" == mSequenceElements.GetElement(x)->GetType()) {
+            std::string name = mSequenceElements.GetElement(x)->GetName();
+            Model *m = AllModels[name];
+            if (m->GetDisplayAs() == "ModelGroup") {
+                Element * el = mSequenceElements.GetElement(x);
+                bool hasStrandEffects = false;
+                bool hasNodeEffects = false;
+                for (int l = 0; l < el->getStrandLayerCount(); l++) {
+                    StrandLayer *sl = el->GetStrandLayer(l);
+                    if (sl->GetEffectCount() > 0) {
+                        hasStrandEffects = true;
+                    }
+                    for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
+                        if (sl->GetNodeLayer(n)->GetEffectCount()) {
+                            hasNodeEffects = true;
+                        }
+                    }
+                }
+                if (hasNodeEffects || hasStrandEffects) {
+                    wxArrayString choices;
+                    choices.push_back("Rename the model in the sequence");
+                    choices.push_back("Delete the model in the sequence");
+                    choices.push_back("Map the Strand/Node effects to different models");
+                    choices.push_back("Ignore (Handle Later) - Effects will not render");
+                    
+                    wxSingleChoiceDialog dlg(this, "Model " + name + " is a Model Group but has Node/Strand effects.\n"
+                                             + "How should we handle this?",
+                                             "Warning", choices);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        switch (dlg.GetSelection()) {
+                            case 0: {
+                                    wxSingleChoiceDialog namedlg(this, "Choose the model to use instead:",
+                                                             "Select Model", ModelNames);
+                                    if (namedlg.ShowModal() == wxID_OK) {
+                                        std::string newName = namedlg.GetStringSelection().ToStdString();
+                                        mSequenceElements.GetElement(x)->SetName(newName);
+                                        std::remove(AllNames.begin(), AllNames.end(), newName);
+                                        std::remove(ModelNames.begin(), ModelNames.end(), newName);
+                                    }
+                                }
+                                break;
+                            case 1:
+                                mSequenceElements.DeleteElement(name);
+                                break;
+                            case 2:
+                                ImportXLights(mSequenceElements, std::vector<Element *> {el}, true, true);
+                                //relo
+                                x++;
+                                break;
+                            case 3:
+                                break;
+                        }
+                    }
                 }
             }
         }
@@ -273,6 +349,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
         MenuItemRenderCanvasMode->Check(false);
     }
 
+    mSavedChangeCount = mSequenceElements.GetChangeCount();
     CheckForValidModels();
 
     LoadAudioData(xml_file);
@@ -288,7 +365,6 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     sPreview2->Refresh();
     m_mgr->Update();
 
-    mSavedChangeCount = mSequenceElements.GetChangeCount();
 }
 
 void xLightsFrame::EffectsResize(wxSizeEvent& event)

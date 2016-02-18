@@ -76,6 +76,15 @@ void EffectLayer::RemoveEffect(int index)
         delete e;
     }
 }
+void EffectLayer::RemoveAllEffects()
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+    for (int x = 0; x < mEffects.size(); x++) {
+        IncrementChangeCount(mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS());
+        delete mEffects[x];
+    }
+    mEffects.clear();
+}
 
 
 Effect* EffectLayer::AddEffect(int id, const std::string &name, const std::string &settings, const std::string &palette,

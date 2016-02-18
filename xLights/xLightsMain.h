@@ -382,6 +382,8 @@ public:
     void ImportHLS(const wxFileName &filename);
     void ImportVix(const wxFileName &filename);
     void ImportXLights(const wxFileName &filename);
+    void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements,
+                       bool allowAllModels = false, bool clearSrc = false);
     void ImportLSP(const wxFileName &filename);
 
     EffectManager &GetEffectManager() { return effectManager; }

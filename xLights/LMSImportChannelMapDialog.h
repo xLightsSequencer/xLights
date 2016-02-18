@@ -28,7 +28,7 @@ class LMSImportChannelMapDialog: public wxDialog
 		LMSImportChannelMapDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~LMSImportChannelMapDialog();
     
-        void Init();
+        void Init(bool allModels = false);
 
 		//(*Declarations(LMSImportChannelMapDialog)
 		wxFlexGridSizer* SizerMap;
@@ -64,6 +64,7 @@ class LMSImportChannelMapDialog: public wxDialog
 		//*)
 
 	private:
+        bool allowAddModels;
         void SetupByNode();
         void SetupByStrand();
         void AddModel(Model &cls);

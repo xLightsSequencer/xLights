@@ -1,6 +1,7 @@
 #include <wx/utils.h> //check keyboard state -DJ
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
+#include <wx/xml/xml.h>
 #include "xLightsMain.h"
 #include "heartbeat.h"
 
@@ -68,6 +69,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     effectsFile.AssignDir( CurrentDir );
     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     wxString myString = "Hello";
+    UnsavedRgbEffectsChanges = false;
+
     if (!effectsFile.FileExists())
     {
         // file does not exist, so create an empty xml doc
@@ -98,35 +101,41 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     {
         ModelsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "models" );
         root->AddChild( ModelsNode );
+        UnsavedRgbEffectsChanges = true;
     }
     if (EffectsNode == 0)
     {
         EffectsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "effects" );
         EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
         root->AddChild( EffectsNode );
+        UnsavedRgbEffectsChanges = true;
     }
     if (PalettesNode == 0)
     {
         PalettesNode = new wxXmlNode( wxXML_ELEMENT_NODE, "palettes" );
         root->AddChild( PalettesNode );
+        UnsavedRgbEffectsChanges = true;
     }
 
     if (ViewsNode == 0)
     {
         ViewsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "views" );
         root->AddChild( ViewsNode );
+        UnsavedRgbEffectsChanges = true;
     }
 
     if (ModelGroupsNode == 0)
     {
         ModelGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "modelGroups" );
         root->AddChild( ModelGroupsNode );
+        UnsavedRgbEffectsChanges = true;
     }
 
     if (PerspectivesNode == 0)
     {
         PerspectivesNode = new wxXmlNode( wxXML_ELEMENT_NODE, "perspectives" );
         root->AddChild( PerspectivesNode );
+        UnsavedRgbEffectsChanges = true;
     }
 
     if(SettingsNode==0)
@@ -135,6 +144,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         root->AddChild( SettingsNode );
         SetXmlSetting("previewWidth","1280");
         SetXmlSetting("previewHeight","720");
+        UnsavedRgbEffectsChanges = true;
     }
     int previewWidth=wxAtoi(GetXmlSetting("previewWidth","1280"));
     int previewHeight=wxAtoi(GetXmlSetting("previewHeight","720"));
@@ -173,7 +183,7 @@ void xLightsFrame::LoadEffectsFile()
     wxString filename=LoadEffectsFileNoCheck();
     // check version, do we need to convert?
     wxString version=EffectsNode->GetAttribute("version", "0000");
-    if (version < XLIGHTS_RGBEFFECTS_VERSION)
+    if (version < "0004")
     {
         // fix tags
         xLightsXmlFile::FixVersionDifferences(filename);
@@ -184,12 +194,21 @@ void xLightsFrame::LoadEffectsFile()
         // fix effect presets
         xLightsXmlFile::FixEffectPresets(EffectsNode);
 
-        // update version
-        EffectsNode->DeleteAttribute("version");
-        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
-
         UnsavedRgbEffectsChanges = true;
     }
+    if (version < "0005") {
+        //flip to AntiAlias=1 by default
+        for (wxXmlNode *el = ModelsNode->GetChildren(); el != nullptr; el = el->GetNext()) {
+            if (el->GetAttribute("Antialias", "1") == "0") {
+                el->DeleteAttribute("Antialias");
+                el->AddAttribute("Antialias", "1");
+                UnsavedRgbEffectsChanges = true;
+            }
+        }
+    }
+    // update version
+    EffectsNode->DeleteAttribute("version");
+    EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
     UpdateModelsList();
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements,ModelsNode, ModelGroupsNode, ViewsNode);
@@ -218,6 +237,7 @@ void xLightsFrame::CreateDefaultEffectsXml()
 {
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
     EffectsXml.SetRoot( root );
+    UnsavedRgbEffectsChanges = true;
 }
 void xLightsFrame::ShowModelsDialog()
 {
@@ -305,11 +325,115 @@ int wxCALLBACK MyCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr WXUNUS
 }
 
 
+static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> &names,
+                                 const std::string &msg, const std::string curval) {
+    wxTextEntryDialog dialog(parent, _("Enter new name"), msg, curval);
+    int DlgResult;
+    std::string NewName;
+    do {
+        DlgResult=dialog.ShowModal();
+        if (DlgResult == wxID_OK) {
+            // validate inputs
+            NewName = dialog.GetValue().Trim();
+            if (std::find(names.begin(), names.end(), NewName) == names.end()) {
+                return NewName;
+            }
+        }
+    }
+    while (DlgResult == wxID_OK);
+    return curval;
+}
+
 void xLightsFrame::UpdateModelsList()
 {
-    AllModels.Load(ModelsNode, ModelGroupsNode, NetInfo,
-                   modelPreview->GetVirtualCanvasWidth(), modelPreview->GetVirtualCanvasHeight());
+    AllModels.LoadModels(ModelsNode, NetInfo,
+                         modelPreview->GetVirtualCanvasWidth(),
+                         modelPreview->GetVirtualCanvasHeight());
     
+    std::vector<std::string> current;
+    for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
+        current.push_back(it->first);
+    }
+    for (wxXmlNode* e=ModelGroupsNode->GetChildren(); e != NULL; e = e->GetNext()) {
+        if (e->GetName() == "modelGroup") {
+            std::string name = e->GetAttribute("name").ToStdString();
+            current.push_back(name);
+        }
+    }
+    for (wxXmlNode* e=ModelGroupsNode->GetChildren(); e != NULL; e = e->GetNext()) {
+        if (e->GetName() == "modelGroup") {
+            std::string name = e->GetAttribute("name").ToStdString();
+            Model *model = AllModels[name];
+            if (model != nullptr) {
+                wxArrayString choices;
+                choices.push_back("Rename Model");
+                choices.push_back("Delete Model");
+                choices.push_back("Rename Group");
+                choices.push_back("Delete Group");
+                
+                wxString msg = "A model of name \'" + name + "\' already exists.  What action should we take?";
+                wxSingleChoiceDialog dlg(this, msg, "Model/Group Name Conflict", choices, (void **)nullptr,
+                                         wxDEFAULT_DIALOG_STYLE | wxOK | wxCENTRE | wxRESIZE_BORDER, wxDefaultPosition);
+                bool done = false;
+                do {
+                    dlg.ShowModal();
+                    int sel = dlg.GetSelection();
+                    switch (sel) {
+                        case 0:
+                        case 1:
+                            for (wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext()) {
+                                if (e->GetName() == "model") {
+                                    std::string mname = e->GetAttribute("name").ToStdString();
+                                    if (mname == name) {
+                                        UnsavedRgbEffectsChanges=true;
+                                        if (sel == 1) {
+                                            ModelsNode->RemoveChild(e);
+                                            done = true;
+                                        } else {
+                                            //rename
+                                            std::string newName = chooseNewName(this, current, "Rename Model", mname);
+                                            if (newName != mname) {
+                                                current.push_back(newName);
+                                                e->DeleteAttribute("name");
+                                                e->AddAttribute("name", newName);
+                                                done = true;
+                                            }
+                                        }
+                                        AllModels.LoadModels(ModelsNode, NetInfo,
+                                                             modelPreview->GetVirtualCanvasWidth(),
+                                                             modelPreview->GetVirtualCanvasHeight());
+                                    }
+                                }
+                            }
+                            break;
+                        case 2: {
+                                std::string newName = chooseNewName(this, current, "Rename Model Group", name);
+                                if (newName != name) {
+                                    current.push_back(newName);
+                                    e->DeleteAttribute("name");
+                                    e->AddAttribute("name", newName);
+                                    done = true;
+                                }
+                            }
+                            break;
+                        case 3:
+                            ModelGroupsNode->RemoveChild(e);
+                            e = ModelGroupsNode->GetChildren();
+                            UnsavedRgbEffectsChanges=true;
+                            done = true;
+                            if (e == nullptr) {
+                                break;
+                            }
+                            break;
+                    }
+                } while (!done);
+            }
+        }
+    }
+    AllModels.LoadGroups(ModelGroupsNode, NetInfo,
+                         modelPreview->GetVirtualCanvasWidth(),
+                         modelPreview->GetVirtualCanvasHeight());
+
     wxString msg;
     ListBoxElementList->DeleteAllItems();
     PreviewModels.clear();
