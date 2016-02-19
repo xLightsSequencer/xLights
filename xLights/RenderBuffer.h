@@ -80,7 +80,7 @@ class SequenceElements;
 
 class DrawingContext {
 public:
-    DrawingContext(int BufferWi, int BufferHt);
+    DrawingContext(int BufferWi, int BufferHt, bool allowShared);
     ~DrawingContext();
     wxImage *FlushAndGetImage();
 
@@ -93,6 +93,8 @@ public:
     void DrawText(const wxString &msg, int x, int y);
     void GetTextExtent(const wxString &msg, double *width, double *height);
     void Clear();
+
+    void ResetSize(int BufferWi, int BufferHt);
 private:
     wxImage *image;
     wxBitmap *bitmap;
@@ -163,7 +165,7 @@ public:
  
 class NCCDLLEXPORT RenderBuffer {
 public:
-    RenderBuffer();
+    RenderBuffer(bool onlyOnMain);
     ~RenderBuffer();
     void InitBuffer(int newBufferHt, int newBufferWi);
     void SetFadeTimes(float fadeIn, float fadeOut);
@@ -261,6 +263,9 @@ public:
     std::map<int, EffectRenderCache*> infoCache;
     int tempInt;
     int tempInt2;
+    
+private:
+    bool onlyOnMain;
 };
 
 

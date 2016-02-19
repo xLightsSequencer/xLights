@@ -63,7 +63,7 @@ class PixelBufferClass
 private:
     class LayerInfo {
     public:
-        LayerInfo() {
+        LayerInfo(bool onlyOnMain) : buffer(onlyOnMain) {
 			blur = 0;
             sparkle_count = 0;
             brightness = 0;
@@ -110,6 +110,7 @@ private:
     const Model *model;
     Model *zbModel;
     SingleLineModel ssModel;
+    bool onlyOnMain;
 public:
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
@@ -118,7 +119,7 @@ public:
     int GetNodeCount() const;
     int GetChanCountPerNode() const;
 
-    PixelBufferClass();
+    PixelBufferClass(bool onlyOnMainThread);
     virtual ~PixelBufferClass();
     
     const std::string &GetModelName() { return modelName;};

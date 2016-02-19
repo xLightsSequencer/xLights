@@ -1657,7 +1657,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
     EffectLayer *layer = el->GetStrandLayer(strand)->GetNodeLayer(node);
 
     xlColorVector colors;
-    PixelBufferClass ncls;
+    PixelBufferClass ncls(true);
     Model *model = GetModel(el->GetName());
     for (int f = 0; f < SeqData.NumFrames(); f++) {
         model->SetNodeChannelValues(0, &SeqData[f][model->NodeStartChannel(0)]);

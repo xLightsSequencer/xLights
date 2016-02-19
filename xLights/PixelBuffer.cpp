@@ -28,9 +28,10 @@
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
 
-PixelBufferClass::PixelBufferClass() {
+PixelBufferClass::PixelBufferClass(bool b) {
     numLayers = 0;
     zbModel = nullptr;
+    onlyOnMain = b;
 }
 
 PixelBufferClass::~PixelBufferClass() {
@@ -54,11 +55,11 @@ void PixelBufferClass::reset(int nlayers, int timing) {
     layers.resize(nlayers);
     
     for (int x = 0; x < numLayers; x++) {
-        layers[x] = new LayerInfo();
+        layers[x] = new LayerInfo(onlyOnMain);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
         model->InitRenderBufferNodes("Default", "None", layers[x]->Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
         layers[x]->bufferType = "Default";
-        layers[x]->bufferType = "None";
+        layers[x]->bufferTransform = "None";
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi);
     }
 }

@@ -47,7 +47,7 @@ AudioManager* RenderBuffer::GetMedia()
 	return xLightsFrame::CurrentSeqXmlFile->GetMedia();
 }
 
-DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(wxNullBitmap)
+DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared) : nullBitmap(wxNullBitmap)
 {
     unshare(nullBitmap);
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
@@ -63,31 +63,33 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt) : nullBitmap(wxNullBi
     dc = new wxMemoryDC(*bitmap);
 
 
-    //make sure we UnShare everything that is being held onto
-    //also use "non-normal" defaults to avoid "==" issue that
-    //would keep it from using the non-shared versions
-    wxFont font(*wxITALIC_FONT);
-    unshare(font);
-    dc->SetFont(font);
+    if (!allowShared) {
+        //make sure we UnShare everything that is being held onto
+        //also use "non-normal" defaults to avoid "==" issue that
+        //would keep it from using the non-shared versions
+        wxFont font(*wxITALIC_FONT);
+        unshare(font);
+        dc->SetFont(font);
 
-    wxBrush brush(*wxYELLOW_BRUSH);
-    unshare(brush);
-    dc->SetBrush(brush);
-    dc->SetBackground(brush);
+        wxBrush brush(*wxYELLOW_BRUSH);
+        unshare(brush);
+        dc->SetBrush(brush);
+        dc->SetBackground(brush);
 
-    wxPen pen(*wxGREEN_PEN);
-    unshare(pen);
-    dc->SetPen(pen);
+        wxPen pen(*wxGREEN_PEN);
+        unshare(pen);
+        dc->SetPen(pen);
 
-#ifndef LINUX
-    wxColor c(12, 25, 3);
-    unshare(c);
-    dc->SetTextBackground(c);
+    #ifndef LINUX
+        wxColor c(12, 25, 3);
+        unshare(c);
+        dc->SetTextBackground(c);
 
-    wxColor c2(0, 35, 5);
-    unshare(c2);
-    dc->SetTextForeground(c2);
-#endif
+        wxColor c2(0, 35, 5);
+        unshare(c2);
+        dc->SetTextForeground(c2);
+    #endif
+    }
 
     dc->SelectObject(nullBitmap);
     delete bitmap;
@@ -114,6 +116,26 @@ DrawingContext::~DrawingContext() {
         delete image;
     }
 }
+
+void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
+    if (bitmap != nullptr) {
+        delete bitmap;
+        bitmap = nullptr;
+    }
+    if (image != nullptr) {
+        delete image;
+    }
+    image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
+#if wxUSE_GRAPHICS_CONTEXT
+    image->SetAlpha();
+    for(wxCoord x=0; x<BufferWi; x++) {
+        for(wxCoord y=0; y<BufferHt; y++) {
+            image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
+        }
+    }
+#endif
+}
+
 void DrawingContext::Clear() {
 #if wxUSE_GRAPHICS_CONTEXT
     if (gc != nullptr) {
@@ -290,12 +312,13 @@ void DrawingContext::GetTextExtent(const wxString &msg, double *width, double *h
 #endif
 }
 
-RenderBuffer::RenderBuffer()
+RenderBuffer::RenderBuffer(bool b)
 {
     frameTimeInMs = 50;
     drawingContext = NULL;
     InhibitClear = false;
     tempInt = tempInt2 = 0;
+    onlyOnMain = b;
 }
 
 RenderBuffer::~RenderBuffer()
@@ -313,7 +336,11 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi)
 {
     BufferHt=newBufferHt;
     BufferWi=newBufferWi;
-    drawingContext = new DrawingContext(newBufferWi, newBufferHt);
+    if (drawingContext == nullptr) {
+        drawingContext = new DrawingContext(newBufferWi, newBufferHt, onlyOnMain);
+    } else {
+        drawingContext->ResetSize(newBufferWi, newBufferHt);
+    }
     int NumPixels=BufferHt * BufferWi;
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
