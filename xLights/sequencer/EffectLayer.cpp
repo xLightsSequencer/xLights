@@ -403,7 +403,8 @@ void EffectLayer::GetMaximumRangeWithLeftMovement(int index, int &toLeft, int &t
     }
     else
     {
-       if(mEffects[index-1]->GetSelected() == EFFECT_NOT_SELECTED || mEffects[index-1]->GetSelected() == EFFECT_LT_SELECTED)
+       if(mEffects[index-1]->GetSelected() == EFFECT_NOT_SELECTED ||
+          ((index > 0) && mEffects[index-1]->GetSelected() == EFFECT_LT_SELECTED))
        {
           toLeft = mEffects[index]->GetStartTimeMS() - mEffects[index-1]->GetEndTimeMS();
        }
@@ -431,7 +432,8 @@ void EffectLayer::GetMaximumRangeWithRightMovement(int index, int &toLeft, int &
     }
     else
     {
-       if(mEffects[index+1]->GetSelected() == EFFECT_NOT_SELECTED || mEffects[index-1]->GetSelected() == EFFECT_RT_SELECTED)
+       if(mEffects[index+1]->GetSelected() == EFFECT_NOT_SELECTED ||
+          ((index > 0) && mEffects[index-1]->GetSelected() == EFFECT_RT_SELECTED))
        {
           toRight = mEffects[index+1]->GetStartTimeMS() - mEffects[index]->GetEndTimeMS();
        }

@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug (gil)   Fix crash when moving multiple effects introduced by previous change to fix overlap error.  Fixes #472.
     -- enh (dkulp) If "ModelGroup" has node/strand effects in sequence, allow mapping those to new models at load.
     -- enh (dkulp) Add ability to specify a transform and style for the buffer for each effect
     -- enh (dkulp) When displaying/preview group, use the pixel styles from the original models
