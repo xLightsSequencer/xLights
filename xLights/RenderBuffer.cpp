@@ -334,13 +334,13 @@ RenderBuffer::~RenderBuffer()
 
 void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi)
 {
-    BufferHt=newBufferHt;
-    BufferWi=newBufferWi;
     if (drawingContext == nullptr) {
         drawingContext = new DrawingContext(newBufferWi, newBufferHt, onlyOnMain);
-    } else {
+    } else if (BufferHt != newBufferHt || BufferWi != newBufferWi) {
         drawingContext->ResetSize(newBufferWi, newBufferHt);
     }
+    BufferHt=newBufferHt;
+    BufferWi=newBufferWi;
     int NumPixels=BufferHt * BufferWi;
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);

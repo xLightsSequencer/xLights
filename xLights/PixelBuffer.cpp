@@ -434,8 +434,8 @@ void PixelBufferClass::Blur(LayerInfo* layer)
 		d = (b - 1) / 2;
 		u = (b - 1) / 2;
 	}
-	int smear = b*b;
 
+    xlColor c;
 	for (int x = 0; x < layer->BufferWi; x++)
 	{
 		for (int y = 0; y < layer->BufferHt; y++)
@@ -443,36 +443,27 @@ void PixelBufferClass::Blur(LayerInfo* layer)
 			int r = 0;
 			int g = 0;
 			int b = 0;
+            int a = 0;
+            int sm = 0;
 			for (int i = x - d; i <= x + u; i++)
 			{
-				int ii = i;
-				if (i < 0)
+				if (i >= 0 && i < layer->BufferWi)
 				{
-					ii = 0;
-				}
-				else if (i >= layer->BufferWi)
-				{
-					ii = layer->BufferWi - 1;
-				}
-				for (int j = y - d; j <= y + u; j++)
-				{
-					int jj = j;
-					if (j < 0)
-					{
-						jj = 0;
+                    for (int j = y - d; j <= y + u; j++)
+                    {
+                        if (j >=0 && j < layer->BufferHt)
+                        {
+                            layer->buffer.GetPixel(i, j, c);
+                            r += c.Red();
+                            g += c.Green();
+                            b += c.Blue();
+                            a += c.Alpha();
+                            ++sm;
+                        }
 					}
-					else if (j >= layer->BufferHt)
-					{
-						jj = layer->BufferHt - 1;
-					}
-					xlColor c;
-					layer->buffer.GetPixel(ii, jj, c);
-					r = r + c.Red();
-					g = g + c.Green();
-					b = b + c.Blue();
 				}
 			}
-			xlColor newc(r/smear, g/smear, b/smear);
+			xlColor newc(r/sm, g/sm, b/sm, a/sm);
 			layer->buffer.SetPixel(x, y, newc);
 		}
 	}
