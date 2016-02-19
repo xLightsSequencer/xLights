@@ -21,6 +21,11 @@ namespace DrawGLUtils
         xlDisplayList() : iconSize(2) {};
         int iconSize;
         mutable std::recursive_mutex lock;
+        
+        void LockedClear() {
+            std::unique_lock<std::recursive_mutex> locker(lock);
+            clear();
+        }
     };
 
     void DrawText(double x, double y, void *glutBitmapFont, const wxString &text);

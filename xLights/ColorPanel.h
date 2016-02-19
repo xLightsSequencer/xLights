@@ -16,6 +16,8 @@
 #include <wx/colordlg.h>
 #include <unordered_map>
 
+#include <vector>
+
 wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 
 class ColorPanel: public wxPanel
@@ -25,18 +27,22 @@ class ColorPanel: public wxPanel
 		ColorPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorPanel();
 
+        void SetDefaultSettings();
 		wxString GetColorString();
         wxString GetRandomColorString();
 
         bool PaletteChanged;
         bool EffectChanged;
 
+    
         void SetDefaultPalette();
+private:
         wxColour GetPaletteColor(int idx);
         void SetPaletteColor(int idx, const wxColour* c);
+public:
         void UpdateSliderText();
         static void SetButtonColor(wxBitmapButton* btn, const wxColour* c);
-        static const int PALETTE_SIZE = 6;
+        static const int PALETTE_SIZE = 8;
 
 		//(*Declarations(ColorPanel)
 		wxCheckBox* CheckBox_Palette3;
@@ -49,10 +55,13 @@ class ColorPanel: public wxPanel
 		wxStaticText* StaticText126;
 		wxBitmapButton* BitmapButton_normal;
 		wxBitmapButton* Button_Palette4;
+		wxBitmapButton* Button_Palette8;
 		wxTextCtrl* txtCtlContrast;
 		wxBitmapButton* BitmapButton_SparkleFrequency;
 		wxSlider* Slider_Contrast;
+		wxCheckBox* CheckBox_Palette8;
 		wxSlider* Slider_SparkleFrequency;
+		wxBitmapButton* BitmapButton_Palette7;
 		wxBitmapButton* BitmapButton_Contrast;
 		wxPanel* Panel_Sizer;
 		wxBitmapButton* BitmapButton_Palette2;
@@ -66,11 +75,14 @@ class ColorPanel: public wxPanel
 		wxCheckBox* CheckBox_Palette4;
 		wxBitmapButton* BitmapButton_Palette6;
 		wxBitmapButton* BitmapButton_Palette5;
+		wxBitmapButton* BitmapButton_Palette8;
 		wxCheckBox* CheckBox_Palette5;
 		wxBitmapButton* BitmapButton_Palette3;
 		wxBitmapButton* Button_Palette3;
 		wxFlexGridSizer* FlexGridSizer_Palette;
+		wxCheckBox* CheckBox_Palette7;
 		wxBitmapButton* Button_Palette2;
+		wxBitmapButton* Button_Palette7;
 		wxBitmapButton* Button_Palette5;
 		wxCheckBox* CheckBox_Palette6;
 		wxBitmapButton* Button_Palette6;
@@ -86,18 +98,24 @@ class ColorPanel: public wxPanel
 		static const long ID_CHECKBOX_Palette4;
 		static const long ID_CHECKBOX_Palette5;
 		static const long ID_CHECKBOX_Palette6;
+		static const long ID_CHECKBOX_Palette7;
+		static const long ID_CHECKBOX_Palette8;
 		static const long ID_BUTTON_Palette1;
 		static const long ID_BUTTON_Palette2;
 		static const long ID_BUTTON_Palette3;
 		static const long ID_BUTTON_Palette4;
 		static const long ID_BUTTON_Palette5;
 		static const long ID_BUTTON_Palette6;
+		static const long ID_BUTTON_Palette7;
+		static const long ID_BUTTON_Palette8;
 		static const long ID_BITMAPBUTTON_BUTTON_Palette1;
 		static const long ID_BITMAPBUTTON_BUTTON_Palette2;
 		static const long ID_BITMAPBUTTON_BUTTON_Palette3;
 		static const long ID_BITMAPBUTTON_BUTTON_Palette4;
 		static const long ID_BITMAPBUTTON_BUTTON_Palette5;
 		static const long ID_BITMAPBUTTON_BUTTON_Palette6;
+		static const long ID_BITMAPBUTTON_BUTTON_Palette7;
+		static const long ID_BITMAPBUTTON_BUTTON_Palette8;
 		static const long ID_BUTTON1;
 		static const long ID_STATICTEXT24;
 		static const long ID_SLIDER_SparkleFrequency;
@@ -128,6 +146,8 @@ class ColorPanel: public wxPanel
 		void OnBitmapButton_Palette4Click(wxCommandEvent& event);
 		void OnBitmapButton_Palette5Click(wxCommandEvent& event);
 		void OnBitmapButton_Palette6Click(wxCommandEvent& event);
+        void OnBitmapButton_Palette7Click(wxCommandEvent& event);
+        void OnBitmapButton_Palette8Click(wxCommandEvent& event);
 		void OnButton_PaletteNumberClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnPaint(wxPaintEvent& event);
@@ -150,6 +170,9 @@ class ColorPanel: public wxPanel
         std::unordered_map<std::string, EditState> buttonState;
         bool isRandom_(wxControl* ctl, const char*debug);
         #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
+    
+        std::vector<wxBitmapButton*> buttons;
+        std::vector<wxCheckBox*> checkBoxes;
 
 		DECLARE_EVENT_TABLE()
 

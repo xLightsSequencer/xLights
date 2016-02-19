@@ -93,6 +93,12 @@ static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors
         if (mPaletteMap.GetBool("C_CHECKBOX_Palette6")) {
             mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette6"]));
         }
+        if (mPaletteMap.GetBool("C_CHECKBOX_Palette7")) {
+            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette7"]));
+        }
+        if (mPaletteMap.GetBool("C_CHECKBOX_Palette8")) {
+            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette8"]));
+        }
     }
 }
 
@@ -224,6 +230,7 @@ void Effect::SetEffectName(const std::string & name)
             mName = new std::string(name);
         }
         IncrementChangeCount();
+        background.LockedClear();
     }
 }
 
@@ -238,6 +245,7 @@ void Effect::SetEffectIndex(int effectIndex)
     {
         mEffectIndex = effectIndex;
         IncrementChangeCount();
+        background.LockedClear();
     }
 }
 
