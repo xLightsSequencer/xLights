@@ -133,6 +133,14 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
             }
        }
     }
+    if( type == "Animation" )
+    {
+        if (audio != NULL)
+        {
+            delete audio;
+            audio = NULL;
+        }
+    }
 }
 
 int xLightsXmlFile::GetFrequency()
@@ -997,7 +1005,7 @@ bool xLightsXmlFile::LoadV3Sequence()
     effects.Clear();
 
     SaveCopy();
-    
+
     UpdateVersion("4.2.19");
     seqDocument.Save(GetFullPath());
 
