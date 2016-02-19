@@ -13,9 +13,8 @@ This document describes how to build wxWidgets if you need to to that yourself.
 
 These instructions have been tested on the following distributions:
 
-  - Linux Mint 12
-  - Ubuntu 14.10
-  - Fedora 21
+  - Ubuntu 15.10
+  - Fedora 23
 
 Instructions for other Linux distributions will vary. 
 
@@ -31,13 +30,9 @@ Instructions for other Linux distributions will vary.
      libmpg123-dev
      libwxgtk-media3.0-dev
 
-     Debian based packages to install
+     Example command to install packages on Ubuntu
 
      sudo apt-get install build-essential libgtk2.0-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev freeglut3-dev libmpg123-dev libwxgtk-media3.0-dev
-
-     Fedora 21 packages required for wxWidgets build
-
-     sudo yum install freeglut-devel libjpeg-turbo-devel gstreamer-plugins-base-devel gstreamer-plugins-ugly gstreamer-plugins-bad-free gstreamer1-plugins-base gstreamer1-plugins-good gstreamer-plugins-base gstreamer-plugins-bad gstreamer-tools gstreamer-plugins-good gstreamer-plugins-espeak gstreamer gstreamer1 gstreamer-devel gtk2-devel mesa-libGLU-devel libmpg123-devel
 
   b) Build wxWidgets 3.0.1 (if not installed from packages)
 

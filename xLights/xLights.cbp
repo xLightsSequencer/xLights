@@ -255,7 +255,7 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
-					<Add option="-std=gnu++11" />
+					<Add option="-std=gnu++14" />
 					<Add option="`wx-config --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
@@ -282,7 +282,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-std=gnu++11" />
+					<Add option="-std=gnu++14" />
 					<Add option="-Wall" />
 					<Add option="`wx-config --version=3.0 --cflags`" />
 					<Add option="-Winvalid-pch" />
