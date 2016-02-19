@@ -86,7 +86,10 @@ ATendril::~ATendril()
 	{
 		TendrilNode* p = _nodes.front();
 		_nodes.pop_front();
-		delete p;
+		if (p != NULL)
+		{
+			delete p;
+		}
 	}
 }
 
@@ -138,7 +141,10 @@ ATendril::ATendril(float friction, int size, float dampening, float tension, flo
 	for (int i = 0; i < _size; i++)
 	{
 		TendrilNode* node = new TendrilNode(start->x, start->y);
-		_nodes.push_back(node);
+		if (node != NULL)
+		{
+			_nodes.push_back(node);
+		}
 	}
 }
 
@@ -146,42 +152,45 @@ void ATendril::Update(wxPoint* target)
 {
 	float spring = _spring;
 	TendrilNode* node = _nodes.front();
-	node->vx += (target->x - node->x) * spring;
-	node->vy += (target->y - node->y) * spring;
-
-	TendrilNode* prev = NULL;
-	for (std::list<TendrilNode*>::const_iterator ci = _nodes.begin(); ci != _nodes.end(); ++ci)
+	if (node != NULL)
 	{
-		node = *ci;
-		if (prev != NULL)
+		node->vx += (target->x - node->x) * spring;
+		node->vy += (target->y - node->y) * spring;
+
+		TendrilNode* prev = NULL;
+		for (std::list<TendrilNode*>::const_iterator ci = _nodes.begin(); ci != _nodes.end(); ++ci)
 		{
-			node->vx += (prev->x - node->x) * spring;
-			node->vy += (prev->y - node->y) * spring;
-			node->vx += prev->vx * _dampening;
-			node->vy += prev->vy * _dampening;
+			node = *ci;
+			if (prev != NULL)
+			{
+				node->vx += (prev->x - node->x) * spring;
+				node->vy += (prev->y - node->y) * spring;
+				node->vx += prev->vx * _dampening;
+				node->vy += prev->vy * _dampening;
+			}
+			node->vx *= _friction;
+			node->vy *= _friction;
+			node->x += node->vx;
+			node->y += node->vy;
+			if (node->x < -1 * _width)
+			{
+				node->x = -1 * _width;
+			}
+			if (node->x > 2 * _width)
+			{
+				node->x = 2 * _width;
+			}
+			if (node->y < -1 * _height)
+			{
+				node->y = -1 * _height;
+			}
+			if (node->y > 2 * _height)
+			{
+				node->y = 2 * _height;
+			}
+			prev = node;
+			spring *= _tension;
 		}
-		node->vx *= _friction;
-		node->vy *= _friction;
-		node->x += node->vx;
-		node->y += node->vy;
-		if (node->x < -1 * _width)
-		{
-			node->x = -1 * _width;
-		}
-		if (node->x > 2 * _width)
-		{
-			node->x = 2 * _width;
-		}
-		if (node->y < -1 * _height)
-		{
-			node->y = -1 * _height;
-		}
-		if (node->y > 2 * _height)
-		{
-			node->y = 2 * _height;
-		}
-		prev = node;
-		spring *= _tension;
 	}
 }
 
@@ -239,7 +248,10 @@ Tendril::~Tendril()
 	{
 		ATendril* p = _tendrils.front();
 		_tendrils.pop_front();
-		delete p;
+		if (p != NULL)
+		{
+			delete p;
+		}
 	}
 }
 
@@ -267,7 +279,11 @@ Tendril::Tendril(float friction, int trails, int size, float dampening, float te
 	for (int i = 0; i < t; i++)
 	{
 		float aspring = sb + si * ((float)i / (float)t);
-		_tendrils.push_back(new ATendril(friction, size, dampening, tension, aspring, start, colour, thickness, maxx, maxy));
+		ATendril* t = new ATendril(friction, size, dampening, tension, aspring, start, colour, thickness, maxx, maxy);
+		if (t != NULL)
+		{
+			_tendrils.push_back(t);
+		}
 	}
 }
 
@@ -287,63 +303,82 @@ void Tendril::UpdateRandomMove(int tunemovement)
 	int maxmovex = _width * 2 * tunemovement / 20;
 	int maxmovey = _height * 2 * tunemovement / 20;
 
-	wxPoint* current = _tendrils.front()->LastLocation();
+	ATendril* t = _tendrils.front();
+	if (t != NULL)
+	{
+		wxPoint* current = t->LastLocation();
 
-	int realminmovex = minmovex;
-	if (minmovex < 0)
-	{
-		realminmovex = -1 * std::min(current->x, minmovex * -1);
-	}
-	int realmaxmovex = maxmovex;
-	if (maxmovex > 0)
-	{
-		realmaxmovex = std::min(maxx - current->x, maxmovex);
-	}
-	int realminmovey = minmovey;
-	if (minmovey < 0)
-	{
-		realminmovey = -1 * std::min(current->y, minmovey * -1);
-	}
-	int realmaxmovey = maxmovey;
-	if (maxmovey > 0)
-	{
-		realmaxmovey = std::min(maxy - current->y, maxmovey);
-	}
+		if (current != NULL)
+		{
+			int realminmovex = minmovex;
+			if (minmovex < 0)
+			{
+				realminmovex = -1 * std::min(current->x, minmovex * -1);
+			}
+			int realmaxmovex = maxmovex;
+			if (maxmovex > 0)
+			{
+				realmaxmovex = std::min(maxx - current->x, maxmovex);
+			}
+			int realminmovey = minmovey;
+			if (minmovey < 0)
+			{
+				realminmovey = -1 * std::min(current->y, minmovey * -1);
+			}
+			int realmaxmovey = maxmovey;
+			if (maxmovey > 0)
+			{
+				realmaxmovey = std::min(maxy - current->y, maxmovey);
+			}
 
-	int xmove = -1 * realminmovex + realmaxmovex;
-	int ymove = -1 * realminmovey + realmaxmovey;
-	int x = 0;
-	if (xmove > 0)
-	{
-		x = (rand() % xmove) + realminmovex;
-	}
-	int y = 0;
-	if (ymove > 0)
-	{
-		y = (rand() % ymove) + realminmovey;
-	}
+			int xmove = -1 * realminmovex + realmaxmovex;
+			int ymove = -1 * realminmovey + realmaxmovey;
+			int x = 0;
+			if (xmove > 0)
+			{
+				x = (rand() % xmove) + realminmovex;
+			}
+			int y = 0;
+			if (ymove > 0)
+			{
+				y = (rand() % ymove) + realminmovey;
+			}
 
-	current->x = current->x + x;
-	current->y = current->y + y;
+			current->x = current->x + x;
+			current->y = current->y + y;
 
-	if (current->x < minx)
-	{
-		current->x = minx;
+			if (current->x < minx)
+			{
+				current->x = minx;
+			}
+			if (current->x > maxx)
+			{
+				current->x = maxx;
+			}
+			if (current->y < miny)
+			{
+				current->y = miny;
+			}
+			if (current->y > maxy)
+			{
+				current->y = maxy;
+			}
+			Update(current);
+			delete current;
+		}
+#ifdef _DEBUG
+		else
+		{
+			int a = 0;
+		}
+#endif
 	}
-	if (current->x > maxx)
+#ifdef _DEBUG
+	else
 	{
-		current->x = maxx;
+		int a = 0;
 	}
-	if (current->y < miny)
-	{
-		current->y = miny;
-	}
-	if (current->y > maxy)
-	{
-		current->y = maxy;
-	}
-	Update(current);
-    delete current;
+#endif
 }
 
 void Tendril::Update(wxPoint* target)
@@ -620,7 +655,10 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 		switch (_movement)
 		{
 		case 1:
-			_tendril->UpdateRandomMove(_tunemovement);
+			if (_tendril != NULL)
+			{
+				_tendril->UpdateRandomMove(_tunemovement);
+			}
 			break;
 		case 2:
 			switch (_mv3)
@@ -654,7 +692,10 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 				}
 				break;
 			}
-			_tendril->Update(_mv1, _mv2);
+			if (_tendril != NULL)
+			{
+				_tendril->Update(_mv1, _mv2);
+			}
 			break;
 		case 3:
 		{
@@ -665,7 +706,10 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 			}
 			int x = sin((double)_mv1 / 360.0 * PI * 2.0) * (double)_mv2 + (double)buffer.BufferWi / 2.0;
 			int y = cos((double)_mv1 / 360.0 * PI * 2.0) * (double)_mv2 + (double)buffer.BufferHt / 2.0;
-			_tendril->Update(x, y);
+			if (_tendril != NULL)
+			{
+				_tendril->Update(x, y);
+			}
 		}
 			break;
 		case 4:
@@ -680,7 +724,10 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 			{
 				x = buffer.BufferWi - x;
 			}
-			_tendril->Update(x, _mv1);
+			if (_tendril != NULL)
+			{
+				_tendril->Update(x, _mv1);
+			}
 		}
 		break;
 		case 5:
@@ -695,7 +742,10 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 			{
 				y = buffer.BufferHt - y;
 			}
-			_tendril->Update(_mv1, y);
+			if (_tendril != NULL)
+			{
+				_tendril->Update(_mv1, y);
+			}
 		}
 		break;
 		case 6:
@@ -716,7 +766,10 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 				_mv3 = _mv3 * -1;
 			}
 
-			_tendril->Update(_mv1, buffer.BufferHt * f);
+			if (_tendril != NULL)
+			{
+				_tendril->Update(_mv1, buffer.BufferHt * f);
+			}
 		}
 		break;
 		case 7:
@@ -738,13 +791,19 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 			}
 			int x = sin((double)_mv1 / 360.0 * PI * 2.0) * (double)_mv2 * f * 2 + (double)buffer.BufferWi / 2.0;
 			int y = cos((double)_mv1 / 360.0 * PI * 2.0) * (double)_mv2 * f * 2 + (double)buffer.BufferHt / 2.0;
-			_tendril->Update(x, y);
+			if (_tendril != NULL)
+			{
+				_tendril->Update(x, y);
+			}
 		}
 		break;
 		}
 	}
 
-    _tendril->Draw(buffer.drawingContext);
+	if (_tendril != NULL)
+	{
+		_tendril->Draw(buffer.drawingContext);
+	}
     wxImage * image = buffer.drawingContext->FlushAndGetImage();
     bool hasAlpha = image->HasAlpha();
 
