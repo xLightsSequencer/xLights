@@ -96,8 +96,10 @@ PreviewModels::PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode*
 	ChoiceModelLayoutType->Append(_("Horizontal Per Model/Strand"));
 	ChoiceModelLayoutType->Append(_("Vertical Per Model/Strand"));
 	ChoiceModelLayoutType->Append(_("Single Line"));
+	ChoiceModelLayoutType->Append(_("Overlay - Centered"));
+	ChoiceModelLayoutType->Append(_("Overlay - Scaled"));
 	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	GridSizeLabel = new wxStaticText(this, ID_STATICTEXT4, _("Grid Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	GridSizeLabel = new wxStaticText(this, ID_STATICTEXT4, _("Max Grid Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer6->Add(GridSizeLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	SizeSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("400"), wxDefaultPosition, wxDefaultSize, 0, 10, 2000, 400, _T("ID_SPINCTRL1"));
 	SizeSpinCtrl->SetValue(_T("400"));
@@ -322,14 +324,13 @@ void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
 
         e->DeleteAttribute("GridSize");
         e->DeleteAttribute("layout");
+        e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
         switch (ChoiceModelLayoutType->GetSelection()) {
             case 0:
                 e->AddAttribute("layout", "grid");
-                e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
                 break;
             case 1:
                 e->AddAttribute("layout", "minimalGrid");
-                e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
                 break;
             case 2:
                 e->AddAttribute("layout", "horizontal");
@@ -413,5 +414,4 @@ void PreviewModels::OnButtonDownClick(wxCommandEvent& event)
 
 void PreviewModels::OnChoiceModelLayoutTypeSelect(wxCommandEvent& event)
 {
-    SizeSpinCtrl->Enable(ChoiceModelLayoutType->GetSelection() <= 1);
 }

@@ -106,6 +106,8 @@
 														<item>Horizontal Per Model/Strand</item>
 														<item>Vertical Per Model/Strand</item>
 														<item>Single Line</item>
+														<item>Overlay - Centered</item>
+														<item>Overlay - Scaled</item>
 													</content>
 													<selection>0</selection>
 													<handler function="OnChoiceModelLayoutTypeSelect" entry="EVT_CHOICE" />
@@ -116,7 +118,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="ID_STATICTEXT4" variable="GridSizeLabel" member="yes">
-													<label>Grid Size:</label>
+													<label>Max Grid Size:</label>
 												</object>
 												<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>

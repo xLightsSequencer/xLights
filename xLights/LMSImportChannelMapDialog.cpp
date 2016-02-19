@@ -333,7 +333,12 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             wxString mapping = FindTab(line);
             xlColor color(FindTab(line));
 
-            if (std::find(modelNames.begin(), modelNames.end(), model.ToStdString()) != modelNames.end()) {
+            Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
+            if (modelEl == nullptr && allowAddModels) {
+                modelEl = mSequenceElements->AddElement(model.ToStdString(), "model", false, false, false, false);
+                modelEl->AddEffectLayer();
+            }
+            if (modelEl != nullptr) {
                 while (model != ChannelMapGrid->GetCellValue(r, 0)
                        && r < ChannelMapGrid->GetNumberRows()) {
                     r++;
