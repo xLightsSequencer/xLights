@@ -1271,8 +1271,6 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
         }
         cnt++;
     }
-    // set textbox values for sliders that have them
-    colorPanel->UpdateSliderText();
 
     MixTypeChanged=true;
     FadesChanged=true;
