@@ -549,7 +549,7 @@ private:
         fadeOut = settingsMap.GetDouble(TEXTCTRL_Fadeout, 0.0);
         buffer->SetFadeTimes(layer, fadeIn, fadeOut);
 
-		int effectBlur = settingsMap.GetInt(SLIDER_EffectBlur, 0);
+		int effectBlur = settingsMap.GetInt(SLIDER_EffectBlur, 1);
 		buffer->SetBlur(layer, effectBlur);
 
         int freq=settingsMap.GetInt(SLIDER_SparkleFrequency, 0);

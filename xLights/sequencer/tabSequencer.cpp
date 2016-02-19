@@ -1143,7 +1143,6 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     wxColour color;
     wxWindow *CtrlWin, *ContextWin;
     wxString before,after,name,value;
-    wxPanel *efPanel;
     int cnt=0;
 
     for (std::map<std::string,std::string>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
@@ -1153,19 +1152,16 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
         {
             ContextWin=EffectsPanel1;
             name="ID_"+name.Mid(2);
-            efPanel = EffectsPanel1;
         }
         else if (name.StartsWith("T_"))
         {
             ContextWin=timingPanel;
             name="ID_"+name.Mid(2);
-            efPanel = EffectsPanel1;
         }
         else if (name.StartsWith("C_"))
         {
             ContextWin=colorPanel;
             name="ID_"+name.Mid(2);
-            efPanel = EffectsPanel1;
         }
         else
         {
@@ -1218,16 +1214,8 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             else if (name.StartsWith("ID_BUTTON"))
             {
                 color.Set(value);
-                if (efPanel != NULL)
-                {
-                    ColorPanel::SetButtonColor((wxBitmapButton*)CtrlWin, &color);
-                }
-                else
-                {
-                    CtrlWin->SetBackgroundColour(color);
-                }
+                ColorPanel::SetButtonColor((wxBitmapButton*)CtrlWin, &color);
                 CtrlWin->SetBackgroundColour(color);
-                //SetTextColor(CtrlWin);
             }
             else if (name.StartsWith("ID_CHECKBOX"))
             {
@@ -1283,7 +1271,6 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     }
     // set textbox values for sliders that have them
     colorPanel->UpdateSliderText();
-    timingPanel->UpdateEffectLayerMix();
 
     MixTypeChanged=true;
     FadesChanged=true;

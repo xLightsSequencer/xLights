@@ -531,14 +531,15 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 		wxPoint startbottomleft(0, 0);
 		wxPoint starttopleft(0, buffer.BufferHt);
 		wxPoint startmiddleleft(0, buffer.BufferHt / 2);
-		if (_tendril != NULL)
-		{
-			delete _tendril;
-			_tendril = NULL;
-		}
 
         if (_movement != nMovement || _tunemovement != tunemovement)
         {
+            if (_tendril != NULL)
+            {
+                delete _tendril;
+                _tendril = NULL;
+            }
+
             switch(nMovement)
             {
             case 1:

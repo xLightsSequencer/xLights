@@ -4,21 +4,22 @@
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include <wx/msgdlg.h>
 //(*InternalHeaders(TimingPanel)
-#include <wx/bitmap.h>
 #include <wx/settings.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
 //*)
 
 #include "models/Model.h"
+#include "effects/EffectPanelUtils.h"
 
 //(*IdInit(TimingPanel)
 const long TimingPanel::ID_CHECKBOX_LayerMorph = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_CHECKBOX_LayerMorph = wxNewId();
 const long TimingPanel::ID_CHOICE_LayerMethod = wxNewId();
 const long TimingPanel::ID_SLIDER_EffectLayerMix = wxNewId();
-const long TimingPanel::ID_TEXTCTRL_LayerMix = wxNewId();
+const long TimingPanel::IDD_TEXTCTRL_EffectLayerMix = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_SLIDER_EffectLayerMix = wxNewId();
 const long TimingPanel::ID_CHOICE_BufferStyle = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_CHOICE_BufferStyle = wxNewId();
@@ -26,7 +27,7 @@ const long TimingPanel::ID_CHOICE_BufferTransform = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_CHOICE_BufferTransform = wxNewId();
 const long TimingPanel::ID_STATICTEXT1 = wxNewId();
 const long TimingPanel::ID_SLIDER_EffectBlur = wxNewId();
-const long TimingPanel::ID_TEXTCTRL_Blur = wxNewId();
+const long TimingPanel::IDD_TEXTCTRL_EffectBlur = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_SLIDER_EffectBlur = wxNewId();
 const long TimingPanel::ID_STATICTEXT2 = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadein = wxNewId();
@@ -48,16 +49,16 @@ END_EVENT_TABLE()
 TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(TimingPanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText1;
-	wxBitmapButton* BitmapButton1;
 	wxBitmapButton* BitmapButtonBufferStyle;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxStaticText* StaticText1;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxBitmapButton* BitmapButton1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(778,707), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -101,7 +102,8 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_EffectLayerMix = new wxSlider(ScrolledWindowTiming, ID_SLIDER_EffectLayerMix, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectLayerMix"));
 	FlexGridSizer1->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND, 1);
-	txtCtlEffectMix = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_LayerMix, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("ID_TEXTCTRL_LayerMix"));
+	txtCtlEffectMix = new wxTextCtrl(ScrolledWindowTiming, IDD_TEXTCTRL_EffectLayerMix, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("IDD_TEXTCTRL_EffectLayerMix"));
+	txtCtlEffectMix->SetMaxLength(3);
 	FlexGridSizer1->Add(txtCtlEffectMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_EffectLayerMix = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
@@ -141,7 +143,8 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer6->AddGrowableCol(0);
 	Slider_EffectBlur = new wxSlider(ScrolledWindowTiming, ID_SLIDER_EffectBlur, 0, 1, 15, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectBlur"));
 	FlexGridSizer6->Add(Slider_EffectBlur, 1, wxALL|wxEXPAND, 1);
-	txtCtlEffectBlur = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_Blur, _("1"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("ID_TEXTCTRL_Blur"));
+	txtCtlEffectBlur = new wxTextCtrl(ScrolledWindowTiming, IDD_TEXTCTRL_EffectBlur, _("1"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("IDD_TEXTCTRL_EffectBlur"));
+	txtCtlEffectBlur->SetMaxLength(2);
 	FlexGridSizer6->Add(txtCtlEffectBlur, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer2->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
 	BitmapButton_EffectBlur = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_EffectBlur, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectBlur"));
@@ -188,14 +191,18 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	SetSizer(FlexGridSizer3);
 	Layout();
 
-	Connect(ID_SLIDER_EffectLayerMix,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&TimingPanel::OnSlider_EffectLayerMixCmdScroll);
-	Connect(ID_SLIDER_EffectLayerMix,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::OnSlider_EffectLayerMixCmdScroll);
-	Connect(ID_SLIDER_EffectBlur,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&TimingPanel::OnSlider_EffectBlurCmdScroll);
-	Connect(ID_SLIDER_EffectBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::OnSlider_EffectBlurCmdScroll);
-	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadein,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnBitmapButton_FadeOutClick);
-	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadeout,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnBitmapButton_FadeInClick);
-	Connect(ID_CHECKBOX_OverlayBkg,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_OverlayBkgClick);
-	Connect(ID_BITMAPBUTTON_OverlayBkg,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnBitmapButton_OverlayBkgClick);
+	Connect(ID_BITMAPBUTTON_CHECKBOX_LayerMorph,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
+	Connect(ID_SLIDER_EffectLayerMix,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
+	Connect(IDD_TEXTCTRL_EffectLayerMix,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
+	Connect(ID_BITMAPBUTTON_SLIDER_EffectLayerMix,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_CHOICE_BufferStyle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_CHOICE_BufferTransform,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
+	Connect(ID_SLIDER_EffectBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
+	Connect(IDD_TEXTCTRL_EffectBlur,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
+	Connect(ID_BITMAPBUTTON_SLIDER_EffectBlur,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadein,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadeout,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_OverlayBkg,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
 	//*)
 }
@@ -206,28 +213,6 @@ TimingPanel::~TimingPanel()
 	//*)
 }
 
-void TimingPanel::UpdateEffectLayerMix()
-{
-    txtCtlEffectMix->SetValue(wxString::Format("%d",Slider_EffectLayerMix->GetValue()));
-}
-
-
-
-void TimingPanel::OnCheckBox_OverlayBkgClick(wxCommandEvent& event)
-{
-}
-
-void TimingPanel::OnBitmapButton_FadeOutClick(wxCommandEvent& event)
-{
-}
-
-void TimingPanel::OnBitmapButton_FadeInClick(wxCommandEvent& event)
-{
-}
-
-void TimingPanel::OnBitmapButton_OverlayBkgClick(wxCommandEvent& event)
-{
-}
 
 void TimingPanel::OnResize(wxSizeEvent& event)
 {
@@ -283,7 +268,7 @@ wxString TimingPanel::GetTimingString()
         s += wxString::Format("T_SLIDER_EffectLayerMix=%d,",Slider_EffectLayerMix->GetValue());
     }
     // Blur
-    if (Slider_EffectBlur->GetValue() != 0) {
+    if (Slider_EffectBlur->GetValue() > 1) {
         s += wxString::Format("T_SLIDER_EffectBlur=%d,",Slider_EffectBlur->GetValue());
     }
     // Fade in
@@ -318,12 +303,7 @@ wxString TimingPanel::GetTimingString()
 }
 
 
-void TimingPanel::OnSlider_EffectLayerMixCmdScroll(wxScrollEvent& event)
-{
-    UpdateEffectLayerMix();
-}
 
-void TimingPanel::OnSlider_EffectBlurCmdScroll(wxScrollEvent& event)
-{
-    txtCtlEffectBlur->SetValue(wxString::Format("%d",Slider_EffectBlur->GetValue()));
-}
+PANEL_EVENT_HANDLERS(TimingPanel)
+
+
