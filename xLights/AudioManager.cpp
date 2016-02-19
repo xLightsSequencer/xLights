@@ -657,6 +657,9 @@ bool AudioManager::CheckCBR()
 	unsigned int master = 0; // this is the master header we use to verify that the frame header is a header
 	int masterbitrate = -1; // this is the bitrate we first believe the file to be ... it is used to find VBR files which dont contain the Xing frame
 	bool isCBR = true; // we start assuming the file is CBR ... and look for evidence it isnt
+#ifdef _DEBUG
+	int px = 0; // used in debugging to see frame start point
+#endif
 
 	wxFFile mp3file(_audio_file, "rb");
 
@@ -672,6 +675,9 @@ bool AudioManager::CheckCBR()
 			{
 				mp3file.Read(&start, 1);
 			}
+#ifdef _DEBUG
+			px = mp3file.Tell() - 1;
+#endif
 			if (start == (char)0xFF)
 			{
 				if (!mp3file.Eof())
@@ -714,12 +720,14 @@ bool AudioManager::CheckCBR()
 					}
 					else
 					{
-						mp3file.Seek(-3, wxFromCurrent);
+						// Jump back to the D ... I cant go back to the I or I will be back here again
+						mp3file.Seek(-2, wxFromCurrent);
 					}
 				}
 				else
 				{
-					mp3file.Seek(-2, wxFromCurrent);
+					// Jump back to the D ... I cant go back to the I or I will be back here again
+					mp3file.Seek(-1, wxFromCurrent);
 				}
 			}
 		}
