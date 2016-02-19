@@ -693,6 +693,10 @@
 		<Unit filename="effects/TextEffect.h" />
 		<Unit filename="effects/TextPanel.cpp" />
 		<Unit filename="effects/TextPanel.h" />
+		<Unit filename="effects/TransitionEffect.cpp" />
+		<Unit filename="effects/TransitionEffect.h" />
+		<Unit filename="effects/TransitionPanel.cpp" />
+		<Unit filename="effects/TransitionPanel.h" />
 		<Unit filename="effects/TreeEffect.cpp" />
 		<Unit filename="effects/TreeEffect.h" />
 		<Unit filename="effects/TreePanel.cpp" />
@@ -911,6 +915,7 @@
 		<Unit filename="wxsmith/TextPanel.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
+		<Unit filename="wxsmith/TransitionPanel.wxs" />
 		<Unit filename="wxsmith/TreePanel.wxs" />
 		<Unit filename="wxsmith/TwinklePanel.wxs" />
 		<Unit filename="wxsmith/VAMPPluginDialog.wxs" />
@@ -1028,6 +1033,7 @@
 					<wxPanel wxs="wxsmith/StrobePanel.wxs" src="effects/StrobePanel.cpp" hdr="effects/StrobePanel.h" fwddecl="1" i18n="1" name="StrobePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TendrilPanel.wxs" src="effects/TendrilPanel.cpp" hdr="effects/TendrilPanel.h" fwddecl="1" i18n="1" name="TendrilPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TextPanel.wxs" src="effects/TextPanel.cpp" hdr="effects/TextPanel.h" fwddecl="1" i18n="1" name="TextPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/TransitionPanel.wxs" src="effects/TransitionPanel.cpp" hdr="effects/TransitionPanel.h" fwddecl="1" i18n="1" name="TransitionPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TreePanel.wxs" src="effects/TreePanel.cpp" hdr="effects/TreePanel.h" fwddecl="1" i18n="1" name="TreePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TwinklePanel.wxs" src="effects/TwinklePanel.cpp" hdr="effects/TwinklePanel.h" fwddecl="1" i18n="1" name="TwinklePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/VUMeterPanel.wxs" src="effects/VUMeterPanel.cpp" hdr="effects/VUMeterPanel.h" fwddecl="1" i18n="1" name="VUMeterPanel" language="CPP" />
