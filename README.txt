@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh (gil)   Pictures effect change: Separate scale as an independent parameter and allow start and end scaling motions.  Fixes #451.
     -- bug (gil)   Fix bug when pasting single effects and fix copy row bug when multiple effects are selected.
     -- bug (gil)   Clear waveform when switching to an animation.  Fixes #469.
     -- bug (gil)   Fix crash when moving multiple effects introduced by previous change to fix overlap error.  Fixes #472.

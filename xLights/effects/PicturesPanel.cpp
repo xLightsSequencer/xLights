@@ -34,6 +34,7 @@ const long PicturesPanel::IDD_SLIDER_Pictures_FrameRateAdj = wxNewId();
 const long PicturesPanel::ID_TEXTCTRL_Pictures_FrameRateAdj = wxNewId();
 const long PicturesPanel::ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_PixelOffsets = wxNewId();
+const long PicturesPanel::ID_CHECKBOX_Pictures_ScaleToFit = wxNewId();
 const long PicturesPanel::ID_SLIDER_PicturesXC = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_WrapX = wxNewId();
 const long PicturesPanel::IDD_TEXTCTRL_PicturesXC = wxNewId();
@@ -45,6 +46,12 @@ const long PicturesPanel::IDD_TEXTCTRL_PicturesEndXC = wxNewId();
 const long PicturesPanel::IDD_TEXTCTRL_PicturesEndYC = wxNewId();
 const long PicturesPanel::ID_SLIDER_PicturesEndYC = wxNewId();
 const long PicturesPanel::ID_PANEL45 = wxNewId();
+const long PicturesPanel::ID_SLIDER_Pictures_StartScale = wxNewId();
+const long PicturesPanel::IDD_TEXTCTRL_Pictures_StartScale = wxNewId();
+const long PicturesPanel::ID_PANEL1 = wxNewId();
+const long PicturesPanel::ID_SLIDER_Pictures_EndScale = wxNewId();
+const long PicturesPanel::IDD_TEXTCTRL_Pictures_EndScale = wxNewId();
+const long PicturesPanel::ID_PANEL2 = wxNewId();
 const long PicturesPanel::IDD_NOTEBOOK_Pictures_Positions = wxNewId();
 //*)
 
@@ -66,7 +73,7 @@ public:
                             const wxValidator& validator = wxDefaultValidator,
                             const wxString& name = wxFilePickerCtrlNameStr)
     : wxFilePickerCtrl(parent, id, path, message, wxImage::GetImageExtWildcard(), pos, size, style, validator, name) {
-        
+
     }
     virtual ~xlPictureFilePickerCtrl() {}
 };
@@ -80,24 +87,36 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	wxTextCtrl* TextCtrl_Pictures_FR;
 	wxSlider* Slider2;
 	wxFlexGridSizer* FlexGridSizer19;
+	wxStaticText* StaticText2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxGridBagSizer* GridBagSizer2;
 	wxSlider* Slider18;
+	wxCheckBox* CheckBox2;
+	wxPanel* Panel1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText1;
 	wxStaticText* StaticText_Pictures_YC;
 	wxPanel* PictureStartPositionPanel;
 	wxFlexGridSizer* FlexGridSizer102;
+	wxSlider* Slider_Pictures_EndScale;
 	wxTextCtrl* TextCtrl_PicturesXC;
 	wxCheckBox* CheckBox1;
 	wxSlider* Slider_PicturesXC;
+	wxSlider* Slider_Pictures_StartScale;
 	wxTextCtrl* TextCtrl48;
+	wxTextCtrl* TextCtrl_Pictures_EndScale;
 	xlPictureFilePickerCtrl* FilePickerCtrl1;
 	wxSlider* Slider_PicturesYC;
 	wxTextCtrl* TextCtrl_PicturesYC;
 	wxFlexGridSizer* FlexGridSizer111;
 	wxTextCtrl* TextCtrl2;
 	wxStaticText* StaticText96;
+	wxTextCtrl* TextCtrl_Pictures_StartScale;
 	wxTextCtrl* TextCtrl1;
 	wxSlider* Slider_Pictures_FR;
 	wxStaticText* StaticText160;
+	wxPanel* Panel2;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer106;
 	wxStaticText* StaticText_Pictures_XC;
 	wxGridBagSizer* GridBagSizer3;
@@ -132,7 +151,6 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	Choice_Pictures_Direction->Append(_("down-left"));
 	Choice_Pictures_Direction->Append(_("up-right"));
 	Choice_Pictures_Direction->Append(_("down-right"));
-	Choice_Pictures_Direction->Append(_("scaled"));
 	Choice_Pictures_Direction->Append(_("peekaboo"));
 	Choice_Pictures_Direction->Append(_("wiggle"));
 	Choice_Pictures_Direction->Append(_("zoom in"));
@@ -179,9 +197,14 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	FlexGridSizer102 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer102->AddGrowableCol(0);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
 	CheckBox1 = new wxCheckBox(this, ID_CHECKBOX_Pictures_PixelOffsets, _("Offsets In Pixels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_PixelOffsets"));
 	CheckBox1->SetValue(false);
-	FlexGridSizer102->Add(CheckBox1, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
+	FlexGridSizer1->Add(CheckBox1, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
+	CheckBox2 = new wxCheckBox(this, ID_CHECKBOX_Pictures_ScaleToFit, _("Scale To Fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_ScaleToFit"));
+	CheckBox2->SetValue(false);
+	FlexGridSizer1->Add(CheckBox2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer102->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	Notebook4 = new wxNotebook(this, IDD_NOTEBOOK_Pictures_Positions, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK_Pictures_Positions"));
 	PictureStartPositionPanel = new wxPanel(Notebook4, ID_PANEL43, wxPoint(15,49), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL43"));
 	FlexGridSizer112 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -237,8 +260,36 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	PictureEndPositionPanel->SetSizer(FlexGridSizer111);
 	FlexGridSizer111->Fit(PictureEndPositionPanel);
 	FlexGridSizer111->SetSizeHints(PictureEndPositionPanel);
+	Panel1 = new wxPanel(Notebook4, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer2->AddGrowableCol(1);
+	StaticText1 = new wxStaticText(Panel1, wxID_ANY, _("Scaling"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Pictures_StartScale = new wxSlider(Panel1, ID_SLIDER_Pictures_StartScale, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pictures_StartScale"));
+	FlexGridSizer2->Add(Slider_Pictures_StartScale, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_Pictures_StartScale = new wxTextCtrl(Panel1, IDD_TEXTCTRL_Pictures_StartScale, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pictures_StartScale"));
+	TextCtrl_Pictures_StartScale->SetMaxLength(3);
+	FlexGridSizer2->Add(TextCtrl_Pictures_StartScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel1->SetSizer(FlexGridSizer2);
+	FlexGridSizer2->Fit(Panel1);
+	FlexGridSizer2->SetSizeHints(Panel1);
+	Panel2 = new wxPanel(Notebook4, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer3->AddGrowableCol(1);
+	StaticText2 = new wxStaticText(Panel2, wxID_ANY, _("Scaling"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer3->Add(StaticText2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Pictures_EndScale = new wxSlider(Panel2, ID_SLIDER_Pictures_EndScale, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pictures_EndScale"));
+	FlexGridSizer3->Add(Slider_Pictures_EndScale, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_Pictures_EndScale = new wxTextCtrl(Panel2, IDD_TEXTCTRL_Pictures_EndScale, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pictures_EndScale"));
+	TextCtrl_Pictures_EndScale->SetMaxLength(3);
+	FlexGridSizer3->Add(TextCtrl_Pictures_EndScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel2->SetSizer(FlexGridSizer3);
+	FlexGridSizer3->Fit(Panel2);
+	FlexGridSizer3->SetSizeHints(Panel2);
 	Notebook4->AddPage(PictureStartPositionPanel, _("Start Position"), false);
 	Notebook4->AddPage(PictureEndPositionPanel, _("End Position"), false);
+	Notebook4->AddPage(Panel1, _("Start Scale"), false);
+	Notebook4->AddPage(Panel2, _("End Scale"), false);
 	FlexGridSizer102->Add(Notebook4, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer42->Add(FlexGridSizer102, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer42);
@@ -262,6 +313,10 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	Connect(IDD_TEXTCTRL_PicturesEndXC,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PicturesPanel::UpdateLinkedSlider);
 	Connect(IDD_TEXTCTRL_PicturesEndYC,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PicturesPanel::UpdateLinkedSlider);
 	Connect(ID_SLIDER_PicturesEndYC,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PicturesPanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Pictures_StartScale,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PicturesPanel::UpdateLinkedTextCtrl);
+	Connect(IDD_TEXTCTRL_Pictures_StartScale,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PicturesPanel::UpdateLinkedSlider);
+	Connect(ID_SLIDER_Pictures_EndScale,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PicturesPanel::UpdateLinkedTextCtrl);
+	Connect(IDD_TEXTCTRL_Pictures_EndScale,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PicturesPanel::UpdateLinkedSlider);
 	//*)
     SetName("ID_PANEL_PICTURES");
 }

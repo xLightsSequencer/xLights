@@ -48,6 +48,29 @@ AssistPanel *PicturesEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_f
     return assist_panel;
 }
 
+bool PicturesEffect::needToAdjustSettings(const std::string &version)
+{
+    return IsVersionOlder("2016.9", version);
+}
+
+void PicturesEffect::adjustSettings(const std::string &version, Effect *effect)
+{
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect);
+    }
+
+    SettingsMap &settings = effect->GetSettings();
+    if( settings["E_CHOICE_Pictures_Direction"] == "scaled" )
+    {
+        settings["E_CHOICE_Pictures_Direction"] = "none";
+        settings["E_CHECKBOX_Pictures_ScaleToFit"] = "1";
+    }
+    settings["E_SLIDER_Pictures_StartScale"] = "100";
+    settings["E_SLIDER_Pictures_EndScale"] = "100";
+}
+
 //CAUTION: these must match EffectDirections exactly:
 #define RENDER_PICTURE_LEFT  0
 #define RENDER_PICTURE_RIGHT  1
@@ -58,22 +81,21 @@ AssistPanel *PicturesEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_f
 #define RENDER_PICTURE_DOWNLEFT  6
 #define RENDER_PICTURE_UPRIGHT  7
 #define RENDER_PICTURE_DOWNRIGHT  8
-#define RENDER_PICTURE_SCALED  9
-#define RENDER_PICTURE_PEEKABOO_0  10
-#define RENDER_PICTURE_WIGGLE  11
-#define RENDER_PICTURE_ZOOMIN  12
-#define RENDER_PICTURE_PEEKABOO_90  13
-#define RENDER_PICTURE_PEEKABOO_180  14
-#define RENDER_PICTURE_PEEKABOO_270  15
-#define RENDER_PICTURE_VIXREMAP  16
-#define RENDER_PICTURE_FLAGWAVE  17
-#define RENDER_PICTURE_UPONCE  18
-#define RENDER_PICTURE_DOWNONCE  19
-#define RENDER_PICTURE_VECTOR  20
-#define RENDER_PICTURE_TILE_LEFT  21
-#define RENDER_PICTURE_TILE_RIGHT  22
-#define RENDER_PICTURE_TILE_DOWN  23
-#define RENDER_PICTURE_TILE_UP  24
+#define RENDER_PICTURE_PEEKABOO_0  9
+#define RENDER_PICTURE_WIGGLE  10
+#define RENDER_PICTURE_ZOOMIN  11
+#define RENDER_PICTURE_PEEKABOO_90  12
+#define RENDER_PICTURE_PEEKABOO_180  13
+#define RENDER_PICTURE_PEEKABOO_270  14
+#define RENDER_PICTURE_VIXREMAP  15
+#define RENDER_PICTURE_FLAGWAVE  16
+#define RENDER_PICTURE_UPONCE  17
+#define RENDER_PICTURE_DOWNONCE  18
+#define RENDER_PICTURE_VECTOR  19
+#define RENDER_PICTURE_TILE_LEFT  20
+#define RENDER_PICTURE_TILE_RIGHT  21
+#define RENDER_PICTURE_TILE_DOWN  22
+#define RENDER_PICTURE_TILE_UP  23
 
 static inline int GetPicturesDirection(const std::string &dir) {
     if (dir == "left") {
@@ -94,8 +116,6 @@ static inline int GetPicturesDirection(const std::string &dir) {
         return RENDER_PICTURE_UPRIGHT;
     } else if (dir == "down-right") {
         return RENDER_PICTURE_DOWNRIGHT;
-    } else if (dir == "scaled") {
-        return RENDER_PICTURE_SCALED;
     } else if (dir == "peekaboo") {
         return RENDER_PICTURE_PEEKABOO_0;
     } else if (dir == "wiggle") {
@@ -251,9 +271,11 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap.GetInt("SLIDER_PicturesYC"),
            SettingsMap.GetInt("SLIDER_PicturesEndXC"),
            SettingsMap.GetInt("SLIDER_PicturesEndYC"),
+           SettingsMap.GetInt("SLIDER_Pictures_StartScale"),
+           SettingsMap.GetInt("SLIDER_Pictures_EndScale"),
+           SettingsMap.GetBool("CHECKBOX_Pictures_ScaleToFit"),
            SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets"),
            SettingsMap.GetBool("CHECKBOX_Pictures_WrapX"));
-
 }
 
 void PicturesEffect::Render(RenderBuffer &buffer,
@@ -261,6 +283,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                             float movementSpeed, float frameRateAdj,
                             int xc_adj, int yc_adj,
                             int xce_adj, int yce_adj,
+                            int start_scale, int end_scale, bool scale_to_fit,
                             bool pixelOffsets, bool wrap_x) {
 
     int dir = GetPicturesDirection(dirstr);
@@ -333,7 +356,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         return;
     }
 
-    if (NewPictureName != cache->PictureName)
+    if (NewPictureName != cache->PictureName || (!scale_to_fit && (start_scale != end_scale)))
     {
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
         cache->imageCount = wxImage::GetImageCount(NewPictureName);
@@ -368,16 +391,33 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     int xoffset =(imgwidth-BufferWi)/2; //centered if sizes don't match
     int waveX, waveY, waveW, waveN; //location of first wave, height adjust, width, wave# -DJ
     float xscale, yscale;
-    switch (dir) //prep
+
+    if( scale_to_fit )
     {
-        case RENDER_PICTURE_SCALED:
-            dir = RENDER_PICTURE_NONE;
-            image.Rescale(BufferWi, BufferHt);
-            imgwidth=image.GetWidth();
-            imght = image.GetHeight();
+        image.Rescale(BufferWi, BufferHt);
+        imgwidth=image.GetWidth();
+        imght = image.GetHeight();
+        yoffset =(BufferHt+imght)/2; //centered if sizes don't match
+        xoffset =(imgwidth-BufferWi)/2; //centered if sizes don't match
+    }
+    else
+    {
+        int delta_scale = end_scale - start_scale;
+        int current_scale = start_scale + delta_scale * position;
+        if( start_scale != 100 || end_scale != 100 )
+        {
+            imgwidth=(image.GetWidth()*current_scale)/100;
+            imght = (image.GetHeight()*current_scale)/100;
+            imgwidth = std::max(imgwidth, 1);
+            imght = std::max(imght, 1);
+            image.Rescale(imgwidth, imght);
             yoffset =(BufferHt+imght)/2; //centered if sizes don't match
             xoffset =(imgwidth-BufferWi)/2; //centered if sizes don't match
-            break;
+        }
+    }
+
+    switch (dir) //prep
+    {
         case RENDER_PICTURE_ZOOMIN: //src <- dest scale factor -DJ
             xscale = (imgwidth > 1)? (float)BufferWi / imgwidth: 1;
             yscale = (imght > 1)? (float)BufferHt / imght: 1;

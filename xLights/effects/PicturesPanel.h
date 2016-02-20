@@ -51,6 +51,7 @@ class PicturesPanel: public wxPanel
 		static const long ID_TEXTCTRL_Pictures_FrameRateAdj;
 		static const long ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed;
 		static const long ID_CHECKBOX_Pictures_PixelOffsets;
+		static const long ID_CHECKBOX_Pictures_ScaleToFit;
 		static const long ID_SLIDER_PicturesXC;
 		static const long ID_CHECKBOX_Pictures_WrapX;
 		static const long IDD_TEXTCTRL_PicturesXC;
@@ -62,6 +63,12 @@ class PicturesPanel: public wxPanel
 		static const long IDD_TEXTCTRL_PicturesEndYC;
 		static const long ID_SLIDER_PicturesEndYC;
 		static const long ID_PANEL45;
+		static const long ID_SLIDER_Pictures_StartScale;
+		static const long IDD_TEXTCTRL_Pictures_StartScale;
+		static const long ID_PANEL1;
+		static const long ID_SLIDER_Pictures_EndScale;
+		static const long IDD_TEXTCTRL_Pictures_EndScale;
+		static const long ID_PANEL2;
 		static const long IDD_NOTEBOOK_Pictures_Positions;
 		//*)
 
