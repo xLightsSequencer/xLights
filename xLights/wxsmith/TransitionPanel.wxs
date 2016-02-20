@@ -24,7 +24,7 @@
 								<item>Clockwise</item>
 								<item>From Middle</item>
 								<item>Square Explode</item>
-								<item>CircleExplode</item>
+								<item>Circle Explode</item>
 								<item>Blinds</item>
 								<item>Blend</item>
 								<item>Slide Checks</item>
@@ -144,7 +144,6 @@
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Transition_Reverse" variable="CheckBox_Transition_Reverse" member="yes">
 							<label>Reverse</label>
-							<checked>1</checked>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>

@@ -57,7 +57,7 @@ TransitionPanel::TransitionPanel(wxWindow* parent)
 	Choice_Transition_Type->Append(_("Clockwise"));
 	Choice_Transition_Type->Append(_("From Middle"));
 	Choice_Transition_Type->Append(_("Square Explode"));
-	Choice_Transition_Type->Append(_("CircleExplode"));
+	Choice_Transition_Type->Append(_("Circle Explode"));
 	Choice_Transition_Type->Append(_("Blinds"));
 	Choice_Transition_Type->Append(_("Blend"));
 	Choice_Transition_Type->Append(_("Slide Checks"));
@@ -93,7 +93,7 @@ TransitionPanel::TransitionPanel(wxWindow* parent)
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer31->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_Transition_Reverse = new wxCheckBox(this, ID_CHECKBOX_Transition_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Transition_Reverse"));
-	CheckBox_Transition_Reverse->SetValue(true);
+	CheckBox_Transition_Reverse->SetValue(false);
 	FlexGridSizer31->Add(CheckBox_Transition_Reverse, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
 	FlexGridSizer31->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -134,13 +134,26 @@ static inline void EnableControl(wxWindow *w, int id, bool e) {
 
 void TransitionPanel::ValidateWindow()
 {
-	if (Choice_Transition_Type->GetStringSelection() == "Wipe")
+	if (Choice_Transition_Type->GetStringSelection() == "Wipe" || Choice_Transition_Type->GetStringSelection() == "Blinds")
 	{
 		CheckBox_Transition_Reverse->Disable();
 	}
 	else
 	{
 		CheckBox_Transition_Reverse->Enable();
+	}
+
+	if (Choice_Transition_Type->GetStringSelection() == "From Middle" || 
+		Choice_Transition_Type->GetStringSelection() == "Square Explode" ||
+		Choice_Transition_Type->GetStringSelection() == "Circle Explode")
+	{
+		Slider_Transition_Adjust->Disable();
+		TextCtrl_Transition_Adjust->Disable();
+	}
+	else
+	{
+		Slider_Transition_Adjust->Enable();
+		TextCtrl_Transition_Adjust->Enable();
 	}
 }
 

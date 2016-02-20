@@ -40,7 +40,7 @@ wxPanel *TransitionEffect::CreatePanel(wxWindow *parent) {
 
 void TransitionEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 	Render(buffer,
-		   SettingsMap.GetBool("CHECKBOX_Transition_Mode", TRUE),
+		   SettingsMap.GetBool("CHECKBOX_Transition_Reveal", TRUE),
 		   SettingsMap.Get("CHOICE_Transition_Type", "Wipe"),
 		   SettingsMap.GetInt("TEXTCTRL_Transition_Adjust", 50),
 		   SettingsMap.GetBool("CHECKBOX_Transition_Reverse", FALSE)
@@ -80,7 +80,7 @@ int TransitionEffect::DecodeType(std::string type)
 	{
 		return 4;
 	}
-	else if (type == "CircleExplode")
+	else if (type == "Circle Explode")
 	{
 		return 5;
 	}
@@ -144,16 +144,16 @@ void TransitionEffect::Render(RenderBuffer &buffer, bool mode, const std::string
 			RenderClockWise(buffer, _mode, _lastvalue, _adjust, _reverse);
 			break;
 		case 3:
-		RenderFromMiddle(buffer, _mode, _lastvalue, _adjust, _reverse);
+		RenderFromMiddle(buffer, _mode, _lastvalue, _reverse);
 			break;
 		case 4:
-		RenderSquareExplode(buffer, _mode, _lastvalue, _adjust, _reverse);
+		RenderSquareExplode(buffer, _mode, _lastvalue, _reverse);
 		break;
 		case 5:
-		RenderCircleExplode(buffer, _mode, _lastvalue, _adjust, _reverse);
+		RenderCircleExplode(buffer, _mode, _lastvalue, _reverse);
 			break;
 		case 6:
-		RenderBlinds(buffer, _mode, _lastvalue, _adjust, _reverse);
+			RenderBlinds(buffer, _mode, _lastvalue, _adjust);
 			break;
 		case 7:
 		RenderBlend(buffer, _mode, _lastvalue, _adjust, _reverse);
@@ -176,9 +176,21 @@ void TransitionEffect::Render(RenderBuffer &buffer, bool mode, const std::string
 const double PI = 3.141592653589793238463;
 
 bool TransitionEffect::isLeft(wxPoint aa, float slope, wxPoint test) {
+	// aa contains the current x value and the buffer height
+	// test is the point we are testing
+	int extrax = abs(aa.y / slope);
 	wxPoint a(0, 0);
-	a = wxPoint(aa.x, 0);
-	wxPoint b(aa.x + aa.y / slope, aa.y);
+	wxPoint b(0, 0);
+	if (slope < 0)
+	{
+		b = wxPoint(aa.x - extrax, aa.y);
+		a = wxPoint(aa.x, 0);
+	}
+	else
+	{
+		b = aa;
+		a = wxPoint(aa.x - extrax, 0);
+	}
 
 	return ((b.x - a.x)*(test.y - a.y) - (b.y - a.y)*(test.x - a.x)) > 0;
 }
@@ -191,14 +203,7 @@ void TransitionEffect::RenderWipe(RenderBuffer &buffer, bool mode, float& lastva
 	int extrax = abs(buffer.BufferHt / slope);
 	if (lastvalue == -99999)
 	{
-		if (slope < 0)
-		{
-			lastvalue = 0;
-		}
-		else
-		{
-			lastvalue = -1 * extrax;
-		}
+		lastvalue = 0;
 	}
 
 	xlColor c1;
@@ -214,7 +219,32 @@ void TransitionEffect::RenderWipe(RenderBuffer &buffer, bool mode, float& lastva
 		buffer.palette.GetColor(0, c2);
 	}
 
-	if (adjust == 0 || adjust == 100)
+	if (adjust == 0)
+	{
+		float step = -1 * ((float)buffer.BufferHt / (float)(buffer.curEffEndPer - buffer.curEffStartPer));
+
+		lastvalue = lastvalue + step;
+		if (lastvalue >= buffer.BufferHt)
+		{
+			lastvalue = buffer.BufferHt - 1;
+		}
+
+		for (int y = buffer.BufferHt-1; y > (int)lastvalue; y--)
+		{
+			for (int x = 0; x < buffer.BufferWi; x++)
+			{
+				buffer.SetPixel(x, y, c2);
+			}
+		}
+		for (int y = (int)lastvalue; y >= 0; y--)
+		{
+			for (int x = 0; x < buffer.BufferWi; x++)
+			{
+				buffer.SetPixel(x, y, c1);
+			}
+		}
+	}
+	else if (adjust == 100)
 	{
 		float step = (float)buffer.BufferHt / (float)(buffer.curEffEndPer - buffer.curEffStartPer);
 
@@ -334,7 +364,8 @@ void TransitionEffect::RenderClockWise(RenderBuffer &buffer, bool mode, float& l
 
 	xlColor c1;
 	xlColor c2;
-	if (mode)
+	// this is like an xor
+	if (mode == reverse)
 	{
 		buffer.palette.GetColor(0, c1);
 		buffer.palette.GetColor(1, c2);
@@ -366,60 +397,323 @@ void TransitionEffect::RenderClockWise(RenderBuffer &buffer, bool mode, float& l
 	{
 		for (int y = 0; y < buffer.BufferHt; y++)
 		{
-			if (x < buffer.BufferWi / 2)
+			float radianspixel;
+			if (x - buffer.BufferWi / 2 == 0 && y - buffer.BufferHt / 2 == 0)
 			{
-				// left half
-				float radianspixel = atan2(x, y);
+				radianspixel = 0.0;
+			}
+			else
+			{
+				radianspixel = atan2(x - buffer.BufferWi / 2, y - buffer.BufferHt / 2);
+			}
+			if (radianspixel < 0)
+			{
+				radianspixel += 2 * PI;
+			}
 
-				bool s_lt_p = (radianspixel - startradians > 0);
-				bool c_lt_p = (radianspixel - currentradians > 0);
-				bool s_lt_c = (currentradians - startradians > 0);
+			bool s_lt_p = (radianspixel - startradians > 0);
+			bool c_lt_p = (radianspixel - currentradians > 0);
+			bool s_lt_c = (currentradians - startradians > 0);
 
-				if (s_lt_c)
+			if (s_lt_c)
+			{
+				if (s_lt_p && !c_lt_p)
 				{
-					if (s_lt_p && !c_lt_p)
-					{
-						// black
-						buffer.SetPixel(x, y, c2);
-					}
-					else
-					{
-						buffer.SetPixel(x, y, c1);
-					}
+					// black
+					buffer.SetPixel(x, y, c2);
 				}
 				else
 				{
-					if (!s_lt_p && c_lt_p)
-					{
-						buffer.SetPixel(x, y, c1);
-					}
-					else
-					{
-						buffer.SetPixel(x, y, c2);
-					}
+					buffer.SetPixel(x, y, c1);
+				}
+			}
+			else
+			{
+				if (!s_lt_p && c_lt_p)
+				{
+					buffer.SetPixel(x, y, c1);
+				}
+				else
+				{
+					buffer.SetPixel(x, y, c2);
 				}
 			}
 		}
 	}
 }
 
-void TransitionEffect::RenderFromMiddle(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse)
+void TransitionEffect::RenderFromMiddle(RenderBuffer &buffer, bool mode, float& lastvalue, bool reverse)
 {
+	if (lastvalue == -99999)
+	{
+		if (reverse)
+		{
+			lastvalue = buffer.BufferWi / 2;
+		}
+		else
+		{
+			lastvalue = 0;
+		}
+	}
 
+	xlColor c1;
+	xlColor c2;
+	if (mode)
+	{
+		buffer.palette.GetColor(0, c1);
+		buffer.palette.GetColor(1, c2);
+	}
+	else
+	{
+		buffer.palette.GetColor(1, c1);
+		buffer.palette.GetColor(0, c2);
+	}
+
+	float step = ((float)buffer.BufferWi / 2.0) / (float)(buffer.curEffEndPer - buffer.curEffStartPer);
+
+
+	if (reverse)
+	{
+		lastvalue = lastvalue - step;
+		if (lastvalue < 0)
+		{
+			lastvalue = 0;
+		}
+	}
+	else
+	{
+		lastvalue = lastvalue + step;
+		if (lastvalue >= buffer.BufferWi / 2)
+		{
+			lastvalue = buffer.BufferWi / 2 - 1;
+		}
+	}
+
+	int x1 = buffer.BufferWi / 2 - lastvalue;
+	int x2 = buffer.BufferWi / 2 + lastvalue;
+	for (int x = 0; x < buffer.BufferWi; x++)
+	{
+		xlColor c;
+		if (x < x1)
+		{
+			c = c2;
+		}
+		else if (x < x2)
+		{
+			c = c1;
+		}
+		else
+		{
+			c = c2;
+		}
+		for (int y = 0; y < buffer.BufferHt; y++)
+		{
+			buffer.SetPixel(x, y, c);
+		}
+	}
 }
-void TransitionEffect::RenderSquareExplode(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse)
+void TransitionEffect::RenderSquareExplode(RenderBuffer &buffer, bool mode, float& lastvalue, bool reverse)
 {
+	if (lastvalue == -99999)
+	{
+		if (reverse)
+		{
+			lastvalue = std::max(buffer.BufferWi / 2, buffer.BufferHt / 2);
+		}
+		else
+		{
+			lastvalue = 0;
+		}
+	}
 
+	xlColor c1;
+	xlColor c2;
+	if (mode == reverse)
+	{
+		buffer.palette.GetColor(0, c1);
+		buffer.palette.GetColor(1, c2);
+	}
+	else
+	{
+		buffer.palette.GetColor(1, c1);
+		buffer.palette.GetColor(0, c2);
+	}
+
+	float step = std::max(((float)buffer.BufferWi / 2.0), ((float)buffer.BufferHt / 2.0)) / (float)(buffer.curEffEndPer - buffer.curEffStartPer);
+
+	if (reverse)
+	{
+		lastvalue = lastvalue - step;
+		if (lastvalue < 0)
+		{
+			lastvalue = 0;
+		}
+	}
+	else
+	{
+		lastvalue = lastvalue + step;
+		if (lastvalue >= std::max(buffer.BufferWi / 2, buffer.BufferHt / 2))
+		{
+			lastvalue = std::max(buffer.BufferWi / 2, buffer.BufferHt / 2) - 1;
+		}
+	}
+
+	int x1 = buffer.BufferWi / 2 - lastvalue;
+	int x2 = buffer.BufferWi / 2 + lastvalue;
+	int y1 = buffer.BufferHt / 2 - lastvalue;
+	int y2 = buffer.BufferHt / 2 + lastvalue;
+	for (int x = 0; x < buffer.BufferWi; x++)
+	{
+		for (int y = 0; y < buffer.BufferHt; y++)
+		{
+			xlColor c;
+			if (x < x1 || x > x2 || y < y1 || y > y2)
+			{
+				c = c1;
+			}
+			else
+			{
+				c = c2;
+			}
+			buffer.SetPixel(x, y, c);
+		}
+	}
 }
-void TransitionEffect::RenderCircleExplode(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse)
+void TransitionEffect::RenderCircleExplode(RenderBuffer &buffer, bool mode, float& lastvalue, bool reverse)
 {
+	// distance from centre
+	// sqrt((x - buffer.BufferWi / 2) ^ 2 + (y - buffer.BufferHt / 2) ^ 2);
+	float maxradius = sqrt(((buffer.BufferWi / 2) * (buffer.BufferWi / 2)) + ((buffer.BufferHt / 2) * (buffer.BufferHt / 2)));
+	if (lastvalue == -99999)
+	{
+		if (reverse)
+		{
+			lastvalue = maxradius;
+		}
+		else
+		{
+			lastvalue = 0;
+		}
+	}
 
+	xlColor c1;
+	xlColor c2;
+	if (mode == reverse)
+	{
+		buffer.palette.GetColor(1, c1);
+		buffer.palette.GetColor(0, c2);
+	}
+	else
+	{
+		buffer.palette.GetColor(0, c1);
+		buffer.palette.GetColor(1, c2);
+	}
+
+	float step = maxradius / (float)(buffer.curEffEndPer - buffer.curEffStartPer);
+
+	if (reverse)
+	{
+		lastvalue = lastvalue - step;
+		if (lastvalue < 0)
+		{
+			lastvalue = 0;
+		}
+	}
+	else
+	{
+		lastvalue = lastvalue + step;
+		if (lastvalue >= maxradius)
+		{
+			lastvalue = maxradius;
+		}
+	}
+
+	for (int x = 0; x < buffer.BufferWi; x++)
+	{
+		for (int y = 0; y < buffer.BufferHt; y++)
+		{
+			float radius = sqrt((x - (buffer.BufferWi / 2)) * (x - (buffer.BufferWi / 2)) + (y - (buffer.BufferHt / 2)) * (y - (buffer.BufferHt / 2)));
+			xlColor c;
+			if (radius < lastvalue)
+			{
+				c = c1;
+			}
+			else
+			{
+				c = c2;
+			}
+			buffer.SetPixel(x, y, c);
+		}
+	}
 }
-void TransitionEffect::RenderBlinds(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse)
+void TransitionEffect::RenderBlinds(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust)
 {
+	if (adjust == 0)
+	{
+		adjust = 1;
+	}
+	int per = buffer.BufferWi / adjust;
+	if (per < 1)
+	{
+		per = 1;
+	}
+	int blinds = buffer.BufferWi / per;
+	while (blinds * per < buffer.BufferWi)
+	{
+		blinds++;
+	}
 
+	float step = ((float)per / (float)(buffer.curEffEndPer - buffer.curEffStartPer));
+
+	if (lastvalue == -99999)
+	{
+		lastvalue = 0;
+	}
+
+	xlColor c1;
+	xlColor c2;
+	if (mode)
+	{
+		buffer.palette.GetColor(0, c1);
+		buffer.palette.GetColor(1, c2);
+	}
+	else
+	{
+		buffer.palette.GetColor(1, c1);
+		buffer.palette.GetColor(0, c2);
+	}
+
+	lastvalue = lastvalue + step;
+	if (lastvalue >= per)
+	{
+		lastvalue = per;
+	}
+
+	for (int x = 0; x < per; x++)
+	{
+		for (int i = 0; i < blinds; i++)
+		{
+			if (x + (i * per) < buffer.BufferWi)
+			{
+				if (x <= (int)lastvalue)
+				{
+					for (int y = 0; y < buffer.BufferWi; y++)
+					{
+						buffer.SetPixel(x + (i*per), y, c1);
+					}
+				}
+				else
+				{
+					for (int y = 0; y < buffer.BufferWi; y++)
+					{
+						buffer.SetPixel(x + (i*per), y, c2);
+					}
+				}
+			}
+		}
+	}
 }
-void TransitionEffect::RenderBlend(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse)
+	void TransitionEffect::RenderBlend(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse)
 {
 
 }

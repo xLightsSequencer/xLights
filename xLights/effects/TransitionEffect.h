@@ -21,10 +21,10 @@ class TransitionEffect : public RenderableEffect
 		int DecodeType(std::string type);
 		void RenderWipe(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust);
 		void RenderClockWise(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse);
-		void RenderFromMiddle(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse);
-		void RenderSquareExplode(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse);
-		void RenderCircleExplode(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse);
-		void RenderBlinds(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse);
+		void RenderFromMiddle(RenderBuffer &buffer, bool mode, float& lastvalue, bool reverse);
+		void RenderSquareExplode(RenderBuffer &buffer, bool mode, float& lastvalue, bool reverse);
+		void RenderCircleExplode(RenderBuffer &buffer, bool mode, float& lastvalue, bool reverse);
+		void RenderBlinds(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust);
 		void RenderBlend(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse);
 		void RenderSlideChecks(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse);
 		void RenderSlideBars(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse);
