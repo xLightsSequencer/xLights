@@ -436,7 +436,10 @@ void DisplayElementsPanel::OnButtonAddModelsClick(wxCommandEvent& event)
             for(int i=0;i<dialog.ModelsToAdd.size();i++)
             {
                 Element* e = mSequenceElements->AddElement(dialog.ModelsToAdd[i],type,true,false,false,false);
-                e->AddEffectLayer();
+				if (e != NULL)
+				{
+					e->AddEffectLayer();
+				}
             }
         }
         else
