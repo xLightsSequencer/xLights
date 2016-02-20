@@ -1,9 +1,9 @@
 #include "E131Dialog.h"
 
 //(*InternalHeaders(E131Dialog)
+#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
-#include <wx/intl.h>
 //*)
 
 //(*IdInit(E131Dialog)
@@ -21,6 +21,8 @@ const long E131Dialog::ID_STATICTEXT7 = wxNewId();
 const long E131Dialog::ID_CHECKBOX1 = wxNewId();
 const long E131Dialog::ID_STATICTEXT6 = wxNewId();
 const long E131Dialog::ID_SPINCTRL_LAST_CHANNEL = wxNewId();
+const long E131Dialog::ID_STATICTEXT8 = wxNewId();
+const long E131Dialog::ID_TEXTCTRL_DESCRIPTION = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(E131Dialog,wxDialog)
@@ -31,9 +33,9 @@ END_EVENT_TABLE()
 E131Dialog::E131Dialog(wxWindow* parent)
 {
     //(*Initialize(E131Dialog)
-    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer1;
+    wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("E1.31 Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
@@ -77,6 +79,11 @@ E131Dialog::E131Dialog(wxWindow* parent)
     SpinCtrl_LastChannel = new wxSpinCtrl(this, ID_SPINCTRL_LAST_CHANNEL, _T("512"), wxDefaultPosition, wxDefaultSize, 0, 1, 512, 512, _T("ID_SPINCTRL_LAST_CHANNEL"));
     SpinCtrl_LastChannel->SetValue(_T("512"));
     FlexGridSizer2->Add(SpinCtrl_LastChannel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Description"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    FlexGridSizer2->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_DESCRIPTION"));
+    TextCtrl_Description->SetMaxLength(64);
+    FlexGridSizer2->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
@@ -90,6 +97,7 @@ E131Dialog::E131Dialog(wxWindow* parent)
     Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&E131Dialog::OnRadioButtonMulticastSelect);
     Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&E131Dialog::OnRadioButtonUnicastSelect);
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&E131Dialog::OnSpinCtrl_NumUnivChange);
+    Connect(ID_TEXTCTRL_DESCRIPTION,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&E131Dialog::OnTextCtrl_DescriptionText);
     //*)
 }
 
@@ -113,5 +121,9 @@ void E131Dialog::OnRadioButtonMulticastSelect(wxCommandEvent& event)
 }
 
 void E131Dialog::OnSpinCtrl_NumUnivChange(wxSpinEvent& event)
+{
+}
+
+void E131Dialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
 {
 }

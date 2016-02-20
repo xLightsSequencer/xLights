@@ -1,9 +1,9 @@
 #include "SerialPortWithRate.h"
 
 //(*InternalHeaders(SerialPortWithRate)
+#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
-#include <wx/intl.h>
 //*)
 #include <wx/valtext.h>
 #include <wx/msgdlg.h>
@@ -18,6 +18,8 @@ const long SerialPortWithRate::ID_CHOICE_BAUD_RATE = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT3 = wxNewId();
 const long SerialPortWithRate::ID_TEXTCTRL_LAST_CHANNEL = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT1 = wxNewId();
+const long SerialPortWithRate::ID_STATICTEXT2 = wxNewId();
+const long SerialPortWithRate::ID_TEXTCTRL_DESCRIPTION = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SerialPortWithRate,wxDialog)
@@ -29,12 +31,12 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
 {
     //(*Initialize(SerialPortWithRate)
     wxStaticBoxSizer* StaticBoxSizer2;
-    wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer3;
-    wxStdDialogButtonSizer* StdDialogButtonSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, wxID_ANY, _("USB Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -76,6 +78,11 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("(3/rgb)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer4->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
+    StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Description"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_DESCRIPTION"));
+    TextCtrl_Description->SetMaxLength(64);
+    FlexGridSizer2->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
@@ -88,6 +95,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICE_PROTOCOL,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SerialPortWithRate::OnChoiceProtocolSelect);
+    Connect(ID_TEXTCTRL_DESCRIPTION,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SerialPortWithRate::OnTextCtrl_DescriptionText);
     //*)
 
     MainSizer=FlexGridSizer1;
@@ -242,4 +250,8 @@ void SerialPortWithRate::PopulatePortChooser(wxArrayString *chooser)
 void SerialPortWithRate::OnChoiceProtocolSelect(wxCommandEvent& event)
 {
     ProtocolChange();
+}
+
+void SerialPortWithRate::OnTextCtrl_DescriptionText(wxCommandEvent& event)
+{
 }

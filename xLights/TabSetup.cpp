@@ -259,7 +259,9 @@ void xLightsFrame::UpdateNetworkList()
             GridNetwork->SetItem(newidx,4,msg);
 
             GridNetwork->SetItem(newidx,5,e->GetAttribute("Enabled", "Yes"));
-        }
+			GridNetwork->SetItem(newidx, 6, e->GetAttribute("Description", ""));
+			GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE);
+		}
     }
     //GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE);
     GridNetwork->SetColumnWidth(1,NetCnt > 0 ? wxLIST_AUTOSIZE : 100);
@@ -616,14 +618,18 @@ void xLightsFrame::OnButtonAddNullClick(wxCommandEvent& event)
 void xLightsFrame::SetupNullOutput(wxXmlNode* e) {
     wxString NetName=_("NULL");
 
-    int numChannels = 512;
+	int numChannels = 512;;
+	wxString Description;
     if (e != nullptr) {
-        numChannels = wxAtoi(e->GetAttribute("MaxChannels", "512"));
+		Description = e->GetAttribute("Description", "");
+		numChannels = wxAtoi(e->GetAttribute("MaxChannels", "512"));
     }
     NullOutputDialog dlg(this);
     dlg.NumChannelsSpinCtrl->SetValue(numChannels);
+	dlg.TextCtrl_Description->SetValue(Description);
 
     if (dlg.ShowModal() == wxID_OK) {
+		Description = dlg.TextCtrl_Description->GetValue();
         numChannels = dlg.NumChannelsSpinCtrl->GetValue();
         if (e == nullptr) {
             e = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
@@ -633,8 +639,10 @@ void xLightsFrame::SetupNullOutput(wxXmlNode* e) {
             e->DeleteAttribute("MaxChannels");
         }
         wxString LastChannelStr = wxString::Format("%d", numChannels);
-        e->AddAttribute("MaxChannels", LastChannelStr);
-        UpdateNetworkList();
+		e->AddAttribute("MaxChannels", LastChannelStr);
+		e->DeleteAttribute("Description");
+		e->AddAttribute("Description", Description);
+		UpdateNetworkList();
         UnsavedNetworkChanges=true;
     }
 }
@@ -644,7 +652,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
     int DlgResult,UnivNum,NumUniv,LastChannel;
     bool ok=true;
     wxString NetName=_("E131");
-    wxString IpAddr,StartUniverse,LastChannelStr;
+    wxString IpAddr,StartUniverse,LastChannelStr,Description;
     E131Dialog E131Dlg(this);
 
     if (e)
@@ -652,6 +660,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
         IpAddr=e->GetAttribute("ComPort");
         StartUniverse=e->GetAttribute("BaudRate");
         LastChannelStr=e->GetAttribute("MaxChannels");
+		Description = e->GetAttribute("Description");
 
         NumUniv = wxAtoi(e->GetAttribute("NumUniverses", "1"));
         E131Dlg.SpinCtrl_StartUniv->SetValue(StartUniverse);
@@ -660,6 +669,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
         E131Dlg.MultiE131CheckBox->Enable(false);
         E131Dlg.SpinCtrl_NumUniv->Enable(NumUniv > 1);
         E131Dlg.SpinCtrl_LastChannel->SetValue(LastChannelStr);
+		E131Dlg.TextCtrl_Description->SetValue(Description);
 
         if (IpAddr.StartsWith( "239.255." ) || IpAddr == "MULTICAST")
         {
@@ -682,6 +692,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
             IpAddr=E131Dlg.TextCtrlIpAddr->GetValue();
             UnivNum = E131Dlg.SpinCtrl_StartUniv->GetValue();
             LastChannel = E131Dlg.SpinCtrl_LastChannel->GetValue();
+			Description = E131Dlg.TextCtrl_Description->GetValue();
             //LastChannel = wxString::Format("%d", E131Dlg.SpinCtrl_NumUniv->GetValue() * 512);
             ok=!IpAddr.IsEmpty() && (LastChannel >= 1) && (LastChannel <= 512);
             if (ok)
@@ -695,6 +706,8 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
                     e->AddAttribute("BaudRate",wxString::Format("%d",UnivNum));
                     e->DeleteAttribute("MaxChannels");
                     e->AddAttribute("MaxChannels",LastChannelStr);
+					e->DeleteAttribute("Description");
+					e->AddAttribute("Description", Description);
 
                     e->DeleteAttribute("NumUniverses");
                     if (E131Dlg.MultiE131CheckBox->GetValue()) {
@@ -711,6 +724,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
                         e->AddAttribute("BaudRate",wxString::Format("%d",UnivNum));
                         e->AddAttribute("MaxChannels",LastChannelStr);
                         e->AddAttribute("NumUniverses", wxString::Format("%d", NumUniv));
+						e->AddAttribute("Description", Description);
                         NetworkXML.GetRoot()->AddChild(e);
                     } else {
                         for (int u=0; u < NumUniv; u++)
@@ -720,6 +734,7 @@ void xLightsFrame::SetupE131(wxXmlNode* e)
                             e->AddAttribute("ComPort",IpAddr);
                             e->AddAttribute("BaudRate",wxString::Format("%d",UnivNum));
                             e->AddAttribute("MaxChannels",LastChannelStr);
+							e->AddAttribute("Description", Description);
                             NetworkXML.GetRoot()->AddChild(e);
                             UnivNum++;
                         }
@@ -741,7 +756,7 @@ void xLightsFrame::SetupDongle(wxXmlNode* e)
 {
     int DlgResult;
     bool ok=true;
-    wxString NetName,Port,BaudRate,LastChannel;
+    wxString NetName,Port,BaudRate,LastChannel,Description;
     SerialPortWithRate SerialDlg(this);
 
     if (e)
@@ -750,11 +765,13 @@ void xLightsFrame::SetupDongle(wxXmlNode* e)
         Port=e->GetAttribute("ComPort");
         BaudRate=e->GetAttribute("BaudRate");
         LastChannel=e->GetAttribute("MaxChannels");
+		Description = e->GetAttribute("Description");
         SerialDlg.ChoiceProtocol->SetStringSelection(NetName); //preserve network type -DJ
         SerialDlg.ChoicePort->SetStringSelection(Port);
         SerialDlg.ChoiceBaudRate->SetStringSelection(BaudRate);
-        SerialDlg.TextCtrlLastChannel->SetValue(LastChannel);
-    }
+		SerialDlg.TextCtrlLastChannel->SetValue(LastChannel);
+		SerialDlg.TextCtrl_Description->SetValue(Description);
+	}
     SerialDlg.ProtocolChange();
 
     do
@@ -767,6 +784,7 @@ void xLightsFrame::SetupDongle(wxXmlNode* e)
             Port=SerialDlg.ChoicePort->GetStringSelection();
             BaudRate=SerialDlg.GetRateString();
             LastChannel=SerialDlg.TextCtrlLastChannel->GetValue();
+			Description = SerialDlg.TextCtrl_Description->GetValue();
             if (Port.IsEmpty() || BaudRate.IsEmpty() || LastChannel.IsEmpty())
             {
                 wxMessageBox(_("All fields must be filled in!"), _("ERROR"));
@@ -790,6 +808,8 @@ void xLightsFrame::SetupDongle(wxXmlNode* e)
                 e->AddAttribute("BaudRate",BaudRate);
                 e->DeleteAttribute("MaxChannels");
                 e->AddAttribute("MaxChannels",LastChannel);
+				e->DeleteAttribute("Description");
+				e->AddAttribute("Description", Description);
                 UpdateNetworkList();
                 UnsavedNetworkChanges=true;
                 ok=true;

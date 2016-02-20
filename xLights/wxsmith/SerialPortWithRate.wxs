@@ -31,7 +31,7 @@
 								<object class="wxStaticText" name="ID_STATICTEXT_EXPLANATION" variable="StaticTextExplanation" member="yes">
 									<label>DMX controllers (or LOR or D-Light controllers in DMX mode)&#x0A;attached to an Entec DMX USB Pro, Lynx DMX dongle,&#x0A;DIYC RPM, DMXking.com, or DIY Blinky dongle.&#x0A;&#x0A;Last Channel should be 512 or less, unless you are using&#x0A;a DIY Blinky dongle (in which case it can be up to 3036).</label>
 								</object>
-								<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -41,7 +41,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -116,17 +116,34 @@
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+									<label>Description</label>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL_DESCRIPTION" variable="TextCtrl_Description" member="yes">
+									<maxlength>64</maxlength>
+									<handler function="OnTextCtrl_DescriptionText" entry="EVT_TEXT" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

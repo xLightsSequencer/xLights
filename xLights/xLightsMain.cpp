@@ -1834,12 +1834,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(5, itemCol);
 
+	itemCol.SetText(_T("Description"));
+	itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+	GridNetwork->InsertColumn(6, itemCol);
+
     GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(1,100);
     GridNetwork->SetColumnWidth(2,wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(3,100);
     GridNetwork->SetColumnWidth(4,170);
     GridNetwork->SetColumnWidth(5,wxLIST_AUTOSIZE_USEHEADER);
+	GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE);
 
     wxListItem elementCol;
     elementCol.SetText(_T("Element Name"));
@@ -2363,6 +2368,7 @@ bool xLightsFrame::EnableOutputs()
                 wxString BaudRate=e->GetAttribute("BaudRate", "");
                 int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
                 bool enabled = e->GetAttribute("Enabled", "Yes") == "Yes";
+				wxString Description = e->GetAttribute("Description", "");
                 static wxString choices;
 
                 int numU = wxAtoi(e->GetAttribute("NumUniverses", "1"));

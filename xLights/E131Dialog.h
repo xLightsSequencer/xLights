@@ -2,13 +2,13 @@
 #define E131DIALOG_H
 
 //(*Headers(E131Dialog)
-#include <wx/spinctrl.h>
-#include <wx/checkbox.h>
-#include <wx/dialog.h>
 #include <wx/sizer.h>
-#include <wx/radiobut.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/spinctrl.h>
+#include <wx/radiobut.h>
+#include <wx/dialog.h>
 //*)
 
 class E131Dialog: public wxDialog
@@ -19,20 +19,22 @@ public:
     virtual ~E131Dialog();
 
     //(*Declarations(E131Dialog)
-    wxTextCtrl* TextCtrlIpAddr;
-    wxRadioButton* RadioButtonMulticast;
-    wxSpinCtrl* SpinCtrl_NumUniv;
     wxRadioButton* RadioButtonUnicast;
-    wxSpinCtrl* SpinCtrl_StartUniv;
-    wxStaticText* StaticText1;
-    wxStaticText* StaticText3;
-    wxCheckBox* MultiE131CheckBox;
-    wxSpinCtrl* SpinCtrl_LastChannel;
-    wxStaticText* StaticText7;
-    wxStaticText* StaticText4;
-    wxStaticText* StaticText5;
+    wxTextCtrl* TextCtrlIpAddr;
+    wxTextCtrl* TextCtrl_Description;
     wxStaticText* StaticText2;
     wxStaticText* StaticText6;
+    wxStaticText* StaticText8;
+    wxStaticText* StaticText1;
+    wxStaticText* StaticText3;
+    wxRadioButton* RadioButtonMulticast;
+    wxStaticText* StaticText5;
+    wxStaticText* StaticText7;
+    wxSpinCtrl* SpinCtrl_NumUniv;
+    wxSpinCtrl* SpinCtrl_StartUniv;
+    wxCheckBox* MultiE131CheckBox;
+    wxStaticText* StaticText4;
+    wxSpinCtrl* SpinCtrl_LastChannel;
     //*)
 
 protected:
@@ -52,6 +54,8 @@ protected:
     static const long ID_CHECKBOX1;
     static const long ID_STATICTEXT6;
     static const long ID_SPINCTRL_LAST_CHANNEL;
+    static const long ID_STATICTEXT8;
+    static const long ID_TEXTCTRL_DESCRIPTION;
     //*)
 
 private:
@@ -60,6 +64,7 @@ private:
     void OnRadioButtonUnicastSelect(wxCommandEvent& event);
     void OnRadioButtonMulticastSelect(wxCommandEvent& event);
     void OnSpinCtrl_NumUnivChange(wxSpinEvent& event);
+    void OnTextCtrl_DescriptionText(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()

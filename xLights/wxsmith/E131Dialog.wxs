@@ -36,7 +36,7 @@
 									<style>wxRB_GROUP</style>
 									<handler function="OnRadioButtonMulticastSelect" entry="EVT_RADIOBUTTON" />
 								</object>
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxALIGN_LEFT</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -45,7 +45,7 @@
 									<label>Unicast</label>
 									<handler function="OnRadioButtonUnicastSelect" entry="EVT_RADIOBUTTON" />
 								</object>
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxALIGN_LEFT</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -67,7 +67,7 @@
 							<value>MULTICAST</value>
 							<enabled>0</enabled>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -117,9 +117,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="MultiE131CheckBox" member="yes">
-							<label> </label>
-						</object>
+						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="MultiE131CheckBox" member="yes" />
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -139,6 +137,23 @@
 							<max>512</max>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
+							<label>Description</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_DESCRIPTION" variable="TextCtrl_Description" member="yes">
+							<maxlength>64</maxlength>
+							<handler function="OnTextCtrl_DescriptionText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

@@ -998,6 +998,7 @@
 					<wxDialog wxs="wxsmith/SaveChangesDialog.wxs" src="SaveChangesDialog.cpp" hdr="SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ResizeImageDialog.wxs" src="ResizeImageDialog.cpp" hdr="ResizeImageDialog.h" fwddecl="0" i18n="1" name="ResizeImageDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelDimmingCurveDialog.wxs" src="ModelDimmingCurveDialog.cpp" hdr="ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/NullOutputDialog.wxs" src="NullOutputDialog.cpp" hdr="NullOutputDialog.h" fwddecl="0" i18n="1" name="NullOutputDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/OnPanel.wxs" src="effects/OnPanel.cpp" hdr="effects/OnPanel.h" fwddecl="1" i18n="1" name="OnPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BarsPanel.wxs" src="effects/BarsPanel.cpp" hdr="effects/BarsPanel.h" fwddecl="1" i18n="1" name="BarsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/OffPanel.wxs" src="effects/OffPanel.cpp" hdr="effects/OffPanel.h" fwddecl="1" i18n="1" name="OffPanel" language="CPP" />

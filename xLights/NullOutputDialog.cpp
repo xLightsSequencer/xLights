@@ -9,6 +9,7 @@
 //(*IdInit(NullOutputDialog)
 const long NullOutputDialog::ID_STATICTEXT1 = wxNewId();
 const long NullOutputDialog::ID_SPINCTRL1 = wxNewId();
+const long NullOutputDialog::ID_TEXTCTRL_DESCRIPTION = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(NullOutputDialog,wxDialog)
@@ -21,6 +22,7 @@ NullOutputDialog::NullOutputDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	//(*Initialize(NullOutputDialog)
 	wxStaticText* StaticText2;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText3;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
@@ -30,12 +32,17 @@ NullOutputDialog::NullOutputDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Null Output Setup\n\nA Null output reserves a number of channels \nin the file but doesn\'t actually output the\nchannels to any device.  \n\nThis is useful if the range of channels may be\noutput from some other method such as an\nOctoscroller on a BBB."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Number of Channels"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	NumChannelsSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 512000, 1, _T("ID_SPINCTRL1"));
 	NumChannelsSpinCtrl->SetValue(_T("1"));
 	FlexGridSizer2->Add(NumChannelsSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText3 = new wxStaticText(this, wxID_ANY, _("Description"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_DESCRIPTION"));
+	TextCtrl_Description->SetMaxLength(64);
+	FlexGridSizer2->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
@@ -45,6 +52,8 @@ NullOutputDialog::NullOutputDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
+
+	Connect(ID_TEXTCTRL_DESCRIPTION,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&NullOutputDialog::OnTextCtrl_DescriptionText);
 	//*)
 }
 
@@ -54,3 +63,7 @@ NullOutputDialog::~NullOutputDialog()
 	//*)
 }
 
+
+void NullOutputDialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
+{
+}
