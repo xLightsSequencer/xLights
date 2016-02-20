@@ -134,7 +134,11 @@ static inline void EnableControl(wxWindow *w, int id, bool e) {
 
 void TransitionPanel::ValidateWindow()
 {
-	if (Choice_Transition_Type->GetStringSelection() == "Wipe" || Choice_Transition_Type->GetStringSelection() == "Blinds")
+	if (Choice_Transition_Type->GetStringSelection() == "Wipe" || 
+		Choice_Transition_Type->GetStringSelection() == "Blinds" ||
+		Choice_Transition_Type->GetStringSelection() == "Slide Checks" ||
+		Choice_Transition_Type->GetStringSelection() == "Slide Bars" ||
+		Choice_Transition_Type->GetStringSelection() == "Blend")
 	{
 		CheckBox_Transition_Reverse->Disable();
 	}

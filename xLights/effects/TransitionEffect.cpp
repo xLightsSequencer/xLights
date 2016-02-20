@@ -156,13 +156,13 @@ void TransitionEffect::Render(RenderBuffer &buffer, bool mode, const std::string
 			RenderBlinds(buffer, _mode, _lastvalue, _adjust);
 			break;
 		case 7:
-		RenderBlend(buffer, _mode, _lastvalue, _adjust, _reverse);
+		RenderBlend(buffer, _mode, _lastvalue, _adjust);
 			break;
 		case 8:
-		RenderSlideChecks(buffer, _mode, _lastvalue, _adjust, _reverse);
+		RenderSlideChecks(buffer, _mode, _lastvalue, _adjust);
 			break;
 		case 9:
-		RenderSlideBars(buffer, _mode, _lastvalue, _adjust, _reverse);
+		RenderSlideBars(buffer, _mode, _lastvalue, _adjust);
 			break;
 		}
 	}
@@ -652,6 +652,12 @@ void TransitionEffect::RenderBlinds(RenderBuffer &buffer, bool mode, float& last
 	{
 		adjust = 1;
 	}
+	adjust = (buffer.BufferWi / 2) * adjust / 100;
+	if (adjust == 0)
+	{
+		adjust = 1;
+	}
+
 	int per = buffer.BufferWi / adjust;
 	if (per < 1)
 	{
@@ -713,15 +719,297 @@ void TransitionEffect::RenderBlinds(RenderBuffer &buffer, bool mode, float& last
 		}
 	}
 }
-	void TransitionEffect::RenderBlend(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse)
+void TransitionEffect::RenderBlend(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust)
 {
+	int seed = 1234;
+	srand(seed);
+	int pixels = buffer.BufferWi * buffer.BufferHt;
+	if (lastvalue == -99999)
+	{
+		lastvalue = 0;
+	}
+	adjust = 10 * adjust / 100;
+	if (adjust == 0)
+	{
+		adjust = 1;
+	}
+	int actualpixels = pixels / (adjust * adjust);
 
+	float step = ((float)pixels / (adjust*adjust)) / ((float)(buffer.curEffEndPer - buffer.curEffStartPer));
+
+	lastvalue += step;
+	if (lastvalue > actualpixels)
+	{
+		lastvalue = actualpixels;
+	}
+	int xpixels = buffer.BufferWi / adjust;
+	while (xpixels * adjust < buffer.BufferWi)
+	{
+		xpixels++;
+	}
+	int ypixels = buffer.BufferHt / adjust;
+	while (ypixels * adjust < buffer.BufferHt)
+	{
+		ypixels++;
+	}
+	xlColor c1;
+	xlColor c2;
+	if (mode)
+	{
+		buffer.palette.GetColor(0, c1);
+		buffer.palette.GetColor(1, c2);
+	}
+	else
+	{
+		buffer.palette.GetColor(1, c1);
+		buffer.palette.GetColor(0, c2);
+	}
+
+	// set all the background first
+	for (int x = 0; x < buffer.BufferWi; x++)
+	{
+		for (int y = 0; y < buffer.BufferWi; y++)
+		{
+			buffer.SetPixel(x, y, c2);
+		}
+	}
+
+	for (int i = 0; i < lastvalue; i++)
+	{
+		int j = rand() % actualpixels;
+
+		int x = j % xpixels * adjust;
+		int y = j / xpixels * adjust;
+
+		xlColor curcolor;
+		buffer.GetPixel(x, y, curcolor);
+
+		if (curcolor == c1)
+		{
+			i--;
+		}
+		else
+		{
+			for (int k = 0; k < adjust; k++)
+			{
+				for (int l = 0; l < adjust; l++)
+				{
+					buffer.SetPixel(x + k, y + l, c1);
+				}
+			}
+		}
+	}
 }
-void TransitionEffect::RenderSlideChecks(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse)
+void TransitionEffect::RenderSlideChecks(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust)
 {
+	if (adjust < 2)
+	{
+		adjust = 2;
+	}
+	adjust = (std::max(buffer.BufferWi / 2, buffer.BufferHt /2)) * adjust / 100;
+	if (adjust < 2)
+	{
+		adjust = 2;
+	}
 
+	int xper = buffer.BufferWi / adjust;
+	if (xper < 1)
+	{
+		xper = 1;
+	}
+	int yper = buffer.BufferHt / adjust;
+	if (yper < 1)
+	{
+		yper = 1;
+	}
+	int xblinds = buffer.BufferWi / xper;
+	while (xblinds * xper < buffer.BufferWi)
+	{
+		xblinds++;
+	}
+	int yblinds = buffer.BufferHt / yper;
+	while (yblinds * yper < buffer.BufferHt)
+	{
+		yblinds++;
+	}
+
+	float step = (((float)xper*2.0) / (float)(buffer.curEffEndPer - buffer.curEffStartPer));
+
+	if (lastvalue == -99999)
+	{
+		lastvalue = 0;
+	}
+
+	xlColor c1;
+	xlColor c2;
+	if (mode)
+	{
+		buffer.palette.GetColor(0, c1);
+		buffer.palette.GetColor(1, c2);
+	}
+	else
+	{
+		buffer.palette.GetColor(1, c1);
+		buffer.palette.GetColor(0, c2);
+	}
+
+	lastvalue = lastvalue + step;
+	if (lastvalue >= xper * 2)
+	{
+		lastvalue = xper;
+	}
+
+	for (int i = 0; i < xblinds; i++)
+	{
+		if (i % 2 == 0)
+		{
+			for (int j = 0; j < yblinds; j++)
+			{
+				for (int x = 0; x < xper; x++)
+				{
+					for (int y = 0; y < yper; y++)
+					{
+						if (j % 2 == 0)
+						{
+							if (x < lastvalue)
+							{
+								buffer.SetPixel(xper * i + x, yper * j + y, c2);
+							}
+							else
+							{
+								buffer.SetPixel(xper * i + x, yper * j + y, c1);
+							}
+						}
+						else
+						{
+							if (x + xper < lastvalue)
+							{
+								buffer.SetPixel(xper * i + x, yper * j + y, c2);
+							}
+							else
+							{
+								buffer.SetPixel(xper * i + x, yper * j + y, c1);
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			for (int j = 0; j < yblinds; j++)
+			{
+				for (int x = 0; x < xper; x++)
+				{
+					for (int y = 0; y < yper; y++)
+					{
+						if (j % 2 == 1)
+						{
+							if (x >= lastvalue)
+							{
+								buffer.SetPixel(xper * i + x, yper * j + y, c1);
+							}
+							else
+							{
+								buffer.SetPixel(xper * i + x, yper * j + y, c2);
+							}
+						}
+						else
+						{
+							if (x + xper >= lastvalue)
+							{
+								buffer.SetPixel(xper * i + x, yper * j + y, c1);
+							}
+							else
+							{
+								buffer.SetPixel(xper * i + x, yper * j + y, c2);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
-void TransitionEffect::RenderSlideBars(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust, bool reverse)
+void TransitionEffect::RenderSlideBars(RenderBuffer &buffer, bool mode, float& lastvalue, int adjust)
 {
+	if (adjust == 0)
+	{
+		adjust = 1;
+	}
+	adjust = (buffer.BufferHt / 2) * adjust / 100;
+	if (adjust == 0)
+	{
+		adjust = 1;
+	}
 
+	int per = buffer.BufferHt / adjust;
+	if (per < 1)
+	{
+		per = 1;
+	}
+	int blinds = buffer.BufferHt / per;
+	while (blinds * per < buffer.BufferHt)
+	{
+		blinds++;
+	}
+
+	float step = ((float)buffer.BufferWi / (float)(buffer.curEffEndPer - buffer.curEffStartPer));
+
+	if (lastvalue == -99999)
+	{
+		lastvalue = 0;
+	}
+	lastvalue += step;
+
+	xlColor c1;
+	xlColor c2;
+	if (mode)
+	{
+		buffer.palette.GetColor(0, c1);
+		buffer.palette.GetColor(1, c2);
+	}
+	else
+	{
+		buffer.palette.GetColor(1, c1);
+		buffer.palette.GetColor(0, c2);
+	}
+
+	for (int i = 0; i < blinds; i++)
+	{
+		if (i % 2 == 0)
+		{
+			for (int x = 0; x < lastvalue; x++)
+			{
+				for (int y = i * per; y < (i + 1) * per; y++)
+				{
+					buffer.SetPixel(x, y, c1);
+				}
+			}
+			for (int x = lastvalue; x < buffer.BufferWi; x++)
+			{
+				for (int y = i * per; y < (i + 1) * per; y++)
+				{
+					buffer.SetPixel(x, y, c2);
+				}
+			}
+		}
+		else
+		{
+			for (int x = 0; x < buffer.BufferWi - lastvalue; x++)
+			{
+				for (int y = i * per; y < (i + 1) * per; y++)
+				{
+					buffer.SetPixel(x, y, c2);
+				}
+			}
+			for (int x = buffer.BufferWi - lastvalue; x < buffer.BufferWi; x++)
+			{
+				for (int y = i * per; y < (i + 1) * per; y++)
+				{
+					buffer.SetPixel(x, y, c1);
+				}
+			}
+		}
+	}
 }
