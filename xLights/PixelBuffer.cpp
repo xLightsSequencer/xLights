@@ -555,7 +555,7 @@ void PixelBufferClass::Blur(LayerInfo* layer)
             int g = 0;
             int b = 0;
             int a = 0;
-
+            int sm = 0;
             for (int i = x - d; i <= x + u; i++)
             {
                 if (i >= 0 && i < layer->BufferWi)
@@ -569,12 +569,12 @@ void PixelBufferClass::Blur(LayerInfo* layer)
                             g += c.Green();
                             b += c.Blue();
                             a += c.Alpha();
-
+                            ++sm;
                         }
                     }
                 }
             }
-            xlColor newc(r, g, b, a);
+            xlColor newc(r/sm, g/sm, b/sm, a/sm);
             layer->buffer.SetPixel(x, y, newc);
         }
     }
@@ -587,34 +587,59 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer)
     xlColor c;
     int Wi = layer->BufferWi;
     int Ht = layer->BufferHt;
-    int i,j=0;
+    float PI_2 = 6.283185307179586476925286766559;
+
     int r = 0;
     int g = 0;
     int b = 0;
     int a = 0;
+    float W,sin_W,cos_W,x_cos_W,x_sin_W;
+    int xc=layer->BufferWi/2;
+    int yc=layer->BufferHt/2;
 
-     for (int x = 0; x < layer->BufferWi; x++)
-    {
-        for (int y = 0; y < layer->BufferHt; y++)
-        {
-             layer->buffer.GetPixel(x, y, c);
-         copyBuffer[x,y]=c;
-        }
-    }
+
+    int u,v,indx;
+    //  How I can I get these values?
+    int StartFrame, CurrentFrame,EndFrame=0;
+    int MaxSizeArray = layer->BufferHt*layer->BufferWi;
+
+    float EP; // EP is how far we are into the current effect
+    if((EndFrame-StartFrame)>0)
+        EP = (CurrentFrame-StartFrame)/(EndFrame-StartFrame);
+    else
+        EP=0.0;
+
+    W = PI_2 * (ZoomRotation/10.0);
+    W*=EP; //    Move radian as we are farther into the effect
+
+//  This is temp work around for a buffer allocation to copy data before roto zooming.
+//  This would be better to be a dynamic buffer allocation and deletion of buffer at end of routine
+    std::vector<xlColor> copyBuffer(10000);
+
+    if(MaxSizeArray > 10000) return; // return if this model is too large for our temp array
+
     for (int x = 0; x < layer->BufferWi; x++)
     {
         for (int y = 0; y < layer->BufferHt; y++)
         {
-            i=x+rand()%10;
-            j=y+rand()%10;
             layer->buffer.GetPixel(x, y, c);
-            r = c.Red();
-            g = c.Green();
-            b = c.Blue();
-            a = c.Alpha();
-            r=g;
-            xlColor newc(r, g, b, a);
-            layer->buffer.SetPixel(x, y, newc);
+            indx = x*layer->BufferWi+y;
+            copyBuffer[indx]=c;  // Make a copy of existing frame buffer
+        }
+    }
+    cos_W = cos(W);
+    sin_W = sin(W);
+    for (int x = 0; x < layer->BufferWi; x++)
+    {
+        x_cos_W=x*cos_W; // save some compute cycles
+        x_sin_W=x*sin_W;
+        for (int y = 0; y < layer->BufferHt; y++)
+        {
+            u = x_cos_W+y*(-sin_W); // Calculate new location to move old color to
+            v = x_sin_W+y*cos_W;
+            indx = u*layer->BufferWi+v;
+            c=copyBuffer[indx]; // get color from copyBuffer
+            layer->buffer.SetPixel(x, y, c); // and overwrite current x,y location
         }
     }
 
