@@ -7,6 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh (keithsw) Add Transition Effect. This is meant to be used as a mask to reveal and hide other effects
+	-- enh (keithsw) Add description against rows on the setup tab Issue #422
+	-- enh (keithsw) Add View->Windows->Dock All menu item to wrangle all free windows back into their docked position
     -- enh (gil)   Pictures effect change: Separate scale as an independent parameter and allow start and end scaling motions.  Fixes #451.
     -- bug (gil)   Fix bug when pasting single effects and fix copy row bug when multiple effects are selected.
     -- bug (gil)   Clear waveform when switching to an animation.  Fixes #469.
