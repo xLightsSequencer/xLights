@@ -59,7 +59,7 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 {
 	std::list<float> res;
 	int outcount = n / 2 + 1;
-	float scaling = 1.0 / (float)n;
+	//float scaling = 2.0 / (float)n;
 	kiss_fftr_cfg cfg;
 	kiss_fft_cpx* out = (kiss_fft_cpx*)malloc(sizeof(kiss_fft_cpx) * (outcount));
 	if (out != NULL)
@@ -75,8 +75,9 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 
 		for (int i = start; i < end; i++)
 		{
-			float val = sqrtf((*(out + i)).r * (*(out + i)).r + (*(out + i)).i * (*(out + i)).i);
-			float valscaled = 2 * val * scaling;
+			kiss_fft_cpx* cur = out + i;
+			float val = sqrtf(cur->r * cur->r + cur->i * cur->i);
+			//float valscaled = val * scaling;
 			float db = log10(val);
 			if (db < 0.0)
 			{
@@ -113,7 +114,7 @@ void AudioManager::DoPrepareFrameData()
 	// samples per frame
 	int samplesperframe = _rate * _intervalMS / 1000;
 	int frames = _lengthMS / _intervalMS;
-	if (frames * _intervalMS < _lengthMS)
+	while (frames * _intervalMS < _lengthMS)
 	{
 		frames++;
 	}
@@ -313,24 +314,28 @@ void AudioManager::DoPrepareFrameData()
 
 	// normalise data ... basically scale the data so the highest value is the scale value.
 	float scale = 1.0; // 0-1 ... where 0.x means that the max value displayed would be x0% of model size
+	float bigmaxscale = 1 / (_bigmax * scale);
+	float bigminscale = 1 / (_bigmin * scale);
+	float bigspreadscale = 1 / (_bigspread * scale);
+	float bigspectrogramscale = 1 / (_bigspectogrammax * scale);
 	for (std::vector<std::vector<std::list<float>>>::iterator itframe = _frameData.begin(); itframe != _frameData.end(); ++itframe)
 	{
 		std::list<float>* fl = &(*itframe)[0];
 		std::list<float>::iterator f = fl->begin();
-		*f = (*f * 1 / (_bigmax * scale));
+		*f = (*f * bigmaxscale);
 
 		fl = &(*itframe)[1];
 		f = fl->begin();
-		*f = (*f * 1 / (_bigmin * scale));
+		*f = (*f * bigminscale);
 
 		fl = &(*itframe)[2];
 		f = fl->begin();
-		*f = (*f * 1 / (_bigspread * scale));
+		*f = (*f * bigspreadscale);
 
 		fl = &(*itframe)[3];
 		for (std::list<float>::iterator ff = fl->begin(); ff != fl->end(); ++ff)
 		{
-			*ff = *ff * 1 / (_bigspectogrammax * scale);
+			*ff = *ff * bigspectrogramscale;
 		}
 	}
 
