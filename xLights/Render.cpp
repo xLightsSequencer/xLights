@@ -35,7 +35,6 @@ static const std::string STR_DEFAULT("Default");
 
 //other common strings
 static const std::string STR_NORMAL("Normal");
-static const std::string STR_EFFECT("Effect");
 static const std::string STR_NONE("None");
 static const std::string STR_EMPTY("");
 
@@ -392,7 +391,7 @@ public:
                         effectStates[layer] = true;
                     }
                     bool persist = settingsMaps[layer].GetBool(CHECKBOX_OverlayBkg);
-                    if (!persist || STR_NONE == settingsMaps[layer][STR_EFFECT]) {
+                    if (!persist || currentEffects[layer] == nullptr || currentEffects[layer]->GetEffectIndex() == -1) {
                         mainBuffer->Clear(layer);
                     }
                     SetRenderingStatus(frame, &settingsMaps[layer], layer);
@@ -428,7 +427,7 @@ public:
                             strandEffectStates[strand] = true;
                         }
                         bool persist=strandSettingsMaps[strand].GetBool(CHECKBOX_OverlayBkg);
-                        if (!persist || STR_NONE == strandSettingsMaps[strand][STR_EFFECT]) {
+                        if (!persist || strandEffects[strand] == nullptr || strandEffects[strand]->GetEffectIndex() == -1) {
                             buffer->Clear(0);
                         }
                         SetRenderingStatus(frame, &strandSettingsMaps[strand], -1, strand);
@@ -471,7 +470,7 @@ public:
                             nodeEffectStates[node] = true;
                         }
                         bool persist=nodeSettingsMaps[node].GetBool(CHECKBOX_OverlayBkg);
-                        if (!persist || STR_NONE == nodeSettingsMaps[node][STR_EFFECT]) {
+                        if (!persist || nodeEffects[node] == nullptr || nodeEffects[node]->GetEffectIndex() == -1) {
                             buffer->Clear(0);
                         }
 
@@ -522,7 +521,6 @@ private:
     void initialize(int layer, int frame, Effect *el, SettingsMap &settingsMap, PixelBufferClass *buffer) {
         if (el == NULL || el->GetEffectIndex() == -1) {
             settingsMap.clear();
-            settingsMap[STR_EFFECT]=STR_NONE;
         } else {
             loadSettingsMap(el->GetEffectName(),
                             el,
@@ -588,9 +586,6 @@ private:
                          Effect *effect,
                          SettingsMap& settingsMap) {
         settingsMap.clear();
-        settingsMap[STR_EFFECT]=effectName;
-
-
         effect->CopySettingsMap(settingsMap, true);
     }
 
@@ -869,11 +864,6 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     int eidx = -1;
     if (effectObj != nullptr) {
         eidx = effectObj->GetEffectIndex();
-    } else {
-        const std::string &effectName = SettingsMap.Get(STR_EFFECT, STR_NONE);
-        if (effectName != STR_NONE) {
-            eidx = effectManager.GetEffectIndex(effectName);
-        }
     }
     if (eidx >= 0) {
         RenderableEffect *reff = effectManager.GetEffect(eidx);
