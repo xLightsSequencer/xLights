@@ -1277,7 +1277,8 @@ void EffectsGrid::Paste(const wxString &data) {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
                     mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();
                     mDropEndTimeMS = tel->GetEffect(mRangeEndCol)->GetEndTimeMS();
-                    mDropRow = mRangeStartRow;
+                    int first_row = mSequenceElements->GetFirstVisibleModelRow();
+                    mDropRow = mRangeStartRow - first_row;
                 }
                 EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
                 int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
@@ -2305,6 +2306,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
 
 void EffectsGrid::CopyModelEffects(int row_number)
 {
+    mSequenceElements->UnSelectAllEffects();
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
     Effect* effect = effectLayer->GetEffect(0);
     if( effect != NULL )
