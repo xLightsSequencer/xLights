@@ -28,6 +28,12 @@ static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
 static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
 static const std::string SLIDER_EffectBlur("SLIDER_EffectBlur");
 
+
+static const std::string CHECKBOX_RotoZoom("CHECKBOX_RotoZoom");
+static const std::string SLIDER_ZoomCycles("SLIDER_ZoomCycles");
+static const std::string SLIDER_ZoomRotation("SLIDER_ZoomRotation");
+static const std::string SLIDER_ZoomInOut("SLIDER_ZoomInOut");
+
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
 static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
@@ -550,18 +556,26 @@ private:
 		int effectBlur = settingsMap.GetInt(SLIDER_EffectBlur, 1);
 		buffer->SetBlur(layer, effectBlur);
 
+
+		int effectRotoZoom = settingsMap.GetInt(CHECKBOX_RotoZoom, 0) ;
+		int effectZoomCycles = settingsMap.GetInt(SLIDER_ZoomCycles, 1);
+		int effectZoomRotation = settingsMap.GetInt(SLIDER_ZoomRotation, 0);
+		int effectZoomInOut = settingsMap.GetInt(SLIDER_ZoomInOut, 0);
+		buffer->SetRotoZoom(layer, effectRotoZoom, effectZoomCycles, effectZoomRotation, effectZoomInOut);
+
+
         int freq=settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
         buffer->SetSparkle(layer, freq);
-        
+
         int brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
         buffer->SetBrightness(layer, brightness);
-        
+
         int contrast=settingsMap.GetInt(SLIDER_Contrast, 0);
         buffer->SetContrast(layer, contrast);
         buffer->SetMixType(layer, settingsMap.Get(CHOICE_LayerMethod, STR_NORMAL));
         int effectMixThreshold=settingsMap.GetInt(SLIDER_EffectLayerMix, 0);
         buffer->SetMixThreshold(layer, effectMixThreshold, settingsMap.GetInt(CHECKBOX_LayerMorph, 0) != 0); //allow threshold to vary -DJ
-        
+
         buffer->SetBufferType(layer,
                               settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT),
                               settingsMap.Get(CHOICE_BufferTransform, STR_NONE));

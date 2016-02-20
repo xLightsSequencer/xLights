@@ -2,15 +2,15 @@
 #define TIMINGPANEL_H
 
 //(*Headers(TimingPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/panel.h>
 #include <wx/scrolwin.h>
-#include <wx/slider.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/slider.h>
+#include <wx/panel.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
 //*)
 
 class Model;
@@ -25,28 +25,42 @@ class TimingPanel: public wxPanel
         wxString GetTimingString();
 
 		//(*Declarations(TimingPanel)
-		wxSlider* Slider_EffectLayerMix;
-		wxTextCtrl* TextCtrl_Fadeout;
-		wxChoice* BufferStyleChoice;
+		wxBitmapButton* BitmapButton_ZoomCycles;
 		wxBitmapButton* BitmapButton_EffectBlur;
+		wxBitmapButton* BitmapButton_RotoZoom;
+		wxTextCtrl* TextCtrl_ZoomCycles;
+		wxStaticText* StaticText2;
+		wxTextCtrl* TextCtrl_ZoomRotation;
+		wxStaticText* StaticText6;
+		wxChoice* BufferStyleChoice;
+		wxBitmapButton* BitmapButton_ZoomRotation;
 		wxPanel* Panel_Sizer;
-		wxStaticText* StaticText3;
+		wxSlider* Slider_ZoomInOut;
+		wxStaticText* StaticText8;
 		wxTextCtrl* TextCtrl_Fadein;
-		wxTextCtrl* txtCtlEffectMix;
+		wxBitmapButton* BitmapButton_OverlayBkg;
+		wxSlider* Slider_EffectLayerMix;
+		wxStaticText* StaticText3;
+		wxCheckBox* CheckBox_RotoZoom;
+		wxBitmapButton* BitmapButton_FadeOut;
 		wxChoice* BufferTransform;
+		wxTextCtrl* TextCtrl_ZoomInOut;
+		wxSlider* Slider_ZoomRotation;
+		wxSlider* Slider_ZoomCycles;
 		wxBitmapButton* BitmapButton_FadeIn;
-		wxTextCtrl* txtCtlEffectBlur;
-		wxCheckBox* CheckBox_OverlayBkg;
+		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_LayerMorph;
 		wxStaticText* StaticText5;
-		wxStaticText* StaticText2;
-		wxBitmapButton* BitmapButton_FadeOut;
-		wxBitmapButton* BitmapButton_EffectLayerMix;
-		wxSlider* Slider_EffectBlur;
+		wxStaticText* StaticText7;
 		wxChoice* Choice_LayerMethod;
+		wxBitmapButton* BitmapButton_EffectLayerMix;
+		wxBitmapButton* BitmapButton_ZoomInOut;
+		wxTextCtrl* TextCtrl_Fadeout;
 		wxScrolledWindow* ScrolledWindowTiming;
-		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
-		wxBitmapButton* BitmapButton_OverlayBkg;
+		wxTextCtrl* txtCtlEffectBlur;
+		wxCheckBox* CheckBox_OverlayBkg;
+		wxTextCtrl* txtCtlEffectMix;
+		wxSlider* Slider_EffectBlur;
 		//*)
     
     
@@ -77,6 +91,20 @@ class TimingPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_TEXTCTRL_Fadeout;
 		static const long ID_CHECKBOX_OverlayBkg;
 		static const long ID_BITMAPBUTTON_OverlayBkg;
+		static const long ID_CHECKBOX_RotoZoom;
+		static const long ID_BITMAPBUTTON_CHECKBOX_RotoZoom;
+		static const long ID_STATICTEXT4;
+		static const long ID_SLIDER_ZoomCycles;
+		static const long IDD_TEXTCTRL_ZoomCycles;
+		static const long ID_BITMAPBUTTON_SLIDER_ZoomCycles;
+		static const long ID_STATICTEXT5;
+		static const long ID_SLIDER_ZoomRotation;
+		static const long IDD_TEXTCTRL_ZoomRotation;
+		static const long ID_BITMAPBUTTON_SLIDER_ZoomRotation;
+		static const long ID_STATICTEXT6;
+		static const long ID_SLIDER_ZoomInOut;
+		static const long IDD_TEXTCTRL_ZoomInOut;
+		static const long ID_BITMAPBUTTON_SLIDER_ZoomInOut;
 		static const long ID_SCROLLEDWINDOW1;
 		static const long ID_PANEL1;
 		//*)
