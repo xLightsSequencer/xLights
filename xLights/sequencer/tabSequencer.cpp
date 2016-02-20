@@ -607,10 +607,10 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         if ("Random" == effect->GetEffectName()) {
             std::string settings, palette;
             std::string effectName = CreateEffectStringRandom(settings, palette);
-            effect->SetEffectName(effectName);
-            effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
             effect->SetPalette(palette);
             effect->SetSettings(settings);
+            effect->SetEffectName(effectName);
+            effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
             resetStrings = true;
         }
         SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
@@ -1215,9 +1215,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             }
             else if (name.StartsWith("ID_BUTTON"))
             {
-                color.Set(value);
-                ColorPanel::SetButtonColor((wxBitmapButton*)CtrlWin, &color);
-                CtrlWin->SetBackgroundColour(color);
+                colorPanel->SetButtonColor((wxBitmapButton*)CtrlWin, value.ToStdString());
             }
             else if (name.StartsWith("ID_CHECKBOX"))
             {

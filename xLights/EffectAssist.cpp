@@ -18,7 +18,7 @@ BEGIN_EVENT_TABLE(EffectAssist,wxPanel)
 END_EVENT_TABLE()
 
 EffectAssist::EffectAssist(wxWindow* parent, wxWindowID id)
-: mAssistPanel(nullptr)
+: mAssistPanel(nullptr), defaultAssistPanel(nullptr)
 {
 	//(*Initialize(EffectAssist)
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
@@ -48,22 +48,37 @@ void EffectAssist::ForceRefresh()
         mAssistPanel->Update();
     }
 }
-
+AssistPanel *EffectAssist::GetDefaultAssistPanel() {
+    if (defaultAssistPanel == nullptr) {
+        defaultAssistPanel = new AssistPanel(this);
+        xlGridCanvas* grid = new xlGridCanvasEmpty(defaultAssistPanel->GetCanvasParent(), wxNewId(), wxDefaultPosition,
+                                                   wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("EmptyGrid"));
+        defaultAssistPanel->SetGridCanvas(grid);
+        defaultAssistPanel->Hide();
+    }
+    return defaultAssistPanel;
+}
 void EffectAssist::SetPanel(AssistPanel* panel_)
 {
     wxSize s = GetSize();
     AssistPanel* old_panel = mAssistPanel;
     mAssistPanel = panel_;
 
-    if( old_panel != nullptr )
+    if( old_panel != nullptr)
     {
         FlexGridSizer1->Detach(old_panel);
-        delete old_panel;
+        if (old_panel != defaultAssistPanel) {
+            delete old_panel;
+        } else {
+            defaultAssistPanel->Hide();
+        }
     }
-
     if( mAssistPanel != nullptr )
     {
         FlexGridSizer1->Add(mAssistPanel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL, 2);
+        if (mAssistPanel == defaultAssistPanel) {
+            defaultAssistPanel->Show();
+        }
         AdjustClientSizes(s);
     }
 }

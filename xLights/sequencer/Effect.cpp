@@ -71,33 +71,25 @@ void SettingsMap::RemapChangedSettingKey(std::string &n,  std::string &value)
     Remaps.map(n);
 }
 
+static std::vector<std::string> CHECKBOX_IDS {
+    "C_CHECKBOX_Palette1", "C_CHECKBOX_Palette2", "C_CHECKBOX_Palette3",
+    "C_CHECKBOX_Palette4", "C_CHECKBOX_Palette5", "C_CHECKBOX_Palette6",
+    "C_CHECKBOX_Palette7", "C_CHECKBOX_Palette8"
+};
+static std::vector<std::string> BUTTON_IDS {
+    "C_BUTTON_Palette1", "C_BUTTON_Palette2", "C_BUTTON_Palette3",
+    "C_BUTTON_Palette4", "C_BUTTON_Palette5", "C_BUTTON_Palette6",
+    "C_BUTTON_Palette7", "C_BUTTON_Palette8"
+};
 
 static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors) {
     mColors.clear();
     if (!mPaletteMap.empty()) {
-        if (mPaletteMap.GetBool("C_CHECKBOX_Palette1")) {
-             mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette1"]));
-        }
-        if (mPaletteMap.GetBool("C_CHECKBOX_Palette2")) {
-            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette2"]));
-        }
-        if (mPaletteMap.GetBool("C_CHECKBOX_Palette3")) {
-            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette3"]));
-        }
-        if (mPaletteMap.GetBool("C_CHECKBOX_Palette4")) {
-            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette4"]));
-        }
-        if (mPaletteMap.GetBool("C_CHECKBOX_Palette5")) {
-            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette5"]));
-        }
-        if (mPaletteMap.GetBool("C_CHECKBOX_Palette6")) {
-            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette6"]));
-        }
-        if (mPaletteMap.GetBool("C_CHECKBOX_Palette7")) {
-            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette7"]));
-        }
-        if (mPaletteMap.GetBool("C_CHECKBOX_Palette8")) {
-            mColors.push_back(xlColor(mPaletteMap["C_BUTTON_Palette8"]));
+        int sz = BUTTON_IDS.size();
+        for (int x = 0; x < sz; ++x) {
+            if (mPaletteMap.GetBool(CHECKBOX_IDS[x])) {
+                mColors.push_back(xlColor(mPaletteMap[BUTTON_IDS[x]]));
+            }
         }
     }
 }

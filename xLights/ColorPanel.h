@@ -17,6 +17,7 @@
 #include <unordered_map>
 
 #include <vector>
+#include <map>
 
 wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 
@@ -38,9 +39,8 @@ class ColorPanel: public wxPanel
         void SetDefaultPalette();
 private:
         wxColour GetPaletteColor(int idx);
-        void SetPaletteColor(int idx, const wxColour* c);
 public:
-        static void SetButtonColor(wxBitmapButton* btn, const wxColour* c);
+        void SetButtonColor(wxBitmapButton* btn, const std::string &v);
         static const int PALETTE_SIZE = 8;
 
 		//(*Declarations(ColorPanel)
@@ -107,6 +107,7 @@ public:
     
         std::vector<wxBitmapButton*> buttons;
         std::vector<wxCheckBox*> checkBoxes;
+        std::map<int, std::string> lastColors;
 
 		DECLARE_EVENT_TABLE()
 

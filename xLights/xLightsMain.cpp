@@ -3199,7 +3199,12 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* re
         }
     }
 
-    AssistPanel* panel = ren_effect->GetAssistPanel(sEffectAssist, this);
+    AssistPanel *panel;
+    if (effect_is_supported) {
+        panel = ren_effect->GetAssistPanel(sEffectAssist, this);
+    } else {
+        panel = sEffectAssist->GetDefaultAssistPanel();
+    }
     panel->SetEffectInfo(effect, this);
     sEffectAssist->SetPanel(panel);
 }

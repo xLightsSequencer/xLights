@@ -240,9 +240,11 @@ void TimingPanel::SetDefaultControls(const Model *model) {
     TextCtrl_Fadeout->SetValue("0.00");
     CheckBox_OverlayBkg->SetValue(false);
     BufferStyleChoice->Clear();
-    const std::vector<std::string> &types = model->GetBufferStyles();
-    for (auto it = types.begin(); it != types.end(); it++) {
-        BufferStyleChoice->Append(*it);
+    if (model != nullptr) {
+        const std::vector<std::string> &types = model->GetBufferStyles();
+        for (auto it = types.begin(); it != types.end(); it++) {
+            BufferStyleChoice->Append(*it);
+        }
     }
     if (BufferStyleChoice->IsEmpty()) {
         BufferStyleChoice->Append("Default");

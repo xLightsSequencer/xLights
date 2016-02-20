@@ -199,17 +199,22 @@ ColorPanel::~ColorPanel()
 
 PANEL_EVENT_HANDLERS(ColorPanel)
 
-void ColorPanel::SetButtonColor(wxBitmapButton* btn, const wxColour* c)
+void ColorPanel::SetButtonColor(wxBitmapButton* btn, const std::string& cstr)
 {
-    btn->SetBackgroundColour(*c);
-    btn->SetForegroundColour(*c);
+    if (lastColors[btn->GetId()] != cstr) {
+        lastColors[btn->GetId()] = cstr;
+        wxColor c(cstr);
+        
+        btn->SetBackgroundColour(c);
+        btn->SetForegroundColour(c);
 
-    wxImage image(18, 18);
-    image.SetRGB(wxRect(0, 0, 18, 18),
-                 c->Red(), c->Green(), c->Blue());
-    wxBitmap bmp(image);
+        wxImage image(18, 18);
+        image.SetRGB(wxRect(0, 0, 18, 18),
+                     c.Red(), c.Green(), c.Blue());
+        wxBitmap bmp(image);
 
-    btn->SetBitmap(bmp);
+        btn->SetBitmap(bmp);
+    }
 }
 
 wxString ColorPanel::GetRandomColorString() {
@@ -276,13 +281,6 @@ wxColour ColorPanel::GetPaletteColor(int idx)
     return *wxBLACK;
 }
 
-void ColorPanel::SetPaletteColor(int idx, const wxColour* c)
-{
-    if (idx < buttons.size()) {
-        SetButtonColor(buttons[idx],c);
-    }
-}
-
 wxCheckBox* ColorPanel::GetPaletteCheckbox(int idx)
 {
     if (idx < checkBoxes.size()) {
@@ -307,15 +305,14 @@ void ColorPanel::SetDefaultSettings() {
 
 void ColorPanel::SetDefaultPalette()
 {
-    SetButtonColor(buttons[0],wxWHITE);
-    SetButtonColor(buttons[1],wxRED);
-    SetButtonColor(buttons[2],wxGREEN);
-    SetButtonColor(buttons[3],wxBLUE);
-    SetButtonColor(buttons[4],wxYELLOW);
-    SetButtonColor(buttons[5],wxBLACK);
-    SetButtonColor(buttons[6],wxCYAN);
-    wxColor c = xlMAGENTA.asWxColor();
-    SetButtonColor(buttons[7],&c);
+    SetButtonColor(buttons[0],"#FFFFFF");
+    SetButtonColor(buttons[1],"#FF0000");
+    SetButtonColor(buttons[2],"#00FF00");
+    SetButtonColor(buttons[3],"#0000FF");
+    SetButtonColor(buttons[4],"#FFFF00");
+    SetButtonColor(buttons[5],"#000000");
+    SetButtonColor(buttons[6],"#00FFFF");
+    SetButtonColor(buttons[7],"#FF00FF");
 }
 
 
@@ -334,7 +331,8 @@ void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
     {
         wxColourData retData = dialog.GetColourData();
         wxColour color = retData.GetColour();
-        SetButtonColor(w, &color);
+        xlColor c(color);
+        SetButtonColor(w, c);
         PaletteChanged=true;
     }
 

@@ -520,7 +520,7 @@ public:
 private:
 
     void initialize(int layer, int frame, Effect *el, SettingsMap &settingsMap, PixelBufferClass *buffer) {
-        if (el == NULL) {
+        if (el == NULL || el->GetEffectIndex() == -1) {
             settingsMap.clear();
             settingsMap[STR_EFFECT]=STR_NONE;
         } else {
@@ -584,7 +584,7 @@ private:
     Effect *findEffectForFrame(int layer, int frame) {
         return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame);
     }
-    void loadSettingsMap(const wxString &effectName,
+    void loadSettingsMap(const std::string &effectName,
                          Effect *effect,
                          SettingsMap& settingsMap) {
         settingsMap.clear();

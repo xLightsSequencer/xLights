@@ -26,12 +26,14 @@ class EffectAssist: public wxPanel
         void SetPanel(AssistPanel* panel_);
         void ForceRefresh();
 
+        AssistPanel * GetDefaultAssistPanel();
 	protected:
 
 		//(*Identifiers(EffectAssist)
 		//*)
 
         AssistPanel* mAssistPanel;
+        AssistPanel* defaultAssistPanel;
 
 	private:
         void AdjustClientSizes(wxSize s);
