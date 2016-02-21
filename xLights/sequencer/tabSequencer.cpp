@@ -1155,7 +1155,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             ContextWin=EffectsPanel1;
             name="ID_"+name.Mid(2);
         }
-        else if (name.StartsWith("T_"))
+        else if (name.StartsWith("T_") || name.StartsWith("B_"))
         {
             ContextWin=timingPanel;
             name="ID_"+name.Mid(2);

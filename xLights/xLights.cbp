@@ -408,6 +408,8 @@
 		<Unit filename="AudioManager.cpp" />
 		<Unit filename="AudioManager.h" />
 		<Unit filename="BitmapCache.cpp" />
+		<Unit filename="BufferPanel.cpp" />
+		<Unit filename="BufferPanel.h" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="Color.cpp" />
@@ -849,6 +851,7 @@
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
+		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
@@ -1041,6 +1044,7 @@
 					<wxPanel wxs="wxsmith/WavePanel.wxs" src="effects/WavePanel.cpp" hdr="effects/WavePanel.h" fwddecl="1" i18n="1" name="WavePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PicturesAssistPanel.wxs" src="effects/assist/PicturesAssistPanel.cpp" hdr="effects/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/AssistPanel.wxs" src="effects/assist/AssistPanel.cpp" hdr="effects/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/BufferPanel.wxs" src="BufferPanel.cpp" hdr="BufferPanel.h" fwddecl="0" i18n="1" name="BufferPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

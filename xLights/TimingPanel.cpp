@@ -4,11 +4,11 @@
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include <wx/msgdlg.h>
 //(*InternalHeaders(TimingPanel)
-#include <wx/bitmap.h>
 #include <wx/settings.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
 //*)
 
 #include "models/Model.h"
@@ -37,20 +37,6 @@ const long TimingPanel::ID_TEXTCTRL_Fadeout = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_TEXTCTRL_Fadeout = wxNewId();
 const long TimingPanel::ID_CHECKBOX_OverlayBkg = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_OverlayBkg = wxNewId();
-const long TimingPanel::ID_CHECKBOX_RotoZoom = wxNewId();
-const long TimingPanel::ID_BITMAPBUTTON_CHECKBOX_RotoZoom = wxNewId();
-const long TimingPanel::ID_STATICTEXT4 = wxNewId();
-const long TimingPanel::ID_SLIDER_ZoomCycles = wxNewId();
-const long TimingPanel::IDD_TEXTCTRL_ZoomCycles = wxNewId();
-const long TimingPanel::ID_BITMAPBUTTON_SLIDER_ZoomCycles = wxNewId();
-const long TimingPanel::ID_STATICTEXT5 = wxNewId();
-const long TimingPanel::ID_SLIDER_ZoomRotation = wxNewId();
-const long TimingPanel::IDD_TEXTCTRL_ZoomRotation = wxNewId();
-const long TimingPanel::ID_BITMAPBUTTON_SLIDER_ZoomRotation = wxNewId();
-const long TimingPanel::ID_STATICTEXT6 = wxNewId();
-const long TimingPanel::ID_SLIDER_ZoomInOut = wxNewId();
-const long TimingPanel::IDD_TEXTCTRL_ZoomInOut = wxNewId();
-const long TimingPanel::ID_BITMAPBUTTON_SLIDER_ZoomInOut = wxNewId();
 const long TimingPanel::ID_SCROLLEDWINDOW1 = wxNewId();
 const long TimingPanel::ID_PANEL1 = wxNewId();
 //*)
@@ -63,19 +49,16 @@ END_EVENT_TABLE()
 TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(TimingPanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText1;
-	wxBitmapButton* BitmapButton1;
 	wxBitmapButton* BitmapButtonBufferStyle;
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxStaticText* StaticText1;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxBitmapButton* BitmapButton1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(301,262), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -114,7 +97,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_LayerMethod->Append(_("Bottom-Top"));
 	Choice_LayerMethod->Append(_("Left-Right"));
 	Choice_LayerMethod->SetToolTip(_("Layering defines how Effect 1 and Effect 2 will be mixed together.\nHere are the Choices\n* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. \n* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.\n* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.\n* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.\n* 1 is UnMask:  (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.\n* 2 is UnMask:  (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.\n* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2\n* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1\n* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2\n* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1\n* Layered: Effect 1 only shows in black regions of Effect 2.\n* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum\n* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display\n* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model."));
-	FlexGridSizer2->Add(Choice_LayerMethod, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(Choice_LayerMethod, 1, wxALL, 2);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_EffectLayerMix = new wxSlider(ScrolledWindowTiming, ID_SLIDER_EffectLayerMix, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectLayerMix"));
@@ -198,52 +181,6 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButton_OverlayBkg->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_OverlayBkg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	CheckBox_RotoZoom = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_RotoZoom, _("RotoZoom\?"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RotoZoom"));
-	CheckBox_RotoZoom->SetValue(false);
-	CheckBox_RotoZoom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
-	FlexGridSizer2->Add(CheckBox_RotoZoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_RotoZoom = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_CHECKBOX_RotoZoom, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_RotoZoom"));
-	BitmapButton_RotoZoom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	BitmapButton_RotoZoom->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
-	FlexGridSizer2->Add(BitmapButton_RotoZoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText6 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT4, _("Zoom Cycles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-	StaticText6->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
-	FlexGridSizer2->Add(StaticText6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer8 = new wxFlexGridSizer(0, 3, 0, 0);
-	Slider_ZoomCycles = new wxSlider(ScrolledWindowTiming, ID_SLIDER_ZoomCycles, 0, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_ZoomCycles"));
-	FlexGridSizer8->Add(Slider_ZoomCycles, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_ZoomCycles = new wxTextCtrl(ScrolledWindowTiming, IDD_TEXTCTRL_ZoomCycles, _("1"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_ZoomCycles"));
-	FlexGridSizer8->Add(TextCtrl_ZoomCycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer2->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_ZoomCycles = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_ZoomCycles, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_ZoomCycles"));
-	BitmapButton_ZoomCycles->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	BitmapButton_ZoomCycles->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
-	FlexGridSizer2->Add(BitmapButton_ZoomCycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText7 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT5, _("Zoom Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-	StaticText7->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
-	FlexGridSizer2->Add(StaticText7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer9 = new wxFlexGridSizer(0, 3, 0, 0);
-	Slider_ZoomRotation = new wxSlider(ScrolledWindowTiming, ID_SLIDER_ZoomRotation, 0, -20, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_ZoomRotation"));
-	FlexGridSizer9->Add(Slider_ZoomRotation, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_ZoomRotation = new wxTextCtrl(ScrolledWindowTiming, IDD_TEXTCTRL_ZoomRotation, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_ZoomRotation"));
-	FlexGridSizer9->Add(TextCtrl_ZoomRotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer2->Add(FlexGridSizer9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_ZoomRotation = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_ZoomRotation, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_ZoomRotation"));
-	BitmapButton_ZoomRotation->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	FlexGridSizer2->Add(BitmapButton_ZoomRotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText8 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT6, _("Zoom In/Out"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-	StaticText8->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
-	FlexGridSizer2->Add(StaticText8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer10 = new wxFlexGridSizer(0, 3, 0, 0);
-	Slider_ZoomInOut = new wxSlider(ScrolledWindowTiming, ID_SLIDER_ZoomInOut, 0, -10, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_ZoomInOut"));
-	FlexGridSizer10->Add(Slider_ZoomInOut, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_ZoomInOut = new wxTextCtrl(ScrolledWindowTiming, IDD_TEXTCTRL_ZoomInOut, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_ZoomInOut"));
-	FlexGridSizer10->Add(TextCtrl_ZoomInOut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer2->Add(FlexGridSizer10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_ZoomInOut = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_ZoomInOut, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_ZoomInOut"));
-	BitmapButton_ZoomInOut->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	FlexGridSizer2->Add(BitmapButton_ZoomInOut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	ScrolledWindowTiming->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(ScrolledWindowTiming);
@@ -269,16 +206,6 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadein,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadeout,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_OverlayBkg,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_CHECKBOX_RotoZoom,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_ZoomCycles,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_ZoomCycles,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
-	Connect(ID_BITMAPBUTTON_SLIDER_ZoomCycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_ZoomRotation,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_ZoomRotation,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
-	Connect(ID_BITMAPBUTTON_SLIDER_ZoomRotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_ZoomInOut,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_ZoomInOut,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
-	Connect(ID_BITMAPBUTTON_SLIDER_ZoomInOut,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
 	//*)
 }
@@ -347,14 +274,9 @@ wxString TimingPanel::GetTimingString()
     }
     // Blur
     if (Slider_EffectBlur->GetValue() > 1) {
-        s += wxString::Format("T_SLIDER_EffectBlur=%d,",Slider_EffectBlur->GetValue());
+        s += wxString::Format("B_SLIDER_EffectBlur=%d,",Slider_EffectBlur->GetValue());
     }
-    // RotoZoom
-  if (CheckBox_RotoZoom->GetValue()) {
-        s += wxString::Format("T_SLIDER_ZoomCycles=%d,",Slider_ZoomCycles->GetValue());
-        s += wxString::Format("T_SLIDER_ZoomRotation=%d,",Slider_ZoomRotation->GetValue());
-       s += wxString::Format("T_SLIDER_ZoomInOut=%d,",Slider_ZoomInOut->GetValue());
-  }
+
     // Fade in
     if ("" != TextCtrl_Fadein->GetValue()
         && "0" != TextCtrl_Fadein->GetValue()
@@ -374,12 +296,12 @@ wxString TimingPanel::GetTimingString()
         s += "T_CHECKBOX_OverlayBkg=1,";
     }
     if (BufferStyleChoice->GetSelection() != 0) {
-        s += "T_CHOICE_BufferStyle=";
+        s += "B_CHOICE_BufferStyle=";
         s += BufferStyleChoice->GetStringSelection();
         s += ",";
     }
     if (BufferTransform->GetSelection() != 0) {
-        s += "T_CHOICE_BufferTransform=";
+        s += "B_CHOICE_BufferTransform=";
         s += BufferTransform->GetStringSelection();
         s += ",";
     }

@@ -82,7 +82,7 @@ EffectManager::EffectManager() : std::vector<RenderableEffect*>()
     add(new StrobeEffect(eff_STROBE));
     add(new TendrilEffect(eff_TENDRIL));
     add(new TextEffect(eff_TEXT));
-	add(new TransitionEffect(eff_TRANSITION));
+	//add(new TransitionEffect(eff_TRANSITION));
 	add(new TreeEffect(eff_TREE));
 	add(new TwinkleEffect(eff_TWINKLE));
 	add(new VUMeterEffect(eff_VUMETER));

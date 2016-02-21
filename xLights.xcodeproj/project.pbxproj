@@ -37,6 +37,7 @@
 		672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E62AE1C4D2FCF006A4966 /* TendrilPanel.cpp */; };
 		672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
+		673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C45561C79570B00FDED47 /* BufferPanel.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		67402E871B4230360047EDC1 /* NullOutputDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67402E851B4230360047EDC1 /* NullOutputDialog.cpp */; };
 		67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D951C6664900095CDB5 /* WreathModel.cpp */; };
@@ -339,6 +340,8 @@
 		672F95221A7A6619005FF8BF /* PreviewModels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreviewModels.h; sourceTree = "<group>"; };
 		672F95231A7A6619005FF8BF /* ViewsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewsDialog.h; sourceTree = "<group>"; };
 		672F95251A7A6619005FF8BF /* XlightsDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XlightsDrawable.h; sourceTree = "<group>"; };
+		673C45551C79570B00FDED47 /* BufferPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BufferPanel.h; sourceTree = "<group>"; };
+		673C45561C79570B00FDED47 /* BufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferPanel.cpp; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
 		673E425817F0D23E00F4BC76 /* TabSchedule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSchedule.cpp; sourceTree = "<group>"; };
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
@@ -1144,6 +1147,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				673C45551C79570B00FDED47 /* BufferPanel.h */,
+				673C45561C79570B00FDED47 /* BufferPanel.cpp */,
 				67582EC61C7363FF00850363 /* osx_utils */,
 				676D0F6A1C72BAFA009C66FC /* kiss_fft */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
@@ -1603,6 +1608,7 @@
 				67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */,
 				676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */,
 				67A61A5217B51C0F008E95BB /* serial.cpp in Sources */,
+				673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */,
 				67B2CFE71C3A186A003C17CA /* MorphEffect.cpp in Sources */,
 				670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */,
 				6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */,

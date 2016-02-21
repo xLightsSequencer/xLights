@@ -48,7 +48,7 @@ public:
         eff_STROBE,
 		eff_TENDRIL,
 		eff_TEXT,
-		eff_TRANSITION,
+		//eff_TRANSITION,
 		eff_TREE,
 		eff_TWINKLE,
 		eff_VUMETER,
