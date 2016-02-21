@@ -955,14 +955,31 @@ void EffectsGrid::Resize(int position, bool offset)
 
 void EffectsGrid::MoveSelectedEffectUp(bool shift)
 {
-    bool moved = false;
-    if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow >= 0)
+    if( mCellRangeSelected )
+    {
+        if( shift )
+        {
+            if( mRangeEndRow > mRangeStartRow )
+            {
+                mRangeEndRow--;
+            }
+        }
+        else
+        {
+            if( mRangeStartRow > mSequenceElements->GetNumberOfTimingRows()+ mSequenceElements->GetFirstVisibleModelRow()) {
+                mRangeStartRow--;
+                mRangeEndRow--;
+            }
+        }
+        UpdateSelectedEffects();
+        Refresh(false);
+    }
+    else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow > 0)
     {
         Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         int row = mSelectedRow-1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
-        int layer_index = ri->layerIndex;
-        while( layer_index > 0 )
+        while( row >= mSequenceElements->GetNumberOfTimingRows() )
         {
             EffectLayer* new_el = mSequenceElements->GetVisibleEffectLayer(row);
             if( new_el->GetRangeIsClearMS( mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS()))
@@ -984,44 +1001,39 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                 return;
             }
             row--;
-            layer_index--;
-            moved = true;
         }
-    }
-
-    if( !moved && mCellRangeSelected )
-    {
-        if( shift )
-        {
-            if( mRangeEndRow > mRangeStartRow )
-            {
-                mRangeEndRow--;
-            }
-        }
-        else
-        {
-            if( mRangeStartRow > mSequenceElements->GetNumberOfTimingRows()+ mSequenceElements->GetFirstVisibleModelRow()) {
-                mRangeStartRow--;
-                mRangeEndRow--;
-            }
-        }
-        UpdateSelectedEffects();
-        Refresh(false);
     }
 }
 
 void EffectsGrid::MoveSelectedEffectDown(bool shift)
 {
-    bool moved = false;
     int first_row = mSequenceElements->GetFirstVisibleModelRow();
-    if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow >= 0)
+    if( mCellRangeSelected )
+    {
+        if( shift )
+        {
+            if( mRangeEndRow < mSequenceElements->GetVisibleRowInformationSize()+first_row-1 )
+            {
+                mRangeEndRow++;
+            }
+        }
+        else
+        {
+            if( mRangeStartRow < mSequenceElements->GetVisibleRowInformationSize()+first_row-1 ) {
+                mRangeStartRow++;
+                mRangeEndRow++;
+            }
+        }
+        UpdateSelectedEffects();
+        Refresh(false);
+    }
+    else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow >= 0)
     {
         Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         int row = mSelectedRow+1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         Element* element = el->GetParentElement();
-        int layer_index = ri->layerIndex;
-        while( layer_index < element->GetEffectLayerCount()-1 )
+        while( row < mSequenceElements->GetVisibleRowInformationSize() )
         {
             EffectLayer* new_el = mSequenceElements->GetVisibleEffectLayer(row);
             if( new_el->GetRangeIsClearMS( mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS()))
@@ -1043,29 +1055,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                 return;
             }
             row++;
-            layer_index++;
-            moved = true;
         }
-    }
-
-    if( !moved && mCellRangeSelected )
-    {
-        if( shift )
-        {
-            if( mRangeEndRow < mSequenceElements->GetVisibleRowInformationSize()+first_row-1 )
-            {
-                mRangeEndRow++;
-            }
-        }
-        else
-        {
-            if( mRangeStartRow < mSequenceElements->GetVisibleRowInformationSize()+first_row-1 ) {
-                mRangeStartRow++;
-                mRangeEndRow++;
-            }
-        }
-        UpdateSelectedEffects();
-        Refresh(false);
     }
 }
 
