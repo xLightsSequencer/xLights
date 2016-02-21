@@ -10,7 +10,19 @@
 #include <list>
 #include <shared_mutex>
 
+#define USE_MPG123
+//#define USE_FFMPEG
+
+#ifdef USE_MPG123
 #include "sequencer/mpg123.h"
+#endif
+#ifdef USE_FFMPEG
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+}
+#endif
 #include "vamp-hostsdk/PluginLoader.h"
 #include "JobPool.h"
 
@@ -76,7 +88,6 @@ class AudioManager
 	long _rate;
 	int _channels;
 	int _trackSize;
-	int _encoding;
 	int _bits;
 	int _extra;
 	std::string _resultMessage;
@@ -95,13 +106,21 @@ class AudioManager
 	float _bigmin;
 	float _bigspectogrammax;
 
+#ifdef USE_MPG123
+	int _encoding;
 	int CalcTrackSize(mpg123_handle *phm, int bits, int channels);
+	void LoadTrackData(mpg123_handle *phm, char* data, int maxSize);
+	void ExtractMP3Tags(mpg123_handle *phm);
+#endif
+#ifdef USE_FFMPEG
+	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
+	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
+	void ExtractMP3Tags(AVFormatContext* formatContext);
+#endif
 	int CalcLengthMS();
 	void SplitTrackDataAndNormalize(signed short* trackData, int trackSize, float* leftData, float* rightData);
 	void NormalizeMonoTrackData(signed short* trackData, int trackSize, float* leftData);
-	void LoadTrackData(mpg123_handle *phm, char* data, int maxSize);
 	int OpenMediaFile();
-	void ExtractMP3Tags(mpg123_handle *phm);
 	bool CheckCBR();
 	void PrepareFrameData(bool separateThread);
 	int decodebitrateindex(int bitrateindex, int version, int layertype);

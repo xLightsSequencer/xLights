@@ -7,6 +7,7 @@
 #include "xLightsXmlFile.h"
 #include <wx/log.h>
 #include <math.h>
+#include <stdlib.h>
 #include "kiss_fft/tools/kiss_fftr.h"
 #ifdef __WXMSW__
 //#include "wx/msw/debughlp.h"
@@ -652,6 +653,629 @@ int AudioManager::decodesideinfosize(int version, int mono)
 	}
 }
 
+// Set the frame interval we will be using
+void AudioManager::SetFrameInterval(int intervalMS)
+{
+	// If this is different from what it was previously
+	if (_intervalMS != intervalMS)
+	{
+		// save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
+		_intervalMS = intervalMS;
+		PrepareFrameData(true);
+	}
+}
+
+// Set the set and block that vamp analysis will be using
+// This controls how much extra space at the end of the file we need so VAMP functions dont try to read past the end of the allocated memory
+void AudioManager::SetStepBlock(int step, int block)
+{
+	int extra = std::max(step, block) + 1;
+
+	// we only need to reopen if the extra bytes are greater
+	if (extra > _extra)
+	{
+		_extra = extra;
+		_state = -1;
+		OpenMediaFile();
+	}
+}
+
+// Clean up our data buffers
+AudioManager::~AudioManager()
+{
+	if (_data[1] != _data[0] && _data[1] != NULL)
+	{
+		free(_data[1]);
+		_data[1] = NULL;
+	}
+	if (_data[0] != NULL)
+	{
+		free(_data[0]);
+		_data[0] = NULL;
+	}
+
+	// I am not deleting _job as I think JobPool takes care of this
+}
+
+// Split the MP# data into left and right and normalise the values
+void AudioManager::SplitTrackDataAndNormalize(signed short* trackData, int trackSize, float* leftData, float* rightData)
+{
+    signed short lSample, rSample;
+
+    for(int i=0;i<trackSize;i++)
+    {
+        lSample = trackData[i*2];
+        leftData[i] = (float)lSample/(float)32768;
+        rSample = trackData[(i*2)+1];
+        rightData[i] = (float)rSample/(float)32768;
+    }
+}
+
+// NOrmalise mono track data
+void AudioManager::NormalizeMonoTrackData(signed short* trackData, int trackSize, float* leftData)
+{
+    signed short lSample;
+    for(int i=0;i<trackSize;i++)
+    {
+        lSample = trackData[i];
+        leftData[i] = (float)lSample/(float)32768;
+    }
+}
+
+// Calculate the song lenth in MS
+int AudioManager::CalcLengthMS()
+{
+	float seconds = (float)_trackSize * ((float)1 / (float)_rate);
+	return (int)(seconds * (float)1000);
+}
+
+#ifdef USE_FFMPEG
+// Open and read the media file into memory
+int AudioManager::OpenMediaFile()
+{
+	int err = 0;
+
+	// TODO
+	// Initialize FFmpeg
+	av_register_all();
+
+	AVFormatContext* formatContext = NULL;
+	int res = avformat_open_input(&formatContext, _audio_file.c_str(), NULL, NULL);
+	if (res != 0)
+	{
+		std::cout << "Error opening the file" << std::endl;
+		return 1;
+	}
+
+	if (avformat_find_stream_info(formatContext, NULL) < 0)
+	{
+		avformat_close_input(&formatContext);
+		std::cout << "Error finding the stream info" << std::endl;
+		return 1;
+	}
+
+	// Find the audio stream
+	AVCodec* cdc = nullptr;
+	int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_AUDIO, -1, -1, &cdc, 0);
+	if (streamIndex < 0)
+	{
+		avformat_close_input(&formatContext);
+		std::cout << "Could not find any audio stream in the file" << std::endl;
+		return 1;
+	}
+
+	AVStream* audioStream = formatContext->streams[streamIndex];
+	AVCodecContext* codecContext = audioStream->codec;
+	codecContext->codec = cdc;
+
+	if (avcodec_open2(codecContext, codecContext->codec, NULL) != 0)
+	{
+		avformat_close_input(&formatContext);
+		std::cout << "Couldn't open the context with the decoder" << std::endl;
+		return 1;
+	}
+
+	_channels = codecContext->channels;
+	_rate = codecContext->sample_rate;
+	_bits = av_get_bytes_per_sample(codecContext->sample_fmt);
+	int bitrate = codecContext->bit_rate;
+
+	/* Get Track Size */
+	GetTrackMetrics(formatContext, codecContext, audioStream);
+
+	// Check if we have read this before ... if so dump the old data
+	if (_data[1] != NULL && _data[1] != _data[0])
+	{
+		free(_data[1]);
+		_data[1] = NULL;
+	}
+	if (_data[0] != NULL)
+	{
+		free(_data[0]);
+		_data[0] = NULL;
+	}
+
+	_data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
+	for (int i = 0; i < _trackSize + _extra; i++)
+	{
+		(*(_data[0] + i)) = 0.0;
+	}
+	if (_channels == 2)
+	{
+		_data[1] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
+		for (int i = 0; i < _trackSize + _extra; i++)
+		{
+			(*(_data[1] + i)) = 0.0;
+		}
+	}
+	else
+	{
+		_data[1] = _data[0];
+	}
+
+	LoadTrackData(formatContext, codecContext, audioStream);
+
+	ExtractMP3Tags(formatContext);
+
+	avcodec_close(codecContext);
+	avformat_close_input(&formatContext);
+	return err;
+}
+
+void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
+{
+	AVFrame* frame = av_frame_alloc();
+	int read = 0;
+	if (!frame)
+	{
+		_resultMessage = "Error allocating the frame";
+		_state = 0;
+		return;
+	}
+
+	AVPacket readingPacket;
+	av_init_packet(&readingPacket);
+
+	// start at the beginning
+	av_seek_frame(formatContext, -1, 0, AVSEEK_FLAG_ANY);
+
+	// Read the packets in a loop
+	while (av_read_frame(formatContext, &readingPacket) == 0)
+	{
+		if (readingPacket.stream_index == audioStream->index)
+		{
+			AVPacket decodingPacket = readingPacket;
+
+			// Audio packets can have multiple audio frames in a single packet
+			while (decodingPacket.size > 0)
+			{
+				// Try to decode the packet into a frame
+				// Some frames rely on multiple packets, so we have to make sure the frame is finished before
+				// we can use it
+				int gotFrame = 0;
+				int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &decodingPacket);
+
+				if (result >= 0 && gotFrame)
+				{
+					decodingPacket.size -= result;
+
+					for (int i = 0; i < frame->nb_samples; i++)
+					{
+						int16_t s;
+						float j;
+						//int32_t j;
+						//int64_t l;
+						if (_bits == 2)
+						{
+							s = *(int16_t*)(frame->data[0] + i * sizeof(int16_t));
+							_data[0][read + i] = ((float)s) / (float)0x8000;
+							if (_channels > 1)
+							{
+								s = *(int16_t*)(frame->data[1] + i * sizeof(int16_t));
+								_data[1][read + i] = ((float)s) / (float)0x8000;
+							}
+						}
+						else if (_bits == 4)
+						{
+							j = *(float*)(frame->data[0] + i * sizeof(float));
+							_data[0][read + i] = j;
+							if (_channels > 1)
+							{
+								j = *(float*)(frame->data[1] + i * sizeof(float));
+								_data[1][read + i] = j;
+							}
+						}
+						//else if (_bits == 4)
+						//{
+						//	j = *(int32_t*)(frame->data[0] + i * sizeof(int32_t));
+						//	_data[0][read + i] = ((float)j) / (float)0x80000000;
+						//	if (_channels > 1)
+						//	{
+						//		j = *(int32_t*)(frame->data[1] + i * sizeof(int32_t));
+						//		_data[1][read + i] = ((float)j) / (float)0x80000000;
+						//	}
+						//}
+						//else if (_bits == 8)
+						//{
+						//	l = *(int64_t*)(frame->data[0] + i * sizeof(int64_t));
+						//	_data[0][read + i] = ((float)l) / (float)0x8000000000000000;
+						//	if (_channels > 1)
+						//	{
+						//		l = *(int64_t*)(frame->data[1] + i * sizeof(int64_t));
+						//		_data[1][read + i] = ((float)l) / (float)0x8000000000000000;
+						//	}
+						//}
+					}
+					read += frame->nb_samples;
+				}
+				else
+				{
+					decodingPacket.size = 0;
+				}
+			}
+		}
+
+		// You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
+		av_free_packet(&readingPacket);
+	}
+
+	// Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
+	// is set, there can be buffered up frames that need to be flushed, so we'll do that
+	if (codecContext->codec->capabilities & CODEC_CAP_DELAY)
+	{
+		av_init_packet(&readingPacket);
+		// Decode all the remaining frames in the buffer, until the end is reached
+		int gotFrame = 1;
+		while (gotFrame)
+		{
+			int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &readingPacket);
+			if (result >= 0 && gotFrame)
+			{
+				for (int i = 0; i < frame->nb_samples; i++)
+				{
+					int16_t s;
+					float j;
+					//int32_t j;
+					//int64_t l;
+					if (_bits == 2)
+					{
+						s = *(int16_t*)(frame->data[0] + i * sizeof(int16_t));
+						_data[0][read + i] = ((float)s) / (float)0x8000;
+						if (_channels > 1)
+						{
+							s = *(int16_t*)(frame->data[1] + i * sizeof(int16_t));
+							_data[1][read + i] = ((float)s) / (float)0x8000;
+						}
+					}
+					else if (_bits == 4)
+					{
+						j = *(float*)(frame->data[0] + i * sizeof(float));
+						_data[0][read + i] = j;
+						if (_channels > 1)
+						{
+							j = *(float*)(frame->data[1] + i * sizeof(float));
+							_data[1][read + i] = j;
+						}
+					}
+					//else if (_bits == 4)
+					//{
+					//	j = *(int32_t*)(frame->data[0] + i * sizeof(int32_t));
+					//	_data[0][read + i] = ((float)j) / (float)0x80000000;
+					//	if (_channels > 1)
+					//	{
+					//		j = *(int32_t*)(frame->data[1] + i * sizeof(int32_t));
+					//		_data[1][read + i] = ((float)j) / (float)0x80000000;
+					//	}
+					//}
+					//else if (_bits == 8)
+					//{
+					//	l = *(int64_t*)(frame->data[0] + i * sizeof(int64_t));
+					//	_data[0][read + i] = ((float)l) / (float)0x8000000000000000;
+					//	if (_channels > 1)
+					//	{
+					//		l = *(int64_t*)(frame->data[1] + i * sizeof(int64_t));
+					//		_data[1][read + i] = ((float)l) / (float)0x8000000000000000;
+					//	}
+					//}
+				}
+				read += frame->nb_samples;
+			}
+		}
+	}
+
+	// Clean up!
+	av_free(frame);
+}
+
+void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
+{
+	_trackSize = 0;
+	int duration = 0;
+	int sampleduration = -1;
+	AVFrame* frame = av_frame_alloc();
+	if (!frame)
+	{
+		_resultMessage = "Error allocating the frame";
+		_state = 0;
+		return;
+	}
+
+	AVPacket readingPacket;
+	av_init_packet(&readingPacket);
+
+	// Read the packets in a loop
+	while (av_read_frame(formatContext, &readingPacket) == 0)
+	{
+		if (readingPacket.stream_index == audioStream->index)
+		{
+			AVPacket decodingPacket = readingPacket;
+
+			// Audio packets can have multiple audio frames in a single packet
+			while (decodingPacket.size > 0)
+			{
+				// Try to decode the packet into a frame
+				// Some frames rely on multiple packets, so we have to make sure the frame is finished before
+				// we can use it
+				int gotFrame = 0;
+				int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &decodingPacket);
+
+				if (result >= 0 && gotFrame)
+				{
+					if (_isCBR)
+					{
+						if (sampleduration == -1)
+						{
+							sampleduration = frame->pkt_duration / frame->nb_samples;
+						}
+						else
+						{
+							if (sampleduration != frame->pkt_duration / frame->nb_samples)
+							{
+								_isCBR = false;
+							}
+						}
+					}
+
+					decodingPacket.size -= result;
+					_trackSize += frame->nb_samples;
+					duration += frame->pkt_duration;
+				}
+				else
+				{
+					decodingPacket.size = 0;
+				}
+			}
+		}
+
+		// You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
+		av_free_packet(&readingPacket);
+	}
+
+	// Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
+	// is set, there can be buffered up frames that need to be flushed, so we'll do that
+	if (codecContext->codec->capabilities & CODEC_CAP_DELAY)
+	{
+		av_init_packet(&readingPacket);
+		// Decode all the remaining frames in the buffer, until the end is reached
+		int gotFrame = 1;
+		while (gotFrame)
+		{
+			int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &readingPacket);
+			if (result >= 0 && gotFrame)
+			{
+				if (_isCBR)
+				{
+					if (sampleduration == -1)
+					{
+						sampleduration = frame->pkt_duration / frame->nb_samples;
+					}
+					else
+					{
+						if (sampleduration != frame->pkt_duration / frame->nb_samples)
+						{
+							_isCBR = false;
+						}
+					}
+				}
+
+				_trackSize += frame->nb_samples;
+				duration += frame->pkt_duration;
+			}
+		}
+	}
+
+	// Clean up!
+	av_free(frame);
+
+	_lengthMS = duration / (audioStream->time_base.den / 1000);
+}
+
+void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
+{
+	AVDictionaryEntry* tag = av_dict_get(formatContext->metadata, "title", NULL, 0);
+	if (tag != NULL)
+	{
+		_title = tag->value;
+	}
+	tag = av_dict_get(formatContext->metadata, "album", NULL, 0);
+	if (tag != NULL)
+	{
+		_album = tag->value;
+	}
+	tag = av_dict_get(formatContext->metadata, "artist", NULL, 0);
+	if (tag != NULL)
+	{
+		_artist = tag->value;
+	}
+}
+
+bool AudioManager::CheckCBR()
+{
+	// already calculated
+	return _isCBR;
+}
+#endif
+
+#ifdef USE_MPG123
+// Open and read the media file into memory
+int AudioManager::OpenMediaFile()
+{
+    int err;
+    size_t buffer_size;
+	mpg123_handle *phm;
+
+    err = mpg123_init();
+    if(err != MPG123_OK || (phm = mpg123_new(NULL, &err)) == NULL)
+    {
+		std::ostringstream stringStream;
+		stringStream << "Basic setup goes wrong: " << mpg123_plain_strerror(err);
+		_resultMessage = stringStream.str();
+		_state = 0;
+		if (phm != NULL)
+		{
+			mpg123_delete(phm);
+			mpg123_exit();
+		}
+		return -1;
+    }
+
+    /* open the file and get the decoding format */
+    if( mpg123_open(phm, _audio_file.c_str()) != MPG123_OK ||
+       mpg123_getformat(phm, &_rate, &_channels, &_encoding) != MPG123_OK )
+    {
+		std::ostringstream stringStream;
+		stringStream << "Trouble with mpg123: " << mpg123_strerror(phm);
+		_resultMessage = stringStream.str();
+		_state = 0;
+		if (phm != NULL)
+		{
+			mpg123_close(phm);
+			mpg123_delete(phm);
+			mpg123_exit();
+		}
+		return -1;
+    }
+
+    if(_encoding != MPG123_ENC_SIGNED_16 )
+    {
+        _resultMessage = "Encoding unsupported.  Must be signed 16 bit.";
+		_state = 0;
+    }
+
+    /* set the output format and open the output device */
+    _bits = mpg123_encsize(_encoding);
+
+    /* Get Track Size */
+    _trackSize = CalcTrackSize(phm, _bits, _channels);
+	_lengthMS = CalcLengthMS();
+    buffer_size = mpg123_outblock(phm);
+    int size = (_trackSize+buffer_size)*_bits*_channels;
+
+	// Check if we have read this before ... if so dump the old data
+	if (_data[1] != NULL && _data[1] != _data[0])
+	{
+		free(_data[1]);
+		_data[1] = NULL;
+	}
+	if (_data[0] != NULL)
+	{
+		free(_data[0]);
+		_data[0] = NULL;
+	}
+
+	char * trackData = (char*)malloc(size);
+    LoadTrackData(phm, trackData, size);
+
+	// Split data into left and right and normalize -1 to 1
+	_data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
+	for (int i = 0; i < _trackSize + _extra; i++)
+	{
+		(*(_data[0] + i)) = 0.0;
+	}
+	if( _channels == 2 )
+    {
+        _data[1] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
+		for (int i = 0; i < _trackSize + _extra; i++)
+		{
+			(*(_data[1] + i)) = 0.0;
+		}
+        SplitTrackDataAndNormalize((signed short*)trackData, _trackSize, _data[0], _data[1]);
+    }
+    else if( _channels == 1 )
+    {
+        NormalizeMonoTrackData((signed short*)trackData,_trackSize,_data[0]);
+        _data[1] = _data[0];
+    }
+    else
+    {
+        _resultMessage = "More than 2 audio channels is not supported yet.";
+		_state = 0;
+    }
+	free(trackData);
+
+	ExtractMP3Tags(phm);
+
+    mpg123_close(phm);
+    mpg123_delete(phm);
+    mpg123_exit();
+	phm = NULL;
+
+	return _trackSize;
+}
+
+// Load the track data
+void AudioManager::LoadTrackData(mpg123_handle *phm, char* data, int maxSize)
+{
+	size_t buffer_size;
+	unsigned char *buffer;
+	size_t done;
+	int bytesRead = 0;
+	buffer_size = mpg123_outblock(phm);
+	buffer = (unsigned char*)malloc(buffer_size * sizeof(unsigned char));
+	mpg123_seek(phm, 0, SEEK_SET);
+	for (bytesRead = 0; mpg123_read(phm, buffer, buffer_size, &done) == MPG123_OK; )
+	{
+		if ((bytesRead + done) >= maxSize)
+		{
+			_resultMessage = "Error reading data from mp3, too much data read.";
+			_state = 0;
+			free(buffer);
+			return;
+		}
+		memcpy(data + bytesRead, buffer, done);
+		bytesRead += done;
+	}
+	free(buffer);
+}
+
+// WOrk out the number of float values in the song data
+int AudioManager::CalcTrackSize(mpg123_handle *phm, int bits, int channels)
+{
+	size_t buffer_size;
+	unsigned char *buffer;
+	size_t done;
+	int trackSize = 0;
+	int fileSize = 0;
+
+	if (mpg123_length(phm) > 0)
+	{
+		return mpg123_length(phm);
+	}
+
+	buffer_size = mpg123_outblock(phm);
+	buffer = (unsigned char*)malloc(buffer_size * sizeof(unsigned char));
+
+	mpg123_seek(phm, 0, SEEK_SET);
+	for (fileSize = 0; mpg123_read(phm, buffer, buffer_size, &done) == MPG123_OK; )
+	{
+		fileSize += done;
+	}
+
+	free(buffer);
+	trackSize = fileSize / (bits*channels);
+	return trackSize;
+}
+
 // Check if the MP3 file is constant bitrate
 bool AudioManager::CheckCBR()
 {
@@ -699,7 +1323,7 @@ bool AudioManager::CheckCBR()
 					}
 				}
 			}
-			else if (start =='I')
+			else if (start == 'I')
 			{
 				mp3file.Read(&start, 1);
 				if (start == 'D')
@@ -843,239 +1467,6 @@ bool AudioManager::CheckCBR()
 	return isCBR;
 }
 
-// Set the frame interval we will be using
-void AudioManager::SetFrameInterval(int intervalMS)
-{
-	// If this is different from what it was previously
-	if (_intervalMS != intervalMS)
-	{
-		// save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
-		_intervalMS = intervalMS;
-		PrepareFrameData(true);
-	}
-}
-
-// Set the set and block that vamp analysis will be using
-// This controls how much extra space at the end of the file we need so VAMP functions dont try to read past the end of the allocated memory
-void AudioManager::SetStepBlock(int step, int block)
-{
-	int extra = std::max(step, block) + 1;
-
-	// we only need to reopen if the extra bytes are greater
-	if (extra > _extra)
-	{
-		_extra = extra;
-		_state = -1;
-		OpenMediaFile();
-	}
-}
-
-// Clean up our data buffers
-AudioManager::~AudioManager()
-{
-	if (_data[1] != _data[0] && _data[1] != NULL)
-	{
-		free(_data[1]);
-		_data[1] = NULL;
-	}
-	if (_data[0] != NULL)
-	{
-		free(_data[0]);
-		_data[0] = NULL;
-	}
-
-	// I am not deleting _job as I think JobPool takes care of this
-}
-
-// WOrk out the number of float values in the song data
-int AudioManager::CalcTrackSize(mpg123_handle *phm, int bits, int channels)
-{
-    size_t buffer_size;
-    unsigned char *buffer;
-    size_t done;
-    int trackSize = 0;
-    int fileSize = 0;
-
-    if(mpg123_length(phm) > 0)
-    {
-        return mpg123_length(phm);
-    }
-
-    buffer_size = mpg123_outblock(phm);
-    buffer = (unsigned char*) malloc(buffer_size * sizeof(unsigned char));
-
-    mpg123_seek(phm,0,SEEK_SET);
-    for (fileSize = 0 ; mpg123_read(phm, buffer, buffer_size, &done) == MPG123_OK ; )
-    {
-        fileSize += done;
-    }
-
-    free(buffer);
-    trackSize = fileSize/(bits*channels);
-    return trackSize;
-}
-
-// Split the MP# data into left and right and normalise the values
-void AudioManager::SplitTrackDataAndNormalize(signed short* trackData, int trackSize, float* leftData, float* rightData)
-{
-    signed short lSample, rSample;
-
-    for(int i=0;i<trackSize;i++)
-    {
-        lSample = trackData[i*2];
-        leftData[i] = (float)lSample/(float)32768;
-        rSample = trackData[(i*2)+1];
-        rightData[i] = (float)rSample/(float)32768;
-    }
-}
-
-// NOrmalise mono track data
-void AudioManager::NormalizeMonoTrackData(signed short* trackData, int trackSize, float* leftData)
-{
-    signed short lSample;
-    for(int i=0;i<trackSize;i++)
-    {
-        lSample = trackData[i];
-        leftData[i] = (float)lSample/(float)32768;
-    }
-}
-
-// Load the track data
-void AudioManager::LoadTrackData(mpg123_handle *phm, char* data, int maxSize)
-{
-    size_t buffer_size;
-    unsigned char *buffer;
-    size_t done;
-    int bytesRead=0;
-    buffer_size = mpg123_outblock(phm);
-    buffer = (unsigned char*) malloc(buffer_size * sizeof(unsigned char));
-    mpg123_seek(phm, 0, SEEK_SET);
-    for (bytesRead = 0 ; mpg123_read(phm, buffer, buffer_size, &done) == MPG123_OK ; )
-    {
-        if ((bytesRead + done) >= maxSize)
-		{
-			_resultMessage = "Error reading data from mp3, too much data read.";
-			_state = 0;
-            free(buffer);
-            return;
-        }
-        memcpy(data + bytesRead, buffer, done);
-        bytesRead += done;
-    }
-    free(buffer);
-}
-
-// Calculate the song lenth in MS
-int AudioManager::CalcLengthMS()
-{
-	float seconds = (float)_trackSize * ((float)1 / (float)_rate);
-	return (int)(seconds * (float)1000);
-}
-
-// Open and read the media file into memory
-int AudioManager::OpenMediaFile()
-{
-    int err;
-    size_t buffer_size;
-	mpg123_handle *phm;
-
-    err = mpg123_init();
-    if(err != MPG123_OK || (phm = mpg123_new(NULL, &err)) == NULL)
-    {
-		std::ostringstream stringStream;
-		stringStream << "Basic setup goes wrong: " << mpg123_plain_strerror(err);
-		_resultMessage = stringStream.str();
-		_state = 0;
-		if (phm != NULL)
-		{
-			mpg123_delete(phm);
-			mpg123_exit();
-		}
-		return -1;
-    }
-
-    /* open the file and get the decoding format */
-    if( mpg123_open(phm, _audio_file.c_str()) != MPG123_OK ||
-       mpg123_getformat(phm, &_rate, &_channels, &_encoding) != MPG123_OK )
-    {
-		std::ostringstream stringStream;
-		stringStream << "Trouble with mpg123: " << mpg123_strerror(phm);
-		_resultMessage = stringStream.str();
-		_state = 0;
-		if (phm != NULL)
-		{
-			mpg123_close(phm);
-			mpg123_delete(phm);
-			mpg123_exit();
-		}
-		return -1;
-    }
-
-    if(_encoding != MPG123_ENC_SIGNED_16 )
-    {
-        _resultMessage = "Encoding unsupported.  Must be signed 16 bit.";
-		_state = 0;
-    }
-
-    /* set the output format and open the output device */
-    _bits = mpg123_encsize(_encoding);
-
-    /* Get Track Size */
-    _trackSize = CalcTrackSize(phm, _bits, _channels);
-	_lengthMS = CalcLengthMS();
-    buffer_size = mpg123_outblock(phm);
-    int size = (_trackSize+buffer_size)*_bits*_channels;
-
-	// Check if we have read this before ... if so dump the old data
-	if (_data[1] != NULL && _data[1] != _data[0])
-	{
-		free(_data[1]);
-		_data[1] = NULL;
-	}
-	if (_data[0] != NULL)
-	{
-		free(_data[0]);
-		_data[0] = NULL;
-	}
-
-	char * trackData = (char*)malloc(size);
-    LoadTrackData(phm, trackData, size);
-
-	// Split data into left and right and normalize -1 to 1
-	_data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
-	for (int i = 0; i < _trackSize + _extra; i++)
-	{
-		(*(_data[0] + i)) = 0.0;
-	}
-	if( _channels == 2 )
-    {
-        _data[1] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
-		for (int i = 0; i < _trackSize + _extra; i++)
-		{
-			(*(_data[1] + i)) = 0.0;
-		}
-        SplitTrackDataAndNormalize((signed short*)trackData, _trackSize, _data[0], _data[1]);
-    }
-    else if( _channels == 1 )
-    {
-        NormalizeMonoTrackData((signed short*)trackData,_trackSize,_data[0]);
-        _data[1] = _data[0];
-    }
-    else
-    {
-        _resultMessage = "More than 2 audio channels is not supported yet.";
-		_state = 0;
-    }
-	free(trackData);
-
-    mpg123_close(phm);
-    mpg123_delete(phm);
-    mpg123_exit();
-	phm = NULL;
-
-	return _trackSize;
-}
-
 // Extract mp3 tags from the file
 void AudioManager::ExtractMP3Tags(mpg123_handle *phm)
 {
@@ -1106,6 +1497,7 @@ void AudioManager::ExtractMP3Tags(mpg123_handle *phm)
 		}
 	}
 }
+#endif
 
 // Access a single piece of track data
 float AudioManager::GetLeftData(int offset)
