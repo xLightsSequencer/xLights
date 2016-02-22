@@ -245,11 +245,12 @@
 					<Add library="../lib/windows/ImageHlp.Lib" />
 					<Add library="../lib/windows/libmpg123-0.lib" />
 					<Add library="../lib/windows/glut32.lib" />
-					<Add directory="lib/windows" />
-					<Add directory="../lib/windows" />
 					<Add library="ffmpeg-dev/lib/avutil.lib" />
 					<Add library="ffmpeg-dev/lib/avformat.lib" />
 					<Add library="ffmpeg-dev/lib/avcodec.lib" />
+					<Add library="ffmpeg-dev/lib/swresample.lib" />
+					<Add directory="lib/windows" />
+					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Debug">

@@ -1139,7 +1139,7 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event)
 
 void SeqSettingsDialog::MediaChooser()
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Audio file", wxEmptyString, wxEmptyString, "MP3 files (*.mp3)|*.mp3", wxFD_OPEN, wxDefaultPosition);
+	wxFileDialog* OpenDialog = new wxFileDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "Audio files|*.mp3;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid", wxFD_OPEN, wxDefaultPosition);
     wxString fDir;
     OpenDialog->SetDirectory(media_directory);
     if (OpenDialog->ShowModal() == wxID_OK)

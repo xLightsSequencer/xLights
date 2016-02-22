@@ -735,9 +735,9 @@ int AudioManager::OpenMediaFile()
 {
 	int err = 0;
 
-	// TODO
-	// Initialize FFmpeg
+	// Initialize FFmpeg codecs
 	av_register_all();
+	//avformat_network_init();
 
 	AVFormatContext* formatContext = NULL;
 	int res = avformat_open_input(&formatContext, _audio_file.c_str(), NULL, NULL);
@@ -778,7 +778,44 @@ int AudioManager::OpenMediaFile()
 	_channels = codecContext->channels;
 	_rate = codecContext->sample_rate;
 	_bits = av_get_bytes_per_sample(codecContext->sample_fmt);
-	int bitrate = codecContext->bit_rate;
+	int cbitrate = codecContext->bit_rate;
+	int fbitrate = formatContext->bit_rate;
+
+	// This is a HACK ... this is not documented
+	typedef struct {
+		AVClass *pclass;
+		int64_t filesize;
+		int64_t header_filesize;
+		int xing_toc;
+		int start_pad;
+		int end_pad;
+		int usetoc;
+		int is_cbr;
+	} MP3DecContext;
+
+	MP3DecContext* pmp3 = (MP3DecContext* )formatContext->priv_data;
+
+	if (pmp3 != NULL)
+	{
+		if (pmp3->is_cbr)
+		{
+			_isCBR = true;
+		}
+		else
+		{
+			_isCBR = false;
+		}
+	}
+
+	//if (abs(fbitrate - cbitrate) < 50)
+	//{
+	//	// small difference is ok
+	//	_isCBR = true;
+	//}
+	//else
+	//{
+	//	_isCBR = false;
+	//}
 
 	/* Get Track Size */
 	GetTrackMetrics(formatContext, codecContext, audioStream);
@@ -824,6 +861,17 @@ int AudioManager::OpenMediaFile()
 
 void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
 {
+	// setup our conversion format ... we need to conver the input to a standard format before we can process anything
+	uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
+	int out_nb_samples = _trackSize;
+	AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
+	int out_sample_rate = 44100;
+	int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
+	// this is not used
+	//int out_buffer_size = av_samples_get_buffer_size(NULL, out_channels, out_nb_samples, out_sample_fmt, 1);
+
+	uint8_t* out_buffer = (uint8_t *)av_malloc(192000 * 2); // 1 second of audio
+
 	AVFrame* frame = av_frame_alloc();
 	int read = 0;
 	if (!frame)
@@ -835,6 +883,12 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 
 	AVPacket readingPacket;
 	av_init_packet(&readingPacket);
+
+	int64_t in_channel_layout = av_get_default_channel_layout(codecContext->channels);
+	struct SwrContext *au_convert_ctx = swr_alloc();
+	au_convert_ctx = swr_alloc_set_opts(au_convert_ctx, out_channel_layout, out_sample_fmt, out_sample_rate,
+		in_channel_layout,codecContext->sample_fmt, codecContext->sample_rate, 0, NULL);
+	swr_init(au_convert_ctx);
 
 	// start at the beginning
 	av_seek_frame(formatContext, -1, 0, AVSEEK_FLAG_ANY);
@@ -859,52 +913,28 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 				{
 					decodingPacket.size -= result;
 
+					try
+					{
+						swr_convert(au_convert_ctx, &out_buffer, 192000, (const uint8_t **)frame->data, frame->nb_samples);
+					}
+					catch (...)
+					{
+						swr_free(&au_convert_ctx);
+						av_free(out_buffer);
+						av_free(frame);
+						return;
+					}
+
 					for (int i = 0; i < frame->nb_samples; i++)
 					{
 						int16_t s;
-						float j;
-						//int32_t j;
-						//int64_t l;
-						if (_bits == 2)
+						s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
+						_data[0][read + i] = ((float)s) / (float)0x8000;
+						if (_channels > 1)
 						{
-							s = *(int16_t*)(frame->data[0] + i * sizeof(int16_t));
-							_data[0][read + i] = ((float)s) / (float)0x8000;
-							if (_channels > 1)
-							{
-								s = *(int16_t*)(frame->data[1] + i * sizeof(int16_t));
-								_data[1][read + i] = ((float)s) / (float)0x8000;
-							}
+							s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels + sizeof(int16_t));
+							_data[1][read + i] = ((float)s) / (float)0x8000;
 						}
-						else if (_bits == 4)
-						{
-							j = *(float*)(frame->data[0] + i * sizeof(float));
-							_data[0][read + i] = j;
-							if (_channels > 1)
-							{
-								j = *(float*)(frame->data[1] + i * sizeof(float));
-								_data[1][read + i] = j;
-							}
-						}
-						//else if (_bits == 4)
-						//{
-						//	j = *(int32_t*)(frame->data[0] + i * sizeof(int32_t));
-						//	_data[0][read + i] = ((float)j) / (float)0x80000000;
-						//	if (_channels > 1)
-						//	{
-						//		j = *(int32_t*)(frame->data[1] + i * sizeof(int32_t));
-						//		_data[1][read + i] = ((float)j) / (float)0x80000000;
-						//	}
-						//}
-						//else if (_bits == 8)
-						//{
-						//	l = *(int64_t*)(frame->data[0] + i * sizeof(int64_t));
-						//	_data[0][read + i] = ((float)l) / (float)0x8000000000000000;
-						//	if (_channels > 1)
-						//	{
-						//		l = *(int64_t*)(frame->data[1] + i * sizeof(int64_t));
-						//		_data[1][read + i] = ((float)l) / (float)0x8000000000000000;
-						//	}
-						//}
 					}
 					read += frame->nb_samples;
 				}
@@ -931,52 +961,28 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 			int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &readingPacket);
 			if (result >= 0 && gotFrame)
 			{
+				try
+				{
+				swr_convert(au_convert_ctx, &out_buffer, 192000, (const uint8_t **)frame->data, frame->nb_samples);
+			}
+			catch (...)
+			{
+				swr_free(&au_convert_ctx);
+				av_free(out_buffer);
+				av_free(frame);
+				return;
+			}
+
 				for (int i = 0; i < frame->nb_samples; i++)
 				{
 					int16_t s;
-					float j;
-					//int32_t j;
-					//int64_t l;
-					if (_bits == 2)
+					s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
+					_data[0][read + i] = ((float)s) / (float)0x8000;
+					if (_channels > 1)
 					{
-						s = *(int16_t*)(frame->data[0] + i * sizeof(int16_t));
-						_data[0][read + i] = ((float)s) / (float)0x8000;
-						if (_channels > 1)
-						{
-							s = *(int16_t*)(frame->data[1] + i * sizeof(int16_t));
-							_data[1][read + i] = ((float)s) / (float)0x8000;
-						}
+						s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels + sizeof(int16_t));
+						_data[1][read + i] = ((float)s) / (float)0x8000;
 					}
-					else if (_bits == 4)
-					{
-						j = *(float*)(frame->data[0] + i * sizeof(float));
-						_data[0][read + i] = j;
-						if (_channels > 1)
-						{
-							j = *(float*)(frame->data[1] + i * sizeof(float));
-							_data[1][read + i] = j;
-						}
-					}
-					//else if (_bits == 4)
-					//{
-					//	j = *(int32_t*)(frame->data[0] + i * sizeof(int32_t));
-					//	_data[0][read + i] = ((float)j) / (float)0x80000000;
-					//	if (_channels > 1)
-					//	{
-					//		j = *(int32_t*)(frame->data[1] + i * sizeof(int32_t));
-					//		_data[1][read + i] = ((float)j) / (float)0x80000000;
-					//	}
-					//}
-					//else if (_bits == 8)
-					//{
-					//	l = *(int64_t*)(frame->data[0] + i * sizeof(int64_t));
-					//	_data[0][read + i] = ((float)l) / (float)0x8000000000000000;
-					//	if (_channels > 1)
-					//	{
-					//		l = *(int64_t*)(frame->data[1] + i * sizeof(int64_t));
-					//		_data[1][read + i] = ((float)l) / (float)0x8000000000000000;
-					//	}
-					//}
 				}
 				read += frame->nb_samples;
 			}
@@ -984,14 +990,15 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 	}
 
 	// Clean up!
+	swr_free(&au_convert_ctx);
+	av_free(out_buffer);
 	av_free(frame);
 }
 
 void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
 {
 	_trackSize = 0;
-	int duration = 0;
-	int sampleduration = -1;
+
 	AVFrame* frame = av_frame_alloc();
 	if (!frame)
 	{
@@ -1021,24 +1028,8 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 
 				if (result >= 0 && gotFrame)
 				{
-					if (_isCBR)
-					{
-						if (sampleduration == -1)
-						{
-							sampleduration = frame->pkt_duration / frame->nb_samples;
-						}
-						else
-						{
-							if (sampleduration != frame->pkt_duration / frame->nb_samples)
-							{
-								_isCBR = false;
-							}
-						}
-					}
-
 					decodingPacket.size -= result;
 					_trackSize += frame->nb_samples;
-					duration += frame->pkt_duration;
 				}
 				else
 				{
@@ -1063,23 +1054,7 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 			int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &readingPacket);
 			if (result >= 0 && gotFrame)
 			{
-				if (_isCBR)
-				{
-					if (sampleduration == -1)
-					{
-						sampleduration = frame->pkt_duration / frame->nb_samples;
-					}
-					else
-					{
-						if (sampleduration != frame->pkt_duration / frame->nb_samples)
-						{
-							_isCBR = false;
-						}
-					}
-				}
-
 				_trackSize += frame->nb_samples;
-				duration += frame->pkt_duration;
 			}
 		}
 	}
@@ -1087,7 +1062,7 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 	// Clean up!
 	av_free(frame);
 
-	_lengthMS = duration / (audioStream->time_base.den / 1000);
+	_lengthMS = (int)(((int64_t)_trackSize * 1000) / ((int64_t)(codecContext->time_base.den)));
 }
 
 void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)

@@ -10,8 +10,8 @@
 #include <list>
 #include <shared_mutex>
 
-#define USE_MPG123
-//#define USE_FFMPEG
+//#define USE_MPG123
+#define USE_FFMPEG
 
 #ifdef USE_MPG123
 #include "sequencer/mpg123.h"
@@ -21,6 +21,7 @@ extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libswresample/swresample.h>
 }
 #endif
 #include "vamp-hostsdk/PluginLoader.h"
