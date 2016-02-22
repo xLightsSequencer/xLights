@@ -1032,7 +1032,6 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
         Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         int row = mSelectedRow+1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
-        Element* element = el->GetParentElement();
         while( row < mSequenceElements->GetVisibleRowInformationSize() )
         {
             EffectLayer* new_el = mSequenceElements->GetVisibleEffectLayer(row);
