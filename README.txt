@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh (gil)   Allow single effect to be moved left and right using arrow keys if timing grid is active.
     -- enh (gil)   Allow single effect to be moved up and down on grid.  No longer restricted to a single model.
     -- enh (keithsw) Add Transition Effect. This is meant to be used as a mask to reveal and hide other effects
 	-- enh (keithsw) Add description against rows on the setup tab Issue #422

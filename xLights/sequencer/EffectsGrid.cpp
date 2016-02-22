@@ -1032,7 +1032,6 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
         Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         int row = mSelectedRow+1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
-        Element* element = el->GetParentElement();
         while( row < mSequenceElements->GetVisibleRowInformationSize() )
         {
             EffectLayer* new_el = mSequenceElements->GetVisibleEffectLayer(row);
@@ -1077,6 +1076,51 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
             Refresh(false);
         }
     }
+    else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow >= 0 )
+    {
+        int effect_length_ms = mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS();
+        Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+        EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+        int col = -1;
+        for( int index = 0; index < tel->GetEffectCount(); index++ )
+        {
+            Effect* tim_ef = tel->GetEffect(index);
+            if( mSelectedEffect->GetStartTimeMS() >= tim_ef->GetStartTimeMS() && mSelectedEffect->GetStartTimeMS() < tim_ef->GetEndTimeMS() )
+            {
+                col = index+1;
+                break;
+            }
+        }
+        if( col >= 0 )
+        {
+            EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
+            Effect* timing_effect = tel->GetEffect(col);
+            while( timing_effect != nullptr && col < tel->GetEffectCount() )
+            {
+                int new_end_time_ms = timing_effect->GetStartTimeMS() + effect_length_ms;
+                int start_time_for_check = timing_effect->GetStartTimeMS();
+                if( start_time_for_check < mSelectedEffect->GetEndTimeMS() )
+                {
+                    start_time_for_check = mSelectedEffect->GetEndTimeMS();
+                }
+                if( el->GetRangeIsClearMS( start_time_for_check, new_end_time_ms ) )
+                {
+                    mSequenceElements->get_undo_mgr().CreateUndoStep();
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetName(), el->GetIndex(), mSelectedEffect->GetID(),
+                                                                              mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS() );
+                    mSelectedEffect->SetStartTimeMS(timing_effect->GetStartTimeMS());
+                    mSelectedEffect->SetEndTimeMS(new_end_time_ms);
+                    Refresh(false);
+                    return;
+                }
+                col++;
+                if( col < tel->GetEffectCount() )
+                {
+                    timing_effect = tel->GetEffect(col);
+                }
+            }
+        }
+    }
 }
 
 void EffectsGrid::MoveSelectedEffectLeft(bool shift)
@@ -1101,6 +1145,51 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
             }
             UpdateSelectedEffects();
             Refresh(false);
+        }
+    }
+    else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow >= 0 )
+    {
+        int effect_length_ms = mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS();
+        Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+        EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+        int col = -1;
+        for( int index = 0; index < tel->GetEffectCount(); index++ )
+        {
+            Effect* tim_ef = tel->GetEffect(index);
+            if( mSelectedEffect->GetStartTimeMS() >= tim_ef->GetStartTimeMS() && mSelectedEffect->GetStartTimeMS() < tim_ef->GetEndTimeMS() )
+            {
+                col = index-1;
+                break;
+            }
+        }
+        if( col >= 0 )
+        {
+            EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
+            Effect* timing_effect = tel->GetEffect(col);
+            while( timing_effect != nullptr && col >= 0 )
+            {
+                int new_end_time_ms = timing_effect->GetStartTimeMS() + effect_length_ms;
+                int end_time_for_check = new_end_time_ms;
+                if( end_time_for_check > mSelectedEffect->GetStartTimeMS() )
+                {
+                    end_time_for_check = mSelectedEffect->GetStartTimeMS();
+                }
+                if( el->GetRangeIsClearMS( timing_effect->GetStartTimeMS(), end_time_for_check))
+                {
+                    mSequenceElements->get_undo_mgr().CreateUndoStep();
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetName(), el->GetIndex(), mSelectedEffect->GetID(),
+                                                                              mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS() );
+                    mSelectedEffect->SetStartTimeMS(timing_effect->GetStartTimeMS());
+                    mSelectedEffect->SetEndTimeMS(new_end_time_ms);
+                    Refresh(false);
+                    return;
+                }
+                col--;
+                if( col >= 0 )
+                {
+                    timing_effect = tel->GetEffect(col);
+                }
+            }
         }
     }
 }
