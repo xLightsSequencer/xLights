@@ -20,6 +20,32 @@ using namespace Vamp;
 
 // Audio Manager Functions
 
+#ifdef USE_SDLPLAYER
+void AudioManager::Seek(int pos)
+{
+}
+void AudioManager::Pause()
+{
+}
+void AudioManager::Play()
+{
+}
+void AudioManager::Stop()
+{
+}
+void AudioManager::SetPlaybackRate(int rate)
+{
+}
+MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
+{
+	return MEDIAPLAYINGSTATE::PAUSED;
+}
+int AudioManager::Tell()
+{
+	return 0;
+}
+#endif
+
 AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int step = 1024, int block = 1024)
 {
 	// save parameters and initialise defaults
@@ -32,6 +58,9 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	_data[1] = NULL; // right channel data
 	_intervalMS = -1; // no length
 	_frameDataPrepared = false; // frame data is used by effects to react to the sone
+#ifdef USE_SDLPLAYER
+	_pcmdata = NULL;
+#endif
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
 	_extra = std::max(step, block) + 1;
@@ -683,6 +712,13 @@ void AudioManager::SetStepBlock(int step, int block)
 // Clean up our data buffers
 AudioManager::~AudioManager()
 {
+#ifdef USE_SDLPLAYER
+	if (_pcmdata != NULL)
+	{
+		free(_pcmdata);
+		_pcmdata = NULL;
+	}
+#endif
 	if (_data[1] != _data[0] && _data[1] != NULL)
 	{
 		free(_data[1]);
@@ -881,13 +917,17 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 		return;
 	}
 
+#ifdef USE_SDLPLAYER
+	_pcmdata = malloc(_trackSize * 2 * 2);
+#endif
+
 	AVPacket readingPacket;
 	av_init_packet(&readingPacket);
 
 	int64_t in_channel_layout = av_get_default_channel_layout(codecContext->channels);
 	struct SwrContext *au_convert_ctx = swr_alloc();
 	au_convert_ctx = swr_alloc_set_opts(au_convert_ctx, out_channel_layout, out_sample_fmt, out_sample_rate,
-		in_channel_layout,codecContext->sample_fmt, codecContext->sample_rate, 0, NULL);
+		in_channel_layout, codecContext->sample_fmt, codecContext->sample_rate, 0, NULL);
 	swr_init(au_convert_ctx);
 
 	// start at the beginning
@@ -924,6 +964,11 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 						av_free(frame);
 						return;
 					}
+
+#ifdef USE_SDLPLAYER
+					// copy the PCM data into the PCM buffer for playing
+					memcpy(_pcmdata + (read * 2 * 2), out_buffer, frame->nb_samples * 2 * 2);
+#endif
 
 					for (int i = 0; i < frame->nb_samples; i++)
 					{
@@ -963,15 +1008,20 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 			{
 				try
 				{
-				swr_convert(au_convert_ctx, &out_buffer, 192000, (const uint8_t **)frame->data, frame->nb_samples);
-			}
-			catch (...)
-			{
-				swr_free(&au_convert_ctx);
-				av_free(out_buffer);
-				av_free(frame);
-				return;
-			}
+					swr_convert(au_convert_ctx, &out_buffer, 192000, (const uint8_t **)frame->data, frame->nb_samples);
+				}
+				catch (...)
+				{
+					swr_free(&au_convert_ctx);
+					av_free(out_buffer);
+					av_free(frame);
+					return;
+				}
+
+#ifdef USE_SDLPLAYER
+				// copy the PCM data into the PCM buffer for playing
+				memcpy(_pcmdata + (read * 2 * 2), out_buffer, frame->nb_samples * 2 * 2);
+#endif
 
 				for (int i = 0; i < frame->nb_samples; i++)
 				{

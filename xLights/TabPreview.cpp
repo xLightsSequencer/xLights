@@ -4,7 +4,9 @@
 #include "DrawGLUtils.h"
 #include "SaveChangesDialog.h"
 #include "models/Model.h"
-
+#ifndef USE_WXMEDIAPLAYER
+#include "xLightsXmlFile.h"
+#endif
 #define PREVIEWROTATIONFACTOR 3
 
 void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
@@ -688,7 +690,14 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
     switch (SeqPlayerState)
     {
     case PAUSE_SEQ:
-        PlayerDlg->Play();
+#ifdef USE_WXMEDIAPLAYER
+		PlayerDlg->Play();
+#else
+		if (CurrentSeqXmlFile->GetMedia() != NULL)
+		{
+			CurrentSeqXmlFile->GetMedia()->Play();
+		}
+#endif
         break;
     case PAUSE_SEQ_ANIM:
         ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * SeqData.FrameTime());
@@ -716,7 +725,14 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         }
         else
         {
-            PlayerDlg->Pause();
+#ifdef USE_WXMEDIAPLAYER
+			PlayerDlg->Pause();
+#else
+			if (CurrentSeqXmlFile->GetMedia() != NULL)
+			{
+				CurrentSeqXmlFile->GetMedia()->Pause();
+			}
+#endif
 
         }
         heartbeat("playback preview", true); //tell fido to start watching -DJ
@@ -744,8 +760,16 @@ void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
 void xLightsFrame::StopPreviewPlayback()
 {
     bbPlayPause->SetBitmap(playIcon);
-    PlayerDlg->Pause();
-    PlayerDlg->Seek(0);
+#ifdef USE_WXMEDIAPLAYER
+	PlayerDlg->Pause();
+	PlayerDlg->Seek(0);
+#else
+	if (CurrentSeqXmlFile->GetMedia() != NULL)
+	{
+		CurrentSeqXmlFile->GetMedia()->Pause();
+		CurrentSeqXmlFile->GetMedia()->Seek(0);
+	}
+#endif
     previewPlaying = false;
     SliderPreviewTime->SetValue(0);
     ShowPreviewTime(0);
@@ -781,7 +805,14 @@ void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
     }
     else
     {
-        PlayerDlg->Seek(msec);
+#ifdef USE_WXMEDIAPLAYER
+		PlayerDlg->Seek(msec);
+#else
+		if (CurrentSeqXmlFile->GetMedia() != NULL)
+		{
+			CurrentSeqXmlFile->GetMedia()->Seek(msec);
+		}
+#endif
         ShowPreviewTime(msec);
         //PreviewOutput(newperiod);
     }

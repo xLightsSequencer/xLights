@@ -13,6 +13,9 @@
 //#define USE_MPG123
 #define USE_FFMPEG
 
+#define USE_WXMEDIAPLAYER
+//#define USE_SDLPLAYER
+
 #ifdef USE_MPG123
 #include "sequencer/mpg123.h"
 #endif
@@ -23,6 +26,12 @@ extern "C"
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
+#endif
+#ifdef USE_SDLPLAYER
+extern "C"
+{
+#include "sdl/include/SDL.h"
+};
 #endif
 #include "vamp-hostsdk/PluginLoader.h"
 #include "JobPool.h"
@@ -78,6 +87,12 @@ typedef enum FRAMEDATATYPE {
 	FRAMEDATA_ISTIMINGMARK
 } FRAMEDATATYPE;
 
+typedef enum MEDIAPLAYINGSTATE {
+	PLAYING,
+	PAUSED,
+	STOPPED
+} MEDIAPLAYINGSTATE;
+
 class AudioManager
 {
 	JobPool _jobPool;
@@ -94,6 +109,9 @@ class AudioManager
 	std::string _resultMessage;
 	int _state;
 	float *_data[2]; // audio data
+#ifdef USE_SDLPLAYER
+	char* _pcmdata;
+#endif
 	std::string _title;
 	std::string _artist;
 	std::string _album;
@@ -135,7 +153,15 @@ class AudioManager
 #endif
 
 public:
-
+#ifndef USE_WXMEDIAPLAYER
+	void Seek(int pos);
+	void Pause();
+	void Play();
+	void Stop();
+	void SetPlaybackRate(int rate);
+	MEDIAPLAYINGSTATE GetPlayingState();
+	int Tell();
+#endif
 	xLightsVamp* GetVamp() { return &_vamp; };
 	AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int step, int block);
 	~AudioManager();

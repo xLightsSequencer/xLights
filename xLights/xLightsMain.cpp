@@ -2003,8 +2003,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MixTypeChanged=true;
     HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
     basic.setFrame(this);
+	// I create this but we only use it for the scheduler
     PlayerDlg = new PlayerFrame(this, ID_PLAYER_DIALOG);
-
     if (RunFlag && !ShowEvents.IsEmpty())
     {
         // open ports
@@ -2489,7 +2489,14 @@ void xLightsFrame::StopNow(void)
         StopPreviewPlayback();
         return;
     }
+#ifdef USE_WXMEDIAPLAYER
     PlayerDlg->Stop();
+#else
+	if (CurrentSeqXmlFile->GetMedia() != NULL)
+	{
+		CurrentSeqXmlFile->GetMedia()->Stop();
+	}
+#endif
     if (play_mode == play_sched)
     {
         CheckBoxRunSchedule->SetValue(false);
@@ -3116,7 +3123,14 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
     {
         playSpeed = 0.25;
     }
-    PlayerDlg->SetPlaybackRate(playSpeed);
+#ifdef USE_WXMEDIAPLAYER
+	PlayerDlg->SetPlaybackRate(playSpeed);
+#else
+	if (CurrentSeqXmlFile->GetMedia() != NULL)
+	{
+		CurrentSeqXmlFile->GetMedia()->SetPlaybackRate(playSpeed);
+	}
+#endif
 }
 
 void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)
