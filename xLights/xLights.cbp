@@ -245,10 +245,11 @@
 					<Add library="../lib/windows/ImageHlp.Lib" />
 					<Add library="../lib/windows/libmpg123-0.lib" />
 					<Add library="../lib/windows/glut32.lib" />
-					<Add library="ffmpeg-dev/lib/avutil.lib" />
-					<Add library="ffmpeg-dev/lib/avformat.lib" />
-					<Add library="ffmpeg-dev/lib/avcodec.lib" />
-					<Add library="ffmpeg-dev/lib/swresample.lib" />
+					<Add library="../lib/windows/avutil.lib" />
+					<Add library="../lib/windows/avformat.lib" />
+					<Add library="../lib/windows/avcodec.lib" />
+					<Add library="../lib/windows/swresample.lib" />
+					<Add library="../lib/windows/SDL2.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>

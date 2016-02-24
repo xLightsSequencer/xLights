@@ -114,7 +114,7 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	_frameDataPrepared = false; // frame data is used by effects to react to the sone
 #ifdef USE_SDLPLAYER
 	_pcmdata = NULL;
-	if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER)) 
+	if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
 	{
 		_resultMessage = "Could not initialize SDL";
 		_state = 0;
@@ -129,7 +129,7 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	wanted_spec.samples = 1024;
 	wanted_spec.callback = fill_audio;
 
-	if (SDL_OpenAudio(&wanted_spec, NULL)<0) 
+	if (SDL_OpenAudio(&wanted_spec, NULL)<0)
 	{
 		_resultMessage = "can't open audio.";
 		_state = 0;
@@ -409,7 +409,7 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 {
     // Grab the lock so we can safely access the frame data
     std::shared_lock<std::shared_timed_mutex> lock(_mutex);
-    
+
 
 	// if the frame data has not been prepared
 	if (!_frameDataPrepared)
@@ -551,7 +551,7 @@ int AudioManager::decodebitrateindex(int bitrateindex, int version, int layertyp
 			{
 				return 160 + (bitrateindex - 9) * 32;
 			}
-			else 
+			else
 			{
 				return 320 + (bitrateindex - 13) * 64;
 			}
@@ -965,7 +965,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 		}
 
 		// You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
-		av_free_packet(&readingPacket);
+		av_packet_unref(&readingPacket);
 	}
 
 	// Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
@@ -1063,7 +1063,7 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 		}
 
 		// You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
-		av_free_packet(&readingPacket);
+		av_packet_unref(&readingPacket);
 	}
 
 	// Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
@@ -1563,22 +1563,22 @@ xLightsVamp::xLightsVamp()
 xLightsVamp::~xLightsVamp() {}
 
 // extract the features data from a Vamp plugins output
-void xLightsVamp::ProcessFeatures(Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels) 
+void xLightsVamp::ProcessFeatures(Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels)
 {
 	bool hadDuration = true;
 
-	for (int x = 0; x < feature.size(); x++) 
+	for (int x = 0; x < feature.size(); x++)
 	{
 		int start = feature[x].timestamp.msec() + feature[x].timestamp.sec * 1000;
 		starts.push_back(start);
 
-		if (!hadDuration) 
+		if (!hadDuration)
 		{
 			ends.push_back(start);
 		}
 		hadDuration = feature[x].hasDuration;
 
-		if (hadDuration) 
+		if (hadDuration)
 		{
 			int end = start + feature[x].duration.msec() + feature[x].duration.sec * 1000;
 			ends.push_back(end);
@@ -1586,7 +1586,7 @@ void xLightsVamp::ProcessFeatures(Vamp::Plugin::FeatureList &feature, std::vecto
 		labels.push_back(feature[x].label);
 	}
 
-	if (!hadDuration) 
+	if (!hadDuration)
 	{
 		ends.push_back(starts[starts.size() - 1]);
 	}
@@ -1627,12 +1627,12 @@ std::list<std::string> xLightsVamp::GetAvailablePlugins(AudioManager* paudio)
 	{
 		Plugin::OutputList outputs = (*it)->getOutputDescriptors();
 
-		for (Plugin::OutputList::iterator j = outputs.begin(); j != outputs.end(); ++j) 
+		for (Plugin::OutputList::iterator j = outputs.begin(); j != outputs.end(); ++j)
 		{
 			if (j->sampleType == Plugin::OutputDescriptor::FixedSampleRate ||
 				j->sampleType == Plugin::OutputDescriptor::OneSamplePerStep ||
 				!j->hasFixedBinCount ||
-				(j->hasFixedBinCount && j->binCount > 1)) 
+				(j->hasFixedBinCount && j->binCount > 1))
 			{
 				// We are filering out this from our return array
 				continue;
@@ -1658,7 +1658,7 @@ std::list<std::string> xLightsVamp::GetAvailablePlugins(AudioManager* paudio)
 		}
 	}
 
-	for (std::map<std::string, Vamp::Plugin *>::iterator it = _plugins.begin(); it != _plugins.end(); ++it) 
+	for (std::map<std::string, Vamp::Plugin *>::iterator it = _plugins.begin(); it != _plugins.end(); ++it)
 	{
 		ret.push_back(it->first);
 	}
@@ -1674,7 +1674,7 @@ std::list<std::string> xLightsVamp::GetAllAvailablePlugins(AudioManager* paudio)
 	// load the plugins if they have not already been loaded
 	LoadPlugins(paudio);
 
-	for (std::vector<Vamp::Plugin *>::iterator it = _loadedPlugins.begin(); it != _loadedPlugins.end(); ++it) 
+	for (std::vector<Vamp::Plugin *>::iterator it = _loadedPlugins.begin(); it != _loadedPlugins.end(); ++it)
 	{
 		Plugin::OutputList outputs = (*it)->getOutputDescriptors();
 
@@ -1700,7 +1700,7 @@ std::list<std::string> xLightsVamp::GetAllAvailablePlugins(AudioManager* paudio)
 		}
 	}
 
-	for (std::map<std::string, Vamp::Plugin *>::iterator it = _allplugins.begin(); it != _allplugins.end(); ++it) 
+	for (std::map<std::string, Vamp::Plugin *>::iterator it = _allplugins.begin(); it != _allplugins.end(); ++it)
 	{
 		ret.push_back(it->first);
 	}

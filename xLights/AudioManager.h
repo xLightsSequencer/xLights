@@ -26,7 +26,7 @@ extern "C"
 extern "C"
 {
 #include "sdl/include/SDL.h"
-};
+}
 #endif
 #include "vamp-hostsdk/PluginLoader.h"
 #include "JobPool.h"
