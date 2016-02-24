@@ -31,7 +31,6 @@
 		672BD4FF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4EF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.0.dylib */; };
 		672BD5001C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4F01C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib */; };
 		672BD5021C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4F21C207D2E008F8B36 /* libwx_osx_cocoau_media-3.0.dylib */; };
-		672BD5041C207DC6008F8B36 /* libmpg123.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B7971F1A5AE40B008D5921 /* libmpg123.a */; };
 		672BD5051C208335008F8B36 /* libwx_osx_cocoau_html-3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 672BD4F11C207D2E008F8B36 /* libwx_osx_cocoau_html-3.0.dylib */; };
 		672E62B01C4D2FCF006A4966 /* TendrilEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E62AC1C4D2FCF006A4966 /* TendrilEffect.cpp */; };
 		672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E62AE1C4D2FCF006A4966 /* TendrilPanel.cpp */; };
@@ -144,6 +143,18 @@
 		67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A1D17B51C0F008E95BB /* xlights_out.cpp */; };
 		67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2117B51C0F008E95BB /* xLightsApp.cpp */; };
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
+		67AA379E1C7E3703001D2377 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA379D1C7E3703001D2377 /* SDL2.framework */; };
+		67AA379F1C7E3703001D2377 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA379D1C7E3703001D2377 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		67AA37A71C7E394A001D2377 /* TransitionPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AA37A41C7E394A001D2377 /* TransitionPanel.cpp */; };
+		67AA37A81C7E394A001D2377 /* TransitionEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AA37A61C7E394A001D2377 /* TransitionEffect.cpp */; };
+		67AA37A91C7E3975001D2377 /* libavutil.55.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A01C7E372E001D2377 /* libavutil.55.dylib */; };
+		67AA37AA1C7E3975001D2377 /* libavformat.57.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A11C7E372E001D2377 /* libavformat.57.dylib */; };
+		67AA37AB1C7E3975001D2377 /* libavcodec.57.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */; };
+		67AA37AD1C7E40D3001D2377 /* libswresample.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */; };
+		67AA37AE1C7E4107001D2377 /* libavutil.55.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A01C7E372E001D2377 /* libavutil.55.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		67AA37AF1C7E4107001D2377 /* libavformat.57.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A11C7E372E001D2377 /* libavformat.57.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		67AA37B01C7E4107001D2377 /* libavcodec.57.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		67AA37B11C7E4107001D2377 /* libswresample.2.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		67AAF8F21B63767B00585431 /* PhonemeDictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */; };
 		67AAF8F81B63785900585431 /* user_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F41B63785900585431 /* user_dictionary */; };
 		67AAF8F91B63785900585431 /* extended_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F51B63785900585431 /* extended_dictionary */; };
@@ -261,7 +272,12 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				67AA37AE1C7E4107001D2377 /* libavutil.55.dylib in Embed Frameworks */,
+				67AA37AF1C7E4107001D2377 /* libavformat.57.dylib in Embed Frameworks */,
+				67AA37B01C7E4107001D2377 /* libavcodec.57.dylib in Embed Frameworks */,
+				67AA37B11C7E4107001D2377 /* libswresample.2.dylib in Embed Frameworks */,
 				674D3D1F1C207BBD000D632B /* Cocoa.framework in Embed Frameworks */,
+				67AA379F1C7E3703001D2377 /* SDL2.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -527,6 +543,15 @@
 		67A61A2217B51C0F008E95BB /* xLightsApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsApp.h; sourceTree = "<group>"; };
 		67A61A2417B51C0F008E95BB /* xLightsMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = xLightsMain.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67A61A2517B51C0F008E95BB /* xLightsMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = xLightsMain.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		67AA379D1C7E3703001D2377 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = lib/osx/SDL2.framework; sourceTree = "<group>"; };
+		67AA37A01C7E372E001D2377 /* libavutil.55.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavutil.55.dylib; path = lib/osx/libavutil.55.dylib; sourceTree = "<group>"; };
+		67AA37A11C7E372E001D2377 /* libavformat.57.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavformat.57.dylib; path = lib/osx/libavformat.57.dylib; sourceTree = "<group>"; };
+		67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavcodec.57.dylib; path = lib/osx/libavcodec.57.dylib; sourceTree = "<group>"; };
+		67AA37A31C7E394A001D2377 /* TransitionPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransitionPanel.h; path = effects/TransitionPanel.h; sourceTree = "<group>"; };
+		67AA37A41C7E394A001D2377 /* TransitionPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransitionPanel.cpp; path = effects/TransitionPanel.cpp; sourceTree = "<group>"; };
+		67AA37A51C7E394A001D2377 /* TransitionEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransitionEffect.h; path = effects/TransitionEffect.h; sourceTree = "<group>"; };
+		67AA37A61C7E394A001D2377 /* TransitionEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransitionEffect.cpp; path = effects/TransitionEffect.cpp; sourceTree = "<group>"; };
+		67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswresample.2.dylib; path = lib/osx/libswresample.2.dylib; sourceTree = "<group>"; };
 		67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PhonemeDictionary.cpp; sourceTree = "<group>"; };
 		67AAF8F11B63767B00585431 /* PhonemeDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhonemeDictionary.h; sourceTree = "<group>"; };
 		67AAF8F41B63785900585431 /* user_dictionary */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = user_dictionary; path = bin/user_dictionary; sourceTree = "<group>"; };
@@ -685,8 +710,6 @@
 		67B797171A5AE343008D5921 /* ColorPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ColorPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67B797181A5AE343008D5921 /* TimingPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = TimingPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TopEffectsPanel.cpp; sourceTree = "<group>"; };
-		67B7971D1A5AE3CA008D5921 /* libmpg123.la */ = {isa = PBXFileReference; lastKnownFileType = text; name = libmpg123.la; path = lib/osx/libmpg123.la; sourceTree = "<group>"; };
-		67B7971F1A5AE40B008D5921 /* libmpg123.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmpg123.a; path = lib/osx/libmpg123.a; sourceTree = "<group>"; };
 		67B845001A9C0E7500564051 /* DisplayElementsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DisplayElementsPanel.cpp; sourceTree = "<group>"; };
 		67B845011A9C0E7500564051 /* DisplayElementsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DisplayElementsPanel.h; sourceTree = "<group>"; };
 		67B845021A9C0E7500564051 /* ModelViewSelector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelViewSelector.cpp; sourceTree = "<group>"; };
@@ -744,13 +767,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67AA37AD1C7E40D3001D2377 /* libswresample.2.dylib in Frameworks */,
+				67AA37A91C7E3975001D2377 /* libavutil.55.dylib in Frameworks */,
+				67AA37AA1C7E3975001D2377 /* libavformat.57.dylib in Frameworks */,
+				67AA37AB1C7E3975001D2377 /* libavcodec.57.dylib in Frameworks */,
 				671C0BCD1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.dylib in Frameworks */,
 				672BD5051C208335008F8B36 /* libwx_osx_cocoau_html-3.0.dylib in Frameworks */,
-				672BD5041C207DC6008F8B36 /* libmpg123.a in Frameworks */,
 				672BD4F41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib in Frameworks */,
 				672BD4F51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.0.dylib in Frameworks */,
 				672BD4F61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.0.dylib in Frameworks */,
 				672BD4FD1C207D2E008F8B36 /* libwx_baseu_net-3.0.dylib in Frameworks */,
+				67AA379E1C7E3703001D2377 /* SDL2.framework in Frameworks */,
 				672BD4FE1C207D2E008F8B36 /* libwx_baseu-3.0.dylib in Frameworks */,
 				672BD4FF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.0.dylib in Frameworks */,
 				672BD5001C207D2E008F8B36 /* libwx_osx_cocoau_core-3.0.dylib in Frameworks */,
@@ -887,6 +914,10 @@
 		679BD3281C37552D000539FE /* Effects */ = {
 			isa = PBXGroup;
 			children = (
+				67AA37A31C7E394A001D2377 /* TransitionPanel.h */,
+				67AA37A41C7E394A001D2377 /* TransitionPanel.cpp */,
+				67AA37A51C7E394A001D2377 /* TransitionEffect.h */,
+				67AA37A61C7E394A001D2377 /* TransitionEffect.cpp */,
 				6761F5EA1C4EA032009780DA /* Assist */,
 				679BD33E1C375D9F000539FE /* BarsEffect.cpp */,
 				679BD33F1C375D9F000539FE /* BarsEffect.h */,
@@ -1079,6 +1110,10 @@
 		67E7086417B51AB400A22034 = {
 			isa = PBXGroup;
 			children = (
+				67AA37A01C7E372E001D2377 /* libavutil.55.dylib */,
+				67AA37A11C7E372E001D2377 /* libavformat.57.dylib */,
+				67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */,
+				67AA379D1C7E3703001D2377 /* SDL2.framework */,
 				674298971C20432600B11478 /* wx */,
 				67AAF8F31B63782F00585431 /* Resources */,
 				67DB87F51AD6CA1300595194 /* wxsmith */,
@@ -1102,6 +1137,7 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */,
 				671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.0.dylib */,
 				672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.0.dylib */,
 				672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.0.dylib */,
@@ -1126,8 +1162,6 @@
 				67B4C91F17B53D960006B951 /* CoreMedia.framework */,
 				67B4C92017B53D960006B951 /* CoreMediaIO.framework */,
 				67B4C92117B53D960006B951 /* CoreVideo.framework */,
-				67B7971F1A5AE40B008D5921 /* libmpg123.a */,
-				67B7971D1A5AE3CA008D5921 /* libmpg123.la */,
 				67E7087017B51AB400A22034 /* Cocoa.framework */,
 				67E7087217B51AB400A22034 /* Other Frameworks */,
 			);
@@ -1501,6 +1535,7 @@
 				671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */,
 				67A61A3017B51C0F008E95BB /* ModelListDialog.cpp in Sources */,
 				67B2CF8F1C39D98A003C17CA /* CurtainPanel.cpp in Sources */,
+				67AA37A71C7E394A001D2377 /* TransitionPanel.cpp in Sources */,
 				67A61A3117B51C0F008E95BB /* NetInfo.cpp in Sources */,
 				67A61A3217B51C0F008E95BB /* PaletteMgmtDialog.cpp in Sources */,
 				67B2CF7D1C39D98A003C17CA /* MorphPanel.cpp in Sources */,
@@ -1561,6 +1596,7 @@
 				67043A4C1A07D17F00C09B71 /* dlgPreviewSize.cpp in Sources */,
 				67B2CFDA1C3A186A003C17CA /* StrobeEffect.cpp in Sources */,
 				67B2CFE21C3A186A003C17CA /* RippleEffect.cpp in Sources */,
+				67AA37A81C7E394A001D2377 /* TransitionEffect.cpp in Sources */,
 				675AB4281B5ACEDA00853A28 /* Files.cpp in Sources */,
 				67E42C1F1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp in Sources */,
 				67B2CFED1C3A186A003C17CA /* GarlandsEffect.cpp in Sources */,
@@ -1722,6 +1758,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lib/osx",
+				);
 				GCC_INCREASE_PRECOMPILED_HEADER_SHARING = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1732,6 +1772,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					sequencer,
+					"xLights/ffmpeg-dev/include",
 					xLights/sequencer,
 				);
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
@@ -1771,6 +1812,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lib/osx",
+				);
 				GCC_INCREASE_PRECOMPILED_HEADER_SHARING = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = fast;
@@ -1783,6 +1828,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					sequencer,
+					"xLights/ffmpeg-dev/include",
 					xLights/sequencer,
 				);
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
