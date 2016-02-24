@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh (keithsw) Replace media handling with ffmpeg and SDL eliminating the VBR problem and adding new media support.
 2016.9  Feb 24, 2016
     -- enh (gil)   Allow single effect to be moved left and right using arrow keys if timing grid is active.
     -- enh (gil)   Allow single effect to be moved up and down on grid.  No longer restricted to a single model.
