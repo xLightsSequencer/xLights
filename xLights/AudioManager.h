@@ -1,11 +1,6 @@
 #ifndef AUDIOMANAGER_H
 #define AUDIOMANAGER_H
 
-// uncomment one of the following 2 to select which analysis engine to use
-//#define CONSTANT_Q
-#define KISS_FFT
-
-
 #include <string>
 #include <list>
 #include <shared_mutex>
@@ -13,8 +8,8 @@
 //#define USE_MPG123
 #define USE_FFMPEG
 
-#define USE_WXMEDIAPLAYER
-//#define USE_SDLPLAYER
+//#define USE_WXMEDIAPLAYER
+#define USE_SDLPLAYER
 
 #ifdef USE_MPG123
 #include "sequencer/mpg123.h"
@@ -110,14 +105,15 @@ class AudioManager
 	int _state;
 	float *_data[2]; // audio data
 #ifdef USE_SDLPLAYER
-	char* _pcmdata;
+	Uint8* _pcmdata;
+	Uint64 _pcmdatasize;
+	SDL_AudioSpec wanted_spec;
 #endif
 	std::string _title;
 	std::string _artist;
 	std::string _album;
 	int _intervalMS;
 	int _lengthMS;
-	bool _isCBR;
 	bool _frameDataPrepared;
 	xLightsXmlFile* _xml_file;
 	float _bigmax;
@@ -130,6 +126,7 @@ class AudioManager
 	int CalcTrackSize(mpg123_handle *phm, int bits, int channels);
 	void LoadTrackData(mpg123_handle *phm, char* data, int maxSize);
 	void ExtractMP3Tags(mpg123_handle *phm);
+	bool CheckCBR();
 #endif
 #ifdef USE_FFMPEG
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
@@ -140,17 +137,11 @@ class AudioManager
 	void SplitTrackDataAndNormalize(signed short* trackData, int trackSize, float* leftData, float* rightData);
 	void NormalizeMonoTrackData(signed short* trackData, int trackSize, float* leftData);
 	int OpenMediaFile();
-	bool CheckCBR();
 	void PrepareFrameData(bool separateThread);
 	int decodebitrateindex(int bitrateindex, int version, int layertype);
 	int decodesamplerateindex(int samplerateindex, int version);
 	int decodesideinfosize(int version, int mono);
-#ifdef CONSTANT_Q
-	std::list<float> ProcessFeatures(Vamp::Plugin::FeatureList &feature, float& max);
-#endif
-#ifdef KISS_FFT
 	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id);
-#endif
 
 public:
 #ifndef USE_WXMEDIAPLAYER
@@ -158,7 +149,8 @@ public:
 	void Pause();
 	void Play();
 	void Stop();
-	void SetPlaybackRate(int rate);
+	static void SetGlobalPlaybackRate(float rate);
+	void SetPlaybackRate(float rate);
 	MEDIAPLAYINGSTATE GetPlayingState();
 	int Tell();
 #endif
@@ -184,7 +176,6 @@ public:
 	void SetFrameInterval(int intervalMS);
 	int GetFrameInterval() { return _intervalMS; }
 	std::list<float>* GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing);
-	bool IsCBR() { return _isCBR; };
 	void DoPrepareFrameData();
 };
 

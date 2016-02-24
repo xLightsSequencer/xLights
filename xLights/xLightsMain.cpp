@@ -1785,6 +1785,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     replaySection = false;
     playType = 0;
     playModel = nullptr;
+	mLoopAudio = false;
 
     UnsavedRgbEffectsChanges = false;
     UnsavedPlaylistChanges = false;
@@ -2825,6 +2826,7 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 			CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetSequenceTimingAsInt());
 		}
 	}
+	SetAudioControls();
 }
 
 
@@ -2840,9 +2842,12 @@ void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
 void xLightsFrame::EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable)
 {
     wxAuiToolBarItem* button = toolbar->FindTool(id);
-    int state = enable?wxAUI_BUTTON_STATE_NORMAL:wxAUI_BUTTON_STATE_DISABLED;
-    button->SetState(state);
-    toolbar->Refresh();
+	if (button != NULL)
+	{
+		int state = enable ? wxAUI_BUTTON_STATE_NORMAL : wxAUI_BUTTON_STATE_DISABLED;
+		button->SetState(state);
+		toolbar->Refresh();
+	}
 }
 
 void xLightsFrame::OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event)
@@ -3126,7 +3131,8 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
 #ifdef USE_WXMEDIAPLAYER
 	PlayerDlg->SetPlaybackRate(playSpeed);
 #else
-	if (CurrentSeqXmlFile->GetMedia() != NULL)
+	AudioManager::SetGlobalPlaybackRate(playSpeed);
+	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
 	{
 		CurrentSeqXmlFile->GetMedia()->SetPlaybackRate(playSpeed);
 	}

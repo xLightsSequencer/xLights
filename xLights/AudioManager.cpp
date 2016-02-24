@@ -21,28 +21,82 @@ using namespace Vamp;
 // Audio Manager Functions
 
 #ifdef USE_SDLPLAYER
+Uint64  __audio_len;
+Uint8  *__audio_pos;
+float __playbackrate = 1.0;
+void  fill_audio(void *udata, Uint8 *stream, int len)
+{
+	//SDL 2.0
+	SDL_memset(stream, 0, len);
+
+	if (__audio_len == 0)		/*  Only  play  if  we  have  data  left  */
+	{
+		return;
+	}
+
+	len = (len > __audio_len ? __audio_len : len);	/*  Mix  as  much  data  as  possible  */
+
+	SDL_MixAudio(stream, __audio_pos, len, SDL_MIX_MAXVOLUME);
+	__audio_pos += len;
+	__audio_len -= len;
+}
 void AudioManager::Seek(int pos)
 {
+	if (pos < 0 || pos > _lengthMS)
+	{
+		return;
+	}
+	__audio_len = _pcmdatasize - (Uint64)pos * 44100 * 2 * 2 / 1000; // (((Uint64)pos * (Uint64)_pcmdatasize) / (Uint64)_lengthMS);
+	__audio_pos = _pcmdata + (_pcmdatasize - __audio_len);
 }
 void AudioManager::Pause()
 {
+	SDL_PauseAudio(1);
 }
 void AudioManager::Play()
 {
+	SDL_PauseAudio(0);
 }
 void AudioManager::Stop()
 {
+	SDL_PauseAudio(1);
 }
-void AudioManager::SetPlaybackRate(int rate)
+void AudioManager::SetGlobalPlaybackRate(float rate)
 {
+	__playbackrate = rate;
+}
+void AudioManager::SetPlaybackRate(float rate)
+{
+		__playbackrate = rate;
+
+		SDL_CloseAudio();
+
+		//SDL_AudioSpec
+		wanted_spec.freq = _rate * rate;
+		wanted_spec.format = AUDIO_S16SYS;
+		wanted_spec.channels = 2;
+		wanted_spec.silence = 0;
+		wanted_spec.samples = 1024;
+		wanted_spec.callback = fill_audio;
+
+		SDL_OpenAudio(&wanted_spec, NULL);
 }
 MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
 {
-	return MEDIAPLAYINGSTATE::PAUSED;
+	switch (SDL_GetAudioStatus())
+	{
+	case SDL_AUDIO_PAUSED:
+		return MEDIAPLAYINGSTATE::PAUSED;
+	case SDL_AUDIO_PLAYING:
+		return MEDIAPLAYINGSTATE::PLAYING;
+	}
+
+	// assume stopped
+	return MEDIAPLAYINGSTATE::STOPPED;
 }
 int AudioManager::Tell()
 {
-	return 0;
+	return (((_pcmdatasize - __audio_len) / 4) * _lengthMS)/ _trackSize;
 }
 #endif
 
@@ -60,6 +114,27 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	_frameDataPrepared = false; // frame data is used by effects to react to the sone
 #ifdef USE_SDLPLAYER
 	_pcmdata = NULL;
+	if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER)) 
+	{
+		_resultMessage = "Could not initialize SDL";
+		_state = 0;
+		return;
+	}
+
+	//SDL_AudioSpec
+	wanted_spec.freq = 44100 * __playbackrate;
+	wanted_spec.format = AUDIO_S16SYS;
+	wanted_spec.channels = 2;
+	wanted_spec.silence = 0;
+	wanted_spec.samples = 1024;
+	wanted_spec.callback = fill_audio;
+
+	if (SDL_OpenAudio(&wanted_spec, NULL)<0) 
+	{
+		_resultMessage = "can't open audio.";
+		_state = 0;
+		return;
+	}
 #endif
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
@@ -68,8 +143,10 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	// Open the media file
 	OpenMediaFile();
 
+#ifdef USE_MPG123
 	// Check if it is Constant Bit Rate
 	_isCBR = CheckCBR();
+#endif
 
 	// If we opened it successfully kick off the frame data extraction ... this will run on another thread
 	if (_intervalMS > 0)
@@ -84,7 +161,6 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	}
 }
 
-#ifdef KISS_FFT
 std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max, int id)
 {
 	std::list<float> res;
@@ -126,7 +202,6 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 
 	return res;
 }
-#endif
 
 // Frame Data Extraction Functions
 // process audio data and build data for each frame
@@ -156,54 +231,8 @@ void AudioManager::DoPrepareFrameData()
 	_bigmin = 1;
 	_bigspectogrammax = -1;
 
-#ifdef CONSTANT_Q
-	// make sure plugins are loaded
-	_vamp.GetAllAvailablePlugins(this);
-	Vamp::Plugin *p = _vamp.GetPlugin("Constant-Q Spectrogram");
-	size_t step = 0;
-	size_t block = 0;
-#endif
-
-#ifdef KISS_FFT
 	size_t step = 2048;
-#endif
-
 	float *pdata[2];
-
-#ifdef CONSTANT_Q
-	if (p != NULL)
-	{
-		// Constant-Q Sepectogram configuration
-		p->setParameter("minpitch", 36);
-		p->setParameter("maxpitch", 84);
-		p->setParameter("tuning", 440);
-		p->setParameter("bpo", 12);
-		p->setParameter("normalized", 0);
-
-		// setup the config
-		int channels = GetChannels();
-		if (channels > p->getMaxChannelCount()) {
-			channels = 1;
-		}
-		step = p->getPreferredStepSize();
-		block = p->getPreferredBlockSize();
-		if (block == 0) {
-			if (step != 0) {
-				block = step;
-			}
-			else {
-				block = 1024;
-			}
-		}
-		if (step == 0) {
-			step = block;
-		}
-		p->initialise(channels, step, block);
-
-		// make sure our data is ok for this ... basically ensures there is enough extra space for the window at the end of the song
-		SetStepBlock(step, block);
-	}
-#endif
 
 	int pos = 0;
 	std::list<float> spectrogram;
@@ -218,73 +247,57 @@ void AudioManager::DoPrepareFrameData()
 		float min = 100.0;
 		float spread = -100;
 
-#ifdef CONSTANT_Q
-		if (p != NULL)
-#endif
-		{
-			int count = 0;
+		int count = 0;
 
-			// clear the data if we are about to get new data ... dont clear it if we wont
-			// this happens because the spectrogram function has a fixed window based on the parameters we set and it
-			// does not match our time slices exactly so we have to select which one to use
-			if (pos < i * samplesperframe + samplesperframe  && pos + step < totalsamples)
+		// clear the data if we are about to get new data ... dont clear it if we wont
+		// this happens because the spectrogram function has a fixed window based on the parameters we set and it
+		// does not match our time slices exactly so we have to select which one to use
+		if (pos < i * samplesperframe + samplesperframe  && pos + step < totalsamples)
+		{
+			spectrogram.clear();
+		}
+
+		// only get the data if we are not ahead of the music
+		while (pos < i * samplesperframe + samplesperframe && pos + step < totalsamples)
+		{
+			std::list<float> subspectrogram;
+			pdata[0] = GetLeftDataPtr(pos);
+			pdata[1] = GetRightDataPtr(pos);
+			float max = 0;
+
+			if (pdata[0] == NULL)
 			{
-				spectrogram.clear();
+				subspectrogram.clear();
+			}
+			else
+			{
+				subspectrogram = CalculateSpectrumAnalysis(pdata[0], step, max, i);
 			}
 
-			// only get the data if we are not ahead of the music
-			while (pos < i * samplesperframe + samplesperframe && pos + step < totalsamples)
+			// and keep track of the larges value so we can normalise it
+			if (max > _bigspectogrammax)
 			{
-				std::list<float> subspectrogram;
-				pdata[0] = GetLeftDataPtr(pos);
-				pdata[1] = GetRightDataPtr(pos);
-				float max = 0;
+				_bigspectogrammax = max;
+			}
+			pos += step;
 
-#ifdef CONSTANT_Q
-				Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(pos, GetRate());
-
-				// This function processes the data
-				Vamp::Plugin::FeatureSet features = p->process(pdata, timestamp);
-				// Now we interpret the results
-				subspectrogram = ProcessFeatures(features[0], max);
-#endif
-
-#ifdef KISS_FFT
-				if (pdata[0] == NULL)
+			// either take the newly calculated values or if we are merging two results take the maximum of each value
+			if (spectrogram.size() == 0)
+			{
+				spectrogram = subspectrogram;
+			}
+			else
+			{
+				if (subspectrogram.size() > 0)
 				{
-					subspectrogram.clear();
-				}
-				else
-				{
-					subspectrogram = CalculateSpectrumAnalysis(pdata[0], step, max, i);
-				}
-#endif
-
-				// and keep track of the larges value so we can normalise it
-				if (max > _bigspectogrammax)
-				{
-					_bigspectogrammax = max;
-				}
-				pos += step;
-
-				// either take the newly calculated values or if we are merging two results take the maximum of each value
-				if (spectrogram.size() == 0)
-				{
-					spectrogram = subspectrogram;
-				}
-				else
-				{
-					if (subspectrogram.size() > 0)
+					std::list<float>::iterator sub = subspectrogram.begin();
+					for (std::list<float>::iterator fr = spectrogram.begin(); fr != spectrogram.end(); ++fr)
 					{
-						std::list<float>::iterator sub = subspectrogram.begin();
-						for (std::list<float>::iterator fr = spectrogram.begin(); fr != spectrogram.end(); ++fr)
+						if (*sub > *fr)
 						{
-							if (*sub > *fr)
-							{
-								*fr = *sub;
-							}
-							++sub;
+							*fr = *sub;
 						}
+						++sub;
 					}
 				}
 			}
@@ -372,48 +385,6 @@ void AudioManager::DoPrepareFrameData()
 	// flag the fact that the data is all ready
 	_frameDataPrepared = true;
 }
-
-#ifdef CONSTANT_Q
-// Extract the Vamp data and reduce it to one array of values
-std::list<float> AudioManager::ProcessFeatures(Vamp::Plugin::FeatureList &feature, float& max) 
-{
-	max = 0;
-	std::list<float> res;
-
-	for (int i = 0; i < feature.size(); i++)
-	{
-		std::list<float>::iterator rp = res.begin();
-		for (std::vector<float>::iterator j = feature[i].values.begin(); j != feature[i].values.end(); ++j) 
-		{
-			if (i == 0)
-			{
-				res.push_back((*j));
-			}
-			else
-			{
-				// this is a second set of data ... ie > 1 dimension array so we take the maximum of corresponding elements
-				if (*j > *rp)
-				{
-					*rp = *j;
-				}
-				++rp;
-			}
-		}
-	}
-
-	// work out the maximum for normalisation
-	for (std::list<float>::iterator j = res.begin(); j != res.end(); ++j)
-	{
-		*j = log10(*j);
-		if (*j > max)
-		{
-			max = *j;
-		}
-	}
-
-	return res;
-}
-#endif
 
 // Called to trigger frame data creation
 void AudioManager::PrepareFrameData(bool separateThread)
@@ -712,7 +683,9 @@ void AudioManager::SetStepBlock(int step, int block)
 // Clean up our data buffers
 AudioManager::~AudioManager()
 {
+
 #ifdef USE_SDLPLAYER
+	SDL_Quit();
 	if (_pcmdata != NULL)
 	{
 		free(_pcmdata);
@@ -817,31 +790,31 @@ int AudioManager::OpenMediaFile()
 	int cbitrate = codecContext->bit_rate;
 	int fbitrate = formatContext->bit_rate;
 
-	// This is a HACK ... this is not documented
-	typedef struct {
-		AVClass *pclass;
-		int64_t filesize;
-		int64_t header_filesize;
-		int xing_toc;
-		int start_pad;
-		int end_pad;
-		int usetoc;
-		int is_cbr;
-	} MP3DecContext;
+	//// This is a HACK ... this is not documented
+	//typedef struct {
+	//	AVClass *pclass;
+	//	int64_t filesize;
+	//	int64_t header_filesize;
+	//	int xing_toc;
+	//	int start_pad;
+	//	int end_pad;
+	//	int usetoc;
+	//	int is_cbr;
+	//} MP3DecContext;
 
-	MP3DecContext* pmp3 = (MP3DecContext* )formatContext->priv_data;
+	//MP3DecContext* pmp3 = (MP3DecContext* )formatContext->priv_data;
 
-	if (pmp3 != NULL)
-	{
-		if (pmp3->is_cbr)
-		{
-			_isCBR = true;
-		}
-		else
-		{
-			_isCBR = false;
-		}
-	}
+	//if (pmp3 != NULL)
+	//{
+	//	if (pmp3->is_cbr)
+	//	{
+	//		_isCBR = true;
+	//	}
+	//	else
+	//	{
+	//		_isCBR = false;
+	//	}
+	//}
 
 	//if (abs(fbitrate - cbitrate) < 50)
 	//{
@@ -918,7 +891,8 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 	}
 
 #ifdef USE_SDLPLAYER
-	_pcmdata = malloc(_trackSize * 2 * 2);
+	_pcmdatasize = _trackSize * 2 * 2;
+	_pcmdata = (Uint8*)malloc(_pcmdatasize);
 #endif
 
 	AVPacket readingPacket;
@@ -1134,11 +1108,11 @@ void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
 	}
 }
 
-bool AudioManager::CheckCBR()
-{
+//bool AudioManager::CheckCBR()
+//{
 	// already calculated
-	return _isCBR;
-}
+//	return _isCBR;
+//}
 #endif
 
 #ifdef USE_MPG123

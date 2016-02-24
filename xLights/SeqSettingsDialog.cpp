@@ -1139,7 +1139,7 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event)
 
 void SeqSettingsDialog::MediaChooser()
 {
-	wxFileDialog* OpenDialog = new wxFileDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP Audio files|*.mp3;*.ogg;*.m4p|xLights Audio files|*.avi;*.wma;*.au;*.wav;*.m4a;*.mid", wxFD_OPEN, wxDefaultPosition);
+	wxFileDialog* OpenDialog = new wxFileDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP Audio files|*.mp3;*.ogg;*.m4p|xLights Audio files|*.mp3;*.ogg;*.m4p;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid", wxFD_OPEN, wxDefaultPosition);
     wxString fDir;
     OpenDialog->SetDirectory(media_directory);
     if (OpenDialog->ShowModal() == wxID_OK)
@@ -1166,11 +1166,11 @@ void SeqSettingsDialog::MediaChooser()
         ProcessSequenceType();
         xLightsParent->UpdateSequenceLength();
 
-		if (!xml_file->GetMedia()->IsCBR())
-		{
+		//if (!xml_file->GetMedia()->IsCBR())
+		//{
 			// warn user that variable bitrate files should be avoided.
-			wxMessageBox(string_format("Using Variable Bitrate audio files can cause playback issues when sequencing. It is recommended you convert them to constant bitrate using softfare like Audacity."), "Warning", wxICON_WARNING | wxOK);
-		}
+		//	wxMessageBox(string_format("Using Variable Bitrate audio files can cause playback issues when sequencing. It is recommended you convert them to constant bitrate using softfare like Audacity."), "Warning", wxICON_WARNING | wxOK);
+		//}
     }
 
     OpenDialog->Destroy();

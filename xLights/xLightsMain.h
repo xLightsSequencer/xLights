@@ -377,6 +377,7 @@ public:
     void LoadAudioData(xLightsXmlFile& xml_file);
     void CreateDebugReport(wxDebugReportCompress *report);
     wxString GetThreadStatusReport();
+	void SetAudioControls();
 
     void ImportSuperStar(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
@@ -1512,6 +1513,7 @@ protected:
     long SeqBaseChannel;
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
+	bool mLoopAudio;
 
     bool mResetToolbars;
     bool mRenderOnSave;
@@ -1651,6 +1653,7 @@ public:
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
 
     wxString GetSeqXmlFileName();
+	void PlaySequence();
 
     EffectTreeDialog *EffectTreeDlg;
 

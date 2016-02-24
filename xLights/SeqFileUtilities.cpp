@@ -70,6 +70,7 @@ void xLightsFrame::NewSequence()
     }
     Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
+	SetAudioControls();
 }
 
 static wxFileName mapFileName(const wxFileName &orig) {
@@ -232,6 +233,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
 			{
 				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetSequenceTimingAsInt());
 			}
+			SetAudioControls();
 		}
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
