@@ -2493,7 +2493,7 @@ void xLightsFrame::StopNow(void)
 #ifdef USE_WXMEDIAPLAYER
     PlayerDlg->Stop();
 #else
-	if (CurrentSeqXmlFile->GetMedia() != NULL)
+	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
 	{
 		CurrentSeqXmlFile->GetMedia()->Stop();
 	}

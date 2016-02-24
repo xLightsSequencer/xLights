@@ -25,6 +25,7 @@ extern "C"
 #ifdef USE_SDLPLAYER
 extern "C"
 {
+#define SDL_MAIN_HANDLED
 #include "sdl/include/SDL.h"
 }
 #endif
