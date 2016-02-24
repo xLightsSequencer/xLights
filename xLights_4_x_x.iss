@@ -10,7 +10,7 @@
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
 AppName=xLights
-AppVersion=2016.8
+AppVersion=2016.9
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights.ico

@@ -4,11 +4,11 @@
 #include "../include/padlock16x16-blue.xpm" //-DJ
 #include <wx/msgdlg.h>
 //(*InternalHeaders(TimingPanel)
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/bitmap.h>
+#include <wx/settings.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #include "models/Model.h"
@@ -49,16 +49,16 @@ END_EVENT_TABLE()
 TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(TimingPanel)
-	wxBitmapButton* BitmapButtonBufferStyle;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxStaticText* StaticText1;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxStaticText* StaticText4;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText1;
 	wxBitmapButton* BitmapButton1;
+	wxBitmapButton* BitmapButtonBufferStyle;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxStaticText* StaticText4;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(301,262), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);

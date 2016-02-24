@@ -7,11 +7,11 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.9  Feb 24, 2016
     -- enh (gil)   Allow single effect to be moved left and right using arrow keys if timing grid is active.
     -- enh (gil)   Allow single effect to be moved up and down on grid.  No longer restricted to a single model.
-    -- enh (keithsw) Add Transition Effect. This is meant to be used as a mask to reveal and hide other effects
-	-- enh (keithsw) Add description against rows on the setup tab Issue #422
-	-- enh (keithsw) Add View->Windows->Dock All menu item to wrangle all free windows back into their docked position
+    -- enh (keithsw) Add description against rows on the setup tab Issue #422
+    -- enh (keithsw) Add View->Windows->Dock All menu item to wrangle all free windows back into their docked position
     -- enh (gil)   Pictures effect change: Separate scale as an independent parameter and allow start and end scaling motions.  Fixes #451.
     -- bug (gil)   Fix bug when pasting single effects and fix copy row bug when multiple effects are selected.
     -- bug (gil)   Clear waveform when switching to an animation.  Fixes #469.
