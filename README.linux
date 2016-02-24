@@ -29,6 +29,8 @@ Instructions for other Linux distributions will vary.
      freeglut3-dev
      libmpg123-dev
      libwxgtk-media3.0-dev
+     libavcodec-dev
+     libavformat-dev
 
      Example command to install packages on Ubuntu
 
