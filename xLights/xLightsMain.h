@@ -221,6 +221,7 @@ enum SeqPlayerStates
 
 class RenderEvent;
 class wxDebugReportCompress;
+class BufferPanel;
 
 class xlAuiToolBar : public wxAuiToolBar {
 public:
@@ -607,6 +608,8 @@ private:
     void OnListBoxElementListColumnClick(wxListEvent& event);
     void OnCheckBoxOverlapClick(wxCommandEvent& event);
     void OnMenuDockAllSelected(wxCommandEvent& event);
+    void ShowHideBufferSettingsWindow(wxCommandEvent& event);
+    void ResetWindowsToDefaultPositions(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -640,6 +643,7 @@ private:
     static const long ID_AUITOOLBAR_PLAY;
     static const long ID_AUITOOLBARITEM2;
     static const long ID_AUITOOLBARITEM5;
+    static const long ID_AUITOOLBARITEM7;
     static const long ID_AUITOOLBARITEM3;
     static const long ID_AUITOOLBARITEM1;
     static const long ID_AUITOOLBARITEM4;
@@ -867,10 +871,12 @@ private:
     static const long ID_MENUITEM14;
     static const long ID_MENUITEM15;
     static const long ID_MENUITEM16;
+    static const long ID_MENUITEM9;
     static const long ID_MENUITEM17;
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
+    static const long ID_MENUITEM11;
     static const long ID_MENUITEM10;
     static const long ID_PLAY_FULL;
     static const long ID_PLAY_3_4;
@@ -970,6 +976,7 @@ private:
     wxPanel* Panel1;
     wxRadioButton* RadioButtonTwinkle50;
     wxRadioButton* RadioButtonRgbTwinkle10;
+    wxMenuItem* MenuItem32;
     wxMenuItem* MenuItem_ViewZoomOut;
     wxMenu* AudioMenu;
     wxPanel* PanelPapagayo;
@@ -1027,6 +1034,7 @@ private:
     wxRadioButton* RadioButtonTwinkle25;
     wxAuiManager* MainAuiManager;
     wxSlider* SliderChaseSpeed;
+    wxMenuItem* MenuItem33;
     wxButton* Button_PgoCopyVoices;
     wxCheckBox* CheckBoxMapEmptyChannels;
     wxMenu* MenuItemRenderMode;
@@ -1561,7 +1569,9 @@ protected:
     TimingPanel* timingPanel;
     PerspectivesPanel* perspectivePanel;
     EffectIconPanel *effectPalettePanel;
+    BufferPanel *bufferPanel;
     DisplayElementsPanel *displayElementsPanel;
+    
 
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
@@ -1606,12 +1616,12 @@ protected:
     void CheckForValidModels();
 
     void LoadSequencer(xLightsXmlFile& xml_file);
+    void LoadPerspective(wxXmlNode *p);
+
 
     void CheckForAndCreateDefaultPerpective();
     void ZoomIn();
     void ZoomOut();
-    void EffectsResize(wxSizeEvent& event);
-    void EffectsPaint(wxPaintEvent& event);
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     void UpdateEffectGridHorizontalScrollBar();

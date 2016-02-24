@@ -46,9 +46,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer6;
 
-    Create(parent, wxID_ANY, wxDefaultPosition, wxSize(150,150), wxTAB_TRAVERSAL, _T("wxID_ANY"));
-    SetMinSize(wxSize(150,150));
-    SetMaxSize(wxSize(150,150));
+    Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     EffectChoicebook = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
@@ -73,8 +71,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
     FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 1);
     FlexGridSizer1->Add(FlexGridSizer8, 1, wxEXPAND, 2);
     SetSizer(FlexGridSizer1);
-    SetSizer(FlexGridSizer1);
-    Layout();
+    FlexGridSizer1->Fit(this);
+    FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::EffectSelected);
     Connect(ID_BITMAPBUTTON_CHOICEBOOK1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
@@ -99,8 +97,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
 
         EffectChoicebook->AddPage(sw, p->ToolTip(), false);
     }
-
     EffectChoicebook->SetSelection(0);
+    FlexGridSizer1->Fit(this);
+    FlexGridSizer1->SetSizeHints(this);
 }
 
 EffectsPanel::~EffectsPanel()

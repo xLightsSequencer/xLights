@@ -164,6 +164,14 @@
 						<label>Effect Colors</label>
 					</object>
 					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM7" variable="AuiToolBarLayerSettings" member="yes">
+							<bitmap stock_id="xlART_LAYERS" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Layer Settings</shorthelp>
+							<handler function="ShowHideBufferSettingsWindow" entry="EVT_TOOL" />
+						</object>
+						<label>Layer Settings</label>
+					</object>
+					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM3" variable="AuiToolBarLayers" member="yes">
 							<bitmap stock_id="xlART_LAYERS" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Effect Layering</shorthelp>
@@ -2856,8 +2864,12 @@
 						<handler function="ShowHideColorWindow" entry="EVT_MENU" />
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM16" variable="MenuItem24" member="no">
-						<label>Timing</label>
+						<label>Layer Blending</label>
 						<handler function="ShowHideLayerTimingWindow" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM9" variable="MenuItem32" member="yes">
+						<label>Layer Settings</label>
+						<handler function="ShowHideBufferSettingsWindow" entry="EVT_MENU" />
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM17" variable="MenuItem25" member="no">
 						<label>Effect Dropper</label>
@@ -2875,6 +2887,10 @@
 					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_DOCKALL" variable="MenuItem21" member="no">
 						<label>Dock All</label>
 						<handler function="OnMenuDockAllSelected" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM11" variable="MenuItem33" member="yes">
+						<label>Reset to Defaults</label>
+						<handler function="ResetWindowsToDefaultPositions" entry="EVT_MENU" />
 					</object>
 				</object>
 			</object>

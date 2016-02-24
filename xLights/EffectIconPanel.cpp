@@ -49,6 +49,7 @@ EffectIconPanel::EffectIconPanel(const EffectManager &m, wxWindow* parent,wxWind
 
 
 
+    GridSizer1->SetCols(10);
     AddEffectPanelButtons(manager, this, GridSizer1);
     
     wxSizeEvent evt;

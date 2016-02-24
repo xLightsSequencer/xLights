@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="EffectsPanel">
-		<size>150,150</size>
-		<minsize>150,150</minsize>
-		<maxsize>150,150</maxsize>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
@@ -12,7 +9,7 @@
 				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="EffectChoicebook" member="yes">
 					<handler function="EffectSelected" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
 				</object>
-				<flag>wxRIGHT|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+				<flag>wxRIGHT|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -71,12 +68,12 @@
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>1</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+				<flag>wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>

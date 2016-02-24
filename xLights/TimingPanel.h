@@ -2,15 +2,15 @@
 #define TIMINGPANEL_H
 
 //(*Headers(TimingPanel)
-#include <wx/scrolwin.h>
+#include <wx/bmpbuttn.h>
+#include <wx/checkbox.h>
 #include <wx/sizer.h>
+#include <wx/panel.h>
+#include <wx/scrolwin.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
 #include <wx/choice.h>
-#include <wx/bmpbuttn.h>
 //*)
 
 class Model;
@@ -25,28 +25,20 @@ class TimingPanel: public wxPanel
         wxString GetTimingString();
 
 		//(*Declarations(TimingPanel)
-		wxBitmapButton* BitmapButton_EffectBlur;
-		wxStaticText* StaticText2;
-		wxChoice* BufferStyleChoice;
-		wxPanel* Panel_Sizer;
-		wxTextCtrl* TextCtrl_Fadein;
-		wxBitmapButton* BitmapButton_OverlayBkg;
 		wxSlider* Slider_EffectLayerMix;
-		wxStaticText* StaticText3;
-		wxBitmapButton* BitmapButton_FadeOut;
-		wxChoice* BufferTransform;
-		wxBitmapButton* BitmapButton_FadeIn;
-		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
-		wxCheckBox* CheckBox_LayerMorph;
-		wxStaticText* StaticText5;
-		wxChoice* Choice_LayerMethod;
-		wxBitmapButton* BitmapButton_EffectLayerMix;
 		wxTextCtrl* TextCtrl_Fadeout;
-		wxScrolledWindow* ScrolledWindowTiming;
-		wxTextCtrl* txtCtlEffectBlur;
-		wxCheckBox* CheckBox_OverlayBkg;
+		wxPanel* Panel_Sizer;
+		wxStaticText* StaticText3;
+		wxTextCtrl* TextCtrl_Fadein;
 		wxTextCtrl* txtCtlEffectMix;
-		wxSlider* Slider_EffectBlur;
+		wxBitmapButton* BitmapButton_FadeIn;
+		wxCheckBox* CheckBox_LayerMorph;
+		wxStaticText* StaticText2;
+		wxBitmapButton* BitmapButton_FadeOut;
+		wxBitmapButton* BitmapButton_EffectLayerMix;
+		wxChoice* Choice_LayerMethod;
+		wxScrolledWindow* ScrolledWindowTiming;
+		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
 		//*)
     
     
@@ -61,22 +53,12 @@ class TimingPanel: public wxPanel
 		static const long ID_SLIDER_EffectLayerMix;
 		static const long IDD_TEXTCTRL_EffectLayerMix;
 		static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
-		static const long ID_CHOICE_BufferStyle;
-		static const long ID_BITMAPBUTTON_CHOICE_BufferStyle;
-		static const long ID_CHOICE_BufferTransform;
-		static const long ID_BITMAPBUTTON_CHOICE_BufferTransform;
-		static const long ID_STATICTEXT1;
-		static const long ID_SLIDER_EffectBlur;
-		static const long IDD_TEXTCTRL_EffectBlur;
-		static const long ID_BITMAPBUTTON_SLIDER_EffectBlur;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL_Fadein;
 		static const long ID_BITMAPBUTTON_TEXTCTRL_Fadein;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL_Fadeout;
 		static const long ID_BITMAPBUTTON_TEXTCTRL_Fadeout;
-		static const long ID_CHECKBOX_OverlayBkg;
-		static const long ID_BITMAPBUTTON_OverlayBkg;
 		static const long ID_SCROLLEDWINDOW1;
 		static const long ID_PANEL1;
 		//*)

@@ -12,6 +12,7 @@
 #include "../EffectIconPanel.h"
 #include "Element.h"
 #include "Effect.h"
+#include "BufferPanel.h"
 #include "../SeqSettingsDialog.h"
 #include "../DisplayElementsPanel.h"
 #include "../effects/RenderableEffect.h"
@@ -40,36 +41,33 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->PanelRowHeadings->SetSequenceElements(&mSequenceElements);
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
+    m_mgr->SetDockSizeConstraint(0.25, 0.15);
+    
     sPreview1 = new ModelPreview(PanelSequencer);
-    sPreview1->SetSize(wxSize(200,200));
     m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
-                   BestSize(wxSize(200,200)).Left());
+                   Left().Layer(1));
     sPreview2 = new ModelPreview(PanelSequencer, PreviewModels, false);
-    sPreview2->SetSize(wxSize(200,200));
     m_mgr->AddPane(sPreview2,wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
-                   BestSize(wxSize(200,200)).Left());
+                   Left().Layer(1));
 
     effectsPnl = new TopEffectsPanel(PanelSequencer);
     effectsPnl->BitmapButtonSelectedEffect->SetEffect(effectManager[0], mIconSize);
-    EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, &effectManager);
-    effectsPnl->Refresh();
-
+    EffectsPanel1 = new EffectsPanel(effectsPnl, &effectManager);
+    EffectsPanel1->SetSequenceElements(&mSequenceElements);
+    effectsPnl->EffectSizer->Add(EffectsPanel1, wxEXPAND);
+    effectsPnl->MainSizer->Fit(effectsPnl);
+    effectsPnl->MainSizer->SetSizeHints(effectsPnl);
+    
     sEffectAssist = new EffectAssist(PanelSequencer);
-    sEffectAssist->SetSize(wxSize(200,200));
-    m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).BestSize(wxSize(200,200)).Left());
+    m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).
+                   Left().Layer(1));
     sEffectAssist->Layout();
 
-    wxScrolledWindow* w;
-    EffectsPanel1->SetSequenceElements(&mSequenceElements);
-    for(int i =0;i<EffectsPanel1->EffectChoicebook->GetPageCount();i++)
-    {
-        w = (wxScrolledWindow*)EffectsPanel1->EffectChoicebook->GetPage(i);
-        w->FitInside();
-        w->SetScrollRate(5, 5);
-    }
+
 
     colorPanel = new ColorPanel(PanelSequencer);
     timingPanel = new TimingPanel(PanelSequencer);
+    bufferPanel = new BufferPanel(PanelSequencer);
 
     perspectivePanel = new PerspectivesPanel(PanelSequencer);
 
@@ -86,22 +84,38 @@ void xLightsFrame::CreateSequencer()
     m_mgr->GetPane("DisplayElements").Hide();
 
 
-    m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).Left());
+    m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).Left().Layer(1).Hide());
+    m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effect Settings")).
+                   Left().Layer(1));
 
-    m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).MinSize(wxSize(150,150)).Left());
-
-    m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effect Settings")).MinSize(wxSize(175,175)).Left());
-
-    m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Left());
-
-    m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Left());
-
+    m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).Top().Layer(0));
+    m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
+    m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
+    m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
+    
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
+    m_mgr->Update();
     mainSequencer->Layout();
+}
 
+void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
+{
+    m_mgr->GetPane("ModelPreview").Caption("Model Preview").Dock().Left().Layer(1).Show();
+    m_mgr->GetPane("HousePreview").Caption("House Preview").Dock().Left().Layer(1).Show();
+    m_mgr->GetPane("EffectAssist").Caption("Effect Assist").Dock().Left().Layer(1).Show();
+
+    m_mgr->GetPane("DisplayElements").Caption("Display Elements").Float().Hide();
+    m_mgr->GetPane("Perspectives").Caption("Perspectives").Dock().Left().Layer(1).Hide();
+    m_mgr->GetPane("Effect").Caption("Effect").Dock().Left().Layer(1).Show();
+
+    m_mgr->GetPane("EffectDropper").Caption("Effects").Dock().Top().Layer(0).Show();
+    m_mgr->GetPane("Color").Caption("Color").Top().Dock().Layer(0).Show();
+    m_mgr->GetPane("LayerTiming").Caption("Layer Blending").Dock().Top().Layer(0).Show();
+    m_mgr->GetPane("LayerSettings").Caption("Layer Settings").Dock().Top().Layer(0).Show();
     m_mgr->Update();
 }
+
 
 void xLightsFrame::InitSequencer()
 {
@@ -115,8 +129,7 @@ void xLightsFrame::InitSequencer()
     }
     if(mCurrentPerpective!=NULL)
     {
-        wxString settings = mCurrentPerpective->GetAttribute("settings");
-        m_mgr->LoadPerspective(settings);
+        LoadPerspective(mCurrentPerpective);
     }
     mSequencerInitialize = true;
     sPreview2->InitializePreview(mBackgroundImage,mBackgroundBrightness);
@@ -150,6 +163,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
         p->AddAttribute("name", "Default Perspective");
         p->AddAttribute("settings",m_mgr->SavePerspective());
+        p->AddAttribute("version", "1.0");
         PerspectivesNode->AddChild(p);
         mCurrentPerpective = p;
         UnsavedRgbEffectsChanges=true;
@@ -364,15 +378,6 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     sPreview1->Refresh();
     sPreview2->Refresh();
     m_mgr->Update();
-
-}
-
-void xLightsFrame::EffectsResize(wxSizeEvent& event)
-{
-}
-
-void xLightsFrame::EffectsPaint(wxPaintEvent& event)
-{
 }
 
 void xLightsFrame::Zoom( wxCommandEvent& event)
@@ -515,10 +520,6 @@ void xLightsFrame::ResizeAndMakeEffectsScroll()
     {
         s = wxSize(200,200);
     }
-
-    effectsPnl->Panel_EffectContainer->SetSize(s);
-    effectsPnl->Panel_EffectContainer->SetMinSize(s);
-    effectsPnl->Panel_EffectContainer->SetMaxSize(s);
 
     EffectsPanel1->SetSize(s);
     EffectsPanel1->SetMinSize(s);
@@ -1129,11 +1130,13 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     if (modelName == "") {
         EffectsPanel1->SetDefaultEffectValues(nullptr, effectName);
         timingPanel->SetDefaultControls(nullptr);
+        bufferPanel->SetDefaultControls(nullptr);
         colorPanel->SetDefaultSettings();
     } else {
         Model *model = GetModel(modelName);
         EffectsPanel1->SetDefaultEffectValues(model, effectName);
         timingPanel->SetDefaultControls(model);
+        bufferPanel->SetDefaultControls(model);
         colorPanel->SetDefaultSettings();
     }
     SetEffectControls(settings);
@@ -1148,22 +1151,27 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     int cnt=0;
 
     for (std::map<std::string,std::string>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
-//NOTE: this doesn't handle "," embedded into Text lines (causes "unable to find" error): -DJ
         name = it->first;
         if (name.StartsWith("E_"))
         {
             ContextWin=EffectsPanel1;
-            name="ID_"+name.Mid(2);
         }
-        else if (name.StartsWith("T_") || name.StartsWith("B_"))
+        else if (name.StartsWith("T_"))
         {
-            ContextWin=timingPanel;
-            name="ID_"+name.Mid(2);
+            if (name == "T_CHECKBOX_OverlayBkg") {
+                //temporary until this key is remapped
+                ContextWin=bufferPanel;
+            } else {
+                ContextWin=timingPanel;
+            }
+        }
+        else if (name.StartsWith("B_"))
+        {
+            ContextWin=bufferPanel;
         }
         else if (name.StartsWith("C_"))
         {
             ContextWin=colorPanel;
-            name="ID_"+name.Mid(2);
         }
         else
         {
@@ -1171,6 +1179,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             //efPanel = NULL;
             //ContextWin=SeqPanelLeft;
         }
+        name="ID_"+name.Mid(2);
         value=it->second;
 
         CtrlWin=wxWindow::FindWindowByName(name,ContextWin);
@@ -1283,6 +1292,7 @@ std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
         effectText += ",";
     }
     effectText += timingPanel->GetTimingString();
+    effectText += bufferPanel->GetBufferString();
     palette = colorPanel->GetColorString();
     return effectText;
 }
@@ -1295,26 +1305,29 @@ void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
     ResizeMainSequencer();
 }
 
-void xLightsFrame::LoadPerspective(wxCommandEvent& event)
-{
-    wxXmlNode* perspective = (wxXmlNode*)(event.GetClientData());
-    mCurrentPerpective = perspective;
+void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
     wxString name = perspective->GetAttribute("name");
     wxString settings = perspective->GetAttribute("settings");
-    PerspectivesNode->DeleteAttribute("current");
-    PerspectivesNode->AddAttribute("current",name);
-    UnsavedRgbEffectsChanges=true;
-    if(settings.size()==0)
+    if (name != PerspectivesNode->GetAttribute("current")) {
+        PerspectivesNode->DeleteAttribute("current");
+        PerspectivesNode->AddAttribute("current", name);
+        UnsavedRgbEffectsChanges=true;
+    }
+    if (settings.size() == 0)
     {
         settings = m_mgr->SavePerspective();
         mCurrentPerpective->DeleteAttribute("settings");
-        mCurrentPerpective->AddAttribute("settings",settings);
+        mCurrentPerpective->AddAttribute("settings", settings);
+        mCurrentPerpective->AddAttribute("version", "1.0");
     }
-    m_mgr->LoadPerspective(settings,true);
+    
+    if (perspective->GetAttribute("version", "1.0") == "1.0") {
+        m_mgr->LoadPerspective(settings,true);
+    }
     sPreview1->Refresh(false);
     sPreview2->Refresh(false);
     m_mgr->Update();
-
+    
     if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF )
     {
         SetEffectAssistWindowState(false);
@@ -1328,6 +1341,13 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
             MenuItemEffectAssistAlwaysOn->Check(false);
         }
     }
+}
+
+void xLightsFrame::LoadPerspective(wxCommandEvent& event)
+{
+    wxXmlNode* perspective = (wxXmlNode*)(event.GetClientData());
+    mCurrentPerpective = perspective;
+    LoadPerspective(mCurrentPerpective);
 }
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
@@ -1353,6 +1373,25 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     displayElementsPanel->Initialize();
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
     info.Show();
+    m_mgr->Update();
+}
+
+
+
+void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
+{
+    ResetAllSequencerWindows();
+}
+
+
+void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("LayerSettings").IsShown();
+    if (visible) {
+        m_mgr->GetPane("LayerSettings").Hide();
+    } else {
+        m_mgr->GetPane("LayerSettings").Show();
+    }
     m_mgr->Update();
 }
 

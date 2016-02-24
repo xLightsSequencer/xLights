@@ -10,6 +10,7 @@
 #include "effects/RenderableEffect.h"
 
 #include "models/ModelGroup.h"
+#include "BufferPanel.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
@@ -656,6 +657,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 
     enableAllChildControls(EffectsPanel1, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(timingPanel, enable && SeqData.NumFrames() > 0);
+    enableAllChildControls(bufferPanel, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(perspectivePanel, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(colorPanel, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0);

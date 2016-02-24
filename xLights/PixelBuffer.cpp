@@ -600,7 +600,9 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer)
 
     int u,v,indx;
     //  How I can I get these values?
-    int StartFrame, CurrentFrame,EndFrame=0;
+    int StartFrame = layer->buffer.curEffStartPer;
+    int CurrentFrame = layer->buffer.curPeriod;
+    int EndFrame = layer->buffer.curEffEndPer;
     int MaxSizeArray = layer->BufferHt*layer->BufferWi;
 
     float EP; // EP is how far we are into the current effect
@@ -614,16 +616,14 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer)
 
 //  This is temp work around for a buffer allocation to copy data before roto zooming.
 //  This would be better to be a dynamic buffer allocation and deletion of buffer at end of routine
-    std::vector<xlColor> copyBuffer(10000);
-
-    if(MaxSizeArray > 10000) return; // return if this model is too large for our temp array
+    std::vector<xlColor> copyBuffer(MaxSizeArray);
 
     for (int x = 0; x < layer->BufferWi; x++)
     {
         for (int y = 0; y < layer->BufferHt; y++)
         {
             layer->buffer.GetPixel(x, y, c);
-            indx = x*layer->BufferWi+y;
+            indx = x*layer->BufferHt+y;
             copyBuffer[indx]=c;  // Make a copy of existing frame buffer
         }
     }
@@ -637,7 +637,7 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer)
         {
             u = x_cos_W+y*(-sin_W); // Calculate new location to move old color to
             v = x_sin_W+y*cos_W;
-            indx = u*layer->BufferWi+v;
+            indx = u*layer->BufferHt+v;
             c=copyBuffer[indx]; // get color from copyBuffer
             layer->buffer.SetPixel(x, y, c); // and overwrite current x,y location
         }
@@ -662,8 +662,9 @@ void PixelBufferClass::SetBlur(int layer, int blur)
     layers[layer]->blur = blur;
 }
 
-void PixelBufferClass::SetRotoZoom(int layer, int blur, int ZoomCycles, int ZoomRotation, int ZoomInOut)
+void PixelBufferClass::SetRotoZoom(int layer, int zoom, int ZoomCycles, int ZoomRotation, int ZoomInOut)
 {
+    layers[layer]->RotoZoom = zoom;
     layers[layer]->ZoomCycles = ZoomCycles;
     layers[layer]->ZoomRotation = ZoomRotation;
     layers[layer]->ZoomInOut = ZoomInOut;

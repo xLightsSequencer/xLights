@@ -8,12 +8,10 @@
 			<rows>1</rows>
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL1" variable="Panel_Sizer" member="yes">
-					<bg>wxSYS_COLOUR_BACKGROUND</bg>
 					<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 						<cols>1</cols>
 						<object class="sizeritem">
 							<object class="wxScrolledWindow" name="ID_SCROLLED_ColorScroll" variable="ColorScrollWindow" member="yes">
-								<bg>wxSYS_COLOUR_BTNFACE</bg>
 								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 									<cols>1</cols>
 									<growablecols>0</growablecols>

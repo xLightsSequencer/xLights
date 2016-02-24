@@ -2,16 +2,18 @@
 #define BUFFERPANEL_H
 
 //(*Headers(BufferPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/panel.h>
 #include <wx/scrolwin.h>
-#include <wx/slider.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/slider.h>
+#include <wx/panel.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
 //*)
+
+class Model;
 
 class BufferPanel: public wxPanel
 {
@@ -21,31 +23,36 @@ class BufferPanel: public wxPanel
 		virtual ~BufferPanel();
 
         wxString GetBufferString();
+        void SetDefaultControls(const Model *model);
+
     
 		//(*Declarations(BufferPanel)
-		wxSlider* Slider_ZoomCycles;
+		wxScrolledWindow* BufferScrollWindow;
 		wxBitmapButton* BitmapButton_ZoomCycles;
-		wxSlider* Slider_ZoomRotation;
-		wxScrolledWindow* ScrolledWindow1;
-		wxBitmapButton* BitmapButton_ZoomRotation;
-		wxTextCtrl* TextCtrl_ZoomRotation;
-		wxBitmapButton* BitmapButton_ZoomInOut;
-		wxTextCtrl* TextCtrl_ZoomInOut;
-		wxChoice* BufferStyleChoice;
 		wxBitmapButton* BitmapButton_EffectBlur;
-		wxTextCtrl* TextCtrl_ZoomCycles;
-		wxStaticText* StaticText8;
-		wxStaticText* StaticText7;
-		wxChoice* BufferTransform;
-		wxCheckBox* CheckBox_RotoZoom;
-		wxTextCtrl* txtCtlEffectBlur;
 		wxBitmapButton* BitmapButton_RotoZoom;
-		wxSlider* Slider_ZoomInOut;
-		wxCheckBox* CheckBox_OverlayBkg;
-		wxStaticText* StaticText5;
-		wxSlider* Slider_EffectBlur;
+		wxTextCtrl* TextCtrl_ZoomCycles;
+		wxTextCtrl* TextCtrl_ZoomRotation;
 		wxStaticText* StaticText6;
+		wxChoice* BufferStyleChoice;
+		wxFlexGridSizer* Sizer2;
+		wxBitmapButton* BitmapButton_ZoomRotation;
+		wxPanel* Panel_Sizer;
+		wxSlider* Slider_ZoomInOut;
+		wxStaticText* StaticText8;
+		wxFlexGridSizer* RotoSizer;
 		wxBitmapButton* BitmapButton_OverlayBkg;
+		wxCheckBox* CheckBox_RotoZoom;
+		wxChoice* BufferTransform;
+		wxTextCtrl* TextCtrl_ZoomInOut;
+		wxSlider* Slider_ZoomRotation;
+		wxSlider* Slider_ZoomCycles;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText7;
+		wxBitmapButton* BitmapButton_ZoomInOut;
+		wxTextCtrl* txtCtlEffectBlur;
+		wxCheckBox* CheckBox_OverlayBkg;
+		wxSlider* Slider_EffectBlur;
 		//*)
 
 	protected:
@@ -75,19 +82,22 @@ class BufferPanel: public wxPanel
 		static const long ID_SLIDER_ZoomInOut;
 		static const long IDD_TEXTCTRL_ZoomInOut;
 		static const long ID_BITMAPBUTTON_SLIDER_ZoomInOut;
-		static const long ID_SCROLLEDWINDOW1;
+		static const long ID_SCROLLED_ColorScroll;
+		static const long ID_PANEL1;
 		//*)
 
 	private:
 
 		//(*Handlers(BufferPanel)
-        void UpdateLinkedSliderFloat(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-        void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-        void UpdateLinkedSlider360(wxCommandEvent& event);
-        void UpdateLinkedTextCtrl(wxScrollEvent& event);
-        void UpdateLinkedSlider(wxCommandEvent& event);
-        void OnLockButtonClick(wxCommandEvent& event);
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSlider360(wxCommandEvent& event);
+		void UpdateLinkedTextCtrl(wxScrollEvent& event);
+		void UpdateLinkedSlider(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void OnCheckBox_RotoZoomClick(wxCommandEvent& event);
+		void OnResize(wxSizeEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

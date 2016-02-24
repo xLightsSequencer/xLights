@@ -25,8 +25,9 @@ class TopEffectsPanel: public wxPanel
 
 		//(*Declarations(TopEffectsPanel)
 		DragEffectBitmapButton* BitmapButtonSelectedEffect;
-		wxPanel* Panel_EffectContainer;
+		wxFlexGridSizer* EffectSizer;
 		wxButton* ButtonUpdateEffect;
+		wxFlexGridSizer* MainSizer;
 		//*)
 
 
@@ -35,7 +36,6 @@ class TopEffectsPanel: public wxPanel
 		//(*Identifiers(TopEffectsPanel)
 		static const long ID_BUTTON_UpdateEffect;
 		static const long ID_BITMAPBUTTON_SelectedEffect;
-		static const long ID_PANEL1;
 		//*)
 
 	private:
