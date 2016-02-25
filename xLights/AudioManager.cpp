@@ -47,6 +47,8 @@ void AudioManager::Seek(int pos)
 		return;
 	}
 	__audio_len = _pcmdatasize - (Uint64)pos * 44100 * 2 * 2 / 1000; // (((Uint64)pos * (Uint64)_pcmdatasize) / (Uint64)_lengthMS);
+	// ensure it is aligned to 4 byte boundary as 2 channels with 2 bytes per channel is how the data is organised
+	__audio_len -= __audio_len % 4;
 	__audio_pos = _pcmdata + (_pcmdatasize - __audio_len);
 }
 void AudioManager::Pause()
@@ -67,20 +69,41 @@ void AudioManager::SetGlobalPlaybackRate(float rate)
 }
 void AudioManager::SetPlaybackRate(float rate)
 {
-		__playbackrate = rate;
+	MEDIAPLAYINGSTATE state = GetPlayingState();
+	if (state == MEDIAPLAYINGSTATE::PLAYING)
+	{
+		Stop();
+	}
 
-		SDL_CloseAudio();
+	int pos = Tell();
 
-		//SDL_AudioSpec
-		wanted_spec.freq = _rate * rate;
-		wanted_spec.format = AUDIO_S16SYS;
-		wanted_spec.channels = 2;
-		wanted_spec.silence = 0;
-		wanted_spec.samples = 1024;
-		wanted_spec.callback = fill_audio;
+	__playbackrate = rate;
 
-		SDL_OpenAudio(&wanted_spec, NULL);
+	SDL_CloseAudio();
+
+	//SDL_AudioSpec
+	wanted_spec.freq = _rate * rate;
+	wanted_spec.format = AUDIO_S16SYS;
+	wanted_spec.channels = 2;
+	wanted_spec.silence = 0;
+	wanted_spec.samples = 1024;
+	wanted_spec.callback = fill_audio;
+
+	if (SDL_OpenAudio(&wanted_spec, NULL) < 0)
+	{
+		// a problem
+	}
+	else
+	{
+		Seek(pos);
+
+		if (state == MEDIAPLAYINGSTATE::PLAYING)
+		{
+			Play();
+		}
+	}
 }
+
 MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
 {
 	switch (SDL_GetAudioStatus())
