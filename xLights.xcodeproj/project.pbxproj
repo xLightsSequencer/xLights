@@ -1391,8 +1391,8 @@
 				67E7086917B51AB400A22034 /* Sources */,
 				67E7086A17B51AB400A22034 /* Frameworks */,
 				67E7086B17B51AB400A22034 /* Resources */,
-				674298661C1FC3CC00B11478 /* ShellScript */,
 				674D3D201C207BBD000D632B /* Embed Frameworks */,
+				674298661C1FC3CC00B11478 /* ShellScript */,
 			);
 			buildRules = (
 			);
