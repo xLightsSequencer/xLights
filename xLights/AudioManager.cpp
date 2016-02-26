@@ -137,27 +137,6 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	_frameDataPrepared = false; // frame data is used by effects to react to the sone
 #ifdef USE_SDLPLAYER
 	_pcmdata = NULL;
-	if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
-	{
-		_resultMessage = "Could not initialize SDL";
-		_state = 0;
-		return;
-	}
-
-	//SDL_AudioSpec
-	wanted_spec.freq = 44100 * __playbackrate;
-	wanted_spec.format = AUDIO_S16SYS;
-	wanted_spec.channels = 2;
-	wanted_spec.silence = 0;
-	wanted_spec.samples = 1024;
-	wanted_spec.callback = fill_audio;
-
-	if (SDL_OpenAudio(&wanted_spec, NULL)<0)
-	{
-		_resultMessage = "can't open audio.";
-		_state = 0;
-		return;
-	}
 #endif
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
@@ -165,6 +144,34 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 
 	// Open the media file
 	OpenMediaFile();
+
+#ifdef USE_SDLPLAYER
+	// only initialise if we successfully got data
+	if (_pcmdata != NULL)
+	{
+		if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
+		{
+			_resultMessage = "Could not initialize SDL";
+			_state = 0;
+			return;
+		}
+
+		//SDL_AudioSpec
+		wanted_spec.freq = 44100 * __playbackrate;
+		wanted_spec.format = AUDIO_S16SYS;
+		wanted_spec.channels = 2;
+		wanted_spec.silence = 0;
+		wanted_spec.samples = 1024;
+		wanted_spec.callback = fill_audio;
+
+		if (SDL_OpenAudio(&wanted_spec, NULL) < 0)
+		{
+			_resultMessage = "can't open audio.";
+			_state = 0;
+			return;
+		}
+	}
+#endif
 
 #ifdef USE_MPG123
 	// Check if it is Constant Bit Rate
@@ -708,11 +715,13 @@ AudioManager::~AudioManager()
 {
 
 #ifdef USE_SDLPLAYER
-	SDL_Quit();
 	if (_pcmdata != NULL)
 	{
+		Stop();
+		SDL_CloseAudio();
 		free(_pcmdata);
 		_pcmdata = NULL;
+		SDL_Quit();
 	}
 #endif
 	if (_data[1] != _data[0] && _data[1] != NULL)
@@ -766,6 +775,16 @@ int AudioManager::CalcLengthMS()
 int AudioManager::OpenMediaFile()
 {
 	int err = 0;
+
+#ifdef USE_SDLPLAYER
+	if (_pcmdata != NULL)
+	{
+		Stop();
+		SDL_CloseAudio();
+		free(_pcmdata);
+		_pcmdata = NULL;
+	}
+#endif
 
 	// Initialize FFmpeg codecs
 	av_register_all();
