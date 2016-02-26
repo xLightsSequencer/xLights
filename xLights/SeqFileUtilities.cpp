@@ -143,7 +143,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
 
         // open the xml file so we can see if it has media
-        CurrentSeqXmlFile->Open();
+        CurrentSeqXmlFile->Open(GetShowDirectory());
 
         // if fseq didn't have media check xml
         if (CurrentSeqXmlFile->GetMediaFile() != "")
@@ -219,7 +219,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         // if fseq or xseq had media update xml
         if( !CurrentSeqXmlFile->HasAudioMedia() && wxFileName(media_file).Exists() )
         {
-            CurrentSeqXmlFile->SetMediaFile(media_file.GetFullPath(), true);
+            CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), media_file.GetFullPath(), true);
             int length_ms = CurrentSeqXmlFile->GetMedia()->LengthMS();
             CurrentSeqXmlFile->SetSequenceDurationMS(length_ms);
         }
@@ -700,11 +700,11 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
 
     xLightsXmlFile xlf(filename);
-    xlf.Open();
+    xlf.Open(GetShowDirectory());
     SequenceElements se(this);
     se.SetFrequency(mSequenceElements.GetFrequency());
     se.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
-    se.LoadSequencerFile(xlf);
+    se.LoadSequencerFile(xlf, GetShowDirectory());
 
     std::vector<Element *> elements;
     for (int e = 0; e < se.GetElementCount(); e++) {

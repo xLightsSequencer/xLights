@@ -4,6 +4,7 @@
 #include <wx/tokenzr.h>
 
 #include "../xLightsMain.h" //for Preview and Other model collections
+#include "../xLightsXmlFile.h"
 #include "../Color.h"
 #include "../DrawGLUtils.h"
 #include "../DimmingCurve.h"
@@ -221,8 +222,16 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
 
             wxXmlAttribute *att = f->GetAttributes();
             while (att != nullptr) {
-                if (att->GetName() != "Name") {
-                    faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
+                if (att->GetName() != "Name") 
+				{
+					if (att->GetName().Left(5) == "Mouth")
+					{ 
+						faceInfo[name][att->GetName().ToStdString()] = xLightsXmlFile::FixFile("", att->GetValue());
+					}
+					else
+					{
+						faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
+					}
                 }
                 att = att->GetNext();
             }

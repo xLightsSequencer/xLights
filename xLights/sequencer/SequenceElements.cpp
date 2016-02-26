@@ -465,6 +465,27 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                     settings = effect->GetNodeContent();
                 }
 
+				if (settings.find("E_FILEPICKER_Pictures_Filename") != std::string::npos)
+				{
+					settings = xLightsXmlFile::FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", settings, "");
+				}
+				else if (settings.find("E_TEXTCTRL_Glediator_Filename") != std::string::npos)
+				{
+					settings = xLightsXmlFile::FixEffectFileParameter("E_TEXTCTRL_Glediator_Filename", settings, "");
+				}
+				else if (settings.find("E_TEXTCTRL_Piano_CueFilename") != std::string::npos)
+				{
+					settings = xLightsXmlFile::FixEffectFileParameter("E_TEXTCTRL_Piano_CueFilename", settings, "");
+				}
+				else if (settings.find("E_TEXTCTRL_Piano_MapFilename") != std::string::npos)
+				{
+					settings = xLightsXmlFile::FixEffectFileParameter("E_TEXTCTRL_Piano_MapFilename", settings, "");
+				}
+				else if (settings.find("E_TEXTCTRL_Piano_ShapeFilename") != std::string::npos)
+				{
+					settings = xLightsXmlFile::FixEffectFileParameter("E_TEXTCTRL_Piano_ShapeFilename", settings, "");
+				}
+
                 wxString tmp;
                 if (effect->GetAttribute(STR_PALETTE, &tmp)) {
                     tmp.ToLong(&palette);
@@ -490,7 +511,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
     }
 
 }
-bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
+bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxString &ShowDir)
 {
     mFilename = xml_file;
     wxXmlDocument& seqDocument = xml_file.GetXmlDocument();
@@ -535,6 +556,15 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
            {
                if(elementNode->GetName()==STR_EFFECT)
                {
+				   if (elementNode->GetNodeContent().Find("E_FILEPICKER_Pictures_Filename") >= 0)
+				   {
+					   elementNode->SetContent(xml_file.FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", elementNode->GetNodeContent(), ShowDir));
+				   }
+				   else if (elementNode->GetNodeContent().Find("E_TEXTCTRL_Glediator_Filename") >= 0)
+				   {
+					   elementNode->SetContent(xml_file.FixEffectFileParameter("E_TEXTCTRL_Glediator_Filename", elementNode->GetNodeContent(), ShowDir));
+				   }
+
                    effectStrings.push_back(elementNode->GetNodeContent().ToStdString());
                }
            }

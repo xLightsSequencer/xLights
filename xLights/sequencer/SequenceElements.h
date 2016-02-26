@@ -58,7 +58,7 @@ class SequenceElements : public ChangeListener
     public:
         SequenceElements(xLightsFrame *frame);
         virtual ~SequenceElements();
-        bool LoadSequencerFile(xLightsXmlFile& xml_file);
+        bool LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir);
         void Clear();
         Element* AddElement(const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
         Element* AddElement(int index, const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);

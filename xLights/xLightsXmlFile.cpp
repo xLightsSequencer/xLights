@@ -25,7 +25,7 @@ xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
 	sequence_loaded(false),
 	audio(NULL)
 {
-    for(int i = 0; i < NUM_TYPES; ++i )
+	for(int i = 0; i < NUM_TYPES; ++i )
     {
         header_info.push_back("");
     }
@@ -177,9 +177,9 @@ void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
     }
 }
 
-void xLightsXmlFile::SetMediaFile( const wxString& filename, bool overwrite_tags )
+void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filename, bool overwrite_tags )
 {
-    media_file = filename;
+    media_file = FixFile(ShowDir, filename);
 
     wxXmlNode* root=seqDocument.GetRoot();
     wxXmlNode* head;
@@ -193,7 +193,7 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename, bool overwrite_tags
             {
                 if( element->GetName() == "mediaFile")
                 {
-                    SetNodeContent(element, filename);
+                    SetNodeContent(element, media_file);
                 }
             }
        }
@@ -817,7 +817,7 @@ void xLightsXmlFile::CreateNew()
     version_string = xlights_version_string;
 }
 
-bool xLightsXmlFile::Open()
+bool xLightsXmlFile::Open(const wxString& ShowDir)
 {
     if( !FileExists() )
         return false;
@@ -829,9 +829,118 @@ bool xLightsXmlFile::Open()
     }
     else if( IsXmlSequence(*this) )
     {
-        return LoadSequence();
+        return LoadSequence(ShowDir);
     }
-    else return false;
+}
+
+wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
+{
+	// This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
+	static wxString RememberShowDir;
+	wxString sd;
+	if (ShowDir == "")
+	{
+		sd = RememberShowDir;
+	}
+	else
+	{
+		if (ShowDir != RememberShowDir)
+		{
+			RememberShowDir = ShowDir;
+		}
+		sd = RememberShowDir;
+	}
+
+	wxString sdlc = sd;
+	sdlc.LowerCase();
+	wxString flc = file;
+	flc.LowerCase();
+
+	if (wxFileExists(file) || file == "")
+	{
+		return file;
+	}
+	else
+	{
+		wxString path;
+		wxString fname;
+		wxString ext;
+		wxSplitPath(sd, &path, &fname, &ext);
+		wxArrayString parts = wxSplit(path, '\\', '\\');
+		if (fname == "")
+		{
+			// no subdirectory
+			return file;
+		}
+
+		wxString showfolder = fname;
+		wxString sflc = showfolder;
+		sflc.LowerCase();
+
+		if (flc.Contains(sflc))
+		{
+			int offset = flc.Find(sflc) + showfolder.Length();
+			wxString relative = sd + file.SubString(offset, file.Length());
+
+			if (wxFileExists(relative))
+			{
+				return relative;
+			}
+		}
+
+		wxString fpath;
+		wxString ffname;
+		wxString fext;
+		wxSplitPath(file, &fpath, &ffname, &fext);
+		wxArrayString fparts = wxSplit(fpath, '\\', '\\');
+		if (fparts.Count() == 0)
+		{
+			fparts = wxSplit(fpath, '/', '/');
+		}
+
+		int foundindex = -1;
+		int i = 0;
+		while (foundindex < 0 && i < fparts.Count())
+		{
+			wxString fpartlc = fparts[i];
+			fpartlc.LowerCase();
+
+			if (fpartlc == sflc)
+			{
+				foundindex = i;
+			}
+			i++;
+		}
+
+		for (i = fparts.Count() - 1; i > foundindex; i--)
+		{
+			wxString testfile = sd + "/";
+			for (int j = foundindex + 1; j <= i; j++)
+			{
+				testfile = testfile + fparts[j] + "/";
+			}
+			testfile = testfile + ffname + fext;
+
+			if (wxFileExists(testfile))
+			{
+				return testfile;
+			}
+		}
+	}
+
+	return file;
+}
+
+wxString xLightsXmlFile::FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir)
+{
+	int startparamname = parametervalue.Find(paramname);
+	int endparamname = parametervalue.find("=", startparamname) - 1;
+	int startvalue = endparamname + 2;
+	int endvalue = parametervalue.find(",", startvalue) - 1;
+	wxString file = parametervalue.SubString(startvalue, endvalue);
+	wxString newfile = FixFile(ShowDir, file);
+	wxString rc = parametervalue.Left(startvalue) + newfile + parametervalue.Right(parametervalue.Length() - endvalue - 1);
+	return rc;
 }
 
 bool xLightsXmlFile::LoadV3Sequence()
@@ -1051,7 +1160,7 @@ void xLightsXmlFile::ConvertToFixedPointTiming()
     }
 }
 
-bool xLightsXmlFile::LoadSequence()
+bool xLightsXmlFile::LoadSequence(const wxString& ShowDir)
 {
     if( !seqDocument.Load(GetFullPath())) return false;
 
@@ -1117,7 +1226,7 @@ bool xLightsXmlFile::LoadSequence()
                 }
                 else if( element->GetName() == "mediaFile")
                 {
-                    media_file = element->GetNodeContent();
+                    media_file = FixFile(ShowDir, element->GetNodeContent());
                     wxFileName mf = media_file;
 					if (audio != NULL)
 					{
@@ -1135,7 +1244,7 @@ bool xLightsXmlFile::LoadSequence()
                 }
                 else if( element->GetName() == "imageDir")
                 {
-                    image_dir = element->GetNodeContent();
+                    image_dir = FixFile(ShowDir, element->GetNodeContent());
                 }
             }
        }

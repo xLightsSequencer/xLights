@@ -1,4 +1,5 @@
 #include "ModelFaceDialog.h"
+#include "xLightsXmlFile.h"
 
 //(*InternalHeaders(ModelFaceDialog)
 #include <wx/string.h>
@@ -455,6 +456,15 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
                 info["Type"] = "Matrix";
             }
         }
+
+		for (std::map<std::string, std::string>::iterator it = info.begin(); it != info.end(); ++it)
+		{
+			if (it->first.substr(0, 5) == "Mouth")
+			{
+				it->second = xLightsXmlFile::FixFile("", it->second);
+			}
+		}
+
         faceData[name] = info;
     }
 

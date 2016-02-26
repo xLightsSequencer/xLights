@@ -12,7 +12,7 @@
 #include "../EffectIconPanel.h"
 #include "Element.h"
 #include "Effect.h"
-#include "BufferPanel.h"
+#include "../BufferPanel.h"
 #include "../SeqSettingsDialog.h"
 #include "../DisplayElementsPanel.h"
 #include "../effects/RenderableEffect.h"
@@ -360,7 +360,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     mSequenceElements.SetModelsNode(ModelsNode);
     mSequenceElements.SetEffectsNode(EffectsNode);
-    mSequenceElements.LoadSequencerFile(xml_file);
+    mSequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
     xml_file.AdjustEffectSettingsForVersion(mSequenceElements, this);
     mSequenceElements.PopulateRowInformation();
 

@@ -1146,7 +1146,7 @@ void SeqSettingsDialog::MediaChooser()
         wxString filename = OpenDialog->GetFilename();
         wxFileName name_and_path(filename);
         name_and_path.SetPath(fDir);
-        xml_file->SetMediaFile(name_and_path.GetFullPath(), CheckBox_Overwrite_Tags->IsChecked());
+        xml_file->SetMediaFile(xLightsParent->GetShowDirectory(), name_and_path.GetFullPath(), CheckBox_Overwrite_Tags->IsChecked());
         TextCtrl_Xml_Media_File->SetValue(name_and_path.GetFullPath());
         TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
         TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
