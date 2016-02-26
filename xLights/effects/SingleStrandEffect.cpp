@@ -469,11 +469,11 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                         int y = 0;
                         int mirrorx = buffer.BufferWi*buffer.BufferHt - new_x - 1;
                         int mirrory = 0;
-                        while (new_x > buffer.BufferWi) {
+                        while (new_x >= buffer.BufferWi) {
                             y++;
                             new_x -= buffer.BufferWi;
                         }
-                        while (mirrorx > buffer.BufferWi) {
+                        while (mirrorx >= buffer.BufferWi) {
                             mirrory++;
                             mirrorx -= buffer.BufferWi;
                         }

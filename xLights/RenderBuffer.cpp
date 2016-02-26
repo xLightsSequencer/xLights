@@ -832,17 +832,6 @@ double RenderBuffer::GetEffectTimeIntervalPosition()
     return retval;
 }
 
-void RenderBuffer::SetFadeTimes(float fadeInDuration, float fadeOutDuration )
-{
-    fadeinsteps = (int)(fadeInDuration*1000)/frameTimeInMs;
-    fadeoutsteps = (int)(fadeOutDuration*1000)/frameTimeInMs;
-}
-void RenderBuffer::GetFadeSteps( int& fadeInSteps, int& fadeOutSteps)
-{
-    fadeInSteps = fadeinsteps;
-    fadeOutSteps = fadeoutsteps;
-}
-
 void RenderBuffer::SetEffectDuration(int startMsec, int endMsec)
 {
     curEffStartPer = startMsec / frameTimeInMs;

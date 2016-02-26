@@ -178,7 +178,7 @@ const double PI = 3.141592653589793238463;
 bool TransitionEffect::isLeft(wxPoint aa, float slope, wxPoint test) {
 	// aa contains the current x value and the buffer height
 	// test is the point we are testing
-	int extrax = abs(aa.y / slope);
+	int extrax = std::abs(aa.y / slope);
 	wxPoint a(0, 0);
 	wxPoint b(0, 0);
 	if (slope < 0)
@@ -200,7 +200,7 @@ void TransitionEffect::RenderWipe(RenderBuffer &buffer, bool mode, float& lastva
 	float angle = PI * (float)adjust / 100.0;
 
 	float slope = tan(angle);
-	int extrax = abs(buffer.BufferHt / slope);
+    float extrax = std::abs(buffer.BufferHt / slope);
 	if (lastvalue == -99999)
 	{
 		lastvalue = 0;

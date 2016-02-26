@@ -4,10 +4,10 @@
 
 
 //(*Headers(TopEffectsPanel)
-#include <wx/bmpbuttn.h>
 #include <wx/sizer.h>
-#include <wx/button.h>
 #include <wx/panel.h>
+#include <wx/bmpbuttn.h>
+#include <wx/button.h>
 //*)
 
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
@@ -24,10 +24,10 @@ class TopEffectsPanel: public wxPanel
 		void SetDragIconBuffer(const wxBitmap &buffer);
 
 		//(*Declarations(TopEffectsPanel)
-		DragEffectBitmapButton* BitmapButtonSelectedEffect;
 		wxFlexGridSizer* EffectSizer;
-		wxButton* ButtonUpdateEffect;
 		wxFlexGridSizer* MainSizer;
+		DragEffectBitmapButton* BitmapButtonSelectedEffect;
+		wxButton* ButtonUpdateEffect;
 		//*)
 
 

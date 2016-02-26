@@ -347,6 +347,9 @@ static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> 
 
 void xLightsFrame::UpdateModelsList()
 {
+    playModel = nullptr;
+    PreviewModels.clear();
+
     AllModels.LoadModels(ModelsNode, NetInfo,
                          modelPreview->GetVirtualCanvasWidth(),
                          modelPreview->GetVirtualCanvasHeight());
@@ -437,7 +440,6 @@ void xLightsFrame::UpdateModelsList()
 
     wxString msg;
     ListBoxElementList->DeleteAllItems();
-    PreviewModels.clear();
     
     
     std::set<std::string> modelsAdded;

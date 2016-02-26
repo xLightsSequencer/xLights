@@ -21,12 +21,23 @@ const long TimingPanel::ID_CHOICE_LayerMethod = wxNewId();
 const long TimingPanel::ID_SLIDER_EffectLayerMix = wxNewId();
 const long TimingPanel::IDD_TEXTCTRL_EffectLayerMix = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_SLIDER_EffectLayerMix = wxNewId();
+const long TimingPanel::ID_CHOICE_In_Transition_Type = wxNewId();
 const long TimingPanel::ID_STATICTEXT2 = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadein = wxNewId();
-const long TimingPanel::ID_BITMAPBUTTON_TEXTCTRL_Fadein = wxNewId();
-const long TimingPanel::ID_STATICTEXT3 = wxNewId();
+const long TimingPanel::ID_STATICTEXT1 = wxNewId();
+const long TimingPanel::ID_SLIDER_In_Transition_Adjust = wxNewId();
+const long TimingPanel::IDD_TEXTCTRL_In_Transition_Adjust = wxNewId();
+const long TimingPanel::ID_CHECKBOX_In_Transition_Reverse = wxNewId();
+const long TimingPanel::ID_PANEL2 = wxNewId();
+const long TimingPanel::ID_CHOICE_Out_Transition_Type = wxNewId();
+const long TimingPanel::ID_STATICTEXT4 = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadeout = wxNewId();
-const long TimingPanel::ID_BITMAPBUTTON_TEXTCTRL_Fadeout = wxNewId();
+const long TimingPanel::ID_STATICTEXT5 = wxNewId();
+const long TimingPanel::ID_SLIDER_Out_Transition_Adjust = wxNewId();
+const long TimingPanel::IDD_TEXTCTRL_Out_Transition_Adjust = wxNewId();
+const long TimingPanel::ID_CHECKBOX_Out_Transition_Reverse = wxNewId();
+const long TimingPanel::ID_PANEL3 = wxNewId();
+const long TimingPanel::IDD_NOTEBOOK1 = wxNewId();
 const long TimingPanel::ID_SCROLLEDWINDOW1 = wxNewId();
 const long TimingPanel::ID_PANEL1 = wxNewId();
 //*)
@@ -40,15 +51,20 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 {
 	//(*Initialize(TimingPanel)
 	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxPanel* Panel1;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText1;
-	wxBitmapButton* BitmapButton1;
-	wxBitmapButton* BitmapButtonBufferStyle;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer13;
+	wxFlexGridSizer* FlexGridSizer12;
 	wxFlexGridSizer* FlexGridSizer6;
+	wxPanel* Panel2;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxStaticText* StaticText4;
+	wxFlexGridSizer* FlexGridSizer11;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(301,262), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -101,27 +117,90 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButton_EffectLayerMix->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_EffectLayerMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText2 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT2, _("Fade In"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	TextCtrl_Fadein = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_Fadein, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadein"));
-	TextCtrl_Fadein->SetMaxLength(4);
-	FlexGridSizer2->Add(TextCtrl_Fadein, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_FadeOut = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_TEXTCTRL_Fadein, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Fadein"));
-	BitmapButton_FadeOut->SetDefault();
-	BitmapButton_FadeOut->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	BitmapButton_FadeOut->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
-	FlexGridSizer2->Add(BitmapButton_FadeOut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	StaticText3 = new wxStaticText(ScrolledWindowTiming, ID_STATICTEXT3, _("Fade Out"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	TextCtrl_Fadeout = new wxTextCtrl(ScrolledWindowTiming, ID_TEXTCTRL_Fadeout, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadeout"));
-	TextCtrl_Fadeout->SetMaxLength(4);
-	FlexGridSizer2->Add(TextCtrl_Fadeout, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_FadeIn = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_TEXTCTRL_Fadeout, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Fadeout"));
-	BitmapButton_FadeIn->SetDefault();
-	BitmapButton_FadeIn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	BitmapButton_FadeIn->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
-	FlexGridSizer2->Add(BitmapButton_FadeIn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer5->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+	Notebook1 = new wxNotebook(ScrolledWindowTiming, IDD_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK1"));
+	Panel1 = new wxPanel(Notebook1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer6->AddGrowableCol(0);
+	FlexGridSizer10 = new wxFlexGridSizer(0, 4, 0, 0);
+	Choice_In_Transition_Type = new wxChoice(Panel1, ID_CHOICE_In_Transition_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_In_Transition_Type"));
+	Choice_In_Transition_Type->SetSelection( Choice_In_Transition_Type->Append(_("Fade")) );
+	Choice_In_Transition_Type->Append(_("Wipe"));
+	Choice_In_Transition_Type->Append(_("Clockwise"));
+	Choice_In_Transition_Type->Append(_("From Middle"));
+	Choice_In_Transition_Type->Append(_("Square Explode"));
+	Choice_In_Transition_Type->Append(_("Circle Explode"));
+	Choice_In_Transition_Type->Append(_("Blinds"));
+	Choice_In_Transition_Type->Append(_("Blend"));
+	Choice_In_Transition_Type->Append(_("Slide Checks"));
+	Choice_In_Transition_Type->Append(_("Slide Bars"));
+	FlexGridSizer10->Add(Choice_In_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT2, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer10->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	TextCtrl_Fadein = new wxTextCtrl(Panel1, ID_TEXTCTRL_Fadein, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadein"));
+	TextCtrl_Fadein->SetMaxLength(4);
+	FlexGridSizer10->Add(TextCtrl_Fadein, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer6->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 1);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer11->AddGrowableCol(1);
+	InAdjustmentText = new wxStaticText(Panel1, ID_STATICTEXT1, _("Adjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer11->Add(InAdjustmentText, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_In_Adjust = new wxSlider(Panel1, ID_SLIDER_In_Transition_Adjust, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_In_Transition_Adjust"));
+	FlexGridSizer11->Add(Slider_In_Adjust, 1, wxALL|wxEXPAND, 1);
+	TextCtrl_In_Adjust = new wxTextCtrl(Panel1, IDD_TEXTCTRL_In_Transition_Adjust, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_In_Transition_Adjust"));
+	FlexGridSizer11->Add(TextCtrl_In_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer6->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 1);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer7->AddGrowableCol(0);
+	CheckBox_In_Reverse = new wxCheckBox(Panel1, ID_CHECKBOX_In_Transition_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_In_Transition_Reverse"));
+	CheckBox_In_Reverse->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_In_Reverse, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 1);
+	Panel1->SetSizer(FlexGridSizer6);
+	FlexGridSizer6->Fit(Panel1);
+	FlexGridSizer6->SetSizeHints(Panel1);
+	Panel2 = new wxPanel(Notebook1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
+	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer8->AddGrowableCol(0);
+	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
+	Choice_Out_Transition_Type = new wxChoice(Panel2, ID_CHOICE_Out_Transition_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Out_Transition_Type"));
+	Choice_Out_Transition_Type->SetSelection( Choice_Out_Transition_Type->Append(_("Fade")) );
+	Choice_Out_Transition_Type->Append(_("Wipe"));
+	Choice_Out_Transition_Type->Append(_("Clockwise"));
+	Choice_Out_Transition_Type->Append(_("From Middle"));
+	Choice_Out_Transition_Type->Append(_("Square Explode"));
+	Choice_Out_Transition_Type->Append(_("Circle Explode"));
+	Choice_Out_Transition_Type->Append(_("Blinds"));
+	Choice_Out_Transition_Type->Append(_("Blend"));
+	Choice_Out_Transition_Type->Append(_("Slide Checks"));
+	Choice_Out_Transition_Type->Append(_("Slide Bars"));
+	FlexGridSizer12->Add(Choice_Out_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText4 = new wxStaticText(Panel2, ID_STATICTEXT4, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer12->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	TextCtrl_Fadeout = new wxTextCtrl(Panel2, ID_TEXTCTRL_Fadeout, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadeout"));
+	TextCtrl_Fadeout->SetMaxLength(4);
+	FlexGridSizer12->Add(TextCtrl_Fadeout, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer8->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 1);
+	FlexGridSizer9 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer9->AddGrowableCol(1);
+	OutAdjustmentText = new wxStaticText(Panel2, ID_STATICTEXT5, _("Adjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer9->Add(OutAdjustmentText, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_Out_Adjust = new wxSlider(Panel2, ID_SLIDER_Out_Transition_Adjust, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Out_Transition_Adjust"));
+	FlexGridSizer9->Add(Slider_Out_Adjust, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_Out_Adjust = new wxTextCtrl(Panel2, IDD_TEXTCTRL_Out_Transition_Adjust, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Out_Transition_Adjust"));
+	FlexGridSizer9->Add(TextCtrl_Out_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer8->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 1);
+	FlexGridSizer13 = new wxFlexGridSizer(0, 3, 0, 0);
+	CheckBox_Out_Reverse = new wxCheckBox(Panel2, ID_CHECKBOX_Out_Transition_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Out_Transition_Reverse"));
+	CheckBox_Out_Reverse->SetValue(false);
+	FlexGridSizer13->Add(CheckBox_Out_Reverse, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer8->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 1);
+	Panel2->SetSizer(FlexGridSizer8);
+	FlexGridSizer8->Fit(Panel2);
+	FlexGridSizer8->SetSizeHints(Panel2);
+	Notebook1->AddPage(Panel1, _("In Transition"), false);
+	Notebook1->AddPage(Panel2, _("Out Transition"), false);
+	FlexGridSizer5->Add(Notebook1, 1, wxALL|wxEXPAND, 0);
 	ScrolledWindowTiming->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(ScrolledWindowTiming);
 	FlexGridSizer5->SetSizeHints(ScrolledWindowTiming);
@@ -138,8 +217,14 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(ID_SLIDER_EffectLayerMix,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
 	Connect(IDD_TEXTCTRL_EffectLayerMix,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_EffectLayerMix,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadein,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadeout,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
+	Connect(ID_CHOICE_In_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
+	Connect(ID_TEXTCTRL_Fadein,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::OnEffectTimeChange);
+	Connect(ID_SLIDER_In_Transition_Adjust,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
+	Connect(IDD_TEXTCTRL_In_Transition_Adjust,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
+	Connect(ID_CHOICE_Out_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
+	Connect(ID_TEXTCTRL_Fadeout,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::OnEffectTimeChange);
+	Connect(ID_SLIDER_Out_Transition_Adjust,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
+	Connect(IDD_TEXTCTRL_Out_Transition_Adjust,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
 	//*)
 }
@@ -174,6 +259,17 @@ void TimingPanel::SetDefaultControls(const Model *model) {
     Slider_EffectLayerMix->SetValue(0);
     TextCtrl_Fadein->SetValue("0.00");
     TextCtrl_Fadeout->SetValue("0.00");
+
+    Choice_In_Transition_Type->SetSelection(0);
+    Choice_Out_Transition_Type->SetSelection(0);
+    CheckBox_In_Reverse->SetValue(false);
+    CheckBox_In_Reverse->Enable(false);
+    CheckBox_Out_Reverse->SetValue(false);
+    CheckBox_Out_Reverse->Enable(false);
+    Slider_Out_Adjust->Enable(false);
+    Slider_In_Adjust->Enable(false);
+    TextCtrl_In_Adjust->Enable(false);
+    TextCtrl_Out_Adjust->Enable(false);
 }
 
 wxString TimingPanel::GetTimingString()
@@ -192,13 +288,23 @@ wxString TimingPanel::GetTimingString()
     if (Slider_EffectLayerMix->GetValue() != 0) {
         s += wxString::Format("T_SLIDER_EffectLayerMix=%d,",Slider_EffectLayerMix->GetValue());
     }
-
     // Fade in
     if ("" != TextCtrl_Fadein->GetValue()
         && "0" != TextCtrl_Fadein->GetValue()
         && "0.0" != TextCtrl_Fadein->GetValue()
         && "0.00" != TextCtrl_Fadein->GetValue()) {
         s+="T_TEXTCTRL_Fadein=" + TextCtrl_Fadein->GetValue() + ",";
+        if (Choice_In_Transition_Type->GetSelection() > 0) {
+            s+="T_CHOICE_In_Transition_Type=";
+            s+=Choice_In_Transition_Type->GetStringSelection();
+            s+=",";
+        }
+        if (CheckBox_In_Reverse->IsEnabled() && CheckBox_In_Reverse->GetValue()) {
+            s+="T_CHECKBOX_In_Transition_Reverse=1,";
+        }
+        if (Slider_In_Adjust->IsEnabled()) {
+            s+=wxString::Format("T_SLIDER_In_Transition_Adjust=%d,", Slider_In_Adjust->GetValue());
+        }
     }
     // Fade Out
     if ("" != TextCtrl_Fadeout->GetValue()
@@ -206,6 +312,17 @@ wxString TimingPanel::GetTimingString()
         && "0.0" != TextCtrl_Fadeout->GetValue()
         && "0.00" != TextCtrl_Fadeout->GetValue()) {
         s += "T_TEXTCTRL_Fadeout=" + TextCtrl_Fadeout->GetValue() + ",";
+        if (Choice_Out_Transition_Type->GetSelection() > 0) {
+            s+="T_CHOICE_Out_Transition_Type=";
+            s+=Choice_Out_Transition_Type->GetStringSelection();
+            s+=",";
+        }
+        if (CheckBox_Out_Reverse->IsEnabled() && CheckBox_Out_Reverse->GetValue()) {
+            s+="T_CHECKBOX_Out_Transition_Reverse=1,";
+        }
+        if (Slider_Out_Adjust->IsEnabled()) {
+            s+=wxString::Format("T_SLIDER_Out_Transition_Adjust=%d,", Slider_Out_Adjust->GetValue());
+        }
     }
     return s;
 }
@@ -215,3 +332,52 @@ wxString TimingPanel::GetTimingString()
 PANEL_EVENT_HANDLERS(TimingPanel)
 
 
+
+void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
+{
+    if (Choice_In_Transition_Type->GetStringSelection() == "Wipe" ||
+        Choice_In_Transition_Type->GetStringSelection() == "Fade" ||
+        Choice_In_Transition_Type->GetStringSelection() == "Blinds" ||
+        Choice_In_Transition_Type->GetStringSelection() == "Slide Checks" ||
+        Choice_In_Transition_Type->GetStringSelection() == "Slide Bars" ||
+        Choice_In_Transition_Type->GetStringSelection() == "Blend") {
+        CheckBox_In_Reverse->Disable();
+    } else {
+        CheckBox_In_Reverse->Enable();
+    }
+    if (Choice_In_Transition_Type->GetStringSelection() == "Fade" ||
+        Choice_In_Transition_Type->GetStringSelection() == "From Middle" ||
+        Choice_In_Transition_Type->GetStringSelection() == "Square Explode" ||
+        Choice_In_Transition_Type->GetStringSelection() == "Circle Explode") {
+        Slider_In_Adjust->Disable();
+        TextCtrl_In_Adjust->Disable();
+    } else {
+        Slider_In_Adjust->Enable();
+        TextCtrl_In_Adjust->Enable();
+    }
+
+    if (Choice_Out_Transition_Type->GetStringSelection() == "Wipe" ||
+        Choice_Out_Transition_Type->GetStringSelection() == "Fade" ||
+        Choice_Out_Transition_Type->GetStringSelection() == "Blinds" ||
+        Choice_Out_Transition_Type->GetStringSelection() == "Slide Checks" ||
+        Choice_Out_Transition_Type->GetStringSelection() == "Slide Bars" ||
+        Choice_Out_Transition_Type->GetStringSelection() == "Blend") {
+        CheckBox_Out_Reverse->Disable();
+    } else {
+        CheckBox_Out_Reverse->Enable();
+    }
+    if (Choice_Out_Transition_Type->GetStringSelection() == "Fade" ||
+        Choice_Out_Transition_Type->GetStringSelection() == "From Middle" ||
+        Choice_Out_Transition_Type->GetStringSelection() == "Square Explode" ||
+        Choice_Out_Transition_Type->GetStringSelection() == "Circle Explode") {
+        Slider_Out_Adjust->Disable();
+        TextCtrl_Out_Adjust->Disable();
+    } else {
+        Slider_Out_Adjust->Enable();
+        TextCtrl_Out_Adjust->Enable();
+    }
+}
+
+void TimingPanel::OnEffectTimeChange(wxCommandEvent& event)
+{
+}

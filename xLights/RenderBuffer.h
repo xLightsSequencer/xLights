@@ -168,8 +168,6 @@ public:
     RenderBuffer(bool onlyOnMain);
     ~RenderBuffer();
     void InitBuffer(int newBufferHt, int newBufferWi);
-    void SetFadeTimes(float fadeIn, float fadeOut);
-    void GetFadeSteps(int& fadeInSteps, int& fadeOutSteps);
 	AudioManager* GetMedia();
 
     void Clear(const xlColor& bgColor);

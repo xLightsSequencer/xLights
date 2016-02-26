@@ -77,6 +77,12 @@ private:
             effectMixThreshold = 0.0;
             effectMixVaries = false;
             BufferHt = BufferWi = 0;
+            persistent = false;
+
+            fadeInSteps = fadeOutSteps = 0;
+            inTransitionAdjust = outTransitionAdjust = 0;
+            inTransitionReverse = outTransitionReverse = false;
+            lastmaskvalue = -99999;
         }
         RenderBuffer buffer;
         std::string bufferType;
@@ -96,6 +102,26 @@ private:
         MixTypes mixType;
         float effectMixThreshold;
         bool effectMixVaries;
+        bool persistent;
+        int fadeInSteps;
+        int fadeOutSteps;
+        std::string inTransitionType;
+        std::string outTransitionType;
+        int inTransitionAdjust;
+        int outTransitionAdjust;
+        bool inTransitionReverse;
+        bool outTransitionReverse;
+        float inMaskFactor;
+        float outMaskFactor;
+        
+        std::vector<uint8_t> mask;
+        float lastmaskvalue;
+        void calculateMask();
+        void calculateMask(const std::string &type, bool mode);
+        bool isMasked(int x, int y);
+        
+    private:
+        void createSquareExplodeMask(bool reveal);
     };
 
     PixelBufferClass(const PixelBufferClass &cls);
@@ -141,22 +167,16 @@ public:
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
 
     void Clear(int which);
-    // not used: size_t GetColorCount(int layer);
+    
+    void SetLayerSettings(int layer, const SettingsMap &settings);
+    bool IsPersistent(int layer);
+    
     void SetMixType(int layer, const std::string& MixName);
     void SetPalette(int layer, xlColorVector& newcolors);
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
-    void SetFadeTimes(int layer, float inTime, float outTime);
-	void SetSparkle(int layer, int freq);
-	void SetBlur(int layer, int blur);
-	void SetRotoZoom(int layer, int RotoZoom, int ZoomCycles, int ZoomRotation, int ZoomInOut);
-	void SetBrightness(int layer, int value);
-    void SetContrast(int layer, int value);
-    void SetMixThreshold(int layer, int value, bool varies);
-    void SetBufferType(int layer, const std::string &type, const std::string &transform);
 
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers);
-
     void SetColors(int layer, const unsigned char *fdata);
 };
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;

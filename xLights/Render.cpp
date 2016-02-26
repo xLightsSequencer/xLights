@@ -18,30 +18,8 @@
 #define END_OF_RENDER_FRAME INT_MAX
 
 
-static const std::string SLIDER_SparkleFrequency("SLIDER_SparkleFrequency");
-static const std::string SLIDER_Brightness("SLIDER_Brightness");
-static const std::string SLIDER_Contrast("SLIDER_Contrast");
-static const std::string CHOICE_LayerMethod("CHOICE_LayerMethod");
-static const std::string SLIDER_EffectLayerMix("SLIDER_EffectLayerMix");
-static const std::string CHECKBOX_LayerMorph("CHECKBOX_LayerMorph");
-static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
-static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
-static const std::string SLIDER_EffectBlur("SLIDER_EffectBlur");
-
-
-static const std::string CHECKBOX_RotoZoom("CHECKBOX_RotoZoom");
-static const std::string SLIDER_ZoomCycles("SLIDER_ZoomCycles");
-static const std::string SLIDER_ZoomRotation("SLIDER_ZoomRotation");
-static const std::string SLIDER_ZoomInOut("SLIDER_ZoomInOut");
-
-static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
-static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
-static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
-static const std::string STR_DEFAULT("Default");
 
 //other common strings
-static const std::string STR_NORMAL("Normal");
-static const std::string STR_NONE("None");
 static const std::string STR_EMPTY("");
 
 
@@ -396,7 +374,7 @@ public:
                         initialize(layer, frame, el, settingsMaps[layer], mainBuffer);
                         effectStates[layer] = true;
                     }
-                    bool persist = settingsMaps[layer].GetBool(CHECKBOX_OverlayBkg);
+                    bool persist = mainBuffer->IsPersistent(layer);
                     if (!persist || currentEffects[layer] == nullptr || currentEffects[layer]->GetEffectIndex() == -1) {
                         mainBuffer->Clear(layer);
                     }
@@ -432,7 +410,7 @@ public:
                             initialize(0, frame, el, strandSettingsMaps[strand], buffer);
                             strandEffectStates[strand] = true;
                         }
-                        bool persist=strandSettingsMaps[strand].GetBool(CHECKBOX_OverlayBkg);
+                        bool persist=buffer->IsPersistent(0);
                         if (!persist || strandEffects[strand] == nullptr || strandEffects[strand]->GetEffectIndex() == -1) {
                             buffer->Clear(0);
                         }
@@ -475,7 +453,7 @@ public:
                             initialize(0, frame, el, nodeSettingsMaps[node], buffer);
                             nodeEffectStates[node] = true;
                         }
-                        bool persist=nodeSettingsMaps[node].GetBool(CHECKBOX_OverlayBkg);
+                        bool persist=buffer->IsPersistent(0);
                         if (!persist || nodeEffects[node] == nullptr || nodeEffects[node]->GetEffectIndex() == -1) {
                             buffer->Clear(0);
                         }
@@ -533,7 +511,7 @@ private:
                             settingsMap);
         }
         updateBufferPaletteFromMap(layer, el, buffer);
-        updateBufferFromMap(layer, settingsMap, buffer);
+        buffer->SetLayerSettings(layer, settingsMap);
 
         if (el != NULL) {
             buffer->SetTimes(layer, el->GetStartTimeMS(), el->GetEndTimeMS());
@@ -546,39 +524,6 @@ private:
             effect->CopyPalette(newcolors);
         }
         buffer->SetPalette(layer, newcolors);
-    }
-    void updateBufferFromMap(int layer, SettingsMap& settingsMap, PixelBufferClass *buffer) {
-        double fadeIn, fadeOut;
-        fadeIn = settingsMap.GetDouble(TEXTCTRL_Fadein, 0.0);
-        fadeOut = settingsMap.GetDouble(TEXTCTRL_Fadeout, 0.0);
-        buffer->SetFadeTimes(layer, fadeIn, fadeOut);
-
-		int effectBlur = settingsMap.GetInt(SLIDER_EffectBlur, 1);
-		buffer->SetBlur(layer, effectBlur);
-
-
-		int effectRotoZoom = settingsMap.GetInt(CHECKBOX_RotoZoom, 0) ;
-		int effectZoomCycles = settingsMap.GetInt(SLIDER_ZoomCycles, 1);
-		int effectZoomRotation = settingsMap.GetInt(SLIDER_ZoomRotation, 0);
-		int effectZoomInOut = settingsMap.GetInt(SLIDER_ZoomInOut, 0);
-		buffer->SetRotoZoom(layer, effectRotoZoom, effectZoomCycles, effectZoomRotation, effectZoomInOut);
-
-
-        int freq=settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
-        buffer->SetSparkle(layer, freq);
-
-        int brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
-        buffer->SetBrightness(layer, brightness);
-
-        int contrast=settingsMap.GetInt(SLIDER_Contrast, 0);
-        buffer->SetContrast(layer, contrast);
-        buffer->SetMixType(layer, settingsMap.Get(CHOICE_LayerMethod, STR_NORMAL));
-        int effectMixThreshold=settingsMap.GetInt(SLIDER_EffectLayerMix, 0);
-        buffer->SetMixThreshold(layer, effectMixThreshold, settingsMap.GetInt(CHECKBOX_LayerMorph, 0) != 0); //allow threshold to vary -DJ
-
-        buffer->SetBufferType(layer,
-                              settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT),
-                              settingsMap.Get(CHOICE_BufferTransform, STR_NONE));
     }
 
     Effect *findEffectForFrame(EffectLayer* layer, int frame) {

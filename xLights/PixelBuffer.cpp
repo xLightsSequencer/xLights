@@ -27,6 +27,7 @@
 #include "DimmingCurve.h"
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
+#include "UtilClasses.h"
 
 PixelBufferClass::PixelBufferClass(bool b)
 {
@@ -452,7 +453,12 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             int x = layers[layer]->Nodes[node]->Coords[0].bufX;
             int y = layers[layer]->Nodes[node]->Coords[0].bufY;
 
-            layers[layer]->buffer.GetPixel(x, y, color);
+            if (layers[layer]->isMasked(x, y)) {
+                color = xlBLACK;
+                color.alpha = 0;
+            } else {
+                layers[layer]->buffer.GetPixel(x, y, color);
+            }
 
             // add sparkles
             if (layers[layer]->sparkle_count > 0 && color != xlBLACK)
@@ -651,50 +657,85 @@ void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors)
     layers[layer]->buffer.SetPalette(newcolors);
 }
 
-// 10-200 or so, or 0 for no sparkle
-void PixelBufferClass::SetSparkle(int layer, int freq)
-{
-    layers[layer]->sparkle_count=freq;
-}
 
-void PixelBufferClass::SetBlur(int layer, int blur)
-{
-    layers[layer]->blur = blur;
-}
+static const std::string CHOICE_LayerMethod("CHOICE_LayerMethod");
+static const std::string SLIDER_EffectLayerMix("SLIDER_EffectLayerMix");
+static const std::string CHECKBOX_LayerMorph("CHECKBOX_LayerMorph");
+static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
+static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
+static const std::string SLIDER_EffectBlur("SLIDER_EffectBlur");
 
-void PixelBufferClass::SetRotoZoom(int layer, int zoom, int ZoomCycles, int ZoomRotation, int ZoomInOut)
-{
-    layers[layer]->RotoZoom = zoom;
-    layers[layer]->ZoomCycles = ZoomCycles;
-    layers[layer]->ZoomRotation = ZoomRotation;
-    layers[layer]->ZoomInOut = ZoomInOut;
-}
 
-void PixelBufferClass::SetBrightness(int layer, int value)
-{
-    layers[layer]->brightness=value;
-}
+static const std::string CHECKBOX_RotoZoom("CHECKBOX_RotoZoom");
+static const std::string SLIDER_ZoomCycles("SLIDER_ZoomCycles");
+static const std::string SLIDER_ZoomRotation("SLIDER_ZoomRotation");
+static const std::string SLIDER_ZoomInOut("SLIDER_ZoomInOut");
 
-void PixelBufferClass::SetContrast(int layer, int value)
-{
-    layers[layer]->contrast=value;
-}
+static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
+static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
+static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
+static const std::string STR_DEFAULT("Default");
 
-void PixelBufferClass::SetMixThreshold(int layer, int value, bool varies)
-{
-    layers[layer]->effectMixThreshold = (float)value/100.0;
-    layers[layer]->effectMixVaries = varies;
-}
-void PixelBufferClass::SetBufferType(int layer, const std::string &type, const std::string &transform)
-{
-    if (layers[layer]->bufferType != type || layers[layer]->bufferTransform != transform)
+static const std::string SLIDER_SparkleFrequency("SLIDER_SparkleFrequency");
+static const std::string SLIDER_Brightness("SLIDER_Brightness");
+static const std::string SLIDER_Contrast("SLIDER_Contrast");
+static const std::string STR_NORMAL("Normal");
+static const std::string STR_NONE("None");
+static const std::string STR_FADE("Fade");
+
+static const std::string CHOICE_In_Transition_Type("CHOICE_In_Transition_Type");
+static const std::string CHOICE_Out_Transition_Type("CHOICE_Out_Transition_Type");
+static const std::string SLIDER_In_Transition_Adjust("SLIDER_In_Transition_Adjust");
+static const std::string SLIDER_Out_Transition_Adjust("SLIDER_Out_Transition_Adjust");
+static const std::string CHECKBOX_In_Transition_Reverse("CHECKBOX_In_Transition_Reverse");
+static const std::string CHECKBOX_Out_Transition_Reverse("CHECKBOX_Out_Transition_Reverse");
+
+void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMap) {
+    LayerInfo *inf = layers[layer];
+    inf->persistent = settingsMap.GetBool(CHECKBOX_OverlayBkg);
+    inf->lastmaskvalue = -99999;
+    inf->mask.clear();
+    
+    inf->fadeInSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadein, 0.0)*1000)/frameTimeInMs;
+    inf->fadeOutSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadeout, 0.0)*1000)/frameTimeInMs;
+    
+    inf->inTransitionType = settingsMap.Get(CHOICE_In_Transition_Type, STR_FADE);
+    inf->outTransitionType = settingsMap.Get(CHOICE_Out_Transition_Type, STR_FADE);
+    inf->inTransitionAdjust = settingsMap.GetInt(SLIDER_In_Transition_Adjust, 0);
+    inf->outTransitionAdjust = settingsMap.GetInt(SLIDER_Out_Transition_Adjust, 0);
+    inf->inTransitionReverse = settingsMap.GetBool(CHECKBOX_In_Transition_Reverse);
+    inf->outTransitionReverse = settingsMap.GetBool(CHECKBOX_Out_Transition_Reverse);
+
+    inf->blur = settingsMap.GetInt(SLIDER_EffectBlur, 1);
+    inf->sparkle_count = settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
+    
+    inf->RotoZoom = settingsMap.GetInt(CHECKBOX_RotoZoom, 0) ;
+    inf->ZoomCycles = settingsMap.GetInt(SLIDER_ZoomCycles, 1);
+    inf->ZoomRotation = settingsMap.GetInt(SLIDER_ZoomRotation, 0);
+    inf->ZoomInOut = settingsMap.GetInt(SLIDER_ZoomInOut, 0);
+    
+    inf->brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
+    inf->contrast=settingsMap.GetInt(SLIDER_Contrast, 0);
+    
+    SetMixType(layer, settingsMap.Get(CHOICE_LayerMethod, STR_NORMAL));
+    
+    inf->effectMixThreshold = (float)settingsMap.GetInt(SLIDER_EffectLayerMix, 0)/100.0;
+    inf->effectMixVaries = settingsMap.GetBool(CHECKBOX_LayerMorph);
+    
+    
+    const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
+    const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
+    if (inf->bufferType != type || inf->bufferTransform != transform)
     {
-        layers[layer]->Nodes.clear();
-        model->InitRenderBufferNodes(type, transform, layers[layer]->Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
-        layers[layer]->bufferType = type;
-        layers[layer]->bufferTransform = transform;
-        layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi);
+        inf->Nodes.clear();
+        model->InitRenderBufferNodes(type, transform, inf->Nodes, inf->BufferWi, inf->BufferHt);
+        inf->bufferType = type;
+        inf->bufferTransform = transform;
+        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi);
     }
+}
+bool PixelBufferClass::IsPersistent(int layer) {
+    return layers[layer]->persistent;
 }
 
 RenderBuffer& PixelBufferClass::BufferForLayer(int layer)
@@ -706,10 +747,7 @@ void PixelBufferClass::SetLayer(int newlayer, int period, bool resetState)
     CurrentLayer=newlayer;
     layers[CurrentLayer]->buffer.SetState(period, resetState, modelName);
 }
-void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime)
-{
-    layers[layer]->buffer.SetFadeTimes(inTime, outTime);
-}
+
 void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 {
     layers[layer]->buffer.SetEffectDuration(startTime, endTime);
@@ -734,7 +772,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 {
     xlColor color;
     HSVValue hsv;
-    int curStep, fadeInSteps, fadeOutSteps;
+    int curStep;
 
     // blur all the layers if necessary ... before the merge?
     for (int layer = 0; layer < numLayers; layer++)
@@ -755,33 +793,48 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     {
         double fadeInFactor=1, fadeOutFactor=1;
         layers[ii]->fadeFactor = 1.0;
-        layers[ii]->buffer.GetFadeSteps( fadeInSteps, fadeOutSteps);
-        if( fadeInSteps > 0 || fadeOutSteps > 0)
+        layers[ii]->inMaskFactor = 1.0;
+        layers[ii]->outMaskFactor = 1.0;
+        if( layers[ii]->fadeInSteps > 0 || layers[ii]->fadeOutSteps > 0)
         {
             int effStartPer, effEndPer;
             layers[ii]->buffer.GetEffectPeriods( effStartPer, effEndPer);
-            if (EffectPeriod < (effStartPer)+fadeInSteps)
+            if (EffectPeriod < (effStartPer)+layers[ii]->fadeInSteps)
             {
                 curStep = EffectPeriod - effStartPer;
-                fadeInFactor = (double)curStep/(double)fadeInSteps;
+                fadeInFactor = (double)curStep/(double)layers[ii]->fadeInSteps;
             }
-            if (EffectPeriod > (effEndPer)-fadeOutSteps)
+            if (EffectPeriod > (effEndPer)-layers[ii]->fadeOutSteps)
             {
-                curStep = EffectPeriod - (effEndPer-fadeOutSteps);
-                fadeOutFactor = 1-(double)curStep/(double)fadeOutSteps;
+                curStep = EffectPeriod - (effEndPer-layers[ii]->fadeOutSteps);
+                fadeOutFactor = 1-(double)curStep/(double)layers[ii]->fadeOutSteps;
             }
-            if(fadeInFactor < 1 && fadeOutFactor < 1)
-            {
-                layers[ii]->fadeFactor = (fadeInFactor+fadeOutFactor)/(double)2.0;
+            //calc fades
+            if (STR_FADE == layers[ii]->inTransitionType) {
+                if (fadeInFactor<1) {
+                    layers[ii]->fadeFactor = fadeInFactor;
+                }
             }
-            else if (fadeInFactor<1)
-            {
-                layers[ii]->fadeFactor = fadeInFactor;
+            if (STR_FADE == layers[ii]->outTransitionType) {
+                if (fadeOutFactor<1) {
+                    if (STR_FADE == layers[ii]->inTransitionType
+                        && fadeInFactor<1) {
+                        layers[ii]->fadeFactor = (fadeInFactor+fadeOutFactor)/(double)2.0;
+                    } else {
+                        layers[ii]->fadeFactor = fadeInFactor;
+                    }
+                }
             }
-            else
-            {
-                layers[ii]->fadeFactor = fadeOutFactor;
+            if (STR_FADE != layers[ii]->inTransitionType) {
+                layers[ii]->inMaskFactor = fadeInFactor;
             }
+            if (STR_FADE != layers[ii]->outTransitionType) {
+                layers[ii]->outMaskFactor = fadeOutFactor;
+            }
+            layers[ii]->calculateMask();
+        } else {
+            layers[ii]->mask.clear();
+            layers[ii]->lastmaskvalue = -99999;
         }
     }
 
@@ -815,4 +868,112 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 }
 
 
+static int DecodeType(const std::string &type)
+{
+    if (type == "Wipe")
+    {
+        return 1;
+    }
+    else if (type == "Clockwise")
+    {
+        return 2;
+    }
+    else if (type == "From Middle")
+    {
+        return 3;
+    }
+    else if (type == "Square Explode")
+    {
+        return 4;
+    }
+    else if (type == "Circle Explode")
+    {
+        return 5;
+    }
+    else if (type == "Blinds")
+    {
+        return 6;
+    }
+    else if (type == "Blend")
+    {
+        return 7;
+    }
+    else if (type == "Slide Checks")
+    {
+        return 8;
+    }
+    else if (type == "Slide Bars")
+    {
+        return 9;
+    }
+    return 1;
+}
+
+void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool mode)
+{
+    bool reverse = inTransitionReverse;
+    float factor = inMaskFactor;
+    if (mode) {
+        reverse = outTransitionReverse;
+        factor = outMaskFactor;
+    }
+
+    uint8_t m1 = 255;
+    uint8_t m2 = 0;
+    
+    if (reverse) {
+        factor = 1.0 - factor;
+    }
+    
+    float step = std::max(((float)BufferWi / 2.0), ((float)BufferHt / 2.0)) * (float)factor;
+    
+    int x1 = BufferWi / 2 - step;
+    int x2 = BufferWi / 2 + step;
+    int y1 = BufferHt / 2 - step;
+    int y2 = BufferHt / 2 + step;
+    for (int x = 0; x < BufferWi; x++) {
+        for (int y = 0; y < BufferHt; y++) {
+            uint8_t c;
+            if (x < x1 || x > x2 || y < y1 || y > y2) {
+                c = m1;
+            } else {
+                c = m2;
+            }
+            mask[x * BufferHt + y] = c;
+        }
+    }
+}
+void PixelBufferClass::LayerInfo::calculateMask() {
+    bool hasMask = false;
+    if (inMaskFactor < 1.0) {
+        mask.resize(BufferHt * BufferWi);
+        calculateMask(inTransitionType, false);
+        hasMask = true;
+    }
+    if (outMaskFactor < 1.0) {
+        mask.resize(BufferHt * BufferWi);
+        calculateMask(outTransitionType, true);
+        hasMask = true;
+    }
+    if (!hasMask) {
+        lastmaskvalue = -99999;
+        mask.clear();
+    }
+}
+void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mode) {
+    switch (DecodeType(type)) {
+        case 4:
+            createSquareExplodeMask(mode);
+            break;
+        default:
+            break;
+    }
+}
+bool PixelBufferClass::LayerInfo::isMasked(int x, int y) {
+    int idx = x*BufferHt + y;
+    if (idx < mask.size()) {
+        return mask[x*BufferHt + y];
+    }
+    return false;
+}
 
