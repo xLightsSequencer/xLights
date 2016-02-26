@@ -1,4 +1,5 @@
 #include "ModelDimmingCurveDialog.h"
+#include "xLightsXmlFile.h"
 
 //(*InternalHeaders(ModelDimmingCurveDialog)
 #include <wx/button.h>
@@ -442,9 +443,9 @@ void ModelDimmingCurveDialog::OnRGBTextCtrlText(wxCommandEvent& event)
 
 void ModelDimmingCurveDialog::OnRGBFilePickerFileChanged(wxFileDirPickerEvent& event)
 {
-    redDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(RGBRedFilePicker->GetPath()), 0);
-    greenDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(RGBGreenFilePicker->GetPath()), 0);
-    blueDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(RGBBlueFilePicker->GetPath()), 0);
+    redDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("",RGBRedFilePicker->GetPath())), 0);
+    greenDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("", RGBGreenFilePicker->GetPath())), 0);
+    blueDCPanel->SetDimmingCurve(DimmingCurve::createFromFile(xLightsXmlFile::FixFile("", RGBBlueFilePicker->GetPath())), 0);
 }
 
 void ModelDimmingCurveDialog::OnSingleFilePickerFileChanged(wxFileDirPickerEvent& event)

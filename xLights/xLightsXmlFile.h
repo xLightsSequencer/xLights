@@ -49,7 +49,7 @@ class xLightsXmlFile : public wxFileName
         static const wxString ERASE_MODE;
         static const wxString CANVAS_MODE;
 
-        bool Open();
+        bool Open(const wxString& ShowDir);
 
         void Save( SequenceElements& elements);
         wxXmlDocument& GetXmlDocument() { return seqDocument; }
@@ -64,6 +64,9 @@ class xLightsXmlFile : public wxFileName
         void SetSequenceDurationMS(int length);
         void SetSequenceDuration(const wxString& length);
         void SetSequenceDuration(double length);
+		
+		static wxString FixFile(const wxString& ShowDir, const wxString& file);
+		static wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 
         const wxString &GetSequenceTiming() const { return seq_timing; }
 		void SetSequenceTiming(const wxString& timing);
@@ -76,7 +79,7 @@ class xLightsXmlFile : public wxFileName
         //const wxString GetMediaFile() const { return media_file; }
 		AudioManager* GetMedia() const { return audio; }
 		const wxString &GetMediaFile() const { return media_file; }
-		void SetMediaFile( const wxString& filename, bool overwrite_tags );
+		void SetMediaFile(const wxString& ShowDir, const wxString& filename, bool overwrite_tags );
 
         wxString GetHeaderInfo(HEADER_INFO_TYPES node_type) { return header_info[node_type]; }
         void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);
@@ -124,7 +127,7 @@ class xLightsXmlFile : public wxFileName
 
     protected:
     private:
-        wxXmlDocument seqDocument;
+		wxXmlDocument seqDocument;
         wxArrayString models;
         wxArrayString header_info;
         wxArrayString timing_list;
@@ -141,7 +144,7 @@ class xLightsXmlFile : public wxFileName
 		AudioManager* audio;
 
         void CreateNew();
-        bool LoadSequence();
+        bool LoadSequence(const wxString& ShowDir);
         bool LoadV3Sequence();
         bool Save();
         bool SaveCopy();
@@ -149,7 +152,7 @@ class xLightsXmlFile : public wxFileName
         void AddDisplayElement( const wxString& name, const wxString& type, const wxString& visible, const wxString& collapsed, const wxString& active );
         wxXmlNode* AddElement( const wxString& name, const wxString& type );
         int AddColorPalette(StringIntMap &paletteCache, const wxString &palette);
-        void AddEffect( wxXmlNode* node,
+		void AddEffect( wxXmlNode* node,
                        StringIntMap &paletteCache,
                         const wxString& name,
                         const wxString& data,

@@ -155,6 +155,7 @@
     <ClCompile Include="AddShowDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
+    <ClCompile Include="BufferPanel.cpp" />
     <ClCompile Include="ChannelLayoutDialog.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="ColorPanel.cpp" />

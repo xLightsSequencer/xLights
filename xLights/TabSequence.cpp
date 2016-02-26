@@ -156,7 +156,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     SetPreviewSize(previewWidth,previewHeight);
 
-    mBackgroundImage = GetXmlSetting("backgroundImage","");
+    mBackgroundImage = xLightsXmlFile::FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage",""));
     if (mBackgroundImage != "" && !wxFileExists(mBackgroundImage)) {
         //image doesn't exist there, lets look for it in show directory and media directory
         wxFileName name(mBackgroundImage);
