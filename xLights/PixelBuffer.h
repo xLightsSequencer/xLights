@@ -122,6 +122,7 @@ private:
         
     private:
         void createSquareExplodeMask(bool reveal);
+        void createWipeMask(bool reveal);
     };
 
     PixelBufferClass(const PixelBufferClass &cls);

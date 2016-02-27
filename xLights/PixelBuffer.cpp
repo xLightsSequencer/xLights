@@ -909,11 +909,11 @@ static int DecodeType(const std::string &type)
     return 1;
 }
 
-void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool mode)
+void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool out)
 {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
-    if (mode) {
+    if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
     }
@@ -923,14 +923,17 @@ void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool mode)
     
     if (reverse) {
         factor = 1.0 - factor;
+        m1 = 0;
+        m2 = 255;
     }
     
-    float step = std::max(((float)BufferWi / 2.0), ((float)BufferHt / 2.0)) * (float)factor;
+    float xstep = ((float)BufferWi / 2.0) * (float)factor;
+    float ystep = ((float)BufferHt / 2.0) * (float)factor;
     
-    int x1 = BufferWi / 2 - step;
-    int x2 = BufferWi / 2 + step;
-    int y1 = BufferHt / 2 - step;
-    int y2 = BufferHt / 2 + step;
+    int x1 = BufferWi / 2 - xstep;
+    int x2 = BufferWi / 2 + xstep;
+    int y1 = BufferHt / 2 - ystep;
+    int y2 = BufferHt / 2 + ystep;
     for (int x = 0; x < BufferWi; x++) {
         for (int y = 0; y < BufferHt; y++) {
             uint8_t c;
@@ -942,6 +945,71 @@ void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool mode)
             mask[x * BufferHt + y] = c;
         }
     }
+}
+
+
+static bool isLeft(const wxPoint &a, const wxPoint &b, const wxPoint &test) {
+    return ((b.x - a.x)*(test.y - a.y) - (b.y - a.y)*(test.x - a.x)) > 0;
+}
+
+void PixelBufferClass::LayerInfo::createWipeMask(bool out)
+{
+    int adjust = inTransitionAdjust;
+    bool reverse = inTransitionReverse;
+    float factor = inMaskFactor;
+    if (out) {
+        adjust = outTransitionAdjust;
+        reverse = outTransitionReverse;
+        factor = outMaskFactor;
+    }
+    
+    float angle = 2.0 * M_PI * (float)adjust / 100.0;
+    
+    float slope = tan(angle);
+    
+    uint8_t m1 = 255;
+    uint8_t m2 = 0;
+    
+    float curx = factor * BufferWi;
+    float cury = factor * BufferHt;
+
+    if (angle >= 0 && angle < M_PI_2) {
+        curx = BufferWi - curx - 1;
+        std::swap(m1, m2);
+    } else if (angle >= M_PI_2 && angle < M_PI) {
+        curx = BufferWi - curx - 1;
+        cury = BufferHt - cury - 1;
+    } else if (angle >= M_PI && angle < (M_PI + M_PI_2)) {
+        cury = BufferHt - cury - 1;
+    } else {
+        std::swap(m1, m2);
+    }
+    float endx = 0;
+    float endy = -slope * curx + cury;
+    if (slope > 999) {
+        //nearly vertical
+        endx = curx;
+        endy = cury - 10;
+    } else if (slope < -999) {
+        //nearly vertical
+        endx = curx;
+        endy = cury + 10;
+    }
+    wxPoint start(curx, cury);
+    wxPoint end(endx, endy);
+    
+    // start bottom left 0, 0
+    // y = slope * x + y'
+    for (int x = 0; x < buffer.BufferWi; x++) {
+        for (int y = 0; y < buffer.BufferHt; y++) {
+            mask[x * BufferHt + y] = isLeft(start, end, wxPoint(x, y)) ? m1 : m2;
+            //mask[x * BufferHt + y] = m1;
+        }
+    }
+    
+    //int idx = (int)curx * BufferHt + (int)cury;
+    //mask[idx] = m2;
+    //printf("%f   %f    %d %d     %d %d\n", factor, slope, (int)curx, (int)cury,  (int)endx,  (int)endy);
 }
 void PixelBufferClass::LayerInfo::calculateMask() {
     bool hasMask = false;
@@ -962,6 +1030,9 @@ void PixelBufferClass::LayerInfo::calculateMask() {
 }
 void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mode) {
     switch (DecodeType(type)) {
+        case 1:
+            createWipeMask(mode);
+            break;
         case 4:
             createSquareExplodeMask(mode);
             break;
@@ -972,7 +1043,7 @@ void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mo
 bool PixelBufferClass::LayerInfo::isMasked(int x, int y) {
     int idx = x*BufferHt + y;
     if (idx < mask.size()) {
-        return mask[x*BufferHt + y];
+        return mask[idx];
     }
     return false;
 }
