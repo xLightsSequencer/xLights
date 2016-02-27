@@ -224,7 +224,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
             while (att != nullptr) {
                 if (att->GetName() != "Name") 
 				{
-					if (att->GetName().Left(5) == "Mouth")
+					if (att->GetName().Left(5) == "Mouth" || att->GetName().Left(4) == "Eyes")
 					{ 
 						faceInfo[name][att->GetName().ToStdString()] = xLightsXmlFile::FixFile("", att->GetValue());
 					}

@@ -998,6 +998,14 @@ void xLightsFrame::OnTextCtrlModelStartChannelText(wxCommandEvent& event)
         TextCtrlModelStartChannel->SetBackgroundColour(wxColour("#ffffff"));
     }
 	UpdatePreview();
+	if (TextCtrlModelStartChannel->GetValue() == "")
+	{
+		TextCtrlModelStartChannel->SetToolTip("");
+	}
+	else
+	{
+		TextCtrlModelStartChannel->SetToolTip(GetChannelToControllerMapping(wxAtol(TextCtrlModelStartChannel->GetValue())));
+	}
 }
 
 int wxCALLBACK SortElementsFunctionASC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortColumn)

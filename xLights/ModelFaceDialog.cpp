@@ -459,7 +459,7 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
 
 		for (std::map<std::string, std::string>::iterator it = info.begin(); it != info.end(); ++it)
 		{
-			if (it->first.substr(0, 5) == "Mouth")
+			if (it->first.substr(0, 5) == "Mouth" || it->first.substr(0, 4) == "Eyes")
 			{
 				it->second = xLightsXmlFile::FixFile("", it->second);
 			}
