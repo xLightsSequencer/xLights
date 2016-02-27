@@ -336,6 +336,7 @@ public:
     void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg);
+	std::string GetChannelToControllerMapping(long channel);
 
     enum LAYER_OPTIONS_e
     {
