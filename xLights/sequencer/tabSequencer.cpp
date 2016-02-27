@@ -186,11 +186,21 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
 }
 
 
+static wxArrayString ToArrayString(const std::vector<std::string> &names) {
+    wxArrayString ret;
+    for (auto it = names.begin(); it != names.end(); it++) {
+        ret.push_back(*it);
+    }
+    return ret;
+}
+static void Remove(std::vector<std::string> &names, const std::string &str) {
+    names.erase(std::remove(names.begin(), names.end(), str), names.end());
+}
 
 void xLightsFrame::CheckForValidModels()
 {
-    wxArrayString AllNames;
-    wxArrayString ModelNames;
+    std::vector<std::string> AllNames;
+    std::vector<std::string> ModelNames;
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         AllNames.push_back(it->first);
         if (it->second->GetDisplayAs() != "ModelGroup") {
@@ -202,8 +212,8 @@ void xLightsFrame::CheckForValidModels()
         if ("model" == mSequenceElements.GetElement(x)->GetType()) {
             std::string name = mSequenceElements.GetElement(x)->GetName();
             //remove the current models from the list so we don't end up with the same model represented twice
-            std::remove(AllNames.begin(), AllNames.end(), name);
-            std::remove(ModelNames.begin(), ModelNames.end(), name);
+            Remove(AllNames, name);
+            Remove(ModelNames, name);
         }
     }
     
@@ -214,17 +224,18 @@ void xLightsFrame::CheckForValidModels()
             Model *m = AllModels[name];
             if (m == nullptr) {
                 dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
-                dialog.ChoiceModels->Set(AllNames);
+                dialog.ChoiceModels->Set(ToArrayString(AllNames));
                 dialog.Fit();
                 dialog.ShowModal();
                 if (dialog.RadioButtonDelete->GetValue()) {
                     mSequenceElements.DeleteElement(name);
+                    x = mSequenceElements.GetElementCount();
                 } else {
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
                     mSequenceElements.GetElement(x)->SetName(newName);
-                    std::remove(AllNames.begin(), AllNames.end(), newName);
-                    std::remove(ModelNames.begin(), ModelNames.end(), newName);
-                    x--;
+                    Remove(AllNames, newName);
+                    Remove(ModelNames, newName);
+                    x = mSequenceElements.GetElementCount();
                 }
             }
         }
@@ -262,12 +273,12 @@ void xLightsFrame::CheckForValidModels()
                         switch (dlg.GetSelection()) {
                             case 0: {
                                     wxSingleChoiceDialog namedlg(this, "Choose the model to use instead:",
-                                                             "Select Model", ModelNames);
+                                                             "Select Model", ToArrayString(ModelNames));
                                     if (namedlg.ShowModal() == wxID_OK) {
                                         std::string newName = namedlg.GetStringSelection().ToStdString();
                                         mSequenceElements.GetElement(x)->SetName(newName);
-                                        std::remove(AllNames.begin(), AllNames.end(), newName);
-                                        std::remove(ModelNames.begin(), ModelNames.end(), newName);
+                                        Remove(AllNames, newName);
+                                        Remove(ModelNames, newName);
                                     }
                                 }
                                 break;

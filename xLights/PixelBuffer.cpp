@@ -821,7 +821,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                         && fadeInFactor<1) {
                         layers[ii]->fadeFactor = (fadeInFactor+fadeOutFactor)/(double)2.0;
                     } else {
-                        layers[ii]->fadeFactor = fadeInFactor;
+                        layers[ii]->fadeFactor = fadeOutFactor;
                     }
                 }
             }
