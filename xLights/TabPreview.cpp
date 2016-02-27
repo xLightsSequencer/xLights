@@ -764,7 +764,7 @@ void xLightsFrame::StopPreviewPlayback()
 	PlayerDlg->Pause();
 	PlayerDlg->Seek(0);
 #else
-	if (CurrentSeqXmlFile->GetMedia() != NULL)
+	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
 	{
 		CurrentSeqXmlFile->GetMedia()->Pause();
 		CurrentSeqXmlFile->GetMedia()->Seek(0);
