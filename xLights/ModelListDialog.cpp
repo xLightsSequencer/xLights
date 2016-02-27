@@ -125,7 +125,7 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
     int DlgResult;
     bool ok;
     wxString name;
-    ModelDialog dialog(this);
+    ModelDialog dialog(this, mParent);
     dialog.RadioButton_BotLeft->SetValue(true);
     dialog.SetNetInfo(netInfo);
     dialog.UpdateLabels();
@@ -166,7 +166,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     wxXmlNode* e = models[ListBox1->GetString(sel)];
     int DlgResult;
     bool ok;
-    ModelDialog *dialog = new ModelDialog(this);
+    ModelDialog *dialog = new ModelDialog(this, mParent);
     dialog->SetFromXml(e, netInfo);
     dialog->TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
     do
@@ -293,7 +293,7 @@ void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
     wxString name;
     int DlgResult;
     bool ok;
-    ModelDialog dialog(this);
+    ModelDialog dialog(this, mParent);
     dialog.SetFromXml(e, netInfo, _(" - Copy"));
     do
     {

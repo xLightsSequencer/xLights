@@ -445,6 +445,7 @@
 							</collabels>
 							<style>wxVSCROLL|wxHSCROLL|wxFULL_REPAINT_ON_RESIZE</style>
 							<handler function="OngridStartChannelsCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+							<handler function="OngridStartChannelsCellSelect1" entry="EVT_CMD_GRID_SELECT_CELL" />
 						</object>
 						<flag>wxEXPAND</flag>
 					</object>

@@ -100,7 +100,8 @@ void xLightsFrame::SelectModel(const std::string & name)
             SliderPreviewRotate->Enable(true);
             StaticTextPreviewRotation->Enable(true);
             TextCtrlModelStartChannel->SetValue(m->ModelStartChannel);
-            if (CheckBoxOverlap->GetValue()== true) {
+			TextCtrlModelStartChannel->SetToolTip(GetChannelToControllerMapping(wxAtol(m->ModelStartChannel)));
+			if (CheckBoxOverlap->GetValue()== true) {
                 foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
                 foundEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2).ToStdString());
             }
@@ -391,7 +392,7 @@ void xLightsFrame::ShowModelProperties()
     wxXmlNode* e=m->GetModelXml();
     int DlgResult;
     bool ok;
-    ModelDialog *dialog = new ModelDialog(this);
+    ModelDialog *dialog = new ModelDialog(this, this);
     dialog->SetFromXml(e, &NetInfo);
     dialog->TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
     do
