@@ -220,8 +220,8 @@ void xLightsFrame::SetDir(const wxString& newdir)
 std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 {
 	wxXmlNode* e = NetworkXML.GetRoot();
-	long currentcontrollerstartchannel = -1;
-	long currentcontrollerendchannel = -1;
+	long currentcontrollerstartchannel = 0;
+	long currentcontrollerendchannel = 0;
 
 	for (e = e->GetChildren(); e != NULL; e = e->GetNext())
 	{
@@ -231,13 +231,13 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 			wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
 			long MaxChannels;
 			MaxChannelsStr.ToLong(&MaxChannels);
-			currentcontrollerendchannel = currentcontrollerstartchannel + MaxChannels;
+			currentcontrollerendchannel = currentcontrollerstartchannel + MaxChannels - 1;
 
 			if (channel >= currentcontrollerstartchannel && channel <= currentcontrollerendchannel)
 			{
-				int channeloffset = channel - currentcontrollerstartchannel;
+				int channeloffset = channel - currentcontrollerstartchannel + 1;
 				// found it
-				std::string s = "";
+				std::string s = "Channel " + wxString::Format(wxT("%i"), channel) + " maps to ...\n";
 				if (e->GetAttribute("Description", "") != "")
 				{
 					s = s + e->GetAttribute("Description") + "\n";
@@ -281,6 +281,7 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 				{
 					s = s + "INACTIVE\n";
 				}
+				return s;
 			}
 		}
 	}

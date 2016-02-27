@@ -20,12 +20,13 @@
 //*)
 
 class NetInfoClass;
+class xLightsFrame;
 
 class ModelDialog: public wxDialog
 {
 public:
 
-    ModelDialog(wxWindow* parent,wxWindowID id=wxID_ANY);
+    ModelDialog(wxWindow* parent, xLightsFrame* frame, wxWindowID id=wxID_ANY);
     virtual ~ModelDialog();
     void UpdateLabels();
     void SetCustomGridData(const wxString& customChannelData);
@@ -148,6 +149,11 @@ private:
     void OnFacesButtonClick(wxCommandEvent& event);
     void OnDimmingCurvesClick(wxCommandEvent& event);
     void OnColorPickerButtonClick(wxCommandEvent& event);
+    void OngridStartChannelsCellSelect(wxGridEvent& event);
+    void OngridStartChannelsMouseMove(wxMouseEvent& event);
+    void OngridStartChannelsMouseEnter(wxMouseEvent& event);
+    void OngridStartChannelsMouseLeave(wxMouseEvent& event);
+    void OngridStartChannelsCellSelect1(wxGridEvent& event);
     //*)
 
     void SetReadOnly(bool);
@@ -163,7 +169,7 @@ private:
     bool HasCustomData;
 
     DECLARE_EVENT_TABLE()
-    
+
     NetInfoClass *netInfo;
     int pixelStyle = 0;
     int pixelSize = 2;
@@ -174,6 +180,7 @@ private:
     std::map<std::string, std::map<std::string,std::string> > faceInfo;
     std::map<std::string, std::map<std::string,std::string> > dimmingInfo;
     xlColor customColor;
+	xLightsFrame* _frame;
 };
 
 #endif

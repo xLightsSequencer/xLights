@@ -21,6 +21,7 @@
 #include "ModelFaceDialog.h"
 #include "ModelDimmingCurveDialog.h"
 #include "models/ModelManager.h"
+#include "xLightsMain.h"
 
 //(*IdInit(ModelDialog)
 const long ModelDialog::ID_STATICTEXT1 = wxNewId();
@@ -77,8 +78,9 @@ END_EVENT_TABLE()
 #define wxEVT_GRID_CELL_CHANGE wxEVT_GRID_CELL_CHANGED
 #endif
 
-ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id) : customColor(255, 0, 255), pixelStyle(1)
+ModelDialog::ModelDialog(wxWindow* parent, xLightsFrame* frame, wxWindowID id) : customColor(255, 0, 255), pixelStyle(1)
 {
+	_frame = frame;
     netInfo = nullptr;
 
     //(*Initialize(ModelDialog)
@@ -303,6 +305,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id) : customColor(255, 0, 2
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnFacesButtonClick);
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
     Connect(ID_GRID_START_CHANNELS,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
+    Connect(ID_GRID_START_CHANNELS,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellSelect1);
     Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomCutClick);
     Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomCopyClick);
     Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomPasteClick);
@@ -463,12 +466,12 @@ static void SetBitmapButtonColor(wxBitmapButton *btn, xlColor &clr) {
     wxColor c = clr.asWxColor();
     btn->SetBackgroundColour(c);
     btn->SetForegroundColour(c);
-    
+
     wxImage image(18, 24);
     image.SetRGB(wxRect(0, 0, 18, 24),
                  c.Red(), c.Green(), c.Blue());
     wxBitmap bmp(image);
-    
+
     btn->SetBitmap(bmp);
 }
 
@@ -799,6 +802,8 @@ void ModelDialog::OnSpinCtrl_parm2Change(wxSpinEvent& event)
 void ModelDialog::OnSpinCtrl_StartChannelChange(wxSpinEvent& event)
 {
     UpdateStartChannels();
+	long ch = SpinCtrl_StartChannel->GetValue();
+	SpinCtrl_StartChannel->SetToolTip(_frame->GetChannelToControllerMapping(ch));
 }
 
 
@@ -977,7 +982,8 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
         OutputSpinCtrl->SetValue(1);
     }
     SpinCtrl_StartChannel->SetValue(stch);
-    if (e->GetAttribute("exportFirstStrand") == "") {
+	SpinCtrl_StartChannel->SetToolTip(_frame->GetChannelToControllerMapping(wxAtol(stch)));
+	if (e->GetAttribute("exportFirstStrand") == "") {
         TreeFirstStringForExport->SetValue("1");
     } else {
         TreeFirstStringForExport->SetValue(e->GetAttribute("exportFirstStrand"));
@@ -1120,6 +1126,14 @@ void ModelDialog::OnChoice_StringTypeSelect(wxCommandEvent& event)
 void ModelDialog::OnGridCustomCellChange(wxGridEvent& event)
 {
     UpdateStartChannels();
+
+	if (event.GetRow() >= 0)
+	{
+		wxString val = gridStartChannels->GetCellValue(event.GetRow(), 0);
+		long ch = wxAtol(val);
+		wxString tip = _frame->GetChannelToControllerMapping(ch);
+		gridStartChannels->GetGridWindow()->SetToolTip(tip);
+	}
 }
 
 #ifdef __WXOSX__
@@ -1473,7 +1487,7 @@ void ModelDialog::OnColorPickerButtonClick(wxCommandEvent& event)
 {
     wxColourData data;
     data.SetColour(customColor.asWxColor());
-    
+
     // create the colour dialog and display it
     wxColourDialog dlg(this, &data);
     if (dlg.ShowModal() == wxID_OK)
@@ -1482,4 +1496,15 @@ void ModelDialog::OnColorPickerButtonClick(wxCommandEvent& event)
         customColor = data.GetColour();
         SetBitmapButtonColor(ColorPickerButton, customColor);
     }
+}
+
+void ModelDialog::OngridStartChannelsCellSelect1(wxGridEvent& event)
+{
+	if (event.GetRow() >= 0)
+	{
+		wxString val = gridStartChannels->GetCellValue(event.GetRow(), event.GetCol());
+		long ch = wxAtol(val);
+		wxString tip = _frame->GetChannelToControllerMapping(ch);
+		gridStartChannels->GetGridWindow()->SetToolTip(tip);
+	}
 }
