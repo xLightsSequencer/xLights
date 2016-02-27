@@ -865,7 +865,8 @@ void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNo
     if (cn == "") {
         return;
     }
-    wxXmlNode *redNode = nullptr;
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	wxXmlNode *redNode = nullptr;
     wxXmlNode *greenNode = nullptr;
     wxXmlNode *blueNode = nullptr;
 
@@ -898,7 +899,8 @@ void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNo
     }
     if (redNode == nullptr) {
         printf("Did not map %s\n", (const char *)cn.c_str());
-        return;
+		logger.info("Did not map " + cn);
+		return;
     }
     std::vector<unsigned char> redData(frames);
     std::vector<unsigned char> greenData(frames);

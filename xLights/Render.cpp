@@ -17,7 +17,7 @@
 
 #define END_OF_RENDER_FRAME INT_MAX
 
-
+#include <log4cpp/Category.hh>
 
 //other common strings
 static const std::string STR_EMPTY("");
@@ -293,8 +293,10 @@ public:
     }
 
     virtual void Process() {
-        SetGenericStatus("Initializing rendering thread for %s\n", 0);
-        //printf("Starting rendering %lx (no next)\n", (unsigned long)this);
+		log4cpp::Category& logger = log4cpp::Category::getRoot();
+		SetGenericStatus("Initializing rendering thread for %s\n", 0);
+		logger.info("Initializing rendering thread.");
+		//printf("Starting rendering %lx (no next)\n", (unsigned long)this);
         int maxFrameBeforeCheck = -1;
         int origChangeCount;
         int ss, es;
@@ -480,9 +482,11 @@ public:
             }
         } catch ( std::exception &ex) {
             printf("Caught an exception %s\n", ex.what());
-        } catch ( ... ) {
+			logger.error("Caught an exception on rendering thread: " + std::string(ex.what()));
+		} catch ( ... ) {
             printf("Caught an unknown exception\n");
-        }
+			logger.error("Caught an unknown exception on rendering thread.");
+		}
         if (next) {
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
             //may try sending the END_OF_RENDER_FRAME to us and we'll have been deleted
@@ -498,7 +502,8 @@ public:
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
-    }
+		logger.info("Rendering thread exiting.");
+	}
 
 private:
 
@@ -688,7 +693,7 @@ void xLightsFrame::RenderDone() {
     mainSequencer->PanelEffectGrid->Refresh();
 }
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
-    //printf("render model %d %d   %d\n", startms,endms, clear);
+	//printf("render model %d %d   %d\n", startms,endms, clear);
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
     if( el->GetType() != "timing") {
@@ -818,7 +823,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                        bool bgThread, RenderEvent *event) {
     bool retval=true;
 
-    buffer.SetLayer(layer, period, resetEffectState);
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	buffer.SetLayer(layer, period, resetEffectState);
     resetEffectState = false;
     int eidx = -1;
     if (effectObj != nullptr) {
@@ -843,7 +849,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 retval = event->returnVal;
             } else {
                 printf("HELP!!!!\n");
-            }
+				logger.info("HELP!!!!");
+			}
             if (period % 10 == 0) {
                 //constantly putting stuff on CallAfter can result in the main
                 //dispatch thread never being able to empty the CallAfter

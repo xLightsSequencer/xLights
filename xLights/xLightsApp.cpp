@@ -134,7 +134,9 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 
 xLightsFrame *topFrame = NULL;
 void handleCrash(void *data) {
-    wxDebugReportCompress *report = new wxDebugReportCompress();
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	logger.crit("Crash handler called.");
+	wxDebugReportCompress *report = new wxDebugReportCompress();
     report->SetCompressedFileDirectory(topFrame->CurrentDir);
     report->AddAll(wxDebugReport::Context_Exception);
     report->AddAll(wxDebugReport::Context_Current);
@@ -167,6 +169,8 @@ void handleCrash(void *data) {
     trace += topFrame->GetThreadStatusReport();
 #endif // LINUX
 
+	logger.crit(trace);
+
     report->AddText("backtrace.txt", trace, "Backtrace");
     if (!wxThread::IsMain() && topFrame != nullptr) {
         topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report);
@@ -184,8 +188,10 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
         report->Process();
         wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
     }
-    delete report;
-    exit(1);
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	logger.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
+	delete report;
+	exit(1);
 }
 
 
