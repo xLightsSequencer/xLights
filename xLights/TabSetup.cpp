@@ -237,22 +237,22 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 			{
 				int channeloffset = channel - currentcontrollerstartchannel + 1;
 				// found it
-				std::string s = "Channel " + wxString::Format(wxT("%i"), channel) + " maps to ...\n";
+				std::string s = "Channel " + std::string(wxString::Format(wxT("%i"), channel).c_str()) + " maps to ...\n";
 				if (e->GetAttribute("Description", "") != "")
 				{
 					s = s + e->GetAttribute("Description") + "\n";
 				}
-				std::string type = e->GetAttribute("NetworkType", "");
+				std::string type = std::string(e->GetAttribute("NetworkType", ""));
 				if (type == "NULL")
 				{
 					// nothing interesting
-					s = s + "Type: NULL\nChannel: " + wxString::Format(wxT("%i"), channeloffset) + "\n";
+					s = s + "Type: NULL\nChannel: " + std::string(wxString::Format(wxT("%i"), channeloffset).c_str()) + "\n";
 				}
 				else if (type == "E131")
 				{
 					s = s + "Type: E1.31\n";
-					std::string ip = e->GetAttribute("ComPort", "");
-					std::string u = e->GetAttribute("BaudRate", "");
+					std::string ip = std::string(e->GetAttribute("ComPort", "").c_str());
+					std::string u = std::string(e->GetAttribute("BaudRate", "").c_str());
 					s = s + "IP: " + ip + "\n";
 					s = s + "Universe: " + u + "\n";
 					s = s + "Channel: " + wxString::Format(wxT("%i"), channeloffset) + "\n";
@@ -394,7 +394,7 @@ void xLightsFrame::UpdateChannelNames()
     CheckListBoxTestChannels->Set(ChNames);
 #endif //
 
-    
+
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         Model *model = it->second;
         if (model->IsMyDisplay()) {
@@ -404,7 +404,7 @@ void xLightsFrame::UpdateChannelNames()
             for(n=0; n < NodeCount; n++)
             {
                 ChannelNum=model->NodeStartChannel(n);
-                
+
                 NodeNum=n+1;
                 if (ChanPerNode==1)
                 {

@@ -106,6 +106,7 @@
 
 #include "JobPool.h"
 
+#include <log4cpp/Category.hh>
 
 class EffectTreeDialog;
 
@@ -1547,7 +1548,8 @@ protected:
     wxGridCellCoords *curCell;
     int PlaybackPeriod; //used to be able to record the frame being played in an animation preview
 
-    bool m_dragging;
+	log4cpp::Category& _logger = log4cpp::Category::getRoot();
+	bool m_dragging;
     bool m_resizing;
     bool m_rotating;
     bool m_creating_bound_rect;

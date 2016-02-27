@@ -1,4 +1,3 @@
-#include "xLightsXmlFile.h"
 #include "xLightsMain.h"
 #include <wx/tokenzr.h>
 #include "OptionChooser.h"
@@ -6,6 +5,7 @@
 #include "../include/spxml-0.5/spxmlevent.hpp"
 #include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
+#include "xLightsXmlFile.h"
 
 #define string_format wxString::Format
 
@@ -835,6 +835,7 @@ bool xLightsXmlFile::Open(const wxString& ShowDir)
 
 wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 {
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
 	// This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
 	static wxString RememberShowDir;
 	wxString sd;
@@ -865,7 +866,7 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 		wxString path;
 		wxString fname;
 		wxString ext;
-		wxSplitPath(sd, &path, &fname, &ext);
+		wxFileName::SplitPath(sd, &path, &fname, &ext);
 		wxArrayString parts = wxSplit(path, '\\', '\\');
 		if (fname == "")
 		{
@@ -884,48 +885,50 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 
 			if (wxFileExists(relative))
 			{
+				logger.debug("File location fixed: " + file + " -> " + relative);
 				return relative;
 			}
 		}
 
-		wxString fpath;
-		wxString ffname;
-		wxString fext;
-		wxSplitPath(file, &fpath, &ffname, &fext);
-		wxArrayString fparts = wxSplit(fpath, '\\', '\\');
-		if (fparts.Count() == 0)
-		{
-			fparts = wxSplit(fpath, '/', '/');
-		}
+		// Disabling this ... untested but even if it does work the scenarios are really not that useful
+		//wxString fpath;
+		//wxString ffname;
+		//wxString fext;
+		//wxFileName::SplitPath(file, &fpath, &ffname, &fext);
+		//wxArrayString fparts = wxSplit(fpath, '\\', '\\');
+		//if (fparts.Count() == 0)
+		//{
+		//	fparts = wxSplit(fpath, '/', '/');
+		//}
 
-		int foundindex = -1;
-		int i = 0;
-		while (foundindex < 0 && i < fparts.Count())
-		{
-			wxString fpartlc = fparts[i];
-			fpartlc.LowerCase();
+		//int foundindex = -1;
+		//int i = 0;
+		//while (foundindex < 0 && i < fparts.Count())
+		//{
+		//	wxString fpartlc = fparts[i];
+		//	fpartlc.LowerCase();
 
-			if (fpartlc == sflc)
-			{
-				foundindex = i;
-			}
-			i++;
-		}
+		//	if (fpartlc == sflc)
+		//	{
+		//		foundindex = i;
+		//	}
+		//	i++;
+		//}
 
-		for (i = fparts.Count() - 1; i > foundindex; i--)
-		{
-			wxString testfile = sd + "/";
-			for (int j = foundindex + 1; j <= i; j++)
-			{
-				testfile = testfile + fparts[j] + "/";
-			}
-			testfile = testfile + ffname + fext;
+		//for (i = fparts.Count() - 1; i > foundindex; i--)
+		//{
+		//	wxString testfile = sd + "/";
+		//	for (int j = foundindex + 1; j <= i; j++)
+		//	{
+		//		testfile = testfile + fparts[j] + "/";
+		//	}
+		//	testfile = testfile + ffname + fext;
 
-			if (wxFileExists(testfile))
-			{
-				return testfile;
-			}
-		}
+		//	if (wxFileExists(testfile))
+		//	{
+		//		return testfile;
+		//	}
+		//}
 	}
 
 	return file;
@@ -1162,8 +1165,14 @@ void xLightsXmlFile::ConvertToFixedPointTiming()
 
 bool xLightsXmlFile::LoadSequence(const wxString& ShowDir)
 {
-    if( !seqDocument.Load(GetFullPath())) return false;
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	logger.info("Loading sequence " + GetFullPath());
 
+	if (!seqDocument.Load(GetFullPath()))
+	{
+		logger.error("XML file load failed.");
+		return false;
+	}
     is_open = true;
 
     wxXmlNode* root=seqDocument.GetRoot();
@@ -1305,7 +1314,9 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir)
 		}
 	}
 
-    return is_open;
+	logger.info("Sequence loaded.");
+
+	return is_open;
 }
 
 void xLightsXmlFile::CleanUpEffects()

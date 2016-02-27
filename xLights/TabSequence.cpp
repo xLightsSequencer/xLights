@@ -557,7 +557,7 @@ void xLightsFrame::SaveSequence()
         RenderIseqData(false);  // render ISEQ layers above the Nutcracker layer
     }
     WriteFalconPiFile(xlightsFilename);
-    DisplayXlightsFilename(xlightsFilename);
+	DisplayXlightsFilename(xlightsFilename);
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
     CallAfter(&xLightsFrame::SetStatusText, displayBuff);
