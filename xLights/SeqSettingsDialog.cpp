@@ -853,42 +853,36 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes)
             conv_params.map_no_network_channels = lor_dialog->MapLORChannelsWithNoNetwork->IsChecked();
             new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end | (conv_params.map_empty_channels << 1) | (conv_params.map_no_network_channels << 2) );
             FileConverter::ReadLorFile(conv_params);
-            FileConverter::WriteFalconPiFile( conv_params );
         }
         else if( full_name.GetExt() == "xseq" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
             new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
             FileConverter::ReadXlightsFile(conv_params);
-            FileConverter::WriteFalconPiFile( conv_params );
         }
         else if( full_name.GetExt() == "hlsIdata" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
             new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
             FileConverter::ReadHLSFile(conv_params);
-            FileConverter::WriteFalconPiFile( conv_params );
         }
         else if( full_name.GetExt() == "vix" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
             new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
             FileConverter::ReadVixFile(conv_params);
-            FileConverter::WriteFalconPiFile( conv_params );
         }
         else if( full_name.GetExt() == "gled" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
             new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
             FileConverter::ReadGlediatorFile(conv_params);
-            FileConverter::WriteFalconPiFile( conv_params );
         }
         else if( full_name.GetExt() == "seq" )
         {
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
             new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
             FileConverter::ReadConductorFile(conv_params);
-            FileConverter::WriteFalconPiFile( conv_params );
         }
         else if( full_name.GetExt() == "iseq" || full_name.GetExt() == "fseq")
         {
@@ -896,6 +890,10 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes)
             conv_params.read_mode = ConvertParameters::READ_MODE_HEADER_ONLY;
             conv_params.media_filename = nullptr;
             FileConverter::ReadFalconFile(conv_params);
+        }
+        if( full_name.GetExt() != "iseq" )
+        {
+            FileConverter::WriteFalconPiFile( conv_params );
         }
         TreeCtrl_Data_Layers->SetItemText(branch_data, "Data: " + data_file.GetFullPath());
         TreeCtrl_Data_Layers->SetItemText(branch_num_channels, wxString::Format("Number of Channels: %d", new_data_layer->GetNumChannels()));
