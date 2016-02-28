@@ -1283,8 +1283,15 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir)
                     element->GetAttribute("num_channels", &num_channels);
                     element->GetAttribute("channel_offset", &channel_offset);
                     element->GetAttribute("lor_params", &lor_params);
-					data = FixFile("", data);
-					source = FixFile("", source);
+					// Only fix things that look like files
+					if (data[1] == ':')
+					{
+						data = FixFile("", data);
+					}
+					if (source[1] == ':')
+					{
+						source = FixFile("", source);
+					}
 					if( name == "Nutcracker" )
                     {
                         mDataLayers.RemoveDataLayer(0);
