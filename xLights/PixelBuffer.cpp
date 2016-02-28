@@ -29,7 +29,10 @@
 #include "models/SingleLineModel.h"
 #include "UtilClasses.h"
 
-#define M_PI_2 6.2831853071795
+// This is needed for visual studio
+#ifdef _MSC_VER
+#define M_PI_2 1.57079632679489661923
+#endif
 
 PixelBufferClass::PixelBufferClass(bool b)
 {
@@ -696,10 +699,10 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     LayerInfo *inf = layers[layer];
     inf->persistent = settingsMap.GetBool(CHECKBOX_OverlayBkg);
     inf->mask.clear();
-    
+
     inf->fadeInSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadein, 0.0)*1000)/frameTimeInMs;
     inf->fadeOutSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadeout, 0.0)*1000)/frameTimeInMs;
-    
+
     inf->inTransitionType = settingsMap.Get(CHOICE_In_Transition_Type, STR_FADE);
     inf->outTransitionType = settingsMap.Get(CHOICE_Out_Transition_Type, STR_FADE);
     inf->inTransitionAdjust = settingsMap.GetInt(SLIDER_In_Transition_Adjust, 0);
@@ -709,21 +712,21 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
     inf->blur = settingsMap.GetInt(SLIDER_EffectBlur, 1);
     inf->sparkle_count = settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
-    
+
     inf->RotoZoom = settingsMap.GetInt(CHECKBOX_RotoZoom, 0) ;
     inf->ZoomCycles = settingsMap.GetInt(SLIDER_ZoomCycles, 1);
     inf->ZoomRotation = settingsMap.GetInt(SLIDER_ZoomRotation, 0);
     inf->ZoomInOut = settingsMap.GetInt(SLIDER_ZoomInOut, 0);
-    
+
     inf->brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
     inf->contrast=settingsMap.GetInt(SLIDER_Contrast, 0);
-    
+
     SetMixType(layer, settingsMap.Get(CHOICE_LayerMethod, STR_NORMAL));
-    
+
     inf->effectMixThreshold = (float)settingsMap.GetInt(SLIDER_EffectLayerMix, 0)/100.0;
     inf->effectMixVaries = settingsMap.GetBool(CHECKBOX_LayerMorph);
-    
-    
+
+
     const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     if (inf->bufferType != type || inf->bufferTransform != transform)
@@ -990,16 +993,16 @@ void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool out)
 
     uint8_t m1 = 255;
     uint8_t m2 = 0;
-    
+
     if (reverse) {
         factor = 1.0 - factor;
         m1 = 0;
         m2 = 255;
     }
-    
+
     float xstep = ((float)BufferWi / 2.0) * (float)factor;
     float ystep = ((float)BufferHt / 2.0) * (float)factor;
-    
+
     int x1 = BufferWi / 2 - xstep;
     int x2 = BufferWi / 2 + xstep;
     int y1 = BufferHt / 2 - ystep;
@@ -1041,9 +1044,9 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out)
     }
     
     float angle = 2.0 * M_PI * (float)adjust / 100.0;
-    
+
     float slope = tan(angle);
-    
+
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     
@@ -1074,7 +1077,7 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out)
     }
     wxPoint start(curx, cury);
     wxPoint end(endx, endy);
-    
+
     // start bottom left 0, 0
     // y = slope * x + y'
     for (int x = 0; x < buffer.BufferWi; x++) {

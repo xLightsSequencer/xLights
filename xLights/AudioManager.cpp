@@ -46,7 +46,7 @@ void AudioManager::Seek(int pos)
 	{
 		return;
 	}
-	__audio_len = _pcmdatasize - (Uint64)pos * 44100 * 2 * 2 / 1000; // (((Uint64)pos * (Uint64)_pcmdatasize) / (Uint64)_lengthMS);
+	__audio_len = _pcmdatasize - (Uint64)pos * _rate * 2 * 2 / 1000; // (((Uint64)pos * (Uint64)_pcmdatasize) / (Uint64)_lengthMS);
 	// ensure it is aligned to 4 byte boundary as 2 channels with 2 bytes per channel is how the data is organised
 	__audio_len -= __audio_len % 4;
 	__audio_pos = _pcmdata + (_pcmdatasize - __audio_len);
@@ -157,7 +157,7 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 		}
 
 		//SDL_AudioSpec
-		wanted_spec.freq = 44100 * __playbackrate;
+		wanted_spec.freq = _rate * __playbackrate;
 		wanted_spec.format = AUDIO_S16SYS;
 		wanted_spec.channels = 2;
 		wanted_spec.silence = 0;
@@ -832,42 +832,6 @@ int AudioManager::OpenMediaFile()
 	int cbitrate = codecContext->bit_rate;
 	int fbitrate = formatContext->bit_rate;
 
-	//// This is a HACK ... this is not documented
-	//typedef struct {
-	//	AVClass *pclass;
-	//	int64_t filesize;
-	//	int64_t header_filesize;
-	//	int xing_toc;
-	//	int start_pad;
-	//	int end_pad;
-	//	int usetoc;
-	//	int is_cbr;
-	//} MP3DecContext;
-
-	//MP3DecContext* pmp3 = (MP3DecContext* )formatContext->priv_data;
-
-	//if (pmp3 != NULL)
-	//{
-	//	if (pmp3->is_cbr)
-	//	{
-	//		_isCBR = true;
-	//	}
-	//	else
-	//	{
-	//		_isCBR = false;
-	//	}
-	//}
-
-	//if (abs(fbitrate - cbitrate) < 50)
-	//{
-	//	// small difference is ok
-	//	_isCBR = true;
-	//}
-	//else
-	//{
-	//	_isCBR = false;
-	//}
-
 	/* Get Track Size */
 	GetTrackMetrics(formatContext, codecContext, audioStream);
 
@@ -916,12 +880,13 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 	uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
 	int out_nb_samples = _trackSize;
 	AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
-	int out_sample_rate = 44100;
+	int out_sample_rate = _rate;
 	int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
 	// this is not used
 	//int out_buffer_size = av_samples_get_buffer_size(NULL, out_channels, out_nb_samples, out_sample_fmt, 1);
 
-	uint8_t* out_buffer = (uint8_t *)av_malloc(192000 * 2); // 1 second of audio
+	#define CONVERSION_BUFFER_SIZE 192000
+	uint8_t* out_buffer = (uint8_t *)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
 
 	AVFrame* frame = av_frame_alloc();
 	int read = 0;
@@ -933,8 +898,8 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 	}
 
 #ifdef USE_SDLPLAYER
-	_pcmdatasize = _trackSize * 2 * 2;
-	_pcmdata = (Uint8*)malloc(_pcmdatasize);
+	_pcmdatasize = _trackSize * out_channels * 2;
+	_pcmdata = (Uint8*)malloc(_pcmdatasize + 100024); // 100024 is a fudge
 #endif
 
 	AVPacket readingPacket;
@@ -971,7 +936,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 
 					try
 					{
-						swr_convert(au_convert_ctx, &out_buffer, 192000, (const uint8_t **)frame->data, frame->nb_samples);
+						swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
 					}
 					catch (...)
 					{
@@ -981,9 +946,14 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 						return;
 					}
 
+					if (read + frame->nb_samples >= _trackSize)
+					{
+						int a = 0;
+					}
+
 #ifdef USE_SDLPLAYER
 					// copy the PCM data into the PCM buffer for playing
-					memcpy(_pcmdata + (read * 2 * 2), out_buffer, frame->nb_samples * 2 * 2);
+					memcpy(_pcmdata + (read * out_channels * 2), out_buffer, frame->nb_samples * out_channels * 2);
 #endif
 
 					for (int i = 0; i < frame->nb_samples; i++)
@@ -1024,7 +994,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 			{
 				try
 				{
-					swr_convert(au_convert_ctx, &out_buffer, 192000, (const uint8_t **)frame->data, frame->nb_samples);
+					swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
 				}
 				catch (...)
 				{
@@ -1034,9 +1004,14 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 					return;
 				}
 
+				if (read + frame->nb_samples >= _trackSize)
+				{
+					int a = 0;
+				}
+
 #ifdef USE_SDLPLAYER
 				// copy the PCM data into the PCM buffer for playing
-				memcpy(_pcmdata + (read * 2 * 2), out_buffer, frame->nb_samples * 2 * 2);
+				memcpy(_pcmdata + (read * out_channels * 2), out_buffer, frame->nb_samples * out_channels * 2);
 #endif
 
 				for (int i = 0; i < frame->nb_samples; i++)
