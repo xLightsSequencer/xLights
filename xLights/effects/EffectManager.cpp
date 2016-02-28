@@ -41,6 +41,7 @@
 #include "TransitionEffect.h"
 #include "TreeEffect.h"
 #include "TwinkleEffect.h"
+#include "VideoEffect.h"
 #include "VUMeterEffect.h"
 #include "WaveEffect.h"
 
@@ -85,6 +86,7 @@ EffectManager::EffectManager() : std::vector<RenderableEffect*>()
 	//add(new TransitionEffect(eff_TRANSITION));
 	add(new TreeEffect(eff_TREE));
 	add(new TwinkleEffect(eff_TWINKLE));
+	add(new VideoEffect(eff_VIDEO));
 	add(new VUMeterEffect(eff_VUMETER));
 	add(new WaveEffect(eff_WAVE));
 

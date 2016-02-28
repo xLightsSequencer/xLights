@@ -51,6 +51,7 @@ public:
 		//eff_TRANSITION,
 		eff_TREE,
 		eff_TWINKLE,
+		eff_VIDEO,
 		eff_VUMETER,
 		eff_WAVE,
         eff_LASTEFFECT //Always the last entry

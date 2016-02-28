@@ -729,6 +729,10 @@
 		<Unit filename="effects/TwinkleEffect.h" />
 		<Unit filename="effects/TwinklePanel.cpp" />
 		<Unit filename="effects/TwinklePanel.h" />
+		<Unit filename="effects/VideoEffect.cpp" />
+		<Unit filename="effects/VideoEffect.h" />
+		<Unit filename="effects/VideoPanel.cpp" />
+		<Unit filename="effects/VideoPanel.h" />
 		<Unit filename="effects/VUMeterEffect.cpp" />
 		<Unit filename="effects/VUMeterEffect.h" />
 		<Unit filename="effects/VUMeterPanel.cpp" />
@@ -944,6 +948,7 @@
 		<Unit filename="wxsmith/TreePanel.wxs" />
 		<Unit filename="wxsmith/TwinklePanel.wxs" />
 		<Unit filename="wxsmith/VAMPPluginDialog.wxs" />
+		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/VUMeterPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
@@ -1062,6 +1067,7 @@
 					<wxPanel wxs="wxsmith/TransitionPanel.wxs" src="effects/TransitionPanel.cpp" hdr="effects/TransitionPanel.h" fwddecl="1" i18n="1" name="TransitionPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TreePanel.wxs" src="effects/TreePanel.cpp" hdr="effects/TreePanel.h" fwddecl="1" i18n="1" name="TreePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TwinklePanel.wxs" src="effects/TwinklePanel.cpp" hdr="effects/TwinklePanel.h" fwddecl="1" i18n="1" name="TwinklePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/VideoPanel.wxs" src="effects/VideoPanel.cpp" hdr="effects/VideoPanel.h" fwddecl="1" i18n="1" name="VideoPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/VUMeterPanel.wxs" src="effects/VUMeterPanel.cpp" hdr="effects/VUMeterPanel.h" fwddecl="1" i18n="1" name="VUMeterPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/WavePanel.wxs" src="effects/WavePanel.cpp" hdr="effects/WavePanel.h" fwddecl="1" i18n="1" name="WavePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PicturesAssistPanel.wxs" src="effects/assist/PicturesAssistPanel.cpp" hdr="effects/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />

@@ -257,6 +257,8 @@
     <ClCompile Include="effects\TreePanel.cpp" />
     <ClCompile Include="effects\TwinkleEffect.cpp" />
     <ClCompile Include="effects\TwinklePanel.cpp" />
+    <ClCompile Include="effects\VideoEffect.cpp" />
+    <ClCompile Include="effects\VideoPanel.cpp" />
     <ClCompile Include="effects\VUMeterEffect.cpp" />
     <ClCompile Include="effects\VUMeterPanel.cpp" />
     <ClCompile Include="effects\WaveEffect.cpp" />
