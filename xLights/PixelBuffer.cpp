@@ -29,6 +29,8 @@
 #include "models/SingleLineModel.h"
 #include "UtilClasses.h"
 
+#define M_PI_2 6.2831853071795
+
 PixelBufferClass::PixelBufferClass(bool b)
 {
     numLayers = 0;

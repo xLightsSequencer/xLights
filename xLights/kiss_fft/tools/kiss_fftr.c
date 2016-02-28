@@ -72,7 +72,8 @@ void kiss_fftr(kiss_fftr_cfg st,const kiss_fft_scalar *timedata,kiss_fft_cpx *fr
 
     if ( st->substate->inverse) {
         fprintf(stderr,"kiss fft usage error: improper alloc\n");
-        exit(1);
+		return;
+		//exit(1);
     }
 
     ncfft = st->substate->nfft;
@@ -127,7 +128,8 @@ void kiss_fftri(kiss_fftr_cfg st,const kiss_fft_cpx *freqdata,kiss_fft_scalar *t
 
     if (st->substate->inverse == 0) {
         fprintf (stderr, "kiss fft usage error: improper alloc\n");
-        exit (1);
+		return;
+		//exit(1);
     }
 
     ncfft = st->substate->nfft;

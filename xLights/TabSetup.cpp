@@ -238,29 +238,29 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 			{
 				int channeloffset = channel - currentcontrollerstartchannel + 1;
 				// found it
-				std::string s = "Channel " + wxString::Format(wxT("%i"), channel) + " maps to ...\n";
+				std::string s = "Channel " + std::string(wxString::Format(wxT("%i"), channel)) + " maps to ...\n";
 				if (e->GetAttribute("Description", "") != "")
 				{
-					s = s + e->GetAttribute("Description") + "\n";
+					s = s + std::string(e->GetAttribute("Description")) + "\n";
 				}
-				std::string type = e->GetAttribute("NetworkType", "");
+				std::string type = std::string(e->GetAttribute("NetworkType", ""));
 				if (type == "NULL")
 				{
 					// nothing interesting
-					s = s + "Type: NULL ("+ wxString::Format(wxT("%i"), nullcount++) +")\nChannel: " + wxString::Format(wxT("%i"), channeloffset) + "\n";
+					s = s + "Type: NULL ("+ std::string(wxString::Format(wxT("%i"), nullcount++)) +")\nChannel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 				}
 				else if (type == "E131")
 				{
 					s = s + "Type: E1.31\n";
-					std::string ip = e->GetAttribute("ComPort", "");
-					std::string u = e->GetAttribute("BaudRate", "");
+					std::string ip = std::string(e->GetAttribute("ComPort", ""));
+					std::string u = std::string(e->GetAttribute("BaudRate", ""));
 					s = s + "IP: " + ip + "\n";
 					s = s + "Universe: " + u + "\n";
-					s = s + "Channel: " + wxString::Format(wxT("%i"), channeloffset) + "\n";
+					s = s + "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 				}
 				else if (type == "DMX")
 				{
-					s = s + "Type: DMX\nComPort: " + e->GetAttribute("ComPort", "") + "\n";
+					s = s + "Type: DMX\nComPort: " + std::string(e->GetAttribute("ComPort", "")) + "\n";
 					int ucount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
 					// adjust end channel because this has multiple universes
 					currentcontrollerendchannel = currentcontrollerendchannel + (ucount - 1) * MaxChannels;
@@ -269,13 +269,13 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 						int startu = wxAtoi(e->GetAttribute("BaudRate", "1"));
 						int uoffset = channeloffset % MaxChannels;
 						int u = startu + uoffset;
-						s = s + "Universe: " + wxString::Format(wxT("%i"), u) + "\n";
+						s = s + "Universe: " + std::string(wxString::Format(wxT("%i"), u)) + "\n";
 						int c = channeloffset - uoffset * MaxChannels;
-						s = s + "Channel: " + wxString::Format(wxT("%i"), c) + "\n";
+						s = s + "Channel: " + std::string(wxString::Format(wxT("%i"), c)) + "\n";
 					}
 					else
 					{
-						s = s + "Channel: " + wxString::Format(wxT("%i"), channeloffset) + "\n";
+						s = s + "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 					}
 				}
 				if (e->GetAttribute("Enabled", "Yes") != "Yes")

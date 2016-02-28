@@ -851,21 +851,22 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 		sd = RememberShowDir;
 	}
 
-	wxString sdlc = sd;
-	sdlc.LowerCase();
-	wxString flc = file;
-	flc.LowerCase();
-
-	if (wxFileExists(file) || file == "")
+	// exit if the file name is not an absolute path with a drive letter at the begginning
+	if (!wxIsAbsolutePath(file) || wxFileExists(file))
 	{
 		return file;
 	}
 	else
 	{
+		wxString sdlc = sd;
+		sdlc.LowerCase();
+		wxString flc = file;
+		flc.LowerCase();
+
 		wxString path;
 		wxString fname;
 		wxString ext;
-		wxSplitPath(sd, &path, &fname, &ext);
+		wxFileName::SplitPath(sd, &path, &fname, &ext);
 		wxArrayString parts = wxSplit(path, '\\', '\\');
 		if (fname == "")
 		{
@@ -888,44 +889,45 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 			}
 		}
 
-		wxString fpath;
-		wxString ffname;
-		wxString fext;
-		wxSplitPath(file, &fpath, &ffname, &fext);
-		wxArrayString fparts = wxSplit(fpath, '\\', '\\');
-		if (fparts.Count() == 0)
-		{
-			fparts = wxSplit(fpath, '/', '/');
-		}
+		// Disabling this ... untested but even if it does work the scenarios are really not that useful
+		//wxString fpath;
+		//wxString ffname;
+		//wxString fext;
+		//wxFileName::SplitPath(file, &fpath, &ffname, &fext);
+		//wxArrayString fparts = wxSplit(fpath, '\\', '\\');
+		//if (fparts.Count() == 0)
+		//{
+		//	fparts = wxSplit(fpath, '/', '/');
+		//}
 
-		int foundindex = -1;
-		int i = 0;
-		while (foundindex < 0 && i < fparts.Count())
-		{
-			wxString fpartlc = fparts[i];
-			fpartlc.LowerCase();
+		//int foundindex = -1;
+		//int i = 0;
+		//while (foundindex < 0 && i < fparts.Count())
+		//{
+		//	wxString fpartlc = fparts[i];
+		//	fpartlc.LowerCase();
 
-			if (fpartlc == sflc)
-			{
-				foundindex = i;
-			}
-			i++;
-		}
+		//	if (fpartlc == sflc)
+		//	{
+		//		foundindex = i;
+		//	}
+		//	i++;
+		//}
 
-		for (i = fparts.Count() - 1; i > foundindex; i--)
-		{
-			wxString testfile = sd + "/";
-			for (int j = foundindex + 1; j <= i; j++)
-			{
-				testfile = testfile + fparts[j] + "/";
-			}
-			testfile = testfile + ffname + fext;
+		//for (i = fparts.Count() - 1; i > foundindex; i--)
+		//{
+		//	wxString testfile = sd + "/";
+		//	for (int j = foundindex + 1; j <= i; j++)
+		//	{
+		//		testfile = testfile + fparts[j] + "/";
+		//	}
+		//	testfile = testfile + ffname + fext;
 
-			if (wxFileExists(testfile))
-			{
-				return testfile;
-			}
-		}
+		//	if (wxFileExists(testfile))
+		//	{
+		//		return testfile;
+		//	}
+		//}
 	}
 
 	return file;
@@ -1283,15 +1285,8 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir)
                     element->GetAttribute("num_channels", &num_channels);
                     element->GetAttribute("channel_offset", &channel_offset);
                     element->GetAttribute("lor_params", &lor_params);
-					// Only fix things that look like files
-					if (data[1] == ':')
-					{
-						data = FixFile("", data);
-					}
-					if (source[1] == ':')
-					{
-						source = FixFile("", source);
-					}
+					data = FixFile("", data);
+					source = FixFile("", source);
 					if( name == "Nutcracker" )
                     {
                         mDataLayers.RemoveDataLayer(0);
