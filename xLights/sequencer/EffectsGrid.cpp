@@ -1894,7 +1894,8 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
         //need to make some decisions about the colors to be used.
         return 1;
     }
-    return xlights->GetEffectManager()[e->GetEffectIndex()]->DrawEffectBackground(e, x1, y1, x2, y2);
+    RenderableEffect *ef = xlights->GetEffectManager()[e->GetEffectIndex()];
+    return ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2);
 }
 
 void EffectsGrid::DrawModelOrViewEffects(int row)

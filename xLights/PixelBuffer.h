@@ -119,10 +119,11 @@ private:
         bool isMasked(int x, int y);
         
     private:
-        void createSquareExplodeMask(bool reveal);
-        void createCircleExplodeMask(bool reveal);
-        void createWipeMask(bool reveal);
-        void createFromMiddleMask(bool reveal);
+        void createSquareExplodeMask(bool end);
+        void createCircleExplodeMask(bool end);
+        void createWipeMask(bool end);
+        void createFromMiddleMask(bool end);
+        void createClockMask(bool end);
     };
 
     PixelBufferClass(const PixelBufferClass &cls);

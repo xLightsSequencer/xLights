@@ -877,7 +877,7 @@ static int DecodeType(const std::string &type)
     {
         return 1;
     }
-    else if (type == "Clockwise")
+    else if (type == "Clock")
     {
         return 2;
     }
@@ -1091,6 +1091,65 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out)
     //mask[idx] = m2;
     //printf("%f   %f    %d %d     %d %d\n", factor, slope, (int)curx, (int)cury,  (int)endx,  (int)endy);
 }
+
+void PixelBufferClass::LayerInfo::createClockMask(bool out) {
+    bool reverse = inTransitionReverse;
+    float factor = inMaskFactor;
+    int adjust = inTransitionAdjust;
+    uint8_t m1 = 255;
+    uint8_t m2 = 0;
+    if (out) {
+        reverse = outTransitionReverse;
+        factor = 1 - outMaskFactor;
+        adjust = outTransitionAdjust;
+        m2 = 255;
+        m1 = 0;
+    }
+    
+    float startradians = 2.0 * M_PI * (float)adjust / 100.0;
+    float currentradians = 2.0 * M_PI * factor;
+    if (reverse) {
+        float tmp = startradians;
+        startradians = startradians - currentradians;
+        currentradians = tmp;
+        if (startradians < 0) {
+            startradians += 2.0 * M_PI;
+            currentradians += 2.0 * M_PI;
+        }
+    } else {
+        currentradians = startradians + currentradians;
+    }
+    
+    for (int x = 0; x < BufferWi; x++)
+    {
+        for (int y = 0; y < BufferHt; y++)
+        {
+            float radianspixel;
+            if (x - buffer.BufferWi / 2 == 0 && y - BufferHt / 2 == 0)
+            {
+                radianspixel = 0.0;
+            }
+            else
+            {
+                radianspixel = atan2(x - BufferWi / 2,
+                                     y - BufferHt / 2);
+            }
+            if (radianspixel < 0)
+            {
+                radianspixel += 2 * M_PI;
+            }
+            if (currentradians > 2 * M_PI && radianspixel < startradians) {
+                radianspixel += 2 * M_PI;
+            }
+            
+            bool s_lt_p = radianspixel > startradians;
+            bool c_gt_p = radianspixel < currentradians;
+            mask[x * BufferHt + y] = (s_lt_p && c_gt_p) ? m2 : m1;
+        }
+    }
+    
+}
+
 void PixelBufferClass::LayerInfo::calculateMask() {
     bool hasMask = false;
     if (inMaskFactor < 1.0) {
@@ -1111,6 +1170,9 @@ void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mo
     switch (DecodeType(type)) {
         case 1:
             createWipeMask(mode);
+            break;
+        case 2:
+            createClockMask(mode);
             break;
         case 3:
             createFromMiddleMask(mode);

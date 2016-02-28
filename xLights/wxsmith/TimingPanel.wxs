@@ -138,7 +138,7 @@
 																		<content>
 																			<item>Fade</item>
 																			<item>Wipe</item>
-																			<item>Clockwise</item>
+																			<item>Clock</item>
 																			<item>From Middle</item>
 																			<item>Square Explode</item>
 																			<item>Circle Explode</item>
@@ -247,7 +247,7 @@
 																		<content>
 																			<item>Fade</item>
 																			<item>Wipe</item>
-																			<item>Clockwise</item>
+																			<item>Clock</item>
 																			<item>From Middle</item>
 																			<item>Square Explode</item>
 																			<item>Circle Explode</item>
