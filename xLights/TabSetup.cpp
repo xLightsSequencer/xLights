@@ -222,6 +222,7 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 	wxXmlNode* e = NetworkXML.GetRoot();
 	long currentcontrollerstartchannel = 0;
 	long currentcontrollerendchannel = 0;
+	int nullcount = 1;
 
 	for (e = e->GetChildren(); e != NULL; e = e->GetNext())
 	{
@@ -246,7 +247,7 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 				if (type == "NULL")
 				{
 					// nothing interesting
-					s = s + "Type: NULL\nChannel: " + wxString::Format(wxT("%i"), channeloffset) + "\n";
+					s = s + "Type: NULL ("+ wxString::Format(wxT("%i"), nullcount++) +")\nChannel: " + wxString::Format(wxT("%i"), channeloffset) + "\n";
 				}
 				else if (type == "E131")
 				{
