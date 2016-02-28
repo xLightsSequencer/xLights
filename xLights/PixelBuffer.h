@@ -120,7 +120,9 @@ private:
         
     private:
         void createSquareExplodeMask(bool reveal);
+        void createCircleExplodeMask(bool reveal);
         void createWipeMask(bool reveal);
+        void createFromMiddleMask(bool reveal);
     };
 
     PixelBufferClass(const PixelBufferClass &cls);

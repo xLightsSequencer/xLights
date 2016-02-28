@@ -907,6 +907,76 @@ static int DecodeType(const std::string &type)
     return 1;
 }
 
+
+void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
+    bool reverse = inTransitionReverse;
+    float factor = inMaskFactor;
+    if (out) {
+        reverse = outTransitionReverse;
+        factor = outMaskFactor;
+    }
+    uint8_t m1 = 255;
+    uint8_t m2 = 0;
+    
+    if (reverse) {
+        factor = 1.0 - factor;
+        m1 = 0;
+        m2 = 255;
+    }
+    
+    float step = ((float)buffer.BufferWi / 2.0) * factor;
+   
+    int x1 = buffer.BufferWi / 2 - step;
+    int x2 = buffer.BufferWi / 2 + step;
+    for (int x = 0; x < buffer.BufferWi; x++)
+    {
+        uint8_t c = m1;
+        if (x < x1) {
+            c = m1;
+        } else if (x < x2) {
+            c = m2;
+        } else {
+            c = m1;
+        }
+        for (int y = 0; y < buffer.BufferHt; y++)
+        {
+            mask[x * BufferHt + y] = c;
+        }
+    }
+}
+
+void PixelBufferClass::LayerInfo::createCircleExplodeMask(bool out) {
+    // distance from centre
+    // sqrt((x - buffer.BufferWi / 2) ^ 2 + (y - buffer.BufferHt / 2) ^ 2);
+    float maxradius = sqrt(((buffer.BufferWi / 2) * (buffer.BufferWi / 2)) + ((buffer.BufferHt / 2) * (buffer.BufferHt / 2)));
+    
+    bool reverse = inTransitionReverse;
+    float factor = inMaskFactor;
+    if (out) {
+        reverse = outTransitionReverse;
+        factor = outMaskFactor;
+    }
+    
+    uint8_t m1 = 255;
+    uint8_t m2 = 0;
+    
+    if (reverse) {
+        factor = 1.0 - factor;
+        m1 = 0;
+        m2 = 255;
+    }
+    
+    float rad = maxradius * factor;
+    
+    for (int x = 0; x < buffer.BufferWi; x++)
+    {
+        for (int y = 0; y < buffer.BufferHt; y++)
+        {
+            float radius = sqrt((x - (buffer.BufferWi / 2)) * (x - (buffer.BufferWi / 2)) + (y - (buffer.BufferHt / 2)) * (y - (buffer.BufferHt / 2)));
+            mask[x * BufferHt + y] = radius < rad ? m2 : m1;
+        }
+    }
+}
 void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool out)
 {
     bool reverse = inTransitionReverse;
@@ -1037,8 +1107,14 @@ void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mo
         case 1:
             createWipeMask(mode);
             break;
+        case 3:
+            createFromMiddleMask(mode);
+            break;
         case 4:
             createSquareExplodeMask(mode);
+            break;
+        case 5:
+            createCircleExplodeMask(mode);
             break;
         default:
             break;
