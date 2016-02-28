@@ -82,7 +82,6 @@ private:
             fadeInSteps = fadeOutSteps = 0;
             inTransitionAdjust = outTransitionAdjust = 0;
             inTransitionReverse = outTransitionReverse = false;
-            lastmaskvalue = -99999;
         }
         RenderBuffer buffer;
         std::string bufferType;
@@ -115,7 +114,6 @@ private:
         float outMaskFactor;
         
         std::vector<uint8_t> mask;
-        float lastmaskvalue;
         void calculateMask();
         void calculateMask(const std::string &type, bool mode);
         bool isMasked(int x, int y);

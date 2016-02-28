@@ -693,7 +693,6 @@ static const std::string CHECKBOX_Out_Transition_Reverse("CHECKBOX_Out_Transitio
 void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMap) {
     LayerInfo *inf = layers[layer];
     inf->persistent = settingsMap.GetBool(CHECKBOX_OverlayBkg);
-    inf->lastmaskvalue = -99999;
     inf->mask.clear();
     
     inf->fadeInSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadein, 0.0)*1000)/frameTimeInMs;
@@ -801,7 +800,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             layers[ii]->buffer.GetEffectPeriods( effStartPer, effEndPer);
             if (EffectPeriod < (effStartPer)+layers[ii]->fadeInSteps)
             {
-                curStep = EffectPeriod - effStartPer;
+                curStep = EffectPeriod - effStartPer + 1;
                 fadeInFactor = (double)curStep/(double)layers[ii]->fadeInSteps;
             }
             if (EffectPeriod > (effEndPer)-layers[ii]->fadeOutSteps)
@@ -834,7 +833,6 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             layers[ii]->calculateMask();
         } else {
             layers[ii]->mask.clear();
-            layers[ii]->lastmaskvalue = -99999;
         }
     }
 
@@ -963,6 +961,13 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out)
         factor = outMaskFactor;
     }
     
+    if (reverse) {
+        adjust += 50;
+        if (adjust >= 100) {
+            adjust -= 100;
+        }
+    }
+    
     float angle = 2.0 * M_PI * (float)adjust / 100.0;
     
     float slope = tan(angle);
@@ -970,8 +975,8 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out)
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     
-    float curx = factor * BufferWi;
-    float cury = factor * BufferHt;
+    float curx = std::round(factor * ((float)BufferWi - 1.0));
+    float cury = std::round(factor * ((float)BufferHt - 1.0));
 
     if (angle >= 0 && angle < M_PI_2) {
         curx = BufferWi - curx - 1;
@@ -984,8 +989,8 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out)
     } else {
         std::swap(m1, m2);
     }
-    float endx = 0;
-    float endy = -slope * curx + cury;
+    float endx = curx == -1 ? -5 : -1;
+    float endy = slope * (endx - curx) + cury;
     if (slope > 999) {
         //nearly vertical
         endx = curx;
@@ -1006,7 +1011,7 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out)
             //mask[x * BufferHt + y] = m1;
         }
     }
-    
+
     //int idx = (int)curx * BufferHt + (int)cury;
     //mask[idx] = m2;
     //printf("%f   %f    %d %d     %d %d\n", factor, slope, (int)curx, (int)cury,  (int)endx,  (int)endy);
@@ -1024,7 +1029,6 @@ void PixelBufferClass::LayerInfo::calculateMask() {
         hasMask = true;
     }
     if (!hasMask) {
-        lastmaskvalue = -99999;
         mask.clear();
     }
 }

@@ -335,8 +335,7 @@ PANEL_EVENT_HANDLERS(TimingPanel)
 
 void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
 {
-    if (Choice_In_Transition_Type->GetStringSelection() == "Wipe" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Fade" ||
+    if (Choice_In_Transition_Type->GetStringSelection() == "Fade" ||
         Choice_In_Transition_Type->GetStringSelection() == "Blinds" ||
         Choice_In_Transition_Type->GetStringSelection() == "Slide Checks" ||
         Choice_In_Transition_Type->GetStringSelection() == "Slide Bars" ||
@@ -356,8 +355,7 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
         TextCtrl_In_Adjust->Enable();
     }
 
-    if (Choice_Out_Transition_Type->GetStringSelection() == "Wipe" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Fade" ||
+    if (Choice_Out_Transition_Type->GetStringSelection() == "Fade" ||
         Choice_Out_Transition_Type->GetStringSelection() == "Blinds" ||
         Choice_Out_Transition_Type->GetStringSelection() == "Slide Checks" ||
         Choice_Out_Transition_Type->GetStringSelection() == "Slide Bars" ||
