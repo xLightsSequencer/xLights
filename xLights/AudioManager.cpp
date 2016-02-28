@@ -899,7 +899,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 
 #ifdef USE_SDLPLAYER
 	_pcmdatasize = _trackSize * out_channels * 2;
-	_pcmdata = (Uint8*)malloc(_pcmdatasize + 100024); // 100024 is a fudge
+	_pcmdata = (Uint8*)malloc(_pcmdatasize + 16384); // 16384 is a fudge because some ogg files dont read consistently
 #endif
 
 	AVPacket readingPacket;
@@ -912,7 +912,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 	swr_init(au_convert_ctx);
 
 	// start at the beginning
-	av_seek_frame(formatContext, -1, 0, AVSEEK_FLAG_ANY);
+	av_seek_frame(formatContext, 0, 0, AVSEEK_FLAG_ANY);
 
 	// Read the packets in a loop
 	while (av_read_frame(formatContext, &readingPacket) == 0)
@@ -946,8 +946,9 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 						return;
 					}
 
-					if (read + frame->nb_samples >= _trackSize)
+					if (read + frame->nb_samples > _trackSize)
 					{
+						// I dont understand why this happens ... add logging when i can
 						int a = 0;
 					}
 
@@ -1004,11 +1005,6 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 					return;
 				}
 
-				if (read + frame->nb_samples >= _trackSize)
-				{
-					int a = 0;
-				}
-
 #ifdef USE_SDLPLAYER
 				// copy the PCM data into the PCM buffer for playing
 				memcpy(_pcmdata + (read * out_channels * 2), out_buffer, frame->nb_samples * out_channels * 2);
@@ -1051,6 +1047,9 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 	AVPacket readingPacket;
 	av_init_packet(&readingPacket);
 
+	// start at the beginning
+	av_seek_frame(formatContext, 0, 0, AVSEEK_FLAG_ANY);
+
 	// Read the packets in a loop
 	while (av_read_frame(formatContext, &readingPacket) == 0)
 	{
@@ -1076,6 +1075,7 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 				{
 					decodingPacket.size = 0;
 				}
+
 			}
 		}
 
