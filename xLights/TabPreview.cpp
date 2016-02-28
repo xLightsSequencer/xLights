@@ -66,10 +66,24 @@ void xLightsFrame::UpdatePreview()
 
 void xLightsFrame::OnListBoxElementListItemSelect(wxListEvent& event)
 {
-    UnSelectAllModels();
-    int sel = ListBoxElementList->GetFirstSelected();
-    if (sel == wxNOT_FOUND) return;
-    SelectModel(ListBoxElementList->GetItemText(sel).ToStdString());
+	UnSelectAllModels();
+	int sel = ListBoxElementList->GetFirstSelected();
+	if (sel == wxNOT_FOUND)
+	{
+		ListBoxElementList->SetToolTip("");
+		return;
+	}
+	std::string name = ListBoxElementList->GetItemText(sel).ToStdString();
+	SelectModel(name);
+
+	for (int i = 0; i < ListBoxElementList->GetItemCount(); i++)
+	{
+		if (name == ListBoxElementList->GetItemText(i))
+		{
+			Model* m = (Model*)ListBoxElementList->GetItemData(i);
+			ListBoxElementList->SetToolTip(GetChannelToControllerMapping(wxAtol(m->ModelStartChannel)));
+		}
+	}
 }
 
 void xLightsFrame::SelectModel(const std::string & name)
