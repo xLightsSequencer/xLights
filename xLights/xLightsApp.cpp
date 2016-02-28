@@ -201,6 +201,12 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 
 bool xLightsApp::OnInit()
 {
+#ifdef _MSC_VER
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+#endif
+
 //    heartbeat("init", true); //tell monitor active now -DJ
 //check for options on command line: -DJ
 //TODO: maybe use wxCmdLineParser instead?
