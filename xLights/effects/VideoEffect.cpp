@@ -61,7 +61,7 @@ VideoReader::VideoReader(std::string filename, int width, int height)
 	// at this point it is open and ready
 
 	// get the video length
-	_length = (int)((UINT64)_videoStream->nb_frames * 1000 * (UINT64)_videoStream->time_base.num / (UINT64)_videoStream->time_base.den);
+	_length = (int)((uint64_t)_videoStream->nb_frames * 1000 * (uint64_t)_videoStream->time_base.num / (uint64_t)_videoStream->time_base.den);
 
 	_valid = true;
 }
@@ -91,13 +91,13 @@ void VideoReader::Seek(int timestampMS)
 	if (_valid)
 	{
 		// Seek about 5 secs prior to the desired timestamp ... to make sure we get a key frame
-		int tgtframe = (int)((UINT64)timestampMS * (UINT64)(_videoStream->time_base.den) / (1000 * (UINT64)(_videoStream->time_base.num)));
+		int tgtframe = (int)((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.den) / (1000 * (uint64_t)(_videoStream->time_base.num)));
 		int adj_timestamp = timestampMS - 5000;
 		if (adj_timestamp < 0)
 		{
 			adj_timestamp = 0;
 		}
-		_currentframe = (int)((UINT64)adj_timestamp * (UINT64)(_videoStream->time_base.den) / (1000 * (UINT64)(_videoStream->time_base.num)));
+		_currentframe = (int)((uint64_t)adj_timestamp * (uint64_t)(_videoStream->time_base.den) / (1000 * (uint64_t)(_videoStream->time_base.num)));
 		av_seek_frame(_formatContext, _streamIndex, adj_timestamp, AVSEEK_FLAG_FRAME);
 
 		// now move forwared to the right place
@@ -157,7 +157,7 @@ AVPicture* VideoReader::GetNextFrame(int timestampMS)
 {
 	if (_valid)
 	{
-		int tgtframe = (int)((UINT64)timestampMS * (UINT64)(_videoStream->time_base.den) / (1000 * (UINT64)(_videoStream->time_base.num)));
+		int tgtframe = (int)((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.den) / (1000 * (uint64_t)(_videoStream->time_base.num)));
 		AVFrame* srcFrame = av_frame_alloc();
 		if (_dstFrame == NULL)
 		{

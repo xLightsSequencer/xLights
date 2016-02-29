@@ -33,7 +33,7 @@ done
 fi
 
 
-LIBS="libswresample.2 libavutil.55 libavformat.57 libavcodec.57"
+LIBS="libswresample.2 libavutil.55 libavformat.57 libavcodec.57 libswscale.4"
 for LS in $LIBS
 do
     for LT in $LIBS
