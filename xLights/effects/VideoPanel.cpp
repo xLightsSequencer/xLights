@@ -52,7 +52,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	FlexGridSizer2->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Video_Starttime = new wxSlider(this, ID_SLIDER_Video_Starttime, 0, 0, 20, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("ID_SLIDER_Video_Starttime"));
 	FlexGridSizer2->Add(Slider_Video_Starttime, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Video_Starttime = new wxTextCtrl(this, ID_TEXTCTRL_Video_Starttime, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(this,wxSize(50,-1)), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Video_Starttime"));
+	TextCtrl_Video_Starttime = new wxTextCtrl(this, ID_TEXTCTRL_Video_Starttime, _("0.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(50,-1)), wxTE_READONLY|wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_Starttime"));
 	FlexGridSizer2->Add(TextCtrl_Video_Starttime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Video_Starttime = new wxBitmapButton(this, ID_BITMAPBUTTON_Video_Starttime, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Video_Starttime"));
 	BitmapButton_Video_Starttime->SetDefault();
@@ -64,7 +64,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	FlexGridSizer42->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_Video_Filename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Video_Starttime,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&VideoPanel::OnSlider_Video_StarttimeCmdSliderUpdated);
+	Connect(ID_SLIDER_Video_Starttime,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VideoPanel::OnSlider_Video_StarttimeCmdSliderUpdated);
 	Connect(ID_TEXTCTRL_Video_Starttime,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VideoPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_Video_Starttime,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnLockButtonClick);
 	//*)
@@ -86,5 +86,8 @@ static inline void EnableControl(wxWindow *w, int id, bool e) {
 
 void VideoPanel::OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event)
 {
-
+	int ms = Slider_Video_Starttime->GetValue();
+	int seconds = ms / 1000;
+	ms = ms - seconds * 1000;
+	TextCtrl_Video_Starttime->SetValue(wxString::Format("%d.%d", seconds, ms));
 }

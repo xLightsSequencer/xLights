@@ -13,7 +13,7 @@ class wxFlexGridSizer;
 
 #include <wx/filepicker.h>
 
-#define VIDEOWILDCARD "*.avi|Video Files"
+#define VIDEOWILDCARD "Video Files|*.avi"
 
 class xlVideoFilePickerCtrl : public wxFilePickerCtrl {
 public:

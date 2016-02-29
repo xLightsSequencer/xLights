@@ -200,6 +200,7 @@
 					<Add library="../lib/windows/avutil.lib" />
 					<Add library="../lib/windows/SDL2.lib" />
 					<Add library="../lib/windows/swresample.lib" />
+					<Add library="../lib/windows/swscale.lib" />
 				</Linker>
 			</Target>
 			<Target title="MinGW_Release">
@@ -254,6 +255,7 @@
 					<Add library="../lib/windows/avcodec.lib" />
 					<Add library="../lib/windows/swresample.lib" />
 					<Add library="../lib/windows/SDL2.lib" />
+					<Add library="../lib/windows/swscale.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -729,14 +731,14 @@
 		<Unit filename="effects/TwinkleEffect.h" />
 		<Unit filename="effects/TwinklePanel.cpp" />
 		<Unit filename="effects/TwinklePanel.h" />
-		<Unit filename="effects/VideoEffect.cpp" />
-		<Unit filename="effects/VideoEffect.h" />
-		<Unit filename="effects/VideoPanel.cpp" />
-		<Unit filename="effects/VideoPanel.h" />
 		<Unit filename="effects/VUMeterEffect.cpp" />
 		<Unit filename="effects/VUMeterEffect.h" />
 		<Unit filename="effects/VUMeterPanel.cpp" />
 		<Unit filename="effects/VUMeterPanel.h" />
+		<Unit filename="effects/VideoEffect.cpp" />
+		<Unit filename="effects/VideoEffect.h" />
+		<Unit filename="effects/VideoPanel.cpp" />
+		<Unit filename="effects/VideoPanel.h" />
 		<Unit filename="effects/WaveEffect.cpp" />
 		<Unit filename="effects/WaveEffect.h" />
 		<Unit filename="effects/WavePanel.cpp" />
@@ -948,8 +950,8 @@
 		<Unit filename="wxsmith/TreePanel.wxs" />
 		<Unit filename="wxsmith/TwinklePanel.wxs" />
 		<Unit filename="wxsmith/VAMPPluginDialog.wxs" />
-		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/VUMeterPanel.wxs" />
+		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WavePanel.wxs" />
 		<Unit filename="wxsmith/dlgPreviewSize.wxs" />

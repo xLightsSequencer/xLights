@@ -50,7 +50,7 @@
 						<object class="wxSlider" name="ID_SLIDER_Video_Starttime" variable="Slider_Video_Starttime" member="yes">
 							<max>20</max>
 							<size>200,-1</size>
-							<handler function="OnSlider_Video_StarttimeCmdSliderUpdated" entry="EVT_COMMAND_SCROLL" />
+							<handler function="OnSlider_Video_StarttimeCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -58,8 +58,9 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_Starttime" variable="TextCtrl_Video_Starttime" member="yes">
+							<value>0.0</value>
 							<size>50,-1d</size>
-							<style>wxTE_READONLY</style>
+							<style>wxTE_READONLY|wxTE_RIGHT</style>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
