@@ -719,8 +719,6 @@
 		<Unit filename="effects/TextEffect.h" />
 		<Unit filename="effects/TextPanel.cpp" />
 		<Unit filename="effects/TextPanel.h" />
-		<Unit filename="effects/TransitionEffect.cpp" />
-		<Unit filename="effects/TransitionEffect.h" />
 		<Unit filename="effects/TreeEffect.cpp" />
 		<Unit filename="effects/TreeEffect.h" />
 		<Unit filename="effects/TreePanel.cpp" />
