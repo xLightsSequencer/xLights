@@ -145,8 +145,6 @@
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
 		67AA379E1C7E3703001D2377 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA379D1C7E3703001D2377 /* SDL2.framework */; };
 		67AA379F1C7E3703001D2377 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA379D1C7E3703001D2377 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		67AA37A71C7E394A001D2377 /* TransitionPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AA37A41C7E394A001D2377 /* TransitionPanel.cpp */; };
-		67AA37A81C7E394A001D2377 /* TransitionEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AA37A61C7E394A001D2377 /* TransitionEffect.cpp */; };
 		67AA37A91C7E3975001D2377 /* libavutil.55.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A01C7E372E001D2377 /* libavutil.55.dylib */; };
 		67AA37AA1C7E3975001D2377 /* libavformat.57.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A11C7E372E001D2377 /* libavformat.57.dylib */; };
 		67AA37AB1C7E3975001D2377 /* libavcodec.57.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */; };
@@ -552,10 +550,6 @@
 		67AA37A01C7E372E001D2377 /* libavutil.55.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavutil.55.dylib; path = lib/osx/libavutil.55.dylib; sourceTree = "<group>"; };
 		67AA37A11C7E372E001D2377 /* libavformat.57.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavformat.57.dylib; path = lib/osx/libavformat.57.dylib; sourceTree = "<group>"; };
 		67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavcodec.57.dylib; path = lib/osx/libavcodec.57.dylib; sourceTree = "<group>"; };
-		67AA37A31C7E394A001D2377 /* TransitionPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransitionPanel.h; path = effects/TransitionPanel.h; sourceTree = "<group>"; };
-		67AA37A41C7E394A001D2377 /* TransitionPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransitionPanel.cpp; path = effects/TransitionPanel.cpp; sourceTree = "<group>"; };
-		67AA37A51C7E394A001D2377 /* TransitionEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransitionEffect.h; path = effects/TransitionEffect.h; sourceTree = "<group>"; };
-		67AA37A61C7E394A001D2377 /* TransitionEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransitionEffect.cpp; path = effects/TransitionEffect.cpp; sourceTree = "<group>"; };
 		67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswresample.2.dylib; path = lib/osx/libswresample.2.dylib; sourceTree = "<group>"; };
 		67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PhonemeDictionary.cpp; sourceTree = "<group>"; };
 		67AAF8F11B63767B00585431 /* PhonemeDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhonemeDictionary.h; sourceTree = "<group>"; };
@@ -929,10 +923,6 @@
 				67EE95AF1C848A3600C62C95 /* VideoPanel.cpp */,
 				67EE95B01C848A3600C62C95 /* VideoEffect.h */,
 				67EE95B11C848A3600C62C95 /* VideoEffect.cpp */,
-				67AA37A31C7E394A001D2377 /* TransitionPanel.h */,
-				67AA37A41C7E394A001D2377 /* TransitionPanel.cpp */,
-				67AA37A51C7E394A001D2377 /* TransitionEffect.h */,
-				67AA37A61C7E394A001D2377 /* TransitionEffect.cpp */,
 				6761F5EA1C4EA032009780DA /* Assist */,
 				679BD33E1C375D9F000539FE /* BarsEffect.cpp */,
 				679BD33F1C375D9F000539FE /* BarsEffect.h */,
@@ -1553,7 +1543,6 @@
 				67A61A3017B51C0F008E95BB /* ModelListDialog.cpp in Sources */,
 				67B2CF8F1C39D98A003C17CA /* CurtainPanel.cpp in Sources */,
 				67EE95B31C848A3600C62C95 /* VideoEffect.cpp in Sources */,
-				67AA37A71C7E394A001D2377 /* TransitionPanel.cpp in Sources */,
 				67A61A3117B51C0F008E95BB /* NetInfo.cpp in Sources */,
 				67A61A3217B51C0F008E95BB /* PaletteMgmtDialog.cpp in Sources */,
 				67B2CF7D1C39D98A003C17CA /* MorphPanel.cpp in Sources */,
@@ -1614,7 +1603,6 @@
 				67043A4C1A07D17F00C09B71 /* dlgPreviewSize.cpp in Sources */,
 				67B2CFDA1C3A186A003C17CA /* StrobeEffect.cpp in Sources */,
 				67B2CFE21C3A186A003C17CA /* RippleEffect.cpp in Sources */,
-				67AA37A81C7E394A001D2377 /* TransitionEffect.cpp in Sources */,
 				675AB4281B5ACEDA00853A28 /* Files.cpp in Sources */,
 				67E42C1F1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp in Sources */,
 				67B2CFED1C3A186A003C17CA /* GarlandsEffect.cpp in Sources */,

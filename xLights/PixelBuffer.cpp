@@ -1253,8 +1253,96 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
 }
 
 void PixelBufferClass::LayerInfo::createSlideChecksMask(bool out) {
+    bool reverse = inTransitionReverse;
+    float factor = inMaskFactor;
+    int adjust = inTransitionAdjust;
+    uint8_t m1 = 255;
+    uint8_t m2 = 0;
+    if (out) {
+        reverse = outTransitionReverse;
+        factor = outMaskFactor;
+        adjust = outTransitionAdjust;
+    }
+
+    if (adjust < 2) {
+        adjust = 2;
+    }
+    adjust = (std::max(buffer.BufferWi / 2, buffer.BufferHt /2)) * adjust / 100;
+    if (adjust < 2) {
+        adjust = 2;
+    }
+    int xper = buffer.BufferWi * 2 / adjust ;
+    if (xper < 1) {
+        xper = 1;
+    }
+    int yper = buffer.BufferHt / adjust;
+    if (yper < 1) {
+        yper = 1;
+    }
+    float step = (((float)xper*2.0) * factor);
+    for (int y = 0; y < BufferHt; y++) {
+        int yb = y / yper;
+        for (int x = 0; x < BufferWi; x++) {
+            int xb = x / xper;
+            int xp = (x - xb * xper) % xper;
+            int xpos = x;
+            if (reverse) {
+                xpos = BufferWi - x - 1;
+            }
+            if (yb % 2) {
+                if (xp >= (xper / 2)) {
+                    xp -= xper / 2;
+                    mask[xpos * BufferHt + y] = xp < step ? m2 : m1;
+                } else {
+                    int step2 = step - (xper / 2);
+                    mask[xpos * BufferHt + y] = xp < step2 ? m2 : m1;
+                }
+            } else {
+                mask[xpos * BufferHt + y] = xp < step ? m2 : m1;
+            }
+        }
+    }
 }
 void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
+    bool reverse = inTransitionReverse;
+    float factor = inMaskFactor;
+    int adjust = inTransitionAdjust;
+    uint8_t m1 = 255;
+    uint8_t m2 = 0;
+    if (out) {
+        reverse = outTransitionReverse;
+        factor = outMaskFactor;
+        adjust = outTransitionAdjust;
+    }
+
+    if (adjust == 0) {
+        adjust = 1;
+    }
+    adjust = (BufferHt / 2) * adjust / 100;
+    if (adjust == 0) {
+        adjust = 1;
+    }
+    
+    int per = BufferHt / adjust;
+    if (per < 1) {
+        per = 1;
+    }
+    int blinds = BufferHt / per;
+    while (blinds * per < BufferHt) {
+        blinds++;
+    }
+    
+    float step = (float)BufferWi * factor;
+    for (int y = 0; y < BufferHt; y++) {
+        int blind = y / per;
+        for (int x = 0; x < BufferWi; x++) {
+            int xpos = x;
+            if (blind % 2 == 0) {
+                xpos = BufferWi - x - 1;
+            }
+            mask[xpos * BufferHt + y] = x < step ? m2 : m1;
+        }
+    }
 }
 
 void PixelBufferClass::LayerInfo::calculateMask() {

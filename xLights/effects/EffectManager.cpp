@@ -38,7 +38,6 @@
 #include "StrobeEffect.h"
 #include "TendrilEffect.h"
 #include "TextEffect.h"
-#include "TransitionEffect.h"
 #include "TreeEffect.h"
 #include "TwinkleEffect.h"
 #include "VideoEffect.h"
@@ -83,7 +82,6 @@ EffectManager::EffectManager() : std::vector<RenderableEffect*>()
     add(new StrobeEffect(eff_STROBE));
     add(new TendrilEffect(eff_TENDRIL));
     add(new TextEffect(eff_TEXT));
-	//add(new TransitionEffect(eff_TRANSITION));
 	add(new TreeEffect(eff_TREE));
 	add(new TwinkleEffect(eff_TWINKLE));
 	add(new VideoEffect(eff_VIDEO));
