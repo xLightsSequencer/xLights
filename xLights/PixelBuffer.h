@@ -124,6 +124,10 @@ private:
         void createWipeMask(bool end);
         void createFromMiddleMask(bool end);
         void createClockMask(bool end);
+        void createBlindsMask(bool end);
+        void createBlendMask(bool end);
+        void createSlideChecksMask(bool end);
+        void createSlideBarsMask(bool end);
     };
 
     PixelBufferClass(const PixelBufferClass &cls);

@@ -45,9 +45,12 @@ public:
 
 		//(*Declarations(ColorPanel)
 		wxStaticText* StaticText22;
+		wxTextCtrl* txtCtlBrightness;
+		wxTextCtrl* txtCtrlSparkleFreq;
 		wxScrolledWindow* ColorScrollWindow;
 		wxStaticText* StaticText126;
 		wxBitmapButton* BitmapButton_normal;
+		wxTextCtrl* txtCtlContrast;
 		wxBitmapButton* BitmapButton_SparkleFrequency;
 		wxSlider* Slider_Contrast;
 		wxSlider* Slider_SparkleFrequency;

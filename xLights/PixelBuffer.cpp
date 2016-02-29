@@ -29,6 +29,8 @@
 #include "models/SingleLineModel.h"
 #include "UtilClasses.h"
 
+#include <random>
+
 // This is needed for visual studio
 #ifdef _MSC_VER
 #define M_PI_2 1.57079632679489661923
@@ -1150,6 +1152,111 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
     
 }
 
+
+void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
+    bool reverse = inTransitionReverse;
+    float factor = inMaskFactor;
+    int adjust = inTransitionAdjust;
+    uint8_t m1 = 255;
+    uint8_t m2 = 0;
+    if (out) {
+        reverse = outTransitionReverse;
+        factor = outMaskFactor;
+        adjust = outTransitionAdjust;
+    }
+    if (adjust == 0) {
+        adjust = 1;
+    }
+    adjust = (buffer.BufferWi / 2) * adjust / 100;
+    if (adjust == 0) {
+        adjust = 1;
+    }
+    
+    int per = buffer.BufferWi / adjust;
+    if (per < 1) {
+        per = 1;
+    }
+    int blinds = buffer.BufferWi / per;
+    while (blinds * per < buffer.BufferWi) {
+        blinds++;
+    }
+    
+    int step = std::round(((float)per) * factor);
+    
+    for (int x = 0; x < BufferWi; x++) {
+        int c = (x % per) <= step ? m2 : m1;
+        int idx = x;
+        if (reverse) {
+            idx = BufferWi - x - 1;
+        }
+        for (int y = 0; y < buffer.BufferWi; y++) {
+            mask[idx * BufferHt + y] = c;
+        }
+    }
+}
+
+void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
+    bool reverse = inTransitionReverse;
+    float factor = inMaskFactor;
+    int adjust = inTransitionAdjust;
+    uint8_t m1 = 255;
+    uint8_t m2 = 0;
+    if (out) {
+        reverse = outTransitionReverse;
+        factor = outMaskFactor;
+        adjust = outTransitionAdjust;
+    }
+    
+    std::minstd_rand rng(1234);
+    
+    int pixels = BufferWi * BufferHt;
+    adjust = 10 * adjust / 100;
+    if (adjust == 0) {
+        adjust = 1;
+    }
+    int actualpixels = pixels / (adjust * adjust);
+    float step = ((float)pixels / (adjust*adjust)) * factor;
+    
+    int xpixels = BufferWi / adjust;
+    while (xpixels * adjust < BufferWi) {
+        xpixels++;
+    }
+    int ypixels = BufferHt / adjust;
+    while (ypixels * adjust < BufferHt) {
+        ypixels++;
+    }
+    
+    // set all the background first
+    for (int x = 0; x < buffer.BufferWi; x++) {
+        for (int y = 0; y < buffer.BufferWi; y++) {
+            mask[x * BufferHt + y] = m1;
+        }
+    }
+    
+    for (int i = 0; i < step; i++)
+    {
+        int jy = rng() % actualpixels;
+        int jx = rng() % actualpixels;
+        
+        int x = jx % xpixels * adjust;
+        int y = jy % ypixels * adjust;
+        if (mask[x * BufferHt + y] == m2) {
+            i--;
+        } else {
+            for (int k = 0; k < adjust; k++) {
+                for (int l = 0; l < adjust; l++) {
+                    mask[(x + k) * BufferHt + y + l] = m2;
+                }
+            }
+        }
+    }
+}
+
+void PixelBufferClass::LayerInfo::createSlideChecksMask(bool out) {
+}
+void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
+}
+
 void PixelBufferClass::LayerInfo::calculateMask() {
     bool hasMask = false;
     if (inMaskFactor < 1.0) {
@@ -1182,6 +1289,18 @@ void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mo
             break;
         case 5:
             createCircleExplodeMask(mode);
+            break;
+        case 6:
+            createBlindsMask(mode);
+            break;
+        case 7:
+            createBlendMask(mode);
+            break;
+        case 8:
+            createSlideChecksMask(mode);
+            break;
+        case 9:
+            createSlideBarsMask(mode);
             break;
         default:
             break;

@@ -249,6 +249,8 @@ void BufferPanel::SetDefaultControls(const Model *model) {
     if (BufferStyleChoice->IsEmpty()) {
         BufferStyleChoice->Append("Default");
     }
+    Slider_EffectBlur->SetValue(0);
+    txtCtlEffectBlur->SetValue("0");
     BufferStyleChoice->SetSelection(0);
     BufferTransform->SetSelection(0);
     CheckBox_RotoZoom->SetValue(false);

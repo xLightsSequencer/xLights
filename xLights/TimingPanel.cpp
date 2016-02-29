@@ -336,7 +336,6 @@ PANEL_EVENT_HANDLERS(TimingPanel)
 void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
 {
     if (Choice_In_Transition_Type->GetStringSelection() == "Fade" ||
-        Choice_In_Transition_Type->GetStringSelection() == "Blinds" ||
         Choice_In_Transition_Type->GetStringSelection() == "Slide Checks" ||
         Choice_In_Transition_Type->GetStringSelection() == "Slide Bars" ||
         Choice_In_Transition_Type->GetStringSelection() == "Blend") {
@@ -356,7 +355,6 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
     }
 
     if (Choice_Out_Transition_Type->GetStringSelection() == "Fade" ||
-        Choice_Out_Transition_Type->GetStringSelection() == "Blinds" ||
         Choice_Out_Transition_Type->GetStringSelection() == "Slide Checks" ||
         Choice_Out_Transition_Type->GetStringSelection() == "Slide Bars" ||
         Choice_Out_Transition_Type->GetStringSelection() == "Blend") {

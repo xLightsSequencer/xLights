@@ -47,12 +47,9 @@ END_EVENT_TABLE()
 ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ColorPanel)
-	wxTextCtrl* txtCtlBrightness;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxTextCtrl* txtCtrlSparkleFreq;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxButton* ButtonColor1;
-	wxTextCtrl* txtCtlContrast;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -61,10 +58,8 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
 	Panel_Sizer = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	Panel_Sizer->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	ColorScrollWindow = new wxScrolledWindow(Panel_Sizer, ID_SCROLLED_ColorScroll, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLED_ColorScroll"));
-	ColorScrollWindow->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -301,6 +296,12 @@ void ColorPanel::SetDefaultSettings() {
     for (auto it = checkBoxes.begin(); it != checkBoxes.end(); it++) {
         (*it)->SetValue(false);
     }
+    Slider_SparkleFrequency->SetValue(0);
+    Slider_Brightness->SetValue(100);
+    Slider_Contrast->SetValue(0);
+    txtCtlContrast->SetValue("0");
+    txtCtlBrightness->SetValue("100");
+    txtCtrlSparkleFreq->SetValue("0");
 }
 
 void ColorPanel::SetDefaultPalette()

@@ -72,7 +72,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_SparkleFrequency" variable="txtCtrlSparkleFreq" member="no">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_SparkleFrequency" variable="txtCtrlSparkleFreq" member="yes">
 													<value>200</value>
 													<size>20,-1d</size>
 													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
@@ -113,7 +113,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Brightness" variable="txtCtlBrightness" member="no">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Brightness" variable="txtCtlBrightness" member="yes">
 													<value>100</value>
 													<size>20,-1d</size>
 													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
@@ -151,7 +151,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Contrast" variable="txtCtlContrast" member="no">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Contrast" variable="txtCtlContrast" member="yes">
 													<value>0</value>
 													<size>20,-1d</size>
 													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
