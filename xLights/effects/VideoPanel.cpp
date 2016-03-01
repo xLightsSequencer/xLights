@@ -69,6 +69,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_Video_Starttime,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_Video");
+	TextCtrl_Video_Starttime->SetValue("0.000");
 }
 
 VideoPanel::~VideoPanel()
@@ -89,5 +90,5 @@ void VideoPanel::OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event)
 	int ms = Slider_Video_Starttime->GetValue();
 	int seconds = ms / 1000;
 	ms = ms - seconds * 1000;
-	TextCtrl_Video_Starttime->SetValue(wxString::Format("%d.%d", seconds, ms));
+	TextCtrl_Video_Starttime->SetValue(wxString::Format("%d.%03d", seconds, ms));
 }

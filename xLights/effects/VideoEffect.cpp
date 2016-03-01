@@ -14,7 +14,7 @@
 #ifdef __WXMSW__
 //#include "wx/msw/debughlp.h"
 //wxString s;
-//s.Printf("Seek to timestamp %i", timestampMS);
+//s.Printf("Seek to timestamp %d", timestampMS);
 //wxDbgHelpDLL::LogError(s);
 #endif
 
@@ -357,7 +357,15 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 			{
 				for (int x = 0; x < buffer.BufferWi; x++)
 				{
-					c.Set(*(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3), *(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3 + 1), *(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3 + 2), 255);
+					try
+					{
+						c.Set(*(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3), *(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3 + 1), *(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3 + 2), 255);
+					}
+					catch (...)
+					{
+						// this shouldnt happen so make it stand out
+						c = xlRED;
+					}
 					buffer.SetPixel(x, y, c);
 				}
 			}
