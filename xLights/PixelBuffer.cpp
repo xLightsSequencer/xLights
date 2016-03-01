@@ -933,9 +933,9 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     
     float step = ((float)buffer.BufferWi / 2.0) * factor;
    
-    int x1 = buffer.BufferWi / 2 - step;
-    int x2 = buffer.BufferWi / 2 + step;
-    for (int x = 0; x < buffer.BufferWi; x++)
+    int x1 = BufferWi / 2 - step;
+    int x2 = BufferWi / 2 + step;
+    for (int x = 0; x < BufferWi; x++)
     {
         uint8_t c = m1;
         if (x < x1) {
@@ -945,7 +945,7 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
         } else {
             c = m1;
         }
-        for (int y = 0; y < buffer.BufferHt; y++)
+        for (int y = 0; y < BufferHt; y++)
         {
             mask[x * BufferHt + y] = c;
         }
@@ -975,11 +975,11 @@ void PixelBufferClass::LayerInfo::createCircleExplodeMask(bool out) {
     
     float rad = maxradius * factor;
     
-    for (int x = 0; x < buffer.BufferWi; x++)
+    for (int x = 0; x < BufferWi; x++)
     {
-        for (int y = 0; y < buffer.BufferHt; y++)
+        for (int y = 0; y < BufferHt; y++)
         {
-            float radius = sqrt((x - (buffer.BufferWi / 2)) * (x - (buffer.BufferWi / 2)) + (y - (buffer.BufferHt / 2)) * (y - (buffer.BufferHt / 2)));
+            float radius = sqrt((x - (BufferWi / 2)) * (x - (BufferWi / 2)) + (y - (BufferHt / 2)) * (y - (BufferHt / 2)));
             mask[x * BufferHt + y] = radius < rad ? m2 : m1;
         }
     }
@@ -1082,16 +1082,11 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out)
 
     // start bottom left 0, 0
     // y = slope * x + y'
-    for (int x = 0; x < buffer.BufferWi; x++) {
-        for (int y = 0; y < buffer.BufferHt; y++) {
+    for (int x = 0; x < BufferWi; x++) {
+        for (int y = 0; y < BufferHt; y++) {
             mask[x * BufferHt + y] = isLeft(start, end, wxPoint(x, y)) ? m1 : m2;
-            //mask[x * BufferHt + y] = m1;
         }
     }
-
-    //int idx = (int)curx * BufferHt + (int)cury;
-    //mask[idx] = m2;
-    //printf("%f   %f    %d %d     %d %d\n", factor, slope, (int)curx, (int)cury,  (int)endx,  (int)endy);
 }
 
 void PixelBufferClass::LayerInfo::createClockMask(bool out) {
@@ -1102,10 +1097,8 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
     uint8_t m2 = 0;
     if (out) {
         reverse = outTransitionReverse;
-        factor = 1 - outMaskFactor;
+        factor = outMaskFactor;
         adjust = outTransitionAdjust;
-        m2 = 255;
-        m1 = 0;
     }
     
     float startradians = 2.0 * M_PI * (float)adjust / 100.0;
@@ -1127,7 +1120,7 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
         for (int y = 0; y < BufferHt; y++)
         {
             float radianspixel;
-            if (x - buffer.BufferWi / 2 == 0 && y - BufferHt / 2 == 0)
+            if (x - BufferWi / 2 == 0 && y - BufferHt / 2 == 0)
             {
                 radianspixel = 0.0;
             }
@@ -1189,7 +1182,7 @@ void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
         if (reverse) {
             idx = BufferWi - x - 1;
         }
-        for (int y = 0; y < buffer.BufferWi; y++) {
+        for (int y = 0; y < BufferHt; y++) {
             mask[idx * BufferHt + y] = c;
         }
     }
@@ -1227,8 +1220,8 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
     }
     
     // set all the background first
-    for (int x = 0; x < buffer.BufferWi; x++) {
-        for (int y = 0; y < buffer.BufferWi; y++) {
+    for (int x = 0; x < BufferWi; x++) {
+        for (int y = 0; y < BufferHt; y++) {
             mask[x * BufferHt + y] = m1;
         }
     }
@@ -1280,19 +1273,19 @@ void PixelBufferClass::LayerInfo::createSlideChecksMask(bool out) {
         yper = 1;
     }
     float step = (((float)xper*2.0) * factor);
-    for (int y = 0; y < BufferHt; y++) {
-        int yb = y / yper;
-        for (int x = 0; x < BufferWi; x++) {
-            int xb = x / xper;
-            int xp = (x - xb * xper) % xper;
-            int xpos = x;
-            if (reverse) {
-                xpos = BufferWi - x - 1;
-            }
+    for (int x = 0; x < BufferWi; x++) {
+        int xb = x / xper;
+        int xp = (x - xb * xper) % xper;
+        int xpos = x;
+        if (reverse) {
+            xpos = BufferWi - x - 1;
+        }
+        for (int y = 0; y < BufferHt; y++) {
+            int yb = y / yper;
             if (yb % 2) {
                 if (xp >= (xper / 2)) {
-                    xp -= xper / 2;
-                    mask[xpos * BufferHt + y] = xp < step ? m2 : m1;
+                    int xp2 = xp - xper / 2;
+                    mask[xpos * BufferHt + y] = xp2 < step ? m2 : m1;
                 } else {
                     int step2 = step - (xper / 2);
                     mask[xpos * BufferHt + y] = xp < step2 ? m2 : m1;
