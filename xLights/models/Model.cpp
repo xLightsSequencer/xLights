@@ -1092,7 +1092,8 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
             PreviewScaleY = double(RenderHt) * double(w) / (double(h) * RenderWi) * PreviewScaleX;
         }
     }
-
+    DrawGLUtils::PreAlloc(NodeCount);
+    
     double scalex=double(w) / RenderWi * PreviewScaleX;
     double scaley=double(h) / RenderHt * PreviewScaleY;
 

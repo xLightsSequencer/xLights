@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <cstddef>
 
 #include "SequenceData.h"
 
@@ -53,11 +54,15 @@ FrameData SequenceData::operator[](unsigned int frame) {
     if (frame >= numFrames) {
         return FrameData(numChannels, invalidData);
     }
-    return FrameData(numChannels, &data[frame * numChannels]);
+    std::ptrdiff_t offset = frame;
+    offset *= numChannels;
+    return FrameData(numChannels, &data[offset]);
 }
 const FrameData SequenceData::operator[](unsigned int frame) const {
     if (frame >= numFrames) {
         return FrameData(numChannels, invalidData);
     }
-    return FrameData(numChannels, &data[frame * numChannels]);
+    std::ptrdiff_t offset = frame;
+    offset *= numChannels;
+    return FrameData(numChannels, &data[offset]);
 }
