@@ -251,8 +251,6 @@
     <ClCompile Include="effects\TendrilPanel.cpp" />
     <ClCompile Include="effects\TextEffect.cpp" />
     <ClCompile Include="effects\TextPanel.cpp" />
-    <ClCompile Include="effects\TransitionEffect.cpp" />
-    <ClCompile Include="effects\TransitionPanel.cpp" />
     <ClCompile Include="effects\TreeEffect.cpp" />
     <ClCompile Include="effects\TreePanel.cpp" />
     <ClCompile Include="effects\TwinkleEffect.cpp" />

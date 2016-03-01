@@ -37,6 +37,7 @@ private:
 	AVFrame* _dstFrame; // the last frame
 	AVPixelFormat _pixelFmt;
 	int _currentframe;
+	int _lastframe;
 };
 
 class VideoEffect : public RenderableEffect

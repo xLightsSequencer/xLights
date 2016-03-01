@@ -11,6 +11,10 @@
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
 
+#ifdef __WXMSW__
+#include "wx/msw/debughlp.h"
+#endif
+
 VideoReader::VideoReader(std::string filename, int width, int height)
 {
 	_width = width;
@@ -23,6 +27,7 @@ VideoReader::VideoReader(std::string filename, int width, int height)
 	_dstFrame = NULL;
 	_pixelFmt = AVPixelFormat::AV_PIX_FMT_RGB24;
 	_currentframe = 0;
+	_lastframe = 0;
 
 	av_register_all();
 
@@ -61,7 +66,8 @@ VideoReader::VideoReader(std::string filename, int width, int height)
 	// at this point it is open and ready
 
 	// get the video length
-	_length = (int)((uint64_t)_videoStream->nb_frames * 1000 * (uint64_t)_videoStream->time_base.num / (uint64_t)_videoStream->time_base.den);
+	_length = (int)(((uint64_t)_videoStream->nb_frames * (uint64_t)_videoStream->time_base.den) / (uint64_t)_videoStream->time_base.num);
+	_lastframe = _videoStream->nb_frames;
 
 	_valid = true;
 }
@@ -87,18 +93,26 @@ VideoReader::~VideoReader()
 
 void VideoReader::Seek(int timestampMS)
 {
+	wxString s;
+	s.Printf("Seek to timestamp %i", timestampMS);
+	wxDbgHelpDLL::LogError(s);
+
 	// we have to be valid
 	if (_valid)
 	{
 		// Seek about 5 secs prior to the desired timestamp ... to make sure we get a key frame
-		int tgtframe = (int)((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.den) / (1000 * (uint64_t)(_videoStream->time_base.num)));
+		int tgtframe = (int)(((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.num)) / (uint64_t)(_videoStream->time_base.den));
+s.Printf("Target Frame %i", tgtframe);
+wxDbgHelpDLL::LogError(s);
 		int adj_timestamp = timestampMS - 5000;
 		if (adj_timestamp < 0)
 		{
 			adj_timestamp = 0;
 		}
-		_currentframe = (int)((uint64_t)adj_timestamp * (uint64_t)(_videoStream->time_base.den) / (1000 * (uint64_t)(_videoStream->time_base.num)));
-		av_seek_frame(_formatContext, _streamIndex, adj_timestamp, AVSEEK_FLAG_FRAME);
+		_currentframe = (int)(((uint64_t)adj_timestamp * (uint64_t)(_videoStream->time_base.num)) / (uint64_t)(_videoStream->time_base.den));
+s.Printf("Current Frame after seek - 5s %i", _currentframe);
+wxDbgHelpDLL::LogError(s);
+		int rc = av_seek_frame(_formatContext, _streamIndex, _currentframe, AVSEEK_FLAG_FRAME);
 
 		// now move forwared to the right place
 		AVFrame* srcFrame = av_frame_alloc();
@@ -136,6 +150,8 @@ void VideoReader::Seek(int timestampMS)
 				// Did we get a video frame?
 				if (frameFinished) 
 				{
+s.Printf("Frame read ... Current Frame now %i", _currentframe);
+wxDbgHelpDLL::LogError(s);
 					_currentframe++;
 					sws_scale(swsCtx, srcFrame->data, srcFrame->linesize, 0,
 						_codecContext->height, _dstFrame->data,
@@ -155,9 +171,9 @@ void VideoReader::Seek(int timestampMS)
 
 AVPicture* VideoReader::GetNextFrame(int timestampMS)
 {
-	if (_valid)
+	if (_valid && timestampMS <= _length)
 	{
-		int tgtframe = (int)((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.den) / (1000 * (uint64_t)(_videoStream->time_base.num)));
+		int tgtframe = (int)(((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.num)) / (uint64_t)(_videoStream->time_base.den));
 		AVFrame* srcFrame = av_frame_alloc();
 		if (_dstFrame == NULL)
 		{
@@ -179,7 +195,7 @@ AVPicture* VideoReader::GetNextFrame(int timestampMS)
 			NULL, NULL);
 		AVPacket packet;
 
-		while (av_read_frame(_formatContext, &packet) >= 0 && _currentframe <= tgtframe)
+		while (av_read_frame(_formatContext, &packet) >= 0 && _currentframe <= tgtframe && _currentframe <= _lastframe)
 		{
 
 			// Is this a packet from the video stream?
@@ -208,7 +224,19 @@ AVPicture* VideoReader::GetNextFrame(int timestampMS)
 		av_free(buffer);
 		av_free(srcFrame);
 	}
-	return (AVPicture*)_dstFrame;
+	else
+	{
+		return NULL;
+	}
+
+	if (_currentframe > _lastframe)
+	{
+		return NULL;
+	}
+	else
+	{
+		return (AVPicture*)_dstFrame;
+	}
 }
 
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
@@ -268,7 +296,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	}
 
 	std::string &_filename = cache->_filename;
-	int _starttime = cache->_starttime;
+	int &_starttime = cache->_starttime;
 	VideoReader* &_videoreader = cache->_videoreader;
 
 	if (_starttime != st)
@@ -301,6 +329,10 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 			VideoPanel *fp = (VideoPanel*)panel;
 			if (fp != nullptr)
 			{
+				if (fp->Slider_Video_Starttime->GetValue() > videolen)
+				{
+					fp->Slider_Video_Starttime->SetValue(videolen);
+				}
 				fp->Slider_Video_Starttime->SetMax(videolen);
 			}
 			else
@@ -308,7 +340,10 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 				fp->Slider_Video_Starttime->SetMax(0);
 			}
 
-			_videoreader->Seek(_starttime);
+			if (_starttime != 0)
+			{
+				_videoreader->Seek(_starttime);
+			}
 		}
 	}
 
@@ -330,6 +365,17 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 				{
 					c.Set(*(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3), *(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3 + 1), *(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3 + 2), 255);
 					buffer.SetPixel(x, y, c);
+				}
+			}
+		}
+		else
+		{
+			// display a blue background to show we have gone past end of video
+			for (int y = 0; y < buffer.BufferHt; y++)
+			{
+				for (int x = 0; x < buffer.BufferWi; x++)
+				{
+					buffer.SetPixel(x, y, xlBLUE);
 				}
 			}
 		}
