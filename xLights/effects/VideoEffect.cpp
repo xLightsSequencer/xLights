@@ -12,7 +12,10 @@
 #include "../../include/video-64.xpm"
 
 #ifdef __WXMSW__
-#include "wx/msw/debughlp.h"
+//#include "wx/msw/debughlp.h"
+//wxString s;
+//s.Printf("Seek to timestamp %i", timestampMS);
+//wxDbgHelpDLL::LogError(s);
 #endif
 
 VideoReader::VideoReader(std::string filename, int width, int height)
@@ -93,25 +96,18 @@ VideoReader::~VideoReader()
 
 void VideoReader::Seek(int timestampMS)
 {
-	wxString s;
-	s.Printf("Seek to timestamp %i", timestampMS);
-	wxDbgHelpDLL::LogError(s);
 
 	// we have to be valid
 	if (_valid)
 	{
 		// Seek about 5 secs prior to the desired timestamp ... to make sure we get a key frame
 		int tgtframe = (int)(((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.num)) / (uint64_t)(_videoStream->time_base.den));
-s.Printf("Target Frame %i", tgtframe);
-wxDbgHelpDLL::LogError(s);
 		int adj_timestamp = timestampMS - 5000;
 		if (adj_timestamp < 0)
 		{
 			adj_timestamp = 0;
 		}
 		_currentframe = (int)(((uint64_t)adj_timestamp * (uint64_t)(_videoStream->time_base.num)) / (uint64_t)(_videoStream->time_base.den));
-s.Printf("Current Frame after seek - 5s %i", _currentframe);
-wxDbgHelpDLL::LogError(s);
 		int rc = av_seek_frame(_formatContext, _streamIndex, _currentframe, AVSEEK_FLAG_FRAME);
 
 		// now move forwared to the right place
@@ -150,8 +146,6 @@ wxDbgHelpDLL::LogError(s);
 				// Did we get a video frame?
 				if (frameFinished) 
 				{
-s.Printf("Frame read ... Current Frame now %i", _currentframe);
-wxDbgHelpDLL::LogError(s);
 					_currentframe++;
 					sws_scale(swsCtx, srcFrame->data, srcFrame->linesize, 0,
 						_codecContext->height, _dstFrame->data,
