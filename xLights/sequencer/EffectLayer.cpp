@@ -433,7 +433,7 @@ void EffectLayer::GetMaximumRangeWithRightMovement(int index, int &toLeft, int &
     else
     {
        if(mEffects[index+1]->GetSelected() == EFFECT_NOT_SELECTED ||
-          ((index > 0) && mEffects[index-1]->GetSelected() == EFFECT_RT_SELECTED))
+          ((index < mEffects.size()-1) && mEffects[index+1]->GetSelected() == EFFECT_RT_SELECTED))
        {
           toRight = mEffects[index+1]->GetStartTimeMS() - mEffects[index]->GetEndTimeMS();
        }
