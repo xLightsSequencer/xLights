@@ -4,6 +4,7 @@
 //(*Headers(VideoPanel)
 #include <wx/panel.h>
 class wxFilePickerCtrl;
+class wxCheckBox;
 class wxTextCtrl;
 class wxStaticText;
 class wxSlider;
@@ -43,6 +44,7 @@ class VideoPanel: public wxPanel
 		//(*Declarations(VideoPanel)
 		wxSlider* Slider_Video_Starttime;
 		wxBitmapButton* BitmapButton_Video_Starttime;
+		wxCheckBox* CheckBox_Video_AspectRatio;
 		wxStaticText* StaticText8;
 		xlVideoFilePickerCtrl* FilePicker_Video_Filename;
 		wxBitmapButton* BitmapButton_Filename;
@@ -58,6 +60,7 @@ class VideoPanel: public wxPanel
 		static const long ID_SLIDER_Video_Starttime;
 		static const long ID_TEXTCTRL_Video_Starttime;
 		static const long ID_BITMAPBUTTON_Video_Starttime;
+		static const long ID_CHECKBOX_Video_AspectRatio;
 		//*)
 
 	public:

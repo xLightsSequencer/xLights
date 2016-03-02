@@ -6,6 +6,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/filepicker.h>
 #include <wx/slider.h>
 #include <wx/settings.h>
@@ -21,6 +22,7 @@ const long VideoPanel::ID_STATICTEXT8 = wxNewId();
 const long VideoPanel::ID_SLIDER_Video_Starttime = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_Starttime = wxNewId();
 const long VideoPanel::ID_BITMAPBUTTON_Video_Starttime = wxNewId();
+const long VideoPanel::ID_CHECKBOX_Video_AspectRatio = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(VideoPanel,wxPanel)
@@ -59,6 +61,9 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	BitmapButton_Video_Starttime->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer2->Add(BitmapButton_Video_Starttime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer42->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	CheckBox_Video_AspectRatio = new wxCheckBox(this, ID_CHECKBOX_Video_AspectRatio, _("Maintain Aspect Ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Video_AspectRatio"));
+	CheckBox_Video_AspectRatio->SetValue(false);
+	FlexGridSizer42->Add(CheckBox_Video_AspectRatio, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
 	FlexGridSizer42->SetSizeHints(this);
@@ -70,6 +75,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	//*)
     SetName("ID_PANEL_Video");
 	TextCtrl_Video_Starttime->SetValue("0.000");
+	CheckBox_Video_AspectRatio->SetValue(false);
 }
 
 VideoPanel::~VideoPanel()

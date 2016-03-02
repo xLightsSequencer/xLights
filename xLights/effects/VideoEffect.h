@@ -19,12 +19,14 @@ extern "C"
 class VideoReader
 {
 public:
-	VideoReader(std::string filename, int width, int height);
+	VideoReader(std::string filename, int width, int height, bool keepaspectratio);
 	~VideoReader();
 	int GetLengthMS() { return _length; };
 	void Seek(int timestampMS);
-	AVPicture* GetNextFrame(int timestampMS);
+	AVFrame* GetNextFrame(int timestampMS);
 	bool IsValid() { return _valid; };
+	int GetWidth() { return _width; };
+	int GetHeight() { return _height; };
 private:
 	bool _valid;
 	int _length;
@@ -47,7 +49,7 @@ class VideoEffect : public RenderableEffect
         virtual ~VideoEffect();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
         void Render(RenderBuffer &buffer,
-					const std::string& filename, double starttime);
+					const std::string& filename, double starttime, bool keepaspectratio);
         virtual bool CanRenderOnBackgroundThread();
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);

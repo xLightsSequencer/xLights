@@ -84,6 +84,14 @@
 				<border>2</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Video_AspectRatio" variable="CheckBox_Video_AspectRatio" member="yes">
+					<label>Maintain Aspect Ratio</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

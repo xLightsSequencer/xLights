@@ -18,10 +18,8 @@
 //wxDbgHelpDLL::LogError(s);
 #endif
 
-VideoReader::VideoReader(std::string filename, int width, int height)
+VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool keepaspectratio)
 {
-	_width = width;
-	_height = height;
 	_valid = false;
 	_length = 0;
 	_formatContext = NULL;
@@ -68,9 +66,29 @@ VideoReader::VideoReader(std::string filename, int width, int height)
 
 	// at this point it is open and ready
 
-	// get the video length
-	_length = (int)(((uint64_t)_videoStream->nb_frames * (uint64_t)_videoStream->time_base.den) / (uint64_t)_videoStream->time_base.num);
+	if (keepaspectratio)
+	{
+		// if > 0 then video will be shrunk
+		// if < 0 then video will be stretched
+		float shrink = std::min((float)maxwidth / (float)_codecContext->width, (float)maxheight / (float)_codecContext->height);
+		_height = (int)((float)_codecContext->height * shrink);
+		_width = (int)((float)_codecContext->width * shrink);
+	}
+	else
+	{
+		_height = maxheight;
+		_width = maxwidth;
+	}
+
+	// get the video length in MS
+	_length = (int)(((uint64_t)_videoStream->nb_frames * (uint64_t)_videoStream->time_base.num * 1000) / (uint64_t)_videoStream->time_base.den);
 	_lastframe = _videoStream->nb_frames;
+
+	_dstFrame = av_frame_alloc();
+	_dstFrame->width = _width;
+	_dstFrame->height = _height;
+	_dstFrame->linesize[0] = _width * 3;
+	_dstFrame->data[0] = (uint8_t *)av_malloc(_width * _height * 3 * sizeof(uint8_t));
 
 	_valid = true;
 }
@@ -79,6 +97,10 @@ VideoReader::~VideoReader()
 {
 	if (_dstFrame != NULL)
 	{
+		if (_dstFrame->data[0] != NULL)
+		{
+			av_free(_dstFrame->data[0]);
+		}
 		av_free(_dstFrame);
 		_dstFrame = NULL;
 	}
@@ -96,47 +118,36 @@ VideoReader::~VideoReader()
 
 void VideoReader::Seek(int timestampMS)
 {
-
 	// we have to be valid
 	if (_valid)
 	{
 		// Seek about 5 secs prior to the desired timestamp ... to make sure we get a key frame
-		int tgtframe = (int)(((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.num)) / (uint64_t)(_videoStream->time_base.den));
+		int tgtframe = (int)(0.5 + (float)(((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.den)) / (uint64_t)(_videoStream->time_base.num)) / 1000.0);
 		int adj_timestamp = timestampMS - 5000;
 		if (adj_timestamp < 0)
 		{
 			adj_timestamp = 0;
 		}
-		_currentframe = (int)(((uint64_t)adj_timestamp * (uint64_t)(_videoStream->time_base.num)) / (uint64_t)(_videoStream->time_base.den));
+		_currentframe = (int)(0.5 + (float)(((uint64_t)adj_timestamp * (uint64_t)(_videoStream->time_base.den)) / (uint64_t)(_videoStream->time_base.num)) / 1000.0);
 		int rc = av_seek_frame(_formatContext, _streamIndex, _currentframe, AVSEEK_FLAG_FRAME);
 
 		// now move forwared to the right place
 		AVFrame* srcFrame = av_frame_alloc();
-		if (_dstFrame == NULL)
-		{
-			_dstFrame = av_frame_alloc();
-		}
-		if (_dstFrame == NULL || srcFrame == NULL)
+		if (srcFrame == NULL)
 		{
 			return;
 		}
-
-		int numBytes = avpicture_get_size(_pixelFmt, _width, _height);
-
-		uint8_t *buffer = (uint8_t *)av_malloc(numBytes * sizeof(uint8_t));
-
-		avpicture_fill((AVPicture *)_dstFrame, buffer, _pixelFmt, _width, _height);
 
 		SwsContext* swsCtx = sws_getContext(_codecContext->width, _codecContext->height,
 			_codecContext->pix_fmt, _width, _height, _pixelFmt, SWS_BICUBIC, NULL,
 			NULL, NULL);
 		AVPacket packet;
 
-		while (av_read_frame(_formatContext, &packet) >= 0 && _currentframe < tgtframe) 
+		while (av_read_frame(_formatContext, &packet) >= 0 && _currentframe < tgtframe)
 		{
 
 			// Is this a packet from the video stream?
-			if (packet.stream_index == _streamIndex) 
+			if (packet.stream_index == _streamIndex)
 			{
 				// Decode video frame
 				int frameFinished;
@@ -144,7 +155,7 @@ void VideoReader::Seek(int timestampMS)
 					&packet);
 
 				// Did we get a video frame?
-				if (frameFinished) 
+				if (frameFinished)
 				{
 					_currentframe++;
 					sws_scale(swsCtx, srcFrame->data, srcFrame->linesize, 0,
@@ -154,35 +165,24 @@ void VideoReader::Seek(int timestampMS)
 			}
 
 			// Free the packet that was allocated by av_read_frame
-			av_free_packet(&packet);
+			av_packet_unref(&packet);
 		}
 
 		sws_freeContext(swsCtx);
-		av_free(buffer);
 		av_free(srcFrame);
 	}
 }
 
-AVPicture* VideoReader::GetNextFrame(int timestampMS)
+AVFrame* VideoReader::GetNextFrame(int timestampMS)
 {
 	if (_valid && timestampMS <= _length)
 	{
-		int tgtframe = (int)(((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.num)) / (uint64_t)(_videoStream->time_base.den));
+		int tgtframe = (int)(0.5 + (float)(((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.den)) / (uint64_t)(_videoStream->time_base.num)) / 1000.0);
 		AVFrame* srcFrame = av_frame_alloc();
-		if (_dstFrame == NULL)
+		if (srcFrame == NULL)
 		{
-			_dstFrame = av_frame_alloc();
+			return _dstFrame;
 		}
-		if (_dstFrame == NULL || srcFrame == NULL)
-		{
-			return (AVPicture*)_dstFrame;
-		}
-
-		int numBytes = avpicture_get_size(_pixelFmt, _width, _height);
-
-		uint8_t *buffer = (uint8_t *)av_malloc(numBytes * sizeof(uint8_t));
-
-		avpicture_fill((AVPicture *)_dstFrame, buffer, _pixelFmt, _width, _height);
 
 		SwsContext* swsCtx = sws_getContext(_codecContext->width, _codecContext->height,
 			_codecContext->pix_fmt, _width, _height, _pixelFmt, SWS_BICUBIC, NULL,
@@ -211,11 +211,10 @@ AVPicture* VideoReader::GetNextFrame(int timestampMS)
 			}
 
 			// Free the packet that was allocated by av_read_frame
-			av_free_packet(&packet);
+			av_packet_unref(&packet);
 		}
 
 		sws_freeContext(swsCtx);
-		av_free(buffer);
 		av_free(srcFrame);
 	}
 	else
@@ -223,13 +222,13 @@ AVPicture* VideoReader::GetNextFrame(int timestampMS)
 		return NULL;
 	}
 
-	if (_currentframe > _lastframe)
+	if (_dstFrame->data[0] == NULL || _currentframe > _lastframe)
 	{
 		return NULL;
 	}
 	else
 	{
-		return (AVPicture*)_dstFrame;
+		return _dstFrame;
 	}
 }
 
@@ -251,16 +250,17 @@ wxPanel *VideoEffect::CreatePanel(wxWindow *parent) {
 void VideoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     Render(buffer,
 		   SettingsMap["FILEPICKERCTRL_Video_Filename"],
-		   SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0)
-          );
+		SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
+		SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false)
+		);
 }
 
 class VideoRenderCache : public EffectRenderCache {
 public:
-    VideoRenderCache() 
-	{ 
+    VideoRenderCache()
+	{
 		_videoframerate = -1;
-		_videoreader = NULL; 
+		_videoreader = NULL;
 	};
     virtual ~VideoRenderCache() {
 		if (_videoreader != NULL)
@@ -274,10 +274,11 @@ public:
 	int _starttime;
     VideoReader* _videoreader;
 	int _videoframerate;
+	bool _aspectratio;
 };
 
 void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
-	double starttime)
+	double starttime, bool aspectratio)
 {
 	int st = starttime * 1000;
 
@@ -291,6 +292,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 
 	std::string &_filename = cache->_filename;
 	int &_starttime = cache->_starttime;
+	bool &_aspectratio = cache->_aspectratio;
 	VideoReader* &_videoreader = cache->_videoreader;
 
 	if (_starttime != st)
@@ -302,10 +304,12 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 		}
 	}
 
+
 	// we always reopen video on first frame or if it is not open or if the filename has changed
-	if (buffer.curPeriod == buffer.curEffStartPer || _videoreader == NULL || _filename != filename)
+	if (buffer.curPeriod == buffer.curEffStartPer || _videoreader == NULL || _filename != filename || _aspectratio != aspectratio)
 	{
 		_filename = filename;
+		_aspectratio = aspectratio;
 		if (_videoreader != NULL)
 		{
 			delete _videoreader;
@@ -314,8 +318,8 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 
 		if (wxFileExists(_filename))
 		{
-			// have to open the file			
-			_videoreader = new VideoReader(_filename, buffer.BufferWi, buffer.BufferHt);
+			// have to open the file
+			_videoreader = new VideoReader(_filename, buffer.BufferWi, buffer.BufferHt, _aspectratio);
 
 			// extract the video length
 			int videolen = _videoreader->GetLengthMS();
@@ -346,38 +350,42 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 		int in_millisecs = starttime + ((buffer.curPeriod - buffer.curEffStartPer) * 50);
 
 		// get the image for the current frame
-		AVPicture* image = _videoreader->GetNextFrame(_starttime + buffer.curPeriod * buffer.frameTimeInMs);
+		AVFrame* image = _videoreader->GetNextFrame(_starttime + buffer.curPeriod * buffer.frameTimeInMs);
+		int startx = (buffer.BufferWi - _videoreader->GetWidth()) / 2;
+		int starty = (buffer.BufferHt - _videoreader->GetHeight()) / 2;
 
 		// check it looks valid
-		if (image != NULL && image->data[0] != NULL)
+		if (image != NULL)
 		{
 			// draw the image
 			xlColor c;
-			for (int y = 0; y < buffer.BufferHt; y++)
+			for (int y = 0; y < _videoreader->GetHeight(); y++)
 			{
-				for (int x = 0; x < buffer.BufferWi; x++)
+				for (int x = 0; x < _videoreader->GetWidth(); x++)
 				{
 					try
 					{
-						c.Set(*(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3), *(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3 + 1), *(image->data[0] + (buffer.BufferHt - 1 - y)*buffer.BufferWi * 3 + x * 3 + 2), 255);
+						c.Set(*(image->data[0] + (_videoreader->GetHeight() - 1 - y) * _videoreader->GetWidth() * 3 + x * 3),
+							  *(image->data[0] + (_videoreader->GetHeight() - 1 - y) * _videoreader->GetWidth() * 3 + x * 3 + 1),
+							  *(image->data[0] + (_videoreader->GetHeight() - 1 - y) * _videoreader->GetWidth() * 3 + x * 3 + 2), 255);
 					}
 					catch (...)
 					{
 						// this shouldnt happen so make it stand out
 						c = xlRED;
 					}
-					buffer.SetPixel(x, y, c);
+					buffer.SetPixel(x + startx, y+starty, c);
 				}
 			}
 		}
 		else
 		{
 			// display a blue background to show we have gone past end of video
-			for (int y = 0; y < buffer.BufferHt; y++)
+			for (int y = 0; y < _videoreader->GetHeight(); y++)
 			{
-				for (int x = 0; x < buffer.BufferWi; x++)
+				for (int x = 0; x < _videoreader->GetWidth(); x++)
 				{
-					buffer.SetPixel(x, y, xlBLUE);
+					buffer.SetPixel(x+startx, y+starty, xlBLUE);
 				}
 			}
 		}
