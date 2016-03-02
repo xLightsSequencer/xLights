@@ -4,17 +4,17 @@
 //(*Headers(VideoPanel)
 #include <wx/panel.h>
 class wxFilePickerCtrl;
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include <wx/filepicker.h>
 
-#define VIDEOWILDCARD "Video Files|*.avi"
+#define VIDEOWILDCARD "Video Files|*.avi;*.mp4"
 
 class xlVideoFilePickerCtrl : public wxFilePickerCtrl {
 public:
@@ -42,12 +42,12 @@ class VideoPanel: public wxPanel
 		virtual ~VideoPanel();
 
 		//(*Declarations(VideoPanel)
-		wxSlider* Slider_Video_Starttime;
-		wxBitmapButton* BitmapButton_Video_Starttime;
-		wxCheckBox* CheckBox_Video_AspectRatio;
-		wxStaticText* StaticText8;
 		xlVideoFilePickerCtrl* FilePicker_Video_Filename;
+		wxSlider* Slider_Video_Starttime;
+		wxCheckBox* CheckBox_Video_AspectRatio;
 		wxBitmapButton* BitmapButton_Filename;
+		wxStaticText* StaticText8;
+		wxBitmapButton* BitmapButton_Video_Starttime;
 		wxTextCtrl* TextCtrl_Video_Starttime;
 		//*)
 

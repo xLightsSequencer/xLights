@@ -30,7 +30,7 @@ do
 done
 
 
-fi
+
 
 
 LIBS="libswresample.2 libavutil.55 libavformat.57 libavcodec.57 libswscale.4"
@@ -42,3 +42,17 @@ do
     done
         install_name_tool -change /usr/local/lib/$LS.dylib @loader_path/../Frameworks/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
 done
+
+else
+LIBS="libswresample.2 libavutil.55 libavformat.57 libavcodec.57 libswscale.4"
+for LS in $LIBS
+do
+    for LT in $LIBS
+    do
+        install_name_tool -change /usr/local/lib/$LS.dylib /opt/local/lib/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/$LT.dylib"
+    done
+        install_name_tool -change /usr/local/lib/$LS.dylib /opt/local/lib/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
+done
+
+fi
+

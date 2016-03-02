@@ -37,6 +37,9 @@ private:
 	int _width;
 	int _height;
 	AVFrame* _dstFrame; // the last frame
+    AVFrame* _srcFrame;
+    SwsContext *_swsCtx;
+    AVPacket packet;
 	AVPixelFormat _pixelFmt;
 	int _currentframe;
 	int _lastframe;

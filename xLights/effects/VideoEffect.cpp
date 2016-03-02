@@ -26,12 +26,14 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	_codecContext = NULL;
 	_videoStream = NULL;
 	_dstFrame = NULL;
+    _srcFrame = NULL;
 	_pixelFmt = AVPixelFormat::AV_PIX_FMT_RGB24;
 	_currentframe = 0;
 	_lastframe = 0;
 
 	av_register_all();
-
+//    av_log_set_level(100);
+    
 	int res = avformat_open_input(&_formatContext, filename.c_str(), NULL, NULL);
 	if (res != 0)
 	{
@@ -46,7 +48,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	}
 
 	// Find the video stream
-	AVCodec* cdc = NULL;
+    AVCodec* cdc;
 	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &cdc, 0);
 	if (_streamIndex < 0)
 	{
@@ -55,10 +57,15 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	}
 
 	_videoStream = _formatContext->streams[_streamIndex];
+    _videoStream->discard = AVDISCARD_NONE;
 	_codecContext = _videoStream->codec;
-	_codecContext->codec = cdc;
+    
+    avcodec_find_decoder(_codecContext->codec_id);
+//	_codecContext->codec = cdc;
 
-	if (avcodec_open2(_codecContext, _codecContext->codec, NULL) != 0)
+    _codecContext->active_thread_type = FF_THREAD_FRAME;
+    _codecContext->thread_count = 1;
+	if (avcodec_open2(_codecContext, cdc, NULL) != 0)
 	{
 		std::cout << "Couldn't open the context with the decoder" << std::endl;
 		return;
@@ -81,7 +88,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	}
 
 	// get the video length in MS
-	_length = (int)(((uint64_t)_videoStream->nb_frames * (uint64_t)_videoStream->time_base.num * 1000) / (uint64_t)_videoStream->time_base.den);
+	_length = (int)(((uint64_t)_videoStream->nb_frames * (uint64_t)_videoStream->avg_frame_rate.den * 1000) / (uint64_t)_videoStream->avg_frame_rate.num);
 	_lastframe = _videoStream->nb_frames;
 
 	_dstFrame = av_frame_alloc();
@@ -90,11 +97,36 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	_dstFrame->linesize[0] = _width * 3;
 	_dstFrame->data[0] = (uint8_t *)av_malloc(_width * _height * 3 * sizeof(uint8_t));
 
+    _srcFrame = av_frame_alloc();
+    _srcFrame->pkt_pts = 0;
+    
+    _swsCtx = sws_getContext(_codecContext->width, _codecContext->height,
+                             _codecContext->pix_fmt, _width, _height, _pixelFmt, SWS_BICUBIC, NULL,
+                             NULL, NULL);
+
+    av_init_packet(&packet);
 	_valid = true;
+}
+
+static int GetFrameForTime(int ts, const AVStream *vs) {
+    float tsf = ts;
+    tsf *= (float)vs->avg_frame_rate.num;
+    tsf /= (float)vs->avg_frame_rate.den;
+    tsf /= 1000.0;
+    return std::round(tsf);
 }
 
 VideoReader::~VideoReader()
 {
+    if (_swsCtx != NULL) {
+        sws_freeContext(_swsCtx);
+        _swsCtx = NULL;
+    }
+
+    if (_srcFrame != NULL) {
+        av_free(_srcFrame);
+        _srcFrame = NULL;
+    }
 	if (_dstFrame != NULL)
 	{
 		if (_dstFrame->data[0] != NULL)
@@ -122,15 +154,14 @@ void VideoReader::Seek(int timestampMS)
 	if (_valid)
 	{
 		// Seek about 5 secs prior to the desired timestamp ... to make sure we get a key frame
-		int tgtframe = (int)(0.5 + (float)(((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.den)) / (uint64_t)(_videoStream->time_base.num)) / 1000.0);
+        int tgtframe = GetFrameForTime(timestampMS - 500, _videoStream);
 		int adj_timestamp = timestampMS - 5000;
 		if (adj_timestamp < 0)
 		{
 			adj_timestamp = 0;
 		}
-		_currentframe = (int)(0.5 + (float)(((uint64_t)adj_timestamp * (uint64_t)(_videoStream->time_base.den)) / (uint64_t)(_videoStream->time_base.num)) / 1000.0);
+		_currentframe = GetFrameForTime(adj_timestamp, _videoStream);
 		int rc = av_seek_frame(_formatContext, _streamIndex, _currentframe, AVSEEK_FLAG_FRAME);
-
 		// now move forwared to the right place
 		AVFrame* srcFrame = av_frame_alloc();
 		if (srcFrame == NULL)
@@ -172,39 +203,46 @@ void VideoReader::Seek(int timestampMS)
 		av_free(srcFrame);
 	}
 }
-
 AVFrame* VideoReader::GetNextFrame(int timestampMS)
 {
 	if (_valid && timestampMS <= _length)
 	{
-		int tgtframe = (int)(0.5 + (float)(((uint64_t)timestampMS * (uint64_t)(_videoStream->time_base.den)) / (uint64_t)(_videoStream->time_base.num)) / 1000.0);
-		AVFrame* srcFrame = av_frame_alloc();
-		if (srcFrame == NULL)
+        int tgtframe = GetFrameForTime(timestampMS, _videoStream);
+		AVPacket pkt2;
+
+        int rc;
+		while (_currentframe <= tgtframe && (rc = av_read_frame(_formatContext, &packet)) >= 0 &&  _currentframe <= _lastframe)
 		{
-			return _dstFrame;
-		}
-
-		SwsContext* swsCtx = sws_getContext(_codecContext->width, _codecContext->height,
-			_codecContext->pix_fmt, _width, _height, _pixelFmt, SWS_BICUBIC, NULL,
-			NULL, NULL);
-		AVPacket packet;
-
-		while (av_read_frame(_formatContext, &packet) >= 0 && _currentframe <= tgtframe && _currentframe <= _lastframe)
-		{
-
 			// Is this a packet from the video stream?
 			if (packet.stream_index == _streamIndex)
 			{
 				// Decode video frame
-				int frameFinished;
-				avcodec_decode_video2(_codecContext, srcFrame, &frameFinished,
-					&packet);
+				int frameFinished = 0;
+                pkt2 = packet;
+                while (pkt2.size) {
+                    int ret = avcodec_decode_video2(_codecContext, _srcFrame, &frameFinished,
+                                                &pkt2);
+                    
+                    ret = FFMIN(ret, pkt2.size); /* guard against bogus return values */
+                    pkt2.data += ret;
+                    pkt2.size -= ret;
+                }
 
 				// Did we get a video frame?
 				if (frameFinished)
 				{
+                    /*
+                    printf("Fr     %d  %d      %d  %d    np: %d    rb: %d      pts: %d   dts: %d\n",
+                           tgtframe, _currentframe,
+                           _srcFrame->coded_picture_number,
+                           _srcFrame->repeat_pict,
+                           numPackets, readBytes,
+                           (int)pkt2.pts,
+                           (int)pkt2.dts);
+
+                     */
 					_currentframe++;
-					sws_scale(swsCtx, srcFrame->data, srcFrame->linesize, 0,
+					sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,
 						_codecContext->height, _dstFrame->data,
 						_dstFrame->linesize);
 				}
@@ -213,9 +251,6 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS)
 			// Free the packet that was allocated by av_read_frame
 			av_packet_unref(&packet);
 		}
-
-		sws_freeContext(swsCtx);
-		av_free(srcFrame);
 	}
 	else
 	{
@@ -347,8 +382,6 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 
 	if (_videoreader != NULL)
 	{
-		int in_millisecs = starttime + ((buffer.curPeriod - buffer.curEffStartPer) * 50);
-
 		// get the image for the current frame
 		AVFrame* image = _videoreader->GetNextFrame(_starttime + buffer.curPeriod * buffer.frameTimeInMs);
 		int startx = (buffer.BufferWi - _videoreader->GetWidth()) / 2;
