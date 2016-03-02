@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh (gil)    Update Morph to use all 8 colors allowing 6 color tails.
 	-- enh (keithsw) Add video effect
     -- bug (gil)   Fix crash when moving effect left or right with arrow keys and not timing track active.  Fixes #473.
     -- enh (keithsw) Replace media handling with ffmpeg and SDL eliminating the VBR problem and adding new media support.

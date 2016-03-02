@@ -154,13 +154,8 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             tcols = 1;
             tcole = 2;
             break;
-        case 4:
-            break;
-        case 5:
-            num_tail_colors = 3;
-            break;
-        case 6:
-            num_tail_colors = 4;
+        default:
+            num_tail_colors = buffer.palette.Size() - 2;
             break;
     }
 
