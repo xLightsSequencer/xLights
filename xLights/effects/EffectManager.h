@@ -8,7 +8,7 @@
 
 class RenderableEffect;
 
-class EffectManager : public std::vector<RenderableEffect*>
+class EffectManager
 {
 public:
     //TODO - get rid of this, the internal id's should be irrelevant
@@ -63,10 +63,10 @@ public:
 
 
         RenderableEffect *GetEffect(int i) const {
-            if (i >= size()) {
+            if (i >= size() || i < 0) {
                 return nullptr;
             }
-            return (*this)[i];
+            return effects[i];
         }
         RenderableEffect *GetEffect(const std::string &str) const;
         int GetLastEffectId() const { return size() - 1;};
@@ -75,11 +75,21 @@ public:
         int GetEffectIndex(const std::string &effectName) const;
         const std::string &GetEffectName(int idx) const;
 
+    
+        std::vector<RenderableEffect*>::const_iterator begin() const;
+        std::vector<RenderableEffect*>::const_iterator end() const;
+        RenderableEffect *operator[](int i) const {
+            return GetEffect(i);
+        }
+        int size() const {
+            return effects.size();
+        }
     protected:
     private:
         void add(RenderableEffect *eff);
 
         mutable std::map<std::string, RenderableEffect *> effectsByName;
+        std::vector<RenderableEffect *> effects;
 };
 
 #endif // EFFECTMANAGER_H

@@ -45,7 +45,7 @@
 #include "WaveEffect.h"
 
 
-EffectManager::EffectManager() : std::vector<RenderableEffect*>()
+EffectManager::EffectManager()
 {
     add(new OffEffect(eff_OFF));
     add(new OnEffect(eff_ON));
@@ -101,9 +101,9 @@ EffectManager::~EffectManager()
 void EffectManager::add(RenderableEffect *eff) {
     int id = eff->GetId();
     if (id >= size()) {
-        resize(id + 1);
+        effects.resize(id + 1);
     }
-    (*this)[id] = eff;
+    effects[id] = eff;
     effectsByName[eff->Name()] = eff;
     effectsByName[eff->ToolTip()] = eff;
 }
@@ -126,5 +126,13 @@ const std::string &EffectManager::GetEffectName(int idx) const {
     }
     return GetEffect(0)->Name();
 }
+
+std::vector<RenderableEffect*>::const_iterator EffectManager::begin() const {
+    return effects.begin();
+}
+std::vector<RenderableEffect*>::const_iterator EffectManager::end() const {
+    return effects.end();
+}
+
 
 

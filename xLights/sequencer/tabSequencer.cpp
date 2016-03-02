@@ -163,7 +163,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
         p->AddAttribute("name", "Default Perspective");
         p->AddAttribute("settings",m_mgr->SavePerspective());
-        p->AddAttribute("version", "1.0");
+        p->AddAttribute("version", "2.0");
         PerspectivesNode->AddChild(p);
         mCurrentPerpective = p;
         UnsavedRgbEffectsChanges=true;
@@ -1527,11 +1527,16 @@ void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
         settings = m_mgr->SavePerspective();
         mCurrentPerpective->DeleteAttribute("settings");
         mCurrentPerpective->AddAttribute("settings", settings);
-        mCurrentPerpective->AddAttribute("version", "1.0");
+        mCurrentPerpective->AddAttribute("version", "2.0");
     }
     
+    m_mgr->LoadPerspective(settings,true);
     if (perspective->GetAttribute("version", "1.0") == "1.0") {
-        m_mgr->LoadPerspective(settings,true);
+        //title on Layer Timing panel changed
+        m_mgr->GetPane("LayerTiming").Caption("Layer Blending");
+        
+        //did not have the layer settings panel
+        m_mgr->GetPane("LayerSettings").Caption("Layer Settings").Dock().Left().Show();
     }
     sPreview1->Refresh(false);
     sPreview2->Refresh(false);
@@ -1568,6 +1573,8 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
             mCurrentPerpective->DeleteAttribute("settings");
         }
         mCurrentPerpective->AddAttribute("settings",m_mgr->SavePerspective());
+        mCurrentPerpective->DeleteAttribute("version");
+        mCurrentPerpective->AddAttribute("version", "2.0");
         SaveEffectsFile();
     }
 }

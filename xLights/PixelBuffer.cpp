@@ -1237,8 +1237,12 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
             i--;
         } else {
             for (int k = 0; k < adjust; k++) {
-                for (int l = 0; l < adjust; l++) {
-                    mask[(x + k) * BufferHt + y + l] = m2;
+                if ((x + k) < BufferWi) {
+                    for (int l = 0; l < adjust; l++) {
+                        if ((y + l) < BufferHt) {
+                            mask[(x + k) * BufferHt + y + l] = m2;
+                        }
+                    }
                 }
             }
         }
