@@ -194,6 +194,10 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&BufferPanel::OnResize,0,this);
 	//*)
     RotoSizer->Show(false);
+    
+    //remove when RotoZoom code works
+    CheckBox_RotoZoom->Disable();
+    CheckBox_RotoZoom->Show(false);
 }
 
 BufferPanel::~BufferPanel()
@@ -212,7 +216,7 @@ wxString BufferPanel::GetBufferString() {
         s += wxString::Format("B_SLIDER_EffectBlur=%d,",Slider_EffectBlur->GetValue());
     }
     // RotoZoom
-    if (CheckBox_RotoZoom->GetValue()) {
+    if (CheckBox_RotoZoom->IsEnabled() && CheckBox_RotoZoom->GetValue()) {
         s += "B_CHECKBOX_RotoZoom=1,";
         s += wxString::Format("B_SLIDER_ZoomCycles=%d,",Slider_ZoomCycles->GetValue());
         s += wxString::Format("B_SLIDER_ZoomRotation=%d,",Slider_ZoomRotation->GetValue());
