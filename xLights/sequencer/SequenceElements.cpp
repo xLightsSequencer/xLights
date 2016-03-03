@@ -959,25 +959,31 @@ void SequenceElements::PopulateRowInformation()
     for(int i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
         Element* elem = mAllViews[MASTER_VIEW][i];
-        if(elem->GetType()=="timing")
-        {
-            if( mCurrentView == MASTER_VIEW || TimingIsPartOfView(elem, mCurrentView))
-            {
-                addTimingElement(elem, mRowInformation, rowIndex, mSelectedTimingRow, mTimingRowCount, timingColorIndex);
-            }
-        }
+		if (elem != NULL)
+		{
+			if (elem->GetType() == "timing")
+			{
+				if (mCurrentView == MASTER_VIEW || TimingIsPartOfView(elem, mCurrentView))
+				{
+					addTimingElement(elem, mRowInformation, rowIndex, mSelectedTimingRow, mTimingRowCount, timingColorIndex);
+				}
+			}
+		}
     }
 
     for(int i=0;i<mAllViews[mCurrentView].size();i++)
     {
         Element* elem = mAllViews[mCurrentView][i];
-        if(elem->GetVisible())
-        {
-            if (elem->GetType()=="model")
-            {
-                addModelElement(elem, mRowInformation, rowIndex, xframe, mAllViews[MASTER_VIEW], false);
-            }
-        }
+		if (elem != NULL)
+		{
+			if (elem->GetVisible())
+			{
+				if (elem->GetType() == "model")
+				{
+					addModelElement(elem, mRowInformation, rowIndex, xframe, mAllViews[MASTER_VIEW], false);
+				}
+			}
+		}
     }
     PopulateVisibleRowInformation();
 }
