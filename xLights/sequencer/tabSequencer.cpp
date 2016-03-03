@@ -1461,6 +1461,10 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             {
                 wxFilePickerCtrl *picker = (wxFilePickerCtrl*)CtrlWin;
                 picker->SetFileName(value);
+                
+                wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, picker, picker->GetId(), value);
+                evt.SetEventObject(picker);
+                picker->ProcessWindowEvent(evt);
             }
             else if (name.StartsWith("ID_FONTPICKER"))
             {

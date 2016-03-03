@@ -13,6 +13,7 @@
 						<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_Video_Filename" subclass="xlVideoFilePickerCtrl" variable="FilePicker_Video_Filename" member="yes">
 							<message></message>
 							<wildcard></wildcard>
+							<handler function="OnFilePicker_Video_FilenameFileChanged" entry="EVT_FILEPICKER_CHANGED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>

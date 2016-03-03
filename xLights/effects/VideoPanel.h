@@ -13,6 +13,8 @@ class wxCheckBox;
 //*)
 
 #include <wx/filepicker.h>
+#include <mutex>
+#include <map>
 
 #define VIDEOWILDCARD "Video Files|*.avi;*.mp4"
 
@@ -41,17 +43,24 @@ class VideoPanel: public wxPanel
 		VideoPanel(wxWindow* parent);
 		virtual ~VideoPanel();
 
-		//(*Declarations(VideoPanel)
-		xlVideoFilePickerCtrl* FilePicker_Video_Filename;
-		wxSlider* Slider_Video_Starttime;
-		wxCheckBox* CheckBox_Video_AspectRatio;
-		wxBitmapButton* BitmapButton_Filename;
-		wxStaticText* StaticText8;
-		wxBitmapButton* BitmapButton_Video_Starttime;
-		wxTextCtrl* TextCtrl_Video_Starttime;
-		//*)
-
+    
+        void addVideoTime(std::string fn, unsigned long ms);
 	protected:
+        //(*Declarations(VideoPanel)
+        xlVideoFilePickerCtrl* FilePicker_Video_Filename;
+        wxSlider* Slider_Video_Starttime;
+        wxCheckBox* CheckBox_Video_AspectRatio;
+        wxBitmapButton* BitmapButton_Filename;
+        wxStaticText* StaticText8;
+        wxBitmapButton* BitmapButton_Video_Starttime;
+        wxTextCtrl* TextCtrl_Video_Starttime;
+        //*)
+
+    
+        std::mutex lock;
+        std::map<std::string, unsigned long> videoTimeCache;
+    
+
 
 		//(*Identifiers(VideoPanel)
 		static const long ID_FILEPICKERCTRL_Video_Filename;
@@ -76,6 +85,7 @@ class VideoPanel: public wxPanel
 		void OnChoiceVideoDirectionSelect(wxCommandEvent& event);
 		void OnTextCtrl1Text(wxCommandEvent& event);
 		void OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event);
+		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

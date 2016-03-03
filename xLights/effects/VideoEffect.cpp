@@ -18,6 +18,8 @@
 //wxDbgHelpDLL::LogError(s);
 #endif
 
+
+
 VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool keepaspectratio)
 {
 	_valid = false;
@@ -362,15 +364,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 			VideoPanel *fp = (VideoPanel*)panel;
 			if (fp != nullptr)
 			{
-				if (fp->Slider_Video_Starttime->GetValue() > videolen)
-				{
-					fp->Slider_Video_Starttime->SetValue(videolen);
-				}
-				fp->Slider_Video_Starttime->SetMax(videolen);
-			}
-			else
-			{
-				fp->Slider_Video_Starttime->SetMax(0);
+                fp->addVideoTime(filename, videolen);
 			}
 
 			if (_starttime != 0)

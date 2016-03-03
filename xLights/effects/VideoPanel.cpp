@@ -3,16 +3,16 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(VideoPanel)
+#include <wx/bmpbuttn.h>
+#include <wx/checkbox.h>
 #include <wx/sizer.h>
+#include <wx/settings.h>
+#include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/filepicker.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/filepicker.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/string.h>
 //*)
 
 //(*IdInit(VideoPanel)
@@ -33,8 +33,8 @@ END_EVENT_TABLE()
 VideoPanel::VideoPanel(wxWindow* parent)
 {
 	//(*Initialize(VideoPanel)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer42;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -68,6 +68,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	FlexGridSizer42->Fit(this);
 	FlexGridSizer42->SetSizeHints(this);
 
+	Connect(ID_FILEPICKERCTRL_Video_Filename,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&VideoPanel::OnFilePicker_Video_FilenameFileChanged);
 	Connect(ID_BITMAPBUTTON_Video_Filename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VideoPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_Video_Starttime,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VideoPanel::OnSlider_Video_StarttimeCmdSliderUpdated);
 	Connect(ID_TEXTCTRL_Video_Starttime,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VideoPanel::UpdateLinkedSlider);
@@ -84,6 +85,12 @@ VideoPanel::~VideoPanel()
 	//*)
 }
 
+void VideoPanel::addVideoTime(std::string fn, unsigned long ms) {
+    std::unique_lock<std::mutex> locker(lock);
+    videoTimeCache[fn] = ms;
+}
+
+
 PANEL_EVENT_HANDLERS(VideoPanel)
 
 static inline void EnableControl(wxWindow *w, int id, bool e) {
@@ -98,3 +105,15 @@ void VideoPanel::OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event)
 	ms = ms - seconds * 1000;
 	TextCtrl_Video_Starttime->SetValue(wxString::Format("%d.%03d", seconds, ms));
 }
+void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event) {
+    std::unique_lock<std::mutex> locker(lock);
+    wxFileName fn = FilePicker_Video_Filename->GetFileName();
+    int i = videoTimeCache[fn.GetFullPath().ToStdString()];
+    if (i > 0) {
+        Slider_Video_Starttime->SetMax(i);
+    } else {
+        Slider_Video_Starttime->SetMax(1);
+    }
+    
+}
+
