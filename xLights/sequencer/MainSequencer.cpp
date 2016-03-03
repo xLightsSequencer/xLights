@@ -249,10 +249,44 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
     switch(uc)
     {
         case WXK_BACK:
-        case WXK_DELETE:
-            PanelEffectGrid->DeleteSelectedEffects();
-            event.StopPropagation();
-            break;
+			PanelEffectGrid->DeleteSelectedEffects();
+			event.StopPropagation();
+			break;
+		case WXK_INSERT:
+		case WXK_NUMPAD_INSERT:
+#ifdef __WXMSW__
+			if (event.ControlDown())
+			{
+				CopySelectedEffects();
+				PanelEffectGrid->SetCanPaste();
+				event.StopPropagation();
+			}
+			else if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT))
+			{
+				Paste();
+				event.StopPropagation();
+			}
+#endif
+			break;
+		case WXK_DELETE:
+#ifdef __WXMSW__
+			if (!GetKeyState(VK_LSHIFT) && !GetKeyState(VK_RSHIFT))
+#endif
+			{	
+				// Delete
+				PanelEffectGrid->DeleteSelectedEffects();
+				event.StopPropagation();
+			}
+#ifdef __WXMSW__
+			else
+			{
+				// Cut - windows only
+				CopySelectedEffects();
+				PanelEffectGrid->DeleteSelectedEffects();
+				event.StopPropagation();
+			}
+#endif
+			break;
         case WXK_SPACE:
             {
                 wxCommandEvent playEvent(EVT_TOGGLE_PLAY);
@@ -344,7 +378,6 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 event.StopPropagation();
             }
             break;
-
     }
 }
 

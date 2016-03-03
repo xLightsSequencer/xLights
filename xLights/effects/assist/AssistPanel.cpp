@@ -176,7 +176,28 @@ void AssistPanel::OnCharHook(wxKeyEvent& event)
                         event.StopPropagation();
                     }
                     break;
-                default:
+#ifdef __WXMSW__
+				case WXK_INSERT:
+				case WXK_NUMPAD_INSERT:
+					if (event.ControlDown()) // Copy
+					{
+						if (mGridCanvas != nullptr)
+						{
+							mGridCanvas->Copy();
+						}
+						event.StopPropagation();
+					}
+					else if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) // Paste
+					{
+						if (mGridCanvas != nullptr)
+						{
+							mGridCanvas->Paste();
+						}
+						event.StopPropagation();
+					}
+					break;
+#endif
+				default:
                     event.Skip();
                     break;
             }
