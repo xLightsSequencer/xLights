@@ -1333,32 +1333,11 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
     for (int y = 0; y < BufferHt; y++) {
         int blind = y / per;
         for (int x = 0; x < BufferWi; x++) {
-			if (out)
-			{
-				int xpos = x;
-				if (blind % 2 == 0)
-				{
-					mask[xpos * BufferHt + y] = x <= step ? m2 : m1;
-				}
-				else
-				{
-					xpos = BufferWi - x - 1;
-					mask[xpos * BufferHt + y] = x <= step ? m2 : m1;
-				}
-			}
-			else
-			{
-				int xpos = x;
-				if (blind % 2 == 0)
-				{
-					xpos = BufferWi - x - 1;
-					mask[xpos * BufferHt + y] = x >= step ? m1 : m2;
-				}
-				else
-				{
-					mask[xpos * BufferHt + y] = x >= step ? m1 : m2;
-				}
-			}
+            int xpos = x;
+            if (blind % 2 == out) {
+                xpos = BufferWi - x - 1;
+            }
+            mask[xpos * BufferHt + y] = x <= step ? m2 : m1;
         }
     }
 }
