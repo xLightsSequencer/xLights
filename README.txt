@@ -7,12 +7,19 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.10  Mar 3, 2016
+	-- enh (keithsw) Support old-school CTRL-INSERT, SHIFT-INSERT and SHIFT-DELETE (windows only)
     -- enh (gil)    Update Morph to use all 8 colors allowing 6 color tails.
-	-- enh (keithsw) Add video effect
+	-- enh (keithsw) Add video effect. Now supports *.mp4, *.mpg, *.avi, *.mov, *.flv, *.mkv, *.fsf
+	-- bug (dkulp) Fix some potential crashes due to out of bounds indexes.  Fixes #478
+	-- bug (dkulp) Fix some 64bit offset issues and startup performance for gigantic models (900K channels)
     -- bug (gil)   Fix crash when moving effect left or right with arrow keys and not timing track active.  Fixes #473.
     -- enh (keithsw) Replace media handling with ffmpeg and SDL eliminating the VBR problem and adding new media support.
+			audio files now allowed *.mp3, *.mp4, *.ogg
 	-- enh (keithsw) Add tooltips to explain controller and channel a xLights channel maps to
 	-- enh (keithsw) Handle movement of show directory (as long as it isnt renamed) automatically
+	-- bug (dkulp) Fix probelm with first pixel with grouped arches in SingleStrand . Fixes #474
+	-- bug (dkulp) Fix color/blur sliders not updating to defaults.  Fixes #477.  Fixes #476.
 2016.9  Feb 24, 2016
     -- enh (gil)   Allow single effect to be moved left and right using arrow keys if timing grid is active.
     -- enh (gil)   Allow single effect to be moved up and down on grid.  No longer restricted to a single model.
@@ -70,7 +77,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 2016.4  Feb 02, 2016
     -- bug(dkulp) Fix crash if model group has no models.
 2016.3  Jan 31, 2016
-    -- bug(dan)  Slight optization, fix plasma
+    -- bug(dkulp)  Slight optization, fix plasma
     -- enh(all)  Upgrade our build environment. Compiler from gcc 4.7.1 to gcc 5.3.0.
 	             Code::Blocks from 12.02 to 16.1. Recompile every file and every library.
     -- enh (all) Update Butterfly, Fan, Galaxy, Morph, Pinwheel, Plasma, Shockwave,Spiragraph,
@@ -131,8 +138,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- enh(gil)  Add Circle model class.
     -- enh(gil)  Smaller step angle for Fan, Galaxy, and Shockwave to support larger models.
 	-- enh(sean) Smaller step angle for Pinwheel, this allows the edges to show correctly on larger displays
-	-- bug(dan)  Fix chases in single strand.  Calc the correct offset and direction for the starting point
-	-- bug (dan) change e1.31 optimization so data gets sent when nothing has changed
+	-- bug(dkulp)  Fix chases in single strand.  Calc the correct offset and direction for the starting point
+	-- bug (dkulp) change e1.31 optimization so data gets sent when nothing has changed
 4.2.20  Nov 4, 2015
     -- enh(gil)   Add 3 more DMX channels to support larger channel DMX lights.
     -- enh(dkulp) Change the ModelBrightness stuff to a full fledged multi-channel dimming curve supporting
@@ -1199,18 +1206,18 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	- Enhancement (Sean) New directory "songs" has audacity label files for many songs. Find the new directory
 		at C:\Program Files (x86)\xLights\songs
 3.2.3	Oct 25, 2013
-	- Bug: (Dan) Schedule tab missing on Linux
-    - Enhancement: (Dan) When outputting e1.31, only output the used channels instead of the full 512 universe.
+	- Bug: (dkulp) Schedule tab missing on Linux
+    - Enhancement: (dkulp) When outputting e1.31, only output the used channels instead of the full 512 universe.
 		(Lower network traffic, less processing needed)
-	- Bug: (Dan) Text Effect not rendering on OSX.  Fixed.
+	- Bug: (dkulp) Text Effect not rendering on OSX.  Fixed.
 	- Enhancement: (Sean) New Single Strand Effect class. Use this for arches and eaves
 3.2.2	Sep 26, 2013
-	- Enhancement: (Dan) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
-	- Enhancement: (Dan) When importing hlsIdata, change the file extension for the Audio from PCM to mp3.
-	- Bug: (Dan) If there is a named test setup, much of the functionality on the Setup tab (up/down arrows,
+	- Enhancement: (dkulp) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
+	- Enhancement: (dkulp) When importing hlsIdata, change the file extension for the Audio from PCM to mp3.
+	- Bug: (dkulp) If there is a named test setup, much of the functionality on the Setup tab (up/down arrows,
 		modifying a network, etc..) did not work properly and could result in modifying the wrong network.  Fixed.
-	- Bug: (Dan) Preview/Nutcracker tab drawing on the Mac would result in "ghosts" of the flashing lights due to anti-aliasing. Fixed.
-	- Bug: (Dan) At certain screen sizes, some pixels in mega-trees and other Nutcracker models may not display.  Fixed.
+	- Bug: (dkulp) Preview/Nutcracker tab drawing on the Mac would result in "ghosts" of the flashing lights due to anti-aliasing. Fixed.
+	- Bug: (dkulp) At certain screen sizes, some pixels in mega-trees and other Nutcracker models may not display.  Fixed.
 
 3.2.1 Sep 13, 2013
 	- Enhancement: (Frank). In the Model section you now see start and end channels, not just start

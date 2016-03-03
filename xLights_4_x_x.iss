@@ -10,7 +10,7 @@
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
 AppName=xLights
-AppVersion=2016.9
+AppVersion=2016.10
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights.ico
@@ -29,15 +29,26 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"
 
-Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gcc_custom.dll";DestDir: "{app}";     Flags: "ignoreversion"
+Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin\glut32.dll"; DestDir: "{app}";       Flags: "ignoreversion"
-
-Source: "bin\libgcc_s_dw2-1.dll"; DestDir: "{app}";       Flags: "ignoreversion"
-Source: "bin\libstdc++-6.dll";     DestDir: "{app}";       Flags: "ignoreversion"
-Source: "bin\libwinpthread-1.dll"; DestDir: "{app}";       Flags: "ignoreversion"
-
+Source: "bin\glut32.dll";          DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin\libmpg123-0.dll";     DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin\libgcc_s_dw2-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
+;Source: "lib/windows/avcodec.lib"; DestDir: "{app}";  Flags: "ignoreversion"
+;Source: "lib/windows/avformat.lib"; DestDir: "{app}";  Flags: "ignoreversion"
+;Source: "lib/windows/avutil.lib"; DestDir: "{app}";  Flags: "ignoreversion"
+
+Source: "bin/avcodec-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/avutil-55.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/swresample-2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/swscale-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
 Source: "bin/ffmpeg.exe";          DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xlights.map";         DestDir: "{app}"; Flags: "ignoreversion"
 ; Added files for doing Papagayo effects
@@ -46,7 +57,7 @@ Source: "bin/phoneme_mapping";     DestDir: "{app}"
 Source: "bin/standard_dictionary"; DestDir: "{app}"
 Source: "bin/user_dictionary";     DestDir: "{app}"
 ;
-Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}"
+
 Source: "bin/gawk.exe";            DestDir: "{app}"
 Source: "bin/coroface.awk";        DestDir: "{app}"
 Source: "bin/corofaces.bat";       DestDir: "{app}"
@@ -56,7 +67,7 @@ Source: "bin/modelxls.bat";        DestDir: "{app}"
 Source: "bin/merge_xml.awk";       DestDir: "{app}"
 Source: "bin/PathEditor.exe";      DestDir: "{app}"
 Source: "include\xLights.ico";     DestDir: "{app}"
-Source: "include\xLights_orig.ico"; DestDir: "{app}"
+;mar4 Source: "include\xLights_orig.ico"; DestDir: "{app}"
 Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
 Source: "piano/*.*"; DestDir: "{app}/piano" 
