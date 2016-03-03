@@ -16,7 +16,7 @@ class wxCheckBox;
 #include <mutex>
 #include <map>
 
-#define VIDEOWILDCARD "Video Files|*.avi;*.mp4"
+#define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg"
 
 class xlVideoFilePickerCtrl : public wxFilePickerCtrl {
 public:

@@ -89,12 +89,22 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	// get the video length in MS
     _length = _formatContext->duration * _videoStream->avg_frame_rate.num / _videoStream->avg_frame_rate.den;
     _lastframe = _videoStream->nb_frames;
-    if (_lastframe == 0) {
+    if (_lastframe == 0 && _length > 0) {
         _lastframe = _length  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
     }
-    if (_length <= 0) {
+    else if (_length <= 0 && _lastframe > 0) {
         _length = (int)(((uint64_t)_lastframe * (uint64_t)_videoStream->avg_frame_rate.den * 1000) / (uint64_t)_videoStream->avg_frame_rate.num);
     }
+	else if (_lastframe > 0 && _length > 0)
+	{
+		// this is ok we can ignore this
+	}
+	else
+	{
+		// This seems to work for .asf, .mkv, .flv
+		_length = _formatContext->duration / 1000;
+		_lastframe = _length  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
+	}
 
 	_dstFrame = av_frame_alloc();
 	_dstFrame->width = _width;
