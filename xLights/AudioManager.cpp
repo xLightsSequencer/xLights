@@ -900,6 +900,10 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 #ifdef USE_SDLPLAYER
 	_pcmdatasize = _trackSize * out_channels * 2;
 	_pcmdata = (Uint8*)malloc(_pcmdatasize + 16384); // 16384 is a fudge because some ogg files dont read consistently
+	if (_pcmdata == NULL)
+	{
+		return;
+	}
 #endif
 
 	AVPacket readingPacket;
