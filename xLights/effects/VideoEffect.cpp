@@ -34,7 +34,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	_lastframe = 0;
 
 	av_register_all();
-//    av_log_set_level(100);
+    //av_log_set_level(100);
     
 	int res = avformat_open_input(&_formatContext, filename.c_str(), NULL, NULL);
 	if (res != 0)
@@ -61,9 +61,6 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	_videoStream = _formatContext->streams[_streamIndex];
     _videoStream->discard = AVDISCARD_NONE;
 	_codecContext = _videoStream->codec;
-    
-    avcodec_find_decoder(_codecContext->codec_id);
-//	_codecContext->codec = cdc;
 
     _codecContext->active_thread_type = FF_THREAD_FRAME;
     _codecContext->thread_count = 1;
@@ -90,8 +87,14 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	}
 
 	// get the video length in MS
-	_length = (int)(((uint64_t)_videoStream->nb_frames * (uint64_t)_videoStream->avg_frame_rate.den * 1000) / (uint64_t)_videoStream->avg_frame_rate.num);
-	_lastframe = _videoStream->nb_frames;
+    _length = _formatContext->duration * _videoStream->avg_frame_rate.num / _videoStream->avg_frame_rate.den;
+    _lastframe = _videoStream->nb_frames;
+    if (_lastframe == 0) {
+        _lastframe = _length  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
+    }
+    if (_length <= 0) {
+        _length = (int)(((uint64_t)_lastframe * (uint64_t)_videoStream->avg_frame_rate.den * 1000) / (uint64_t)_videoStream->avg_frame_rate.num);
+    }
 
 	_dstFrame = av_frame_alloc();
 	_dstFrame->width = _width;
@@ -219,35 +222,41 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS)
 			if (packet.stream_index == _streamIndex)
 			{
 				// Decode video frame
-				int frameFinished = 0;
                 pkt2 = packet;
                 while (pkt2.size) {
+                    int frameFinished = 0;
                     int ret = avcodec_decode_video2(_codecContext, _srcFrame, &frameFinished,
                                                 &pkt2);
                     
-                    ret = FFMIN(ret, pkt2.size); /* guard against bogus return values */
-                    pkt2.data += ret;
-                    pkt2.size -= ret;
+                    // Did we get a video frame?
+                    if (frameFinished)
+                    {
+                        /*
+                         printf("Fr     %d  %d      %d  %d    np: %d    rb: %d      pts: %d   dts: %d\n",
+                         tgtframe, _currentframe,
+                         _srcFrame->coded_picture_number,
+                         _srcFrame->repeat_pict,
+                         numPackets, readBytes,
+                         (int)pkt2.pts,
+                         (int)pkt2.dts);
+                         
+                         */
+                        _currentframe++;
+                        sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,
+                                  _codecContext->height, _dstFrame->data,
+                                  _dstFrame->linesize);
+                    }
+
+                    
+                    if (ret >= 0) {
+                        ret = FFMIN(ret, pkt2.size); /* guard against bogus return values */
+                        pkt2.data += ret;
+                        pkt2.size -= ret;
+                    } else {
+                        pkt2.size = 0;
+                    }
                 }
 
-				// Did we get a video frame?
-				if (frameFinished)
-				{
-                    /*
-                    printf("Fr     %d  %d      %d  %d    np: %d    rb: %d      pts: %d   dts: %d\n",
-                           tgtframe, _currentframe,
-                           _srcFrame->coded_picture_number,
-                           _srcFrame->repeat_pict,
-                           numPackets, readBytes,
-                           (int)pkt2.pts,
-                           (int)pkt2.dts);
-
-                     */
-					_currentframe++;
-					sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,
-						_codecContext->height, _dstFrame->data,
-						_dstFrame->linesize);
-				}
 			}
 
 			// Free the packet that was allocated by av_read_frame
