@@ -7,12 +7,18 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
-    -- enh (gil)    Update Morph to use all 8 colors allowing 6 color tails.
-	-- enh (keithsw) Add video effect
-    -- bug (gil)   Fix crash when moving effect left or right with arrow keys and not timing track active.  Fixes #473.
+    -- bug (dkulp)   Fix probelm with first pixel with grouped arches in SingleStrand . Fixes #474
+    -- bug (dkulp)   Fix crash on close when preview running
+    -- bug (dkulp)   Fix color/blur sliders not updating to defaults.  Fixes #477.  Fixes #476.
+    -- enh (dkulp)   Split Layer Timing panel into two panels (Layer Blending and Layer Settings)
+    -- bug (dkulp)   Fix duplicate effect data problems if seq data exceeds 4GB (64bit only)
+    -- enh (dkulp)   Add begin/end effect transitions
+    -- enh (gil)     Update Morph to use all 8 colors allowing 6 color tails.
+    -- enh (keithsw) Add video effect
+    -- bug (gil)     Fix crash when moving effect left or right with arrow keys and not timing track active.  Fixes #473.
     -- enh (keithsw) Replace media handling with ffmpeg and SDL eliminating the VBR problem and adding new media support.
-	-- enh (keithsw) Add tooltips to explain controller and channel a xLights channel maps to
-	-- enh (keithsw) Handle movement of show directory (as long as it isnt renamed) automatically
+    -- enh (keithsw) Add tooltips to explain controller and channel a xLights channel maps to
+    -- enh (keithsw) Handle movement of show directory (as long as it isnt renamed) automatically
 2016.9  Feb 24, 2016
     -- enh (gil)   Allow single effect to be moved left and right using arrow keys if timing grid is active.
     -- enh (gil)   Allow single effect to be moved up and down on grid.  No longer restricted to a single model.
