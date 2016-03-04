@@ -651,11 +651,6 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             playStartMS = -1;
             playModel = GetModel(effect->GetParentEffectLayer()->GetParentElement()->GetName());
 			SetAudioControls();
-			//EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
-            //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
-            //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,true);
-            //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,false);
-            //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_REPLAY_SECTION,false);
         }
     }
     RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
@@ -714,11 +709,6 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             playModel = GetModel(el->GetParentElement()->GetName());
 
 			SetAudioControls();
-			//EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
-            //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
-            //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,true);
-            //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,false);
-            //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_REPLAY_SECTION,false);
         }
     }
 
@@ -771,10 +761,6 @@ void xLightsFrame::PlaySequence()
 {
 	if (CurrentSeqXmlFile != NULL)
 	{
-		//EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
-		//EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
-		//EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,false);
-		//EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,false);
 		if (playType == PLAY_TYPE_EFFECT_PAUSED)
 		{
 			playType = PLAY_TYPE_EFFECT;
@@ -863,10 +849,10 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 
 void xLightsFrame::SetAudioControls()
 {
-	if (CurrentSeqXmlFile == NULL)
+	if (CurrentSeqXmlFile == NULL || mRendering)
 	{
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
-		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, false);
+		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
@@ -874,19 +860,19 @@ void xLightsFrame::SetAudioControls()
 	}
 	else if (CurrentSeqXmlFile->GetSequenceType() != "Media")
 	{
-		if (playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_MODEL_PAUSED)
+		if (/*playType == PLAY_TYPE_EFFECT_PAUSED ||*/ playType == PLAY_TYPE_MODEL_PAUSED)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, true);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
 		}
-		else if (playType == PLAY_TYPE_EFFECT || playType == PLAY_TYPE_MODEL)
+		else if (/*playType == PLAY_TYPE_EFFECT ||*/ playType == PLAY_TYPE_MODEL)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, false);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
@@ -895,57 +881,19 @@ void xLightsFrame::SetAudioControls()
 		else
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, true);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
 		}
 	}
 	else
 	{
-#ifdef USE_WXMEDIAPLAYER
-		if (playType == PLAY_TYPE_STOPPED)
-		{
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
-		}
-		else if (PlayerDlg->GetState() == wxMEDIASTATE_PLAYING)
-		{
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
-		}
-		else if (PlayerDlg->GetState() == wxMEDIASTATE_PAUSED)
-		{
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
-		}
-		else
-		{
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
-		}
-#else
 		if (CurrentSeqXmlFile->GetMedia() == NULL)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, false);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
@@ -954,25 +902,25 @@ void xLightsFrame::SetAudioControls()
 		else if (playType == PLAY_TYPE_STOPPED)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, true);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
 		}
-		else if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
+		else if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING && playType == PLAY_TYPE_MODEL)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, false);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
 		}
-		else if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PAUSED)
+		else if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PAUSED && playType == PLAY_TYPE_MODEL_PAUSED)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, true);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
@@ -981,13 +929,12 @@ void xLightsFrame::SetAudioControls()
 		else
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY, true);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
 		}
-#endif
 	}
 }
 
@@ -1037,11 +984,6 @@ void xLightsFrame::StopSequence()
         xout->alloff();
     }
 	SetAudioControls();
-	//EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
-    //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
-    //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
-    //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,true);
-    //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,true);
 }
 
 void xLightsFrame::StopSequence(wxCommandEvent& event)
