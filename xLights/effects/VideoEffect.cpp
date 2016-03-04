@@ -301,9 +301,6 @@ VideoEffect::~VideoEffect()
 {
 }
 
-bool VideoEffect::CanRenderOnBackgroundThread() {
-    return true;
-}
 wxPanel *VideoEffect::CreatePanel(wxWindow *parent) {
     return new VideoPanel(parent);
 }

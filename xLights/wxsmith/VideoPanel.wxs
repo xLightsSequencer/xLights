@@ -3,7 +3,7 @@
 	<object class="wxPanel" name="VideoPanel">
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer42" member="no">
-			<cols>3</cols>
+			<cols>1</cols>
 			<growablecols>0</growablecols>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
@@ -11,7 +11,7 @@
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-							<cols>2</cols>
+							<cols>1</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
 								<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_Video_Filename" subclass="xlVideoFilePickerCtrl" variable="FilePicker_Video_Filename" member="yes">
@@ -23,18 +23,6 @@
 								<border>2</border>
 								<option>1</option>
 							</object>
-							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Video_Filename" variable="BitmapButton_Filename" member="yes">
-									<default>1</default>
-									<size>13,13</size>
-									<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-									<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
 						</object>
 						<flag>wxEXPAND</flag>
 						<border>2</border>
@@ -42,7 +30,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-							<cols>4</cols>
+							<cols>3</cols>
 							<growablecols>1</growablecols>
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
@@ -65,21 +53,9 @@
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_Starttime" variable="TextCtrl_Video_Starttime" member="yes">
 									<value>0.0</value>
-									<size>50,-1d</size>
+									<size>40,-1d</size>
 									<style>wxTE_READONLY|wxTE_RIGHT</style>
 									<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Video_Starttime" variable="BitmapButton_Video_Starttime" member="yes">
-									<default>1</default>
-									<size>13,13</size>
-									<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-									<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
@@ -92,25 +68,13 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-							<cols>2</cols>
+							<cols>1</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX_Video_AspectRatio" variable="CheckBox_Video_AspectRatio" member="yes">
 									<label>Maintain Aspect Ratio</label>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Video_AspectRatio" variable="BitmapButton_Video_AspectRatio" member="yes">
-									<default>1</default>
-									<size>13,13</size>
-									<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-									<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
@@ -119,23 +83,11 @@
 									<label>Loop Video</label>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Video_Loop" variable="BitmapButton_Video_Loop" member="yes">
-									<default>1</default>
-									<size>13,13</size>
-									<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-									<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
+						<flag>wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
