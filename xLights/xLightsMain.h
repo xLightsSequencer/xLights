@@ -1523,6 +1523,7 @@ protected:
     bool mGridIconBackgrounds;
     bool mGridNodeValues;
     int mEffectAssistMode;
+	bool mRendering;
 
     Model *playModel;
     int playType;

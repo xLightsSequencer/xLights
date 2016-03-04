@@ -1763,6 +1763,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
+	mRendering = false;
 
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
     wxSize sz = EffectsToolBar->GetSize();
@@ -2038,6 +2039,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
         OpenSequence(xLightsApp::sequenceFile);
     }
 
+	SetAudioControls();
 }
 
 xLightsFrame::~xLightsFrame()
