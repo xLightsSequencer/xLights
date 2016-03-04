@@ -336,8 +336,6 @@ public:
 void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	double starttime, bool aspectratio)
 {
-	int st = starttime * 1000;
-
 	buffer.drawingContext->Clear();
 
 	VideoRenderCache *cache = (VideoRenderCache*)buffer.infoCache[id];
@@ -351,19 +349,11 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	bool &_aspectratio = cache->_aspectratio;
 	VideoReader* &_videoreader = cache->_videoreader;
 
-	if (_starttime != st)
-	{
-		_starttime = st;
-		if (_videoreader != NULL && buffer.curPeriod != buffer.curEffStartPer)
-		{
-			_videoreader->Seek(_starttime + buffer.curPeriod * buffer.frameTimeInMs);
-		}
-	}
-
-
+    
 	// we always reopen video on first frame or if it is not open or if the filename has changed
-	if (buffer.curPeriod == buffer.curEffStartPer || _videoreader == NULL || _filename != filename || _aspectratio != aspectratio)
+	if (buffer.needToInit || _videoreader == NULL || _filename != filename || _aspectratio != aspectratio)
 	{
+        buffer.needToInit = false;
 		_filename = filename;
 		_aspectratio = aspectratio;
 		if (_videoreader != NULL)
@@ -388,7 +378,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 
 			if (_starttime != 0)
 			{
-				_videoreader->Seek(_starttime);
+				_videoreader->Seek(_starttime * 1000);
 			}
 		}
 	}
@@ -396,7 +386,7 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	if (_videoreader != NULL)
 	{
 		// get the image for the current frame
-		AVFrame* image = _videoreader->GetNextFrame(_starttime + buffer.curPeriod * buffer.frameTimeInMs);
+		AVFrame* image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs);
 		int startx = (buffer.BufferWi - _videoreader->GetWidth()) / 2;
 		int starty = (buffer.BufferHt - _videoreader->GetHeight()) / 2;
 
@@ -434,16 +424,6 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 					buffer.SetPixel(x+startx, y+starty, xlBLUE);
 				}
 			}
-		}
-	}
-
-	// we release the video file once we have finished rendering
-	if (buffer.curPeriod == buffer.curEffEndPer)
-	{
-		if (_videoreader != NULL)
-		{
-			delete _videoreader;
-			_videoreader = NULL;
 		}
 	}
 }

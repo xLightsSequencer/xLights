@@ -1541,10 +1541,19 @@ void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
         
         //did not have the layer settings panel
         m_mgr->GetPane("LayerSettings").Caption("Layer Settings").Dock().Left().Show();
+
+        sPreview1->Refresh(false);
+        sPreview2->Refresh(false);
+        m_mgr->Update();
+
+        perspective->DeleteAttribute("version");
+        perspective->AddAttribute("version", "2.0");
+        perspective->AddAttribute("settings", m_mgr->SavePerspective());
+    } else {
+        sPreview1->Refresh(false);
+        sPreview2->Refresh(false);
+        m_mgr->Update();
     }
-    sPreview1->Refresh(false);
-    sPreview2->Refresh(false);
-    m_mgr->Update();
     
     if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF )
     {
