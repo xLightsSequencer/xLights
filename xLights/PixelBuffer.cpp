@@ -1173,17 +1173,18 @@ void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
     while (blinds * per < buffer.BufferWi) {
         blinds++;
     }
-    
     int step = std::round(((float)per) * factor);
+    int x = 0;
+    while (x < BufferWi) {
+        for (int z = 0; z < per && x < BufferWi; z++, x++) {
+            int c = z < step ? m2 : m1;
+            if (reverse) {
+                c = (per - z - 1) < step ? m2 : m1;
+            }
+            for (int y = 0; y < BufferHt; y++) {
+                mask[x * BufferHt + y] = c;
+            }
     
-    for (int x = 0; x < BufferWi; x++) {
-        int c = (x % per) <= step ? m2 : m1;
-        int idx = x;
-        if (reverse) {
-            idx = BufferWi - x - 1;
-        }
-        for (int y = 0; y < BufferHt; y++) {
-            mask[idx * BufferHt + y] = c;
         }
     }
 }
