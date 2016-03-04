@@ -1148,7 +1148,7 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
 
 void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
     bool reverse = inTransitionReverse;
-    float factor = 1.0 - inMaskFactor;
+    float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
     uint8_t m1 = 255;
     uint8_t m2 = 0;
