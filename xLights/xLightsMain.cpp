@@ -2567,7 +2567,9 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     wxLogDebug("xLightsFrame::OnClose");
 
-    if (!CloseSequence())
+	StopNow();
+
+	if (!CloseSequence())
     {
         event.Veto();
         return;
@@ -2577,8 +2579,6 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     CheckUnsavedChanges();
 
     ShowHideAllSequencerWindows(false);
-
-    StopNow();
 
     heartbeat("exit", true); //tell fido about graceful exit -DJ
     //ScrolledWindow1->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);
