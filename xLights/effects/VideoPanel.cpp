@@ -68,7 +68,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	BitmapButton_Video_Starttime->SetDefault();
 	BitmapButton_Video_Starttime->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer2->Add(BitmapButton_Video_Starttime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer3->Add(FlexGridSizer2, 1, wxALIGN_LEFT, 2);
+	FlexGridSizer3->Add(FlexGridSizer2, 1, wxEXPAND, 2);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
 	CheckBox_Video_AspectRatio = new wxCheckBox(this, ID_CHECKBOX_Video_AspectRatio, _("Maintain Aspect Ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Video_AspectRatio"));

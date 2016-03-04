@@ -86,7 +86,7 @@
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALIGN_LEFT</flag>
+						<flag>wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
