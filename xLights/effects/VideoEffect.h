@@ -27,6 +27,8 @@ public:
 	bool IsValid() { return _valid; };
 	int GetWidth() { return _width; };
 	int GetHeight() { return _height; };
+	bool AtEnd() { return _atEnd; };
+
 private:
 	bool _valid;
 	int _length;
@@ -39,10 +41,11 @@ private:
 	AVFrame* _dstFrame; // the last frame
     AVFrame* _srcFrame;
     SwsContext *_swsCtx;
-    AVPacket packet;
+    AVPacket _packet;
 	AVPixelFormat _pixelFmt;
 	int _currentframe;
 	int _lastframe;
+	bool _atEnd;
 };
 
 class VideoEffect : public RenderableEffect
@@ -52,7 +55,7 @@ class VideoEffect : public RenderableEffect
         virtual ~VideoEffect();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
         void Render(RenderBuffer &buffer,
-					const std::string& filename, double starttime, bool keepaspectratio);
+					const std::string& filename, double starttime, bool keepaspectratio, bool loop);
         virtual bool CanRenderOnBackgroundThread();
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);

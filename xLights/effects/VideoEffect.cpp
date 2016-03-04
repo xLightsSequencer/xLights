@@ -18,8 +18,6 @@
 //wxDbgHelpDLL::LogError(s);
 #endif
 
-
-
 VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool keepaspectratio)
 {
 	_valid = false;
@@ -32,9 +30,10 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	_pixelFmt = AVPixelFormat::AV_PIX_FMT_RGB24;
 	_currentframe = 0;
 	_lastframe = 0;
+	_atEnd = false;
+	_swsCtx = NULL;
 
 	av_register_all();
-    //av_log_set_level(100);
     
 	int res = avformat_open_input(&_formatContext, filename.c_str(), NULL, NULL);
 	if (res != 0)
@@ -87,23 +86,31 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	}
 
 	// get the video length in MS
-    _length = _formatContext->duration * _videoStream->avg_frame_rate.num / _videoStream->avg_frame_rate.den;
-    _lastframe = _videoStream->nb_frames;
-    if (_lastframe == 0 && _length > 0) {
+	// Use the number of frames as the best possible way to calculate length
+	_lastframe = _videoStream->nb_frames;
+	if (_lastframe > 0)
+	{
+		_length = (int)(((uint64_t)_lastframe * (uint64_t)_videoStream->avg_frame_rate.den * 1000) / (uint64_t)_videoStream->avg_frame_rate.num);
+	}
+	
+	// If it does not look right try to base if off the duration
+	if (_length <= 0 || _lastframe <= 0)
+	{
+		_length = (int)((uint64_t)_formatContext->duration * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)_videoStream->avg_frame_rate.den);
         _lastframe = _length  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
     }
-    else if (_length <= 0 && _lastframe > 0) {
-        _length = (int)(((uint64_t)_lastframe * (uint64_t)_videoStream->avg_frame_rate.den * 1000) / (uint64_t)_videoStream->avg_frame_rate.num);
-    }
-	else if (_lastframe > 0 && _length > 0)
-	{
-		// this is ok we can ignore this
-	}
-	else
+
+	// If it still doesnt look right
+	if (_length <= 0 || _lastframe <= 0)
 	{
 		// This seems to work for .asf, .mkv, .flv
 		_length = _formatContext->duration / 1000;
 		_lastframe = _length  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
+	}
+
+	if (_length <= 0 || _lastframe <= 0)
+	{
+		// This is bad ... it still does not look right
 	}
 
 	_dstFrame = av_frame_alloc();
@@ -119,7 +126,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
                              _codecContext->pix_fmt, _width, _height, _pixelFmt, SWS_BICUBIC, NULL,
                              NULL, NULL);
 
-    av_init_packet(&packet);
+    av_init_packet(&_packet);
 	_valid = true;
 }
 
@@ -169,55 +176,62 @@ void VideoReader::Seek(int timestampMS)
 	if (_valid)
 	{
 		// Seek about 5 secs prior to the desired timestamp ... to make sure we get a key frame
-        int tgtframe = GetFrameForTime(timestampMS - 500, _videoStream);
+        int tgtframe = GetFrameForTime(timestampMS, _videoStream);
+
+		if (tgtframe < _lastframe)
+		{
+			_atEnd = false;
+		}
+		else
+		{
+			// dont seek past the end of the file
+			_atEnd = true;
+			av_seek_frame(_formatContext, _streamIndex, _lastframe, AVSEEK_FLAG_FRAME);
+			return;
+		}
+
 		int adj_timestamp = timestampMS - 5000;
 		if (adj_timestamp < 0)
 		{
 			adj_timestamp = 0;
 		}
-		_currentframe = GetFrameForTime(adj_timestamp, _videoStream);
-		int rc = av_seek_frame(_formatContext, _streamIndex, _currentframe, AVSEEK_FLAG_FRAME);
-		// now move forwared to the right place
-		AVFrame* srcFrame = av_frame_alloc();
-		if (srcFrame == NULL)
+
+		int flag = AVSEEK_FLAG_FRAME;
+		int newframe = GetFrameForTime(adj_timestamp, _videoStream);
+		if (newframe < _currentframe)
 		{
-			return;
+			flag += AVSEEK_FLAG_BACKWARD;
 		}
+		int rc = av_seek_frame(_formatContext, _streamIndex, newframe, flag);
+		_currentframe = newframe;
 
-		SwsContext* swsCtx = sws_getContext(_codecContext->width, _codecContext->height,
-			_codecContext->pix_fmt, _width, _height, _pixelFmt, SWS_BICUBIC, NULL,
-			NULL, NULL);
-		AVPacket packet;
-
-		while (av_read_frame(_formatContext, &packet) >= 0 && _currentframe < tgtframe)
+		while (_currentframe < tgtframe && av_read_frame(_formatContext, &_packet) >= 0)
 		{
 
 			// Is this a packet from the video stream?
-			if (packet.stream_index == _streamIndex)
+			if (_packet.stream_index == _streamIndex)
 			{
 				// Decode video frame
 				int frameFinished;
-				avcodec_decode_video2(_codecContext, srcFrame, &frameFinished,
-					&packet);
+				avcodec_decode_video2(_codecContext, _srcFrame, &frameFinished,
+					&_packet);
 
 				// Did we get a video frame?
 				if (frameFinished)
 				{
 					_currentframe++;
-					sws_scale(swsCtx, srcFrame->data, srcFrame->linesize, 0,
+					sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,
 						_codecContext->height, _dstFrame->data,
 						_dstFrame->linesize);
 				}
 			}
 
 			// Free the packet that was allocated by av_read_frame
-			av_packet_unref(&packet);
+			av_packet_unref(&_packet);
 		}
-
-		sws_freeContext(swsCtx);
-		av_free(srcFrame);
 	}
 }
+
 AVFrame* VideoReader::GetNextFrame(int timestampMS)
 {
 	if (_valid && timestampMS <= _length)
@@ -226,13 +240,13 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS)
 		AVPacket pkt2;
 
         int rc;
-		while (_currentframe <= tgtframe && (rc = av_read_frame(_formatContext, &packet)) >= 0 &&  _currentframe <= _lastframe)
+		while (_currentframe <= tgtframe && (rc = av_read_frame(_formatContext, &_packet)) >= 0 &&  _currentframe <= _lastframe)
 		{
 			// Is this a packet from the video stream?
-			if (packet.stream_index == _streamIndex)
+			if (_packet.stream_index == _streamIndex)
 			{
 				// Decode video frame
-                pkt2 = packet;
+                pkt2 = _packet;
                 while (pkt2.size) {
                     int frameFinished = 0;
                     int ret = avcodec_decode_video2(_codecContext, _srcFrame, &frameFinished,
@@ -241,22 +255,11 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS)
                     // Did we get a video frame?
                     if (frameFinished)
                     {
-                        /*
-                         printf("Fr     %d  %d      %d  %d    np: %d    rb: %d      pts: %d   dts: %d\n",
-                         tgtframe, _currentframe,
-                         _srcFrame->coded_picture_number,
-                         _srcFrame->repeat_pict,
-                         numPackets, readBytes,
-                         (int)pkt2.pts,
-                         (int)pkt2.dts);
-                         
-                         */
                         _currentframe++;
                         sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,
                                   _codecContext->height, _dstFrame->data,
                                   _dstFrame->linesize);
                     }
-
                     
                     if (ret >= 0) {
                         ret = FFMIN(ret, pkt2.size); /* guard against bogus return values */
@@ -270,16 +273,18 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS)
 			}
 
 			// Free the packet that was allocated by av_read_frame
-			av_packet_unref(&packet);
+			av_packet_unref(&_packet);
 		}
 	}
 	else
 	{
+		_atEnd = true;
 		return NULL;
 	}
 
 	if (_dstFrame->data[0] == NULL || _currentframe > _lastframe)
 	{
+		_atEnd = true;
 		return NULL;
 	}
 	else
@@ -307,7 +312,8 @@ void VideoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     Render(buffer,
 		   SettingsMap["FILEPICKERCTRL_Video_Filename"],
 		SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
-		SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false)
+		SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
+		SettingsMap.GetBool("CHECKBOX_Video_Loop", false)
 		);
 }
 
@@ -331,10 +337,12 @@ public:
     VideoReader* _videoreader;
 	int _videoframerate;
 	bool _aspectratio;
+	bool _loop;
+	int _loops;
 };
 
 void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
-	double starttime, bool aspectratio)
+	double starttime, bool aspectratio, bool loop)
 {
 	buffer.drawingContext->Clear();
 
@@ -347,15 +355,23 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	std::string &_filename = cache->_filename;
 	int &_starttime = cache->_starttime;
 	bool &_aspectratio = cache->_aspectratio;
+	bool &_loop = cache->_loop;
+	int &_loops = cache->_loops;
 	VideoReader* &_videoreader = cache->_videoreader;
 
+	if (_starttime != starttime)
+	{
+		_starttime = starttime;
+	}
     
 	// we always reopen video on first frame or if it is not open or if the filename has changed
-	if (buffer.needToInit || _videoreader == NULL || _filename != filename || _aspectratio != aspectratio)
+	if (buffer.needToInit || _videoreader == NULL || _filename != filename || _aspectratio != aspectratio || _loop != loop)
 	{
         buffer.needToInit = false;
 		_filename = filename;
 		_aspectratio = aspectratio;
+		_loop = loop;
+		_loops = 0;
 		if (_videoreader != NULL)
 		{
 			delete _videoreader;
@@ -386,7 +402,17 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	if (_videoreader != NULL)
 	{
 		// get the image for the current frame
-		AVFrame* image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs);
+		AVFrame* image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs - _loops * _videoreader->GetLengthMS());
+		
+		// if we have reached the end and we are to loop
+		if (_videoreader->AtEnd() && _loop)
+		{
+			_loops++;
+			// jump back to start and try to read frame again
+			_videoreader->Seek(0);
+			image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs - _loops * _videoreader->GetLengthMS());
+		}
+
 		int startx = (buffer.BufferWi - _videoreader->GetWidth()) / 2;
 		int starty = (buffer.BufferHt - _videoreader->GetHeight()) / 2;
 

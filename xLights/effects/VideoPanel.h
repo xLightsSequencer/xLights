@@ -4,12 +4,12 @@
 //(*Headers(VideoPanel)
 #include <wx/panel.h>
 class wxFilePickerCtrl;
-class wxTextCtrl;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
 //*)
 
 #include <wx/filepicker.h>
@@ -47,13 +47,16 @@ class VideoPanel: public wxPanel
         void addVideoTime(std::string fn, unsigned long ms);
 	protected:
         //(*Declarations(VideoPanel)
-        xlVideoFilePickerCtrl* FilePicker_Video_Filename;
         wxSlider* Slider_Video_Starttime;
-        wxCheckBox* CheckBox_Video_AspectRatio;
-        wxBitmapButton* BitmapButton_Filename;
-        wxStaticText* StaticText8;
         wxBitmapButton* BitmapButton_Video_Starttime;
+        wxCheckBox* CheckBox_Video_AspectRatio;
+        wxStaticText* StaticText8;
+        xlVideoFilePickerCtrl* FilePicker_Video_Filename;
+        wxBitmapButton* BitmapButton_Filename;
         wxTextCtrl* TextCtrl_Video_Starttime;
+        wxBitmapButton* BitmapButton_Video_AspectRatio;
+        wxCheckBox* CheckBox_Video_Loop;
+        wxBitmapButton* BitmapButton_Video_Loop;
         //*)
 
     
@@ -70,6 +73,9 @@ class VideoPanel: public wxPanel
 		static const long ID_TEXTCTRL_Video_Starttime;
 		static const long ID_BITMAPBUTTON_Video_Starttime;
 		static const long ID_CHECKBOX_Video_AspectRatio;
+		static const long ID_BITMAPBUTTON_Video_AspectRatio;
+		static const long ID_CHECKBOX_Video_Loop;
+		static const long ID_BITMAPBUTTON_Video_Loop;
 		//*)
 
 	public:
