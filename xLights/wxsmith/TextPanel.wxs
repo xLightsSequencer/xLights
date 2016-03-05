@@ -7,7 +7,6 @@
 			<growablecols>0</growablecols>
 			<object class="sizeritem">
 				<object class="wxNotebook" name="IDD_NOTEBOOK_Text" variable="Notebook_Text1" member="no">
-					<bg>wxSYS_COLOUR_SCROLLBAR</bg>
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL_Text1" variable="Panel_Text1" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer69" member="no">
@@ -30,7 +29,7 @@
 												<maxlength>256</maxlength>
 												<style>wxTE_PROCESS_ENTER</style>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -49,7 +48,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Text_Font1" variable="FontPickerCtrl1" member="no" />
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -94,7 +93,7 @@
 														</content>
 														<selection>0</selection>
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>2</border>
 													<option>1</option>
 												</object>
@@ -156,7 +155,7 @@
 														<max>50</max>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>1</border>
 													<option>1</option>
 												</object>
@@ -172,7 +171,7 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>1</border>
 											<option>1</option>
 										</object>
@@ -210,7 +209,7 @@
 												</content>
 												<selection>0</selection>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -248,7 +247,7 @@
 												</content>
 												<selection>0</selection>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -266,7 +265,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -308,7 +307,7 @@
 																			<max>200</max>
 																			<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																		</object>
-																		<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<flag>wxALL|wxEXPAND</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
@@ -330,7 +329,7 @@
 																		<option>1</option>
 																	</object>
 																</object>
-																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxEXPAND</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -407,7 +406,7 @@
 																			<max>200</max>
 																			<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																		</object>
-																		<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<flag>wxALL|wxEXPAND</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
@@ -429,7 +428,7 @@
 																		<option>1</option>
 																	</object>
 																</object>
-																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxEXPAND</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -483,12 +482,12 @@
 													<label>End Position</label>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -514,7 +513,7 @@
 										<maxlength>256</maxlength>
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -533,7 +532,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Text_Font2" variable="FontPickerCtrl2" member="no" />
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -577,7 +576,7 @@
 												</content>
 												<selection>0</selection>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -639,7 +638,7 @@
 												<max>50</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>1</border>
 											<option>1</option>
 										</object>
@@ -655,7 +654,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -693,7 +692,7 @@
 										</content>
 										<selection>0</selection>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -731,7 +730,7 @@
 										</content>
 										<selection>0</selection>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -765,7 +764,7 @@
 												<value>50</value>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>1</border>
 											<option>1</option>
 										</object>
@@ -781,7 +780,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -820,7 +819,7 @@
 										<maxlength>256</maxlength>
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -839,7 +838,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Text_Font3" variable="FontPickerCtrl3" member="no" />
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -883,7 +882,7 @@
 												</content>
 												<selection>0</selection>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -945,7 +944,7 @@
 												<max>50</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>1</border>
 											<option>1</option>
 										</object>
@@ -961,7 +960,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -999,7 +998,7 @@
 										</content>
 										<selection>0</selection>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1037,7 +1036,7 @@
 										</content>
 										<selection>0</selection>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1072,7 +1071,7 @@
 												<size>177,24</size>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -1088,7 +1087,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -1127,7 +1126,7 @@
 										<maxlength>256</maxlength>
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1146,7 +1145,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxFontPickerCtrl" name="ID_FONTPICKER_Text_Font4" variable="FontPickerCtrl4" member="no" />
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1189,7 +1188,7 @@
 												</content>
 												<selection>0</selection>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -1250,7 +1249,7 @@
 												<max>50</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>1</border>
 											<option>1</option>
 										</object>
@@ -1266,7 +1265,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -1304,7 +1303,7 @@
 										</content>
 										<selection>0</selection>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1342,7 +1341,7 @@
 										</content>
 										<selection>0</selection>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -1376,7 +1375,7 @@
 												<value>50</value>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -1392,7 +1391,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -1414,7 +1413,7 @@
 						<label>Line4</label>
 					</object>
 				</object>
-				<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+				<flag>wxEXPAND</flag>
 			</object>
 		</object>
 	</object>
