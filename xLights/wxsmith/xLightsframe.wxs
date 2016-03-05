@@ -2792,6 +2792,13 @@
 					<handler function="OnQuit" entry="EVT_MENU" />
 				</object>
 			</object>
+			<object class="wxMenu" variable="Menu1" member="yes">
+				<label>A&amp;ctions</label>
+				<object class="wxMenuItem" name="ID_MENUITEM13" variable="ActionTestMenuItem" member="yes">
+					<label>&amp;Test</label>
+					<handler function="OnActionTestMenuItemSelected" entry="EVT_MENU" />
+				</object>
+			</object>
 			<object class="wxMenu" variable="MenuPlaylist" member="no">
 				<label>&amp;Playlist</label>
 				<object class="wxMenuItem" name="idMenuSaveSched" variable="MenuItemSavePlaylists" member="yes">

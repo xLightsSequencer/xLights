@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="TestDialog">
+		<title>Test Lights</title>
+		<centered>1</centered>
+		<size>1329,450</size>
+		<id_arg>0</id_arg>
+		<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+			<minsize>10</minsize>
+			<orientation>vertical</orientation>
+			<size>300,300</size>
+			<object class="wxAuiNotebook" name="ID_AUINOTEBOOK1" variable="AuiNotebook1" member="yes" />
+		</object>
+	</object>
+</wxsmith>

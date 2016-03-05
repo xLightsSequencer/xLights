@@ -612,6 +612,7 @@ private:
     void OnMenuDockAllSelected(wxCommandEvent& event);
     void ShowHideBufferSettingsWindow(wxCommandEvent& event);
     void ResetWindowsToDefaultPositions(wxCommandEvent& event);
+    void OnActionTestMenuItemSelected(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -856,6 +857,7 @@ private:
     static const long ID_CLOSE_SEQ;
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
+    static const long ID_MENUITEM13;
     static const long idMenuSaveSched;
     static const long idMenuAddList;
     static const long idMenuRenameList;
@@ -980,6 +982,7 @@ private:
     wxRadioButton* RadioButtonRgbTwinkle10;
     wxMenuItem* MenuItem32;
     wxMenuItem* MenuItem_ViewZoomOut;
+    wxMenuItem* ActionTestMenuItem;
     wxMenu* AudioMenu;
     wxPanel* PanelPapagayo;
     wxRadioButton* RadioButtonChase3;
@@ -1108,6 +1111,7 @@ private:
     wxMenuItem* MenuItem3;
     wxStaticText* StaticTextShowEnd;
     wxFileDialog* FileDialogPgoImage;
+    wxMenu* Menu1;
     wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;

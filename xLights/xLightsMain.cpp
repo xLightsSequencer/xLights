@@ -25,6 +25,8 @@
 #include "BitmapCache.h"
 #include "effects/RenderableEffect.h"
 
+#include "TestDialog.h"
+
 // scripting language
 #include "xLightsBasic.cpp"
 
@@ -315,6 +317,7 @@ const long xLightsFrame::ID_SAVE_AS_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_CLOSE_SEQ = wxNewId();
 const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
+const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::idMenuSaveSched = wxNewId();
 const long xLightsFrame::idMenuAddList = wxNewId();
 const long xLightsFrame::idMenuRenameList = wxNewId();
@@ -1426,6 +1429,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     QuitMenuItem->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_QUIT")),wxART_OTHER));
     MenuFile->Append(QuitMenuItem);
     MenuBar->Append(MenuFile, _("&File"));
+    Menu1 = new wxMenu();
+    ActionTestMenuItem = new wxMenuItem(Menu1, ID_MENUITEM13, _("&Test"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(ActionTestMenuItem);
+    MenuBar->Append(Menu1, _("A&ctions"));
     MenuPlaylist = new wxMenu();
     MenuItemSavePlaylists = new wxMenuItem(MenuPlaylist, idMenuSaveSched, _("Save Playlists"), wxEmptyString, wxITEM_NORMAL);
     MenuPlaylist->Append(MenuItemSavePlaylists);
@@ -1708,6 +1715,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
     Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
+    Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(idMenuSaveSched,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSavePlaylistsSelected);
     Connect(idMenuAddList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemAddListSelected);
     Connect(idMenuRenameList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenameListSelected);
@@ -3287,4 +3295,9 @@ void xLightsFrame::UpdateSequenceLength()
     }
 }
 
-
+void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
+{
+    TestDialog dialog(this, &NetworkXML);
+    dialog.CenterOnParent();
+    int DlgResult = dialog.ShowModal();
+}
