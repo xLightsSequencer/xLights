@@ -8,8 +8,85 @@
 		<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 			<minsize>10</minsize>
 			<orientation>vertical</orientation>
-			<size>300,300</size>
-			<object class="wxAuiNotebook" name="ID_AUINOTEBOOK1" variable="AuiNotebook1" member="yes" />
+			<pos>0,0</pos>
+			<size>1336,456</size>
+			<minsize>10,10</minsize>
+			<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+				<pos>83,262</pos>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+					<cols>1</cols>
+					<growablecols>0</growablecols>
+					<growablerows>1</growablerows>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>2</cols>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_Load" variable="Button_Load" member="yes">
+									<label>Load</label>
+									<handler function="OnButton_LoadClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_Save" variable="Button_Save" member="yes">
+									<label>Save</label>
+									<handler function="OnButton_SaveClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+			</object>
+			<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
+				<pos>368,72</pos>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+					<cols>1</cols>
+					<growablecols>0</growablecols>
+					<growablerows>0</growablerows>
+					<object class="sizeritem">
+						<object class="wxAuiNotebook" name="ID_AUINOTEBOOK1" variable="AuiNotebook1" member="yes">
+							<object class="AuiNotebookPage">
+								<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
+									<pos>203,250</pos>
+								</object>
+								<label>Page name</label>
+							</object>
+							<object class="AuiNotebookPage">
+								<object class="wxPanel" name="ID_PANEL4" variable="Panel4" member="yes">
+									<pos>139,1</pos>
+								</object>
+							</object>
+							<object class="AuiNotebookPage">
+								<object class="wxPanel" name="ID_PANEL5" variable="Panel5" member="yes">
+									<pos>163,20</pos>
+								</object>
+								<label>Page name</label>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+			</object>
 		</object>
 	</object>
 </wxsmith>

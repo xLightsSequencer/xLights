@@ -5,12 +5,19 @@
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
 #include <wx/xml/xml.h>
+#include <wx/filename.h>
 
 //(*Headers(TestDialog)
+#include <wx/sizer.h>
 #include <wx/splitter.h>
 #include <wx/aui/aui.h>
+#include <wx/panel.h>
+#include <wx/button.h>
 #include <wx/dialog.h>
 //*)
+
+#include <string>
+#include <list>
 
 class TreeController
 {
@@ -64,14 +71,22 @@ class TestDialog: public wxDialog
 {
 	public:
 
-		TestDialog(wxWindow* parent, wxXmlDocument* network, wxWindowID id=wxID_ANY);
+		TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName networkFile, wxWindowID id=wxID_ANY);
 		virtual ~TestDialog();
 		wxTreeListCtrl* TreeListCtrl_Channels;
 		wxTreeListItem  _all;
+		wxFileName _networkFile;
 
 		//(*Declarations(TestDialog)
+		wxPanel* Panel5;
+		wxPanel* Panel4;
+		wxButton* Button_Save;
+		wxPanel* Panel1;
+		wxPanel* Panel3;
 		wxAuiNotebook* AuiNotebook1;
+		wxPanel* Panel2;
 		wxSplitterWindow* SplitterWindow1;
+		wxButton* Button_Load;
 		//*)
 
 	protected:
@@ -80,22 +95,38 @@ class TestDialog: public wxDialog
 		static const long ID_TREELISTCTRL_Channels;
 
 		//(*Identifiers(TestDialog)
+		static const long ID_BUTTON_Load;
+		static const long ID_BUTTON_Save;
+		static const long ID_PANEL1;
+		static const long ID_PANEL3;
+		static const long ID_PANEL4;
+		static const long ID_PANEL5;
 		static const long ID_AUINOTEBOOK1;
+		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
 		//*)
 
 	private:
 
 		//(*Handlers(TestDialog)
+		void OnButton_LoadClick(wxCommandEvent& event);
+		void OnButton_SaveClick(wxCommandEvent& event);
+		void OnPanel2Resize(wxSizeEvent& event);
+		void OnPanel1MouseMove(wxMouseEvent& event);
+		void OnPanel1MouseEnter(wxMouseEvent& event);
+		void OnPanel1MouseLeave(wxMouseEvent& event);
 		//*)
 
-		void OnTreeListCtrl1ItemGetToolTip(wxTreeEvent& event);
 		void OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event);
+		void OnTreeListCtrl1ItemActivated(wxTreeListEvent& event);
 
 		void PopulateTree(wxXmlDocument* network);
 		void SetSelected(wxTreeListItem& item, wxCheckBoxState state);
 		void UpdateSelectedState(wxTreeListItem& item, wxCheckBoxState state);
 		void DestroyTreeControllerData(wxTreeListItem& item);
+		void GetTestPresetNames(wxArrayString& PresetNames);
+		void TestDialog::CheckChannel(long chid);
+		std::list<std::string> GetModelsOnChannels(int start, int end);
 
 		DECLARE_EVENT_TABLE()
 };

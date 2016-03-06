@@ -3297,7 +3297,7 @@ void xLightsFrame::UpdateSequenceLength()
 
 void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 {
-    TestDialog dialog(this, &NetworkXML);
+    TestDialog dialog(this, &NetworkXML, networkFile);
     dialog.CenterOnParent();
     int DlgResult = dialog.ShowModal();
 }
