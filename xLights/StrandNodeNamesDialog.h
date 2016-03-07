@@ -2,10 +2,10 @@
 #define STRANDNODENAMESDIALOG_H
 
 //(*Headers(StrandNodeNamesDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
 #include <wx/grid.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
 //*)
 
 class StrandNodeNamesDialog: public wxDialog
@@ -16,8 +16,8 @@ class StrandNodeNamesDialog: public wxDialog
 		virtual ~StrandNodeNamesDialog();
 
 		//(*Declarations(StrandNodeNamesDialog)
-		wxGrid* StrandsGrid;
 		wxGrid* NodesGrid;
+		wxGrid* StrandsGrid;
 		//*)
 
 	protected:

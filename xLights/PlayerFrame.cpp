@@ -9,8 +9,8 @@
 
 
 //(*InternalHeaders(PlayerFrame)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(PlayerFrame)
@@ -65,7 +65,7 @@ PlayerFrame::PlayerFrame(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     wxASSERT_MSG(bOK, "Could not create media control!");
     wxUnusedVar(bOK);
 
-    sizer->Add(MediaCtrl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 0);
+    sizer->Add(MediaCtrl, 0, wxALL|wxEXPAND, 0);
     PlayAfterLoad=false;
     Connect(wxID_MEDIACTRL, wxEVT_MEDIA_LOADED,
             wxMediaEventHandler(PlayerFrame::OnMediaLoaded));

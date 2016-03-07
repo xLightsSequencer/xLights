@@ -87,14 +87,14 @@ public:
         slider = new wxSlider(parent, wxID_ANY, scale * val, minv * scale, maxv * scale);
         slider->SetValue(scale * val);
         slider->SetToolTip(tip);
-        Add(slider, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
+        Add(slider, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
 
         max = new wxStaticText(parent, wxID_ANY, wxString::Format(format, maxv));
         Add(max, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
         Add(10, 10);
 
         value = new wxStaticText(parent, wxID_ANY, wxString::Format(format, val));
-        Add(value, 1, wxALL|wxALIGN_CENTER|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
+        Add(value, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
 
         slider->Connect(slider->GetId(),wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&FloatSliderControl::sliderValue, nullptr, this);
     }
@@ -213,14 +213,14 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
             {
                 choice->SetToolTip(tip);
             }
-            SettingsSizer->Add(choice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxEXPAND, 5);
+            SettingsSizer->Add(choice, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 5);
             controls.push_back(choice);
         }
         else
         {
             FloatSliderControl *slider = new FloatSliderControl(this, value, params[x].minValue, params[x].maxValue, tip);
             SettingsSizer->Add(slider,
-                               1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxEXPAND, 5);
+                               1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 5);
             controls.push_back(slider);
         }
 

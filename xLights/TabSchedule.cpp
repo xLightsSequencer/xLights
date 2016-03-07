@@ -164,7 +164,7 @@ void xLightsFrame::AddPlaylist(const wxString& name)
 
     id=baseid+PLAYLIST_FILES;
     wxTreeCtrl* TreeCtrl = new wxTreeCtrl(PanelPlayList, id);
-    FlexGridSizer4->Add(TreeCtrl, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(TreeCtrl, 1, wxALL|wxEXPAND, 5);
 
     wxBoxSizer* BoxSizer5 = new wxBoxSizer(wxVERTICAL);
 
@@ -205,11 +205,11 @@ void xLightsFrame::AddPlaylist(const wxString& name)
     ListBox1->SetToolTip(_("Drag an item to reorder the list"));
 #endif
     Connect(id, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsFrame::OnPlayListBeginDrag);
-    FlexGridSizer4->Add(ListBox1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(ListBox1, 1, wxALL|wxEXPAND, 5);
 
     id=baseid+PLAYLIST_LOGIC;
     wxTextCtrl* TextCtrlLogic = new wxTextCtrl(PanelPlayList, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxHSCROLL, wxDefaultValidator, _T("ID_TEXTCTRL_LOGIC"));
-    FlexGridSizer4->Add(TextCtrlLogic, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(TextCtrlLogic, 1, wxALL|wxEXPAND, 5);
     TextCtrlLogic->Hide();
 
     PanelPlayList->SetSizer(FlexGridSizer4);
