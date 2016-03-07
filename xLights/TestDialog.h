@@ -125,10 +125,10 @@ class TestDialog: public wxDialog
 
 		void PopulateTree(wxXmlDocument* network);
 		void SetSelected(wxTreeListItem& item, wxCheckBoxState state);
-		void UpdateSelectedState(wxTreeListItem& item, wxCheckBoxState state);
+		void UpdateSelectedState(const wxTreeListItem& item, wxCheckBoxState state);
 		void DestroyTreeControllerData(wxTreeListItem& item);
 		void GetTestPresetNames(wxArrayString& PresetNames);
-		void TestDialog::CheckChannel(long chid);
+		void CheckChannel(long chid);
 		std::list<std::string> GetModelsOnChannels(int start, int end);
 
 		DECLARE_EVENT_TABLE()

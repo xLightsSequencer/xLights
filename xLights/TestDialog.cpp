@@ -345,7 +345,7 @@ std::list<std::string> TestDialog::GetModelsOnChannels(int start, int end)
 {
 	std::list<std::string> res;
 
-	for (auto it = _modelManager->begin(); it != _modelManager->end(); it++) 
+	for (auto it = _modelManager->begin(); it != _modelManager->end(); it++)
 	{
 		Model* m = it->second;
 		int st = wxAtoi(m->ModelStartChannel);
@@ -443,7 +443,7 @@ void TestDialog::OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event)
 	UpdateSelectedState(TreeListCtrl_Channels->GetItemParent(item), checked);
 }
 
-void TestDialog::UpdateSelectedState(wxTreeListItem& item, wxCheckBoxState state)
+void TestDialog::UpdateSelectedState(const wxTreeListItem& item, wxCheckBoxState state)
 {
 	if (item != NULL)
 	{
