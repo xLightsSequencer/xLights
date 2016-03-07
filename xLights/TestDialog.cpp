@@ -9,6 +9,8 @@
 #include <wx/string.h>
 //*)
 
+#include "models/Model.h"
+
 const long TestDialog::ID_TREELISTCTRL_Channels = wxNewId();
 
 //(*IdInit(TestDialog)
@@ -28,10 +30,11 @@ BEGIN_EVENT_TABLE(TestDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName networkFile, wxWindowID id)
+TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName networkFile, ModelManager* modelManager, wxWindowID id)
 {
 	_network = network;
 	_networkFile = networkFile;
+	_modelManager = modelManager;
 
 	//(*Initialize(TestDialog)
 	wxFlexGridSizer* FlexGridSizer4;
@@ -39,7 +42,7 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, wxID_ANY, _("Test Lights"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("Test Lights"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
 	SetClientSize(wxSize(1329,450));
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxPoint(0,0), wxSize(1336,456), wxSP_3D, _T("ID_SPLITTERWINDOW1"));
 	SplitterWindow1->SetMinSize(wxSize(10,10));
@@ -54,11 +57,11 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	FlexGridSizer2->Add(Button_Load, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Save = new wxButton(Panel1, ID_BUTTON_Save, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Save"));
 	FlexGridSizer2->Add(Button_Save, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxEXPAND, 2);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(0);
-	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	Panel1->SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(Panel1);
 	FlexGridSizer1->SetSizeHints(Panel1);
@@ -342,7 +345,16 @@ std::list<std::string> TestDialog::GetModelsOnChannels(int start, int end)
 {
 	std::list<std::string> res;
 
-	res.push_back("Test");
+	for (auto it = _modelManager->begin(); it != _modelManager->end(); it++) 
+	{
+		Model* m = it->second;
+		int st = wxAtoi(m->ModelStartChannel);
+		int en = m->GetLastChannel();
+		if (start <= en+1 && end >= st)
+		{
+			res.push_back(it->first);
+		}
+	}
 
 	return res;
 }
@@ -352,12 +364,20 @@ void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 	if (event.GetItem() == _all)
 	{
 		// dont do anything
-		TreeListCtrl_Channels->SetToolTip("");
+		TreeListCtrl_Channels->UnsetToolTip();
+		// remove this once TreeListCtrl supports tool tips
+		Panel1->UnsetToolTip();
 	}
 	else
 	{
 		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(event.GetItem());
-		std::list<std::string> models = GetModelsOnChannels(tc->StartXLightsChannel(), tc->EndXLightsChannel());
+		int start = tc->StartXLightsChannel();
+		int end = tc->EndXLightsChannel();
+		if (tc->IsChannel())
+		{
+			end = start;
+		}
+		std::list<std::string> models = GetModelsOnChannels(start, end);
 		std::string tt = "";
 		for (std::list<std::string>::iterator it = models.begin(); it != models.end(); ++it)
 		{
@@ -367,7 +387,27 @@ void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 			}
 			tt = tt + *it;
 		}
-		TreeListCtrl_Channels->SetToolTip(tt);
+		if (tt != "")
+		{
+			if (start == end)
+			{
+				tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "] maps to\n" + tt;
+			}
+			else
+			{
+				tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "-" + std::string(wxString::Format(wxT("%i"), end)) + "] maps to\n" + tt;
+			}
+			// This does not work ... there is a bug in wxWidgets which prevents tooltip display.
+			TreeListCtrl_Channels->SetToolTip(tt);
+			// remove this once TreeListCtrl supports tool tips
+			Panel1->SetToolTip(tt);
+		}
+		else
+		{
+			TreeListCtrl_Channels->UnsetToolTip();
+			// remove this once TreeListCtrl supports tool tips
+			Panel1->UnsetToolTip();
+		}
 	}
 }
 void TestDialog::OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event)

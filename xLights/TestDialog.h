@@ -18,6 +18,7 @@
 
 #include <string>
 #include <list>
+#include "models/ModelManager.h"
 
 class TreeController
 {
@@ -52,6 +53,7 @@ public:
 	TreeController* GenerateDMXUniverse(int universeoffset);
 	std::string Name() { return _name; };
 	bool IsNULL() { return _type == CONTROLLERTYPE::CT_NULL; };
+	bool IsChannel() { return _type == CONTROLLERTYPE::CT_CHANNEL; };
 	bool Inactive() { return _inactive; };
 	int Channels() { return _endchannel - _startchannel + 1; };
 	int StartChannel() { return _startchannel; };
@@ -71,11 +73,12 @@ class TestDialog: public wxDialog
 {
 	public:
 
-		TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName networkFile, wxWindowID id=wxID_ANY);
+		TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName networkFile, ModelManager* modelManager, wxWindowID id=wxID_ANY);
 		virtual ~TestDialog();
 		wxTreeListCtrl* TreeListCtrl_Channels;
 		wxTreeListItem  _all;
 		wxFileName _networkFile;
+		ModelManager* _modelManager;
 
 		//(*Declarations(TestDialog)
 		wxPanel* Panel5;

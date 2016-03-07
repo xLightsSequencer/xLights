@@ -3297,7 +3297,11 @@ void xLightsFrame::UpdateSequenceLength()
 
 void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 {
-    TestDialog dialog(this, &NetworkXML, networkFile);
+	AllModels.LoadModels(ModelsNode, NetInfo,
+		modelPreview->GetVirtualCanvasWidth(),
+		modelPreview->GetVirtualCanvasHeight());
+
+    TestDialog dialog(this, &NetworkXML, networkFile, &AllModels);
     dialog.CenterOnParent();
     int DlgResult = dialog.ShowModal();
 }

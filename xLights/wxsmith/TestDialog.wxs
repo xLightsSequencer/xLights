@@ -5,6 +5,8 @@
 		<centered>1</centered>
 		<size>1329,450</size>
 		<id_arg>0</id_arg>
+		<size_arg>1</size_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 			<minsize>10</minsize>
 			<orientation>vertical</orientation>
@@ -39,8 +41,8 @@
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<flag>wxEXPAND</flag>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -50,7 +52,7 @@
 							<growablerows>0</growablerows>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 				</object>
