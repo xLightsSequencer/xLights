@@ -14,6 +14,8 @@ class OffPanel: public wxPanel
 		OffPanel(wxWindow* parent);
 		virtual ~OffPanel();
 
+        virtual std::string GetEffectString() { return "";};
+
 		//(*Declarations(OffPanel)
 		//*)
 

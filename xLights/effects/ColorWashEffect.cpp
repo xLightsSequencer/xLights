@@ -2,12 +2,14 @@
 
 #include "ColorWashPanel.h"
 #include <wx/checkbox.h>
+#include <wx/notebook.h>
 
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../../include/ColorWash.xpm"
 
+#include <sstream>
 
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
 static const std::string CHECKBOX_ColorWash_VFade("CHECKBOX_ColorWash_VFade");
@@ -40,23 +42,73 @@ int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
     DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
     return 2;
 }
-static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
-    wxCheckBox *c = (wxCheckBox*)w->FindWindowById(id);
-    c->SetValue(b);
-    wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, id);
-    evt.SetEventObject(c);
-    evt.SetInt(b);
-    c->ProcessWindowEvent(evt);
-}
-
 
 void ColorWashEffect::SetDefaultParameters(Model *cls) {
-    ColorWashPanel *cwp = (ColorWashPanel*)panel;
-    if (cwp == nullptr) {
+    ColorWashPanel *p = (ColorWashPanel*)panel;
+    if (p == nullptr) {
         return;
     }
-    SetCheckboxValue(cwp, cwp->ID_CHECKBOX_ColorWash_EntireModel, true);
+    p->CyclesTextCtrl->SetValue("1.0");
+    SetCheckBoxValue(p->EntireModelCheckbox, true);
+    SetCheckBoxValue(p->HFadeCheckBox, false);
+    SetCheckBoxValue(p->VFadeCheckBox, false);
+    SetCheckBoxValue(p->ShimmerCheckBox, false);
+    SetCheckBoxValue(p->CircularPaletteCheckBox, false);
+    SetSliderValue(p->C1SliderX, 0);
+    SetSliderValue(p->C1SliderY, 0);
+    SetSliderValue(p->C2SliderX, 100);
+    SetSliderValue(p->C2SliderY, 100);
+    p->CornersNotebook->Enable(false);
 }
+
+std::string ColorWashEffect::GetEffectString() {
+    ColorWashPanel *p = (ColorWashPanel*)panel;
+    std::stringstream ret;
+    if (10 != p->SliderCycles->GetValue()) {
+        ret << "E_TEXTCTRL_ColorWash_Cycles=";
+        ret << p->CyclesTextCtrl->GetValue();
+        ret << ",";
+    }
+    if (p->VFadeCheckBox->GetValue()) {
+        ret << "E_CHECKBOX_ColorWash_VFade=1,";
+    }
+    if (p->HFadeCheckBox->GetValue()) {
+        ret << "E_CHECKBOX_ColorWash_HFade=1,";
+    }
+    if (p->ShimmerCheckBox->GetValue()) {
+        ret << "E_CHECKBOX_ColorWash_Shimmer=1,";
+    }
+    if (p->CircularPaletteCheckBox->GetValue()) {
+        ret << "E_CHECKBOX_ColorWash_CircularPalette=1,";
+    }
+    if (!p->EntireModelCheckbox->GetValue()) {
+        ret << "E_CHECKBOX_ColorWash_EntireModel=0,";
+        if (p->C1SliderX->GetValue() != 0) {
+            ret << "E_SLIDER_ColorWash_X1=";
+            ret << p->C1SliderX->GetValue();
+            ret << ",";
+        }
+        if (p->C1SliderY->GetValue() != 0) {
+            ret << "E_SLIDER_ColorWash_Y1=";
+            ret << p->C1SliderY->GetValue();
+            ret << ",";
+        }
+        if (p->C2SliderX->GetValue() != 0) {
+            ret << "E_SLIDER_ColorWash_X2=";
+            ret << p->C2SliderX->GetValue();
+            ret << ",";
+        }
+        if (p->C2SliderY->GetValue() != 0) {
+            ret << "E_SLIDER_ColorWash_Y2=";
+            ret << p->C2SliderY->GetValue();
+            ret << ",";
+        }
+    }
+    return ret.str();
+}
+
+
+
 wxPanel *ColorWashEffect::CreatePanel(wxWindow *parent) {
     return new ColorWashPanel(parent);
 }
@@ -66,13 +118,13 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);
     bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade);
     float cycles = SettingsMap.GetDouble(TEXTCTRL_ColorWash_Cycles, 1.0);
-    bool EntireModel = SettingsMap.GetInt(CHECKBOX_ColorWash_EntireModel, 1);
-    int x1 = SettingsMap.GetInt(SLIDER_ColorWash_X1, -50);
-    int y1 = SettingsMap.GetInt(SLIDER_ColorWash_Y1, -50);
-    int x2 = SettingsMap.GetInt(SLIDER_ColorWash_X2, 50);
-    int y2 = SettingsMap.GetInt(SLIDER_ColorWash_Y2, 50);
-    bool shimmer = SettingsMap.GetInt(CHECKBOX_ColorWash_Shimmer, 0);
-    bool circularPalette = SettingsMap.GetInt(CHECKBOX_ColorWash_CircularPalette, 0);
+    bool EntireModel = SettingsMap.GetBool(CHECKBOX_ColorWash_EntireModel, true);
+    int x1 = SettingsMap.GetInt(SLIDER_ColorWash_X1, 0);
+    int y1 = SettingsMap.GetInt(SLIDER_ColorWash_Y1, 0);
+    int x2 = SettingsMap.GetInt(SLIDER_ColorWash_X2, 100);
+    int y2 = SettingsMap.GetInt(SLIDER_ColorWash_Y2, 100);
+    bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer);
+    bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette);
     
     
     int x,y;

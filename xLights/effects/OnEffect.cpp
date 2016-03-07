@@ -12,6 +12,8 @@ static const std::string TEXTCTRL_On_Cycles("TEXTCTRL_On_Cycles");
 
 #include "../../include/On.xpm"
 
+#include <sstream>
+
 
 OnEffect::OnEffect(int i) : RenderableEffect(i, "On", On, On, On, On, On)
 {
@@ -27,6 +29,36 @@ wxPanel *OnEffect::CreatePanel(wxWindow *parent) {
     return new OnPanel(parent);
 }
 
+void OnEffect::SetDefaultParameters(Model *cls) {
+    OnPanel *p = (OnPanel*)panel;
+    p->CheckBoxShimmer->SetValue(false);
+    p->TextCtrlStart->SetValue("100");
+    p->TextCtrlEnd->SetValue("100");
+    p->TextCtrlCycles->SetValue("1.0");
+}
+std::string OnEffect::GetEffectString() {
+    OnPanel *p = (OnPanel*)panel;
+    std::stringstream ret;
+    if (100 != p->SliderStart->GetValue()) {
+        ret << "E_TEXTCTRL_Eff_On_Start=";
+        ret << p->TextCtrlStart->GetValue().ToStdString();
+        ret << ",";
+    }
+    if (100 != p->SliderEnd->GetValue()) {
+        ret << "E_TEXTCTRL_Eff_On_End=";
+        ret << p->TextCtrlEnd->GetValue().ToStdString();
+        ret << ",";
+    }
+    if (10 != p->SliderCycles->GetValue()) {
+        ret << "E_TEXTCTRL_On_Cycles=";
+        ret << p->TextCtrlCycles->GetValue().ToStdString();
+        ret << ",";
+    }
+    if (p->CheckBoxShimmer->GetValue()) {
+        ret << "E_CHECKBOX_On_Shimmer=1,";
+    }
+    return ret.str();
+}
 
 
 void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {

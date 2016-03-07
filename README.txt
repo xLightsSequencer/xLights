@@ -7,8 +7,11 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug (dkulp)   Imports from other formats were generating invalid key ID's
+    -- bug (dkulp)   Pictures imported from SS were not displaying properly
+    -- enh (dkulp)   Update On/ColorWash to only output non-defaults in XML
 2016.10  Mar 3, 2016
-	-- enh (keithsw) Support old-school CTRL-INSERT, SHIFT-INSERT and SHIFT-DELETE (windows only)
+    -- enh (keithsw) Support old-school CTRL-INSERT, SHIFT-INSERT and SHIFT-DELETE (windows only)
     -- bug (dkulp)   Fix probelm with first pixel with grouped arches in SingleStrand . Fixes #474
     -- bug (dkulp)   Fix crash on close when preview running
     -- bug (dkulp)   Fix color/blur sliders not updating to defaults.  Fixes #477.  Fixes #476.

@@ -3,6 +3,12 @@
 #include "EffectManager.h"
 #include "assist/xlGridCanvasEmpty.h"
 
+#include <wx/fontpicker.h>
+#include <wx/filepicker.h>
+#include <wx/notebook.h>
+
+#include <sstream>
+
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
                                    const char **data24,
@@ -153,6 +159,105 @@ bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::str
 	}
     return false;
 }
+
+
+// this is recursive
+static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
+{
+    wxString s,ChildName,AttrName;
+    int i;
+    wxWindowList &ChildList = ParentWin->GetChildren();
+    for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
+    {
+        wxWindow *ChildWin = *it;
+        if (!ChildWin->IsEnabled()) {
+            continue;
+        }
+        ChildName=ChildWin->GetName();
+        AttrName = "E_" + ChildName.Mid(3);
+        if (ChildName.StartsWith("ID_SLIDER"))
+        {
+            wxSlider* ctrl=(wxSlider*)ChildWin;
+            s+=AttrName+ "=" + wxString::Format("%d",ctrl->GetValue()) + ",";
+        }
+        else if (ChildName.StartsWith("ID_TEXTCTRL"))
+        {
+            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
+            wxString v = ctrl->GetValue();
+            v.Replace("&", "&amp;", true);
+            v.Replace(",", "&comma;", true);
+            s+=AttrName + "=" + v + ",";
+        }
+        else if (ChildName.StartsWith("ID_CHOICE"))
+        {
+            wxChoice* ctrl=(wxChoice*)ChildWin;
+            s+=AttrName + "=" + ctrl->GetStringSelection() + ",";
+        }
+        else if (ChildName.StartsWith("ID_CHECKBOX"))
+        {
+            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
+            wxString checkedVal =(ctrl->IsChecked()) ? "1" : "0";
+            s+=AttrName + "=" + checkedVal + ",";
+        }
+        else if (ChildName.StartsWith("ID_FILEPICKER"))
+        {
+            wxFilePickerCtrl* ctrl=(wxFilePickerCtrl*)ChildWin;
+            s+=AttrName + "=" + ctrl->GetFileName().GetFullPath() + ",";
+        }
+        else if (ChildName.StartsWith("ID_FONTPICKER"))
+        {
+            wxFontPickerCtrl* ctrl=(wxFontPickerCtrl*)ChildWin;
+            wxFont f = ctrl->GetSelectedFont();
+            if (f.IsOk()) {
+                wxString FontDesc=f.GetNativeFontInfoUserDesc();
+                FontDesc.Replace(" unknown-90","");
+                s+=AttrName + "=" + FontDesc + ",";
+            } else {
+                s+=AttrName + "=,";
+            }
+        }
+        else if (ChildName.StartsWith("ID_NOTEBOOK") || ChildName.StartsWith("IDD_NOTEBOOK"))
+        {
+            wxNotebook* ctrl=(wxNotebook*)ChildWin;
+            //for IDD_ stuff, don't record the value of the actual page selected
+            if (ChildName.StartsWith("ID_NOTEBOOK")) {
+                s+= AttrName + "=" ;
+                s+=ctrl->GetPageText(ctrl->GetSelection());
+                s+=",";
+            }
+            for(i=0; i<ctrl->GetPageCount(); i++)
+            {
+                wxString pageString = GetEffectStringFromWindow(ctrl->GetPage(i));
+                if (pageString.size() > 0) {
+                    s += pageString;
+                    if (!s.EndsWith(",")) {
+                        s += ",";
+                    }
+                }
+            }
+        }
+        else if (ChildName.StartsWith("ID_PANEL_"))
+        {
+            wxString pageString = GetEffectStringFromWindow(ChildWin);
+            if (pageString.size() > 0) {
+                s += pageString;
+                if (!s.EndsWith(",")) {
+                    s += ",";
+                }
+            }
+        }
+    }
+    s = s.Mid(0,s.size()-1);
+    return s.ToStdString();
+}
+
+
+std::string RenderableEffect::GetEffectString() {
+    return GetEffectStringFromWindow(panel);
+}
+
+
+
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect) {
     AdjustSettingsToBeFitToTime(effect->GetEffectIndex(), effect->GetSettings(), effect->GetStartTimeMS(), effect->GetEndTimeMS(), effect->GetPalette());
 }
@@ -502,5 +607,24 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
     settings.erase("T_CHECKBOX_FitToTime");
     settings.erase("T_SLIDER_Speed");
 }
+
+
+void RenderableEffect::SetSliderValue(wxSlider *slider, int value) {
+    slider->SetValue(value);
+    wxScrollEvent event(wxEVT_SLIDER, slider->GetId());
+    event.SetEventObject(slider);
+    event.SetInt(value);
+    slider->ProcessWindowEvent(event);
+}
+
+void RenderableEffect::SetCheckBoxValue(wxCheckBox *c, bool b) {
+    c->SetValue(b);
+    wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, c->GetId());
+    evt.SetEventObject(c);
+    evt.SetInt(b);
+    c->ProcessWindowEvent(evt);
+}
+
+
 
 

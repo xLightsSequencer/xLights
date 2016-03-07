@@ -1440,9 +1440,8 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
 std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
 {
-    wxWindow*  window = (wxWindow*)EffectsPanel1->EffectChoicebook->GetPage(EffectsPanel1->EffectChoicebook->GetSelection());
-    // This is needed because of the "Off" effect that does not return any text.
-    std::string effectText = EffectsPanel1->GetEffectStringFromWindow(window).ToStdString();
+    RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
+    std::string effectText = eff->GetEffectString();
     if (effectText.size() > 0 && effectText[effectText.size()-1] != ',') {
         effectText += ",";
     }
@@ -1790,29 +1789,13 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
 
                     int i = colors[x].asHSV().value * 100.0;
                     int i2 = colors[x + len - 1].asHSV().value * 100.0;
-                    std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2).ToStdString()
-                        + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,E_TEXTCTRL_On_Cycles=1.0,"
-                        "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                        "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_CircularPalette=0,E_TEXTCTRL_ColorWash_Cycles=1.0";
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1,"
-                        "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
-                        "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                        "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-
+                    std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2).ToStdString();
+                    std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
                     layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
                 } else {
-
-                    std::string settings = "E_CHECKBOX_ColorWash_EntireModel=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
-                        "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
-                        "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                        "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
-
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
-                        "C_BUTTON_Palette2=" + (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1,"
-                        "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                        "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-
-                    layer->AddEffect(0, "Color Wash", settings, palette, stime, etime, false, false);
+                        "C_BUTTON_Palette2=" + (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
+                    layer->AddEffect(0, "Color Wash", "", palette, stime, etime, false, false);
                 }
                 for (int z = 0; z < len; z++) {
                     //clear it
@@ -1822,21 +1805,14 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
         }
     }
 
-    std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100"
-        ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-        "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-        "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
     for (int x = 0; x < colors.size(); x++) {
         if (lastColor != colors[x]) {
             int time = x * frameTime;
             if (lastColor != xlBLACK) {
-                std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1,"
-                    "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
-                    "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                    "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1";
 
                 if (time != startTime) {
-                    layer->AddEffect(0, "On", settings, palette, startTime, time, false, false);
+                    layer->AddEffect(0, "On", "", palette, startTime, time, false, false);
                 }
             }
             startTime = time;

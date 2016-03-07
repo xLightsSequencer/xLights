@@ -20,6 +20,13 @@ class OnPanel: public wxPanel
 		virtual ~OnPanel();
 
 		//(*Declarations(OnPanel)
+		wxSlider* SliderCycles;
+		wxCheckBox* CheckBoxShimmer;
+		wxTextCtrl* TextCtrlEnd;
+		wxTextCtrl* TextCtrlCycles;
+		wxTextCtrl* TextCtrlStart;
+		wxSlider* SliderStart;
+		wxSlider* SliderEnd;
 		//*)
 
 	protected:
