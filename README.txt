@@ -7,6 +7,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.11  Mar 8, 2016
+    -- bug (sean)    Modified Windows install script to it always prompts for install directory
+    -- enh (sean)    Updated xlights icon images from Charles Suhr. Fixes ragged edge.
     -- enh (keithsw) Add video looping
     -- bug (keithsw) Fix some video formats that were not playing
     -- bug (keithsw) Fix audio controls on the toolbar
