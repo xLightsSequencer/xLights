@@ -396,10 +396,17 @@ void EffectLayer::GetMaximumRangeOfMovementForEffect(int index, int &toLeft, int
 void EffectLayer::GetMaximumRangeWithLeftMovement(int index, int &toLeft, int &toRight)
 {
     SequenceElements* seq_elem = mParentElement->GetSequenceElements();
-    toRight = mEffects[index]->GetEndTimeMS() - mEffects[index]->GetStartTimeMS() - seq_elem->GetMinPeriod();
+    if( mEffects[index]->GetSelected() == EFFECT_SELECTED )
+    {
+       toRight = NO_MAX;
+    }
+    else
+    {
+        toRight = mEffects[index]->GetEndTimeMS() - mEffects[index]->GetStartTimeMS() - seq_elem->GetMinPeriod();
+    }
     if(index == 0)
     {
-       toLeft = mEffects[index]->GetStartTimeMS();
+        toLeft = mEffects[index]->GetStartTimeMS();
     }
     else
     {
@@ -423,7 +430,14 @@ void EffectLayer::GetMaximumRangeWithLeftMovement(int index, int &toLeft, int &t
 void EffectLayer::GetMaximumRangeWithRightMovement(int index, int &toLeft, int &toRight)
 {
     SequenceElements* seq_elem = mParentElement->GetSequenceElements();
-    toLeft = mEffects[index]->GetEndTimeMS() - mEffects[index]->GetStartTimeMS() - seq_elem->GetMinPeriod();
+    if( mEffects[index]->GetSelected() == EFFECT_SELECTED )
+    {
+        toLeft = mEffects[index]->GetStartTimeMS();
+    }
+    else
+    {
+        toLeft = mEffects[index]->GetEndTimeMS() - mEffects[index]->GetStartTimeMS() - seq_elem->GetMinPeriod();
+    }
     // Last effect, nothing to right to stop movement other then edge of screen.
     // Let grid take care of screen boundary so set to huge number
     if(index == mEffects.size()-1)
