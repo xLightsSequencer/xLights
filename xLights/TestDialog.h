@@ -9,8 +9,10 @@
 
 //(*Headers(TestDialog)
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/splitter.h>
 #include <wx/aui/aui.h>
+#include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -85,8 +87,10 @@ class TestDialog: public wxDialog
 		wxPanel* Panel4;
 		wxButton* Button_Save;
 		wxPanel* Panel1;
+		wxStaticText* StaticText1;
 		wxPanel* Panel3;
 		wxAuiNotebook* AuiNotebook1;
+		wxSlider* Slider_Speed;
 		wxPanel* Panel2;
 		wxSplitterWindow* SplitterWindow1;
 		wxButton* Button_Load;
@@ -105,6 +109,8 @@ class TestDialog: public wxDialog
 		static const long ID_PANEL4;
 		static const long ID_PANEL5;
 		static const long ID_AUINOTEBOOK1;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_Speed;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
 		//*)
