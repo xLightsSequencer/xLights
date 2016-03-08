@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug (gil)     Fix bug moving effects that aren't fully visible.  Fixes #488.
     -- bug (gil)     Allow min period effects to move with mouse.  Fixes #479.
     -- bug (dkulp)   Imports from other formats were generating invalid key ID's
     -- bug (dkulp)   Pictures imported from SS were not displaying properly
