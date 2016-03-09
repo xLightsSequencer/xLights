@@ -1487,6 +1487,7 @@ void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
         sPreview2->Refresh(false);
         m_mgr->Update();
 
+        perspective->DeleteAttribute("settings");
         perspective->DeleteAttribute("version");
         perspective->AddAttribute("version", "2.0");
         perspective->AddAttribute("settings", m_mgr->SavePerspective());
