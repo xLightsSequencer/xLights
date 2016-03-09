@@ -3300,6 +3300,9 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	AllModels.LoadModels(ModelsNode, NetInfo,
 		modelPreview->GetVirtualCanvasWidth(),
 		modelPreview->GetVirtualCanvasHeight());
+	AllModels.LoadGroups(ModelGroupsNode, NetInfo,
+		modelPreview->GetVirtualCanvasWidth(),
+		modelPreview->GetVirtualCanvasHeight());
 
     TestDialog dialog(this, &NetworkXML, networkFile, &AllModels);
     dialog.CenterOnParent();

@@ -3,10 +3,11 @@
 	<object class="wxDialog" name="TestDialog">
 		<title>Test Lights</title>
 		<centered>1</centered>
-		<size>791,387</size>
+		<size>400,300</size>
+		<minsize>400,300</minsize>
 		<id_arg>0</id_arg>
 		<size_arg>1</size_arg>
-		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
 			<rows>1</rows>
@@ -27,14 +28,15 @@
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-									<cols>2</cols>
+									<cols>3</cols>
+									<growablecols>2</growablecols>
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON_Load" variable="Button_Load" member="yes">
 											<label>Load</label>
 											<handler function="OnButton_LoadClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -47,7 +49,7 @@
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -91,7 +93,7 @@
 									<growablecols>1</growablecols>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-											<label>Label</label>
+											<label>Speed</label>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
@@ -100,13 +102,14 @@
 									<object class="sizeritem">
 										<object class="wxSlider" name="ID_SLIDER_Speed" variable="Slider_Speed" member="yes">
 											<value>50</value>
+											<handler function="OnSlider_SpeedCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>

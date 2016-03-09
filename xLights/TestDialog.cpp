@@ -10,6 +10,7 @@
 //*)
 
 #include "models/Model.h"
+#include "models/ModelGroup.h"
 
 const long TestDialog::ID_TREELISTCTRL_Channels = wxNewId();
 
@@ -45,8 +46,9 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, wxID_ANY, _("Test Lights"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
-	SetClientSize(wxSize(791,387));
+	Create(parent, wxID_ANY, _("Test Lights"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+	SetClientSize(wxSize(400,300));
+	SetMinSize(wxSize(400,300));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
@@ -58,12 +60,13 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	FlexGridSizer2 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(1);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer4->AddGrowableCol(2);
 	Button_Load = new wxButton(Panel1, ID_BUTTON_Load, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Load"));
-	FlexGridSizer4->Add(Button_Load, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(Button_Load, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_Save = new wxButton(Panel1, ID_BUTTON_Save, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Save"));
 	FlexGridSizer4->Add(Button_Save, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	Panel1->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel1);
 	FlexGridSizer2->SetSizeHints(Panel1);
@@ -81,11 +84,11 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	FlexGridSizer3->Add(AuiNotebook1, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
-	StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer5->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Speed = new wxSlider(Panel2, ID_SLIDER_Speed, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Speed"));
 	FlexGridSizer5->Add(Slider_Speed, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	Panel2->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Panel2);
 	FlexGridSizer3->SetSizeHints(Panel2);
@@ -98,14 +101,18 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 
 	Connect(ID_BUTTON_Load,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TestDialog::OnButton_LoadClick);
 	Connect(ID_BUTTON_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TestDialog::OnButton_SaveClick);
+	Connect(ID_SLIDER_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TestDialog::OnSlider_SpeedCmdSliderUpdated);
 	//*)
 
 	SplitterWindow1->SetMinimumPaneSize(100);
 
 	TreeListCtrl_Channels = new wxTreeListCtrl(Panel1, ID_TREELISTCTRL_Channels, wxPoint(0, 0), Panel3->GetSize(), wxTR_FULL_ROW_HIGHLIGHT | wxTR_DEFAULT_STYLE| wxTL_CHECKBOX | wxTL_USER_3STATE, _T("ID_TREELISTCTRL_Channels"));
 	TreeListCtrl_Channels->AppendColumn(L"Controller");
-	_all = TreeListCtrl_Channels->AppendItem(TreeListCtrl_Channels->GetRootItem(), _("(ALL)"));
+	_controllers = TreeListCtrl_Channels->AppendItem(TreeListCtrl_Channels->GetRootItem(), _("(CONTROLLERS)"));
+	_modelGroups = TreeListCtrl_Channels->AppendItem(TreeListCtrl_Channels->GetRootItem(), _("(MODELGROUPS)"));
+	_models = TreeListCtrl_Channels->AppendItem(TreeListCtrl_Channels->GetRootItem(), _("(MODELS)"));
 	FlexGridSizer2->Add(TreeListCtrl_Channels, 1, wxALL | wxEXPAND, 5);
+	FlexGridSizer2->Layout();
 
 	// add checkbox events
 	Connect(ID_TREELISTCTRL_Channels,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&TestDialog::OnTreeListCtrl1Checkboxtoggled);
@@ -113,7 +120,9 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
 	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
 
-	PopulateTree(_network);
+	PopulateControllerTree(_network);
+	PopulateModelGroupsTree(_modelManager);
+	PopulateModelsTree(_modelManager);
 }
 
 TestDialog::~TestDialog()
@@ -157,12 +166,58 @@ std::string TreeController::GenerateName()
 		_name += "[1-" + std::string(wxString::Format(wxT("%i"), _endchannel)) + "] ";
 		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
 		break;
-	case CONTROLLERTYPE::CT_ROOT:
-		_name += "All ";
+	case CONTROLLERTYPE::CT_MODEL:
+		_name += _modelName;
+		if (_nodes >= 0)
+		{
+			_name += " [1-" + std::string(wxString::Format(wxT("%i"), _nodes)) + "]";
+		}
+		if (_endxlightschannel < _startxlightschannel && _endxlightschannel > 0)
+		{
+			_name += " (" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + ")";
+		}
+		else if (_startxlightschannel < 0)
+		{
+			// dont add anything
+		}
+		else
+		{
+			_name += " (" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+		}
+		break;
+	case CONTROLLERTYPE::CT_MODELGROUP:
+		_name += _modelName;
+		if (_startxlightschannel < 0)
+		{
+			// dont add anything
+		}
+		else
+		{
+			_name += " (" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+		}
+		break;
+	case CONTROLLERTYPE::CT_CONTROLLERROOT:
+		_name += "Controllers ";
+		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+		break;
+	case CONTROLLERTYPE::CT_MODELGROUPROOT:
+		_name += "Model Groups ";
+		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+		break;
+	case CONTROLLERTYPE::CT_MODELROOT:
+		_name += "Models ";
+		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+		break;
+	case CONTROLLERTYPE::CT_NODE:
+		_name += "Node {" + std::string(wxString::Format(wxT("%i"), _nodeNumber)) + "} ";
 		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
 		break;
 	case CONTROLLERTYPE::CT_CHANNEL:
-		_name += "Channel [" + std::string(wxString::Format(wxT("%i"), _startchannel)) + "] ";
+		_name += "Channel ";
+		if (_startchannel >= 0)
+		{
+			_name += "[" + std::string(wxString::Format(wxT("%i"), _startchannel)) + "] ";
+		}
 		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + ")";
 		break;
 	}
@@ -183,6 +238,37 @@ TreeController::TreeController(int channel, CONTROLLERTYPE type, int xLightsChan
 	_startxlightschannel = xLightsChannel;
 	_inactive = false;
 	_name = GenerateName();
+	_nodes = -1;
+}
+
+// This for for a node node
+TreeController::TreeController(CONTROLLERTYPE type, int xLightsChannel, int node, int channelspernode)
+{
+	_universes = 0;
+	_type = type;
+	_nodeNumber = node;
+	_startchannel = -1;
+	_endchannel = -1;
+	_startxlightschannel = xLightsChannel;
+	_endxlightschannel = xLightsChannel + channelspernode - 1;
+	_inactive = false;
+	_name = GenerateName();
+	_nodes = -1;
+}
+
+// model or model group
+TreeController::TreeController(CONTROLLERTYPE type, std::string name)
+{
+	_inactive = false;
+	_universes = 0;
+	_type = type;
+	_startxlightschannel = -1;
+	_endxlightschannel = -1;
+	_startchannel = -1;
+	_endchannel = -1;
+	_modelName = name;
+	_name = GenerateName();
+	_nodes = -1;
 }
 
 // This is for a root node
@@ -194,6 +280,7 @@ TreeController::TreeController(CONTROLLERTYPE type, int start, int end)
 	_startxlightschannel = start;
 	_endxlightschannel = end;
 	_name = GenerateName();
+	_nodes = -1;
 }
 
 // This is for a DMX multiple node
@@ -211,11 +298,13 @@ TreeController::TreeController(CONTROLLERTYPE type, std::string comport, int uni
 	_multiuniversedmx = multiuniversedmx;
 	_description = description;
 	_name = GenerateName();
+	_nodes = -1;
 }
 
 // this is for a regular node
 TreeController::TreeController(wxXmlNode* n, int startchannel, int nullcount)
 {
+	_nodes = -1;
 	_universes = 0;
 	_startxlightschannel = startchannel + 1;
 	wxString MaxChannelsStr = n->GetAttribute("MaxChannels", "0");
@@ -246,6 +335,7 @@ TreeController::TreeController(wxXmlNode* n, int startchannel, int nullcount)
 	_name = GenerateName();
 }
 
+// This generates 2nd & subsequent universes for a DMX controller
 TreeController* TreeController::GenerateDMXUniverse(int universeoffset)
 {
 	if (_universes > 1)
@@ -257,23 +347,98 @@ TreeController* TreeController::GenerateDMXUniverse(int universeoffset)
 	return NULL;
 }
 
-void TestDialog::SetSelected(wxTreeListItem& item, wxCheckBoxState state)
+TreeController::CONTROLLERTYPE TestDialog::GetTreeItemType(const wxTreeListItem& item)
 {
-	wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
-	while (i != NULL)
+	wxTreeListItem current = item;
+
+	while (TreeListCtrl_Channels->GetItemParent(current) != TreeListCtrl_Channels->GetRootItem())
 	{
-		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(i);
-		// Dont cascade to inactive or NULL nodes
-		if (!tc->IsNULL() && !tc->Inactive())
+		current = TreeListCtrl_Channels->GetItemParent(current);
+	}
+
+	return ((TreeController*)TreeListCtrl_Channels->GetItemData(current))->GetType();
+}
+
+void TestDialog::CascadeSelectedToModel(std::string modelName, wxCheckBoxState state)
+{
+
+}
+
+void TestDialog::CascadeSelectedToModelGroup(std::string modelName, wxCheckBoxState state)
+{
+
+}
+
+void TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
+{
+	TreeController::CONTROLLERTYPE type = GetTreeItemType(item);
+
+	if (type == TreeController::CONTROLLERTYPE::CT_CONTROLLERROOT)
+	{
+		wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
+		while (i != NULL)
 		{
-			TreeListCtrl_Channels->CheckItem(i, state);
-			SetSelected(i, state);
+			TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(i);
+
+			// Dont cascade to inactive or NULL nodes
+			if (!tc->IsNULL() && !tc->Inactive())
+			{
+				TreeListCtrl_Channels->CheckItem(i, state);
+				CascadeSelected(i, state);
+			}
+			i = TreeListCtrl_Channels->GetNextSibling(i);
 		}
-		i = TreeListCtrl_Channels->GetNextSibling(i);
+	}
+	else if (type == TreeController::CONTROLLERTYPE::CT_MODELGROUPROOT)
+	{
+		wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
+		while (i != NULL)
+		{
+			TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(i);
+
+			if (tc->GetType() == TreeController::CONTROLLERTYPE::CT_MODEL)
+			{
+				// go and find the models
+				TreeListCtrl_Channels->CheckItem(i, state);
+				CascadeSelectedToModel(tc->ModelName(), state);
+			}
+			else
+			{
+				TreeListCtrl_Channels->CheckItem(i, state);
+				CascadeSelected(i, state);
+			}
+			i = TreeListCtrl_Channels->GetNextSibling(i);
+		}
+	}
+	else // Model root
+	{
+		wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
+		while (i != NULL)
+		{
+			TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(i);
+
+			if (tc->GetType() == TreeController::CONTROLLERTYPE::CT_MODEL)
+			{
+				// go and find the models
+				TreeListCtrl_Channels->CheckItem(i, state);
+				CascadeSelected(i, state);
+				CascadeSelectedToModelGroup(tc->ModelName(), state);
+			}
+			else if (tc->GetType() == TreeController::CONTROLLERTYPE::CT_CHANNEL)
+			{
+				CheckChannel(tc->StartXLightsChannel(), state);
+			}
+			else
+			{
+				TreeListCtrl_Channels->CheckItem(i, state);
+				CascadeSelected(i, state);
+			}
+			i = TreeListCtrl_Channels->GetNextSibling(i);
+		}
 	}
 }
 
-void TestDialog::PopulateTree(wxXmlDocument* network)
+void TestDialog::PopulateControllerTree(wxXmlDocument* network)
 {
 	wxXmlNode* e = network->GetRoot();
 	long currentcontrollerstartchannel = 0;
@@ -289,7 +454,7 @@ void TestDialog::PopulateTree(wxXmlDocument* network)
 			{
 				nullcount++;
 			}
-			wxTreeListItem c = TreeListCtrl_Channels->AppendItem(_all, controller->Name(), -1, -1, (wxClientData*)controller);
+			wxTreeListItem c = TreeListCtrl_Channels->AppendItem(_controllers, controller->Name(), -1, -1, (wxClientData*)controller);
 			controller->SetTreeListItem(&c);
 			if (!controller->IsNULL() && !controller->Inactive())
 			{
@@ -310,7 +475,7 @@ void TestDialog::PopulateTree(wxXmlDocument* network)
 			while (c2 != NULL)
 			{
 				currentcontrollerstartchannel += c2->Channels();
-				wxTreeListItem c2c = TreeListCtrl_Channels->AppendItem(_all, c2->Name(), -1, -1, (wxClientData*)c2);
+				wxTreeListItem c2c = TreeListCtrl_Channels->AppendItem(_controllers, c2->Name(), -1, -1, (wxClientData*)c2);
 				controller->SetTreeListItem(&c2c);
 				if (!c2->Inactive())
 				{
@@ -329,12 +494,109 @@ void TestDialog::PopulateTree(wxXmlDocument* network)
 				c2 = controller->GenerateDMXUniverse(universeoffset++);
 			}
 		}
-		TreeListCtrl_Channels->Expand(_all);
+		TreeListCtrl_Channels->Expand(_controllers);
 	}
 
-	TreeController* root = new TreeController(TreeController::CONTROLLERTYPE::CT_ROOT, 1, currentcontrollerstartchannel);
-	TreeListCtrl_Channels->SetItemData(_all, (wxClientData*)root);
-	TreeListCtrl_Channels->SetItemText(_all, root->Name());
+	TreeController* root = new TreeController(TreeController::CONTROLLERTYPE::CT_CONTROLLERROOT, 1, currentcontrollerstartchannel);
+	TreeListCtrl_Channels->SetItemData(_controllers, (wxClientData*)root);
+	TreeListCtrl_Channels->SetItemText(_controllers, root->Name());
+}
+
+void TestDialog::PopulateModelGroupsTree(ModelManager* modelManager)
+{
+	for (auto it = _modelManager->begin(); it != _modelManager->end(); it++)
+	{
+		Model* m = it->second;
+
+		if (m->GetDisplayAs() == "ModelGroup")
+		{
+			TreeController* modelgroupcontroller = new TreeController(TreeController::CONTROLLERTYPE::CT_MODELGROUP, m->name);
+			wxTreeListItem modelgroupitem = TreeListCtrl_Channels->AppendItem(_modelGroups, modelgroupcontroller->Name(), -1, -1, (wxClientData*)modelgroupcontroller);
+			modelgroupcontroller->SetTreeListItem(&modelgroupitem);
+
+			// now look for all the models in the model group
+			ModelGroup* mg = (ModelGroup*)m;
+			for (auto mn = mg->ModelNames().begin(); mn != mg->ModelNames().end(); ++mn)
+			{
+				for (auto findm = _modelManager->begin(); findm != _modelManager->end(); findm++)
+				{
+					Model* m2 = findm->second;
+
+					if (m2->GetDisplayAs() != "ModelGroup" && m2->name == *mn)
+					{
+						// m2 is the model to insert the details for
+						TreeController* modelcontroller = new TreeController(TreeController::CONTROLLERTYPE::CT_MODEL, m2->name);
+						wxTreeListItem modelitem = TreeListCtrl_Channels->AppendItem(modelgroupitem, modelcontroller->Name(), -1, -1, (wxClientData*)modelcontroller);
+						modelcontroller->SetTreeListItem(&modelitem);
+
+						// dont add nodes or channels ... they can go to the models section
+					}
+				}
+			}
+				//wxTreeListItem c = TreeListCtrl_Channels->AppendItem(_controllers, controller->Name(), -1, -1, (wxClientData*)controller);
+				//controller->SetTreeListItem(&c);
+			TreeListCtrl_Channels->SetItemText(modelgroupitem, modelgroupcontroller->Name());
+		}
+	}
+	TreeListCtrl_Channels->Expand(_modelGroups);
+
+	TreeController* controllerroot = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
+	TreeController* root = new TreeController(TreeController::CONTROLLERTYPE::CT_MODELGROUPROOT, controllerroot->StartXLightsChannel(), controllerroot->EndXLightsChannel());
+	TreeListCtrl_Channels->SetItemData(_modelGroups, (wxClientData*)root);
+	TreeListCtrl_Channels->SetItemText(_modelGroups, root->Name());
+}
+
+void TestDialog::PopulateModelsTree(ModelManager* modelManager)
+{
+	for (auto it = _modelManager->begin(); it != _modelManager->end(); it++)
+	{
+		Model* m = it->second;
+
+		if (m->GetDisplayAs() != "ModelGroup")
+		{
+			// we found a model
+			TreeController* modelcontroller = new TreeController(TreeController::CONTROLLERTYPE::CT_MODEL, m->name);
+			wxTreeListItem modelitem = TreeListCtrl_Channels->AppendItem(_models, modelcontroller->Name(), -1, -1, (wxClientData*)modelcontroller);
+			modelcontroller->SetTreeListItem(&modelitem);
+			int modelendchannel = 0;
+			int modelstartchannel = 0xFFFFFFF;
+			int msc = wxAtoi(m->ModelStartChannel);
+
+			if (m->SingleChannel)
+			{
+				TreeController* tc = new TreeController(-1, TreeController::CONTROLLERTYPE::CT_CHANNEL, msc);
+				modelendchannel = std::max(modelendchannel, tc->EndXLightsChannel());
+				modelstartchannel = std::min(modelstartchannel, tc->StartXLightsChannel());
+				TreeListCtrl_Channels->AppendItem(modelitem, tc->Name(), -1, -1, (wxClientData*)tc);
+			}
+			else 
+			{
+				modelcontroller->SetNodes(m->GetNodeCount());
+				for (int i = 0; i < m->GetNodeCount(); i++)
+				{
+					TreeController* tc = new TreeController(TreeController::CONTROLLERTYPE::CT_NODE, msc + i * m->GetChanCountPerNode(), i + 1, m->GetChanCountPerNode());
+					modelendchannel = std::max(modelendchannel, tc->EndXLightsChannel());
+					modelstartchannel = std::min(modelstartchannel, tc->StartXLightsChannel());
+					wxTreeListItem nodeitem = TreeListCtrl_Channels->AppendItem(modelitem, tc->Name(), -1, -1, (wxClientData*)tc);
+
+					for (int j = 0; j < m->GetChanCountPerNode(); j++)
+					{
+						TreeController* tcc = new TreeController(-1, TreeController::CONTROLLERTYPE::CT_CHANNEL, msc + i * m->GetChanCountPerNode() + j);
+						TreeListCtrl_Channels->AppendItem(nodeitem, tcc->Name(), -1, -1, (wxClientData*)tcc);
+					}
+				}
+			}
+			modelcontroller->SetEndXLightsChannel(modelendchannel);
+			modelcontroller->SetStartXLightsChannel(modelstartchannel);
+			TreeListCtrl_Channels->SetItemText(modelitem, modelcontroller->Name());
+		}
+	}
+	TreeListCtrl_Channels->Expand(_models);
+
+	TreeController* controllerroot = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
+	TreeController* root = new TreeController(TreeController::CONTROLLERTYPE::CT_MODELROOT, controllerroot->StartXLightsChannel(), controllerroot->EndXLightsChannel());
+	TreeListCtrl_Channels->SetItemData(_models, (wxClientData*)root);
+	TreeListCtrl_Channels->SetItemText(_models, root->Name());
 }
 
 void TestDialog::DestroyTreeControllerData(wxTreeListItem& item)
@@ -374,7 +636,8 @@ std::list<std::string> TestDialog::GetModelsOnChannels(int start, int end)
 
 void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 {
-	if (event.GetItem() == _all)
+	wxTreeListItem item = event.GetItem();
+	if (item == _controllers || item == _modelGroups || item == _models)
 	{
 		// dont do anything
 		TreeListCtrl_Channels->UnsetToolTip();
@@ -383,7 +646,7 @@ void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 	}
 	else
 	{
-		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(event.GetItem());
+		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
 		int start = tc->StartXLightsChannel();
 		int end = tc->EndXLightsChannel();
 		if (tc->IsChannel())
@@ -447,16 +710,16 @@ void TestDialog::OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event)
 
 	if (checked == wxCheckBoxState::wxCHK_CHECKED)
 	{
-		SetSelected(item, wxCheckBoxState::wxCHK_CHECKED);
+		CascadeSelected(item, wxCheckBoxState::wxCHK_CHECKED);
 	}
 	else if (checked == wxCheckBoxState::wxCHK_UNCHECKED)
 	{
-		SetSelected(item, wxCheckBoxState::wxCHK_UNCHECKED);
+		CascadeSelected(item, wxCheckBoxState::wxCHK_UNCHECKED);
 	}
-	UpdateSelectedState(TreeListCtrl_Channels->GetItemParent(item), checked);
+	RollUpSelected(TreeListCtrl_Channels->GetItemParent(item), checked);
 }
 
-void TestDialog::UpdateSelectedState(const wxTreeListItem& item, wxCheckBoxState state)
+void TestDialog::RollUpSelected(const wxTreeListItem& item, wxCheckBoxState state)
 {
 	if (item != NULL)
 	{
@@ -488,7 +751,7 @@ void TestDialog::UpdateSelectedState(const wxTreeListItem& item, wxCheckBoxState
 		TreeListCtrl_Channels->CheckItem(item, cbs);
 
 		wxTreeListItem p = TreeListCtrl_Channels->GetItemParent(item);
-		UpdateSelectedState(p, cbs);
+		RollUpSelected(p, cbs);
 	}
 }
 
@@ -509,10 +772,9 @@ void TestDialog::GetTestPresetNames(wxArrayString& PresetNames)
 }
 
 // Find a given xlightschannel in the treelist and check it if it is not inactive or in a null controller
-void TestDialog::CheckChannel(long chid)
+void TestDialog::CheckChannel(long chid, wxCheckBoxState state)
 {
-	wxTreeListItem c = TreeListCtrl_Channels->GetFirstChild(_all);
-
+	wxTreeListItem c = TreeListCtrl_Channels->GetFirstChild(TreeListCtrl_Channels->GetRootItem());
 	while (c != NULL)
 	{
 		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(c);
@@ -527,9 +789,9 @@ void TestDialog::CheckChannel(long chid)
 					TreeController* tcc = (TreeController*)TreeListCtrl_Channels->GetItemData(cc);
 					if (chid == tcc->StartXLightsChannel())
 					{
-						TreeListCtrl_Channels->CheckItem(cc, wxCHK_CHECKED);
-						UpdateSelectedState(cc, wxCHK_CHECKED);
-						break;
+						TreeListCtrl_Channels->CheckItem(cc, state);
+						RollUpSelected(cc, wxCHK_CHECKED);
+						//break;
 					}
 					cc = TreeListCtrl_Channels->GetNextSibling(cc);
 				}
@@ -556,12 +818,12 @@ void TestDialog::OnButton_LoadClick(wxCommandEvent& event)
 	if (dialog.ShowModal() != wxID_OK) return;
 
 	// re-find testpreset node, then set channels
-	UpdateSelectedState(TreeListCtrl_Channels->GetRootItem(), wxCHK_UNCHECKED);
+	RollUpSelected(TreeListCtrl_Channels->GetRootItem(), wxCHK_UNCHECKED);
 	//SetTestCheckboxes(false);
 	wxString name = dialog.GetStringSelection();
 	wxString chidstr;
 	long chid;
-	TreeController* rootcb = (TreeController*)TreeListCtrl_Channels->GetItemData(_all);
+	TreeController* rootcb = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
 	long ChCount = rootcb->EndXLightsChannel();
 //	long ChCount = CheckListBoxTestChannels->GetCount();
 	wxXmlNode* root = _network->GetRoot();
@@ -573,8 +835,7 @@ void TestDialog::OnButton_LoadClick(wxCommandEvent& event)
 			{
 				if (c->GetName() == "channel" && c->GetAttribute("id", &chidstr) && chidstr.ToLong(&chid) && chid >= 0 && chid < ChCount)
 				{
-					CheckChannel(chid);
-					//CheckListBoxTestChannels->Check(chid, true);
+					CheckChannel(chid, wxCHK_CHECKED);
 				}
 			}
 			break;
@@ -615,11 +876,11 @@ void TestDialog::OnButton_SaveClick(wxCommandEvent& event)
 		PresetNode = new wxXmlNode(wxXML_ELEMENT_NODE, "testpreset");
 		PresetNode->AddAttribute("name", name);
 		root->AddChild(PresetNode);
-		TreeController* rootcb = (TreeController*)TreeListCtrl_Channels->GetItemData(_all);
+		TreeController* rootcb = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
 		long ChCount = rootcb->EndXLightsChannel();
 		//int ChCount = CheckListBoxTestChannels->GetCount();
 
-		wxTreeListItem c = TreeListCtrl_Channels->GetFirstChild(_all);
+		wxTreeListItem c = TreeListCtrl_Channels->GetFirstChild(_controllers);
 		while (c != NULL)
 		{
 			TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(c);
@@ -660,4 +921,8 @@ void TestDialog::OnButton_SaveClick(wxCommandEvent& event)
 			wxMessageBox(_("Unable to save network definition file"), _("Error"));
 		}
 	}
+}
+
+void TestDialog::OnSlider_SpeedCmdSliderUpdated(wxScrollEvent& event)
+{
 }

@@ -27,10 +27,15 @@ class TreeController
 public:
 	typedef enum CONTROLLERTYPE
 	{
-		CT_E131, CT_NULL, CT_DMX, CT_CHANNEL, CT_ROOT
+		CT_E131, CT_NULL, CT_DMX, CT_CHANNEL, CT_CONTROLLERROOT, CT_MODELROOT, CT_MODELGROUPROOT, CT_MODEL, CT_NODE, CT_MODELGROUP
 	} CONTROLLERTYPE;
+	typedef enum PIXELFORMAT
+	{
+		SINGLE, RGB, RBG, BGR, BRG, GRB, GBR, RGBW
+	} PIXELFORMAT;
 private:
 	std::string _name;
+	std::string _modelName;
 	std::string _description;
 	bool _inactive;
 	std::string _ipaddress;
@@ -41,17 +46,21 @@ private:
 	int _endxlightschannel;
 	std::string _universe;
 	int _nullcount;
+	int _nodeNumber;
 	CONTROLLERTYPE _type;
 	std::string GenerateName();
 	TreeController(CONTROLLERTYPE type, std::string comport, int universe, int startxlightschannel, int channels, bool inactive, bool multiuniversedmx, std::string description);
 	int _universes;
 	bool _multiuniversedmx;
 	wxTreeListItem* _treeListItem;
+	int _nodes;
 
 public:
 	TreeController(wxXmlNode* n, int xlightsstartchannel, int nullcount);
 	TreeController(int channel, CONTROLLERTYPE type, int xLightsChannel);
 	TreeController(CONTROLLERTYPE type, int start, int end);
+	TreeController(CONTROLLERTYPE type, std::string name);
+	TreeController(CONTROLLERTYPE type, int xLightsChannel, int node, int channelspernode);
 	TreeController* GenerateDMXUniverse(int universeoffset);
 	std::string Name() { return _name; };
 	bool IsNULL() { return _type == CONTROLLERTYPE::CT_NULL; };
@@ -64,6 +73,11 @@ public:
 	void SetTreeListItem(wxTreeListItem* tli) { _treeListItem = tli; };
 	wxTreeListItem* GetTreeListItem() { return _treeListItem; };
 	int EndXLightsChannel() { return _endxlightschannel; };
+	void SetEndXLightsChannel(int modelendchannel) { _endxlightschannel = modelendchannel; GenerateName(); };
+	void SetStartXLightsChannel(int modelstartchannel) { _startxlightschannel = modelstartchannel; GenerateName(); };
+	void SetNodes(int nodes) { _nodes = nodes; GenerateName(); };
+	CONTROLLERTYPE GetType() { return _type; };
+	std::string ModelName() { return _modelName; };
 };
 
 class TreeChannel
@@ -78,7 +92,9 @@ class TestDialog: public wxDialog
 		TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName networkFile, ModelManager* modelManager, wxWindowID id=wxID_ANY);
 		virtual ~TestDialog();
 		wxTreeListCtrl* TreeListCtrl_Channels;
-		wxTreeListItem  _all;
+		wxTreeListItem  _controllers;
+		wxTreeListItem  _modelGroups;
+		wxTreeListItem  _models;
 		wxFileName _networkFile;
 		ModelManager* _modelManager;
 
@@ -120,24 +136,25 @@ class TestDialog: public wxDialog
 		//(*Handlers(TestDialog)
 		void OnButton_LoadClick(wxCommandEvent& event);
 		void OnButton_SaveClick(wxCommandEvent& event);
-		void OnPanel2Resize(wxSizeEvent& event);
-		void OnPanel1MouseMove(wxMouseEvent& event);
-		void OnPanel1MouseEnter(wxMouseEvent& event);
-		void OnPanel1MouseLeave(wxMouseEvent& event);
+		void OnSlider_SpeedCmdSliderUpdated(wxScrollEvent& event);
 		//*)
 
 		void OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event);
 		void OnTreeListCtrl1ItemActivated(wxTreeListEvent& event);
 
-		void PopulateTree(wxXmlDocument* network);
-		void SetSelected(wxTreeListItem& item, wxCheckBoxState state);
-		void UpdateSelectedState(const wxTreeListItem& item, wxCheckBoxState state);
+		TreeController::CONTROLLERTYPE GetTreeItemType(const wxTreeListItem& item);
+		void PopulateControllerTree(wxXmlDocument* network);
+		void PopulateModelsTree(ModelManager* modelManager);
+		void PopulateModelGroupsTree(ModelManager* modelManager);
+		void CascadeSelected(wxTreeListItem& item, wxCheckBoxState state);
+		void RollUpSelected(const wxTreeListItem& item, wxCheckBoxState state);
 		void DestroyTreeControllerData(wxTreeListItem& item);
 		void GetTestPresetNames(wxArrayString& PresetNames);
-		void CheckChannel(long chid);
+		void CheckChannel(long chid, wxCheckBoxState state);
 		std::list<std::string> GetModelsOnChannels(int start, int end);
+		void CascadeSelectedToModelGroup(std::string modelName, wxCheckBoxState state);
+		void CascadeSelectedToModel(std::string modelName, wxCheckBoxState state);
 
 		DECLARE_EVENT_TABLE()
 };
-
 #endif
