@@ -485,6 +485,8 @@
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
 		<Unit filename="LMSImportChannelMapDialog.h" />
+		<Unit filename="LayoutPanel.cpp" />
+		<Unit filename="LayoutPanel.h" />
 		<Unit filename="LorConvertDialog.cpp" />
 		<Unit filename="LorConvertDialog.h" />
 		<Unit filename="LyricsDialog.cpp" />
@@ -902,6 +904,7 @@
 		<Unit filename="wxsmith/GarlandsPanel.wxs" />
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
+		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
@@ -1079,6 +1082,7 @@
 					<wxPanel wxs="wxsmith/AssistPanel.wxs" src="effects/assist/AssistPanel.cpp" hdr="effects/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BufferPanel.wxs" src="BufferPanel.cpp" hdr="BufferPanel.h" fwddecl="0" i18n="1" name="BufferPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/TestDialog.wxs" src="TestDialog.cpp" hdr="TestDialog.h" fwddecl="0" i18n="1" name="TestDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/LayoutPanel.wxs" src="LayoutPanel.cpp" hdr="LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -253,9 +253,6 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
 
         if( loaded_fseq )
         {
-            bbPlayPause->SetBitmap(playIcon);
-            SliderPreviewTime->SetValue(0);
-            TextCtrlPreviewTime->Clear();
             UpdateModelsList();
             UpdatePreview();
             Timer1.Start(SeqData.FrameTime());

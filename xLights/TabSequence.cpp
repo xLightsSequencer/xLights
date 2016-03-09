@@ -11,14 +11,11 @@
 
 #include "models/ModelGroup.h"
 #include "BufferPanel.h"
+#include "LayoutPanel.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
     xlightsFilename=filename;
-    StaticTextPreviewFileName->SetLabel(filename);
-    bool EnableButtons=!filename.IsEmpty();
-    bbPlayPause->Enable(EnableButtons);
-    bbStop->Enable(EnableButtons);
     StatusBar1->SetStatusText(filename, 1);
 }
 
@@ -170,10 +167,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
 
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
-    Slider_BackgroundBrightness->SetValue(mBackgroundBrightness);
+    layoutPanel->Slider_BackgroundBrightness->SetValue(mBackgroundBrightness);
 
     mScaleBackgroundImage = wxAtoi(GetXmlSetting("scaleImage","0"));
-    ScaleImageCheckbox->SetValue(mScaleBackgroundImage);
+    layoutPanel->ScaleImageCheckbox->SetValue(mScaleBackgroundImage);
 
     return effectsFile.GetFullPath();
 }
@@ -439,7 +436,7 @@ void xLightsFrame::UpdateModelsList()
                          modelPreview->GetVirtualCanvasHeight());
 
     wxString msg;
-    ListBoxElementList->DeleteAllItems();
+    layoutPanel->ListBoxElementList->DeleteAllItems();
     
     
     std::set<std::string> modelsAdded;
@@ -474,20 +471,20 @@ void xLightsFrame::UpdateModelsList()
         if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
             msg += wxString::Format("%s - last channel: %u\n",model->name, model->GetLastChannel());
         }
-        long itemIndex = ListBoxElementList->InsertItem(ListBoxElementList->GetItemCount(), model->name);
+        long itemIndex = layoutPanel->ListBoxElementList->InsertItem(layoutPanel->ListBoxElementList->GetItemCount(), model->name);
         
         std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
         model->SetModelStartChan(start_channel);
         int end_channel = model->GetLastChannel()+1;
-        ListBoxElementList->SetItem(itemIndex,1, start_channel);
-        ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
-        ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
+        layoutPanel->ListBoxElementList->SetItem(itemIndex,1, start_channel);
+        layoutPanel->ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
+        layoutPanel->ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
     }
     
-    ListBoxElementList->SortItems(MyCompareFunction,0);
-    ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
-    ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
-    ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
+    layoutPanel->ListBoxElementList->SortItems(MyCompareFunction,0);
+    layoutPanel->ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
+    layoutPanel->ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
+    layoutPanel->ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
     if (msg != "") {
         wxMessageBox(wxString::Format("These models extends beyond the number of configured channels (%u):\n", NetInfo.GetTotChannels()) + msg);
     }

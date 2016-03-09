@@ -589,9 +589,6 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         if (PlayerDlg->GetState() == wxMEDIASTATE_PLAYING)
         {
             ResetTimer(PLAYING_SEQ);
-        } else if (ShowPreview && previewPlaying)
-        {
-            StopPreviewPlayback();
         }
         break;
     }

@@ -24,6 +24,8 @@
 #include "RenderCommandEvent.h"
 #include "BitmapCache.h"
 #include "effects/RenderableEffect.h"
+#include "LayoutPanel.h"
+
 
 #include "TestDialog.h"
 
@@ -162,38 +164,6 @@ const long xLightsFrame::ID_BUTTON_START_CONVERSION = wxNewId();
 const long xLightsFrame::ID_STATICTEXT18 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_CONVERSION_STATUS = wxNewId();
 const long xLightsFrame::ID_PANEL_CONVERT = wxNewId();
-const long xLightsFrame::ID_BUTTON_PREVIEW_OPEN = wxNewId();
-const long xLightsFrame::ID_STATICTEXT23 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON5 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON6 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL_PREVIEW_TIME = wxNewId();
-const long xLightsFrame::ID_SLIDER_PREVIEW_TIME = wxNewId();
-const long xLightsFrame::ID_STATICTEXT_CURRENT_PREVIEW_SIZE = wxNewId();
-const long xLightsFrame::ID_BUTTON_SET_PREVIEW_SIZE = wxNewId();
-const long xLightsFrame::ID_BUTTON_SET_BACKGROUND_IMAGE = wxNewId();
-const long xLightsFrame::ID_CHECKBOX1 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT32 = wxNewId();
-const long xLightsFrame::ID_SLIDER_BACKGROUND_BRIGHTNESS = wxNewId();
-const long xLightsFrame::ID_BUTTON_SELECT_MODEL_GROUPS = wxNewId();
-const long xLightsFrame::ID_STATICTEXT21 = wxNewId();
-const long xLightsFrame::ID_LISTBOX_ELEMENT_LIST = wxNewId();
-const long xLightsFrame::ID_CHECKBOXOVERLAP = wxNewId();
-const long xLightsFrame::ID_BUTTON_MODELS_PREVIEW = wxNewId();
-const long xLightsFrame::ID_BUTTON_SAVE_PREVIEW = wxNewId();
-const long xLightsFrame::ID_STATICTEXT22 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE = wxNewId();
-const long xLightsFrame::ID_SLIDER3 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT24 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL3 = wxNewId();
-const long xLightsFrame::ID_SLIDER_PREVIEW_SCALE = wxNewId();
-const long xLightsFrame::ID_STATICTEXT25 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL2 = wxNewId();
-const long xLightsFrame::ID_SLIDER_PREVIEW_ROTATE = wxNewId();
-const long xLightsFrame::ID_STATICTEXT31 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL4 = wxNewId();
-const long xLightsFrame::ID_PANEL5 = wxNewId();
-const long xLightsFrame::ID_PANEL1 = wxNewId();
-const long xLightsFrame::ID_SPLITTERWINDOW2 = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
 const long xLightsFrame::ID_TREECTRL1 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_RUN_SCHEDULE = wxNewId();
@@ -338,17 +308,6 @@ const long xLightsFrame::ID_RANDOM_EFFECT = wxNewId();
 const long xLightsFrame::ID_COPYROW_EFFECT = wxNewId(); //copy random effect across row -DJ
 const long xLightsFrame::ID_CLEARROW_EFFECT = wxNewId(); //clear all effects on this row -DJ
 
-const long xLightsFrame::ID_PREVIEW_ALIGN = wxNewId();
-const long xLightsFrame::ID_PREVIEW_MODEL_PROPERTIES = wxNewId();
-const long xLightsFrame::ID_PREVIEW_ALIGN_TOP = wxNewId();
-const long xLightsFrame::ID_PREVIEW_ALIGN_BOTTOM = wxNewId();
-const long xLightsFrame::ID_PREVIEW_ALIGN_LEFT = wxNewId();
-const long xLightsFrame::ID_PREVIEW_ALIGN_RIGHT = wxNewId();
-const long xLightsFrame::ID_PREVIEW_ALIGN_H_CENTER = wxNewId();
-const long xLightsFrame::ID_PREVIEW_ALIGN_V_CENTER = wxNewId();
-const long xLightsFrame::ID_PREVIEW_DISTRIBUTE = wxNewId();
-const long xLightsFrame::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
-const long xLightsFrame::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 
 
 wxDEFINE_EVENT(EVT_ZOOM, wxCommandEvent);
@@ -495,7 +454,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxFlexGridSizer* FlexGridSizer27;
     wxMenuItem* MenuItem4;
     wxMenuItem* MenuItem14;
-    wxFlexGridSizer* FlexGridSizer37;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer25;
     wxMenuItem* MenuItem11;
@@ -504,7 +462,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
     wxMenuItem* MenuItem22;
-    wxFlexGridSizer* FlexGridSizer2;
     wxMenuItem* MenuItem17;
     wxBoxSizer* BoxSizer2;
     wxMenuItem* MenuItem13;
@@ -512,7 +469,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem10;
     wxFlexGridSizer* FlexGridSizerCal;
     wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxStaticText* StaticText21;
     wxFlexGridSizer* FlexGridSizer55;
     wxMenuItem* MenuItemDelList;
     wxMenuItem* MenuItem12;
@@ -532,28 +488,21 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxBoxSizer* BoxSizer1;
     wxMenuItem* MenuItemRenameList;
     wxFlexGridSizer* FlexGridSizer50;
-    wxFlexGridSizer* FlexGridSizer35;
-    wxFlexGridSizer* FlexGridSizer36;
     wxFlexGridSizer* FlexGridSizer6;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxMenuItem* MenuItem21;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizerConvert;
     wxFlexGridSizer* FlexGridSizer43;
-    wxFlexGridSizer* FlexGridSizerStartChan;
     wxMenu* Menu2;
     wxFlexGridSizer* FlexGridSizerPapagayo;
     wxMenuItem* MenuItem9;
     wxMenuItem* MenuItem30;
-    wxFlexGridSizer* FlexGridSizer31;
-    wxFlexGridSizer* FlexGridSizer40;
-    wxFlexGridSizer* FlexGridSizer39;
     wxFlexGridSizer* FlexGridSizer28;
     wxMenu* MenuPlaylist;
     wxFlexGridSizer* FlexGridSizer26;
     wxMenu* Menu5;
     wxMenuItem* MenuItem19;
-    wxFlexGridSizer* FlexGridSizer30;
     wxButton* Button03;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
@@ -752,118 +701,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     FlexGridSizerConvert->Fit(PanelConvert);
     FlexGridSizerConvert->SetSizeHints(PanelConvert);
     PanelPreview = new wxPanel(Notebook1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
-    FlexGridSizerPreview = new wxFlexGridSizer(3, 1, 0, 0);
+    FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerPreview->AddGrowableCol(0);
-    FlexGridSizerPreview->AddGrowableRow(2);
-    FlexGridSizer36 = new wxFlexGridSizer(1, 3, 0, 0);
-    FlexGridSizer36->AddGrowableCol(2);
-    ButtonPreviewOpen = new wxButton(PanelPreview, ID_BUTTON_PREVIEW_OPEN, _("Open"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PREVIEW_OPEN"));
-    FlexGridSizer36->Add(ButtonPreviewOpen, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText21 = new wxStaticText(PanelPreview, wxID_ANY, _("Now playing:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    FlexGridSizer36->Add(StaticText21, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticTextPreviewFileName = new wxStaticText(PanelPreview, ID_STATICTEXT23, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT23"));
-    FlexGridSizer36->Add(StaticTextPreviewFileName, 1, wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerPreview->Add(FlexGridSizer36, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
-    FlexGridSizer31 = new wxFlexGridSizer(1, 4, 0, 0);
-    FlexGridSizer31->AddGrowableCol(3);
-    bbPlayPause = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON5, control_pause_blue_icon, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
-    bbPlayPause->SetBitmapDisabled(control_pause_icon);
-    FlexGridSizer31->Add(bbPlayPause, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    bbStop = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON6, control_stop_blue_icon, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
-    bbStop->SetBitmapDisabled(control_stop_icon);
-    FlexGridSizer31->Add(bbStop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrlPreviewTime = new wxTextCtrl(PanelPreview, ID_TEXTCTRL_PREVIEW_TIME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_TIME"));
-    FlexGridSizer31->Add(TextCtrlPreviewTime, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer30 = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer40 = new wxFlexGridSizer(0, 7, 0, 0);
-    FlexGridSizer40->AddGrowableCol(1);
-    SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxDLG_UNIT(PanelPreview,wxSize(150,-1)), 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
-    FlexGridSizer40->Add(SliderPreviewTime, 1, wxEXPAND, 5);
-    StaticTextCurrentPreviewSize = new wxStaticText(PanelPreview, ID_STATICTEXT_CURRENT_PREVIEW_SIZE, _("Size: 1920x1080"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_CURRENT_PREVIEW_SIZE"));
-    FlexGridSizer40->Add(StaticTextCurrentPreviewSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonSetPreviewSize = new wxButton(PanelPreview, ID_BUTTON_SET_PREVIEW_SIZE, _("Set Size"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SET_PREVIEW_SIZE"));
-    FlexGridSizer40->Add(ButtonSetPreviewSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonSetBackgroundImage = new wxButton(PanelPreview, ID_BUTTON_SET_BACKGROUND_IMAGE, _("Image"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SET_BACKGROUND_IMAGE"));
-    FlexGridSizer40->Add(ButtonSetBackgroundImage, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ScaleImageCheckbox = new wxCheckBox(PanelPreview, ID_CHECKBOX1, _("Fill Background"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-    ScaleImageCheckbox->SetValue(false);
-    FlexGridSizer40->Add(ScaleImageCheckbox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText30 = new wxStaticText(PanelPreview, ID_STATICTEXT32, _("Brightness:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT32"));
-    FlexGridSizer40->Add(StaticText30, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_BackgroundBrightness = new wxSlider(PanelPreview, ID_SLIDER_BACKGROUND_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxSize(100,-1), 0, wxDefaultValidator, _T("ID_SLIDER_BACKGROUND_BRIGHTNESS"));
-    FlexGridSizer40->Add(Slider_BackgroundBrightness, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer30->Add(FlexGridSizer40, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer31->Add(FlexGridSizer30, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizerPreview->Add(FlexGridSizer31, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
-    SplitterWindow2 = new wxSplitterWindow(PanelPreview, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
-    SplitterWindow2->SetMinSize(wxSize(10,10));
-    SplitterWindow2->SetMinimumPaneSize(10);
-    SplitterWindow2->SetSashGravity(0.5);
-    Panel1 = new wxPanel(SplitterWindow2, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
-    FlexGridSizer35 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer35->AddGrowableCol(0);
-    FlexGridSizer35->AddGrowableRow(2);
-    ButtonSelectModelGroups = new wxButton(Panel1, ID_BUTTON_SELECT_MODEL_GROUPS, _("Select Model Groups"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_MODEL_GROUPS"));
-    FlexGridSizer35->Add(ButtonSelectModelGroups, 1, wxALL|wxEXPAND, 5);
-    StaticText5 = new wxStaticText(Panel1, ID_STATICTEXT21, _("Preview Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT21"));
-    FlexGridSizer35->Add(StaticText5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ListBoxElementList = new wxListView(Panel1, ID_LISTBOX_ELEMENT_LIST, wxDefaultPosition, wxSize(100,-1), wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING, wxDefaultValidator, _T("ID_LISTBOX_ELEMENT_LIST"));
-    FlexGridSizer35->Add(ListBoxElementList, 1, wxALL|wxEXPAND, 5);
-    CheckBoxOverlap = new wxCheckBox(Panel1, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
-    CheckBoxOverlap->SetValue(false);
-    FlexGridSizer35->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonModelsPreview = new wxButton(Panel1, ID_BUTTON_MODELS_PREVIEW, _("Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MODELS_PREVIEW"));
-    FlexGridSizer35->Add(ButtonModelsPreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
-    ButtonSavePreview = new wxButton(Panel1, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
-    FlexGridSizer35->Add(ButtonSavePreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
-    FlexGridSizer37 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer37->AddGrowableCol(1);
-    StaticText23 = new wxStaticText(Panel1, ID_STATICTEXT22, _("Model Width"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
-    FlexGridSizer37->Add(StaticText23, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrlPreviewElementWidth = new wxTextCtrl(Panel1, ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE"));
-    FlexGridSizer37->Add(TextCtrlPreviewElementWidth, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer35->Add(FlexGridSizer37, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    SliderPreviewScaleWidth = new wxSlider(Panel1, ID_SLIDER3, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER3"));
-    FlexGridSizer35->Add(SliderPreviewScaleWidth, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer2->AddGrowableCol(1);
-    StaticText37 = new wxStaticText(Panel1, ID_STATICTEXT24, _("Model Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
-    FlexGridSizer2->Add(StaticText37, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrlPreviewElementHeight = new wxTextCtrl(Panel1, ID_TEXTCTRL3, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
-    FlexGridSizer2->Add(TextCtrlPreviewElementHeight, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer35->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    SliderPreviewScaleHeight = new wxSlider(Panel1, ID_SLIDER_PREVIEW_SCALE, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_SCALE"));
-    FlexGridSizer35->Add(SliderPreviewScaleHeight, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer39 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticTextPreviewRotation = new wxStaticText(Panel1, ID_STATICTEXT25, _("Model Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT25"));
-    StaticTextPreviewRotation->Disable();
-    FlexGridSizer39->Add(StaticTextPreviewRotation, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrlModelRotationDegrees = new wxTextCtrl(Panel1, ID_TEXTCTRL2, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-    FlexGridSizer39->Add(TextCtrlModelRotationDegrees, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer35->Add(FlexGridSizer39, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    SliderPreviewRotate = new wxSlider(Panel1, ID_SLIDER_PREVIEW_ROTATE, 0, -180, 180, wxDefaultPosition, wxDefaultSize, wxTRANSPARENT_WINDOW, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_ROTATE"));
-    SliderPreviewRotate->SetTickFreq(1);
-    SliderPreviewRotate->Disable();
-    FlexGridSizer35->Add(SliderPreviewRotate, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizerStartChan = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticTextStartChannel = new wxStaticText(Panel1, ID_STATICTEXT31, _("Start Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
-    FlexGridSizerStartChan->Add(StaticTextStartChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrlModelStartChannel = new wxTextCtrl(Panel1, ID_TEXTCTRL4, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL4"));
-    FlexGridSizerStartChan->Add(TextCtrlModelStartChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer35->Add(FlexGridSizerStartChan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Panel1->SetSizer(FlexGridSizer35);
-    FlexGridSizer35->Fit(Panel1);
-    FlexGridSizer35->SetSizeHints(Panel1);
-    PreviewGLPanel = new wxPanel(SplitterWindow2, ID_PANEL1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_PANEL1"));
-    PreviewGLSizer = new wxFlexGridSizer(1, 1, 0, 0);
-    PreviewGLSizer->AddGrowableCol(0);
-    PreviewGLSizer->AddGrowableRow(0);
-    PreviewGLPanel->SetSizer(PreviewGLSizer);
-    PreviewGLSizer->Fit(PreviewGLPanel);
-    PreviewGLSizer->SetSizeHints(PreviewGLPanel);
-    SplitterWindow2->SplitVertically(Panel1, PreviewGLPanel);
-    SplitterWindow2->SetSashPosition(100);
-    FlexGridSizerPreview->Add(SplitterWindow2, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizerPreview->AddGrowableRow(0);
     PanelPreview->SetSizer(FlexGridSizerPreview);
     FlexGridSizerPreview->Fit(PanelPreview);
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
@@ -1360,29 +1200,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemActivated);
     Connect(ID_BUTTON_CHOOSE_FILE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonChooseFileClick);
     Connect(ID_BUTTON_START_CONVERSION,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartConversionClick);
-    Connect(ID_BUTTON_PREVIEW_OPEN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPreviewOpenClick);
-    Connect(ID_BITMAPBUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPlayPreviewClick);
-    Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopPreviewClick);
-    Connect(ID_SLIDER_PREVIEW_TIME,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack);
-    Connect(ID_SLIDER_PREVIEW_TIME,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease);
-    Connect(ID_SLIDER_PREVIEW_TIME,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated);
-    Connect(ID_BUTTON_SET_PREVIEW_SIZE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSetPreviewSizeClick);
-    Connect(ID_BUTTON_SET_BACKGROUND_IMAGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSetBackgroundImageClick);
-    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnScaleImageCheckboxClick);
-    Connect(ID_SLIDER_BACKGROUND_BRIGHTNESS,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated);
-    Connect(ID_BUTTON_SELECT_MODEL_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSelectModelGroupsClick);
-    Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListItemSelect);
-    Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListColumnClick);
-    Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxOverlapClick);
-    Connect(ID_BUTTON_MODELS_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonModelsPreviewClick);
-    Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSavePreviewClick);
-    Connect(ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlPreviewElementSizeText);
-    Connect(ID_SLIDER3,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated);
-    Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlPreviewElementSizeText);
-    Connect(ID_SLIDER_PREVIEW_SCALE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated);
-    Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlModelRotationDegreesText);
-    Connect(ID_SLIDER_PREVIEW_ROTATE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewRotateCmdSliderUpdated);
-    Connect(ID_TEXTCTRL4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlModelStartChannelText);
     Connect(ID_CHECKBOX_RUN_SCHEDULE,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxRunScheduleClick);
     Connect(ID_BUTTON_SAVE_SCHEDULE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveScheduleClick);
     Connect(ID_BUTTON_ADD_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddShowClick);
@@ -1505,17 +1322,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     CreateSequencer();
 
-    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, PreviewModels, true);
-    PreviewGLSizer->Add(modelPreview, 1, wxALL|wxEXPAND, 5);
-    PreviewGLSizer->Fit(PreviewGLPanel);
-    PreviewGLSizer->SetSizeHints(PreviewGLPanel);
+    
+    layoutPanel = new LayoutPanel(PanelPreview, this);
+    FlexGridSizerPreview->Add(layoutPanel, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizerPreview->Fit(PanelPreview);
+    FlexGridSizerPreview->SetSizeHints(PanelPreview);
 
-    modelPreview->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewPaint,0,this);
-    modelPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftDown,0,this);
-    modelPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftUp,0,this);
-    modelPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewRightDown,0,this);
-    modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseMove,0,this);
-    modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseLeave,0,this);
+    modelPreview = layoutPanel->modelPreview;
+
 
     playIcon = wxBitmap(control_play_blue_icon);
     pauseIcon = wxBitmap(control_pause_blue_icon);
@@ -1529,7 +1343,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     effGridPrevX = 0;
     effGridPrevY = 0;
-    m_creating_bound_rect = false;
     mSavedChangeCount = 0;
 
     // Load headings into network list
@@ -1574,18 +1387,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     elementCol.SetText(_T("Element Name"));
     elementCol.SetImage(-1);
     elementCol.SetAlign(wxLIST_FORMAT_LEFT);
-    ListBoxElementList->InsertColumn(0, elementCol);
+    layoutPanel->ListBoxElementList->InsertColumn(0, elementCol);
 
     elementCol.SetText(_T("Start Chan"));
     elementCol.SetAlign(wxLIST_FORMAT_LEFT);
-    ListBoxElementList->InsertColumn(1, elementCol);
+    layoutPanel->ListBoxElementList->InsertColumn(1, elementCol);
 
     elementCol.SetText(_T("End Chan"));
     elementCol.SetAlign(wxLIST_FORMAT_LEFT);
-    ListBoxElementList->InsertColumn(2, elementCol);
-    ListBoxElementList->SetColumnWidth(0,10);
-    ListBoxElementList->SetColumnWidth(1,10);
-    ListBoxElementList->SetColumnWidth(2,10);
+    layoutPanel->ListBoxElementList->InsertColumn(2, elementCol);
+    layoutPanel->ListBoxElementList->SetColumnWidth(0,10);
+    layoutPanel->ListBoxElementList->SetColumnWidth(1,10);
+    layoutPanel->ListBoxElementList->SetColumnWidth(2,10);
 
     // get list of most recently used directories
     wxString dir,mru_name;
@@ -2024,28 +1837,11 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     if (pagenum == PREVIEWTAB)
     {
         UpdatePreview();
-        if (SeqPlayerState != NO_SEQ)
-        {
-            if(!mediaFilename.IsEmpty())
-            {
-                StopPreviewPlayback(); //FR. If we have sequence data loaded make sure that media playback is inproper state when returnign to preview tab.
-                ResetTimer(PAUSE_SEQ);
-            }
-            else if (SeqData.NumFrames() > 0)
-            {
-                StopPreviewPlayback();
-                ResetTimer(PAUSE_SEQ_ANIM,0);
-            }
-        }
     }
     if (pagenum == PAPAGAYOTAB)
     {
         InitPapagayoTab(event.GetOldSelection() != PAPAGAYOTAB); //populate choice lists with model names, etc.
     }
-    //if (event.GetOldSelection() == TESTTAB)
-    //{
-    //    AllLightsOff();
-    //}
     m_dragging=false;
 }
 
@@ -2201,15 +1997,10 @@ void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
 void xLightsFrame::StopNow(void)
 {
     int actTab = Notebook1->GetSelection();
-    if (actTab == PREVIEWTAB)
-    {
-        StopPreviewPlayback();
-        return;
-    }
-    if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
-    {
-	CurrentSeqXmlFile->GetMedia()->Stop();
-    }
+	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
+	{
+		CurrentSeqXmlFile->GetMedia()->Stop();
+	}
     if (play_mode == play_sched)
     {
         CheckBoxRunSchedule->SetValue(false);
@@ -2475,7 +2266,7 @@ void xLightsFrame::OnButtonSetPreviewSizeClick(wxCommandEvent& event)
 }
 void xLightsFrame::SetPreviewSize(int width,int height)
 {
-    StaticTextCurrentPreviewSize->SetLabelText(wxString::Format("Size: %d x %d",width,height));
+    layoutPanel->StaticTextCurrentPreviewSize->SetLabelText(wxString::Format("Size: %d x %d",width,height));
     SetXmlSetting("previewWidth",wxString::Format("%d",width));
     SetXmlSetting("previewHeight",wxString::Format("%d",height));
     modelPreview->SetCanvasSize(width,height);
