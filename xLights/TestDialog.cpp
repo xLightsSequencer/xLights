@@ -168,17 +168,17 @@ std::string TreeController::GenerateName()
 		break;
 	case CONTROLLERTYPE::CT_MODEL:
 		_name += _modelName;
-		if (_nodes >= 0)
+		if (_nodes > 0)
 		{
 			_name += " [1-" + std::string(wxString::Format(wxT("%i"), _nodes)) + "]";
 		}
-		if (_endxlightschannel < _startxlightschannel && _endxlightschannel > 0)
-		{
-			_name += " (" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + ")";
-		}
-		else if (_startxlightschannel < 0)
+		if (_startxlightschannel < 1)
 		{
 			// dont add anything
+		}
+		else if (_endxlightschannel < _startxlightschannel)
+		{
+			_name += " (" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + ")";
 		}
 		else
 		{
@@ -187,9 +187,13 @@ std::string TreeController::GenerateName()
 		break;
 	case CONTROLLERTYPE::CT_MODELGROUP:
 		_name += _modelName;
-		if (_startxlightschannel < 0)
+		if (_startxlightschannel < 1)
 		{
 			// dont add anything
+		}
+		else if (_endxlightschannel < _startxlightschannel)
+		{
+			_name += " (" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + ")";
 		}
 		else
 		{
@@ -569,7 +573,7 @@ void TestDialog::PopulateModelsTree(ModelManager* modelManager)
 				modelstartchannel = std::min(modelstartchannel, tc->StartXLightsChannel());
 				TreeListCtrl_Channels->AppendItem(modelitem, tc->Name(), -1, -1, (wxClientData*)tc);
 			}
-			else 
+			else
 			{
 				modelcontroller->SetNodes(m->GetNodeCount());
 				for (int i = 0; i < m->GetNodeCount(); i++)
