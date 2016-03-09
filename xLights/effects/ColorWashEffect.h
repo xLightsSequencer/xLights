@@ -15,7 +15,7 @@ class ColorWashEffect : public RenderableEffect
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) override;
     
     
-        virtual std::string GetEffectString();
+        virtual std::string GetEffectString() override;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
