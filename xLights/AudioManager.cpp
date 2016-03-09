@@ -54,14 +54,17 @@ void AudioManager::Seek(int pos)
 void AudioManager::Pause()
 {
 	SDL_PauseAudio(1);
+	_media_state = MEDIAPLAYINGSTATE::PAUSED;
 }
 void AudioManager::Play()
 {
 	SDL_PauseAudio(0);
+	_media_state = MEDIAPLAYINGSTATE::PLAYING;
 }
 void AudioManager::Stop()
 {
 	SDL_PauseAudio(1);
+	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 }
 void AudioManager::SetGlobalPlaybackRate(float rate)
 {
@@ -106,6 +109,8 @@ void AudioManager::SetPlaybackRate(float rate)
 
 MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
 {
+    return _media_state;
+    /*
 	switch (SDL_GetAudioStatus())
 	{
 	case SDL_AUDIO_PAUSED:
@@ -116,6 +121,7 @@ MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
 
 	// assume stopped
 	return MEDIAPLAYINGSTATE::STOPPED;
+	*/
 }
 int AudioManager::Tell()
 {
@@ -135,6 +141,7 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	_data[1] = NULL; // right channel data
 	_intervalMS = -1; // no length
 	_frameDataPrepared = false; // frame data is used by effects to react to the sone
+	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 #ifdef USE_SDLPLAYER
 	_pcmdata = NULL;
 #endif
