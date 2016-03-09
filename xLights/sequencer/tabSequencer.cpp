@@ -42,7 +42,7 @@ void xLightsFrame::CreateSequencer()
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
-    
+
     sPreview1 = new ModelPreview(PanelSequencer);
     m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    Left().Layer(1));
@@ -57,7 +57,7 @@ void xLightsFrame::CreateSequencer()
     effectsPnl->EffectSizer->Add(EffectsPanel1, wxEXPAND);
     effectsPnl->MainSizer->Fit(effectsPnl);
     effectsPnl->MainSizer->SetSizeHints(effectsPnl);
-    
+
     sEffectAssist = new EffectAssist(PanelSequencer);
     m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).
                    Left().Layer(1));
@@ -92,7 +92,7 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
-    
+
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
     m_mgr->Update();
@@ -207,7 +207,7 @@ void xLightsFrame::CheckForValidModels()
             ModelNames.push_back(it->first);
         }
     }
-    
+
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
         if ("model" == mSequenceElements.GetElement(x)->GetType()) {
             std::string name = mSequenceElements.GetElement(x)->GetName();
@@ -216,7 +216,7 @@ void xLightsFrame::CheckForValidModels()
             Remove(ModelNames, name);
         }
     }
-    
+
     SeqElementMismatchDialog dialog(this);
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
         if ("model" == mSequenceElements.GetElement(x)->GetType()) {
@@ -265,7 +265,7 @@ void xLightsFrame::CheckForValidModels()
                     choices.push_back("Delete the model in the sequence");
                     choices.push_back("Map the Strand/Node effects to different models");
                     choices.push_back("Ignore (Handle Later) - Effects will not render");
-                    
+
                     wxSingleChoiceDialog dlg(this, "Model " + name + " is a Model Group but has Node/Strand effects.\n"
                                              + "How should we handle this?",
                                              "Warning", choices);
@@ -908,7 +908,7 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
 		}
-		else if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING && playType == PLAY_TYPE_MODEL)
+		else if (playType == PLAY_TYPE_EFFECT || playType == PLAY_TYPE_MODEL)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
@@ -917,7 +917,7 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
 		}
-		else if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PAUSED && playType == PLAY_TYPE_MODEL_PAUSED)
+		else if (playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_MODEL_PAUSED)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, true);
@@ -1178,7 +1178,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
         int current_play_time = 0;
 #ifdef USE_WXMEDIAPLAYER
-		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && PlayerDlg->GetState() == wxMEDIASTATE_PLAYING) 
+		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && PlayerDlg->GetState() == wxMEDIASTATE_PLAYING)
 		{
 			current_play_time = PlayerDlg->Tell();
 #else
@@ -1187,7 +1187,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 			current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
 #endif
             curt = current_play_time;
-        } else 
+        } else
 		{
             current_play_time = curt;
         }
@@ -1403,7 +1403,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             {
                 wxFilePickerCtrl *picker = (wxFilePickerCtrl*)CtrlWin;
                 picker->SetFileName(value);
-                
+
                 wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, picker, picker->GetId(), value);
                 evt.SetEventObject(picker);
                 picker->ProcessWindowEvent(evt);
@@ -1474,12 +1474,12 @@ void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
         mCurrentPerpective->AddAttribute("settings", settings);
         mCurrentPerpective->AddAttribute("version", "2.0");
     }
-    
+
     m_mgr->LoadPerspective(settings,true);
     if (perspective->GetAttribute("version", "1.0") == "1.0") {
         //title on Layer Timing panel changed
         m_mgr->GetPane("LayerTiming").Caption("Layer Blending");
-        
+
         //did not have the layer settings panel
         m_mgr->GetPane("LayerSettings").Caption("Layer Settings").Dock().Left().Show();
 
@@ -1495,7 +1495,7 @@ void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
         sPreview2->Refresh(false);
         m_mgr->Update();
     }
-    
+
     if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF )
     {
         SetEffectAssistWindowState(false);
