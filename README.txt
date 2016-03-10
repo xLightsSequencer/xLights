@@ -7,6 +7,10 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.12  Mar 10, 2016
+    -- bug (dkulp) Fixed long save times when a model is off the screen.
+    -- bug (dkulp) Fix corrupt perspective section. Fix is to Delete attribute before setting it
+    -- bug (gil) Restore pause and stop for effect preview.
 2016.11  Mar 8, 2016
     -- bug (sean)    Modified Windows install script to it always prompts for install directory
     -- enh (sean)    Updated xlights icon images from Charles Suhr. Fixes ragged edge.
