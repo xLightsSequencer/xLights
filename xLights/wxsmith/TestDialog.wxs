@@ -3,8 +3,8 @@
 	<object class="wxDialog" name="TestDialog">
 		<title>Test Lights</title>
 		<centered>1</centered>
-		<size>400,300</size>
-		<minsize>400,300</minsize>
+		<size>800,400</size>
+		<minsize>800,400</minsize>
 		<id_arg>0</id_arg>
 		<size_arg>1</size_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>

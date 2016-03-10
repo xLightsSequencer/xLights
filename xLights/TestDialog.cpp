@@ -47,8 +47,8 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, _("Test Lights"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
-	SetClientSize(wxSize(400,300));
-	SetMinSize(wxSize(400,300));
+	SetClientSize(wxSize(800,400));
+	SetMinSize(wxSize(800,400));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
@@ -245,6 +245,22 @@ TreeController::TreeController(int channel, CONTROLLERTYPE type, int xLightsChan
 	_nodes = -1;
 }
 
+bool TreeController::ContainsChannel(int ch)
+{
+	if (_startxlightschannel < 1)
+	{
+		return false;
+	}
+	else if (_endxlightschannel < 1)
+	{
+		return ch == _startxlightschannel;
+	}
+	else
+	{
+		return (ch >= _startxlightschannel && ch <= _endxlightschannel);
+	}
+}
+
 // This for for a node node
 TreeController::TreeController(CONTROLLERTYPE type, int xLightsChannel, int node, int channelspernode)
 {
@@ -365,16 +381,46 @@ TreeController::CONTROLLERTYPE TestDialog::GetTreeItemType(const wxTreeListItem&
 
 void TestDialog::CascadeSelectedToModel(std::string modelName, wxCheckBoxState state)
 {
-
+	wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(_models);
+	while (i != NULL)
+	{
+		TreeController* m = (TreeController*)TreeListCtrl_Channels->GetItemData(i);
+		if (m->ModelName() == modelName)
+		{
+			TreeListCtrl_Channels->CheckItem(i, state);
+			CascadeSelected(i, state);
+			RollUpSelected(i, state);
+			break;
+		}
+		i = TreeListCtrl_Channels->GetNextSibling(i);
+	}
 }
 
+// Look through the model groups for the given model and select it
 void TestDialog::CascadeSelectedToModelGroup(std::string modelName, wxCheckBoxState state)
 {
-
+	wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(_modelGroups);
+	while (i != NULL)
+	{
+		wxTreeListItem mti = TreeListCtrl_Channels->GetFirstChild(i);
+		while (mti != NULL)
+		{
+			TreeController* m = (TreeController*)TreeListCtrl_Channels->GetItemData(mti);
+			if (m->ModelName() == modelName)
+			{
+				TreeListCtrl_Channels->CheckItem(mti, state);
+				RollUpSelected(mti, state);
+			}
+			mti = TreeListCtrl_Channels->GetNextSibling(mti);
+		}
+		i = TreeListCtrl_Channels->GetNextSibling(i);
+	}
 }
 
-void TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
+bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 {
+	bool rc = true;
+
 	TreeController::CONTROLLERTYPE type = GetTreeItemType(item);
 
 	if (type == TreeController::CONTROLLERTYPE::CT_CONTROLLERROOT)
@@ -388,13 +434,26 @@ void TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 			if (!tc->IsNULL() && !tc->Inactive())
 			{
 				TreeListCtrl_Channels->CheckItem(i, state);
-				CascadeSelected(i, state);
+				rc &= CascadeSelected(i, state);
+
+				if (tc->GetType() == TreeController::CONTROLLERTYPE::CT_CHANNEL)
+				{
+					rc &= CheckChannel(tc->StartXLightsChannel(), state);
+				}
 			}
 			i = TreeListCtrl_Channels->GetNextSibling(i);
 		}
 	}
 	else if (type == TreeController::CONTROLLERTYPE::CT_MODELGROUPROOT)
 	{
+		TreeController* itc = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
+		if (itc->GetType() == TreeController::CONTROLLERTYPE::CT_MODEL)
+		{
+			// go and find the models
+			TreeListCtrl_Channels->CheckItem(item, state);
+			CascadeSelectedToModel(itc->ModelName(), state);
+		}
+
 		wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
 		while (i != NULL)
 		{
@@ -409,37 +468,38 @@ void TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 			else
 			{
 				TreeListCtrl_Channels->CheckItem(i, state);
-				CascadeSelected(i, state);
+				rc &= CascadeSelected(i, state);
 			}
 			i = TreeListCtrl_Channels->GetNextSibling(i);
 		}
 	}
 	else // Model root
 	{
+		TreeController* m = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
+		if (m->GetType() == TreeController::CONTROLLERTYPE::CT_MODEL)
+		{
+			// go and find the models
+			TreeListCtrl_Channels->CheckItem(item, state);
+			CascadeSelectedToModelGroup(m->ModelName(), state);
+		}
 		wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
 		while (i != NULL)
 		{
 			TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(i);
-
-			if (tc->GetType() == TreeController::CONTROLLERTYPE::CT_MODEL)
+			if (tc->GetType() == TreeController::CONTROLLERTYPE::CT_CHANNEL)
 			{
-				// go and find the models
-				TreeListCtrl_Channels->CheckItem(i, state);
-				CascadeSelected(i, state);
-				CascadeSelectedToModelGroup(tc->ModelName(), state);
-			}
-			else if (tc->GetType() == TreeController::CONTROLLERTYPE::CT_CHANNEL)
-			{
-				CheckChannel(tc->StartXLightsChannel(), state);
+				rc &= CheckChannel(tc->StartXLightsChannel(), state);
 			}
 			else
 			{
 				TreeListCtrl_Channels->CheckItem(i, state);
-				CascadeSelected(i, state);
+				rc &= CascadeSelected(i, state);
 			}
 			i = TreeListCtrl_Channels->GetNextSibling(i);
 		}
 	}
+
+	return rc;
 }
 
 void TestDialog::PopulateControllerTree(wxXmlDocument* network)
@@ -644,54 +704,66 @@ void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 	if (item == _controllers || item == _modelGroups || item == _models)
 	{
 		// dont do anything
-		TreeListCtrl_Channels->UnsetToolTip();
+		//TreeListCtrl_Channels->UnsetToolTip();
 		// remove this once TreeListCtrl supports tool tips
-		Panel1->UnsetToolTip();
+		//Panel1->UnsetToolTip();
 	}
 	else
 	{
-		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
-		int start = tc->StartXLightsChannel();
-		int end = tc->EndXLightsChannel();
-		if (tc->IsChannel())
+		TreeController::CONTROLLERTYPE rootType = GetTreeItemType(item);
+
+		if (rootType == TreeController::CONTROLLERTYPE::CT_CONTROLLERROOT)
 		{
-			end = start;
-		}
-		std::list<std::string> models = GetModelsOnChannels(start, end);
-		std::string tt = "";
-		for (std::list<std::string>::iterator it = models.begin(); it != models.end(); ++it)
-		{
+			TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
+			int start = tc->StartXLightsChannel();
+			int end = tc->EndXLightsChannel();
+			if (tc->IsChannel())
+			{
+				end = start;
+			}
+			std::list<std::string> models = GetModelsOnChannels(start, end);
+			std::string tt = "";
+			for (std::list<std::string>::iterator it = models.begin(); it != models.end(); ++it)
+			{
+				if (tt != "")
+				{
+					tt += "\n";
+				}
+				tt = tt + *it;
+			}
 			if (tt != "")
 			{
-				tt += "\n";
-			}
-			tt = tt + *it;
-		}
-		if (tt != "")
-		{
-			if (start == end)
-			{
-				tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "] maps to\n" + tt;
+				if (start == end)
+				{
+					tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "] maps to\n" + tt;
+				}
+				else
+				{
+					tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "-" + std::string(wxString::Format(wxT("%i"), end)) + "] maps to\n" + tt;
+				}
+				// This does not work ... there is a bug in wxWidgets which prevents tooltip display.
+				//TreeListCtrl_Channels->SetToolTip(tt);
+				// remove this once TreeListCtrl supports tool tips
+				//Panel1->SetToolTip(tt);
 			}
 			else
 			{
-				tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "-" + std::string(wxString::Format(wxT("%i"), end)) + "] maps to\n" + tt;
+				//TreeListCtrl_Channels->UnsetToolTip();
+				// remove this once TreeListCtrl supports tool tips
+				//Panel1->UnsetToolTip();
 			}
-			// This does not work ... there is a bug in wxWidgets which prevents tooltip display.
-			TreeListCtrl_Channels->SetToolTip(tt);
-			// remove this once TreeListCtrl supports tool tips
-			Panel1->SetToolTip(tt);
 		}
 		else
 		{
-			TreeListCtrl_Channels->UnsetToolTip();
+			//TreeListCtrl_Channels->UnsetToolTip();
 			// remove this once TreeListCtrl supports tool tips
-			Panel1->UnsetToolTip();
+			//Panel1->UnsetToolTip();
 		}
 	}
 }
 void TestDialog::OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event)
 {
+	_modelCopiedOnRollup = false;
 	wxTreeListItem item = event.GetItem();
 
 	TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
@@ -708,13 +780,23 @@ void TestDialog::OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event)
 
 	if (checked == wxCheckBoxState::wxCHK_UNDETERMINED)
 	{
-		TreeListCtrl_Channels->CheckItem(item, wxCHK_UNCHECKED);
+		if (tc->GetType() == TreeController::CONTROLLERTYPE::CT_CHANNEL)
+		{
+			CheckChannel(tc->StartXLightsChannel(), wxCHK_UNCHECKED);
+		}
+		else
+		{
+			TreeListCtrl_Channels->CheckItem(item, wxCHK_UNCHECKED);
+		}
 		checked = wxCheckBoxState::wxCHK_UNCHECKED;
 	}
 
 	if (checked == wxCheckBoxState::wxCHK_CHECKED)
 	{
-		CascadeSelected(item, wxCheckBoxState::wxCHK_CHECKED);
+		if (!CascadeSelected(item, wxCheckBoxState::wxCHK_CHECKED))
+		{
+			wxBell();
+		}
 	}
 	else if (checked == wxCheckBoxState::wxCHK_UNCHECKED)
 	{
@@ -725,37 +807,55 @@ void TestDialog::OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event)
 
 void TestDialog::RollUpSelected(const wxTreeListItem& item, wxCheckBoxState state)
 {
-	if (item != NULL)
+	if (item != NULL && item != TreeListCtrl_Channels->GetRootItem())
 	{
 		wxCheckBoxState cbs = state;
 
 		if (cbs == wxCHK_UNDETERMINED)
 		{
 			TreeListCtrl_Channels->CheckItem(item, cbs);
-			return;
+			//return;
 		}
-
-		wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
-		while (i != NULL)
+		else
 		{
-			TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(i);
-
-			// ignore nodes that cant be clicked on
-			if (!tc->IsNULL() && !tc->Inactive())
+			wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
+			while (i != NULL)
 			{
-				wxCheckBoxState ncbs = TreeListCtrl_Channels->GetCheckedState(i);
-				if (ncbs != cbs)
+				TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(i);
+
+				// ignore nodes that cant be clicked on
+				if (!tc->IsNULL() && !tc->Inactive())
 				{
-					cbs = wxCHK_UNDETERMINED;
-					break;
+					wxCheckBoxState ncbs = TreeListCtrl_Channels->GetCheckedState(i);
+					if (ncbs != cbs)
+					{
+						cbs = wxCHK_UNDETERMINED;
+						break;
+					}
+				}
+
+				i = TreeListCtrl_Channels->GetNextSibling(i);
+			}
+			TreeListCtrl_Channels->CheckItem(item, cbs);
+
+			// If we roll up and hit a model we need to copy it over to the model group
+			TreeController* itc = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
+			if (itc->GetType() == TreeController::CONTROLLERTYPE::CT_MODEL)
+			{
+				if (!_modelCopiedOnRollup)
+				{
+					_modelCopiedOnRollup = true;
+					CascadeSelectedToModelGroup(itc->ModelName(), cbs);
+					_modelCopiedOnRollup = false;
 				}
 			}
-			i = TreeListCtrl_Channels->GetNextSibling(i);
 		}
-		TreeListCtrl_Channels->CheckItem(item, cbs);
 
 		wxTreeListItem p = TreeListCtrl_Channels->GetItemParent(item);
-		RollUpSelected(p, cbs);
+		if (p != NULL && p!= TreeListCtrl_Channels->GetRootItem())
+		{
+			RollUpSelected(p, cbs);
+		}
 	}
 }
 
@@ -776,13 +876,60 @@ void TestDialog::GetTestPresetNames(wxArrayString& PresetNames)
 }
 
 // Find a given xlightschannel in the treelist and check it if it is not inactive or in a null controller
-void TestDialog::CheckChannel(long chid, wxCheckBoxState state)
+bool TestDialog::CheckChannel(long chid, wxCheckBoxState state)
 {
-	wxTreeListItem c = TreeListCtrl_Channels->GetFirstChild(TreeListCtrl_Channels->GetRootItem());
+	bool rc = true;
+
+	// check models first because we may need to undo it if there is a NULL controller
+	wxTreeListItem m = TreeListCtrl_Channels->GetFirstChild(_models);
+	while (m != NULL)
+	{
+		TreeController* tcm = (TreeController*)TreeListCtrl_Channels->GetItemData(m);
+		if (tcm->ContainsChannel(chid))
+		{
+			wxTreeListItem mn = TreeListCtrl_Channels->GetFirstChild(m);
+			while (mn != NULL)
+			{
+				TreeController* tcmn = (TreeController*)TreeListCtrl_Channels->GetItemData(mn);
+				if (tcmn->GetType() == TreeController::CONTROLLERTYPE::CT_CHANNEL)
+				{
+					if (chid == tcmn->StartXLightsChannel())
+					{
+						TreeListCtrl_Channels->CheckItem(mn, state);
+						RollUpSelected(mn, state);
+					}
+				}
+				else
+				{
+					if (tcmn->ContainsChannel(chid))
+					{
+						wxTreeListItem mnc = TreeListCtrl_Channels->GetFirstChild(mn);
+						while (mnc != NULL)
+						{
+							TreeController* tcmnc = (TreeController*)TreeListCtrl_Channels->GetItemData(mnc);
+
+							if (chid == tcmnc->StartXLightsChannel())
+							{
+								TreeListCtrl_Channels->CheckItem(mnc, state);
+								RollUpSelected(mnc, state);
+							}
+							mnc = TreeListCtrl_Channels->GetNextSibling(mnc);
+						}
+					}
+				}
+				mn = TreeListCtrl_Channels->GetNextSibling(mn);
+			}
+		}
+		m = TreeListCtrl_Channels->GetNextSibling(m);
+	}
+
+	// check controllers first ... a channel can only appear once here
+	wxTreeListItem c = TreeListCtrl_Channels->GetFirstChild(_controllers);
 	while (c != NULL)
 	{
+		// controller
 		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(c);
-		if (chid >= tc->StartXLightsChannel() && chid <= tc->EndXLightsChannel())
+		if (tc->ContainsChannel(chid))
 		{
 			// skip if inactive or a NULL controller
 			if (!tc->IsNULL() && !tc->Inactive())
@@ -790,19 +937,40 @@ void TestDialog::CheckChannel(long chid, wxCheckBoxState state)
 				wxTreeListItem cc = TreeListCtrl_Channels->GetFirstChild(c);
 				while (cc != NULL)
 				{
+					// Channel
 					TreeController* tcc = (TreeController*)TreeListCtrl_Channels->GetItemData(cc);
 					if (chid == tcc->StartXLightsChannel())
 					{
 						TreeListCtrl_Channels->CheckItem(cc, state);
-						RollUpSelected(cc, wxCHK_CHECKED);
-						//break;
+						RollUpSelected(cc, state);
+						break;
 					}
 					cc = TreeListCtrl_Channels->GetNextSibling(cc);
 				}
 			}
+			else
+			{
+				// inactive or null so lets go back and force them disabled
+				CheckChannel(chid, wxCHK_UNCHECKED);
+				rc = false;
+			}
 			break;
 		}
 		c = TreeListCtrl_Channels->GetNextSibling(c);
+	}
+
+	return rc;
+}
+
+void TestDialog::Clear(wxTreeListItem& item)
+{
+	TreeListCtrl_Channels->CheckItem(item, wxCHK_UNCHECKED);
+
+	wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
+	while (i != NULL)
+	{
+		Clear(i);
+		i = TreeListCtrl_Channels->GetNextSibling(i);
 	}
 }
 
@@ -822,7 +990,10 @@ void TestDialog::OnButton_LoadClick(wxCommandEvent& event)
 	if (dialog.ShowModal() != wxID_OK) return;
 
 	// re-find testpreset node, then set channels
-	RollUpSelected(TreeListCtrl_Channels->GetRootItem(), wxCHK_UNCHECKED);
+	Clear(_controllers);
+	Clear(_modelGroups);
+	Clear(_models);
+	//RollUpSelected(TreeListCtrl_Channels->GetRootItem(), wxCHK_UNCHECKED);
 	//SetTestCheckboxes(false);
 	wxString name = dialog.GetStringSelection();
 	wxString chidstr;

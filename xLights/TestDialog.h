@@ -78,11 +78,7 @@ public:
 	void SetNodes(int nodes) { _nodes = nodes; GenerateName(); };
 	CONTROLLERTYPE GetType() { return _type; };
 	std::string ModelName() { return _modelName; };
-};
-
-class TreeChannel
-{
-
+	bool ContainsChannel(int ch);
 };
 
 class TestDialog: public wxDialog
@@ -97,6 +93,7 @@ class TestDialog: public wxDialog
 		wxTreeListItem  _models;
 		wxFileName _networkFile;
 		ModelManager* _modelManager;
+		bool _modelCopiedOnRollup;
 
 		//(*Declarations(TestDialog)
 		wxPanel* Panel5;
@@ -146,14 +143,15 @@ class TestDialog: public wxDialog
 		void PopulateControllerTree(wxXmlDocument* network);
 		void PopulateModelsTree(ModelManager* modelManager);
 		void PopulateModelGroupsTree(ModelManager* modelManager);
-		void CascadeSelected(wxTreeListItem& item, wxCheckBoxState state);
+		bool CascadeSelected(wxTreeListItem& item, wxCheckBoxState state);
 		void RollUpSelected(const wxTreeListItem& item, wxCheckBoxState state);
 		void DestroyTreeControllerData(wxTreeListItem& item);
 		void GetTestPresetNames(wxArrayString& PresetNames);
-		void CheckChannel(long chid, wxCheckBoxState state);
+		bool CheckChannel(long chid, wxCheckBoxState state);
 		std::list<std::string> GetModelsOnChannels(int start, int end);
 		void CascadeSelectedToModelGroup(std::string modelName, wxCheckBoxState state);
 		void CascadeSelectedToModel(std::string modelName, wxCheckBoxState state);
+		void Clear(wxTreeListItem& item);
 
 		DECLARE_EVENT_TABLE()
 };
