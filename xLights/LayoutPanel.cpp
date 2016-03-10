@@ -13,6 +13,10 @@
 #include <wx/textctrl.h>
 //*)
 
+
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+
 #include "ModelPreview.h"
 #include "xLightsMain.h"
 #include "DrawGLUtils.h"
@@ -67,7 +71,6 @@ const long LayoutPanel::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 
 
-
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     m_creating_bound_rect(false), mPointSize(2), m_rotating(false), m_dragging(false), m_over_handle(0)
 {
@@ -79,8 +82,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	wxFlexGridSizer* FlexGridSizer37;
 	wxFlexGridSizer* FlexGridSizer31;
 	wxFlexGridSizer* FlexGridSizer39;
+	wxFlexGridSizer* LeftPanelSizer;
 	wxFlexGridSizer* FlexGridSizerStartChan;
-	wxFlexGridSizer* FlexGridSizer35;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizerPreview = new wxFlexGridSizer(2, 1, 0, 0);
@@ -108,64 +111,63 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	FlexGridSizer31->Add(FlexGridSizer30, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizerPreview->Add(FlexGridSizer31, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
 	SplitterWindow2 = new wxSplitterWindow(this, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
-	SplitterWindow2->SetMinSize(wxSize(-1,-1));
 	SplitterWindow2->SetMinimumPaneSize(10);
 	SplitterWindow2->SetSashGravity(0.5);
-	Panel1 = new wxPanel(SplitterWindow2, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
-	FlexGridSizer35 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer35->AddGrowableCol(0);
-	FlexGridSizer35->AddGrowableRow(2);
-	ButtonSelectModelGroups = new wxButton(Panel1, ID_BUTTON_SELECT_MODEL_GROUPS, _("Select Model Groups"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_MODEL_GROUPS"));
-	FlexGridSizer35->Add(ButtonSelectModelGroups, 1, wxALL|wxEXPAND, 5);
-	StaticText5 = new wxStaticText(Panel1, ID_STATICTEXT21, _("Preview Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT21"));
-	FlexGridSizer35->Add(StaticText5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ListBoxElementList = new wxListView(Panel1, ID_LISTBOX_ELEMENT_LIST, wxDefaultPosition, wxSize(100,-1), wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING, wxDefaultValidator, _T("ID_LISTBOX_ELEMENT_LIST"));
-	FlexGridSizer35->Add(ListBoxElementList, 1, wxALL|wxEXPAND, 5);
-	CheckBoxOverlap = new wxCheckBox(Panel1, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
+	LeftPanel = new wxPanel(SplitterWindow2, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
+	LeftPanelSizer = new wxFlexGridSizer(0, 1, 0, 0);
+	LeftPanelSizer->AddGrowableCol(0);
+	LeftPanelSizer->AddGrowableRow(2);
+	ButtonSelectModelGroups = new wxButton(LeftPanel, ID_BUTTON_SELECT_MODEL_GROUPS, _("Select Model Groups"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_MODEL_GROUPS"));
+	LeftPanelSizer->Add(ButtonSelectModelGroups, 1, wxALL|wxEXPAND, 5);
+	StaticText5 = new wxStaticText(LeftPanel, ID_STATICTEXT21, _("Preview Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT21"));
+	LeftPanelSizer->Add(StaticText5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	ListBoxElementList = new wxListView(LeftPanel, ID_LISTBOX_ELEMENT_LIST, wxDefaultPosition, wxSize(100,-1), wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING, wxDefaultValidator, _T("ID_LISTBOX_ELEMENT_LIST"));
+	LeftPanelSizer->Add(ListBoxElementList, 1, wxALL|wxEXPAND, 5);
+	CheckBoxOverlap = new wxCheckBox(LeftPanel, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
 	CheckBoxOverlap->SetValue(false);
-	FlexGridSizer35->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonModelsPreview = new wxButton(Panel1, ID_BUTTON_MODELS_PREVIEW, _("Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MODELS_PREVIEW"));
-	FlexGridSizer35->Add(ButtonModelsPreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
-	ButtonSavePreview = new wxButton(Panel1, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
-	FlexGridSizer35->Add(ButtonSavePreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
+	LeftPanelSizer->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonModelsPreview = new wxButton(LeftPanel, ID_BUTTON_MODELS_PREVIEW, _("Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MODELS_PREVIEW"));
+	LeftPanelSizer->Add(ButtonModelsPreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
+	ButtonSavePreview = new wxButton(LeftPanel, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
+	LeftPanelSizer->Add(ButtonSavePreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
 	FlexGridSizer37 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer37->AddGrowableCol(1);
-	StaticText23 = new wxStaticText(Panel1, ID_STATICTEXT22, _("Model Width"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
+	StaticText23 = new wxStaticText(LeftPanel, ID_STATICTEXT22, _("Model Width"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
 	FlexGridSizer37->Add(StaticText23, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrlPreviewElementWidth = new wxTextCtrl(Panel1, ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE"));
+	TextCtrlPreviewElementWidth = new wxTextCtrl(LeftPanel, ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE, _("50"), wxDefaultPosition, wxDLG_UNIT(LeftPanel,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE"));
 	FlexGridSizer37->Add(TextCtrlPreviewElementWidth, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer35->Add(FlexGridSizer37, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	SliderPreviewScaleWidth = new wxSlider(Panel1, ID_SLIDER3, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER3"));
-	FlexGridSizer35->Add(SliderPreviewScaleWidth, 1, wxALL|wxEXPAND, 5);
+	LeftPanelSizer->Add(FlexGridSizer37, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	SliderPreviewScaleWidth = new wxSlider(LeftPanel, ID_SLIDER3, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER3"));
+	LeftPanelSizer->Add(SliderPreviewScaleWidth, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
-	StaticText37 = new wxStaticText(Panel1, ID_STATICTEXT24, _("Model Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
+	StaticText37 = new wxStaticText(LeftPanel, ID_STATICTEXT24, _("Model Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
 	FlexGridSizer2->Add(StaticText37, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrlPreviewElementHeight = new wxTextCtrl(Panel1, ID_TEXTCTRL3, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
+	TextCtrlPreviewElementHeight = new wxTextCtrl(LeftPanel, ID_TEXTCTRL3, _("50"), wxDefaultPosition, wxDLG_UNIT(LeftPanel,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer2->Add(TextCtrlPreviewElementHeight, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer35->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SliderPreviewScaleHeight = new wxSlider(Panel1, ID_SLIDER_PREVIEW_SCALE, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_SCALE"));
-	FlexGridSizer35->Add(SliderPreviewScaleHeight, 1, wxALL|wxEXPAND, 5);
+	LeftPanelSizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SliderPreviewScaleHeight = new wxSlider(LeftPanel, ID_SLIDER_PREVIEW_SCALE, 50, 1, 700, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_SCALE"));
+	LeftPanelSizer->Add(SliderPreviewScaleHeight, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer39 = new wxFlexGridSizer(0, 3, 0, 0);
-	StaticTextPreviewRotation = new wxStaticText(Panel1, ID_STATICTEXT25, _("Model Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT25"));
+	StaticTextPreviewRotation = new wxStaticText(LeftPanel, ID_STATICTEXT25, _("Model Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT25"));
 	StaticTextPreviewRotation->Disable();
 	FlexGridSizer39->Add(StaticTextPreviewRotation, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrlModelRotationDegrees = new wxTextCtrl(Panel1, ID_TEXTCTRL2, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+	TextCtrlModelRotationDegrees = new wxTextCtrl(LeftPanel, ID_TEXTCTRL2, _("0"), wxDefaultPosition, wxDLG_UNIT(LeftPanel,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
 	FlexGridSizer39->Add(TextCtrlModelRotationDegrees, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer35->Add(FlexGridSizer39, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	SliderPreviewRotate = new wxSlider(Panel1, ID_SLIDER_PREVIEW_ROTATE, 0, -180, 180, wxDefaultPosition, wxDefaultSize, wxTRANSPARENT_WINDOW, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_ROTATE"));
+	LeftPanelSizer->Add(FlexGridSizer39, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	SliderPreviewRotate = new wxSlider(LeftPanel, ID_SLIDER_PREVIEW_ROTATE, 0, -180, 180, wxDefaultPosition, wxDefaultSize, wxTRANSPARENT_WINDOW, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_ROTATE"));
 	SliderPreviewRotate->SetTickFreq(1);
 	SliderPreviewRotate->Disable();
-	FlexGridSizer35->Add(SliderPreviewRotate, 1, wxALL|wxEXPAND, 5);
+	LeftPanelSizer->Add(SliderPreviewRotate, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizerStartChan = new wxFlexGridSizer(0, 3, 0, 0);
-	StaticTextStartChannel = new wxStaticText(Panel1, ID_STATICTEXT31, _("Start Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
+	StaticTextStartChannel = new wxStaticText(LeftPanel, ID_STATICTEXT31, _("Start Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
 	FlexGridSizerStartChan->Add(StaticTextStartChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrlModelStartChannel = new wxTextCtrl(Panel1, ID_TEXTCTRL4, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL4"));
+	TextCtrlModelStartChannel = new wxTextCtrl(LeftPanel, ID_TEXTCTRL4, _("0"), wxDefaultPosition, wxDLG_UNIT(LeftPanel,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL4"));
 	FlexGridSizerStartChan->Add(TextCtrlModelStartChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer35->Add(FlexGridSizerStartChan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Panel1->SetSizer(FlexGridSizer35);
-	FlexGridSizer35->Fit(Panel1);
-	FlexGridSizer35->SetSizeHints(Panel1);
+	LeftPanelSizer->Add(FlexGridSizerStartChan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	LeftPanel->SetSizer(LeftPanelSizer);
+	LeftPanelSizer->Fit(LeftPanel);
+	LeftPanelSizer->SetSizeHints(LeftPanel);
 	PreviewGLPanel = new wxPanel(SplitterWindow2, ID_PANEL1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_PANEL1"));
 	PreviewGLSizer = new wxFlexGridSizer(1, 1, 0, 0);
 	PreviewGLSizer->AddGrowableCol(0);
@@ -173,7 +175,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	PreviewGLPanel->SetSizer(PreviewGLSizer);
 	PreviewGLSizer->Fit(PreviewGLPanel);
 	PreviewGLSizer->SetSizeHints(PreviewGLPanel);
-	SplitterWindow2->SplitVertically(Panel1, PreviewGLPanel);
+	SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel);
 	SplitterWindow2->SetSashPosition(100);
 	FlexGridSizerPreview->Add(SplitterWindow2, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizerPreview);
@@ -206,12 +208,28 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     FlexGridSizerPreview->Fit(this);
     FlexGridSizerPreview->SetSizeHints(this);
 
-
     modelPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDown,0,this);
     modelPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&LayoutPanel::OnPreviewLeftUp,0,this);
     modelPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewRightDown,0,this);
     modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseMove,0,this);
     modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseLeave,0,this);
+    
+    propertyEditor = new wxPropertyGrid(LeftPanel,
+                                        wxID_ANY, // id
+                                        wxDefaultPosition, // position
+                                        wxDefaultSize, // size
+                                        // Here are just some of the supported window styles
+                                        //wxPG_AUTO_SORT | // Automatic sorting after items added
+                                        wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
+                                        // Default style
+                                        wxPG_DEFAULT_STYLE );
+#ifdef __WXOSX__
+    propertyEditor->SetExtraStyle(wxPG_EX_NATIVE_DOUBLE_BUFFERING);
+#endif
+    LeftPanelSizer->Add(propertyEditor, 1, wxALL|wxEXPAND, 0);
+    LeftPanelSizer->AddGrowableRow(13);
+    propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
+    propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
 }
 
 LayoutPanel::~LayoutPanel()
@@ -219,6 +237,51 @@ LayoutPanel::~LayoutPanel()
 	//(*Destroy(LayoutPanel)
 	//*)
 }
+
+void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
+    wxString name = event.GetPropertyName();
+    if (name == "BkgBrightness") {
+        xlights->SetPreviewBackgroundBrightness(event.GetValue().GetLong());
+    } else if (name == "BkgSizeWidth") {
+        xlights->SetPreviewSize(event.GetValue().GetLong(), modelPreview->GetVirtualCanvasHeight());
+    } else if (name == "BkgSizeHeight") {
+        xlights->SetPreviewSize(modelPreview->GetVirtualCanvasWidth(), event.GetValue().GetLong());
+    } else if (name == "BkgImage") {
+        xlights->SetPreviewBackgroundImage(event.GetValue().GetString());
+    } else if (name == "BkgFill") {
+        xlights->SetPreviewBackgroundScaled(event.GetValue().GetBool());
+    } else if (selectedModel != nullptr) {
+        //model property
+        if ("ModelRotation" == name) {
+            PreviewRotationUpdated(event.GetValue().GetInteger());
+        } else if ("ModelWidth" == name) {
+            double newscalex, newscaley;
+            selectedModel->GetScales(newscalex, newscaley);
+            newscalex *= 100.0;
+            newscaley *= 100.0;
+
+            PreviewScaleUpdated(event.GetValue().GetDouble(), newscaley);
+        } else if ("ModelHeight" == name) {
+            double newscalex, newscaley;
+            selectedModel->GetScales(newscalex, newscaley);
+            newscalex *= 100.0;
+            newscaley *= 100.0;
+            PreviewScaleUpdated(newscalex, event.GetValue().GetDouble());
+        } else {
+            printf("Changed %s   %s\n",
+                   event.GetPropertyName().ToStdString().c_str(),
+                   event.GetValue().GetString().ToStdString().c_str());
+        }
+    }
+}
+void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
+    /*
+    printf("Changing %s   %s\n",
+           event.GetPropertyName().ToStdString().c_str(),
+           event.GetValue().GetString().ToStdString().c_str());
+     */
+}
+
 void LayoutPanel::PreviewScaleUpdated(float xscale, float yscale)
 {
     int sel=ListBoxElementList->GetFirstSelected();
@@ -252,6 +315,9 @@ void LayoutPanel::UpdatePreview()
     modelPreview->EndDrawing();
 }
 
+
+
+
 void LayoutPanel::UnSelectAllModels()
 {
     for (int i=0; i<xlights->PreviewModels.size(); i++)
@@ -260,22 +326,74 @@ void LayoutPanel::UnSelectAllModels()
         xlights->PreviewModels[i]->GroupSelected = false;
     }
     UpdatePreview();
+    
+    propertyEditor->Freeze();
+    propertyEditor->Clear();
+    propertyEditor->Append(new wxImageFileProperty("Background Image",
+                                                   "BkgImage",
+                                                   modelPreview->GetBackgroundImage()));
+    propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", modelPreview->GetScaleBackgroundImage()))->SetAttribute("UseCheckbox", 1);
+    wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
+    prop->SetAttribute("Min", 0);
+    prop->SetAttribute("Max", 4096);
+    prop->SetEditor("SpinCtrl");
+    prop = propertyEditor->Append(new wxUIntProperty("Height", "BkgSizeHeight", modelPreview->GetVirtualCanvasHeight()));
+    prop->SetAttribute("Min", 0);
+    prop->SetAttribute("Max", 4096);
+    prop->SetEditor("SpinCtrl");
+    prop = propertyEditor->Append(new wxStringProperty("Brightness",
+                                                       "BkgBrightness",
+                                                       wxString::Format("%d", modelPreview->GetBackgroundBrightness())));
+    prop->SetAttribute("Min", 0);
+    prop->SetAttribute("Max", 100);
+    prop->SetEditor("SpinCtrl");
+    propertyEditor->Thaw();
 }
 
+void LayoutPanel::SetupPropGrid(Model *model) {
+    double newscalex, newscaley;
+    model->GetScales(newscalex, newscaley);
+    newscalex *= 100.0;
+    newscaley *= 100.0;
+    
+    propertyEditor->Freeze();
+    propertyEditor->Clear();
+
+    wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Name", "ModelName", model->name));
+    prop->Enable(false); 
+    prop = propertyEditor->Append(new wxFloatProperty("Width", "ModelWidth", newscalex));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Step", 0.1);
+    prop->SetEditor("SpinCtrl");
+    prop = propertyEditor->Append(new wxFloatProperty("Height", "ModelHeight", newscaley));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Step", 0.1);
+    prop->SetEditor("SpinCtrl");
+    prop = propertyEditor->Append(new wxIntProperty("Rotation", "ModelRotation", model->GetRotation()));
+    prop->SetAttribute("Min", "-180");
+    prop->SetAttribute("Max", "180");
+    prop->SetEditor("SpinCtrl");
+    propertyEditor->Thaw();
+}
 
 void LayoutPanel::SelectModel(const std::string & name)
 {
+
     int foundStart = 0;
     int foundEnd = 0;
+    Model* m = nullptr;
     for(int i=0;i<ListBoxElementList->GetItemCount();i++)
     {
         if (name == ListBoxElementList->GetItemText(i))
         {
             if (ListBoxElementList->GetItemState(i, wxLIST_STATE_SELECTED) == false) {
                 ListBoxElementList->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                propertyEditor->Freeze();
+                propertyEditor->Clear();
+                propertyEditor->Thaw();
                 return;
             }
-            Model* m=(Model*)ListBoxElementList->GetItemData(i);
+            m=(Model*)ListBoxElementList->GetItemData(i);
             m->Selected = true;
             double newscalex, newscaley;
             m->GetScales(newscalex, newscaley);
@@ -296,10 +414,16 @@ void LayoutPanel::SelectModel(const std::string & name)
                 foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
                 foundEnd = m->GetNumberFromChannelString(ListBoxElementList->GetItemText(i,2).ToStdString());
             }
+            SetupPropGrid(m);
             break;
         }
     }
-
+    if (m == nullptr) {
+        propertyEditor->Freeze();
+        propertyEditor->Clear();
+        propertyEditor->Thaw();
+    }
+    selectedModel = m;
     if (CheckBoxOverlap->GetValue()) {
         for(int i=0;i<ListBoxElementList->GetItemCount();i++)
         {
@@ -322,28 +446,48 @@ void LayoutPanel::SelectModel(const std::string & name)
         }
     }
     UpdatePreview();
-
 }
 
 
 void LayoutPanel::OnButtonSetPreviewSizeClick(wxCommandEvent& event)
 {
-    xlights->OnButtonSetPreviewSizeClick(event);
+    int DlgResult;
+    dlgPreviewSize dialog(this);
+    dialog.TextCtrl_PreviewWidth->SetValue(wxString::Format("%d",modelPreview->GetVirtualCanvasWidth()));
+    dialog.TextCtrl_PreviewHeight->SetValue(wxString::Format("%d",modelPreview->GetVirtualCanvasHeight()));
+    dialog.CenterOnParent();
+    DlgResult = dialog.ShowModal();
+    if (DlgResult == wxID_OK)
+    {
+        if(!dialog.TextCtrl_PreviewWidth->IsEmpty() && !dialog.TextCtrl_PreviewHeight->IsEmpty())
+        {
+            int w = wxAtoi(dialog.TextCtrl_PreviewWidth->GetValue());
+            int h = wxAtoi(dialog.TextCtrl_PreviewHeight->GetValue());
+            if(w > 0 && h > 0)
+            {
+                xlights->SetPreviewSize(w,h);
+            }
+        }
+    }
 }
 
 void LayoutPanel::OnScaleImageCheckboxClick(wxCommandEvent& event)
 {
-    xlights->OnScaleImageCheckboxClick(event);
+    xlights->SetPreviewBackgroundScaled(event.GetInt());
 }
 
 void LayoutPanel::OnButtonSetBackgroundImageClick(wxCommandEvent& event)
 {
-    xlights->OnButtonSetBackgroundImageClick(event);
+    wxString filename = wxFileSelector( "Choose Background Image", xlights->CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN | wxFD_FILE_MUST_EXIST );
+    if (!filename.IsEmpty())
+    {
+        xlights->SetPreviewBackgroundImage(filename);
+    }
 }
 
 void LayoutPanel::OnSlider_BackgroundBrightnessCmdScroll(wxScrollEvent& event)
 {
-    xlights->OnSlider_BackgroundBrightnessCmdSliderUpdated(event);
+    xlights->SetPreviewBackgroundBrightness(event.GetPosition());
 }
 
 
@@ -615,6 +759,10 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
     }
     else if(modelCount>0)
     {
+        propertyEditor->Freeze();
+        propertyEditor->Clear();
+        propertyEditor->Thaw();
+
         if(xlights->PreviewModels[found[0]]->Selected)
         {
             xlights->PreviewModels[found[0]]->Selected = false;
@@ -738,6 +886,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         m->RotateWithHandles(modelPreview,event.ShiftDown(), event.GetPosition().x,y);
         m->UpdateXmlWithScale();
+        SetupPropGrid(m);
         xlights->UnsavedRgbEffectsChanges = true;
         TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",(int)(m->GetPreviewRotation())));
         UpdatePreview();
@@ -751,6 +900,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         TextCtrlPreviewElementHeight->SetValue(wxString::Format( "%0.1f",scaley*100.0));
         m->UpdateXmlWithScale();
         xlights->UnsavedRgbEffectsChanges = true;
+        SetupPropGrid(m);
         UpdatePreview();
     }
     else if (m_dragging && event.Dragging())

@@ -40,8 +40,11 @@ public:
         return virtualWidth;
     }
 	void SetbackgroundImage(wxString image);
+    const wxString &GetBackgroundImage() const { return mBackgroundImage;}
 	void SetBackgroundBrightness(int brightness);
+    int GetBackgroundBrightness() const { return mBackgroundBrightness;}
     void SetScaleBackgroundImage(bool b);
+    bool GetScaleBackgroundImage() const { return scaleImage; }
     
     void Render();
     void Render(const unsigned char *data);

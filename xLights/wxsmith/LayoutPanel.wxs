@@ -91,9 +91,8 @@
 					<sashpos>100</sashpos>
 					<minsize>10</minsize>
 					<orientation>vertical</orientation>
-					<minsize>-1,-1</minsize>
-					<object class="wxPanel" name="ID_PANEL5" variable="Panel1" member="yes">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
+					<object class="wxPanel" name="ID_PANEL5" variable="LeftPanel" member="yes">
+						<object class="wxFlexGridSizer" variable="LeftPanelSizer" member="no">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
 							<growablerows>2</growablerows>

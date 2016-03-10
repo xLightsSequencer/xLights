@@ -2242,28 +2242,6 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
     if (!value.empty()) AddNonDupAttr(retnode, attr, value);
     return retnode;
 }
-void xLightsFrame::OnButtonSetPreviewSizeClick(wxCommandEvent& event)
-{
-    int DlgResult;
-    dlgPreviewSize dialog(this);
-    dialog.TextCtrl_PreviewWidth->SetValue(wxString::Format("%d",modelPreview->GetVirtualCanvasWidth()));
-    dialog.TextCtrl_PreviewHeight->SetValue(wxString::Format("%d",modelPreview->GetVirtualCanvasHeight()));
-    dialog.CenterOnParent();
-    DlgResult = dialog.ShowModal();
-    if (DlgResult == wxID_OK)
-    {
-        if(!dialog.TextCtrl_PreviewWidth->IsEmpty() && !dialog.TextCtrl_PreviewHeight->IsEmpty())
-        {
-            int w = wxAtoi(dialog.TextCtrl_PreviewWidth->GetValue());
-            int h = wxAtoi(dialog.TextCtrl_PreviewHeight->GetValue());
-            if(w > 0 && h > 0)
-            {
-                SetPreviewSize(w,h);
-                UnsavedRgbEffectsChanges=true;
-            }
-        }
-    }
-}
 void xLightsFrame::SetPreviewSize(int width,int height)
 {
     layoutPanel->StaticTextCurrentPreviewSize->SetLabelText(wxString::Format("Size: %d x %d",width,height));

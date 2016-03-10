@@ -9,7 +9,7 @@ if [ "$CONFIGURATION" == "Release" ]; then
 SRCVER=3.1.0.0.0
 TARGETVER=3.1
 
-LIBS="baseu baseu_net baseu_xml osx_cocoau_core osx_cocoau_adv osx_cocoau_gl osx_cocoau_media osx_cocoau_html osx_cocoau_aui osx_cocoau_qa"
+LIBS="baseu baseu_net baseu_xml osx_cocoau_core osx_cocoau_adv osx_cocoau_gl osx_cocoau_media osx_cocoau_html osx_cocoau_aui osx_cocoau_qa osx_cocoau_propgrid"
 
 mkdir -p "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
 for L in $LIBS

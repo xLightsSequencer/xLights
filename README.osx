@@ -51,7 +51,7 @@ and unpack it.  Then, from inside a Terminal window:
                --enable-debug --enable-debug_info --disable-optimise --enable-macosx_arch=x86_64 \
                --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
                --with-macosx-version-min=10.7 --with-libjpeg=builtin --enable-cxx11 --enable-std_containers_compat \
-               --enable-backtrace --enable-exceptions --enable-ahi
+               --enable-backtrace --enable-exceptions --enable-aui
   make
   make install
 

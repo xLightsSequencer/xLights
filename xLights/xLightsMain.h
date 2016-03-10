@@ -1173,7 +1173,6 @@ private:
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     void UpdateGrid();
-    void SetPreviewSize(int width,int height);
     void SetXmlSetting(const wxString& settingName,const wxString& value);
     wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
 
@@ -1324,10 +1323,10 @@ private:
 	log4cpp::Category& _logger = log4cpp::Category::getRoot();
 public:
     //stuf used by layoutPanel for now
-    void OnScaleImageCheckboxClick(wxCommandEvent& event);
-    void OnButtonSetPreviewSizeClick(wxCommandEvent& event);
-    void OnButtonSetBackgroundImageClick(wxCommandEvent& event);
-    void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
+    void SetPreviewBackgroundScaled(bool scaled);
+    void SetPreviewSize(int width, int height);
+    void SetPreviewBackgroundImage(const wxString &filename);
+    void SetPreviewBackgroundBrightness(int i);
     void UpdatePreview();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);

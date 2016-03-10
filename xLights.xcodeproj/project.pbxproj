@@ -52,6 +52,7 @@
 		674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D231C207BD7000D632B /* AudioToolbox.framework */; };
 		674D3D261C207C25000D632B /* libpthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D251C207C25000D632B /* libpthread.tbd */; };
 		674E27A51B5B37B000274B20 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674E27A41B5B37B000274B20 /* GLUT.framework */; };
+		674E9C641C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 674E9C631C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib */; };
 		67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC71C73643900850363 /* osx_shared_mutex.cpp */; };
 		67582ECA1C73646300850363 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
 		675878DB1A89297200205A75 /* DataLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675878D91A89297200205A75 /* DataLayer.cpp */; };
@@ -386,6 +387,7 @@
 		674D3D231C207BD7000D632B /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		674D3D251C207C25000D632B /* libpthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpthread.tbd; path = usr/lib/libpthread.tbd; sourceTree = SDKROOT; };
 		674E27A41B5B37B000274B20 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		674E9C631C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_propgrid-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_propgrid-3.1.dylib"; sourceTree = "<group>"; };
 		67582EC71C73643900850363 /* osx_shared_mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = osx_shared_mutex.cpp; path = osx_utils/osx_shared_mutex.cpp; sourceTree = "<group>"; };
 		67582EC91C73646300850363 /* xlMacUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = xlMacUtils.mm; path = osx_utils/xlMacUtils.mm; sourceTree = "<group>"; };
 		675878D91A89297200205A75 /* DataLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataLayer.cpp; sourceTree = "<group>"; };
@@ -791,6 +793,7 @@
 				672BD4F51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.1.dylib in Frameworks */,
 				672BD4F61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.1.dylib in Frameworks */,
 				672BD4FD1C207D2E008F8B36 /* libwx_baseu_net-3.1.dylib in Frameworks */,
+				674E9C641C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib in Frameworks */,
 				67AA379E1C7E3703001D2377 /* SDL2.framework in Frameworks */,
 				672BD4FE1C207D2E008F8B36 /* libwx_baseu-3.1.dylib in Frameworks */,
 				672BD4FF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.1.dylib in Frameworks */,
@@ -1156,6 +1159,7 @@
 				67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */,
 				671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.1.dylib */,
 				672BD4E41C207D2E008F8B36 /* libwx_baseu_xml-3.1.dylib */,
+				674E9C631C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib */,
 				672BD4E51C207D2E008F8B36 /* libwx_osx_cocoau_aui-3.1.dylib */,
 				672BD4E61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.1.dylib */,
 				672BD4E71C207D2E008F8B36 /* libwx_osx_cocoau_propgrid-3.1.dylib */,
@@ -1809,6 +1813,7 @@
 					"$(PROJECT_DIR)/lib/osx",
 					/usr/lib,
 					/opt/local/libdbg,
+					/opt/local/lib,
 				);
 				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;

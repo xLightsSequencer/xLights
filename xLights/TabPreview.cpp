@@ -41,23 +41,17 @@ void xLightsFrame::SetModelAsPartOfDisplay(wxString& model)
     }
 }
 
-void xLightsFrame::OnButtonSetBackgroundImageClick(wxCommandEvent& event)
-{
-    wxString filename = wxFileSelector( "Choose Background Image", CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN | wxFD_FILE_MUST_EXIST );
-    if (!filename.IsEmpty())
-    {
-        mBackgroundImage = filename;
-        SetXmlSetting("backgroundImage",mBackgroundImage);
-        modelPreview->SetbackgroundImage(mBackgroundImage);
-        sPreview2->SetbackgroundImage(mBackgroundImage);
-        UnsavedRgbEffectsChanges=true;
-        UpdatePreview();
-    }
+void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename) {
+    mBackgroundImage = filename;
+    SetXmlSetting("backgroundImage",mBackgroundImage);
+    modelPreview->SetbackgroundImage(mBackgroundImage);
+    sPreview2->SetbackgroundImage(mBackgroundImage);
+    UnsavedRgbEffectsChanges=true;
+    UpdatePreview();
 }
 
-void xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event)
-{
-    mBackgroundBrightness = layoutPanel->Slider_BackgroundBrightness->GetValue();
+void xLightsFrame::SetPreviewBackgroundBrightness(int i) {
+    mBackgroundBrightness = i;
     SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
     modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
     sPreview2->SetBackgroundBrightness(mBackgroundBrightness);
@@ -65,11 +59,9 @@ void xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& 
     UpdatePreview();
 }
 
-
-void xLightsFrame::OnScaleImageCheckboxClick(wxCommandEvent& event)
-{
-    SetXmlSetting("scaleImage",wxString::Format("%d",layoutPanel->ScaleImageCheckbox->IsChecked()));
-    modelPreview->SetScaleBackgroundImage(layoutPanel->ScaleImageCheckbox->IsChecked());
-    sPreview2->SetScaleBackgroundImage(layoutPanel->ScaleImageCheckbox->IsChecked());
+void xLightsFrame::SetPreviewBackgroundScaled(bool scaled) {
+    SetXmlSetting("scaleImage",wxString::Format("%d",scaled));
+    modelPreview->SetScaleBackgroundImage(scaled);
+    sPreview2->SetScaleBackgroundImage(scaled);
     UnsavedRgbEffectsChanges=true;
 }

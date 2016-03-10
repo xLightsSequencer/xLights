@@ -16,8 +16,11 @@ class wxCheckBox;
 
 class xLightsFrame;
 class ModelPreview;
+class Model;
 class wxListEvent;
 class wxMouseEvent;
+class wxPropertyGrid;
+class wxPropertyGridEvent;
 
 #include <vector>
 
@@ -32,7 +35,6 @@ class LayoutPanel: public wxPanel
 		wxStaticText* StaticTextCurrentPreviewSize;
 		wxStaticText* StaticTextPreviewRotation;
 		wxSlider* SliderPreviewScaleWidth;
-		wxPanel* Panel1;
 		wxStaticText* StaticText37;
 		wxStaticText* StaticTextStartChannel;
 		wxSlider* SliderPreviewScaleHeight;
@@ -47,6 +49,7 @@ class LayoutPanel: public wxPanel
 		wxSplitterWindow* SplitterWindow2;
 		wxStaticText* StaticText23;
 		wxPanel* PreviewGLPanel;
+		wxPanel* LeftPanel;
 		wxTextCtrl* TextCtrlModelStartChannel;
 		wxSlider* SliderPreviewRotate;
 		wxCheckBox* ScaleImageCheckbox;
@@ -128,6 +131,8 @@ class LayoutPanel: public wxPanel
 		void OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event);
 		void OnListBoxElementListItemSelect(wxListEvent& event);
 		void OnListBoxElementListColumnClick(wxListEvent& event);
+        void OnPropertyGridChange(wxPropertyGridEvent& event);
+        void OnPropertyGridChanging(wxPropertyGridEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
@@ -136,6 +141,7 @@ class LayoutPanel: public wxPanel
         void UpdatePreview();
         void SelectModel(const std::string & name);
         void UnSelectAllModels();
+        void SetupPropGrid(Model *model);
 
     protected:
     void ShowModelProperties();
@@ -172,6 +178,9 @@ class LayoutPanel: public wxPanel
         int m_previous_mouse_x, m_previous_mouse_y;
         int mPointSize;
         int mHitTestNextSelectModelIndex;
+    
+        wxPropertyGrid *propertyEditor;
+        Model *selectedModel;
 
     public:
         xLightsFrame *xlights;
