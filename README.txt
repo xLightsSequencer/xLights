@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug (gil)   Restore the audacity style operation of the Play button and fix animation play/pause.  Fixes #493.
     -- enh (gil)   Connect ctrl-Z to Undo function.
     -- bug (gil)   Fix paste/keyboard placement of effects in partial cells.  Was broken by 2/11 checkin.
     -- bug (dkulp) When using keyboard shortcuts, don't apply defaults for the panels, use any settings they contain
