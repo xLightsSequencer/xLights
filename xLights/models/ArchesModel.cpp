@@ -1,4 +1,6 @@
 #include <wx/xml/xml.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
 
 #include "ArchesModel.h"
 
@@ -10,6 +12,47 @@ ArchesModel::ArchesModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zero
 ArchesModel::~ArchesModel()
 {
 }
+
+void ArchesModel::AddProperties(wxPropertyGridInterface *grid) {
+    Model::AddProperties(grid);
+    
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Arches", "ArchesCount", parm1));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("Nodes Per Arch", "ArchesNodes", parm2));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 250);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("Lights Per Node", "ArchesLights", parm3));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 250);
+    p->SetEditor("SpinCtrl");
+}
+int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if ("ArchesCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm1");
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("ArchesNodes" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm2");
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("ArchesLights" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm3");
+        ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    }
+
+    return Model::OnPropertyGridChange(grid, event);
+}
+
+
 
 void ArchesModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
     if (type == "Single Line") {

@@ -1,7 +1,11 @@
+#include <wx/wx.h>
+
 #include "Model.h"
 
 #include <wx/xml/xml.h>
 #include <wx/tokenzr.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
 
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsXmlFile.h"
@@ -40,6 +44,145 @@ Model::~Model() {
         delete modelDimmingCurve;
     }
 }
+
+static wxArrayString NODE_TYPES;
+static wxArrayString PIXEL_STYLES;
+
+void Model::AddProperties(wxPropertyGridInterface *grid) {
+    if (PIXEL_STYLES.empty()) {
+        PIXEL_STYLES.push_back("Square");
+        PIXEL_STYLES.push_back("Smooth");
+        PIXEL_STYLES.push_back("Solid Circle");
+        PIXEL_STYLES.push_back("Blended Circle");
+        
+        
+        NODE_TYPES.push_back("RGB Nodes");
+        NODE_TYPES.push_back("RBG Nodes");
+        NODE_TYPES.push_back("GBR Nodes");
+        NODE_TYPES.push_back("GRB Nodes");
+        NODE_TYPES.push_back("BRG Nodes");
+        NODE_TYPES.push_back("BGR Nodes");
+        NODE_TYPES.push_back("3 Channel RGB");
+        NODE_TYPES.push_back("4 Channel RGBW");
+        NODE_TYPES.push_back("Strobes");
+        NODE_TYPES.push_back("Single Color");
+    }
+    
+    wxPGProperty *p;
+    wxPGProperty *sp;
+    
+    grid->Append(new wxStringProperty("Type", "ModelType", DisplayAs))->Enable(false);
+
+    int i = NODE_TYPES.Index(StringType);
+    if (i == wxNOT_FOUND) {
+        i = NODE_TYPES.size() - 1;
+    }
+    p = grid->Append(new wxEnumProperty("String Type", "ModelStringType", NODE_TYPES, wxArrayInt(), i));
+    if (i == NODE_TYPES.size() - 1)  {
+        //get the color
+        wxColor v;
+        if (StringType=="Single Color Red") {
+            v = *wxRED;
+        } else if (StringType=="Single Color Green" || StringType == "G") {
+            v = *wxGREEN;
+        } else if (StringType=="Single Color Blue" || StringType == "B") {
+            v = *wxBLUE;
+        } else if (StringType=="Single Color White" || StringType == "W") {
+            v = *wxWHITE;
+        } else if (StringType=="Single Color Custom") {
+            v = customColor.asWxColor();
+        } else if (StringType[0] == '#') {
+            v = xlColor(StringType).asWxColor();
+        }
+        sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", v));
+    } else {
+        sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", *wxRED));
+        sp->Enable(false);
+    }
+
+    p = grid->Append(new wxStringProperty("Appearance", "ModelAppearance", ""));
+    p->Enable(false);
+    sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
+    sp->SetAttribute("Min", 1);
+    sp->SetAttribute("Max", 300);
+    sp->SetEditor("SpinCtrl");
+    
+    grid->AppendIn(p, new wxEnumProperty("Pixel Style", "ModelPixelStyle", PIXEL_STYLES, wxArrayInt(), pixelStyle));
+    sp = grid->AppendIn(p, new wxUIntProperty("Transparency", "ModelPixelTransparency", transparency));
+    sp->SetAttribute("Min", 0);
+    sp->SetAttribute("Max", 100);
+    sp->SetEditor("SpinCtrl");
+    sp = grid->AppendIn(p, new wxUIntProperty("Black Transparency", "ModelPixelBlackTransparency", blackTransparency));
+    sp->SetAttribute("Min", 0);
+    sp->SetAttribute("Max", 100);
+    sp->SetEditor("SpinCtrl");
+}
+
+static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
+    wxString tp = "Single Color Custom";
+    wxColour c;
+    c << p->GetValue();
+    if (c == *wxRED) {
+        tp = "Single Color Red";
+    } else if (c == *wxBLUE) {
+        tp = "Single Color Blue";
+    } else if (c == *wxGREEN) {
+        tp = "Single Color Green";
+    } else if (c == *wxWHITE) {
+        tp = "Single Color White";
+    } else {
+        xc = c;
+    }
+    return tp;
+}
+int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if (event.GetPropertyName() == "ModelAppearance.ModelPixelSize") {
+        pixelSize = event.GetValue().GetLong();
+        ModelXml->DeleteAttribute("PixelSize");
+        ModelXml->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));
+        return 3;
+    } else if (event.GetPropertyName() == "ModelAppearance.ModelPixelStyle") {
+        pixelStyle = event.GetValue().GetLong();
+        ModelXml->DeleteAttribute("Antialias");
+        ModelXml->AddAttribute("Antialias", wxString::Format("%d", pixelStyle));
+        return 3;
+    } else if (event.GetPropertyName() == "ModelAppearance.ModelPixelTransparency") {
+        transparency = event.GetValue().GetLong();
+        ModelXml->DeleteAttribute("Transparency");
+        ModelXml->AddAttribute("Transparency", wxString::Format("%d", pixelStyle));
+        return 3;
+    } else if (event.GetPropertyName() == "ModelAppearance.ModelPixelBlackTransparency") {
+        blackTransparency = event.GetValue().GetLong();
+        ModelXml->DeleteAttribute("BlackTransparency");
+        ModelXml->AddAttribute("BlackTransparency", wxString::Format("%d", pixelStyle));
+        return 3;
+    } else if (event.GetPropertyName() == "ModelStringType.ModelStringColor"
+               || event.GetPropertyName() == "ModelStringType") {
+        wxPGProperty *p2 = grid->GetPropertyByName("ModelStringType");
+        int i = p2->GetValue().GetLong();
+        ModelXml->DeleteAttribute("StringType");
+        if (i == NODE_TYPES.size() - 1) {
+            wxPGProperty *p = grid->GetPropertyByName("ModelStringType.ModelStringColor");
+            xlColor c;
+            wxString tp = GetColorString(p, c);
+            p->Enable();
+            if (tp == "Single Color Custom") {
+                ModelXml->DeleteAttribute("CustomColor");
+                xlColor xc = c;
+                ModelXml->AddAttribute("CustomColor", xc);
+            }
+            ModelXml->AddAttribute("StringType", tp);
+        } else {
+            ModelXml->AddAttribute("StringType", NODE_TYPES[i]);
+            grid->GetPropertyByName("ModelStringType.ModelStringColor")->Enable(false);
+        }
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    }
+    return 0;
+}
+
+
 
 bool Model::IsMyDisplay(wxXmlNode* ModelNode)
 {

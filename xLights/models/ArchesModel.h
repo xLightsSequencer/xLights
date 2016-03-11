@@ -15,6 +15,10 @@ class ArchesModel : public Model
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
     
+    
+        virtual void AddProperties(wxPropertyGridInterface *grid) override;
+        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+
     protected:
         virtual void InitModel() override;
         virtual int MapToNodeIndex(int strand, int node) const override;

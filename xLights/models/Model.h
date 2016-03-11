@@ -15,6 +15,8 @@ class wxXmlNode;
 class NetInfoClass;
 class ModelPreview;
 class wxArrayString;
+class wxPropertyGridInterface;
+class wxPropertyGridEvent;
 
 class Model
 {
@@ -42,6 +44,15 @@ public:
     virtual bool StrandsZigZagOnString() const { return false;};
     int GetDefaultBufferWi() const {return BufferWi;}
     int GetDefaultBufferHt() const {return BufferHt;}
+    
+    virtual void AddProperties(wxPropertyGridInterface *grid);
+    virtual void OnPropertyGridChanging(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
+    /**
+     * Returns a combination of:
+     *     0x0001  -  Refresh displays 
+     *     0x0002  -  Mark settings as "dirty"/"changed"
+     */
+    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
 protected:
     void ApplyTransform(const std::string &transform,
                         std::vector<NodeBaseClassPtr> &Nodes,

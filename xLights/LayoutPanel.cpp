@@ -230,6 +230,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     LeftPanelSizer->AddGrowableRow(13);
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
     propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
+    propertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
 }
 
 LayoutPanel::~LayoutPanel()
@@ -267,14 +268,36 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             newscalex *= 100.0;
             newscaley *= 100.0;
             PreviewScaleUpdated(newscalex, event.GetValue().GetDouble());
+        } else if ("ModelName" == name) {
+            if (selectedModel->name != event.GetValue().GetString().ToStdString()) {
+                xlights->RenameModelInViews(selectedModel->name, event.GetValue().GetString().ToStdString());
+            }
         } else {
-            printf("Changed %s   %s\n",
-                   event.GetPropertyName().ToStdString().c_str(),
-                   event.GetValue().GetString().ToStdString().c_str());
+            int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
+            if (i & 0x0001) {
+                xlights->UpdatePreview();
+            }
+            if (i & 0x0002) {
+                xlights->UnsavedRgbEffectsChanges = true;
+            }
+            if (i == 0) {
+                printf("Did not handle %s   %s\n",
+                       event.GetPropertyName().ToStdString().c_str(),
+                       event.GetValue().GetString().ToStdString().c_str());
+            }
         }
     }
 }
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
+    if (selectedModel != nullptr) {
+        if ("ModelName" == event.GetPropertyName()) {
+            if (xlights->AllModels[event.GetValue().GetString().ToStdString()] != nullptr) {
+                event.Veto();
+            }
+        } else {
+            selectedModel->OnPropertyGridChanging(propertyEditor, event);
+        }
+    }
     /*
     printf("Changing %s   %s\n",
            event.GetPropertyName().ToStdString().c_str(),
@@ -360,7 +383,9 @@ void LayoutPanel::SetupPropGrid(Model *model) {
     propertyEditor->Clear();
 
     wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Name", "ModelName", model->name));
-    prop->Enable(false); 
+    
+    model->AddProperties(propertyEditor);
+    
     prop = propertyEditor->Append(new wxFloatProperty("Width", "ModelWidth", newscalex));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.1);
