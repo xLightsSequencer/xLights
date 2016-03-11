@@ -344,6 +344,7 @@ void LayoutPanel::SelectModel(const std::string & name)
         {
             if (ListBoxElementList->GetItemState(i, wxLIST_STATE_SELECTED) == false) {
                 ListBoxElementList->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                ListBoxElementList->EnsureVisible(i);
                 return;
             }
             m=(Model*)ListBoxElementList->GetItemData(i);
