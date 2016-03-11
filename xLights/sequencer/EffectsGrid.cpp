@@ -1386,7 +1386,7 @@ void EffectsGrid::Paste(const wxString &data) {
             }
             else
             {
-                if(mCellRangeSelected)
+                if(mCellRangeSelected && !mPartialCellSelected)
                 {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
                     mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();
