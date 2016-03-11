@@ -173,8 +173,8 @@ wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
-static const wxString xlights_version_string  = "2016.10";
-static const wxString xlights_build_date      = "Mar 3, 2016";
+static const wxString xlights_version_string  = "2016.12";
+static const wxString xlights_build_date      = "Mar 10, 2016";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xml)|*.xml";
@@ -330,7 +330,9 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(const std::string &modelName, const std::string &name, const SettingsMap &settings, const SettingsMap &palette);
+    void SetEffectControls(const std::string &modelName, const std::string &name,
+                           const SettingsMap &settings, const SettingsMap &palette,
+                           bool setDefaults);
     void SetEffectControls(const SettingsMap &settings);
     bool SaveEffectsFile();
     void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }

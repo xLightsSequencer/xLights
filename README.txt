@@ -7,9 +7,27 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh (gil)   Connect ctrl-Z to Undo function.
+    -- bug (gil)   Fix paste/keyboard placement of effects in partial cells.  Was broken by 2/11 checkin.
+    -- bug (dkulp) When using keyboard shortcuts, don't apply defaults for the panels, use any settings they contain
+2016.12  Mar 10, 2016
+    -- bug (dkulp) Fixed long save times when a model is off the screen.
+    -- bug (dkulp) Fix corrupt perspective section. Fix is to Delete attribute before setting it
+    -- bug (gil) Restore pause and stop for effect preview.
+2016.11  Mar 8, 2016
+    -- bug (sean)    Modified Windows install script to it always prompts for install directory
+    -- enh (sean)    Updated xlights icon images from Charles Suhr. Fixes ragged edge.
+    -- enh (keithsw) Add video looping
+    -- bug (keithsw) Fix some video formats that were not playing
+    -- bug (keithsw) Fix audio controls on the toolbar
+    -- bug (gil)     Fix bug moving effects that aren't fully visible.  Fixes #488.
+    -- bug (gil)     Allow min period effects to move with mouse.  Fixes #479.
+    -- bug (dkulp)   Imports from other formats were generating invalid key ID's
+    -- bug (dkulp)   Pictures imported from SS were not displaying properly
+    -- enh (dkulp)   Update On/ColorWash to only output non-defaults in XML
 2016.10  Mar 3, 2016
-	-- enh (keithsw) Support old-school CTRL-INSERT, SHIFT-INSERT and SHIFT-DELETE (windows only)
-    -- bug (dkulp)   Fix probelm with first pixel with grouped arches in SingleStrand . Fixes #474
+    -- enh (keithsw) Support old-school CTRL-INSERT, SHIFT-INSERT and SHIFT-DELETE (windows only)
+    -- bug (dkulp)   Fix problem with first pixel with grouped arches in SingleStrand . Fixes #474
     -- bug (dkulp)   Fix crash on close when preview running
     -- bug (dkulp)   Fix color/blur sliders not updating to defaults.  Fixes #477.  Fixes #476.
     -- enh (dkulp)   Split Layer Timing panel into two panels (Layer Blending and Layer Settings)

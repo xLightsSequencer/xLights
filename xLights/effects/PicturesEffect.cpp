@@ -271,8 +271,8 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap.GetInt("SLIDER_PicturesYC"),
            SettingsMap.GetInt("SLIDER_PicturesEndXC"),
            SettingsMap.GetInt("SLIDER_PicturesEndYC"),
-           SettingsMap.GetInt("SLIDER_Pictures_StartScale"),
-           SettingsMap.GetInt("SLIDER_Pictures_EndScale"),
+           SettingsMap.GetInt("SLIDER_Pictures_StartScale", 100),
+           SettingsMap.GetInt("SLIDER_Pictures_EndScale", 100),
            SettingsMap.GetBool("CHECKBOX_Pictures_ScaleToFit"),
            SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets"),
            SettingsMap.GetBool("CHECKBOX_Pictures_WrapX"));

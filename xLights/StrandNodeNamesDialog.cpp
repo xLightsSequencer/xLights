@@ -1,9 +1,9 @@
 #include "StrandNodeNamesDialog.h"
 
 //(*InternalHeaders(StrandNodeNamesDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(StrandNodeNamesDialog)
@@ -19,10 +19,10 @@ END_EVENT_TABLE()
 StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(StrandNodeNamesDialog)
-	wxStaticText* StaticText2;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
-	wxFlexGridSizer* FlexGridSizer1;
+	wxStaticText* StaticText2;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
@@ -45,15 +45,15 @@ StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,cons
 	StrandsGrid->EnableGridLines(true);
 	StrandsGrid->SetDefaultCellFont( StrandsGrid->GetFont() );
 	StrandsGrid->SetDefaultCellTextColour( StrandsGrid->GetForegroundColour() );
-	FlexGridSizer2->Add(StrandsGrid, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(StrandsGrid, 1, wxALL|wxEXPAND, 5);
 	NodesGrid = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID1"));
 	NodesGrid->CreateGrid(10,1);
 	NodesGrid->EnableEditing(true);
 	NodesGrid->EnableGridLines(true);
 	NodesGrid->SetDefaultCellFont( NodesGrid->GetFont() );
 	NodesGrid->SetDefaultCellTextColour( NodesGrid->GetForegroundColour() );
-	FlexGridSizer2->Add(NodesGrid, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(NodesGrid, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));

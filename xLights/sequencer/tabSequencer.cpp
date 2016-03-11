@@ -42,7 +42,7 @@ void xLightsFrame::CreateSequencer()
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
-    
+
     sPreview1 = new ModelPreview(PanelSequencer);
     m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    Left().Layer(1));
@@ -57,7 +57,7 @@ void xLightsFrame::CreateSequencer()
     effectsPnl->EffectSizer->Add(EffectsPanel1, wxEXPAND);
     effectsPnl->MainSizer->Fit(effectsPnl);
     effectsPnl->MainSizer->SetSizeHints(effectsPnl);
-    
+
     sEffectAssist = new EffectAssist(PanelSequencer);
     m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).
                    Left().Layer(1));
@@ -92,7 +92,7 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
-    
+
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
     m_mgr->Update();
@@ -207,7 +207,7 @@ void xLightsFrame::CheckForValidModels()
             ModelNames.push_back(it->first);
         }
     }
-    
+
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
         if ("model" == mSequenceElements.GetElement(x)->GetType()) {
             std::string name = mSequenceElements.GetElement(x)->GetName();
@@ -216,7 +216,7 @@ void xLightsFrame::CheckForValidModels()
             Remove(ModelNames, name);
         }
     }
-    
+
     SeqElementMismatchDialog dialog(this);
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
         if ("model" == mSequenceElements.GetElement(x)->GetType()) {
@@ -265,7 +265,7 @@ void xLightsFrame::CheckForValidModels()
                     choices.push_back("Delete the model in the sequence");
                     choices.push_back("Map the Strand/Node effects to different models");
                     choices.push_back("Ignore (Handle Later) - Effects will not render");
-                    
+
                     wxSingleChoiceDialog dlg(this, "Model " + name + " is a Model Group but has Node/Strand effects.\n"
                                              + "How should we handle this?",
                                              "Warning", choices);
@@ -598,7 +598,8 @@ void xLightsFrame::EffectChanged(wxCommandEvent& event)
 {
     Effect* effect = (Effect*)event.GetClientData();
     SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
-                      effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
+                      effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
+                      true);
     selectedEffectString = "";  // force update to effect rendering
 }
 
@@ -629,7 +630,8 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             resetStrings = true;
         }
         SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
-                          effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
+                          effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
+                          !event.GetInt());
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
         if (effect->GetPaletteMap().empty() || resetStrings) {
@@ -715,7 +717,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     if (playType != PLAY_TYPE_MODEL && last_effect_created != NULL)
     {
         SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetName(),
-                          last_effect_created->GetEffectName(), last_effect_created->GetSettings(), last_effect_created->GetPaletteMap());
+                          last_effect_created->GetEffectName(), last_effect_created->GetSettings(),
+                          last_effect_created->GetPaletteMap(), false);
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = last_effect_created;
     }
@@ -908,7 +911,7 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
 		}
-		else if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING && playType == PLAY_TYPE_MODEL)
+		else if (playType == PLAY_TYPE_EFFECT || playType == PLAY_TYPE_MODEL)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
@@ -917,7 +920,7 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
 		}
-		else if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PAUSED && playType == PLAY_TYPE_MODEL_PAUSED)
+		else if (playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_MODEL_PAUSED)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, true);
@@ -1178,7 +1181,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
         int current_play_time = 0;
 #ifdef USE_WXMEDIAPLAYER
-		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && PlayerDlg->GetState() == wxMEDIASTATE_PLAYING) 
+		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && PlayerDlg->GetState() == wxMEDIASTATE_PLAYING)
 		{
 			current_play_time = PlayerDlg->Tell();
 #else
@@ -1187,7 +1190,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 			current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
 #endif
             curt = current_play_time;
-        } else 
+        } else
 		{
             current_play_time = curt;
         }
@@ -1276,19 +1279,23 @@ void xLightsFrame::TimerRgbSeq(long msec)
     sPreview2->Render(&SeqData[frame][0]);
 }
 
-void xLightsFrame::SetEffectControls(const std::string &modelName, const std::string &effectName, const SettingsMap &settings, const SettingsMap &palette) {
+void xLightsFrame::SetEffectControls(const std::string &modelName, const std::string &effectName,
+                                     const SettingsMap &settings, const SettingsMap &palette,
+                                     bool setDefaults) {
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
-    if (modelName == "") {
-        EffectsPanel1->SetDefaultEffectValues(nullptr, effectName);
-        timingPanel->SetDefaultControls(nullptr);
-        bufferPanel->SetDefaultControls(nullptr);
-        colorPanel->SetDefaultSettings();
-    } else {
-        Model *model = GetModel(modelName);
-        EffectsPanel1->SetDefaultEffectValues(model, effectName);
-        timingPanel->SetDefaultControls(model);
-        bufferPanel->SetDefaultControls(model);
-        colorPanel->SetDefaultSettings();
+    if (setDefaults) {
+        if (modelName == "") {
+            EffectsPanel1->SetDefaultEffectValues(nullptr, effectName);
+            timingPanel->SetDefaultControls(nullptr);
+            bufferPanel->SetDefaultControls(nullptr);
+            colorPanel->SetDefaultSettings();
+        } else {
+            Model *model = GetModel(modelName);
+            EffectsPanel1->SetDefaultEffectValues(model, effectName);
+            timingPanel->SetDefaultControls(model);
+            bufferPanel->SetDefaultControls(model);
+            colorPanel->SetDefaultSettings();
+        }
     }
     SetEffectControls(settings);
     SetEffectControls(palette);
@@ -1403,7 +1410,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
             {
                 wxFilePickerCtrl *picker = (wxFilePickerCtrl*)CtrlWin;
                 picker->SetFileName(value);
-                
+
                 wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, picker, picker->GetId(), value);
                 evt.SetEventObject(picker);
                 picker->ProcessWindowEvent(evt);
@@ -1440,9 +1447,8 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
 std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
 {
-    wxWindow*  window = (wxWindow*)EffectsPanel1->EffectChoicebook->GetPage(EffectsPanel1->EffectChoicebook->GetSelection());
-    // This is needed because of the "Off" effect that does not return any text.
-    std::string effectText = EffectsPanel1->GetEffectStringFromWindow(window).ToStdString();
+    RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
+    std::string effectText = eff->GetEffectString();
     if (effectText.size() > 0 && effectText[effectText.size()-1] != ',') {
         effectText += ",";
     }
@@ -1475,12 +1481,12 @@ void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
         mCurrentPerpective->AddAttribute("settings", settings);
         mCurrentPerpective->AddAttribute("version", "2.0");
     }
-    
+
     m_mgr->LoadPerspective(settings,true);
     if (perspective->GetAttribute("version", "1.0") == "1.0") {
         //title on Layer Timing panel changed
         m_mgr->GetPane("LayerTiming").Caption("Layer Blending");
-        
+
         //did not have the layer settings panel
         m_mgr->GetPane("LayerSettings").Caption("Layer Settings").Dock().Left().Show();
 
@@ -1488,6 +1494,7 @@ void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
         sPreview2->Refresh(false);
         m_mgr->Update();
 
+        perspective->DeleteAttribute("settings");
         perspective->DeleteAttribute("version");
         perspective->AddAttribute("version", "2.0");
         perspective->AddAttribute("settings", m_mgr->SavePerspective());
@@ -1496,7 +1503,7 @@ void xLightsFrame::LoadPerspective(wxXmlNode *perspective) {
         sPreview2->Refresh(false);
         m_mgr->Update();
     }
-    
+
     if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF )
     {
         SetEffectAssistWindowState(false);
@@ -1790,29 +1797,13 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
 
                     int i = colors[x].asHSV().value * 100.0;
                     int i2 = colors[x + len - 1].asHSV().value * 100.0;
-                    std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2).ToStdString()
-                        + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,E_TEXTCTRL_On_Cycles=1.0,"
-                        "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-                        "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_CircularPalette=0,E_TEXTCTRL_ColorWash_Cycles=1.0";
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1,"
-                        "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
-                        "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                        "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-
+                    std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2).ToStdString();
+                    std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
                     layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
                 } else {
-
-                    std::string settings = "E_CHECKBOX_ColorWash_EntireModel=1,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
-                        "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
-                        "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                        "T_CHOICE_LayerMethod=Effect 1,T_SLIDER_EffectLayerMix=0,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
-
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
-                        "C_BUTTON_Palette2=" + (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1,"
-                        "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                        "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-
-                    layer->AddEffect(0, "Color Wash", settings, palette, stime, etime, false, false);
+                        "C_BUTTON_Palette2=" + (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
+                    layer->AddEffect(0, "Color Wash", "", palette, stime, etime, false, false);
                 }
                 for (int z = 0; z < len; z++) {
                     //clear it
@@ -1822,21 +1813,14 @@ void xLightsFrame::ConvertDataRowToEffects(EffectLayer *layer, xlColorVector &co
         }
     }
 
-    std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100"
-        ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-        "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,"
-        "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
     for (int x = 0; x < colors.size(); x++) {
         if (lastColor != colors[x]) {
             int time = x * frameTime;
             if (lastColor != xlBLACK) {
-                std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1,"
-                    "C_BUTTON_Palette2=#FFFFFF,C_CHECKBOX_Palette2=0,"
-                    "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                    "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1";
 
                 if (time != startTime) {
-                    layer->AddEffect(0, "On", settings, palette, startTime, time, false, false);
+                    layer->AddEffect(0, "On", "", palette, startTime, time, false, false);
                 }
             }
             startTime = time;

@@ -18,18 +18,18 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_ColorWash_Cycles" variable="Slider_ColorWash_Count" member="no">
+						<object class="wxSlider" name="IDD_SLIDER_ColorWash_Cycles" variable="SliderCycles" member="yes">
 							<value>10</value>
 							<min>1</min>
 							<max>200</max>
 							<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_ColorWash_Cycles" variable="TextCtrl10" member="no">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_ColorWash_Cycles" variable="CyclesTextCtrl" member="yes">
 							<value>1.0</value>
 							<maxlength>3</maxlength>
 							<size>20,-1d</size>
@@ -53,7 +53,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -62,7 +62,7 @@
 					<cols>4</cols>
 					<growablecols>2</growablecols>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_VFade" variable="CheckBox_ColorWash_VFade" member="yes">
+						<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_VFade" variable="VFadeCheckBox" member="yes">
 							<label>Vertical Fade</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -83,7 +83,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_HFade" variable="CheckBox_ColorWash_HFade" member="yes">
+						<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_HFade" variable="HFadeCheckBox" member="yes">
 							<label>Horizontal Fade</label>
 						</object>
 						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -116,7 +116,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer124" member="no">
 							<cols>3</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_EntireModel" variable="ColorWashEntireModelCheckbox" member="no">
+								<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_EntireModel" variable="EntireModelCheckbox" member="yes">
 									<label>Entire Model</label>
 									<checked>1</checked>
 									<handler function="OnColorWashEntireModelClicked" entry="EVT_CHECKBOX" />
@@ -126,7 +126,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_Shimmer" variable="CheckBox3" member="no">
+								<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_Shimmer" variable="ShimmerCheckBox" member="yes">
 									<label>Shimmer</label>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -134,7 +134,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_CircularPalette" variable="CheckBox4" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_CircularPalette" variable="CircularPaletteCheckBox" member="yes">
 									<label>Circular Palette</label>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -142,11 +142,11 @@
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxNotebook" name="IDD_NOTEBOOK_ColorWashRect" variable="Notebook5" member="no">
+						<object class="wxNotebook" name="IDD_NOTEBOOK_ColorWashRect" variable="CornersNotebook" member="yes">
 							<enabled>0</enabled>
 							<object class="notebookpage">
 								<object class="wxPanel" name="ID_PANEL46" variable="Panel13" member="no">
@@ -167,10 +167,10 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_ColorWash_X1" variable="Slider3" member="no">
+													<object class="wxSlider" name="ID_SLIDER_ColorWash_X1" variable="C1SliderX" member="yes">
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -192,7 +192,7 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -223,7 +223,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_ColorWash_Y1" variable="Slider4" member="no">
+													<object class="wxSlider" name="ID_SLIDER_ColorWash_Y1" variable="C1SliderY" member="yes">
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
@@ -262,11 +262,11 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_ColorWash_X2" variable="Slider5" member="no">
+													<object class="wxSlider" name="ID_SLIDER_ColorWash_X2" variable="C2SliderX" member="yes">
 														<value>100</value>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -288,7 +288,7 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -319,7 +319,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_ColorWash_Y2" variable="Slider6" member="no">
+													<object class="wxSlider" name="ID_SLIDER_ColorWash_Y2" variable="C2SliderY" member="yes">
 														<value>100</value>
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -341,12 +341,12 @@
 								<label>Corner 2</label>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

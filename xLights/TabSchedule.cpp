@@ -69,12 +69,12 @@ void xLightsFrame::AddPlaylist(const wxString& name)
     FlexGridSizer4->AddGrowableCol(3);
     FlexGridSizer4->AddGrowableRow(2);
     wxStaticText* StaticText1 = new wxStaticText(PanelPlayList, -1, _("Available Files"));
-    wxFont StaticText1Font(10,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+    wxFont StaticText1Font(10,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
     StaticText1->SetFont(StaticText1Font);
     FlexGridSizer4->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     wxStaticText* StaticText2 = new wxStaticText(PanelPlayList, -1, _("Playlist"));
-    wxFont StaticText2Font(10,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+    wxFont StaticText2Font(10,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
     StaticText2->SetFont(StaticText2Font);
     FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -164,7 +164,7 @@ void xLightsFrame::AddPlaylist(const wxString& name)
 
     id=baseid+PLAYLIST_FILES;
     wxTreeCtrl* TreeCtrl = new wxTreeCtrl(PanelPlayList, id);
-    FlexGridSizer4->Add(TreeCtrl, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(TreeCtrl, 1, wxALL|wxEXPAND, 5);
 
     wxBoxSizer* BoxSizer5 = new wxBoxSizer(wxVERTICAL);
 
@@ -205,11 +205,11 @@ void xLightsFrame::AddPlaylist(const wxString& name)
     ListBox1->SetToolTip(_("Drag an item to reorder the list"));
 #endif
     Connect(id, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsFrame::OnPlayListBeginDrag);
-    FlexGridSizer4->Add(ListBox1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(ListBox1, 1, wxALL|wxEXPAND, 5);
 
     id=baseid+PLAYLIST_LOGIC;
     wxTextCtrl* TextCtrlLogic = new wxTextCtrl(PanelPlayList, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxHSCROLL, wxDefaultValidator, _T("ID_TEXTCTRL_LOGIC"));
-    FlexGridSizer4->Add(TextCtrlLogic, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(TextCtrlLogic, 1, wxALL|wxEXPAND, 5);
     TextCtrlLogic->Hide();
 
     PanelPlayList->SetSizer(FlexGridSizer4);

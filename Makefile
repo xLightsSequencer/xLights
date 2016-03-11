@@ -1,5 +1,5 @@
 
-INSTALL_ROOT    =
+DESTDIR    =
 PREFIX          = /usr/local
 
 # Ignore some warnings for now to make compile output cleaner
@@ -41,18 +41,18 @@ $(addsuffix _clean,$(SUBDIRS)):
 #############################################################################
 
 install:
-	@$(CHK_DIR_EXISTS) $(INSTALL_ROOT)/${PREFIX}/bin || $(MKDIR) $(INSTALL_ROOT)/${PREFIX}/bin
-	-$(INSTALL_PROGRAM) bin/xLights $(INSTALL_ROOT)/${PREFIX}/bin/xLights
-	-$(INSTALL_PROGRAM) bin/xlights.desktop $(INSTALL_ROOT)/${PREFIX}/share/applications/xlights.desktop
-	install -d -m 755 $(INSTALL_ROOT)/${PREFIX}/share/xLights/piano
-	cp -r piano/* $(INSTALL_ROOT)/${PREFIX}/share/xLights/piano
-	install -d -m 755 $(INSTALL_ROOT)/${PREFIX}/share/xLights/songs
-	cp -r songs/* $(INSTALL_ROOT)/${PREFIX}/share/xLights/songs
-	$(foreach size, $(ICON_SIZES), install -D -m 644 xLights/Images.xcassets/AppIcon.appiconset/$(size).png $(INSTALL_ROOT)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
+	@$(CHK_DIR_EXISTS) $(DESTDIR)/${PREFIX}/bin || $(MKDIR) $(DESTDIR)/${PREFIX}/bin
+	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
+	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/piano
+	cp -r piano/* $(DESTDIR)/${PREFIX}/share/xLights/piano
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
+	cp -r songs/* $(DESTDIR)/${PREFIX}/share/xLights/songs
+	$(foreach size, $(ICON_SIZES), install -D -m 644 xLights/Images.xcassets/AppIcon.appiconset/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
 
 uninstall:
-	-$(DEL_FILE) $(INSTALL_ROOT)/${PREFIX}/bin/xLights
-	-$(DEL_FILE) $(INSTALL_ROOT)/${PREFIX}/share/applications/xlights.desktop
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 
 #############################################################################
 

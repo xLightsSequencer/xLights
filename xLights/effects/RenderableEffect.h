@@ -14,6 +14,8 @@ class SequenceElements;
 class Effect;
 class SettingsMap;
 class RenderBuffer;
+class wxSlider;
+class wxCheckBox;
 
 class RenderableEffect
 {
@@ -38,6 +40,7 @@ class RenderableEffect
 
         wxPanel *GetPanel(wxWindow *parent);
         virtual void SetDefaultParameters(Model *cls) {}
+        virtual std::string GetEffectString();
 
         //Methods for rendering the effect
         virtual bool CanRenderOnBackgroundThread() { return true; }
@@ -57,6 +60,9 @@ class RenderableEffect
         virtual bool HasAssistPanel() { return false; }
 
     protected:
+        static void SetSliderValue(wxSlider *slider, int value);
+        static void SetCheckBoxValue(wxCheckBox *w, bool b);
+    
         bool IsVersionOlder(const std::string& compare, const std::string& version);
         void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors);
 

@@ -121,6 +121,7 @@ class AudioManager
 	float _bigspread;
 	float _bigmin;
 	float _bigspectogrammax;
+	MEDIAPLAYINGSTATE _media_state;
 
 #ifdef USE_MPG123
 	int _encoding;

@@ -38,16 +38,16 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSlider" name="IDD_SLIDER_Eff_On_Start" variable="Slider_Eff_On_Start" member="no">
+								<object class="wxSlider" name="IDD_SLIDER_Eff_On_Start" variable="SliderStart" member="yes">
 									<value>100</value>
 									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
-								<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_Start" variable="TextCtrl_Eff_On_Start" member="no">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_Start" variable="TextCtrlStart" member="yes">
 									<value>100</value>
 									<size>20,-1d</size>
 									<style>wxTE_PROCESS_ENTER</style>
@@ -66,16 +66,16 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSlider" name="IDD_SLIDER_Eff_On_End" variable="Slider_Eff_On_End" member="no">
+								<object class="wxSlider" name="IDD_SLIDER_Eff_On_End" variable="SliderEnd" member="yes">
 									<value>100</value>
 									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
-								<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_End" variable="TextCtrl_Eff_On_End" member="no">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_End" variable="TextCtrlEnd" member="yes">
 									<value>100</value>
 									<size>20,-1d</size>
 									<style>wxTE_PROCESS_ENTER</style>
@@ -94,17 +94,17 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSlider" name="IDD_SLIDER_On_Cycles" variable="Slider7" member="no">
+								<object class="wxSlider" name="IDD_SLIDER_On_Cycles" variable="SliderCycles" member="yes">
 									<value>10</value>
 									<max>200</max>
 									<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
-								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_On_Cycles" variable="TextCtrl24" member="no">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL_On_Cycles" variable="TextCtrlCycles" member="yes">
 									<value>1.0</value>
 									<maxlength>4</maxlength>
 									<size>20,-1d</size>
@@ -115,17 +115,17 @@
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_On_Shimmer" variable="CheckBox2" member="no">
+				<object class="wxCheckBox" name="ID_CHECKBOX_On_Shimmer" variable="CheckBoxShimmer" member="yes">
 					<label>Shimmer</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

@@ -56,7 +56,8 @@ class VideoEffect : public RenderableEffect
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
         void Render(RenderBuffer &buffer,
 					const std::string& filename, double starttime, bool keepaspectratio, bool loop);
-        virtual bool CanRenderOnBackgroundThread();
+        virtual bool CanBeRandom() {return false;}
+
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
 };

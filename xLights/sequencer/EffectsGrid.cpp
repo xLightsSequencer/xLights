@@ -373,7 +373,7 @@ void EffectsGrid::FillRandomEffects()
                                                   EFFECT_SELECTED,
                                                   false);
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetName(), effectLayer->GetIndex(), ef->GetID() );
-                        RaiseSelectedEffectChanged(ef);
+                        RaiseSelectedEffectChanged(ef, true);
                         mSelectedEffect = ef;
                     }
                 }
@@ -395,14 +395,14 @@ void EffectsGrid::FillRandomEffects()
                                        false);
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
-            RaiseSelectedEffectChanged(ef);
+            RaiseSelectedEffectChanged(ef, true);
             mSelectedEffect = ef;
             if (!ef->GetPaletteMap().empty()) {
                 sendRenderEvent(el->GetParentElement()->GetName(),
                                 mDropStartTimeMS,
                                 mDropEndTimeMS, true);
             }
-            RaiseSelectedEffectChanged(ef);
+            RaiseSelectedEffectChanged(ef, true);
             mPartialCellSelected = false;
         }
     }
@@ -747,7 +747,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             {
                 mSelectedRow = row;
                 mSelectedEffect = selectedEffect;
-                RaiseSelectedEffectChanged(mSelectedEffect);
+                RaiseSelectedEffectChanged(mSelectedEffect, false);
                 RaisePlayModelEffect(element,mSelectedEffect,false);
             }
         }
@@ -1386,7 +1386,7 @@ void EffectsGrid::Paste(const wxString &data) {
             }
             else
             {
-                if(mCellRangeSelected)
+                if(mCellRangeSelected && !mPartialCellSelected)
                 {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
                     mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();
@@ -1422,7 +1422,7 @@ void EffectsGrid::Paste(const wxString &data) {
                                             mDropStartTimeMS,
                                             mDropEndTimeMS, true);
                         }
-                        RaiseSelectedEffectChanged(ef);
+                        RaiseSelectedEffectChanged(ef, true);
                         mSelectedEffect = ef;
                         mPartialCellSelected = false;
                         mSelectedRow = mDropRow;
@@ -1479,7 +1479,7 @@ void EffectsGrid::Paste(const wxString &data) {
                                       EFFECT_SELECTED,
                                       false);
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
-                            RaiseSelectedEffectChanged(ef);
+                            RaiseSelectedEffectChanged(ef, true);
                             mSelectedEffect = ef;
                          }
                     }
@@ -1508,8 +1508,11 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
     }
     else if(mResizingMode == EFFECT_RESIZE_MOVE)
     {
-        int midpoint = mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS() +
-                            (mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS() - mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS()) / 2;
+        EFFECT_SCREEN_MODE mode;
+        int x1,x2,x3,x4;
+        mTimeline->GetPositionsFromTimeRange(mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS(),
+                                             mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS(),mode,x1,x2,x3,x4);
+        int midpoint = mTimeline->GetTimeMSfromPosition((x1+x2)/2) + mTimeline->GetStartTimeMS();
         deltaTime = time - midpoint;
     }
     deltaTime = mTimeline->RoundToMultipleOfPeriod(deltaTime, mSequenceElements->GetFrequency());
@@ -2307,11 +2310,12 @@ int EffectsGrid::GetRow(int y)
     return y/DEFAULT_ROW_HEADING_HEIGHT;
 }
 
-void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect)
+void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect, bool isNew)
 {
     // Place effect pointer in client data
     wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
     eventEffectChanged.SetClientData(effect);
+    eventEffectChanged.SetInt(isNew);
     wxPostEvent(GetParent(), eventEffectChanged);
 }
 

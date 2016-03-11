@@ -74,7 +74,9 @@
 #define HAVE_STRTOL 1
 #define HAVE_STRTOUL    1
 #define HAVE_STRTOLL    1
+#ifndef HAVE_STRTOULL
 #define HAVE_STRTOULL   1
+#endif
 #define HAVE_STRTOD 1
 #define HAVE_ATOI   1
 #define HAVE_ATOF   1

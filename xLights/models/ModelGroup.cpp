@@ -84,6 +84,24 @@ ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, 
             maxy = std::max(maxy, coord->screenY);
         }
     }
+    if (miny < 0) {
+        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+            for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); coord++) {
+                coord->screenY -= miny;
+            }
+        }
+        maxy -= miny;
+        miny = 0;
+    }
+    if (minx < 0) {
+        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+            for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); coord++) {
+                coord->screenX -= minx;
+            }
+        }
+        maxx -= minx;
+        minx = 0;
+    }
     float midX = (minx + maxx) / 2.0;
     float midY = (miny + maxy) / 2.0;
     bool minimal = layout != "grid";

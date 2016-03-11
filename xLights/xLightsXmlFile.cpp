@@ -831,6 +831,7 @@ bool xLightsXmlFile::Open(const wxString& ShowDir)
     {
         return LoadSequence(ShowDir);
     }
+    return false;
 }
 
 wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)

@@ -272,7 +272,7 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
 #ifdef __WXMSW__
 			if (!GetKeyState(VK_LSHIFT) && !GetKeyState(VK_RSHIFT))
 #endif
-			{	
+			{
 				// Delete
 				PanelEffectGrid->DeleteSelectedEffects();
 				event.StopPropagation();
@@ -375,6 +375,17 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case WXK_CONTROL_V:
             if (event.CmdDown() || event.ControlDown()) {
                 Paste();
+                event.StopPropagation();
+            }
+            break;
+        case 'z':
+        case 'Z':
+        case WXK_CONTROL_Z:
+            if (event.CmdDown() || event.ControlDown()) {
+                if( mSequenceElements->get_undo_mgr().CanUndo() ) {
+                    mSequenceElements->get_undo_mgr().UndoLastStep();
+                    PanelEffectGrid->Refresh();
+                }
                 event.StopPropagation();
             }
             break;

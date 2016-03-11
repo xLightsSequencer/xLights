@@ -22,13 +22,22 @@ class ColorWashPanel: public wxPanel
 		virtual ~ColorWashPanel();
 
 		//(*Declarations(ColorWashPanel)
-		wxCheckBox* CheckBox4;
+		wxCheckBox* ShimmerCheckBox;
+		wxSlider* SliderCycles;
+		wxSlider* C2SliderX;
+		wxCheckBox* CircularPaletteCheckBox;
+		wxSlider* C1SliderY;
+		wxSlider* C1SliderX;
+		wxCheckBox* VFadeCheckBox;
 		wxBitmapButton* BitmapButton_ColorWashVFade;
-		wxCheckBox* CheckBox_ColorWash_HFade;
+		wxCheckBox* HFadeCheckBox;
+		wxNotebook* CornersNotebook;
+		wxCheckBox* EntireModelCheckbox;
 		wxStaticText* StaticText5;
+		wxTextCtrl* CyclesTextCtrl;
 		wxBitmapButton* BitmapButton_ColorWashHFade;
 		wxBitmapButton* BitmapButton_ColorWashCount;
-		wxCheckBox* CheckBox_ColorWash_VFade;
+		wxSlider* C2SliderY;
 		//*)
 
 

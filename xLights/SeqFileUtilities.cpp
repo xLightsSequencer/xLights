@@ -1699,56 +1699,30 @@ void LoadRGBData(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *rc
         if (ec == sc) {
             if (ec != xlBLACK) {
                 std::string palette = "C_BUTTON_Palette1=" + (std::string)sc + ",C_CHECKBOX_Palette1=1,"
-                    + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
-                    + "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                    + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-
-                std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100"
-                    ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                    "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                    "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                    "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=";
-                settings += (isShimmer ? "1" : "0");
+                    + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0";
+                std::string settings = (isShimmer ? "E_CHECKBOX_On_Shimmer=1" : "");
                 layer->AddEffect(0, "On", settings, palette, starttime, endtime, false, false);
             }
         } else if (sc == xlBLACK) {
             std::string palette = "C_BUTTON_Palette1=" + (std::string)ec + ",C_CHECKBOX_Palette1=1,"
-                "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
-                "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-            std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0"
-                ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                 "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=";
-            settings += (isShimmer ? "1" : "0");
+                "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0";
+            std::string settings = "E_TEXTCTRL_Eff_On_Start=0";
+            if (isShimmer) {
+                settings += ",E_CHECKBOX_On_Shimmer=1";
+            }
             layer->AddEffect(0, "On", settings, palette, starttime, endtime, false, false);
         } else if (ec == xlBLACK) {
             std::string palette = "C_BUTTON_Palette1=" + (std::string)sc + ",C_CHECKBOX_Palette1=1,"
-                "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0,"
-                "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-            std::string settings = "E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100"
-                ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                 "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=";
-            settings += (isShimmer ? "1" : "0");
+                "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0";
+            std::string settings = "E_TEXTCTRL_Eff_On_End=0";
+            if (isShimmer) {
+                settings += ",E_CHECKBOX_On_Shimmer=1";
+            }
             layer->AddEffect(0, "On", settings, palette, starttime, endtime, false, false);
         } else {
             std::string palette = "C_BUTTON_Palette1=" + (std::string)sc + ",C_CHECKBOX_Palette1=1,"
-                "C_BUTTON_Palette2=" + (std::string)ec + ",C_CHECKBOX_Palette2=1,"
-                "C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-
-            std::string settings = "E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,E_TEXTCTRL_ColorWash_Cycles=1.00,"
-                "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
-                "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,"
-                "T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                 "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                 "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00"
-                ",E_CHECKBOX_ColorWash_Shimmer=";
-            settings += (isShimmer ? "1" : "0");
+                "C_BUTTON_Palette2=" + (std::string)ec + ",C_CHECKBOX_Palette2=1";
+            std::string settings = (isShimmer ? "E_CHECKBOX_ColorWash_Shimmer=1," : "");
             layer->AddEffect(0, "Color Wash", settings, palette, starttime, endtime, false, false);
         }
     }
@@ -1764,15 +1738,11 @@ void MapRGBEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *
     LoadRGBData(effectManager, layer, re, ge, be);
 }
 void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
-    std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1,"
-            "C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-            "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+    std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
     if (chancountpernode > 1) {
         wxString c = wxString::Format("#%06lx",color.GetRGB());
         xlColor color(c);
-        palette = "C_BUTTON_Palette1=" + color + ",C_CHECKBOX_Palette1=1,"
-            + "C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-            + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+        palette = "C_BUTTON_Palette1=" + color + ",C_CHECKBOX_Palette1=1";
     }
 
     for (wxXmlNode* ch=channel->GetChildren(); ch!=NULL; ch=ch->GetNext()) {
@@ -1787,14 +1757,20 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
             } else {
                 starti = endi = intensity;
             }
-            std::string settings = "E_TEXTCTRL_Eff_On_End=" + endi +",E_TEXTCTRL_Eff_On_Start=" + starti +
-                ",E_TEXTCTRL_On_Cycles=1.00,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                 "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,";
-            if ("intensity" == ch->GetAttribute("type")) {
-                settings += "E_CHECKBOX_On_Shimmer=0";
-            } else {
+            std::string settings;
+            if (100 != starti) {
+                settings += "E_TEXTCTRL_Eff_On_Start=" + starti;
+            }
+            if (100 != endi) {
+                if (!settings.empty()) {
+                    settings += ",";
+                }
+                settings += "E_TEXTCTRL_Eff_On_End=" + endi;
+            }
+            if ("intensity" != ch->GetAttribute("type")) {
+                if (!settings.empty()) {
+                    settings += ",";
+                }
                 settings += "E_CHECKBOX_On_Shimmer=1";
             }
             layer->AddEffect(0, "On", settings, palette, starttime, endtime, false, false);
@@ -2281,15 +2257,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 color = GetColorString(sRed, sGreen, sBlue);
                 palette += "C_BUTTON_Palette4=" + color + ",";
                 palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
-                palette += "C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                settings += "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,";
-                if( color == xlBLACK ) {
-                    settings += "T_CHOICE_LayerMethod=Normal,";
+                if( color != xlBLACK ) {
+                    settings += ",T_CHOICE_LayerMethod=1 reveals 2,";
                 }
-                else {
-                    settings += "T_CHOICE_LayerMethod=1 reveals 2,";
-                }
-                settings += "T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur,T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
                 while( model->GetEffectLayerCount() < layer_index )
                 {
                     model->AddEffectLayer();
@@ -2392,7 +2362,6 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         palette += ",C_CHECKBOX_Palette" + wxString::Format("%d", cnt) + "=0";
                         cnt++;
                     }
-                    palette += ",C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
 
                     int layer_index = wxAtoi(element->GetAttribute("layer"));
                     int acceleration = wxAtoi(element->GetAttribute("acceleration"));
@@ -2426,12 +2395,8 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Galaxy_Revolutions=" + wxString::Format("%d", revolutions).ToStdString()
                                             + ",E_SLIDER_Galaxy_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString()
                                             + ",E_SLIDER_Galaxy_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
-                                            + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth).ToStdString()
-                                            + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                                            + "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                                            + "T_TEXTCTRL_Fadein=0.00"
-                                            + ",T_TEXTCTRL_Fadeout=0.00";
+                                            + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth).ToStdString();
+                        
                         layer->AddEffect(0, "Galaxy", settings, palette, startms, endms, false, false);
                     }
                     else if( type == "Shockwave" )
@@ -2445,12 +2410,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Shockwave_End_Radius=" + wxString::Format("%d", endRadius).ToStdString()
                                             + ",E_SLIDER_Shockwave_End_Width=" + wxString::Format("%d", endWidth).ToStdString()
                                             + ",E_SLIDER_Shockwave_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
-                                            + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth).ToStdString()
-                                            + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                                            + "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                                            + "T_TEXTCTRL_Fadein=0.00"
-                                            + ",T_TEXTCTRL_Fadeout=0.00";
+                                            + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth).ToStdString();
                         layer->AddEffect(0, "Shockwave", settings, palette, startms, endms, false, false);
                     }
                     else if( type == "Fan" )
@@ -2479,12 +2439,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Fan_End_Radius=" + wxString::Format("%d", endRadius).ToStdString()
                                             + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond*((double)(endms-startms)/1000.0)*3.6)).ToStdString()
                                             + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString()
-                                            + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
-                                            + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                                            + "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                                            + "T_TEXTCTRL_Fadein=0.00"
-                                            + ",T_TEXTCTRL_Fadeout=0.00";
+                                            + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString();
                         layer->AddEffect(0, "Fan", settings, palette, startms, endms, false, false);
                     }
                 }
@@ -2535,49 +2490,27 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
 
                         std::string palette = "C_BUTTON_Palette1=" + (std::string)startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2="
                             + (std::string)endc
-                            + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                            + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                            + ",C_CHECKBOX_Palette2=1,";
 
 
                         if (startc == endc) {
-                            std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100"
-                                ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                                "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
+                            std::string settings = "";
                             layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
                         } else if (startc == xlBLACK) {
                             std::string palette = "C_BUTTON_Palette1=" + (std::string)endc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2="
                                 + (std::string)startc +
-                                ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                                "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
-                            std::string settings = "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0"
-                                ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                               "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
-                            layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
+                                ",C_CHECKBOX_Palette2=1";
+                            layer->AddEffect(0, "On", "E_TEXTCTRL_Eff_On_Start=0", palette, start_time, end_time, false, false);
                         } else if (endc == xlBLACK) {
-                            std::string settings = "E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100"
-                                ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                                "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                                "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00";
-                            layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
+                            layer->AddEffect(0, "On", "E_TEXTCTRL_Eff_On_End=0", palette, start_time, end_time, false, false);
                         } else {
-                            std::string settings = "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                             "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                                "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_HFade=0,"
-                                "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
-                                "E_CHECKBOX_ColorWash_VFade=0,E_CHECKBOX_ColorWash_EntireModel=1";
-                            layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
+                            layer->AddEffect(0, "Color Wash", "", palette, start_time, end_time, false, false);
                         }
                     } else if (isPartOfModel && rect.x != -1) {
                         //forms a simple rectangle, we can use a ColorWash affect for this with a partial rectangle
                         std::string palette = "C_BUTTON_Palette1=" + (std::string)startc
                             + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + (std::string)endc
-                            + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                            + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                            + ",C_CHECKBOX_Palette2=1";
 
                         std::string settings = "";
                         std::string val = wxString::Format("%d", rect.x).ToStdString();
@@ -2592,13 +2525,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         val = wxString::Format("%d", rect.height);
                         if( !CalcBoundedPercentage(val, num_rows, true, y_offset) ) continue;
                         settings += ",E_SLIDER_ColorWash_Y2=" + val;
-
-                        settings = "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                         "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                            "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
-                            "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,"
-                            "E_CHECKBOX_ColorWash_EntireModel=0" + settings;
-
+                        settings += ",E_CHECKBOX_ColorWash_EntireModel=0";
 
                         layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
                     } else if (isPartOfModel) {
@@ -2640,13 +2567,13 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             ",E_CHECKBOX_Pictures_PixelOffsets=1"
                             ",E_TEXTCTRL_Pictures_Speed=1.0"
                             ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
-                            ",E_TEXTCTRL_Pictures_Filename=" + imageName +
-                            ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                            "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                            "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                            "T_TEXTCTRL_Fadein=" + ru +
-                            ",T_TEXTCTRL_Fadeout=" + rd;
-
+                            ",E_TEXTCTRL_Pictures_Filename=" + imageName;
+                        if (ru != "0.0") {
+                            settings += ",T_TEXTCTRL_Fadein=" + ru;
+                        }
+                        if (rd != "0.0") {
+                            settings += ",T_TEXTCTRL_Fadeout=" + rd;
+                        }
                         layer->AddEffect(0, "Pictures", settings, "", start_time, end_time, false, false);
                     }
                 }
@@ -2712,9 +2639,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     yStart = CalcUnBoundedPercentage(yStart, num_rows) - 50;
                     yEnd = CalcUnBoundedPercentage(yEnd, num_rows) - 50;
 
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=0"
-                        + ",C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-                        + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+                    std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",C_CHECKBOX_Palette1=1";
                     std::string settings =
                         "E_CHECKBOX_TextToCenter1=0,E_TEXTCTRL_Text_Line1=" + text
                         + ",E_TEXTCTRL_Text_Speed1=26,"
@@ -2734,10 +2659,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         + "E_FONTPICKER_Text_Font3='.sf ns text' macroman,E_FONTPICKER_Text_Font4='.sf ns text' macroman,"
                         + "E_SLIDER_Text_Position2=50,E_SLIDER_Text_Position3=50,E_SLIDER_Text_Position4=50,"
                         + "E_TEXTCTRL_Text_Line2=,E_TEXTCTRL_Text_Line3=,E_TEXTCTRL_Text_Line4=,"
-                        + "E_TEXTCTRL_Text_Speed2=10,E_TEXTCTRL_Text_Speed3=10,E_TEXTCTRL_Text_Speed4=10,"
-                        + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                        + "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                        + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.0";
+                        + "E_TEXTCTRL_Text_Speed2=10,E_TEXTCTRL_Text_Speed3=10,E_TEXTCTRL_Text_Speed4=10";
 
 
                     layer->AddEffect(0, "Text", settings, palette, start_time, end_time, false, false);
@@ -2792,12 +2714,14 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
                             + ",E_TEXTCTRL_Pictures_Filename=" + imgInfo.imageName
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"
-                            + ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
-                            + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                            + "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                            + "T_TEXTCTRL_Fadein=" + rampUpTimeString
-                            + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
+                            + ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0";
+                        
+                            if ("0" != rampUpTimeString) {
+                                settings += ",T_TEXTCTRL_Fadein=" + rampUpTimeString;
+                            }
+                            if ("0" != rampDownTimeString) {
+                                settings += ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
+                            }
 
                         layer->AddEffect(0, "Pictures", settings, "", startms, endms, false, false);
                     } else {
@@ -2809,12 +2733,14 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                             + ",E_TEXTCTRL_Pictures_Speed=1.0"
                             + ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
                             + ",E_CHECKBOX_Pictures_PixelOffsets=1"
-                            + ",E_TEXTCTRL_Pictures_Filename=" + imgInfo.imageName
-                            + ",T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-                            + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                            + "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                            + "T_TEXTCTRL_Fadein=" + rampUpTimeString
-                            + ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
+                            + ",E_TEXTCTRL_Pictures_Filename=" + imgInfo.imageName;
+
+                        if ("0" != rampUpTimeString) {
+                            settings += ",T_TEXTCTRL_Fadein=" + rampUpTimeString;
+                        }
+                        if ("0" != rampDownTimeString) {
+                            settings += ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
+                        }
 
                         layer->AddEffect(0, "Pictures", settings, "", startms, endms, false, false);
                     }
@@ -2835,12 +2761,10 @@ void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int ef
 
     bool isShimmer = eff == 5 || eff == 6;
     std::string effect = "On";
-    std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_End=%d,E_TEXTCTRL_Eff_On_Start=%d", out, in).ToStdString()
-        + ",E_TEXTCTRL_On_Cycles=1.0,T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,"
-        + "T_CHOICE_LayerMethod=Normal,T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-        + "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-        + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00,E_CHECKBOX_On_Shimmer=" + (isShimmer ? "1" : "0");
-
+    std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_End=%d,E_TEXTCTRL_Eff_On_Start=%d", out, in).ToStdString();
+    if (isShimmer) {
+        settings += ",E_CHECKBOX_On_Shimmer=1";
+    }
 
     if (bst != 0 && ben != 0) {
         color = xlColor(bst & 0xFFFFFF, false);
@@ -2849,13 +2773,7 @@ void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int ef
             color2 = xlBLACK;
         } else {
             effect = "Color Wash";
-            settings = _("E_CHECKBOX_ColorWash_HFade=0,E_CHECKBOX_ColorWash_VFade=0,E_TEXTCTRL_ColorWash_Cycles=1.00,")
-                + "E_TEXTCTRL_ColorWash_Cycles=1.00,E_CHECKBOX_ColorWash_CircularPalette=0,"
-                + "T_CHECKBOX_LayerMorph=0,T_CHECKBOX_OverlayBkg=0,T_CHOICE_LayerMethod=Normal,"
-                + "T_SLIDER_EffectLayerMix=0,T_SLIDER_EffectBlur=1,"
-                + "T_SLIDER_ZoomCycles=1,T_SLIDER_ZoomRotation=0,T_SLIDER_ZoomInOut=0,"
-                + "T_TEXTCTRL_Fadein=0.00,T_TEXTCTRL_Fadeout=0.00"
-                + ",E_CHECKBOX_ColorWash_Shimmer=" + (isShimmer ? "1" : "0");
+            settings = isShimmer ? "E_CHECKBOX_ColorWash_Shimmer=1" : "";
         }
     }
 
@@ -2865,8 +2783,7 @@ void AddLSPEffect(EffectLayer *layer, int pos, int epos, int in, int out, int ef
     }
 
     std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + (std::string)color2
-        + ",C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,"
-        + "C_SLIDER_Brightness=100,C_SLIDER_Contrast=0,C_SLIDER_SparkleFrequency=0";
+        + ",C_CHECKBOX_Palette2=1";
 
     int start_time = (int)(pos * 50.0 / 4410.0);
     int end_time = (int)((epos - 1) * 50.0 / 4410.0);

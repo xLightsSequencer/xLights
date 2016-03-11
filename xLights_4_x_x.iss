@@ -3,14 +3,26 @@
 
 ;  SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 ; mar 3,2015: added new line for bin/xlights.map
+; mar 3,2016:  added Source: "bin/avcodec-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+; mar 3,2016:  added Source: "bin/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+; mar 3,2016:  added Source: "bin/avutil-55.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+; mar 3,2016:  added Source: "bin/swresample-2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+; mar 3,2016:  added Source: "bin/swscale-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+; mar 3,2016:  added Source: "bin/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+; mar 3,2016: (Removed, No longer needed as of 2016.10) Source: "bin/ffmpeg.exe"; DestDir: "{app}"; Flags: "ignoreversion"
+; mar 7, 2016 added DisableDirPage=no . This always prompt for an installation directory
+
 
 #define MyTitleName "xLights" 
 
 [Setup]
+;; (not yet implemented) SignTool=mystandard
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
+; setting to DisableDirPage no makes it so users can change the installation directory
+DisableDirPage=no   
 AppName=xLights
-AppVersion=2016.10
+AppVersion=2016.12
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights.ico
@@ -49,7 +61,7 @@ Source: "bin/swresample-2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/swscale-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
-Source: "bin/ffmpeg.exe";          DestDir: "{app}"; Flags: "ignoreversion"
+; No longer needed as of 2016.10. Source: "bin/ffmpeg.exe";          DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xlights.map";         DestDir: "{app}"; Flags: "ignoreversion"
 ; Added files for doing Papagayo effects
 Source: "bin/extended_dictionary"; DestDir: "{app}"

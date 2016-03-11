@@ -3,21 +3,21 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(TextPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
+#include <wx/checkbox.h>
+#include <wx/fontpicker.h>
+#include <wx/sizer.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
+#include <wx/string.h>
+#include <wx/slider.h>
 #include <wx/intl.h>
 #include <wx/gbsizer.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
 #include <wx/image.h>
-#include <wx/fontpicker.h>
-#include <wx/string.h>
 //*)
 
 //(*IdInit(TextPanel)
@@ -136,75 +136,74 @@ END_EVENT_TABLE()
 TextPanel::TextPanel(wxWindow* parent)
 {
 	//(*Initialize(TextPanel)
-	wxSlider* Slider26;
-	wxCheckBox* CheckBox_TextToCenter1;
-	wxCheckBox* CheckBox_TextToCenter3;
-	wxStaticText* StaticText213;
-	wxStaticText* StaticText165;
-	wxFontPickerCtrl* FontPickerCtrl1;
-	wxTextCtrl* TextCtrl92;
-	wxTextCtrl* TextCtrl74;
-	wxSlider* Slider39;
-	wxFlexGridSizer* FlexGridSizer122;
-	wxSlider* Slider35;
-	wxSlider* Slider28;
-	wxTextCtrl* TextCtrl91;
-	wxCheckBox* CheckBox_TextToCenter4;
-	wxSlider* Slider27;
-	wxNotebook* Notebook6;
-	wxTextCtrl* TextCtrl71;
-	wxFlexGridSizer* FlexGridSizer25;
-	wxFontPickerCtrl* FontPickerCtrl4;
-	wxFlexGridSizer* FlexGridSizer145;
-	wxFontPickerCtrl* FontPickerCtrl3;
-	wxCheckBox* CheckBox6;
-	wxFlexGridSizer* FlexGridSizer66;
-	wxFlexGridSizer* FlexGridSizer69;
-	wxTextCtrl* TextCtrl94;
-	wxStaticText* StaticText163;
-	wxStaticText* StaticText162;
-	wxCheckBox* CheckBox_TextToCenter2;
-	wxTextCtrl* TextCtrl93;
-	wxFlexGridSizer* FlexGridSizer143;
-	wxGridBagSizer* GridBagSizer7;
-	wxFlexGridSizer* FlexGridSizer74;
-	wxFlexGridSizer* FlexGridSizer120;
-	wxPanel* Panel16;
-	wxFlexGridSizer* FlexGridSizer52;
-	wxFlexGridSizer* FlexGridSizer29;
-	wxTextCtrl* TextCtrl14;
-	wxStaticText* StaticText164;
-	wxFlexGridSizer* FlexGridSizer49;
-	wxTextCtrl* TextCtrl13;
-	wxStaticText* StaticText211;
-	wxFlexGridSizer* FlexGridSizer144;
-	wxFlexGridSizer* FlexGridSizer142;
-	wxStaticText* StaticText212;
-	wxFlexGridSizer* FlexGridSizer119;
-	wxTextCtrl* TextCtrl72;
-	wxNotebook* Notebook_Text1;
-	wxSlider* Slider38;
-	wxSlider* Slider37;
-	wxFlexGridSizer* FlexGridSizer50;
-	wxFlexGridSizer* FlexGridSizer141;
-	wxFlexGridSizer* FlexGridSizer131;
 	wxFlexGridSizer* FlexGridSizer46;
-	wxTextCtrl* TextCtrl73;
-	wxFlexGridSizer* FlexGridSizer48;
-	wxFlexGridSizer* FlexGridSizer121;
-	wxGridBagSizer* GridBagSizer6;
-	wxSlider* Slider25;
-	wxFlexGridSizer* FlexGridSizer65;
-	wxTextCtrl* TextCtrl12;
-	wxStaticText* StaticText214;
-	wxFontPickerCtrl* FontPickerCtrl2;
 	wxFlexGridSizer* FlexGridSizer67;
+	wxTextCtrl* TextCtrl71;
+	wxCheckBox* CheckBox_TextToCenter1;
+	wxFontPickerCtrl* FontPickerCtrl4;
+	wxSlider* Slider37;
+	wxFlexGridSizer* FlexGridSizer25;
+	wxSlider* Slider25;
+	wxTextCtrl* TextCtrl92;
+	wxSlider* Slider39;
+	wxSlider* Slider38;
+	wxStaticText* StaticText163;
+	wxTextCtrl* TextCtrl72;
+	wxFlexGridSizer* FlexGridSizer74;
+	wxTextCtrl* TextCtrl93;
+	wxFlexGridSizer* FlexGridSizer50;
+	wxFlexGridSizer* FlexGridSizer145;
+	wxFlexGridSizer* FlexGridSizer143;
+	wxStaticText* StaticText162;
+	wxFontPickerCtrl* FontPickerCtrl2;
+	wxTextCtrl* TextCtrl91;
+	wxFlexGridSizer* FlexGridSizer29;
+	wxNotebook* Notebook6;
+	wxSlider* Slider35;
+	wxFlexGridSizer* FlexGridSizer48;
+	wxPanel* Panel16;
+	wxCheckBox* CheckBox6;
+	wxNotebook* Notebook_Text1;
+	wxFlexGridSizer* FlexGridSizer122;
+	wxFontPickerCtrl* FontPickerCtrl3;
+	wxSlider* Slider28;
+	wxFlexGridSizer* FlexGridSizer141;
+	wxCheckBox* CheckBox_TextToCenter2;
+	wxStaticText* StaticText214;
+	wxCheckBox* CheckBox_TextToCenter4;
+	wxStaticText* StaticText164;
+	wxTextCtrl* TextCtrl74;
+	wxTextCtrl* TextCtrl12;
+	wxGridBagSizer* GridBagSizer6;
+	wxFlexGridSizer* FlexGridSizer144;
+	wxStaticText* StaticText211;
+	wxSlider* Slider27;
+	wxStaticText* StaticText213;
+	wxFlexGridSizer* FlexGridSizer142;
+	wxFlexGridSizer* FlexGridSizer66;
+	wxSlider* Slider26;
+	wxGridBagSizer* GridBagSizer7;
+	wxFlexGridSizer* FlexGridSizer120;
+	wxStaticText* StaticText212;
+	wxTextCtrl* TextCtrl73;
+	wxFlexGridSizer* FlexGridSizer49;
+	wxFlexGridSizer* FlexGridSizer119;
+	wxTextCtrl* TextCtrl94;
+	wxCheckBox* CheckBox_TextToCenter3;
+	wxFontPickerCtrl* FontPickerCtrl1;
+	wxFlexGridSizer* FlexGridSizer65;
+	wxStaticText* StaticText165;
+	wxTextCtrl* TextCtrl13;
+	wxFlexGridSizer* FlexGridSizer69;
+	wxFlexGridSizer* FlexGridSizer131;
+	wxFlexGridSizer* FlexGridSizer52;
+	wxTextCtrl* TextCtrl14;
+	wxFlexGridSizer* FlexGridSizer121;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer46 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer46->AddGrowableCol(0);
 	Notebook_Text1 = new wxNotebook(this, IDD_NOTEBOOK_Text, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK_Text"));
-	Notebook_Text1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
 	Panel_Text1 = new wxPanel(Notebook_Text1, ID_PANEL_Text1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Text1"));
 	FlexGridSizer69 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer69->AddGrowableCol(0);

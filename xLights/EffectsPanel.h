@@ -33,7 +33,6 @@ public:
     void SetDefaultEffectValues(Model *cls, const wxString &name);
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
-    wxString GetEffectStringFromWindow(wxWindow *ParentWin);
 
     void SetSequenceElements(SequenceElements *els);
 
