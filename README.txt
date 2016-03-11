@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh (gil)   Connect ctrl-Z to Undo function.
     -- bug (gil)   Fix paste/keyboard placement of effects in partial cells.  Was broken by 2/11 checkin.
     -- bug (dkulp) When using keyboard shortcuts, don't apply defaults for the panels, use any settings they contain
 2016.12  Mar 10, 2016
