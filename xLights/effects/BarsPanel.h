@@ -3,13 +3,13 @@
 
 //(*Headers(BarsPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxChoice;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
 
 class BarsPanel: public wxPanel
@@ -20,8 +20,8 @@ class BarsPanel: public wxPanel
 		virtual ~BarsPanel();
 
 		//(*Declarations(BarsPanel)
-		wxChoice* Choice_Bars_Direction;
 		wxSlider* Slider_Bars_BarCount;
+		wxChoice* Choice_Bars_Direction;
 		//*)
 
 	protected:
@@ -38,6 +38,8 @@ class BarsPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight;
 		static const long ID_CHECKBOX_Bars_3D;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Bars_3D;
+		static const long ID_CHECKBOX_Bars_Gradient;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient;
 		//*)
 
 	private:
