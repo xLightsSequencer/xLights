@@ -125,7 +125,7 @@ private:
     void UpdateSelectionRectangle();
     void UpdateSelectedEffects();
     void CheckForPartialCell(int x_pos);
-    void RaiseSelectedEffectChanged(Effect* effect);
+    void RaiseSelectedEffectChanged(Effect* effect, bool isNew);
     void RaiseEffectDropped(int x, int y);
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect);
     Element* GetActiveTimingElement();

@@ -330,7 +330,9 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(const std::string &modelName, const std::string &name, const SettingsMap &settings, const SettingsMap &palette);
+    void SetEffectControls(const std::string &modelName, const std::string &name,
+                           const SettingsMap &settings, const SettingsMap &palette,
+                           bool setDefaults);
     void SetEffectControls(const SettingsMap &settings);
     bool SaveEffectsFile();
     void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }

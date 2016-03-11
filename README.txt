@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug (dkulp) When using keyboard shortcuts, don't apply defaults for the panels, use any settings they contain
 2016.12  Mar 10, 2016
     -- bug (dkulp) Fixed long save times when a model is off the screen.
     -- bug (dkulp) Fix corrupt perspective section. Fix is to Delete attribute before setting it

@@ -598,7 +598,8 @@ void xLightsFrame::EffectChanged(wxCommandEvent& event)
 {
     Effect* effect = (Effect*)event.GetClientData();
     SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
-                      effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
+                      effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
+                      true);
     selectedEffectString = "";  // force update to effect rendering
 }
 
@@ -629,7 +630,8 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
             resetStrings = true;
         }
         SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
-                          effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
+                          effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
+                          !event.GetInt());
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
         if (effect->GetPaletteMap().empty() || resetStrings) {
@@ -715,7 +717,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     if (playType != PLAY_TYPE_MODEL && last_effect_created != NULL)
     {
         SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetName(),
-                          last_effect_created->GetEffectName(), last_effect_created->GetSettings(), last_effect_created->GetPaletteMap());
+                          last_effect_created->GetEffectName(), last_effect_created->GetSettings(),
+                          last_effect_created->GetPaletteMap(), false);
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = last_effect_created;
     }
@@ -1276,19 +1279,23 @@ void xLightsFrame::TimerRgbSeq(long msec)
     sPreview2->Render(&SeqData[frame][0]);
 }
 
-void xLightsFrame::SetEffectControls(const std::string &modelName, const std::string &effectName, const SettingsMap &settings, const SettingsMap &palette) {
+void xLightsFrame::SetEffectControls(const std::string &modelName, const std::string &effectName,
+                                     const SettingsMap &settings, const SettingsMap &palette,
+                                     bool setDefaults) {
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
-    if (modelName == "") {
-        EffectsPanel1->SetDefaultEffectValues(nullptr, effectName);
-        timingPanel->SetDefaultControls(nullptr);
-        bufferPanel->SetDefaultControls(nullptr);
-        colorPanel->SetDefaultSettings();
-    } else {
-        Model *model = GetModel(modelName);
-        EffectsPanel1->SetDefaultEffectValues(model, effectName);
-        timingPanel->SetDefaultControls(model);
-        bufferPanel->SetDefaultControls(model);
-        colorPanel->SetDefaultSettings();
+    if (setDefaults) {
+        if (modelName == "") {
+            EffectsPanel1->SetDefaultEffectValues(nullptr, effectName);
+            timingPanel->SetDefaultControls(nullptr);
+            bufferPanel->SetDefaultControls(nullptr);
+            colorPanel->SetDefaultSettings();
+        } else {
+            Model *model = GetModel(modelName);
+            EffectsPanel1->SetDefaultEffectValues(model, effectName);
+            timingPanel->SetDefaultControls(model);
+            bufferPanel->SetDefaultControls(model);
+            colorPanel->SetDefaultSettings();
+        }
     }
     SetEffectControls(settings);
     SetEffectControls(palette);
