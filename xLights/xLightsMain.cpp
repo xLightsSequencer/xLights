@@ -3303,8 +3303,37 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	AllModels.LoadGroups(ModelGroupsNode, NetInfo,
 		modelPreview->GetVirtualCanvasWidth(),
 		modelPreview->GetVirtualCanvasHeight());
+	
+	MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
+	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
+	{
+		mps = CurrentSeqXmlFile->GetMedia()->GetPlayingState();
+		if (mps == MEDIAPLAYINGSTATE::PLAYING)
+		{
+			CurrentSeqXmlFile->GetMedia()->Pause();
+			SetAudioControls();
+		}
+	}
+
+	bool output = CheckBoxLightOutput->IsChecked();
+
+	if (output)
+	{
+		AllLightsOff();
+	}
 
     TestDialog dialog(this, &NetworkXML, networkFile, &AllModels);
     dialog.CenterOnParent();
     int DlgResult = dialog.ShowModal();
+
+	if (output)
+	{
+		EnableOutputs();
+	}
+
+	if (mps == MEDIAPLAYINGSTATE::PLAYING)
+	{
+		CurrentSeqXmlFile->GetMedia()->Play();
+		SetAudioControls();
+	}
 }
