@@ -78,7 +78,6 @@
 #include "PreviewModels.h"
 #include "ModelPreview.h"
 #include "EffectAssist.h"
-#include "dlgPreviewSize.h"
 #include "SequenceData.h"
 #include "UtilClasses.h"
 #include "PhonemeDictionary.h"

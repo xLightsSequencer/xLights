@@ -42,26 +42,33 @@ void xLightsFrame::SetModelAsPartOfDisplay(wxString& model)
 }
 
 void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename) {
-    mBackgroundImage = filename;
-    SetXmlSetting("backgroundImage",mBackgroundImage);
+    if (mBackgroundImage != filename) {
+        mBackgroundImage = filename;
+        SetXmlSetting("backgroundImage",mBackgroundImage);
+        UnsavedRgbEffectsChanges=true;
+    }
     modelPreview->SetbackgroundImage(mBackgroundImage);
     sPreview2->SetbackgroundImage(mBackgroundImage);
-    UnsavedRgbEffectsChanges=true;
     UpdatePreview();
 }
 
 void xLightsFrame::SetPreviewBackgroundBrightness(int i) {
-    mBackgroundBrightness = i;
-    SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
+    if (mBackgroundBrightness != i) {
+        mBackgroundBrightness = i;
+        SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
+        UnsavedRgbEffectsChanges=true;
+    }
     modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
     sPreview2->SetBackgroundBrightness(mBackgroundBrightness);
-    UnsavedRgbEffectsChanges=true;
     UpdatePreview();
 }
 
 void xLightsFrame::SetPreviewBackgroundScaled(bool scaled) {
-    SetXmlSetting("scaleImage",wxString::Format("%d",scaled));
+    if (mScaleBackgroundImage != scaled) {
+        mScaleBackgroundImage = scaled;
+        SetXmlSetting("scaleImage",wxString::Format("%d",scaled));
+        UnsavedRgbEffectsChanges=true;
+    }
     modelPreview->SetScaleBackgroundImage(scaled);
     sPreview2->SetScaleBackgroundImage(scaled);
-    UnsavedRgbEffectsChanges=true;
 }

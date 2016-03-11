@@ -167,11 +167,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
 
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
-    layoutPanel->Slider_BackgroundBrightness->SetValue(mBackgroundBrightness);
+    SetPreviewBackgroundBrightness(mBackgroundBrightness);
 
     mScaleBackgroundImage = wxAtoi(GetXmlSetting("scaleImage","0"));
-    layoutPanel->ScaleImageCheckbox->SetValue(mScaleBackgroundImage);
-
+    SetPreviewBackgroundScaled(mScaleBackgroundImage);
     return effectsFile.GetFullPath();
 }
 

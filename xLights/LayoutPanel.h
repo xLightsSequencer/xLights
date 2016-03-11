@@ -3,15 +3,14 @@
 
 //(*Headers(LayoutPanel)
 #include <wx/panel.h>
+class wxSplitterWindow;
+class wxCheckBox;
 class wxTextCtrl;
+class wxSplitterEvent;
+class wxStaticText;
 class wxListView;
 class wxFlexGridSizer;
 class wxButton;
-class wxSplitterWindow;
-class wxSplitterEvent;
-class wxSlider;
-class wxStaticText;
-class wxCheckBox;
 //*)
 
 class xLightsFrame;
@@ -32,61 +31,33 @@ class LayoutPanel: public wxPanel
 		virtual ~LayoutPanel();
 
 		//(*Declarations(LayoutPanel)
-		wxStaticText* StaticTextCurrentPreviewSize;
-		wxStaticText* StaticTextPreviewRotation;
-		wxSlider* SliderPreviewScaleWidth;
-		wxStaticText* StaticText37;
-		wxStaticText* StaticTextStartChannel;
-		wxSlider* SliderPreviewScaleHeight;
-		wxTextCtrl* TextCtrlPreviewElementWidth;
-		wxCheckBox* CheckBoxOverlap;
-		wxFlexGridSizer* PreviewGLSizer;
-		wxTextCtrl* TextCtrlModelRotationDegrees;
 		wxListView* ListBoxElementList;
-		wxButton* ButtonSavePreview;
-		wxButton* ButtonSetBackgroundImage;
 		wxButton* ButtonSelectModelGroups;
-		wxSplitterWindow* SplitterWindow2;
-		wxStaticText* StaticText23;
-		wxPanel* PreviewGLPanel;
-		wxPanel* LeftPanel;
-		wxTextCtrl* TextCtrlModelStartChannel;
-		wxSlider* SliderPreviewRotate;
-		wxCheckBox* ScaleImageCheckbox;
-		wxButton* ButtonSetPreviewSize;
-		wxStaticText* StaticText5;
 		wxButton* ButtonModelsPreview;
-		wxStaticText* StaticText30;
-		wxSlider* Slider_BackgroundBrightness;
-		wxTextCtrl* TextCtrlPreviewElementHeight;
+		wxSplitterWindow* SplitterWindow2;
+		wxTextCtrl* TextCtrlModelStartChannel;
+		wxPanel* LeftPanel;
+		wxCheckBox* CheckBoxOverlap;
+		wxPanel* SecondPanel;
+		wxButton* ButtonSavePreview;
+		wxStaticText* StaticTextStartChannel;
+		wxFlexGridSizer* PreviewGLSizer;
+		wxSplitterWindow* ModelSplitter;
+		wxPanel* PreviewGLPanel;
 		//*)
 
 	protected:
 
 		//(*Identifiers(LayoutPanel)
-		static const long ID_STATICTEXT_CURRENT_PREVIEW_SIZE;
-		static const long ID_BUTTON_SET_PREVIEW_SIZE;
-		static const long ID_BUTTON_SET_BACKGROUND_IMAGE;
-		static const long ID_CHECKBOX1;
-		static const long ID_STATICTEXT32;
-		static const long ID_SLIDER_BACKGROUND_BRIGHTNESS;
 		static const long ID_BUTTON_SELECT_MODEL_GROUPS;
-		static const long ID_STATICTEXT21;
-		static const long ID_LISTBOX_ELEMENT_LIST;
-		static const long ID_CHECKBOXOVERLAP;
 		static const long ID_BUTTON_MODELS_PREVIEW;
 		static const long ID_BUTTON_SAVE_PREVIEW;
-		static const long ID_STATICTEXT22;
-		static const long ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE;
-		static const long ID_SLIDER3;
-		static const long ID_STATICTEXT24;
-		static const long ID_TEXTCTRL3;
-		static const long ID_SLIDER_PREVIEW_SCALE;
-		static const long ID_STATICTEXT25;
-		static const long ID_TEXTCTRL2;
-		static const long ID_SLIDER_PREVIEW_ROTATE;
+		static const long ID_CHECKBOXOVERLAP;
 		static const long ID_STATICTEXT31;
 		static const long ID_TEXTCTRL4;
+		static const long ID_LISTBOX_ELEMENT_LIST;
+		static const long ID_PANEL2;
+		static const long ID_SPLITTERWINDOW1;
 		static const long ID_PANEL5;
 		static const long ID_PANEL1;
 		static const long ID_SPLITTERWINDOW2;
@@ -114,21 +85,11 @@ class LayoutPanel: public wxPanel
         void OnPreviewMouseMove(wxMouseEvent& event);
         void OnPreviewModelPopup(wxCommandEvent &event);
 
-		void OnButtonSetPreviewSizeClick(wxCommandEvent& event);
-		void OnScaleImageCheckboxClick(wxCommandEvent& event);
-		void OnButtonSetBackgroundImageClick(wxCommandEvent& event);
-		void OnSlider_BackgroundBrightnessCmdScroll(wxScrollEvent& event);
 		void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
 		void OnCheckBoxOverlapClick(wxCommandEvent& event);
 		void OnButtonModelsPreviewClick(wxCommandEvent& event);
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
-		void OnTextCtrlPreviewElementWidthText(wxCommandEvent& event);
-		void OnTextCtrlPreviewElementHeightText(wxCommandEvent& event);
-		void OnTextCtrlModelRotationDegreesText(wxCommandEvent& event);
 		void OnTextCtrlModelStartChannelText(wxCommandEvent& event);
-		void OnSliderPreviewScaleWidthCmdSliderUpdated(wxScrollEvent& event);
-		void OnSliderPreviewScaleHeightCmdSliderUpdated(wxScrollEvent& event);
-		void OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event);
 		void OnListBoxElementListItemSelect(wxListEvent& event);
 		void OnListBoxElementListColumnClick(wxListEvent& event);
         void OnPropertyGridChange(wxPropertyGridEvent& event);

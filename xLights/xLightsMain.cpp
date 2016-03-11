@@ -2244,7 +2244,6 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
 }
 void xLightsFrame::SetPreviewSize(int width,int height)
 {
-    layoutPanel->StaticTextCurrentPreviewSize->SetLabelText(wxString::Format("Size: %d x %d",width,height));
     SetXmlSetting("previewWidth",wxString::Format("%d",width));
     SetXmlSetting("previewHeight",wxString::Format("%d",height));
     modelPreview->SetCanvasSize(width,height);

@@ -4,7 +4,7 @@
 
 #include "ArchesModel.h"
 
-ArchesModel::ArchesModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
+ArchesModel::ArchesModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) : arc(180)
 {
     SetFromXml(node, netInfo, zeroBased);
 }
@@ -30,6 +30,12 @@ void ArchesModel::AddProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxUIntProperty("Arc Degrees", "ArchesArc", arc));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 180);
+    p->SetEditor("SpinCtrl");
+
 }
 int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("ArchesCount" == event.GetPropertyName()) {
@@ -45,6 +51,11 @@ int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     } else if ("ArchesLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("ArchesArc" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("arc");
+        ModelXml->AddAttribute("arc", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
         return 3;
     }
@@ -92,6 +103,8 @@ void ArchesModel::InitRenderBufferNodes(const std::string &type,  const std::str
 void ArchesModel::InitModel() {
     int NumArches=parm1;
     int SegmentsPerArch=parm2;
+    arc = wxAtoi(ModelXml->GetAttribute("arc", "180"));
+
     
     SetBufferSize(NumArches,SegmentsPerArch);
     if (SingleNode) {
@@ -129,7 +142,9 @@ int ArchesModel::CalcCannelsPerString() {
     SingleChannel = false;
     return GetNodeChannelCount(StringType) * parm2;
 }
-
+inline double toRadians(long degrees) {
+    return 2.0*M_PI*double(degrees)/360.0;
+}
 void ArchesModel::SetArchCoord() {
     double xoffset,x,y;
     int numlights=parm1*parm2*parm3;
@@ -138,11 +153,19 @@ void ArchesModel::SetArchCoord() {
     double midpt=parm2*parm3;
     midpt -= 1.0;
     midpt /= 2.0;
+    double total = toRadians(arc);
+    double start = (M_PI - total) / 2.0;
+    
+    double angle=-M_PI/2.0 + start;
+    x=midpt*sin(angle)*2.0+parm2*parm3;
+    double width = parm2*parm3*2 - x;
+    SetRenderSize(parm2*parm3,width*parm1);
+    
     for(size_t n=0; n<NodeCount; n++) {
-        xoffset=Nodes[n]->StringNum*parm2*parm3*2 - numlights;
+        xoffset=Nodes[n]->StringNum*width - width*parm1/2;
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
-            double angle=-M_PI/2.0 + M_PI * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c))/midpt/2.0;
+            double angle=-M_PI/2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c))/midpt/2.0;
             x=xoffset + midpt*sin(angle)*2.0+parm2*parm3;
             y=(parm2*parm3)*cos(angle);
             Nodes[n]->Coords[c].screenX=x;

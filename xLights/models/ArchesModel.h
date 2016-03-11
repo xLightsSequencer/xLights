@@ -27,6 +27,7 @@ class ArchesModel : public Model
 
     private:
         void SetArchCoord();
+        int arc;
 };
 
 #endif // ARCHESMODEL_H
