@@ -551,6 +551,8 @@
 		<Unit filename="SerialPortWithRate.h" />
 		<Unit filename="ShowDatesDialog.cpp" />
 		<Unit filename="ShowDatesDialog.h" />
+		<Unit filename="StartChannelDialog.cpp" />
+		<Unit filename="StartChannelDialog.h" />
 		<Unit filename="StrandNodeNamesDialog.cpp" />
 		<Unit filename="StrandNodeNamesDialog.h" />
 		<Unit filename="SuperStarImportDialog.cpp" />
@@ -943,6 +945,7 @@
 		<Unit filename="wxsmith/SnowstormPanel.wxs" />
 		<Unit filename="wxsmith/SpiralsPanel.wxs" />
 		<Unit filename="wxsmith/SpirographPanel.wxs" />
+		<Unit filename="wxsmith/StartChannelDialog.wxs" />
 		<Unit filename="wxsmith/StrobePanel.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
 		<Unit filename="wxsmith/TendrilPanel.wxs" />
@@ -1079,6 +1082,7 @@
 					<wxPanel wxs="wxsmith/BufferPanel.wxs" src="BufferPanel.cpp" hdr="BufferPanel.h" fwddecl="0" i18n="1" name="BufferPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/TestDialog.wxs" src="TestDialog.cpp" hdr="TestDialog.h" fwddecl="0" i18n="1" name="TestDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/LayoutPanel.wxs" src="LayoutPanel.cpp" hdr="LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/StartChannelDialog.wxs" src="StartChannelDialog.cpp" hdr="StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

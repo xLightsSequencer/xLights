@@ -8,6 +8,8 @@
 #include <wx/stattext.h>
 //*)
 
+class Model;
+
 class StrandNodeNamesDialog: public wxDialog
 {
 	public:
@@ -20,6 +22,10 @@ class StrandNodeNamesDialog: public wxDialog
 		wxGrid* StrandsGrid;
 		//*)
 
+        void Setup(const Model *md, const std::string &nodeNames, const std::string &strandNames);
+    
+        std::string GetNodeNames();
+        std::string GetStrandNames();
 	protected:
 
 		//(*Identifiers(StrandNodeNamesDialog)

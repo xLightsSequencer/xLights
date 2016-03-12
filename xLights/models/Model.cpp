@@ -13,6 +13,10 @@
 #include "../DrawGLUtils.h"
 #include "../DimmingCurve.h"
 
+#include "../StrandNodeNamesDialog.h"
+#include "../ModelFaceDialog.h"
+#include "../ModelDimmingCurveDialog.h"
+#include "../StartChannelDialog.h"
 
 #define RECT_HANDLE_WIDTH           6
 #define BOUNDING_RECT_OFFSET        8
@@ -45,6 +49,197 @@ Model::~Model() {
     }
 }
 
+
+static const std::string CLICK_TO_EDIT("--Click To Edit--");
+class StrandNodeNamesDialogAdapter : public wxPGEditorDialogAdapter
+{
+public:
+    StrandNodeNamesDialogAdapter(const Model *model)
+    : wxPGEditorDialogAdapter(), m_model(model) {
+    }
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
+                              wxPGProperty* WXUNUSED(property) ) wxOVERRIDE {
+        StrandNodeNamesDialog dlg(propGrid);
+        dlg.Setup(m_model,
+                  m_model->GetModelXml()->GetAttribute("NodeNames").ToStdString(),
+                  m_model->GetModelXml()->GetAttribute("StrandNames").ToStdString());
+        if (dlg.ShowModal() == wxID_OK) {
+            m_model->GetModelXml()->DeleteAttribute("NodeNames");
+            m_model->GetModelXml()->DeleteAttribute("StrandNames");
+            m_model->GetModelXml()->AddAttribute("NodeNames", dlg.GetNodeNames());
+            m_model->GetModelXml()->AddAttribute("StrandNames", dlg.GetStrandNames());
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+protected:
+    const Model *m_model;
+};
+
+class FacesDialogAdapter : public wxPGEditorDialogAdapter
+{
+public:
+    FacesDialogAdapter(Model *model)
+    : wxPGEditorDialogAdapter(), m_model(model) {
+    }
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
+                              wxPGProperty* WXUNUSED(property) ) wxOVERRIDE {
+        ModelFaceDialog dlg(propGrid);
+        dlg.SetFaceInfo(m_model, m_model->faceInfo);
+        if (dlg.ShowModal() == wxID_OK) {
+            m_model->faceInfo.clear();
+            dlg.GetFaceInfo(m_model->faceInfo);
+
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+protected:
+    Model *m_model;
+};
+class DimmingCurveDialogAdapter : public wxPGEditorDialogAdapter
+{
+public:
+    DimmingCurveDialogAdapter(const Model *model)
+    : wxPGEditorDialogAdapter(), m_model(model) {
+    }
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
+                              wxPGProperty* WXUNUSED(property) ) wxOVERRIDE {
+        ModelDimmingCurveDialog dlg(propGrid);
+        std::map<std::string, std::map<std::string,std::string> > dimmingInfo;
+        wxXmlNode *f = m_model->GetModelXml()->GetChildren();
+        while (f != nullptr) {
+            if ("dimmingCurve" == f->GetName()) {
+                wxXmlNode *dc = f->GetChildren();
+                while (dc != nullptr) {
+                    std::string name = dc->GetName().ToStdString();
+                    wxXmlAttribute *att = dc->GetAttributes();
+                    while (att != nullptr) {
+                        dimmingInfo[name][att->GetName().ToStdString()] = att->GetValue();
+                        att = att->GetNext();
+                    }
+                    dc = dc->GetNext();
+                }
+            }
+            f = f->GetNext();
+        }
+        if(m_model->GetModelXml()->HasAttribute("ModelBrightness") && dimmingInfo.empty()) {
+            wxString b = m_model->GetModelXml()->GetAttribute("ModelBrightness","0");
+            dimmingInfo["all"]["gamma"] = "1.0";
+            dimmingInfo["all"]["brightness"] = b;
+        }
+        dlg.Init(dimmingInfo);
+        if (dlg.ShowModal() == wxID_OK) {
+            dimmingInfo.clear();
+            dlg.Update(dimmingInfo);
+            wxXmlNode *f = m_model->GetModelXml()->GetChildren();
+            while (f != nullptr) {
+                if ("dimmingCurve" == f->GetName()) {
+                    m_model->GetModelXml()->RemoveChild(f);
+                    delete f;
+                    f = m_model->GetModelXml()->GetChildren();
+                } else {
+                    f = f->GetNext();
+                }
+            }
+            f = new wxXmlNode(m_model->GetModelXml(), wxXML_ELEMENT_NODE , "dimmingCurve");
+            for (auto it = dimmingInfo.begin(); it != dimmingInfo.end(); it++) {
+                wxXmlNode *dc = new wxXmlNode(f, wxXML_ELEMENT_NODE , it->first);
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                    dc->AddAttribute(it2->first, it2->second);
+                }
+            }
+
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+protected:
+    const Model *m_model;
+};
+
+class PopupDialogProperty : public wxStringProperty
+{
+public:
+    PopupDialogProperty(Model *m,
+                        const wxString& label,
+                        const wxString& name,
+                        const wxString& value,
+                        int type)
+    : wxStringProperty(label, name, value), m_model(m), m_tp(type) {
+    }
+    // Set editor to have button
+    virtual const wxPGEditor* DoGetEditorClass() const wxOVERRIDE {
+        return wxPGEditor_TextCtrlAndButton;
+    }
+    // Set what happens on button click
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const wxOVERRIDE {
+        switch (m_tp) {
+        case 1:
+            return new StrandNodeNamesDialogAdapter(m_model);
+        case 2:
+            return new FacesDialogAdapter(m_model);
+        case 3:
+            return new DimmingCurveDialogAdapter(m_model);
+        }
+        return nullptr;
+    }
+protected:
+    Model *m_model;
+    int m_tp;
+};
+
+class StartChannelDialogAdapter : public wxPGEditorDialogAdapter
+{
+public:
+    StartChannelDialogAdapter(Model *model)
+    : wxPGEditorDialogAdapter(), m_model(model) {
+    }
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
+                              wxPGProperty* property) wxOVERRIDE {
+        StartChannelDialog dlg(propGrid);
+        dlg.Set(property->GetValue().GetString());
+        if (dlg.ShowModal() == wxID_OK) {
+            wxVariant v(dlg.Get());
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+protected:
+    Model *m_model;
+};
+
+class StartChannelProperty : public wxStringProperty
+{
+public:
+    StartChannelProperty(Model *m,
+                         int strand,
+                        const wxString& label,
+                        const wxString& name,
+                        const wxString& value)
+    : wxStringProperty(label, name, value), m_model(m), m_strand(strand) {
+    }
+    // Set editor to have button
+    virtual const wxPGEditor* DoGetEditorClass() const wxOVERRIDE {
+        return wxPGEditor_TextCtrlAndButton;
+    }
+    // Set what happens on button click
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const wxOVERRIDE {
+        return new StartChannelDialogAdapter(m_model);
+    }
+protected:
+    Model *m_model;
+    int m_strand;
+};
+
+
 static wxArrayString NODE_TYPES;
 static wxArrayString PIXEL_STYLES;
 
@@ -71,8 +266,41 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *p;
     wxPGProperty *sp;
     
-    grid->Append(new wxStringProperty("Type", "ModelType", DisplayAs))->Enable(false);
+    grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    
+    AddTypeProperties(grid);
 
+    if (GetNumStrands() <= 1) {
+        p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
+    } else {
+        bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
+        p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
+        p->SetAttribute("UseCheckbox", true);
+        if (hasIndiv) {
+            int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
+            for (int x = 0; x < c; x++) {
+                wxString nm = StartChanAttrName(x);
+                std::string val = ModelXml->GetAttribute(nm).ToStdString();
+                if (val == "") {
+                    val = ComputeStringStartChannel(x);
+                    ModelXml->DeleteAttribute(nm);
+                    ModelXml->AddAttribute(nm, val);
+                }
+                sp = grid->AppendIn(p, new StartChannelProperty(this, x, nm, nm, val));
+            }
+        } else {
+            grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
+        }
+    }
+    
+    p = grid->Append(new PopupDialogProperty(this, "Strand/Node Names", "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
+    grid->LimitPropertyEditing(p);
+    p = grid->Append(new PopupDialogProperty(this, "Faces", "ModelFaces", CLICK_TO_EDIT, 2));
+    grid->LimitPropertyEditing(p);
+    p = grid->Append(new PopupDialogProperty(this, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
+    grid->LimitPropertyEditing(p);
+    
+    grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     int i = NODE_TYPES.Index(StringType);
     if (i == wxNOT_FOUND) {
         i = NODE_TYPES.size() - 1;
@@ -94,13 +322,13 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         } else if (StringType[0] == '#') {
             v = xlColor(StringType).asWxColor();
         }
-        sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", v));
+        sp = grid->Append(new wxColourProperty("Color", "ModelStringColor", v));
     } else {
-        sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", *wxRED));
+        sp = grid->Append(new wxColourProperty("Color", "ModelStringColor", *wxRED));
         sp->Enable(false);
     }
 
-    p = grid->Append(new wxStringProperty("Appearance", "ModelAppearance", ""));
+    p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
     p->Enable(false);
     sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
     sp->SetAttribute("Min", 1);
@@ -136,33 +364,52 @@ static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
     return tp;
 }
 int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if (event.GetPropertyName() == "ModelAppearance.ModelPixelSize") {
+    if (event.GetPropertyName() == "ModelPixelSize") {
         pixelSize = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("PixelSize");
         ModelXml->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));
         return 3;
-    } else if (event.GetPropertyName() == "ModelAppearance.ModelPixelStyle") {
+    } else if (event.GetPropertyName() == "ModelPixelStyle") {
         pixelStyle = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Antialias");
         ModelXml->AddAttribute("Antialias", wxString::Format("%d", pixelStyle));
         return 3;
-    } else if (event.GetPropertyName() == "ModelAppearance.ModelPixelTransparency") {
+    } else if (event.GetPropertyName() == "ModelPixelTransparency") {
         transparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
         ModelXml->AddAttribute("Transparency", wxString::Format("%d", pixelStyle));
         return 3;
-    } else if (event.GetPropertyName() == "ModelAppearance.ModelPixelBlackTransparency") {
+    } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
         blackTransparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("BlackTransparency");
         ModelXml->AddAttribute("BlackTransparency", wxString::Format("%d", pixelStyle));
         return 3;
-    } else if (event.GetPropertyName() == "ModelStringType.ModelStringColor"
+    } else if (event.GetPropertyName() == "ModelStrandNodeNames") {
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 2;
+    } else if (event.GetPropertyName() == "ModelDimmingCurves") {
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 2;
+    } else if (event.GetPropertyName() == "ModelFaces") {
+        wxXmlNode *f = ModelXml->GetChildren();
+        while (f != nullptr) {
+            if ("faceInfo" == f->GetName()) {
+                ModelXml->RemoveChild(f);
+                delete f;
+                f = ModelXml->GetChildren();
+            } else {
+                f = f->GetNext();
+            }
+        }
+        Model::WriteFaceInfo(ModelXml, faceInfo);
+        return 2;
+    } else if (event.GetPropertyName() == "ModelStringColor"
                || event.GetPropertyName() == "ModelStringType") {
         wxPGProperty *p2 = grid->GetPropertyByName("ModelStringType");
         int i = p2->GetValue().GetLong();
         ModelXml->DeleteAttribute("StringType");
         if (i == NODE_TYPES.size() - 1) {
-            wxPGProperty *p = grid->GetPropertyByName("ModelStringType.ModelStringColor");
+            wxPGProperty *p = grid->GetPropertyByName("ModelStringColor");
             xlColor c;
             wxString tp = GetColorString(p, c);
             p->Enable();
@@ -174,8 +421,39 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->AddAttribute("StringType", tp);
         } else {
             ModelXml->AddAttribute("StringType", NODE_TYPES[i]);
-            grid->GetPropertyByName("ModelStringType.ModelStringColor")->Enable(false);
+            grid->GetPropertyByName("ModelStringColor")->Enable(false);
         }
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if (event.GetPropertyName() == "ModelStartChannel") {
+        ModelXml->DeleteAttribute("StartChannel");
+        ModelXml->AddAttribute("StartChannel", event.GetValue().GetString());
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
+        ModelXml->DeleteAttribute("Advanced");
+        int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
+        if (event.GetValue().GetBool()) {
+            ModelXml->AddAttribute("Advanced", "1");
+            for (int x = 0; x < c; x++) {
+                if (ModelXml->GetAttribute(StartChanAttrName(x)) == "") {
+                    ModelXml->DeleteAttribute(StartChanAttrName(x));
+                    ModelXml->AddAttribute(StartChanAttrName(x),
+                                           ComputeStringStartChannel(x));
+                }
+            }
+        } else {
+            for (int x = 0; x < c; x++) {
+                ModelXml->DeleteAttribute(StartChanAttrName(x));
+            }
+        }
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 7;
+    } else if (event.GetPropertyName().StartsWith("ModelIndividualStartChannels.")) {
+        wxString str = event.GetPropertyName();
+        str = str.SubString(str.Find(".") + 1, str.length());
+        ModelXml->DeleteAttribute(str);
+        ModelXml->AddAttribute(str, event.GetValue().GetString());
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
         return 3;
     }
@@ -183,7 +461,80 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 }
 
 
-
+void Model::ParseFaceInfo(wxXmlNode *f, std::map<std::string, std::map<std::string, std::string> > &faceInfo) {
+    std::string name = f->GetAttribute("Name", "SingleNode").ToStdString();
+    std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
+    if (name == "") {
+        name = type;
+        f->DeleteAttribute("Name");
+        f->AddAttribute("Name", type);
+    }
+    if (!(type == "SingleNode" || type == "NodeRange" || type == "Matrix")) {
+        if (type == "Coro") {
+            type = "SingleNode";
+        } else {
+            type = "Matrix";
+        }
+        f->DeleteAttribute("Type");
+        f->AddAttribute("Type", type);
+    }
+    wxXmlAttribute *att = f->GetAttributes();
+    while (att != nullptr) {
+        if (att->GetName() != "Name")
+        {
+            if (att->GetName().Left(5) == "Mouth" || att->GetName().Left(4) == "Eyes")
+            {
+                faceInfo[name][att->GetName().ToStdString()] = xLightsXmlFile::FixFile("", att->GetValue());
+            }
+            else
+            {
+                faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
+            }
+        }
+        att = att->GetNext();
+    }
+}
+void Model::WriteFaceInfo(wxXmlNode *rootXml, const std::map<std::string, std::map<std::string, std::string> > &faceInfo) {
+    if (!faceInfo.empty()) {
+        for (auto it = faceInfo.begin(); it != faceInfo.end(); it++) {
+            wxXmlNode *f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE , "faceInfo");
+            std::string name = it->first;
+            f->AddAttribute("Name", name);
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                f->AddAttribute(it2->first, it2->second);
+            }
+        }
+    }
+}
+std::string Model::ComputeStringStartChannel(int i) {
+    if (i == 0) {
+        return ModelXml->GetAttribute("StartChannel", "1").ToStdString();
+    }
+    wxString stch = ModelXml->GetAttribute(StartChanAttrName(i - 1));
+    wxString sNet = "";
+    int ChannelsPerString = GetStrandLength(i - 1) * GetChanCountPerNode() + 1;
+    long StringStartChanLong = 0;
+    if (stch.Contains(":")) {
+        sNet = stch.SubString(0, stch.Find(":")-1);
+        stch = stch.SubString(stch.Find(":") + 1, stch.size());
+        long startNetwork;
+        if (sNet.ToLong(&startNetwork) && startNetwork > 0) {
+            int endNetwork;
+            int endChannel;
+            startNetwork--; // Zero based index
+            if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
+                if (ModelNetInfo->GetEndNetworkAndChannel(startNetwork,(int)StringStartChanLong,ChannelsPerString,endNetwork,endChannel)) {
+                    return wxString::Format("%i:%i",endNetwork+1,endChannel).ToStdString(); //endNetwork is zero based
+                }
+            }
+        }
+    }
+    if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
+        long StringEndChan=StringStartChanLong + ChannelsPerString;
+        stch = wxString::Format("%d", StringEndChan);
+    }
+    return stch.ToStdString();
+}
 bool Model::IsMyDisplay(wxXmlNode* ModelNode)
 {
     return ModelNode->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1");
@@ -216,6 +567,11 @@ int Model::GetNumberFromChannelString(std::string sc) {
 }
 
 void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool zb) {
+    if (modelDimmingCurve != nullptr) {
+        delete modelDimmingCurve;
+        modelDimmingCurve = nullptr;
+    }
+    
     wxString tempstr,channelstr;
     long degrees, StartChannel;
 
@@ -346,38 +702,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
     faceInfo.clear();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
-            std::string name = f->GetAttribute("Name", "SingleNode").ToStdString();
-            std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
-            if (name == "") {
-                name = type;
-                f->DeleteAttribute("Name");
-                f->AddAttribute("Name", type);
-            }
-            if (!(type == "SingleNode" || type == "NodeRange" || type == "Matrix")) {
-                if (type == "Coro") {
-                    type = "SingleNode";
-                } else {
-                    type = "Matrix";
-                }
-                f->DeleteAttribute("Type");
-                f->AddAttribute("Type", type);
-            }
-
-            wxXmlAttribute *att = f->GetAttributes();
-            while (att != nullptr) {
-                if (att->GetName() != "Name") 
-				{
-					if (att->GetName().Left(5) == "Mouth" || att->GetName().Left(4) == "Eyes")
-					{ 
-						faceInfo[name][att->GetName().ToStdString()] = xLightsXmlFile::FixFile("", att->GetValue());
-					}
-					else
-					{
-						faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
-					}
-                }
-                att = att->GetNext();
-            }
+            ParseFaceInfo(f, faceInfo);
         } else if ("dimmingCurve" == f->GetName()) {
             modelDimmingCurve = DimmingCurve::createFromXML(f);
         }

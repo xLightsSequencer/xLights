@@ -432,7 +432,7 @@ wxString NodesGridCellEditor::GetValue() const
     return retval;
 }
 
-void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<std::string, std::string> > &finfo) {
+void ModelFaceDialog::SetFaceInfo(const Model *cls, std::map< std::string, std::map<std::string, std::string> > &finfo) {
     NodeRangeGrid->SetColSize(1, 50);
     SingleNodeGrid->SetColSize(1, 50);
     NameChoice->Clear();

@@ -241,6 +241,7 @@
 		67B845061A9C0E7500564051 /* DisplayElementsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845001A9C0E7500564051 /* DisplayElementsPanel.cpp */; };
 		67B845071A9C0E7500564051 /* ModelViewSelector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845021A9C0E7500564051 /* ModelViewSelector.cpp */; };
 		67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */; };
+		67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */; };
 		67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */; };
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
@@ -724,6 +725,8 @@
 		67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wxCheckedListCtrl.cpp; sourceTree = "<group>"; };
 		67B845051A9C0E7500564051 /* wxCheckedListCtrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wxCheckedListCtrl.h; sourceTree = "<group>"; };
 		67B94CE11B82129600B5FB0D /* osxMacUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = osxMacUtils.h; sourceTree = "<group>"; };
+		67BA42A51C93B78500D17518 /* StartChannelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StartChannelDialog.h; sourceTree = "<group>"; };
+		67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StartChannelDialog.cpp; sourceTree = "<group>"; };
 		67BAE6E21A08252700CB7041 /* spxml-0.5 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "spxml-0.5"; path = "include/spxml-0.5"; sourceTree = SOURCE_ROOT; };
 		67C0EEE11C755ABE002FE25E /* MatrixModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MatrixModel.h; path = models/MatrixModel.h; sourceTree = "<group>"; };
 		67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MatrixModel.cpp; path = models/MatrixModel.cpp; sourceTree = "<group>"; };
@@ -1201,6 +1204,8 @@
 			children = (
 				67229EDC1C95DDF000D34024 /* TestDialog.h */,
 				67229EDD1C95DDF000D34024 /* TestDialog.cpp */,
+				67BA42A51C93B78500D17518 /* StartChannelDialog.h */,
+				67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */,
 				6764010A1C8FBFC30079A4CF /* LayoutPanel.h */,
 				6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */,
 				673C45551C79570B00FDED47 /* BufferPanel.h */,
@@ -1586,6 +1591,7 @@
 				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
 				67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
+				67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */,
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,
 				675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */,

@@ -39,7 +39,7 @@ class ModelFaceDialog: public wxDialog
 		wxCheckBox* CustomColorNodeRanges;
 		//*)
 
-        void SetFaceInfo(Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
+        void SetFaceInfo(const Model *cls, std::map<std::string, std::map<std::string, std::string> > &info);
         void GetFaceInfo(std::map<std::string, std::map<std::string, std::string> > &info);
 	protected:
 

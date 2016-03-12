@@ -30,6 +30,8 @@ public:
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;
     
+    static void ParseFaceInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &faceInfo);
+    static void WriteFaceInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
     
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
@@ -46,14 +48,17 @@ public:
     int GetDefaultBufferHt() const {return BufferHt;}
     
     virtual void AddProperties(wxPropertyGridInterface *grid);
+    virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
     virtual void OnPropertyGridChanging(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
     /**
      * Returns a combination of:
      *     0x0001  -  Refresh displays 
      *     0x0002  -  Mark settings as "dirty"/"changed"
+     *     0x0004  -  Rebuild the property grid
      */
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
 protected:
+    std::string ComputeStringStartChannel(int x);
     void ApplyTransform(const std::string &transform,
                         std::vector<NodeBaseClassPtr> &Nodes,
                         int &bufferWi, int &bufferHi) const;

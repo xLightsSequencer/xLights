@@ -4,11 +4,11 @@
 
 
 //(*InternalHeaders(ModelDialog)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/artprov.h>
 //*)
 
 #include "ModelDialog.h"
@@ -84,19 +84,19 @@ ModelDialog::ModelDialog(wxWindow* parent, xLightsFrame* frame, wxWindowID id) :
     netInfo = nullptr;
 
     //(*Initialize(ModelDialog)
-    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
     wxButton* Button01;
-    wxFlexGridSizer* FlexGridSizer10;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxBoxSizer* BoxSizer2;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxButton* Button03;
     wxFlexGridSizer* FlexGridSizer3;
     wxButton* Button04;
-    wxFlexGridSizer* FlexGridSizer5;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxBoxSizer* BoxSizer2;
-    wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer10;
     wxBoxSizer* BoxSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer2;
-    wxFlexGridSizer* FlexGridSizer1;
-    wxButton* Button03;
+    wxFlexGridSizer* FlexGridSizer5;
 
     Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     SetHelpText(_("Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical."));
@@ -930,16 +930,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
             f = f->GetNext();
         }
     }
-    if (!faceInfo.empty()) {
-        for (std::map<std::string, std::map<std::string,std::string> >::iterator it = faceInfo.begin(); it != faceInfo.end(); it++) {
-            f = new wxXmlNode(e, wxXML_ELEMENT_NODE , "faceInfo");
-            std::string name = it->first;
-            f->AddAttribute("Name", name);
-            for (std::map<std::string,std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-                f->AddAttribute(it2->first, it2->second);
-            }
-        }
-    }
+    Model::WriteFaceInfo(e, faceInfo);
     if (!dimmingInfo.empty()) {
         f = new wxXmlNode(e, wxXML_ELEMENT_NODE , "dimmingCurve");
         for (std::map<std::string, std::map<std::string,std::string> >::iterator it = dimmingInfo.begin(); it != dimmingInfo.end(); it++) {
@@ -1069,29 +1060,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, NetInfoClass *ni, const wxString& Nam
     wxXmlNode *f = e->GetChildren();
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
-            std::string name = f->GetAttribute("Name").ToStdString();
-            std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
-            if (name == "") {
-                name = type;
-                f->DeleteAttribute("Name");
-                f->AddAttribute("Name", type);
-            }
-            if (!(type == "SingleNode" || type == "NodeRange" || type == "Matrix")) {
-                if (type == "Coro") {
-                    type = "SingleNode";
-                } else {
-                    type = "Matrix";
-                }
-                f->DeleteAttribute("Type");
-                f->AddAttribute("Type", type);
-            }
-            wxXmlAttribute *att = f->GetAttributes();
-            while (att != nullptr) {
-                if (att->GetName() != "Name") {
-                    faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
-                }
-                att = att->GetNext();
-            }
+            Model::ParseFaceInfo(f, faceInfo);
         } else if ("dimmingCurve" == f->GetName()) {
             wxXmlNode *dc = f->GetChildren();
             while (dc != nullptr) {
@@ -1376,86 +1345,11 @@ void ModelDialog::OnNamesButtonClick(wxCommandEvent& event)
     std::unique_ptr<Model> md(ModelManager::CreateModel(&xml, *netInfo));
 
     StrandNodeNamesDialog dlg(this);
-    std::vector<wxString> strands;
-    std::vector<wxString> nodes;
-    wxString tempstr = strandNames;
-    while (tempstr.size() > 0) {
-        wxString t2 = tempstr;
-        if (tempstr[0] == ',') {
-            t2 = "";
-            tempstr = tempstr(1, tempstr.length());
-        } else if (tempstr.Contains(",")) {
-            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
-            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        } else {
-            tempstr = "";
-        }
-        strands.push_back(t2);
-    }
-    if (strands.size() < md->GetNumStrands()) {
-        strands.resize(md->GetNumStrands());
-    }
-    dlg.StrandsGrid->BeginBatch();
-    dlg.StrandsGrid->SetMaxSize(dlg.StrandsGrid->GetSize());
-    dlg.StrandsGrid->HideColLabels();
-    dlg.StrandsGrid->DeleteRows(0, 10);
-    dlg.StrandsGrid->AppendRows(strands.size());
-    dlg.StrandsGrid->SetRowLabelSize(40);
-
-    for (int x = 0; x < strands.size(); x++) {
-        dlg.StrandsGrid->SetCellValue(x, 0, strands[x]);
-    }
-    dlg.StrandsGrid->EndBatch();
-
-    tempstr=nodeNames;
-    nodes.clear();
-    while (tempstr.size() > 0) {
-        wxString t2 = tempstr;
-        if (tempstr[0] == ',') {
-            t2 = "";
-            tempstr = tempstr(1, tempstr.length());
-        } else if (tempstr.Contains(",")) {
-            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
-            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        } else {
-            tempstr = "";
-        }
-        nodes.push_back(t2);
-    }
-    if (nodes.size() < md->GetNodeCount()) {
-        nodes.resize(md->GetNodeCount());
-    }
-    dlg.NodesGrid->BeginBatch();
-    dlg.NodesGrid->SetMaxSize(dlg.StrandsGrid->GetSize());
-    dlg.NodesGrid->HideColLabels();
-    dlg.NodesGrid->DeleteRows(0, 10);
-    dlg.NodesGrid->SetRowLabelSize(40);
-
-    dlg.NodesGrid->AppendRows(nodes.size());
-    for (int x = 0; x < nodes.size(); x++) {
-        dlg.NodesGrid->SetCellValue(x, 0, nodes[x]);
-    }
-    dlg.NodesGrid->EndBatch();
-
+    dlg.Setup(md.get(), nodeNames, strandNames);
+    
     if (dlg.ShowModal() == wxID_OK) {
-        nodeNames.clear();
-        for (int x = dlg.NodesGrid->GetNumberRows(); x > 0; x--) {
-            if ("" != dlg.NodesGrid->GetCellValue(x-1,0) || nodeNames.size() > 0) {
-                if (nodeNames.size() > 0) {
-                    nodeNames = "," + nodeNames;
-                }
-                nodeNames = dlg.NodesGrid->GetCellValue(x-1,0) + nodeNames;
-            }
-        }
-        strandNames.clear();
-        for (int x = dlg.StrandsGrid->GetNumberRows(); x > 0; x--) {
-            if ("" != dlg.StrandsGrid->GetCellValue(x-1,0) || strandNames.size() > 0) {
-                if (strandNames.size() > 0) {
-                    strandNames = "," + strandNames;
-                }
-                strandNames = dlg.StrandsGrid->GetCellValue(x-1,0) + strandNames;
-            }
-        }
+        nodeNames = dlg.GetNodeNames();
+        strandNames = dlg.GetStrandNames();
     }
 }
 
@@ -1467,7 +1361,7 @@ void ModelDialog::OnFacesButtonClick(wxCommandEvent& event)
 
     ModelFaceDialog dlg(this);
     dlg.SetFaceInfo(md.get(), faceInfo);
-    if (dlg.ShowModal()) {
+    if (dlg.ShowModal() == wxID_OK) {
         faceInfo.clear();
         dlg.GetFaceInfo(faceInfo);
     }
@@ -1477,7 +1371,7 @@ void ModelDialog::OnDimmingCurvesClick(wxCommandEvent& event)
 {
     ModelDimmingCurveDialog d(this);
     d.Init(dimmingInfo);
-    if (d.ShowModal()) {
+    if (d.ShowModal() == wxID_OK) {
         dimmingInfo.clear();
         d.Update(dimmingInfo);
     }

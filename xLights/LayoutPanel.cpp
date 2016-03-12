@@ -59,6 +59,8 @@ const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     m_creating_bound_rect(false), mPointSize(2), m_rotating(false), m_dragging(false), m_over_handle(0)
 {
+    appearanceVisible = sizeVisible = stringPropsVisible = false;
+    
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* LeftPanelSizer;
 	wxFlexGridSizer* FlexGridSizerPreview;
@@ -199,6 +201,16 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             newscalex *= 100.0;
             newscaley *= 100.0;
             PreviewScaleUpdated(newscalex, event.GetValue().GetDouble());
+        } else if ("ModelX" == name) {
+            selectedModel->SetHcenterOffset(event.GetValue().GetDouble() / 100.0f);
+            selectedModel->UpdateXmlWithScale();
+            xlights->UpdatePreview();
+            xlights->UnsavedRgbEffectsChanges = true;
+        } else if ("ModelY" == name) {
+            selectedModel->SetVcenterOffset(event.GetValue().GetDouble() / 100.0f);
+            selectedModel->UpdateXmlWithScale();
+            xlights->UpdatePreview();
+            xlights->UnsavedRgbEffectsChanges = true;
         } else if ("ModelName" == name) {
             if (selectedModel->name != event.GetValue().GetString().ToStdString()) {
                 xlights->RenameModelInViews(selectedModel->name, event.GetValue().GetString().ToStdString());
@@ -210,6 +222,10 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             }
             if (i & 0x0002) {
                 xlights->UnsavedRgbEffectsChanges = true;
+            }
+            if (i & 0x0004) {
+                clearPropGrid();
+                SetupPropGrid(selectedModel);
             }
             if (i == 0) {
                 printf("Did not handle %s   %s\n",
@@ -270,7 +286,21 @@ void LayoutPanel::UpdatePreview()
 }
 
 
-
+void LayoutPanel::clearPropGrid() {
+    wxPGProperty *p = propertyEditor->GetPropertyByName("ModelAppearance");
+    if (p != nullptr) {
+        appearanceVisible = propertyEditor->IsPropertyExpanded(p);
+    }
+    p = propertyEditor->GetPropertyByName("ModelSize");
+    if (p != nullptr) {
+        sizeVisible = propertyEditor->IsPropertyExpanded(p);
+    }
+    p = propertyEditor->GetPropertyByName("ModelStringProperties");
+    if (p != nullptr) {
+        stringPropsVisible = propertyEditor->IsPropertyExpanded(p);
+    }
+    propertyEditor->Clear();
+}
 
 void LayoutPanel::UnSelectAllModels()
 {
@@ -282,7 +312,7 @@ void LayoutPanel::UnSelectAllModels()
     UpdatePreview();
     
     propertyEditor->Freeze();
-    propertyEditor->Clear();
+    clearPropGrid();
     propertyEditor->Append(new wxImageFileProperty("Background Image",
                                                    "BkgImage",
                                                    modelPreview->GetBackgroundImage()));
@@ -311,12 +341,22 @@ void LayoutPanel::SetupPropGrid(Model *model) {
     newscaley *= 100.0;
     
     propertyEditor->Freeze();
-    propertyEditor->Clear();
+    clearPropGrid();
 
     wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Name", "ModelName", model->name));
     
     model->AddProperties(propertyEditor);
     
+    wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
+    
+    prop = propertyEditor->Append(new wxFloatProperty("X (%)", "ModelX", model->GetHcenterOffset() * 100.0));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Step", 0.5);
+    prop->SetEditor("SpinCtrl");
+    prop = propertyEditor->Append(new wxFloatProperty("Y (%)", "ModelY", model->GetVcenterOffset() * 100.0));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Step", 0.5);
+    prop->SetEditor("SpinCtrl");
     prop = propertyEditor->Append(new wxFloatProperty("Width", "ModelWidth", newscalex));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.1);
@@ -329,6 +369,21 @@ void LayoutPanel::SetupPropGrid(Model *model) {
     prop->SetAttribute("Min", "-180");
     prop->SetAttribute("Max", "180");
     prop->SetEditor("SpinCtrl");
+    if (!sizeVisible) {
+        propertyEditor->Collapse(p2);
+    }
+    if (!appearanceVisible) {
+        prop = propertyEditor->GetPropertyByName("ModelAppearance");
+        if (prop != nullptr) {
+            propertyEditor->Collapse(prop);
+        }
+    }
+    if (!stringPropsVisible) {
+        prop = propertyEditor->GetPropertyByName("ModelStringProperties");
+        if (prop != nullptr) {
+            propertyEditor->Collapse(prop);
+        }
+    }
     propertyEditor->Thaw();
 }
 
@@ -361,7 +416,7 @@ void LayoutPanel::SelectModel(const std::string & name)
     }
     if (m == nullptr) {
         propertyEditor->Freeze();
-        propertyEditor->Clear();
+        clearPropGrid();
         propertyEditor->Thaw();
     }
     selectedModel = m;
@@ -614,7 +669,7 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
     else if(modelCount>0)
     {
         propertyEditor->Freeze();
-        propertyEditor->Clear();
+        clearPropGrid();
         propertyEditor->Thaw();
 
         if(xlights->PreviewModels[found[0]]->Selected)
@@ -767,6 +822,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 {
                     xlights->PreviewModels[i]->AddOffset(delta_x/wi, delta_y/ht);
                     xlights->PreviewModels[i]->UpdateXmlWithScale();
+                    SetupPropGrid(xlights->PreviewModels[i]);
                     xlights->UnsavedRgbEffectsChanges = true;
                 }
             }

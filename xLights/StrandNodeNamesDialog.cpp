@@ -6,6 +6,9 @@
 #include <wx/intl.h>
 //*)
 
+#include <sstream>
+#include "models/Model.h"
+
 //(*IdInit(StrandNodeNamesDialog)
 const long StrandNodeNamesDialog::ID_GRID2 = wxNewId();
 const long StrandNodeNamesDialog::ID_GRID1 = wxNewId();
@@ -69,5 +72,94 @@ StrandNodeNamesDialog::~StrandNodeNamesDialog()
 {
 	//(*Destroy(StrandNodeNamesDialog)
 	//*)
+}
+
+
+void StrandNodeNamesDialog::Setup(const Model *md, const std::string &nodeNames, const std::string &strandNames) {
+    std::vector<wxString> strands;
+    std::vector<wxString> nodes;
+    wxString tempstr = strandNames;
+    while (tempstr.size() > 0) {
+        wxString t2 = tempstr;
+        if (tempstr[0] == ',') {
+            t2 = "";
+            tempstr = tempstr(1, tempstr.length());
+        } else if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        } else {
+            tempstr = "";
+        }
+        strands.push_back(t2);
+    }
+    if (strands.size() < md->GetNumStrands()) {
+        strands.resize(md->GetNumStrands());
+    }
+    StrandsGrid->BeginBatch();
+    StrandsGrid->SetMaxSize(StrandsGrid->GetSize());
+    StrandsGrid->HideColLabels();
+    StrandsGrid->DeleteRows(0, 10);
+    StrandsGrid->AppendRows(strands.size());
+    StrandsGrid->SetRowLabelSize(40);
+    
+    for (int x = 0; x < strands.size(); x++) {
+        StrandsGrid->SetCellValue(x, 0, strands[x]);
+    }
+    StrandsGrid->EndBatch();
+    
+    tempstr=nodeNames;
+    nodes.clear();
+    while (tempstr.size() > 0) {
+        wxString t2 = tempstr;
+        if (tempstr[0] == ',') {
+            t2 = "";
+            tempstr = tempstr(1, tempstr.length());
+        } else if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        } else {
+            tempstr = "";
+        }
+        nodes.push_back(t2);
+    }
+    if (nodes.size() < md->GetNodeCount()) {
+        nodes.resize(md->GetNodeCount());
+    }
+    NodesGrid->BeginBatch();
+    NodesGrid->SetMaxSize(StrandsGrid->GetSize());
+    NodesGrid->HideColLabels();
+    NodesGrid->DeleteRows(0, 10);
+    NodesGrid->SetRowLabelSize(40);
+    
+    NodesGrid->AppendRows(nodes.size());
+    for (int x = 0; x < nodes.size(); x++) {
+        NodesGrid->SetCellValue(x, 0, nodes[x]);
+    }
+    NodesGrid->EndBatch();
+}
+
+std::string StrandNodeNamesDialog::GetNodeNames() {
+    std::string nodeNames;
+    for (int x = NodesGrid->GetNumberRows(); x > 0; x--) {
+        if ("" != NodesGrid->GetCellValue(x-1,0) || nodeNames.size() > 0) {
+            if (nodeNames.size() > 0) {
+                nodeNames = "," + nodeNames;
+            }
+            nodeNames = NodesGrid->GetCellValue(x-1,0) + nodeNames;
+        }
+    }
+    return nodeNames;
+}
+std::string StrandNodeNamesDialog::GetStrandNames() {
+    std::string strandNames;
+    for (int x = StrandsGrid->GetNumberRows(); x > 0; x--) {
+        if ("" != StrandsGrid->GetCellValue(x-1,0) || strandNames.size() > 0) {
+            if (strandNames.size() > 0) {
+                strandNames = "," + strandNames;
+            }
+            strandNames = StrandsGrid->GetCellValue(x-1,0) + strandNames;
+        }
+    }
+    return strandNames;
 }
 

@@ -13,9 +13,14 @@ ArchesModel::~ArchesModel()
 {
 }
 
-void ArchesModel::AddProperties(wxPropertyGridInterface *grid) {
-    Model::AddProperties(grid);
-    
+
+static wxPGChoices LEFT_RIGHT;
+
+void ArchesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    if (LEFT_RIGHT.GetCount() == 0) {
+        LEFT_RIGHT.Add("Left");
+        LEFT_RIGHT.Add("Right");
+    }
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Arches", "ArchesCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
@@ -36,6 +41,7 @@ void ArchesModel::AddProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 180);
     p->SetEditor("SpinCtrl");
 
+    p = grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
 }
 int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("ArchesCount" == event.GetPropertyName()) {
@@ -56,6 +62,11 @@ int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     } else if ("ArchesArc" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("arc");
         ModelXml->AddAttribute("arc", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("ArchesStart" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Dir");
+        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
         return 3;
     }

@@ -143,9 +143,14 @@ class LayoutPanel: public wxPanel
         wxPropertyGrid *propertyEditor;
         Model *selectedModel;
 
+        void clearPropGrid();
+        bool stringPropsVisible;
+        bool appearanceVisible;
+        bool sizeVisible;
     public:
         xLightsFrame *xlights;
         ModelPreview *modelPreview;
+    
 };
 
 #endif
