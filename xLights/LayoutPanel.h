@@ -3,14 +3,12 @@
 
 //(*Headers(LayoutPanel)
 #include <wx/panel.h>
-class wxSplitterWindow;
-class wxCheckBox;
-class wxTextCtrl;
-class wxSplitterEvent;
-class wxStaticText;
 class wxListView;
 class wxFlexGridSizer;
 class wxButton;
+class wxSplitterWindow;
+class wxSplitterEvent;
+class wxCheckBox;
 //*)
 
 class xLightsFrame;
@@ -31,19 +29,17 @@ class LayoutPanel: public wxPanel
 		virtual ~LayoutPanel();
 
 		//(*Declarations(LayoutPanel)
-		wxListView* ListBoxElementList;
-		wxButton* ButtonSelectModelGroups;
-		wxButton* ButtonModelsPreview;
-		wxSplitterWindow* SplitterWindow2;
-		wxTextCtrl* TextCtrlModelStartChannel;
-		wxPanel* LeftPanel;
 		wxCheckBox* CheckBoxOverlap;
-		wxPanel* SecondPanel;
-		wxButton* ButtonSavePreview;
-		wxStaticText* StaticTextStartChannel;
 		wxFlexGridSizer* PreviewGLSizer;
-		wxSplitterWindow* ModelSplitter;
+		wxListView* ListBoxElementList;
+		wxButton* ButtonSavePreview;
+		wxButton* ButtonSelectModelGroups;
+		wxSplitterWindow* SplitterWindow2;
+		wxPanel* SecondPanel;
 		wxPanel* PreviewGLPanel;
+		wxPanel* LeftPanel;
+		wxSplitterWindow* ModelSplitter;
+		wxButton* ButtonModelsPreview;
 		//*)
 
 	protected:
@@ -53,8 +49,6 @@ class LayoutPanel: public wxPanel
 		static const long ID_BUTTON_MODELS_PREVIEW;
 		static const long ID_BUTTON_SAVE_PREVIEW;
 		static const long ID_CHECKBOXOVERLAP;
-		static const long ID_STATICTEXT31;
-		static const long ID_TEXTCTRL4;
 		static const long ID_LISTBOX_ELEMENT_LIST;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
@@ -78,22 +72,22 @@ class LayoutPanel: public wxPanel
 	public:
 
 		//(*Handlers(LayoutPanel)
-        void OnPreviewLeftUp(wxMouseEvent& event);
-        void OnPreviewMouseLeave(wxMouseEvent& event);
-        void OnPreviewLeftDown(wxMouseEvent& event);
-        void OnPreviewRightDown(wxMouseEvent& event);
-        void OnPreviewMouseMove(wxMouseEvent& event);
-        void OnPreviewModelPopup(wxCommandEvent &event);
-
+		void OnPreviewLeftUp(wxMouseEvent& event);
+		void OnPreviewMouseLeave(wxMouseEvent& event);
+		void OnPreviewLeftDown(wxMouseEvent& event);
+		void OnPreviewRightDown(wxMouseEvent& event);
+		void OnPreviewMouseMove(wxMouseEvent& event);
+		void OnPreviewModelPopup(wxCommandEvent &event);
 		void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
 		void OnCheckBoxOverlapClick(wxCommandEvent& event);
 		void OnButtonModelsPreviewClick(wxCommandEvent& event);
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
-		void OnTextCtrlModelStartChannelText(wxCommandEvent& event);
 		void OnListBoxElementListItemSelect(wxListEvent& event);
 		void OnListBoxElementListColumnClick(wxListEvent& event);
-        void OnPropertyGridChange(wxPropertyGridEvent& event);
-        void OnPropertyGridChanging(wxPropertyGridEvent& event);
+		void OnPropertyGridChange(wxPropertyGridEvent& event);
+		void OnPropertyGridChanging(wxPropertyGridEvent& event);
+		void OnModelSplitterSashPosChanged(wxSplitterEvent& event);
+		void OnSplitterWindowSashPosChanged(wxSplitterEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
