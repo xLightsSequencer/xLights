@@ -230,14 +230,20 @@ std::string TreeController::GenerateName()
 		break;
 	case CONTROLLERTYPE::CT_CONTROLLERROOT:
 		_name += "Controllers ";
-		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+		if (_endxlightschannel >= _startxlightschannel)
+		{
+			_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+		}
 		break;
 	case CONTROLLERTYPE::CT_MODELGROUPROOT:
 		_name += "Model Groups";
 		break;
 	case CONTROLLERTYPE::CT_MODELROOT:
 		_name += "Models ";
-		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+		if (_endxlightschannel >= _startxlightschannel)
+		{
+			_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+		}
 		break;
 	case CONTROLLERTYPE::CT_NODE:
 		_name += "Node {" + std::string(wxString::Format(wxT("%i"), _nodeNumber)) + "} ";
@@ -606,6 +612,22 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	PopulateModelGroupsTree(_modelManager);
 	CascadeModelDoesNotExist();
 	DeactivateNotClickableModels();
+
+	if (TreeListCtrl_Channels->GetFirstChild(_controllers) == NULL)
+	{
+		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
+		tc->DoesNotExist();
+	}
+	if (TreeListCtrl_Channels->GetFirstChild(_models) == NULL)
+	{
+		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(_models);
+		tc->DoesNotExist();
+	}
+	if (TreeListCtrl_Channels->GetFirstChild(_modelGroups) == NULL)
+	{
+		TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(_modelGroups);
+		tc->DoesNotExist();
+	}
 
 	_starttime = wxDateTime::UNow();
 	DisableSleepModes();
