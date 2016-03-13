@@ -579,9 +579,6 @@
     <ClCompile Include="TabSetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TabTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TimingPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -693,12 +690,6 @@
     <ClCompile Include="models\MatrixModel.cpp">
       <Filter>Source Files\models</Filter>
     </ClCompile>
-    <ClCompile Include="effects\TransitionEffect.cpp">
-      <Filter>Source Files\effects</Filter>
-    </ClCompile>
-    <ClCompile Include="effects\TransitionPanel.cpp">
-      <Filter>Source Files\effects</Filter>
-    </ClCompile>
     <ClCompile Include="BufferPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -706,6 +697,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="effects\VideoPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

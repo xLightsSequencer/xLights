@@ -310,9 +310,12 @@ bool FRAMECLASS WriteVixenFile(const wxString& filename)
         node->AddAttribute( "id", "0");
         node->AddAttribute( "enabled", "True");
         chparent->AddChild( node );
-        if (ch < CheckListBoxTestChannels->GetCount())
+
+// KW - not sure why this was this way but now test tab is removed I need to remove it
+//		if (ch < CheckListBoxTestChannels->GetCount())
+		if (ch < ChNames.Count())
         {
-            TestName=CheckListBoxTestChannels->GetString(ch);
+            TestName=ChNames[ch];
         }
         else
         {
@@ -967,9 +970,11 @@ void FRAMECLASS WriteLorFile(const wxString& filename)
     {
         SetStatusText(wxString("Status: " )+string_format(" Channel %ld ",ch));
 
-        if (ch < CheckListBoxTestChannels->GetCount())
+// KW - not sure why this was this way but now test tab is removed I need to remove it
+//		if (ch < CheckListBoxTestChannels->GetCount())
+		if (ch < ChNames.Count())
         {
-            TestName=CheckListBoxTestChannels->GetString(ch);
+            TestName=ChNames[ch];
         }
         else
         {
@@ -1028,8 +1033,10 @@ void FRAMECLASS WriteLorFile(const wxString& filename)
             f.Write(string_format("\t\t\t<effect type=\"intensity\" startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\"/>\n",StartCSec,csec,LastIntensity));
         }
         f.Write("\t\t</channel>\n");
-        if ( ch < CheckListBoxTestChannels->GetCount() &&
-                (TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B'))
+		// KW I had to replace this because test tab has been removed
+		//if (ch < CheckListBoxTestChannels->GetCount() &&
+		if (ch < GetTotalChannels() &&
+				(TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B'))
         {
             rgbChanIndexes[curRgbChanCount++]= index;
             if (curRgbChanCount == 3)
