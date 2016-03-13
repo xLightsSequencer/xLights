@@ -3322,9 +3322,13 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 		AllLightsOff();
 	}
 
+	SetCursor(wxCURSOR_WAIT);
+
     TestDialog dialog(this, &NetworkXML, networkFile, &AllModels);
     dialog.CenterOnParent();
     int DlgResult = dialog.ShowModal();
+
+	SetCursor(wxCURSOR_DEFAULT);
 
 	if (output)
 	{
