@@ -558,7 +558,6 @@
 		</Unit>
 		<Unit filename="TabSequence.cpp" />
 		<Unit filename="TabSetup.cpp" />
-		<Unit filename="TabTest.cpp" />
 		<Unit filename="TestDialog.cpp" />
 		<Unit filename="TestDialog.h" />
 		<Unit filename="TimingPanel.cpp" />

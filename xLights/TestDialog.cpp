@@ -1122,13 +1122,13 @@ std::list<std::string> TestDialog::GetModelsOnChannels(int start, int end)
 
 void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 {
+    // Tooltips dont work on the TreeListCtrl ... so dont bother
+    return;
+
 	wxTreeListItem item = event.GetItem();
 	if (item == _controllers || item == _modelGroups || item == _models)
 	{
-		// dont do anything
-		//TreeListCtrl_Channels->UnsetToolTip();
-		// remove this once TreeListCtrl supports tool tips
-		//Panel1->UnsetToolTip();
+		TreeListCtrl_Channels->UnsetToolTip();
 	}
 	else
 	{
@@ -1164,22 +1164,16 @@ void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 					tt = "[" + std::string(wxString::Format(wxT("%i"), start)) + "-" + std::string(wxString::Format(wxT("%i"), end)) + "] maps to\n" + tt;
 				}
 				// This does not work ... there is a bug in wxWidgets which prevents tooltip display.
-				//TreeListCtrl_Channels->SetToolTip(tt);
-				// remove this once TreeListCtrl supports tool tips
-				//Panel1->SetToolTip(tt);
+				TreeListCtrl_Channels->SetToolTip(tt);
 			}
 			else
 			{
-				//TreeListCtrl_Channels->UnsetToolTip();
-				// remove this once TreeListCtrl supports tool tips
-				//Panel1->UnsetToolTip();
+				TreeListCtrl_Channels->UnsetToolTip();
 			}
 		}
 		else
 		{
-			//TreeListCtrl_Channels->UnsetToolTip();
-			// remove this once TreeListCtrl supports tool tips
-			//Panel1->UnsetToolTip();
+			TreeListCtrl_Channels->UnsetToolTip();
 		}
 	}
 }
