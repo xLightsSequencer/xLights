@@ -3,6 +3,7 @@
 #include <wx/choicdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/textdlg.h>
+#include <wx/settings.h>
 
 //(*InternalHeaders(TestDialog)
 #include <wx/intl.h>
