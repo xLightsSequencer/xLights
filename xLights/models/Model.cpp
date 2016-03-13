@@ -58,7 +58,7 @@ public:
     : wxPGEditorDialogAdapter(), m_model(model) {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property) ) wxOVERRIDE {
+                              wxPGProperty* WXUNUSED(property) ) override {
         StrandNodeNamesDialog dlg(propGrid);
         dlg.Setup(m_model,
                   m_model->GetModelXml()->GetAttribute("NodeNames").ToStdString(),
@@ -85,7 +85,7 @@ public:
     : wxPGEditorDialogAdapter(), m_model(model) {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property) ) wxOVERRIDE {
+                              wxPGProperty* WXUNUSED(property) ) override {
         ModelFaceDialog dlg(propGrid);
         dlg.SetFaceInfo(m_model, m_model->faceInfo);
         if (dlg.ShowModal() == wxID_OK) {
@@ -108,7 +108,7 @@ public:
     : wxPGEditorDialogAdapter(), m_model(model) {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property) ) wxOVERRIDE {
+                              wxPGProperty* WXUNUSED(property) ) override {
         ModelDimmingCurveDialog dlg(propGrid);
         std::map<std::string, std::map<std::string,std::string> > dimmingInfo;
         wxXmlNode *f = m_model->GetModelXml()->GetChildren();
@@ -175,11 +175,11 @@ public:
     : wxStringProperty(label, name, value), m_model(m), m_tp(type) {
     }
     // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const wxOVERRIDE {
+    virtual const wxPGEditor* DoGetEditorClass() const override {
         return wxPGEditor_TextCtrlAndButton;
     }
     // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const wxOVERRIDE {
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
         switch (m_tp) {
         case 1:
             return new StrandNodeNamesDialogAdapter(m_model);
@@ -202,7 +202,7 @@ public:
     : wxPGEditorDialogAdapter(), m_model(model) {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* property) wxOVERRIDE {
+                              wxPGProperty* property) override {
         StartChannelDialog dlg(propGrid);
         dlg.Set(property->GetValue().GetString());
         if (dlg.ShowModal() == wxID_OK) {
@@ -227,11 +227,11 @@ public:
     : wxStringProperty(label, name, value), m_model(m), m_strand(strand) {
     }
     // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const wxOVERRIDE {
+    virtual const wxPGEditor* DoGetEditorClass() const override {
         return wxPGEditor_TextCtrlAndButton;
     }
     // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const wxOVERRIDE {
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
         return new StartChannelDialogAdapter(m_model);
     }
 protected:
@@ -249,8 +249,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         PIXEL_STYLES.push_back("Smooth");
         PIXEL_STYLES.push_back("Solid Circle");
         PIXEL_STYLES.push_back("Blended Circle");
-        
-        
+
+
         NODE_TYPES.push_back("RGB Nodes");
         NODE_TYPES.push_back("RBG Nodes");
         NODE_TYPES.push_back("GBR Nodes");
@@ -262,12 +262,12 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         NODE_TYPES.push_back("Strobes");
         NODE_TYPES.push_back("Single Color");
     }
-    
+
     wxPGProperty *p;
     wxPGProperty *sp;
-    
+
     grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
-    
+
     AddTypeProperties(grid);
 
     if (GetNumStrands() <= 1) {
@@ -292,14 +292,14 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
             grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
         }
     }
-    
+
     p = grid->Append(new PopupDialogProperty(this, "Strand/Node Names", "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "Faces", "ModelFaces", CLICK_TO_EDIT, 2));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
     grid->LimitPropertyEditing(p);
-    
+
     grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     int i = NODE_TYPES.Index(StringType);
     if (i == wxNOT_FOUND) {
@@ -334,7 +334,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     sp->SetAttribute("Min", 1);
     sp->SetAttribute("Max", 300);
     sp->SetEditor("SpinCtrl");
-    
+
     grid->AppendIn(p, new wxEnumProperty("Pixel Style", "ModelPixelStyle", PIXEL_STYLES, wxArrayInt(), pixelStyle));
     sp = grid->AppendIn(p, new wxUIntProperty("Transparency", "ModelPixelTransparency", transparency));
     sp->SetAttribute("Min", 0);
@@ -571,7 +571,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
         delete modelDimmingCurve;
         modelDimmingCurve = nullptr;
     }
-    
+
     wxString tempstr,channelstr;
     long degrees, StartChannel;
 
@@ -982,7 +982,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
         double w1 = int(offsetXpct*w);
         double h1 = int(offsetYpct*h);
 
-        
+
         for (int x = firstNode; x < newNodes.size(); x++) {
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 sx = it2->screenX;
@@ -1015,7 +1015,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
             offx = 0;
             offy = 0;
         }
-        
+
         for (int x = firstNode; x < newNodes.size(); x++) {
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
                 sx = it2->screenX;
@@ -1561,7 +1561,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
         }
     }
     DrawGLUtils::PreAlloc(NodeCount);
-    
+
     double scalex=double(w) / RenderWi * PreviewScaleX;
     double scaley=double(h) / RenderHt * PreviewScaleY;
 
@@ -1732,9 +1732,9 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     int lastPixelStyle = pixelStyle;
     int lastPixelSize = pixelSize;
 
-    
+
     if(success) {
-        
+
         // layer calculation and map to output
         size_t NodeCount=Nodes.size();
         DrawGLUtils::PreAlloc(NodeCount);
@@ -1782,10 +1782,10 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 sy=Nodes[n]->Coords[c].screenY;
 
                 double newsy = ((sy*scale)+(h/2));
-                
+
                 if (lastPixelStyle != Nodes[n]->model->pixelStyle
                     || lastPixelSize != Nodes[n]->model->pixelSize) {
-                    
+
                     if (started) {
                         DrawGLUtils::End(GL_POINTS);
                         started = false;
@@ -1803,7 +1803,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                     }
                 }
 
-                
+
                 if (lastPixelStyle < 2) {
                     DrawGLUtils::AddVertex((sx*scale)+(w/2), newsy, color, color == xlBLACK ?
                                            Nodes[n]->model->blackTransparency : Nodes[n]->model->transparency);
