@@ -139,65 +139,6 @@ const long xLightsFrame::ID_BITMAPBUTTON1 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON2 = wxNewId();
 const long xLightsFrame::ID_LISTCTRL_NETWORKS = wxNewId();
 const long xLightsFrame::ID_PANEL_SETUP = wxNewId();
-const long xLightsFrame::ID_BUTTON_SELECT_ALL = wxNewId();
-const long xLightsFrame::ID_BUTTON_CLEAR_ALL = wxNewId();
-const long xLightsFrame::ID_BUTTON_LOAD = wxNewId();
-const long xLightsFrame::ID_BUTTON_SAVE = wxNewId();
-const long xLightsFrame::ID_STATICTEXT6 = wxNewId();
-const long xLightsFrame::ID_CHECKLISTBOX_TEST_CHANNELS = wxNewId();
-const long xLightsFrame::ID_STATICTEXT8 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON14 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON15 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON16 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON17 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON19 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON18 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON7 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON31 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON30 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON29 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON8 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON6 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT9 = wxNewId();
-const long xLightsFrame::ID_SLIDER4 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT10 = wxNewId();
-const long xLightsFrame::ID_SLIDER5 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT11 = wxNewId();
-const long xLightsFrame::ID_SLIDER6 = wxNewId();
-const long xLightsFrame::ID_PANEL_TEST_STANDARD = wxNewId();
-const long xLightsFrame::ID_STATICTEXT29 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON3 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON4 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON5 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON9 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON25 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON10 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON12 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON28 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON11 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON13 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON20 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON21 = wxNewId();
-const long xLightsFrame::ID_SLIDER12 = wxNewId();
-const long xLightsFrame::ID_SLIDER11 = wxNewId();
-const long xLightsFrame::ID_SLIDER1 = wxNewId();
-const long xLightsFrame::ID_SLIDER14 = wxNewId();
-const long xLightsFrame::ID_SLIDER13 = wxNewId();
-const long xLightsFrame::ID_SLIDER9 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT7 = wxNewId();
-const long xLightsFrame::ID_SLIDER2 = wxNewId();
-const long xLightsFrame::ID_PANEL_TEST_RGB = wxNewId();
-const long xLightsFrame::ID_STATICTEXT12 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON22 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON23 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON24 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON26 = wxNewId();
-const long xLightsFrame::ID_RADIOBUTTON27 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT13 = wxNewId();
-const long xLightsFrame::ID_SLIDER7 = wxNewId();
-const long xLightsFrame::ID_PANEL_RGB_CYCLE = wxNewId();
-const long xLightsFrame::ID_NOTEBOOK_TEST = wxNewId();
-const long xLightsFrame::ID_PANEL_TEST = wxNewId();
 const long xLightsFrame::ID_STATICTEXT14 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT19 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT68 = wxNewId();
@@ -525,16 +466,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer47;
     wxFlexGridSizer* FlexGridSizer54;
-    wxFlexGridSizer* FlexGridSizerTest;
-    wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizerSetup;
     wxMenuItem* MenuItem26;
-    wxFlexGridSizer* FlexGridSizer24;
     wxMenuItem* MenuItemCustomScript;
-    wxStaticBoxSizer* StaticBoxSizerHighlightColor;
     wxMenuItem* MenuItem25;
     wxFlexGridSizer* FlexGridSizer19;
-    wxBoxSizer* BoxSizer10;
     wxBoxSizer* BoxSizer8;
     wxFlexGridSizer* FlexGridSizer23;
     wxMenuItem* MenuItem5;
@@ -542,7 +478,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItemAddList;
     wxGridBagSizer* GridBagSizer1;
     wxStaticBoxSizer* StaticBoxSizer4;
-    wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer27;
     wxMenuItem* MenuItem4;
@@ -552,7 +487,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxFlexGridSizer* FlexGridSizer25;
     wxMenuItem* MenuItem11;
     wxMenuItem* MenuItem29;
-    wxFlexGridSizer* FlexGridSizer22;
     wxStaticText* StaticText38;
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
@@ -577,22 +511,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
     wxMenuItem* MenuItem28;
-    wxFlexGridSizer* FlexGridSizer15;
-    wxFlexGridSizer* FlexGridSizer18;
     wxFlexGridSizer* FlexGridSizer8;
     wxMenuItem* MenuItemDisplayElements;
-    wxFlexGridSizer* FlexGridSizer21;
     wxMenuItem* MenuItem6;
-    wxFlexGridSizer* FlexGridSizer14;
     wxMenuItem* MenuItem23;
-    wxFlexGridSizer* FlexGridSizer20;
     wxStaticText* StaticText28;
     wxBoxSizer* BoxSizer1;
     wxMenuItem* MenuItemRenameList;
     wxFlexGridSizer* FlexGridSizer50;
-    wxFlexGridSizer* FlexGridSizer13;
     wxFlexGridSizer* FlexGridSizer35;
-    wxFlexGridSizer* FlexGridSizer12;
     wxFlexGridSizer* FlexGridSizer36;
     wxFlexGridSizer* FlexGridSizer6;
     wxStaticBoxSizer* StaticBoxSizer1;
@@ -600,10 +527,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizerConvert;
     wxFlexGridSizer* FlexGridSizer43;
-    wxFlexGridSizer* FlexGridSizer11;
-    wxBoxSizer* BoxSizer3;
     wxFlexGridSizer* FlexGridSizerStartChan;
-    wxFlexGridSizer* FlexGridSizer17;
     wxMenu* Menu2;
     wxFlexGridSizer* FlexGridSizerPapagayo;
     wxMenuItem* MenuItem9;
@@ -612,7 +536,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxFlexGridSizer* FlexGridSizer40;
     wxFlexGridSizer* FlexGridSizer39;
     wxFlexGridSizer* FlexGridSizer28;
-    wxStaticBoxSizer* StaticBoxSizerBackgroundColor;
     wxMenu* MenuPlaylist;
     wxFlexGridSizer* FlexGridSizer26;
     wxMenu* Menu5;
@@ -730,205 +653,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     PanelSetup->SetSizer(FlexGridSizerSetup);
     FlexGridSizerSetup->Fit(PanelSetup);
     FlexGridSizerSetup->SetSizeHints(PanelSetup);
-    PanelTest = new wxPanel(Notebook1, ID_PANEL_TEST, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_TEST"));
-    FlexGridSizerTest = new wxFlexGridSizer(2, 2, 0, 0);
-    FlexGridSizerTest->AddGrowableCol(1);
-    FlexGridSizerTest->AddGrowableRow(1);
-    FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer10->AddGrowableCol(0);
-    FlexGridSizer10->AddGrowableRow(0);
-    FlexGridSizer11 = new wxFlexGridSizer(1, 4, 0, 0);
-    ButtonTestSelectAll = new wxButton(PanelTest, ID_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL"));
-    FlexGridSizer11->Add(ButtonTestSelectAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonTestClear = new wxButton(PanelTest, ID_BUTTON_CLEAR_ALL, _("Clear All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CLEAR_ALL"));
-    FlexGridSizer11->Add(ButtonTestClear, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonTestLoad = new wxButton(PanelTest, ID_BUTTON_LOAD, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LOAD"));
-    ButtonTestLoad->Disable();
-    FlexGridSizer11->Add(ButtonTestLoad, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonTestSave = new wxButton(PanelTest, ID_BUTTON_SAVE, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE"));
-    ButtonTestSave->Disable();
-    FlexGridSizer11->Add(ButtonTestSave, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer10->Add(FlexGridSizer11, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText6 = new wxStaticText(PanelTest, ID_STATICTEXT6, _("Use Shift-click, Ctrl-click, or click && drag to select multiple channels"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-    FlexGridSizer10->Add(StaticText6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerTest->Add(FlexGridSizer10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerTest->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckListBoxTestChannels = new wxCheckListBox(PanelTest, ID_CHECKLISTBOX_TEST_CHANNELS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_EXTENDED, wxDefaultValidator, _T("ID_CHECKLISTBOX_TEST_CHANNELS"));
-    FlexGridSizerTest->Add(CheckListBoxTestChannels, 1, wxALL|wxEXPAND, 5);
-    NotebookTest = new wxNotebook(PanelTest, ID_NOTEBOOK_TEST, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_TEST"));
-    NotebookTest->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    PanelTestStandard = new wxPanel(NotebookTest, ID_PANEL_TEST_STANDARD, wxPoint(232,105), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_TEST_STANDARD"));
-    FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer13 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText8 = new wxStaticText(PanelTestStandard, ID_STATICTEXT8, _("Select function:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-    wxFont StaticText8Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText8->SetFont(StaticText8Font);
-    FlexGridSizer13->Add(StaticText8, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonOff = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON14, _("Off"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON14"));
-    FlexGridSizer13->Add(RadioButtonOff, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonChase = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON15, _("Chase"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON15"));
-    FlexGridSizer13->Add(RadioButtonChase, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonChase3 = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON16, _("Chase 1/3"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON16"));
-    FlexGridSizer13->Add(RadioButtonChase3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonChase4 = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON17, _("Chase 1/4"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON17"));
-    FlexGridSizer13->Add(RadioButtonChase4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonChase5 = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON19, _("Chase 1/5"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON19"));
-    FlexGridSizer13->Add(RadioButtonChase5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonAlt = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON18, _("Alternate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON18"));
-    FlexGridSizer13->Add(RadioButtonAlt, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonTwinkle05 = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON7, _("Twinkle 5%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON7"));
-    FlexGridSizer13->Add(RadioButtonTwinkle05, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonTwinkle10 = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON31, _("Twinkle 10%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON31"));
-    FlexGridSizer13->Add(RadioButtonTwinkle10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonTwinkle25 = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON30, _("Twinkle 25%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON30"));
-    FlexGridSizer13->Add(RadioButtonTwinkle25, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonTwinkle50 = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON29, _("Twinkle 50%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON29"));
-    FlexGridSizer13->Add(RadioButtonTwinkle50, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonShimmer = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON8, _("Shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON8"));
-    FlexGridSizer13->Add(RadioButtonShimmer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonDim = new wxRadioButton(PanelTestStandard, ID_RADIOBUTTON6, _("Background Only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON6"));
-    FlexGridSizer13->Add(RadioButtonDim, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    BoxSizer3 = new wxBoxSizer(wxHORIZONTAL);
-    FlexGridSizer20 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer20->AddGrowableCol(0);
-    FlexGridSizer20->AddGrowableRow(1);
-    StaticText9 = new wxStaticText(PanelTestStandard, ID_STATICTEXT9, _("Background\nIntensity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
-    wxFont StaticText9Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText9->SetFont(StaticText9Font);
-    FlexGridSizer20->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    SliderBgIntensity = new wxSlider(PanelTestStandard, ID_SLIDER4, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER4"));
-    FlexGridSizer20->Add(SliderBgIntensity, 0, wxALL|wxEXPAND, 10);
-    BoxSizer3->Add(FlexGridSizer20, 1, wxLEFT|wxRIGHT|wxEXPAND, 5);
-    FlexGridSizer21 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer21->AddGrowableCol(0);
-    FlexGridSizer21->AddGrowableRow(1);
-    StaticText10 = new wxStaticText(PanelTestStandard, ID_STATICTEXT10, _("Highlight\nIntensity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
-    wxFont StaticText10Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText10->SetFont(StaticText10Font);
-    FlexGridSizer21->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    SliderFgIntensity = new wxSlider(PanelTestStandard, ID_SLIDER5, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER5"));
-    FlexGridSizer21->Add(SliderFgIntensity, 1, wxALL|wxEXPAND, 10);
-    BoxSizer3->Add(FlexGridSizer21, 1, wxLEFT|wxRIGHT|wxEXPAND, 5);
-    FlexGridSizer22 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer22->AddGrowableCol(0);
-    FlexGridSizer22->AddGrowableRow(1);
-    StaticText11 = new wxStaticText(PanelTestStandard, ID_STATICTEXT11, _("Speed\n"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
-    wxFont StaticText11Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText11->SetFont(StaticText11Font);
-    FlexGridSizer22->Add(StaticText11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    SliderChaseSpeed = new wxSlider(PanelTestStandard, ID_SLIDER6, 50, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER6"));
-    FlexGridSizer22->Add(SliderChaseSpeed, 1, wxALL|wxEXPAND, 10);
-    BoxSizer3->Add(FlexGridSizer22, 1, wxLEFT|wxRIGHT|wxEXPAND, 5);
-    FlexGridSizer12->Add(BoxSizer3, 1, wxALL|wxEXPAND, 5);
-    PanelTestStandard->SetSizer(FlexGridSizer12);
-    FlexGridSizer12->Fit(PanelTestStandard);
-    FlexGridSizer12->SetSizeHints(PanelTestStandard);
-    PanelTestRgb = new wxPanel(NotebookTest, ID_PANEL_TEST_RGB, wxPoint(62,20), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_TEST_RGB"));
-    FlexGridSizer14 = new wxFlexGridSizer(0, 6, 0, 0);
-    FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText29 = new wxStaticText(PanelTestRgb, ID_STATICTEXT29, _("Select function:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT29"));
-    wxFont StaticText29Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText29->SetFont(StaticText29Font);
-    FlexGridSizer15->Add(StaticText29, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbChaseOff = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON3, _("Off"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
-    FlexGridSizer15->Add(RadioButtonRgbChaseOff, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbChase = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON4, _("Chase"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON4"));
-    FlexGridSizer15->Add(RadioButtonRgbChase, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbChase3 = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON5, _("Chase 1/3"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON5"));
-    FlexGridSizer15->Add(RadioButtonRgbChase3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbChase4 = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON9, _("Chase 1/4"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON9"));
-    FlexGridSizer15->Add(RadioButtonRgbChase4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbChase5 = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON25, _("Chase 1/5"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON25"));
-    FlexGridSizer15->Add(RadioButtonRgbChase5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbAlt = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON10, _("Alternate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON10"));
-    FlexGridSizer15->Add(RadioButtonRgbAlt, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbTwinkle05 = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON12, _("Twinkle 5%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON12"));
-    FlexGridSizer15->Add(RadioButtonRgbTwinkle05, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbTwinkle10 = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON28, _("Twinkle 10%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON28"));
-    FlexGridSizer15->Add(RadioButtonRgbTwinkle10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbTwinkle25 = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON11, _("Twinkle 25%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON11"));
-    FlexGridSizer15->Add(RadioButtonRgbTwinkle25, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbTwinkle50 = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON13, _("Twinkle 50%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON13"));
-    FlexGridSizer15->Add(RadioButtonRgbTwinkle50, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbShimmer = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON20, _("Shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON20"));
-    FlexGridSizer15->Add(RadioButtonRgbShimmer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbDim = new wxRadioButton(PanelTestRgb, ID_RADIOBUTTON21, _("Background Only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON21"));
-    FlexGridSizer15->Add(RadioButtonRgbDim, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer14->Add(FlexGridSizer15, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    FlexGridSizer14->Add(-1,-1,1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    BoxSizer10 = new wxBoxSizer(wxVERTICAL);
-    StaticBoxSizerBackgroundColor = new wxStaticBoxSizer(wxHORIZONTAL, PanelTestRgb, _("Background Color"));
-    SliderBgColorA = new wxSlider(PanelTestRgb, ID_SLIDER12, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER12"));
-    StaticBoxSizerBackgroundColor->Add(SliderBgColorA, 1, wxALL|wxEXPAND, 10);
-    SliderBgColorB = new wxSlider(PanelTestRgb, ID_SLIDER11, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER11"));
-    StaticBoxSizerBackgroundColor->Add(SliderBgColorB, 1, wxALL|wxEXPAND, 10);
-    SliderBgColorC = new wxSlider(PanelTestRgb, ID_SLIDER1, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER1"));
-    StaticBoxSizerBackgroundColor->Add(SliderBgColorC, 0, wxALL|wxEXPAND, 10);
-    BoxSizer10->Add(StaticBoxSizerBackgroundColor, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT, 3);
-    StaticBoxSizerHighlightColor = new wxStaticBoxSizer(wxHORIZONTAL, PanelTestRgb, _("Highlight Color"));
-    SliderFgColorA = new wxSlider(PanelTestRgb, ID_SLIDER14, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER14"));
-    StaticBoxSizerHighlightColor->Add(SliderFgColorA, 1, wxALL|wxEXPAND, 10);
-    SliderFgColorB = new wxSlider(PanelTestRgb, ID_SLIDER13, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER13"));
-    StaticBoxSizerHighlightColor->Add(SliderFgColorB, 1, wxALL|wxEXPAND, 10);
-    SliderFgColorC = new wxSlider(PanelTestRgb, ID_SLIDER9, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER9"));
-    StaticBoxSizerHighlightColor->Add(SliderFgColorC, 1, wxALL|wxEXPAND, 10);
-    BoxSizer10->Add(StaticBoxSizerHighlightColor, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-    FlexGridSizer14->Add(BoxSizer10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer14->Add(-1,-1,1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    FlexGridSizer16 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer16->AddGrowableCol(0);
-    FlexGridSizer16->AddGrowableRow(1);
-    StaticText7 = new wxStaticText(PanelTestRgb, ID_STATICTEXT7, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-    wxFont StaticText7Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText7->SetFont(StaticText7Font);
-    FlexGridSizer16->Add(StaticText7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    SliderRgbChaseSpeed = new wxSlider(PanelTestRgb, ID_SLIDER2, 50, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER2"));
-    FlexGridSizer16->Add(SliderRgbChaseSpeed, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 0);
-    FlexGridSizer14->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 5);
-    PanelTestRgb->SetSizer(FlexGridSizer14);
-    FlexGridSizer14->Fit(PanelTestRgb);
-    FlexGridSizer14->SetSizeHints(PanelTestRgb);
-    PanelRgbCycle = new wxPanel(NotebookTest, ID_PANEL_RGB_CYCLE, wxPoint(156,13), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_RGB_CYCLE"));
-    FlexGridSizer17 = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer18 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText12 = new wxStaticText(PanelRgbCycle, ID_STATICTEXT12, _("Select function:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
-    wxFont StaticText12Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText12->SetFont(StaticText12Font);
-    FlexGridSizer18->Add(StaticText12, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbCycleOff = new wxRadioButton(PanelRgbCycle, ID_RADIOBUTTON22, _("Off"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON22"));
-    FlexGridSizer18->Add(RadioButtonRgbCycleOff, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbCycle3 = new wxRadioButton(PanelRgbCycle, ID_RADIOBUTTON23, _("A-B-C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON23"));
-    FlexGridSizer18->Add(RadioButtonRgbCycle3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbCycle4 = new wxRadioButton(PanelRgbCycle, ID_RADIOBUTTON24, _("A-B-C-All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON24"));
-    FlexGridSizer18->Add(RadioButtonRgbCycle4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbCycle5 = new wxRadioButton(PanelRgbCycle, ID_RADIOBUTTON26, _("A-B-C-All-None"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON26"));
-    FlexGridSizer18->Add(RadioButtonRgbCycle5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButtonRgbCycleMixed = new wxRadioButton(PanelRgbCycle, ID_RADIOBUTTON27, _("Mixed Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON27"));
-    FlexGridSizer18->Add(RadioButtonRgbCycleMixed, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer17->Add(FlexGridSizer18, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    FlexGridSizer17->Add(-1,-1,1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    FlexGridSizer24 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer24->AddGrowableRow(1);
-    StaticText13 = new wxStaticText(PanelRgbCycle, ID_STATICTEXT13, _("Cycle Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
-    wxFont StaticText13Font(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText13->SetFont(StaticText13Font);
-    FlexGridSizer24->Add(StaticText13, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    SliderRgbCycleSpeed = new wxSlider(PanelRgbCycle, ID_SLIDER7, 50, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_SLIDER7"));
-    SliderRgbCycleSpeed->SetMinSize(wxSize(-1,200));
-    FlexGridSizer24->Add(SliderRgbCycleSpeed, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 10);
-    FlexGridSizer17->Add(FlexGridSizer24, 1, wxALL|wxEXPAND, 5);
-    PanelRgbCycle->SetSizer(FlexGridSizer17);
-    FlexGridSizer17->Fit(PanelRgbCycle);
-    FlexGridSizer17->SetSizeHints(PanelRgbCycle);
-    NotebookTest->AddPage(PanelTestStandard, _("Standard"), false);
-    NotebookTest->AddPage(PanelTestRgb, _("RGB"), false);
-    NotebookTest->AddPage(PanelRgbCycle, _("RGB Cycle"), false);
-    FlexGridSizerTest->Add(NotebookTest, 1, wxALL|wxEXPAND, 5);
-    PanelTest->SetSizer(FlexGridSizerTest);
-    FlexGridSizerTest->Fit(PanelTest);
-    FlexGridSizerTest->SetSizeHints(PanelTest);
     PanelConvert = new wxPanel(Notebook1, ID_PANEL_CONVERT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_CONVERT"));
     FlexGridSizerConvert = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerConvert->AddGrowableCol(0);
@@ -1394,7 +1118,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     PanelSequencer = new wxPanel(Notebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("ID_PANEL7"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Setup"), true);
-    Notebook1->AddPage(PanelTest, _("Test"));
     Notebook1->AddPage(PanelConvert, _("Convert"));
     Notebook1->AddPage(PanelPreview, _("Layout"));
     Notebook1->AddPage(PanelCal, _("Schedule"));
@@ -1622,40 +1345,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveDownClick);
     Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkBeginDrag);
     Connect(ID_LISTCTRL_NETWORKS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsFrame::OnGridNetworkItemActivated);
-    Connect(ID_BUTTON_SELECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonTestSelectAllClick);
-    Connect(ID_BUTTON_CLEAR_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonTestClearClick);
-    Connect(ID_BUTTON_LOAD,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonTestLoadClick);
-    Connect(ID_BUTTON_SAVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonTestSaveClick);
-    Connect(ID_CHECKLISTBOX_TEST_CHANNELS,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&xLightsFrame::OnCheckListBoxTestChannelsToggled);
-    Connect(ID_RADIOBUTTON14,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonOffSelect);
-    Connect(ID_RADIOBUTTON15,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChaseSelect);
-    Connect(ID_RADIOBUTTON16,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChase3Select);
-    Connect(ID_RADIOBUTTON17,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChase4Select);
-    Connect(ID_RADIOBUTTON19,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChase5Select);
-    Connect(ID_RADIOBUTTON18,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonAltSelect);
-    Connect(ID_RADIOBUTTON7,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonTwinkle05Select);
-    Connect(ID_RADIOBUTTON31,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonTwinkle10Select);
-    Connect(ID_RADIOBUTTON30,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonTwinkle25Select);
-    Connect(ID_RADIOBUTTON29,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonTwinkle50Select);
-    Connect(ID_RADIOBUTTON8,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonShimmerSelect);
-    Connect(ID_RADIOBUTTON6,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonDimSelect);
-    Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonOffSelect);
-    Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChaseSelect);
-    Connect(ID_RADIOBUTTON5,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChase3Select);
-    Connect(ID_RADIOBUTTON9,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChase4Select);
-    Connect(ID_RADIOBUTTON25,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChase5Select);
-    Connect(ID_RADIOBUTTON10,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonAltSelect);
-    Connect(ID_RADIOBUTTON12,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonTwinkle05Select);
-    Connect(ID_RADIOBUTTON28,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonTwinkle10Select);
-    Connect(ID_RADIOBUTTON11,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonTwinkle25Select);
-    Connect(ID_RADIOBUTTON13,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonTwinkle50Select);
-    Connect(ID_RADIOBUTTON20,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonShimmerSelect);
-    Connect(ID_RADIOBUTTON21,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonDimSelect);
-    Connect(ID_RADIOBUTTON22,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonOffSelect);
-    Connect(ID_RADIOBUTTON23,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChase3Select);
-    Connect(ID_RADIOBUTTON24,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChase4Select);
-    Connect(ID_RADIOBUTTON26,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonChase5Select);
-    Connect(ID_RADIOBUTTON27,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnRadioButtonDimSelect);
     Connect(ID_BUTTON_CHOOSE_FILE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonChooseFileClick);
     Connect(ID_BUTTON_START_CONVERSION,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartConversionClick);
     Connect(ID_BUTTON_PREVIEW_OPEN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPreviewOpenClick);
@@ -2150,9 +1839,9 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
     if (xout) xout->TimerStart(curtime);
     switch (Notebook1->GetSelection())
     {
-    case TESTTAB:
-        OnTimerTest(curtime);
-        break;
+    //case TESTTAB:
+    //    OnTimerTest(curtime);
+    //    break;
     case NEWSEQUENCER:
         TimerRgbSeq(curtime);
         break;
@@ -2190,10 +1879,10 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
         caption=_("Setup Tab");
         msg=_("Show Directory\n\nThe first thing you need to know about xLights is that it expects you to organize all of your sequence files and associated audio or video files into a single directory. For example, you can have a directory called '2012 Show'. Once you have your show directory created and populated with the relevant files, you are ready to proceed. Tell xLights where your new show directory is by clicking the 'Change' button on the Setup tab, navigate to your show directory, then click 'OK'.\n\nLighting Networks\n\nThe next thing you will need to do is define your lighting network(s). xLights ignores most of the information about your lighting network contained in your LOR or Vixen sequence. Thus this step is very important! Add a row in the lower half of the Setup tab for each network used in your display. xLights can drive a mixture of network types (for example, the first network can be DMX, and the second one LOR, and the third one Renard). When you are finished, do not forget to SAVE YOUR CHANGES by clicking the 'Save Setup' button.");
         break;
-    case TESTTAB:
-        caption=_("Test Tab");
-        msg=_("In order to use the xLights Test module, you must first define your lighting network(s) on the Setup tab. You should also click the 'Output to Lights' checkbox. Next you will need to select which channels you want to test. You can select channels one at a time by clicking on the checkbox next to each channel. You can select multiple channels at a time by using ")+selectmethod+_(", then clicking any checkbox in the selected range. Click the checkbox again to unselect all channels in the range. Once that is done, use the radio buttons and slide bars to control your testing. You can change channel selections while the test is running.");
-        break;
+    //case TESTTAB:
+    //    caption=_("Test Tab");
+    //    msg=_("In order to use the xLights Test module, you must first define your lighting network(s) on the Setup tab. You should also click the 'Output to Lights' checkbox. Next you will need to select which channels you want to test. You can select channels one at a time by clicking on the checkbox next to each channel. You can select multiple channels at a time by using ")+selectmethod+_(", then clicking any checkbox in the selected range. Click the checkbox again to unselect all channels in the range. Once that is done, use the radio buttons and slide bars to control your testing. You can change channel selections while the test is running.");
+    //    break;
     case CONVERTTAB:
         caption=_("Convert Tab");
         msg=_("Use the Convert tab to convert sequence files from one format to another. Available input formats include LOR (.lms or .las), Vixen (.vix), Lynx Conductor (.seq), and xLights (.xseq). Output formats include Vixen (.vix), Lynx Conductor (.seq), and xLights (.xseq). The xLights scheduler will only play xLights sequences and media files (music and video).\n\nThe lighting networks you define on the Setup tab will guide the conversion - make sure you have your lighting networks defined accurately before you start a conversion.\n\nAs the conversion takes place, messages will appear on the right side informing you about the progress and any errors found.");
@@ -2221,7 +1910,7 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
 
 void xLightsFrame::AllLightsOff()
 {
-    TestButtonsOff();
+    //TestButtonsOff();
     if (xout) xout->alloff();
 }
 
@@ -2292,11 +1981,12 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 {
     heartbeat("tab change", true); //tell fido to stop watching -DJ
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
-    if (pagenum == TESTTAB && !xout)
-    {
-        StatusBar1->SetStatusText(_("Testing disabled - Output to Lights is not checked"));
-    }
-    else if (pagenum == PREVIEWTAB)
+    //if (pagenum == TESTTAB && !xout)
+    //{
+    //    StatusBar1->SetStatusText(_("Testing disabled - Output to Lights is not checked"));
+    //}
+    //else 
+	if (pagenum == PREVIEWTAB)
     {
         modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
         modelPreview->SetScaleBackgroundImage(mScaleBackgroundImage);
@@ -2336,10 +2026,10 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     {
         InitPapagayoTab(event.GetOldSelection() != PAPAGAYOTAB); //populate choice lists with model names, etc.
     }
-    if (event.GetOldSelection() == TESTTAB)
-    {
-        AllLightsOff();
-    }
+    //if (event.GetOldSelection() == TESTTAB)
+    //{
+    //    AllLightsOff();
+    //}
     m_dragging=false;
 }
 
@@ -2487,7 +2177,7 @@ void xLightsFrame::EnableNetworkChanges()
 void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
 {
     EnableOutputs();
-    CheckChannelList=true;  // cause status bar to be updated if in test mode
+    //CheckChannelList=true;  // cause status bar to be updated if in test mode
 }
 
 
@@ -2519,9 +2209,9 @@ void xLightsFrame::StopNow(void)
     ResetTimer(NO_SEQ);
     switch (actTab)
     {
-    case TESTTAB:
-        TestButtonsOff();
-        break;
+    //case TESTTAB:
+    //    TestButtonsOff();
+    //    break;
     case NEWSEQUENCER:
         wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
         wxPostEvent(this, playEvent);

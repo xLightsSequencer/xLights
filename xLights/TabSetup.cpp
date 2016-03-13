@@ -165,8 +165,8 @@ void xLightsFrame::SetDir(const wxString& newdir)
     {
         Notebook1->DeletePage(FixedPages);
     }
-    ButtonTestLoad->Enable(true);
-    ButtonTestSave->Enable(true);
+//    ButtonTestLoad->Enable(true);
+//    ButtonTestSave->Enable(true);
     EnableNetworkChanges();
     DisplayXlightsFilename(wxEmptyString);
 
@@ -296,6 +296,7 @@ void xLightsFrame::UpdateNetworkList()
     long TotChannels=0;
     int NetCnt=0;
     int StartChannel;
+	_totalChannels = 0;
 
     wxString MaxChannelsStr,NetName,msg;
     wxXmlNode* e=NetworkXML.GetRoot();
@@ -339,12 +340,12 @@ void xLightsFrame::UpdateNetworkList()
     //GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE);
     GridNetwork->SetColumnWidth(1,NetCnt > 0 ? wxLIST_AUTOSIZE : 100);
     UpdateChannelNames();
+	_totalChannels = TotChannels;
 }
 
 // reset test channel listbox
 void xLightsFrame::UpdateChannelNames()
 {
-    wxArrayString ChNames;
     wxString FormatSpec,RGBFormatSpec;
     int ChannelNum,ChanPerNode,NodeNum,AbsoluteNodeNum;
     size_t NodeCount,n,c;
@@ -395,7 +396,7 @@ void xLightsFrame::UpdateChannelNames()
     CheckListBoxTestChannels->Set(ChNames);
 #endif //
 
-    
+	// KW left as some of the conversions seem to use this
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         Model *model = it->second;
         if (model->IsMyDisplay()) {
@@ -430,7 +431,7 @@ void xLightsFrame::UpdateChannelNames()
             }
         }
     }
-    CheckListBoxTestChannels->Set(ChNames);
+    //CheckListBoxTestChannels->Set(ChNames);
 }
 
 void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event)

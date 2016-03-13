@@ -341,7 +341,6 @@
     <ClCompile Include="TabPreview.cpp" />
     <ClCompile Include="TabSequence.cpp" />
     <ClCompile Include="TabSetup.cpp" />
-    <ClCompile Include="TabTest.cpp" />
     <ClCompile Include="TestDialog.cpp" />
     <ClCompile Include="TimingPanel.cpp" />
     <ClCompile Include="tmGridCell.cpp" />
