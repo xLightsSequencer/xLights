@@ -112,13 +112,19 @@ class EffectTreeDialog;
 // notebook pages
 #define SETUPTAB 0
 //#define TESTTAB 1
-#define CONVERTTAB 2
-#define PREVIEWTAB 3
-#define SCHEDULETAB 4
-#define PAPAGAYOTAB 5
-#define NEWSEQUENCER 6
+//#define CONVERTTAB 2
+//#define PREVIEWTAB 3
+//#define SCHEDULETAB 4
+//#define PAPAGAYOTAB 5
+//#define NEWSEQUENCER 6
+#define CONVERTTAB 1
+#define PREVIEWTAB 2
+#define SCHEDULETAB 3
+#define PAPAGAYOTAB 4
+#define NEWSEQUENCER 5
 
-#define FixedPages 7
+//#define FixedPages 7
+#define FixedPages 6
 
 #define OVER_NO_HANDLE              0
 #define OVER_L_TOP_HANDLE           1
