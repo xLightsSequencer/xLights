@@ -2987,6 +2987,7 @@ void xLightsFrame::UpdateSequenceLength()
 
 void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 {
+	// Load all the models and model groups so we can display them
 	AllModels.LoadModels(ModelsNode, NetInfo,
 		modelPreview->GetVirtualCanvasWidth(),
 		modelPreview->GetVirtualCanvasHeight());
@@ -2994,6 +2995,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 		modelPreview->GetVirtualCanvasWidth(),
 		modelPreview->GetVirtualCanvasHeight());
 	
+	// save the media playing state and stop it if it is playing
 	MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
 	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
 	{
@@ -3005,26 +3007,30 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 		}
 	}
 
+	// save the output state and turn it off
 	bool output = CheckBoxLightOutput->IsChecked();
-
 	if (output)
 	{
 		AllLightsOff();
 	}
 
+	// creating the dialog can take some time so display an hourglass
 	SetCursor(wxCURSOR_WAIT);
 
+	// display the test dialog
     TestDialog dialog(this, &NetworkXML, networkFile, &AllModels);
     dialog.CenterOnParent();
     int DlgResult = dialog.ShowModal();
 
 	SetCursor(wxCURSOR_DEFAULT);
 
+	// resume output if it was set
 	if (output)
 	{
 		EnableOutputs();
 	}
 
+	// resume playing the media if it was playing
 	if (mps == MEDIAPLAYINGSTATE::PLAYING)
 	{
 		CurrentSeqXmlFile->GetMedia()->Play();

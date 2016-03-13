@@ -611,6 +611,8 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	DisableSleepModes();
 	_xout = new xOutput();
 	InitialiseOutputs();
+
+	Timer1.Start(50, wxTIMER_CONTINUOUS);
 }
 
 // Destructor
@@ -651,44 +653,6 @@ TreeController::CONTROLLERTYPE TestDialog::GetTreeItemType(const wxTreeListItem&
 }
 
 // Cascading Functions
-
-//void TestDialog::CascadeSelectedToModel(std::string modelName, wxCheckBoxState state)
-//{
-//	wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(_models);
-//	while (i != NULL)
-//	{
-//		TreeController* m = (TreeController*)TreeListCtrl_Channels->GetItemData(i);
-//		if (m->ModelName() == modelName)
-//		{
-//			TreeListCtrl_Channels->CheckItem(i, state);
-//			CascadeSelected(i, state);
-//			RollUpSelected(i, state);
-//			break;
-//		}
-//		i = TreeListCtrl_Channels->GetNextSibling(i);
-//	}
-//}
-
-// Look through the model groups for the given model and select it
-//void TestDialog::CascadeSelectedToModelGroup(std::string modelName, wxCheckBoxState state)
-//{
-//	wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(_modelGroups);
-//	while (i != NULL)
-//	{
-//		wxTreeListItem mti = TreeListCtrl_Channels->GetFirstChild(i);
-//		while (mti != NULL)
-//		{
-//			TreeController* m = (TreeController*)TreeListCtrl_Channels->GetItemData(mti);
-//			if (m->ModelName() == modelName)
-//			{
-//				TreeListCtrl_Channels->CheckItem(mti, state);
-//				RollUpSelected(mti, state);
-//			}
-//			mti = TreeListCtrl_Channels->GetNextSibling(mti);
-//		}
-//		i = TreeListCtrl_Channels->GetNextSibling(i);
-//	}
-//}
 
 bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 {
@@ -754,7 +718,6 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 				}
 				_cascading = false;
 			}
-			//CascadeSelectedToModel(itc->ModelName(), state);
 		}
 
 		wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
@@ -788,7 +751,6 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 						_cascading = false;
 					}
 				}
-				//CascadeSelectedToModel(tc->ModelName(), state);
 			}
 			else
 			{
@@ -1248,13 +1210,6 @@ wxCheckBoxState TestDialog::RollUpAll(wxTreeListItem start)
 		}
 		else
 		{
-			//wxCheckBoxState as = TreeListCtrl_Channels->GetCheckedState(a);
-			//if (as == wxCHK_UNDETERMINED)
-			//{
-			//start_state = wxCHK_UNDETERMINED;
-			//break;
-			//}
-
 			wxCheckBoxState nas = RollUpAll(a);
 			if (nas != start_state || nas == wxCHK_UNDETERMINED)
 			{
@@ -1358,14 +1313,11 @@ void TestDialog::OnButton_LoadClick(wxCommandEvent& event)
 	Clear(_controllers);
 	Clear(_modelGroups);
 	Clear(_models);
-	//RollUpSelected(TreeListCtrl_Channels->GetRootItem(), wxCHK_UNCHECKED);
-	//SetTestCheckboxes(false);
 	wxString name = dialog.GetStringSelection();
 	wxString chidstr;
 	long chid;
 	TreeController* rootcb = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
 	long ChCount = rootcb->EndXLightsChannel();
-//	long ChCount = CheckListBoxTestChannels->GetCount();
 	wxXmlNode* root = _network->GetRoot();
 	for (wxXmlNode* e = root->GetChildren(); e != NULL; e = e->GetNext())
 	{
@@ -1497,15 +1449,6 @@ void TestDialog::OnButton_SaveClick(wxCommandEvent& event)
 			}
 			c = TreeListCtrl_Channels->GetNextSibling(c);
 		}
-		//for (int c = 0; c < ChCount; c++)
-		//{
-		//	if (CheckListBoxTestChannels->IsChecked(c))
-		//	{
-		//		channel = new wxXmlNode(wxXML_ELEMENT_NODE, "channel");
-		//		channel->AddAttribute("id", wxString::Format("%d", c));
-		//		PresetNode->AddChild(channel);
-		//	}
-		//}
 
 		if (_network->Save(_networkFile.GetFullPath()))
 		{
@@ -1694,9 +1637,12 @@ void TestDialog::GetCheckedItems(wxArrayInt& chArray)
 
 	for (auto ch = _channelLookup.begin(); ch != _channelLookup.end(); ++ch)
 	{
-		if (TreeListCtrl_Channels->GetCheckedState((ch->second[0]->GetTreeListItem())))
+		if (ch->second.size() > 0)
 		{
-			chArray.Add(ch->first);
+			if (TreeListCtrl_Channels->GetCheckedState((ch->second[0]->GetTreeListItem())))
+			{
+				chArray.Add(ch->first);
+			}
 		}
 	}
 }
@@ -1829,6 +1775,7 @@ void TestDialog::OnTimer(long curtime)
 	static int LastNotebookSelection = -1;
 	static int LastBgIntensity, LastFgIntensity, LastBgColor[3], LastFgColor[3], *ShimColor, ShimIntensity;
 	static int LastSequenceSpeed;
+	static int LastTwinkleRatio;
 	static int LastAutomatedTest;
 	static long NextSequenceStart = -1;
 	static TestFunctions LastFunc = OFF;
@@ -1866,10 +1813,20 @@ void TestDialog::OnTimer(long curtime)
 		// get list of checked channels
 		_xout->alloff();
 		GetCheckedItems(chArray);
+		if (RadioButton_RGB_Chase->GetValue() > 0 || RadioButton_Standard_Chase->GetValue() > 0)
+		{
+			_chaseGrouping = chArray.Count();
+			if (_chaseGrouping == 0)
+			{
+				_chaseGrouping = std::numeric_limits<int>::max();
+			}
+		}
+
 		LastSequenceSpeed = -1;
 		LastBgIntensity = -1;
 		LastFgIntensity = -1;
 		LastAutomatedTest = -1;
+		LastTwinkleRatio = -1;
 		for (i = 0; i < 3; i++)
 		{
 			LastBgColor[i] = -1;
@@ -1911,13 +1868,13 @@ void TestDialog::OnTimer(long curtime)
 			break;
 
 		case TWINKLE:
-			if (LastSequenceSpeed < 0)
+			if (LastSequenceSpeed < 0 || _twinkleRatio != LastTwinkleRatio)
 			{
 				LastSequenceSpeed = 0;
 				TwinkleState.Clear();
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					TestSeqIdx = static_cast<int>(Rand01()*_twinkleRatio);
+					TestSeqIdx = static_cast<int>(Rand01()*(double)_twinkleRatio);
 					TwinkleState.Add(TestSeqIdx == 0 ? -1 : 1);
 				}
 			}
@@ -1936,13 +1893,13 @@ void TestDialog::OnTimer(long curtime)
 				else if (TwinkleState[i] == -1)
 				{
 					// was background, now highlight for random period
-					TwinkleState[i] = static_cast<int>(Rand01()*interval + 100) / _seqData.FrameTime();
+					TwinkleState[i] = static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime();
 					_xout->SetIntensity(chArray[i], FgIntensity);
 				}
 				else
 				{
 					// was on, now go to bg color for random period
-					TwinkleState[i] = -static_cast<int>(Rand01()*interval + 100) / _seqData.FrameTime() * (_twinkleRatio - 1);
+					TwinkleState[i] = -static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
 					_xout->SetIntensity(chArray[i], BgIntensity);
 				}
 			}
@@ -2017,13 +1974,13 @@ void TestDialog::OnTimer(long curtime)
 			break;
 
 		case TWINKLE:
-			if (LastSequenceSpeed < 0)
+			if (LastSequenceSpeed < 0 || LastTwinkleRatio != _twinkleRatio)
 			{
 				LastSequenceSpeed = 0;
 				TwinkleState.Clear();
 				for (i = 0; i < chArray.Count() - 2; i += 3)
 				{
-					TestSeqIdx = static_cast<int>(Rand01()*_twinkleRatio);
+					TestSeqIdx = static_cast<int>(Rand01()*(double)_twinkleRatio);
 					TwinkleState.Add(TestSeqIdx == 0 ? -1 : 1);
 				}
 			}
@@ -2042,7 +1999,7 @@ void TestDialog::OnTimer(long curtime)
 				else if (TwinkleState[i] == -1)
 				{
 					// was background, now highlight for random period
-					TwinkleState[i] = static_cast<int>(Rand01()*interval + 100) / _seqData.FrameTime();
+					TwinkleState[i] = static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime();
 					TestSeqIdx = i * 3;
 					_xout->SetIntensity(chArray[TestSeqIdx], FgColor[0]);
 					_xout->SetIntensity(chArray[TestSeqIdx + 1], FgColor[1]);
@@ -2051,7 +2008,7 @@ void TestDialog::OnTimer(long curtime)
 				else
 				{
 					// was on, now go to bg color for random period
-					TwinkleState[i] = -static_cast<int>(Rand01()*interval + 100) / _seqData.FrameTime() * (_twinkleRatio - 1);
+					TwinkleState[i] = -static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
 					TestSeqIdx = i * 3;
 					_xout->SetIntensity(chArray[TestSeqIdx], BgColor[0]);
 					_xout->SetIntensity(chArray[TestSeqIdx + 1], BgColor[1]);

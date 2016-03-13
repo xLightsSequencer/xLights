@@ -31,47 +31,58 @@ typedef SequenceData SeqDataType;
 #include "osxMacUtils.h"
 #endif
 
+// This class represents the detail behind every line in the tree
+// it is kind of lazy as I dont bother seperating them all into classes
 class TreeController
 {
 public:
-	typedef enum CONTROLLERTYPE
+
+	typedef enum CONTROLLERTYPE // Types of tree nodes
 	{
 		CT_E131, CT_NULL, CT_DMX, CT_CHANNEL, CT_CONTROLLERROOT, CT_MODELROOT, CT_MODELGROUPROOT, CT_MODEL, CT_NODE, CT_MODELGROUP
 	} CONTROLLERTYPE;
-	typedef enum PIXELFORMAT
+	typedef enum PIXELFORMAT // the pixel format of the node ... this is not used yet
 	{
 		SINGLE, RGB, RBG, BGR, BRG, GRB, GBR, RGBW
 	} PIXELFORMAT;
 private:
-	std::string _name;
-	std::string _modelName;
-	std::string _description;
-	bool _inactive;
-	std::string _ipaddress;
-	std::string _comport;
-	int _startchannel;
-	int _endchannel;
-	int _startxlightschannel;
-	int _endxlightschannel;
-	std::string _universe;
-	int _nullcount;
-	int _nodeNumber;
-	bool _doesNotExist;
-	CONTROLLERTYPE _type;
-	std::string GenerateName();
+	std::string _name; // what to display on the tree
+	std::string _modelName; // the underlying model name
+	std::string _description; // description of the controller
+	bool _inactive; // true if controller has been deactivated
+	std::string _ipaddress; // ip address of the controller
+	std::string _comport; // comport of the controller
+	int _startchannel; // the controller start channel
+	int _endchannel; // the controller end channel
+	int _startxlightschannel; // the xlights start channel
+	int _endxlightschannel; // the xlights end channel
+	std::string _universe; // the universe of a controller
+	int _nullcount; // where multiple null controllers exist this is a unique identifier
+	int _nodeNumber; // where this is a node this is the node within the model
+	bool _doesNotExist; // where a node/model/model group cannot be used because underlying channels are not available then this will be true
+	CONTROLLERTYPE _type; // the type of node this is
+	int _universes; // where a dmx controller can support multiple universes this is how many universes it is supporting
+	bool _multiuniversedmx; // true if this is a multi universe dmx controller
+	int _nodes; // number of nodes (in a model)
+	wxTreeListItem _treeListItem; // the item this is associated with
+
+	std::string GenerateName(); // generate the string to display
+
+	// Constructor used for muli universe DMX controllers
 	TreeController(CONTROLLERTYPE type, std::string comport, int universe, int startxlightschannel, int channels, bool inactive, bool multiuniversedmx, std::string description);
-	int _universes;
-	bool _multiuniversedmx;
-	wxTreeListItem _treeListItem;
-	int _nodes;
 
 public:
+	// Constructors vary by type
 	TreeController(wxXmlNode* n, int xlightsstartchannel, int nullcount);
 	TreeController(int channel, CONTROLLERTYPE type, int xLightsChannel);
 	TreeController(CONTROLLERTYPE type, int start, int end);
 	TreeController(CONTROLLERTYPE type, std::string name);
 	TreeController(CONTROLLERTYPE type, int xLightsChannel, int node, int channelspernode);
+	
+	// Called to create a TreeController for a sub universe of a multi universe controller
 	TreeController* GenerateDMXUniverse(int universeoffset);
+
+	// Accessors
 	std::string Name() { return _name; };
 	bool IsNULL() { return _type == CONTROLLERTYPE::CT_NULL; };
 	bool IsChannel() { return _type == CONTROLLERTYPE::CT_CHANNEL; };
