@@ -1328,6 +1328,9 @@
     <ClInclude Include="LayoutPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TestDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets-3.0.2\include\wx\msw\wx.rc">

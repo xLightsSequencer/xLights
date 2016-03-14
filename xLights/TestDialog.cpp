@@ -685,6 +685,7 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 
 	if (type == TreeController::CONTROLLERTYPE::CT_CONTROLLERROOT)
 	{
+		bool processed = false;
 		wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
 
 		if (i == NULL)
@@ -692,6 +693,7 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 			TreeController* itemtc = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
 			if (itemtc->GetType() == TreeController::CONTROLLERTYPE::CT_CHANNEL)
 			{
+				processed = true;
 				rc &= CheckChannel(itemtc->StartXLightsChannel(), state);
 			}
 		}
@@ -703,6 +705,7 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 			// Dont cascade to inactive or NULL nodes
 			if (tc->Clickable())
 			{
+				processed = true;
 				TreeListCtrl_Channels->CheckItem(i, state);
 				rc &= CascadeSelected(i, state);
 
@@ -712,6 +715,11 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 				}
 			}
 			i = TreeListCtrl_Channels->GetNextSibling(i);
+		}
+
+		if (!processed)
+		{
+			rc = false;
 		}
 	}
 	else if (type == TreeController::CONTROLLERTYPE::CT_MODELGROUPROOT)
@@ -736,7 +744,7 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 					{
 						// apply this state to other instances of this model
 						TreeListCtrl_Channels->CheckItem(tli, state);
-						CascadeSelected(tli, state);
+						rc &= CascadeSelected(tli, state);
 					}
 				}
 				_cascading = false;
@@ -768,7 +776,7 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 							{
 								// apply this state to other instances of this model
 								TreeListCtrl_Channels->CheckItem(tli, state);
-								CascadeSelected(tli, state);
+								rc &= CascadeSelected(tli, state);
 							}
 						}
 						_cascading = false;
@@ -785,6 +793,7 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 	}
 	else // Model root
 	{
+		bool processed = false;
 		TreeController* m = (TreeController*)TreeListCtrl_Channels->GetItemData(item);
 		if (m->GetType() == TreeController::CONTROLLERTYPE::CT_MODEL)
 		{
@@ -802,9 +811,10 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 					}
 					else
 					{
+						processed = true;
 						// apply this state to other instances of this model
 						TreeListCtrl_Channels->CheckItem(tli, state);
-						CascadeSelected(tli, state);
+						rc &= CascadeSelected(tli, state);
 					}
 				}
 				_cascading = false;
@@ -818,6 +828,7 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 		{
 			if (m->GetType() == TreeController::CONTROLLERTYPE::CT_CHANNEL)
 			{
+				processed = true;
 				rc &= CheckChannel(m->StartXLightsChannel(), state);
 			}
 		}
@@ -827,17 +838,24 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 			TreeController* tc = (TreeController*)TreeListCtrl_Channels->GetItemData(i);
 			if (tc->GetType() == TreeController::CONTROLLERTYPE::CT_CHANNEL)
 			{
+				processed = true;
 				rc &= CheckChannel(tc->StartXLightsChannel(), state);
 			}
 			else
 			{
 				if (tc->Clickable() || state == wxCHK_UNCHECKED)
 				{
+					processed = true;
 					TreeListCtrl_Channels->CheckItem(i, state);
 					rc &= CascadeSelected(i, state);
 				}
 			}
 			i = TreeListCtrl_Channels->GetNextSibling(i);
+		}
+
+		if (!processed)
+		{
+			rc = false;
 		}
 	}
 
