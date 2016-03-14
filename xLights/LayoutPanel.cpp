@@ -1027,15 +1027,10 @@ int LayoutPanel::ModelsSelectedCount()
     return selectedModelCount;
 }
 
-
-
-
-
 void LayoutPanel::OnModelSplitterSashPosChanged(wxSplitterEvent& event)
 {
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutModelSplitterSash", event.GetSashPosition());
-    printf("%d\n", event.GetSashPosition());
 }
 
 void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)

@@ -1,5 +1,7 @@
 #include "SingleLineModel.h"
-
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+#include <wx/xml/xml.h>
 
 std::vector<std::string> SingleLineModel::LINE_BUFFER_STYLES;
 
@@ -85,7 +87,20 @@ const std::vector<std::string> &SingleLineModel::GetBufferStyles() const {
 
 void SingleLineModel::InitModel() {
     InitLine();
-    CopyBufCoord2ScreenCoord();
+    if (SingleNode || parm3 <= 1) {
+        CopyBufCoord2ScreenCoord();
+    } else {
+        float xoffset=BufferWi/2;
+        for (auto node = Nodes.begin(); node != Nodes.end(); node++) {
+            float x = node->get()->Coords[0].bufX;
+            node->get()->Coords.resize(parm3);
+            for(size_t c=0; c < parm3; c++) {
+                node->get()->Coords[c].screenY = 0;
+                node->get()->Coords[c].screenX = x - 0.5 + ((float)c / (float)parm3) - xoffset;
+            }
+        }
+        SetRenderSize(BufferHt,BufferWi);
+    }
 }
 
 
@@ -117,3 +132,61 @@ void SingleLineModel::InitLine() {
         }
     }
 }
+
+static wxPGChoices LEFT_RIGHT;
+
+void SingleLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    if (LEFT_RIGHT.GetCount() == 0) {
+        LEFT_RIGHT.Add("Left");
+        LEFT_RIGHT.Add("Right");
+    }
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SingleLineCount", parm1));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+
+    if (SingleNode) {
+        p = grid->Append(new wxUIntProperty("Lights/String", "SingleLineNodes", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 250);
+        p->SetEditor("SpinCtrl");
+    } else {
+        p = grid->Append(new wxUIntProperty("Nodes/String", "SingleLineNodes", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 250);
+        p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Lights/Node", "SingleLineLights", parm3));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 250);
+        p->SetEditor("SpinCtrl");
+    }
+    
+    p = grid->Append(new wxEnumProperty("Starting Location", "SingleLineStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
+}
+int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if ("SingleLineCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm1");
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("SingleLineNodes" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm2");
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("SingleLineLights" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm3");
+        ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("SingleLineStart" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Dir");
+        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    }
+    
+    return Model::OnPropertyGridChange(grid, event);
+}
+

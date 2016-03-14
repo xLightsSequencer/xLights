@@ -270,7 +270,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
 
     AddTypeProperties(grid);
 
-    if (GetNumStrands() <= 1) {
+    if (HasOneString(DisplayAs) || parm1 <= 1) {
         p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
     } else {
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
