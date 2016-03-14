@@ -2191,14 +2191,10 @@ void xLightsFrame::StopNow(void)
         StopPreviewPlayback();
         return;
     }
-#ifdef USE_WXMEDIAPLAYER
-    PlayerDlg->Stop();
-#else
-	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
-	{
-		CurrentSeqXmlFile->GetMedia()->Stop();
-	}
-#endif
+    if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
+    {
+	CurrentSeqXmlFile->GetMedia()->Stop();
+    }
     if (play_mode == play_sched)
     {
         CheckBoxRunSchedule->SetValue(false);
@@ -2829,15 +2825,11 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
     {
         playSpeed = 0.25;
     }
-#ifdef USE_WXMEDIAPLAYER
-	PlayerDlg->SetPlaybackRate(playSpeed);
-#else
 	AudioManager::SetGlobalPlaybackRate(playSpeed);
 	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
 	{
 		CurrentSeqXmlFile->GetMedia()->SetPlaybackRate(playSpeed);
 	}
-#endif
 }
 
 void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)

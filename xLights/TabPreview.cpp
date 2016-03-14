@@ -4,9 +4,7 @@
 #include "DrawGLUtils.h"
 #include "SaveChangesDialog.h"
 #include "models/Model.h"
-#ifndef USE_WXMEDIAPLAYER
 #include "xLightsXmlFile.h"
-#endif
 #define PREVIEWROTATIONFACTOR 3
 
 void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)

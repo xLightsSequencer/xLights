@@ -166,7 +166,6 @@
     <ClCompile Include="DimmingCurvePanel.cpp" />
     <ClCompile Include="DisplayElementsPanel.cpp" />
     <ClCompile Include="djdebug.cpp" />
-    <ClCompile Include="dlgPreviewSize.cpp" />
     <ClCompile Include="DrawGLUtils.cpp" />
     <ClCompile Include="E131Dialog.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
@@ -272,6 +271,7 @@
     <ClCompile Include="KeyBindings.cpp" />
     <ClCompile Include="kiss_fft\kiss_fft.c" />
     <ClCompile Include="kiss_fft\tools\kiss_fftr.c" />
+    <ClCompile Include="LayoutPanel.cpp" />
     <ClCompile Include="LMSImportChannelMapDialog.cpp" />
     <ClCompile Include="LorConvertDialog.cpp" />
     <ClCompile Include="LyricsDialog.cpp" />
@@ -334,6 +334,7 @@
     <ClCompile Include="serial.cpp" />
     <ClCompile Include="SerialPortWithRate.cpp" />
     <ClCompile Include="ShowDatesDialog.cpp" />
+    <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
     <ClCompile Include="SuperStarImportDialog.cpp" />
     <ClCompile Include="TabConvert.cpp" />
@@ -375,6 +376,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddShowDialog.h" />
+    <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
     <ClInclude Include="ChannelLayoutDialog.h" />
     <ClInclude Include="Color.h" />
@@ -384,7 +386,6 @@
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
     <ClInclude Include="DisplayElementsPanel.h" />
-    <ClInclude Include="dlgPreviewSize.h" />
     <ClInclude Include="DrawGLUtils.h" />
     <ClInclude Include="E131Dialog.h" />
     <ClInclude Include="EffectAssist.h" />
@@ -482,6 +483,7 @@
     <ClInclude Include="Image_Loader.h" />
     <ClInclude Include="JobPool.h" />
     <ClInclude Include="KeyBindings.h" />
+    <ClInclude Include="LayoutPanel.h" />
     <ClInclude Include="LMSImportChannelMapDialog.h" />
     <ClInclude Include="LorConvertDialog.h" />
     <ClInclude Include="LyricsDialog.h" />
@@ -537,6 +539,7 @@
     <ClInclude Include="serial.h" />
     <ClInclude Include="SerialPortWithRate.h" />
     <ClInclude Include="ShowDatesDialog.h" />
+    <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
     <ClInclude Include="SuperStarImportDialog.h" />
     <ClInclude Include="TimingPanel.h" />

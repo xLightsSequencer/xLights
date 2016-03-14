@@ -20,7 +20,6 @@ using namespace Vamp;
 
 // Audio Manager Functions
 
-#ifdef USE_SDLPLAYER
 Uint64  __audio_len;
 Uint8  *__audio_pos;
 float __playbackrate = 1.0;
@@ -123,11 +122,12 @@ MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
 	return MEDIAPLAYINGSTATE::STOPPED;
 	*/
 }
+
+// return where in the file we are up to playing
 int AudioManager::Tell()
 {
 	return (((_pcmdatasize - __audio_len) / 4) * _lengthMS)/ _trackSize;
 }
-#endif
 
 AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int step = 1024, int block = 1024)
 {
@@ -142,9 +142,7 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	_intervalMS = -1; // no length
 	_frameDataPrepared = false; // frame data is used by effects to react to the sone
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
-#ifdef USE_SDLPLAYER
 	_pcmdata = NULL;
-#endif
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
 	_extra = std::max(step, block) + 1;
@@ -152,7 +150,6 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	// Open the media file
 	OpenMediaFile();
 
-#ifdef USE_SDLPLAYER
 	// only initialise if we successfully got data
 	if (_pcmdata != NULL)
 	{
@@ -178,12 +175,6 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 			return;
 		}
 	}
-#endif
-
-#ifdef USE_MPG123
-	// Check if it is Constant Bit Rate
-	_isCBR = CheckCBR();
-#endif
 
 	// If we opened it successfully kick off the frame data extraction ... this will run on another thread
 	if (_intervalMS > 0)
@@ -720,8 +711,6 @@ void AudioManager::SetStepBlock(int step, int block)
 // Clean up our data buffers
 AudioManager::~AudioManager()
 {
-
-#ifdef USE_SDLPLAYER
 	if (_pcmdata != NULL)
 	{
 		Stop();
@@ -730,7 +719,6 @@ AudioManager::~AudioManager()
 		_pcmdata = NULL;
 		SDL_Quit();
 	}
-#endif
 	if (_data[1] != _data[0] && _data[1] != NULL)
 	{
 		free(_data[1]);
@@ -777,13 +765,11 @@ int AudioManager::CalcLengthMS()
 	return (int)(seconds * (float)1000);
 }
 
-#ifdef USE_FFMPEG
 // Open and read the media file into memory
 int AudioManager::OpenMediaFile()
 {
 	int err = 0;
 
-#ifdef USE_SDLPLAYER
 	if (_pcmdata != NULL)
 	{
 		Stop();
@@ -791,7 +777,6 @@ int AudioManager::OpenMediaFile()
 		free(_pcmdata);
 		_pcmdata = NULL;
 	}
-#endif
 
 	// Initialize FFmpeg codecs
 	av_register_all();
@@ -904,14 +889,12 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 		return;
 	}
 
-#ifdef USE_SDLPLAYER
 	_pcmdatasize = _trackSize * out_channels * 2;
 	_pcmdata = (Uint8*)malloc(_pcmdatasize + 16384); // 16384 is a fudge because some ogg files dont read consistently
 	if (_pcmdata == NULL)
 	{
 		return;
 	}
-#endif
 
 	AVPacket readingPacket;
 	av_init_packet(&readingPacket);
@@ -963,10 +946,8 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 						int a = 0;
 					}
 
-#ifdef USE_SDLPLAYER
 					// copy the PCM data into the PCM buffer for playing
 					memcpy(_pcmdata + (read * out_channels * 2), out_buffer, frame->nb_samples * out_channels * 2);
-#endif
 
 					for (int i = 0; i < frame->nb_samples; i++)
 					{
@@ -1016,10 +997,8 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 					return;
 				}
 
-#ifdef USE_SDLPLAYER
 				// copy the PCM data into the PCM buffer for playing
 				memcpy(_pcmdata + (read * out_channels * 2), out_buffer, frame->nb_samples * out_channels * 2);
-#endif
 
 				for (int i = 0; i < frame->nb_samples; i++)
 				{
@@ -1135,396 +1114,6 @@ void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
 		_artist = tag->value;
 	}
 }
-
-//bool AudioManager::CheckCBR()
-//{
-	// already calculated
-//	return _isCBR;
-//}
-#endif
-
-#ifdef USE_MPG123
-// Open and read the media file into memory
-int AudioManager::OpenMediaFile()
-{
-    int err;
-    size_t buffer_size;
-	mpg123_handle *phm;
-
-    err = mpg123_init();
-    if(err != MPG123_OK || (phm = mpg123_new(NULL, &err)) == NULL)
-    {
-		std::ostringstream stringStream;
-		stringStream << "Basic setup goes wrong: " << mpg123_plain_strerror(err);
-		_resultMessage = stringStream.str();
-		_state = 0;
-		if (phm != NULL)
-		{
-			mpg123_delete(phm);
-			mpg123_exit();
-		}
-		return -1;
-    }
-
-    /* open the file and get the decoding format */
-    if( mpg123_open(phm, _audio_file.c_str()) != MPG123_OK ||
-       mpg123_getformat(phm, &_rate, &_channels, &_encoding) != MPG123_OK )
-    {
-		std::ostringstream stringStream;
-		stringStream << "Trouble with mpg123: " << mpg123_strerror(phm);
-		_resultMessage = stringStream.str();
-		_state = 0;
-		if (phm != NULL)
-		{
-			mpg123_close(phm);
-			mpg123_delete(phm);
-			mpg123_exit();
-		}
-		return -1;
-    }
-
-    if(_encoding != MPG123_ENC_SIGNED_16 )
-    {
-        _resultMessage = "Encoding unsupported.  Must be signed 16 bit.";
-		_state = 0;
-    }
-
-    /* set the output format and open the output device */
-    _bits = mpg123_encsize(_encoding);
-
-    /* Get Track Size */
-    _trackSize = CalcTrackSize(phm, _bits, _channels);
-	_lengthMS = CalcLengthMS();
-    buffer_size = mpg123_outblock(phm);
-    int size = (_trackSize+buffer_size)*_bits*_channels;
-
-	// Check if we have read this before ... if so dump the old data
-	if (_data[1] != NULL && _data[1] != _data[0])
-	{
-		free(_data[1]);
-		_data[1] = NULL;
-	}
-	if (_data[0] != NULL)
-	{
-		free(_data[0]);
-		_data[0] = NULL;
-	}
-
-	char * trackData = (char*)malloc(size);
-    LoadTrackData(phm, trackData, size);
-
-	// Split data into left and right and normalize -1 to 1
-	_data[0] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
-	for (int i = 0; i < _trackSize + _extra; i++)
-	{
-		(*(_data[0] + i)) = 0.0;
-	}
-	if( _channels == 2 )
-    {
-        _data[1] = (float*)calloc(sizeof(float)*(_trackSize + _extra), 1);
-		for (int i = 0; i < _trackSize + _extra; i++)
-		{
-			(*(_data[1] + i)) = 0.0;
-		}
-        SplitTrackDataAndNormalize((signed short*)trackData, _trackSize, _data[0], _data[1]);
-    }
-    else if( _channels == 1 )
-    {
-        NormalizeMonoTrackData((signed short*)trackData,_trackSize,_data[0]);
-        _data[1] = _data[0];
-    }
-    else
-    {
-        _resultMessage = "More than 2 audio channels is not supported yet.";
-		_state = 0;
-    }
-	free(trackData);
-
-	ExtractMP3Tags(phm);
-
-    mpg123_close(phm);
-    mpg123_delete(phm);
-    mpg123_exit();
-	phm = NULL;
-
-	return _trackSize;
-}
-
-// Load the track data
-void AudioManager::LoadTrackData(mpg123_handle *phm, char* data, int maxSize)
-{
-	size_t buffer_size;
-	unsigned char *buffer;
-	size_t done;
-	int bytesRead = 0;
-	buffer_size = mpg123_outblock(phm);
-	buffer = (unsigned char*)malloc(buffer_size * sizeof(unsigned char));
-	mpg123_seek(phm, 0, SEEK_SET);
-	for (bytesRead = 0; mpg123_read(phm, buffer, buffer_size, &done) == MPG123_OK; )
-	{
-		if ((bytesRead + done) >= maxSize)
-		{
-			_resultMessage = "Error reading data from mp3, too much data read.";
-			_state = 0;
-			free(buffer);
-			return;
-		}
-		memcpy(data + bytesRead, buffer, done);
-		bytesRead += done;
-	}
-	free(buffer);
-}
-
-// WOrk out the number of float values in the song data
-int AudioManager::CalcTrackSize(mpg123_handle *phm, int bits, int channels)
-{
-	size_t buffer_size;
-	unsigned char *buffer;
-	size_t done;
-	int trackSize = 0;
-	int fileSize = 0;
-
-	if (mpg123_length(phm) > 0)
-	{
-		return mpg123_length(phm);
-	}
-
-	buffer_size = mpg123_outblock(phm);
-	buffer = (unsigned char*)malloc(buffer_size * sizeof(unsigned char));
-
-	mpg123_seek(phm, 0, SEEK_SET);
-	for (fileSize = 0; mpg123_read(phm, buffer, buffer_size, &done) == MPG123_OK; )
-	{
-		fileSize += done;
-	}
-
-	free(buffer);
-	trackSize = fileSize / (bits*channels);
-	return trackSize;
-}
-
-// Check if the MP3 file is constant bitrate
-bool AudioManager::CheckCBR()
-{
-	// MP3 files are nasty
-	// The spec is not public
-
-	unsigned int checkvalidmask = 0xFFFF0DCF; // this mask removes things that can vary between frames
-	unsigned int master = 0; // this is the master header we use to verify that the frame header is a header
-	int masterbitrate = -1; // this is the bitrate we first believe the file to be ... it is used to find VBR files which dont contain the Xing frame
-	bool isCBR = true; // we start assuming the file is CBR ... and look for evidence it isnt
-#ifdef _DEBUG
-	int px = 0; // used in debugging to see frame start point
-#endif
-
-	wxFFile mp3file(_audio_file, "rb");
-
-	// we are going to scan the whole file looking for evidence it isnt CBR
-	while (!mp3file.Eof())
-	{
-		// scan until I find the next header frame ... this has a 0xFF byte followed by a byte with the first 3 bits high ... even then you cant be sure it is a header
-		bool atstart = false;
-		while (!atstart && !mp3file.Eof())
-		{
-			char start = ' ';
-			while (start != (char)0xFF && start != 'I' && !mp3file.Eof())
-			{
-				mp3file.Read(&start, 1);
-			}
-#ifdef _DEBUG
-			px = mp3file.Tell() - 1;
-#endif
-			if (start == (char)0xFF)
-			{
-				if (!mp3file.Eof())
-				{
-					mp3file.Read(&start, 1);
-					if ((char)(start & 0xE0) == (char)0xE0)
-					{
-						atstart = true;
-						mp3file.Seek(-2, wxFromCurrent);
-					}
-					else
-					{
-						mp3file.Seek(-1, wxFromCurrent);
-					}
-				}
-			}
-			else if (start == 'I')
-			{
-				mp3file.Read(&start, 1);
-				if (start == 'D')
-				{
-					mp3file.Read(&start, 1);
-					if (start == '3')
-					{
-						// ID3 tag
-						char v[2];
-						mp3file.Read(&v, 2);
-						char f;
-						mp3file.Read(&f, 1);
-						bool xh = f & 0x40;
-						bool ft = f & 0x10;
-						char sizess[4];
-						mp3file.Read(&sizess, 4);
-						int32_t size;
-						size = ((((int32_t)sizess[0]) & 0x7F) << 21) +
-							((((int32_t)sizess[1]) & 0x7F) << 14) +
-							((((int32_t)sizess[2]) & 0x7F) << 7) +
-							(((int32_t)sizess[3]) & 0x7F);
-						mp3file.Seek(size, wxFromCurrent);
-					}
-					else
-					{
-						// Jump back to the D ... I cant go back to the I or I will be back here again
-						mp3file.Seek(-2, wxFromCurrent);
-					}
-				}
-				else
-				{
-					// Jump back to the D ... I cant go back to the I or I will be back here again
-					mp3file.Seek(-1, wxFromCurrent);
-				}
-			}
-		}
-
-		// At this point we have found a possible header ... and reset the file pointer to the start of the header
-		if (!mp3file.Eof())
-		{
-			// read the header 4 bytes
-			char fh[4];
-			mp3file.Read(&fh[0], sizeof(fh));
-
-			// this must be true
-			if (fh[0] == (char)0xFF && (char)(fh[1] & 0xE0) == (char)0xE0)
-			{
-				// if we have not found a header before work out what the non variant parts of the header are and save them
-				if (master == 0)
-				{
-					master = ((((unsigned int)fh[0]) << 24) + (((unsigned int)fh[1]) << 16) + (((unsigned int)fh[2]) << 8) + ((unsigned int)fh[3])) & checkvalidmask;
-				}
-
-				// extract the non variant parts of the header for the current record
-				unsigned int compare = ((((unsigned int)fh[0]) << 24) + (((unsigned int)fh[1]) << 16) + (((unsigned int)fh[2]) << 8) + ((unsigned int)fh[3])) & checkvalidmask;
-
-				// check all the fields that should match across frames do
-				// this is the best way to be reasonably sure this really is a new frame
-				if (compare == master)
-				{
-					// now extract the frame attributes
-					int version = (fh[1] & 0x18) >> 3;
-					int layertype = (fh[1] & 0x06) >> 1;
-					int bitrateindex = (fh[2] & 0xF0) >> 4;
-					int bitrate = decodebitrateindex(bitrateindex, version, layertype) * 1000;
-					int samplerateindex = (fh[2] & 0x0C) >> 2;
-					int samplerate = decodesamplerateindex(samplerateindex, version);
-					int padding = (fh[2] & 0x02) >> 1;
-					//int mono = fh[3] & 0xC0 >> 6;
-
-					int framesize;
-
-					// reject anything that looks invalid
-					if (samplerate == 0 || layertype == 0 || version == 1 || bitrate == 0 || samplerate == 3)
-					{
-						// frame header is not valid
-						framesize = 0;
-						// this was a false first header so reset our master frame header
-						if (masterbitrate == -1)
-						{
-							master = 0;
-						}
-					}
-					else
-					{
-						// calculate the frame size ... this is the full size including the header
-						if (layertype == 3)
-						{
-							framesize = (12 * bitrate / samplerate + padding) * 4;
-						}
-						else
-						{
-							framesize = 144 * bitrate / samplerate + padding;
-						}
-					}
-
-					// if framesize is zero then this clearly isnt a proper frame
-					if (framesize != 0)
-					{
-						// if we have not saved the bitrate we think it is from the first frame do so
-						if (masterbitrate == -1)
-						{
-							masterbitrate = bitrate;
-						}
-
-						// if this frame has a different bitrate to the first frame ... then this is a VBR file
-						if (masterbitrate != bitrate)
-						{
-							isCBR = false;
-
-							// jump to the end of the file
-							mp3file.Seek(0, wxFromEnd);
-							break;
-						}
-
-						// seek to Xing tag offset
-						mp3file.Seek(32, wxFromCurrent);
-						mp3file.Read(&fh[0], sizeof(fh));
-
-						if (fh[0] == 'X' && fh[1] == 'i' && fh[2] == 'n' && fh[3] == 'g')
-						{
-							isCBR = false;
-
-							// jump to the end of the file
-							mp3file.Seek(0, wxFromEnd);
-							break;
-						}
-						else
-						{
-							// jump over the rest of the frame ... this helps avoiding find false headers in the music data
-							mp3file.Seek(framesize - 32 - 2 * sizeof(fh), wxFromCurrent);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	mp3file.Close();
-
-	return isCBR;
-}
-
-// Extract mp3 tags from the file
-void AudioManager::ExtractMP3Tags(mpg123_handle *phm)
-{
-	_title = "";
-	_album = "";
-	_artist = "";
-
-	// get meta tags
-	mpg123_id3v1* v1;
-	mpg123_id3v2* v2;
-
-	mpg123_scan(phm);
-	int meta = mpg123_meta_check(phm);
-
-	if (meta == MPG123_ID3 && mpg123_id3(phm, &v1, &v2) == MPG123_OK)
-	{
-		if (v2 != NULL) // "ID3V2 tag found"
-		{
-			_title = v2->title == NULL ? "" : v2->title->p;
-			_artist = v2->artist == NULL ? "" : v2->artist->p;
-			_album = v2->album == NULL ? "" : v2->album->p;
-		}
-		else if (v1 != NULL) // "ID3V1 tag found"
-		{
-			_title = v1->title[0];
-			_artist = v1->artist[0];
-			_album = v1->album[0];
-		}
-	}
-}
-#endif
 
 // Access a single piece of track data
 float AudioManager::GetLeftData(int offset)

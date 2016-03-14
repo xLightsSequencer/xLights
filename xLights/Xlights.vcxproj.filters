@@ -408,9 +408,6 @@
     <ClCompile Include="djdebug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dlgPreviewSize.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DrawGLUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -700,6 +697,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TestDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StartChannelDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LayoutPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1091,9 +1094,6 @@
     <ClInclude Include="DisplayElementsPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dlgPreviewSize.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DrawGLUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1318,6 +1318,15 @@
     </ClInclude>
     <ClInclude Include="effects\ChromaEffect.h">
       <Filter>Header Files\effects</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StartChannelDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LayoutPanel.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -5,30 +5,19 @@
 #include <list>
 #include <shared_mutex>
 
-//#define USE_MPG123
-#define USE_FFMPEG
-
-//#define USE_WXMEDIAPLAYER
-#define USE_SDLPLAYER
-
-#ifdef USE_MPG123
-#include "sequencer/mpg123.h"
-#endif
-#ifdef USE_FFMPEG
 extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
-#endif
-#ifdef USE_SDLPLAYER
+
 extern "C"
 {
 #define SDL_MAIN_HANDLED
 #include "sdl/include/SDL.h"
 }
-#endif
+
 #include "vamp-hostsdk/PluginLoader.h"
 #include "JobPool.h"
 
@@ -105,11 +94,9 @@ class AudioManager
 	std::string _resultMessage;
 	int _state;
 	float *_data[2]; // audio data
-#ifdef USE_SDLPLAYER
 	Uint8* _pcmdata;
 	Uint64 _pcmdatasize;
 	SDL_AudioSpec wanted_spec;
-#endif
 	std::string _title;
 	std::string _artist;
 	std::string _album;
@@ -123,18 +110,9 @@ class AudioManager
 	float _bigspectogrammax;
 	MEDIAPLAYINGSTATE _media_state;
 
-#ifdef USE_MPG123
-	int _encoding;
-	int CalcTrackSize(mpg123_handle *phm, int bits, int channels);
-	void LoadTrackData(mpg123_handle *phm, char* data, int maxSize);
-	void ExtractMP3Tags(mpg123_handle *phm);
-	bool CheckCBR();
-#endif
-#ifdef USE_FFMPEG
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void ExtractMP3Tags(AVFormatContext* formatContext);
-#endif
 	int CalcLengthMS();
 	void SplitTrackDataAndNormalize(signed short* trackData, int trackSize, float* leftData, float* rightData);
 	void NormalizeMonoTrackData(signed short* trackData, int trackSize, float* leftData);
@@ -146,7 +124,6 @@ class AudioManager
 	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id);
 
 public:
-#ifndef USE_WXMEDIAPLAYER
 	void Seek(int pos);
 	void Pause();
 	void Play();
@@ -155,7 +132,6 @@ public:
 	void SetPlaybackRate(float rate);
 	MEDIAPLAYINGSTATE GetPlayingState();
 	int Tell();
-#endif
 	xLightsVamp* GetVamp() { return &_vamp; };
 	AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int step, int block);
 	~AudioManager();

@@ -326,9 +326,6 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 		}
         if( mediaFilename != wxEmptyString )
         {
-#ifdef USE_WXMEDIAPLAYER
-            PlayerDlg->Load(mediaFilename);
-#endif
 			wxString error;
             musicLength = mainSequencer->PanelWaveForm->OpenfileMedia(xml_file.GetMedia(), error);
             if(musicLength <=0)
@@ -776,28 +773,20 @@ void xLightsFrame::PlaySequence()
 			playStartTime = mainSequencer->PanelTimeLine->GetNewStartTimeMS();
 			playEndTime = mainSequencer->PanelTimeLine->GetNewEndTimeMS();
 			if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-#ifdef USE_WXMEDIAPLAYER
-				PlayerDlg->Seek(playStartTime);
-#else
 				if (CurrentSeqXmlFile->GetMedia() != NULL)
 				{
 					CurrentSeqXmlFile->GetMedia()->Seek(playStartTime);
 				}
-#endif
 			}
 			if (playEndTime == -1 || playEndTime > CurrentSeqXmlFile->GetSequenceDurationMS()) {
 				playEndTime = CurrentSeqXmlFile->GetSequenceDurationMS();
 			}
 			mainSequencer->PanelTimeLine->PlayStarted();
 			if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-#ifdef USE_WXMEDIAPLAYER
-				PlayerDlg->Play();
-#else
 				if (CurrentSeqXmlFile->GetMedia() != NULL)
 				{
 					CurrentSeqXmlFile->GetMedia()->Play();
 				}
-#endif
 			}
 		}
 	}
@@ -814,14 +803,6 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 {
     if( CurrentSeqXmlFile->GetSequenceType() == "Media" )
     {
-#ifdef USE_WXMEDIAPLAYER
-		if (PlayerDlg->GetState() == wxMEDIASTATE_PLAYING) {
-			PlayerDlg->Pause();
-		}
-		else if (PlayerDlg->GetState() == wxMEDIASTATE_PAUSED) {
-			PlayerDlg->Play();
-		}
-#else
 		if (CurrentSeqXmlFile->GetMedia() != NULL)
 		{
 			if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
@@ -833,7 +814,6 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 				CurrentSeqXmlFile->GetMedia()->Play();
 			}
 		}
-#endif
 	}
 
     if (playType == PLAY_TYPE_MODEL) {
@@ -967,16 +947,11 @@ void xLightsFrame::StopSequence()
     if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED )
     {
         if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
-#ifdef USE_WXMEDIAPLAYER
-			PlayerDlg->Stop();
-			PlayerDlg->Seek(playStartTime);
-#else
 			if (CurrentSeqXmlFile->GetMedia() != NULL)
 			{
 				CurrentSeqXmlFile->GetMedia()->Stop();
 				CurrentSeqXmlFile->GetMedia()->Seek(playStartTime);
 			}
-#endif
         }
         mainSequencer->PanelTimeLine->PlayStopped();
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
@@ -1181,15 +1156,9 @@ void xLightsFrame::TimerRgbSeq(long msec)
     if (playType == PLAY_TYPE_MODEL) {
 
         int current_play_time = 0;
-#ifdef USE_WXMEDIAPLAYER
-		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && PlayerDlg->GetState() == wxMEDIASTATE_PLAYING)
-		{
-			current_play_time = PlayerDlg->Tell();
-#else
 		if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != NULL && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
 		{
 			current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
-#endif
             curt = current_play_time;
         } else
 		{
