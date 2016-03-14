@@ -6,8 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
---------------------------------
-	-- enh (keithsw) Move test tab to a seperate dialog ... add new ways of selecting channels for testing
+--------------------------------\
+    -- bug (gil)     Send render event for effects pasted to multiple cells.  Fixes #497.
+	-- enh (keithsw) Move test tab to a separate dialog ... add new ways of selecting channels for testing
     -- bug (gil)     Restore the audacity style operation of the Play button and fix animation play/pause.  Fixes #493.
     -- enh (gil)     Connect ctrl-Z to Undo function.
     -- bug (gil)     Fix paste/keyboard placement of effects in partial cells.  Was broken by 2/11 checkin.

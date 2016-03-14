@@ -1479,6 +1479,11 @@ void EffectsGrid::Paste(const wxString &data) {
                                       EFFECT_SELECTED,
                                       false);
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
+                            if (!ef->GetPaletteMap().empty()) {
+                                sendRenderEvent(el->GetParentElement()->GetName(),
+                                                start_time,
+                                                end_time, true);
+                            }
                             RaiseSelectedEffectChanged(ef, true);
                             mSelectedEffect = ef;
                          }
