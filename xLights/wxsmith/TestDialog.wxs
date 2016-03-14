@@ -579,6 +579,15 @@
 															<border>5</border>
 															<option>1</option>
 														</object>
+														<object class="sizeritem">
+															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGBCycle_RGBW" variable="RadioButton_RGBCycle_RGBW" member="yes">
+																<label>R-G-B-W</label>
+																<handler function="OnRadioButton_RGBCycle_RGBWSelect" entry="EVT_RADIOBUTTON" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
 													</object>
 													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>

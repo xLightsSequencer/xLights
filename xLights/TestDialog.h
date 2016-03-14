@@ -1,6 +1,8 @@
 #ifndef TESTDIALOG_H
 #define TESTDIALOG_H
 
+#include "color.h"
+
 // Need to do these manually due to issues with wxSmith and wxTreeListCtrl
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
@@ -41,10 +43,6 @@ public:
 	{
 		CT_E131, CT_NULL, CT_DMX, CT_CHANNEL, CT_CONTROLLERROOT, CT_MODELROOT, CT_MODELGROUPROOT, CT_MODEL, CT_NODE, CT_MODELGROUP
 	} CONTROLLERTYPE;
-	typedef enum PIXELFORMAT // the pixel format of the node ... this is not used yet
-	{
-		SINGLE, RGB, RBG, BGR, BRG, GRB, GBR, RGBW
-	} PIXELFORMAT;
 private:
 	std::string _name; // what to display on the tree
 	std::string _modelName; // the underlying model name
@@ -65,6 +63,7 @@ private:
 	bool _multiuniversedmx; // true if this is a multi universe dmx controller
 	int _nodes; // number of nodes (in a model)
 	wxTreeListItem _treeListItem; // the item this is associated with
+	char _colour; // the channel colour
 
 	std::string GenerateName(); // generate the string to display
 
@@ -78,7 +77,7 @@ public:
 	TreeController(CONTROLLERTYPE type, int start, int end);
 	TreeController(CONTROLLERTYPE type, std::string name);
 	TreeController(CONTROLLERTYPE type, int xLightsChannel, int node, int channelspernode);
-	
+
 	// Called to create a TreeController for a sub universe of a multi universe controller
 	TreeController* GenerateDMXUniverse(int universeoffset);
 
@@ -103,6 +102,8 @@ public:
 	std::string ModelName() { return _modelName; };
 	bool ContainsChannel(int ch);
 	bool Clickable() { return (!IsNULL() && !IsDoesNotExist() && !Inactive()); };
+	void SetColour(char colour) { _colour = colour; GenerateName(); };
+	char GetColour() { return _colour; };
 };
 
 class TestDialog: public wxDialog
@@ -116,7 +117,8 @@ class TestDialog: public wxDialog
 		CHASE4,
 		DIM,
 		TWINKLE,
-		SHIMMER
+		SHIMMER,
+		RGBW
 	};
 
 	public:
@@ -158,6 +160,7 @@ class TestDialog: public wxDialog
 		wxStaticText* StaticText6;
 		wxButton* Button_Save;
 		wxRadioButton* RadioButton_RGB_Twinkle10;
+		wxRadioButton* RadioButton_RGBCycle_RGBW;
 		wxSlider* Slider_RGB_BG_B;
 		wxRadioButton* RadioButton_RGB_Twinkle25;
 		wxRadioButton* RadioButton_RGBCycle_ABCAll;
@@ -252,6 +255,7 @@ class TestDialog: public wxDialog
 		static const long ID_RADIOBUTTON_RGBCycle_ABCAll;
 		static const long ID_RADIOBUTTON_RGBCycle_ABCAllNone;
 		static const long ID_RADIOBUTTON_RGBCycle_MixedColors;
+		static const long ID_RADIOBUTTON_RGBCycle_RGBW;
 		static const long ID_PANEL5;
 		static const long ID_AUINOTEBOOK1;
 		static const long ID_STATICTEXT1;
@@ -298,6 +302,7 @@ class TestDialog: public wxDialog
 		void OnRadioButton_Standard_ShimmerSelect(wxCommandEvent& event);
 		void OnRadioButton_Standard_BackgroundSelect(wxCommandEvent& event);
 		void OnTimer1Trigger(wxTimerEvent& event);
+		void OnRadioButton_RGBCycle_RGBWSelect(wxCommandEvent& event);
 		//*)
 
 		void OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event);
@@ -308,15 +313,13 @@ class TestDialog: public wxDialog
 		void PopulateModelsTree(ModelManager* modelManager);
 		void PopulateModelGroupsTree(ModelManager* modelManager);
 		bool CascadeSelected(wxTreeListItem& item, wxCheckBoxState state);
-		//void RollUpSelected(const wxTreeListItem& item, wxCheckBoxState state);
 		void DestroyTreeControllerData(wxTreeListItem& item);
 		void GetTestPresetNames(wxArrayString& PresetNames);
 		bool CheckChannel(long chid, wxCheckBoxState state);
 		std::list<std::string> GetModelsOnChannels(int start, int end);
-		//void CascadeSelectedToModelGroup(std::string modelName, wxCheckBoxState state);
-		//void CascadeSelectedToModel(std::string modelName, wxCheckBoxState state);
 		void Clear(wxTreeListItem& item);
 		void GetCheckedItems(wxArrayInt& chArray);
+		void GetCheckedItems(wxArrayInt& chArray, char col);
 		bool InitialiseOutputs();
 		void OnTimer(long curtime);
 		double Rand01() { return (double)rand() / (double)RAND_MAX; };
@@ -324,6 +327,8 @@ class TestDialog: public wxDialog
 		wxCheckBoxState RollUpAll(wxTreeListItem start);
 		void CascadeModelDoesNotExist();
 		void DeactivateNotClickableModels();
+		void CascadeColour(TreeController* tc);
+		char DoEncodeColour(xlColor& c);
 
 #ifdef __WXOSX__
 		AppNapSuspender _sleepData;

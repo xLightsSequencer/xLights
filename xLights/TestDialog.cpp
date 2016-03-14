@@ -25,6 +25,7 @@
 // This for for a channel node
 TreeController::TreeController(int channel, CONTROLLERTYPE type, int xLightsChannel)
 {
+	_colour = ' ';
 	_universes = 0;
 	_type = type;
 	_startchannel = channel;
@@ -38,6 +39,7 @@ TreeController::TreeController(int channel, CONTROLLERTYPE type, int xLightsChan
 // This for for a node node
 TreeController::TreeController(CONTROLLERTYPE type, int xLightsChannel, int node, int channelspernode)
 {
+	_colour = ' ';
 	_universes = 0;
 	_type = type;
 	_nodeNumber = node;
@@ -54,6 +56,7 @@ TreeController::TreeController(CONTROLLERTYPE type, int xLightsChannel, int node
 // model or model group
 TreeController::TreeController(CONTROLLERTYPE type, std::string name)
 {
+	_colour = ' ';
 	_inactive = false;
 	_universes = 0;
 	_type = type;
@@ -70,6 +73,7 @@ TreeController::TreeController(CONTROLLERTYPE type, std::string name)
 // This is for a root node
 TreeController::TreeController(CONTROLLERTYPE type, int start, int end)
 {
+	_colour = ' ';
 	_inactive = false;
 	_universes = 0;
 	_type = type;
@@ -83,6 +87,7 @@ TreeController::TreeController(CONTROLLERTYPE type, int start, int end)
 // This is for a DMX multiple node
 TreeController::TreeController(CONTROLLERTYPE type, std::string comport, int universe, int startxlightschannel, int channels, bool inactive, bool multiuniversedmx, std::string description)
 {
+	_colour = ' ';
 	_universes = 0;
 	_type = type;
 	_comport = comport;
@@ -102,6 +107,7 @@ TreeController::TreeController(CONTROLLERTYPE type, std::string comport, int uni
 // this is for a regular node
 TreeController::TreeController(wxXmlNode* n, int startchannel, int nullcount)
 {
+	_colour = ' ';
 	_doesNotExist = false;
 	_nodes = -1;
 	_universes = 0;
@@ -252,6 +258,12 @@ std::string TreeController::GenerateName()
 		break;
 	case CONTROLLERTYPE::CT_CHANNEL:
 		_name += "Channel ";
+		if (_colour != ' ')
+		{
+			_name += "{";
+			_name += _colour;
+			_name += "} ";
+		}
 		if (_startchannel >= 0)
 		{
 			_name += "[" + std::string(wxString::Format(wxT("%i"), _startchannel)) + "] ";
@@ -319,6 +331,7 @@ const long TestDialog::ID_RADIOBUTTON_RGBCycle_ABC = wxNewId();
 const long TestDialog::ID_RADIOBUTTON_RGBCycle_ABCAll = wxNewId();
 const long TestDialog::ID_RADIOBUTTON_RGBCycle_ABCAllNone = wxNewId();
 const long TestDialog::ID_RADIOBUTTON_RGBCycle_MixedColors = wxNewId();
+const long TestDialog::ID_RADIOBUTTON_RGBCycle_RGBW = wxNewId();
 const long TestDialog::ID_PANEL5 = wxNewId();
 const long TestDialog::ID_AUINOTEBOOK1 = wxNewId();
 const long TestDialog::ID_STATICTEXT1 = wxNewId();
@@ -527,6 +540,8 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	FlexGridSizer13->Add(RadioButton_RGBCycle_ABCAllNone, 1, wxALL|wxEXPAND, 5);
 	RadioButton_RGBCycle_MixedColors = new wxRadioButton(Panel5, ID_RADIOBUTTON_RGBCycle_MixedColors, _("Mixed Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGBCycle_MixedColors"));
 	FlexGridSizer13->Add(RadioButton_RGBCycle_MixedColors, 1, wxALL|wxEXPAND, 5);
+	RadioButton_RGBCycle_RGBW = new wxRadioButton(Panel5, ID_RADIOBUTTON_RGBCycle_RGBW, _("R-G-B-W"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGBCycle_RGBW"));
+	FlexGridSizer13->Add(RadioButton_RGBCycle_RGBW, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 5);
 	Panel5->SetSizer(FlexGridSizer12);
 	FlexGridSizer12->Fit(Panel5);
@@ -586,6 +601,7 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	Connect(ID_RADIOBUTTON_RGBCycle_ABCAll,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_ABCAllSelect);
 	Connect(ID_RADIOBUTTON_RGBCycle_ABCAllNone,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_ABCAllNoneSelect);
 	Connect(ID_RADIOBUTTON_RGBCycle_MixedColors,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_MixedColorsSelect);
+	Connect(ID_RADIOBUTTON_RGBCycle_RGBW,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_RGBWSelect);
 	Connect(ID_SLIDER_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TestDialog::OnSlider_SpeedCmdSliderUpdated);
 	Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&TestDialog::OnTimer1Trigger);
 	//*)
@@ -968,6 +984,20 @@ void TestDialog::PopulateModelGroupsTree(ModelManager* modelManager)
 	TreeListCtrl_Channels->SetItemText(_modelGroups, root->Name());
 }
 
+void TestDialog::CascadeColour(TreeController* tc)
+{
+	auto chs = _channelLookup[tc->StartXLightsChannel()];
+
+	for (int i = 0; i < chs.size(); i++)
+	{
+		if (chs[i] != tc)
+		{
+			chs[i]->SetColour(tc->GetColour());
+			TreeListCtrl_Channels->SetItemText(chs[i]->GetTreeListItem(), chs[i]->Name());
+		}
+	}
+}
+
 void TestDialog::PopulateModelsTree(ModelManager* modelManager)
 {
 	for (auto it = _modelManager->begin(); it != _modelManager->end(); it++)
@@ -988,6 +1018,9 @@ void TestDialog::PopulateModelsTree(ModelManager* modelManager)
 			if (m->SingleChannel)
 			{
 				TreeController* tc = new TreeController(-1, TreeController::CONTROLLERTYPE::CT_CHANNEL, msc);
+				xlColor col(m->GetNodeColor(0));
+				tc->SetColour(DoEncodeColour(col));
+				CascadeColour(tc);
 				modelendchannel = std::max(modelendchannel, tc->EndXLightsChannel());
 				modelstartchannel = std::min(modelstartchannel, tc->StartXLightsChannel());
 				if (_channelLookup[tc->StartXLightsChannel()].size() == 0)
@@ -1016,6 +1049,9 @@ void TestDialog::PopulateModelsTree(ModelManager* modelManager)
 					for (int j = 0; j < m->GetChanCountPerNode(); j++)
 					{
 						TreeController* tcc = new TreeController(-1, TreeController::CONTROLLERTYPE::CT_CHANNEL, msc + i * m->GetChanCountPerNode() + j);
+						char col = std::string(wxString(m->GetChannelColorLetter(j)).c_str())[0];
+						tcc->SetColour(col);
+						CascadeColour(tcc);
 						if (_channelLookup[tcc->StartXLightsChannel()].size() == 0)
 						{
 							// no existing item ... this means either channel not defned or has been excluded because controller is NULL or INACTIVE
@@ -1672,6 +1708,11 @@ void TestDialog::OnRadioButton_Standard_BackgroundSelect(wxCommandEvent& event)
 	_testFunc = DIM;
 }
 
+void TestDialog::OnRadioButton_RGBCycle_RGBWSelect(wxCommandEvent& event)
+{
+    _testFunc = RGBW;
+}
+
 void TestDialog::GetCheckedItems(wxArrayInt& chArray)
 {
 	chArray.Clear();
@@ -1681,6 +1722,22 @@ void TestDialog::GetCheckedItems(wxArrayInt& chArray)
 		if (ch->second.size() > 0)
 		{
 			if (TreeListCtrl_Channels->GetCheckedState((ch->second[0]->GetTreeListItem())))
+			{
+				chArray.Add(ch->first);
+			}
+		}
+	}
+}
+
+void TestDialog::GetCheckedItems(wxArrayInt& chArray, char col)
+{
+	chArray.Clear();
+
+	for (auto ch = _channelLookup.begin(); ch != _channelLookup.end(); ++ch)
+	{
+		if (ch->second.size() > 0)
+		{
+			if (TreeListCtrl_Channels->GetCheckedState((ch->second[0]->GetTreeListItem())) && ch->second[0]->GetColour() == col)
 			{
 				chArray.Add(ch->first);
 			}
@@ -1807,6 +1864,7 @@ void TestDialog::TestButtonsOff()
 	RadioButton_RGBCycle_ABCAll->SetValue(false);
 	RadioButton_RGBCycle_ABCAllNone->SetValue(false);
 	RadioButton_RGBCycle_MixedColors->SetValue(false);
+	RadioButton_RGBCycle_RGBW->SetValue(false);
 
 	_testFunc = OFF;
 }
@@ -1821,7 +1879,7 @@ void TestDialog::OnTimer(long curtime)
 	static long NextSequenceStart = -1;
 	static TestFunctions LastFunc = OFF;
 	static unsigned int interval, rgbCycle, TestSeqIdx;
-	static wxArrayInt chArray, TwinkleState;
+	static wxArrayInt chArray, chArrayR, chArrayG, chArrayB, chArrayW, TwinkleState;
 	static float frequency;
 	int v, BgIntensity, FgIntensity, BgColor[3], FgColor[3];
 	unsigned int i;
@@ -1861,6 +1919,13 @@ void TestDialog::OnTimer(long curtime)
 			{
 				_chaseGrouping = std::numeric_limits<int>::max();
 			}
+		}
+		if (RadioButton_RGBCycle_RGBW->GetValue() > 0)
+		{
+			GetCheckedItems(chArrayR, 'R');
+			GetCheckedItems(chArrayG, 'G');
+			GetCheckedItems(chArrayB, 'B');
+			GetCheckedItems(chArrayW, 'W');
 		}
 
 		LastSequenceSpeed = -1;
@@ -2113,6 +2178,52 @@ void TestDialog::OnTimer(long curtime)
 				_xout->SetIntensity(chArray[i], BgColor[i % 3]);
 			}
 		}
+		else if (_testFunc == RGBW)
+		{
+			if (v != LastSequenceSpeed)
+			{
+				interval = (101 - v) * 50;
+				NextSequenceStart = curtime + interval;
+				LastSequenceSpeed = v;
+			}
+			if (curtime >= NextSequenceStart)
+			{
+				// blank everything first
+				for (i = 0; i < chArray.Count(); i++)
+				{
+					_xout->SetIntensity(chArray[i], 0);
+				}
+				switch (rgbCycle)
+				{
+				case 0: // red
+					for (i = 0; i < chArrayR.Count(); i++)
+					{
+						_xout->SetIntensity(chArrayR[i], 255);
+					}
+					break;
+				case 1: // green
+					for (i = 0; i < chArrayG.Count(); i++)
+					{
+						_xout->SetIntensity(chArrayG[i], 255);
+					}
+					break;
+				case 2: // blue
+					for (i = 0; i < chArrayB.Count(); i++)
+					{
+						_xout->SetIntensity(chArrayB[i], 255);
+					}
+					break;
+				case 3: // white
+					for (i = 0; i < chArrayW.Count(); i++)
+					{
+						_xout->SetIntensity(chArrayW[i], 255);
+					}
+					break;
+				}
+				rgbCycle = (rgbCycle + 1) % 4;
+				NextSequenceStart += interval;
+			}
+		}
 		else
 		{
 			// RGB cycle
@@ -2145,3 +2256,27 @@ void TestDialog::OnTimer(long curtime)
 	}
 	_xout->TimerEnd();
 }
+
+char TestDialog::DoEncodeColour(xlColor& c)
+{
+	if (c.red > 0 && c.green == 0 && c.blue == 0)
+	{
+		return 'R';
+	}
+	if (c.red == 0 && c.green > 0 && c.blue == 0)
+	{
+		return 'G';
+	}
+	if (c.red == 0 && c.green == 0 && c.blue > 0)
+	{
+		return 'B';
+	}
+	if (c.red > 0 && c.red == c.green && c.red == c.blue)
+	{
+		return 'W';
+	}
+
+	return 'X';
+}
+
+
