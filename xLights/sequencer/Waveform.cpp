@@ -101,8 +101,7 @@ void Waveform::OnLeftDClick(wxMouseEvent& event)
 
 void Waveform::UpdatePlayMarker()
 {
-    Refresh(false);
-    Update();
+    renderGL();
 }
 
 void Waveform::CheckNeedToScroll()
@@ -248,6 +247,10 @@ void Waveform::InitializeGLCanvas()
 }
 
 void Waveform::renderGL( wxPaintEvent& event )
+{
+    renderGL();
+}
+void Waveform::renderGL( )
 {
     if(!mIsInitialized) { InitializeGLCanvas(); }
 

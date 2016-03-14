@@ -132,7 +132,8 @@ void TimeLine::SetPlayMarkerMS(int ms)
     } else {
         mCurrentPlayMarker = GetPositionFromTimeMS(ms);
     }
-    Refresh(false);
+    wxClientDC dc(this);
+    render(dc);
 }
 
 void TimeLine::SetZoomMarkerMS(int ms)
@@ -577,12 +578,15 @@ void TimeLine::Initialize()
 
 void TimeLine::render( wxPaintEvent& event )
 {
+    wxPaintDC dc(this);
+    render(dc);
+}
+void TimeLine::render( wxDC& dc ) {
     if (!mIsInitialized)
         return;
     wxCoord w,h;
     float t;
     int labelCount=0;
-    wxPaintDC dc(this);
     wxPen pen(wxColor(128,128,128));
     const wxPen* pen_black = wxBLACK_PEN;
     const wxPen* pen_green = wxGREEN_PEN;
@@ -694,7 +698,7 @@ void TimeLine::render( wxPaintEvent& event )
     dc.DrawRectangle(mSequenceEndMarker, 0, mEndPos, h);
 }
 
-void TimeLine::DrawTriangleMarkerFacingLeft(wxPaintDC& dc, int& play_start_mark, const int& tri_size, int& height)
+void TimeLine::DrawTriangleMarkerFacingLeft(wxDC& dc, int& play_start_mark, const int& tri_size, int& height)
 {
     const wxPen* pen_black = wxBLACK_PEN;
     const wxPen* pen_grey = wxLIGHT_GREY_PEN;
@@ -713,7 +717,7 @@ void TimeLine::DrawTriangleMarkerFacingLeft(wxPaintDC& dc, int& play_start_mark,
     dc.DrawLine(arrow_end,y_top,arrow_end,y_bottom);
 }
 
-void TimeLine::DrawTriangleMarkerFacingRight(wxPaintDC& dc, int& play_start_mark, const int& tri_size, int& height)
+void TimeLine::DrawTriangleMarkerFacingRight(wxDC& dc, int& play_start_mark, const int& tri_size, int& height)
 {
     const wxPen* pen_black = wxBLACK_PEN;
     const wxPen* pen_grey = wxLIGHT_GREY_PEN;
@@ -732,7 +736,7 @@ void TimeLine::DrawTriangleMarkerFacingRight(wxPaintDC& dc, int& play_start_mark
     dc.DrawLine(arrow_end,y_top,arrow_end,y_bottom);
 }
 
-void TimeLine::DrawRectangle(wxPaintDC& dc, int x1, int y1, int x2, int y2)
+void TimeLine::DrawRectangle(wxDC& dc, int x1, int y1, int x2, int y2)
 {
     const wxPen* pen_outline = wxMEDIUM_GREY_PEN;
     const wxPen* pen_grey = wxLIGHT_GREY_PEN;

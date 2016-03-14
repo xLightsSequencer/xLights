@@ -134,15 +134,16 @@ class TimeLine : public wxWindow
         bool timeline_initiated_play;
 
         void render( wxPaintEvent& event );
+        void render( wxDC& dc );
         float GetFirstTimeLabelFromPixelOffset(int offset);
         int GetPixelOffsetFromStartTime();
         int GetMaxViewableTimeMS();
         int GetTotalViewableTimeMS();
         int GetPositionFromSelection(int position);
-        void DrawTriangleMarkerFacingLeft(wxPaintDC& dc, int& play_start_mark, const int& tri_size, int& height);
-        void DrawTriangleMarkerFacingRight(wxPaintDC& dc, int& play_start_mark, const int& tri_size, int& height);
-        void DrawTriangleMarkerFacingDown(wxPaintDC& dc, int& play_start_mark, const int& tri_size);
-        void DrawRectangle(wxPaintDC& dc, int x1, int y1, int x2, int y2);
+        void DrawTriangleMarkerFacingLeft(wxDC& dc, int& play_start_mark, const int& tri_size, int& height);
+        void DrawTriangleMarkerFacingRight(wxDC& dc, int& play_start_mark, const int& tri_size, int& height);
+        void DrawTriangleMarkerFacingDown(wxDC& dc, int& play_start_mark, const int& tri_size);
+        void DrawRectangle(wxDC& dc, int x1, int y1, int x2, int y2);
         void RecalcMarkerPositions();
         wxPanel* mParent;
 };

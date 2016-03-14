@@ -114,6 +114,7 @@ class Waveform : public xlGLCanvas
         void DrawWaveView(const WaveView &wv);
         void StartDrawing(wxDouble pointSize);
         void renderGL( wxPaintEvent& event );
+        void renderGL();
         void UpdateMousePosition(int time);
       	void mouseMoved(wxMouseEvent& event);
         void mouseWheelMoved(wxMouseEvent& event);

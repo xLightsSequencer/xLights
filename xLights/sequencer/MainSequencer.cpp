@@ -75,13 +75,14 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	FlexGridSizer1->AddGrowableCol(1);
 	FlexGridSizer1->AddGrowableRow(1);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
 	StaticText1 = new wxStaticText(this, wxID_ANY, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer2->Add(StaticText1, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ViewChoice = new wxChoice(this, ID_CHOICE_VIEW_CHOICE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_CHOICE"));
-	FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT, 5);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText_SeqTime = new wxStaticText(this, ID_STATICTEXT_Time, _("Time:"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(60,20)), 0, _T("ID_STATICTEXT_Time"));
-	FlexGridSizer2->Add(StaticText_SeqTime, 0, wxALIGN_RIGHT|wxALIGN_BOTTOM, 0);
+	StaticText_SeqTime = new wxStaticText(this, ID_STATICTEXT_Time, _("Time:"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(70,20)), wxST_NO_AUTORESIZE, _T("ID_STATICTEXT_Time"));
+	FlexGridSizer2->Add(StaticText_SeqTime, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxFIXED_MINSIZE, 0);
 	FlexGridSizer1->Add(FlexGridSizer2, 0, wxEXPAND, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);

@@ -1799,13 +1799,13 @@ void EffectsGrid::UpdateSelectedEffects()
 
 void EffectsGrid::ForceRefresh()
 {
-    Refresh();
+    Draw();
 }
 
 
 void EffectsGrid::SetTimeline(TimeLine* timeline)
 {
-        mTimeline = timeline;
+    mTimeline = timeline;
 }
 
 void EffectsGrid::SetSequenceElements(SequenceElements* elements)
