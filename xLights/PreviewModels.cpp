@@ -381,6 +381,8 @@ void PreviewModels::OnButtonAddModelGroupClick(wxCommandEvent& event)
     TextModelGroupName->SetValue("New Model Group");
     PopulateUnusedModels(arrModelsInGroup);
     ListBoxModelsInGroup->Clear();
+	TextModelGroupName->SetFocus();
+	TextModelGroupName->SelectAll();
 }
 
 void PreviewModels::OnButtonCloseClick(wxCommandEvent& event)
