@@ -19,6 +19,7 @@ class ModelManager
         Model *operator[](const std::string &name) const;
         Model *GetModel(const std::string &name) const;
     
+        void Rename(const std::string &oldName, const std::string &newName);
     
         void LoadModels(wxXmlNode *modelNode, NetInfoClass &ni,
                         int previewW, int previewH);

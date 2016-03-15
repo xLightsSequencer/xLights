@@ -13,6 +13,9 @@ class WindowFrameModel : public Model
     protected:
         virtual void InitModel() override;
 
+        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+
     private:
         void InitFrame();
 };

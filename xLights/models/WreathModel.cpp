@@ -1,3 +1,6 @@
+#include <wx/xml/xml.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
 #include "WreathModel.h"
 
 WreathModel::WreathModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
@@ -50,3 +53,52 @@ void WreathModel::InitWreath() {
         }
     }
 }
+
+
+
+static wxPGChoices TOP_BOT_LEFT_RIGHT;
+
+void WreathModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
+        TOP_BOT_LEFT_RIGHT.Add("Top Ctr-CCW");
+        TOP_BOT_LEFT_RIGHT.Add("Top Ctr-CW");
+        TOP_BOT_LEFT_RIGHT.Add("Bottom Ctr-CW");
+        TOP_BOT_LEFT_RIGHT.Add("Bottom Ctr-CCW");
+    }
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "WreathStringCount", parm1));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 640);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("Lights/String", "WreathLightCount", parm2));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 640);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxEnumProperty("Starting Location", "WreathStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+}
+int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if ("WreathStringCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm1");
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        AdjustStringProperties(grid, parm1);
+        return 3;
+    } else if ("WreathLightCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm2");
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("WreathStart" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Dir");
+        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
+        ModelXml->DeleteAttribute("StartSide");
+        ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    }
+    
+    return Model::OnPropertyGridChange(grid, event);
+}
+
+

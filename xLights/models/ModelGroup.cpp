@@ -35,18 +35,23 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
 
 
 
-ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, int previewW, int previewH)
+ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, int w, int h)
     : Model(), manager(m)
 {
-    selected = node->GetAttribute("selected", "0") == "1";
-    name = node->GetAttribute("name").ToStdString();
-    DisplayAs = "ModelGroup";
-    StringType = "RGB Nodes";
     ModelNetInfo = &netInfo;
     ModelXml = node;
+    previewW = w;
+    previewH = h;
+    Reset();
+}
+void ModelGroup::Reset() {
+    selected = ModelXml->GetAttribute("selected", "0") == "1";
+    name = ModelXml->GetAttribute("name").ToStdString();
+    DisplayAs = "ModelGroup";
+    StringType = "RGB Nodes";
     
-    int gridSize = wxAtoi(node->GetAttribute("GridSize", "400"));
-    std::string layout = node->GetAttribute("layout", "grid").ToStdString();
+    int gridSize = wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
+    std::string layout = ModelXml->GetAttribute("layout", "grid").ToStdString();
     defaultBufferStyle = layout;
     if (layout == "grid" || layout == "minimalGrid") {
         defaultBufferStyle = "Default";
@@ -55,17 +60,17 @@ ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, 
     } else if (layout == "horizontal") {
         defaultBufferStyle = HORIZ_PER_MODEL;
     }
-
-    
-    std::vector<Model*> models;
-    wxArrayString mn = wxSplit(node->GetAttribute("models"), ',');
+    Nodes.clear();
+    models.clear();
+    modelNames.clear();
+    changeCount = 0;
+    wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
     for (int x = 0; x < mn.size(); x++) {
         Model *c = manager.GetModel(mn[x].ToStdString());
         if (c != nullptr) {
             modelNames.push_back(c->name);
             models.push_back(c);
-            
-            
+            changeCount += c->GetChangeCount();
             int bw, bh;
             c->InitRenderBufferNodes("Per Preview No Offset", "None", Nodes, bw, bh);
         }
@@ -171,8 +176,37 @@ ModelGroup::~ModelGroup()
 {
 }
 
+void ModelGroup::ModelRenamed(const std::string &oldName, const std::string &newName) {
+    bool changed = false;
+    wxString newVal;
+    for (int x = 0; x < modelNames.size(); x++) {
+        if (modelNames[x] == oldName) {
+            modelNames[x] = newName;
+            changed = true;
+        }
+        if (x != 0) {
+            newVal += ",";
+        }
+        newVal += modelNames[x];
+    }
+    if (changed) {
+        ModelXml->DeleteAttribute("models");
+        ModelXml->AddAttribute("models", newVal);
+    }
+}
+void ModelGroup::CheckForChanges() const {
+    unsigned long l = 0;
+    for (auto it = models.begin(); it != models.end(); it++) {
+        l += (*it)->GetChangeCount();
+    }
+    if (l != changeCount) {
+        ModelGroup *group = (ModelGroup*)this;
+        group->Reset();
+    }
+}
 
 void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transform, int &BufferWi, int &BufferHi) const {
+    CheckForChanges();
     std::string type = tp;
     if (type == "Default") {
         type = defaultBufferStyle;
@@ -231,6 +265,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                                        const std::string &transform,
                                        std::vector<NodeBaseClassPtr> &Nodes,
                                        int &BufferWi, int &BufferHi) const {
+    CheckForChanges();
     std::string type = tp;
     if (type == "Default") {
         type = defaultBufferStyle;

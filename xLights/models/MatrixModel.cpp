@@ -19,6 +19,7 @@ MatrixModel::~MatrixModel()
 
 
 static wxPGChoices TOP_BOT_LEFT_RIGHT;
+static wxPGChoices MATRIX_STYLES;
 
 void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
@@ -26,7 +27,13 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         TOP_BOT_LEFT_RIGHT.Add("Top Right");
         TOP_BOT_LEFT_RIGHT.Add("Bottom Left");
         TOP_BOT_LEFT_RIGHT.Add("Bottom Right");
+        
+        MATRIX_STYLES.Add("Horizontal");
+        MATRIX_STYLES.Add("Vertical");
     }
+    
+    AddStyleProperties(grid);
+    
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "MatrixStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
@@ -36,7 +43,7 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxUIntProperty("Strands/String", "MatrixStrandCount", parm3));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
@@ -44,11 +51,23 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     
     p = grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
 }
+void MatrixModel::AddStyleProperties(wxPropertyGridInterface *grid) {
+    grid->Append(new wxEnumProperty("Direction", "MatrixStyle", MATRIX_STYLES, vMatrix ? 0 : 1));
+}
+
+
 int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("MatrixStringCount" == event.GetPropertyName()) {
+    if ("MatrixStyle" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DisplayAs");
+        ModelXml->AddAttribute("DisplayAs", event.GetPropertyValue().GetLong() ? "Vert Matrix" : "Horiz Matrix");
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        AdjustStringProperties(grid, parm1);
+        return 3;
+    } else if ("MatrixStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        AdjustStringProperties(grid, parm1);
         return 3;
     } else if ("MatrixLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
@@ -89,6 +108,7 @@ void MatrixModel::InitModel() {
         InitHMatrix();
         CopyBufCoord2ScreenCoord();
     }
+    DisplayAs = "Matrix";
 }
 
 // initialize buffer coordinates
@@ -96,6 +116,7 @@ void MatrixModel::InitModel() {
 // parm2=PixelsPerString
 // parm3=StrandsPerString
 void MatrixModel::InitVMatrix(int firstExportStrand) {
+    vMatrix = true;
     int y,x,idx,stringnum,segmentnum,yincr;
     if (parm3 > parm2) {
         parm3 = parm2;
@@ -164,6 +185,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
 // parm2=PixelsPerString
 // parm3=StrandsPerString
 void MatrixModel::InitHMatrix() {
+    vMatrix = false;
     int y,x,idx,stringnum,segmentnum,xincr;
     if (parm3 > parm2) {
         parm3 = parm2;

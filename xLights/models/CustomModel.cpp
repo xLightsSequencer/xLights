@@ -1,8 +1,11 @@
 
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
 
 #include "CustomModel.h"
+#include "../CustomModelDialog.h"
 
 CustomModel::CustomModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
 {
@@ -14,6 +17,62 @@ CustomModel::~CustomModel()
 {
 }
 
+static const std::string CLICK_TO_EDIT("--Click To Edit--");
+class CustomModelDialogAdapter : public wxPGEditorDialogAdapter
+{
+public:
+    CustomModelDialogAdapter(CustomModel *model)
+    : wxPGEditorDialogAdapter(), m_model(model) {
+    }
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
+                              wxPGProperty* WXUNUSED(property) ) override {
+        CustomModelDialog dlg(propGrid);
+        dlg.Setup(m_model);
+        if (dlg.ShowModal() == wxID_OK) {
+            dlg.Save(m_model);
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+protected:
+    CustomModel *m_model;
+};
+
+
+class CustomModelProperty : public wxStringProperty
+{
+public:
+    CustomModelProperty(CustomModel *m,
+                         const wxString& label,
+                         const wxString& name,
+                         const wxString& value)
+    : wxStringProperty(label, name, value), m_model(m) {
+    }
+    // Set editor to have button
+    virtual const wxPGEditor* DoGetEditorClass() const override {
+        return wxPGEditor_TextCtrlAndButton;
+    }
+    // Set what happens on button click
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
+        return new CustomModelDialogAdapter(m_model);
+    }
+protected:
+    CustomModel *m_model;
+};
+
+
+void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    wxPGProperty *p = grid->Append(new CustomModelProperty(this, "Model Data", "CustomData", CLICK_TO_EDIT));
+    grid->LimitPropertyEditing(p);
+}
+int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if ("CustomData" == event.GetPropertyName()) {
+        return 3;
+    }
+    return Model::OnPropertyGridChange(grid, event);
+}
 
 
 int CustomModel::GetStrandLength(int strand) const {
@@ -29,8 +88,28 @@ void CustomModel::InitModel() {
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     InitCustomMatrix(customModel);
     CopyBufCoord2ScreenCoord();
-
 }
+
+void CustomModel::SetCustomWidth(long w) {
+    ModelXml->DeleteAttribute("parm1");
+    ModelXml->AddAttribute("parm1", wxString::Format("%d", w));
+    SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+}
+void CustomModel::SetCustomHeight(long h) {
+    ModelXml->DeleteAttribute("parm2");
+    ModelXml->AddAttribute("parm2", wxString::Format("%d", h));
+    SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+}
+
+std::string CustomModel::GetCustomData() const {
+    return ModelXml->GetAttribute("CustomModel").ToStdString();
+}
+void CustomModel::SetCustomData(const std::string &data) {
+    ModelXml->DeleteAttribute("CustomModel");
+    ModelXml->AddAttribute("CustomModel", data);
+    SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+}
+
 
 void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();

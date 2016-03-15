@@ -1,6 +1,8 @@
 
-#include <wx/xml/xml.h>
 
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+#include <wx/xml/xml.h>
 #include "CircleModel.h"
 
 CircleModel::CircleModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
@@ -137,4 +139,51 @@ void CircleModel::SetCircleCoord() {
         }
         nodesToMap -= loop_count;
     }
+}
+
+
+
+void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", parm2));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 1000);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", parm3));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxStringProperty("Layer Sizes", "CircleLayerSizes", ModelXml->GetAttribute("circleSizes")));
+}
+int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if ("CircleStringCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm1");
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        AdjustStringProperties(grid, parm1);
+        return 3;
+    } else if ("CicleLightCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm2");
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("CircleCenterPercent" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm3");
+        ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("CircleLayerSizes" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("circleSizes");
+        ModelXml->AddAttribute("circleSizes", event.GetValue().GetString());
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    }
+    
+    return Model::OnPropertyGridChange(grid, event);
 }

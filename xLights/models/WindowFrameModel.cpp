@@ -1,3 +1,6 @@
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+#include <wx/xml/xml.h>
 #include "WindowFrameModel.h"
 
 WindowFrameModel::WindowFrameModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
@@ -82,3 +85,59 @@ void WindowFrameModel::InitFrame() {
         }
     }
 }
+
+
+static wxPGChoices TOP_BOT_LEFT_RIGHT;
+
+void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
+        TOP_BOT_LEFT_RIGHT.Add("Top Left");
+        TOP_BOT_LEFT_RIGHT.Add("Top Right");
+        TOP_BOT_LEFT_RIGHT.Add("Bottom Left");
+        TOP_BOT_LEFT_RIGHT.Add("Bottom Right");
+    }
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Lights Top", "WFTopCount", parm1));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 1000);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("# Lights Left/Right", "WFLeftRightCount", parm2));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 1000);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("# Lights Bottom", "WFBottomCount", parm3));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 1000);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxEnumProperty("Starting Location", "WFStartLocation", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+}
+int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if ("WFTopCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm1");
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("WFLeftRightCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm2");
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("WFBottomCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm3");
+        ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("WFStartLocation" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Dir");
+        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
+        ModelXml->DeleteAttribute("StartSide");
+        ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    }
+    
+    return Model::OnPropertyGridChange(grid, event);
+}
+

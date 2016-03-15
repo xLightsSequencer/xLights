@@ -39,7 +39,7 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Pre
 Model::Model() : modelDimmingCurve(nullptr), isMyDisplay(false), ModelXml(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
     offsetXpct(0.5), offsetYpct(0.5), singleScale(false), PreviewScaleX(0.333), PreviewScaleY(0.333),
-    PreviewRotation(0), RenderWi(0), RenderHt(0), StrobeRate(0)
+    PreviewRotation(0), RenderWi(0), RenderHt(0), StrobeRate(0), changeCount(0)
 {
 }
 
@@ -91,7 +91,6 @@ public:
         if (dlg.ShowModal() == wxID_OK) {
             m_model->faceInfo.clear();
             dlg.GetFaceInfo(m_model->faceInfo);
-
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -153,7 +152,6 @@ public:
                     dc->AddAttribute(it2->first, it2->second);
                 }
             }
-
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -270,12 +268,14 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
 
     AddTypeProperties(grid);
 
-    if (HasOneString(DisplayAs) || parm1 <= 1) {
+    if (HasOneString(DisplayAs)) {
         p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
     } else {
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
         p->SetAttribute("UseCheckbox", true);
+        p->Enable(parm1 > 1);
+        sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
         if (hasIndiv) {
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < c; x++) {
@@ -286,10 +286,13 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
                     ModelXml->DeleteAttribute(nm);
                     ModelXml->AddAttribute(nm, val);
                 }
-                sp = grid->AppendIn(p, new StartChannelProperty(this, x, nm, nm, val));
+                if (x == 0) {
+                    sp->SetLabel(nm);
+                    sp->SetValue(val);
+                } else {
+                    sp = grid->AppendIn(p, new StartChannelProperty(this, x, nm, nm, val));
+                }
             }
-        } else {
-            grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
         }
     }
 
@@ -368,27 +371,33 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         pixelSize = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("PixelSize");
         ModelXml->AddAttribute("PixelSize", wxString::Format("%d", pixelSize));
+        IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelPixelStyle") {
         pixelStyle = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Antialias");
         ModelXml->AddAttribute("Antialias", wxString::Format("%d", pixelStyle));
+        IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelPixelTransparency") {
         transparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
         ModelXml->AddAttribute("Transparency", wxString::Format("%d", pixelStyle));
+        IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
         blackTransparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("BlackTransparency");
         ModelXml->AddAttribute("BlackTransparency", wxString::Format("%d", pixelStyle));
+        IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelStrandNodeNames") {
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        IncrementChangeCount();
         return 2;
     } else if (event.GetPropertyName() == "ModelDimmingCurves") {
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        IncrementChangeCount();
         return 2;
     } else if (event.GetPropertyName() == "ModelFaces") {
         wxXmlNode *f = ModelXml->GetChildren();
@@ -402,6 +411,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         Model::WriteFaceInfo(ModelXml, faceInfo);
+        IncrementChangeCount();
         return 2;
     } else if (event.GetPropertyName() == "ModelStringColor"
                || event.GetPropertyName() == "ModelStringType") {
@@ -424,11 +434,17 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             grid->GetPropertyByName("ModelStringColor")->Enable(false);
         }
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        IncrementChangeCount();
         return 3;
-    } else if (event.GetPropertyName() == "ModelStartChannel") {
+    } else if (event.GetPropertyName() == "ModelStartChannel" || event.GetPropertyName() == "ModelIndividualStartChannels.ModelStartChannel") {
         ModelXml->DeleteAttribute("StartChannel");
         ModelXml->AddAttribute("StartChannel", event.GetValue().GetString());
+        if (ModelXml->GetAttribute("Advanced") == "1") {
+            ModelXml->DeleteAttribute(StartChanAttrName(0));
+            ModelXml->AddAttribute(StartChanAttrName(0), event.GetValue().GetString());
+        }
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
@@ -448,16 +464,67 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
-        return 7;
+        AdjustStringProperties(grid, parm1);
+        IncrementChangeCount();
+        return 3;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualStartChannels.")) {
         wxString str = event.GetPropertyName();
         str = str.SubString(str.Find(".") + 1, str.length());
         ModelXml->DeleteAttribute(str);
         ModelXml->AddAttribute(str, event.GetValue().GetString());
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        IncrementChangeCount();
         return 3;
     }
     return 0;
+}
+void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
+    wxPropertyGrid *pg = (wxPropertyGrid*)grid;
+    wxPGProperty *p = grid->GetPropertyByName("ModelIndividualStartChannels");
+    if (p != nullptr) {
+        pg->Freeze();
+        bool adv = p->GetValue().GetBool();
+        if (adv) {
+            int count = p->GetChildCount();
+            while (count > newNum) {
+                count--;
+                wxString nm = StartChanAttrName(count);
+                wxPGProperty *sp = grid->GetPropertyByName("ModelIndividualStartChannels." + nm);
+                if (sp != nullptr) {
+                    grid->DeleteProperty(sp);
+                }
+            }
+            while (count < newNum) {
+                wxString nm = StartChanAttrName(count);
+                std::string val = ModelXml->GetAttribute(nm).ToStdString();
+                if (val == "") {
+                    val = ComputeStringStartChannel(count);
+                    ModelXml->DeleteAttribute(nm);
+                    ModelXml->AddAttribute(nm, val);
+                }
+                grid->AppendIn(p, new StartChannelProperty(this, count, nm, nm, val));
+                count++;
+            }
+        } else if (p->GetChildCount() > 1) {
+            int count = p->GetChildCount();
+            for (int x = 1; x < count; x++) {
+                wxString nm = StartChanAttrName(x);
+                wxPGProperty *sp = grid->GetPropertyByName("ModelIndividualStartChannels." + nm);
+                if (sp != nullptr) {
+                    grid->DeleteProperty(sp);
+                }
+            }
+        }
+        wxPGProperty *sp = grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel");
+        if (adv) {
+            sp->SetLabel(StartChanAttrName(0));
+        } else {
+            sp->SetLabel("Start Channel");
+        }
+        p->Enable(parm1 > 1);
+        pg->Thaw();
+        pg->RefreshGrid();
+    }
 }
 
 
@@ -715,6 +782,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
             modelDimmingCurve = DimmingCurve::createBrightnessGamma(b, 1.0);
         }
     }
+    IncrementChangeCount();
 }
 int Model::CalcCannelsPerString() {
     int ChannelsPerString = parm2*GetNodeChannelCount(StringType);
@@ -775,12 +843,14 @@ int Model::GetLastChannel() {
 void Model::SetOffset(double xPct, double yPct) {
     offsetXpct=xPct;
     offsetYpct=yPct;
+    IncrementChangeCount();
 }
 
 
 void Model::AddOffset(double xPct, double yPct) {
     offsetXpct+=xPct;
     offsetYpct+=yPct;
+    IncrementChangeCount();
 }
 
 
@@ -788,6 +858,7 @@ void Model::SetScale(double x, double y) {
     PreviewScaleX = x;
     PreviewScaleY = y;
     singleScale = false;
+    IncrementChangeCount();
 }
 
 void Model::GetScales(double &x, double &y) {
@@ -828,11 +899,13 @@ void Model::SetLineCoord() {
 void Model::SetBufferSize(int NewHt, int NewWi) {
     BufferHt=NewHt;
     BufferWi=NewWi;
+    IncrementChangeCount();
 }
 
 void Model::SetRenderSize(int NewHt, int NewWi) {
     RenderHt=NewHt;
     RenderWi=NewWi;
+    IncrementChangeCount();
 }
 
 // not valid for Frame or Custom
@@ -1123,6 +1196,7 @@ int Model::GetNodeChannelCount(const std::string & nodeType) {
 
 void Model::Rotate(int degrees) {
     PreviewRotation=degrees;
+    IncrementChangeCount();
     SetLineCoord();
 }
 
@@ -1946,6 +2020,7 @@ void Model::RotateWithHandles(ModelPreview* preview, bool ShiftKeyPressed, int m
     if(ShiftKeyPressed) {
         PreviewRotation = (int)(PreviewRotation/5) * 5;
     }
+    IncrementChangeCount();
 }
 
 void Model::SetTop(ModelPreview* preview,int y) {
@@ -1954,6 +2029,7 @@ void Model::SetTop(ModelPreview* preview,int y) {
     int screenCenterY = h*offsetYpct;
     int newCenterY = screenCenterY + (y-mMaxScreenY);
     offsetYpct = ((float)newCenterY/(float)h);
+    IncrementChangeCount();
 }
 
 void Model::SetBottom(ModelPreview* preview,int y) {
@@ -1962,6 +2038,7 @@ void Model::SetBottom(ModelPreview* preview,int y) {
     int screenCenterY = h*offsetYpct;
     int newCenterY = screenCenterY + (y-mMinScreenY);
     offsetYpct = ((float)newCenterY/(float)h);
+    IncrementChangeCount();
 }
 
 void Model::SetLeft(ModelPreview* preview,int x) {
@@ -1970,6 +2047,7 @@ void Model::SetLeft(ModelPreview* preview,int x) {
     int screenCenterX = w*offsetXpct;
     int newCenterX = screenCenterX + (x-mMinScreenX);
     offsetXpct = ((float)newCenterX/(float)w);
+    IncrementChangeCount();
 }
 
 void Model::SetRight(ModelPreview* preview,int x) {
@@ -1978,14 +2056,17 @@ void Model::SetRight(ModelPreview* preview,int x) {
     int screenCenterX = w*offsetXpct;
     int newCenterX = screenCenterX + (x-mMaxScreenX);
     offsetXpct = ((float)newCenterX/(float)w);
+    IncrementChangeCount();
 }
 
 void Model::SetHcenterOffset(float offset) {
     offsetXpct = offset;
+    IncrementChangeCount();
 }
 
 void Model::SetVcenterOffset(float offset) {
     offsetYpct = offset;
+    IncrementChangeCount();
 }
 
 int Model::GetTop(ModelPreview* preview) {
@@ -2021,7 +2102,7 @@ int Model::GetStrandLength(int strand) const {
 }
 
 int Model::MapToNodeIndex(int strand, int node) const {
-    if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix")) && SingleChannel) {
+    if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix") || DisplayAs == wxT("Matrix")) && SingleChannel) {
         return node;
     }
     if (GetNumStrands() == 1) {

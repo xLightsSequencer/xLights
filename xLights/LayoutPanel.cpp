@@ -145,7 +145,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
                                         // Default style
                                         wxPG_DEFAULT_STYLE );
 #ifdef __WXOSX__
-    propertyEditor->SetExtraStyle(wxPG_EX_NATIVE_DOUBLE_BUFFERING);
+    propertyEditor->SetExtraStyle(wxPG_EX_NATIVE_DOUBLE_BUFFERING | wxWS_EX_PROCESS_IDLE);
+#else
+    propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE);
 #endif
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
     LeftPanelSizer->Fit(LeftPanel);
@@ -218,7 +220,12 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             xlights->UnsavedRgbEffectsChanges = true;
         } else if ("ModelName" == name) {
             if (selectedModel->name != event.GetValue().GetString().ToStdString()) {
-                xlights->RenameModelInViews(selectedModel->name, event.GetValue().GetString().ToStdString());
+                for(int i=0;i<ListBoxElementList->GetItemCount();i++) {
+                    if (selectedModel->name == ListBoxElementList->GetItemText(i)) {
+                        ListBoxElementList->SetItemText(i, event.GetValue().GetString());
+                    }
+                }
+                xlights->RenameModel(selectedModel->name, event.GetValue().GetString().ToStdString());
             }
         } else {
             int i = selectedModel->OnPropertyGridChange(propertyEditor, event);

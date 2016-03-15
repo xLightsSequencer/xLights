@@ -1,11 +1,15 @@
 
-#include <wx/xml/xml.h>
 #include <wx/tokenzr.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+#include <wx/xml/xml.h>
 
 #include "TreeModel.h"
 
 TreeModel::TreeModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
 {
+    treeType = 0;
+    degrees = 360;
     SetFromXml(node, netInfo, zeroBased);
 }
 
@@ -28,15 +32,18 @@ void TreeModel::InitModel() {
         firstStrand = 0;
     }
     InitVMatrix(firstStrand);
-    long degrees;
     token = tkz.GetNextToken();
     token.ToLong(&degrees);
+    treeType = 0;
     if (token == "Flat") {
+        treeType = 1;
         degrees = 0;
     } else if (token == "Ribbon") {
+        treeType = 2;
         degrees = -1;
     }
     SetTreeCoord(degrees);
+    DisplayAs = "Tree";
 }
 
 inline double toRadians(long degrees) {
@@ -135,3 +142,51 @@ void TreeModel::SetTreeCoord(long degrees) {
         }
     }
 }
+int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if (event.GetPropertyName() == "TreeStyle") {
+        ModelXml->DeleteAttribute("DisplayAs");
+        wxPGProperty *p = grid->GetPropertyByName("TreeDegress");
+        if (p != nullptr) {
+            degrees = p->GetValue().GetLong();
+        }
+        switch (event.GetPropertyValue().GetLong()) {
+            case 0:
+                ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", degrees > 1 ? degrees : 180));
+                break;
+            case 1:
+                ModelXml->AddAttribute("DisplayAs", "Tree Flat");
+                break;
+            case 2:
+                ModelXml->AddAttribute("DisplayAs", "Tree Ribbon");
+                break;
+        }
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        if (p != nullptr) {
+            p->Enable(treeType == 0);
+        }
+        return 3;
+    } else if (event.GetPropertyName() == "TreeDegrees") {
+        ModelXml->DeleteAttribute("DisplayAs");
+        ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    }
+    return MatrixModel::OnPropertyGridChange(grid, event);
+}
+static wxPGChoices TREE_STYLES;
+
+void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
+    if (TREE_STYLES.GetCount() == 0) {
+        TREE_STYLES.Add("Round");
+        TREE_STYLES.Add("Flat");
+        TREE_STYLES.Add("Ribbon");
+    }
+    grid->Append(new wxEnumProperty("Type", "TreeStyle", TREE_STYLES, treeType));
+    
+    wxPGProperty *p = grid->Append(new wxUIntProperty("Degrees", "TreeDegress", treeType == 0 ? degrees : 180));
+    p->SetAttribute("Min", "1");
+    p->SetAttribute("Max", "360");
+    p->SetEditor("SpinCtrl");
+    p->Enable(treeType == 0);
+}
+

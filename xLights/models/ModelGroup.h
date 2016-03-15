@@ -14,7 +14,7 @@ class ModelGroup : public Model
         ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &manager, int previewW, int previewH);
         virtual ~ModelGroup();
 
-    
+        void ModelRenamed(const std::string &oldName, const std::string &newName);
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
     
@@ -26,9 +26,13 @@ class ModelGroup : public Model
     
     protected:
         static std::vector<std::string> GROUP_BUFFER_STYLES;
+        void Reset();
 
     private:
+        void CheckForChanges() const;
+    
         std::vector<std::string> modelNames;
+        std::vector<Model *> models;
         bool selected;
         std::string defaultBufferStyle;
         const ModelManager &manager;

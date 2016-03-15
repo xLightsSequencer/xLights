@@ -58,6 +58,7 @@ public:
      */
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
 protected:
+    void AdjustStringProperties(wxPropertyGridInterface *grid, int newNum);
     std::string ComputeStringStartChannel(int x);
     void ApplyTransform(const std::string &transform,
                         std::vector<NodeBaseClassPtr> &Nodes,
@@ -120,7 +121,11 @@ protected:
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
     
+    unsigned long changeCount;
 public:
+    void IncrementChangeCount() { ++changeCount;};
+    unsigned long GetChangeCount() const { return changeCount; }
+    
     std::string rgbOrder;
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings

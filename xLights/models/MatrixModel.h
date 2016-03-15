@@ -18,11 +18,15 @@ class MatrixModel : public Model
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:
+        virtual void AddStyleProperties(wxPropertyGridInterface *grid);
+    
         MatrixModel();
         virtual void InitModel() override;
     
         void InitVMatrix(int firstExportStrand = 0);
         void InitHMatrix();
+    
+        bool vMatrix;
     private:
 };
 

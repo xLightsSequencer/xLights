@@ -13,7 +13,10 @@ class CircleModel : public Model
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual int GetNumStrands() const override;
-        
+    
+        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+
     protected:
         virtual void InitModel() override;
         

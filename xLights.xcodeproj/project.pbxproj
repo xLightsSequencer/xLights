@@ -66,6 +66,7 @@
 		675AB42E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB41E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp */; };
 		675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB4201B5ACEDA00853A28 /* PluginWrapper.cpp */; };
 		675AB4301B5ACEDA00853A28 /* RealTime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AB4221B5ACEDA00853A28 /* RealTime.cpp */; };
+		675AC53D1C987AA700C4AFE9 /* CustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675AC53C1C987AA700C4AFE9 /* CustomModelDialog.cpp */; };
 		675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2551B53381800A9BB44 /* EffectAssist.cpp */; };
 		675DE2681B53381800A9BB44 /* FlickerFreeBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */; };
 		675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2591B53381800A9BB44 /* xlColorCanvas.cpp */; };
@@ -417,6 +418,8 @@
 		675AB4231B5ACEDA00853A28 /* RealTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RealTime.h; path = "vamp-hostsdk/RealTime.h"; sourceTree = "<group>"; };
 		675AB4241B5ACEDA00853A28 /* vamp-hostsdk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "vamp-hostsdk.h"; path = "vamp-hostsdk/vamp-hostsdk.h"; sourceTree = "<group>"; };
 		675AB4251B5ACEDA00853A28 /* Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Window.h; path = "vamp-hostsdk/Window.h"; sourceTree = "<group>"; };
+		675AC53B1C987AA700C4AFE9 /* CustomModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomModelDialog.h; sourceTree = "<group>"; };
+		675AC53C1C987AA700C4AFE9 /* CustomModelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CustomModelDialog.cpp; sourceTree = "<group>"; };
 		675DE2551B53381800A9BB44 /* EffectAssist.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectAssist.cpp; sourceTree = "<group>"; };
 		675DE2561B53381800A9BB44 /* EffectAssist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectAssist.h; sourceTree = "<group>"; };
 		675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FlickerFreeBitmapButton.cpp; sourceTree = "<group>"; };
@@ -1202,6 +1205,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				675AC53B1C987AA700C4AFE9 /* CustomModelDialog.h */,
+				675AC53C1C987AA700C4AFE9 /* CustomModelDialog.cpp */,
 				67229EDC1C95DDF000D34024 /* TestDialog.h */,
 				67229EDD1C95DDF000D34024 /* TestDialog.cpp */,
 				67BA42A51C93B78500D17518 /* StartChannelDialog.h */,
@@ -1591,6 +1596,7 @@
 				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
 				67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
+				675AC53D1C987AA700C4AFE9 /* CustomModelDialog.cpp in Sources */,
 				67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */,
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,

@@ -243,6 +243,8 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
 
     std::string OldName;
     OldName = e->GetAttribute("name");
+    mParent->RenameModel(OldName, NewName);
+    
 
     Element* elem_to_rename = mSequenceElements->GetElement(OldName);
     if( elem_to_rename != NULL )

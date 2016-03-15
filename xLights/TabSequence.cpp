@@ -272,7 +272,21 @@ void xLightsFrame::ShowModelsDialog()
     UpdateModelsList();
     EnableSequenceControls(true);
 }
-
+void xLightsFrame::RenameModel(const std::string& OldName, const std::string& NewName)
+{
+    if (OldName == NewName) {
+        return;
+    }
+    Element* elem_to_rename = mSequenceElements.GetElement(OldName);
+    if( elem_to_rename != NULL )
+    {
+        elem_to_rename->SetName(NewName);
+    }
+    AllModels.Rename(OldName, NewName);
+    RenameModelInViews(OldName, NewName);
+    mSequenceElements.RenameModelInViews(OldName, NewName);
+    UnsavedRgbEffectsChanges = true;
+}
 void xLightsFrame::RenameModelInViews(const std::string& old_name, const std::string& new_name)
 {
     // renames view in the rgbeffects xml node

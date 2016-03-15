@@ -11,10 +11,14 @@ class TreeModel : public MatrixModel
         virtual ~TreeModel();
     
         virtual int GetNumStrands() const override;
+        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     protected:
+        virtual void AddStyleProperties(wxPropertyGridInterface *grid) override;
         virtual void InitModel() override;
     private:
+        int treeType;
+        long degrees;
         void SetTreeCoord(long degrees);
 };
 

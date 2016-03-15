@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="CustomModelDialog">
+		<title>Custom Model</title>
+		<centered>1</centered>
+		<size>450,350d</size>
+		<minsize>300,200d</minsize>
+		<id_arg>0</id_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+		<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
+			<cols>2</cols>
+			<growablecols>1</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="Sizer2" member="no">
+					<cols>1</cols>
+					<rows>3</rows>
+					<growablecols>0</growablecols>
+					<growablerows>2</growablerows>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>2</cols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
+									<label>Width</label>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="WidthSpin" member="yes">
+									<value>10</value>
+									<min>1</min>
+									<max>500</max>
+									<handler function="OnWidthSpinChange" entry="EVT_SPINCTRL" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
+									<label>Height</label>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="HeightSpin" member="yes">
+									<value>10</value>
+									<min>1</min>
+									<max>500</max>
+									<handler function="OnHeightSpinChange" entry="EVT_SPINCTRL" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+							<cols>7</cols>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_CUT" variable="BitmapButtonCustomCut" member="yes">
+									<bitmap stock_id="wxART_CUT" />
+									<handler function="OnBitmapButtonCustomCutClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_COPY" variable="BitmapButtonCustomCopy" member="yes">
+									<bitmap stock_id="wxART_COPY" />
+									<default>1</default>
+									<handler function="OnBitmapButtonCustomCopyClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_PASTE" variable="BitmapButtonCustomPaste" member="yes">
+									<bitmap stock_id="wxART_PASTE" />
+									<default>1</default>
+									<handler function="OnBitmapButtonCustomPasteClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_CustomModelZoomIn" variable="Button_CustomModelZoomIn" member="yes">
+									<label>+</label>
+									<tooltip>Zoom In</tooltip>
+									<minsize>24,-1</minsize>
+									<handler function="OnButton_CustomModelZoomInClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_CustomModelZoomOut" variable="Button_CustomModelZoomOut" member="yes">
+									<label>-</label>
+									<tooltip>Zoom Out</tooltip>
+									<minsize>24,-1</minsize>
+									<handler function="OnButton_CustomModelZoomOutClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
+							<object class="button">
+								<object class="wxButton" name="wxID_OK">
+									<label></label>
+								</object>
+							</object>
+							<object class="button">
+								<object class="wxButton" name="wxID_CANCEL">
+									<label></label>
+								</object>
+							</object>
+						</object>
+						<flag>wxALL|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxFIXED_MINSIZE</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxGrid" name="ID_GRID_Custom" variable="GridCustom" member="yes">
+					<cols>1</cols>
+					<rows>1</rows>
+					<labelrowheight>20</labelrowheight>
+					<labelcolwidth>30</labelcolwidth>
+					<defaultcolsize>30</defaultcolsize>
+					<style>wxVSCROLL|wxHSCROLL</style>
+				</object>
+				<flag>wxEXPAND</flag>
+			</object>
+		</object>
+	</object>
+</wxsmith>

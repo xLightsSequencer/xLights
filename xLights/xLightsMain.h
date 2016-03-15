@@ -1223,6 +1223,7 @@ public:
     void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data);
     void RenameModelInViews(const std::string& old_name, const std::string& new_name);
+    void RenameModel(const std::string& old_name, const std::string& new_name);
     void UpdateSequenceLength();
 
     void SetSequenceEnd(int ms);

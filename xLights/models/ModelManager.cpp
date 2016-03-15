@@ -45,6 +45,29 @@ Model *ModelManager::operator[](const std::string &name) const {
     return GetModel(name);
 }
 
+void ModelManager::Rename(const std::string &oldName, const std::string &newName) {
+    for (auto it = models.begin(); it != models.end(); it++) {
+        if (it->first == oldName) {
+            Model *model = it->second;
+            
+            if (model != nullptr) {
+                model->GetModelXml()->DeleteAttribute("name");
+                model->GetModelXml()->AddAttribute("name",newName);
+                model->name = newName;
+                
+                for (auto it = models.begin(); it != models.end(); it++) {
+                    if (it->second->GetDisplayAs() == "ModelGroup") {
+                        ModelGroup *group = (ModelGroup*)it->second;
+                        group->ModelRenamed(oldName, newName);
+                    }
+                }
+                models.erase(it);
+                models[newName] = model;
+                return;
+            }
+        }
+    }
+}
 
 void ModelManager::LoadModels(wxXmlNode *modelNode, NetInfoClass &netInfo, int previewW, int previewH) {
     clear();

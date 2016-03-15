@@ -445,6 +445,8 @@
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="CurrentPreviewModels.cpp" />
 		<Unit filename="CurrentPreviewModels.h" />
+		<Unit filename="CustomModelDialog.cpp" />
+		<Unit filename="CustomModelDialog.h" />
 		<Unit filename="DataLayer.cpp" />
 		<Unit filename="DataLayer.h" />
 		<Unit filename="DimmingCurve.cpp" />
@@ -889,6 +891,7 @@
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
 		<Unit filename="wxsmith/CurtainPanel.wxs" />
+		<Unit filename="wxsmith/CustomModelDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
 		<Unit filename="wxsmith/DisplayElementsPanel.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
@@ -1083,6 +1086,7 @@
 					<wxDialog wxs="wxsmith/TestDialog.wxs" src="TestDialog.cpp" hdr="TestDialog.h" fwddecl="0" i18n="1" name="TestDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/LayoutPanel.wxs" src="LayoutPanel.cpp" hdr="LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/StartChannelDialog.wxs" src="StartChannelDialog.cpp" hdr="StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/CustomModelDialog.wxs" src="CustomModelDialog.cpp" hdr="CustomModelDialog.h" fwddecl="1" i18n="1" name="CustomModelDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
