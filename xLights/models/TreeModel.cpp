@@ -42,6 +42,8 @@ void TreeModel::InitModel() {
         treeType = 2;
         degrees = -1;
     }
+    rotation = wxAtoi(ModelXml->GetAttribute("TreeRotation", "3"));
+
     SetTreeCoord(degrees);
     DisplayAs = "Tree";
 }
@@ -65,9 +67,10 @@ void TreeModel::SetTreeCoord(long degrees) {
         
         double StartAngle=-radians/2.0;
         double AngleIncr=radians/double(BufferWi);
+        
         if (degrees > 180) {
             //shift a tiny bit to make the strands in back not line up exactly with the strands in front
-            StartAngle += AngleIncr / 5.0;
+            StartAngle += toRadians(rotation);
         }
         double topYoffset = std::abs(0.2 * topradius * cos(M_PI));
         double ytop = RenderHt - topYoffset;
@@ -145,7 +148,7 @@ void TreeModel::SetTreeCoord(long degrees) {
 int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "TreeStyle") {
         ModelXml->DeleteAttribute("DisplayAs");
-        wxPGProperty *p = grid->GetPropertyByName("TreeDegress");
+        wxPGProperty *p = grid->GetPropertyByName("TreeDegrees");
         if (p != nullptr) {
             degrees = p->GetValue().GetLong();
         }
@@ -164,10 +167,19 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         if (p != nullptr) {
             p->Enable(treeType == 0);
         }
+        p = grid->GetPropertyByName("TreeRotation");
+        if (p != nullptr) {
+            p->Enable(treeType == 0);
+        }
         return 3;
     } else if (event.GetPropertyName() == "TreeDegrees") {
         ModelXml->DeleteAttribute("DisplayAs");
         ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if (event.GetPropertyName() == "TreeRotation") {
+        ModelXml->DeleteAttribute("TreeRotation");
+        ModelXml->AddAttribute("TreeRotation", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
         return 3;
     }
@@ -183,9 +195,16 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     }
     grid->Append(new wxEnumProperty("Type", "TreeStyle", TREE_STYLES, treeType));
     
-    wxPGProperty *p = grid->Append(new wxUIntProperty("Degrees", "TreeDegress", treeType == 0 ? degrees : 180));
+    wxPGProperty *p = grid->Append(new wxUIntProperty("Degrees", "TreeDegrees", treeType == 0 ? degrees : 180));
     p->SetAttribute("Min", "1");
     p->SetAttribute("Max", "360");
+    p->SetEditor("SpinCtrl");
+    p->Enable(treeType == 0);
+    
+    p = grid->Append(new wxFloatProperty("Rotation", "TreeRotation", treeType == 0 ? rotation : 3));
+    p->SetAttribute("Min", "-360");
+    p->SetAttribute("Max", "360");
+    p->SetAttribute("Precision", 1);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
 }
