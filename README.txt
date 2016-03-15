@@ -6,9 +6,14 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
---------------------------------\
+--------------------------------
+2016.13  Mar 15, 2016
+    -- enh (keithsw) Add a colour aware test mode ... RGBW.
+    -- enh (dkulp)   Optimize the redraws on timer events a bit.   
+	                   Drops CPU usage from 95% to about 60% on my machine.
     -- bug (gil)     Send render event for effects pasted to multiple cells.  Fixes #497.
-	-- enh (keithsw) Move test tab to a separate dialog ... add new ways of selecting channels for testing
+	-- enh (keithsw) Move test tab to a separate dialog ... add new ways of selecting channels for testing.
+						Side effect of this change is that switching show directories is now 1000% faster
     -- bug (gil)     Restore the audacity style operation of the Play button and fix animation play/pause.  Fixes #493.
     -- enh (gil)     Connect ctrl-Z to Undo function.
     -- bug (gil)     Fix paste/keyboard placement of effects in partial cells.  Was broken by 2/11 checkin.

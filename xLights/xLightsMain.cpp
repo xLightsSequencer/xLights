@@ -1155,7 +1155,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1 = new wxMenu();
     ActionTestMenuItem = new wxMenuItem(Menu1, ID_MENUITEM13, _("&Test"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(ActionTestMenuItem);
-    MenuBar->Append(Menu1, _("A&ctions"));
+    MenuBar->Append(Menu1, _("&Tools"));
     MenuPlaylist = new wxMenu();
     MenuItemSavePlaylists = new wxMenuItem(MenuPlaylist, idMenuSaveSched, _("Save Playlists"), wxEmptyString, wxITEM_NORMAL);
     MenuPlaylist->Append(MenuItemSavePlaylists);
@@ -1986,7 +1986,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     //{
     //    StatusBar1->SetStatusText(_("Testing disabled - Output to Lights is not checked"));
     //}
-    //else 
+    //else
 	if (pagenum == PREVIEWTAB)
     {
         modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
@@ -2987,7 +2987,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	AllModels.LoadGroups(ModelGroupsNode, NetInfo,
 		modelPreview->GetVirtualCanvasWidth(),
 		modelPreview->GetVirtualCanvasHeight());
-	
+
 	// save the media playing state and stop it if it is playing
 	MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
 	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)

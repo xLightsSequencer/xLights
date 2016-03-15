@@ -2,10 +2,10 @@
 #define EFFECTSPANEL_H
 
 //(*Headers(EffectsPanel)
-#include <wx/bmpbuttn.h>
-#include <wx/sizer.h>
 #include <wx/notebook.h>
+#include <wx/sizer.h>
 #include <wx/panel.h>
+#include <wx/bmpbuttn.h>
 #include <wx/choicebk.h>
 //*)
 
@@ -37,11 +37,11 @@ public:
     void SetSequenceElements(SequenceElements *els);
 
     //(*Declarations(EffectsPanel)
-    wxBitmapButton* BitmapButton_normal;
     wxBitmapButton* BitmapButton_random;
+    wxBitmapButton* BitmapButton_LayerEffect;
+    wxBitmapButton* BitmapButton_normal;
     wxBitmapButton* BitmapButton_locked;
     wxChoicebook* EffectChoicebook;
-    wxBitmapButton* BitmapButton_LayerEffect;
     //*)
 
 protected:

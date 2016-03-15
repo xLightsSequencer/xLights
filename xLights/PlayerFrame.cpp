@@ -9,8 +9,8 @@
 
 
 //(*InternalHeaders(PlayerFrame)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(PlayerFrame)
