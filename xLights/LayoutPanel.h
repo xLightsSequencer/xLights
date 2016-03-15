@@ -137,6 +137,7 @@ class LayoutPanel: public wxPanel
         wxPropertyGrid *propertyEditor;
         Model *selectedModel;
 
+        void resetPropertyGrid();
         void clearPropGrid();
         bool stringPropsVisible;
         bool appearanceVisible;

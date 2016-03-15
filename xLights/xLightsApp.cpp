@@ -282,6 +282,7 @@ bool xLightsApp::OnInit()
     if ( wxsOK )
     {
     	xLightsFrame* Frame = new xLightsFrame(0);
+        wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
     	Frame->Show();
     	SetTopWindow(Frame);
     }

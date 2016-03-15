@@ -226,8 +226,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 xlights->UnsavedRgbEffectsChanges = true;
             }
             if (i & 0x0004) {
-                clearPropGrid();
-                SetupPropGrid(selectedModel);
+                CallAfter(&LayoutPanel::resetPropertyGrid);
             }
             if (i == 0) {
                 printf("Did not handle %s   %s\n",
@@ -287,7 +286,10 @@ void LayoutPanel::UpdatePreview()
     modelPreview->EndDrawing();
 }
 
-
+void LayoutPanel::resetPropertyGrid() {
+    clearPropGrid();
+    SetupPropGrid(selectedModel);
+}
 void LayoutPanel::clearPropGrid() {
     wxPGProperty *p = propertyEditor->GetPropertyByName("ModelAppearance");
     if (p != nullptr) {

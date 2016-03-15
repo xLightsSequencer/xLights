@@ -179,11 +179,6 @@ void MainSequencer::SetPlayStatus(int play_type)
     mPlayType = play_type;
 }
 
-void MainSequencer::OnPanelWaveFormPaint(wxPaintEvent& event)
-{
-}
-
-
 void MainSequencer::OnScrollBarEffectGridHorzScroll(wxScrollEvent& event)
 {
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);

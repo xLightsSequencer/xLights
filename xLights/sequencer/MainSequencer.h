@@ -57,7 +57,6 @@ class MainSequencer: public wxPanel
 	private:
 
 		//(*Handlers(MainSequencer)
-		void OnPanelWaveFormPaint(wxPaintEvent& event);
 		void OnScrollBarEffectGridHorzScroll(wxScrollEvent& event);
 		void OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event);
 		void OnChar(wxKeyEvent& event);
