@@ -512,7 +512,7 @@ std::string Model::ComputeStringStartChannel(int i) {
     }
     wxString stch = ModelXml->GetAttribute(StartChanAttrName(i - 1));
     wxString sNet = "";
-    int ChannelsPerString = GetStrandLength(i - 1) * GetChanCountPerNode() + 1;
+    int ChannelsPerString = CalcCannelsPerString() + 1;
     long StringStartChanLong = 0;
     if (stch.Contains(":")) {
         sNet = stch.SubString(0, stch.Find(":")-1);

@@ -3,12 +3,12 @@
 
 //(*Headers(LayoutPanel)
 #include <wx/panel.h>
+class wxSplitterWindow;
+class wxCheckBox;
+class wxSplitterEvent;
 class wxListView;
 class wxFlexGridSizer;
 class wxButton;
-class wxSplitterWindow;
-class wxSplitterEvent;
-class wxCheckBox;
 //*)
 
 class xLightsFrame;
@@ -29,17 +29,18 @@ class LayoutPanel: public wxPanel
 		virtual ~LayoutPanel();
 
 		//(*Declarations(LayoutPanel)
-		wxCheckBox* CheckBoxOverlap;
-		wxFlexGridSizer* PreviewGLSizer;
+		wxFlexGridSizer* ToolSizer;
 		wxListView* ListBoxElementList;
-		wxButton* ButtonSavePreview;
 		wxButton* ButtonSelectModelGroups;
-		wxSplitterWindow* SplitterWindow2;
-		wxPanel* SecondPanel;
-		wxPanel* PreviewGLPanel;
-		wxPanel* LeftPanel;
-		wxSplitterWindow* ModelSplitter;
 		wxButton* ButtonModelsPreview;
+		wxSplitterWindow* SplitterWindow2;
+		wxPanel* LeftPanel;
+		wxCheckBox* CheckBoxOverlap;
+		wxPanel* SecondPanel;
+		wxButton* ButtonSavePreview;
+		wxFlexGridSizer* PreviewGLSizer;
+		wxSplitterWindow* ModelSplitter;
+		wxPanel* PreviewGLPanel;
 		//*)
 
 	protected:

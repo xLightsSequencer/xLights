@@ -1,4 +1,6 @@
 
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
 #include "StarModel.h"
 
@@ -19,7 +21,7 @@ const std::vector<std::string> &StarModel::GetBufferStyles() const {
     struct Initializer {
         Initializer() {
             STAR_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
-            STAR_BUFFER_STYLES.push_back("Layer Matrix");
+            STAR_BUFFER_STYLES.push_back("Layer Star");
         }
     };
     static Initializer ListInitializationGuard;
@@ -242,4 +244,66 @@ void StarModel::InitModel() {
     }
     
     CopyBufCoord2ScreenCoord();
+}
+
+
+
+static wxPGChoices TOP_BOT_LEFT_RIGHT;
+
+void StarModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
+        TOP_BOT_LEFT_RIGHT.Add("Top Ctr-CCW");
+        TOP_BOT_LEFT_RIGHT.Add("Top Ctr-CW");
+        TOP_BOT_LEFT_RIGHT.Add("Bottom Ctr-CW");
+        TOP_BOT_LEFT_RIGHT.Add("Bottom Ctr-CCW");
+    }
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 640);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", parm2));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 640);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("# Points", "StarStrandCount", parm3));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 250);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+    p = grid->Append(new wxStringProperty("Layer Sizes", "StarLayerSizes", ModelXml->GetAttribute("starSizes")));
+}
+int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if ("StarStringCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm1");
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("StarLightCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm2");
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("StarStrandCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm3");
+        ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("StarStart" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Dir");
+        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
+        ModelXml->DeleteAttribute("StartSide");
+        ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("StarLayerSizes" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("starSizes");
+        ModelXml->AddAttribute("starSizes", event.GetValue().GetString());
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    }
+    
+    return Model::OnPropertyGridChange(grid, event);
 }

@@ -1,5 +1,7 @@
 #include "MatrixModel.h"
-
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+#include <wx/xml/xml.h>
 
 MatrixModel::MatrixModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
 {
@@ -14,6 +16,63 @@ MatrixModel::~MatrixModel()
 {
     //dtor
 }
+
+
+static wxPGChoices TOP_BOT_LEFT_RIGHT;
+
+void MatrixModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
+        TOP_BOT_LEFT_RIGHT.Add("Top Left");
+        TOP_BOT_LEFT_RIGHT.Add("Top Right");
+        TOP_BOT_LEFT_RIGHT.Add("Bottom Left");
+        TOP_BOT_LEFT_RIGHT.Add("Bottom Right");
+    }
+    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "MatrixStringCount", parm1));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 640);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("Lights/String", "MatrixLightCount", parm2));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 640);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxUIntProperty("Strands/String", "MatrixStrandCount", parm3));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 250);
+    p->SetEditor("SpinCtrl");
+    
+    p = grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+}
+int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if ("MatrixStringCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm1");
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("MatrixLightCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm2");
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("MatrixStrandCount" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("parm3");
+        ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("MatrixStart" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Dir");
+        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
+        ModelXml->DeleteAttribute("StartSide");
+        ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    }
+    
+    return Model::OnPropertyGridChange(grid, event);
+}
+
+
 
 int MatrixModel::GetNumStrands() const {
     if (SingleChannel) {

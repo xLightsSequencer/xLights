@@ -12,6 +12,7 @@
 					<sashpos>175</sashpos>
 					<minsize>10</minsize>
 					<orientation>vertical</orientation>
+					<minsize>10,10</minsize>
 					<handler function="OnSplitterWindowSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 					<object class="wxPanel" name="ID_PANEL5" variable="LeftPanel" member="yes">
 						<object class="wxFlexGridSizer" variable="LeftPanelSizer" member="no">
@@ -86,9 +87,17 @@
 						<style>0</style>
 						<object class="wxFlexGridSizer" variable="PreviewGLSizer" member="yes">
 							<cols>1</cols>
-							<rows>1</rows>
+							<rows>2</rows>
 							<growablecols>0</growablecols>
-							<growablerows>0</growablerows>
+							<growablerows>1</growablerows>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="ToolSizer" member="yes">
+									<cols>10</cols>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 					</object>
 				</object>

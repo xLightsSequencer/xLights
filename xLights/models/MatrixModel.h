@@ -13,6 +13,10 @@ class MatrixModel : public Model
 
         virtual bool StrandsZigZagOnString() const override { return true;};
 
+    
+        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+
     protected:
         MatrixModel();
         virtual void InitModel() override;

@@ -1,13 +1,13 @@
 #include "LayoutPanel.h"
 
 //(*InternalHeaders(LayoutPanel)
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/listctrl.h>
-#include <wx/button.h>
-#include <wx/string.h>
+#include <wx/sizer.h>
+#include <wx/checkbox.h>
 #include <wx/splitter.h>
 #include <wx/intl.h>
+#include <wx/button.h>
+#include <wx/string.h>
 //*)
 
 
@@ -58,15 +58,16 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
 	//(*Initialize(LayoutPanel)
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizerPreview;
 	wxFlexGridSizer* LeftPanelSizer;
+	wxFlexGridSizer* FlexGridSizerPreview;
+	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizerPreview->AddGrowableCol(0);
 	FlexGridSizerPreview->AddGrowableRow(0);
 	SplitterWindow2 = new wxSplitterWindow(this, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
+	SplitterWindow2->SetMinSize(wxSize(10,10));
 	SplitterWindow2->SetMinimumPaneSize(10);
 	SplitterWindow2->SetSashGravity(0.5);
 	LeftPanel = new wxPanel(SplitterWindow2, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
@@ -96,9 +97,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	LeftPanelSizer->Fit(LeftPanel);
 	LeftPanelSizer->SetSizeHints(LeftPanel);
 	PreviewGLPanel = new wxPanel(SplitterWindow2, ID_PANEL1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_PANEL1"));
-	PreviewGLSizer = new wxFlexGridSizer(1, 1, 0, 0);
+	PreviewGLSizer = new wxFlexGridSizer(2, 1, 0, 0);
 	PreviewGLSizer->AddGrowableCol(0);
-	PreviewGLSizer->AddGrowableRow(0);
+	PreviewGLSizer->AddGrowableRow(1);
+	ToolSizer = new wxFlexGridSizer(0, 10, 0, 0);
+	PreviewGLSizer->Add(ToolSizer, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PreviewGLPanel->SetSizer(PreviewGLSizer);
 	PreviewGLSizer->Fit(PreviewGLPanel);
 	PreviewGLSizer->SetSizeHints(PreviewGLPanel);
