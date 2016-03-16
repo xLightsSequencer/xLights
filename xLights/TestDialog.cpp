@@ -622,7 +622,7 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	Connect(ID_TREELISTCTRL_Channels,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&TestDialog::OnTreeListCtrl1Checkboxtoggled);
 	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1Checkboxtoggled);
 	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
-	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
+	//Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
 
 	PopulateControllerTree(_network);
 	PopulateModelsTree(_modelManager);
@@ -1161,7 +1161,7 @@ std::list<std::string> TestDialog::GetModelsOnChannels(int start, int end)
 
 void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 {
-    // Tooltips dont work on the TreeListCtrl ... so dont bother
+	// Tooltips dont work on the TreeListCtrl ... so dont bother
     return;
 
 	wxTreeListItem item = event.GetItem();
@@ -1257,7 +1257,39 @@ void TestDialog::OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event)
 	{
 		CascadeSelected(item, wxCheckBoxState::wxCHK_UNCHECKED);
 	}
-	//RollUpSelected(TreeListCtrl_Channels->GetItemParent(item), checked);
+
+		RollUpAll(_controllers);
+	RollUpAll(_models);
+	RollUpAll(_modelGroups);
+
+	_checkChannelList = true;
+
+	// handle multiple selected items
+	wxTreeListItems selections;
+	TreeListCtrl_Channels->GetSelections(selections);
+	if (selections.size() > 1)
+	{
+		for (int i = 0; i < selections.size(); i++)
+		{
+			// dont double process the item that was passed into the event
+			if (selections[i] != item)
+			{
+				if (TreeListCtrl_Channels->GetCheckedState(selections[i]) == wxCHK_UNCHECKED)
+				{
+					// check the items
+					TreeListCtrl_Channels->CheckItem(selections[i], wxCheckBoxState::wxCHK_CHECKED);
+					CascadeSelected(selections[i], wxCheckBoxState::wxCHK_CHECKED);
+				}
+				else if (TreeListCtrl_Channels->GetCheckedState(selections[i]) == wxCHK_CHECKED)
+				{
+					// uncheck the items
+					TreeListCtrl_Channels->CheckItem(selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
+					CascadeSelected(selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
+				}
+			}
+		}
+	}
+
 	RollUpAll(_controllers);
 	RollUpAll(_models);
 	RollUpAll(_modelGroups);
