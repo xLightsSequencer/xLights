@@ -1,7 +1,7 @@
 #ifndef TESTDIALOG_H
 #define TESTDIALOG_H
 
-#include "color.h"
+#include "Color.h"
 
 // Need to do these manually due to issues with wxSmith and wxTreeListCtrl
 #include <wx/treelist.h>
