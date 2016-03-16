@@ -33,10 +33,11 @@ Instructions for other Linux distributions will vary.
      libavformat-dev
      libswscale-dev
      libsdl1.2-dev
+     liblog4cpp5-dev
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install build-essential libgtk2.0-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev freeglut3-dev libmpg123-dev libwxgtk-media3.0-dev libavcodec-dev libavformat-dev libswscale-dev libsdl1.2-dev
+     sudo apt-get install build-essential libgtk2.0-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev freeglut3-dev libmpg123-dev libwxgtk-media3.0-dev libavcodec-dev libavformat-dev libswscale-dev libsdl1.2-dev liblog4cpp5-dev
 
   b) Build wxWidgets 3.0.1 (if not installed from packages)
 

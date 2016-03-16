@@ -24,7 +24,7 @@ RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
 LIB_LINUX_DEBUG = $(LIB)
-LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lmpg123 -lX11 -lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg `sdl-config --libs` `wx-config --libs std,media,gl,aui` $(LDFLAGS) `pkg-config --libs gstreamer-interfaces-0.10`
+LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lmpg123 -lX11 -lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg -llog4cpp `sdl-config --libs` `wx-config --libs std,media,gl,aui` $(LDFLAGS) `pkg-config --libs gstreamer-interfaces-0.10`
 OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../bin/xLights
@@ -35,7 +35,7 @@ RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
 LIB_LINUX_RELEASE = $(LIB)
-LDFLAGS_LINUX_RELEASE =  -s -lGL -lGLU -lglut -ldl -lmpg123 -lX11 -lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg `sdl-config --libs` `wx-config --version=3.0 --libs std,media,gl,aui` $(LDFLAGS) `pkg-config --libs gstreamer-interfaces-0.10`
+LDFLAGS_LINUX_RELEASE =  -s -lGL -lGLU -lglut -ldl -lmpg123 -lX11 -lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg -llog4cpp `sdl-config --libs` `wx-config --version=3.0 --libs std,media,gl,aui` $(LDFLAGS) `pkg-config --libs gstreamer-interfaces-0.10`
 OBJDIR_LINUX_RELEASE = .objs
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xLights
@@ -1640,7 +1640,7 @@ effects/TwinklePanel.cpp: effects/TwinklePanel.h effects/EffectPanelUtils.h
 
 xlGLCanvas.cpp: xlGLCanvas.h
 
-xLightsXmlFile.cpp: xLightsXmlFile.h xLightsMain.h OptionChooser.h effects/EffectManager.h effects/RenderableEffect.h
+xLightsXmlFile.cpp: xLightsMain.h OptionChooser.h effects/EffectManager.h effects/RenderableEffect.h xLightsXmlFile.h
 
 xlColorCanvas.cpp: xlColorCanvas.h DrawGLUtils.h
 
@@ -1656,7 +1656,7 @@ xlights_out.cpp: xlights_out.h xLightsMain.h serial.h
 
 xLightsMain.cpp: xLightsMain.h xLightsApp.h heartbeat.h SeqSettingsDialog.h RenderCommandEvent.h BitmapCache.h effects/RenderableEffect.h TestDialog.h xLightsBasic.cpp osxMacUtils.h TabSchedule.cpp
 
-TestDialog.h: models/ModelManager.h xlights_out.h SequenceData.h osxMacUtils.h
+TestDialog.h: Color.h models/ModelManager.h xlights_out.h SequenceData.h osxMacUtils.h
 
 xLightsBasic.cpp: serial.h
 

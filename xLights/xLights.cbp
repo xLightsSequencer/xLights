@@ -288,6 +288,7 @@
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 -lX11" />
 					<Add option="-lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg" />
+					<Add option="-llog4cpp" />
 					<Add option="`sdl-config --libs`" />
 					<Add option="`wx-config --libs std,media,gl,aui`" />
 				</Linker>
@@ -319,6 +320,7 @@
 					<Add option="-s" />
 					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 -lX11" />
 					<Add option="-lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg" />
+					<Add option="-llog4cpp" />
 					<Add option="`sdl-config --libs`" />
 					<Add option="`wx-config --version=3.0 --libs std,media,gl,aui`" />
 				</Linker>
