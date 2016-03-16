@@ -770,16 +770,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         buffer.palette.GetColor(2, color); //use third color for outline; user must make sure it matches model node type
     }
     if (face_outline) {
-        todo.push_back("FaceOutline");
+        todo.insert(todo.begin(), "FaceOutline");
         if (customColor) {
             std::string cname = model_info->faceInfo[definition][ "FaceOutline-Color"];
             if (cname == "") {
-                colors.push_back(xlWHITE);
+                colors.insert(colors.begin(), xlWHITE);
             } else {
-                colors.push_back(xlColor(cname));
+                colors.insert(colors.begin(), xlColor(cname));
             }
         } else {
-            colors.push_back(color);
+            colors.insert(colors.begin(), color);
         }
     }
 

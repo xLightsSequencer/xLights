@@ -636,6 +636,12 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
         }
     }
 
+    for (int x = 0; x < GetElementCount(); x++) {
+        Element *el = GetElement(x);
+        if (el->GetEffectLayerCount() == 0) {
+            el->AddEffectLayer();
+        }
+    }
     // Select view and set current view models as visible
     int last_view = xml_file.GetLastView();
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
