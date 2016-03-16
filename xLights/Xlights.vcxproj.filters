@@ -699,10 +699,7 @@
     <ClCompile Include="TestDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StartChannelDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LayoutPanel.cpp">
+    <ClCompile Include="dlgPreviewSize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1322,13 +1319,10 @@
     <ClInclude Include="AudioManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StartChannelDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LayoutPanel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TestDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dlgPreviewSize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
