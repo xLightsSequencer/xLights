@@ -83,7 +83,7 @@ void CircleModel::InitCircle() {
     int ChanIncr=SingleChannel ?  1 : 3;
     size_t NodeCount=GetNodeCount();
     
-    int node = 0;
+    size_t node = 0;
     int nodesToMap = NodeCount;
     for (int circle = 0; circle < circleSizes.size(); circle++) {
         idx = 0;
