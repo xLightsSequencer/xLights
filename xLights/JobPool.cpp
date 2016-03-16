@@ -16,6 +16,7 @@
 #endif
 
 #include <wx/thread.h>
+#include <log4cpp/Category.hh>
 
 class JobPoolWorker : public wxThread
 {
@@ -135,11 +136,14 @@ void* JobPoolWorker::Entry()
 
 void JobPoolWorker::ProcessJob(Job *job)
 {
-    if (job) {
-        currentJob = job;
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	if (job) {
+		logger.info("Starting job on background thread.");
+		currentJob = job;
         job->Process();
         currentJob = nullptr;
-    }
+		logger.info("Job on background thread done.");
+	}
 }
 
 JobPool::JobPool() : lock(), signal(), queue()
@@ -163,13 +167,14 @@ JobPool::~JobPool()
 
 void JobPool::PushJob(Job *job)
 {
-    std::unique_lock<std::mutex> locker(lock);
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	std::unique_lock<std::mutex> locker(lock);
     if (idleThreads == 0 && numThreads < maxNumThreads) {
         numThreads++;
 
         JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue, idleThreads, numThreads);
         worker->Start();
-        threads.push_back(worker);
+		threads.push_back(worker);
     }
     queue.push_back(job);
     signal.notify_all();

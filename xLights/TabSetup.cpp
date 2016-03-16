@@ -406,7 +406,7 @@ void xLightsFrame::UpdateChannelNames()
             for(n=0; n < NodeCount; n++)
             {
                 ChannelNum=model->NodeStartChannel(n);
-                
+
                 NodeNum=n+1;
                 if (ChanPerNode==1)
                 {

@@ -1661,7 +1661,9 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 
 void FileConverter::WriteFalconPiFile( ConvertParameters& params )
 {
-    wxUint8 vMinor = 0;
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	logger.debug("Start fseq write");
+	wxUint8 vMinor = 0;
     wxUint8 vMajor = 1;
     wxUint16 fixedHeaderLength = 28;
     wxUint32 stepSize = rountTo4(params.seq_data.NumChannels());
@@ -1756,5 +1758,6 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
     }
     f.Close();
     free(buf);
+	logger.debug("End fseq write");
 }
 

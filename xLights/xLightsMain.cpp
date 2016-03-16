@@ -58,6 +58,8 @@
 #include <wx/string.h>
 //*)
 
+#include <log4cpp/PropertyConfigurator.hh>
+#include <log4cpp/Configurator.hh>
 
 #define TOOLBAR_SAVE_VERSION "0001:"
 
@@ -455,7 +457,18 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 
 xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this)
 {
-    Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
+	std::string initFileName = "xlights.properties";
+	try
+	{
+		log4cpp::PropertyConfigurator::configure(initFileName);
+	}
+	catch(log4cpp::ConfigureFailure& e)
+	{
+		// ignore config failure ... but logging wont work
+	}
+	_logger.info("XLights started.");
+
+	Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
     wxStaticText* StaticText22;
@@ -1787,7 +1800,9 @@ xLightsFrame::~xLightsFrame()
 
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
-    wxCloseEvent evt;
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	logger.debug("Quit");
+	wxCloseEvent evt;
     if (QuitMenuItem->IsEnabled())
     {
         OnClose(evt);
@@ -2262,13 +2277,15 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
-    wxLogDebug("xLightsFrame::OnClose");
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	logger.debug("xLights Closing");
 
 	StopNow();
 
 	if (!CloseSequence())
     {
-        event.Veto();
+		logger.debug("Closing aborted.");
+		event.Veto();
         return;
     }
     selectedEffect = NULL;
@@ -2281,6 +2298,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     //ScrolledWindow1->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);
 
     Destroy();
+	logger.info("xLights Closed.");
 }
 
 void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
@@ -2627,7 +2645,10 @@ void xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event
 
 void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 {
-    CloseSequence();
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	logger.debug("Closing sequence.");
+	CloseSequence();
+	logger.debug("Sequence closed.");
 
     // force refreshes since grid has been cleared
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();

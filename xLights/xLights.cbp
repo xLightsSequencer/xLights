@@ -201,6 +201,7 @@
 					<Add library="../lib/windows/SDL2.lib" />
 					<Add library="../lib/windows/swresample.lib" />
 					<Add library="../lib/windows/swscale.lib" />
+					<Add library="../lib/windows/log4cpp.lib" />
 				</Linker>
 			</Target>
 			<Target title="MinGW_Release">
@@ -256,6 +257,7 @@
 					<Add library="../lib/windows/swresample.lib" />
 					<Add library="../lib/windows/SDL2.lib" />
 					<Add library="../lib/windows/swscale.lib" />
+					<Add library="../lib/windows/log4cpp.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>

@@ -15,6 +15,7 @@
 //s.Printf("%f -> %f", val, db);
 //wxDbgHelpDLL::LogError(s);
 #endif
+#include <log4cpp/Category.hh>
 
 using namespace Vamp;
 
@@ -235,12 +236,16 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 // process audio data and build data for each frame
 void AudioManager::DoPrepareFrameData()
 {
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	logger.info("Start processing audio frame data.");
+
 	// lock the mutex
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
 
 	// if we have already done it ... bail
 	if (_frameDataPrepared)
 	{
+		logger.info("Aborting processing audio frame data ... it has already been done.");
 		return;
 	}
 
@@ -412,6 +417,8 @@ void AudioManager::DoPrepareFrameData()
 
 	// flag the fact that the data is all ready
 	_frameDataPrepared = true;
+
+	logger.info("Audio frame data processing complete.");
 }
 
 // Called to trigger frame data creation
