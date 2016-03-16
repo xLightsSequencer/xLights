@@ -175,7 +175,25 @@ void ModelGroup::Reset() {
 ModelGroup::~ModelGroup()
 {
 }
-
+void ModelGroup::ModelRemoved(const std::string &oldName) {
+    bool changed = false;
+    wxString newVal;
+    for (int x = 0; x < modelNames.size(); x++) {
+        if (modelNames[x] == oldName) {
+            changed = true;
+        } else {
+            if (x != 0) {
+                newVal += ",";
+            }
+            newVal += modelNames[x];
+        }
+    }
+    if (changed) {
+        ModelXml->DeleteAttribute("models");
+        ModelXml->AddAttribute("models", newVal);
+        Reset();
+    }
+}
 void ModelGroup::ModelRenamed(const std::string &oldName, const std::string &newName) {
     bool changed = false;
     wxString newVal;

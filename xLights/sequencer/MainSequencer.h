@@ -26,8 +26,16 @@ class MainSequencer: public wxPanel
         void SetPlayStatus(int play_type);
         void GetSelectedEffectsData(wxString& copy_data);
         void CopySelectedEffects();
+    
+        void Cut();
         void Paste();
 
+        void DoCopy(wxCommandEvent& event);
+        void DoCut(wxCommandEvent& event);
+        void DoPaste(wxCommandEvent& event);
+        void DoUndo(wxCommandEvent& event);
+        void DoRedo(wxCommandEvent& event);
+    
 		//(*Declarations(MainSequencer)
 		wxScrollBar* ScrollBarEffectsHorizontal;
 		wxScrollBar* ScrollBarEffectsVertical;

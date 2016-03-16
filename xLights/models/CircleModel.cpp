@@ -168,7 +168,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
         AdjustStringProperties(grid, parm1);
         return 3;
-    } else if ("CicleLightCount" == event.GetPropertyName()) {
+    } else if ("CircleLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);

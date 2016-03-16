@@ -14,9 +14,11 @@ class ModelGroup : public Model
         ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &manager, int previewW, int previewH);
         virtual ~ModelGroup();
 
+        void ModelRemoved(const std::string &name);
         void ModelRenamed(const std::string &oldName, const std::string &newName);
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
+        const std::vector<Model *> &Models() const { return models;}
     
     
         virtual const std::vector<std::string> &GetBufferStyles() const override;

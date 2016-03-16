@@ -57,6 +57,12 @@ void MainSequencer::SetHandlers(wxWindow *window)
             wxWindow* pclChild = *it;
             SetHandlers(pclChild);
         }
+        
+        window->Connect(wxID_CUT, wxEVT_MENU, (wxObjectEventFunction)&MainSequencer::DoCut,0,this);
+        window->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&MainSequencer::DoCopy,0,this);
+        window->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&MainSequencer::DoPaste,0,this);
+        window->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&MainSequencer::DoUndo,0,this);
+        window->Connect(wxID_REDO, wxEVT_MENU, (wxObjectEventFunction)&MainSequencer::DoRedo,0,this);
     }
 }
 
@@ -140,6 +146,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     SetHandlers(this);
     keyBindings.LoadDefaults();
     mCanUndo = false;
+    
 }
 
 MainSequencer::~MainSequencer()
@@ -388,6 +395,25 @@ void MainSequencer::OnChar(wxKeyEvent& event)
     }
 }
 
+void MainSequencer::DoCopy(wxCommandEvent& event) {
+    CopySelectedEffects();
+}
+void MainSequencer::DoCut(wxCommandEvent& event) {
+    Cut();
+}
+void MainSequencer::DoPaste(wxCommandEvent& event) {
+    Paste();
+}
+void MainSequencer::DoUndo(wxCommandEvent& event) {
+    if( mSequenceElements->get_undo_mgr().CanUndo() ) {
+        mSequenceElements->get_undo_mgr().UndoLastStep();
+        PanelEffectGrid->Refresh();
+    }
+}
+void MainSequencer::DoRedo(wxCommandEvent& event) {
+}
+
+
 void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
     int start_column = PanelEffectGrid->GetStartColumn();
     int column_start_time = -1000;
@@ -425,6 +451,10 @@ void MainSequencer::CopySelectedEffects() {
         }
         wxTheClipboard->Close();
     }
+}
+void MainSequencer::Cut() {
+    CopySelectedEffects();
+    PanelEffectGrid->DeleteSelectedEffects();
 }
 
 void MainSequencer::Paste() {

@@ -328,12 +328,7 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
     SaveSequence();
 }
 
-int wxCALLBACK MyCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr WXUNUSED(sortData))
-{
-	wxString a = ((Model*)item1)->name;
-	wxString b = ((Model*)item2)->name;
-	return a.CmpNoCase(b);
-}
+
 
 
 static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> &names,
@@ -359,6 +354,7 @@ void xLightsFrame::UpdateModelsList()
 {
     playModel = nullptr;
     PreviewModels.clear();
+    layoutPanel->modelPreview->GetModels().clear();
 
     AllModels.LoadModels(ModelsNode, NetInfo,
                          modelPreview->GetVirtualCanvasWidth(),
@@ -449,7 +445,6 @@ void xLightsFrame::UpdateModelsList()
                          modelPreview->GetVirtualCanvasHeight());
 
     wxString msg;
-    layoutPanel->ListBoxElementList->DeleteAllItems();
     
     
     std::set<std::string> modelsAdded;
@@ -484,20 +479,8 @@ void xLightsFrame::UpdateModelsList()
         if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
             msg += wxString::Format("%s - last channel: %u\n",model->name, model->GetLastChannel());
         }
-        long itemIndex = layoutPanel->ListBoxElementList->InsertItem(layoutPanel->ListBoxElementList->GetItemCount(), model->name);
-        
-        std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
-        model->SetModelStartChan(start_channel);
-        int end_channel = model->GetLastChannel()+1;
-        layoutPanel->ListBoxElementList->SetItem(itemIndex,1, start_channel);
-        layoutPanel->ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
-        layoutPanel->ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
     }
-    
-    layoutPanel->ListBoxElementList->SortItems(MyCompareFunction,0);
-    layoutPanel->ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
-    layoutPanel->ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
-    layoutPanel->ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
+    layoutPanel->UpdateModelList();
     if (msg != "") {
         wxMessageBox(wxString::Format("These models extends beyond the number of configured channels (%u):\n", NetInfo.GetTotChannels()) + msg);
     }

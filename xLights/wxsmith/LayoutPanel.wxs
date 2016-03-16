@@ -12,7 +12,6 @@
 					<sashpos>175</sashpos>
 					<minsize>10</minsize>
 					<orientation>vertical</orientation>
-					<minsize>10,10</minsize>
 					<handler function="OnSplitterWindowSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 					<object class="wxPanel" name="ID_PANEL5" variable="LeftPanel" member="yes">
 						<object class="wxFlexGridSizer" variable="LeftPanelSizer" member="no">
@@ -21,46 +20,46 @@
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-									<cols>1</cols>
+									<cols>2</cols>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_SELECT_MODEL_GROUPS" variable="ButtonSelectModelGroups" member="yes">
-											<label>Select Model Groups</label>
-											<handler function="OnButtonSelectModelGroupsClick" entry="EVT_BUTTON" />
+										<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
+											<label>View:</label>
 										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_MODELS_PREVIEW" variable="ButtonModelsPreview" member="yes">
-											<label>Models</label>
-											<handler function="OnButtonModelsPreviewClick" entry="EVT_BUTTON" />
+										<object class="wxChoice" name="ID_CHOICE1" variable="ViewChoice" member="yes">
+											<content>
+												<item>All Models</item>
+												<item>My Display</item>
+												<item>Selected Groups</item>
+											</content>
+											<selection>1</selection>
+											<handler function="OnViewChoiceSelect" entry="EVT_CHOICE" />
 										</object>
-										<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
-										<border>5</border>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
 										<option>1</option>
 									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_SAVE_PREVIEW" variable="ButtonSavePreview" member="yes">
-											<label>Save</label>
-											<handler function="OnButtonSavePreviewClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxCheckBox" name="ID_CHECKBOXOVERLAP" variable="CheckBoxOverlap" member="yes">
-											<label>Overlap checks enabled</label>
-											<handler function="OnCheckBoxOverlapClick" entry="EVT_CHECKBOX" />
-										</object>
+									<object class="spacer">
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_SELECT_MODEL_GROUPS" variable="ButtonSelectModelGroups" member="yes">
+											<label>Model Groups</label>
+											<handler function="OnButtonSelectModelGroupsClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
+								<border>1</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -69,8 +68,6 @@
 									<minsize>50,50</minsize>
 									<handler function="OnModelSplitterSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 									<object class="wxListView" name="ID_LISTBOX_ELEMENT_LIST" variable="ListBoxElementList" member="yes">
-										<pos>23,181</pos>
-										<size>100,-1</size>
 										<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING</style>
 										<handler function="OnListBoxElementListItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 										<handler function="OnListBoxElementListColumnClick" entry="EVT_LIST_COL_CLICK" />
@@ -79,6 +76,40 @@
 								</object>
 								<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOXOVERLAP" variable="CheckBoxOverlap" member="yes">
+									<label>Overlap checks enabled</label>
+									<handler function="OnCheckBoxOverlapClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>1</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+									<cols>3</cols>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_MODELS_PREVIEW" variable="ButtonModelsPreview" member="yes">
+											<label>Models</label>
+											<handler function="OnButtonModelsPreviewClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_SAVE_PREVIEW" variable="ButtonSavePreview" member="yes">
+											<label>Save</label>
+											<handler function="OnButtonSavePreviewClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<option>1</option>
 							</object>
 						</object>
@@ -94,15 +125,15 @@
 								<object class="wxFlexGridSizer" variable="ToolSizer" member="yes">
 									<cols>10</cols>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>3</border>
 								<option>1</option>
 							</object>
 						</object>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>1</border>
 				<option>1</option>
 			</object>
 		</object>

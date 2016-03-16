@@ -591,6 +591,7 @@ private:
     void OnActionTestMenuItemSelected(wxCommandEvent& event);
     //*)
 
+    void DoMenuAction(wxMenuEvent &evt);
     void OnPopupClick(wxCommandEvent &evt);
     void DeleteSelectedEffects(wxCommandEvent &evt);
     void InsertRandomEffects(wxCommandEvent &evt);
@@ -628,8 +629,6 @@ private:
     static const long ID_AUITOOLBARITEM4;
     static const long ID_AUITOOLBARITEM6;
     static const long ID_AUIWINDOWTOOLBAR;
-    static const long ID_AUITOOLBARITEM_ZOOM_IN;
-    static const long ID_AUITOOLBARITEM_ZOOM_OUT;
     static const long ID_AUITOOLBARITEM14;
     static const long ID_AUITOOLBAR_VIEW;
     static const long ID_BITMAPBUTTON_TAB_INFO;
@@ -749,8 +748,6 @@ private:
     static const long idMenuDelList;
     static const long ID_MENUITEM1;
     static const long idCustomScript;
-    static const long ID_MENUITEM_VIEW_ZOOM_IN;
-    static const long ID_MENUITEM_VIEW_ZOOM_OUT;
     static const long ID_MENUITEM_SAVE_PERSPECTIVE;
     static const long ID_MENUITEM_LOAD_PERSPECTIVE;
     static const long ID_MENUITEM7;
@@ -855,6 +852,7 @@ private:
     wxButton* Button_papagayo_output_sequence;
     wxMenuItem* MenuItemGridNodeValuesOn;
     wxMenu* MenuItem15;
+    wxMenu* Menu3;
     wxChoice* ChoiceOutputFormat;
     wxStaticText* StaticText26;
     wxTextCtrl* TextCtrlLog;
@@ -863,6 +861,7 @@ private:
     wxStaticText* StaticText65;
     wxMenuItem* MenuItemRefresh;
     wxMenuItem* MenuItem_File_Save_Sequence;
+    wxMenuItem* MenuItem36;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
     wxStaticText* StaticText32;
     wxStaticText* StaticText19;
@@ -875,6 +874,7 @@ private:
     wxStaticText* StaticText31;
     wxCheckBox* CheckBoxMapEmptyChannels;
     xlAuiToolBar* ViewToolBar;
+    wxMenuItem* MenuItem37;
     wxStaticText* StaticText1;
     wxMenuItem* MenuItem32;
     wxStaticText* StaticText27;
@@ -919,6 +919,7 @@ private:
     wxMenu* MenuFile;
     wxDirDialog* DirDialog1;
     wxAuiNotebook* Notebook1;
+    wxMenuItem* MenuItem35;
     wxButton* ButtonDeleteShow;
     wxSplitterWindow* SplitterWindow3;
     wxButton* ButtonShowDatesChange;
@@ -950,6 +951,7 @@ private:
     wxTextCtrl* TextCtrlConversionStatus;
     wxStaticText* StaticText25;
     wxMenuItem* MenuItem16;
+    wxMenuItem* MenuItem34;
     wxSplitterWindow* SplitterWindow1;
     wxCheckBox* MapLORChannelsWithNoNetwork;
     wxButton* ButtonChooseFile;

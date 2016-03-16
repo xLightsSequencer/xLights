@@ -224,7 +224,7 @@
 			<object class="AuiManagerItem">
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_VIEW" subclass="xlAuiToolBar" variable="ViewToolBar" member="yes">
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ZOOM_IN" variable="AuiToolBarItemZoomin" member="yes">
+						<object class="wxAuiToolBarItem" name="wxID_ZOOM_IN" variable="AuiToolBarItemZoomin" member="yes">
 							<bitmap stock_id="xlART_ZOOM_IN" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Zoom In</shorthelp>
 							<handler function="OnAuiToolBarItemZoominClick" entry="EVT_TOOL" />
@@ -232,7 +232,7 @@
 						<label>Zoom In</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ZOOM_OUT" variable="AuiToolBarItem_ZoomOut" member="yes">
+						<object class="wxAuiToolBarItem" name="wxID_ZOOM_OUT" variable="AuiToolBarItem_ZoomOut" member="yes">
 							<bitmap stock_id="xlART_ZOOM_OUT" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Zoom Out</shorthelp>
 							<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_TOOL" />
@@ -1636,6 +1636,7 @@
 				<object class="wxMenuItem" name="ID_NEW_SEQUENCE" variable="MenuItem3" member="yes">
 					<label>New Sequence</label>
 					<accel>Ctrl-n</accel>
+					<bitmap stock_id="wxART_NEW" />
 					<handler function="OnButtonNewSequenceClick" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_OPEN_SEQUENCE" variable="MenuItem_File_Open_Sequence" member="yes">
@@ -1653,6 +1654,7 @@
 				</object>
 				<object class="wxMenuItem" name="ID_SAVE_AS_SEQUENCE" variable="MenuItem_File_SaveAs_Sequence" member="yes">
 					<label>Save Sequence As</label>
+					<bitmap stock_id="wxART_FILE_SAVE_AS" />
 					<handler function="OnMenuItem_File_SaveAs_SequenceSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_CLOSE_SEQ" variable="MenuItem_File_Close_Sequence" member="yes">
@@ -1679,6 +1681,30 @@
 					<help>Quit the application</help>
 					<bitmap stock_id="wxART_QUIT" />
 					<handler function="OnQuit" entry="EVT_MENU" />
+				</object>
+			</object>
+			<object class="wxMenu" variable="Menu3" member="yes">
+				<label>&amp;Edit</label>
+				<object class="wxMenuItem" name="wxID_UNDO" variable="MenuItem37" member="yes">
+					<label>Undo</label>
+					<accel>Ctrl-z</accel>
+					<bitmap stock_id="wxART_UNDO" />
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="wxID_CUT" variable="MenuItem34" member="yes">
+					<label>Cut</label>
+					<accel>CTRL-x</accel>
+					<bitmap stock_id="wxART_CUT" />
+				</object>
+				<object class="wxMenuItem" name="wxID_COPY" variable="MenuItem35" member="yes">
+					<label>Copy</label>
+					<accel>CTRL-c</accel>
+					<bitmap stock_id="wxART_COPY" />
+				</object>
+				<object class="wxMenuItem" name="wxID_PASTE" variable="MenuItem36" member="yes">
+					<label>Paste</label>
+					<accel>CTRL-v</accel>
+					<bitmap stock_id="wxART_PASTE" />
 				</object>
 			</object>
 			<object class="wxMenu" variable="Menu1" member="yes">
@@ -1717,11 +1743,11 @@
 			</object>
 			<object class="wxMenu" variable="Menu5" member="no">
 				<label>&amp;View</label>
-				<object class="wxMenuItem" name="ID_MENUITEM_VIEW_ZOOM_IN" variable="MenuItem_ViewZoomIn" member="yes">
+				<object class="wxMenuItem" name="wxID_ZOOM_IN" variable="MenuItem_ViewZoomIn" member="yes">
 					<label>Zoom In</label>
 					<handler function="OnAuiToolBarItemZoominClick" entry="EVT_MENU" />
 				</object>
-				<object class="wxMenuItem" name="ID_MENUITEM_VIEW_ZOOM_OUT" variable="MenuItem_ViewZoomOut" member="yes">
+				<object class="wxMenuItem" name="wxID_ZOOM_OUT" variable="MenuItem_ViewZoomOut" member="yes">
 					<label>Zoom Out</label>
 					<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_MENU" />
 				</object>

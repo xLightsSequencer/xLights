@@ -13,13 +13,8 @@ CandyCaneModel::~CandyCaneModel()
 {
 }
 
-static wxPGChoices LEFT_RIGHT;
 
 void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
-    //if (LEFT_RIGHT.GetCount() == 0) {
-    //    LEFT_RIGHT.Add("Left");
-    //    LEFT_RIGHT.Add("Right");
-    //}
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Canes", "CandyCaneCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 20);
@@ -42,9 +37,11 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
 	p = grid->Append(new wxBoolProperty("Reverse", "CandyCaneReverse", _reverse));
 	p->SetEditor("CheckBox");
+    p->Enable(!_sticks);
 
 	p = grid->Append(new wxBoolProperty("Sticks", "CandyCaneSticks", _sticks));
 	p->SetEditor("CheckBox");
+    
 }
 
 int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -73,6 +70,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
 		ModelXml->DeleteAttribute("CandyCaneSticks");
 		ModelXml->AddAttribute("CandyCaneSticks", event.GetPropertyValue().GetBool() ? "true" : "false");
 		SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        grid->GetPropertyByName("CandyCaneReverse")->Enable(!event.GetPropertyValue().GetBool());
 		return 3;
 	}
     return Model::OnPropertyGridChange(grid, event);
@@ -122,7 +120,7 @@ void CandyCaneModel::InitModel() {
     SetBufferSize(NumCanes,SegmentsPerCane);
     if (SingleNode) 
 	{
-        SetNodeCount(NumCanes * SegmentsPerCane, parm3, rgbOrder);
+        SetNodeCount(NumCanes, SegmentsPerCane*parm3, rgbOrder);
     } else 
 	{
         SetNodeCount(NumCanes, SegmentsPerCane, rgbOrder);
@@ -142,8 +140,8 @@ void CandyCaneModel::InitModel() {
             Nodes[idx]->ActChan = stringStartChan[y] + x*GetNodeChannelCount(StringType);
             Nodes[idx]->StringNum=y;
             for(size_t c=0; c < GetCoordCount(idx); c++) {
-                Nodes[idx]->Coords[c].bufX=IsLtoR ? x : SegmentsPerCane-x-1;
-                Nodes[idx]->Coords[c].bufY=isBotToTop ? y : NumCanes-y-1;
+                Nodes[idx]->Coords[c].bufX=y;
+                Nodes[idx]->Coords[c].bufY=x;
             }
         }
     }
@@ -164,123 +162,81 @@ inline double toRadians(long degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
 void CandyCaneModel::SetCaneCoord() {
-	double x, y;
 	int NumCanes = parm1;
 	int SegmentsPerCane = parm2;
 	int LightsPerNode = parm3;
-	int numlights = NumCanes * SegmentsPerCane * LightsPerNode;
 	int lightspercane = SegmentsPerCane * LightsPerNode;
-	size_t NodeCount = GetNodeCount();
-	double stickheight = numlights;
-	double upright = lightspercane * 2.0 / 3.0;
-	int uprightlights = upright;
-	int arclights = lightspercane - uprightlights;
-	double canewidth = (double)lightspercane / (2.0 * (double)NumCanes - 1.0);
-	double width = canewidth * (2.0 * (double)NumCanes - 1.0);
-	double radius = canewidth / 2.0;
+    
 	double height;
+    double width;
 	if (_sticks)
 	{
 		height = lightspercane;
-	}
-	else
-	{
-		height = upright + canewidth / 2.0;
-	}
-	SetRenderSize(height, width);
+        width = NumCanes;
+        for (int x = 0; x < NumCanes; x++){
+            int y = 0;
+            for (size_t n = 0; n < SegmentsPerCane; n++) {
+                size_t CoordCount = GetCoordCount(n);
+                for (size_t c = 0; c < CoordCount; c++) {
+                    Nodes[n + x * SegmentsPerCane]->Coords[c].screenX = x - (double)NumCanes/2.0 + 0.5;
+                    Nodes[n + x * SegmentsPerCane]->Coords[c].screenY = y - height/2.0;
+                    y++;
+                }
+            }
+        }
+	} else {
+        double caneGap = 2.0;
+        int upright = SegmentsPerCane * 6.0 / 9.0;
+        upright *= parm3;
+        double widthPerCane = double(lightspercane)*3.0/9.0;
+        width = (double)NumCanes*widthPerCane + (NumCanes - 1) * caneGap;
+        height = lightspercane - widthPerCane/2.0;
 
-	// TODO	this needs work;
-	if (_sticks)
-	{
-		for (int i = 0; i < NumCanes; i++)
-		{
-			x = (-1 * width / 2.0) + 2.0 * i * canewidth;
-			for (size_t n = 0; n < lightspercane; n++)
-			{
-				size_t CoordCount = GetCoordCount(n);
-				for (size_t c = 0; c < CoordCount; c++)
-				{
-					y = ((double)lightspercane * (double)n) / (double)lightspercane - (lightspercane / 2.0);
-					Nodes[n + i * lightspercane]->Coords[c].screenX = x;
-					Nodes[n + i * lightspercane]->Coords[c].screenY = y;
-				}
-			}
-		}
-	}
-	else
-	{
-		#define ARCXSCALE 0.6 // this controls how far off a circle the crook is
-		if (!_reverse)
-		{
-			for (int i = 0; i < NumCanes; i++)
-			{
-				// draw the uprights
-				x = (-1.0 * width / 2.0) + 2.0 * (double)i * canewidth;
-				for (size_t n = 0; n < uprightlights; n++)
-				{
-					size_t CoordCount = GetCoordCount(n);
-					for (size_t c = 0; c < CoordCount; c++)
-					{
-						y = upright * (double)n / upright - (height / 2.0);
-						Nodes[n + i * lightspercane]->Coords[c].screenX = x;
-						Nodes[n + i * lightspercane]->Coords[c].screenY = y;
-					}
-				}
-
-				// draw the hook
-				for (size_t n = uprightlights; n < lightspercane; n++)
-				{
-					size_t CoordCount = GetCoordCount(n);
-					for (size_t c = 0; c < CoordCount; c++)
-					{
-						// drawing left to right
-						double angle = M_PI - M_PI * (n - uprightlights) / arclights;
-						y = upright - height / 2.0 + radius * sin(angle);
-						x = (-1 * width / 2.0) + 
-							(2.0 * i * canewidth) + 
-							radius * ARCXSCALE * cos(angle) + 
-							radius * ARCXSCALE;
-						Nodes[n + i * lightspercane]->Coords[c].screenX = x;
-						Nodes[n + i * lightspercane]->Coords[c].screenY = y;
-					}
-				}
-			}
-		}
-		else
-		{
-			for (int i = 0; i < NumCanes; i++)
-			{
-				// draw the uprights
-				x = (-1.0 * width / 2.0) + (2.0 * (double)i + 1.0) * canewidth;
-				for (size_t n = 0; n < uprightlights; n++)
-				{
-					size_t CoordCount = GetCoordCount(n);
-					for (size_t c = 0; c < CoordCount; c++)
-					{
-						y = upright * (double)n / upright - (height / 2.0);
-						Nodes[n + i * lightspercane]->Coords[c].screenX = x;
-						Nodes[n + i * lightspercane]->Coords[c].screenY = y;
-					}
-				}
-
-				// draw the hook
-				for (size_t n = uprightlights; n < lightspercane; n++)
-				{
-					size_t CoordCount = GetCoordCount(n);
-					for (size_t c = 0; c < CoordCount; c++)
-					{
-						// drawing left to right
-						double angle = M_PI * (n - uprightlights) / arclights;
-						y = upright - height / 2.0 + radius * sin(angle);
-						x = (-1 * width / 2.0) +
-							((2.0 * i + 1.0) * canewidth) +
-							radius * ARCXSCALE * cos(angle) -
-							radius * ARCXSCALE;
-						Nodes[n + i * lightspercane]->Coords[c].screenX = x;
-						Nodes[n + i * lightspercane]->Coords[c].screenY = y;
-					}
-				}
-			}
-		}
-	}
+        int arclights = lightspercane - upright;
+        for (int i = 0; i < NumCanes; i++) {
+            // draw the uprights
+            double x = i*(widthPerCane + caneGap) - (double)(NumCanes - 1.0)*(widthPerCane + caneGap)/2.0 - widthPerCane/2.0;
+            if (_reverse) {
+                x += widthPerCane;
+            }
+            double y = -height/2.0;
+            int curLight = 0;
+            int curNode = 0;
+            while (curLight < upright) {
+                size_t CoordCount = GetCoordCount(curNode);
+                for (size_t c = 0; c < CoordCount; c++) {
+                    Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX = x;
+                    Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY = y;
+                    y++;
+                    curLight++;
+                }
+                curNode++;
+            }
+            y--;
+            if (_reverse) {
+                x -= widthPerCane/2;
+            } else {
+                x += widthPerCane/2;
+            }
+            while (curLight < lightspercane) {
+                size_t CoordCount = GetCoordCount(curNode);
+                for (size_t c = 0; c < CoordCount; c++)
+                {
+                    // drawing left to right
+                    double angle = M_PI - M_PI * (curLight - upright + 1) / arclights;
+                    double y2 = sin(angle)*widthPerCane/2;
+                    double x2 = cos(angle)*widthPerCane/2;
+                    if (_reverse) {
+                        Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX = x - x2;
+                    } else {
+                        Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX = x + x2;
+                    }
+                    Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY = y + y2;
+                    curLight++;
+                }
+                curNode++;
+            }
+        }
+    }
+    SetRenderSize(height, width);
 }

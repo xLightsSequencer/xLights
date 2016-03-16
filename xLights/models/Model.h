@@ -232,7 +232,8 @@ public:
     }
     static bool IsMyDisplay(wxXmlNode* ModelNode);
     static void SetMyDisplay(wxXmlNode* ModelNode,bool NewValue);
-    
+    void SetMyDisplay(bool NewValue);
+
     static std::string StartChanAttrName(int idx)
     {
         return wxString::Format(wxT("String%d"),idx+1).ToStdString();

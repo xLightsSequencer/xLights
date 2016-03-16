@@ -3,13 +3,17 @@
 
 //(*Headers(LayoutPanel)
 #include <wx/panel.h>
-class wxSplitterWindow;
-class wxCheckBox;
-class wxSplitterEvent;
+class wxChoice;
 class wxListView;
 class wxFlexGridSizer;
 class wxButton;
+class wxSplitterWindow;
+class wxSplitterEvent;
+class wxStaticText;
+class wxCheckBox;
 //*)
+
+#include <vector>
 
 class xLightsFrame;
 class ModelPreview;
@@ -18,41 +22,45 @@ class wxListEvent;
 class wxMouseEvent;
 class wxPropertyGrid;
 class wxPropertyGridEvent;
+class NewModelBitmapButton;
 
 #include <vector>
 
 class LayoutPanel: public wxPanel
 {
-	public:
+    public:
 
 		LayoutPanel(wxWindow* parent, xLightsFrame *xlights);
 		virtual ~LayoutPanel();
 
+    private:
 		//(*Declarations(LayoutPanel)
-		wxFlexGridSizer* ToolSizer;
-		wxListView* ListBoxElementList;
-		wxButton* ButtonSelectModelGroups;
-		wxButton* ButtonModelsPreview;
-		wxSplitterWindow* SplitterWindow2;
-		wxPanel* LeftPanel;
 		wxCheckBox* CheckBoxOverlap;
-		wxPanel* SecondPanel;
-		wxButton* ButtonSavePreview;
 		wxFlexGridSizer* PreviewGLSizer;
-		wxSplitterWindow* ModelSplitter;
+		wxListView* ListBoxElementList;
+		wxChoice* ViewChoice;
+		wxFlexGridSizer* ToolSizer;
+		wxButton* ButtonSavePreview;
+		wxButton* ButtonSelectModelGroups;
+		wxSplitterWindow* SplitterWindow2;
+		wxPanel* SecondPanel;
 		wxPanel* PreviewGLPanel;
+		wxPanel* LeftPanel;
+		wxSplitterWindow* ModelSplitter;
+		wxButton* ButtonModelsPreview;
 		//*)
 
 	protected:
 
 		//(*Identifiers(LayoutPanel)
+		static const long ID_CHOICE1;
 		static const long ID_BUTTON_SELECT_MODEL_GROUPS;
-		static const long ID_BUTTON_MODELS_PREVIEW;
-		static const long ID_BUTTON_SAVE_PREVIEW;
-		static const long ID_CHECKBOXOVERLAP;
 		static const long ID_LISTBOX_ELEMENT_LIST;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
+		static const long ID_CHECKBOXOVERLAP;
+		static const long ID_BUTTON_MODELS_PREVIEW;
+		static const long ID_BUTTON_SAVE_PREVIEW;
 		static const long ID_PANEL5;
 		static const long ID_PANEL1;
 		static const long ID_SPLITTERWINDOW2;
@@ -60,6 +68,8 @@ class LayoutPanel: public wxPanel
 
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_PROPERTIES;
+        static const long ID_PREVIEW_MODEL_NODELAYOUT;
+        static const long ID_PREVIEW_MODEL_EXPORTCSV;
         static const long ID_PREVIEW_ALIGN_TOP;
         static const long ID_PREVIEW_ALIGN_BOTTOM;
         static const long ID_PREVIEW_ALIGN_LEFT;
@@ -89,9 +99,16 @@ class LayoutPanel: public wxPanel
 		void OnPropertyGridChanging(wxPropertyGridEvent& event);
 		void OnModelSplitterSashPosChanged(wxSplitterEvent& event);
 		void OnSplitterWindowSashPosChanged(wxSplitterEvent& event);
+		void OnViewChoiceSelect(wxCommandEvent& event);
+        void OnNewModelTypeButtonClicked(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
+
+        void DoCopy(wxCommandEvent& event);
+        void DoCut(wxCommandEvent& event);
+        void DoPaste(wxCommandEvent& event);
+        void DeleteSelectedModel();
 
     public:
         void UpdatePreview();
@@ -100,7 +117,9 @@ class LayoutPanel: public wxPanel
         void SetupPropGrid(Model *model);
 
     protected:
-    void ShowModelProperties();
+        void ShowModelProperties();
+        void ExportModel();
+        void AddModelButton(const std::string &type, const char *imageData[]);
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
@@ -120,6 +139,7 @@ class LayoutPanel: public wxPanel
         void PreviewModelAlignRight();
         void PreviewModelAlignHCenter();
         void PreviewModelAlignVCenter();
+        Model *CreateNewModel(const std::string &type);
 
     
         bool m_dragging;
@@ -143,9 +163,14 @@ class LayoutPanel: public wxPanel
         bool stringPropsVisible;
         bool appearanceVisible;
         bool sizeVisible;
+        std::vector<NewModelBitmapButton*> buttons;
+        NewModelBitmapButton *selectedButton;
+        Model *newModel;
+    
     public:
         xLightsFrame *xlights;
         ModelPreview *modelPreview;
+        void UpdateModelList(bool addGroups = true);
     
 };
 

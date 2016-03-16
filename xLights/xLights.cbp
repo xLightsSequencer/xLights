@@ -179,6 +179,7 @@
 					<Add directory="models" />
 					<Add directory="effects/assist" />
 					<Add directory="ffmpeg-dev/include" />
+					<Add directory="../include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -234,6 +235,7 @@
 					<Add directory="models" />
 					<Add directory="effects/assist" />
 					<Add directory="ffmpeg-dev/include" />
+					<Add directory="../include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />

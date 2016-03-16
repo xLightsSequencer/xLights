@@ -302,6 +302,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
     grid->LimitPropertyEditing(p);
+    p = grid->Append(new wxBoolProperty("In My Display", "ModelMyDisplay", IsMyDisplay()));
+    p->SetAttribute("UseCheckbox", true);
 
     grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     int i = NODE_TYPES.Index(StringType);
@@ -611,7 +613,11 @@ void Model::SetMyDisplay(wxXmlNode* ModelNode,bool NewValue)
     ModelNode->DeleteAttribute(wxT("MyDisplay"));
     ModelNode->AddAttribute(wxT("MyDisplay"), NewValue ? wxT("1") : wxT("0"));
 }
-
+void Model::SetMyDisplay(bool NewValue)
+{
+    SetMyDisplay(ModelXml, NewValue);
+    isMyDisplay = NewValue;
+}
 int Model::GetNumStrands() const {
     return 1;
 }

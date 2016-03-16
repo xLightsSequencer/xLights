@@ -18,7 +18,7 @@ class ModelPreview : public xlGLCanvas
 public:
     ModelPreview(wxPanel* parent);
 	ModelPreview(wxPanel* parent,
-                 std::vector<Model*> &previewModels,
+                 std::vector<Model*> &models,
                  bool allowSelected,
                  int style = 0);
 	virtual ~ModelPreview();
@@ -50,6 +50,17 @@ public:
     void Render(const unsigned char *data);
     
     double calcPixelSize(double i);
+    void SetModels(std::vector<Model*> &models) {
+        previewModels.clear();
+        previewModels = models;
+        PreviewModels = &previewModels;
+    }
+    std::vector<Model*> &GetModels() {
+        if (PreviewModels == nullptr) {
+            return previewModels;
+        }
+        return *PreviewModels;
+    }
 
 protected:
     virtual void InitializeGLCanvas();
@@ -77,6 +88,7 @@ private:
     Image* image = NULL;
     bool scaleImage = false;
     xLightsDrawable* sprite;
+    std::vector<Model*> previewModels;
     std::vector<Model*> *PreviewModels;
     bool allowSelected;
     

@@ -20,6 +20,8 @@ class ModelManager
         Model *GetModel(const std::string &name) const;
     
         void Rename(const std::string &oldName, const std::string &newName);
+        void AddModel(Model *m);
+        void Delete(const std::string &name);
     
         void LoadModels(wxXmlNode *modelNode, NetInfoClass &ni,
                         int previewW, int previewH);
@@ -34,11 +36,12 @@ class ModelManager
     
         //Make sure the Model is deleted when done with
         static Model *CreateModel(wxXmlNode *node, const NetInfoClass &ni, bool zeroBased = false);
+        Model *CreateDefaultModel(const std::string &type, const NetInfoClass &ni);
     protected:
         Model *createAndAddModel(wxXmlNode *node, const NetInfoClass &ni);
     private:
     
-    
+    wxXmlNode *modelNode;
     std::map<std::string, Model *> models;
 };
 
