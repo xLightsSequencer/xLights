@@ -281,6 +281,7 @@
     <ClCompile Include="ModelListDialog.cpp" />
     <ClCompile Include="ModelPreview.cpp" />
     <ClCompile Include="models\ArchesModel.cpp" />
+    <ClCompile Include="models\CandyCaneModel.cpp" />
     <ClCompile Include="models\CircleModel.cpp" />
     <ClCompile Include="models\CustomModel.cpp" />
     <ClCompile Include="models\MatrixModel.cpp" />

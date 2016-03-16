@@ -105,8 +105,8 @@ void SingleLineModel::InitModel() {
 
 
 // initialize buffer coordinates
-// parm1=Number of Strings/Arches
-// parm2=Pixels Per String/Arch
+// parm1=Number of Strings/Arches/Canes
+// parm2=Pixels Per String/Arch/Cane
 void SingleLineModel::InitLine() {
     int numLights = parm1 * parm2;
     SetNodeCount(parm1,parm2,rgbOrder);

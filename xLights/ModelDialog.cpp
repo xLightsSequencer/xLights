@@ -130,6 +130,7 @@ ModelDialog::ModelDialog(wxWindow* parent, xLightsFrame* frame, wxWindowID id) :
     Choice_DisplayAs->Append(_("Sphere 360"));
     Choice_DisplayAs->Append(_("Sphere 270"));
     Choice_DisplayAs->Append(_("Sphere 180"));
+    Choice_DisplayAs->Append(_("Candy Canes"));
     LeftGridSizer->Add(Choice_DisplayAs, 1, wxALL|wxEXPAND, 5);
     StaticText9 = new wxStaticText(this, ID_STATICTEXT12, _("Type of String"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
     LeftGridSizer->Add(StaticText9, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -440,7 +441,11 @@ int ModelDialog::GetChannelsPerStringStd()
         int chanCountPerString = Model::GetNodeChannelCount(StringType);
         return chanCountPerString * SpinCtrl_parm2->GetValue();
     }
-    int chanCountPerString = Model::GetNodeChannelCount(StringType);
+	if ("Candy Canes" == DisplayAs) {
+		int chanCountPerString = Model::GetNodeChannelCount(StringType);
+		return chanCountPerString * SpinCtrl_parm2->GetValue();
+	}
+	int chanCountPerString = Model::GetNodeChannelCount(StringType);
     if (chanCountPerString != 3) {
         return chanCountPerString;
     }
@@ -505,7 +510,16 @@ void ModelDialog::UpdateLabels()
         //SpinCtrl_parm3->SetValue(1);
         SpinCtrl_parm3->Enable(true);
     }
-    else if (DisplayAs == "Circle")
+	else if (DisplayAs == "Candy Canes")
+	{
+		StaticText_Strings->SetLabelText(_("# of Canes"));
+		s = _("# of ") + (Model::HasSingleChannel(StringType) ? "Segments" : "Nodes") + _(" per Cane");
+		StaticText_Nodes->SetLabelText(s);
+		StaticText_Strands->SetLabelText(_("# of lights per ") + (Model::HasSingleChannel(StringType) ? "Segment" : "Node"));
+		//SpinCtrl_parm3->SetValue(1);
+		SpinCtrl_parm3->Enable(true);
+	}
+	else if (DisplayAs == "Circle")
     {
         StaticText_Strings->SetLabelText(_("Actual # of Strings"));
         s=_("# of ") + NodeLabel + _(" per String");

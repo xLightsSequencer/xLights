@@ -871,8 +871,8 @@ int Model::GetPreviewRotation() {
 }
 
 // initialize screen coordinates
-// parm1=Number of Strings/Arches
-// parm2=Pixels Per String/Arch
+// parm1=Number of Strings/Arches/Canes
+// parm2=Pixels Per String/Arch/Cane
 void Model::SetLineCoord() {
     double x,y;
     float idx=0;
@@ -1412,7 +1412,7 @@ std::string Model::ChannelLayoutHtml() {
     int Ibufx,Ibufy;
 
     if (BufferHt == 1) {
-        // single line or arch
+        // single line or arch or cane
         html+="<tr>";
         for(i=1; i<=NodeCount; i++) {
             n=IsLtoR ? i : NodeCount-i+1;

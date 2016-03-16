@@ -58,6 +58,7 @@
 								<item>Sphere 360</item>
 								<item>Sphere 270</item>
 								<item>Sphere 180</item>
+								<item>Candy Canes</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoice_DisplayAsSelect" entry="EVT_CHOICE" />

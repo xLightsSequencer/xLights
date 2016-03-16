@@ -112,14 +112,14 @@ protected:
     
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
-    long parm1;         /* Number of strings in the model or number of arches (except for frames & custom) */
-    long parm2;         /* Number of nodes per string in the model or number of segments per arch (except for frames & custom) */
-    long parm3;         /* Number of strands per string in the model or number of lights per arch segment (except for frames & custom) */
+    long parm1;         /* Number of strings in the model or number of arches or canes (except for frames & custom) */
+    long parm2;         /* Number of nodes per string in the model or number of segments per arch or cane (except for frames & custom) */
+    long parm3;         /* Number of strands per string in the model or number of lights per arch or cane segment (except for frames & custom) */
     bool IsLtoR;         // true=left to right, false=right to left
     std::vector<long> stringStartChan;
     bool isBotToTop;
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
-    std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
+    std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
     
     unsigned long changeCount;
 public:
