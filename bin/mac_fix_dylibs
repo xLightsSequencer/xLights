@@ -52,3 +52,9 @@ do
     done
         install_name_tool -change /usr/local/lib/$LS.dylib $FFMPEGDIR/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
 done
+
+LIBS="liblog4cpp.5"
+for LS in $LIBS
+do
+    install_name_tool -change /opt/local/lib/$LS.dylib @loader_path/../Frameworks/$LS.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/xLights"
+done

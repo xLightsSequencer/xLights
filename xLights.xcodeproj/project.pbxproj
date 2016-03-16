@@ -84,6 +84,8 @@
 		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
+		676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; };
+		676C5EAC1C99D6F00031A033 /* liblog4cpp.5.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		676D0F711C72BB11009C66FC /* kiss_fft.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F6E1C72BB11009C66FC /* kiss_fft.c */; };
 		676D0F7E1C72BEBD009C66FC /* kiss_fftr.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F741C72BEBD009C66FC /* kiss_fftr.c */; };
 		676D0F7F1C72BEBD009C66FC /* kiss_fftndr.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F761C72BEBD009C66FC /* kiss_fftndr.c */; };
@@ -274,6 +276,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				676C5EAC1C99D6F00031A033 /* liblog4cpp.5.dylib in Embed Frameworks */,
 				67EE95B61C848C2200C62C95 /* libswscale.4.dylib in Embed Frameworks */,
 				67AA37AE1C7E4107001D2377 /* libavutil.55.dylib in Embed Frameworks */,
 				67AA37AF1C7E4107001D2377 /* libavformat.57.dylib in Embed Frameworks */,
@@ -442,6 +445,7 @@
 		67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurrentPreviewModels.cpp; sourceTree = "<group>"; };
 		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
+		676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblog4cpp.5.dylib; path = lib/osx/liblog4cpp.5.dylib; sourceTree = "<group>"; };
 		676D0F6C1C72BB11009C66FC /* kissfft.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = kissfft.hh; path = kiss_fft/kissfft.hh; sourceTree = "<group>"; };
 		676D0F6D1C72BB11009C66FC /* kiss_fft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = kiss_fft.h; path = kiss_fft/kiss_fft.h; sourceTree = "<group>"; };
 		676D0F6E1C72BB11009C66FC /* kiss_fft.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kiss_fft.c; path = kiss_fft/kiss_fft.c; sourceTree = "<group>"; };
@@ -772,6 +776,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */,
 				67EE95B51C848BF000C62C95 /* libswscale.4.dylib in Frameworks */,
 				67AA37AD1C7E40D3001D2377 /* libswresample.2.dylib in Frameworks */,
 				67AA37A91C7E3975001D2377 /* libavutil.55.dylib in Frameworks */,
@@ -1140,6 +1145,7 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */,
 				67AA37A01C7E372E001D2377 /* libavutil.55.dylib */,
 				67AA37A11C7E372E001D2377 /* libavformat.57.dylib */,
 				67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */,
@@ -1788,6 +1794,7 @@
 					sequencer,
 					"xLights/ffmpeg-dev/include",
 					xLights/sequencer,
+					include,
 				);
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -1843,6 +1850,7 @@
 					sequencer,
 					"xLights/ffmpeg-dev/include",
 					xLights/sequencer,
+					include,
 				);
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
