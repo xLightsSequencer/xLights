@@ -11,22 +11,16 @@
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-							<label>Style:</label>
+							<label>Start MIDI Channel [0-127]</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_Piano_Style" variable="Choice_Piano_Style" member="yes">
-							<content>
-								<item>Anim Image (face)</item>
-								<item>Equalizer (bars)</item>
-								<item>Piano Keys (top/edge)</item>
-								<item>Player Piano (scroll)</item>
-							</content>
-							<selection>2</selection>
-							<handler function="OnPiano_StyleSelect" entry="EVT_CHOICE" />
+						<object class="wxSpinCtrl" name="ID_SPINCTRL_Piano_StartMIDI" variable="SpinCtrl_Piano_StartMIDI" member="yes">
+							<value>60</value>
+							<max>127</max>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -46,20 +40,18 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT_Piano_NumKeys" variable="StaticText_Piano_NumKeys" member="yes">
-							<label># Keys:</label>
+							<label>End MIDI Channel</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Piano_NumKeys" variable="Slider_Piano_NumKeys" member="yes">
-							<value>10</value>
-							<min>1</min>
-							<max>95</max>
-							<handler function="OnSlider_Piano_NumKeysCmdScroll" entry="EVT_COMMAND_SCROLL" />
+						<object class="wxSpinCtrl" name="ID_SPINCTRL_Piano_EndMIDI" variable="SpinCtrl_Piano_EndMIDI" member="yes">
+							<value>60</value>
+							<max>127</max>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -76,21 +68,18 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_Piano_NumRows" variable="StaticText_Piano_NumRows" member="yes">
-							<label># Rows:</label>
+						<object class="wxCheckBox" name="ID_CHECKBOX_Piano_ShowSharps" variable="CheckBox_Piano_ShowSharps" member="yes">
+							<label>Show Sharps and Flats</label>
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Piano_KeyWidth" variable="Slider_Piano_NumRows" member="yes">
-							<value>10</value>
-							<min>1</min>
-							<max>95</max>
-							<handler function="OnSlider_Piano_NumRowsCmdScroll" entry="EVT_COMMAND_SCROLL" />
+						<object class="wxStaticText" name="ID_STATICTEXT_Piano_NumRows" variable="StaticText_Piano_NumRows" member="yes">
+							<label></label>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -106,249 +95,8 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT20" variable="StaticText21" member="yes">
-							<label>Placement:</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_PianoPlacement" variable="Choice_Piano_KeyPlacement" member="yes">
-							<content>
-								<item>Tile</item>
-								<item>Stretch/shrink</item>
-								<item>Top left</item>
-								<item>Top center</item>
-								<item>Top right</item>
-								<item>Middle left</item>
-								<item>Middle center</item>
-								<item>Middle right</item>
-								<item>Bottom left</item>
-								<item>Bottom middle</item>
-								<item>Bottom right</item>
-							</content>
-							<selection>0</selection>
-						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_KeyPlacement" variable="BitmapButton_Piano_KeyPlacement" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<default>1</default>
-							<size>13,13</size>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
-					<bg>wxSYS_COLOUR_SCROLLBAR</bg>
-					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL9" variable="Panel3" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizer28" member="no">
-								<cols>1</cols>
-								<rows>5</rows>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer26" member="no">
-										<cols>6</cols>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON_Piano_CueFilename" variable="Button_Piano_CueFilename" member="yes">
-												<label>File name</label>
-												<bg>#E0E0E0</bg>
-												<handler function="OnButton_Piano_CueFilenameClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_Filename" variable="BitmapButton_Piano_CueFilename" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>13,13</size>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
-											<option>1</option>
-										</object>
-										<object class="spacer">
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT14" variable="StaticText15_layout_kludge_1" member="yes">
-												<label>                                    x</label>
-												<fg>wxSYS_COLOUR_WINDOW</fg>
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_CueFilename" variable="TextCtrl_Piano_CueFilename" member="yes">
-										<style>wxTE_READONLY</style>
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>Cues</label>
-					</object>
-					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL11" variable="Panel4" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizer30" member="no">
-								<cols>1</cols>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer33" member="no">
-										<cols>6</cols>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON1" variable="Button_Piano_MapFilename" member="yes">
-												<label>File name</label>
-												<bg>#E0E0E0</bg>
-												<handler function="OnButton_Piano_MapFilenameClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_MapFilename" variable="BitmapButton_Piano_MapFilename" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>13,13</size>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="spacer">
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT13" variable="StaticText14_layout_kludge2" member="yes">
-												<label>                                    x</label>
-												<fg>wxSYS_COLOUR_WINDOW</fg>
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_MapFilename" variable="TextCtrl_Piano_MapFilename" member="yes">
-										<style>wxTE_READONLY</style>
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>Cue-Shape Map</label>
-					</object>
-					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL13" variable="Panel5" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizer32" member="no">
-								<cols>1</cols>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer34" member="no">
-										<cols>5</cols>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON2" variable="Button_Piano_ShapeFilename" member="yes">
-												<label>File name</label>
-												<bg>#E0E0E0</bg>
-												<handler function="OnButton_Piano_ShapeFilenameClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_ShapeFilename" variable="BitmapButton_Piano_ShapeFilename" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>13,13</size>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="spacer">
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_Piano_Clipping" member="yes">
-												<label>Clip shapes</label>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_Clipping" variable="BitmapButton_Piano_Clipping" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>13,13</size>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_ShapeFilename" variable="TextCtrl_Piano_ShapeFilename" member="yes">
-										<style>wxTE_READONLY</style>
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>Shapes</label>
-					</object>
-				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

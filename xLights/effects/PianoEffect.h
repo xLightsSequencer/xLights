@@ -4,6 +4,7 @@
 #include "RenderableEffect.h"
 
 #include <string>
+#include <list>
 
 class PianoEffect : public RenderableEffect
 {
@@ -12,18 +13,16 @@ class PianoEffect : public RenderableEffect
         virtual ~PianoEffect();
         virtual bool CanBeRandom() {return false;}
     
-        virtual void SetSequenceElements(SequenceElements *els);
-    
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
     private:
     
-        void RenderPiano(RenderBuffer &buffer,
-                         const std::string & Style, int NumKeys, int NumRows, const std::string & KeyPlacement, bool Clipping,
-                         const std::string& CueFilename, const std::string& MapFilename, const std::string& ShapeFilename);
-
+		void RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps);
+		void ReduceChannels(std::list<float>* pdata, int start, int end, bool sharps);
+		void DrawPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end);
+		bool IsSharp(float f);
 };
 
 #endif // PIANOEFFECT_H
