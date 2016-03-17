@@ -69,7 +69,8 @@ typedef enum FRAMEDATATYPE {
 	FRAMEDATA_LOW,
 	FRAMEDATA_SPREAD,
 	FRAMEDATA_VU,
-	FRAMEDATA_ISTIMINGMARK
+	FRAMEDATA_ISTIMINGMARK,
+	FRAMEDATA_NOTES
 } FRAMEDATATYPE;
 
 typedef enum MEDIAPLAYINGSTATE {
@@ -122,6 +123,7 @@ class AudioManager
 	int decodesamplerateindex(int samplerateindex, int version);
 	int decodesideinfosize(int version, int mono);
 	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id);
+	std::list<float> CalculatePolyphonicTranscription(Vamp::Plugin* pt, const float* in, int step, int frameid);
 
 public:
 	void Seek(int pos);

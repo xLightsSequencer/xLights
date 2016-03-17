@@ -190,11 +190,45 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	}
 }
 
+std::list<float> AudioManager::CalculatePolyphonicTranscription(Vamp::Plugin* pt, const float* in, int step, int frameid)
+{
+	std::list<float> res;
+
+	const float *pdata[2];
+	pdata[0] = in;
+	pdata[1] = in;
+
+	Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(step * frameid, GetRate());
+	Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
+	if (features.size() > 0)
+	{
+		log4cpp::Category& logger = log4cpp::Category::getRoot();
+		logger.warn("Polyphonic transcription data process oddly retrieved data.");
+	}
+	else
+	{
+		return res;
+		//features = pt->getRemainingFeatures();
+	}
+
+	for (int i = 0; i < features.size(); i++)
+	{
+		for (int j = 0; j < features[i].size(); j++)
+		{
+			if (features[i][j].timestamp > timestamp)
+			{
+				res.push_back(features[i][j].values[0]);
+			}
+		}
+	}
+
+	return res;
+}
+
 std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max, int id)
 {
 	std::list<float> res;
 	int outcount = n / 2 + 1;
-	//float scaling = 2.0 / (float)n;
 	kiss_fftr_cfg cfg;
 	kiss_fft_cpx* out = (kiss_fft_cpx*)malloc(sizeof(kiss_fft_cpx) * (outcount));
 	if (out != NULL)
@@ -270,6 +304,28 @@ void AudioManager::DoPrepareFrameData()
 	int pos = 0;
 	std::list<float> spectrogram;
 
+	// Initialise Polyphonic Transcription
+	_vamp.GetAllAvailablePlugins(this); // this initialises Vamp
+	Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
+	size_t pref_step = 0;
+
+	if (pt == NULL)
+	{
+		logger.warn("Unable to load Polyphonic Transcription VAMP plugin.");
+	}
+	else
+	{
+		//pref_step = pt->getPreferredStepSize();
+		//size_t pref_block = pt->getPreferredBlockSize();
+
+		int channels = GetChannels();
+		if (channels > pt->getMaxChannelCount()) {
+			channels = 1;
+		}
+
+		pt->initialise(channels, step, step);
+	}
+
 	// process each frome of the song
 	for (int i = 0; i < frames; i++)
 	{
@@ -305,6 +361,7 @@ void AudioManager::DoPrepareFrameData()
 			else
 			{
 				subspectrogram = CalculateSpectrumAnalysis(pdata[0], step, max, i);
+				CalculatePolyphonicTranscription(pt, pdata[0], step, i);
 			}
 
 			// and keep track of the larges value so we can normalise it
@@ -387,6 +444,42 @@ void AudioManager::DoPrepareFrameData()
 
 		_frameData.push_back(aFrameData);
 	}
+
+	// Process the Polyphonic Transcription
+	Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
+
+	for (int i = 0; i < frames; i++)
+	{
+		std::list<float> notes;
+		int start = i * _intervalMS;
+		int end = start + _intervalMS;
+
+		for (int j = 0; j < features[0].size(); j++)
+		{
+			int current = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
+			if (current > start && current < end)
+			{
+				bool found = false;
+				for (auto x = notes.begin(); x != notes.end(); ++x)
+				{
+					if (*x == features[0][j].values[0])
+					{
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+				{
+					notes.push_back(features[0][j].values[0]);
+				}
+			}
+		}
+
+		_frameData[i].push_back(notes);
+	}
+
+	// done with VAMP Polyphonic Transcriber
+	delete pt;
 
 	// normalise data ... basically scale the data so the highest value is the scale value.
 	float scale = 1.0; // 0-1 ... where 0.x means that the max value displayed would be x0% of model size
@@ -487,6 +580,9 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 				break;
 			case FRAMEDATA_ISTIMINGMARK:
 				// we dont need to do anything here
+				break;
+			case FRAMEDATA_NOTES:
+				rc = &framedata->at(4);
 				break;
 			}
 		}
