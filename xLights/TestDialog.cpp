@@ -137,6 +137,12 @@ TreeController::TreeController(wxXmlNode* n, int startchannel, int nullcount)
 		_universe = n->GetAttribute("BaudRate", "1");
 		_universes = wxAtoi(n->GetAttribute("NumUniverses", "1"));
 	}
+	else if (type == "LOR")
+	{
+		_type = CONTROLLERTYPE::CT_LOR;
+		_comport = std::string(n->GetAttribute("ComPort", ""));
+		_baudrate = n->GetAttribute("BaudRate", "1");
+	}
 	_name = GenerateName();
 }
 
@@ -194,6 +200,11 @@ std::string TreeController::GenerateName()
 		{
 			_name += " {" + _universe + "} ";
 		}
+		_name += "[1-" + std::string(wxString::Format(wxT("%i"), _endchannel)) + "] ";
+		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
+		break;
+	case CONTROLLERTYPE::CT_LOR:
+		_name += "LOR " + _comport + " at " + _baudrate + " ";
 		_name += "[1-" + std::string(wxString::Format(wxT("%i"), _endchannel)) + "] ";
 		_name += "(" + std::string(wxString::Format(wxT("%i"), _startxlightschannel)) + "-" + std::string(wxString::Format(wxT("%i"), _endxlightschannel)) + ")";
 		break;

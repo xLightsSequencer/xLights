@@ -3001,14 +3001,6 @@ void xLightsFrame::UpdateSequenceLength()
 
 void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 {
-	// Load all the models and model groups so we can display them
-	AllModels.LoadModels(ModelsNode, NetInfo,
-		modelPreview->GetVirtualCanvasWidth(),
-		modelPreview->GetVirtualCanvasHeight());
-	AllModels.LoadGroups(ModelGroupsNode, NetInfo,
-		modelPreview->GetVirtualCanvasWidth(),
-		modelPreview->GetVirtualCanvasHeight());
-
 	// save the media playing state and stop it if it is playing
 	MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
 	if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
@@ -3020,6 +3012,8 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 			SetAudioControls();
 		}
 	}
+
+	Timer1.Stop();
 
 	// save the output state and turn it off
 	bool output = CheckBoxLightOutput->IsChecked();
@@ -3043,6 +3037,8 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	{
 		EnableOutputs();
 	}
+
+	Timer1.Start();
 
 	// resume playing the media if it was playing
 	if (mps == MEDIAPLAYINGSTATE::PLAYING)

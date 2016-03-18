@@ -41,7 +41,7 @@ public:
 
 	typedef enum CONTROLLERTYPE // Types of tree nodes
 	{
-		CT_E131, CT_NULL, CT_DMX, CT_CHANNEL, CT_CONTROLLERROOT, CT_MODELROOT, CT_MODELGROUPROOT, CT_MODEL, CT_NODE, CT_MODELGROUP
+		CT_E131, CT_NULL, CT_DMX, CT_CHANNEL, CT_CONTROLLERROOT, CT_MODELROOT, CT_MODELGROUPROOT, CT_MODEL, CT_NODE, CT_MODELGROUP, CT_LOR
 	} CONTROLLERTYPE;
 private:
 	std::string _name; // what to display on the tree
@@ -50,6 +50,7 @@ private:
 	bool _inactive; // true if controller has been deactivated
 	std::string _ipaddress; // ip address of the controller
 	std::string _comport; // comport of the controller
+	std::string _baudrate; // baud rate of the controller
 	int _startchannel; // the controller start channel
 	int _endchannel; // the controller end channel
 	int _startxlightschannel; // the xlights start channel
