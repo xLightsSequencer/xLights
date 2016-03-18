@@ -7,10 +7,11 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug (gil)     Fix Pictures scaling issues.  Fixes #501.
 2016.13  Mar 15, 2016
    -- enh (gil) Added gradient option to bars effect
     -- enh (keithsw) Add a colour aware test mode ... RGBW.
-    -- enh (dkulp)   Optimize the redraws on timer events a bit.   
+    -- enh (dkulp)   Optimize the redraws on timer events a bit.
 	                   Drops CPU usage from 95% to about 60% on my machine.
     -- bug (gil)     Send render event for effects pasted to multiple cells.  Fixes #497.
 	-- enh (keithsw) Move test tab to a separate dialog ... add new ways of selecting channels for testing.

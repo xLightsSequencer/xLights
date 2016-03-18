@@ -294,6 +294,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     int BufferHt = buffer.BufferHt;
     int curPeriod = buffer.curPeriod;
     int curEffStartPer = buffer.curEffStartPer;
+    int scale_image = false;
 
     wxFile f;
     if (NewPictureName2.length()==0) return;
@@ -358,6 +359,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
 
     if (NewPictureName != cache->PictureName || (!scale_to_fit && (start_scale != end_scale)))
     {
+        scale_image = true;
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
         cache->imageCount = wxImage::GetImageCount(NewPictureName);
         cache->imageIndex = 0;
@@ -402,10 +404,10 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     }
     else
     {
-        int delta_scale = end_scale - start_scale;
-        int current_scale = start_scale + delta_scale * position;
-        if( start_scale != 100 || end_scale != 100 )
+        if( (start_scale != 100 || end_scale != 100) && scale_image )
         {
+            int delta_scale = end_scale - start_scale;
+            int current_scale = start_scale + delta_scale * position;
             imgwidth=(image.GetWidth()*current_scale)/100;
             imght = (image.GetHeight()*current_scale)/100;
             imgwidth = std::max(imgwidth, 1);
