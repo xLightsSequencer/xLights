@@ -770,6 +770,8 @@
 		</Unit>
 		<Unit filename="models/ArchesModel.cpp" />
 		<Unit filename="models/ArchesModel.h" />
+		<Unit filename="models/CandyCaneModel.cpp" />
+		<Unit filename="models/CandyCaneModel.h" />
 		<Unit filename="models/CircleModel.cpp" />
 		<Unit filename="models/CircleModel.h" />
 		<Unit filename="models/CustomModel.cpp" />
