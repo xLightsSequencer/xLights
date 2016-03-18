@@ -305,26 +305,26 @@ void AudioManager::DoPrepareFrameData()
 	std::list<float> spectrogram;
 
 	// Initialise Polyphonic Transcription
-	_vamp.GetAllAvailablePlugins(this); // this initialises Vamp
-	Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
-	size_t pref_step = 0;
+	//_vamp.GetAllAvailablePlugins(this); // this initialises Vamp
+	//Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
+	//size_t pref_step = 0;
 
-	if (pt == NULL)
-	{
-		logger.warn("Unable to load Polyphonic Transcription VAMP plugin.");
-	}
-	else
-	{
-		//pref_step = pt->getPreferredStepSize();
-		//size_t pref_block = pt->getPreferredBlockSize();
+	//if (pt == NULL)
+	//{
+	//	logger.warn("Unable to load Polyphonic Transcription VAMP plugin.");
+	//}
+	//else
+	//{
+	//	//pref_step = pt->getPreferredStepSize();
+	//	//size_t pref_block = pt->getPreferredBlockSize();
 
-		int channels = GetChannels();
-		if (channels > pt->getMaxChannelCount()) {
-			channels = 1;
-		}
+	//	int channels = GetChannels();
+	//	if (channels > pt->getMaxChannelCount()) {
+	//		channels = 1;
+	//	}
 
-		pt->initialise(channels, step, step);
-	}
+	//	pt->initialise(channels, step, step);
+	//}
 
 	// process each frome of the song
 	for (int i = 0; i < frames; i++)
@@ -361,7 +361,10 @@ void AudioManager::DoPrepareFrameData()
 			else
 			{
 				subspectrogram = CalculateSpectrumAnalysis(pdata[0], step, max, i);
-				CalculatePolyphonicTranscription(pt, pdata[0], step, i);
+				//if (pt != NULL)
+				//{
+				//	CalculatePolyphonicTranscription(pt, pdata[0], step, i);
+				//}
 			}
 
 			// and keep track of the larges value so we can normalise it
@@ -445,42 +448,6 @@ void AudioManager::DoPrepareFrameData()
 		_frameData.push_back(aFrameData);
 	}
 
-	// Process the Polyphonic Transcription
-	Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
-
-	for (int i = 0; i < frames; i++)
-	{
-		std::list<float> notes;
-		int start = i * _intervalMS;
-		int end = start + _intervalMS;
-
-		for (int j = 0; j < features[0].size(); j++)
-		{
-			int current = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
-			if (current > start && current < end)
-			{
-				bool found = false;
-				for (auto x = notes.begin(); x != notes.end(); ++x)
-				{
-					if (*x == features[0][j].values[0])
-					{
-						found = true;
-						break;
-					}
-				}
-				if (!found)
-				{
-					notes.push_back(features[0][j].values[0]);
-				}
-			}
-		}
-
-		_frameData[i].push_back(notes);
-	}
-
-	// done with VAMP Polyphonic Transcriber
-	delete pt;
-
 	// normalise data ... basically scale the data so the highest value is the scale value.
 	float scale = 1.0; // 0-1 ... where 0.x means that the max value displayed would be x0% of model size
 	float bigmaxscale = 1 / (_bigmax * scale);
@@ -507,6 +474,45 @@ void AudioManager::DoPrepareFrameData()
 			*ff = *ff * bigspectrogramscale;
 		}
 	}
+
+	//if (pt != NULL)
+	//{
+	// Process the Polyphonic Transcription
+	// Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
+
+	//for (int i = 0; i < frames; i++)
+	//{
+	//	std::list<float> notes;
+	//	int start = i * _intervalMS;
+	//	int end = start + _intervalMS;
+
+	//	for (int j = 0; j < features[0].size(); j++)
+	//	{
+	//		int current = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
+	//		if (current > start && current < end)
+	//		{
+	//			bool found = false;
+	//			for (auto x = notes.begin(); x != notes.end(); ++x)
+	//			{
+	//				if (*x == features[0][j].values[0])
+	//				{
+	//					found = true;
+	//					break;
+	//				}
+	//			}
+	//			if (!found)
+	//			{
+	//				notes.push_back(features[0][j].values[0]);
+	//			}
+	//		}
+	//	}
+
+	//	_frameData[i].push_back(notes);
+	//}
+
+	// done with VAMP Polyphonic Transcriber
+	//delete pt;
+	//}
 
 	// flag the fact that the data is all ready
 	_frameDataPrepared = true;
