@@ -416,11 +416,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 	try
 	{
 		log4cpp::PropertyConfigurator::configure(initFileName);
-	}
-	catch(log4cpp::ConfigureFailure& e)
-	{
+	} catch(log4cpp::ConfigureFailure& e) {
 		// ignore config failure ... but logging wont work
-	}
+        //printf("%s\n", e.what());
+    } catch (const std::exception& ex) {
+        //printf("%s\n", ex.what());
+    }
 	_logger.info("XLights started.");
 
 	Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);

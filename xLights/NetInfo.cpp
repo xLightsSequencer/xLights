@@ -79,6 +79,8 @@ int NetInfoClass::GetTotChannels() const
 void NetInfoClass::GetAllChannelNames(wxArrayString& names) const
 {
     int ChNum=0;
+    names.Clear();
+    names.Alloc(GetTotChannels());
     names.reserve(GetTotChannels());
     for(size_t NetNum=0; NetNum < NetMaxChannel.size(); NetNum++)
     {
