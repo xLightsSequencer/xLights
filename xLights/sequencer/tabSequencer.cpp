@@ -1330,7 +1330,12 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
                 wxTextCtrl* ctrl=(wxTextCtrl*)CtrlWin;
                 ctrl->SetValue(value);
             }
-            else if (name.StartsWith("ID_CHOICE"))
+			else if (name.StartsWith("ID_SPINCTRL"))
+			{
+				wxSpinCtrl* ctrl = (wxSpinCtrl*)CtrlWin;
+				ctrl->SetValue(wxAtoi(value));
+			}
+			else if (name.StartsWith("ID_CHOICE"))
             {
                 wxString nn = "IDD_RADIOBUTTON" + name.SubString(9, name.size());
                 wxRadioButton *b = (wxRadioButton*)wxWindow::FindWindowByName(nn,ContextWin);

@@ -109,72 +109,144 @@ void PianoEffect::ReduceChannels(std::list<float>* pdata, int start, int end, bo
 			pdata->remove(*it);
 			it = pdata->begin();
 		}
-
-		if (*it < start || *it > end)
+		else if (*it < start || *it > end)
 		{
 			pdata->remove(*it);
 			it = pdata->begin();
 		}
+		else
+		{
+			it++;
+		}
 	}
+}
+
+bool PianoEffect::KeyDown(std::list<float>* pdata, int ch)
+{
+	for (auto it = pdata->begin(); it != pdata->end(); ++it)
+	{
+		if (ch == (int)(*it))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void PianoEffect::DrawPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end)
 {
-	xlColor wkc, bkc, wkdc, bkdc, kb;
+	xlColor wkcolour, bkcolour, wkdcolour, bkdcolour, kbcolour;
 
 	// count the keys
 	int wkeys = 0;
 	int bkeys = 0;
 
-	int wkw = buffer.BufferWi / (end - start + 1);
+	int sharpstart = -1;
+	int i = start;
+	while (sharpstart == -1 && i <= end)
+	{
+		if (IsSharp(i))
+		{
+			sharpstart = i;
+		}
+		i++;
+	}
+
+	int sharpend = -1;
+	i = end;
+	while (sharpend == -1 && i >= start)
+	{
+		if (IsSharp(i))
+		{
+			sharpend = i;
+		}
+		i--;
+	}
+
+	int whitestart = -1;
+	i = start;
+	while (whitestart == -1 && i <= end)
+	{
+		if (!IsSharp(i))
+		{
+			whitestart = i;
+		}
+		i++;
+	}
+
+	int whiteend = -1;
+	i = end;
+	while (whiteend == -1 && i >= start)
+	{
+		if (!IsSharp(i))
+		{
+			whiteend = i;
+		}
+		i--;
+	}
+
+	int wkcount = 0;
+	if (whitestart != -1 && whiteend != -1)
+	{
+		for (i = whitestart; i <= whiteend; i++)
+		{
+			if (!IsSharp(i))
+			{
+				wkcount++;
+			}
+		}
+	}
+
+	int fwkw = buffer.BufferWi / wkcount;
+	int wkw = fwkw;
 	bool border = false;
 	if (wkw > 3)
 	{
 		border = true;
 		wkw--;
 	}
-	int bkw = wkw;
 
 	// Get the colours
 	if (buffer.GetColorCount() > 0)
 	{
-		buffer.palette.GetColor(0, wkc);
+		buffer.palette.GetColor(0, wkcolour);
 	}
 	else
 	{
-		wkc = xlWHITE;
+		wkcolour = xlWHITE;
 	}
 	if (buffer.GetColorCount() > 1)
 	{
-		buffer.palette.GetColor(0, bkc);
+		buffer.palette.GetColor(1, bkcolour);
 	}
 	else
 	{
-		bkc = xlBLACK;
+		bkcolour = xlBLACK;
 	}
 	if (buffer.GetColorCount() > 2)
 	{
-		buffer.palette.GetColor(0, wkdc);
+		buffer.palette.GetColor(2, wkdcolour);
 	}
 	else
 	{
-		wkdc = xlMAGENTA;
+		wkdcolour = xlMAGENTA;
 	}
 	if (buffer.GetColorCount() > 3)
 	{
-		buffer.palette.GetColor(0, bkdc);
+		buffer.palette.GetColor(3, bkdcolour);
 	}
 	else
 	{
-		bkdc = xlMAGENTA;
+		bkdcolour = xlMAGENTA;
 	}
 	if (buffer.GetColorCount() > 4)
 	{
-		buffer.palette.GetColor(0, kb);
+		buffer.palette.GetColor(4, kbcolour);
 	}
 	else
 	{
-		kb = xlLIGHT_GREY;
+		kbcolour = xlLIGHT_GREY;
 	}
 
 	// Draw white keys
@@ -183,8 +255,15 @@ void PianoEffect::DrawPiano(RenderBuffer &buffer, std::list<float>* pdata, bool 
 	{
 		if (!IsSharp(i))
 		{
-			buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt, wkc, false);
-			x += wkw + (border ? 1 : 0);
+			if (KeyDown(pdata, i))
+			{
+				buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt, wkdcolour, false);
+			}
+			else
+			{
+				buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt, wkcolour, false);
+			}
+			x += fwkw;
 		}
 	}
 	// Draw the pressed white keys
@@ -192,22 +271,48 @@ void PianoEffect::DrawPiano(RenderBuffer &buffer, std::list<float>* pdata, bool 
 	// Draw white key borders
 	if (border)
 	{
-		x = wkw + 1;
-		for (int i = 0; i < (end - start + 1); i++)
+		x = fwkw;
+		for (int i = 0; i < wkcount; i++)
 		{
-			buffer.DrawLine(x, 0, x, buffer.BufferHt, kb);
-			x += wkw + 1;
+			buffer.DrawLine(x, 0, x, buffer.BufferHt, kbcolour);
+			x += fwkw;
 		}
 	}
 
+#define BKADJUSTMENTWIDTH(a) (int)(0.3 / 2.0 * (float)a)
 	// Draw the black keys
-	x = wkw / 2;
-	int c = start;
-	for (int i = 0; i < (end - start + 1); i++)
+	if (IsSharp(start))
 	{
-		buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt, wkc, false);
-		x += wkw + (border ? 1 : 0);
+		x = -1 * fwkw / 2;
 	}
-
-	// Draw the Black key borders
+	else if (IsSharp(start + 1))
+	{
+		x = fwkw / 2;
+	}
+	else
+	{
+		x = fwkw + fwkw / 2;
+	}
+	for (i = start; i <= end; i++)
+	{
+		if (IsSharp(i))
+		{
+			if (KeyDown(pdata, i))
+			{
+				buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt / 2, x + fwkw - BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt, bkdcolour, false);
+			}
+			else
+			{
+				buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt / 2, x + fwkw - BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt, bkcolour, false);
+			}
+			if (!IsSharp(i + 1) && !IsSharp(i + 2))
+			{
+				x += fwkw + fwkw;
+			}
+			else
+			{
+				x += fwkw;
+			}
+		}
+	}
 }

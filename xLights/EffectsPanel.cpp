@@ -5,6 +5,7 @@
 #include <wx/scrolwin.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
+#include <wx/spinctrl.h>
 
 //(*InternalHeaders(EffectsPanel)
 #include <wx/bitmap.h>
@@ -150,23 +151,28 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
             } else {
                 s += AttrName + wxString::Format("%d", GetRandomSliderValue(ctrl));
             }
-        } else if (ChildName.StartsWith("ID_TEXTCTRL")) {
+		}
+		else if (ChildName.StartsWith("ID_TEXTCTRL")) {
 
-            wxSlider * slider = (wxSlider*)w->FindWindowByName("IDD_SLIDER_" + ChildName.SubString(12, ChildName.size()));
-            if (slider != nullptr) {
-                int i = GetRandomSliderValue(slider);
-                slider->SetValue(i);
-                wxScrollEvent event(wxEVT_SLIDER, slider->GetId());
-                event.SetEventObject(slider);
-                event.SetInt(i);
-                slider->ProcessWindowEvent(event);
-            }
-            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
-            wxString v = ctrl->GetValue();
-            v.Replace("&", "&amp;", true);
-            v.Replace(",", "&comma;", true);
-            s += AttrName + v;
-        } else if (ChildName.StartsWith("ID_CHOICE")) {
+			wxSlider * slider = (wxSlider*)w->FindWindowByName("IDD_SLIDER_" + ChildName.SubString(12, ChildName.size()));
+			if (slider != nullptr) {
+				int i = GetRandomSliderValue(slider);
+				slider->SetValue(i);
+				wxScrollEvent event(wxEVT_SLIDER, slider->GetId());
+				event.SetEventObject(slider);
+				event.SetInt(i);
+				slider->ProcessWindowEvent(event);
+			}
+			wxTextCtrl* ctrl = (wxTextCtrl*)ChildWin;
+			wxString v = ctrl->GetValue();
+			v.Replace("&", "&amp;", true);
+			v.Replace(",", "&comma;", true);
+			s += AttrName + v;
+		} else if (ChildName.StartsWith("ID_SPINCTRL")) {
+			wxSpinCtrl* ctrl = (wxSpinCtrl*)ChildWin;
+			int v = ctrl->GetValue();
+			s += AttrName + wxString::Format(wxT("%i"), v);
+		} else if (ChildName.StartsWith("ID_CHOICE")) {
             wxChoice* ctrl=(wxChoice*)ChildWin;
             s += AttrName + ctrl->GetString(isRandom(ctrl)? rand()%ctrl->GetCount(): ctrl->GetSelection()); //-DJ
         } else if (ChildName.StartsWith("ID_CHECKBOX")) {

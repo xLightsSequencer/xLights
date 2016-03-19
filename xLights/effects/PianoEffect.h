@@ -12,8 +12,8 @@ class PianoEffect : public RenderableEffect
         PianoEffect(int id);
         virtual ~PianoEffect();
         virtual bool CanBeRandom() {return false;}
-    
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+		virtual bool CanRenderOnBackgroundThread() { return true; }
+		virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
@@ -23,6 +23,7 @@ class PianoEffect : public RenderableEffect
 		void ReduceChannels(std::list<float>* pdata, int start, int end, bool sharps);
 		void DrawPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end);
 		bool IsSharp(float f);
+		bool KeyDown(std::list<float>* pdata, int ch);
 };
 
 #endif // PIANOEFFECT_H

@@ -48,7 +48,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_Piano_EndMIDI" variable="SpinCtrl_Piano_EndMIDI" member="yes">
-							<value>60</value>
+							<value>72</value>
 							<max>127</max>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -70,6 +70,7 @@
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Piano_ShowSharps" variable="CheckBox_Piano_ShowSharps" member="yes">
 							<label>Show Sharps and Flats</label>
+							<checked>1</checked>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

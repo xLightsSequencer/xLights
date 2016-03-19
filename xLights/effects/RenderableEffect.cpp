@@ -6,6 +6,7 @@
 #include <wx/fontpicker.h>
 #include <wx/filepicker.h>
 #include <wx/notebook.h>
+#include <wx/spinctrl.h>
 
 #include <sstream>
 
@@ -188,7 +189,13 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
             v.Replace(",", "&comma;", true);
             s+=AttrName + "=" + v + ",";
         }
-        else if (ChildName.StartsWith("ID_CHOICE"))
+		else if (ChildName.StartsWith("ID_SPINCTRL"))
+		{
+			wxSpinCtrl* ctrl = (wxSpinCtrl*)ChildWin;
+			int i = ctrl->GetValue();
+			s += AttrName + "=" + wxString::Format(wxT("%i"), i) + ",";
+		}
+		else if (ChildName.StartsWith("ID_CHOICE"))
         {
             wxChoice* ctrl=(wxChoice*)ChildWin;
             s+=AttrName + "=" + ctrl->GetStringSelection() + ",";
