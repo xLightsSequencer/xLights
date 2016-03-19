@@ -1835,7 +1835,7 @@ void EffectsGrid::InitializeGLCanvas()
     mIsInitialized = true;
 }
 
-void EffectsGrid::DrawHorizontalLines()
+void EffectsGrid::DrawLines()
 {
     // Draw Horizontal lines
     int x1=1;
@@ -1843,8 +1843,7 @@ void EffectsGrid::DrawHorizontalLines()
     int y;
     bool isEvenLayer=false;
 
-    glEnable(GL_BLEND);
-    glColor4ub(100,100,100,5);
+    xlColor color(33, 33, 33);
     for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
     {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
@@ -1857,29 +1856,27 @@ void EffectsGrid::DrawHorizontalLines()
             {
                 //Element is collapsed only one row should be shaded
                 int h = e->GetCollapsed()?DEFAULT_ROW_HEADING_HEIGHT:DEFAULT_ROW_HEADING_HEIGHT * e->GetEffectLayerCount();
-                DrawGLUtils::DrawFillRectangle(xlLIGHT_GREY,40,x1,y,x2,h);
+                DrawGLUtils::AddRectAsTriangles(x1, y, x2, y + h, color);
             }
             isEvenLayer = !isEvenLayer;
         } else if (ri->strandIndex != -1) {
             if (isEvenLayer)
             {
-                DrawGLUtils::DrawFillRectangle(xlLIGHT_GREY,40,x1,y,x2,DEFAULT_ROW_HEADING_HEIGHT);
+                DrawGLUtils::AddRectAsTriangles(x1, y, x2, y + DEFAULT_ROW_HEADING_HEIGHT, color);
             }
             isEvenLayer = !isEvenLayer;
         }
     }
-    glDisable(GL_BLEND);
+    DrawGLUtils::End(GL_TRIANGLES);
 
+    glLineWidth(0.2);
     for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
     {
         y = (row+1)*DEFAULT_ROW_HEADING_HEIGHT;
-        DrawGLUtils::DrawLine(*mGridlineColor,255,x1,y,x2,y,.2);
+        DrawGLUtils::AddVertex(x1, y, *mGridlineColor);
+        DrawGLUtils::AddVertex(x2, y, *mGridlineColor);
     }
-
-}
-
-void EffectsGrid::DrawVerticalLines()
-{
+    
     // Draw vertical lines
     int y1 = 0;
     int y2 = mWindowHeight-1;
@@ -1888,9 +1885,13 @@ void EffectsGrid::DrawVerticalLines()
         // Draw hash marks
         if ((x1+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH)==0)
         {
-            DrawGLUtils::DrawLine(*mGridlineColor,255,x1,y1,x1,y2,.2);
+            DrawGLUtils::AddVertex(x1, y1, *mGridlineColor);
+            DrawGLUtils::AddVertex(x1, y2, *mGridlineColor);
         }
     }
+
+    DrawGLUtils::End(GL_LINES);
+    glLineWidth(1);
 }
 
 void EffectsGrid::DrawEffects()
@@ -2209,8 +2210,7 @@ void EffectsGrid::Draw()
     }
     if( mSequenceElements )
     {
-        DrawHorizontalLines();
-        DrawVerticalLines();
+        DrawLines();
         DrawEffects();
         DrawTimings();
         DrawPlayMarker();

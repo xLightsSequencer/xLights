@@ -104,8 +104,7 @@ private:
 
     void CreateEffectIconTextures();
     void DeleteEffectIconTextures();
-    void DrawHorizontalLines();
-    void DrawVerticalLines();
+    void DrawLines();
     void DrawModelOrViewEffects(int row);
     void DrawSelectedCells();
 

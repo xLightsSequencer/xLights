@@ -259,7 +259,7 @@ void Waveform::renderGL( )
     SetCurrentGLContext();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    
     if( mWindowResized )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
@@ -277,30 +277,24 @@ void Waveform::renderGL( )
 void Waveform::DrawWaveView(const WaveView &wv)
 {
     int index;
-    glColor3ub(212,208,200);
-    glBegin(GL_QUADS);
-    glVertex2f(0, 0);
-    glVertex2f(mWindowWidth, 0);
-    glVertex2f(mWindowWidth, mWindowHeight);
-    glVertex2f(0,mWindowHeight);
-    glEnd();
+    glLineWidth( 1 );
+
+    xlColor color(212,208,200);
+    DrawGLUtils::AddVertex(0, 0, color);
+    DrawGLUtils::AddVertex(mWindowWidth, 0, color);
+    DrawGLUtils::AddVertex(mWindowWidth, mWindowHeight, color);
+    DrawGLUtils::AddVertex(0, mWindowHeight, color);
+    DrawGLUtils::End(GL_TRIANGLE_FAN);
 
     int max_wave_ht = mWindowHeight - VERTICAL_PADDING;
 
-
     // Draw Outside rectangle
-    glPointSize( translateToBacking(.3) );
-    glColor3ub(128,128,128);
-    glBegin(GL_LINES);
-    glVertex2f(1, 0);
-    glVertex2f(mWindowWidth, 1);
-    glVertex2f(mWindowWidth, 1);
-    glVertex2f(mWindowWidth, mWindowHeight);
-    glVertex2f(mWindowWidth, mWindowHeight);
-    glVertex2f(1,mWindowHeight);
-    glVertex2f(1,mWindowHeight);
-    glVertex2f(1, 0);
-    glEnd();
+    color.Set(128, 128, 128);
+    DrawGLUtils::AddVertex(0.25, 0, color);
+    DrawGLUtils::AddVertex(mWindowWidth, 0, color);
+    DrawGLUtils::AddVertex(mWindowWidth, mWindowHeight-0.5, color);
+    DrawGLUtils::AddVertex(0.25, mWindowHeight-0.5, color);
+    DrawGLUtils::End(GL_LINE_LOOP);
 
     // Get selection positions from timeline
     int selected_x1 = mTimeline->GetSelectedPositionStart();
@@ -309,22 +303,18 @@ void Waveform::DrawWaveView(const WaveView &wv)
     // draw shaded region if needed
     if( selected_x1 != -1 && selected_x2 != -1)
     {
-        glColor4ub(0,0,200,45);
         glEnable(GL_BLEND);
-        glBegin(GL_QUADS);
-        glVertex2f(selected_x1, 1);
-        glVertex2f(selected_x2, 1);
-        glVertex2f(selected_x2, mWindowHeight-1);
-        glVertex2f(selected_x1,mWindowHeight-1);
-        glEnd();
+        color.Set(0, 0, 200, 45);
+        DrawGLUtils::AddVertex(selected_x1, 1, color);
+        DrawGLUtils::AddVertex(selected_x2, 1, color);
+        DrawGLUtils::AddVertex(selected_x2, mWindowHeight-1, color);
+        DrawGLUtils::AddVertex(selected_x1, mWindowHeight-1, color);
+        DrawGLUtils::End(GL_TRIANGLE_FAN);
         glDisable(GL_BLEND);
     }
 
     if(_media != NULL)
     {
-
-        glPointSize( translateToBacking(1.1) );
-        glLineWidth( 1 );
         xlColor c(130,178,207,255);
 
         std::vector<double> vertexes;
@@ -345,6 +335,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
         }
         DrawGLUtils::End(GL_TRIANGLE_STRIP);
 
+        
         for(int x=0;x<mWindowWidth-1 && (x)<wv.MinMaxs.size();x++)
         {
             DrawGLUtils::AddVertex(x, vertexes[x * 2], xlWHITE);
@@ -361,33 +352,30 @@ void Waveform::DrawWaveView(const WaveView &wv)
     // draw selection line if not a range
     if( selected_x1 != -1 && selected_x2 == -1 )
     {
-        glColor4ub(0,0,0,128);
-        glBegin(GL_LINES);
-        glVertex2f(selected_x1, 1);
-        glVertex2f(selected_x1,mWindowHeight-1);
-        glEnd();
+        color.Set(0, 0, 0, 128);
+        DrawGLUtils::AddVertex(selected_x1, 1, color);
+        DrawGLUtils::AddVertex(selected_x1, mWindowHeight-1, color);
     }
 
     // draw mouse position line
     int mouse_marker = mTimeline->GetMousePosition();
     if( mouse_marker != -1 )
     {
-        glColor4ub(0,0,255,255);
-        glBegin(GL_LINES);
-        glVertex2f(mouse_marker, 1);
-        glVertex2f(mouse_marker,mWindowHeight-1);
-        glEnd();
+        color.Set(0, 0, 255, 255);
+        DrawGLUtils::AddVertex(mouse_marker, 1, color);
+        DrawGLUtils::AddVertex(mouse_marker, mWindowHeight-1, color);
     }
 
     // draw play marker line
     int play_marker = mTimeline->GetPlayMarker();
     if( play_marker != -1 )
     {
-        glColor4ub(0,0,0,255);
-        glBegin(GL_LINES);
-        glVertex2f(play_marker, 1);
-        glVertex2f(play_marker,mWindowHeight-1);
-        glEnd();
+        color.Set(0, 0, 0, 255);
+        DrawGLUtils::AddVertex(play_marker, 1, color);
+        DrawGLUtils::AddVertex(play_marker, mWindowHeight-1, color);
+    }
+    if (DrawGLUtils::VertexCount() > 0) {
+        DrawGLUtils::End(GL_LINES);
     }
 }
 

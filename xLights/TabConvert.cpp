@@ -316,6 +316,9 @@ bool FRAMECLASS WriteVixenFile(const wxString& filename)
 		if (ch < ChNames.Count())
         {
             TestName=ChNames[ch];
+            if (TestName == "") {
+                TestName = NetInfo.GetChannelName(ch);
+            }
         }
         else
         {
@@ -975,6 +978,9 @@ void FRAMECLASS WriteLorFile(const wxString& filename)
 		if (ch < ChNames.Count())
         {
             TestName=ChNames[ch];
+            if (TestName == "") {
+                TestName = NetInfo.GetChannelName(ch);
+            }
         }
         else
         {
@@ -2701,6 +2707,7 @@ void FRAMECLASS OnButtonStartConversionClick(wxCommandEvent& event)
     }
     else
     {
+        UpdateChannelNames();
         for (size_t i=0; i < FileNames.GetCount(); i++)
         {
             DoConversion(FileNames[i], OutputFormat);

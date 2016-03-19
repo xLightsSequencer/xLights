@@ -203,7 +203,6 @@ void xLightsFrame::SetDir(const wxString& newdir)
 //~    EffectsPanel2->SetDefaultPalette();
     UpdateNetworkList();
     LoadEffectsFile();
-    UpdateChannelNames();
 
     wxFileName kbf;
     kbf.AssignDir(CurrentDir);
@@ -339,7 +338,6 @@ void xLightsFrame::UpdateNetworkList()
     }
     //GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE);
     GridNetwork->SetColumnWidth(1,NetCnt > 0 ? wxLIST_AUTOSIZE : 100);
-    UpdateChannelNames();
 	_totalChannels = TotChannels;
 }
 
@@ -349,7 +347,9 @@ void xLightsFrame::UpdateChannelNames()
     wxString FormatSpec,RGBFormatSpec;
     int ChannelNum,ChanPerNode,NodeNum,AbsoluteNodeNum;
     size_t NodeCount,n,c;
-    NetInfo.GetAllChannelNames(ChNames);
+    
+    ChNames.clear();
+    ChNames.resize(NetInfo.GetTotChannels());
     // update names with RGB models where MyDisplay is checked
 #if 0 // Seans code to show absolute channel number
 

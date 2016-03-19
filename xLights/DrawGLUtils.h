@@ -45,18 +45,22 @@ namespace DrawGLUtils
     /* Methods to hold vertex informaton (x, y, color) in an array until End is called where they are all
        draw out to the context in very few calls) */
     void AddVertex(double x, double y, const xlColor &c, int transparency = 0);
+    int VertexCount();
     /* Add four vertices to the cache list, all with the given color */
     void PreAlloc(int verts);
     void AddRect(double x1, double y1,
                  double x2, double y2,
                  const xlColor &c, int transparency = 0);
+    void AddRectAsTriangles(double x1, double y1,
+                            double x2, double y2,
+                            const xlColor &c, int transparency = 0);
     void End(int type, bool reset = true);
 
     void DrawLine(const xlColor &color, wxByte alpha,int x1, int y1,int x2, int y2,float width);
     void DrawRectangle(const xlColor &color, bool dashed, int x1, int y1,int x2, int y2);
     void DrawFillRectangle(const xlColor &color, wxByte alpha, int x, int y,int width, int height);
 
-    void DrawHBlendedRectangle(const xlColor &lcolor, const xlColor &rcolor, int x, int y, int x2, int y2);
+    void DrawHBlendedRectangle(const xlColor &lcolor, const xlColor &rcolor, int x, int y, int x2, int y2, bool flush = true);
     void DrawHBlendedRectangle(const xlColorVector &colors, int x, int y, int x2, int y2, int offset = 0);
     void CreateOrUpdateTexture(const wxBitmap &bmp48,    //will scale to 64x64 for base
                                const wxBitmap &bmp32,

@@ -42,6 +42,9 @@ public:
         delete [] vertices;
     }
 
+    int size() {
+        return curCount;
+    }
     void resize(int size) {
         if (size > max) {
             unsigned char *tmp = new unsigned char[size * 4];
@@ -169,6 +172,10 @@ int DrawGLUtils::GetTextWidth(void *glutBitmapFont, const wxString &text)
     return length;
 }
 
+int DrawGLUtils::VertexCount() {
+    return glCache.size();
+}
+
 
 void DrawGLUtils::AddVertex(double x, double y, const xlColor &c, int transparency) {
     xlColor color(c);
@@ -185,7 +192,25 @@ void DrawGLUtils::PreAlloc(int verts) {
     glCache.resize(verts);
 }
 
-
+void DrawGLUtils::AddRectAsTriangles(double x1, double y1,
+                                     double x2, double y2,
+                                     const xlColor &c, int transparency) {
+    xlColor color(c);
+    if (transparency) {
+        double t = 100.0 - transparency;
+        t *= 2.55;
+        transparency = t;
+        color.alpha = transparency > 255 ? 255 : (transparency < 0 ? 0 : transparency);
+    }
+    glCache.resize(glCache.curCount + 6);
+    glCache.add(x1, y1, color);
+    glCache.add(x1, y2, color);
+    glCache.add(x2, y2, color);
+    
+    glCache.add(x2, y2, color);
+    glCache.add(x2, y1, color);
+    glCache.add(x1, y1, color);
+}
 void DrawGLUtils::AddRect(double x1, double y1,
                           double x2, double y2,
                           const xlColor &c, int transparency) {
@@ -209,27 +234,26 @@ void DrawGLUtils::End(int type, bool reset) {
 
 void DrawGLUtils::DrawPoint(const xlColor &color, double x, double y)
 {
-    glColor3ub(color.Red(), color.Green(),color.Blue());
-    glBegin(GL_POINTS);
-    glVertex2f(x, y);
-    glEnd();
+    AddVertex(x, y, color);
+    glCache.flush(GL_POINTS, true);
 }
 
 void DrawGLUtils::DrawCircle(const xlColor &color, double cx, double cy, double r, int ctransparency, int etransparency)
 {
+    xlColor c(color);
+    
     if (ctransparency) {
         double t = 100.0 - ctransparency;
         t *= 2.56;
         ctransparency = t;
-        glColor4ub(color.Red(), color.Green(),color.Blue(), ctransparency);
-    } else {
-        glColor3ub(color.Red(), color.Green(),color.Blue());
+        c.alpha = ctransparency;
     }
 
     int num_segments = r / 2;
     if (num_segments < 16) {
         num_segments = 16;
     }
+    glCache.resize(num_segments * 2 + 4);
     float theta = 2 * 3.1415926 / float(num_segments);
     float tangetial_factor = tanf(theta);//calculate the tangential factor
 
@@ -239,21 +263,20 @@ void DrawGLUtils::DrawCircle(const xlColor &color, double cx, double cy, double 
 
     float y = 0;
 
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(cx, cy); //center vertex
-
+    glCache.add(cx, cy, c);
+    
     if (etransparency) {
         double t = 100.0 - etransparency;
         t *= 2.56;
         etransparency = t;
-        glColor4ub(color.Red(), color.Green(),color.Blue(), etransparency);
+        c.alpha = etransparency;
     } else {
-        glColor3ub(color.Red(), color.Green(),color.Blue());
+        c.alpha = 255;
     }
 
     for(int ii = 0; ii < num_segments; ii++)
     {
-        glVertex2f(x + cx, y + cy);//output vertex
+        glCache.add(x + cx, y + cy, c);
 
         //calculate the tangential vector
         //remember, the radial vector is (x, y)
@@ -272,8 +295,8 @@ void DrawGLUtils::DrawCircle(const xlColor &color, double cx, double cy, double 
         x *= radial_factor;
         y *= radial_factor;
     }
-    glVertex2f(x + cx, y + cy);//output vertex
-    glEnd();
+    glCache.add(x + cx, y + cy, c);
+    glCache.flush(GL_TRIANGLE_FAN, true);
 }
 
 void DrawGLUtils::DrawCircleUnfilled(const xlColor &color, double cx, double cy, double r, float width )
@@ -281,46 +304,41 @@ void DrawGLUtils::DrawCircleUnfilled(const xlColor &color, double cx, double cy,
     static const double inc = PI / 12;
     static const double max = 2 * PI;
     glLineWidth(width);
-    glColor3ub(color.Red(), color.Green(),color.Blue());
-    glBegin(GL_LINE_LOOP);
     for(double d = 0; d < max; d += inc) {
-        glVertex2f(cos(d) * r + cx, sin(d) * r + cy);
+        glCache.add(cos(d) * r + cx, sin(d) * r + cy, color);
     }
-    glEnd();
+    glCache.flush(GL_LINE_LOOP, true);
 }
 
 void DrawGLUtils::DrawLine(const xlColor &color, wxByte alpha,int x1, int y1, int x2, int y2, float width)
 {
     glLineWidth(width);
-    glColor4ub(color.Red(), color.Green(),color.Blue(),alpha);
-    glBegin(GL_LINES);
-    glVertex2i(x1, y1);
-    glVertex2i(x2, y2);
-    glEnd();
+    glCache.resize(4);
+    AddVertex(x1, y1, color);
+    AddVertex(x2, y2, color);
+    End(GL_LINES);
 }
 
 void DrawGLUtils::DrawRectangle(const xlColor &color, bool dashed, int x1, int y1, int x2, int y2)
 {
-    glColor3ub(color.Red(), color.Green(),color.Blue());
     if (!dashed)
     {
-        glBegin(GL_LINES);
-        glVertex2f(x1, y1);
-        glVertex2f(x2, y1);
+        glCache.resize(16);
+        AddVertex(x1, y1, color);
+        AddVertex(x2, y1, color);
+        
+        AddVertex(x2, y1, color);
+        AddVertex(x2, y2 - 0.4f, color);
+        
+        AddVertex(x2, y2 - 0.4f, color);
+        AddVertex(x1, y2 - 0.4f, color);
 
-        glVertex2f(x2, y1);
-        glVertex2f(x2, y2 - 0.4f);
-
-        glVertex2f(x2, y2 - 0.4f);
-        glVertex2f(x1, y2 - 0.4f);
-
-        glVertex2f(x1, y1);
-        glVertex2f(x1, y2);
-        glEnd();
+        AddVertex(x1, y1, color);
+        AddVertex(x1, y2, color);
+        End(GL_LINES);
     }
     else
     {
-        glBegin(GL_POINTS);
         // Line 1
         int xs = x1<x2?x1:x2;
         int xf = x1>x2?x1:x2;
@@ -328,7 +346,7 @@ void DrawGLUtils::DrawRectangle(const xlColor &color, bool dashed, int x1, int y
         {
             if(x%8<4)
             {
-                glVertex2f(x, y1);
+                AddVertex(x, y1, color);
             }
         }
         // Line 2
@@ -338,7 +356,7 @@ void DrawGLUtils::DrawRectangle(const xlColor &color, bool dashed, int x1, int y
         {
             if(y%8<4)
             {
-                glVertex2f(x2,y);
+                AddVertex(x2, y, color);
             }
         }
         // Line 3
@@ -348,7 +366,7 @@ void DrawGLUtils::DrawRectangle(const xlColor &color, bool dashed, int x1, int y
         {
             if(x%8<4)
             {
-                glVertex2f(x, y2);
+                AddVertex(x, y2, color);
             }
         }
         // Line 4
@@ -358,23 +376,19 @@ void DrawGLUtils::DrawRectangle(const xlColor &color, bool dashed, int x1, int y
         {
             if(y%8<4)
             {
-                glVertex2f(x1,y);
+                AddVertex(x1, y, color);
             }
         }
-        glEnd();
+        End(GL_POINTS);
     }
 }
 
 void DrawGLUtils::DrawFillRectangle(const xlColor &color, wxByte alpha, int x, int y,int width, int height)
 {
-    glColor4ub(color.Red(), color.Green(),color.Blue(),alpha);
-    //glColor3ub(color.Red(), color.Green(),color.Blue());
-    glBegin(GL_QUADS);
-    glVertex2f(x, y);
-    glVertex2f(x+width, y);
-    glVertex2f(x+width, y+height);
-    glVertex2f(x, y+height);
-    glEnd();
+    xlColor c(color);
+    c.alpha = alpha;
+    AddRectAsTriangles(x, y, x + width, y + height, c);
+    End(GL_TRIANGLES);
 }
 
 void DrawGLUtils::DrawRectangleArray(double y1, double y2, double x, std::vector<double> &xs, std::vector<xlColor> & colors, bool flush) {
@@ -397,15 +411,17 @@ void DrawGLUtils::DrawRectangleArray(double y1, double y2, double x, std::vector
 }
 
 
-void DrawGLUtils::DrawHBlendedRectangle(const xlColor &left, const xlColor &right, int x1, int y1,int x2, int y2) {
-    glColor3ub(left.Red(), left.Green(), left.Blue());
-    glBegin(GL_QUADS);
-    glVertex2f(x1, y1);
-    glVertex2f(x1, y2);
-    glColor3ub(right.Red(), right.Green(),right.Blue());
-    glVertex2f(x2, y2);
-    glVertex2f(x2, y1);
-    glEnd();
+void DrawGLUtils::DrawHBlendedRectangle(const xlColor &left, const xlColor &right, int x1, int y1,int x2, int y2, bool flush) {
+    glCache.add(x1, y1, left);
+    glCache.add(x1, y2, left);
+    glCache.add(x2, y2, right);
+
+    glCache.add(x2, y2, right);
+    glCache.add(x2, y1, right);
+    glCache.add(x1, y1, left);
+    if (flush) {
+        glCache.flush(GL_TRIANGLES, true);
+    }
 }
 void DrawGLUtils::DrawHBlendedRectangle(const xlColorVector &colors, int x1, int y1,int x2, int y2, int offset) {
     xlColor start;
@@ -427,10 +443,11 @@ void DrawGLUtils::DrawHBlendedRectangle(const xlColorVector &colors, int x1, int
         if (x == (cnt - 1)) {
             xr = x2;
         }
-        DrawGLUtils::DrawHBlendedRectangle(start, end, xl, y1, xr, y2);
+        DrawGLUtils::DrawHBlendedRectangle(start, end, xl, y1, xr, y2, false);
         start = end;
         xl = xr;
     }
+    glCache.flush(GL_TRIANGLES, true);
 }
 
 static void addMipMap(GLuint* texture, const wxImage &l_Image, int &level) {
