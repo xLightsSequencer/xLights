@@ -2205,6 +2205,7 @@ void EffectsGrid::Draw()
     if( mWindowResized )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+        mTimeline->RecalcEndTime();  // force a recalc of the Timeline end time so that timing effect positions will calculate correct during redraw
     }
     if( mSequenceElements )
     {

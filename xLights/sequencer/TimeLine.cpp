@@ -786,3 +786,9 @@ int TimeLine::RoundToMultipleOfPeriod(int number,double frequency)
 TimelineChangeArguments::~TimelineChangeArguments()
 {
 }
+
+void TimeLine::RecalcEndTime()
+{
+    mEndTimeMS = GetMaxViewableTimeMS();
+}
+

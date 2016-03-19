@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug (gil)     Fix timings not draw correctly when window is resized. Fixes #504.
     -- bug (gil)     Fix Pictures scaling issues.  Fixes #501.
 2016.13  Mar 15, 2016
    -- enh (gil) Added gradient option to bars effect

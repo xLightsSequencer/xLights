@@ -48,6 +48,7 @@ class TimeLine : public wxWindow
         int GetMousePosition() { return mMousePosition; }
 
         void ResetMarkers(int ms);
+        void RecalcEndTime();
 
         void SetStartPixelOffset(int startPixel);
         int GetStartPixelOffset();
