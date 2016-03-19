@@ -9,6 +9,7 @@ class wxStaticText;
 class wxBitmapButton;
 class wxFlexGridSizer;
 class wxSpinCtrl;
+class wxChoice;
 //*)
 
 class PianoPanel: public wxPanel
@@ -21,29 +22,35 @@ class PianoPanel: public wxPanel
         wxString defaultDir;
     
 		//(*Declarations(PianoPanel)
+		wxBitmapButton* BitmapButton_Piano_Type;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText_Piano_NumKeys;
 		wxCheckBox* CheckBox_Piano_ShowSharps;
+		wxBitmapButton* BitmapButton_Piano_StartMIDI;
 		wxSpinCtrl* SpinCtrl_Piano_StartMIDI;
+		wxBitmapButton* BitmapButton_Piano_EndMIDI;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText_Piano_NumRows;
-		wxBitmapButton* BitmapButton_Piano_Style;
 		wxSpinCtrl* SpinCtrl_Piano_EndMIDI;
-		wxBitmapButton* BitmapButton_Piano_NumKeys;
-		wxBitmapButton* BitmapButton_Piano_NumRows;
+		wxChoice* Choice_Piano_Type;
+		wxBitmapButton* BitmapButton_Piano_ShowSharps;
 		//*)
 
 	protected:
 
 		//(*Identifiers(PianoPanel)
 		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE_Piano_Type;
+		static const long ID_BITMAPBUTTON_Piano_Type;
+		static const long ID_STATICTEXT2;
 		static const long ID_SPINCTRL_Piano_StartMIDI;
-		static const long ID_BITMAPBUTTON_SLIDER_Piano_Style;
+		static const long ID_BITMAPBUTTON_Piano_StartMIDI;
 		static const long ID_STATICTEXT_Piano_NumKeys;
 		static const long ID_SPINCTRL_Piano_EndMIDI;
-		static const long ID_BITMAPBUTTON_Piano_NumKeys;
-		static const long ID_CHECKBOX_Piano_ShowSharps;
+		static const long ID_BITMAPBUTTON_Piano_EndMIDI;
 		static const long ID_STATICTEXT_Piano_NumRows;
-		static const long ID_BITMAPBUTTON_Piano_NumRows;
+		static const long ID_CHECKBOX_Piano_ShowSharps;
+		static const long ID_BITMAPBUTTON_Piano_ShowSharps;
 		//*)
 
 	public:

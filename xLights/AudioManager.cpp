@@ -414,6 +414,7 @@ void AudioManager::DoPrepareFrameData()
 		}
 	}
 
+// KW
 // This is disabled to minimise problems for others while I complete development
 // I will remove this when I have a way of handling exceptions from vamp plugin
 //#define ENABLE_PT

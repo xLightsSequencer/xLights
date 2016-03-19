@@ -27,7 +27,8 @@ void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     RenderPiano(buffer,
 		SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI"),
 		SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI"),
-		SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps")
+		SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps"),
+		std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano"))
         );
 }
 
@@ -40,10 +41,11 @@ public:
 	int _startMidiChannel;
 	int _endMidiChannel;
 	bool _showSharps;
+	std::string _type;
 };
 
 //render piano fx during sequence:
-void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps)
+void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps, const std::string type)
 {
 	buffer.drawingContext->Clear();
 
@@ -56,21 +58,42 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 	int& _startMidiChannel = cache->_startMidiChannel;
 	int& _endMidiChannel = cache->_endMidiChannel;
 	bool& _showSharps = cache->_showSharps;
+	std::string& _type = cache->_type;
 
 	if (_startMidiChannel != startmidi ||
 		_endMidiChannel != endmidi ||
-		_showSharps != sharps)
+		_showSharps != sharps ||
+		_type != type)
 	{
 		_startMidiChannel = startmidi;
 		_endMidiChannel = endmidi;
 		_showSharps = sharps;
+		_type = type;
 	}
 
-	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_NOTES , "");
+	if (_endMidiChannel - _startMidiChannel + 1 > buffer.BufferWi)
+	{
+		_endMidiChannel = _startMidiChannel + buffer.BufferWi - 1;
+	}
 
-	ReduceChannels(pdata, _startMidiChannel, _endMidiChannel, _showSharps);
+	if (buffer.GetMedia() != NULL)
+	{
+		std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_NOTES, "");
 
-	DrawPiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel);
+		if (pdata != NULL)
+		{
+			ReduceChannels(pdata, _startMidiChannel, _endMidiChannel, _showSharps);
+
+			if (_type == "True Piano")
+			{
+				DrawTruePiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel);
+			}
+			else if (_type == "Bars")
+			{
+				DrawBarsPiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel);
+			}
+		}
+	}
 }
 
 bool PianoEffect::IsSharp(float f)
@@ -134,7 +157,7 @@ bool PianoEffect::KeyDown(std::list<float>* pdata, int ch)
 	return false;
 }
 
-void PianoEffect::DrawPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end)
+void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end)
 {
 	xlColor wkcolour, bkcolour, wkdcolour, bkdcolour, kbcolour;
 
@@ -200,6 +223,7 @@ void PianoEffect::DrawPiano(RenderBuffer &buffer, std::list<float>* pdata, bool 
 
 	int fwkw = buffer.BufferWi / wkcount;
 	int wkw = fwkw;
+	int maxx = wkcount * fwkw;
 	bool border = false;
 	if (wkw > 3)
 	{
@@ -266,7 +290,6 @@ void PianoEffect::DrawPiano(RenderBuffer &buffer, std::list<float>* pdata, bool 
 			x += fwkw;
 		}
 	}
-	// Draw the pressed white keys
 
 	// Draw white key borders
 	if (border)
@@ -279,38 +302,137 @@ void PianoEffect::DrawPiano(RenderBuffer &buffer, std::list<float>* pdata, bool 
 		}
 	}
 
-#define BKADJUSTMENTWIDTH(a) (int)(0.3 / 2.0 * (float)a)
-	// Draw the black keys
-	if (IsSharp(start))
+	if (sharps)
 	{
-		x = -1 * fwkw / 2;
+		#define BKADJUSTMENTWIDTH(a) (int)std::round(0.3 / 2.0 * (float)a)
+		// Draw the black keys
+		if (IsSharp(start))
+		{
+			x = -1 * fwkw / 2;
+		}
+		else if (IsSharp(start + 1))
+		{
+			x = fwkw / 2;
+		}
+		else
+		{
+			x = fwkw + fwkw / 2;
+		}
+		for (i = start; i <= end; i++)
+		{
+			if (IsSharp(i))
+			{
+				if (KeyDown(pdata, i))
+				{
+					buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt / 2, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt, bkdcolour, false);
+				}
+				else
+				{
+					buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt / 2, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt, bkcolour, false);
+				}
+				if (!IsSharp(i + 1) && !IsSharp(i + 2))
+				{
+					x += fwkw + fwkw;
+				}
+				else
+				{
+					x += fwkw;
+				}
+			}
+		}
 	}
-	else if (IsSharp(start + 1))
+}
+
+void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end)
+{
+	xlColor wkcolour, bkcolour, wkdcolour, bkdcolour;
+
+	// count the keys
+	int kcount = -1;
+	if (sharps)
 	{
-		x = fwkw / 2;
+		kcount = end - start + 1;
 	}
 	else
 	{
-		x = fwkw + fwkw / 2;
+		for (int i = start; i <= end; i++)
+		{
+			if (!IsSharp(i))
+			{
+				kcount++;
+			}
+		}
 	}
-	for (i = start; i <= end; i++)
+	int fwkw = buffer.BufferWi / kcount;
+	
+	// Get the colours
+	if (buffer.GetColorCount() > 0)
 	{
-		if (IsSharp(i))
+		buffer.palette.GetColor(0, wkcolour);
+	}
+	else
+	{
+		wkcolour = xlWHITE;
+	}
+	if (buffer.GetColorCount() > 1)
+	{
+		buffer.palette.GetColor(1, bkcolour);
+	}
+	else
+	{
+		bkcolour = xlBLACK;
+	}
+	if (buffer.GetColorCount() > 2)
+	{
+		buffer.palette.GetColor(2, wkdcolour);
+	}
+	else
+	{
+		wkdcolour = xlMAGENTA;
+	}
+	if (buffer.GetColorCount() > 3)
+	{
+		buffer.palette.GetColor(3, bkdcolour);
+	}
+	else
+	{
+		bkdcolour = xlMAGENTA;
+	}
+
+	// Draw keys
+	int x = 0;
+	int wkh = buffer.BufferHt;
+	if (sharps)
+	{
+		wkh = buffer.BufferHt * 2.0 / 3.0;
+	}
+	int bkb = buffer.BufferHt / 3.0;
+	for (int i = start; i <= end; i++)
+	{
+		if (!IsSharp(i))
 		{
 			if (KeyDown(pdata, i))
 			{
-				buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt / 2, x + fwkw - BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt, bkdcolour, false);
+				buffer.DrawBox(x, 0, x + fwkw - 1, wkh, wkdcolour, false);
 			}
 			else
 			{
-				buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt / 2, x + fwkw - BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt, bkcolour, false);
+				buffer.DrawBox(x, 0, x + fwkw - 1, wkh, wkcolour, false);
 			}
-			if (!IsSharp(i + 1) && !IsSharp(i + 2))
+			x += fwkw;
+		}
+		else
+		{
+			if (sharps)
 			{
-				x += fwkw + fwkw;
-			}
-			else
-			{
+				if (KeyDown(pdata, i))
+				{
+					buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt, bkdcolour, false);
+				}
+				else
+				{
+					buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt, bkcolour, false);
+				}
 				x += fwkw;
 			}
 		}
