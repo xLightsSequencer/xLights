@@ -266,7 +266,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     wxImage image(data);
 #ifdef __WXOSX__
-    wxBitmap bitmap(image, -1, 2.0 * 2);
+    wxBitmap bitmap(image, -1, 2.0);
 #else
     image.Rescale(24, 24, wxIMAGE_QUALITY_HIGH);
     wxBitmap bitmap(image);
@@ -679,7 +679,7 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 void LayoutPanel::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
 {
-    CurrentPreviewModels dialog(this,xlights->ModelGroupsNode,xlights->ModelsNode);
+    CurrentPreviewModels dialog(this,xlights->ModelGroupsNode,xlights->AllModels);
     dialog.ShowModal();
 
     for (wxXmlNode *node = xlights->ModelGroupsNode->GetChildren(); node != nullptr; node = node->GetNext()) {

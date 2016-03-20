@@ -26,9 +26,9 @@ class ModelGroup : public Model
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
     
+        void Reset();
     protected:
         static std::vector<std::string> GROUP_BUFFER_STYLES;
-        void Reset();
 
     private:
         void CheckForChanges() const;

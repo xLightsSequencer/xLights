@@ -18,7 +18,7 @@
 #include "WreathModel.h"
 #include "SphereModel.h"
 
-ModelManager::ModelManager()
+ModelManager::ModelManager() : netInfo(nullptr)
 {
     //ctor
 }
@@ -72,6 +72,9 @@ void ModelManager::Rename(const std::string &oldName, const std::string &newName
 
 void ModelManager::LoadModels(wxXmlNode *modelNode, NetInfoClass &netInfo, int previewW, int previewH) {
     clear();
+    this->netInfo = &netInfo;
+    previewWidth = previewW;
+    previewHeight = previewH;
     this->modelNode = modelNode;
     for (wxXmlNode* e=modelNode->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "model") {
@@ -86,6 +89,8 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, NetInfoClass &netInfo, int p
     }
 }
 void ModelManager::LoadGroups(wxXmlNode *groupNode, NetInfoClass &netInfo, int previewW, int previewH) {
+    this->netInfo = &netInfo;
+    this->groupNode = groupNode;
     for (wxXmlNode* e=groupNode->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").ToStdString();
@@ -176,7 +181,12 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const NetInfoCl
     }
     return model;
 }
-
+Model *ModelManager::CreateModel(wxXmlNode *node) {
+    if (node->GetName() == "modelGroup") {
+        return new ModelGroup(node, *netInfo, *this, previewWidth, previewHeight);
+    }
+    return CreateModel(node, *netInfo, false);
+}
 Model *ModelManager::CreateModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) {
     std::string type = node->GetAttribute("DisplayAs").ToStdString();
     Model *model;
@@ -219,11 +229,20 @@ void ModelManager::AddModel(Model *model) {
         }
         models[model->name] = model;
         
-        if (model->GetModelXml()->GetParent() != modelNode) {
-            if (model->GetModelXml()->GetParent() != nullptr) {
-                model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
+        if ("ModelGroup" == model->GetDisplayAs()) {
+            if (model->GetModelXml()->GetParent() != groupNode) {
+                if (model->GetModelXml()->GetParent() != nullptr) {
+                    model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
+                }
+                groupNode->AddChild(model->GetModelXml());
             }
-            modelNode->AddChild(model->GetModelXml());
+        } else {
+            if (model->GetModelXml()->GetParent() != modelNode) {
+                if (model->GetModelXml()->GetParent() != nullptr) {
+                    model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
+                }
+                modelNode->AddChild(model->GetModelXml());
+            }
         }
     }
 }

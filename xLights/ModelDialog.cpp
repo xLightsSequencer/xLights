@@ -4,11 +4,11 @@
 
 
 //(*InternalHeaders(ModelDialog)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/artprov.h>
 //*)
 
 #include "ModelDialog.h"
@@ -84,19 +84,19 @@ ModelDialog::ModelDialog(wxWindow* parent, xLightsFrame* frame, wxWindowID id) :
     netInfo = nullptr;
 
     //(*Initialize(ModelDialog)
-    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
     wxButton* Button01;
-    wxFlexGridSizer* FlexGridSizer10;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxBoxSizer* BoxSizer2;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxButton* Button03;
     wxFlexGridSizer* FlexGridSizer3;
     wxButton* Button04;
-    wxFlexGridSizer* FlexGridSizer5;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxBoxSizer* BoxSizer2;
-    wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer10;
     wxBoxSizer* BoxSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer2;
-    wxFlexGridSizer* FlexGridSizer1;
-    wxButton* Button03;
+    wxFlexGridSizer* FlexGridSizer5;
 
     Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     SetHelpText(_("Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical."));

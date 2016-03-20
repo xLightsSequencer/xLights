@@ -36,12 +36,17 @@ class ModelManager
     
         //Make sure the Model is deleted when done with
         static Model *CreateModel(wxXmlNode *node, const NetInfoClass &ni, bool zeroBased = false);
+        Model *CreateModel(wxXmlNode *node);
         Model *CreateDefaultModel(const std::string &type, const NetInfoClass &ni);
     protected:
         Model *createAndAddModel(wxXmlNode *node, const NetInfoClass &ni);
     private:
     
     wxXmlNode *modelNode;
+    wxXmlNode *groupNode;
+    NetInfoClass *netInfo;
+    int previewWidth;
+    int previewHeight;
     std::map<std::string, Model *> models;
 };
 
