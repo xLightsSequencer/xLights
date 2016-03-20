@@ -12,6 +12,7 @@
 //(*Headers(TestDialog)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/checkbox.h>
 #include <wx/splitter.h>
 #include <wx/aui/aui.h>
 #include <wx/radiobut.h>
@@ -176,6 +177,7 @@ class TestDialog: public wxDialog
 		wxRadioButton* RadioButton_RGB_Alternate;
 		wxRadioButton* RadioButton_RGBCycle_ABC;
 		wxRadioButton* RadioButton_RGB_Twinkle50;
+		wxCheckBox* CheckBox_OutputToLights;
 		wxStaticText* StaticText5;
 		wxRadioButton* RadioButton_RGB_Chase14;
 		wxRadioButton* RadioButton_RGBCycle_ABCAllNone;
@@ -212,6 +214,7 @@ class TestDialog: public wxDialog
 		static const long ID_BUTTON_Load;
 		static const long ID_BUTTON_Save;
 		static const long ID_PANEL1;
+		static const long ID_CHECKBOX_OutputToLights;
 		static const long ID_STATICTEXT2;
 		static const long ID_RADIOBUTTON_Standard_Off;
 		static const long ID_RADIOBUTTON_Standard_Chase;
@@ -304,6 +307,7 @@ class TestDialog: public wxDialog
 		void OnRadioButton_Standard_BackgroundSelect(wxCommandEvent& event);
 		void OnTimer1Trigger(wxTimerEvent& event);
 		void OnRadioButton_RGBCycle_RGBWSelect(wxCommandEvent& event);
+		void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
 		//*)
 
 		void OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event);

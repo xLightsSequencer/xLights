@@ -298,6 +298,7 @@ const long TestDialog::ID_TREELISTCTRL_Channels = wxNewId();
 const long TestDialog::ID_BUTTON_Load = wxNewId();
 const long TestDialog::ID_BUTTON_Save = wxNewId();
 const long TestDialog::ID_PANEL1 = wxNewId();
+const long TestDialog::ID_CHECKBOX_OutputToLights = wxNewId();
 const long TestDialog::ID_STATICTEXT2 = wxNewId();
 const long TestDialog::ID_RADIOBUTTON_Standard_Off = wxNewId();
 const long TestDialog::ID_RADIOBUTTON_Standard_Chase = wxNewId();
@@ -381,6 +382,7 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	wxBoxSizer* BoxSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer14;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer13;
 	wxFlexGridSizer* FlexGridSizer12;
@@ -415,9 +417,14 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	FlexGridSizer2->Fit(Panel1);
 	FlexGridSizer2->SetSizeHints(Panel1);
 	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL2, wxPoint(128,40), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-	FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer3->AddGrowableRow(0);
+	FlexGridSizer3->AddGrowableRow(1);
+	FlexGridSizer14 = new wxFlexGridSizer(0, 3, 0, 0);
+	CheckBox_OutputToLights = new wxCheckBox(Panel2, ID_CHECKBOX_OutputToLights, _("Output to lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OutputToLights"));
+	CheckBox_OutputToLights->SetValue(false);
+	FlexGridSizer14->Add(CheckBox_OutputToLights, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(FlexGridSizer14, 1, wxALL|wxEXPAND, 5);
 	AuiNotebook1 = new wxAuiNotebook(Panel2, ID_AUINOTEBOOK1, wxDefaultPosition, wxSize(422,400), wxAUI_NB_TAB_SPLIT|wxTAB_TRAVERSAL);
 	Panel_Standard = new wxPanel(AuiNotebook1, ID_PANEL_Standard, wxPoint(80,57), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Standard"));
 	Panel_Standard->SetMinSize(wxSize(300,300));
@@ -583,6 +590,7 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 
 	Connect(ID_BUTTON_Load,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TestDialog::OnButton_LoadClick);
 	Connect(ID_BUTTON_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TestDialog::OnButton_SaveClick);
+	Connect(ID_CHECKBOX_OutputToLights,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TestDialog::OnCheckBox_OutputToLightsClick);
 	Connect(ID_RADIOBUTTON_Standard_Off,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_OffSelect);
 	Connect(ID_RADIOBUTTON_Standard_Chase,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_ChaseSelect);
 	Connect(ID_RADIOBUTTON_Standard_Chase13,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_Chase13Select);
@@ -659,8 +667,6 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 
 	_starttime = wxDateTime::UNow();
 	DisableSleepModes();
-	_xout = new xOutput();
-	InitialiseOutputs();
 
 	Timer1.Start(50, wxTIMER_CONTINUOUS);
 }
@@ -681,6 +687,7 @@ TestDialog::~TestDialog()
 	{
 		_xout->alloff();
 		delete _xout;
+		_xout = NULL;
 	}
 	EnableSleepModes();
 
@@ -1862,7 +1869,7 @@ bool TestDialog::InitialiseOutputs()
 
 void TestDialog::OnTimer1Trigger(wxTimerEvent& event)
 {
-	if (!_xoutCriticalSection.TryEnter())
+	if (!_xoutCriticalSection.TryEnter() || _xout == NULL)
 	{
 		return;
 	}
@@ -2322,4 +2329,23 @@ char TestDialog::DoEncodeColour(xlColor& c)
 	return 'X';
 }
 
-
+void TestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
+{
+	if (CheckBox_OutputToLights->IsChecked())
+	{
+		if (_xout == NULL)
+		{
+			_xout = new xOutput();
+			InitialiseOutputs();
+		}
+	}
+	else
+	{
+		if (_xout)
+		{
+			_xout->alloff();
+			delete _xout;
+			_xout = NULL;
+		}
+	}
+}
