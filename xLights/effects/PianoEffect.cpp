@@ -8,6 +8,7 @@
 #include "../UtilClasses.h"
 
 #include "../../include/piano.xpm"
+#include <log4cpp/Category.hh>
 
 PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano", piano, piano, piano, piano, piano)
 {
@@ -28,8 +29,13 @@ void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 		SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI"),
 		SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI"),
 		SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps"),
-		std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano"))
-        );
+		std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano")),
+		std::string(SettingsMap.Get("CHOICE_Piano_Notes_Source", "Polyphonic Transcription")),
+		std::string(SettingsMap.Get("TEXTCTRL_Piano_File", "")),
+		SettingsMap.GetInt("TEXTCTRL_Piano_MIDI_Start"),
+		SettingsMap.GetInt("TEXTCTRL_Piano_MIDI_Speed"),
+		SettingsMap.GetInt("TEXTCTRL_Piano_Scale")
+		);
 }
 
 class PianoCache : public EffectRenderCache 
@@ -42,10 +48,16 @@ public:
 	int _endMidiChannel;
 	bool _showSharps;
 	std::string _type;
+	std::string _timingsource;
+	std::string _file;
+	int _MIDIStartAdjust;
+	int _MIDISpeedAdjust;
+	std::map<int, std::list<float>> _timings;
+	int _scale;
 };
 
 //render piano fx during sequence:
-void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps, const std::string type)
+void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps, const std::string type, std::string timingsource, std::string file, int MIDIAdjustStart, int MIDIAdjustSpeed, int scale)
 {
 	buffer.drawingContext->Clear();
 
@@ -59,16 +71,50 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 	int& _endMidiChannel = cache->_endMidiChannel;
 	bool& _showSharps = cache->_showSharps;
 	std::string& _type = cache->_type;
+	std::string& _timingsource = cache->_timingsource;
+	std::string& _file = cache->_file;
+	int& _MIDISpeedAdjust = cache->_MIDISpeedAdjust;
+	int& _MIDIStartAdjust = cache->_MIDIStartAdjust;
+	std::map<int, std::list<float>>& _timings = cache->_timings;
+	int& _scale = cache->_scale;
 
 	if (_startMidiChannel != startmidi ||
 		_endMidiChannel != endmidi ||
 		_showSharps != sharps ||
-		_type != type)
+		_type != type ||
+		_timingsource != timingsource ||
+		_file != file ||
+		_scale != scale ||
+		_MIDISpeedAdjust != MIDIAdjustSpeed ||
+		_MIDIStartAdjust != MIDIAdjustStart)
 	{
+		if ((_timingsource != timingsource || _file != file) && timingsource != "Polyphonic Transcription")
+		{
+			// need to load timings
+
+			_timings.clear();
+			if (wxFile::Exists(file))
+			{
+				if (timingsource == "Audacity Timing File")
+				{
+					_timings = LoadAudacityFile(file, buffer.frameTimeInMs);
+				}
+				else if (timingsource == "MIDI File")
+				{
+					_timings = LoadMIDIFile(file, buffer.frameTimeInMs, MIDIAdjustSpeed, MIDIAdjustStart * 10);
+				}
+			}
+		}
+
 		_startMidiChannel = startmidi;
 		_endMidiChannel = endmidi;
 		_showSharps = sharps;
 		_type = type;
+		_timingsource = timingsource;
+		_MIDISpeedAdjust = MIDIAdjustSpeed;
+		_MIDIStartAdjust = MIDIAdjustStart;
+		_scale = scale;
+		_file = file;
 	}
 
 	if (_endMidiChannel - _startMidiChannel + 1 > buffer.BufferWi)
@@ -76,22 +122,35 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 		_endMidiChannel = _startMidiChannel + buffer.BufferWi - 1;
 	}
 
-	if (buffer.GetMedia() != NULL)
+	std::list<float>* pdata = NULL;
+
+	if (_timingsource == "Polyphonic Transcription")
 	{
-		std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_NOTES, "");
-
-		if (pdata != NULL)
+		if (buffer.GetMedia() != NULL)
 		{
-			ReduceChannels(pdata, _startMidiChannel, _endMidiChannel, _showSharps);
+			pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_NOTES, "");
+		}
+	}
+	else
+	{
+		int time = buffer.curPeriod * buffer.frameTimeInMs;
+		if (_timings.find(time) != _timings.end())
+		{
+			pdata = &_timings[time];
+		}
+	}
 
-			if (_type == "True Piano")
-			{
-				DrawTruePiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel);
-			}
-			else if (_type == "Bars")
-			{
-				DrawBarsPiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel);
-			}
+	if (pdata != NULL)
+	{
+		ReduceChannels(pdata, _startMidiChannel, _endMidiChannel, _showSharps);
+
+		if (_type == "True Piano")
+		{
+			DrawTruePiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel, _scale);
+		}
+		else if (_type == "Bars")
+		{
+			DrawBarsPiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel, _scale);
 		}
 	}
 }
@@ -157,7 +216,7 @@ bool PianoEffect::KeyDown(std::list<float>* pdata, int ch)
 	return false;
 }
 
-void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end)
+void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale)
 {
 	xlColor wkcolour, bkcolour, wkdcolour, bkdcolour, kbcolour;
 
@@ -281,11 +340,11 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 		{
 			if (KeyDown(pdata, i))
 			{
-				buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt, wkdcolour, false);
+				buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt * scale / 100, wkdcolour, false);
 			}
 			else
 			{
-				buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt, wkcolour, false);
+				buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt *scale / 100, wkcolour, false);
 			}
 			x += fwkw;
 		}
@@ -297,7 +356,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 		x = fwkw;
 		for (int i = 0; i < wkcount; i++)
 		{
-			buffer.DrawLine(x, 0, x, buffer.BufferHt, kbcolour);
+			buffer.DrawLine(x, 0, x, buffer.BufferHt * scale / 100, kbcolour);
 			x += fwkw;
 		}
 	}
@@ -324,11 +383,11 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 			{
 				if (KeyDown(pdata, i))
 				{
-					buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt / 2, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt, bkdcolour, false);
+					buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt * scale / 200, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt * scale / 100, bkdcolour, false);
 				}
 				else
 				{
-					buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt / 2, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt, bkcolour, false);
+					buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt * scale / 200, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt * scale / 100, bkcolour, false);
 				}
 				if (!IsSharp(i + 1) && !IsSharp(i + 2))
 				{
@@ -343,7 +402,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	}
 }
 
-void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end)
+void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale)
 {
 	xlColor wkcolour, bkcolour, wkdcolour, bkdcolour;
 
@@ -404,9 +463,9 @@ void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	int wkh = buffer.BufferHt;
 	if (sharps)
 	{
-		wkh = buffer.BufferHt * 2.0 / 3.0;
+		wkh = buffer.BufferHt * 2.0 * scale / 300.0;
 	}
-	int bkb = buffer.BufferHt / 3.0;
+	int bkb = buffer.BufferHt * scale / 300.0;
 	for (int i = start; i <= end; i++)
 	{
 		if (!IsSharp(i))
@@ -427,14 +486,98 @@ void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, b
 			{
 				if (KeyDown(pdata, i))
 				{
-					buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt, bkdcolour, false);
+					buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt * scale / 100, bkdcolour, false);
 				}
 				else
 				{
-					buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt, bkcolour, false);
+					buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt * scale / 100, bkcolour, false);
 				}
 				x += fwkw;
 			}
 		}
 	}
+}
+
+std::vector<float> PianoEffect::Parse(wxString& l)
+{
+	std::vector<float> res;
+	wxString s = l;
+	while (s.Len() != 0)
+	{
+		int end = s.First('\t');
+		if (end > 0)
+		{
+			res.push_back(wxAtof(s.SubString(0, end - 1)));
+			s = s.Right(s.Len() - end - 1);
+		}
+		else
+		{
+			res.push_back(wxAtof(s));
+			s = "";
+		}
+	}
+
+	return res;
+}
+
+int PianoEffect::LowerTS(float t, int intervalMS)
+{
+	int res = t * 1000;
+	res = res - (res % intervalMS);
+	return res;
+}
+int PianoEffect::UpperTS(float t, int intervalMS)
+{
+	int res = t * 1000;
+	res = res + (intervalMS - res % intervalMS);
+	return res;
+}
+
+std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, int intervalMS)
+{
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	std::map<int, std::list<float>> res;
+
+	wxTextFile f(file);
+
+	if (f.Open())
+	{
+		while (!f.Eof())
+		{
+			wxString l = f.GetNextLine();
+			std::vector<float> components = Parse(l);
+			if (components.size() != 3)
+			{
+				// this is a problem ... there should be 3 floating point numbers
+				logger.warn("Invalid data in audacity file - 3 tab separated floating point values expected: " + l);
+				break;
+			}
+			else
+			{
+				int start = LowerTS(components[0], intervalMS);
+				int end = UpperTS(components[1], intervalMS);
+				for (int i = start; i <= end; i += intervalMS)
+				{
+					if (res.find(i) == res.end())
+					{
+						std::list<float> f;
+						f.push_back(components[2]);
+						res[i] = f;
+					}
+					else
+					{
+						res[i].push_back(components[2]);
+					}
+				}
+			}
+		}
+	}
+
+	return res;
+}
+std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS)
+{
+	std::map<int, std::list<float>> res;
+
+	return res;
 }

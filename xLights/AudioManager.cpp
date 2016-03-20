@@ -984,6 +984,7 @@ int AudioManager::OpenMediaFile()
 
 void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
 {
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
 	// setup our conversion format ... we need to conver the input to a standard format before we can process anything
 	uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
 	int out_nb_samples = _trackSize;
@@ -1059,7 +1060,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 					if (read + frame->nb_samples > _trackSize)
 					{
 						// I dont understand why this happens ... add logging when i can
-						int a = 0;
+						logger.warn("This shouldnt happen ... read ["+ wxString::Format("%i", read) +"] + nb_samples ["+ wxString::Format("%i", frame->nb_samples) +"] > _tracksize ["+ wxString::Format("%i", _trackSize) +"] .");
 					}
 
 					// copy the PCM data into the PCM buffer for playing
