@@ -20,6 +20,7 @@ const long PreviewModels::ID_BITMAPBUTTON4 = wxNewId();
 const long PreviewModels::ID_BITMAPBUTTON3 = wxNewId();
 const long PreviewModels::ID_BITMAPBUTTON1 = wxNewId();
 const long PreviewModels::ID_BITMAPBUTTON2 = wxNewId();
+const long PreviewModels::ID_STATICTEXT1 = wxNewId();
 const long PreviewModels::ID_STATICTEXT2 = wxNewId();
 const long PreviewModels::ID_LISTBOX_MODELS_IN_GROUP = wxNewId();
 //*)
@@ -36,6 +37,8 @@ END_EVENT_TABLE()
 PreviewModels::PreviewModels(wxWindow* parent,const std::string &group, ModelManager &Models, wxWindowID id,const wxPoint& pos,const wxSize& size) :
     mModels(Models), mGroup(group)
 {
+    
+    
 	//(*Initialize(PreviewModels)
 	wxBitmapButton* BitmapButton2;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -101,6 +104,8 @@ PreviewModels::PreviewModels(wxWindow* parent,const std::string &group, ModelMan
 	FlexGridSizer11->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
 	BitmapButton2 = new wxBitmapButton(this, ID_BITMAPBUTTON2, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_GO_DOWN")),wxART_TOOLBAR), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
 	FlexGridSizer11->Add(BitmapButton2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer11->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer12->Add(FlexGridSizer11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer9->AddGrowableRow(1);
@@ -127,6 +132,8 @@ PreviewModels::PreviewModels(wxWindow* parent,const std::string &group, ModelMan
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonUpClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonDownClick);
 	//*)
+    
+    SetTitle(group);
 	
     ChoiceModelLayoutType->SetSelection(1);
     

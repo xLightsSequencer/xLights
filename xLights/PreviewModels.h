@@ -23,6 +23,7 @@ class PreviewModels: public wxDialog
 		virtual ~PreviewModels();
 
 		//(*Declarations(PreviewModels)
+		wxStaticText* StaticText1;
 		wxChoice* ChoiceModelLayoutType;
 		wxStaticText* StaticText3;
 		wxListBox* ListBoxModelsInGroup;
@@ -45,6 +46,7 @@ class PreviewModels: public wxDialog
 		static const long ID_BITMAPBUTTON3;
 		static const long ID_BITMAPBUTTON1;
 		static const long ID_BITMAPBUTTON2;
+		static const long ID_STATICTEXT1;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTBOX_MODELS_IN_GROUP;
 		//*)
