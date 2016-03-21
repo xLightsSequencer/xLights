@@ -286,6 +286,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="effects/assist" />
+					<Add directory="../include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 -lX11" />
@@ -317,6 +318,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="effects/assist" />
+					<Add directory="../include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
