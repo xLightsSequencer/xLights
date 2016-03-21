@@ -161,12 +161,12 @@
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="ColorPanel.cpp" />
     <ClCompile Include="CurrentPreviewModels.cpp" />
+    <ClCompile Include="CustomModelDialog.cpp" />
     <ClCompile Include="DataLayer.cpp" />
     <ClCompile Include="DimmingCurve.cpp" />
     <ClCompile Include="DimmingCurvePanel.cpp" />
     <ClCompile Include="DisplayElementsPanel.cpp" />
     <ClCompile Include="djdebug.cpp" />
-    <ClCompile Include="dlgPreviewSize.cpp" />
     <ClCompile Include="DrawGLUtils.cpp" />
     <ClCompile Include="E131Dialog.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
@@ -272,9 +272,15 @@
     <ClCompile Include="KeyBindings.cpp" />
     <ClCompile Include="kiss_fft\kiss_fft.c" />
     <ClCompile Include="kiss_fft\tools\kiss_fftr.c" />
+    <ClCompile Include="LayoutPanel.cpp" />
     <ClCompile Include="LMSImportChannelMapDialog.cpp" />
     <ClCompile Include="LorConvertDialog.cpp" />
     <ClCompile Include="LyricsDialog.cpp" />
+    <ClCompile Include="MIDI\Binasc.cpp" />
+    <ClCompile Include="MIDI\MidiEvent.cpp" />
+    <ClCompile Include="MIDI\MidiEventList.cpp" />
+    <ClCompile Include="MIDI\MidiFile.cpp" />
+    <ClCompile Include="MIDI\MidiMessage.cpp" />
     <ClCompile Include="ModelDialog.cpp" />
     <ClCompile Include="ModelDimmingCurveDialog.cpp" />
     <ClCompile Include="ModelFaceDialog.cpp" />
@@ -335,6 +341,7 @@
     <ClCompile Include="serial.cpp" />
     <ClCompile Include="SerialPortWithRate.cpp" />
     <ClCompile Include="ShowDatesDialog.cpp" />
+    <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
     <ClCompile Include="SuperStarImportDialog.cpp" />
     <ClCompile Include="TabConvert.cpp" />
@@ -386,7 +393,6 @@
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
     <ClInclude Include="DisplayElementsPanel.h" />
-    <ClInclude Include="dlgPreviewSize.h" />
     <ClInclude Include="DrawGLUtils.h" />
     <ClInclude Include="E131Dialog.h" />
     <ClInclude Include="EffectAssist.h" />

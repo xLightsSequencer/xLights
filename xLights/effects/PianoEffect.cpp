@@ -7,8 +7,15 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
+#include <vector>
+
 #include "../../include/piano.xpm"
 #include <log4cpp/Category.hh>
+
+//#define ENABLEMIDI
+#ifdef ENABLEMIDI
+#include "../MIDI/MidiFile.h"
+#endif
 
 PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano", piano, piano, piano, piano, piano)
 {
@@ -575,9 +582,90 @@ std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, 
 
 	return res;
 }
+
 std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS)
 {
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
 	std::map<int, std::list<float>> res;
 
+#ifdef ENABLEMIDI
+	float speedadjust;
+	if (speedAdjust < 0)
+	{
+		speedadjust = speedAdjust / 200.0 + 1;
+	}
+	else
+	{
+		speedadjust = (speedAdjust + 100.0) / 100.0;
+	}
+
+	bool notestate[128];
+	for (int i = 0; i <= 127; i++)
+	{
+		notestate[i] = false;
+	}
+
+	MidiFile midifile;
+	float lasttime = -1;
+	if (midifile.read(file) != 0)
+	{
+		midifile.doTimeAnalysis();
+
+		// process each event
+		for (int i = 0; i < midifile.getNumEvents(0); i++)
+		{
+			MidiEvent e = midifile.getEvent(0, i);
+			float time;
+			time = startAdjustMS + midifile.getTimeInSeconds(0, i) * speedadjust;
+
+			if (time != lasttime)
+			{
+				if (lasttime >= 0)
+				{
+					// we can update things now
+					int start = LowerTS(lasttime, intervalMS);
+					int end = UpperTS(time, intervalMS);
+
+					for (int j = start; j < end; j += intervalMS)
+					{
+						std::list<float> f;
+						for (int k = 0; k <= 127; k++)
+						{
+							if (notestate[k])
+							{
+								f.push_back(k);
+							}
+						}
+						res[j] = f;
+					}
+				}
+
+				lasttime = time;
+			}
+			if (e.isNote())
+			{
+				double duration = e.getDurationInSeconds();
+				double t = e.seconds;
+				int tick = e.tick;
+				int key = e.getKeyNumber();
+				int ch = e.getChannel();
+				int track = e.track;
+
+				if (e.isNoteOn())
+				{
+					notestate[e.getChannel()] = true;
+				}
+				else if (e.isNoteOff())
+				{
+					notestate[e.getChannel()] = false;
+				}
+			}
+		}
+	}
+	else
+	{
+		logger.warn("Invalid MIDI file " + file);
+	}
+#endif
 	return res;
 }

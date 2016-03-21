@@ -279,6 +279,15 @@ void PianoPanel::OnTextCtrl_Piano_FileText(wxCommandEvent& event)
 
 void PianoPanel::OnButton_Piano_FileClick(wxCommandEvent& event)
 {
+	wxString notes = Choice_Piano_Notes_Source->GetStringSelection();
+	if (notes == "Audacity Timing File")
+	{
+		FileDialog1->SetWildcard("Text Files|*.txt|All Files|*.*");
+	}
+	else if (notes == "MIDI File")
+	{
+		FileDialog1->SetWildcard("MIDI Files|*.mid;*.midi|All Files|*.*");
+	}
 	if (FileDialog1->ShowModal() == wxID_OK)
 	{
 		TextCtrl_Piano_File->SetValue(FileDialog1->GetDirectory() +"/"+ FileDialog1->GetFilename());
