@@ -4,7 +4,7 @@
 
 #include "CandyCaneModel.h"
 
-CandyCaneModel::CandyCaneModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) : _reverse(false)
+CandyCaneModel::CandyCaneModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) : _reverse(false), skew(0)
 {
     SetFromXml(node, netInfo, zeroBased);
 }
@@ -19,21 +19,29 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 20);
     p->SetEditor("SpinCtrl");
-    
-    p = grid->Append(new wxUIntProperty("Nodes Per Cane", "CandyCaneNodes", parm2));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 250);
-    p->SetEditor("SpinCtrl");
-    
+    if (SingleNode) {
+        p = grid->Append(new wxUIntProperty("Lights Per Cane", "CandyCaneNodes", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 250);
+        p->SetEditor("SpinCtrl");
+    } else {
+        p = grid->Append(new wxUIntProperty("Nodes Per Cane", "CandyCaneNodes", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 250);
+        p->SetEditor("SpinCtrl");
+    }
     p = grid->Append(new wxUIntProperty("Lights Per Node", "CandyCaneLights", parm3));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
-
-    //p = grid->Append(new wxUIntProperty("Arc Degrees", "ArchesArc", arc));
-    //p->SetAttribute("Min", 1);
-    //p->SetAttribute("Max", 180);
-    //p->SetEditor("SpinCtrl");
+    if (SingleNode) {
+        p->Hide(true);
+    }
+    
+    p = grid->Append(new wxIntProperty("Cane Rotation", "CandyCaneSkew", skew));
+    p->SetAttribute("Min", -180 );
+    p->SetAttribute("Max", 180);
+    p->SetEditor("SpinCtrl");
 
 	p = grid->Append(new wxBoolProperty("Reverse", "CandyCaneReverse", _reverse));
 	p->SetEditor("CheckBox");
@@ -65,14 +73,29 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
 		ModelXml->AddAttribute("CandyCaneReverse", event.GetPropertyValue().GetBool()? "true" : "false");
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
         return 3;
-    }
-	else if ("CandyCaneSticks" == event.GetPropertyName()) {
+    } else if ("CandyCaneSkew" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("CandyCaneSkew");
+        ModelXml->AddAttribute("CandyCaneSkew", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        return 3;
+    } else if ("CandyCaneSticks" == event.GetPropertyName()) {
 		ModelXml->DeleteAttribute("CandyCaneSticks");
 		ModelXml->AddAttribute("CandyCaneSticks", event.GetPropertyValue().GetBool() ? "true" : "false");
 		SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
         grid->GetPropertyByName("CandyCaneReverse")->Enable(!event.GetPropertyValue().GetBool());
 		return 3;
-	}
+    } else if (event.GetPropertyName() == "ModelStringType") {
+        int i = Model::OnPropertyGridChange(grid, event);
+        wxPGProperty *p = grid->GetPropertyByName("CandyCaneLights");
+        p->Hide(SingleNode);
+        p = grid->GetPropertyByName("CandyCaneNodes");
+        if (SingleNode) {
+            p->SetLabel("Lights Per Cane");
+        } else {
+            p->SetLabel("Nodes Per Cane");
+        }
+        return i;
+    }
     return Model::OnPropertyGridChange(grid, event);
 }
 
@@ -116,15 +139,15 @@ void CandyCaneModel::InitModel() {
     int SegmentsPerCane=parm2;
 	_reverse = (ModelXml->GetAttribute("CandyCaneReverse", "false") == "true");
 	_sticks = (ModelXml->GetAttribute("CandyCaneSticks", "false") == "true");
-
-    SetBufferSize(NumCanes,SegmentsPerCane);
-    if (SingleNode) 
-	{
-        SetNodeCount(NumCanes, SegmentsPerCane*parm3, rgbOrder);
-    } else 
-	{
-        SetNodeCount(NumCanes, SegmentsPerCane, rgbOrder);
-        if (parm3 > 1) 
+    skew = wxAtoi(ModelXml->GetAttribute("CandyCaneSkew", "0"));
+    
+    SetNodeCount(NumCanes, SegmentsPerCane, rgbOrder);
+    if (SingleNode) {
+        SegmentsPerCane = 1;
+        parm3 = parm2;
+        parm2 = 1;
+    } else {
+        if (parm3 > 1)
 		{
             for (int x = 0; x < Nodes.size(); x++) 
 			{
@@ -132,7 +155,7 @@ void CandyCaneModel::InitModel() {
             }
         }
     }
-    SetRenderSize(NumCanes,SegmentsPerCane);
+    SetBufferSize(NumCanes,SegmentsPerCane);
     
     for (int y=0; y < NumCanes; y++) {
         for(int x=0; x<SegmentsPerCane; x++) {
@@ -161,18 +184,40 @@ int CandyCaneModel::CalcCannelsPerString() {
 inline double toRadians(long degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
+
+void rotate_point(float cx,float cy, float angle, float &x, float &y)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    
+    // translate point back to origin:
+    x -= cx;
+    y -= cy;
+    
+    // rotate point
+    float xnew = x * c - y * s;
+    float ynew = x * s + y * c;
+    
+    // translate point back:
+    x = xnew + cx;
+    y = ynew + cy;
+}
+
 void CandyCaneModel::SetCaneCoord() {
 	int NumCanes = parm1;
 	int SegmentsPerCane = parm2;
 	int LightsPerNode = parm3;
+    
 	int lightspercane = SegmentsPerCane * LightsPerNode;
+    float angle = toRadians(skew);
     
 	double height;
     double width;
 	if (_sticks)
 	{
-		height = lightspercane;
         width = NumCanes;
+        height = lightspercane;
+        //width = NumCanes;
         for (int x = 0; x < NumCanes; x++){
             int y = 0;
             for (size_t n = 0; n < SegmentsPerCane; n++) {
@@ -180,6 +225,10 @@ void CandyCaneModel::SetCaneCoord() {
                 for (size_t c = 0; c < CoordCount; c++) {
                     Nodes[n + x * SegmentsPerCane]->Coords[c].screenX = x - (double)NumCanes/2.0 + 0.5;
                     Nodes[n + x * SegmentsPerCane]->Coords[c].screenY = y - height/2.0;
+                    
+                    rotate_point(x - (double)NumCanes/2.0 + 0.5, - height/2.0, angle,
+                                 Nodes[n + x * SegmentsPerCane]->Coords[c].screenX,
+                                 Nodes[n + x * SegmentsPerCane]->Coords[c].screenY);
                     y++;
                 }
             }
@@ -188,6 +237,9 @@ void CandyCaneModel::SetCaneCoord() {
         double caneGap = 2.0;
         int upright = SegmentsPerCane * 6.0 / 9.0;
         upright *= parm3;
+        if (SingleNode) {
+            upright = parm3 * 6.0 / 9.0;
+        }
         double widthPerCane = double(lightspercane)*3.0/9.0;
         width = (double)NumCanes*widthPerCane + (NumCanes - 1) * caneGap;
         height = lightspercane - widthPerCane/2.0;
@@ -202,36 +254,59 @@ void CandyCaneModel::SetCaneCoord() {
             double y = -height/2.0;
             int curLight = 0;
             int curNode = 0;
+            int cx = x;
+            if (_reverse) {
+                cx -= widthPerCane/2;
+            } else {
+                cx += widthPerCane/2;
+            }
+
             while (curLight < upright) {
                 size_t CoordCount = GetCoordCount(curNode);
+                if (SingleNode) {
+                    CoordCount = upright;
+                }
                 for (size_t c = 0; c < CoordCount; c++) {
                     Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX = x;
                     Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY = y;
+                    
+                    rotate_point(cx, -height/2.0, angle,
+                                 Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX,
+                                 Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY);
+
                     y++;
                     curLight++;
                 }
-                curNode++;
+                if (!SingleNode) {
+                    curNode++;
+                }
             }
             y--;
-            if (_reverse) {
-                x -= widthPerCane/2;
-            } else {
-                x += widthPerCane/2;
-            }
+            x = cx;
             while (curLight < lightspercane) {
                 size_t CoordCount = GetCoordCount(curNode);
-                for (size_t c = 0; c < CoordCount; c++)
+                size_t c = 0;
+                if (SingleNode) {
+                    CoordCount = lightspercane;
+                    c = curLight;
+                }
+                for (; c < CoordCount; c++)
                 {
                     // drawing left to right
-                    double angle = M_PI - M_PI * (curLight - upright + 1) / arclights;
-                    double y2 = sin(angle)*widthPerCane/2;
-                    double x2 = cos(angle)*widthPerCane/2;
+                    double aangle = M_PI - M_PI * (curLight - upright + 1) / arclights;
+                    double y2 = sin(aangle)*widthPerCane/2;
+                    double x2 = cos(aangle)*widthPerCane/2;
                     if (_reverse) {
                         Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX = x - x2;
                     } else {
                         Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX = x + x2;
                     }
                     Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY = y + y2;
+                    
+                    rotate_point(cx , -height/2.0, angle,
+                                 Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenX,
+                                 Nodes[curNode + i * SegmentsPerCane]->Coords[c].screenY);
+
                     curLight++;
                 }
                 curNode++;

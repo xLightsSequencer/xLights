@@ -98,7 +98,7 @@ private:
 
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     m_creating_bound_rect(false), mPointSize(2), m_rotating(false), m_dragging(false),
-    m_over_handle(0), selectedButton(nullptr), newModel(nullptr)
+    m_over_handle(0), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr)
 {
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 

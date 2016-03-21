@@ -29,6 +29,7 @@ class CandyCaneModel : public Model
         void SetCaneCoord();
 		bool _reverse;
 		bool _sticks;
+        int skew;
 };
 
 #endif // CANDYCANEMODEL_H
