@@ -293,7 +293,7 @@
 					<Add option="-lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg" />
 					<Add option="-llog4cpp" />
 					<Add option="`sdl-config --libs`" />
-					<Add option="`wx-config --libs std,media,gl,aui`" />
+					<Add option="`wx-config --libs std,media,gl,aui,propgrid`" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -326,7 +326,7 @@
 					<Add option="-lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg" />
 					<Add option="-llog4cpp" />
 					<Add option="`sdl-config --libs`" />
-					<Add option="`wx-config --version=3.0 --libs std,media,gl,aui`" />
+					<Add option="`wx-config --version=3.0 --libs std,media,gl,aui,propgrid`" />
 				</Linker>
 			</Target>
 			<Target title="64bit  MinGW_Release">
