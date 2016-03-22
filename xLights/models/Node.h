@@ -42,7 +42,6 @@ public:
     unsigned short sparkle;
     unsigned short StringNum; // node is part of this string (0 is the first string)
     std::vector<CoordStruct> Coords;
-    std::vector<CoordStruct> OrigCoords;
     std::string *name = nullptr;
     const Model *model = nullptr;
 
@@ -54,7 +53,7 @@ public:
         offsets[2] = 2;
     }
     NodeBaseClass(const NodeBaseClass &c): sparkle(c.sparkle), ActChan(c.ActChan), StringNum(c.StringNum),
-        Coords(c.Coords), OrigCoords(c.OrigCoords), name(nullptr), chanCnt(c.chanCnt), model(c.model)
+        Coords(c.Coords), name(nullptr), chanCnt(c.chanCnt), model(c.model)
     {
         if (c.name != nullptr) {
             name = new std::string(*(c.name));
@@ -131,14 +130,6 @@ public:
         return Coords.size() > 0;
     }
 
-    bool OrigCoordsSaved()
-    {
-        return Coords.size() == OrigCoords.size();
-    }
-    void SaveCoords()
-    {
-        OrigCoords = Coords;
-    }
     void SetName(const std::string &n) {
         if (name != nullptr) {
             delete name;

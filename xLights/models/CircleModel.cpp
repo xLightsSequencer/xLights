@@ -100,7 +100,7 @@ void CircleModel::InitCircle() {
             double pct = (loop_count == 1) ? (double)n : (double)n / (double)(loop_count-1);
             size_t CoordCount=GetCoordCount(node);
             for(size_t c=0; c < CoordCount; c++) {
-                int x_pos = (circle == 0) ? idx : (int)(pct*(double)(maxLights-1));
+                int x_pos = (circle == 0) ? idx : std::round(pct*(double)(maxLights-1));
                 Nodes[node]->Coords[c].bufX=x_pos;
                 Nodes[node]->Coords[c].bufY=circle;
                 idx++;
