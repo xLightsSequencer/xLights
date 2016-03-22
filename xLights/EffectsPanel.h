@@ -13,6 +13,7 @@
 #include <wx/fontdlg.h>
 #include <unordered_map> //-DJ
 #include <wx/colordlg.h>
+#include "AudioManager.h"
 
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 
@@ -30,7 +31,7 @@ public:
     bool EffectChanged;
     void SetDefaultPalette();
     wxString* CurrentDir;
-    void SetDefaultEffectValues(Model *cls, const wxString &name);
+    void SetDefaultEffectValues(Model *cls, AudioManager* audio, const wxString &name);
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
 

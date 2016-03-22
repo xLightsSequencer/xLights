@@ -493,7 +493,6 @@
     <ClInclude Include="LMSImportChannelMapDialog.h" />
     <ClInclude Include="LorConvertDialog.h" />
     <ClInclude Include="LyricsDialog.h" />
-    <ClInclude Include="ModelClass.h" />
     <ClInclude Include="ModelDialog.h" />
     <ClInclude Include="ModelDimmingCurveDialog.h" />
     <ClInclude Include="ModelFaceDialog.h" />
@@ -574,7 +573,6 @@
     <ClInclude Include="vamp-hostsdk\Window.h" />
     <ClInclude Include="VAMPPluginDialog.h" />
     <ClInclude Include="ViewsDialog.h" />
-    <ClInclude Include="WholeHouseModelNameDialog.h" />
     <ClInclude Include="wininet.h" />
     <ClInclude Include="wxCheckedListCtrl.h" />
     <ClInclude Include="xlColorCanvas.h" />

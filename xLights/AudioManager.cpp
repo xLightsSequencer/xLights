@@ -144,6 +144,7 @@ AudioManager::AudioManager(std::string audio_file, xLightsXmlFile* xml_file, int
 	_frameDataPrepared = false; // frame data is used by effects to react to the sone
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 	_pcmdata = NULL;
+	_polyphonicTranscriptionDone = false;
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
 	_extra = std::max(step, block) + 1;
@@ -231,6 +232,135 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 	return res;
 }
 
+void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback fn)
+{
+	// dont redo it
+	if (_polyphonicTranscriptionDone)
+	{
+		return;
+	}
+
+	log4cpp::Category& logger = log4cpp::Category::getRoot();
+	logger.info("Polyphonic transcription started on file " + _audio_file);
+
+	// Initialise Polyphonic Transcription
+	_vamp.GetAllAvailablePlugins(this); // this initialises Vamp
+	Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
+	size_t pref_step = 0;
+
+	if (pt == NULL)
+	{
+		logger.warn("Unable to load Polyphonic Transcription VAMP plugin.");
+	}
+	else
+	{
+		float *pdata[2];
+		int frames = _lengthMS / _intervalMS;
+		while (frames * _intervalMS < _lengthMS)
+		{
+			frames++;
+		}
+
+		pref_step = pt->getPreferredStepSize();
+		size_t pref_block = pt->getPreferredBlockSize();
+
+		int channels = GetChannels();
+		if (channels > pt->getMaxChannelCount()) {
+			channels = 1;
+		}
+
+		pt->initialise(channels, pref_step, pref_block);
+
+		bool first = true;
+		int start = 0;
+		int len = GetTrackSize();
+		while (len)
+		{
+			int request = pref_block;
+			if (request > len)
+			{
+				request = len;
+			}
+
+			pdata[0] = GetLeftDataPtr(start);
+			pdata[1] = GetRightDataPtr(start);
+
+			Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, GetRate());
+			Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
+
+			if (first && features.size() > 0)
+			{
+				log4cpp::Category& logger = log4cpp::Category::getRoot();
+				logger.warn("Polyphonic transcription data process oddly retrieved data.");
+				first = false;
+			}
+
+			if (len > (int)pref_step)
+			{
+				len -= pref_step;
+			}
+			else
+			{
+				len = 0;
+			}
+			start += pref_step;
+		}
+
+		// Process the Polyphonic Transcription
+		try
+		{
+			Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
+
+			for (int i = 0; i < frames; i++)
+			{
+				// provide a progress update every 100 frames
+				if (i % 100 == 0)
+				{
+					fn(dlg, (int)(((float)i * 100.0) / (float)frames));
+				}
+				std::list<float> notes;
+				start = i * _intervalMS;
+				int end = start + _intervalMS;
+
+				for (int j = 0; j < features[0].size(); j++)
+				{
+					int currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
+					int currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
+					if (currentstart <= end && currentend >= start)
+					{
+						bool found = false;
+						for (auto x = notes.begin(); x != notes.end(); ++x)
+						{
+							if (*x == features[0][j].values[0])
+							{
+								found = true;
+								break;
+							}
+						}
+						if (!found)
+						{
+							notes.push_back(features[0][j].values[0]);
+						}
+					}
+				}
+
+				_frameData[i][4] = notes;
+			}
+			fn(dlg, 100);
+		}
+		catch (...)
+		{
+			logger.warn("Polyphonic Transcription threw an error getting the remaining features.");
+		}
+
+		//done with VAMP Polyphonic Transcriber
+		delete pt;
+		_polyphonicTranscriptionDone = true;
+	}
+
+	logger.info("Polyphonic transcription completed.");
+}
+
 // Frame Data Extraction Functions
 // process audio data and build data for each frame
 void AudioManager::DoPrepareFrameData()
@@ -273,6 +403,7 @@ void AudioManager::DoPrepareFrameData()
 	for (int i = 0; i < frames; i++)
 	{
 		std::vector<std::list<float>> aFrameData;
+		aFrameData.resize(5); // preallocate the spots we will need
 
 		// accumulators
 		float max = -100.0;
@@ -379,10 +510,10 @@ void AudioManager::DoPrepareFrameData()
 		minlist.push_back(min);
 		std::list<float> spreadlist;
 		spreadlist.push_back(spread);
-		aFrameData.push_back(maxlist);
-		aFrameData.push_back(minlist);
-		aFrameData.push_back(spreadlist);
-		aFrameData.push_back(spectrogram);
+		aFrameData[0] = maxlist;
+		aFrameData[1] = minlist;
+		aFrameData[2] = spreadlist;
+		aFrameData[3] = spectrogram;
 
 		_frameData.push_back(aFrameData);
 	}
@@ -413,113 +544,6 @@ void AudioManager::DoPrepareFrameData()
 			*ff = *ff * bigspectrogramscale;
 		}
 	}
-
-// KW
-// This is disabled to minimise problems for others while I complete development
-// I will remove this when I have a way of handling exceptions from vamp plugin
-//#define ENABLE_PT
-#ifdef ENABLE_PT
-	// Initialise Polyphonic Transcription
-	_vamp.GetAllAvailablePlugins(this); // this initialises Vamp
-	Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
-	size_t pref_step = 0;
-
-	if (pt == NULL)
-	{
-		logger.warn("Unable to load Polyphonic Transcription VAMP plugin.");
-	}
-	else
-	{
-		pref_step = pt->getPreferredStepSize();
-		size_t pref_block = pt->getPreferredBlockSize();
-
-		int channels = GetChannels();
-		if (channels > pt->getMaxChannelCount()) {
-			channels = 1;
-		}
-
-		pt->initialise(channels, pref_step, pref_block);
-
-		bool first = true;
-		int start = 0;
-		int len = GetTrackSize();
-		while (len)
-		{
-			int request = pref_block;
-			if (request > len)
-			{
-				request = len;
-			}
-
-			pdata[0] = GetLeftDataPtr(start);
-			pdata[1] = GetRightDataPtr(start);
-
-			Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, GetRate());
-			Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
-
-			if (first && features.size() > 0)
-			{
-				log4cpp::Category& logger = log4cpp::Category::getRoot();
-				logger.warn("Polyphonic transcription data process oddly retrieved data.");
-				first = false;
-			}
-
-			if (len > (int)pref_step) 
-			{
-				len -= pref_step;
-			}
-			else 
-			{
-				len = 0;
-			}
-			start += pref_step;
-		}
-
-		// Process the Polyphonic Transcription
-		try
-		{
-			Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
-
-			for (int i = 0; i < frames; i++)
-			{
-				std::list<float> notes;
-				start = i * _intervalMS;
-				int end = start + _intervalMS;
-
-				for (int j = 0; j < features[0].size(); j++)
-				{
-					int currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
-					int currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
-					if (currentstart <= end && currentend >= start)
-					{
-						bool found = false;
-						for (auto x = notes.begin(); x != notes.end(); ++x)
-						{
-							if (*x == features[0][j].values[0])
-							{
-								found = true;
-								break;
-							}
-						}
-						if (!found)
-						{
-							notes.push_back(features[0][j].values[0]);
-						}
-					}
-				}
-
-				_frameData[i].push_back(notes);
-			}
-		}
-		catch (...)
-		{
-			logger.warn("Polyphonic Transcription threw an error getting the remaining features.");
-		}
-
-		//done with VAMP Polyphonic Transcriber
-		delete pt;
-	}
-#endif
 
 	// flag the fact that the data is all ready
 	_frameDataPrepared = true;

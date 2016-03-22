@@ -16,6 +16,7 @@ class SettingsMap;
 class RenderBuffer;
 class wxSlider;
 class wxCheckBox;
+class AudioManager;
 
 class RenderableEffect
 {
@@ -39,8 +40,9 @@ class RenderableEffect
         virtual void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 
         wxPanel *GetPanel(wxWindow *parent);
-        virtual void SetDefaultParameters(Model *cls) {}
-        virtual std::string GetEffectString();
+		virtual void SetDefaultParameters(Model *cls) {}
+		virtual void SetAudio(AudioManager *cls) {}
+		virtual std::string GetEffectString();
 
         //Methods for rendering the effect
         virtual bool CanRenderOnBackgroundThread() { return true; }

@@ -1,6 +1,8 @@
 #include "PianoPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "PianoEffect.h"
+#include <wx/textfile.h>
 
 //(*InternalHeaders(PianoPanel)
 #include <wx/sizer.h>
@@ -25,6 +27,10 @@
 #include <wx/stdpaths.h>
 #include <wx/filepicker.h>
 
+#include "../MIDI/MidiFile.h"
+#include <log4cpp/Category.hh>
+#include "../xLightsMain.h"
+
 //(*IdInit(PianoPanel)
 const long PianoPanel::ID_STATICTEXT3 = wxNewId();
 const long PianoPanel::ID_CHOICE_Piano_Notes_Source = wxNewId();
@@ -48,6 +54,10 @@ const long PianoPanel::ID_BITMAPBUTTON1 = wxNewId();
 const long PianoPanel::ID_STATICTEXT4 = wxNewId();
 const long PianoPanel::ID_TEXTCTRL_Piano_File = wxNewId();
 const long PianoPanel::ID_BUTTON_Piano_File = wxNewId();
+const long PianoPanel::ID_STATICTEXT8 = wxNewId();
+const long PianoPanel::ID_CHOICE_PIano_MIDITrack = wxNewId();
+const long PianoPanel::ID_STATICTEXT9 = wxNewId();
+const long PianoPanel::ID_BITMAPBUTTON_PIano_MIDITrack = wxNewId();
 const long PianoPanel::ID_STATICTEXT5 = wxNewId();
 const long PianoPanel::IDD_SLIDER_Piano_MIDI_Start = wxNewId();
 const long PianoPanel::ID_TEXTCTRL_Piano_MIDI_Start = wxNewId();
@@ -65,6 +75,8 @@ END_EVENT_TABLE()
 
 PianoPanel::PianoPanel(wxWindow* parent)
 {
+	_media = NULL;
+
 	//(*Initialize(PianoPanel)
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer27;
@@ -80,8 +92,8 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Notes Source"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer27->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Piano_Notes_Source = new wxChoice(this, ID_CHOICE_Piano_Notes_Source, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Piano_Notes_Source"));
-	Choice_Piano_Notes_Source->SetSelection( Choice_Piano_Notes_Source->Append(_("Polyphonic Transcription")) );
-	Choice_Piano_Notes_Source->Append(_("Audacity Timing File"));
+	Choice_Piano_Notes_Source->Append(_("Polyphonic Transcription"));
+	Choice_Piano_Notes_Source->SetSelection( Choice_Piano_Notes_Source->Append(_("Audacity Timing File")) );
 	Choice_Piano_Notes_Source->Append(_("MIDI File"));
 	FlexGridSizer27->Add(Choice_Piano_Notes_Source, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Piano_Notes_Source = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_Notes_Source, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_Notes_Source"));
@@ -145,6 +157,15 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	FlexGridSizer42->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer2->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Choice_PIano_MIDITrack = new wxChoice(this, ID_CHOICE_PIano_MIDITrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PIano_MIDITrack"));
+	FlexGridSizer2->Add(Choice_PIano_MIDITrack, 1, wxALL|wxEXPAND, 2);
+	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+	FlexGridSizer2->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_PIano_MIDITrack = new wxBitmapButton(this, ID_BITMAPBUTTON_PIano_MIDITrack, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_PIano_MIDITrack"));
+	BitmapButton_PIano_MIDITrack->SetDefault();
+	FlexGridSizer2->Add(BitmapButton_PIano_MIDITrack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("MIDI Start Time Adjust"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Piano_MIDI_Start = new wxSlider(this, IDD_SLIDER_Piano_MIDI_Start, 0, -1000, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Piano_MIDI_Start"));
@@ -179,6 +200,7 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	Connect(ID_TEXTCTRL_Piano_Scale,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PianoPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
 	Connect(ID_BUTTON_Piano_File,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnButton_Piano_FileClick);
+	Connect(ID_BITMAPBUTTON_PIano_MIDITrack,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
 	Connect(IDD_SLIDER_Piano_MIDI_Start,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PianoPanel::UpdateLinkedTextCtrl);
 	Connect(ID_TEXTCTRL_Piano_MIDI_Start,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PianoPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_Piano_MIDI_Start,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
@@ -189,6 +211,9 @@ PianoPanel::PianoPanel(wxWindow* parent)
     SetName("ID_PANEL_PIANO");
 
 	ValidateWindow();
+	// this is slow so we do it outside of the commonly called ValidateWindow
+	MIDIExtraValidateWindow();
+	AudacityExtraValidateWindow();
 }
 
 PianoPanel::~PianoPanel()
@@ -220,9 +245,125 @@ void PianoPanel::OnSpinCtrl_Piano_EndMIDIChange(wxSpinEvent& event)
 	}
 }
 
+void Progress(wxProgressDialog* pd, int p)
+{
+	if (pd != NULL)
+	{
+		pd->Update(p);
+	}
+}
+
 void PianoPanel::OnChoice_Piano_Notes_SourceSelect(wxCommandEvent& event)
 {
+	wxString notes = Choice_Piano_Notes_Source->GetStringSelection();
+	if (notes == "Polyphonic Transcription")
+	{
+		if (_media != NULL)
+		{
+			try
+			{
+				if (!_media->IsPolyphonicTranscriptionDone())
+				{
+					wxProgressDialog pd("Processing Audio", "");
+					_media->DoPolyphonicTranscription(&pd, &Progress);
+				}
+			}
+			catch (...)
+			{
+				log4cpp::Category& logger = log4cpp::Category::getRoot();
+				logger.warn("Exception caught processing Polyphonic Transcription");
+			}
+		}
+	}
+
 	ValidateWindow();
+
+	// this is slow so we do it outside of the commonly called ValidateWindow
+	MIDIExtraValidateWindow();
+	AudacityExtraValidateWindow();
+}
+
+void PianoPanel::AudacityExtraValidateWindow()
+{
+	wxString notes = Choice_Piano_Notes_Source->GetStringSelection();
+	if (notes == "Audacity Timing File")
+	{
+		wxString file = TextCtrl_Piano_File->GetValue();
+		wxTextFile f(file);
+
+		if (file != "" && wxFile::Exists(file))
+		{
+			if (f.Open())
+			{
+				wxString l = f.GetNextLine();
+				std::vector<float> components = PianoEffect::Parse(l);
+				if (components.size() != 3)
+				{
+					TextCtrl_Piano_File->SetBackgroundColour(*wxRED);
+				}
+			}
+		}
+	}
+}
+
+bool PianoPanel::MIDITrackContainsNotes(int track, MidiFile* midifile)
+{
+	for (int i = 0; i < midifile->getNumEvents(track); i++)
+	{
+		MidiEvent e = midifile->getEvent(track, i);
+		if (e.isNote())
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void PianoPanel::MIDIExtraValidateWindow()
+{
+	wxString notes = Choice_Piano_Notes_Source->GetStringSelection();
+	if (notes == "MIDI File")
+	{
+		wxString file = TextCtrl_Piano_File->GetValue();
+		MidiFile midifile;
+		if (file != "" && wxFile::Exists(file) && midifile.read(file) == 0)
+		{
+			// invalid midi file
+			TextCtrl_Piano_File->SetBackgroundColour(*wxRED);
+			Choice_PIano_MIDITrack->Enable(false);
+			BitmapButton_PIano_MIDITrack->Enable(false);
+		}
+		else
+		{
+			std::string selection = std::string(Choice_PIano_MIDITrack->GetStringSelection().c_str());
+			int tracks = midifile.getNumTracks();
+			Choice_PIano_MIDITrack->Clear();
+			Choice_PIano_MIDITrack->Append("All");
+			if (selection == "All")
+			{
+				Choice_PIano_MIDITrack->Select(0);
+			}
+			for (int i = 1; i <= tracks; i++)
+			{
+				if (MIDITrackContainsNotes(i-1, &midifile))
+				{
+					std::string n = std::string(wxString::Format("%i", i).c_str());
+					Choice_PIano_MIDITrack->Append(n);
+					if (selection == n)
+					{
+						Choice_PIano_MIDITrack->Select(i);
+					}
+				}
+			}
+			if (Choice_PIano_MIDITrack->GetStringSelection() == "")
+			{
+				Choice_PIano_MIDITrack->Select(0);
+			}
+			Choice_PIano_MIDITrack->Enable(true);
+			BitmapButton_PIano_MIDITrack->Enable(true);
+		}
+	}
 }
 
 void PianoPanel::ValidateWindow()
@@ -238,6 +379,8 @@ void PianoPanel::ValidateWindow()
 		TextCtrl_Piano_MIDI_Start->Enable(false);
 		BitmapButton_Piano_MIDI_Speed->Enable(false);
 		BitmapButton_Piano_MIDI_Start->Enable(false);
+		Choice_PIano_MIDITrack->Enable(false);
+		BitmapButton_PIano_MIDITrack->Enable(false);
 	}
 	else if (notes == "Audacity Timing File")
 	{
@@ -249,6 +392,8 @@ void PianoPanel::ValidateWindow()
 		TextCtrl_Piano_MIDI_Start->Enable(false);
 		BitmapButton_Piano_MIDI_Speed->Enable(false);
 		BitmapButton_Piano_MIDI_Start->Enable(false);
+		Choice_PIano_MIDITrack->Enable(false);
+		BitmapButton_PIano_MIDITrack->Enable(false);
 	}
 	else if (notes == "MIDI File")
 	{
@@ -275,6 +420,9 @@ void PianoPanel::ValidateWindow()
 void PianoPanel::OnTextCtrl_Piano_FileText(wxCommandEvent& event)
 {
     ValidateWindow();
+	// this is slow so we do it outside of the commonly called ValidateWindow
+	MIDIExtraValidateWindow();
+	AudacityExtraValidateWindow();
 }
 
 void PianoPanel::OnButton_Piano_FileClick(wxCommandEvent& event)
@@ -291,6 +439,9 @@ void PianoPanel::OnButton_Piano_FileClick(wxCommandEvent& event)
 	if (FileDialog1->ShowModal() == wxID_OK)
 	{
 		TextCtrl_Piano_File->SetValue(FileDialog1->GetDirectory() +"/"+ FileDialog1->GetFilename());
+		ValidateWindow();
+		// this is slow so we do it outside of the commonly called ValidateWindow
+		MIDIExtraValidateWindow();
+		AudacityExtraValidateWindow();
 	}
-	ValidateWindow();
 }

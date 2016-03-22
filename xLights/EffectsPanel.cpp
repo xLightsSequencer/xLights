@@ -23,7 +23,6 @@
 #include "../include/padlock16x16-red.xpm" //-DJ
 #include "../include/padlock16x16-blue.xpm" //-DJ
 
-
 #include "effects/EffectPanelUtils.h"
 
 //(*IdInit(EffectsPanel)
@@ -109,11 +108,12 @@ EffectsPanel::~EffectsPanel()
     //*)
 }
 
-void EffectsPanel::SetDefaultEffectValues(Model *cls, const wxString &name) {
+void EffectsPanel::SetDefaultEffectValues(Model *cls, AudioManager* audio, const wxString &name) {
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
         eff->SetDefaultParameters(cls);
-    }
+		eff->SetAudio(audio);
+	}
 }
 void EffectsPanel::SetSequenceElements(SequenceElements *els) {
     int x = 0;
@@ -234,7 +234,7 @@ void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
     wxScrolledWindow* w = (wxScrolledWindow*)EffectChoicebook->GetPage(EffectChoicebook->GetSelection());
 
     wxString ef = EffectChoicebook->GetPageText(EffectChoicebook->GetSelection());
-    SetDefaultEffectValues(nullptr, ef);
+    SetDefaultEffectValues(nullptr, nullptr, ef);
 
     wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
     // We do not have an actual effect in grid to send

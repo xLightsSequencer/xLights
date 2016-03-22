@@ -11,15 +11,12 @@
 
 #include "../../include/piano.xpm"
 #include <log4cpp/Category.hh>
-
-//#define ENABLEMIDI
-#ifdef ENABLEMIDI
 #include "../MIDI/MidiFile.h"
-#endif
 
 PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano", piano, piano, piano, piano, piano)
 {
     //ctor
+	_panel = NULL;
 }
 
 PianoEffect::~PianoEffect()
@@ -27,8 +24,17 @@ PianoEffect::~PianoEffect()
     //dtor
 }
 
+void PianoEffect::SetAudio(AudioManager* audio)
+{
+	if (_panel != NULL && audio != NULL)
+	{
+		_panel->SetAudio(audio);
+	}
+}
+
 wxPanel *PianoEffect::CreatePanel(wxWindow *parent) {
-    return new PianoPanel(parent);
+    _panel = new PianoPanel(parent);
+	return _panel;
 }
 
 void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -41,7 +47,8 @@ void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 		std::string(SettingsMap.Get("TEXTCTRL_Piano_File", "")),
 		SettingsMap.GetInt("TEXTCTRL_Piano_MIDI_Start"),
 		SettingsMap.GetInt("TEXTCTRL_Piano_MIDI_Speed"),
-		SettingsMap.GetInt("TEXTCTRL_Piano_Scale")
+		SettingsMap.GetInt("TEXTCTRL_Piano_Scale"),
+		std::string(SettingsMap.Get("CHOICE_PIano_MIDITrack", ""))
 		);
 }
 
@@ -61,10 +68,11 @@ public:
 	int _MIDISpeedAdjust;
 	std::map<int, std::list<float>> _timings;
 	int _scale;
+	std::string _MIDItrack;
 };
 
 //render piano fx during sequence:
-void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps, const std::string type, std::string timingsource, std::string file, int MIDIAdjustStart, int MIDIAdjustSpeed, int scale)
+void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps, const std::string type, std::string timingsource, std::string file, int MIDIAdjustStart, int MIDIAdjustSpeed, int scale, std::string MIDITrack)
 {
 	buffer.drawingContext->Clear();
 
@@ -84,6 +92,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 	int& _MIDIStartAdjust = cache->_MIDIStartAdjust;
 	std::map<int, std::list<float>>& _timings = cache->_timings;
 	int& _scale = cache->_scale;
+	std::string& _MIDITrack = cache->_MIDItrack;
 
 	if (_startMidiChannel != startmidi ||
 		_endMidiChannel != endmidi ||
@@ -93,12 +102,12 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 		_file != file ||
 		_scale != scale ||
 		_MIDISpeedAdjust != MIDIAdjustSpeed ||
-		_MIDIStartAdjust != MIDIAdjustStart)
+		_MIDIStartAdjust != MIDIAdjustStart ||
+		_MIDITrack != MIDITrack)
 	{
-		if ((_timingsource != timingsource || _file != file) && timingsource != "Polyphonic Transcription")
+		if ((_timingsource != timingsource || _file != file || _MIDITrack != MIDITrack || _MIDISpeedAdjust != MIDIAdjustSpeed || _MIDIStartAdjust != MIDIAdjustStart) && timingsource != "Polyphonic Transcription")
 		{
 			// need to load timings
-
 			_timings.clear();
 			if (wxFile::Exists(file))
 			{
@@ -108,7 +117,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 				}
 				else if (timingsource == "MIDI File")
 				{
-					_timings = LoadMIDIFile(file, buffer.frameTimeInMs, MIDIAdjustSpeed, MIDIAdjustStart * 10);
+					_timings = LoadMIDIFile(file, buffer.frameTimeInMs, MIDIAdjustSpeed, MIDIAdjustStart * 10, MIDITrack);
 				}
 			}
 		}
@@ -122,6 +131,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 		_MIDIStartAdjust = MIDIAdjustStart;
 		_scale = scale;
 		_file = file;
+		_MIDITrack = MIDITrack;
 	}
 
 	if (_endMidiChannel - _startMidiChannel + 1 > buffer.BufferWi)
@@ -583,12 +593,11 @@ std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, 
 	return res;
 }
 
-std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS)
+std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
 {
 	log4cpp::Category& logger = log4cpp::Category::getRoot();
 	std::map<int, std::list<float>> res;
 
-#ifdef ENABLEMIDI
 	float speedadjust;
 	if (speedAdjust < 0)
 	{
@@ -599,24 +608,36 @@ std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int 
 		speedadjust = (speedAdjust + 100.0) / 100.0;
 	}
 
-	bool notestate[128];
+	int notestate[128];
 	for (int i = 0; i <= 127; i++)
 	{
-		notestate[i] = false;
+		notestate[i] = 0;
 	}
 
 	MidiFile midifile;
 	float lasttime = -1;
 	if (midifile.read(file) != 0)
 	{
+		int ntrack = 0;
+		if (track == "All" || track == "")
+		{
+			midifile.joinTracks();
+		}
+		else
+		{
+			ntrack = wxAtoi(track) - 1;
+			if (ntrack >= midifile.getNumTracks())
+			{
+				ntrack = 0;
+			}
+		}
 		midifile.doTimeAnalysis();
 
 		// process each event
-		for (int i = 0; i < midifile.getNumEvents(0); i++)
+		for (int i = 0; i < midifile.getNumEvents(ntrack); i++)
 		{
-			MidiEvent e = midifile.getEvent(0, i);
-			float time;
-			time = startAdjustMS + midifile.getTimeInSeconds(0, i) * speedadjust;
+			MidiEvent e = midifile.getEvent(ntrack, i);
+			float time = startAdjustMS + midifile.getTimeInSeconds(ntrack, i) * speedadjust;
 
 			if (time != lasttime)
 			{
@@ -631,7 +652,7 @@ std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int 
 						std::list<float> f;
 						for (int k = 0; k <= 127; k++)
 						{
-							if (notestate[k])
+							if (notestate[k] > 0)
 							{
 								f.push_back(k);
 							}
@@ -644,20 +665,17 @@ std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int 
 			}
 			if (e.isNote())
 			{
-				double duration = e.getDurationInSeconds();
-				double t = e.seconds;
-				int tick = e.tick;
-				int key = e.getKeyNumber();
-				int ch = e.getChannel();
-				int track = e.track;
-
 				if (e.isNoteOn())
 				{
-					notestate[e.getChannel()] = true;
+					notestate[e.getKeyNumber()]++;
 				}
 				else if (e.isNoteOff())
 				{
-					notestate[e.getChannel()] = false;
+					notestate[e.getKeyNumber()]--;
+					if (notestate[e.getKeyNumber()] < 0)
+					{
+						// this should never happen
+					}
 				}
 			}
 		}
@@ -666,6 +684,6 @@ std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int 
 	{
 		logger.warn("Invalid MIDI file " + file);
 	}
-#endif
+
 	return res;
 }

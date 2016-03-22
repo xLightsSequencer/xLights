@@ -1178,9 +1178,6 @@
     <ClInclude Include="LyricsDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ModelClass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ModelDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1296,9 +1293,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ViewsDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WholeHouseModelNameDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wininet.h">

@@ -20,6 +20,7 @@ extern "C"
 
 #include "vamp-hostsdk/PluginLoader.h"
 #include "JobPool.h"
+#include <wx/progdlg.h>
 
 class AudioManager;
 class xLightsXmlFile;
@@ -79,6 +80,8 @@ typedef enum MEDIAPLAYINGSTATE {
 	STOPPED
 } MEDIAPLAYINGSTATE;
 
+typedef void (__cdecl * AudioManagerProgressCallback) (wxProgressDialog* dlg, int pct);
+
 class AudioManager
 {
 	JobPool _jobPool;
@@ -110,6 +113,7 @@ class AudioManager
 	float _bigmin;
 	float _bigspectogrammax;
 	MEDIAPLAYINGSTATE _media_state;
+	bool _polyphonicTranscriptionDone;
 
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
@@ -156,6 +160,8 @@ public:
 	int GetFrameInterval() { return _intervalMS; }
 	std::list<float>* GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing);
 	void DoPrepareFrameData();
+	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
+	bool IsPolyphonicTranscriptionDone() { return _polyphonicTranscriptionDone; };
 };
 
 #endif

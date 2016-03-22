@@ -1,6 +1,8 @@
 #ifndef PIANOPANEL_H
 #define PIANOPANEL_H
 
+#include <wx/progdlg.h>
+
 //(*Headers(PianoPanel)
 #include <wx/panel.h>
 class wxSpinEvent;
@@ -16,16 +18,19 @@ class wxButton;
 class wxChoice;
 //*)
 
+#include "../AudioManager.h"
+class MidiFile;
+
 class PianoPanel: public wxPanel
 {
 	public:
 
 		PianoPanel(wxWindow* parent);
 		virtual ~PianoPanel();
+		void SetAudio(AudioManager* audio) { _media = audio; };
 
-        wxString defaultDir;
-    
 		//(*Declarations(PianoPanel)
+		wxStaticText* StaticText9;
 		wxBitmapButton* BitmapButton_Piano_Type;
 		wxTextCtrl* TextCtrl_Piano_File;
 		wxTextCtrl* TextCtrl_Piano_Scale;
@@ -36,11 +41,13 @@ class PianoPanel: public wxPanel
 		wxStaticText* StaticText6;
 		wxBitmapButton* BitmapButton_Piano_StartMIDI;
 		wxSlider* Slider_Piano_MIDI_Speed;
+		wxStaticText* StaticText8;
 		wxSpinCtrl* SpinCtrl_Piano_StartMIDI;
 		wxBitmapButton* BitmapButton_Piano_EndMIDI;
 		wxTextCtrl* TextCtrl_Piano_MIDI_Speed;
 		wxChoice* Choice_Piano_Notes_Source;
 		wxBitmapButton* BitmapButton_Piano_MIDI_Speed;
+		wxChoice* Choice_PIano_MIDITrack;
 		wxStaticText* StaticText1;
 		wxFileDialog* FileDialog1;
 		wxStaticText* StaticText_Piano_NumRows;
@@ -51,6 +58,7 @@ class PianoPanel: public wxPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
 		wxBitmapButton* BitmapButton_Piano_Notes_Source;
+		wxBitmapButton* BitmapButton_PIano_MIDITrack;
 		wxChoice* Choice_Piano_Type;
 		wxSlider* Slider_Piano_MIDI_Start;
 		wxStaticText* StaticText4;
@@ -84,6 +92,10 @@ class PianoPanel: public wxPanel
 		static const long ID_STATICTEXT4;
 		static const long ID_TEXTCTRL_Piano_File;
 		static const long ID_BUTTON_Piano_File;
+		static const long ID_STATICTEXT8;
+		static const long ID_CHOICE_PIano_MIDITrack;
+		static const long ID_STATICTEXT9;
+		static const long ID_BITMAPBUTTON_PIano_MIDITrack;
 		static const long ID_STATICTEXT5;
 		static const long IDD_SLIDER_Piano_MIDI_Start;
 		static const long ID_TEXTCTRL_Piano_MIDI_Start;
@@ -93,6 +105,7 @@ class PianoPanel: public wxPanel
 		static const long ID_TEXTCTRL_Piano_MIDI_Speed;
 		static const long ID_BITMAPBUTTON_Piano_MIDI_Speed;
 		//*)
+		AudioManager* _media;
 
 	public:
 
@@ -125,6 +138,9 @@ class PianoPanel: public wxPanel
 
 		DECLARE_EVENT_TABLE()
 		void ValidateWindow();
+		void MIDIExtraValidateWindow();
+		void AudacityExtraValidateWindow();
+		bool MIDITrackContainsNotes(int track, MidiFile* midifile);
 };
 
 #endif
