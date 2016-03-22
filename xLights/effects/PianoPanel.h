@@ -31,6 +31,7 @@ class PianoPanel: public wxPanel
 
 		//(*Declarations(PianoPanel)
 		wxStaticText* StaticText9;
+		wxBitmapButton* BitmapButton_Piano_MIDITrack_APPLYLAST;
 		wxBitmapButton* BitmapButton_Piano_Type;
 		wxTextCtrl* TextCtrl_Piano_File;
 		wxTextCtrl* TextCtrl_Piano_Scale;
@@ -47,7 +48,7 @@ class PianoPanel: public wxPanel
 		wxTextCtrl* TextCtrl_Piano_MIDI_Speed;
 		wxChoice* Choice_Piano_Notes_Source;
 		wxBitmapButton* BitmapButton_Piano_MIDI_Speed;
-		wxChoice* Choice_PIano_MIDITrack;
+		wxChoice* Choice_Piano_MIDITrack_APPLYLAST;
 		wxStaticText* StaticText1;
 		wxFileDialog* FileDialog1;
 		wxStaticText* StaticText_Piano_NumRows;
@@ -58,7 +59,6 @@ class PianoPanel: public wxPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
 		wxBitmapButton* BitmapButton_Piano_Notes_Source;
-		wxBitmapButton* BitmapButton_PIano_MIDITrack;
 		wxChoice* Choice_Piano_Type;
 		wxSlider* Slider_Piano_MIDI_Start;
 		wxStaticText* StaticText4;
@@ -93,9 +93,9 @@ class PianoPanel: public wxPanel
 		static const long ID_TEXTCTRL_Piano_File;
 		static const long ID_BUTTON_Piano_File;
 		static const long ID_STATICTEXT8;
-		static const long ID_CHOICE_PIano_MIDITrack;
+		static const long ID_CHOICE_Piano_MIDITrack_APPLYLAST;
 		static const long ID_STATICTEXT9;
-		static const long ID_BITMAPBUTTON_PIano_MIDITrack;
+		static const long ID_BITMAPBUTTON_Piano_MIDITrack_APPLYLAST;
 		static const long ID_STATICTEXT5;
 		static const long IDD_SLIDER_Piano_MIDI_Start;
 		static const long ID_TEXTCTRL_Piano_MIDI_Start;

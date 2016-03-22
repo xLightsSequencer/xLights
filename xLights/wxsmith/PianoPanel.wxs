@@ -229,6 +229,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Piano_File" variable="TextCtrl_Piano_File" member="yes">
 							<tooltip>The file should be a Polyphonic Transcription file consisting of 3 floating point numbers per line. #1 is the start time in seconds. #2 the end time. #3 the MIDI channel number.</tooltip>
+							<handler function="OnTextCtrl_Piano_FileText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -262,7 +263,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_PIano_MIDITrack" variable="Choice_PIano_MIDITrack" member="yes" />
+						<object class="wxChoice" name="ID_CHOICE_Piano_MIDITrack_APPLYLAST" variable="Choice_Piano_MIDITrack_APPLYLAST" member="yes" />
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
@@ -276,7 +277,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_PIano_MIDITrack" variable="BitmapButton_PIano_MIDITrack" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_MIDITrack_APPLYLAST" variable="BitmapButton_Piano_MIDITrack_APPLYLAST" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<default>1</default>
 							<size>13,13</size>

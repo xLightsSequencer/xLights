@@ -1271,150 +1271,166 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     SetEffectControls(palette);
 }
 
+void xLightsFrame::ApplySetting(wxString name, wxString value)
+{
+	long TempLong;
+	wxWindow *CtrlWin, *ContextWin;
+
+	if (name.StartsWith("E_"))
+	{
+		ContextWin = EffectsPanel1;
+	}
+	else if (name.StartsWith("T_"))
+	{
+		if (name == "T_CHECKBOX_OverlayBkg") {
+			//temporary until this key is remapped
+			ContextWin = bufferPanel;
+		}
+		else {
+			ContextWin = timingPanel;
+		}
+	}
+	else if (name.StartsWith("B_"))
+	{
+		ContextWin = bufferPanel;
+	}
+	else if (name.StartsWith("C_"))
+	{
+		ContextWin = colorPanel;
+	}
+	else
+	{
+		return;
+		//efPanel = NULL;
+		//ContextWin=SeqPanelLeft;
+	}
+	name = "ID_" + name.Mid(2);
+
+	CtrlWin = wxWindow::FindWindowByName(name, ContextWin);
+	if (CtrlWin)
+	{
+		if (name.StartsWith("ID_SLIDER"))
+		{
+			wxSlider* ctrl = (wxSlider*)CtrlWin;
+			if (value.ToLong(&TempLong)) {
+				ctrl->SetValue(TempLong);
+
+				wxScrollEvent event(wxEVT_SLIDER, ctrl->GetId());
+				event.SetEventObject(ctrl);
+				event.SetInt(TempLong);
+				ctrl->ProcessWindowEvent(event);
+			}
+		}
+		else if (name.StartsWith("ID_TEXTCTRL"))
+		{
+			wxTextCtrl* ctrl = (wxTextCtrl*)CtrlWin;
+			ctrl->SetValue(value);
+		}
+		else if (name.StartsWith("ID_SPINCTRL"))
+		{
+			wxSpinCtrl* ctrl = (wxSpinCtrl*)CtrlWin;
+			ctrl->SetValue(wxAtoi(value));
+		}
+		else if (name.StartsWith("ID_CHOICE"))
+		{
+			wxString nn = "IDD_RADIOBUTTON" + name.SubString(9, name.size());
+			wxRadioButton *b = (wxRadioButton*)wxWindow::FindWindowByName(nn, ContextWin);
+			if (b != nullptr) {
+				b->SetValue(true);
+				wxCommandEvent evt(wxEVT_RADIOBUTTON, b->GetId());
+				evt.SetEventObject(b);
+				wxPostEvent(b->GetEventHandler(), evt);
+			}
+
+
+			wxChoice* ctrl = (wxChoice*)CtrlWin;
+			ctrl->SetStringSelection(value);
+
+			wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
+			event.SetEventObject(ctrl);
+			event.SetString(value);
+			ctrl->ProcessWindowEvent(event);
+		}
+		else if (name.StartsWith("ID_BUTTON"))
+		{
+			colorPanel->SetButtonColor((wxBitmapButton*)CtrlWin, value.ToStdString());
+		}
+		else if (name.StartsWith("ID_CHECKBOX"))
+		{
+			wxCheckBox* ctrl = (wxCheckBox*)CtrlWin;
+			if (value.ToLong(&TempLong)) {
+				ctrl->SetValue(TempLong != 0);
+				wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, ctrl->GetId());
+				evt.SetEventObject(ctrl);
+				evt.SetInt(TempLong != 0);
+				ctrl->ProcessWindowEvent(evt);
+			}
+		}
+		else if (name.StartsWith("ID_NOTEBOOK"))
+		{
+			wxNotebook* ctrl = (wxNotebook*)CtrlWin;
+			for (int z = 0; z < ctrl->GetPageCount(); z++)
+			{
+				if (value == ctrl->GetPageText(z))
+				{
+					ctrl->SetSelection(z);
+				}
+			}
+		}
+		else if (name.StartsWith("ID_FILEPICKER"))
+		{
+			wxFilePickerCtrl *picker = (wxFilePickerCtrl*)CtrlWin;
+			picker->SetFileName(value);
+
+			wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, picker, picker->GetId(), value);
+			evt.SetEventObject(picker);
+			picker->ProcessWindowEvent(evt);
+		}
+		else if (name.StartsWith("ID_FONTPICKER"))
+		{
+			wxFontPickerCtrl *picker = (wxFontPickerCtrl*)CtrlWin;
+			wxFont oldfont;
+			oldfont.SetNativeFontInfoUserDesc(value);
+			picker->SetSelectedFont(oldfont);
+		}
+		else
+		{
+			wxMessageBox("Unknown type: " + name, "Internal Error");
+		}
+	}
+	else
+	{
+		if (name.StartsWith("ID_")) {
+			//check if the control has been renamed to be ignored
+			wxString nn = "IDD_" + name.SubString(3, name.size());
+			CtrlWin = wxWindow::FindWindowByName(nn, ContextWin);
+		}
+		if (CtrlWin == nullptr) {
+			wxMessageBox("Unable to find: " + name, "Internal Error");
+		}
+	}
+}
+
 void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
-    long TempLong;
-    wxColour color;
-    wxWindow *CtrlWin, *ContextWin;
-    wxString before,after,name,value;
     int cnt=0;
 
+	// Apply those settings without APPLYLAST in their name first
     for (std::map<std::string,std::string>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
-        name = it->first;
-        if (name.StartsWith("E_"))
-        {
-            ContextWin=EffectsPanel1;
-        }
-        else if (name.StartsWith("T_"))
-        {
-            if (name == "T_CHECKBOX_OverlayBkg") {
-                //temporary until this key is remapped
-                ContextWin=bufferPanel;
-            } else {
-                ContextWin=timingPanel;
-            }
-        }
-        else if (name.StartsWith("B_"))
-        {
-            ContextWin=bufferPanel;
-        }
-        else if (name.StartsWith("C_"))
-        {
-            ContextWin=colorPanel;
-        }
-        else
-        {
-            continue;
-            //efPanel = NULL;
-            //ContextWin=SeqPanelLeft;
-        }
-        name="ID_"+name.Mid(2);
-        value=it->second;
-
-        CtrlWin=wxWindow::FindWindowByName(name,ContextWin);
-        if (CtrlWin)
-        {
-            if (name.StartsWith("ID_SLIDER"))
-            {
-                wxSlider* ctrl=(wxSlider*)CtrlWin;
-                if (value.ToLong(&TempLong)) {
-                    ctrl->SetValue(TempLong);
-
-                    wxScrollEvent event(wxEVT_SLIDER, ctrl->GetId());
-                    event.SetEventObject(ctrl);
-                    event.SetInt(TempLong);
-                    ctrl->ProcessWindowEvent(event);
-                }
-            }
-            else if (name.StartsWith("ID_TEXTCTRL"))
-            {
-                wxTextCtrl* ctrl=(wxTextCtrl*)CtrlWin;
-                ctrl->SetValue(value);
-            }
-			else if (name.StartsWith("ID_SPINCTRL"))
-			{
-				wxSpinCtrl* ctrl = (wxSpinCtrl*)CtrlWin;
-				ctrl->SetValue(wxAtoi(value));
-			}
-			else if (name.StartsWith("ID_CHOICE"))
-            {
-                wxString nn = "IDD_RADIOBUTTON" + name.SubString(9, name.size());
-                wxRadioButton *b = (wxRadioButton*)wxWindow::FindWindowByName(nn,ContextWin);
-                if (b != nullptr) {
-                    b->SetValue(true);
-                    wxCommandEvent evt(wxEVT_RADIOBUTTON, b->GetId());
-                    evt.SetEventObject(b);
-                    wxPostEvent(b->GetEventHandler(), evt);
-                }
-
-
-                wxChoice* ctrl=(wxChoice*)CtrlWin;
-                ctrl->SetStringSelection(value);
-
-                wxCommandEvent event(wxEVT_CHOICE, ctrl->GetId());
-                event.SetEventObject(ctrl);
-                event.SetString(value);
-                ctrl->ProcessWindowEvent(event);
-            }
-            else if (name.StartsWith("ID_BUTTON"))
-            {
-                colorPanel->SetButtonColor((wxBitmapButton*)CtrlWin, value.ToStdString());
-            }
-            else if (name.StartsWith("ID_CHECKBOX"))
-            {
-                wxCheckBox* ctrl=(wxCheckBox*)CtrlWin;
-                if (value.ToLong(&TempLong)) {
-                    ctrl->SetValue(TempLong!=0);
-                    wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, ctrl->GetId());
-                    evt.SetEventObject(ctrl);
-                    evt.SetInt(TempLong != 0);
-                    ctrl->ProcessWindowEvent(evt);
-                }
-            }
-            else if (name.StartsWith("ID_NOTEBOOK"))
-            {
-                wxNotebook* ctrl=(wxNotebook*)CtrlWin;
-                for (int z = 0 ; z < ctrl->GetPageCount() ; z++)
-                {
-                    if (value == ctrl->GetPageText(z))
-                    {
-                        ctrl->SetSelection(z);
-                    }
-                }
-            }
-            else if (name.StartsWith("ID_FILEPICKER"))
-            {
-                wxFilePickerCtrl *picker = (wxFilePickerCtrl*)CtrlWin;
-                picker->SetFileName(value);
-
-                wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, picker, picker->GetId(), value);
-                evt.SetEventObject(picker);
-                picker->ProcessWindowEvent(evt);
-            }
-            else if (name.StartsWith("ID_FONTPICKER"))
-            {
-                wxFontPickerCtrl *picker = (wxFontPickerCtrl*)CtrlWin;
-                wxFont oldfont;
-                oldfont.SetNativeFontInfoUserDesc(value);
-                picker->SetSelectedFont(oldfont);
-            }
-            else
-            {
-                wxMessageBox("Unknown type: "+name, "Internal Error");
-            }
-        }
-        else
-        {
-            if (name.StartsWith("ID_")) {
-                //check if the control has been renamed to be ignored
-                wxString nn = "IDD_" + name.SubString(3, name.size());
-                CtrlWin = wxWindow::FindWindowByName(nn,ContextWin);
-            }
-            if (CtrlWin == nullptr) {
-                wxMessageBox("Unable to find: "+name, "Internal Error");
-            }
-        }
-        cnt++;
+		if (it->first.find("APPLYLAST") == std::string::npos)
+		{
+			ApplySetting(wxString(it->first.c_str()), wxString(it->second.c_str()));
+			cnt++;
+		}
     }
+
+	// Now Apply those settings with APPLYLAST in their name ... last
+	for (std::map<std::string, std::string>::const_iterator it = settings.begin(); it != settings.end(); ++it) {
+		if (it->first.find("APPLYLAST") != std::string::npos)
+		{
+			ApplySetting(wxString(it->first.c_str()), wxString(it->second.c_str()));
+			cnt++;
+		}
+	}
 
     MixTypeChanged=true;
     FadesChanged=true;

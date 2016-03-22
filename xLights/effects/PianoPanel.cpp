@@ -55,9 +55,9 @@ const long PianoPanel::ID_STATICTEXT4 = wxNewId();
 const long PianoPanel::ID_TEXTCTRL_Piano_File = wxNewId();
 const long PianoPanel::ID_BUTTON_Piano_File = wxNewId();
 const long PianoPanel::ID_STATICTEXT8 = wxNewId();
-const long PianoPanel::ID_CHOICE_PIano_MIDITrack = wxNewId();
+const long PianoPanel::ID_CHOICE_Piano_MIDITrack_APPLYLAST = wxNewId();
 const long PianoPanel::ID_STATICTEXT9 = wxNewId();
-const long PianoPanel::ID_BITMAPBUTTON_PIano_MIDITrack = wxNewId();
+const long PianoPanel::ID_BITMAPBUTTON_Piano_MIDITrack_APPLYLAST = wxNewId();
 const long PianoPanel::ID_STATICTEXT5 = wxNewId();
 const long PianoPanel::IDD_SLIDER_Piano_MIDI_Start = wxNewId();
 const long PianoPanel::ID_TEXTCTRL_Piano_MIDI_Start = wxNewId();
@@ -159,13 +159,13 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer2->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Choice_PIano_MIDITrack = new wxChoice(this, ID_CHOICE_PIano_MIDITrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PIano_MIDITrack"));
-	FlexGridSizer2->Add(Choice_PIano_MIDITrack, 1, wxALL|wxEXPAND, 2);
+	Choice_Piano_MIDITrack_APPLYLAST = new wxChoice(this, ID_CHOICE_Piano_MIDITrack_APPLYLAST, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Piano_MIDITrack_APPLYLAST"));
+	FlexGridSizer2->Add(Choice_Piano_MIDITrack_APPLYLAST, 1, wxALL|wxEXPAND, 2);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer2->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_PIano_MIDITrack = new wxBitmapButton(this, ID_BITMAPBUTTON_PIano_MIDITrack, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_PIano_MIDITrack"));
-	BitmapButton_PIano_MIDITrack->SetDefault();
-	FlexGridSizer2->Add(BitmapButton_PIano_MIDITrack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_Piano_MIDITrack_APPLYLAST = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_MIDITrack_APPLYLAST, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_MIDITrack_APPLYLAST"));
+	BitmapButton_Piano_MIDITrack_APPLYLAST->SetDefault();
+	FlexGridSizer2->Add(BitmapButton_Piano_MIDITrack_APPLYLAST, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("MIDI Start Time Adjust"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Piano_MIDI_Start = new wxSlider(this, IDD_SLIDER_Piano_MIDI_Start, 0, -1000, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Piano_MIDI_Start"));
@@ -199,8 +199,9 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	Connect(IDD_SLIDER_Piano_Scale,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PianoPanel::UpdateLinkedTextCtrl);
 	Connect(ID_TEXTCTRL_Piano_Scale,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PianoPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
+	Connect(ID_TEXTCTRL_Piano_File,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PianoPanel::OnTextCtrl_Piano_FileText);
 	Connect(ID_BUTTON_Piano_File,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnButton_Piano_FileClick);
-	Connect(ID_BITMAPBUTTON_PIano_MIDITrack,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_Piano_MIDITrack_APPLYLAST,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
 	Connect(IDD_SLIDER_Piano_MIDI_Start,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PianoPanel::UpdateLinkedTextCtrl);
 	Connect(ID_TEXTCTRL_Piano_MIDI_Start,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PianoPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_Piano_MIDI_Start,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PianoPanel::OnLockButtonClick);
@@ -303,6 +304,10 @@ void PianoPanel::AudacityExtraValidateWindow()
 				}
 			}
 		}
+		else
+		{
+			TextCtrl_Piano_File->SetBackgroundColour(*wxRED);
+		}
 	}
 }
 
@@ -327,41 +332,41 @@ void PianoPanel::MIDIExtraValidateWindow()
 	{
 		wxString file = TextCtrl_Piano_File->GetValue();
 		MidiFile midifile;
-		if (file != "" && wxFile::Exists(file) && midifile.read(file) == 0)
+		if (file == "" || !wxFile::Exists(file) || midifile.read(file) == 0)
 		{
 			// invalid midi file
 			TextCtrl_Piano_File->SetBackgroundColour(*wxRED);
-			Choice_PIano_MIDITrack->Enable(false);
-			BitmapButton_PIano_MIDITrack->Enable(false);
+			Choice_Piano_MIDITrack_APPLYLAST->Enable(false);
+			BitmapButton_Piano_MIDITrack_APPLYLAST->Enable(false);
 		}
 		else
 		{
-			std::string selection = std::string(Choice_PIano_MIDITrack->GetStringSelection().c_str());
+			std::string selection = std::string(Choice_Piano_MIDITrack_APPLYLAST->GetStringSelection().c_str());
 			int tracks = midifile.getNumTracks();
-			Choice_PIano_MIDITrack->Clear();
-			Choice_PIano_MIDITrack->Append("All");
+			Choice_Piano_MIDITrack_APPLYLAST->Clear();
+			Choice_Piano_MIDITrack_APPLYLAST->Append("All");
 			if (selection == "All")
 			{
-				Choice_PIano_MIDITrack->Select(0);
+				Choice_Piano_MIDITrack_APPLYLAST->Select(0);
 			}
 			for (int i = 1; i <= tracks; i++)
 			{
 				if (MIDITrackContainsNotes(i-1, &midifile))
 				{
 					std::string n = std::string(wxString::Format("%i", i).c_str());
-					Choice_PIano_MIDITrack->Append(n);
+					Choice_Piano_MIDITrack_APPLYLAST->Append(n);
 					if (selection == n)
 					{
-						Choice_PIano_MIDITrack->Select(i);
+						Choice_Piano_MIDITrack_APPLYLAST->Select(i);
 					}
 				}
 			}
-			if (Choice_PIano_MIDITrack->GetStringSelection() == "")
+			if (Choice_Piano_MIDITrack_APPLYLAST->GetStringSelection() == "")
 			{
-				Choice_PIano_MIDITrack->Select(0);
+				Choice_Piano_MIDITrack_APPLYLAST->Select(0);
 			}
-			Choice_PIano_MIDITrack->Enable(true);
-			BitmapButton_PIano_MIDITrack->Enable(true);
+			Choice_Piano_MIDITrack_APPLYLAST->Enable(true);
+			BitmapButton_Piano_MIDITrack_APPLYLAST->Enable(true);
 		}
 	}
 }
@@ -379,8 +384,8 @@ void PianoPanel::ValidateWindow()
 		TextCtrl_Piano_MIDI_Start->Enable(false);
 		BitmapButton_Piano_MIDI_Speed->Enable(false);
 		BitmapButton_Piano_MIDI_Start->Enable(false);
-		Choice_PIano_MIDITrack->Enable(false);
-		BitmapButton_PIano_MIDITrack->Enable(false);
+		Choice_Piano_MIDITrack_APPLYLAST->Enable(false);
+		BitmapButton_Piano_MIDITrack_APPLYLAST->Enable(false);
 	}
 	else if (notes == "Audacity Timing File")
 	{
@@ -392,8 +397,8 @@ void PianoPanel::ValidateWindow()
 		TextCtrl_Piano_MIDI_Start->Enable(false);
 		BitmapButton_Piano_MIDI_Speed->Enable(false);
 		BitmapButton_Piano_MIDI_Start->Enable(false);
-		Choice_PIano_MIDITrack->Enable(false);
-		BitmapButton_PIano_MIDITrack->Enable(false);
+		Choice_Piano_MIDITrack_APPLYLAST->Enable(false);
+		BitmapButton_Piano_MIDITrack_APPLYLAST->Enable(false);
 	}
 	else if (notes == "MIDI File")
 	{

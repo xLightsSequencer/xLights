@@ -336,7 +336,8 @@ public:
                            const SettingsMap &settings, const SettingsMap &palette,
                            bool setDefaults);
     void SetEffectControls(const SettingsMap &settings);
-    bool SaveEffectsFile();
+	void ApplySetting(wxString name, wxString value);
+	bool SaveEffectsFile();
     void MarkEffectsFileDirty() { UnsavedRgbEffectsChanges=true; }
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg);

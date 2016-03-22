@@ -48,7 +48,7 @@ void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 		SettingsMap.GetInt("TEXTCTRL_Piano_MIDI_Start"),
 		SettingsMap.GetInt("TEXTCTRL_Piano_MIDI_Speed"),
 		SettingsMap.GetInt("TEXTCTRL_Piano_Scale"),
-		std::string(SettingsMap.Get("CHOICE_PIano_MIDITrack", ""))
+		std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", ""))
 		);
 }
 
