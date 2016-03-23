@@ -20,7 +20,7 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 20);
     p->SetEditor("SpinCtrl");
     if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights Per Cane", "CandyCaneNodes", parm2));
+        p = grid->Append(new wxUIntProperty("Lights Per Cane", "CandyCaneNodes", parm3));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 250);
         p->SetEditor("SpinCtrl");
@@ -178,7 +178,9 @@ int CandyCaneModel::GetNumStrands() const {
      return parm1;
 }
 int CandyCaneModel::CalcCannelsPerString() {
-    SingleChannel = false;
+    if (SingleNode) {
+        return GetNodeChannelCount(StringType);
+    }
     return GetNodeChannelCount(StringType) * parm2;
 }
 inline double toRadians(long degrees) {
