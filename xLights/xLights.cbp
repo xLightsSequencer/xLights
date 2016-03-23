@@ -279,6 +279,7 @@
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
 					<Add option="-D__WXDEBUG__" />
+					<Add option="-D__cdecl=''" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -311,6 +312,7 @@
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
 					<Add option="-DNDEBUG" />
+					<Add option="-D__cdecl=''" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
