@@ -1940,7 +1940,7 @@ void TestDialog::OnTimer(long curtime)
 		return;
 	}
 
-	_xout->TimerStart(curtime);
+	//_xout->TimerStart(curtime);
 	int NotebookSelection = AuiNotebook1->GetSelection();
 	if (NotebookSelection != LastNotebookSelection)
 	{
@@ -2304,7 +2304,7 @@ void TestDialog::OnTimer(long curtime)
 		}
 		break;
 	}
-	_xout->TimerEnd();
+	//_xout->TimerEnd();
 }
 
 char TestDialog::DoEncodeColour(xlColor& c)
