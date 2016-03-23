@@ -142,6 +142,14 @@ void handleCrash(void *data) {
     report->AddAll(wxDebugReport::Context_Current);
     report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_networks.xml").GetFullPath(), "xlights_networks.xml");
     report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
+	if (wxFile::Exists(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath()))
+	{
+		report->AddFile(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
+	}
+	else if (wxFile::Exists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
+	{
+		report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
+	}
     if (topFrame->GetSeqXmlFileName() != "") {
         wxFileName fn(topFrame->GetSeqXmlFileName());
         if (fn.Exists() && !fn.IsDir()) {

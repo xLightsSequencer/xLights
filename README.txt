@@ -7,10 +7,16 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug (keithsw) Fix bulbs flashing in test mode.
+	-- bug (keithsw) Add back in output control in test mode.
+	-- enh (keithsw) Redevelop Piano effect ... this is a ground up rewrite and is not compatible with the old piano effect.
+	-- enh (keithsw) Add logging as a runtime capability for better debugability
+	-- bug (keithsw) Fix LOR controllers in test mode Fix #502 
+	-- bug (keithsw) Add back in multiselection in test mode
     -- bug (gil)     Fix timings not draw correctly when window is resized. Fixes #504.
     -- bug (gil)     Fix Pictures scaling issues.  Fixes #501.
 2016.13  Mar 15, 2016
-   -- enh (gil) Added gradient option to bars effect
+    -- enh (gil) Added gradient option to bars effect
     -- enh (keithsw) Add a colour aware test mode ... RGBW.
     -- enh (dkulp)   Optimize the redraws on timer events a bit.
 	                   Drops CPU usage from 95% to about 60% on my machine.
