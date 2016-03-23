@@ -78,11 +78,15 @@ public:
             s = 0;
         }
         state = s;
-        if (state == 1) {
+        if (state == 2) {
             SetBitmap(bitmap.ConvertToDisabled());
-        } else if (state == 2) {
+        } else if (state == 1) {
             const wxImage imgDisabled = bitmap.ConvertToImage().ConvertToDisabled(128);
+#if wxCHECK_VERSION(3, 1, 0)
             SetBitmap(wxBitmap(imgDisabled, -1, bitmap.GetScaleFactor()));
+#else 
+            SetBitmap(wxBitmap(imgDisabled));
+#endif
         } else {
             SetBitmap(bitmap);
         }
