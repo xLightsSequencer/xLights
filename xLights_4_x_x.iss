@@ -22,7 +22,7 @@ ChangesEnvironment=yes
 ; setting to DisableDirPage no makes it so users can change the installation directory
 DisableDirPage=no   
 AppName=xLights
-AppVersion=2016.13
+AppVersion=2016.14
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights.ico
@@ -49,6 +49,8 @@ Source: "bin\libgcc_s_dw2-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
+Source: "bin/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ;Source: "lib/windows/avcodec.lib"; DestDir: "{app}";  Flags: "ignoreversion"
 ;Source: "lib/windows/avformat.lib"; DestDir: "{app}";  Flags: "ignoreversion"

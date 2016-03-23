@@ -7,7 +7,14 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.14  Mar 23, 2016
+	-- enh (keithsw) Piano support for audacity file reading.
+    -- bug (dkulp) Fix crash if mapping maps a model that isn't used in the source sequence. This fixes #505
+	-- enh (dkulp) Change how the group add/remove/editing is handled in Layout
+	-- enh (dkulp) New model type "CandyCanes". Added cane rotation
+	-- enh (keithsw) log capture on crash in debug report.
     -- bug (keithsw) Fix bulbs flashing in test mode.
+	-- enh (keithsw) log4cpp added. These are library routines that allow enhanced logging of errors.
 	-- bug (keithsw) Add back in output control in test mode.
 	-- enh (keithsw) Redevelop Piano effect ... this is a ground up rewrite and is not compatible with the old piano effect.
 	-- enh (keithsw) Add logging as a runtime capability for better debugability
