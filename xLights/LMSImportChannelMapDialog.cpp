@@ -141,11 +141,30 @@ void LMSImportChannelMapDialog::Init(bool allModels) {
     }
     int sz = ChannelMapGrid->GetColSize(3);
     ChannelMapGrid->DeleteCols(5, 4);
+    
+    wxGridCellAttr *ca = new wxGridCellAttr();
+    ca->SetKind(wxGridCellAttr::wxAttrKind::Col);
+    ca->SetReadOnly();
+    ChannelMapGrid->SetColAttr(0, ca);
+    ca = new wxGridCellAttr();
+    ca->SetKind(wxGridCellAttr::wxAttrKind::Col);
+    ca->SetReadOnly();
+    ChannelMapGrid->SetColAttr(1, ca);
+    ca = new wxGridCellAttr();
+    ca->SetKind(wxGridCellAttr::wxAttrKind::Col);
+    ca->SetReadOnly();
+    ChannelMapGrid->SetColAttr(2, ca);
+    ca = new wxGridCellAttr();
+    ca->SetKind(wxGridCellAttr::wxAttrKind::Col);
+    ca->SetReadOnly();
+    ChannelMapGrid->SetColAttr(4, ca);
+
     ChannelMapGrid->SetColSize(0, sz * 1.5);
     ChannelMapGrid->SetColSize(1, sz * 1.5);
     ChannelMapGrid->SetColSize(2, sz * 1.5);
     ChannelMapGrid->SetColSize(3, sz * 4.5);
     ChannelMapGrid->SetColSize(4, sz / 2);
+
     ChannelMapGrid->DeleteRows(0, ChannelMapGrid->GetNumberRows());
     ChannelMapGrid->SetRowLabelSize(0);
     wxGridCellChoiceEditor *editor = new wxGridCellChoiceEditor(Convert(MapByStrand->GetValue() ? ccrNames : channelNames));
@@ -187,22 +206,20 @@ void LMSImportChannelMapDialog::OnMapByStrandClick(wxCommandEvent& event)
 void LMSImportChannelMapDialog::AddModel(Model &cls) {
     ChannelMapGrid->BeginBatch();
     int i = ChannelMapGrid->GetNumberRows();
-    int start = i;
-    ChannelMapGrid->AppendRows();
+    ChannelMapGrid->AppendRows(cls.GetNumStrands() + 1);
     ChannelMapGrid->SetCellValue(i, 0, cls.name);
+    i++;
     for (int s = 0; s < cls.GetNumStrands(); s++) {
-        i = ChannelMapGrid->GetNumberRows();
-        ChannelMapGrid->AppendRows();
         ChannelMapGrid->SetCellValue(i, 0, cls.name);
         wxString sn = cls.GetStrandName(s);
         if ("" == sn) {
             sn = wxString::Format("Strand %d", s + 1);
         }
         ChannelMapGrid->SetCellValue(i, 1, sn);
+        i++;
         if (!MapByStrand->GetValue()) {
+            ChannelMapGrid->AppendRows(cls.GetStrandLength(s));
             for (int n = 0; n < cls.GetStrandLength(s); n++) {
-                i = ChannelMapGrid->GetNumberRows();
-                ChannelMapGrid->AppendRows();
                 ChannelMapGrid->SetCellValue(i, 0, cls.name);
                 ChannelMapGrid->SetCellValue(i, 1, sn);
                 wxString nn = cls.GetNodeName(cls.MapToNodeIndex(s, n));
@@ -210,14 +227,9 @@ void LMSImportChannelMapDialog::AddModel(Model &cls) {
                     nn = wxString::Format("Node %d", n + 1);
                 }
                 ChannelMapGrid->SetCellValue(i, 2, nn);
+                i++;
             }
         }
-    }
-    for (int r = start; r < ChannelMapGrid->GetNumberRows(); r++) {
-        ChannelMapGrid->SetReadOnly(r, 0);
-        ChannelMapGrid->SetReadOnly(r, 1);
-        ChannelMapGrid->SetReadOnly(r, 2);
-        ChannelMapGrid->SetReadOnly(r, 4);
     }
     ChannelMapGrid->EndBatch();
 }
@@ -303,6 +315,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
         for (int x = 0; x <  modelNames.size(); x++) {
             ModelsChoice->Append(modelNames[x]);
         }
+        ChannelMapGrid->BeginBatch();
         wxFileInputStream input(dlg.GetPath());
         wxTextInputStream text(input, "\t");
         MapByStrand->SetValue("true" == text.ReadLine());
@@ -356,6 +369,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             }
             line = text.ReadLine();
         }
+        ChannelMapGrid->EndBatch();
     }
 }
 

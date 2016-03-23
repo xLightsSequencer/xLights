@@ -684,6 +684,10 @@ void MapXLightsEffects(Element *target, const std::string &name, SequenceElement
         MapXLightsEffects(target->GetEffectLayer(0), src, mapped);
     } else {
         Element * srcEl = seqEl.GetElement(name);
+        if (srcEl == nullptr) {
+            //printf("Source element %s doesn't exist\n", name.c_str());
+            return;
+        }
         while (target->GetEffectLayerCount() < srcEl->GetEffectLayerCount()) {
             target->AddEffectLayer();
         }
