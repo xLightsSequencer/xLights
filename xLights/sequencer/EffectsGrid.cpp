@@ -1317,62 +1317,69 @@ void EffectsGrid::Paste(const wxString &data) {
         if( all_efdata.size() > 2 )  // multi-effect paste
         {
             wxArrayString eff1data = wxSplit(all_efdata[0], '\t');
-            int drop_time_offset, new_start_time, new_end_time, column_start_time;
-            column_start_time = wxAtoi(eff1data[6]);
-            drop_time_offset = wxAtoi(eff1data[3]);
-            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-            if( column_start_time < 0 || tel == nullptr)
-            {
-                drop_time_offset = mDropStartTimeMS - drop_time_offset;
-            }
-            else
-            {
-                drop_time_offset = mDropStartTimeMS - column_start_time;
-            }
-            int drop_row = mDropRow;
-            int start_row = wxAtoi(eff1data[5]);
-            int drop_row_offset = drop_row - start_row;
-            mSequenceElements->get_undo_mgr().CreateUndoStep();
-            for( int i = 0; i < all_efdata.size()-1; i++ )
-            {
-                wxArrayString efdata = wxSplit(all_efdata[i], '\t');
-                if (efdata.size() < 7) {
-                    break;
-                }
-                new_start_time = wxAtoi(efdata[3]);
-                new_end_time = wxAtoi(efdata[4]);
-                new_start_time += drop_time_offset;
-                new_end_time += drop_time_offset;
-                int eff_row = wxAtoi(efdata[5]);
-                drop_row = eff_row + drop_row_offset;
-                Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
-                if( row_info == nullptr ) break;
-                Element* elem = row_info->element;
-                if( elem == nullptr ) break;
-                EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
-                if( el == nullptr ) break;
-                if( el->GetRangeIsClearMS(new_start_time, new_end_time) )
-                {
-                    int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
-                    if (effectIndex >= 0) {
-                        Effect* ef = el->AddEffect(0,
-                                      efdata[0].ToStdString(),
-                                      efdata[1].ToStdString(),
-                                      efdata[2].ToStdString(),
-                                      new_start_time,
-                                      new_end_time,
-                                      EFFECT_NOT_SELECTED,
-                                      false);
-                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
-                        if (!ef->GetPaletteMap().empty()) {
-                            sendRenderEvent(el->GetParentElement()->GetName(),
-                                            new_start_time ,
-                                            new_end_time, true);
-                        }
-                    }
-                }
-            }
-            mPartialCellSelected = false;
+			if (eff1data.size() < 7)
+			{
+				// this code assumes at least 7 so dont go there
+			}
+			else
+			{
+				int drop_time_offset, new_start_time, new_end_time, column_start_time;
+				column_start_time = wxAtoi(eff1data[6]);
+				drop_time_offset = wxAtoi(eff1data[3]);
+				EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+				if (column_start_time < 0 || tel == nullptr)
+				{
+					drop_time_offset = mDropStartTimeMS - drop_time_offset;
+				}
+				else
+				{
+					drop_time_offset = mDropStartTimeMS - column_start_time;
+				}
+				int drop_row = mDropRow;
+				int start_row = wxAtoi(eff1data[5]);
+				int drop_row_offset = drop_row - start_row;
+				mSequenceElements->get_undo_mgr().CreateUndoStep();
+				for (int i = 0; i < all_efdata.size() - 1; i++)
+				{
+					wxArrayString efdata = wxSplit(all_efdata[i], '\t');
+					if (efdata.size() < 7) {
+						break;
+					}
+					new_start_time = wxAtoi(efdata[3]);
+					new_end_time = wxAtoi(efdata[4]);
+					new_start_time += drop_time_offset;
+					new_end_time += drop_time_offset;
+					int eff_row = wxAtoi(efdata[5]);
+					drop_row = eff_row + drop_row_offset;
+					Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
+					if (row_info == nullptr) break;
+					Element* elem = row_info->element;
+					if (elem == nullptr) break;
+					EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
+					if (el == nullptr) break;
+					if (el->GetRangeIsClearMS(new_start_time, new_end_time))
+					{
+						int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
+						if (effectIndex >= 0) {
+							Effect* ef = el->AddEffect(0,
+								efdata[0].ToStdString(),
+								efdata[1].ToStdString(),
+								efdata[2].ToStdString(),
+								new_start_time,
+								new_end_time,
+								EFFECT_NOT_SELECTED,
+								false);
+							mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID());
+							if (!ef->GetPaletteMap().empty()) {
+								sendRenderEvent(el->GetParentElement()->GetName(),
+									new_start_time,
+									new_end_time, true);
+							}
+						}
+					}
+				}
+				mPartialCellSelected = false;
+			}
         }
         else
         {
