@@ -616,7 +616,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
     else
     {
         effect = (Effect*)event.GetClientData();
-        bool resetStrings = false;
+		bool resetStrings = false;
         if ("Random" == effect->GetEffectName()) {
             std::string settings, palette;
             std::string effectName = CreateEffectStringRandom(settings, palette);
@@ -720,10 +720,21 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         selectedEffect = last_effect_created;
     }
 
-    if( last_effect_created != nullptr ) {
-        RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
-        UpdateEffectAssistWindow(last_effect_created, eff);
-    }
+	RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
+
+	// Notify the current effect of the current media ... piano effect needs this
+	if (CurrentSeqXmlFile != NULL)
+	{
+		eff->SetAudio(CurrentSeqXmlFile->GetMedia());
+	}
+	else
+	{
+		eff->SetAudio(NULL); // I dont think this can happen
+	}
+
+	if( last_effect_created != nullptr ) {
+        UpdateEffectAssistWindow(last_effect_created, eff);		
+	}
 
     mainSequencer->PanelEffectGrid->Refresh(false);
 }
