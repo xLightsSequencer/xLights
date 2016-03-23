@@ -37,7 +37,7 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
         Download should begin after 5 seconds.
         Run the install file and select "i686" architecture, Posix threads, and Dwarf exceptions.
 
-  b) wxWidgets for Windows (currently using version 3.0.2)
+  b) wxWidgets for Windows (currently using version 3.1.0)
 
      Download the version with the Windows installer from here:
         http://www.wxwidgets.org/downloads/
@@ -48,20 +48,20 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
      2) cd to the build\msw directory under your wxWidgets base directory
      3) Execute the command: SET Path=C:\Windows\system32;C:\Windows;C:\Program Files (x86)\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin
         Note: If your MinGW installation was placed in a different directory adjust the command above accordingly.
-	 4) Edit the wxWidgets-3.0.2\include\wx\msw\setup.h to enable GDI+
-	    - search for the line "#   define wxUSE_GRAPHICS_CONTEXT 0" ... not the line "#       define wxUSE_GRAPHICS_CONTEXT 0" ... Please make sure you update the right one.
+	 4) Edit the wxWidgets-3.1.0\include\wx\msw\setup.h to enable GDI+
+	    - search for the line "#   define wxUSE_GRAPHICS_CONTEXT 0"
 		- change it to "#   define wxUSE_GRAPHICS_CONTEXT 1"
 		- save the file
 	 5) If you have previously built wxWidgets before and are using the same directory you will need to make the same change as above to the setup.h file in two
-	    more locations: wxWidgets-3.0.2\lib\gcc_dll\mswu\wx\setup.h and wxWidgets-3.0.2\lib\gcc_dll\mswud\wx\setup.h.
+	    more locations: wxWidgets-3.1.0\lib\gcc_dll\mswu\wx\setup.h and wxWidgets-3.1.0\lib\gcc_dll\mswud\wx\setup.h.
 	 6) Also if you have built wxWidgets before you should delete the following 2 folders to force the setup.h change to be included
-	    - wxWidgets-3.0.2\build\msw\gcc_mswuddll
-		- wxWidgets-3.0.2\build\msw\gcc_mswudll
-     7) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=debug
-     8) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release
+	    - wxWidgets-3.1.0\build\msw\gcc_mswuddll
+		- wxWidgets-3.1.0\build\msw\gcc_mswudll
+     7) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=debug -j 10
+     8) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10
      9) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
-        then you need to update your path environment variable to include C:\wxWidgets-3.0.2\lib\gcc_dll
-        (assuming C:\wxWidgets-3.0.2 is your wxWidgets base directory).
+        then you need to update your path environment variable to include C:\wxWidgets-3.1.0\lib\gcc_dll
+        (assuming C:\wxWidgets-3.1.0 is your wxWidgets base directory).
 
   c) In Code::Blocks:
      1) select Settings > Compiler
@@ -84,32 +84,23 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
      12) select Settings > Global Variables
      13) Make sure "wx" is defined as described in the Code::Blocks documentation.
          wx should be set to your wxWidgets base directory. Just the "Base" field
-         needs to be filled in - to something like "C:\wxWidgets-3.0.2",
+         needs to be filled in - to something like "C:\wxWidgets-3.1.0",
          assuming that is where your copy of wxWidgets is located.
 
   d) Now you are ready to use Code::Blocks to build xLights
      by double-clicking on the cbp file in the xLights directory.
      Make sure you set the build target to MinGW_Debug or MinGW_Release!
 
-Instructions for MS Visual C++ (Incomplete)
-==============================
+Instructions for MS Visual Studio C++
+=====================================
 
 Here are the steps to compile xLights/Nutcracker for Windows using the MinGW compiler.
 
-  a) Install Code::Blocks for Windows (currently using version 13.12)
+  a) Install Visual Studio 2015 ... the community edition is fine
 
-     Download and install the "codeblocks-13.12-setup.exe" file from here:
-        http://www.codeblocks.org/downloads
-     This is the version WITHOUT the MinGW compiler.
-
-  b) If you don't already have MS Visual Studio, then download "Visual C++ 2010 Express"
-     from http://www.visualstudio.com/downloads/download-visual-studio-vs
-
-  c) Download the Windows SDK for your version of Windows from the Microsoft
-     Download Center. Note that some versions of Visual Studio already come
-     with the Windows SDK.
-
-  d) wxWidgets for Windows (currently using version 3.0.0)
+  b) Select a base directory to place all your souce code in. From now on this is represented as <basedir>
+  
+  c) Download and build wxWidgets for Windows (currently using version 3.1.0)
 
      Download the version with the Windows installer from here:
         http://www.wxwidgets.org/downloads/
@@ -118,35 +109,19 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
      http://wiki.wxwidgets.org/Compiling_Using_MSVC_On_The_Commandline
      To compile it yourself:
 
-     1) Copy setup file from include\wx\msw\setup.h (or setup0.h) to include\wx\setup.h
-     2) Open a command prompt
-     3) cd to the build\msw directory under your wxWidgets base directory
-     4) run: nmake.exe -f makefile.vc
-     5) run: nmake.exe -f makefile.vc BUILD=release
+	 1) Edit the <basedir>\wxWidgets-3.1.0\include\wx\msw\setup.h to enable GDI+
+	    - search for the line "#   define wxUSE_GRAPHICS_CONTEXT 0"
+		- change it to "#   define wxUSE_GRAPHICS_CONTEXT 1"
+		- save the file
+	 2) If you have previously built wxWidgets before and are using the same directory you will need to make the same change as above to the setup.h file in two
+	    more locations: <basedir>\wxWidgets-3.1.0\lib\vc_dll\mswu\wx\setup.h and <basedir>\wxWidgets-3.1.0\lib\vc_dll\mswud\wx\setup.h.
+	 3) Also if you have built wxWidgets before you should delete the following 2 folders to force the setup.h change to be included
+	    - <basedir>\wxWidgets-3.1.0\build\msw\vc_mswuddll
+		- <basedir>\wxWidgets-3.1.0\build\msw\vc_mswudll
+	 4) Open the project <basedir>\wxWidgets-3.1.0\build\msw\wx_vc14.sln
+	 5) Compile both a release and a debug version
 
-  e) In Code::Blocks:
-     1) Make sure "wxvc" is defined under Settings > Global Variables
-        as described in the Code::Blocks documentation. It should be
-        set to your wxWidgets base directory. Just the "Base" field
-        needs to be filled in - to something like "C:\wxWidgets-3.0.0",
-        assuming that is where your copy of wxWidgets is located.
-     2) select Settings > Compiler from the menu, then choose
-        "Microsoft Visual C++ 2010" from the list of compilers
-     3) click the Search Directories tab
-     4) Under Compiler sub-tab should be 2 entries:
-          C:\Program Files\Microsoft SDKs\Windows\v7.0\Include       (location of the Windows SDK)
-          C:\Program Files\Microsoft Visual Studio 10.0\VC\include   (location of Visual Studio)
-     5) Under Linker sub-tab should be:
-          C:\Program Files\Microsoft SDKs\Windows\v7.0\Lib           (location of the Windows SDK)
-          C:\Program Files\Microsoft Visual Studio 10.0\VC\Lib       (location of Visual Studio)
-     4) Under Resource Compiler sub-tab should be 2 entries:
-          C:\Program Files\Microsoft SDKs\Windows\v7.0\Include       (location of the Windows SDK)
-          C:\Program Files\Microsoft Visual Studio 10.0\VC\include   (location of Visual Studio)
-
-  f) Now you are ready to use Code::Blocks to build xLights
-     by double-clicking on the cbp file in the xLights directory.
-     Make sure you set the build target to MSVC_Debug or MSVC_Release!
-
+   d) Now open the xlights project <basedir>\xLights\xLights\xLights.sln and build the project
 
 Windows Installer
 =================

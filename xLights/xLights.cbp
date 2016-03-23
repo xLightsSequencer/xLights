@@ -190,8 +190,8 @@
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add option="-Wl,--large-address-aware" />
-					<Add library="libwxmsw30ud.a" />
-					<Add library="libwxmsw30ud_gl.a" />
+					<Add library="libwxmsw31ud.a" />
+					<Add library="libwxmsw31ud_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/ImageHlp.Lib" />
 					<Add library="../lib/windows/libmpg123-0.lib" />
@@ -247,8 +247,8 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
-					<Add library="libwxmsw30u.a" />
-					<Add library="libwxmsw30u_gl.a" />
+					<Add library="libwxmsw31u.a" />
+					<Add library="libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/ImageHlp.Lib" />
 					<Add library="../lib/windows/libmpg123-0.lib" />

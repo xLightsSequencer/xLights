@@ -71,22 +71,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets-3.0.2\include;..\..\wxWidgets-3.0.2\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include</IncludePath>
-    <LibraryPath>..\..\wxWidgets-3.0.2\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\wxWidgets-3.1.0\include;..\..\wxWidgets-3.1.0\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include</IncludePath>
+    <LibraryPath>..\..\wxWidgets-3.1.0\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\wxWidgets-3.0.2\include;..\..\wxWidgets-3.0.2\include\msvc;$(IncludePath);./ffmpeg-dev/include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets-3.0.2\lib\vc_x64_lib;..\lib\windows;GL;./ffmpeg-dev/lib</LibraryPath>
+    <IncludePath>..\..\wxWidgets-3.1.0\include;..\..\wxWidgets-3.1.0\include\msvc;$(IncludePath);./ffmpeg-dev/include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets-3.1.0\lib\vc_x64_lib;..\lib\windows;GL;./ffmpeg-dev/lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\wxWidgets-3.0.2\include;..\..\wxWidgets-3.0.2\include\msvc;$(IncludePath);ffmpeg-dev\include</IncludePath>
-    <LibraryPath>..\..\wxWidgets-3.0.2\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\wxWidgets-3.1.0\include;..\..\wxWidgets-3.1.0\include\msvc;$(IncludePath);ffmpeg-dev\include</IncludePath>
+    <LibraryPath>..\..\wxWidgets-3.1.0\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\wxWidgets-3.0.2\include;..\..\wxWidgets-3.0.2\include\msvc;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\wxWidgets-3.1.0\include;..\..\wxWidgets-3.1.0\include\msvc;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -588,7 +588,7 @@
     <ClInclude Include="xlSlider.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\wxWidgets-3.0.2\include\wx\msw\wx.rc" />
+    <ResourceCompile Include="..\..\wxWidgets-3.1.0\include\wx\msw\wx.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
