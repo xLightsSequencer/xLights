@@ -68,21 +68,27 @@ class NewModelBitmapButton : public wxBitmapButton
 public:
 
     NewModelBitmapButton(wxWindow *parent, const wxBitmap &bmp, const std::string &type)
-        : wxBitmapButton(parent, wxID_ANY, bmp), bitmap(bmp), selected(false), modelType(type) {
+        : wxBitmapButton(parent, wxID_ANY, bmp), bitmap(bmp), state(0), modelType(type) {
         SetToolTip("Create new " + type);
     }
     virtual ~NewModelBitmapButton() {}
 
-    void SetSelected(bool s) {
-        selected = s;
-        if (selected) {
+    void SetState(unsigned int s) {
+        if (s > 2) {
+            s = 0;
+        }
+        state = s;
+        if (state == 1) {
             SetBitmap(bitmap.ConvertToDisabled());
+        } else if (state == 2) {
+            const wxImage imgDisabled = bitmap.ConvertToImage().ConvertToDisabled(128);
+            SetBitmap(wxBitmap(imgDisabled, -1, bitmap.GetScaleFactor()));
         } else {
             SetBitmap(bitmap);
         }
     }
-    bool GetSelected() {
-        return selected;
+    unsigned int GetState() {
+        return state;
     }
     const std::string &GetModelType() {
         return modelType;
@@ -90,7 +96,7 @@ public:
 protected:
 private:
     const std::string modelType;
-    bool selected;
+    unsigned int state;
     wxBitmap bitmap;
 };
 
@@ -951,11 +957,15 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     if (newModel != nullptr) {
         xlights->AllModels.AddModel(newModel);
         UpdateModelList();
-        SelectModel(newModel->name);
-        newModel = nullptr;
-        if (selectedButton != nullptr) {
-            selectedButton->SetSelected(false);
-            selectedButton = nullptr;
+        if (selectedButton->GetState() == 1) {
+            SelectModel(newModel->name);
+            newModel = nullptr;
+            if (selectedButton != nullptr) {
+                selectedButton->SetState(0);
+                selectedButton = nullptr;
+            }
+        } else {
+            newModel = nullptr;
         }
     }
 }
@@ -1335,15 +1345,16 @@ void LayoutPanel::OnViewChoiceSelect(wxCommandEvent& event)
 void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
     for (auto it = buttons.begin(); it != buttons.end(); it++) {
         if (event.GetId() == (*it)->GetId()) {
-            (*it)->SetSelected(!(*it)->GetSelected());
-            if ((*it)->GetSelected()) {
+            int state = (*it)->GetState();
+            (*it)->SetState(state + 1);
+            if ((*it)->GetState()) {
                 selectedButton = (*it);
                 UnSelectAllModels();
             } else {
                 selectedButton = nullptr;
             }
-        } else if ((*it)->GetSelected()) {
-            (*it)->SetSelected(false);
+        } else if ((*it)->GetState()) {
+            (*it)->SetState(0);
         }
     }
 }
