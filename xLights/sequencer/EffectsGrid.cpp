@@ -85,6 +85,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mRangeStartCol = -1;
     mRangeEndCol = -1;
     mResizeEffectIndex = -1;
+    mTimeline = nullptr;
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
