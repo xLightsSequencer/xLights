@@ -5,7 +5,7 @@
 
 
 //somewhat deprecated as the ModelGroup is more likely to be used.  However, older rgbeffects.xml may have these in them
-class WholeHouseModel : public Model
+class WholeHouseModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
         WholeHouseModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zb = false);

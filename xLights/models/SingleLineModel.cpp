@@ -3,6 +3,9 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
 
+
+#include "ModelScreenLocation.h"
+
 std::vector<std::string> SingleLineModel::LINE_BUFFER_STYLES;
 
 
@@ -99,7 +102,7 @@ void SingleLineModel::InitModel() {
                 node->get()->Coords[c].screenX = x - 0.5 + ((float)c / (float)parm3) - xoffset;
             }
         }
-        SetRenderSize(BufferHt,BufferWi);
+        screenLocation.SetRenderSize(BufferWi, BufferHt);
     }
 }
 

@@ -2,6 +2,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
+#include "ModelScreenLocation.h"
 
 MatrixModel::MatrixModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
 {
@@ -126,8 +127,8 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
     int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(PixelsPerStrand,NumStrands);
     SetNodeCount(parm1,PixelsPerString, rgbOrder);
-    SetRenderSize(PixelsPerStrand,NumStrands);
-    
+    screenLocation.SetRenderSize(NumStrands, PixelsPerStrand);
+
     // create output mapping
     if (SingleNode) {
         x=0;
@@ -195,7 +196,7 @@ void MatrixModel::InitHMatrix() {
     int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(NumStrands,PixelsPerStrand);
     SetNodeCount(parm1,PixelsPerString,rgbOrder);
-    SetRenderSize(NumStrands,PixelsPerStrand);
+    screenLocation.SetRenderSize(PixelsPerStrand, NumStrands);
     
     // create output mapping
     if (SingleNode) {

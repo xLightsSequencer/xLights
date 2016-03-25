@@ -83,6 +83,7 @@
 		67623E711AD07E320022667B /* KeyBindings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E6F1AD07E320022667B /* KeyBindings.cpp */; };
 		67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E721AD2BF3F0022667B /* BitmapCache.cpp */; };
 		6764010C1C8FBFC30079A4CF /* LayoutPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */; };
+		67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */; };
 		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
@@ -457,6 +458,8 @@
 		67623E721AD2BF3F0022667B /* BitmapCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BitmapCache.cpp; sourceTree = "<group>"; };
 		6764010A1C8FBFC30079A4CF /* LayoutPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutPanel.h; sourceTree = "<group>"; };
 		6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutPanel.cpp; sourceTree = "<group>"; };
+		67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelScreenLocation.cpp; path = models/ModelScreenLocation.cpp; sourceTree = "<group>"; };
+		67653D5B1CA589830026A30B /* ModelScreenLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelScreenLocation.h; path = models/ModelScreenLocation.h; sourceTree = "<group>"; };
 		67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurrentPreviewModels.cpp; sourceTree = "<group>"; };
 		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
@@ -842,6 +845,8 @@
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */,
+				67653D5B1CA589830026A30B /* ModelScreenLocation.h */,
 				670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */,
 				670C827E1C45C48B000AA5D8 /* ArchesModel.h */,
 				676C5EAD1C99D8AF0031A033 /* CandyCaneModel.cpp */,
@@ -1643,6 +1648,7 @@
 				67DAFDDE1CA1A63C004B3237 /* MidiEventList.cpp in Sources */,
 				67B2CF8A1C39D98A003C17CA /* StrobePanel.cpp in Sources */,
 				6761F5F81C4EA041009780DA /* xlGridCanvasMorph.cpp in Sources */,
+				67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */,
 				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
 				67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,

@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class MatrixModel : public Model
+class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
         MatrixModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

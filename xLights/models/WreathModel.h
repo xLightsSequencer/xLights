@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class WreathModel : public Model
+class WreathModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
         WreathModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

@@ -2,6 +2,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
 #include "WindowFrameModel.h"
+#include "ModelScreenLocation.h"
 
 WindowFrameModel::WindowFrameModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
 {
@@ -28,7 +29,7 @@ void WindowFrameModel::InitFrame() {
     int FrameWidth=std::max(parm1,parm3)+2;
     SetBufferSize(parm2,FrameWidth);   // treat as outside of matrix
     //SetBufferSize(1,Nodes.size());   // treat as single string
-    SetRenderSize(parm2,FrameWidth);
+    screenLocation.SetRenderSize(FrameWidth, parm2);
     int chan=stringStartChan[0];
     int ChanIncr=SingleChannel ?  1 : 3;
     

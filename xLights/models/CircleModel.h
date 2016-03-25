@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class CircleModel : public Model
+class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
         CircleModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class SphereModel : public Model
+class SphereModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
         SphereModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

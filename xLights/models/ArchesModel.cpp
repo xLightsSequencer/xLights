@@ -3,6 +3,7 @@
 #include <wx/propgrid/advprops.h>
 
 #include "ArchesModel.h"
+#include "ModelScreenLocation.h"
 
 ArchesModel::ArchesModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) : arc(180)
 {
@@ -129,7 +130,7 @@ void ArchesModel::InitModel() {
             }
         }
     }
-    SetRenderSize(NumArches,SegmentsPerArch);
+    screenLocation.SetRenderSize(SegmentsPerArch, NumArches);
     
     for (int y=0; y < NumArches; y++) {
         for(int x=0; x<SegmentsPerArch; x++) {
@@ -161,7 +162,6 @@ void ArchesModel::SetArchCoord() {
     double xoffset,x,y;
     int numlights=parm1*parm2*parm3;
     size_t NodeCount=GetNodeCount();
-    SetRenderSize(parm2*parm3,numlights*2);
     double midpt=parm2*parm3;
     midpt -= 1.0;
     midpt /= 2.0;
@@ -171,7 +171,7 @@ void ArchesModel::SetArchCoord() {
     double angle=-M_PI/2.0 + start;
     x=midpt*sin(angle)*2.0+parm2*parm3;
     double width = parm2*parm3*2 - x;
-    SetRenderSize(parm2*parm3,width*parm1);
+    screenLocation.SetRenderSize(width*parm1, parm2*parm3);
     
     for(size_t n=0; n<NodeCount; n++) {
         xoffset=Nodes[n]->StringNum*width - width*parm1/2;
@@ -181,7 +181,7 @@ void ArchesModel::SetArchCoord() {
             x=xoffset + midpt*sin(angle)*2.0+parm2*parm3;
             y=(parm2*parm3)*cos(angle);
             Nodes[n]->Coords[c].screenX=x;
-            Nodes[n]->Coords[c].screenY=y-(RenderHt/2);
+            Nodes[n]->Coords[c].screenY=y-(parm2*parm3/2);
         }
     }
 }

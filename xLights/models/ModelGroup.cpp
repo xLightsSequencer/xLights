@@ -5,6 +5,7 @@
 #include "ModelGroup.h"
 #include "ModelManager.h"
 #include "SingleLineModel.h"
+#include "ModelScreenLocation.h"
 
 
 static const std::string HORIZ_PER_MODEL("Horizontal Per Model");
@@ -36,12 +37,12 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
 
 
 ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, int w, int h)
-    : Model(), manager(m)
+    : manager(m)
 {
     ModelNetInfo = &netInfo;
     ModelXml = node;
-    previewW = w;
-    previewH = h;
+    screenLocation.previewW = w;
+    screenLocation.previewH = h;
     Reset();
 }
 void ModelGroup::Reset() {
@@ -164,12 +165,11 @@ void ModelGroup::Reset() {
     
     BufferHt++;
     BufferWi++;
-    RenderWi = maxx - nminx + 1;
-    RenderHt = maxy - nminy + 1;
+
+    screenLocation.SetRenderSize(maxx - nminx + 1, maxy - nminy + 1);
+    screenLocation.SetOffset(0.5, 0.5);
     
-    offsetXpct = offsetYpct = 0.5;
-    
-    SetMinMaxModelScreenCoordinates(previewW, previewH);
+    SetMinMaxModelScreenCoordinates(screenLocation.previewW, screenLocation.previewH);
 }
 
 ModelGroup::~ModelGroup()

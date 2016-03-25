@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class WindowFrameModel : public Model
+class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
         WindowFrameModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

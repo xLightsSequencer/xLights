@@ -125,12 +125,6 @@ class EffectTreeDialog;
 //#define FixedPages 7
 #define FixedPages 6
 
-#define OVER_NO_HANDLE              0
-#define OVER_L_TOP_HANDLE           1
-#define OVER_R_TOP_HANDLE           2
-#define OVER_L_BOTTOM_HANDLE        3
-#define OVER_R_BOTTOM_HANDLE        4
-#define OVER_ROTATE_HANDLE          5
 
 #define TEXT_ENTRY_TIMING           0
 #define TEXT_ENTRY_EFFECT           1

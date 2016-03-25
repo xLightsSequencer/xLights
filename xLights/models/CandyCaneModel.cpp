@@ -3,6 +3,7 @@
 #include <wx/propgrid/advprops.h>
 
 #include "CandyCaneModel.h"
+#include "ModelScreenLocation.h"
 
 CandyCaneModel::CandyCaneModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) : _reverse(false), skew(0)
 {
@@ -315,5 +316,5 @@ void CandyCaneModel::SetCaneCoord() {
             }
         }
     }
-    SetRenderSize(height, width);
+    screenLocation.SetRenderSize( width, height);
 }

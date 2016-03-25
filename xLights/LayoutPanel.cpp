@@ -107,8 +107,8 @@ private:
 
 
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
-    m_creating_bound_rect(false), mPointSize(2), m_rotating(false), m_dragging(false),
-    m_over_handle(0), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr)
+    m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
+    m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr)
 {
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
@@ -307,32 +307,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         xlights->SetPreviewBackgroundScaled(event.GetValue().GetBool());
     } else if (selectedModel != nullptr) {
         //model property
-        if ("ModelRotation" == name) {
-            PreviewRotationUpdated(event.GetValue().GetInteger());
-        } else if ("ModelWidth" == name) {
-            double newscalex, newscaley;
-            selectedModel->GetScales(newscalex, newscaley);
-            newscalex *= 100.0;
-            newscaley *= 100.0;
-
-            PreviewScaleUpdated(event.GetValue().GetDouble(), newscaley);
-        } else if ("ModelHeight" == name) {
-            double newscalex, newscaley;
-            selectedModel->GetScales(newscalex, newscaley);
-            newscalex *= 100.0;
-            newscaley *= 100.0;
-            PreviewScaleUpdated(newscalex, event.GetValue().GetDouble());
-        } else if ("ModelX" == name) {
-            selectedModel->SetHcenterOffset(event.GetValue().GetDouble() / 100.0f);
-            selectedModel->UpdateXmlWithScale();
-            xlights->UpdatePreview();
-            xlights->UnsavedRgbEffectsChanges = true;
-        } else if ("ModelY" == name) {
-            selectedModel->SetVcenterOffset(event.GetValue().GetDouble() / 100.0f);
-            selectedModel->UpdateXmlWithScale();
-            xlights->UpdatePreview();
-            xlights->UnsavedRgbEffectsChanges = true;
-        } else if ("ModelName" == name) {
+        if ("ModelName" == name) {
             if (selectedModel->name != event.GetValue().GetString().ToStdString()) {
                 for(int i=0;i<ListBoxElementList->GetItemCount();i++) {
                     if (selectedModel->name == ListBoxElementList->GetItemText(i)) {
@@ -341,10 +316,6 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 }
                 xlights->RenameModel(selectedModel->name, event.GetValue().GetString().ToStdString());
             }
-        } else if ("ModelMyDisplay" == name) {
-            selectedModel->SetMyDisplay(event.GetValue().GetBool());
-            xlights->UnsavedRgbEffectsChanges = true;
-            xlights->UpdatePreview();
         } else {
             int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
             if (i & 0x0001) {
@@ -374,28 +345,6 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
             selectedModel->OnPropertyGridChanging(propertyEditor, event);
         }
     }
-}
-
-void LayoutPanel::PreviewScaleUpdated(float xscale, float yscale)
-{
-    int sel=ListBoxElementList->GetFirstSelected();
-    if (sel == wxNOT_FOUND) return;
-    Model* m=(Model*)ListBoxElementList->GetItemData(sel);
-    m->SetScale(xscale/100.0, yscale/100.0);
-    m->UpdateXmlWithScale();
-    xlights->UnsavedRgbEffectsChanges = true;
-    UpdatePreview();
-}
-
-void LayoutPanel::PreviewRotationUpdated(int newRotation)
-{
-    int sel=ListBoxElementList->GetFirstSelected();
-    if (sel == wxNOT_FOUND) return;
-    Model* m=(Model*)ListBoxElementList->GetItemData(sel);
-    m->SetModelCoord(newRotation);
-    m->UpdateXmlWithScale();
-    xlights->UnsavedRgbEffectsChanges = true;
-    UpdatePreview();
 }
 
 void LayoutPanel::UpdatePreview()
@@ -543,11 +492,6 @@ void LayoutPanel::UnSelectAllModels()
 }
 
 void LayoutPanel::SetupPropGrid(Model *model) {
-    double newscalex, newscaley;
-    model->GetScales(newscalex, newscaley);
-    newscalex *= 100.0;
-    newscaley *= 100.0;
-
     propertyEditor->Freeze();
     clearPropGrid();
 
@@ -556,27 +500,7 @@ void LayoutPanel::SetupPropGrid(Model *model) {
     model->AddProperties(propertyEditor);
 
     wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
-
-    prop = propertyEditor->Append(new wxFloatProperty("X (%)", "ModelX", model->GetHcenterOffset() * 100.0));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("Y (%)", "ModelY", model->GetVcenterOffset() * 100.0));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("Width", "ModelWidth", newscalex));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("Height", "ModelHeight", newscaley));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxIntProperty("Rotation", "ModelRotation", model->GetRotation()));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetEditor("SpinCtrl");
+    model->AddSizeLocationProperties(propertyEditor);
     if (!sizeVisible) {
         propertyEditor->Collapse(p2);
     }
@@ -891,19 +815,14 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         m_bound_start_x = event.GetX();
         m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
     }
-    else if (m_over_handle == OVER_ROTATE_HANDLE)
+    else if (m_over_handle != -1)
     {
-        m_rotating = true;
-    }
-    else if (m_over_handle != OVER_NO_HANDLE)
-    {
-        m_resizing = true;
+        m_moving_handle = true;
     }
     else if (selectedButton != nullptr)
     {
         //create a new model
-        m_rotating = false;
-        m_resizing = true;
+        m_moving_handle = true;
         m_creating_bound_rect = false;
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
@@ -924,8 +843,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     }
     else
     {
-        m_rotating = false;
-        m_resizing = false;
+        m_moving_handle = false;
         m_creating_bound_rect = false;
 
         if(!event.wxKeyboardState::ControlDown())
@@ -947,9 +865,8 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
     int y = event.GetY();
 
-    m_rotating = false;
+    m_moving_handle = false;
     m_dragging = false;
-    m_resizing = false;
     if(m_creating_bound_rect)
     {
         m_bound_end_x = event.GetPosition().x;
@@ -1000,22 +917,11 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         m=(Model*)ListBoxElementList->GetItemData(sel);
     }
 
-    if(m_rotating)
+    if(m_moving_handle)
     {
-        m->RotateWithHandles(modelPreview,event.ShiftDown(), event.GetPosition().x,y);
-        m->UpdateXmlWithScale();
+        m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetPosition().x,y);
         SetupPropGrid(m);
         xlights->UnsavedRgbEffectsChanges = true;
-        UpdatePreview();
-    }
-    else if(m_resizing)
-    {
-        m->ResizeWithHandles(modelPreview,event.GetPosition().x,y);
-        double scalex, scaley;
-        m->GetScales(scalex, scaley);
-        m->UpdateXmlWithScale();
-        xlights->UnsavedRgbEffectsChanges = true;
-        SetupPropGrid(m);
         UpdatePreview();
     }
     else if (m_dragging && event.Dragging())

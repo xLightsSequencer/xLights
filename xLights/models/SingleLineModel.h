@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class SingleLineModel : public Model
+class SingleLineModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
         SingleLineModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

@@ -5,6 +5,8 @@
 #include <wx/xml/xml.h>
 
 #include "TreeModel.h"
+#include "ModelScreenLocation.h"
+
 
 TreeModel::TreeModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
 {
@@ -56,6 +58,7 @@ void TreeModel::SetTreeCoord(long degrees) {
     double bufferX, bufferY;
     if (BufferWi < 2) return;
     if (BufferHt < 1) return; // June 27,2013. added check to not divide by zero
+    double RenderHt, RenderWi;
     if (degrees > 0) {
         double angle;
         RenderHt=BufferHt * 3;
@@ -144,6 +147,7 @@ void TreeModel::SetTreeCoord(long degrees) {
             }
         }
     }
+    screenLocation.SetRenderSize(RenderWi, RenderHt);
 }
 int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "TreeStyle") {

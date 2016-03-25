@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class CustomModel : public Model
+class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
         CustomModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

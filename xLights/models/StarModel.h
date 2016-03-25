@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class StarModel : public Model
+class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
         StarModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

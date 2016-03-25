@@ -128,9 +128,6 @@ class LayoutPanel: public wxPanel
 
         int FindModelsClicked(int x,int y, std::vector<int> &found);
 
-        void PreviewRotationUpdated(int newRotation);
-        void PreviewScaleUpdated(float xscale, float yscale);
-    
         int ModelsSelectedCount();
         int GetSelectedModelIndex();
         void PreviewModelAlignTops();
@@ -143,14 +140,13 @@ class LayoutPanel: public wxPanel
 
     
         bool m_dragging;
-        bool m_resizing;
-        bool m_rotating;
         bool m_creating_bound_rect;
         int m_bound_start_x;
         int m_bound_start_y;
         int m_bound_end_x;
         int m_bound_end_y;
         int m_over_handle;
+        bool m_moving_handle;
         int m_previous_mouse_x, m_previous_mouse_y;
         int mPointSize;
         int mHitTestNextSelectModelIndex;

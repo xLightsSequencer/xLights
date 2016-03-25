@@ -8,7 +8,7 @@
 
 class ModelManager;
 
-class ModelGroup : public Model
+class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
         ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &manager, int previewW, int previewH);

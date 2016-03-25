@@ -3,6 +3,7 @@
 #include <wx/xml/xml.h>
 
 #include "WholeHouseModel.h"
+#include "ModelScreenLocation.h"
 
 WholeHouseModel::WholeHouseModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zb)
 {
@@ -30,7 +31,7 @@ void WholeHouseModel::InitWholeHouse(const std::string &WholeHouseData) {
     int lastActChn=0;
     wxArrayString data;
     SetBufferSize(parm2,parm1);
-    SetRenderSize(parm2,parm1);
+    screenLocation.SetRenderSize(parm1, parm2);
     wxString stringType;
     
     Nodes.clear();

@@ -5,7 +5,7 @@
 #include <map>
 #include <vector>
 
-#include "Node.h"
+#include "ModelScreenLocation.h"
 #include "../Color.h"
 
 #include <wx/gdicmn.h>
@@ -17,6 +17,10 @@ class ModelPreview;
 class wxArrayString;
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
+class ModelScreenLocation;
+
+class NodeBaseClass;
+typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
 class Model
 {
@@ -24,7 +28,6 @@ public:
     Model();
     virtual ~Model();
 
-    
     
     std::string name;
     xlColor customColor;
@@ -49,6 +52,7 @@ public:
     
     virtual void AddProperties(wxPropertyGridInterface *grid);
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
+    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid);
     virtual void OnPropertyGridChanging(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
     /**
      * Returns a combination of:
@@ -79,7 +83,6 @@ protected:
 
     
     void SetBufferSize(int NewHt, int NewWi);
-    void SetRenderSize(int NewHt, int NewWi);
     void SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string &rgbOrder);
     void CopyBufCoord2ScreenCoord();
     
@@ -92,24 +95,13 @@ protected:
     int blackTransparency = 0;
     
     int StrobeRate;      // 0=no strobing
-    double offsetXpct,offsetYpct;
-    bool singleScale;
-    double PreviewScaleX, PreviewScaleY;
-    int PreviewRotation;
     bool zeroBased;
     bool isMyDisplay;
-    
-    int previewW;
-    int previewH;
-    int mMinScreenX;
-    int mMinScreenY;
-    int mMaxScreenX;
-    int mMaxScreenY;
-    wxPoint mHandlePosition[5];
-    int mDragMode;
-    int mLastResizeX;
     wxXmlNode* ModelXml;
-    
+
+    virtual const ModelScreenLocation &GetModelScreenLocation() const = 0;
+    virtual ModelScreenLocation &GetModelScreenLocation() = 0;
+
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
     long parm1;         /* Number of strings in the model or number of arches or canes (except for frames & custom) */
@@ -130,7 +122,6 @@ public:
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
     
-    int RenderHt,RenderWi;  // size of the rendered output
     bool MyDisplay;
     bool Selected=false;
     bool GroupSelected=false;
@@ -146,29 +137,23 @@ public:
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
-    void SetScale(double x, double y);
-    void GetScales(double &x, double &y);
-    int GetPreviewRotation();
     int GetLastChannel();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml() const;
     int GetNumberFromChannelString(std::string sc);
-    wxCursor GetResizeCursor(int cornerIndex);
     void DisplayModelOnWindow(ModelPreview* preview, const xlColor *color =  NULL, bool allowSelected = true);
     void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
-    void ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY);
-    void RotateWithHandles(ModelPreview* preview,bool ShiftKeyPressed,  int mouseX,int mouseY);
+    
+    void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
+    
     bool HitTest(ModelPreview* preview,int x,int y);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
     void SetMinMaxModelScreenCoordinates(int w, int y);
-    void Rotate(int degrees);
     const std::string& GetStringType(void) const { return StringType; }
     const std::string& GetDisplayAs(void) const { return DisplayAs; }
     int NodesPerString();
-    void SetModelCoord(int degrees);
     int CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y);
-    int GetRotation();
     int NodeStartChannel(size_t nodenum) const;
     const std::string &NodeType(size_t nodenum) const;
     virtual int MapToNodeIndex(int strand, int node) const;
@@ -257,6 +242,21 @@ public:
     }
     static int GetNodeChannelCount(const std::string & nodeType);
     
+};
+
+template <class ScreenLocation>
+class ModelWithScreenLocation : public Model {
+protected:
+    ModelWithScreenLocation() {}
+    virtual ~ModelWithScreenLocation() {}
+    virtual const ModelScreenLocation &GetModelScreenLocation() const  {
+        return screenLocation;
+    }
+    virtual ModelScreenLocation &GetModelScreenLocation() {
+        return screenLocation;
+    }
+protected:
+    ScreenLocation screenLocation;
 };
 
 #endif // MODEL_H

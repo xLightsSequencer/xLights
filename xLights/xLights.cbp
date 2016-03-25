@@ -279,7 +279,7 @@
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
 					<Add option="-D__WXDEBUG__" />
-					<Add option="-D__cdecl=''" />
+					<Add option="-D__cdecl=&apos;&apos;" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -312,7 +312,7 @@
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
 					<Add option="-DNDEBUG" />
-					<Add option="-D__cdecl=''" />
+					<Add option="-D__cdecl=&apos;&apos;" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -793,6 +793,8 @@
 		<Unit filename="models/ModelGroup.h" />
 		<Unit filename="models/ModelManager.cpp" />
 		<Unit filename="models/ModelManager.h" />
+		<Unit filename="models/ModelScreenLocation.cpp" />
+		<Unit filename="models/ModelScreenLocation.h" />
 		<Unit filename="models/Node.cpp" />
 		<Unit filename="models/Node.h" />
 		<Unit filename="models/SingleLineModel.cpp" />

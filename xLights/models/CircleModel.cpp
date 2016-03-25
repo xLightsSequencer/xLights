@@ -4,6 +4,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
 #include "CircleModel.h"
+#include "ModelScreenLocation.h"
 
 CircleModel::CircleModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
 {
@@ -115,10 +116,10 @@ void CircleModel::InitCircle() {
 void CircleModel::SetCircleCoord() {
     double x,y;
     size_t NodeCount=GetNodeCount();
-    SetRenderSize(circleSizes[0]*2,circleSizes[0]*2);
+    screenLocation.SetRenderSize(circleSizes[0]*2,circleSizes[0]*2);
     int nodesToMap = NodeCount;
     int node = 0;
-    double maxRadius = RenderWi / 2.0;
+    double maxRadius = circleSizes[0] / 2.0;
     double minRadius = (double)parm3/100.0 * maxRadius;
     for (int circle = 0; circle < circleSizes.size(); circle++) {
         int loop_count = std::min(nodesToMap, circleSizes[circle]);
