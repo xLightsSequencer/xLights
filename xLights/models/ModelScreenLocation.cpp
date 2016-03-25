@@ -201,7 +201,6 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, wxCoord x,wxCoord 
 wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) {
     offsetXpct = (float)x/(float)previewW;
     offsetYpct = (float)y/(float)previewH;
-    printf("init:  %f %f     %d/%d %d/%d\n", offsetXpct, offsetYpct, x, previewW, y, previewH);
     SetPreviewSize(previewW, previewH, Nodes);
     handle = OVER_R_BOTTOM_HANDLE;
     return wxCURSOR_SIZING;
