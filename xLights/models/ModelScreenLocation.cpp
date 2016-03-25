@@ -433,6 +433,11 @@ TwoPointScreenLocation::TwoPointScreenLocation() : x1(0.4), y1(0.4), x2(0.6), y2
 void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
     if (!ModelNode->HasAttribute("X1")) {
         old = ModelNode;
+    } else {
+        x1 = wxAtof(ModelNode->GetAttribute("X1", ".4"));
+        x2 = wxAtof(ModelNode->GetAttribute("X2", ".6"));
+        y1 = wxAtof(ModelNode->GetAttribute("Y1", ".4"));
+        y2 = wxAtof(ModelNode->GetAttribute("Y2", ".6"));
     }
 }
 void TwoPointScreenLocation::Write(wxXmlNode *node) {
@@ -584,7 +589,6 @@ void TwoPointScreenLocation::SetPreviewSize(int w, int h, const std::vector<Node
     
     if (old) {
         //need to update to latest code
-        
         BoxedScreenLocation box;
         box.Read(old);
         std::vector<NodeBaseClassPtr> Nodes;
