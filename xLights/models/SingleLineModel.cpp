@@ -90,20 +90,23 @@ const std::vector<std::string> &SingleLineModel::GetBufferStyles() const {
 
 void SingleLineModel::InitModel() {
     InitLine();
-    if (SingleNode || parm3 <= 1) {
-        CopyBufCoord2ScreenCoord();
-    } else {
-        float xoffset=BufferWi/2;
-        for (auto node = Nodes.begin(); node != Nodes.end(); node++) {
-            float x = node->get()->Coords[0].bufX;
-            node->get()->Coords.resize(parm3);
-            for(size_t c=0; c < parm3; c++) {
-                node->get()->Coords[c].screenY = 0;
-                node->get()->Coords[c].screenX = x - 0.5 + ((float)c / (float)parm3) - xoffset;
+    int total = Nodes.size() * GetCoordCount(0);
+    int tc = 0;
+    for (auto node = Nodes.begin(); node != Nodes.end(); node++) {
+        int count = 0;
+        int num = node->get()->Coords.size();
+        for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); coord++) {
+            coord->screenY = IsLtoR ? (float)tc / (float)total : 1.0 - (float)tc / (float)total;
+            tc++;
+            if (num > 1) {
+                coord->screenX = coord->bufX + (float)count / (float)num ;
+                count++;
+            } else {
+                coord->screenX = coord->bufX;
             }
         }
-        screenLocation.SetRenderSize(BufferWi, BufferHt);
     }
+    screenLocation.SetRenderSize(BufferWi + (parm3 > 1 ? 1 : 0), 1);
 }
 
 
@@ -127,12 +130,13 @@ void SingleLineModel::InitLine() {
         }
         Nodes[n]->ActChan=chan;
         chan+=ChanIncr;
+        Nodes[n]->Coords.resize(parm3);
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
             Nodes[n]->Coords[c].bufX=IsLtoR ? idx : numLights-idx-1;
             Nodes[n]->Coords[c].bufY=0;
-            idx++;
         }
+        idx++;
     }
 }
 

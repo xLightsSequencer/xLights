@@ -179,13 +179,20 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const NetInfoCl
         wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
         return nullptr;
     }
+    if (model != nullptr) {
+        model->SetMinMaxModelScreenCoordinates(previewWidth, previewHeight);
+    }
     return model;
 }
 Model *ModelManager::CreateModel(wxXmlNode *node) {
     if (node->GetName() == "modelGroup") {
         return new ModelGroup(node, *netInfo, *this, previewWidth, previewHeight);
     }
-    return CreateModel(node, *netInfo, false);
+    Model *model = CreateModel(node, *netInfo, false);
+    if (model != nullptr) {
+        model->SetMinMaxModelScreenCoordinates(previewWidth, previewHeight);
+    }
+    return model;
 }
 Model *ModelManager::CreateModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) {
     std::string type = node->GetAttribute("DisplayAs").ToStdString();

@@ -1407,8 +1407,11 @@ bool Model::HitTest(ModelPreview* preview,int x,int y) {
 }
 
 
-int Model::CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y) {
-    return GetModelScreenLocation().CheckIfOverHandles(preview, x, y);
+wxCursor Model::CheckIfOverHandles(int &handle, wxCoord x,wxCoord y) {
+    return GetModelScreenLocation().CheckIfOverHandles(handle, x, y);
+}
+wxCursor Model::InitializeLocation(int &handle, wxCoord x,wxCoord y) {
+    return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes);
 }
 
 // display model using colors stored in each node
@@ -1642,7 +1645,7 @@ void Model::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
     SetMinMaxModelScreenCoordinates(w, h);
 }
 void Model::SetMinMaxModelScreenCoordinates(int w, int h) {
-    GetModelScreenLocation().SetMinMaxModelScreenCoordinates(w, h, Nodes);
+    GetModelScreenLocation().SetPreviewSize(w, h, Nodes);
 }
 
 void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {

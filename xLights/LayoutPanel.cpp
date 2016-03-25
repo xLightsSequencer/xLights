@@ -822,23 +822,29 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     else if (selectedButton != nullptr)
     {
         //create a new model
-        m_moving_handle = true;
-        m_creating_bound_rect = false;
+        int wi, ht;
+        modelPreview->GetVirtualCanvasSize(wi,ht);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
-        newModel = CreateNewModel(selectedButton->GetModelType());
-
-        if (newModel != nullptr) {
-            newModel->Selected = true;
-            int wi, ht;
-            modelPreview->GetVirtualCanvasSize(wi,ht);
-            if (wi > 0 && ht > 0)
-            {
-                newModel->SetOffset((double)(m_previous_mouse_x)/(double)(wi), 1.0 - (double)(m_previous_mouse_y)/(double)ht);
-                newModel->UpdateXmlWithScale();
+        int cy = modelPreview->GetVirtualCanvasHeight() - m_previous_mouse_y;
+        if (m_previous_mouse_x < wi
+            && cy < ht
+            && cy >= 0) {
+            
+            m_moving_handle = true;
+            m_creating_bound_rect = false;
+            newModel = CreateNewModel(selectedButton->GetModelType());
+            
+            if (newModel != nullptr) {
+                newModel->Selected = true;
+                if (wi > 0 && ht > 0)
+                {
+                    modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x,modelPreview->GetVirtualCanvasHeight() - y));
+                    newModel->UpdateXmlWithScale();
+                }
+                
+                modelPreview->GetModels().push_back(newModel);
             }
-
-            modelPreview->GetModels().push_back(newModel);
         }
     }
     else
@@ -876,8 +882,10 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         UpdatePreview();
     }
     if (newModel != nullptr) {
+        newModel->UpdateXmlWithScale();
         xlights->AllModels.AddModel(newModel);
         UpdateModelList();
+        UpdatePreview();
         if (selectedButton->GetState() == 1) {
             SelectModel(newModel->name);
             newModel = nullptr;
@@ -919,7 +927,8 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 
     if(m_moving_handle)
     {
-        m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetPosition().x,y);
+        y = modelPreview->GetVirtualCanvasHeight() - y;
+        m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetPosition().x, y);
         SetupPropGrid(m);
         xlights->UnsavedRgbEffectsChanges = true;
         UpdatePreview();
@@ -928,7 +937,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
-        modelPreview->GetSize(&wi,&ht);
+        modelPreview->GetVirtualCanvasSize(wi, ht);
         if (wi > 0 && ht > 0)
         {
             for (int i=0; i<modelPreview->GetModels().size(); i++)
@@ -951,7 +960,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         if(m->Selected)
         {
-            m_over_handle = m->CheckIfOverHandles(modelPreview,event.GetPosition().x,modelPreview->GetVirtualCanvasHeight() - y);
+            modelPreview->SetCursor(m->CheckIfOverHandles(m_over_handle,event.GetPosition().x,modelPreview->GetVirtualCanvasHeight() - y));
         }
     }
 }

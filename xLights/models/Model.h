@@ -153,7 +153,9 @@ public:
     const std::string& GetStringType(void) const { return StringType; }
     const std::string& GetDisplayAs(void) const { return DisplayAs; }
     int NodesPerString();
-    int CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y);
+    wxCursor CheckIfOverHandles(int &handle, wxCoord x,wxCoord y);
+    wxCursor InitializeLocation(int &handle, wxCoord x,wxCoord y);
+    
     int NodeStartChannel(size_t nodenum) const;
     const std::string &NodeType(size_t nodenum) const;
     virtual int MapToNodeIndex(int strand, int node) const;

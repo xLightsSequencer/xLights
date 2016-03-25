@@ -13,6 +13,7 @@ class wxXmlNode;
 class ModelPreview;
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
+class wxCursor;
 
 #include <vector>
 #include "Node.h"
@@ -26,16 +27,17 @@ public:
     virtual void Read(wxXmlNode *node) = 0;
     virtual void Write(wxXmlNode *node) = 0;
     
-    virtual void SetMinMaxModelScreenCoordinates(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
+    virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
     virtual void PrepareToDraw() const = 0;
     virtual void TranslatePoint(double &x, double &y) const = 0;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const = 0;
     virtual bool HitTest(int x,int y) const = 0;
-    virtual int CheckIfOverHandles(ModelPreview* preview, int x, int y) const = 0;
+    virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const = 0;
     virtual void DrawHandles() const = 0;
     virtual void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
-    
+    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
+ 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) = 0;
     
@@ -76,15 +78,16 @@ public:
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
     
-    virtual void SetMinMaxModelScreenCoordinates(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
+    virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
     virtual void PrepareToDraw() const override;
     virtual void TranslatePoint(double &x, double &y) const override;
     
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(int x,int y) const override;
-    virtual int CheckIfOverHandles(ModelPreview* preview, int x, int y) const override;
+    virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles() const override;
     virtual void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
     
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
@@ -158,6 +161,59 @@ private:
         int y;
     };
     mutable xlPoint mHandlePosition[5];
+};
+
+
+//Location that uses two points to define start/end
+class TwoPointScreenLocation : public ModelScreenLocation {
+public:
+    TwoPointScreenLocation();
+    virtual ~TwoPointScreenLocation() {}
+    
+    virtual void Read(wxXmlNode *node) override;
+    virtual void Write(wxXmlNode *node) override;
+    
+    virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
+    virtual void PrepareToDraw() const override;
+    virtual void TranslatePoint(double &x, double &y) const override;
+    
+    virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
+    virtual bool HitTest(int x,int y) const override;
+    virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
+    virtual void DrawHandles() const override;
+    virtual void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
+
+    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
+    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+    
+    virtual float GetHcenterOffset() const override;
+    virtual float GetVcenterOffset() const override;
+    virtual void SetHcenterOffset(float f) override;
+    virtual void SetVcenterOffset(float f) override;
+    
+    virtual void SetOffset(double xPct, double yPct) override;
+    virtual void AddOffset(double xPct, double yPct) override;
+    virtual int GetTop() const override;
+    virtual int GetLeft() const override;
+    virtual int GetRight() const override;
+    virtual int GetBottom() const override;
+    virtual void SetTop(int i) override;
+    virtual void SetLeft(int i) override;
+    virtual void SetRight(int i) override;
+    virtual void SetBottom(int i) override;
+    
+    void FlipCoords();
+private:
+    float x1, y1;
+    float x2, y2;
+    wxXmlNode *old;
+    
+    struct xlPoint {
+        int x;
+        int y;
+    };
+    mutable xlPoint mHandlePosition[2];
 };
 
 #endif // MODELSCREENLOCATION_H
