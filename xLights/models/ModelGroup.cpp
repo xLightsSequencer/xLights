@@ -175,6 +175,16 @@ void ModelGroup::Reset() {
 ModelGroup::~ModelGroup()
 {
 }
+void ModelGroup::AddModel(const std::string &name) {
+    wxString newVal = ModelXml->GetAttribute("models", "");
+    if (newVal.size() > 0) {
+        newVal += ",";
+    }
+    newVal += name;
+    ModelXml->DeleteAttribute("models");
+    ModelXml->AddAttribute("models", newVal);
+    Reset();
+}
 void ModelGroup::ModelRemoved(const std::string &oldName) {
     bool changed = false;
     wxString newVal;

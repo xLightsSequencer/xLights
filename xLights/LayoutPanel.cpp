@@ -189,6 +189,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
 
+#if wxCHECK_VERSION(3, 1, 0)
+    Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_LIST_ITEM_CHECKED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementItemChecked);
+    Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_LIST_ITEM_UNCHECKED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementItemChecked);
+#endif
+    
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights->PreviewModels, true);
     PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
@@ -275,7 +280,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     wxImage image(data);
-#ifdef __WXOSX__
+#if wxCHECK_VERSION(3, 1, 0)
     wxBitmap bitmap(image, -1, 2.0);
 #else
     image.Rescale(24, 24, wxIMAGE_QUALITY_HIGH);
@@ -389,8 +394,10 @@ void LayoutPanel::UpdateModelList(bool addGroups) {
 
     std::vector<Model *> models;
     std::string selection = ViewChoice->GetStringSelection().ToStdString();
+    bool enableCheckboxes = false;
     switch (ViewChoice->GetSelection()) {
         case 0:
+            enableCheckboxes = true;
             for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
                 if (it->second->GetDisplayAs() != "ModelGroup") {
                     models.push_back(it->second);
@@ -435,7 +442,9 @@ void LayoutPanel::UpdateModelList(bool addGroups) {
         }
     }
 
-
+#if wxCHECK_VERSION(3, 1, 0)
+    ListBoxElementList->EnableCheckboxes(enableCheckboxes);
+#endif
     for (auto it = models.begin(); it != models.end(); it++) {
         Model *model = *it;
         if (model->GetDisplayAs() == "ModelGroup") {
@@ -449,6 +458,9 @@ void LayoutPanel::UpdateModelList(bool addGroups) {
         ListBoxElementList->SetItem(itemIndex,1, start_channel);
         ListBoxElementList->SetItem(itemIndex,2, wxString::Format(wxT("%i"),end_channel));
         ListBoxElementList->SetItemPtrData(itemIndex,(wxUIntPtr)model);
+#if wxCHECK_VERSION(3, 1, 0)
+        ListBoxElementList->CheckItem(itemIndex, model->IsMyDisplay());
+#endif
     }
 
 
@@ -687,6 +699,13 @@ int wxCALLBACK SortElementsFunctionDESC(wxIntPtr item1, wxIntPtr item2, wxIntPtr
 {
     return SortElementsFunctionASC(item2, item1, sortColumn);
 }
+
+void LayoutPanel::OnListBoxElementItemChecked(wxListEvent& event) {
+#if wxCHECK_VERSION(3, 1, 0)
+    xlights->AllModels[event.GetLabel().ToStdString()]->SetMyDisplay(ListBoxElementList->IsItemChecked(event.GetIndex()));
+    xlights->UnsavedRgbEffectsChanges = true;
+#endif
+}
 void LayoutPanel::OnListBoxElementListColumnClick(wxListEvent& event)
 {
     int col = event.GetColumn();
@@ -884,8 +903,18 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     if (newModel != nullptr) {
         newModel->UpdateXmlWithScale();
         xlights->AllModels.AddModel(newModel);
+        
+        if (ViewChoice->GetSelection() > 2) {
+            ModelGroup *grp = (ModelGroup*)xlights->AllModels[ViewChoice->GetStringSelection().ToStdString()];
+            if (grp != nullptr) {
+                grp->AddModel(newModel->name);
+            }
+        }
+        
         UpdateModelList();
         UpdatePreview();
+        m_over_handle = -1;
+        modelPreview->SetCursor(wxCURSOR_DEFAULT);
         if (selectedButton->GetState() == 1) {
             SelectModel(newModel->name);
             newModel = nullptr;

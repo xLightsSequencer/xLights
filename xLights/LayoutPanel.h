@@ -95,6 +95,7 @@ class LayoutPanel: public wxPanel
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
 		void OnListBoxElementListItemSelect(wxListEvent& event);
 		void OnListBoxElementListColumnClick(wxListEvent& event);
+        void OnListBoxElementItemChecked(wxListEvent& event);
 		void OnPropertyGridChange(wxPropertyGridEvent& event);
 		void OnPropertyGridChanging(wxPropertyGridEvent& event);
 		void OnModelSplitterSashPosChanged(wxSplitterEvent& event);

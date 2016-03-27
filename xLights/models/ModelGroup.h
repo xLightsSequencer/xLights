@@ -16,6 +16,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
         void ModelRemoved(const std::string &name);
         void ModelRenamed(const std::string &oldName, const std::string &newName);
+        void AddModel(const std::string &name);
+    
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
         const std::vector<Model *> &Models() const { return models;}
