@@ -17,6 +17,7 @@ class wxCursor;
 
 #include <vector>
 #include "Node.h"
+#include <glm/mat3x3.hpp>
 
 class ModelScreenLocation
 {
@@ -61,11 +62,11 @@ public:
     virtual void SetBottom(int i) = 0;
     
     
-    void SetRenderSize(int NewWi, int NewHt) {
+    void SetRenderSize(float NewWi, float NewHt) {
         RenderHt=NewHt;
         RenderWi=NewWi;
     }
-    int RenderHt,RenderWi;  // size of the rendered output
+    float RenderHt,RenderWi;  // size of the rendered output
     int previewW,previewH;
 };
 
@@ -168,7 +169,7 @@ private:
 class TwoPointScreenLocation : public ModelScreenLocation {
 public:
     TwoPointScreenLocation();
-    virtual ~TwoPointScreenLocation() {}
+    virtual ~TwoPointScreenLocation();
     
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
@@ -203,11 +204,19 @@ public:
     virtual void SetRight(int i) override;
     virtual void SetBottom(int i) override;
     
+    void SetYMinMax(float min, float max) {
+        minMaxSet = true;
+        ymin = min;
+        ymax = max;
+    }
     void FlipCoords();
 private:
     float x1, y1;
     float x2, y2;
+    float ymin, ymax;
+    bool minMaxSet;
     wxXmlNode *old;
+    mutable glm::mat3 *matrix;
     
     struct xlPoint {
         int x;

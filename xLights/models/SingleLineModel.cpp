@@ -90,23 +90,28 @@ const std::vector<std::string> &SingleLineModel::GetBufferStyles() const {
 
 void SingleLineModel::InitModel() {
     InitLine();
-    int total = Nodes.size() * GetCoordCount(0);
-    int tc = 0;
+    
+    
     for (auto node = Nodes.begin(); node != Nodes.end(); node++) {
         int count = 0;
         int num = node->get()->Coords.size();
+        float offset = 0.0;
+        if (num == 1) {
+            offset = 0.5;
+        } else {
+            offset = (float)1 / (float)num / 2.0;
+        }
         for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); coord++) {
-            coord->screenY = IsLtoR ? (float)tc / (float)total : 1.0 - (float)tc / (float)total;
-            tc++;
+            coord->screenY = 0;
             if (num > 1) {
-                coord->screenX = coord->bufX + (float)count / (float)num ;
+                coord->screenX = coord->bufX + (float)count / (float)num + offset ;
                 count++;
             } else {
-                coord->screenX = coord->bufX;
+                coord->screenX = coord->bufX + offset ;
             }
         }
     }
-    screenLocation.SetRenderSize(BufferWi + (parm3 > 1 ? 1 : 0), 1);
+    screenLocation.SetRenderSize(BufferWi, 1);
 }
 
 

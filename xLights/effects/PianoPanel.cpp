@@ -28,8 +28,8 @@
 #include <wx/filepicker.h>
 
 #include "../MIDI/MidiFile.h"
-#include <log4cpp/Category.hh>
 #include "../xLightsMain.h"
+#include <log4cpp/Category.hh>
 
 //(*IdInit(PianoPanel)
 const long PianoPanel::ID_STATICTEXT3 = wxNewId();

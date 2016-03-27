@@ -17,3 +17,4 @@ build
 *.exp
 xLights/Debug/
 xLights/Release/
+xLights/xLights_l4cpp.log

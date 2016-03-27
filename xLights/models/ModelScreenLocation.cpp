@@ -422,13 +422,14 @@ void BoxedScreenLocation::SetBottom(int y) {
     offsetYpct = ((float)newCenterY/(float)previewH);
 }
 
-
-
-
-TwoPointScreenLocation::TwoPointScreenLocation() : x1(0.4), y1(0.4), x2(0.6), y2(0.6), old(nullptr) {
+TwoPointScreenLocation::TwoPointScreenLocation() : x1(0.4), y1(0.4), x2(0.6), y2(0.6), old(nullptr), matrix(nullptr), minMaxSet(false) {
     
 }
-
+TwoPointScreenLocation::~TwoPointScreenLocation() {
+    if (matrix != nullptr) {
+        delete matrix;
+    }
+}
 void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
     if (!ModelNode->HasAttribute("X1")) {
         old = ModelNode;
@@ -449,52 +450,86 @@ void TwoPointScreenLocation::Write(wxXmlNode *node) {
     node->AddAttribute("X2", std::to_string(x2));
     node->AddAttribute("Y2", std::to_string(y2));
 }
+#include <glm/glm.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
 
 void TwoPointScreenLocation::PrepareToDraw() const {
+    float angle = M_PI/2;
+    if (x2 != x1) {
+        float slope = (y2 - y1)/(x2 - x1);
+        angle = std::atan(slope);
+        if (x1 > x2) {
+            angle += M_PI;
+        }
+    } else if (y2 < y1) {
+        angle += M_PI;
+    }
+    float scale = std::sqrt((y2 - y1)*(y2 - y1) + (x2 - x1)*(x2 - x1))/RenderWi;
+
+    glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, scale));
+    glm::mat3 rotationMatrix = glm::rotate(glm::mat3(1.0f), (float)angle);
+    glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(x1, y1));
+    glm::mat3 scaling2Matrix = glm::scale(glm::mat3(1.0f), glm::vec2(previewW, previewH));
+    
+    glm::mat3 mat3 = scaling2Matrix * translateMatrix * rotationMatrix * scalingMatrix;
+    
+    if (matrix != nullptr) {
+        delete matrix;
+    }
+    matrix = new glm::mat3(mat3);
 }
 void TwoPointScreenLocation::TranslatePoint(double &x, double &y) const {
-    x = x / RenderWi * (x2 - x1) + x1;
-    y = y / RenderHt * (y2 - y1) + y1;
-
-    x *= previewW;
-    y *= previewH;
+    glm::vec3 v = *matrix * glm::vec3(x, y, 1);
+    x = (v[0]);
+    y = (v[1]);
 }
 
-bool TwoPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {return false;}
+bool TwoPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
+    float min = ymin;
+    float max = ymax;
+    if (!minMaxSet) {
+        min = 0;
+        max = RenderHt;
+    }
+    //invert the matrix, get into render space
+    glm::vec3 v1 = *matrix * glm::vec3(0, min, 1);
+    glm::vec3 v2 = *matrix * glm::vec3(0, max, 1);
+    glm::vec3 v3 = *matrix * glm::vec3(RenderWi, min, 1);
+    glm::vec3 v4 = *matrix * glm::vec3(RenderWi, max, 1);
+
+    int xsi = x1<x2?x1:x2;
+    int xfi = x1>x2?x1:x2;
+    int ysi = y1<y2?y1:y2;
+    int yfi = y1>y2?y1:y2;
+    
+    float xs = std::min(std::min(v1[0], v2[0]), std::min(v3[0], v4[0]));
+    float xf = std::max(std::max(v1[0], v2[0]), std::max(v3[0], v4[0]));
+    float ys = std::min(std::min(v1[1], v2[1]), std::min(v3[1], v4[1]));
+    float yf = std::max(std::max(v1[1], v2[1]), std::max(v3[1], v4[1]));
+    
+    return xsi < xs && xfi > xf && ysi < ys && yfi > yf;
+}
 
 bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
-    float x = (float)sx / (float)previewW;
-    float y = (float)sy / (float)previewH;
+    //invert the matrix, get into render space
+    glm::mat3 m = glm::inverse(*matrix);
+    glm::vec3 v = m * glm::vec3(sx, sy, 1);
+    glm::vec3 v2 = m * glm::vec3(sx + 1, sy + 1, 1);
     
-    float t1 = x1;
-    float t2 = x2;
-    if (t1 > t2) {
-        float t3 = t1;
-        t1 = t2;
-        t2 = t3;
+    float min = ymin;
+    float max = ymax;
+    if (!minMaxSet) {
+        if (RenderHt < 4) {
+            min = -std::abs(v2[1] - v[1]) * 6.0;
+            max = -min;
+        } else {
+            min = -1;
+            max = RenderHt;
+        }
     }
-    if ((t1 - t2) < 0.05) {
-        t1 -= 0.02;
-        t2 += 0.02;
-    }
-    if (x < t1 || x > t2) {
-        return false;
-    }
-    t1 = y1;
-    t2 = y2;
-    if (t1 > t2) {
-        float t3 = t1;
-        t1 = t2;
-        t2 = t3;
-    }
-    if ((t1 - t2) < 0.05) {
-        t1 -= 0.02;
-        t2 += 0.02;
-    }
-    if (y < t1 || y > t2) {
-        return false;
-    }
-    return true;
+
+    float y = v[1];
+    return (v[0] >= -1 && v[0] <= (RenderWi+1) && y >= min && y <= max);
 }
 
 wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) const {

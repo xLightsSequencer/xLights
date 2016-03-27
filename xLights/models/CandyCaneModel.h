@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class CandyCaneModel : public ModelWithScreenLocation<BoxedScreenLocation>
+class CandyCaneModel : public ModelWithScreenLocation<TwoPointScreenLocation>
 {
     public:
         CandyCaneModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
@@ -30,6 +30,7 @@ class CandyCaneModel : public ModelWithScreenLocation<BoxedScreenLocation>
 		bool _reverse;
 		bool _sticks;
         int skew;
+        float caneheight;
 };
 
 #endif // CANDYCANEMODEL_H
