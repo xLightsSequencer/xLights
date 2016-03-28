@@ -244,18 +244,28 @@ public:
     void SetHeight(float h) {
         height = h;
     }
-    float GetHeight() {
+    float GetHeight() const {
         return height;
     }
-    bool SetModelHandleHeight(bool b) {
+    void SetModelHandleHeight(bool b) {
         modelHandlesHeight = b;
+    }
+    void SetSupportsAngle(bool b) {
+        supportsAngle = b;
+    }
+    void SetAngle(int a) {
+        angle = a;
+    }
+    int GetAngle() const {
+        return angle;
     }
 protected:
     virtual void ProcessOldNode(wxXmlNode *n) override;
 private:
     bool modelHandlesHeight;
+    bool supportsAngle;
     float height;
-    
+    int angle;
 };
 
 #endif // MODELSCREENLOCATION_H

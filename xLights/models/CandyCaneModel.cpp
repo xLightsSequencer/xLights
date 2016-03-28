@@ -5,9 +5,10 @@
 #include "CandyCaneModel.h"
 #include "ModelScreenLocation.h"
 
-CandyCaneModel::CandyCaneModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) : _reverse(false), skew(0), caneheight(1.0)
+CandyCaneModel::CandyCaneModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) : _reverse(false), caneheight(1.0)
 {
     screenLocation.SetModelHandleHeight(true);
+    screenLocation.SetSupportsAngle(true);
     SetFromXml(node, netInfo, zeroBased);
 }
 
@@ -44,7 +45,7 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
     
-    p = grid->Append(new wxIntProperty("Cane Rotation", "CandyCaneSkew", skew));
+    p = grid->Append(new wxIntProperty("Cane Rotation", "CandyCaneSkew", screenLocation.GetAngle()));
     p->SetAttribute("Min", -180 );
     p->SetAttribute("Max", 180);
     p->SetEditor("SpinCtrl");
@@ -80,8 +81,8 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
         return 3;
     } else if ("CandyCaneSkew" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("CandyCaneSkew");
-        ModelXml->AddAttribute("CandyCaneSkew", wxString::Format("%d", event.GetPropertyValue().GetLong()));
+        ModelXml->DeleteAttribute("Angle");
+        ModelXml->AddAttribute("Angle", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
         return 3;
     } else if ("CandyCaneHeight" == event.GetPropertyName()) {
@@ -150,7 +151,11 @@ void CandyCaneModel::InitModel() {
     int SegmentsPerCane=parm2;
 	_reverse = (ModelXml->GetAttribute("CandyCaneReverse", "false") == "true");
 	_sticks = (ModelXml->GetAttribute("CandyCaneSticks", "false") == "true");
-    skew = wxAtoi(ModelXml->GetAttribute("CandyCaneSkew", "0"));
+    if (ModelXml->HasAttribute("CandyCaneSkew")) {
+        ModelXml->DeleteAttribute("CandyCaneSkew");
+        int skew = wxAtoi(ModelXml->GetAttribute("CandyCaneSkew", "0"));
+        screenLocation.SetAngle(skew);
+    }
     caneheight = wxAtof(ModelXml->GetAttribute("CandyCaneHeight", "1.0"));
     
     SetNodeCount(NumCanes, SegmentsPerCane, rgbOrder);
@@ -195,11 +200,11 @@ int CandyCaneModel::CalcCannelsPerString() {
     }
     return GetNodeChannelCount(StringType) * parm2;
 }
-inline double toRadians(long degrees) {
+inline double toRadians(float degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
 
-void rotate_point(float cx,float cy, float angle, float &x, float &y)
+static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 {
     float s = sin(angle);
     float c = cos(angle);
@@ -223,7 +228,7 @@ void CandyCaneModel::SetCaneCoord() {
 	int LightsPerNode = parm3;
     
 	int lightspercane = SegmentsPerCane * LightsPerNode;
-    float angle = toRadians(skew);
+    float angle = toRadians(screenLocation.GetAngle());
     
 	double height;
     double width;
@@ -241,7 +246,7 @@ void CandyCaneModel::SetCaneCoord() {
     
 	if (_sticks)
 	{
-        height = lightspercane * caneheight * screenLocation.GetHeight();
+        height = lightspercane * caneheight;
         for (int i = 0; i < NumCanes; i++){
             int y = 0;
             double x = i*(widthPerCane + caneGap) + widthPerCane / 2.0;
@@ -265,7 +270,7 @@ void CandyCaneModel::SetCaneCoord() {
             if (_reverse) {
                 x += widthPerCane;
             }
-            double y = 0; //-height/2.0;
+            double y = 0;
             int curLight = 0;
             int curNode = 0;
             double cx = x;

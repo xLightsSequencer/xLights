@@ -29,7 +29,6 @@ class CandyCaneModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         void SetCaneCoord();
 		bool _reverse;
 		bool _sticks;
-        int skew;
         float caneheight;
 };
 

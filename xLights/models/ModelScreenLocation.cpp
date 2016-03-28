@@ -26,7 +26,7 @@ inline double toRadians(long degrees) {
     return 2.0*M_PI*double(degrees)/360.0;
 }
 
-inline long toDegrees(double radians) {
+inline int toDegrees(double radians) {
     return (radians/(2*M_PI))*360.0;
 }
 
@@ -778,9 +778,7 @@ void TwoPointScreenLocation::FlipCoords() {
 }
 
 
-
-
-ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesHeight(false) {
+ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesHeight(false), supportsAngle(false), angle(0) {
     mHandlePosition.resize(3);
 }
 ThreePointScreenLocation::~ThreePointScreenLocation() {
@@ -788,11 +786,16 @@ ThreePointScreenLocation::~ThreePointScreenLocation() {
 void ThreePointScreenLocation::Read(wxXmlNode *node) {
     TwoPointScreenLocation::Read(node);
     height = wxAtof(node->GetAttribute("Height", "1.0"));
+    angle = wxAtoi(node->GetAttribute("Angle", "0"));
 }
 void ThreePointScreenLocation::Write(wxXmlNode *node) {
     TwoPointScreenLocation::Write(node);
     node->DeleteAttribute("Height");
     node->AddAttribute("Height", std::to_string(height));
+    if (supportsAngle) {
+        node->DeleteAttribute("Angle");
+        node->AddAttribute("Angle", std::to_string(angle));
+    }
 }
 
 void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *grid) const {
@@ -816,6 +819,28 @@ int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid
     }
     return TwoPointScreenLocation::OnPropertyGridChange(grid, event);
 }
+
+inline float toRadians(int degrees) {
+    return 2.0*M_PI*float(degrees)/360.0;
+}
+static void rotate_point(float cx,float cy, float angle, float &x, float &y)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    
+    // translate point back to origin:
+    x -= cx;
+    y -= cy;
+    
+    // rotate point
+    float xnew = x * c - y * s;
+    float ynew = x * s + y * c;
+    
+    // translate point back:
+    x = xnew + cx;
+    y = ynew + cy;
+}
+
 void ThreePointScreenLocation::DrawHandles() const {
     TwoPointScreenLocation::DrawHandles();
     
@@ -827,7 +852,13 @@ void ThreePointScreenLocation::DrawHandles() const {
         max = RenderHt;
     }
     
-    glm::vec3 v1 = *matrix * glm::vec3(RenderWi / 2, max, 1);
+    float x = RenderWi / 2;
+    if (supportsAngle) {
+        max = RenderHt * height;
+        rotate_point(RenderWi / 2.0, 0, toRadians(angle), x, max);
+    }
+    
+    glm::vec3 v1 = *matrix * glm::vec3(x, max, 1);
     float sx = v1.x;
     float sy = v1.y;
     
@@ -853,7 +884,19 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
         if (!minMaxSet) {
             max = RenderHt;
         }
-        height = height * v.y / max;
+        if (max < 0.01) {
+            max = 0.01;
+        }
+        float newy = v.y;
+        if (supportsAngle) {
+            float newx = v.x - RenderWi/2.0;
+            float nheight = std::sqrt(newy*newy + newx*newx);
+            height = nheight / RenderHt;
+            float newa = std::atan2(newy, newx) - M_PI/2;
+            angle = toDegrees(newa);
+        } else {
+            height = height * newy / max;
+        }
         if (std::abs(height) < 0.01) {
             if (height < 0) {
                 height = -0.01;
