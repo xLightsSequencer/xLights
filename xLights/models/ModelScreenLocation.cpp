@@ -325,7 +325,15 @@ void BoxedScreenLocation::DrawHandles() const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx += w1;
     sy += h1;
-    DrawGLUtils::DrawLine(xlWHITE,255,w1,h1,sx,sy,1.0);
+    
+    glEnable( GL_LINE_SMOOTH );
+    glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+    glLineWidth(1.7);
+    DrawGLUtils::AddVertex(w1,h1, xlWHITE);
+    DrawGLUtils::AddVertex(sx, sy, xlWHITE);
+    DrawGLUtils::End(GL_LINES);
+    glLineWidth(1.0);
+    glDisable(GL_LINE_SMOOTH);
 }
 
 void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
@@ -819,7 +827,7 @@ void ThreePointScreenLocation::DrawHandles() const {
         max = RenderHt;
     }
     
-    glm::vec3 v1 = *matrix * glm::vec3(RenderWi / 2, ymax, 1);
+    glm::vec3 v1 = *matrix * glm::vec3(RenderWi / 2, max, 1);
     float sx = v1.x;
     float sy = v1.y;
     
