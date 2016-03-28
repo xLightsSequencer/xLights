@@ -88,11 +88,11 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
     
 }
 
-ModelScreenLocation::ModelScreenLocation() : RenderWi(0), RenderHt(0), previewW(800), previewH(600) {
+ModelScreenLocation::ModelScreenLocation(int sz) : RenderWi(0), RenderHt(0), previewW(800), previewH(600), mHandlePosition(sz) {
 }
 
 
-BoxedScreenLocation::BoxedScreenLocation() :
+BoxedScreenLocation::BoxedScreenLocation() : ModelScreenLocation(5),
     offsetXpct(0.5), offsetYpct(0.5), singleScale(false),
     PreviewScaleX(0.333), PreviewScaleY(0.333),
     PreviewRotation(0) {
@@ -369,7 +369,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     return 0;
 }
-void BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
+int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
     if (handle == OVER_ROTATE_HANDLE) {
         int sx,sy;
         sx = mouseX-centerx;
@@ -398,6 +398,7 @@ void BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shi
         sy = fabs(sy) - RECT_HANDLE_WIDTH;
         SetScale( (double)(sx*2.0)/double(previewW), (double)(sy*2.0)/double(previewH));
     }
+    return 0;
 }
 
 void BoxedScreenLocation::SetLeft(int x) {
@@ -422,8 +423,9 @@ void BoxedScreenLocation::SetBottom(int y) {
     offsetYpct = ((float)newCenterY/(float)previewH);
 }
 
-TwoPointScreenLocation::TwoPointScreenLocation() : x1(0.4), y1(0.4), x2(0.6), y2(0.6), old(nullptr), matrix(nullptr), minMaxSet(false) {
-    
+TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(2),
+    x1(0.4), y1(0.4), x2(0.6), y2(0.6),
+    old(nullptr), matrix(nullptr), minMaxSet(false) {
 }
 TwoPointScreenLocation::~TwoPointScreenLocation() {
     if (matrix != nullptr) {
@@ -454,9 +456,14 @@ void TwoPointScreenLocation::Write(wxXmlNode *node) {
 #include <glm/gtx/matrix_transform_2d.hpp>
 
 void TwoPointScreenLocation::PrepareToDraw() const {
+    float x1p = x1 * (float)previewW;
+    float x2p = x2 * (float)previewW;
+    float y1p = y1 * (float)previewH;
+    float y2p = y2 * (float)previewH;
+    
     float angle = M_PI/2;
     if (x2 != x1) {
-        float slope = (y2 - y1)/(x2 - x1);
+        float slope = (y2p - y1p)/(x2p - x1p);
         angle = std::atan(slope);
         if (x1 > x2) {
             angle += M_PI;
@@ -464,15 +471,14 @@ void TwoPointScreenLocation::PrepareToDraw() const {
     } else if (y2 < y1) {
         angle += M_PI;
     }
-    float scale = std::sqrt((y2 - y1)*(y2 - y1) + (x2 - x1)*(x2 - x1))/RenderWi;
+    float scale = std::sqrt((y2p - y1p)*(y2p - y1p) + (x2p - x1p)*(x2p - x1p));
+    scale /= RenderWi;
 
-    glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, scale));
+    glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, scale * GetVScaleFactor()));
     glm::mat3 rotationMatrix = glm::rotate(glm::mat3(1.0f), (float)angle);
-    glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(x1, y1));
-    glm::mat3 scaling2Matrix = glm::scale(glm::mat3(1.0f), glm::vec2(previewW, previewH));
-    
-    glm::mat3 mat3 = scaling2Matrix * translateMatrix * rotationMatrix * scalingMatrix;
-    
+    glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(x1*previewW, y1*previewH));
+    glm::mat3 mat3 = translateMatrix  * rotationMatrix  * scalingMatrix;
+
     if (matrix != nullptr) {
         delete matrix;
     }
@@ -480,8 +486,8 @@ void TwoPointScreenLocation::PrepareToDraw() const {
 }
 void TwoPointScreenLocation::TranslatePoint(double &x, double &y) const {
     glm::vec3 v = *matrix * glm::vec3(x, y, 1);
-    x = (v[0]);
-    y = (v[1]);
+    x = v.x;
+    y = v.y;
 }
 
 bool TwoPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
@@ -502,10 +508,10 @@ bool TwoPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
     int ysi = y1<y2?y1:y2;
     int yfi = y1>y2?y1:y2;
     
-    float xs = std::min(std::min(v1[0], v2[0]), std::min(v3[0], v4[0]));
-    float xf = std::max(std::max(v1[0], v2[0]), std::max(v3[0], v4[0]));
-    float ys = std::min(std::min(v1[1], v2[1]), std::min(v3[1], v4[1]));
-    float yf = std::max(std::max(v1[1], v2[1]), std::max(v3[1], v4[1]));
+    float xs = std::min(std::min(v1.x, v2.x), std::min(v3.x, v4.x));
+    float xf = std::max(std::max(v1.x, v2.x), std::max(v3.x, v4.x));
+    float ys = std::min(std::min(v1.y, v2.y), std::min(v3.y, v4.y));
+    float yf = std::max(std::max(v1.y, v2.y), std::max(v3.y, v4.y));
     
     return xsi < xs && xfi > xf && ysi < ys && yfi > yf;
 }
@@ -520,7 +526,7 @@ bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
     float max = ymax;
     if (!minMaxSet) {
         if (RenderHt < 4) {
-            min = -std::abs(v2[1] - v[1]) * 6.0;
+            min = -std::abs(v2.y - v.y) * 6.0;
             max = -min;
         } else {
             min = -1;
@@ -528,12 +534,12 @@ bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
         }
     }
 
-    float y = v[1];
-    return (v[0] >= -1 && v[0] <= (RenderWi+1) && y >= min && y <= max);
+    float y = v.y;
+    return (v.x >= -1 && v.x <= (RenderWi+1) && y >= min && y <= max);
 }
 
 wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) const {
-    for (int h = 0; h < 2; h++) {
+    for (int h = 0; h < mHandlePosition.size(); h++) {
         if (x>mHandlePosition[h].x && x<mHandlePosition[h].x+RECT_HANDLE_WIDTH &&
             y>mHandlePosition[h].y && y<mHandlePosition[h].y+RECT_HANDLE_WIDTH) {
             handle = h;
@@ -557,7 +563,7 @@ void TwoPointScreenLocation::DrawHandles() const {
     mHandlePosition[1].y = sy;
 }
 
-void TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
     float newx = (float)mouseX / (float)previewW;
     float newy = (float)mouseY / (float)previewH;
     if (handle) {
@@ -567,6 +573,7 @@ void TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
         x1 = newx;
         y1 = newy;
     }
+    return 0;
 }
 wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) {
     x1 = x2 = (float)x/(float)previewW;
@@ -623,33 +630,36 @@ void TwoPointScreenLocation::SetPreviewSize(int w, int h, const std::vector<Node
     
     if (old) {
         //need to update to latest code
-        BoxedScreenLocation box;
-        box.Read(old);
-        std::vector<NodeBaseClassPtr> Nodes;
-        box.SetPreviewSize(previewW, previewH, Nodes);
-        box.SetRenderSize(RenderWi, RenderHt);
-        box.PrepareToDraw();
-        
-        double sx = - float(RenderWi) / 2.0; double sy = 0;
-        box.TranslatePoint(sx, sy);
-        x1 = sx / (float)previewW;
-        y1 = sy / (float)previewH;
-        
-        sx = float(RenderWi) / 2.0;
-        sy = 0;
-        box.TranslatePoint(sx, sy);
-        
-        x2 = sx / (float)previewW;
-        y2 = sy / (float)previewH;
-        
-        old->DeleteAttribute("offsetXpct");
-        old->DeleteAttribute("offsetYpct");
-        old->DeleteAttribute("PreviewScaleX");
-        old->DeleteAttribute("PreviewScaleY");
-        old->DeleteAttribute("PreviewRotation");
+        ProcessOldNode(old);
         Write(old);
         old = nullptr;
     }
+}
+void TwoPointScreenLocation::ProcessOldNode(wxXmlNode *old) {
+    BoxedScreenLocation box;
+    box.Read(old);
+    std::vector<NodeBaseClassPtr> Nodes;
+    box.SetPreviewSize(previewW, previewH, Nodes);
+    box.SetRenderSize(RenderWi, RenderHt);
+    box.PrepareToDraw();
+    
+    double sx = - float(RenderWi) / 2.0; double sy = 0;
+    box.TranslatePoint(sx, sy);
+    x1 = sx / (float)previewW;
+    y1 = sy / (float)previewH;
+    
+    sx = float(RenderWi) / 2.0;
+    sy = 0;
+    box.TranslatePoint(sx, sy);
+    
+    x2 = sx / (float)previewW;
+    y2 = sy / (float)previewH;
+    
+    old->DeleteAttribute("offsetXpct");
+    old->DeleteAttribute("offsetYpct");
+    old->DeleteAttribute("PreviewScaleX");
+    old->DeleteAttribute("PreviewScaleY");
+    old->DeleteAttribute("PreviewRotation");
 }
 
 float TwoPointScreenLocation::GetHcenterOffset() const {
@@ -758,5 +768,124 @@ void TwoPointScreenLocation::FlipCoords() {
     std::swap(x1, x2);
     std::swap(y1, y2);
 }
+
+
+
+
+ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesHeight(false) {
+    mHandlePosition.resize(3);
+}
+ThreePointScreenLocation::~ThreePointScreenLocation() {
+}
+void ThreePointScreenLocation::Read(wxXmlNode *node) {
+    TwoPointScreenLocation::Read(node);
+    height = wxAtof(node->GetAttribute("Height", "1.0"));
+}
+void ThreePointScreenLocation::Write(wxXmlNode *node) {
+    TwoPointScreenLocation::Write(node);
+    node->DeleteAttribute("Height");
+    node->AddAttribute("Height", std::to_string(height));
+}
+
+void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *grid) const {
+    TwoPointScreenLocation::AddSizeLocationProperties(grid);
+    wxPGProperty *prop = grid->Append(new wxFloatProperty("Height", "ModelHeight", height));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Step", 0.1);
+    prop->SetEditor("SpinCtrl");
+}
+int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+    if ("ModelHeight" == event.GetPropertyName()) {
+        height = event.GetValue().GetDouble();
+        if (std::abs(height) < 0.01) {
+            if (height < 0) {
+                height = -0.01;
+            } else {
+                height = 0.01;
+            }
+        }
+        return 3;
+    }
+    return TwoPointScreenLocation::OnPropertyGridChange(grid, event);
+}
+void ThreePointScreenLocation::DrawHandles() const {
+    TwoPointScreenLocation::DrawHandles();
+    
+    float sx1 = (x1 + x2) * previewW / 2.0;
+    float sy1 = (y1 + y2) * previewH / 2.0;
+
+    float max = ymax;
+    if (!minMaxSet) {
+        max = RenderHt;
+    }
+    
+    glm::vec3 v1 = *matrix * glm::vec3(RenderWi / 2, ymax, 1);
+    float sx = v1.x;
+    float sy = v1.y;
+    
+    glEnable( GL_LINE_SMOOTH );
+    glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+    glLineWidth(1.7);
+    DrawGLUtils::AddVertex(sx1, sy1, xlWHITE);
+    DrawGLUtils::AddVertex(sx, sy, xlWHITE);
+    DrawGLUtils::End(GL_LINES);
+    glLineWidth(1.0);
+    glDisable(GL_LINE_SMOOTH);
+
+    DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+
+    mHandlePosition[2].x = sx;
+    mHandlePosition[2].y = sy;
+}
+int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+    if (handle == 2) {
+        glm::mat3 m = glm::inverse(*matrix);
+        glm::vec3 v = m * glm::vec3(mouseX, mouseY, 1);
+        float max = ymax;
+        if (!minMaxSet) {
+            max = RenderHt;
+        }
+        height = height * v.y / max;
+        if (std::abs(height) < 0.01) {
+            if (height < 0) {
+                height = -0.01;
+            } else {
+                height = 0.01;
+            }
+        }
+        return 1;
+    }
+    return TwoPointScreenLocation::MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
+}
+
+float ThreePointScreenLocation::GetVScaleFactor() const {
+    if (modelHandlesHeight) {
+        return 1.0;
+    }
+    return height;
+}
+
+void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
+    BoxedScreenLocation box;
+    box.Read(old);
+    std::vector<NodeBaseClassPtr> Nodes;
+    box.SetPreviewSize(previewW, previewH, Nodes);
+    box.SetRenderSize(RenderWi, RenderHt);
+    box.PrepareToDraw();
+    
+    double x1 = RenderWi / 2.0;
+    double y1 = RenderHt;
+    box.TranslatePoint(x1, y1);
+    
+    TwoPointScreenLocation::ProcessOldNode(old);
+    
+    height = 1.0;
+    PrepareToDraw();
+    glm::mat3 m = glm::inverse(*matrix);
+    glm::vec3 v = m * glm::vec3(x1, y1, 1);
+    height = height * v.y / RenderHt;
+    
+}
+
 
 

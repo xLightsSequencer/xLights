@@ -22,8 +22,6 @@ class wxCursor;
 class ModelScreenLocation
 {
 public:
-    ModelScreenLocation();
-    virtual ~ModelScreenLocation() {};
     
     virtual void Read(wxXmlNode *node) = 0;
     virtual void Write(wxXmlNode *node) = 0;
@@ -36,7 +34,7 @@ public:
     virtual bool HitTest(int x,int y) const = 0;
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const = 0;
     virtual void DrawHandles() const = 0;
-    virtual void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
+    virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
  
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
@@ -68,6 +66,16 @@ public:
     }
     float RenderHt,RenderWi;  // size of the rendered output
     int previewW,previewH;
+    
+protected:
+    ModelScreenLocation(int points);
+    virtual ~ModelScreenLocation() {};
+
+    struct xlPoint {
+        int x;
+        int y;
+    };
+    mutable std::vector<xlPoint> mHandlePosition;
 };
 
 //Default location that uses a bounding box - 4 corners and a rotate handle
@@ -87,7 +95,7 @@ public:
     virtual bool HitTest(int x,int y) const override;
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles() const override;
-    virtual void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
     
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
@@ -156,12 +164,6 @@ private:
     int mMinScreenY;
     int mMaxScreenX;
     int mMaxScreenY;
-    
-    struct xlPoint {
-        int x;
-        int y;
-    };
-    mutable xlPoint mHandlePosition[5];
 };
 
 
@@ -182,7 +184,7 @@ public:
     virtual bool HitTest(int x,int y) const override;
     virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
     virtual void DrawHandles() const override;
-    virtual void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
@@ -204,25 +206,56 @@ public:
     virtual void SetRight(int i) override;
     virtual void SetBottom(int i) override;
     
+    virtual float GetVScaleFactor() const {return 1.0;}
     void SetYMinMax(float min, float max) {
         minMaxSet = true;
         ymin = min;
         ymax = max;
     }
     void FlipCoords();
-private:
+
+protected:
+    virtual void ProcessOldNode(wxXmlNode *n);
+    
     float x1, y1;
     float x2, y2;
     float ymin, ymax;
     bool minMaxSet;
+    
     wxXmlNode *old;
     mutable glm::mat3 *matrix;
+};
+
+
+class ThreePointScreenLocation : public TwoPointScreenLocation {
+public:
+    ThreePointScreenLocation();
+    virtual ~ThreePointScreenLocation();
+    virtual void Read(wxXmlNode *node) override;
+    virtual void Write(wxXmlNode *node) override;
     
-    struct xlPoint {
-        int x;
-        int y;
-    };
-    mutable xlPoint mHandlePosition[2];
+    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
+    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+    
+    virtual void DrawHandles() const override;
+    virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual float GetVScaleFactor() const override;
+
+    void SetHeight(float h) {
+        height = h;
+    }
+    float GetHeight() {
+        return height;
+    }
+    bool SetModelHandleHeight(bool b) {
+        modelHandlesHeight = b;
+    }
+protected:
+    virtual void ProcessOldNode(wxXmlNode *n) override;
+private:
+    bool modelHandlesHeight;
+    float height;
+    
 };
 
 #endif // MODELSCREENLOCATION_H

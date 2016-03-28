@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class ArchesModel : public ModelWithScreenLocation<BoxedScreenLocation>
+class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
 {
     public:
         ArchesModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

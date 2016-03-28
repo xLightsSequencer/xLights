@@ -160,7 +160,6 @@ inline double toRadians(long degrees) {
 }
 void ArchesModel::SetArchCoord() {
     double xoffset,x,y;
-    int numlights=parm1*parm2*parm3;
     size_t NodeCount=GetNodeCount();
     double midpt=parm2*parm3;
     midpt -= 1.0;
@@ -171,17 +170,28 @@ void ArchesModel::SetArchCoord() {
     double angle=-M_PI/2.0 + start;
     x=midpt*sin(angle)*2.0+parm2*parm3;
     double width = parm2*parm3*2 - x;
-    screenLocation.SetRenderSize(width*parm1, parm2*parm3);
     
+    double minY = 999999;
     for(size_t n=0; n<NodeCount; n++) {
-        xoffset=Nodes[n]->StringNum*width - width*parm1/2;
+        xoffset=Nodes[n]->StringNum*width;
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
             double angle=-M_PI/2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c))/midpt/2.0;
             x=xoffset + midpt*sin(angle)*2.0+parm2*parm3;
             y=(parm2*parm3)*cos(angle);
             Nodes[n]->Coords[c].screenX=x;
-            Nodes[n]->Coords[c].screenY=y-(parm2*parm3/2);
+            Nodes[n]->Coords[c].screenY=y;
+            minY = std::min(minY, y);
         }
     }
+    float renderHt = parm2*parm3;
+    if (minY > 1) {
+        renderHt -= minY;
+        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+            for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); coord++) {
+                coord->screenY -= minY;
+            }
+        }
+    }
+    screenLocation.SetRenderSize(width*parm1, renderHt);
 }

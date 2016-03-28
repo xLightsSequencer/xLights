@@ -4,7 +4,7 @@
 #include "Model.h"
 
 
-class CandyCaneModel : public ModelWithScreenLocation<TwoPointScreenLocation>
+class CandyCaneModel : public ModelWithScreenLocation<ThreePointScreenLocation>
 {
     public:
         CandyCaneModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);

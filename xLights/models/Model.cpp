@@ -472,6 +472,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     int i = GetModelScreenLocation().OnPropertyGridChange(grid, event);
     if (i & 0x2) {
         GetModelScreenLocation().Write(ModelXml);
+        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
         IncrementChangeCount();
     }
     return i;
@@ -1649,8 +1650,11 @@ void Model::SetMinMaxModelScreenCoordinates(int w, int h) {
 }
 
 void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
-    GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
+    int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
     GetModelScreenLocation().Write(ModelXml);
+    if (i) {
+        SetFromXml(ModelXml, *ModelNetInfo);
+    }
     IncrementChangeCount();
 }
 
