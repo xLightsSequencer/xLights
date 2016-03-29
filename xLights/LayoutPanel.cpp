@@ -969,7 +969,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 
     if(m_moving_handle)
     {
-        CreateUndoPoint("All", m->name);
+        CreateUndoPoint("All", m->name, std::to_string(m_over_handle));
         y = modelPreview->GetVirtualCanvasHeight() - y;
         m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetPosition().x, y);
         SetupPropGrid(m);
@@ -987,7 +987,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             {
                 if(modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
                 {
-                    CreateUndoPoint("All", m->name);
+                    CreateUndoPoint("All", m->name, "location");
 
                     modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
@@ -1488,12 +1488,14 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &ke
 void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
     xlights->UnsavedRgbEffectsChanges = true;
     int idx = undoBuffer.size();
-    if (type == "All" && idx > 0 && undoBuffer[idx - 1].key == key) {
+    
+    //printf("%s    %s  %s\n", type.c_str(), key.c_str(), data.c_str());
+    if (type == "All" && idx > 0 && undoBuffer[idx - 1].key == key && undoBuffer[idx - 1].data == data) {
         return;
     } else if (idx > 0 && undoBuffer[idx - 1].key == key && undoBuffer[idx - 1].type == type && undoBuffer[idx - 1].models == model) {
         return;
     }
-    if (idx >= 50) {  //50 steps is more than enough IMO
+    if (idx >= 100) {  //100 steps is more than enough IMO
         for (int x = 1; x < idx; x++) {
             undoBuffer[x-1] = undoBuffer[x];
         }
