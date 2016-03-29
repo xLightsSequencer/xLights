@@ -1501,8 +1501,6 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     }
     undoBuffer.resize(idx + 1);
 
-    printf("%s %s  %s\n", type.c_str(), key.c_str(), data.c_str());
-
     undoBuffer[idx].key = key;
     undoBuffer[idx].data = data;
     undoBuffer[idx].type = type;
