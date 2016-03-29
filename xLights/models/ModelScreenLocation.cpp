@@ -441,7 +441,7 @@ TwoPointScreenLocation::~TwoPointScreenLocation() {
     }
 }
 void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
-    if (!ModelNode->HasAttribute("X1")) {
+    if (!ModelNode->HasAttribute("X1") && ModelNode->HasAttribute("offsetXpct")) {
         old = ModelNode;
     } else {
         x1 = wxAtof(ModelNode->GetAttribute("X1", ".4"));

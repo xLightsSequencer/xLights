@@ -109,6 +109,7 @@ class LayoutPanel: public wxPanel
         void DoCopy(wxCommandEvent& event);
         void DoCut(wxCommandEvent& event);
         void DoPaste(wxCommandEvent& event);
+        void DoUndo(wxCommandEvent& event);
         void DeleteSelectedModel();
 
     public:
@@ -164,6 +165,17 @@ class LayoutPanel: public wxPanel
         NewModelBitmapButton *selectedButton;
         Model *newModel;
     
+        class UndoStep {
+        public:
+            std::string type;
+            std::string key;
+            std::string data;
+            std::string models;
+            std::string groups;
+        };
+        std::vector<UndoStep> undoBuffer;
+        void CreateUndoPoint(const std::string &type, const std::string &key, const std::string &data = "");
+        void CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data);
     public:
         xLightsFrame *xlights;
         ModelPreview *modelPreview;

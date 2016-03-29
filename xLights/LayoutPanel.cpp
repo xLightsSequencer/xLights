@@ -275,6 +275,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     modelPreview->Connect(wxID_CUT, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCut,0,this);
     modelPreview->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCopy,0,this);
     modelPreview->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoPaste,0,this);
+    modelPreview->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoUndo,0,this);
 
 }
 
@@ -341,14 +342,19 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     }
 }
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
+    std::string name = event.GetPropertyName().ToStdString();
     if (selectedModel != nullptr) {
-        if ("ModelName" == event.GetPropertyName()) {
+        if ("ModelName" == name) {
             if (xlights->AllModels[event.GetValue().GetString().ToStdString()] != nullptr) {
+                CreateUndoPoint("ModelName", selectedModel->name, event.GetProperty()->GetValue().GetString().ToStdString());
                 event.Veto();
             }
         } else {
+            CreateUndoPoint("Model", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
             selectedModel->OnPropertyGridChanging(propertyEditor, event);
         }
+    } else {
+        CreateUndoPoint("Background", name, event.GetProperty()->GetValue().GetString().ToStdString());
     }
 }
 
@@ -479,7 +485,8 @@ void LayoutPanel::UnSelectAllModels()
         modelPreview->GetModels()[i]->GroupSelected = false;
     }
     UpdatePreview();
-
+    selectedModel = nullptr;
+    
     propertyEditor->Freeze();
     clearPropGrid();
     propertyEditor->Append(new wxImageFileProperty("Background Image",
@@ -625,6 +632,7 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 void LayoutPanel::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
 {
+    CreateUndoPoint("All", "");
     CurrentPreviewModels dialog(this,xlights->ModelGroupsNode,xlights->AllModels);
     dialog.ShowModal();
 
@@ -702,8 +710,13 @@ int wxCALLBACK SortElementsFunctionDESC(wxIntPtr item1, wxIntPtr item2, wxIntPtr
 
 void LayoutPanel::OnListBoxElementItemChecked(wxListEvent& event) {
 #if wxCHECK_VERSION(3, 1, 0)
-    xlights->AllModels[event.GetLabel().ToStdString()]->SetMyDisplay(ListBoxElementList->IsItemChecked(event.GetIndex()));
-    xlights->UnsavedRgbEffectsChanges = true;
+    bool b = xlights->AllModels[event.GetLabel().ToStdString()]->IsMyDisplay();
+    if (b != ListBoxElementList->IsItemChecked(event.GetIndex())) {
+        CreateUndoPoint("Model", event.GetLabel().ToStdString(), "ModelMyDisplay", xlights->AllModels[event.GetLabel().ToStdString()]->IsMyDisplay()?"true":"false");
+
+        xlights->AllModels[event.GetLabel().ToStdString()]->SetMyDisplay(ListBoxElementList->IsItemChecked(event.GetIndex()));
+        xlights->UnsavedRgbEffectsChanges = true;
+    }
 #endif
 }
 void LayoutPanel::OnListBoxElementListColumnClick(wxListEvent& event)
@@ -956,6 +969,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 
     if(m_moving_handle)
     {
+        CreateUndoPoint("All", m->name);
         y = modelPreview->GetVirtualCanvasHeight() - y;
         m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetPosition().x, y);
         SetupPropGrid(m);
@@ -973,6 +987,8 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             {
                 if(modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
                 {
+                    CreateUndoPoint("All", m->name);
+
                     modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
                     SetupPropGrid(modelPreview->GetModels()[i]);
@@ -1156,6 +1172,7 @@ void LayoutPanel::PreviewModelAlignTops()
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex<0)
         return;
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int top = modelPreview->GetModels()[selectedindex]->GetTop(modelPreview);
     for (int i=0; i<modelPreview->GetModels().size(); i++)
     {
@@ -1172,6 +1189,7 @@ void LayoutPanel::PreviewModelAlignBottoms()
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex<0)
         return;
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int bottom = modelPreview->GetModels()[selectedindex]->GetBottom(modelPreview);
     for (int i=0; i<modelPreview->GetModels().size(); i++)
     {
@@ -1188,6 +1206,7 @@ void LayoutPanel::PreviewModelAlignLeft()
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex<0)
         return;
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int left = modelPreview->GetModels()[selectedindex]->GetLeft(modelPreview);
     for (int i=0; i<modelPreview->GetModels().size(); i++)
     {
@@ -1204,6 +1223,7 @@ void LayoutPanel::PreviewModelAlignRight()
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex<0)
         return;
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int right = modelPreview->GetModels()[selectedindex]->GetRight(modelPreview);
     for (int i=0; i<modelPreview->GetModels().size(); i++)
     {
@@ -1220,6 +1240,7 @@ void LayoutPanel::PreviewModelAlignHCenter()
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex<0)
         return;
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetHcenterOffset();
     for (int i=0; i<modelPreview->GetModels().size(); i++)
     {
@@ -1236,6 +1257,7 @@ void LayoutPanel::PreviewModelAlignVCenter()
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex<0)
         return;
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetVcenterOffset();
     for (int i=0; i<modelPreview->GetModels().size(); i++)
     {
@@ -1314,6 +1336,7 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) {
 
 
 void LayoutPanel::DeleteSelectedModel() {
+    CreateUndoPoint("All", selectedModel->name);
     xlights->AllModels.Delete(selectedModel->name);
     selectedModel = nullptr;
     xlights->UpdateModelsList();
@@ -1359,6 +1382,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
         event.Skip();
     } else {
         if (wxTheClipboard->Open()) {
+            CreateUndoPoint("All", selectedModel->name);
             wxTextDataObject data;
             wxTheClipboard->GetData(data);
             wxStringInputStream in(data.GetText());
@@ -1386,3 +1410,128 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
         }
     }
 }
+
+void LayoutPanel::DoUndo(wxCommandEvent& event) {
+    int sz = undoBuffer.size() - 1;
+    if (sz >= 0) {
+        UnSelectAllModels();
+        
+        if (undoBuffer[sz].type == "Background") {
+            wxPropertyGridEvent event;
+            event.SetPropertyGrid(propertyEditor);
+            wxStringProperty wsp("Background", undoBuffer[sz].key, undoBuffer[sz].data);
+            event.SetProperty(&wsp);
+            wxVariant value(undoBuffer[sz].data);
+            event.SetPropertyValue(value);
+            OnPropertyGridChange(event);
+            UnSelectAllModels();
+        } else if (undoBuffer[sz].type == "Model") {
+            SelectModel(undoBuffer[sz].models);
+            wxPropertyGridEvent event;
+            event.SetPropertyGrid(propertyEditor);
+            wxStringProperty wsp("Model", undoBuffer[sz].key, undoBuffer[sz].data);
+            event.SetProperty(&wsp);
+            wxVariant value(undoBuffer[sz].data);
+            event.SetPropertyValue(value);
+            OnPropertyGridChange(event);
+        } else if (undoBuffer[sz].type == "All") {
+            wxStringInputStream gin(undoBuffer[sz].groups);
+            wxXmlDocument gdoc;
+            gdoc.Load(gin);
+            wxStringInputStream min(undoBuffer[sz].models);
+            wxXmlDocument mdoc(min);
+            
+            wxXmlNode *m = xlights->ModelsNode->GetChildren();
+            while (m != nullptr) {
+                xlights->ModelsNode->RemoveChild(m);
+                delete m;
+                m = xlights->ModelsNode->GetChildren();
+            }
+            m = mdoc.GetRoot()->GetChildren();
+            while (m != nullptr) {
+                mdoc.GetRoot()->RemoveChild(m);
+                xlights->ModelsNode->AddChild(m);
+                m = mdoc.GetRoot()->GetChildren();
+            }
+            
+            m = xlights->ModelGroupsNode->GetChildren();
+            while (m != nullptr) {
+                xlights->ModelGroupsNode->RemoveChild(m);
+                delete m;
+                m = xlights->ModelGroupsNode->GetChildren();
+            }
+            m = gdoc.GetRoot()->GetChildren();
+            while (m != nullptr) {
+                gdoc.GetRoot()->RemoveChild(m);
+                xlights->ModelGroupsNode->AddChild(m);
+                m = gdoc.GetRoot()->GetChildren();
+            }
+
+            xlights->UpdateModelsList();
+            xlights->UnsavedRgbEffectsChanges = true;
+            SelectModel(undoBuffer[sz].key);
+        } else if (undoBuffer[sz].type == "ModelName") {
+            std::string origName = undoBuffer[sz].key;
+            std::string newName = undoBuffer[sz].data;
+            xlights->RenameModel(newName, origName);
+            
+            xlights->UpdateModelsList();
+            xlights->UnsavedRgbEffectsChanges = true;
+            SelectModel(origName);
+        }
+        undoBuffer.resize(sz);
+    }
+}
+void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &key, const std::string &data) {
+    CreateUndoPoint(type, "", key, data);
+}
+void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
+    xlights->UnsavedRgbEffectsChanges = true;
+    int idx = undoBuffer.size();
+    if (type == "All" && idx > 0 && undoBuffer[idx - 1].key == key) {
+        return;
+    } else if (idx > 0 && undoBuffer[idx - 1].key == key && undoBuffer[idx - 1].type == type && undoBuffer[idx - 1].models == model) {
+        return;
+    }
+    if (idx >= 50) {  //50 steps is more than enough IMO
+        for (int x = 1; x < idx; x++) {
+            undoBuffer[x-1] = undoBuffer[x];
+        }
+        idx--;
+    }
+    undoBuffer.resize(idx + 1);
+
+    printf("%s %s  %s\n", type.c_str(), key.c_str(), data.c_str());
+
+    undoBuffer[idx].key = key;
+    undoBuffer[idx].data = data;
+    undoBuffer[idx].type = type;
+    undoBuffer[idx].models = model;
+    
+    if (type == "All") {
+        wxXmlDocument doc;
+        wxXmlNode *parent = xlights->ModelsNode->GetParent();
+        wxXmlNode *next = xlights->ModelsNode->GetNext();
+        parent->RemoveChild(xlights->ModelsNode);
+        doc.SetRoot(xlights->ModelsNode);
+        wxStringOutputStream stream;
+        doc.Save(stream);
+        undoBuffer[idx].models = stream.GetString();
+        doc.DetachRoot();
+        parent->InsertChild(xlights->ModelsNode, next);
+        
+        wxStringOutputStream stream2;
+        parent = xlights->ModelGroupsNode->GetParent();
+        next = xlights->ModelGroupsNode->GetNext();
+        parent->RemoveChild(xlights->ModelGroupsNode);
+        doc.SetRoot(xlights->ModelGroupsNode);
+        doc.Save(stream2);
+        undoBuffer[idx].groups = stream2.GetString();
+        stream.Reset();
+        doc.DetachRoot();
+        parent->InsertChild(xlights->ModelGroupsNode, next);
+    }
+}
+
+
+

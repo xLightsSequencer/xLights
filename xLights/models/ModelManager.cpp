@@ -137,6 +137,8 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const NetInfoCl
     } else if (type == "Arches") {
         model = new ArchesModel(node, netInfo, false);
     } else if (type == "Candy Canes") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "3");
         node->DeleteAttribute("parm2");
         node->AddAttribute("parm2", "18");
         model = new CandyCaneModel(node, netInfo, false);
