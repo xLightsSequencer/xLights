@@ -671,7 +671,7 @@ void LayoutPanel::OnListBoxElementListItemSelect(wxListEvent& event)
         if (name == ListBoxElementList->GetItemText(i))
         {
             Model* m = (Model*)ListBoxElementList->GetItemData(i);
-            ListBoxElementList->SetToolTip(xlights->GetChannelToControllerMapping(wxAtol(m->ModelStartChannel)));
+            ListBoxElementList->SetToolTip(xlights->GetChannelToControllerMapping(m->GetNumberFromChannelString(m->ModelStartChannel)));
         }
     }
 }

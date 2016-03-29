@@ -1031,7 +1031,7 @@ void TestDialog::PopulateModelsTree(ModelManager* modelManager)
 			_modelLookup[modelcontroller->ModelName()].push_back(modelcontroller);
 			int modelendchannel = 0;
 			int modelstartchannel = 0xFFFFFFF;
-			int msc = wxAtoi(m->ModelStartChannel);
+            int msc = m->GetNumberFromChannelString(m->ModelStartChannel);
 
 			if (m->SingleChannel)
 			{
