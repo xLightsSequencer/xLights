@@ -84,9 +84,10 @@ TreeController::TreeController(CONTROLLERTYPE type, int start, int end)
 	_name = GenerateName();
 }
 
-// This is for a DMX multiple node
-TreeController::TreeController(CONTROLLERTYPE type, std::string comport, int universe, int startxlightschannel, int channels, bool inactive, bool multiuniversedmx, std::string description)
+// This is for a DMX/E131 multiple node
+TreeController::TreeController(CONTROLLERTYPE type, std::string comport, int universe, std::string ipaddress, int startxlightschannel, int channels, bool inactive, bool multiuniversedmx, std::string description)
 {
+    _ipaddress = ipaddress;
 	_colour = ' ';
 	_universes = 0;
 	_type = type;
@@ -129,7 +130,8 @@ TreeController::TreeController(wxXmlNode* n, int startchannel, int nullcount)
 		_type = CONTROLLERTYPE::CT_E131;
 		_ipaddress = std::string(n->GetAttribute("ComPort", ""));
 		_universe = std::string(n->GetAttribute("BaudRate", ""));
-	}
+        _universes = wxAtoi(n->GetAttribute("NumUniverses", "1"));
+    }
 	else if (type == "DMX")
 	{
 		_type = CONTROLLERTYPE::CT_DMX;
@@ -163,13 +165,13 @@ bool TreeController::ContainsChannel(int ch)
 	}
 }
 
-// This generates 2nd & subsequent universes for a DMX controller
-TreeController* TreeController::GenerateDMXUniverse(int universeoffset)
+// This generates 2nd & subsequent universes for a DMX/E131 controller
+TreeController* TreeController::GenerateUniverse(int universeoffset)
 {
 	if (_universes > 1)
 	{
 		_universes--;
-		return new TreeController(_type, _comport, wxAtoi(_universe) + universeoffset, _startxlightschannel + universeoffset * Channels(), Channels(), _inactive, _multiuniversedmx, _description);
+		return new TreeController(_type, _comport, wxAtoi(_universe) + universeoffset, _ipaddress, _startxlightschannel + universeoffset * Channels(), Channels(), _inactive, _multiuniversedmx, _description);
 	}
 
 	return NULL;
@@ -928,7 +930,7 @@ void TestDialog::PopulateControllerTree(wxXmlDocument* network)
 			}
 
 			int universeoffset = 1;
-			TreeController* c2 = controller->GenerateDMXUniverse(universeoffset++);
+			TreeController* c2 = controller->GenerateUniverse(universeoffset++);
 			while (c2 != NULL)
 			{
 				currentcontrollerstartchannel += c2->Channels();
@@ -944,7 +946,7 @@ void TestDialog::PopulateControllerTree(wxXmlDocument* network)
 						_channelLookup[tc->StartXLightsChannel()].push_back(tc);
 					}
 				}
-				c2 = controller->GenerateDMXUniverse(universeoffset++);
+				c2 = controller->GenerateUniverse(universeoffset++);
 			}
 		}
 		TreeListCtrl_Channels->Expand(_controllers);

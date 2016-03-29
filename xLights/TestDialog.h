@@ -70,7 +70,7 @@ private:
 	std::string GenerateName(); // generate the string to display
 
 	// Constructor used for muli universe DMX controllers
-	TreeController(CONTROLLERTYPE type, std::string comport, int universe, int startxlightschannel, int channels, bool inactive, bool multiuniversedmx, std::string description);
+	TreeController(CONTROLLERTYPE type, std::string comport, int universe, std::string ipaddress, int startxlightschannel, int channels, bool inactive, bool multiuniversedmx, std::string description);
 
 public:
 	// Constructors vary by type
@@ -81,7 +81,7 @@ public:
 	TreeController(CONTROLLERTYPE type, int xLightsChannel, int node, int channelspernode);
 
 	// Called to create a TreeController for a sub universe of a multi universe controller
-	TreeController* GenerateDMXUniverse(int universeoffset);
+	TreeController* GenerateUniverse(int universeoffset);
 
 	// Accessors
 	std::string Name() { return _name; };
