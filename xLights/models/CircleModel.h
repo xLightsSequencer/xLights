@@ -7,7 +7,7 @@
 class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        CircleModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
+        CircleModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~CircleModel();
 
         virtual int GetStrandLength(int strand) const override;

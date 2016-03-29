@@ -6,9 +6,9 @@
 #include "CircleModel.h"
 #include "ModelScreenLocation.h"
 
-CircleModel::CircleModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
+CircleModel::CircleModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
-    SetFromXml(node, netInfo, zeroBased);
+    SetFromXml(node, zeroBased);
 }
 
 CircleModel::~CircleModel()
@@ -166,23 +166,23 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     if ("CircleStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         AdjustStringProperties(grid, parm1);
         return 3;
     } else if ("CircleLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("CircleCenterPercent" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("CircleLayerSizes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("circleSizes");
         ModelXml->AddAttribute("circleSizes", event.GetValue().GetString());
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     }
     

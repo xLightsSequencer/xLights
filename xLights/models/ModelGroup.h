@@ -11,11 +11,11 @@ class ModelManager;
 class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &manager, int previewW, int previewH);
+        ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
         virtual ~ModelGroup();
 
         void ModelRemoved(const std::string &name);
-        void ModelRenamed(const std::string &oldName, const std::string &newName);
+        virtual bool ModelRenamed(const std::string &oldName, const std::string &newName) override;
         void AddModel(const std::string &name);
     
         bool IsSelected() const { return selected;}
@@ -39,7 +39,6 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         std::vector<Model *> models;
         bool selected;
         std::string defaultBufferStyle;
-        const ModelManager &manager;
 };
 
 #endif // MODELGROUP_H

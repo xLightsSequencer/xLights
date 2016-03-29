@@ -5,11 +5,11 @@
 #include "CandyCaneModel.h"
 #include "ModelScreenLocation.h"
 
-CandyCaneModel::CandyCaneModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) : _reverse(false), caneheight(1.0)
+CandyCaneModel::CandyCaneModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), _reverse(false), caneheight(1.0)
 {
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);
-    SetFromXml(node, netInfo, zeroBased);
+    SetFromXml(node, zeroBased);
 }
 
 CandyCaneModel::~CandyCaneModel()
@@ -63,37 +63,37 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
     if ("CandyCaneCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("CandyCaneNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("CandyCaneLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("CandyCaneReverse" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("CandyCaneReverse");
 		ModelXml->AddAttribute("CandyCaneReverse", event.GetPropertyValue().GetBool()? "true" : "false");
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("CandyCaneSkew" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Angle");
         ModelXml->AddAttribute("Angle", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("CandyCaneHeight" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("CandyCaneHeight");
         ModelXml->AddAttribute("CandyCaneHeight", wxString::Format("%lf", event.GetPropertyValue().GetDouble()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("CandyCaneSticks" == event.GetPropertyName()) {
 		ModelXml->DeleteAttribute("CandyCaneSticks");
 		ModelXml->AddAttribute("CandyCaneSticks", event.GetPropertyValue().GetBool() ? "true" : "false");
-		SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+		SetFromXml(ModelXml, zeroBased);
         grid->GetPropertyByName("CandyCaneReverse")->Enable(!event.GetPropertyValue().GetBool());
 		return 3;
     } else if (event.GetPropertyName() == "ModelStringType") {

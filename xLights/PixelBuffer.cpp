@@ -36,15 +36,20 @@
 #define M_PI_2 1.57079632679489661923
 #endif
 
-PixelBufferClass::PixelBufferClass(bool b)
+PixelBufferClass::PixelBufferClass(xLightsFrame *f, bool b) : frame(f)
 {
     numLayers = 0;
     zbModel = nullptr;
+    ssModel = nullptr;
     onlyOnMain = b;
 }
 
 PixelBufferClass::~PixelBufferClass()
 {
+    if (ssModel != nullptr)
+    {
+        delete ssModel;
+    }
     if (zbModel != nullptr)
     {
         delete zbModel;
@@ -70,7 +75,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
 
     for (int x = 0; x < numLayers; x++)
     {
-        layers[x] = new LayerInfo(onlyOnMain);
+        layers[x] = new LayerInfo(frame, onlyOnMain);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
         model->InitRenderBufferNodes("Default", "None", layers[x]->Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
         layers[x]->bufferType = "Default";
@@ -80,12 +85,12 @@ void PixelBufferClass::reset(int nlayers, int timing)
 }
 
 
-void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased)
+void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, bool zeroBased)
 {
     modelName = pbc.name;
     if (zeroBased)
     {
-        zbModel = ModelManager::CreateModel(pbc.GetModelXml(), netInfo, zeroBased);
+        zbModel = pbc.GetModelManager().CreateModel(pbc.GetModelXml(), zeroBased);
         model = zbModel;
     }
     else
@@ -96,14 +101,21 @@ void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, NetI
 }
 void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing)
 {
-    ssModel.Reset(pbc.GetStrandLength(strand), pbc, strand);
-    model = &ssModel;
+    if (ssModel == nullptr) {
+        ssModel = new SingleLineModel(pbc.GetModelManager());
+    }
+        
+    ssModel->Reset(pbc.GetStrandLength(strand), pbc, strand);
+    model = ssModel;
     reset(2, timing);
 }
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing)
 {
-    ssModel.Reset(1, pbc, strand, node);
-    model = &ssModel;
+    if (ssModel == nullptr) {
+        ssModel = new SingleLineModel(pbc.GetModelManager());
+    }
+    ssModel->Reset(1, pbc, strand, node);
+    model = ssModel;
     reset(2, timing);
 }
 
@@ -594,21 +606,11 @@ void PixelBufferClass::Blur(LayerInfo* layer)
 }
 void PixelBufferClass::RotoZoom(LayerInfo* layer)
 {
-    int ZoomCycles = layer->ZoomCycles;
     int ZoomRotation = layer->ZoomRotation;
-    int ZoomInOut = layer->ZoomInOut;
     xlColor c;
-    int Wi = layer->BufferWi;
-    int Ht = layer->BufferHt;
     float PI_2 = 6.283185307179586476925286766559;
 
-    int r = 0;
-    int g = 0;
-    int b = 0;
-    int a = 0;
     float W,sin_W,cos_W,x_cos_W,x_sin_W;
-    int xc=layer->BufferWi/2;
-    int yc=layer->BufferHt/2;
 
 
     int u,v,indx;

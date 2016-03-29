@@ -12,21 +12,23 @@ class NetInfoClass;
 class ModelManager
 {
     public:
-        ModelManager();
+        ModelManager(NetInfoClass &ni);
         virtual ~ModelManager();
     
-    
+        NetInfoClass &GetNetInfo() const {
+            return netInfo;
+        }
         Model *operator[](const std::string &name) const;
         Model *GetModel(const std::string &name) const;
     
-        void Rename(const std::string &oldName, const std::string &newName);
+        void RecalcStartChannels() const;
+    
+        bool Rename(const std::string &oldName, const std::string &newName);
         void AddModel(Model *m);
         void Delete(const std::string &name);
     
-        void LoadModels(wxXmlNode *modelNode, NetInfoClass &ni,
-                        int previewW, int previewH);
-        void LoadGroups(wxXmlNode *groupNode, NetInfoClass &ni,
-                        int previewW, int previewH);
+        void LoadModels(wxXmlNode *modelNode, int previewW, int previewH);
+        void LoadGroups(wxXmlNode *groupNode, int previewW, int previewH);
     
         void clear();
     
@@ -35,16 +37,15 @@ class ModelManager
         int size() const;
     
         //Make sure the Model is deleted when done with
-        static Model *CreateModel(wxXmlNode *node, const NetInfoClass &ni, bool zeroBased = false);
-        Model *CreateModel(wxXmlNode *node);
-        Model *CreateDefaultModel(const std::string &type, const NetInfoClass &ni);
+        Model *CreateModel(wxXmlNode *node, bool zeroBased = false) const;
+        Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
     protected:
-        Model *createAndAddModel(wxXmlNode *node, const NetInfoClass &ni);
+        Model *createAndAddModel(wxXmlNode *node);
     private:
     
     wxXmlNode *modelNode;
     wxXmlNode *groupNode;
-    NetInfoClass *netInfo;
+    NetInfoClass &netInfo;
     int previewWidth;
     int previewHeight;
     std::map<std::string, Model *> models;

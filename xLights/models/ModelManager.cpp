@@ -18,7 +18,7 @@
 #include "WreathModel.h"
 #include "SphereModel.h"
 
-ModelManager::ModelManager() : netInfo(nullptr)
+ModelManager::ModelManager(NetInfoClass &ni) : netInfo(ni)
 {
     //ctor
 }
@@ -46,7 +46,7 @@ Model *ModelManager::operator[](const std::string &name) const {
     return GetModel(name);
 }
 
-void ModelManager::Rename(const std::string &oldName, const std::string &newName) {
+bool ModelManager::Rename(const std::string &oldName, const std::string &newName) {
     for (auto it = models.begin(); it != models.end(); it++) {
         if (it->first == oldName) {
             Model *model = it->second;
@@ -55,47 +55,101 @@ void ModelManager::Rename(const std::string &oldName, const std::string &newName
                 model->GetModelXml()->DeleteAttribute("name");
                 model->GetModelXml()->AddAttribute("name",newName);
                 model->name = newName;
-                
-                for (auto it = models.begin(); it != models.end(); it++) {
-                    if (it->second->GetDisplayAs() == "ModelGroup") {
-                        ModelGroup *group = (ModelGroup*)it->second;
-                        group->ModelRenamed(oldName, newName);
-                    }
+
+                bool changed = false;
+                for (auto it2 = models.begin(); it2 != models.end(); it2++) {
+                    changed |= it2->second->ModelRenamed(oldName, newName);
                 }
                 models.erase(it);
                 models[newName] = model;
-                return;
+                return changed;
             }
         }
     }
+    return false;
 }
 
-void ModelManager::LoadModels(wxXmlNode *modelNode, NetInfoClass &netInfo, int previewW, int previewH) {
+void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) {
     clear();
-    this->netInfo = &netInfo;
     previewWidth = previewW;
     previewHeight = previewH;
     this->modelNode = modelNode;
+    int countValid = 0;
     for (wxXmlNode* e=modelNode->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "model") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
-                Model *m = createAndAddModel(e, netInfo);
+                Model *m = createAndAddModel(e);
                 if (m != nullptr) {
                     m->SetMinMaxModelScreenCoordinates(previewW, previewH);
                 }
+                countValid += m->CouldComputeStartChannel ? 1 : 0;
             }
         }
     }
+    while (countValid != models.size()) {
+        int newCountValid = 0;
+        for (auto it = models.begin(); it != models.end(); it++) {
+            if (!it->second->CouldComputeStartChannel) {
+                it->second->SetFromXml(it->second->GetModelXml());
+                newCountValid += it->second->CouldComputeStartChannel ? 1 : 0;
+            } else {
+                newCountValid++;
+            }
+        }
+        if (countValid == newCountValid) {
+            std::string msg = "Could not calculate start channels for models:\n";
+            for (auto it = models.begin(); it != models.end(); it++) {
+                if (!it->second->CouldComputeStartChannel) {
+                    msg += it->second->name + "\n";
+                }
+            }
+            wxMessageBox(msg);
+            //nothing improved
+            return;
+        }
+    }
 }
-void ModelManager::LoadGroups(wxXmlNode *groupNode, NetInfoClass &netInfo, int previewW, int previewH) {
-    this->netInfo = &netInfo;
+void ModelManager::RecalcStartChannels() const {
+    int countValid = 0;
+    while (countValid != models.size()) {
+        for (auto it = models.begin(); it != models.end(); it++) {
+            it->second->SetFromXml(it->second->GetModelXml());
+            countValid += it->second->CouldComputeStartChannel ? 1 : 0;
+        }
+    }
+    while (countValid != models.size()) {
+        int newCountValid = 0;
+        for (auto it = models.begin(); it != models.end(); it++) {
+            if (!it->second->CouldComputeStartChannel) {
+                it->second->SetFromXml(it->second->GetModelXml());
+                newCountValid += it->second->CouldComputeStartChannel ? 1 : 0;
+            } else {
+                newCountValid++;
+            }
+        }
+        if (countValid == newCountValid) {
+            std::string msg = "Could not calculate start channels for models:\n";
+            for (auto it = models.begin(); it != models.end(); it++) {
+                if (!it->second->CouldComputeStartChannel) {
+                    msg += it->second->name + "\n";
+                }
+            }
+            wxMessageBox(msg);
+            //nothing improved
+            return;
+        }
+    }
+}
+
+
+void ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {
     this->groupNode = groupNode;
     for (wxXmlNode* e=groupNode->GetChildren(); e!=NULL; e=e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
-                ModelGroup *model = new ModelGroup(e, netInfo, *this, previewW, previewH);
+                ModelGroup *model = new ModelGroup(e, *this, previewW, previewH);
                 auto it = models.find(model->name);
                 if (it != models.end()) {
                     delete it->second;
@@ -106,7 +160,7 @@ void ModelManager::LoadGroups(wxXmlNode *groupNode, NetInfoClass &netInfo, int p
     }
 }
 
-Model *ModelManager::CreateDefaultModel(const std::string &type, const NetInfoClass &netInfo) {
+Model *ModelManager::CreateDefaultModel(const std::string &type, const std::string &startChannel) const {
     Model *model;
     wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "model");
     node->AddAttribute("DisplayAs", type);
@@ -120,7 +174,7 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const NetInfoCl
     node->AddAttribute("parm1", "1");
     node->AddAttribute("parm2", "50");
     node->AddAttribute("parm3", "1");
-    node->AddAttribute("StartChannel", "1");
+    node->AddAttribute("StartChannel", startChannel);
     
     int cnt = 0;
     std::string name = type;
@@ -133,50 +187,50 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const NetInfoCl
     if (type == "Star") {
         node->DeleteAttribute("parm3");
         node->AddAttribute("parm3", "5");
-        model = new StarModel(node, netInfo, false);
+        model = new StarModel(node, *this, false);
     } else if (type == "Arches") {
-        model = new ArchesModel(node, netInfo, false);
+        model = new ArchesModel(node, *this, false);
     } else if (type == "Candy Canes") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "3");
         node->DeleteAttribute("parm2");
         node->AddAttribute("parm2", "18");
-        model = new CandyCaneModel(node, netInfo, false);
+        model = new CandyCaneModel(node, *this, false);
     } else if (type == "Circle") {
         node->DeleteAttribute("parm3");
         node->AddAttribute("parm3", "50");
-        model = new CircleModel(node, netInfo, false);
+        model = new CircleModel(node, *this, false);
     } else if (type == "Window Frame") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "16");
         node->DeleteAttribute("parm3");
         node->AddAttribute("parm3", "16");
-        model = new WindowFrameModel(node, netInfo, false);
+        model = new WindowFrameModel(node, *this, false);
     } else if (type == "Wreath") {
-        model = new WreathModel(node, netInfo, false);
+        model = new WreathModel(node, *this, false);
     } else if (type.find("Sphere") == 0) {
-        model = new SphereModel(node, netInfo, false);
+        model = new SphereModel(node, *this, false);
     } else if (type == "Single Line") {
-        model = new SingleLineModel(node, netInfo, false);
+        model = new SingleLineModel(node, *this, false);
     } else if (type == "Custom") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "5");
         node->DeleteAttribute("parm2");
         node->AddAttribute("parm2", "5");
         node->AddAttribute("CustomModel", ",,,,;,,,,;,,,,;,,,,;,,,,");
-        model = new CustomModel(node, netInfo, false);
+        model = new CustomModel(node, *this, false);
     } else if (type.find("Tree") == 0) {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "16");
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", "Tree 360");
-        model = new TreeModel(node, netInfo, false);
+        model = new TreeModel(node, *this, false);
     } else if (type == "Matrix") {
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", "Horiz Matrix");
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "16");
-        model = new MatrixModel(node, netInfo, false);
+        model = new MatrixModel(node, *this, false);
     } else {
         wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
         return nullptr;
@@ -186,46 +240,43 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const NetInfoCl
     }
     return model;
 }
-Model *ModelManager::CreateModel(wxXmlNode *node) {
+
+Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
     if (node->GetName() == "modelGroup") {
-        return new ModelGroup(node, *netInfo, *this, previewWidth, previewHeight);
+        return new ModelGroup(node, *this, previewWidth, previewHeight);
     }
-    Model *model = CreateModel(node, *netInfo, false);
-    if (model != nullptr) {
-        model->SetMinMaxModelScreenCoordinates(previewWidth, previewHeight);
-    }
-    return model;
-}
-Model *ModelManager::CreateModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) {
     std::string type = node->GetAttribute("DisplayAs").ToStdString();
     Model *model;
     if (type == "Star") {
-        model = new StarModel(node, netInfo, zeroBased);
+        model = new StarModel(node, *this, zeroBased);
     } else if (type == "Arches") {
-        model = new ArchesModel(node, netInfo, zeroBased);
+        model = new ArchesModel(node, *this, zeroBased);
 	} else if (type == "Candy Canes") {
-		model = new CandyCaneModel(node, netInfo, zeroBased);
+		model = new CandyCaneModel(node, *this, zeroBased);
 	} else if (type == "Circle") {
-        model = new CircleModel(node, netInfo, zeroBased);
+        model = new CircleModel(node, *this, zeroBased);
     } else if (type == "Window Frame") {
-        model = new WindowFrameModel(node, netInfo, zeroBased);
+        model = new WindowFrameModel(node, *this, zeroBased);
     } else if (type == "Wreath") {
-        model = new WreathModel(node, netInfo, zeroBased);
+        model = new WreathModel(node, *this, zeroBased);
     } else if (type.find("Sphere") == 0) {
-        model = new SphereModel(node, netInfo, zeroBased);
+        model = new SphereModel(node, *this, zeroBased);
     } else if (type == "Single Line") {
-        model = new SingleLineModel(node, netInfo, zeroBased);
+        model = new SingleLineModel(node, *this, zeroBased);
     } else if (type == "Custom") {
-        model = new CustomModel(node, netInfo, zeroBased);
+        model = new CustomModel(node, *this, zeroBased);
     } else if (type.find("Tree") == 0) {
-        model = new TreeModel(node, netInfo, zeroBased);
+        model = new TreeModel(node, *this, zeroBased);
     } else if (type == "WholeHouse") {
-        model = new WholeHouseModel(node, netInfo, zeroBased);
+        model = new WholeHouseModel(node, *this, zeroBased);
     } else if (type == "Vert Matrix" || type == "Horiz Matrix") {
-        model = new MatrixModel(node, netInfo, zeroBased);
+        model = new MatrixModel(node, *this, zeroBased);
     } else {
         wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
         return nullptr;
+    }
+    if (model != nullptr) {
+        model->SetMinMaxModelScreenCoordinates(previewWidth, previewHeight);
     }
     return model;
 }
@@ -256,8 +307,8 @@ void ModelManager::AddModel(Model *model) {
     }
 }
 
-Model *ModelManager::createAndAddModel(wxXmlNode *node, const NetInfoClass &netInfo) {
-    Model *model = CreateModel(node, netInfo);
+Model *ModelManager::createAndAddModel(wxXmlNode *node) {
+    Model *model = CreateModel(node);
     AddModel(model);
     return model;
 }

@@ -167,7 +167,6 @@ JobPool::~JobPool()
 
 void JobPool::PushJob(Job *job)
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
 	std::unique_lock<std::mutex> locker(lock);
     if (idleThreads == 0 && numThreads < maxNumThreads) {
         numThreads++;

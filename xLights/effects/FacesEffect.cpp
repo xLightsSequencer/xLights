@@ -527,7 +527,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     buffer.Color2HSV(color, hsv);
 
     std::vector<wxPoint> first_xy;
-    Model* model_info = xLightsFrame::AllModels[buffer.cur_model];
+    Model* model_info = buffer.frame->AllModels[buffer.cur_model];
     if (!model_info || !parse_model(buffer.cur_model))
     {
         return;
@@ -603,7 +603,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     if (buffer.cur_model == "") {
         return;
     }
-    Model* model_info = xLightsFrame::AllModels[buffer.cur_model];
+    Model* model_info = buffer.frame->AllModels[buffer.cur_model];
     if (model_info == nullptr) {
         return;
     }

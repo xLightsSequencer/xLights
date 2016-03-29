@@ -7,7 +7,7 @@
 class CandyCaneModel : public ModelWithScreenLocation<ThreePointScreenLocation>
 {
     public:
-        CandyCaneModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
+        CandyCaneModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~CandyCaneModel();
     
         virtual void GetBufferSize(const std::string &type, const std::string &transform,

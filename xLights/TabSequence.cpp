@@ -272,22 +272,23 @@ void xLightsFrame::ShowModelsDialog()
     UpdateModelsList();
     EnableSequenceControls(true);
 }
-void xLightsFrame::RenameModel(const std::string& OldName, const std::string& NewName)
+bool xLightsFrame::RenameModel(const std::string OldName, const std::string& NewName)
 {
     if (OldName == NewName) {
-        return;
+        return false;
     }
     Element* elem_to_rename = mSequenceElements.GetElement(OldName);
     if( elem_to_rename != NULL )
     {
         elem_to_rename->SetName(NewName);
     }
-    AllModels.Rename(OldName, NewName);
+    bool internalsChanged = AllModels.Rename(OldName, NewName);
     RenameModelInViews(OldName, NewName);
     mSequenceElements.RenameModelInViews(OldName, NewName);
     UnsavedRgbEffectsChanges = true;
+    return internalsChanged;
 }
-void xLightsFrame::RenameModelInViews(const std::string& old_name, const std::string& new_name)
+void xLightsFrame::RenameModelInViews(const std::string old_name, const std::string& new_name)
 {
     // renames view in the rgbeffects xml node
     for(wxXmlNode* view=ViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
@@ -356,7 +357,7 @@ void xLightsFrame::UpdateModelsList()
     PreviewModels.clear();
     layoutPanel->modelPreview->GetModels().clear();
 
-    AllModels.LoadModels(ModelsNode, NetInfo,
+    AllModels.LoadModels(ModelsNode,
                          modelPreview->GetVirtualCanvasWidth(),
                          modelPreview->GetVirtualCanvasHeight());
     
@@ -409,7 +410,7 @@ void xLightsFrame::UpdateModelsList()
                                                 done = true;
                                             }
                                         }
-                                        AllModels.LoadModels(ModelsNode, NetInfo,
+                                        AllModels.LoadModels(ModelsNode,
                                                              modelPreview->GetVirtualCanvasWidth(),
                                                              modelPreview->GetVirtualCanvasHeight());
                                     }
@@ -440,7 +441,7 @@ void xLightsFrame::UpdateModelsList()
             }
         }
     }
-    AllModels.LoadGroups(ModelGroupsNode, NetInfo,
+    AllModels.LoadGroups(ModelGroupsNode,
                          modelPreview->GetVirtualCanvasWidth(),
                          modelPreview->GetVirtualCanvasHeight());
 

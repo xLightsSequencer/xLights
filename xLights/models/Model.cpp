@@ -25,9 +25,9 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {"Default", "Per Pre
 
 
 
-Model::Model() : modelDimmingCurve(nullptr), isMyDisplay(false), ModelXml(nullptr),
+Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), isMyDisplay(false), ModelXml(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
-    StrobeRate(0), changeCount(0)
+    StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false)
 {
 }
 
@@ -189,7 +189,7 @@ public:
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
                               wxPGProperty* property) override {
         StartChannelDialog dlg(propGrid);
-        dlg.Set(property->GetValue().GetString());
+        dlg.Set(property->GetValue().GetString(), m_model->GetModelManager());
         if (dlg.ShowModal() == wxID_OK) {
             wxVariant v(dlg.Get());
             SetValue(v);
@@ -382,11 +382,11 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelStrandNodeNames") {
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
         return 2;
     } else if (event.GetPropertyName() == "ModelDimmingCurves") {
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
         return 2;
     } else if (event.GetPropertyName() == "ModelFaces") {
@@ -426,7 +426,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->AddAttribute("StringType", NODE_TYPES[i]);
             grid->GetPropertyByName("ModelStringColor")->Enable(false);
         }
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelStartChannel" || event.GetPropertyName() == "ModelIndividualStartChannels.ModelStartChannel") {
@@ -436,7 +436,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->DeleteAttribute(StartChanAttrName(0));
             ModelXml->AddAttribute(StartChanAttrName(0), event.GetValue().GetString());
         }
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        modelManager.RecalcStartChannels();
         IncrementChangeCount();
         return 3;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
@@ -456,7 +456,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                 ModelXml->DeleteAttribute(StartChanAttrName(x));
             }
         }
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        modelManager.RecalcStartChannels();
         AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
         return 3;
@@ -465,14 +465,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         str = str.SubString(str.Find(".") + 1, str.length());
         ModelXml->DeleteAttribute(str);
         ModelXml->AddAttribute(str, event.GetValue().GetString());
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        modelManager.RecalcStartChannels();
         IncrementChangeCount();
         return 3;
     }
     int i = GetModelScreenLocation().OnPropertyGridChange(grid, event);
     if (i & 0x2) {
         GetModelScreenLocation().Write(ModelXml);
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
     }
     return i;
@@ -589,7 +589,7 @@ std::string Model::ComputeStringStartChannel(int i) {
             int endChannel;
             startNetwork--; // Zero based index
             if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
-                if (ModelNetInfo->GetEndNetworkAndChannel(startNetwork,(int)StringStartChanLong,ChannelsPerString,endNetwork,endChannel)) {
+                if (modelManager.GetNetInfo().GetEndNetworkAndChannel(startNetwork,(int)StringStartChanLong,ChannelsPerString,endNetwork,endChannel)) {
                     return wxString::Format("%i:%i",endNetwork+1,endChannel).ToStdString(); //endNetwork is zero based
                 }
             }
@@ -623,20 +623,81 @@ wxXmlNode* Model::GetModelXml() const {
     return this->ModelXml;
 }
 
-int Model::GetNumberFromChannelString(std::string sc) {
+bool Model::ModelRenamed(const std::string &oldName, const std::string &newName) {
+    bool changed = false;
+    std::string sc = ModelXml->GetAttribute("StartChannel","1").ToStdString();
+    if (sc[0] == '@' || sc[0] == '<' || sc[0] == '>') {
+        std::string mn = sc.substr(1, sc.find(':')-1);
+        if (mn == oldName) {
+            sc = sc[0] + newName + sc.substr(sc.find(':'), sc.size());
+            ModelXml->DeleteAttribute("StartChannel");
+            ModelXml->AddAttribute("StartChannel", sc);
+            changed = true;
+        }
+    }
+    
+    for (int i=0; i<stringStartChan.size(); i++) {
+        std::string tempstr = StartChanAttrName(i);
+        if (ModelXml->HasAttribute(tempstr)) {
+            sc = ModelXml->GetAttribute(tempstr, "1").ToStdString();
+            if (sc[0] == '@' || sc[0] == '<' || sc[0] == '>') {
+                std::string mn = sc.substr(1, sc.find(':')-1);
+                if (mn == oldName) {
+                    sc = sc[0] + newName + sc.substr(sc.find(':'), sc.size());
+                    ModelXml->DeleteAttribute(tempstr);
+                    ModelXml->AddAttribute(tempstr, sc);
+                    changed = true;
+                }
+            }
+        }
+    }
+    if (changed) {
+        SetFromXml(ModelXml, zeroBased);
+    }
+    return changed;
+}
+
+int Model::GetNumberFromChannelString(const std::string &sc) const {
+    bool v = false;
+    return GetNumberFromChannelString(sc, v);
+}
+int Model::GetNumberFromChannelString(const std::string &str, bool &valid) const {
+    std::string sc(str);
     int output = 1;
+    valid = true;
     if (sc.find(":") != std::string::npos) {
-        output = wxAtoi(sc.substr(0, sc.find(":")));
+        std::string start = sc.substr(0, sc.find(":"));
         sc = sc.substr(sc.find(":") + 1);
+        if (start[0] == '@' || start[0] == '<' || start[0] == '>') {
+            int returnChannel = wxAtoi(sc);
+            bool fromStart = start[0] == '@';
+            start = start.substr(1, start.size());
+            Model *m = modelManager[start];
+            if (m != nullptr && m->CouldComputeStartChannel) {
+                if (fromStart) {
+                    return m->GetFirstChannel() + returnChannel;
+                } else {
+                    return m->GetLastChannel() + returnChannel + 1;
+                }
+            } else {
+                valid = false;
+                output = 1;
+            }
+        } else {
+            output = wxAtoi(start);
+            if (output == 0) {
+                output = 1; // 1 based
+            }
+        }
     }
     int returnChannel = wxAtoi(sc);
     if (output > 1) {
-        returnChannel = ModelNetInfo->CalcAbsChannel(output - 1, returnChannel - 1) + 1;
+        returnChannel = modelManager.GetNetInfo().CalcAbsChannel(output - 1, returnChannel - 1) + 1;
     }
     return returnChannel;
 }
 
-void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool zb) {
+void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
         modelDimmingCurve = nullptr;
@@ -647,7 +708,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
 
     zeroBased = zb;
     ModelXml=ModelNode;
-    ModelNetInfo = &netInfo;
     StrobeRate=0;
     Nodes.clear();
 
@@ -697,7 +757,8 @@ void Model::SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool z
         nodeNames.push_back(t2);
     }
 
-    StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString());
+    CouldComputeStartChannel = true;
+    StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel);
     tempstr=ModelNode->GetAttribute("Dir");
     IsLtoR=tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
@@ -775,7 +836,9 @@ void Model::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int Star
     for (int i=0; i<NumberOfStrings; i++) {
         tempstr = StartChanAttrName(i);
         if (!zeroBased && HasIndividualStartChans && ModelXml->HasAttribute(tempstr)) {
-            stringStartChan[i] = GetNumberFromChannelString(ModelXml->GetAttribute(tempstr, "1").ToStdString())-1;
+            bool b = false;
+            stringStartChan[i] = GetNumberFromChannelString(ModelXml->GetAttribute(tempstr, "1").ToStdString(), b)-1;
+            CouldComputeStartChannel &= b;
         } else {
             stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + i*ChannelsPerString;
         }
@@ -805,10 +868,18 @@ wxChar Model::GetChannelColorLetter(wxByte chidx) {
 }
 
 int Model::GetLastChannel() {
-    int LastChan=0;
+    unsigned int LastChan=0;
     size_t NodeCount=GetNodeCount();
     for(size_t idx=0; idx<NodeCount; idx++) {
         LastChan=std::max(LastChan,Nodes[idx]->ActChan + Nodes[idx]->GetChanCount() - 1);
+    }
+    return LastChan;
+}
+int Model::GetFirstChannel() {
+    unsigned int LastChan=-1;
+    size_t NodeCount=GetNodeCount();
+    for(size_t idx=0; idx<NodeCount; idx++) {
+        LastChan=std::min(LastChan,Nodes[idx]->ActChan);
     }
     return LastChan;
 }
@@ -1653,7 +1724,7 @@ void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, 
     int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
     GetModelScreenLocation().Write(ModelXml);
     if (i) {
-        SetFromXml(ModelXml, *ModelNetInfo);
+        SetFromXml(ModelXml);
     }
     IncrementChangeCount();
 }

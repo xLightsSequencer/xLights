@@ -7,7 +7,7 @@
 class WreathModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        WreathModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
+        WreathModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~WreathModel();
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;

@@ -7,7 +7,7 @@
 class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        CustomModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
+        CustomModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~CustomModel();
 
         virtual int GetStrandLength(int strand) const override;

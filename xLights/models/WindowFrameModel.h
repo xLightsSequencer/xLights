@@ -7,7 +7,7 @@
 class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        WindowFrameModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
+        WindowFrameModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~WindowFrameModel();
 
     protected:

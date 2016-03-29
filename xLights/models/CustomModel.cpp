@@ -7,10 +7,9 @@
 #include "CustomModel.h"
 #include "../CustomModelDialog.h"
 
-CustomModel::CustomModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
+CustomModel::CustomModel(wxXmlNode *node, const ModelManager &manager,  bool zeroBased) : ModelWithScreenLocation(manager)
 {
-    SetFromXml(node, netInfo, zeroBased);
-    
+    SetFromXml(node, zeroBased);
 }
 
 CustomModel::~CustomModel()
@@ -93,12 +92,12 @@ void CustomModel::InitModel() {
 void CustomModel::SetCustomWidth(long w) {
     ModelXml->DeleteAttribute("parm1");
     ModelXml->AddAttribute("parm1", wxString::Format("%d", w));
-    SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+    SetFromXml(ModelXml, zeroBased);
 }
 void CustomModel::SetCustomHeight(long h) {
     ModelXml->DeleteAttribute("parm2");
     ModelXml->AddAttribute("parm2", wxString::Format("%d", h));
-    SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+    SetFromXml(ModelXml, zeroBased);
 }
 
 std::string CustomModel::GetCustomData() const {
@@ -107,7 +106,7 @@ std::string CustomModel::GetCustomData() const {
 void CustomModel::SetCustomData(const std::string &data) {
     ModelXml->DeleteAttribute("CustomModel");
     ModelXml->AddAttribute("CustomModel", data);
-    SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+    SetFromXml(ModelXml, zeroBased);
 }
 
 

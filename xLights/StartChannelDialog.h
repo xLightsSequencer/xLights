@@ -2,13 +2,16 @@
 #define STARTCHANNELDIALOG_H
 
 //(*Headers(StartChannelDialog)
-#include <wx/spinctrl.h>
-#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/spinctrl.h>
+#include <wx/radiobut.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
 //*)
 
 #include <string>
+class ModelManager;
 
 class StartChannelDialog: public wxDialog
 {
@@ -18,25 +21,34 @@ class StartChannelDialog: public wxDialog
 		virtual ~StartChannelDialog();
 
 		//(*Declarations(StartChannelDialog)
+		wxRadioButton* NoneButton;
+		wxChoice* ModelChoice;
 		wxSpinCtrl* StartChannel;
 		wxSpinCtrl* OutputSpin;
-		wxStaticText* StaticText2;
+		wxRadioButton* OutputButton;
+		wxRadioButton* ModelButton;
+		wxRadioButton* StartModelButton;
 		//*)
     
-        void Set(const wxString &start);
+        void Set(const wxString &start, const ModelManager &models);
         std::string Get();
 
 	protected:
 
 		//(*Identifiers(StartChannelDialog)
 		static const long ID_SPINCTRL1;
-		static const long ID_STATICTEXT2;
+		static const long ID_RADIOBUTTON1;
+		static const long ID_RADIOBUTTON2;
 		static const long ID_SPINCTRL2;
+		static const long ID_RADIOBUTTON3;
+		static const long ID_CHOICE1;
+		static const long ID_RADIOBUTTON4;
 		//*)
 
 	private:
 
 		//(*Handlers(StartChannelDialog)
+		void OnButtonSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

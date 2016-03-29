@@ -410,8 +410,6 @@ void AudioManager::DoPrepareFrameData()
 		float min = 100.0;
 		float spread = -100;
 
-		int count = 0;
-
 		// clear the data if we are about to get new data ... dont clear it if we wont
 		// this happens because the spectrogram function has a fixed window based on the parameters we set and it
 		// does not match our time slices exactly so we have to select which one to use
@@ -961,8 +959,6 @@ int AudioManager::OpenMediaFile()
 	_channels = codecContext->channels;
 	_rate = codecContext->sample_rate;
 	_bits = av_get_bytes_per_sample(codecContext->sample_fmt);
-	int cbitrate = codecContext->bit_rate;
-	int fbitrate = formatContext->bit_rate;
 
 	/* Get Track Size */
 	GetTrackMetrics(formatContext, codecContext, audioStream);
@@ -1011,7 +1007,6 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 	log4cpp::Category& logger = log4cpp::Category::getRoot();
 	// setup our conversion format ... we need to conver the input to a standard format before we can process anything
 	uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
-	int out_nb_samples = _trackSize;
 	AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
 	int out_sample_rate = _rate;
 	int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);

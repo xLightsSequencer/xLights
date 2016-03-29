@@ -5,9 +5,9 @@
 #include "ArchesModel.h"
 #include "ModelScreenLocation.h"
 
-ArchesModel::ArchesModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased) : arc(180)
+ArchesModel::ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), arc(180)
 {
-    SetFromXml(node, netInfo, zeroBased);
+    SetFromXml(node, zeroBased);
 }
 
 ArchesModel::~ArchesModel()
@@ -48,28 +48,28 @@ int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     if ("ArchesCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         AdjustStringProperties(grid, parm1);
         return 3;
     } else if ("ArchesNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("ArchesLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("ArchesArc" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("arc");
         ModelXml->AddAttribute("arc", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("ArchesStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     }
 

@@ -7,7 +7,7 @@
 class TreeModel : public MatrixModel
 {
     public:
-        TreeModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
+        TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~TreeModel();
     
         virtual int GetNumStrands() const override;

@@ -165,6 +165,8 @@ class LayoutPanel: public wxPanel
         NewModelBitmapButton *selectedButton;
         Model *newModel;
     
+        std::string lastModelName;
+    
         class UndoStep {
         public:
             std::string type;

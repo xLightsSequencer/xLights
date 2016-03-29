@@ -1552,8 +1552,8 @@ void TestDialog::OnButton_SaveClick(wxCommandEvent& event)
 		PresetNode = new wxXmlNode(wxXML_ELEMENT_NODE, "testpreset");
 		PresetNode->AddAttribute("name", name);
 		root->AddChild(PresetNode);
-		TreeController* rootcb = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
-		long ChCount = rootcb->EndXLightsChannel();
+		//TreeController* rootcb = (TreeController*)TreeListCtrl_Channels->GetItemData(_controllers);
+		//long ChCount = rootcb->EndXLightsChannel();
 		//int ChCount = CheckListBoxTestChannels->GetCount();
 
 		wxTreeListItem c = TreeListCtrl_Channels->GetFirstChild(_controllers);

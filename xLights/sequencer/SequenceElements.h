@@ -158,6 +158,7 @@ class SequenceElements : public ChangeListener
     
         wxFileName &GetFileName() { return mFilename;}
         EffectManager &GetEffectManager();
+        xLightsFrame *GetXLightsFrame() const { return xframe;};
     protected:
     private:
         void LoadEffects(EffectLayer *layer,

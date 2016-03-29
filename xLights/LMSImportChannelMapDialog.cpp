@@ -129,7 +129,7 @@ static wxArrayString Convert(const std::vector<std::string> arr) {
 void LMSImportChannelMapDialog::Init(bool allModels) {
     allowAddModels = allModels;
     if (allModels) {
-        for (auto it = xLightsFrame::AllModels.begin(); it != xLightsFrame::AllModels.end(); it++) {
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
             ModelsChoice->Append(it->first);
         }
     } else {

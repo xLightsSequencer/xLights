@@ -358,7 +358,6 @@ public:
         EFFECT_ASSIST_NOT_IN_PERSPECTIVE
     };
 
-    wxArrayString EffectLayerOptions;
     static wxString CurrentDir; //expose current folder name -DJ
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
@@ -1219,8 +1218,8 @@ public:
     wxXmlNode* CreateEffectNode(wxString& name);
     void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data);
-    void RenameModelInViews(const std::string& old_name, const std::string& new_name);
-    void RenameModel(const std::string& old_name, const std::string& new_name);
+    void RenameModelInViews(const std::string old_name, const std::string& new_name);
+    bool RenameModel(const std::string old_name, const std::string& new_name);
     void UpdateSequenceLength();
 
     void SetSequenceEnd(int ms);
@@ -1423,7 +1422,7 @@ private:
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
 public:
     std::vector<Model *> PreviewModels;
-    static ModelManager AllModels; //make public and static for easier access -DJ
+    ModelManager AllModels;
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
 
     wxString GetSeqXmlFileName();

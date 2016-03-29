@@ -145,7 +145,7 @@ bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClas
     if (model == nullptr || model->GetModelXml() == nullptr) {
         return false;
     }
-    buffer.InitBuffer(*model, layerCount, SeqData.FrameTime(), NetInfo, zeroBased);
+    buffer.InitBuffer(*model, layerCount, SeqData.FrameTime(), zeroBased);
     return true;
 }
 
@@ -1838,7 +1838,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
     EffectLayer *layer = el->GetStrandLayer(strand)->GetNodeLayer(node);
 
     xlColorVector colors;
-    PixelBufferClass ncls(true);
+    PixelBufferClass ncls(this, true);
     Model *model = GetModel(el->GetName());
     for (int f = 0; f < SeqData.NumFrames(); f++) {
         model->SetNodeChannelValues(0, &SeqData[f][model->NodeStartChannel(0)]);

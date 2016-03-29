@@ -7,7 +7,7 @@
 class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        MatrixModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
+        MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~MatrixModel();
         virtual int GetNumStrands() const override;
 
@@ -20,7 +20,7 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
     protected:
         virtual void AddStyleProperties(wxPropertyGridInterface *grid);
     
-        MatrixModel();
+        MatrixModel(const ModelManager &manager);
         virtual void InitModel() override;
     
         void InitVMatrix(int firstExportStrand = 0);

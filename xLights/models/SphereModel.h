@@ -7,7 +7,7 @@
 class SphereModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        SphereModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
+        SphereModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~SphereModel();
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;

@@ -82,7 +82,7 @@ public:
             SetBitmap(bitmap.ConvertToDisabled());
         } else if (state == 1) {
             const wxImage imgDisabled = bitmap.ConvertToImage().ConvertToDisabled(128);
-#if wxCHECK_VERSION(3, 1, 0)
+#ifdef __WXOSX__
             SetBitmap(wxBitmap(imgDisabled, -1, bitmap.GetScaleFactor()));
 #else 
             SetBitmap(wxBitmap(imgDisabled));
@@ -281,7 +281,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     wxImage image(data);
-#if wxCHECK_VERSION(3, 1, 0)
+#ifdef __WXOSX__
     wxBitmap bitmap(image, -1, 2.0);
 #else
     image.Rescale(24, 24, wxIMAGE_QUALITY_HIGH);
@@ -320,7 +320,13 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                         ListBoxElementList->SetItemText(i, event.GetValue().GetString());
                     }
                 }
-                xlights->RenameModel(selectedModel->name, event.GetValue().GetString().ToStdString());
+                if (selectedModel->name == lastModelName) {
+                    lastModelName = event.GetValue().GetString().ToStdString();
+                }
+                if (xlights->RenameModel(selectedModel->name, event.GetValue().GetString().ToStdString())) {
+                    CallAfter(&LayoutPanel::UpdateModelList, false);
+                    CallAfter(&LayoutPanel::UnSelectAllModels);
+                }
             }
         } else {
             int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
@@ -874,7 +880,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                     modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x,modelPreview->GetVirtualCanvasHeight() - y));
                     newModel->UpdateXmlWithScale();
                 }
-                
+                lastModelName = newModel->name;
                 modelPreview->GetModels().push_back(newModel);
             }
         }
@@ -1331,7 +1337,11 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
 
 
 Model *LayoutPanel::CreateNewModel(const std::string &type) {
-    return xlights->AllModels.CreateDefaultModel(type, xlights->GetNetInfo());
+    std::string startChannel = "1";
+    if (xlights->AllModels[lastModelName] != nullptr) {
+        startChannel = ">" + lastModelName + ":1";
+    }
+    return xlights->AllModels.CreateDefaultModel(type, startChannel);
 }
 
 
@@ -1390,7 +1400,16 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
             
             wxXmlNode *nd = doc.GetRoot();
             doc.DetachRoot();
-            Model *newModel = xlights->AllModels.CreateModel(nd, xlights->GetNetInfo());
+            
+            if (xlights->AllModels[lastModelName] != nullptr
+                && nd->GetAttribute("Advanced", "0") != "1") {
+                std::string startChannel = ">" + lastModelName + ":1";
+                nd->DeleteAttribute("StartChannel");
+                nd->AddAttribute("StartChannel", startChannel);
+            }
+
+            
+            Model *newModel = xlights->AllModels.CreateModel(nd);
             int cnt = 1;
             std::string name = newModel->name;
             while (xlights->AllModels[name] != nullptr) {
@@ -1402,6 +1421,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
             newModel->AddOffset(0.02, 0.02);
             newModel->UpdateXmlWithScale();
             xlights->AllModels.AddModel(newModel);
+            lastModelName = name;
             
             xlights->UpdateModelsList();
             xlights->UnsavedRgbEffectsChanges = true;
@@ -1473,6 +1493,9 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
         } else if (undoBuffer[sz].type == "ModelName") {
             std::string origName = undoBuffer[sz].key;
             std::string newName = undoBuffer[sz].data;
+            if (lastModelName == newName) {
+                lastModelName = origName;
+            }
             xlights->RenameModel(newName, origName);
             
             xlights->UpdateModelsList();

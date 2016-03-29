@@ -57,6 +57,7 @@
 #define wxPoint_  long //std::pair<int, int> //kludge: wxPoint doesn't work with std::hash_map, so use equiv sttr
 
 class AudioManager;
+class xLightsFrame;
 
 // eventually this will go in some header..
 // the idea is to define this (currently) for the MS compiler
@@ -165,7 +166,7 @@ public:
  
 class NCCDLLEXPORT RenderBuffer {
 public:
-    RenderBuffer(bool onlyOnMain);
+    RenderBuffer(xLightsFrame *frame, bool onlyOnMain);
     ~RenderBuffer();
     void InitBuffer(int newBufferHt, int newBufferWi);
 	AudioManager* GetMedia();
@@ -241,6 +242,7 @@ public:
     xlColorVector tempbuf;
     PaletteClass palette;
 
+    xLightsFrame *frame;
     std::string cur_model; //model currently in effect
 
     int curPeriod;

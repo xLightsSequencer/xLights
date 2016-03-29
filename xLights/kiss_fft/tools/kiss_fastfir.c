@@ -47,7 +47,7 @@ size_t kiss_fastfir( kiss_fastfir_cfg cfg, kffsamp_t * inbuf, kffsamp_t * outbuf
 
 
 
-static int verbose=0;
+static int verbose = 0;
 
 
 struct kiss_fastfir_state{

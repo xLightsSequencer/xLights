@@ -9,14 +9,14 @@
 std::vector<std::string> SingleLineModel::LINE_BUFFER_STYLES;
 
 
-SingleLineModel::SingleLineModel() {
+SingleLineModel::SingleLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;
 }
-SingleLineModel::SingleLineModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
+SingleLineModel::SingleLineModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
-    SetFromXml(node, netInfo, zeroBased);
+    SetFromXml(node, zeroBased);
 }
-SingleLineModel::SingleLineModel(int lights, const Model &pbc, int strand, int node)
+SingleLineModel::SingleLineModel(int lights, const Model &pbc, int strand, int node) : ModelWithScreenLocation(pbc.GetModelManager())
 {
     Reset(lights, pbc, strand, node);
 }
@@ -180,22 +180,22 @@ int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
     if ("SingleLineCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("SingleLineNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("SingleLineLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("SingleLineStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     }
     

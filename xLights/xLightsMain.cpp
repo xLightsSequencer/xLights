@@ -410,7 +410,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 }
 
 
-xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this)
+xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(NetInfo)
 {
 	std::string initFileName = "xlights.properties";
 	try
@@ -2057,7 +2057,6 @@ void xLightsFrame::OnButtonGracefulStopClick(wxCommandEvent& event)
 wxString xLightsFrame::CurrentDir = "";
 wxString xLightsFrame::PlaybackMarker = "";
 wxString xLightsFrame::xlightsFilename = "";
-ModelManager xLightsFrame::AllModels;
 xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = NULL;
 
 void xLightsFrame::OnButtonSaveScheduleClick(wxCommandEvent& event)
@@ -2803,7 +2802,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	// display the test dialog
     TestDialog dialog(this, &NetworkXML, networkFile, &AllModels);
     dialog.CenterOnParent();
-    int DlgResult = dialog.ShowModal();
+    dialog.ShowModal();
 
 	SetCursor(wxCURSOR_DEFAULT);
 

@@ -692,7 +692,7 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
         for(int m=0;m<model.size();m++)
         {
             std::string modelName = model[m].ToStdString();
-            if(!ElementExists(modelName) && xLightsFrame::AllModels[modelName] != nullptr)
+            if(!ElementExists(modelName) && xframe->AllModels[modelName] != nullptr)
             {
                Element* elem = AddElement(modelName,"model",visible,false,false,false);
                elem->AddEffectLayer();

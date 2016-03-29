@@ -38,7 +38,7 @@ public:
         float screenX, screenY;
     };
     
-    int ActChan = 0;   // 0 is the first channel
+    unsigned int ActChan = 0;   // 0 is the first channel
     unsigned short sparkle;
     unsigned short StringNum; // node is part of this string (0 is the first string)
     std::vector<CoordStruct> Coords;
@@ -123,7 +123,7 @@ public:
     }
     virtual const std::string &GetNodeType() const;
     
-    int GetChanCount() const {
+    unsigned int GetChanCount() const {
         return chanCnt;
     }
     bool IsVisible() const {

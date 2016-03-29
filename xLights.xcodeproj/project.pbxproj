@@ -94,7 +94,6 @@
 		676D0F7E1C72BEBD009C66FC /* kiss_fftr.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F741C72BEBD009C66FC /* kiss_fftr.c */; };
 		676D0F7F1C72BEBD009C66FC /* kiss_fftndr.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F761C72BEBD009C66FC /* kiss_fftndr.c */; };
 		676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F781C72BEBD009C66FC /* kiss_fftnd.c */; };
-		676D0F811C72BEBD009C66FC /* kiss_fastfir.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F791C72BEBD009C66FC /* kiss_fastfir.c */; };
 		676D0F821C72BEBD009C66FC /* kfc.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F7B1C72BEBD009C66FC /* kfc.c */; };
 		676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBF81A98E53800FBA86B /* FileConverter.cpp */; };
 		676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */; };
@@ -476,7 +475,6 @@
 		676D0F761C72BEBD009C66FC /* kiss_fftndr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kiss_fftndr.c; path = kiss_fft/tools/kiss_fftndr.c; sourceTree = "<group>"; };
 		676D0F771C72BEBD009C66FC /* kiss_fftnd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = kiss_fftnd.h; path = kiss_fft/tools/kiss_fftnd.h; sourceTree = "<group>"; };
 		676D0F781C72BEBD009C66FC /* kiss_fftnd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kiss_fftnd.c; path = kiss_fft/tools/kiss_fftnd.c; sourceTree = "<group>"; };
-		676D0F791C72BEBD009C66FC /* kiss_fastfir.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kiss_fastfir.c; path = kiss_fft/tools/kiss_fastfir.c; sourceTree = "<group>"; };
 		676D0F7A1C72BEBD009C66FC /* kfc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = kfc.h; path = kiss_fft/tools/kfc.h; sourceTree = "<group>"; };
 		676D0F7B1C72BEBD009C66FC /* kfc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = kfc.c; path = kiss_fft/tools/kfc.c; sourceTree = "<group>"; };
 		676DCBF81A98E53800FBA86B /* FileConverter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileConverter.cpp; sourceTree = "<group>"; };
@@ -951,7 +949,6 @@
 				676D0F761C72BEBD009C66FC /* kiss_fftndr.c */,
 				676D0F771C72BEBD009C66FC /* kiss_fftnd.h */,
 				676D0F781C72BEBD009C66FC /* kiss_fftnd.c */,
-				676D0F791C72BEBD009C66FC /* kiss_fastfir.c */,
 				676D0F7A1C72BEBD009C66FC /* kfc.h */,
 				676D0F7B1C72BEBD009C66FC /* kfc.c */,
 				676D0F6C1C72BB11009C66FC /* kissfft.hh */,
@@ -1550,7 +1547,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				676D0F811C72BEBD009C66FC /* kiss_fastfir.c in Sources */,
 				670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */,
 				67B2CF8E1C39D98A003C17CA /* WavePanel.cpp in Sources */,
 				674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */,

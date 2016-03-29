@@ -3,9 +3,9 @@
 #include <wx/propgrid/advprops.h>
 #include "WreathModel.h"
 
-WreathModel::WreathModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
+WreathModel::WreathModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased): ModelWithScreenLocation(manager)
 {
-    SetFromXml(node, netInfo, zeroBased);
+    SetFromXml(node, zeroBased);
 }
 
 WreathModel::~WreathModel()
@@ -81,20 +81,20 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     if ("WreathStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         AdjustStringProperties(grid, parm1);
         return 3;
     } else if ("WreathLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if ("WreathStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
         ModelXml->DeleteAttribute("StartSide");
         ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     }
     

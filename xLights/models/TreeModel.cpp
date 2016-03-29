@@ -8,11 +8,11 @@
 #include "ModelScreenLocation.h"
 
 
-TreeModel::TreeModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased)
+TreeModel::TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : MatrixModel(manager)
 {
     treeType = 0;
     degrees = 360;
-    SetFromXml(node, netInfo, zeroBased);
+    SetFromXml(node, zeroBased);
 }
 
 TreeModel::~TreeModel()
@@ -167,7 +167,7 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
                 ModelXml->AddAttribute("DisplayAs", "Tree Ribbon");
                 break;
         }
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         if (p != nullptr) {
             p->Enable(treeType == 0);
         }
@@ -179,12 +179,12 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     } else if (event.GetPropertyName() == "TreeDegrees") {
         ModelXml->DeleteAttribute("DisplayAs");
         ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     } else if (event.GetPropertyName() == "TreeRotation") {
         ModelXml->DeleteAttribute("TreeRotation");
         ModelXml->AddAttribute("TreeRotation", wxString::Format("%d", event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, *ModelNetInfo, zeroBased);
+        SetFromXml(ModelXml, zeroBased);
         return 3;
     }
     return MatrixModel::OnPropertyGridChange(grid, event);

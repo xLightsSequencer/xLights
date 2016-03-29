@@ -534,7 +534,7 @@ void RowHeading::Draw()
                 dc.SetBrush(brush);
             }
             // draw Model Group icon if necessary
-            Model *m = xLightsFrame::AllModels[mSequenceElements->GetVisibleRowInformation(i)->element->GetName()];
+            Model *m = mSequenceElements->GetXLightsFrame()->AllModels[mSequenceElements->GetVisibleRowInformation(i)->element->GetName()];
             if ( m != nullptr &&  m->GetDisplayAs() == "ModelGroup" )
             {
                 dc.DrawBitmap(model_group_icon, getWidth()-25, startY+3, true);

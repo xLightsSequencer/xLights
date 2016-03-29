@@ -36,10 +36,8 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
 
 
 
-ModelGroup::ModelGroup(wxXmlNode *node, NetInfoClass &netInfo, ModelManager &m, int w, int h)
-    : manager(m)
+ModelGroup::ModelGroup(wxXmlNode *node, const ModelManager &m, int w, int h) : ModelWithScreenLocation(m)
 {
-    ModelNetInfo = &netInfo;
     ModelXml = node;
     screenLocation.previewW = w;
     screenLocation.previewH = h;
@@ -67,7 +65,7 @@ void ModelGroup::Reset() {
     changeCount = 0;
     wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
     for (int x = 0; x < mn.size(); x++) {
-        Model *c = manager.GetModel(mn[x].ToStdString());
+        Model *c = modelManager.GetModel(mn[x].ToStdString());
         if (c != nullptr) {
             modelNames.push_back(c->name);
             models.push_back(c);
@@ -204,7 +202,7 @@ void ModelGroup::ModelRemoved(const std::string &oldName) {
         Reset();
     }
 }
-void ModelGroup::ModelRenamed(const std::string &oldName, const std::string &newName) {
+bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &newName) {
     bool changed = false;
     wxString newVal;
     for (int x = 0; x < modelNames.size(); x++) {
@@ -221,6 +219,7 @@ void ModelGroup::ModelRenamed(const std::string &oldName, const std::string &new
         ModelXml->DeleteAttribute("models");
         ModelXml->AddAttribute("models", newVal);
     }
+    return changed;
 }
 void ModelGroup::CheckForChanges() const {
     unsigned long l = 0;
@@ -248,7 +247,7 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
     int maxWid = 0;
     int maxHi = 0;
     for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
-        Model* m = manager[*it];
+        Model* m = modelManager[*it];
         if (m != nullptr) {
             models++;
             strands += m->GetNumStrands();
@@ -302,7 +301,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
 
     if (type == HORIZ_PER_MODEL) {
         for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
-            Model* m = manager[*it];
+            Model* m = modelManager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
@@ -325,7 +324,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         ApplyTransform(transform, Nodes, BufferWi, BufferHi);
     } else if (type == VERT_PER_MODEL) {
         for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
-            Model* m = manager[*it];
+            Model* m = modelManager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
@@ -355,9 +354,9 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             maxSL = BufferHi;
         }
         for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
-            Model* m = manager[*it];
+            Model* m = modelManager[*it];
             if (m != nullptr) {
-                SingleLineModel slm;
+                SingleLineModel slm(modelManager);
                 for (int strand = 0; strand < m->GetNumStrands(); strand++) {
                     int slen = m->GetStrandLength(strand);
                     slm.Reset(slen, *m, strand, -1, true);
@@ -388,7 +387,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         BufferHi = 1;
         BufferWi = 0;
         for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
-            Model* m = manager[*it];
+            Model* m = modelManager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
@@ -408,7 +407,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         bool scale = type == OVERLAY_SCALED;
         GetBufferSize(type, "None", BufferWi, BufferHi);
         for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
-            Model* m = manager[*it];
+            Model* m = modelManager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
                 int bw, bh;

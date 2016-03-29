@@ -735,6 +735,8 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
                 case HitLocation::RIGHT:
                     selectedEffect = nullptr;
                     break;
+                default:
+                    break;
             }
         }
 
@@ -1964,7 +1966,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
     if (mGridNodeValues && ri->nodeIndex != -1) {
         std::vector<xlColor> colors;
         std::vector<double> xs;
-        PixelBufferClass ncls(true);
+        PixelBufferClass ncls(xlights, true);
         ncls.InitNodeBuffer(*xlights->GetModel(ri->element->GetName()), ri->strandIndex, ri->nodeIndex, seqData->FrameTime());
         xlColor lastColor;
         for (int f = 0; f < seqData->NumFrames(); f++) {

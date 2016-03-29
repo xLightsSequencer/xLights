@@ -63,7 +63,7 @@ class PixelBufferClass
 private:
     class LayerInfo {
     public:
-        LayerInfo(bool onlyOnMain) : buffer(onlyOnMain) {
+        LayerInfo(xLightsFrame *frame, bool onlyOnMain) : buffer(frame, onlyOnMain) {
 			blur = 0;
 			RotoZoom =0;
 			ZoomCycles=1;
@@ -151,8 +151,9 @@ private:
     std::string lastBufferTransform;
     const Model *model;
     Model *zbModel;
-    SingleLineModel ssModel;
+    SingleLineModel *ssModel;
     bool onlyOnMain;
+    xLightsFrame *frame;
 public:
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
@@ -161,14 +162,14 @@ public:
     int GetNodeCount() const;
     int GetChanCountPerNode() const;
 
-    PixelBufferClass(bool onlyOnMainThread);
+    PixelBufferClass(xLightsFrame *f, bool onlyOnMainThread);
     virtual ~PixelBufferClass();
 
     const std::string &GetModelName() { return modelName;};
 
     RenderBuffer &BufferForLayer(int i);
 
-    void InitBuffer(const Model &pbc, int layers, int timing, NetInfoClass &netInfo, bool zeroBased=false);
+    void InitBuffer(const Model &pbc, int layers, int timing, bool zeroBased=false);
     void InitStrandBuffer(const Model &pbc, int strand, int timing);
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
 

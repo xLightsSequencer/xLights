@@ -316,7 +316,7 @@ void DrawingContext::GetTextExtent(const wxString &msg, double *width, double *h
 #endif
 }
 
-RenderBuffer::RenderBuffer(bool b)
+RenderBuffer::RenderBuffer(xLightsFrame *f, bool b) : frame(f)
 {
     frameTimeInMs = 50;
     drawingContext = NULL;

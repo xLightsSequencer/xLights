@@ -449,11 +449,13 @@ class myGridCellChoiceEditor: public wxGridCellEditor
 public:
 //    wxGrid* grid_parent;
     // if !allowOthers, user can't type a string not in choices array
-    myGridCellChoiceEditor(size_t count = 0,
+    myGridCellChoiceEditor(ModelManager &m,
+                           size_t count = 0,
                            const wxString choices[] = NULL,
 //                           bool allowOthers = false);
                            bool multi = false);
-    myGridCellChoiceEditor(const wxArrayString& choices,
+    myGridCellChoiceEditor(ModelManager &m,
+                           const wxArrayString& choices,
 //                           bool allowOthers = false);
                            bool multi = false);
 
@@ -507,7 +509,7 @@ protected:
     wxArrayString   m_choices;
 //    bool            m_allowOthers;
     bool m_multi;
-
+    ModelManager &AllModels;
     wxDECLARE_NO_COPY_CLASS(myGridCellChoiceEditor);
 };
 /*static*/ bool myGridCellChoiceEditor::WantCustom = false;
@@ -518,19 +520,21 @@ void myGridCellChoiceEditor::StartingClick(void)
     debug(10, "starting click, list vis? %d", (bool)Combo()->IsShown());
 }
 
-myGridCellChoiceEditor::myGridCellChoiceEditor(const wxArrayString& choices,
+myGridCellChoiceEditor::myGridCellChoiceEditor(ModelManager &m,
+                                               const wxArrayString& choices,
 //                                               bool allowOthers)
                                                bool multi)
-    : m_choices(choices),
+    : AllModels(m), m_choices(choices),
 //      m_allowOthers(allowOthers) { }
       m_multi(multi), m_grid(0) { }
 
-myGridCellChoiceEditor::myGridCellChoiceEditor(size_t count,
+myGridCellChoiceEditor::myGridCellChoiceEditor(ModelManager &m,
+                                               size_t count,
                                                const wxString choices[],
 //                                               bool allowOthers)
 //                      : m_allowOthers(allowOthers)
                                                bool multi)
-                      : m_multi(multi), m_grid(0)
+                      : AllModels(m), m_multi(multi), m_grid(0)
 {
     if ( count )
     {
@@ -544,7 +548,7 @@ myGridCellChoiceEditor::myGridCellChoiceEditor(size_t count,
 
 wxGridCellEditor *myGridCellChoiceEditor::Clone() const
 {
-    myGridCellChoiceEditor *editor = new myGridCellChoiceEditor;
+    myGridCellChoiceEditor *editor = new myGridCellChoiceEditor(AllModels);
 //    editor->m_allowOthers = m_allowOthers;
     editor->m_multi = m_multi;
     editor->m_choices = m_choices;
@@ -2452,7 +2456,7 @@ void myGridCellChoiceEditor::GetChoices(wxArrayString& choices, int row, int col
         return;
     }
     if ((row != Model_Row) && !WantCustom) return; //auto-face other parts
-    for (auto iter = xLightsFrame::AllModels.begin(); iter != xLightsFrame::AllModels.end(); ++iter)
+    for (auto iter = AllModels.begin(); iter != AllModels.end(); ++iter)
     {
         Model *it = iter->second;
         if (it->name.empty()) continue;
@@ -2589,7 +2593,7 @@ void xLightsFrame::InitPapagayoTab(bool tab_changed)
         for (int c = 0; c < GridCoroFaces->GetNumberCols(); ++c)
         {
 //            GridCoroFaces->SetCellEditor(r, c, new myGridCellChoiceEditor(0, NULL, r)); //r? node_chooser: model_chooser);
-            myGridCellChoiceEditor *chooser = new myGridCellChoiceEditor(0, NULL, r != Model_Row);
+            myGridCellChoiceEditor *chooser = new myGridCellChoiceEditor(AllModels, 0, NULL, r != Model_Row);
             GridCoroFaces->SetCellEditor(r, c, chooser);
             if (r != Model_Row) GridCoroFaces->SetCellRenderer(r, c, new myGridCellStringRenderer());
         }

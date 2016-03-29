@@ -7,7 +7,7 @@
 class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        StarModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
+        StarModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~StarModel();
     
     

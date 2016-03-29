@@ -5,11 +5,11 @@
 #include "WholeHouseModel.h"
 #include "ModelScreenLocation.h"
 
-WholeHouseModel::WholeHouseModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zb)
+WholeHouseModel::WholeHouseModel(wxXmlNode *node, const ModelManager &manager, bool zb) : ModelWithScreenLocation(manager)
 {
-    SetFromXml(node, netInfo, zb);
+    SetFromXml(node, zb);
 }
-WholeHouseModel::WholeHouseModel() {
+WholeHouseModel::WholeHouseModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     
 }
 

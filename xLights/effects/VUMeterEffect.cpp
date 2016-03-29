@@ -241,7 +241,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	catch (...)
 	{
 		// This is here to let me catch any exceptions and stop the exception causing the render thread to die
-		int a = 0;
+		//int a = 0;
 	}
 }
 

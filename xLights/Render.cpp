@@ -144,21 +144,21 @@ public:
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe) {
         if (row != NULL) {
             name = row->GetName();
-            mainBuffer = new PixelBufferClass(false);
+            mainBuffer = new PixelBufferClass(xframe, false);
             Model *model = xframe->GetModel(name);
             if (xframe->InitPixelBuffer(name, *mainBuffer, rowToRender->GetEffectLayerCount(), zeroBased)) {
 
                 for (int x = 0; x < row->getStrandLayerCount(); x++) {
                     StrandLayer *sl = row->GetStrandLayer(x);
                     if (sl -> GetEffectCount() > 0) {
-                        strandBuffers[x].reset(new PixelBufferClass(false));
+                        strandBuffers[x].reset(new PixelBufferClass(xframe, false));
                         strandBuffers[x]->InitStrandBuffer(*model, x, data.FrameTime());
                     }
                     for (int n = 0; n < sl->GetNodeLayerCount(); n++) {
                         if (n < model->GetStrandLength(x)) {
                             EffectLayer *nl = sl->GetNodeLayer(n);
                             if (nl -> GetEffectCount() > 0) {
-                                nodeBuffers[SNPair(x, n)].reset(new PixelBufferClass(false));
+                                nodeBuffers[SNPair(x, n)].reset(new PixelBufferClass(xframe, false));
                                 nodeBuffers[SNPair(x, n)]->InitNodeBuffer(*model, x, n, data.FrameTime());
                             }
                         }

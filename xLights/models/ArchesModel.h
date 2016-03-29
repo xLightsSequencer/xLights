@@ -7,7 +7,7 @@
 class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
 {
     public:
-        ArchesModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zeroBased = false);
+        ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~ArchesModel();
     
         virtual void GetBufferSize(const std::string &type, const std::string &transform,

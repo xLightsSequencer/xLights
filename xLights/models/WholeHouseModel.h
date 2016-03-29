@@ -8,11 +8,11 @@
 class WholeHouseModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        WholeHouseModel(wxXmlNode *node, const NetInfoClass &netInfo, bool zb = false);
+        WholeHouseModel(wxXmlNode *node, const ModelManager &manager, bool zb = false);
         virtual ~WholeHouseModel();
 
     protected:
-        WholeHouseModel();
+        WholeHouseModel(const ModelManager &manager);
         virtual void InitModel() override;
         void InitWholeHouse(const std::string &WholeHouseData);
     private:

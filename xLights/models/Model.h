@@ -12,12 +12,12 @@
 
 class DimmingCurve;
 class wxXmlNode;
-class NetInfoClass;
 class ModelPreview;
 class wxArrayString;
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class ModelScreenLocation;
+class ModelManager;
 
 class NodeBaseClass;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
@@ -25,7 +25,7 @@ typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 class Model
 {
 public:
-    Model();
+    Model(const ModelManager &manger);
     virtual ~Model();
 
     
@@ -42,7 +42,10 @@ public:
     virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
                                        std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
     bool IsMyDisplay() { return isMyDisplay;}
-
+    const ModelManager &GetModelManager() const {
+        return modelManager;
+    }
+    
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
     
     
@@ -73,6 +76,7 @@ protected:
     int BufferHt,BufferWi;  // size of the default buffer
     std::vector<NodeBaseClassPtr> Nodes;
 
+    const ModelManager &modelManager;
     
     NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
     
@@ -126,9 +130,10 @@ public:
     bool Selected=false;
     bool GroupSelected=false;
     std::string ModelStartChannel;
-    const NetInfoClass * ModelNetInfo;
+    bool CouldComputeStartChannel;
     bool Overlapping=false;
-    void SetFromXml(wxXmlNode* ModelNode, const NetInfoClass &netInfo, bool zeroBased=false);
+    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
+    virtual bool ModelRenamed(const std::string &oldName, const std::string &newName);
     size_t GetNodeCount() const;
     int GetChanCount() const;
     int GetChanCountPerNode() const;
@@ -138,9 +143,11 @@ public:
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
     int GetLastChannel();
+    int GetFirstChannel();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml() const;
-    int GetNumberFromChannelString(std::string sc);
+    int GetNumberFromChannelString(const std::string &sc) const;
+    int GetNumberFromChannelString(const std::string &sc, bool &valid) const;
     void DisplayModelOnWindow(ModelPreview* preview, const xlColor *color =  NULL, bool allowSelected = true);
     void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     
@@ -249,7 +256,7 @@ public:
 template <class ScreenLocation>
 class ModelWithScreenLocation : public Model {
 protected:
-    ModelWithScreenLocation() {}
+    ModelWithScreenLocation(const ModelManager &manager) : Model(manager) {}
     virtual ~ModelWithScreenLocation() {}
     virtual const ModelScreenLocation &GetModelScreenLocation() const  {
         return screenLocation;

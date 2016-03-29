@@ -202,7 +202,7 @@ void VideoReader::Seek(int timestampMS)
 		{
 			flag += AVSEEK_FLAG_BACKWARD;
 		}
-		int rc = av_seek_frame(_formatContext, _streamIndex, newframe, flag);
+		av_seek_frame(_formatContext, _streamIndex, newframe, flag);
 		_currentframe = newframe;
 
 		while (_currentframe < tgtframe && av_read_frame(_formatContext, &_packet) >= 0)
