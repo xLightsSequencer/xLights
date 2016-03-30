@@ -11,5 +11,5 @@
 #include "arches.xpm"
 #include "singleline.xpm"
 #include "canes.xpm"
-
+#include "icicles.xpm"
 #endif

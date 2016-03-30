@@ -484,8 +484,9 @@ void TwoPointScreenLocation::PrepareToDraw() const {
 
     glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, scale * GetVScaleFactor()));
     glm::mat3 rotationMatrix = glm::rotate(glm::mat3(1.0f), (float)angle);
+    glm::mat3 shearMatrix = glm::shearY(glm::mat3(1.0f), GetYShear());
     glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(x1*previewW, y1*previewH));
-    glm::mat3 mat3 = translateMatrix  * rotationMatrix  * scalingMatrix;
+    glm::mat3 mat3 = translateMatrix * rotationMatrix * shearMatrix * scalingMatrix;
 
     if (matrix != nullptr) {
         delete matrix;
@@ -528,14 +529,19 @@ bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
     //invert the matrix, get into render space
     glm::mat3 m = glm::inverse(*matrix);
     glm::vec3 v = m * glm::vec3(sx, sy, 1);
-    glm::vec3 v2 = m * glm::vec3(sx + 1, sy + 1, 1);
     
     float min = ymin;
     float max = ymax;
     if (!minMaxSet) {
         if (RenderHt < 4) {
-            min = -std::abs(v2.y - v.y) * 6.0;
+            glm::vec3 v2 = m * glm::vec3(sx + 2, sy + 2, 1);
+            glm::vec3 v3 = m * glm::vec3(sx - 2, sy - 2, 1);
+            min = -std::abs(v2.y - v3.y) * 2.0;
             max = -min;
+            if (max < 2) {
+                max = 2;
+                min = -2;
+            }
         } else {
             min = -1;
             max = RenderHt;
@@ -778,15 +784,16 @@ void TwoPointScreenLocation::FlipCoords() {
 }
 
 
-ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesHeight(false), supportsAngle(false), angle(0) {
+ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesHeight(false), supportsShear(false), supportsAngle(false), angle(0), shear(0.0) {
     mHandlePosition.resize(3);
 }
 ThreePointScreenLocation::~ThreePointScreenLocation() {
 }
 void ThreePointScreenLocation::Read(wxXmlNode *node) {
     TwoPointScreenLocation::Read(node);
-    height = wxAtof(node->GetAttribute("Height", "1.0"));
+    height = wxAtof(node->GetAttribute("Height", std::to_string(height)));
     angle = wxAtoi(node->GetAttribute("Angle", "0"));
+    shear = wxAtof(node->GetAttribute("Shear", "0.0"));
 }
 void ThreePointScreenLocation::Write(wxXmlNode *node) {
     TwoPointScreenLocation::Write(node);
@@ -796,6 +803,10 @@ void ThreePointScreenLocation::Write(wxXmlNode *node) {
         node->DeleteAttribute("Angle");
         node->AddAttribute("Angle", std::to_string(angle));
     }
+    if (supportsShear) {
+        node->DeleteAttribute("Shear");
+        node->AddAttribute("Shear", std::to_string(shear));
+    }
 }
 
 void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *grid) const {
@@ -804,6 +815,12 @@ void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
+    if (supportsShear) {
+        prop = grid->Append(new wxFloatProperty("Shear", "ModelShear", shear));
+        prop->SetAttribute("Precision", 2);
+        prop->SetAttribute("Step", 0.1);
+        prop->SetEditor("SpinCtrl");
+    }
 }
 int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("ModelHeight" == event.GetPropertyName()) {
@@ -815,6 +832,9 @@ int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid
                 height = 0.01;
             }
         }
+        return 3;
+    } else if ("ModelShear" == event.GetPropertyName()) {
+        shear = event.GetValue().GetDouble();
         return 3;
     }
     return TwoPointScreenLocation::OnPropertyGridChange(grid, event);
@@ -894,6 +914,14 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
             height = nheight / RenderHt;
             float newa = std::atan2(newy, newx) - M_PI/2;
             angle = toDegrees(newa);
+        } else if (supportsShear) {
+            height = height * newy / max;
+            shear -= (v.x - (RenderWi / 2.0)) / RenderWi;
+            if (shear < -3) {
+                shear = -3;
+            } else if (shear > 3) {
+                shear = 3;
+            }
         } else {
             height = height * newy / max;
         }
@@ -915,7 +943,12 @@ float ThreePointScreenLocation::GetVScaleFactor() const {
     }
     return height;
 }
-
+float ThreePointScreenLocation::GetYShear() const {
+    if (supportsShear) {
+        return shear;
+    }
+    return 0.0;
+}
 void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
     BoxedScreenLocation box;
     box.Read(old);
@@ -937,6 +970,5 @@ void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
     height = height * v.y / RenderHt;
     
 }
-
 
 

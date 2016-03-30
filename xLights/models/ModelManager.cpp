@@ -17,6 +17,7 @@
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
 #include "SphereModel.h"
+#include "IciclesModel.h"
 
 ModelManager::ModelManager(NetInfoClass &ni) : netInfo(ni)
 {
@@ -240,6 +241,11 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "16");
         model = new MatrixModel(node, *this, false);
+    } else if (type == "Icicles") {
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "80");
+        node->AddAttribute("DropPattern", "3,4,5,4");
+        model = new IciclesModel(node, *this, false);
     } else {
         wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
         return nullptr;
@@ -276,6 +282,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
         model = new CustomModel(node, *this, zeroBased);
     } else if (type.find("Tree") == 0) {
         model = new TreeModel(node, *this, zeroBased);
+    } else if (type.find("Icicles") == 0) {
+        model = new IciclesModel(node, *this, zeroBased);
     } else if (type == "WholeHouse") {
         model = new WholeHouseModel(node, *this, zeroBased);
     } else if (type == "Vert Matrix" || type == "Horiz Matrix") {

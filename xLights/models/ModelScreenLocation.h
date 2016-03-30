@@ -39,8 +39,9 @@ public:
  
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) = 0;
+    virtual bool IsCenterBased() const = 0;
+    virtual float GetVScaleFactor() const {return 1.0;}
     
-
     virtual void SetOffset(double xPct, double yPct) = 0;
     virtual void AddOffset(double xPct, double yPct) = 0;
     
@@ -100,6 +101,7 @@ public:
     
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+    virtual bool IsCenterBased() const override {return true;};
 
     virtual float GetHcenterOffset() const override {
         return offsetXpct;
@@ -194,7 +196,8 @@ public:
     virtual float GetVcenterOffset() const override;
     virtual void SetHcenterOffset(float f) override;
     virtual void SetVcenterOffset(float f) override;
-    
+    virtual bool IsCenterBased() const override {return false;};
+
     virtual void SetOffset(double xPct, double yPct) override;
     virtual void AddOffset(double xPct, double yPct) override;
     virtual int GetTop() const override;
@@ -206,7 +209,7 @@ public:
     virtual void SetRight(int i) override;
     virtual void SetBottom(int i) override;
     
-    virtual float GetVScaleFactor() const {return 1.0;}
+    virtual float GetYShear() const {return 0.0;}
     void SetYMinMax(float min, float max) {
         minMaxSet = true;
         ymin = min;
@@ -240,6 +243,7 @@ public:
     virtual void DrawHandles() const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual float GetVScaleFactor() const override;
+    virtual float GetYShear() const override;
 
     void SetHeight(float h) {
         height = h;
@@ -249,6 +253,9 @@ public:
     }
     void SetModelHandleHeight(bool b) {
         modelHandlesHeight = b;
+    }
+    void SetSupportsShear(bool b) {
+        supportsShear = b;
     }
     void SetSupportsAngle(bool b) {
         supportsAngle = b;
@@ -264,8 +271,11 @@ protected:
 private:
     bool modelHandlesHeight;
     bool supportsAngle;
+    bool supportsShear;
     float height;
     int angle;
+    float shear;
 };
 
 #endif // MODELSCREENLOCATION_H
+

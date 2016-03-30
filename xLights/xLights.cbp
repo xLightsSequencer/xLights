@@ -39,6 +39,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="effects/assist" />
+					<Add directory="models/" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -112,6 +113,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="effects/assist" />
+					<Add directory="models/" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -180,6 +182,7 @@
 					<Add directory="effects/assist" />
 					<Add directory="ffmpeg-dev/include" />
 					<Add directory="../include" />
+					<Add directory="models/" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -236,6 +239,7 @@
 					<Add directory="effects/assist" />
 					<Add directory="ffmpeg-dev/include" />
 					<Add directory="../include" />
+					<Add directory="models/" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -288,6 +292,7 @@
 					<Add directory="models" />
 					<Add directory="effects/assist" />
 					<Add directory="../include" />
+					<Add directory="models/" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 -lX11" />
@@ -322,6 +327,7 @@
 					<Add directory="models" />
 					<Add directory="effects/assist" />
 					<Add directory="../include" />
+					<Add directory="models/" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -359,6 +365,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="effects/assist" />
+					<Add directory="models/" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -410,6 +417,7 @@
 					<Add directory="effects/" />
 					<Add directory="models" />
 					<Add directory="effects/assist" />
+					<Add directory="models/" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -787,6 +795,8 @@
 		<Unit filename="models/CircleModel.h" />
 		<Unit filename="models/CustomModel.cpp" />
 		<Unit filename="models/CustomModel.h" />
+		<Unit filename="models/IciclesModel.cpp" />
+		<Unit filename="models/IciclesModel.h" />
 		<Unit filename="models/MatrixModel.cpp" />
 		<Unit filename="models/MatrixModel.h" />
 		<Unit filename="models/Model.cpp" />

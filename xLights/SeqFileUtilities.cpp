@@ -245,11 +245,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         if( (numChan > SeqData.NumChannels()) ||
             (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames() )
         {
-            SeqData.init(NetInfo.GetTotChannels(), mMediaLengthMS / ms, ms);
+            SeqData.init(GetMaxNumChannels(), mMediaLengthMS / ms, ms);
         }
         else if( !loaded_fseq )
         {
-            SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
         displayElementsPanel->Initialize();
 

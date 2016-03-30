@@ -244,6 +244,7 @@
 		67B845071A9C0E7500564051 /* ModelViewSelector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845021A9C0E7500564051 /* ModelViewSelector.cpp */; };
 		67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */; };
 		67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */; };
+		67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */; };
 		67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */; };
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
@@ -742,6 +743,8 @@
 		67BA42A51C93B78500D17518 /* StartChannelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StartChannelDialog.h; sourceTree = "<group>"; };
 		67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StartChannelDialog.cpp; sourceTree = "<group>"; };
 		67BAE6E21A08252700CB7041 /* spxml-0.5 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "spxml-0.5"; path = "include/spxml-0.5"; sourceTree = SOURCE_ROOT; };
+		67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IciclesModel.cpp; path = models/IciclesModel.cpp; sourceTree = "<group>"; };
+		67BE75121CAC2EB200D7BA82 /* IciclesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IciclesModel.h; path = models/IciclesModel.h; sourceTree = "<group>"; };
 		67C0EEE11C755ABE002FE25E /* MatrixModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MatrixModel.h; path = models/MatrixModel.h; sourceTree = "<group>"; };
 		67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MatrixModel.cpp; path = models/MatrixModel.cpp; sourceTree = "<group>"; };
 		67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsDialog.cpp; sourceTree = "<group>"; };
@@ -843,6 +846,8 @@
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */,
+				67BE75121CAC2EB200D7BA82 /* IciclesModel.h */,
 				67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */,
 				67653D5B1CA589830026A30B /* ModelScreenLocation.h */,
 				670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */,
@@ -1769,6 +1774,7 @@
 				67B2CFF11C3A186A003C17CA /* FanEffect.cpp in Sources */,
 				67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */,
 				67B2CF741C39D98A003C17CA /* FirePanel.cpp in Sources */,
+				67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */,
 				67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */,
 				67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */,
 				67B2CF801C39D98A003C17CA /* PinwheelPanel.cpp in Sources */,

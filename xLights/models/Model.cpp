@@ -1661,7 +1661,17 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
 
+                if (!GetModelScreenLocation().IsCenterBased()) {
+                    sx -= GetModelScreenLocation().RenderWi / 2.0;
+                    sy *= GetModelScreenLocation().GetVScaleFactor();
+                    if (GetModelScreenLocation().GetVScaleFactor() < 0) {
+                        sy += GetModelScreenLocation().RenderHt / 2.0;
+                    } else {
+                        sy -= GetModelScreenLocation().RenderHt / 2.0;
+                    }
+                }
                 double newsy = ((sy*scale)+(h/2));
+
 
                 if (lastPixelStyle != Nodes[n]->model->pixelStyle
                     || lastPixelSize != Nodes[n]->model->pixelSize) {
