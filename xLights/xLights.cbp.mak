@@ -19,23 +19,23 @@ LIB =
 LDFLAGS = 
 
 INC_LINUX_DEBUG = $(INC) -Iinclude -Isequencer -I../xLights -Ieffects -Ieffects/ -Imodels -Ieffects/assist -I../include
-CFLAGS_LINUX_DEBUG = $(CFLAGS) -Wall -g -std=gnu++14 `wx-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -D__WXDEBUG__ -D__cdecl=''
+CFLAGS_LINUX_DEBUG = $(CFLAGS) -Wall -g -std=gnu++14 `wx-config --version=3.1 --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -D__WXDEBUG__ -D__cdecl=''
 RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
 LIB_LINUX_DEBUG = $(LIB)
-LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lmpg123 -lX11 -lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg -llog4cpp `sdl-config --libs` `wx-config --libs std,media,gl,aui,propgrid` $(LDFLAGS) `pkg-config --libs gstreamer-interfaces-0.10`
+LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lmpg123 -lX11 -lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg -llog4cpp `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `-lexpat` $(LDFLAGS)
 OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../bin/xLights
 
 INC_LINUX_RELEASE = $(INC) -Iinclude -Isequencer -I../xLights -Ieffects -Ieffects/ -Imodels -Ieffects/assist -I../include
-CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -std=gnu++14 -Wall `wx-config --version=3.0 --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
+CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -std=gnu++14 -Wall `wx-config --version=3.1 --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
 RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
 LIB_LINUX_RELEASE = $(LIB)
-LDFLAGS_LINUX_RELEASE =  -s -lGL -lGLU -lglut -ldl -lmpg123 -lX11 -lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg -llog4cpp `sdl-config --libs` `wx-config --version=3.0 --libs std,media,gl,aui,propgrid` $(LDFLAGS) `pkg-config --libs gstreamer-interfaces-0.10`
+LDFLAGS_LINUX_RELEASE =  -s -lGL -lGLU -lglut -ldl -lmpg123 -lX11 -lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg -llog4cpp `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `-lexpat` $(LDFLAGS)
 OBJDIR_LINUX_RELEASE = .objs
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xLights
@@ -1774,7 +1774,7 @@ NewTimingDialog.cpp: NewTimingDialog.h
 
 NullOutputDialog.cpp: NullOutputDialog.h
 
-StartChannelDialog.cpp: StartChannelDialog.h
+StartChannelDialog.cpp: StartChannelDialog.h models/ModelManager.h models/Model.h
 
 SeqSettingsDialog.cpp: SeqSettingsDialog.h RenameTextDialog.h NewTimingDialog.h xLightsXmlFile.h DataLayer.h FileConverter.h LorConvertDialog.h Images_png.h VAMPPluginDialog.h
 

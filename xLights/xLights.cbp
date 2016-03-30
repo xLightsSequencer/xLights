@@ -274,7 +274,7 @@
 					<Add option="-Wall" />
 					<Add option="-g" />
 					<Add option="-std=gnu++14" />
-					<Add option="`wx-config --cflags`" />
+					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
@@ -294,7 +294,8 @@
 					<Add option="-lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg" />
 					<Add option="-llog4cpp" />
 					<Add option="`sdl-config --libs`" />
-					<Add option="`wx-config --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`-lexpat`" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -307,7 +308,7 @@
 					<Add option="-O2" />
 					<Add option="-std=gnu++14" />
 					<Add option="-Wall" />
-					<Add option="`wx-config --version=3.0 --cflags`" />
+					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
@@ -328,7 +329,8 @@
 					<Add option="-lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg" />
 					<Add option="-llog4cpp" />
 					<Add option="`sdl-config --libs`" />
-					<Add option="`wx-config --version=3.0 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`-lexpat`" />
 				</Linker>
 			</Target>
 			<Target title="64bit  MinGW_Release">

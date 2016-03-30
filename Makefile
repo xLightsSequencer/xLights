@@ -11,10 +11,11 @@ CHK_DIR_EXISTS  = test -d
 INSTALL_PROGRAM = install -m 755 -p
 DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 256x256
+PATH            := $(CURDIR)/wxWidgets-3.1.0:$(PATH)
 
 SUBDIRS         = xLights
 
-all: makefile subdirs
+all: wxwidgets31 makefile subdirs
 
 #############################################################################
 
@@ -23,6 +24,19 @@ subdirs: $(SUBDIRS)
 $(SUBDIRS): FORCE
 	@${MAKE} -C $@ -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
 
+
+#############################################################################
+
+wxwidgets31: FORCE
+	if test `wx-config --release` != "3.1"; \
+		then if test ! -d wxWidgets-3.1.0; \
+			then wget https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.0/wxWidgets-3.1.0.tar.bz2; \
+			tar xvfj wxWidgets-3.1.0.tar.bz2; \
+		fi; \
+		cd wxWidgets-3.1.0;\
+			CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest; \
+			${MAKE} -j4 ;\
+	fi
 
 #############################################################################
 
@@ -37,6 +51,7 @@ clean: $(addsuffix _clean,$(SUBDIRS))
 
 $(addsuffix _clean,$(SUBDIRS)):
 	@${MAKE} -C $(subst _clean,,$@) -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" clean
+	
 
 #############################################################################
 
@@ -66,8 +81,6 @@ xLights/xLights.cbp.mak: xLights/xLights.cbp
 		| sed \
 			-e "s/^CFLAGS = \(.*\)/CFLAGS = \1 -std=gnu++11/" \
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
-			-e "s/LDFLAGS_LINUX_DEBUG = \(.*\)/LDFLAGS_LINUX_DEBUG = \1 \`pkg-config --libs gstreamer-interfaces-0.10\`/" \
-			-e "s/LDFLAGS_LINUX_RELEASE = \(.*\)/LDFLAGS_LINUX_RELEASE = \1 \`pkg-config --libs gstreamer-interfaces-0.10\`/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xLights/xLights.cbp.mak
 
