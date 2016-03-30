@@ -276,7 +276,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     modelPreview->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCopy,0,this);
     modelPreview->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoPaste,0,this);
     modelPreview->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoUndo,0,this);
-
+    modelPreview->Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(LayoutPanel::OnCharHook),0,this);
 }
 
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
@@ -1344,7 +1344,23 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) {
     return xlights->AllModels.CreateDefaultModel(type, startChannel);
 }
 
-
+void LayoutPanel::OnCharHook(wxKeyEvent& event) {
+    if (!modelPreview->HasFocus()) {
+        event.Skip();
+    } else if (selectedModel != nullptr) {
+        wxChar uc = event.GetKeyCode();
+        switch(uc) {
+            case WXK_BACK:
+            case WXK_DELETE:
+                DeleteSelectedModel();
+                event.StopPropagation();
+                break;
+            default:
+                event.Skip();
+                break;
+        }
+    }
+}
 void LayoutPanel::DeleteSelectedModel() {
     CreateUndoPoint("All", selectedModel->name);
     xlights->AllModels.Delete(selectedModel->name);

@@ -22,6 +22,7 @@ class ModelManager
         Model *GetModel(const std::string &name) const;
     
         void RecalcStartChannels() const;
+        unsigned int GetLastChannel() const;
     
         bool Rename(const std::string &oldName, const std::string &newName);
         void AddModel(Model *m);
@@ -34,7 +35,7 @@ class ModelManager
     
         std::map<std::string, Model*>::const_iterator begin() const;
         std::map<std::string, Model*>::const_iterator end() const;
-        int size() const;
+        unsigned int size() const;
     
         //Make sure the Model is deleted when done with
         Model *CreateModel(wxXmlNode *node, bool zeroBased = false) const;

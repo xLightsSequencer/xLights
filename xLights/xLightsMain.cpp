@@ -2755,13 +2755,19 @@ void xLightsFrame::CheckUnsavedChanges()
     }
 }
 
+unsigned int xLightsFrame::GetMaxNumChannels() {
+    return std::max(NetInfo.GetTotChannels(), AllModels.GetLastChannel() + 1);
+}
+
+
 void xLightsFrame::UpdateSequenceLength()
 {
     if( CurrentSeqXmlFile->GetSequenceLoaded() )
     {
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = wxAtoi(mss);
-        SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+
+        SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
 
         mainSequencer->PanelTimeLine->SetTimeLength(CurrentSeqXmlFile->GetSequenceDurationMS());
         mainSequencer->PanelTimeLine->Initialize();

@@ -475,16 +475,7 @@ void xLightsFrame::UpdateModelsList()
             }
         }
     }
-    for (auto it = PreviewModels.begin(); it != PreviewModels.end(); it++) {
-        Model *model = *it;
-        if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
-            msg += wxString::Format("%s - last channel: %u\n",model->name, model->GetLastChannel());
-        }
-    }
     layoutPanel->UpdateModelList();
-    if (msg != "") {
-        wxMessageBox(wxString::Format("These models extends beyond the number of configured channels (%u):\n", NetInfo.GetTotChannels()) + msg);
-    }
 }
 
 void xLightsFrame::SaveSequence()

@@ -59,14 +59,15 @@ void xLightsFrame::NewSequence()
     MenuItem_File_Save_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);
 
-    if( (NetInfo.GetTotChannels() > SeqData.NumChannels()) ||
+    unsigned int max = GetMaxNumChannels();
+    if( (max > SeqData.NumChannels()) ||
         (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames() )
     {
-        SeqData.init(NetInfo.GetTotChannels(), mMediaLengthMS / ms, ms);
+        SeqData.init(max, mMediaLengthMS / ms, ms);
     }
     else
     {
-        SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+        SeqData.init(max, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
     Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
     displayElementsPanel->Initialize();
@@ -240,7 +241,8 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         int ms = atoi(mss.c_str());
         loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
-        if( (NetInfo.GetTotChannels() > SeqData.NumChannels()) ||
+        unsigned int numChan = GetMaxNumChannels();
+        if( (numChan > SeqData.NumChannels()) ||
             (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames() )
         {
             SeqData.init(NetInfo.GetTotChannels(), mMediaLengthMS / ms, ms);

@@ -142,8 +142,8 @@ public:
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
-    int GetLastChannel();
-    int GetFirstChannel();
+    unsigned int GetLastChannel();
+    unsigned int GetFirstChannel();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml() const;
     int GetNumberFromChannelString(const std::string &sc) const;

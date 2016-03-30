@@ -1259,6 +1259,7 @@ protected:
     void SetSelectedModelToGroupSelected();
     void ShowModelProperties();
     void SetModelAsPartOfDisplay(wxString& model);
+    unsigned int GetMaxNumChannels();
 
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml

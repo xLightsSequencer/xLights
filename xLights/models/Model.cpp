@@ -867,7 +867,7 @@ wxChar Model::GetChannelColorLetter(wxByte chidx) {
     return rgbOrder[chidx];
 }
 
-int Model::GetLastChannel() {
+unsigned int Model::GetLastChannel() {
     unsigned int LastChan=0;
     size_t NodeCount=GetNodeCount();
     for(size_t idx=0; idx<NodeCount; idx++) {
@@ -875,7 +875,7 @@ int Model::GetLastChannel() {
     }
     return LastChan;
 }
-int Model::GetFirstChannel() {
+unsigned int Model::GetFirstChannel() {
     unsigned int LastChan=-1;
     size_t NodeCount=GetNodeCount();
     for(size_t idx=0; idx<NodeCount; idx++) {

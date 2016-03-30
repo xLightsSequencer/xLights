@@ -66,9 +66,9 @@ int NetInfoClass::CalcAbsChannel(int NetNum, int NetCh) const
     return AbsChannel;
 }
 
-int NetInfoClass::GetTotChannels() const
+unsigned int NetInfoClass::GetTotChannels() const
 {
-    int tot=0;
+    unsigned tot=0;
     for(size_t NetNum=0; NetNum < NetMaxChannel.size(); NetNum++)
     {
         tot+=NetMaxChannel[NetNum];

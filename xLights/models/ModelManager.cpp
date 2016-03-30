@@ -110,6 +110,15 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
         }
     }
 }
+
+unsigned int ModelManager::GetLastChannel() const {
+    unsigned int max = 0;
+    for (auto it = models.begin(); it != models.end(); it++) {
+        max = std::max(max, it->second->GetLastChannel());
+    }
+    return max;
+}
+
 void ModelManager::RecalcStartChannels() const {
     int countValid = 0;
     while (countValid != models.size()) {
@@ -344,6 +353,6 @@ std::map<std::string, Model*>::const_iterator ModelManager::begin() const {
 std::map<std::string, Model*>::const_iterator ModelManager::end() const {
     return models.end();
 }
-int ModelManager::size() const {
+unsigned int ModelManager::size() const {
     return models.size();
 }
