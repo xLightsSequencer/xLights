@@ -932,19 +932,22 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
             }
         }
         
-        UpdateModelList();
-        UpdatePreview();
         m_over_handle = -1;
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         if (selectedButton->GetState() == 1) {
-            SelectModel(newModel->name);
+            std::string name = newModel->name;
             newModel = nullptr;
             if (selectedButton != nullptr) {
                 selectedButton->SetState(0);
                 selectedButton = nullptr;
             }
+            xlights->UpdateModelsList();
+            UpdatePreview();
+            SelectModel(name);
         } else {
             newModel = nullptr;
+            xlights->UpdateModelsList();
+            UpdatePreview();
         }
     }
 }
@@ -1410,7 +1413,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
         event.Skip();
     } else {
         if (wxTheClipboard->Open()) {
-            CreateUndoPoint("All", selectedModel->name);
+            CreateUndoPoint("All", selectedModel == nullptr ? "" : selectedModel->name);
             wxTextDataObject data;
             wxTheClipboard->GetData(data);
             wxStringInputStream in(data.GetText());

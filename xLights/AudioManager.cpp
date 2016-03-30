@@ -310,43 +310,27 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 		try
 		{
 			Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
+            for (int j = 0; j < features[0].size(); j++)
+            {
+                if (j % 10 == 0)
+                {
+                    fn(dlg, (int)(((float)j * 100.0) / (float)features[0].size()));
+                }
 
-			for (int i = 0; i < frames; i++)
-			{
-				// provide a progress update every 100 frames
-				if (i % 100 == 0)
-				{
-					fn(dlg, (int)(((float)i * 100.0) / (float)frames));
-				}
-				std::list<float> notes;
-				start = i * _intervalMS;
-				int end = start + _intervalMS;
-
-				for (int j = 0; j < features[0].size(); j++)
-				{
-					int currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
-					int currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
-					if (currentstart <= end && currentend >= start)
-					{
-						bool found = false;
-						for (auto x = notes.begin(); x != notes.end(); ++x)
-						{
-							if (*x == features[0][j].values[0])
-							{
-								found = true;
-								break;
-							}
-						}
-						if (!found)
-						{
-							notes.push_back(features[0][j].values[0]);
-						}
-					}
-				}
-
-				_frameData[i][4] = notes;
-			}
-			fn(dlg, 100);
+                int currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
+                int currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
+                int sframe = currentstart / _intervalMS;
+                if (sframe * _intervalMS < currentstart) {
+                    sframe++;
+                }
+                int eframe = currentend / _intervalMS;
+                while (sframe <= eframe) {
+                    _frameData[sframe][4].push_back(features[0][j].values[0]);
+                    sframe++;
+                }
+            }
+            
+            fn(dlg, 100);
 		}
 		catch (...)
 		{
