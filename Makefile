@@ -28,7 +28,7 @@ $(SUBDIRS): FORCE
 #############################################################################
 
 wxwidgets31: FORCE
-	if test `wx-config --release` != "3.1"; \
+	if test "`wx-config --release`" != "3.1"; \
 		then if test ! -d wxWidgets-3.1.0; \
 			then wget https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.0/wxWidgets-3.1.0.tar.bz2; \
 			tar xvfj wxWidgets-3.1.0.tar.bz2; \
