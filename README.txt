@@ -7,6 +7,11 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh(dkulp)  Add arrow key support for small changes to model locations in layout
+    -- enh(dkulp)  Add undo support to Layout
+    -- enh(dkulp)  Use three point for Arches/CandyCane/Icicles model
+    -- enh(dkulp)  Use two point size/location for single strand model
+    -- enh(dkulp)  Add "Icicles" model
     -- bug (gil)   Add mutex to prevent crash when deleting presets rapidly.  Fixes #495.
     -- enh (gil)   Shift key will help snap model handles to horizontal/vertical alignments for two handle models.
     -- enh (gil)   Draw red/blue alignment lines for two handle models.
