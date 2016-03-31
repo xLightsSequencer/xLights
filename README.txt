@@ -10,6 +10,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -- bug (gil)   Add mutex to prevent crash when deleting presets rapidly.  Fixes #495.
     -- enh (gil)   Shift key will help snap model handles to horizontal/vertical alignments for two handle models.
     -- enh (gil)   Draw red/blue alignment lines for two handle models.
+    -- bug (keithsw) Fix test dialog handling of multi-universe E131
+	-- bug (keithsw) Fix test dialog handling of different start pixel specifications on models
+	-- enh (keithsw) Move windows version to wxWidgets 3.1     
 2016.14  Mar 23, 2016
 	-- enh (keithsw) Piano support for audacity file reading.
     -- bug (dkulp) Fix crash if mapping maps a model that isn't used in the source sequence. This fixes #505

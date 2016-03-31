@@ -294,6 +294,7 @@
     <ClCompile Include="models\Model.cpp" />
     <ClCompile Include="models\ModelGroup.cpp" />
     <ClCompile Include="models\ModelManager.cpp" />
+    <ClCompile Include="models\ModelScreenLocation.cpp" />
     <ClCompile Include="models\Node.cpp" />
     <ClCompile Include="models\SingleLineModel.cpp" />
     <ClCompile Include="models\SphereModel.cpp" />
