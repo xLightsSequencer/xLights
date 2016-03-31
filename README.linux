@@ -4,10 +4,11 @@ xLights/Nutcracker Version 4.x Linux build instructions
 xLights/Nutcracker can be built and run on Linux, Mac OS/X, or Windows. This
 document describes how **developers** should set up their tool chain to build
 xLights/Nutcracker on Linux.
+Ubuntu packages are provided for users at https://code.launchpad.net/~chris-debenham/+archive/ubuntu/xlights
 
 xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is v3.0.0.  This can be compiled from
+of wxWidgets for xLights/Nutcracker is v3.1.  This can be compiled from
 source or installed via packages if they are available for your distribution.
 This document describes how to build wxWidgets if you need to to that yourself.
 
@@ -23,12 +24,10 @@ Instructions for other Linux distributions will vary.
      in their name)
 
      build-essential
-     libgtk2.0-dev
-     libgstreamer0.10-dev
-     libgstreamer-plugins-base0.10-dev
+     libgtk-3-dev
+     libgstreamer1.0-dev
+     libgstreamer-plugins-base1.0-dev
      freeglut3-dev
-     libmpg123-dev
-     libwxgtk-media3.0-dev
      libavcodec-dev
      libavformat-dev
      libswscale-dev
@@ -37,20 +36,9 @@ Instructions for other Linux distributions will vary.
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install build-essential libgtk2.0-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev freeglut3-dev libmpg123-dev libwxgtk-media3.0-dev libavcodec-dev libavformat-dev libswscale-dev libsdl1.2-dev liblog4cpp5-dev
+     sudo apt-get install build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl1.2-dev liblog4cpp5-dev
 
-  b) Build wxWidgets 3.0.1 (if not installed from packages)
-
-     $ cd ~
-     $ wget http://downloads.sourceforge.net/project/wxwindows/3.0.1/wxWidgets-3.0.1.tar.bz2
-     $ tar xjf wxWidgets-3.0.1.tar.bz2
-     $ cd wxWidgets-3.0.1
-     $ CXXFLAGS="-std=gnu++11" ./configure --enable-mediactrl --enable-graphics_ctx
-     $ make
-     $ sudo make install
-     $ sudo ldconfig
-
-  c) Get the xLights/Nutcracker source code by opening a terminal window and
+  b) Get the xLights/Nutcracker source code by opening a terminal window and
      typing the following:
 
      git clone https://github.com/smeighan/xLights.git xLights
@@ -64,14 +52,16 @@ build is to install the Code::Blocks IDE and compile xLights/Nutcracker
 within the IDE. If you plan on modifying xLights/Nutcracker yourself, this
 may be the easiest way to go.
 
-To build xLights using the supplied makefile proceed to step 'd'.  To build
-using Code::Blocks, proceed to step 'e'.:
+To build xLights using the supplied makefile proceed to step 'c'.  To build
+using Code::Blocks, proceed to step 'd'.:
 
 
-  d) Build xLights using the supplied makefiles:
+  c) Build xLights using the supplied makefiles:
 
      Option #1 - Build using the simplified top-level Makefile in the main
-                 xLights directory
+                 xLights directory.
+                 As part of this wxWidgets 3.1 will be downloaded, compiled
+                 statically linked to xLights
 
            $ make
 
@@ -87,11 +77,13 @@ using Code::Blocks, proceed to step 'e'.:
 
            # make uninstall
 
-     Option #2 - Build using the xLights.cbp.mak file directly
+     Option #2 - Build using the xLights.cbp.mak file directly.
+                 This requires wxWidgets to already be installed on
+                 your system
 
          $ cd xLights
          $ make -f xLights.cbp.mak clean
-         $ make -f xLights.cbp.mak CFLAGS="-std=gnu++11" releaselinux
+         $ make -f xLights.cbp.mak CFLAGS="-std=gnu++14" releaselinux
  
      You may get some compiler warnings, however, the executable 'xLights'
      should get built in the ./bin directory.  The proper dependencies are
@@ -102,12 +94,12 @@ using Code::Blocks, proceed to step 'e'.:
      If you built using xLights.cbp.mak, you can copy the bin/xLights
      binary to a directory in your path or run it directly from there.
 
-     If you want to build using Code::Blocks, proceed to step 'e'.
+     If you want to build using Code::Blocks, proceed to step 'd'.
 
-  e) Building xLights using Code::Blocks
+  d) Building xLights using Code::Blocks
 
      Install the Code::Blocks IDE using your distribution's package
-     manager as long as it is version 12.11 or later.  Otherwise,
+     manager as long as it is version 13.12 or later.  Otherwise,
      you can try downloading it directly from the Code::Blocks web site:
         http://www.codeblocks.org/downloads
      Also, you may need to install libwxsmithlib0 to 
