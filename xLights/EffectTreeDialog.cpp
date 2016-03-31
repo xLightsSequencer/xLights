@@ -301,6 +301,8 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
 
 void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
 {
+    std::lock_guard<std::mutex> lock(preset_mutex);
+
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
     wxTreeItemId parentID;
 

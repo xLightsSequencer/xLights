@@ -7,7 +7,7 @@
 #include "../ModelPreview.h"
 #include "../DrawGLUtils.h"
 
-
+#define SNAP_RANGE                  5
 #define RECT_HANDLE_WIDTH           6
 #define BOUNDING_RECT_OFFSET        8
 
@@ -85,7 +85,7 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
         default:
             return wxCURSOR_SIZENWSE;
     }
-    
+
 }
 
 ModelScreenLocation::ModelScreenLocation(int sz) : RenderWi(0), RenderHt(0), previewW(800), previewH(600), mHandlePosition(sz) {
@@ -156,7 +156,7 @@ bool BoxedScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
     int xf = x1>x2?x1:x2;
     int ys = y1<y2?y1:y2;
     int yf = y1>y2?y1:y2;
-    
+
     if (mMinScreenX>=xs && mMaxScreenX<=xf && mMinScreenY>=ys && mMaxScreenY<=yf) {
         return true;
     } else {
@@ -218,7 +218,7 @@ void BoxedScreenLocation::PrepareToDraw() const {
 void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
     previewW = w;
     previewH = h;
-    
+
     if (singleScale) {
         //we now have the virtual size so we can flip to non-single scale
         singleScale = false;
@@ -229,7 +229,7 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
         }
     }
     PrepareToDraw();
-    
+
     double sx,sy;
     mMinScreenX = w;
     mMinScreenY = h;
@@ -240,9 +240,9 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
             // draw node on screen
             sx=coord->screenX;
             sy=coord->screenY;
-            
+
             TranslatePoint(sx, sy);
-            
+
             if (sx<mMinScreenX) {
                 mMinScreenX = sx;
             }
@@ -272,7 +272,7 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
 void BoxedScreenLocation::DrawHandles() const {
     double w1 = centerx;
     double h1 = centery;
-    
+
     double sx =  (-RenderWi*scalex/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
     double sy = (RenderHt*scaley/2) + BOUNDING_RECT_OFFSET;
     TranslatePointDoubles(radians,sx,sy,sx,sy);
@@ -308,7 +308,7 @@ void BoxedScreenLocation::DrawHandles() const {
     DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
     mHandlePosition[3].x = sx;
     mHandlePosition[3].y = sy;
-    
+
     // Draw rotation handle square
     sx = -RECT_HANDLE_WIDTH/2;
     sy = ((RenderHt*scaley/2) + 50);
@@ -325,7 +325,7 @@ void BoxedScreenLocation::DrawHandles() const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx += w1;
     sy += h1;
-    
+
     glEnable( GL_LINE_SMOOTH );
     glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
     glLineWidth(1.7);
@@ -468,7 +468,7 @@ void TwoPointScreenLocation::PrepareToDraw() const {
     float x2p = x2 * (float)previewW;
     float y1p = y1 * (float)previewH;
     float y2p = y2 * (float)previewH;
-    
+
     float angle = M_PI/2;
     if (x2 != x1) {
         float slope = (y2p - y1p)/(x2p - x1p);
@@ -516,12 +516,12 @@ bool TwoPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
     int xfi = x1>x2?x1:x2;
     int ysi = y1<y2?y1:y2;
     int yfi = y1>y2?y1:y2;
-    
+
     float xs = std::min(std::min(v1.x, v2.x), std::min(v3.x, v4.x));
     float xf = std::max(std::max(v1.x, v2.x), std::max(v3.x, v4.x));
     float ys = std::min(std::min(v1.y, v2.y), std::min(v3.y, v4.y));
     float yf = std::max(std::max(v1.y, v2.y), std::max(v3.y, v4.y));
-    
+
     return xsi < xs && xfi > xf && ysi < ys && yfi > yf;
 }
 
@@ -529,7 +529,7 @@ bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
     //invert the matrix, get into render space
     glm::mat3 m = glm::inverse(*matrix);
     glm::vec3 v = m * glm::vec3(sx, sy, 1);
-    
+
     float min = ymin;
     float max = ymax;
     if (!minMaxSet) {
@@ -564,12 +564,26 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) c
     return wxCURSOR_DEFAULT;
 }
 void TwoPointScreenLocation::DrawHandles() const {
+    int x1_pos = x1 * previewW;
+    int x2_pos = x2 * previewW;
+    int y1_pos = y1 * previewH;
+    int y2_pos = y2 * previewH;
+
+    if( y2_pos - y1_pos == 0 )
+    {
+        DrawGLUtils::DrawLine(xlRED, 255, x1_pos, y1_pos, x2_pos, y2_pos, 1.0);
+    }
+    else if( x2_pos - x1_pos == 0 )
+    {
+        DrawGLUtils::DrawLine(xlBLUE, 255, x1_pos, y1_pos, x2_pos, y2_pos, 1.0);
+    }
+
     float sx = x1 * previewW - RECT_HANDLE_WIDTH / 2;
     float sy = y1 * previewH - RECT_HANDLE_WIDTH / 2;
     DrawGLUtils::DrawFillRectangle(xlGREEN,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
     mHandlePosition[0].x = sx;
     mHandlePosition[0].y = sy;
-    
+
     sx = x2 * previewW - RECT_HANDLE_WIDTH / 2;
     sy = y2 * previewH - RECT_HANDLE_WIDTH / 2;
     DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
@@ -578,8 +592,32 @@ void TwoPointScreenLocation::DrawHandles() const {
 }
 
 int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+
     float newx = (float)mouseX / (float)previewW;
     float newy = (float)mouseY / (float)previewH;
+
+    if (ShiftKeyPressed) {
+        if (handle) {
+            int x1_pos = x1 * previewW;
+            int y1_pos = y1 * previewH;
+            if (std::abs(mouseX - x1_pos) <= SNAP_RANGE) {
+                newx = x1;
+            }
+            if (std::abs(mouseY - y1_pos) <= SNAP_RANGE) {
+                newy = y1;
+            }
+        } else {
+            int x2_pos = x2 * previewW;
+            int y2_pos = y2 * previewH;
+            if (std::abs(mouseX - x2_pos) <= SNAP_RANGE) {
+                newx = x2;
+            }
+            if (std::abs(mouseY - y2_pos) <= SNAP_RANGE) {
+                newy = y2;
+            }
+        }
+    }
+
     if (handle) {
         x2 = newx;
         y2 = newy;
@@ -608,7 +646,7 @@ void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
-    
+
     prop = propertyEditor->Append(new wxFloatProperty("X2 (%)", "ModelX2", x2 * 100.0));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
@@ -641,7 +679,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
 void TwoPointScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
     previewH = h;
     previewW = w;
-    
+
     if (old) {
         //need to update to latest code
         ProcessOldNode(old);
@@ -656,19 +694,19 @@ void TwoPointScreenLocation::ProcessOldNode(wxXmlNode *old) {
     box.SetPreviewSize(previewW, previewH, Nodes);
     box.SetRenderSize(RenderWi, RenderHt);
     box.PrepareToDraw();
-    
+
     double sx = - float(RenderWi) / 2.0; double sy = 0;
     box.TranslatePoint(sx, sy);
     x1 = sx / (float)previewW;
     y1 = sy / (float)previewH;
-    
+
     sx = float(RenderWi) / 2.0;
     sy = 0;
     box.TranslatePoint(sx, sy);
-    
+
     x2 = sx / (float)previewW;
     y2 = sy / (float)previewH;
-    
+
     old->DeleteAttribute("offsetXpct");
     old->DeleteAttribute("offsetYpct");
     old->DeleteAttribute("PreviewScaleX");
@@ -697,7 +735,7 @@ void TwoPointScreenLocation::SetVcenterOffset(float f) {
 void TwoPointScreenLocation::SetOffset(double xPct, double yPct) {
     float diffx = (x1 + x2) / 2.0 - xPct;
     float diffy = (y1 + y2) / 2.0 - yPct;
-    
+
     y1 -= diffy;
     y2 -= diffy;
     x1 -= diffx;
@@ -847,15 +885,15 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 {
     float s = sin(angle);
     float c = cos(angle);
-    
+
     // translate point back to origin:
     x -= cx;
     y -= cy;
-    
+
     // rotate point
     float xnew = x * c - y * s;
     float ynew = x * s + y * c;
-    
+
     // translate point back:
     x = xnew + cx;
     y = ynew + cy;
@@ -863,7 +901,7 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 
 void ThreePointScreenLocation::DrawHandles() const {
     TwoPointScreenLocation::DrawHandles();
-    
+
     float sx1 = (x1 + x2) * previewW / 2.0;
     float sy1 = (y1 + y2) * previewH / 2.0;
 
@@ -871,17 +909,17 @@ void ThreePointScreenLocation::DrawHandles() const {
     if (!minMaxSet) {
         max = RenderHt;
     }
-    
+
     float x = RenderWi / 2;
     if (supportsAngle) {
         max = RenderHt * height;
         rotate_point(RenderWi / 2.0, 0, toRadians(angle), x, max);
     }
-    
+
     glm::vec3 v1 = *matrix * glm::vec3(x, max, 1);
     float sx = v1.x;
     float sy = v1.y;
-    
+
     glEnable( GL_LINE_SMOOTH );
     glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
     glLineWidth(1.7);
@@ -956,19 +994,19 @@ void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
     box.SetPreviewSize(previewW, previewH, Nodes);
     box.SetRenderSize(RenderWi, RenderHt);
     box.PrepareToDraw();
-    
+
     double x1 = RenderWi / 2.0;
     double y1 = RenderHt;
     box.TranslatePoint(x1, y1);
-    
+
     TwoPointScreenLocation::ProcessOldNode(old);
-    
+
     height = 1.0;
     PrepareToDraw();
     glm::mat3 m = glm::inverse(*matrix);
     glm::vec3 v = m * glm::vec3(x1, y1, 1);
     height = height * v.y / RenderHt;
-    
+
 }
 
 

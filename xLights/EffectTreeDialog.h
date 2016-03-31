@@ -9,6 +9,7 @@
 //*)
 #include <wx/xml/xml.h>
 #include <wx/filename.h>
+#include <mutex>
 
 class xLightsFrame;
 
@@ -64,6 +65,7 @@ class EffectTreeDialog : public wxDialog
         xLightsFrame* xLightParent;
 		wxXmlNode *XrgbEffectsNode;
         wxTreeItemId m_draggedItem;
+        std::mutex preset_mutex;
         void AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID);
         wxXmlNode* CreateEffectGroupNode(wxString& name);
         void ApplyEffect(bool dblClick=false);

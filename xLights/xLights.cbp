@@ -197,7 +197,6 @@
 					<Add library="libwxmsw31ud_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/libmpg123-0.lib" />
 					<Add library="../lib/windows/glut32.lib" />
 					<Add library="../lib/windows/avcodec.lib" />
 					<Add library="../lib/windows/avformat.lib" />
@@ -255,7 +254,6 @@
 					<Add library="libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/libmpg123-0.lib" />
 					<Add library="../lib/windows/glut32.lib" />
 					<Add library="../lib/windows/avutil.lib" />
 					<Add library="../lib/windows/avformat.lib" />
@@ -279,6 +277,7 @@
 					<Add option="-g" />
 					<Add option="-std=gnu++14" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
@@ -295,12 +294,13 @@
 					<Add directory="models/" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 -lX11" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
 					<Add option="-lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg" />
 					<Add option="-llog4cpp" />
 					<Add option="`sdl-config --libs`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
-					<Add option="`-lexpat`" />
+					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="-lexpat" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -314,6 +314,7 @@
 					<Add option="-std=gnu++14" />
 					<Add option="-Wall" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
@@ -331,12 +332,13 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="-lGL -lGLU -lglut -ldl -lmpg123 -lX11" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
 					<Add option="-lavformat-ffmpeg -lavcodec-ffmpeg -lavutil-ffmpeg -lswresample-ffmpeg -lswscale-ffmpeg" />
 					<Add option="-llog4cpp" />
 					<Add option="`sdl-config --libs`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
-					<Add option="`-lexpat`" />
+					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="-lexpat" />
 				</Linker>
 			</Target>
 			<Target title="64bit  MinGW_Release">
@@ -380,7 +382,6 @@
 					<Add library="libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/libmpg123-0.lib" />
 					<Add library="../lib/windows/glut32.lib" />
 					<Add library="ffmpeg-dev/lib/avutil.lib" />
 					<Add library="ffmpeg-dev/lib/avformat.lib" />
@@ -431,7 +432,6 @@
 					<Add library="libwxmsw31ud_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/libmpg123-0.lib" />
 					<Add library="ffmpeg-dev/lib/avutil.lib" />
 					<Add library="ffmpeg-dev/lib/avformat.lib" />
 					<Add library="ffmpeg-dev/lib/avcodec.lib" />
