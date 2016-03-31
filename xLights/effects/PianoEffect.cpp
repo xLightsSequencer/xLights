@@ -553,7 +553,12 @@ int PianoEffect::UpperTS(float t, int intervalMS)
 std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, int intervalMS)
 {
 	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	std::map<int, std::list<float>> res;
+    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    std::map<int, std::list<float>> res;
+
+    logger_pianodata.debug("Processing audacity file " + file);
+    logger_pianodata.debug("Interval %d.", intervalMS);
+    logger_pianodata.debug("Start,End,midinote");
 
 	wxTextFile f(file);
 
@@ -566,12 +571,13 @@ std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, 
 			if (components.size() != 3)
 			{
 				// this is a problem ... there should be 3 floating point numbers
-				logger.warn("Invalid data in audacity file - 3 tab separated floating point values expected: " + l);
+				logger.warn("Invalid data in audacity file - 3 tab separated floating point values expected: '" + l + "'");
 				break;
 			}
 			else
 			{
-				int start = LowerTS(components[0], intervalMS);
+                logger_pianodata.debug("%f,%f,%f", components[0], components[1], components[2]);
+                int start = LowerTS(components[0], intervalMS);
 				int end = UpperTS(components[1], intervalMS);
 				for (int i = start; i <= end; i += intervalMS)
 				{
@@ -583,12 +589,39 @@ std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, 
 					}
 					else
 					{
-						res[i].push_back(components[2]);
-					}
+                        bool found = false;
+                        for (auto it = res[i].begin(); it != res[i].end(); ++it)
+                        {
+                            if (*it == components[2])
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            res[i].push_back(components[2]);
+                        }
+                    }
 				}
 			}
 		}
-	}
+
+        if (logger_pianodata.isDebugEnabled())
+        {
+            logger_pianodata.debug("Piano data calculated:");
+            logger_pianodata.debug("Time MS, Keys");
+            for (auto it = res.begin(); it != res.end(); ++it)
+            {
+                std::string keys = "";
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                {
+                    keys += " " + std::string(wxString::Format("%f", *it2).c_str());
+                }
+                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
+            }
+        }
+    }
 
 	return res;
 }
@@ -596,7 +629,8 @@ std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, 
 std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
 {
 	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	std::map<int, std::list<float>> res;
+    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    std::map<int, std::list<float>> res;
 
 	float speedadjust;
 	if (speedAdjust < 0)
@@ -613,6 +647,11 @@ std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int 
 	{
 		notestate[i] = 0;
 	}
+
+    logger_pianodata.debug("Processing midi file " + file);
+    logger_pianodata.debug("Interval %d.", intervalMS);
+    logger_pianodata.debug("SpeedAdjust %d.", speedAdjust);
+    logger_pianodata.debug("StartAdjustMS %d.", startAdjustMS);
 
 	MidiFile midifile;
 	float lasttime = -1;
@@ -633,12 +672,20 @@ std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int 
 		}
 		midifile.doTimeAnalysis();
 
+        logger_pianodata.debug("Processing midi track %d.", ntrack);
+        logger_pianodata.debug("Event,time(s),adjustedtime(s),isnote,isnoteon,isnoteoff,midinote");
+
 		// process each event
 		for (int i = 0; i < midifile.getNumEvents(ntrack); i++)
 		{
 			MidiEvent e = midifile.getEvent(ntrack, i);
-			float time = startAdjustMS + midifile.getTimeInSeconds(ntrack, i) * speedadjust;
 
+            float time = startAdjustMS + midifile.getTimeInSeconds(ntrack, i) * speedadjust;
+
+            if (logger_pianodata.isDebugEnabled())
+            {
+                logger_pianodata.debug("%d,%f,%f,%d,%d,%d,%d", i, midifile.getTimeInSeconds(ntrack, i), time, e.isNote(), e.isNoteOn(), e.isNoteOff(), e.getKeyNumber());
+            }
 			if (time != lasttime)
 			{
 				if (lasttime >= 0)
@@ -679,6 +726,21 @@ std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int 
 				}
 			}
 		}
+
+        if (logger_pianodata.isDebugEnabled())
+        {
+            logger_pianodata.debug("Piano data calculated:");
+            logger_pianodata.debug("Time MS, Keys");
+            for (auto it = res.begin(); it != res.end(); ++it)
+            {
+                std::string keys = "";
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                {
+                    keys += " " + std::string(wxString::Format("%f", *it2).c_str());
+                }
+                logger_pianodata.debug("%d,%s", it->first, keys.c_str());
+            }
+        }
 	}
 	else
 	{
