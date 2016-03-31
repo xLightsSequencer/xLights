@@ -41,8 +41,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"
 
-Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
-Source: "C:\wxWidgets-3.0.2\lib\gcc_dll\wxmsw30u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "C:\wxWidgets-3.1.0\lib\gcc_dll\wxmsw310u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
+Source: "C:\wxWidgets-3.1.0\lib\gcc_dll\wxmsw310u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin\glut32.dll";          DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin\libmpg123-0.dll";     DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin\libgcc_s_dw2-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
