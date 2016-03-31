@@ -1355,8 +1355,41 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
     } else if (selectedModel != nullptr) {
         wxChar uc = event.GetKeyCode();
         switch(uc) {
-            case WXK_BACK:
+#ifdef __WXMSW__
+        case WXK_INSERT:
+        case WXK_NUMPAD_INSERT:
+            if (event.ControlDown()) // Copy
+            {
+                wxMenuEvent event(wxEVT_MENU, wxID_COPY);
+                event.SetEventObject(modelPreview);
+                modelPreview->ProcessWindowEvent(event);
+                event.StopPropagation();
+            }
+            else if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) // Paste
+            {
+                wxMenuEvent event(wxEVT_MENU, wxID_PASTE);
+                event.SetEventObject(modelPreview);
+                modelPreview->ProcessWindowEvent(event);
+                event.StopPropagation();
+            }
+            break;
+#endif
             case WXK_DELETE:
+#ifdef __WXMSW__
+                if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) // Cut
+                {
+                    wxMenuEvent event(wxEVT_MENU, wxID_CUT);
+                    event.SetEventObject(modelPreview);
+                    modelPreview->ProcessWindowEvent(event);
+                }
+                else
+#endif
+                {
+                    DeleteSelectedModel();
+                }
+                event.StopPropagation();
+                break;
+            case WXK_BACK:
                 DeleteSelectedModel();
                 event.StopPropagation();
                 break;
