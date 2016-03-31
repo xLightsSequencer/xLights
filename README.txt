@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.5  Mar 30, 2016
     -- enh(dkulp)  Add arrow key support for small changes to model locations in layout
     -- enh(dkulp)  Add undo support to Layout
     -- enh(dkulp)  Use three point for Arches/CandyCane/Icicles model
