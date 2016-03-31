@@ -386,7 +386,8 @@ void PianoPanel::ValidateWindow()
 		BitmapButton_Piano_MIDI_Start->Enable(false);
 		Choice_Piano_MIDITrack_APPLYLAST->Enable(false);
 		BitmapButton_Piano_MIDITrack_APPLYLAST->Enable(false);
-	}
+        TextCtrl_Piano_File->SetToolTip(_(""));
+    }
 	else if (notes == "Audacity Timing File")
 	{
 		TextCtrl_Piano_File->Enable(true);
@@ -399,7 +400,8 @@ void PianoPanel::ValidateWindow()
 		BitmapButton_Piano_MIDI_Start->Enable(false);
 		Choice_Piano_MIDITrack_APPLYLAST->Enable(false);
 		BitmapButton_Piano_MIDITrack_APPLYLAST->Enable(false);
-	}
+        TextCtrl_Piano_File->SetToolTip(_("The file should be a Polyphonic Transcription file consisting of 3 floating point numbers per line. #1 is the start time in seconds. #2 the end time. #3 the MIDI channel number."));
+    }
 	else if (notes == "MIDI File")
 	{
 		TextCtrl_Piano_File->Enable(true);
@@ -410,7 +412,8 @@ void PianoPanel::ValidateWindow()
 		TextCtrl_Piano_MIDI_Start->Enable(true);
 		BitmapButton_Piano_MIDI_Speed->Enable(true);
 		BitmapButton_Piano_MIDI_Start->Enable(true);
-	}
+        TextCtrl_Piano_File->SetToolTip(_("The file should be a MIDI file ... typically with a .MID extension."));
+    }
 
 	wxString file = TextCtrl_Piano_File->GetValue();
 	if (file == "" || wxFile::Exists(file))

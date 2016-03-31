@@ -36,6 +36,7 @@
 
 #include "PluginHostAdapter.h"
 #include <cstdlib>
+#include <log4cpp/Category.hh>
 
 #if ( VAMP_SDK_MAJOR_VERSION != 2 || VAMP_SDK_MINOR_VERSION != 6 )
 #error Unexpected version of Vamp SDK header included
@@ -55,6 +56,8 @@ PluginHostAdapter::PluginHostAdapter(const VampPluginDescriptor *descriptor,
     m_handle = m_descriptor->instantiate(m_descriptor, inputSampleRate);
     if (!m_handle) {
 //        std::cerr << "WARNING: PluginHostAdapter: Plugin instantiation failed for plugin " << m_descriptor->name << std::endl;
+        log4cpp::Category& logger = log4cpp::Category::getRoot();
+        logger.warn("PluginHostAdapter: Plugin instantiation failed for plugin " + std::string(m_descriptor->name));
     }
 }
 

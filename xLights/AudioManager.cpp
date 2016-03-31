@@ -234,82 +234,91 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 
 void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback fn)
 {
-	// dont redo it
-	if (_polyphonicTranscriptionDone)
-	{
-		return;
-	}
+    // dont redo it
+    if (_polyphonicTranscriptionDone)
+    {
+        return;
+    }
 
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.info("Polyphonic transcription started on file " + _audio_file);
+    log4cpp::Category& logger = log4cpp::Category::getRoot();
+    logger.info("Polyphonic transcription started on file " + _audio_file);
 
-	// Initialise Polyphonic Transcription
-	_vamp.GetAllAvailablePlugins(this); // this initialises Vamp
-	Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
-	size_t pref_step = 0;
+    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    logger_pianodata.debug("Processing polyphonic transcription on file " + _audio_file);
+    logger_pianodata.debug("Interval %d.", _intervalMS);
+    logger_pianodata.debug("BitRate %d.", GetRate());
 
-	if (pt == NULL)
-	{
-		logger.warn("Unable to load Polyphonic Transcription VAMP plugin.");
-	}
-	else
-	{
-		float *pdata[2];
-		int frames = _lengthMS / _intervalMS;
-		while (frames * _intervalMS < _lengthMS)
-		{
-			frames++;
-		}
+    // Initialise Polyphonic Transcription
+    _vamp.GetAllAvailablePlugins(this); // this initialises Vamp
+    Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
+    size_t pref_step = 0;
 
-		pref_step = pt->getPreferredStepSize();
-		size_t pref_block = pt->getPreferredBlockSize();
+    if (pt == NULL)
+    {
+        logger.warn("Unable to load Polyphonic Transcription VAMP plugin.");
+    }
+    else
+    {
+        float *pdata[2];
+        int frames = _lengthMS / _intervalMS;
+        while (frames * _intervalMS < _lengthMS)
+        {
+            frames++;
+        }
 
-		int channels = GetChannels();
-		if (channels > pt->getMaxChannelCount()) {
-			channels = 1;
-		}
+        pref_step = pt->getPreferredStepSize();
+        size_t pref_block = pt->getPreferredBlockSize();
 
-		pt->initialise(channels, pref_step, pref_block);
+        int channels = GetChannels();
+        if (channels > pt->getMaxChannelCount()) {
+            channels = 1;
+        }
 
-		bool first = true;
-		int start = 0;
-		int len = GetTrackSize();
-		while (len)
-		{
-			int request = pref_block;
-			if (request > len)
-			{
-				request = len;
-			}
+        logger_pianodata.debug("Channels %d.", GetChannels());
+        logger_pianodata.debug("Step %d.", pref_step);
+        logger_pianodata.debug("Block %d.", pref_block);
+        pt->initialise(channels, pref_step, pref_block);
 
-			pdata[0] = GetLeftDataPtr(start);
-			pdata[1] = GetRightDataPtr(start);
+        bool first = true;
+        int start = 0;
+        int len = GetTrackSize();
+        while (len)
+        {
+            int request = pref_block;
+            if (request > len)
+            {
+                request = len;
+            }
 
-			Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, GetRate());
-			Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
+            pdata[0] = GetLeftDataPtr(start);
+            pdata[1] = GetRightDataPtr(start);
 
-			if (first && features.size() > 0)
-			{
-				log4cpp::Category& logger = log4cpp::Category::getRoot();
-				logger.warn("Polyphonic transcription data process oddly retrieved data.");
-				first = false;
-			}
+            Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, GetRate());
+            Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
 
-			if (len > (int)pref_step)
-			{
-				len -= pref_step;
-			}
-			else
-			{
-				len = 0;
-			}
-			start += pref_step;
-		}
+            if (first && features.size() > 0)
+            {
+                log4cpp::Category& logger = log4cpp::Category::getRoot();
+                logger.warn("Polyphonic transcription data process oddly retrieved data.");
+                first = false;
+            }
 
-		// Process the Polyphonic Transcription
-		try
-		{
-			Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
+            if (len > (int)pref_step)
+            {
+                len -= pref_step;
+            }
+            else
+            {
+                len = 0;
+            }
+            start += pref_step;
+        }
+
+        // Process the Polyphonic Transcription
+        try
+        {
+            Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
+            logger_pianodata.debug("Start,Duration,CalcStart,CalcEnd,midinote");
             for (int j = 0; j < features[0].size(); j++)
             {
                 if (j % 10 == 0)
@@ -319,8 +328,14 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
                 int currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
                 int currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
+
+                if (logger_pianodata.isDebugEnabled())
+                {
+                    logger_pianodata.debug("%d.%03d,%d.%03d,%d,%d,%f", features[0][j].timestamp.sec, features[0][j].timestamp.msec(), features[0][j].duration.sec, features[0][j].duration.msec(), currentstart, currentend, features[0][j].values[0]);
+                }
+
                 int sframe = currentstart / _intervalMS;
-                if (sframe * _intervalMS < currentstart) {
+                if (currentstart - sframe * _intervalMS > _intervalMS / 2) {
                     sframe++;
                 }
                 int eframe = currentend / _intervalMS;
@@ -329,20 +344,36 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                     sframe++;
                 }
             }
-            
+
             fn(dlg, 100);
-		}
-		catch (...)
-		{
-			logger.warn("Polyphonic Transcription threw an error getting the remaining features.");
-		}
 
-		//done with VAMP Polyphonic Transcriber
-		delete pt;
-		_polyphonicTranscriptionDone = true;
-	}
+            if (logger_pianodata.isDebugEnabled())
+            {
+                logger_pianodata.debug("Piano data calculated:");
+                logger_pianodata.debug("Time MS, Keys");
+                for (int i = 0; i < _frameData.size(); i++)
+                {
+                    int ms = i * _intervalMS;
+                    std::string keys = "";
+                    for (auto it2 = _frameData[i][4].begin(); it2 != _frameData[i][4].end(); ++it2)
+                    {
+                        keys += " " + std::string(wxString::Format("%f", *it2).c_str());
+                    }
+                    logger_pianodata.debug("%d,%s", ms, keys.c_str());
+                }
+            }
+        }
+        catch (...)
+        {
+            logger.warn("Polyphonic Transcription threw an error getting the remaining features.");
+        }
 
-	logger.info("Polyphonic transcription completed.");
+        //done with VAMP Polyphonic Transcriber
+        delete pt;
+        _polyphonicTranscriptionDone = true;
+    }
+
+    logger.info("Polyphonic transcription completed.");
 }
 
 // Frame Data Extraction Functions
