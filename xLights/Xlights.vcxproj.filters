@@ -732,6 +732,9 @@
     <ClCompile Include="models\ModelScreenLocation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="models\IciclesModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1344,6 +1347,42 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TestDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\MatrixModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\IciclesModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\CustomModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\CircleModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\CandyCaneModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ModelGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\SphereModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\SingleLineModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\WholeHouseModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\WindowFrameModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\WreathModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="models\ModelScreenLocation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
