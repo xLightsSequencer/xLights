@@ -537,7 +537,6 @@ void LayoutPanel::UnSelectAllModels()
     prop->SetAttribute("Max", 100);
     prop->SetEditor("SpinCtrl");
     propertyEditor->Thaw();
-    modelPreview->SetFocus();
 }
 
 void LayoutPanel::SetupPropGrid(Model *model) {
@@ -1359,6 +1358,7 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
             if ((*it)->GetState()) {
                 selectedButton = (*it);
                 UnSelectAllModels();
+                modelPreview->SetFocus();
             } else {
                 selectedButton = nullptr;
             }
@@ -1694,6 +1694,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->UnsavedRgbEffectsChanges = true;
             SelectModel(origName);
         }
+        modelPreview->SetFocus();
+
         undoBuffer.resize(sz);
     }
 }

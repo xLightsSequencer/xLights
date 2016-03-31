@@ -255,7 +255,6 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
 
         if( loaded_fseq )
         {
-            UpdateModelsList();
             UpdatePreview();
             Timer1.Start(SeqData.FrameTime());
         }
@@ -672,10 +671,16 @@ void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
     EffectLayer *src = layerMap[name];
     if (src == nullptr) {
         Element * srcEl = seqEl.GetElement(name);
+        if (srcEl == nullptr) {
+            printf("Source strand %s doesn't exist\n", name.c_str());
+            return;
+        }
         src = srcEl->GetEffectLayer(0);
     }
     if (src != nullptr) {
         MapXLightsEffects(target, src, mapped);
+    } else {
+        printf("Source strand %s doesn't exist\n", name.c_str());
     }
 }
 void MapXLightsEffects(Element *target, const std::string &name, SequenceElements &seqEl,
