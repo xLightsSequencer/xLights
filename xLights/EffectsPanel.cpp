@@ -112,7 +112,6 @@ void EffectsPanel::SetDefaultEffectValues(Model *cls, AudioManager* audio, const
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
         eff->SetDefaultParameters(cls);
-		eff->SetAudio(audio);
 	}
 }
 void EffectsPanel::SetSequenceElements(SequenceElements *els) {

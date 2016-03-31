@@ -108,7 +108,8 @@ private:
 
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
-    m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr)
+    m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
+    colSizesSet(false)
 {
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
@@ -341,6 +342,9 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             if (i & 0x0004) {
                 CallAfter(&LayoutPanel::resetPropertyGrid);
             }
+            if (i & 0x0008) {
+                CallAfter(&LayoutPanel::refreshModelList);
+            }
             if (i == 0) {
                 printf("Did not handle %s   %s\n",
                        event.GetPropertyName().ToStdString().c_str(),
@@ -358,11 +362,11 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                 event.Veto();
             }
         } else {
-            CreateUndoPoint("Model", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
+            CreateUndoPoint("ModelProperty", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
             selectedModel->OnPropertyGridChanging(propertyEditor, event);
         }
     } else {
-        CreateUndoPoint("Background", name, event.GetProperty()->GetValue().GetString().ToStdString());
+        CreateUndoPoint("Background", "", name, event.GetProperty()->GetValue().GetString().ToStdString());
     }
 }
 
@@ -401,6 +405,19 @@ int wxCALLBACK MyCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr WXUNUS
     wxString a = ((Model*)item1)->name;
     wxString b = ((Model*)item2)->name;
     return a.CmpNoCase(b);
+}
+void LayoutPanel::refreshModelList() {
+    for (int x = 0; x < ListBoxElementList->GetItemCount(); x++) {
+        Model *model = (Model*)ListBoxElementList->GetItemData(x);
+        std::string start_channel = model->GetModelXml()->GetAttribute("StartChannel").ToStdString();
+        model->SetModelStartChan(start_channel);
+        int end_channel = model->GetLastChannel()+1;
+        ListBoxElementList->SetItem(x,1, start_channel);
+        ListBoxElementList->SetItem(x,2, wxString::Format(wxT("%i"),end_channel));
+#if wxCHECK_VERSION(3, 1, 0)
+        ListBoxElementList->CheckItem(x, model->IsMyDisplay());
+#endif
+    }
 }
 void LayoutPanel::UpdateModelList(bool addGroups) {
     UnSelectAllModels();
@@ -479,9 +496,12 @@ void LayoutPanel::UpdateModelList(bool addGroups) {
 
 
     ListBoxElementList->SortItems(MyCompareFunction,0);
-    ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE);
-    ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE);
-    ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE);
+    if (!colSizesSet) {
+        ListBoxElementList->SetColumnWidth(2,wxLIST_AUTOSIZE_USEHEADER);
+        ListBoxElementList->SetColumnWidth(1,wxLIST_AUTOSIZE_USEHEADER);
+        ListBoxElementList->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
+        colSizesSet = true;
+    }
     modelPreview->SetModels(models);
     UpdatePreview();
 }
@@ -640,7 +660,7 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 void LayoutPanel::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
 {
-    CreateUndoPoint("All", "");
+    CreateUndoPoint("All", "", "", "");
     CurrentPreviewModels dialog(this,xlights->ModelGroupsNode,xlights->AllModels);
     dialog.ShowModal();
 
@@ -720,10 +740,11 @@ void LayoutPanel::OnListBoxElementItemChecked(wxListEvent& event) {
 #if wxCHECK_VERSION(3, 1, 0)
     bool b = xlights->AllModels[event.GetLabel().ToStdString()]->IsMyDisplay();
     if (b != ListBoxElementList->IsItemChecked(event.GetIndex())) {
-        CreateUndoPoint("Model", event.GetLabel().ToStdString(), "ModelMyDisplay", xlights->AllModels[event.GetLabel().ToStdString()]->IsMyDisplay()?"true":"false");
+        CreateUndoPoint("ModelProperty", event.GetLabel().ToStdString(), "ModelMyDisplay", xlights->AllModels[event.GetLabel().ToStdString()]->IsMyDisplay()?"true":"false");
 
         xlights->AllModels[event.GetLabel().ToStdString()]->SetMyDisplay(ListBoxElementList->IsItemChecked(event.GetIndex()));
         xlights->UnsavedRgbEffectsChanges = true;
+        resetPropertyGrid();
     }
 #endif
 }
@@ -922,6 +943,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         UpdatePreview();
     }
     if (newModel != nullptr) {
+        CreateUndoPoint("All", "", "");
         newModel->UpdateXmlWithScale();
         xlights->AllModels.AddModel(newModel);
         
@@ -980,7 +1002,9 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 
     if(m_moving_handle)
     {
-        CreateUndoPoint("All", m->name, std::to_string(m_over_handle));
+        if (m != newModel) {
+            CreateUndoPoint("SingleModel", m->name, std::to_string(m_over_handle));
+        }
         y = modelPreview->GetVirtualCanvasHeight() - y;
         m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetPosition().x, y);
         SetupPropGrid(m);
@@ -998,7 +1022,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             {
                 if(modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
                 {
-                    CreateUndoPoint("All", m->name, "location");
+                    CreateUndoPoint("SingleModel", m->name, "location");
 
                     modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
@@ -1023,7 +1047,8 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 {
-
+    modelPreview->SetFocus();
+    
     wxMenu mnu;
     wxMenu *mnuAlign;
     wxMenu *mnuDistribute;
@@ -1057,6 +1082,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     mnu.Append(ID_PREVIEW_MODEL_EXPORTCSV,"Export CSV");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
     PopupMenu(&mnu);
+    modelPreview->SetFocus();
 }
 
 
@@ -1499,8 +1525,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             event.SetPropertyValue(value);
             OnPropertyGridChange(event);
             UnSelectAllModels();
-        } else if (undoBuffer[sz].type == "Model") {
-            SelectModel(undoBuffer[sz].models);
+        } else if (undoBuffer[sz].type == "ModelProperty") {
+            SelectModel(undoBuffer[sz].model);
             wxPropertyGridEvent event;
             event.SetPropertyGrid(propertyEditor);
             wxStringProperty wsp("Model", undoBuffer[sz].key, undoBuffer[sz].data);
@@ -1508,7 +1534,26 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             wxVariant value(undoBuffer[sz].data);
             event.SetPropertyValue(value);
             OnPropertyGridChange(event);
+            resetPropertyGrid();
+        } else if (undoBuffer[sz].type == "SingleModel") {
+            Model *m = xlights->AllModels[undoBuffer[sz].model];
+            if (m != nullptr) {
+                wxStringInputStream min(undoBuffer[sz].data);
+                wxXmlDocument mdoc(min);
+
+                wxXmlNode *parent = m->GetModelXml()->GetParent();
+                wxXmlNode *next = m->GetModelXml()->GetNext();
+                parent->RemoveChild(m->GetModelXml());
+                
+                delete m->GetModelXml();
+                m->SetFromXml(mdoc.GetRoot());
+                mdoc.DetachRoot();
+                parent->InsertChild(m->GetModelXml(), next);
+                SelectModel(undoBuffer[sz].model);
+            }
         } else if (undoBuffer[sz].type == "All") {
+            UnSelectAllModels();
+
             wxStringInputStream gin(undoBuffer[sz].groups);
             wxXmlDocument gdoc;
             gdoc.Load(gin);
@@ -1543,10 +1588,12 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
 
             xlights->UpdateModelsList();
             xlights->UnsavedRgbEffectsChanges = true;
-            SelectModel(undoBuffer[sz].key);
+            if (undoBuffer[sz].model != "") {
+                SelectModel(undoBuffer[sz].model);
+            }
         } else if (undoBuffer[sz].type == "ModelName") {
-            std::string origName = undoBuffer[sz].key;
-            std::string newName = undoBuffer[sz].data;
+            std::string origName = undoBuffer[sz].model;
+            std::string newName = undoBuffer[sz].key;
             if (lastModelName == newName) {
                 lastModelName = origName;
             }
@@ -1559,17 +1606,15 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
         undoBuffer.resize(sz);
     }
 }
-void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &key, const std::string &data) {
-    CreateUndoPoint(type, "", key, data);
-}
 void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
     xlights->UnsavedRgbEffectsChanges = true;
     int idx = undoBuffer.size();
     
-    //printf("%s    %s  %s\n", type.c_str(), key.c_str(), data.c_str());
-    if (type == "All" && idx > 0 && undoBuffer[idx - 1].key == key && undoBuffer[idx - 1].data == data) {
-        return;
-    } else if (idx > 0 && undoBuffer[idx - 1].key == key && undoBuffer[idx - 1].type == type && undoBuffer[idx - 1].models == model) {
+    //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
+    if (idx > 0 && (type == "SingleModel" || type == "ModelProperty" || type == "Background")
+        && undoBuffer[idx - 1].model == model && undoBuffer[idx - 1].key == key)  {
+        //SingleModel - multi mouse movement, just record the original
+        //Background/ModelProperty - multiple changes of the same property (like spinning spin button)
         return;
     }
     if (idx >= 100) {  //100 steps is more than enough IMO
@@ -1580,12 +1625,32 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     }
     undoBuffer.resize(idx + 1);
 
+    undoBuffer[idx].type = type;
+    undoBuffer[idx].model = model;
     undoBuffer[idx].key = key;
     undoBuffer[idx].data = data;
-    undoBuffer[idx].type = type;
-    undoBuffer[idx].models = model;
     
-    if (type == "All") {
+    if (type == "SingleModel") {
+        Model *m = newModel;
+        if (m == nullptr) {
+            int sel=ListBoxElementList->GetFirstSelected();
+            if (sel == wxNOT_FOUND) {
+                undoBuffer.resize(idx);
+                return;
+            }
+            m=(Model*)ListBoxElementList->GetItemData(sel);
+        }
+        wxXmlDocument doc;
+        wxXmlNode *parent = m->GetModelXml()->GetParent();
+        wxXmlNode *next = m->GetModelXml()->GetNext();
+        parent->RemoveChild(m->GetModelXml());
+        doc.SetRoot(m->GetModelXml());
+        wxStringOutputStream stream;
+        doc.Save(stream);
+        undoBuffer[idx].data = stream.GetString();
+        doc.DetachRoot();
+        parent->InsertChild(m->GetModelXml(), next);
+    } else if (type == "All") {
         wxXmlDocument doc;
         wxXmlNode *parent = xlights->ModelsNode->GetParent();
         wxXmlNode *next = xlights->ModelsNode->GetNext();

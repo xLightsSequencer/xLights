@@ -62,6 +62,7 @@ public:
      *     0x0001  -  Refresh displays 
      *     0x0002  -  Mark settings as "dirty"/"changed"
      *     0x0004  -  Rebuild the property grid
+     *     0x0008  -  Rebuild the model list
      */
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
 protected:

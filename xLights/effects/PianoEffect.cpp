@@ -24,17 +24,18 @@ PianoEffect::~PianoEffect()
     //dtor
 }
 
-void PianoEffect::SetAudio(AudioManager* audio)
-{
-	if (_panel != NULL && audio != NULL)
-	{
-		_panel->SetAudio(audio);
-	}
-}
-
 wxPanel *PianoEffect::CreatePanel(wxWindow *parent) {
     _panel = new PianoPanel(parent);
 	return _panel;
+}
+
+bool PianoEffect::CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) {
+    if (settings.Get("CHOICE_Piano_Notes_Source", "Polyphonic Transcription") == "Polyphonic Transcription"
+        && buffer.GetMedia() != nullptr) {
+        //if the Polyphonic data isn't there, we need to flip to the main thread to get that done
+        return buffer.GetMedia()->IsPolyphonicTranscriptionDone();
+    }
+    return true;
 }
 
 void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

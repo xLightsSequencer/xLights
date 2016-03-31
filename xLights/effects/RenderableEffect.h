@@ -41,11 +41,10 @@ class RenderableEffect
 
         wxPanel *GetPanel(wxWindow *parent);
 		virtual void SetDefaultParameters(Model *cls) {}
-		virtual void SetAudio(AudioManager *cls) {}
 		virtual std::string GetEffectString();
 
         //Methods for rendering the effect
-        virtual bool CanRenderOnBackgroundThread() { return true; }
+        virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) { return true; }
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) = 0;
 
         virtual bool CanBeRandom() {return true;}

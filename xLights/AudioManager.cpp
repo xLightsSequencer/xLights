@@ -282,19 +282,22 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         bool first = true;
         int start = 0;
         int len = GetTrackSize();
+        float totalLen = len;
+        int lastProgress = 0;
         while (len)
         {
-            int request = pref_block;
-            if (request > len)
+            int progress = (((float)(totalLen - len) * 25) / totalLen);
+            if (lastProgress < progress)
             {
-                request = len;
+                fn(dlg, progress);
+                lastProgress = progress;
             }
-
             pdata[0] = GetLeftDataPtr(start);
             pdata[1] = GetRightDataPtr(start);
 
             Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, GetRate());
             Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
+            
 
             if (first && features.size() > 0)
             {
@@ -302,7 +305,6 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 logger.warn("Polyphonic transcription data process oddly retrieved data.");
                 first = false;
             }
-
             if (len > (int)pref_step)
             {
                 len -= pref_step;
@@ -317,22 +319,25 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         // Process the Polyphonic Transcription
         try
         {
+            unsigned int total = 0;
             Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
             logger_pianodata.debug("Start,Duration,CalcStart,CalcEnd,midinote");
             for (int j = 0; j < features[0].size(); j++)
             {
                 if (j % 10 == 0)
                 {
-                    fn(dlg, (int)(((float)j * 100.0) / (float)features[0].size()));
+                    fn(dlg, (int)(((float)j * 75.0) / (float)features[0].size()) + 25.0);
                 }
-
+                
                 int currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
                 int currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
 
+                //printf("%f\t%f\t%f\n",(float)currentstart/1000.0, (float)currentend/1000.0, features[0][j].values[0]);
                 if (logger_pianodata.isDebugEnabled())
                 {
                     logger_pianodata.debug("%d.%03d,%d.%03d,%d,%d,%f", features[0][j].timestamp.sec, features[0][j].timestamp.msec(), features[0][j].duration.sec, features[0][j].duration.msec(), currentstart, currentend, features[0][j].values[0]);
                 }
+                total += features[0][j].values.size();
 
                 int sframe = currentstart / _intervalMS;
                 if (currentstart - sframe * _intervalMS > _intervalMS / 2) {
@@ -362,6 +367,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                     logger_pianodata.debug("%d,%s", ms, keys.c_str());
                 }
             }
+            //printf("Total points: %u", total);
         }
         catch (...)
         {
@@ -370,9 +376,8 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
         //done with VAMP Polyphonic Transcriber
         delete pt;
-        _polyphonicTranscriptionDone = true;
     }
-
+    _polyphonicTranscriptionDone = true;
     logger.info("Polyphonic transcription completed.");
 }
 
@@ -582,6 +587,15 @@ void AudioManager::PrepareFrameData(bool separateThread)
 	}
 }
 
+
+void ProgressFunction(wxProgressDialog* pd, int p)
+{
+    if (pd != NULL)
+    {
+        pd->Update(p);
+    }
+}
+
 // Get the pre-prepared data for this frame
 std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing)
 {
@@ -605,6 +619,11 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
             lock.lock();
 		}
 	}
+    if (fdt == FRAMEDATA_NOTES && !_polyphonicTranscriptionDone) {
+        //need to do the polyphonic stuff
+        wxProgressDialog dlg("Processing Audio", "");
+        DoPolyphonicTranscription(&dlg, ProgressFunction);
+    }
 
 	// now we can grab the data we need
 	std::list<float>* rc = NULL;

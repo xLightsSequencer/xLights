@@ -1611,11 +1611,17 @@ xLightsFrame::~xLightsFrame()
 }
 
 void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
+    static bool inMenuAction = false;
+    if (inMenuAction) {
+        return;
+    }
+    inMenuAction= true;
     wxWindow *w = FindFocus();
     evt.Skip();
     if (w != nullptr && w->GetEventHandler()) {
         w->GetEventHandler()->ProcessEventLocally(evt);
     }
+    inMenuAction= false;
 }
 
 

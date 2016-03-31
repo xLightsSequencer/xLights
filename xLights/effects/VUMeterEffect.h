@@ -11,13 +11,12 @@ class VUMeterEffect : public RenderableEffect
     public:
         VUMeterEffect(int id);
         virtual ~VUMeterEffect();
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         void Render(RenderBuffer &buffer,
                     int bars, const std::string& type, const std::string& timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls);
-        virtual bool CanRenderOnBackgroundThread();
-		virtual void SetDefaultParameters(Model *cls);
+		virtual void SetDefaultParameters(Model *cls) override;
 	protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
 		int DecodeType(std::string type);
 		void RenderSpectrogramFrame(RenderBuffer &buffer, int bars, std::list<float>& lastvalues, bool slowdownfalls);
 		void RenderVolumeBarsFrame(RenderBuffer &buffer, int bars);

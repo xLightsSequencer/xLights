@@ -25,7 +25,7 @@ class MainSequencer: public wxPanel
         void UpdateTimeDisplay(int time_ms);
         void SetPlayStatus(int play_type);
         void GetSelectedEffectsData(wxString& copy_data);
-        void CopySelectedEffects();
+        bool CopySelectedEffects();
     
         void Cut();
         void Paste();

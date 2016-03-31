@@ -157,11 +157,13 @@ class LayoutPanel: public wxPanel
         wxPropertyGrid *propertyEditor;
         Model *selectedModel;
 
+        void refreshModelList();
         void resetPropertyGrid();
         void clearPropGrid();
         bool stringPropsVisible;
         bool appearanceVisible;
         bool sizeVisible;
+        bool colSizesSet;
         std::vector<NewModelBitmapButton*> buttons;
         NewModelBitmapButton *selectedButton;
         Model *newModel;
@@ -171,14 +173,14 @@ class LayoutPanel: public wxPanel
         class UndoStep {
         public:
             std::string type;
+            std::string model;
             std::string key;
             std::string data;
             std::string models;
             std::string groups;
         };
         std::vector<UndoStep> undoBuffer;
-        void CreateUndoPoint(const std::string &type, const std::string &key, const std::string &data = "");
-        void CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data);
+        void CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key = "", const std::string &data = "");
     public:
         xLightsFrame *xlights;
         ModelPreview *modelPreview;

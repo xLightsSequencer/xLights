@@ -410,9 +410,7 @@ TendrilEffect::TendrilEffect(int id) : RenderableEffect(id, "Tendril", tendril_1
 TendrilEffect::~TendrilEffect()
 {
 }
-bool TendrilEffect::CanRenderOnBackgroundThread() {
-    return true;
-}
+
 wxPanel *TendrilEffect::CreatePanel(wxWindow *parent) {
     return new TendrilPanel(parent);
 }

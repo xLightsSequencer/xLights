@@ -68,14 +68,13 @@ class TendrilEffect : public RenderableEffect
     public:
         TendrilEffect(int id);
         virtual ~TendrilEffect();
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         void Render(RenderBuffer &buffer,
 					const std::string& movement, int tunemovement, int movementSpeed, int thickness,
                     float friction, float dampening,
                     float tension, int trails, int length);
-        virtual bool CanRenderOnBackgroundThread();
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
 		virtual bool needToAdjustSettings(const std::string &version);
 		virtual void adjustSettings(const std::string &version, Effect *effect);
 };

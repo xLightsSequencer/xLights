@@ -260,13 +260,17 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
 #ifdef __WXMSW__
 			if (event.ControlDown())
 			{
-				CopySelectedEffects();
-				PanelEffectGrid->SetCanPaste();
+                if (mSequenceElements != nullptr) {
+                    CopySelectedEffects();
+                    PanelEffectGrid->SetCanPaste();
+                }
 				event.StopPropagation();
 			}
 			else if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT))
 			{
-				Paste();
+                if (mSequenceElements != nullptr) {
+                    Paste();
+                }
 				event.StopPropagation();
 			}
 #endif
@@ -277,15 +281,19 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
 #endif
 			{
 				// Delete
-				PanelEffectGrid->DeleteSelectedEffects();
+                if (mSequenceElements != nullptr) {
+                    PanelEffectGrid->DeleteSelectedEffects();
+                }
 				event.StopPropagation();
 			}
 #ifdef __WXMSW__
 			else
 			{
 				// Cut - windows only
-				CopySelectedEffects();
-				PanelEffectGrid->DeleteSelectedEffects();
+                if (mSequenceElements != nullptr) {
+                    CopySelectedEffects();
+                    PanelEffectGrid->DeleteSelectedEffects();
+                }
 				event.StopPropagation();
 			}
 #endif
@@ -331,6 +339,9 @@ void MainSequencer::OnChar(wxKeyEvent& event)
     KeyBinding *binding = keyBindings.Find(uc);
     if (binding != NULL) {
         event.StopPropagation();
+        if (mSequenceElements == nullptr) {
+            return;
+        }
         switch (binding->GetType()) {
             case TIMING_ADD:
                 InsertTimingMarkFromRange();
@@ -359,18 +370,22 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case 'C':
         case WXK_CONTROL_C:
             if (event.CmdDown() || event.ControlDown()) {
-                CopySelectedEffects();
-                PanelEffectGrid->SetCanPaste();
-                event.StopPropagation();
+                if (mSequenceElements != nullptr) {
+                    CopySelectedEffects();
+                    PanelEffectGrid->SetCanPaste();
+                    event.StopPropagation();
+                }
             }
             break;
         case 'x':
         case 'X':
         case WXK_CONTROL_X:
             if (event.CmdDown() || event.ControlDown()) {
-                CopySelectedEffects();
-                PanelEffectGrid->DeleteSelectedEffects();
-                event.StopPropagation();
+                if (mSequenceElements != nullptr) {
+                    CopySelectedEffects();
+                    PanelEffectGrid->DeleteSelectedEffects();
+                    event.StopPropagation();
+                }
             }
             break;
         case 'v':
@@ -385,7 +400,8 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case 'Z':
         case WXK_CONTROL_Z:
             if (event.CmdDown() || event.ControlDown()) {
-                if( mSequenceElements->get_undo_mgr().CanUndo() ) {
+                if( mSequenceElements != nullptr &&
+                   mSequenceElements->get_undo_mgr().CanUndo() ) {
                     mSequenceElements->get_undo_mgr().UndoLastStep();
                     PanelEffectGrid->Refresh();
                 }
@@ -396,16 +412,23 @@ void MainSequencer::OnChar(wxKeyEvent& event)
 }
 
 void MainSequencer::DoCopy(wxCommandEvent& event) {
-    CopySelectedEffects();
+    if (mSequenceElements != nullptr) {
+        CopySelectedEffects();
+    }
 }
 void MainSequencer::DoCut(wxCommandEvent& event) {
-    Cut();
+    if (mSequenceElements != nullptr) {
+        Cut();
+    }
 }
 void MainSequencer::DoPaste(wxCommandEvent& event) {
-    Paste();
+    if (mSequenceElements != nullptr) {
+        Paste();
+    }
 }
 void MainSequencer::DoUndo(wxCommandEvent& event) {
-    if( mSequenceElements->get_undo_mgr().CanUndo() ) {
+    if( mSequenceElements != nullptr
+       && mSequenceElements->get_undo_mgr().CanUndo() ) {
         mSequenceElements->get_undo_mgr().UndoLastStep();
         PanelEffectGrid->Refresh();
     }
@@ -442,7 +465,7 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
     }
 }
 
-void MainSequencer::CopySelectedEffects() {
+bool MainSequencer::CopySelectedEffects() {
     wxString copy_data;
     GetSelectedEffectsData(copy_data);
     if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
@@ -450,11 +473,14 @@ void MainSequencer::CopySelectedEffects() {
             wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
         }
         wxTheClipboard->Close();
+        return true;
     }
+    return false;
 }
 void MainSequencer::Cut() {
-    CopySelectedEffects();
-    PanelEffectGrid->DeleteSelectedEffects();
+    if (CopySelectedEffects()) {
+        PanelEffectGrid->DeleteSelectedEffects();
+    }
 }
 
 void MainSequencer::Paste() {

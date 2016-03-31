@@ -109,6 +109,7 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
             //nothing improved
             return;
         }
+        countValid = newCountValid;
     }
 }
 

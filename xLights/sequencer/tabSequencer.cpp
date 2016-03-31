@@ -722,16 +722,6 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
 	RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
 
-	// Notify the current effect of the current media ... piano effect needs this
-	if (CurrentSeqXmlFile != NULL)
-	{
-		eff->SetAudio(CurrentSeqXmlFile->GetMedia());
-	}
-	else
-	{
-		eff->SetAudio(NULL); // I dont think this can happen
-	}
-
 	if( last_effect_created != nullptr ) {
         UpdateEffectAssistWindow(last_effect_created, eff);		
 	}

@@ -403,9 +403,9 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         Model::WriteFaceInfo(ModelXml, faceInfo);
         IncrementChangeCount();
         return 2;
-    } else if ("ModelMyDisplay" == name) {
+    } else if (event.GetPropertyName() == "ModelMyDisplay") {
         SetMyDisplay(event.GetValue().GetBool());
-        return 3;
+        return 3 | 0x0008;
     } else if (event.GetPropertyName() == "ModelStringColor"
                || event.GetPropertyName() == "ModelStringType") {
         wxPGProperty *p2 = grid->GetPropertyByName("ModelStringType");
@@ -438,7 +438,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
         modelManager.RecalcStartChannels();
         IncrementChangeCount();
-        return 3;
+        return 3 | 0x0008;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
         int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
@@ -459,7 +459,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         modelManager.RecalcStartChannels();
         AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
-        return 3;
+        return 3 | 0x0008;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualStartChannels.")) {
         wxString str = event.GetPropertyName();
         str = str.SubString(str.Find(".") + 1, str.length());
@@ -467,7 +467,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         ModelXml->AddAttribute(str, event.GetValue().GetString());
         modelManager.RecalcStartChannels();
         IncrementChangeCount();
-        return 3;
+        return 3 | 0x0008;
     }
     int i = GetModelScreenLocation().OnPropertyGridChange(grid, event);
     if (i & 0x2) {

@@ -148,7 +148,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
     if (mSequenceElements == NULL) {
         return;
     }
-
+    SetFocus();
     wxMenu *mnuLayer = nullptr;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
@@ -942,6 +942,9 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
 
 void EffectsGrid::Resize(int position, bool offset)
 {
+    if (mSequenceElements == nullptr) {
+        return;
+    }
     if(MultipleEffectsSelected() || mResizingMode == EFFECT_RESIZE_MOVE)
     {
         ResizeMoveMultipleEffects(position, offset);
@@ -958,6 +961,9 @@ void EffectsGrid::Resize(int position, bool offset)
 
 void EffectsGrid::MoveSelectedEffectUp(bool shift)
 {
+    if (mSequenceElements == nullptr) {
+        return;
+    }
     if( mCellRangeSelected )
     {
         if( shift )
@@ -1010,6 +1016,9 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
 
 void EffectsGrid::MoveSelectedEffectDown(bool shift)
 {
+    if (mSequenceElements == nullptr) {
+        return;
+    }
     int first_row = mSequenceElements->GetFirstVisibleModelRow();
     if( mCellRangeSelected )
     {
@@ -1063,6 +1072,9 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
 
 void EffectsGrid::MoveSelectedEffectRight(bool shift)
 {
+    if (mSequenceElements == nullptr) {
+        return;
+    }
     if( mCellRangeSelected )
     {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -1144,6 +1156,9 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
 
 void EffectsGrid::MoveSelectedEffectLeft(bool shift)
 {
+    if (mSequenceElements == nullptr) {
+        return;
+    }
     if( mCellRangeSelected )
     {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -1234,6 +1249,9 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
 
 void EffectsGrid::DeleteSelectedEffects()
 {
+    if (mSequenceElements == nullptr) {
+        return;
+    }
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
@@ -1311,6 +1329,10 @@ bool EffectsGrid::OneCellSelected()
 }
 
 void EffectsGrid::Paste(const wxString &data) {
+    if (mSequenceElements == nullptr) {
+        return;
+    }
+
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
     if (mPartialCellSelected || OneCellSelected()) {
         wxArrayString all_efdata = wxSplit(data, '\n');

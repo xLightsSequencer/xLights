@@ -32,10 +32,6 @@ VUMeterEffect::~VUMeterEffect()
 {
 }
 
-bool VUMeterEffect::CanRenderOnBackgroundThread() {
-    return true;
-}
-
 wxPanel *VUMeterEffect::CreatePanel(wxWindow *parent) {
 	return new VUMeterPanel(parent);
 }

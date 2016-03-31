@@ -12,14 +12,13 @@ class PianoEffect : public RenderableEffect
     public:
         PianoEffect(int id);
         virtual ~PianoEffect();
-		virtual void SetAudio(AudioManager* audio);
-        virtual bool CanBeRandom() {return false;}
-		virtual bool CanRenderOnBackgroundThread() { return true; }
-		virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        virtual bool CanBeRandom() override {return false;}
+        virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+		virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
 		static std::vector<float> Parse(wxString& l);
 
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
     
 		PianoPanel* _panel;

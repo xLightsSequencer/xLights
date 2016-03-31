@@ -834,7 +834,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
         RenderableEffect *reff = effectManager.GetEffect(eidx);
         if (reff == nullptr) {
             retval= false;
-        } else if (!bgThread || reff->CanRenderOnBackgroundThread()) {
+        } else if (!bgThread || reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, buffer.BufferForLayer(layer))) {
             reff->Render(effectObj, SettingsMap, buffer.BufferForLayer(layer));
         } else {
             event->effect = effectObj;
