@@ -541,6 +541,10 @@ int PianoEffect::LowerTS(float t, int intervalMS)
 {
 	int res = t * 1000;
 	res = res - (res % intervalMS);
+    if (t * 1000 - res > intervalMS / 2)
+    {
+        res += intervalMS;
+    }
 	return res;
 }
 int PianoEffect::UpperTS(float t, int intervalMS)

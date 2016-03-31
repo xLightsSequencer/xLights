@@ -321,11 +321,6 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
             logger_pianodata.debug("Start,Duration,CalcStart,CalcEnd,midinote");
             for (int j = 0; j < features[0].size(); j++)
             {
-                if (logger_pianodata.isDebugEnabled())
-                {
-                    logger_pianodata.debug("%d.%03d,%d.%03d,%d,%d,%d", features[0][j].timestamp.sec, features[0][j].timestamp.msec(), features[0][j].duration.sec, features[0][j].duration.msec(), features[0][j].values[0]);
-                }
-
                 if (j % 10 == 0)
                 {
                     fn(dlg, (int)(((float)j * 100.0) / (float)features[0].size()));
@@ -333,8 +328,14 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
                 int currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
                 int currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
+
+                if (logger_pianodata.isDebugEnabled())
+                {
+                    logger_pianodata.debug("%d.%03d,%d.%03d,%d,%d,%f", features[0][j].timestamp.sec, features[0][j].timestamp.msec(), features[0][j].duration.sec, features[0][j].duration.msec(), currentstart, currentend, features[0][j].values[0]);
+                }
+
                 int sframe = currentstart / _intervalMS;
-                if (sframe * _intervalMS < currentstart) {
+                if (currentstart - sframe * _intervalMS > _intervalMS / 2) {
                     sframe++;
                 }
                 int eframe = currentend / _intervalMS;
