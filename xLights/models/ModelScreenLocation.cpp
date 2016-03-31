@@ -7,7 +7,7 @@
 #include "../ModelPreview.h"
 #include "../DrawGLUtils.h"
 
-
+#define SNAP_RANGE                  5
 #define RECT_HANDLE_WIDTH           6
 #define BOUNDING_RECT_OFFSET        8
 
@@ -573,7 +573,7 @@ void TwoPointScreenLocation::DrawHandles() const {
     {
         DrawGLUtils::DrawLine(xlRED, 255, x1_pos, y1_pos, x2_pos, y2_pos, 1.0);
     }
-    else if( y2_pos - y1_pos == 0 )
+    else if( x2_pos - x1_pos == 0 )
     {
         DrawGLUtils::DrawLine(xlBLUE, 255, x1_pos, y1_pos, x2_pos, y2_pos, 1.0);
     }
@@ -592,8 +592,32 @@ void TwoPointScreenLocation::DrawHandles() const {
 }
 
 int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+
     float newx = (float)mouseX / (float)previewW;
     float newy = (float)mouseY / (float)previewH;
+
+    if (ShiftKeyPressed) {
+        if (handle) {
+            int x1_pos = x1 * previewW;
+            int y1_pos = y1 * previewH;
+            if (std::abs(mouseX - x1_pos) <= SNAP_RANGE) {
+                newx = x1;
+            }
+            if (std::abs(mouseY - y1_pos) <= SNAP_RANGE) {
+                newy = y1;
+            }
+        } else {
+            int x2_pos = x2 * previewW;
+            int y2_pos = y2 * previewH;
+            if (std::abs(mouseX - x2_pos) <= SNAP_RANGE) {
+                newx = x2;
+            }
+            if (std::abs(mouseY - y2_pos) <= SNAP_RANGE) {
+                newy = y2;
+            }
+        }
+    }
+
     if (handle) {
         x2 = newx;
         y2 = newy;

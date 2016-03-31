@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- enh (gil)   Shift key will help snap model handles to horizontal/vertical alignments for two handle models.
     -- enh (gil)   Draw red/blue alignment lines for two handle models.
 2016.14  Mar 23, 2016
 	-- enh (keithsw) Piano support for audacity file reading.
