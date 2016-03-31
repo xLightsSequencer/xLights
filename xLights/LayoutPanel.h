@@ -103,6 +103,7 @@ class LayoutPanel: public wxPanel
 		void OnViewChoiceSelect(wxCommandEvent& event);
         void OnNewModelTypeButtonClicked(wxCommandEvent& event);
         void OnCharHook(wxKeyEvent& event);
+        void OnChar(wxKeyEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

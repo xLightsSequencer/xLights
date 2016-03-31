@@ -84,7 +84,7 @@ public:
             const wxImage imgDisabled = bitmap.ConvertToImage().ConvertToDisabled(128);
 #ifdef __WXOSX__
             SetBitmap(wxBitmap(imgDisabled, -1, bitmap.GetScaleFactor()));
-#else 
+#else
             SetBitmap(wxBitmap(imgDisabled));
 #endif
         } else {
@@ -194,7 +194,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_LIST_ITEM_CHECKED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementItemChecked);
     Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_LIST_ITEM_UNCHECKED,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementItemChecked);
 #endif
-    
+
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights->PreviewModels, true);
     PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
@@ -280,6 +280,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     modelPreview->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoPaste,0,this);
     modelPreview->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoUndo,0,this);
     modelPreview->Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(LayoutPanel::OnCharHook),0,this);
+    modelPreview->Connect(wxID_ANY, wxEVT_CHAR, wxKeyEventHandler(LayoutPanel::OnChar),0,this);
 }
 
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
@@ -514,7 +515,7 @@ void LayoutPanel::UnSelectAllModels()
     }
     UpdatePreview();
     selectedModel = nullptr;
-    
+
     propertyEditor->Freeze();
     clearPropGrid();
     propertyEditor->Append(new wxImageFileProperty("Background Image",
@@ -536,6 +537,7 @@ void LayoutPanel::UnSelectAllModels()
     prop->SetAttribute("Max", 100);
     prop->SetEditor("SpinCtrl");
     propertyEditor->Thaw();
+    modelPreview->SetFocus();
 }
 
 void LayoutPanel::SetupPropGrid(Model *model) {
@@ -891,11 +893,11 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         if (m_previous_mouse_x < wi
             && cy < ht
             && cy >= 0) {
-            
+
             m_moving_handle = true;
             m_creating_bound_rect = false;
             newModel = CreateNewModel(selectedButton->GetModelType());
-            
+
             if (newModel != nullptr) {
                 newModel->Selected = true;
                 if (wi > 0 && ht > 0)
@@ -946,14 +948,14 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         CreateUndoPoint("All", "", "");
         newModel->UpdateXmlWithScale();
         xlights->AllModels.AddModel(newModel);
-        
+
         if (ViewChoice->GetSelection() > 2) {
             ModelGroup *grp = (ModelGroup*)xlights->AllModels[ViewChoice->GetStringSelection().ToStdString()];
             if (grp != nullptr) {
                 grp->AddModel(newModel->name);
             }
         }
-        
+
         m_over_handle = -1;
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         if (selectedButton->GetState() == 1) {
@@ -1048,7 +1050,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 {
     modelPreview->SetFocus();
-    
+
     wxMenu mnu;
     wxMenu *mnuAlign;
     wxMenu *mnuDistribute;
@@ -1374,55 +1376,144 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) {
     }
     return xlights->AllModels.CreateDefaultModel(type, startChannel);
 }
+void LayoutPanel::OnChar(wxKeyEvent& event) {
+    //log4cpp::Category& logger = log4cpp::Category::getRoot();
+    //logger.info(wxString::Format("In char %x   %d  %d", event.GetKeyCode(), event.ControlDown(), modelPreview->HasFocus()));
 
-void LayoutPanel::OnCharHook(wxKeyEvent& event) {
-    if (!modelPreview->HasFocus()) {
-        event.Skip();
-    } else if (selectedModel != nullptr) {
-        wxChar uc = event.GetKeyCode();
-        switch(uc) {
-#ifdef __WXMSW__
-        case WXK_INSERT:
-        case WXK_NUMPAD_INSERT:
-            if (event.ControlDown()) // Copy
-            {
-                wxMenuEvent event(wxEVT_MENU, wxID_COPY);
-                event.SetEventObject(modelPreview);
-                modelPreview->ProcessWindowEvent(event);
-                event.StopPropagation();
-            }
-            else if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) // Paste
-            {
-                wxMenuEvent event(wxEVT_MENU, wxID_PASTE);
-                event.SetEventObject(modelPreview);
-                modelPreview->ProcessWindowEvent(event);
-                event.StopPropagation();
+    wxChar uc = event.GetKeyCode();
+    switch (uc) {
+        case WXK_UP:
+        case WXK_DOWN:
+        case WXK_LEFT:
+        case WXK_RIGHT:
+            if (selectedModel != nullptr) {
+                int wi, ht;
+                modelPreview->GetVirtualCanvasSize(wi, ht);
+                float xpct = 0;
+                float ypct = 0;
+                if (uc == WXK_UP) {
+                    ypct = 1.0 / ht;
+                } else if (uc == WXK_DOWN) {
+                    ypct = -1.0 / ht;
+                } else if (uc == WXK_LEFT) {
+                    xpct = -1.0 / wi;
+                } else if (uc == WXK_RIGHT) {
+                    xpct = 1.0 / wi;
+                }
+                CreateUndoPoint("SingleModel", selectedModel->name, "location");
+                selectedModel->AddOffset(xpct, ypct);
+                selectedModel->UpdateXmlWithScale();
+                SetupPropGrid(selectedModel);
+                xlights->UnsavedRgbEffectsChanges = true;
+                UpdatePreview();
             }
             break;
-#endif
-            case WXK_DELETE:
+        default:
+            break;
+    }
+}
+void LayoutPanel::OnCharHook(wxKeyEvent& event) {
+
+    wxChar uc = event.GetKeyCode();
+    
+    //log4cpp::Category& logger = log4cpp::Category::getRoot();
+    //logger.info(wxString::Format("In char hook %x %c  %d  %d", event.GetKeyCode(), event.GetKeyCode(), event.ControlDown(), modelPreview->HasFocus()));
+    //printf("och: %x  %c\n", uc, uc);
+
+    switch(uc) {
 #ifdef __WXMSW__
-                if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) // Cut
-                {
-                    wxMenuEvent event(wxEVT_MENU, wxID_CUT);
-                    event.SetEventObject(modelPreview);
-                    modelPreview->ProcessWindowEvent(event);
-                }
-                else
-#endif
-                {
-                    DeleteSelectedModel();
-                }
-                event.StopPropagation();
-                break;
-            case WXK_BACK:
-                DeleteSelectedModel();
-                event.StopPropagation();
-                break;
-            default:
-                event.Skip();
-                break;
+        case 'z':
+        case 'Z':
+            if (event.ControlDown()) {
+                wxCommandEvent evt(wxEVT_MENU, wxID_UNDO);
+                DoUndo(evt);
+            }
+            break;
+        case 'x':
+        case 'X':
+            if (event.ControlDown()) {
+                wxCommandEvent evt(wxEVT_MENU, wxID_CUT);
+                DoCut(evt);
+            }
+            break;
+        case 'c':
+        case 'C':
+            if (event.ControlDown()) {
+                wxCommandEvent evt(wxEVT_MENU, wxID_COPY);
+                DoCopy(evt);
+            }
+            break;
+        case 'v':
+        case 'V':
+            if (event.ControlDown()) {
+                wxCommandEvent evt(wxEVT_MENU, wxID_PASTE);
+                DoPaste(evt);
+            }
+            break;
+    case WXK_INSERT:
+    case WXK_NUMPAD_INSERT:
+        if (event.ControlDown()) // Copy
+        {
+            wxCommandEvent evt(wxEVT_MENU, wxID_COPY);
+            DoCopy(evt);
+            event.StopPropagation();
         }
+        else if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) // Paste
+        {
+            wxCommandEvent evt(wxEVT_MENU, wxID_PASTE);
+            DoPaste(evt);
+            event.StopPropagation();
+        }
+        break;
+#endif
+        case WXK_DELETE:
+#ifdef __WXMSW__
+            if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) // Cut
+            {
+                wxCommandEvent evt(wxEVT_MENU, wxID_CUT);
+                DoCut(evt);
+                event.StopPropagation();
+            }
+            else
+#endif
+            DeleteSelectedModel();
+            event.StopPropagation();
+            break;
+        case WXK_BACK:
+            DeleteSelectedModel();
+            event.StopPropagation();
+            break;
+
+        case WXK_UP:
+        case WXK_DOWN:
+        case WXK_LEFT:
+        case WXK_RIGHT:
+            if (selectedModel != nullptr) {
+                int wi, ht;
+                modelPreview->GetVirtualCanvasSize(wi, ht);
+                float xpct = 0;
+                float ypct = 0;
+                if (uc == WXK_UP) {
+                    ypct = 1.0 / ht;
+                } else if (uc == WXK_DOWN) {
+                    ypct = -1.0 / ht;
+                } else if (uc == WXK_LEFT) {
+                    xpct = -1.0 / wi;
+                } else if (uc == WXK_RIGHT) {
+                    xpct = 1.0 / wi;
+                }
+                CreateUndoPoint("SingleModel", selectedModel->name, "location");
+                selectedModel->AddOffset(xpct, ypct);
+                selectedModel->UpdateXmlWithScale();
+                SetupPropGrid(selectedModel);
+                xlights->UnsavedRgbEffectsChanges = true;
+                UpdatePreview();
+            }
+            break;
+
+        default:
+            //event.Skip();
+            break;
     }
 }
 void LayoutPanel::DeleteSelectedModel() {
@@ -1443,12 +1534,12 @@ void LayoutPanel::DoCopy(wxCommandEvent& event) {
         wxXmlNode *next = selectedModel->GetModelXml()->GetNext();
         parent->RemoveChild(selectedModel->GetModelXml());
         doc.SetRoot(selectedModel->GetModelXml());
-        
+
         wxStringOutputStream stream;
         doc.Save(stream);
         copy_data = stream.GetString();
         doc.DetachRoot();
-        
+
         parent->InsertChild(selectedModel->GetModelXml(), next);
 
         if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
@@ -1477,10 +1568,10 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
             wxTheClipboard->GetData(data);
             wxStringInputStream in(data.GetText());
             wxXmlDocument doc(in);
-            
+
             wxXmlNode *nd = doc.GetRoot();
             doc.DetachRoot();
-            
+
             if (xlights->AllModels[lastModelName] != nullptr
                 && nd->GetAttribute("Advanced", "0") != "1") {
                 std::string startChannel = ">" + lastModelName + ":1";
@@ -1488,7 +1579,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                 nd->AddAttribute("StartChannel", startChannel);
             }
 
-            
+
             Model *newModel = xlights->AllModels.CreateModel(nd);
             int cnt = 1;
             std::string name = newModel->name;
@@ -1502,7 +1593,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
             newModel->UpdateXmlWithScale();
             xlights->AllModels.AddModel(newModel);
             lastModelName = name;
-            
+
             xlights->UpdateModelsList();
             xlights->UnsavedRgbEffectsChanges = true;
             wxTheClipboard->Close();
@@ -1515,7 +1606,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
     int sz = undoBuffer.size() - 1;
     if (sz >= 0) {
         UnSelectAllModels();
-        
+
         if (undoBuffer[sz].type == "Background") {
             wxPropertyGridEvent event;
             event.SetPropertyGrid(propertyEditor);
@@ -1544,7 +1635,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 wxXmlNode *parent = m->GetModelXml()->GetParent();
                 wxXmlNode *next = m->GetModelXml()->GetNext();
                 parent->RemoveChild(m->GetModelXml());
-                
+
                 delete m->GetModelXml();
                 m->SetFromXml(mdoc.GetRoot());
                 mdoc.DetachRoot();
@@ -1559,7 +1650,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             gdoc.Load(gin);
             wxStringInputStream min(undoBuffer[sz].models);
             wxXmlDocument mdoc(min);
-            
+
             wxXmlNode *m = xlights->ModelsNode->GetChildren();
             while (m != nullptr) {
                 xlights->ModelsNode->RemoveChild(m);
@@ -1572,7 +1663,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 xlights->ModelsNode->AddChild(m);
                 m = mdoc.GetRoot()->GetChildren();
             }
-            
+
             m = xlights->ModelGroupsNode->GetChildren();
             while (m != nullptr) {
                 xlights->ModelGroupsNode->RemoveChild(m);
@@ -1598,7 +1689,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 lastModelName = origName;
             }
             xlights->RenameModel(newName, origName);
-            
+
             xlights->UpdateModelsList();
             xlights->UnsavedRgbEffectsChanges = true;
             SelectModel(origName);
@@ -1609,7 +1700,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
 void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
     xlights->UnsavedRgbEffectsChanges = true;
     int idx = undoBuffer.size();
-    
+
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
     if (idx > 0 && (type == "SingleModel" || type == "ModelProperty" || type == "Background")
         && undoBuffer[idx - 1].model == model && undoBuffer[idx - 1].key == key)  {
@@ -1629,7 +1720,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     undoBuffer[idx].model = model;
     undoBuffer[idx].key = key;
     undoBuffer[idx].data = data;
-    
+
     if (type == "SingleModel") {
         Model *m = newModel;
         if (m == nullptr) {
@@ -1661,7 +1752,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
         undoBuffer[idx].models = stream.GetString();
         doc.DetachRoot();
         parent->InsertChild(xlights->ModelsNode, next);
-        
+
         wxStringOutputStream stream2;
         parent = xlights->ModelGroupsNode->GetParent();
         next = xlights->ModelGroupsNode->GetNext();
