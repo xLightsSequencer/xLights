@@ -7,6 +7,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+    -- bug (gil)   Add mutex to prevent crash when deleting presets rapidly.  Fixes #495.
     -- enh (gil)   Shift key will help snap model handles to horizontal/vertical alignments for two handle models.
     -- enh (gil)   Draw red/blue alignment lines for two handle models.
 2016.14  Mar 23, 2016
