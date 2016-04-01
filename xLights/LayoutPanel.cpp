@@ -384,7 +384,9 @@ void LayoutPanel::UpdatePreview()
 
 void LayoutPanel::resetPropertyGrid() {
     clearPropGrid();
-    SetupPropGrid(selectedModel);
+    if (selectedModel != nullptr) {
+        SetupPropGrid(selectedModel);
+    }
 }
 void LayoutPanel::clearPropGrid() {
     wxPGProperty *p = propertyEditor->GetPropertyByName("ModelAppearance");
