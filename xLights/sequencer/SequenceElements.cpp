@@ -784,7 +784,9 @@ void SequenceElements::PopulateView(const std::string &models, int view)
         {
             std::string modelName = model[m].ToStdString();
             Element* elem = GetElement(modelName);
-            mAllViews[view].push_back(elem);
+            if (elem != nullptr) {
+                mAllViews[view].push_back(elem);
+            }
         }
     }
 }
