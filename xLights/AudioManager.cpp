@@ -281,7 +281,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
         bool first = true;
         int start = 0;
-        int len = GetTrackSize();
+        size_t len = GetTrackSize();
         float totalLen = len;
         int lastProgress = 0;
         while (len)
@@ -293,19 +293,20 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 lastProgress = progress;
             }
             pdata[0] = GetLeftDataPtr(start);
+            //pdata[0] = GetRightDataPtr(start);
             pdata[1] = GetRightDataPtr(start);
+            //pdata[1] = GetLeftDataPtr(start);
 
             Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, GetRate());
             Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
             
-
             if (first && features.size() > 0)
             {
                 log4cpp::Category& logger = log4cpp::Category::getRoot();
                 logger.warn("Polyphonic transcription data process oddly retrieved data.");
                 first = false;
             }
-            if (len > (int)pref_step)
+            if (len > pref_step)
             {
                 len -= pref_step;
             }
@@ -320,7 +321,9 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         try
         {
             unsigned int total = 0;
+            logger_pianodata.debug("About to extract Polyphonic Transcription result.");
             Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
+            logger_pianodata.debug("Polyphonic Transcription result retrieved.");
             logger_pianodata.debug("Start,Duration,CalcStart,CalcEnd,midinote");
             for (int j = 0; j < features[0].size(); j++)
             {
