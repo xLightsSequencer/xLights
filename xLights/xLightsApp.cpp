@@ -26,6 +26,10 @@
 #include <algorithm>
 #include <windows.h>
 #include <imagehlp.h>
+
+#include <log4cpp/PropertyConfigurator.hh>
+#include <log4cpp/Configurator.hh>
+
 wxString windows_get_stacktrace(void *data)
 {
     wxString trace;
@@ -150,6 +154,26 @@ void handleCrash(void *data) {
 	{
 		report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
 	}
+    else
+    {
+        wxString dir;
+#ifdef __WXMSW__
+        wxGetEnv("APPDATA", &dir);
+        std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
+#endif
+#ifdef __WXOSX_MAC__
+        wxGetEnv("user.home", &dir);
+        std::string filename = std::string(dir.c_str()) + "/Library/Application Support/myapp/xLights/xLights_l4cpp.log";
+#endif
+#ifdef __LINUX__
+        wxGetEnv("user.home", &dir);
+        std::string filename = std::string(dir.c_str()) + "/xLights/xLights_l4cpp.log";
+#endif
+        if (wxFile::Exists(filename))
+        {
+            report->AddFile(filename, "xLights_l4cpp.log");
+        }
+    }
     if (topFrame->GetSeqXmlFileName() != "") {
         wxFileName fn(topFrame->GetSeqXmlFileName());
         if (fn.Exists() && !fn.IsDir()) {
@@ -220,6 +244,37 @@ bool xLightsApp::OnInit()
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
 #endif
+
+#ifdef __WXMSW__
+    std::string initFileName = "xlights.windows.properties";
+#endif
+#ifdef __WXOSX_MAC__
+    std::string initFileName = "xlights.mac.properties";
+#endif
+#ifdef __LINUX__
+    std::string initFileName = "xlights.linux.properties";
+#endif
+
+    try
+    {
+        log4cpp::PropertyConfigurator::configure(initFileName);
+    }
+    catch (log4cpp::ConfigureFailure& e) {
+        // ignore config failure ... but logging wont work
+        printf("%s\n", e.what());
+    }
+    catch (const std::exception& ex) {
+        printf("%s\n", ex.what());
+    }
+
+    // Dan/Chris ... if you get an exception here the most likely reason is the line
+    // appender.A1.fileName= in the xlights.xxx.properties file
+    // it seems to need to be a folder that exists ... ideally it would create it but it doesnt seem to
+    // it needs to be:
+    //     a folder the user can write to
+    //     predictable ... as we want the handleCrash function to be able to locate the file to include it in the crash
+    log4cpp::Category& logger = log4cpp::Category::getRoot();
+    logger.info("XLights started.");
 
 //    heartbeat("init", true); //tell monitor active now -DJ
 //check for options on command line: -DJ

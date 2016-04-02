@@ -1315,7 +1315,6 @@ private:
     wxGridCellCoords *curCell;
     int PlaybackPeriod; //used to be able to record the frame being played in an animation preview
 
-	log4cpp::Category& _logger = log4cpp::Category::getRoot();
 public:
     //stuf used by layoutPanel for now
     void SetPreviewBackgroundScaled(bool scaled);

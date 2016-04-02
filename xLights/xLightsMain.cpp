@@ -60,9 +60,6 @@
 #include <wx/string.h>
 //*)
 
-#include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/Configurator.hh>
-
 #define TOOLBAR_SAVE_VERSION "0001:"
 
 //helper functions
@@ -407,18 +404,6 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 
 xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(NetInfo)
 {
-	std::string initFileName = "xlights.properties";
-	try
-	{
-		log4cpp::PropertyConfigurator::configure(initFileName);
-	} catch(log4cpp::ConfigureFailure& e) {
-		// ignore config failure ... but logging wont work
-        //printf("%s\n", e.what());
-    } catch (const std::exception& ex) {
-        //printf("%s\n", ex.what());
-    }
-	_logger.info("XLights started.");
-
 	Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
