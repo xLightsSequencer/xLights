@@ -121,7 +121,7 @@ void SingleLineModel::InitModel() {
 void SingleLineModel::InitLine() {
     int numLights = parm1 * parm2;
     SetNodeCount(parm1,parm2,rgbOrder);
-    SetBufferSize(1,numLights);
+    SetBufferSize(1,SingleNode?parm1:numLights);
     int LastStringNum=-1;
     int chan = 0,idx;
     int ChanIncr=SingleChannel ?  1 : 3;
@@ -135,7 +135,7 @@ void SingleLineModel::InitLine() {
         }
         Nodes[n]->ActChan=chan;
         chan+=ChanIncr;
-        Nodes[n]->Coords.resize(parm3);
+        Nodes[n]->Coords.resize(SingleNode?parm2:parm3);
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
             Nodes[n]->Coords[c].bufX=IsLtoR ? idx : numLights-idx-1;

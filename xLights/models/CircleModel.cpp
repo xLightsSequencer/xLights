@@ -116,7 +116,7 @@ void CircleModel::InitCircle() {
 void CircleModel::SetCircleCoord() {
     double x,y;
     size_t NodeCount=GetNodeCount();
-    screenLocation.SetRenderSize(circleSizes[0]*2,circleSizes[0]*2);
+    screenLocation.SetRenderSize(circleSizes[0],circleSizes[0]);
     int nodesToMap = NodeCount;
     int node = 0;
     double maxRadius = circleSizes[0] / 2.0;
