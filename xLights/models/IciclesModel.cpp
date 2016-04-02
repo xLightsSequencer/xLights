@@ -58,7 +58,7 @@ void IciclesModel::InitModel() {
             Nodes[curNode]->ActChan = stringStartChan[0] + curNode*GetNodeChannelCount(StringType);
             Nodes[curNode]->StringNum=0;
             Nodes[curNode]->Coords[curCoord].bufX = width;
-            Nodes[curNode]->Coords[curCoord].bufY = maxH - y;
+            Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
             Nodes[curNode]->Coords[curCoord].screenX = width;
             Nodes[curNode]->Coords[curCoord].screenY = y;
             lights--;
