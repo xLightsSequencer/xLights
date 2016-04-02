@@ -1018,6 +1018,7 @@ private:
     void SetupE131(wxXmlNode* e);
     void SetupNullOutput(wxXmlNode* e);
     bool SaveNetworksFile();
+    void SaveFPPUniverses(std::string path);
 
     // test
     //void SetTestCheckboxes(bool NewValue);

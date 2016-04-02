@@ -898,8 +898,51 @@ void xLightsFrame::OnButtonAddDongleClick(wxCommandEvent& event)
     SetupDongle(0);
 }
 
+void xLightsFrame::SaveFPPUniverses(std::string path)
+{
+    wxFile universes;
+    universes.Open(path + "/universes", wxFile::write);
+
+    if (universes.IsOpened())
+    {
+        wxXmlNode* e = NetworkXML.GetRoot();
+        long count = 1;
+
+        for (e = e->GetChildren(); e != NULL; e = e->GetNext())
+        {
+            if (e->GetName() == "network")
+            {
+                std::string type = std::string(e->GetAttribute("NetworkType", ""));
+
+                if (type == "E131")
+                {
+                    std::string ip = std::string(e->GetAttribute("ComPort", ""));
+                    std::string universe = std::string(e->GetAttribute("BaudRate", ""));
+                    wxString MaxChannelsStr = e->GetAttribute("MaxChannels", "0");
+                    long chan;
+                    MaxChannelsStr.ToLong(&chan);
+                    long end = count + chan - 1;
+
+                    if (ip == "MULTICAST")
+                    {
+                        universes.Write("1," + universe + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",0,,\r\n");
+                    }
+                    else
+                    {
+                        universes.Write("1," + universe + "," + std::string(wxString::Format(wxT("%i"), count)) + "," + std::string(wxString::Format(wxT("%i"), chan)) + ",1," + ip + ",\r\n");
+                    }
+
+                    count = end + 1;
+                }
+            }
+        }
+        universes.Close();
+    }
+}
+
 bool xLightsFrame::SaveNetworksFile()
 {
+    SaveFPPUniverses(std::string(networkFile.GetPath().c_str()));
     if (NetworkXML.Save( networkFile.GetFullPath() ))
     {
         UnsavedNetworkChanges=false;
