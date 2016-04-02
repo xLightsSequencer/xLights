@@ -2033,7 +2033,7 @@ void TestDialog::OnTimer(long curtime)
 			{
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					_xout->SetIntensity(chArray[i], BgIntensity);
+					_xout->SetIntensity(chArray[i]-1, BgIntensity);
 				}
 			}
 			break;
@@ -2065,13 +2065,13 @@ void TestDialog::OnTimer(long curtime)
 				{
 					// was background, now highlight for random period
 					TwinkleState[i] = static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime();
-					_xout->SetIntensity(chArray[i], FgIntensity);
+					_xout->SetIntensity(chArray[i]-1, FgIntensity);
 				}
 				else
 				{
 					// was on, now go to bg color for random period
 					TwinkleState[i] = -static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
-					_xout->SetIntensity(chArray[i], BgIntensity);
+					_xout->SetIntensity(chArray[i]-1, BgIntensity);
 				}
 			}
 			break;
@@ -2082,7 +2082,7 @@ void TestDialog::OnTimer(long curtime)
 				ShimIntensity = (ShimIntensity == FgIntensity) ? BgIntensity : FgIntensity;
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					_xout->SetIntensity(chArray[i], ShimIntensity);
+					_xout->SetIntensity(chArray[i]-1, ShimIntensity);
 				}
 			}
 			if (curtime >= NextSequenceStart)
@@ -2098,7 +2098,7 @@ void TestDialog::OnTimer(long curtime)
 				for (i = 0; i < chArray.Count(); i++)
 				{
 					v = (i % _chaseGrouping) == TestSeqIdx ? FgIntensity : BgIntensity;
-					_xout->SetIntensity(chArray[i], v);
+					_xout->SetIntensity(chArray[i]-1, v);
 				}
 			}
 			if (curtime >= NextSequenceStart)
@@ -2139,7 +2139,7 @@ void TestDialog::OnTimer(long curtime)
 			{
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					_xout->SetIntensity(chArray[i], BgColor[i % 3]);
+					_xout->SetIntensity(chArray[i]-1, BgColor[i % 3]);
 				}
 			}
 			break;
@@ -2172,18 +2172,18 @@ void TestDialog::OnTimer(long curtime)
 					// was background, now highlight for random period
 					TwinkleState[i] = static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime();
 					TestSeqIdx = i * 3;
-					_xout->SetIntensity(chArray[TestSeqIdx], FgColor[0]);
-					_xout->SetIntensity(chArray[TestSeqIdx + 1], FgColor[1]);
-					_xout->SetIntensity(chArray[TestSeqIdx + 2], FgColor[2]);
+					_xout->SetIntensity(chArray[TestSeqIdx]-1, FgColor[0]);
+					_xout->SetIntensity(chArray[TestSeqIdx + 1]-1, FgColor[1]);
+					_xout->SetIntensity(chArray[TestSeqIdx + 2]-1, FgColor[2]);
 				}
 				else
 				{
 					// was on, now go to bg color for random period
 					TwinkleState[i] = -static_cast<int>(Rand01()*(double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
 					TestSeqIdx = i * 3;
-					_xout->SetIntensity(chArray[TestSeqIdx], BgColor[0]);
-					_xout->SetIntensity(chArray[TestSeqIdx + 1], BgColor[1]);
-					_xout->SetIntensity(chArray[TestSeqIdx + 2], BgColor[2]);
+					_xout->SetIntensity(chArray[TestSeqIdx]-1, BgColor[0]);
+					_xout->SetIntensity(chArray[TestSeqIdx + 1]-1, BgColor[1]);
+					_xout->SetIntensity(chArray[TestSeqIdx + 2]-1, BgColor[2]);
 				}
 			}
 			break;
@@ -2193,7 +2193,7 @@ void TestDialog::OnTimer(long curtime)
 				ShimColor = (ShimColor == FgColor) ? BgColor : FgColor;
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					_xout->SetIntensity(chArray[i], ShimColor[i % 3]);
+					_xout->SetIntensity(chArray[i]-1, ShimColor[i % 3]);
 				}
 			}
 			if (curtime >= NextSequenceStart)
@@ -2207,7 +2207,7 @@ void TestDialog::OnTimer(long curtime)
 				for (i = 0; i < chArray.Count(); i++)
 				{
 					v = (i / 3 % _chaseGrouping) == TestSeqIdx ? FgColor[i % 3] : BgColor[i % 3];
-					_xout->SetIntensity(chArray[i], v);
+					_xout->SetIntensity(chArray[i]-1, v);
 				}
 			}
 			if (curtime >= NextSequenceStart)
@@ -2240,7 +2240,7 @@ void TestDialog::OnTimer(long curtime)
 			TestSeqIdx++;
 			for (i = 0; i < chArray.Count(); i++)
 			{
-				_xout->SetIntensity(chArray[i], BgColor[i % 3]);
+				_xout->SetIntensity(chArray[i]-1, BgColor[i % 3]);
 			}
 		}
 		else if (_testFunc == RGBW)
@@ -2256,32 +2256,32 @@ void TestDialog::OnTimer(long curtime)
 				// blank everything first
 				for (i = 0; i < chArray.Count(); i++)
 				{
-					_xout->SetIntensity(chArray[i], 0);
+					_xout->SetIntensity(chArray[i]-1, 0);
 				}
 				switch (rgbCycle)
 				{
 				case 0: // red
 					for (i = 0; i < chArrayR.Count(); i++)
 					{
-						_xout->SetIntensity(chArrayR[i], 255);
+						_xout->SetIntensity(chArrayR[i]-1, 255);
 					}
 					break;
 				case 1: // green
 					for (i = 0; i < chArrayG.Count(); i++)
 					{
-						_xout->SetIntensity(chArrayG[i], 255);
+						_xout->SetIntensity(chArrayG[i]-1, 255);
 					}
 					break;
 				case 2: // blue
 					for (i = 0; i < chArrayB.Count(); i++)
 					{
-						_xout->SetIntensity(chArrayB[i], 255);
+						_xout->SetIntensity(chArrayB[i]-1, 255);
 					}
 					break;
 				case 3: // white
 					for (i = 0; i < chArrayW.Count(); i++)
 					{
-						_xout->SetIntensity(chArrayW[i], 255);
+						_xout->SetIntensity(chArrayW[i]-1, 255);
 					}
 					break;
 				}
@@ -2311,7 +2311,7 @@ void TestDialog::OnTimer(long curtime)
 						v = (i % 3) == rgbCycle ? 255 : 0;
 						break;
 					}
-					_xout->SetIntensity(chArray[i], v);
+					_xout->SetIntensity(chArray[i]-1, v);
 				}
 				rgbCycle = (rgbCycle + 1) % _chaseGrouping;
 				NextSequenceStart += interval;
