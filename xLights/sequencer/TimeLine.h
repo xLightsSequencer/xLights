@@ -91,6 +91,7 @@ class TimeLine : public wxWindow
         void PlayStopped();       // signal play stop so timeline can adjust marks
         int GetNewStartTimeMS();  // return the time where to begin playing
         int GetNewEndTimeMS();    // return the time where to end playing
+        int GetCurrentPlayMarkerMS() { return mCurrentPlayMarker;};
 
         void MoveToLeft(int numberOfPixels);
         void MoveToRight(int numberOfPixels);

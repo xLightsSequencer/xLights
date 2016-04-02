@@ -403,34 +403,6 @@ void xLightsFrame::Zoom( wxCommandEvent& event)
     }
 }
 
-void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
-{
-    int position = mainSequencer->ScrollBarEffectsHorizontal->GetThumbPosition();
-    int timeLength = mainSequencer->PanelTimeLine->GetTimeLength();
-
-    int startTime = (int)(((double)position/(double)timeLength) * (double)timeLength);
-    mainSequencer->PanelTimeLine->SetStartTimeMS(startTime);
-}
-
-void xLightsFrame::ScrollRight(wxCommandEvent& event)
-{
-    int position = mainSequencer->ScrollBarEffectsHorizontal->GetThumbPosition();
-    int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
-    if( position < limit-1 )
-    {
-        int ts = mainSequencer->ScrollBarEffectsHorizontal->GetThumbSize();
-        if (ts == 0) {
-            ts = 1;
-        }
-        position += ts;
-        if (position >= limit) {
-            position = limit - 1;
-        }
-        mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(position);
-        wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-        wxPostEvent(this, eventScroll);
-    }
-}
 
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
 {
@@ -444,53 +416,6 @@ void xLightsFrame::MousePositionUpdated( wxCommandEvent& event)
     mainSequencer->PanelTimeLine->Update();
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelWaveForm->Update();
-}
-
-void xLightsFrame::TimelineChanged( wxCommandEvent& event)
-{
-    TimelineChangeArguments *tla = (TimelineChangeArguments*)(event.GetClientData());
-    mainSequencer->PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
-    mainSequencer->PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
-    mainSequencer->UpdateTimeDisplay(tla->CurrentTimeMS);
-    mainSequencer->PanelTimeLine->Update();
-    mainSequencer->PanelWaveForm->Refresh();
-    mainSequencer->PanelWaveForm->Update();
-    mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
-    mainSequencer->PanelEffectGrid->Refresh();
-    mainSequencer->PanelEffectGrid->Update();
-    UpdateEffectGridHorizontalScrollBar();
-    // Set text entry to timing for "T" insertion
-    mTextEntryContext = TEXT_ENTRY_TIMING;
-    delete tla;
-}
-
-void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
-{
-    int zoomLevel = mainSequencer->PanelTimeLine->GetZoomLevel();
-    int maxZoomLevel = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
-    if(zoomLevel == maxZoomLevel)
-    {
-        // Max Zoom so scrollbar is same size as window.
-        int range = mainSequencer->PanelTimeLine->GetSize().x;
-        int pageSize =range;
-        int thumbSize = range;
-        mainSequencer->ScrollBarEffectsHorizontal->SetScrollbar(0,thumbSize,range,pageSize);
-    }
-    else
-    {
-        int startTime;
-        int endTime;
-        int range = mainSequencer->PanelTimeLine->GetTimeLength();
-        mainSequencer->PanelTimeLine->GetViewableTimeRange(startTime,endTime);
-
-        int diff = endTime - startTime;
-        int thumbSize = diff;
-        int pageSize = thumbSize;
-        int position = startTime;
-        mainSequencer->ScrollBarEffectsHorizontal->SetScrollbar(position,thumbSize,range,pageSize);
-    }
-
-    mainSequencer->ScrollBarEffectsHorizontal->Refresh();
 }
 
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)

@@ -642,8 +642,10 @@ TestDialog::TestDialog(wxWindow* parent, wxXmlDocument* network, wxFileName netw
 	// add checkbox events
 	Connect(ID_TREELISTCTRL_Channels,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&TestDialog::OnTreeListCtrl1Checkboxtoggled);
 	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1Checkboxtoggled);
-	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
-	//Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
+	///Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
+#ifdef __WXOSX__
+	Connect(ID_TREELISTCTRL_Channels, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&TestDialog::OnTreeListCtrl1ItemActivated);
+#endif
 
 	PopulateControllerTree(_network);
 	PopulateModelsTree(_modelManager);
@@ -1181,9 +1183,19 @@ std::list<std::string> TestDialog::GetModelsOnChannels(int start, int end)
 
 void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 {
-	// Tooltips dont work on the TreeListCtrl ... so dont bother
-    return;
+    //On Mac, the checkboxes aren't working, we'll fake it with the double click activations
+    wxTreeListItem item = event.GetItem();
+    wxCheckBoxState checked = TreeListCtrl_Channels->GetCheckedState(item);
+    if (checked != wxCHK_CHECKED) {
+        TreeListCtrl_Channels->CheckItem(item, wxCHK_CHECKED);
+    } else {
+        TreeListCtrl_Channels->CheckItem(item, wxCHK_UNCHECKED);
+    }
+    OnTreeListCtrl1Checkboxtoggled(event);
 
+#if 0
+    // Tooltips dont work on the TreeListCtrl ... so dont bother
+    return;
 	wxTreeListItem item = event.GetItem();
 	if (item == _controllers || item == _modelGroups || item == _models)
 	{
@@ -1235,6 +1247,7 @@ void TestDialog::OnTreeListCtrl1ItemActivated(wxTreeListEvent& event)
 			TreeListCtrl_Channels->UnsetToolTip();
 		}
 	}
+#endif
 }
 
 void TestDialog::OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event)

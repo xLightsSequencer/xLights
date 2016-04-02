@@ -132,10 +132,7 @@ class EffectTreeDialog;
 
 class RenderCommandEvent;
 
-wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
-wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
-wxDECLARE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
@@ -1335,7 +1332,6 @@ private:
 
     // New Sequencer variables and methods
     SequenceElements mSequenceElements;
-    int mTextEntryContext;
 
     MainSequencer* mainSequencer;
     ModelPreview * sPreview1;
@@ -1358,11 +1354,7 @@ private:
     void StopSequence();
     // Events
     void Zoom( wxCommandEvent& event);
-    void TimelineChanged( wxCommandEvent& event);
     void WindowResized( wxCommandEvent& event);
-    void HorizontalScrollChanged( wxCommandEvent& event);
-    void ScrollRight( wxCommandEvent& event);
-    void VerticalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void MousePositionUpdated( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
@@ -1400,8 +1392,6 @@ private:
     void ZoomOut();
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
-    void UpdateEffectGridHorizontalScrollBar();
-    void UpdateEffectGridVerticalScrollBar();
     std::string GetEffectTextFromWindows(std::string &palette);
 
     void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);

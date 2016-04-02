@@ -491,8 +491,6 @@ void xLightsFrame::SaveSequence()
 
     if (xlightsFilename.IsEmpty())
     {
-        int saved_text_entry_context = mTextEntryContext;
-        mTextEntryContext = TEXT_ENTRY_DIALOG;
         wxString NewFilename;
 
         wxFileDialog fd(this,
@@ -527,8 +525,6 @@ void xLightsFrame::SaveSequence()
         oName.SetExt("xml");
         CurrentSeqXmlFile->SetPath(oName.GetPath());
         CurrentSeqXmlFile->SetFullName(oName.GetFullName());
-
-        mTextEntryContext = saved_text_entry_context;
     }
 
     EnableSequenceControls(false);

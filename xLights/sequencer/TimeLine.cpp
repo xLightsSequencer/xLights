@@ -107,7 +107,8 @@ TimeLine::~TimeLine()
 
 void TimeLine::RaiseChangeTimeline()
 {
-    Refresh(false);
+    Refresh();
+    Update();
     TimelineChangeArguments *tla = new TimelineChangeArguments(mZoomLevel,mStartPixelOffset,mCurrentPlayMarker);
     wxCommandEvent eventTimeLineChanged(EVT_TIME_LINE_CHANGED);
     eventTimeLineChanged.SetClientData((void*)tla);
@@ -266,7 +267,6 @@ void TimeLine::SetStartTimeMS(int time)
     mEndTimeMS = GetMaxViewableTimeMS();
     mStartPixelOffset = GetPixelOffsetFromStartTime();
     RecalcMarkerPositions();
-    RaiseChangeTimeline();
 }
 
 float TimeLine::GetStartTimeMS()

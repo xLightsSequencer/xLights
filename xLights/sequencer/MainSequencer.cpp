@@ -21,8 +21,16 @@ const long MainSequencer::ID_SCROLLBAR_EFFECTS_VERTICAL = wxNewId();
 const long MainSequencer::ID_SCROLLBAR_EFFECT_GRID_HORZ = wxNewId();
 //*)
 
+
+wxDEFINE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
+
 BEGIN_EVENT_TABLE(MainSequencer,wxPanel)
     EVT_MOUSEWHEEL(MainSequencer::mouseWheelMoved)
+
+    EVT_COMMAND(wxID_ANY, EVT_HORIZ_SCROLL, MainSequencer::HorizontalScrollChanged)
+    EVT_COMMAND(wxID_ANY, EVT_SCROLL_RIGHT, MainSequencer::ScrollRight)
+    EVT_COMMAND(wxID_ANY, EVT_TIME_LINE_CHANGED, MainSequencer::TimelineChanged)
 
 END_EVENT_TABLE()
 
@@ -168,6 +176,8 @@ void MainSequencer::UpdateEffectGridVerticalScrollBar()
     int thumbSize = mSequenceElements->GetMaxModelsDisplayed();
     ScrollBarEffectsVertical->SetScrollbar(position,thumbSize,range,pageSize);
     ScrollBarEffectsVertical->Refresh();
+    PanelEffectGrid->Refresh();
+    PanelRowHeadings->Refresh();
 }
 
 void MainSequencer::UpdateTimeDisplay(int time_ms)
@@ -188,15 +198,19 @@ void MainSequencer::SetPlayStatus(int play_type)
 
 void MainSequencer::OnScrollBarEffectGridHorzScroll(wxScrollEvent& event)
 {
-    wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-    wxPostEvent(mParent, eventScroll);
+    int position = ScrollBarEffectsHorizontal->GetThumbPosition();
+    int timeLength = PanelTimeLine->GetTimeLength();
+    
+    int startTime = (int)(((double)position/(double)timeLength) * (double)timeLength);
+    PanelTimeLine->SetStartTimeMS(startTime);
+    UpdateEffectGridHorizontalScrollBar();
 }
 
 void MainSequencer::OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event)
 {
     int position = ScrollBarEffectsVertical->GetThumbPosition();
     mSequenceElements->SetFirstVisibleModelRow(position);
-    Refresh();
+    UpdateEffectGridVerticalScrollBar();
 }
 
 void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
@@ -220,7 +234,7 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
         }
         ScrollBarEffectsHorizontal->SetThumbPosition(position);
         wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-        wxPostEvent(mParent, eventScroll);
+        HorizontalScrollChanged(eventScroll);
     } else {
         int position = ScrollBarEffectsVertical->GetThumbPosition();
         if(i<0)
@@ -653,3 +667,94 @@ void MainSequencer::OnScrollBarEffectsHorizontalScrollLineDown(wxScrollEvent& ev
         ScrollBarEffectsHorizontal->SetThumbPosition(position);
     }
 }
+
+
+void MainSequencer::HorizontalScrollChanged( wxCommandEvent& event)
+{
+    int position = ScrollBarEffectsHorizontal->GetThumbPosition();
+    int timeLength = PanelTimeLine->GetTimeLength();
+    int startTime = (int)(((double)position/(double)timeLength) * (double)timeLength);
+    PanelTimeLine->SetStartTimeMS(startTime);
+    UpdateEffectGridHorizontalScrollBar();
+}
+
+void MainSequencer::ScrollRight(wxCommandEvent& event)
+{
+    int position = ScrollBarEffectsHorizontal->GetThumbPosition();
+    int limit = ScrollBarEffectsHorizontal->GetRange();
+    if( position < limit-1 )
+    {
+        int ts = ScrollBarEffectsHorizontal->GetThumbSize();
+        if (ts == 0) {
+            ts = 1;
+        }
+        position += ts;
+        if (position >= limit) {
+            position = limit - 1;
+        }
+        ScrollBarEffectsHorizontal->SetThumbPosition(position);
+        wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+        HorizontalScrollChanged(eventScroll);
+    }
+}
+
+
+void MainSequencer::TimelineChanged( wxCommandEvent& event)
+{
+    TimelineChangeArguments *tla = (TimelineChangeArguments*)(event.GetClientData());
+    PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
+    PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
+    UpdateTimeDisplay(tla->CurrentTimeMS);
+    PanelTimeLine->Update();
+    PanelWaveForm->Refresh();
+    PanelWaveForm->Update();
+    PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
+    PanelEffectGrid->Refresh();
+    PanelEffectGrid->Update();
+    UpdateEffectGridHorizontalScrollBar();
+    delete tla;
+}
+
+void MainSequencer::UpdateEffectGridHorizontalScrollBar()
+{
+    PanelWaveForm->SetZoomLevel(PanelTimeLine->GetZoomLevel());
+    PanelWaveForm->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
+    UpdateTimeDisplay(PanelTimeLine->GetCurrentPlayMarkerMS());
+    
+    //printf("%d\n", PanelTimeLine->GetStartPixelOffset());
+    PanelTimeLine->Refresh();
+    PanelTimeLine->Update();
+    PanelWaveForm->Refresh();
+    PanelWaveForm->Update();
+    PanelEffectGrid->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
+    PanelEffectGrid->Refresh();
+    PanelEffectGrid->Update();
+
+    
+    int zoomLevel = PanelTimeLine->GetZoomLevel();
+    int maxZoomLevel = PanelTimeLine->GetMaxZoomLevel();
+    if(zoomLevel == maxZoomLevel)
+    {
+        // Max Zoom so scrollbar is same size as window.
+        int range = PanelTimeLine->GetSize().x;
+        int pageSize =range;
+        int thumbSize = range;
+        ScrollBarEffectsHorizontal->SetScrollbar(0,thumbSize,range,pageSize);
+    }
+    else
+    {
+        int startTime;
+        int endTime;
+        int range = PanelTimeLine->GetTimeLength();
+        PanelTimeLine->GetViewableTimeRange(startTime,endTime);
+        
+        int diff = endTime - startTime;
+        int thumbSize = diff;
+        int pageSize = thumbSize;
+        int position = startTime;
+        ScrollBarEffectsHorizontal->SetScrollbar(position,thumbSize,range,pageSize);
+    }
+    
+    ScrollBarEffectsHorizontal->Refresh();
+}
+

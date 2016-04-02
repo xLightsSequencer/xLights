@@ -13,6 +13,8 @@
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 
 class MainSequencer: public wxPanel
 {
@@ -80,6 +82,11 @@ class MainSequencer: public wxPanel
         void InsertTimingMarkFromRange();
         void SplitTimingMark();
         void SetHandlers(wxWindow *);
+    
+        void ScrollRight( wxCommandEvent& event);
+        void HorizontalScrollChanged( wxCommandEvent& event);
+        void TimelineChanged( wxCommandEvent& event);
+        void UpdateEffectGridHorizontalScrollBar();
 
         wxWindow *mParent;
         SequenceElements* mSequenceElements;

@@ -534,14 +534,15 @@ bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
     float max = ymax;
     if (!minMaxSet) {
         if (RenderHt < 4) {
-            glm::vec3 v2 = m * glm::vec3(sx + 2, sy + 2, 1);
-            glm::vec3 v3 = m * glm::vec3(sx - 2, sy - 2, 1);
-            min = -std::abs(v2.y - v3.y) * 2.0;
-            max = -min;
-            if (max < 2) {
-                max = 2;
-                min = -2;
-            }
+            float sx1 = (x1 + x2) * previewW / 2.0;
+            float sy1 = (y1 + y2) * previewH / 2.0;
+            
+            glm::vec3 v2 = m * glm::vec3(sx1 + 3, sy1 + 3, 1);
+            glm::vec3 v3 = m * glm::vec3(sx1 + 3, sy1 - 3, 1);
+            glm::vec3 v4 = m * glm::vec3(sx1 - 3, sy1 + 3, 1);
+            glm::vec3 v5 = m * glm::vec3(sx1 - 3, sy1 - 3, 1);
+            max = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
+            min = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
         } else {
             min = -1;
             max = RenderHt;
