@@ -199,6 +199,9 @@ static void Remove(std::vector<std::string> &names, const std::string &str) {
 
 void xLightsFrame::CheckForValidModels()
 {
+    //bool cancelled = cancelled_in;
+    bool cancelled = false;
+
     std::vector<std::string> AllNames;
     std::vector<std::string> ModelNames;
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
@@ -226,8 +229,13 @@ void xLightsFrame::CheckForValidModels()
                 dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
                 dialog.ChoiceModels->Set(ToArrayString(AllNames));
                 dialog.Fit();
-                dialog.ShowModal();
-                if (dialog.RadioButtonDelete->GetValue()) {
+
+                if (!cancelled)
+                {
+                    cancelled = (dialog.ShowModal() == wxID_CANCEL);
+                }
+
+                if (cancelled || dialog.RadioButtonDelete->GetValue()) {
                     mSequenceElements.DeleteElement(name);
                     x = mSequenceElements.GetElementCount();
                 } else {

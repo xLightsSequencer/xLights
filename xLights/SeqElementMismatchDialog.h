@@ -2,11 +2,11 @@
 #define SEQELEMENTMISMATCHDIALOG_H
 
 //(*Headers(SeqElementMismatchDialog)
-#include <wx/dialog.h>
 #include <wx/sizer.h>
-#include <wx/radiobut.h>
 #include <wx/stattext.h>
+#include <wx/radiobut.h>
 #include <wx/choice.h>
+#include <wx/dialog.h>
 //*)
 
 class SeqElementMismatchDialog: public wxDialog
@@ -17,9 +17,9 @@ public:
     virtual ~SeqElementMismatchDialog();
 
     //(*Declarations(SeqElementMismatchDialog)
-    wxChoice* ChoiceModels;
-    wxStaticText* StaticTextMessage;
     wxRadioButton* RadioButtonRename;
+    wxStaticText* StaticTextMessage;
+    wxChoice* ChoiceModels;
     wxRadioButton* RadioButtonDelete;
     //*)
 

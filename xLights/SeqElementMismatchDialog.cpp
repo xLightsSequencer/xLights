@@ -1,9 +1,9 @@
 #include "SeqElementMismatchDialog.h"
 
 //(*InternalHeaders(SeqElementMismatchDialog)
+#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
-#include <wx/intl.h>
 //*)
 
 //(*IdInit(SeqElementMismatchDialog)
@@ -21,8 +21,8 @@ END_EVENT_TABLE()
 SeqElementMismatchDialog::SeqElementMismatchDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     //(*Initialize(SeqElementMismatchDialog)
-    wxFlexGridSizer* FlexGridSizer1;
     wxStaticText* StaticText1;
+    wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, id, _("Sequence Element Mismatch"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
@@ -44,6 +44,7 @@ SeqElementMismatchDialog::SeqElementMismatchDialog(wxWindow* parent,wxWindowID i
     FlexGridSizer1->Add(ChoiceModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
+    StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
     StdDialogButtonSizer1->Realize();
     FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
