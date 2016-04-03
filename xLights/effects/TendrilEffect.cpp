@@ -194,7 +194,7 @@ void ATendril::Update(wxPoint* target)
 	}
 }
 
-void ATendril::Draw(DrawingContext* gc)
+void ATendril::Draw(PathDrawingContext* gc)
 {
     wxColor c(_colour);
     wxPen pen(c, _thickness);
@@ -395,7 +395,7 @@ void Tendril::Update(int x, int y)
     Update(&pt);
 }
 
-void Tendril::Draw(DrawingContext* gc)
+void Tendril::Draw(PathDrawingContext* gc)
 {
 	for (std::list<ATendril*>::const_iterator ci = _tendrils.begin(); ci != _tendrils.end(); ++ci)
 	{
@@ -461,7 +461,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                            float friction, float dampening,
                            float tension, int trails, int length)
 {
-    buffer.drawingContext->Clear();
+    buffer.pathDrawingContext->Clear();
 
     if (friction < 0.4)
     {
@@ -801,9 +801,9 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 
 	if (_tendril != NULL)
 	{
-		_tendril->Draw(buffer.drawingContext);
+		_tendril->Draw(buffer.pathDrawingContext);
 	}
-    wxImage * image = buffer.drawingContext->FlushAndGetImage();
+    wxImage * image = buffer.pathDrawingContext->FlushAndGetImage();
     bool hasAlpha = image->HasAlpha();
 
     xlColor c;

@@ -75,8 +75,6 @@ public:
 //render piano fx during sequence:
 void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps, const std::string type, std::string timingsource, std::string file, int MIDIAdjustStart, int MIDIAdjustSpeed, int scale, std::string MIDITrack)
 {
-	buffer.drawingContext->Clear();
-
 	PianoCache *cache = (PianoCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
 		cache = new PianoCache();

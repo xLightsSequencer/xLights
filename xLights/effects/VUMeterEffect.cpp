@@ -153,8 +153,6 @@ int VUMeterEffect::DecodeType(std::string type)
 
 void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls)
 {
-	buffer.drawingContext->Clear();
-
 	// no point if we have no media
 	if (buffer.GetMedia() == NULL)
 	{

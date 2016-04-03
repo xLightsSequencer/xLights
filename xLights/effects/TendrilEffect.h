@@ -41,8 +41,7 @@ class ATendril
 	~ATendril();
 	ATendril(float friction, int size, float dampening, float tension, float spring, wxPoint* start, xlColor colour, int thickness, int maxx, int maxy);
 	void Update(wxPoint* target);
-	//void Draw(wxGraphicsContext* gc);
-	void Draw(DrawingContext* gc);
+	void Draw(PathDrawingContext* gc);
 	wxPoint* LastLocation();
 };
 
@@ -59,8 +58,7 @@ class Tendril
 	void UpdateRandomMove(int tunemovement);
     void Update(wxPoint* target);
     void Update(int x, int y);
-    //void Draw(wxGraphicsContext* gc);
-    void Draw(DrawingContext* gc);
+    void Draw(PathDrawingContext* gc);
 };
 
 class TendrilEffect : public RenderableEffect
@@ -75,8 +73,8 @@ class TendrilEffect : public RenderableEffect
                     float tension, int trails, int length);
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-		virtual bool needToAdjustSettings(const std::string &version);
-		virtual void adjustSettings(const std::string &version, Effect *effect);
+		virtual bool needToAdjustSettings(const std::string &version) override;
+		virtual void adjustSettings(const std::string &version, Effect *effect) override;
 };
 
 #endif // PICTURESEFFECT_H

@@ -4,7 +4,7 @@
 #include "RenderableEffect.h"
 
 class wxString;
-class DrawingContext;
+class TextDrawingContext;
 
 class TextEffect : public RenderableEffect
 {
@@ -21,7 +21,7 @@ class TextEffect : public RenderableEffect
     private:
     
         void RenderTextLine(RenderBuffer &buffer,
-                            DrawingContext* dc, int idx, const wxString& Line_orig, int dir,
+                            TextDrawingContext* dc, int idx, const wxString& Line_orig, int dir,
                             bool center, int Effect, int Countdown, bool WantRender, int tspeed,
                             int startx, int starty, int endx, int endy,
                             bool isPixelBased);

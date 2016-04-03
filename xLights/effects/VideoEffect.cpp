@@ -341,8 +341,6 @@ public:
 void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	double starttime, bool aspectratio, bool loop)
 {
-	buffer.drawingContext->Clear();
-
 	VideoRenderCache *cache = (VideoRenderCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
 		cache = new VideoRenderCache();

@@ -73,35 +73,67 @@ class xLightsFrame;
 #define NCCDLLEXPORT
 #endif
 
-class DrawingContext;
 class Effect;
 class SettingsMap;
 class SequenceElements;
 
 
+
+
+#ifdef __WXMSW__
+#define USE_GRAPHICS_CONTEXT_FOR_TEXT 0
+#else
+#define USE_GRAPHICS_CONTEXT_FOR_TEXT 1
+#endif
+
 class DrawingContext {
 public:
-    DrawingContext(int BufferWi, int BufferHt, bool allowShared);
-    ~DrawingContext();
-    wxImage *FlushAndGetImage();
+    DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha);
+    virtual ~DrawingContext();
 
-    void SetPen(wxPen& pen);
-    wxGraphicsPath CreatePath();
-    void StrokePath(wxGraphicsPath& path);
-
-    void SetFont(wxFontInfo &font, const xlColor &color);
-    void DrawText(const wxString &msg, int x, int y, double rotation);
-    void DrawText(const wxString &msg, int x, int y);
-    void GetTextExtent(const wxString &msg, double *width, double *height);
-    void Clear();
-
+    
     void ResetSize(int BufferWi, int BufferHt);
-private:
+    virtual void Clear();
+    virtual wxImage *FlushAndGetImage();
+    virtual bool AllowAlphaChannel() { return true;};
+protected:
     wxImage *image;
     wxBitmap *bitmap;
     wxBitmap nullBitmap;
     wxMemoryDC *dc;
     wxGraphicsContext *gc;
+};
+
+class PathDrawingContext : public DrawingContext {
+public:
+    PathDrawingContext(int BufferWi, int BufferHt, bool allowShared);
+    virtual ~PathDrawingContext();
+    
+    virtual void Clear() override;
+    
+    void SetPen(wxPen& pen);
+    
+    wxGraphicsPath CreatePath();
+    void StrokePath(wxGraphicsPath& path);
+private:
+};
+
+class TextDrawingContext : public DrawingContext {
+public:
+    TextDrawingContext(int BufferWi, int BufferHt, bool allowShared);
+    virtual ~TextDrawingContext();
+
+    virtual void Clear() override;
+    virtual bool AllowAlphaChannel() override;
+
+    void SetPen(wxPen& pen);
+    
+    void SetFont(wxFontInfo &font, const xlColor &color);
+    void DrawText(const wxString &msg, int x, int y, double rotation);
+    void DrawText(const wxString &msg, int x, int y);
+    void GetTextExtent(const wxString &msg, double *width, double *height);
+    
+private:
 };
 
 class PaletteClass
@@ -251,7 +283,8 @@ public:
     int fadeinsteps;
     int fadeoutsteps;
 
-    DrawingContext *drawingContext;
+    PathDrawingContext *pathDrawingContext;
+    TextDrawingContext *textDrawingContext;
 
     bool needToInit;
     bool allowAlpha;

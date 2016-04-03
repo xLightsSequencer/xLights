@@ -63,7 +63,7 @@ void TextEffect::SetDefaultParameters(Model *cls) {
 std::mutex FONT_MAP_LOCK;
 std::map<std::string, wxFontInfo> FONT_MAP;
 
-void SetFont(DrawingContext *dc, const std::string& FontString, const xlColor &color) {
+void SetFont(TextDrawingContext *dc, const std::string& FontString, const xlColor &color) {
     std::unique_lock<std::mutex> locker(FONT_MAP_LOCK);
     if (FONT_MAP.find(FontString) == FONT_MAP.end()) {
         if (!FontString.empty())
@@ -145,7 +145,7 @@ static int TextEffectsIndex(const wxString &st) {
 }
 void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     xlColor c;
-    buffer.drawingContext->Clear();
+    buffer.textDrawingContext->Clear();
     size_t colorcnt=buffer.GetColorCount();
 
     for (int pass = 0; pass < 2; ++pass)
@@ -163,7 +163,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     buffer.palette.GetColor(line - 1, c);
                 }
                 std::string fontString = SettingsMap["FONTPICKER_Text_Font" + lp];
-                SetFont(buffer.drawingContext,fontString,c);
+                SetFont(buffer.textDrawingContext,fontString,c);
 
                 bool pixelOffsets = false;
                 int startx = 0;
@@ -185,7 +185,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 }
 
                 RenderTextLine(buffer,
-                               buffer.drawingContext, line - 1,
+                               buffer.textDrawingContext, line - 1,
                                text,
                                TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir" + lp]),
                                wxAtoi(SettingsMap["CHECKBOX_TextToCenter" + lp]),
@@ -197,7 +197,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             }
         }
     }
-    wxImage * i = buffer.drawingContext->FlushAndGetImage();
+    wxImage * i = buffer.textDrawingContext->FlushAndGetImage();
 
     bool ha = i->HasAlpha();
     for(wxCoord x=0; x<buffer.BufferWi; x++)
@@ -223,7 +223,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
 }
 
 
-wxSize GetMultiLineTextExtent(DrawingContext *dc,
+wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
                               const wxString& text,
                               wxCoord *widthText,
                               wxCoord *heightText,
@@ -286,14 +286,14 @@ wxSize GetMultiLineTextExtent(DrawingContext *dc,
     return wxSize(widthTextMax, heightTextTotal);
 }
 
-wxSize GetMultiLineTextExtent(DrawingContext *dc,
+wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
                               const wxString& text)
 {
     wxCoord x,y,z;
     return GetMultiLineTextExtent(dc, text, &x, &y, &z);
 }
 
-void DrawLabel(DrawingContext *dc,
+void DrawLabel(TextDrawingContext *dc,
                const wxString& text,
                const wxRect& rect,
                int alignment)
@@ -448,7 +448,7 @@ TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
 
 
 void TextEffect::RenderTextLine(RenderBuffer &buffer,
-                                DrawingContext* dc, int idx, const wxString& Line_orig, int dir,
+                                TextDrawingContext* dc, int idx, const wxString& Line_orig, int dir,
                                 bool center, int Effect, int Countdown, bool WantRender, int tspeed,
                                 int startx, int starty, int endx, int endy,
                                 bool isPixelBased)
