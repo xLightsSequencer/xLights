@@ -8,7 +8,15 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
-2016.15  Apr 2, 2016
+2016.17  Apr 3, 2016
+   -- bug (dkulp) Fix text effect on Windows
+   -- bug (dkulp) Fix single lines that are 1 channel/string with multiple lights
+   -- bug (dkulp) Fix circle radius
+   -- bug (keithsw) Add true cancel when mis-loading a sequence when in wrong folder ... 
+                 what it actually does is just delete all models that dont exist ... 
+				 you should then not save the sequence.
+   -- enh (sean) Added "bin/xlights.windows.properties" to installation script per Keith's request
+2016.16  Apr 2, 2016
    -- bug (dkulp) Fix icicle off by one
    -- bug (dkulp) Fix some scrolling on windows issues
           On Mac, the Test panel checkboxes don't work, 
