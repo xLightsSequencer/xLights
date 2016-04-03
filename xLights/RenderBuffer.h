@@ -78,6 +78,33 @@ class Effect;
 class SettingsMap;
 class SequenceElements;
 
+class KWDrawingContext {
+public:
+    KWDrawingContext(int BufferWi, int BufferHt, bool allowShared, bool forceDC);
+    ~KWDrawingContext();
+    wxImage *FlushAndGetImage();
+    void SetPen(wxPen& pen);
+    wxGraphicsPath CreatePath();
+    void StrokePath(wxGraphicsPath& path);
+    void SetFont(wxFontInfo &font, const xlColor &color);
+    void DrawText(const wxString &msg, int x, int y, double rotation);
+    void DrawText(const wxString &msg, int x, int y);
+    void GetTextExtent(const wxString &msg, double *width, double *height);
+    void Clear();
+    void ResetSize(int BufferWi, int BufferHt);
+
+private:
+    wxImage *_image;
+    wxBitmap *_bitmap;
+    wxBitmap nullBitmap;
+    int _width;
+    int _height;
+    bool _forceDC;
+    wxMemoryDC *_dc;
+#if wxUSE_GRAPHICS_CONTEXT
+    wxGraphicsContext *_gc;
+#endif
+};
 
 class DrawingContext {
 public:
