@@ -7,6 +7,8 @@
  * License:
  **************************************************************/
 
+
+
 #include "xLightsApp.h"
 //#include "heartbeat.h" //DJ
 
@@ -14,6 +16,11 @@
 #include "xLightsMain.h"
 #include <wx/image.h>
 //*)
+
+#include <log4cpp/Category.hh>
+#include <log4cpp/PropertyConfigurator.hh>
+#include <log4cpp/Configurator.hh>
+
 
 #ifdef LINUX
 #include <GL/glut.h>
@@ -26,9 +33,6 @@
 #include <algorithm>
 #include <windows.h>
 #include <imagehlp.h>
-
-#include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/Configurator.hh>
 
 wxString windows_get_stacktrace(void *data)
 {

@@ -51,252 +51,22 @@ AudioManager* RenderBuffer::GetMedia()
 	return xLightsFrame::CurrentSeqXmlFile->GetMedia();
 }
 
-KWDrawingContext::KWDrawingContext(int BufferWi, int BufferHt, bool allowShared, bool forceDC) : nullBitmap(wxNullBitmap)
-{
-    unshare(nullBitmap);
-    _bitmap = nullptr;
-    _image = nullptr;
-    _dc = nullptr;
-#if wxUSE_GRAPHICS_CONTEXT
-    _gc = nullptr;
-#endif
-    _width = BufferWi;
-    _height = BufferHt;
-    _forceDC = forceDC;
-    Clear();
-}
-
-KWDrawingContext::~KWDrawingContext() {
-#if wxUSE_GRAPHICS_CONTEXT
-    if (_gc != nullptr) {
-        delete _gc;
-    }
-#endif
-    if (_dc != nullptr) {
-        delete _dc;
-    }
-    if (_bitmap != nullptr) {
-        delete _bitmap;
-    }
-    if (_image != nullptr) {
-        delete _image;
-    }
-}
-
-void KWDrawingContext::ResetSize(int BufferWi, int BufferHt) {
-    _width = BufferWi;
-    _height = BufferHt;
-    Clear();
-}
-
-void KWDrawingContext::Clear() {
-#if wxUSE_GRAPHICS_CONTEXT
-    if (_gc != nullptr) {
-        delete _gc;
-        _gc = nullptr;
-    }
-#endif
-    _dc->SelectObject(nullBitmap);
-    if (_image != nullptr) {
-        delete _image;
-        _image = nullptr;
-    }
-    if (_bitmap != nullptr) {
-        delete _bitmap;
-    }
-
-    _image = new wxImage(_width > 0 ? _width : 1, _height > 0 ? _height : 1);
-#if wxUSE_GRAPHICS_CONTEXT
-    _image->SetAlpha();
-    for (wxCoord x = 0; x < _width; x++) {
-        for (wxCoord y = 0; y < _height; y++) {
-            _image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
-        }
-    }
-    _bitmap = new wxBitmap(*_image, 32);
-#else
-    _bitmap = new wxBitmap(*_image);
-#endif
-
-#if wxUSE_GRAPHICS_CONTEXT
-    if (_forceDC)
-#endif
-    {
-        _dc = new wxMemoryDC();
-        _dc->SelectObject(*_bitmap);
-    }
-
-#if wxUSE_GRAPHICS_CONTEXT
-    if (!_forceDC)
-    {
-        _gc = wxGraphicsContext::Create(*_image);
-        _gc->SetAntialiasMode(wxANTIALIAS_NONE);
-        _gc->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_FAST);
-        _gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_SOURCE);
-    }
-#endif
-}
-
-wxImage *KWDrawingContext::FlushAndGetImage() {
-#if wxUSE_GRAPHICS_CONTEXT
-    if (!_forceDC)
-    {
-        if (_gc != nullptr) {
-            _gc->Flush();
-            delete _gc;
-            _gc = nullptr;
-        }
-    }
-    else
-#endif
-    {
-        _dc->SelectObject(nullBitmap);
-        _image = &_bitmap->ConvertToImage();
-        _dc->SelectObject(*_bitmap);
-    }
-
-    return _image;
-}
-
-void KWDrawingContext::SetPen(wxPen &pen) {
-#if wxUSE_GRAPHICS_CONTEXT
-    if (!_forceDC)
-    {
-        _gc->SetPen(pen);
-    }
-    else
-#endif
-    {
-        _dc->SetPen(pen);
-    }
-}
-
-wxGraphicsPath KWDrawingContext::CreatePath()
-{
-#if wxUSE_GRAPHICS_CONTEXT
-    return _gc->CreatePath();
-#else
-    #error Graphics Paths require wxUSE_GRAPHICS_CONTEXT
-#endif
-}
-
-void KWDrawingContext::StrokePath(wxGraphicsPath& path)
-{
-#if wxUSE_GRAPHICS_CONTEXT
-    _gc->StrokePath(path);
-#else
-#error Graphics Paths require wxUSE_GRAPHICS_CONTEXT
-#endif
-}
-
-void KWDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
-#if wxUSE_GRAPHICS_CONTEXT
-    if (!_forceDC)
-    {
-        int style = wxFONTFLAG_NOT_ANTIALIASED;
-        if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
-            style |= wxFONTFLAG_BOLD;
-        }
-        if (font.GetWeight() == wxFONTWEIGHT_LIGHT) {
-            style |= wxFONTFLAG_LIGHT;
-        }
-        if (font.GetStyle() == wxFONTSTYLE_ITALIC) {
-            style |= wxFONTFLAG_ITALIC;
-        }
-        if (font.GetStyle() == wxFONTSTYLE_SLANT) {
-            style |= wxFONTFLAG_SLANT;
-        }
-        if (font.IsUnderlined()) {
-            style |= wxFONTFLAG_UNDERLINED;
-        }
-        if (font.IsStrikethrough()) {
-            style |= wxFONTFLAG_STRIKETHROUGH;
-        }
-
-        wxGraphicsFont f = _gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, color.asWxColor());
-        _gc->SetFont(f);
-    }
-    else
-#endif
-    {
-        wxFont f(font);
-        #ifdef __WXMSW__
-            /*
-            Here is the format for NativeFontInfo on Windows (taken from the source)
-            We want to change lfQuality from 2 to 3 - this disables antialiasing
-            s.Printf(wxS("%d;%ld;%ld;%ld;%ld;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%s"),
-            0, // version, in case we want to change the format later
-            lf.lfHeight,
-            lf.lfWidth,
-            lf.lfEscapement,
-            lf.lfOrientation,
-            lf.lfWeight,
-            lf.lfItalic,
-            lf.lfUnderline,
-            lf.lfStrikeOut,
-            lf.lfCharSet,
-            lf.lfOutPrecision,
-            lf.lfClipPrecision,
-            lf.lfQuality,
-            lf.lfPitchAndFamily,
-            lf.lfFaceName);*/
-            wxString s = f.GetNativeFontInfoDesc();
-            s.Replace(";2;", ";3;", false);
-            f.SetNativeFontInfo(s);
-        #endif
-        _dc->SetFont(f);
-        _dc->SetTextForeground(color.asWxColor());
-    }
-}
-
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
-void KWDrawingContext::DrawText(const wxString &msg, int x, int y, double rotation) {
-#if wxUSE_GRAPHICS_CONTEXT
-    if (!_forceDC)
-    {
-        _gc->DrawText(msg, x, y, DegToRad(rotation));
-    }
-    else
-#endif
-    {
-        _dc->DrawRotatedText(msg, x, y, rotation);
-    }
-}
 
-void KWDrawingContext::DrawText(const wxString &msg, int x, int y) {
-#if wxUSE_GRAPHICS_CONTEXT
-    if (!_forceDC)
-    {
-        _gc->DrawText(msg, x, y);
-    }
-    else
-#endif
-    {
-        _dc->DrawText(msg, x, y);
-    }
-}
 
-void KWDrawingContext::GetTextExtent(const wxString &msg, double *width, double *height) {
-#if wxUSE_GRAPHICS_CONTEXT
-    if (!_forceDC)
-    {
-        _gc->GetTextExtent(msg, width, height);
-    }
-    else
+#ifdef __WXMSW__
+#define USE_GRAPHICS_CONTEXT_FOR_TEXT 0
+#else
+#define USE_GRAPHICS_CONTEXT_FOR_TEXT 1
 #endif
-    {
-        wxSize size = _dc->GetTextExtent(msg);
-        *width = size.GetWidth();
-        *height = size.GetHeight();
-    }
-}
+
 
 DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared) : nullBitmap(wxNullBitmap)
 {
     unshare(nullBitmap);
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
-#if wxUSE_GRAPHICS_CONTEXT
+#ifndef __WXMSW__
     image->SetAlpha();
     for(wxCoord x=0; x<BufferWi; x++) {
         for(wxCoord y=0; y<BufferHt; y++) {
@@ -338,17 +108,13 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared) : n
     dc->SelectObject(nullBitmap);
     delete bitmap;
     bitmap = nullptr;
-#if wxUSE_GRAPHICS_CONTEXT
     gc = nullptr;
-#endif
 }
 
 DrawingContext::~DrawingContext() {
-#if wxUSE_GRAPHICS_CONTEXT
     if (gc != nullptr) {
         delete gc;
     }
-#endif
     if (dc != nullptr) {
         delete dc;
     }
@@ -369,7 +135,7 @@ void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
         delete image;
     }
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
-#if wxUSE_GRAPHICS_CONTEXT
+#ifndef __WXMSW__
     image->SetAlpha();
     for(wxCoord x=0; x<BufferWi; x++) {
         for(wxCoord y=0; y<BufferHt; y++) {
@@ -380,19 +146,17 @@ void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
 }
 
 void DrawingContext::Clear() {
-#if wxUSE_GRAPHICS_CONTEXT
     if (gc != nullptr) {
         delete gc;
         gc = nullptr;
     }
-#endif
 
     dc->SelectObject(nullBitmap);
     if (bitmap != nullptr) {
         delete bitmap;
     }
     image->Clear();
-#if wxUSE_GRAPHICS_CONTEXT
+#ifndef __WXMSW__
     image->SetAlpha();
     for(wxCoord x=0; x<image->GetWidth(); x++) {
         for(wxCoord y=0; y<image->GetHeight(); y++) {
@@ -403,72 +167,47 @@ void DrawingContext::Clear() {
 #else
     bitmap = new wxBitmap(*image);
 #endif
-
     dc->SelectObject(*bitmap);
-
-#if wxUSE_GRAPHICS_CONTEXT
-    #ifdef LINUX
+    #ifndef __WXOSX__
         gc = wxGraphicsContext::Create(*image);
     #else
         gc = wxGraphicsContext::Create(*dc);
-    #endif // LINUX
+    #endif
     gc->SetAntialiasMode(wxANTIALIAS_NONE);
     gc->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_FAST);
     gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_SOURCE);
     //gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_OVER);
-#endif
 }
 
 wxImage *DrawingContext::FlushAndGetImage() {
-#if wxUSE_GRAPHICS_CONTEXT
     if (gc != nullptr) {
         gc->Flush();
         delete gc;
         gc = nullptr;
     }
-#endif
 #ifndef LINUX
     dc->SelectObject(nullBitmap);
     *image = bitmap->ConvertToImage();
     dc->SelectObject(*bitmap);
-#endif // LINUX
+#endif
     return image;
 }
 
 void DrawingContext::SetPen(wxPen &pen) {
-#if wxUSE_GRAPHICS_CONTEXT
     gc->SetPen(pen);
-#endif
     dc->SetPen(pen);
 }
 
 wxGraphicsPath DrawingContext::CreatePath()
 {
-#if wxUSE_GRAPHICS_CONTEXT
     return gc->CreatePath();
-#else
-#error Graphics Paths require wxUSE_GRAPHICS_CONTEXT
-#endif
 }
 
 void DrawingContext::StrokePath(wxGraphicsPath& path)
 {
-#if wxUSE_GRAPHICS_CONTEXT
     gc->StrokePath(path);
-#else
-#error Graphics Paths require wxUSE_GRAPHICS_CONTEXT
-#endif
 }
 
-#if wxUSE_GRAPHICS_CONTEXT
-#ifdef __WXMSW__
-#define USE_GRAPHICS_CONTEXT_FOR_TEXT 0
-#else
-#define USE_GRAPHICS_CONTEXT_FOR_TEXT 1
-#endif
-#else
-#define USE_GRAPHICS_CONTEXT_FOR_TEXT 0
-#endif
 
 void DrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
 #if USE_GRAPHICS_CONTEXT_FOR_TEXT
