@@ -198,7 +198,34 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         }
     }
 
+
+#ifdef __WXMSW__
+
+    // This deliberately just writes some X's to show that DC writing works
+    // This is not a wxWidgets problem ... but ours ... it is just that windows 
+    // is more sensitive to it.
+
+    wxBitmap xbmp(buffer.BufferWi, buffer.BufferHt, 32);
+    wxMemoryDC xdc;
+    xdc.SelectObject(xbmp);
+    
+    //xdc.SetPen(*wxRED_PEN);
+    //xdc.SetBrush(*wxGREEN_BRUSH);
+    //xdc.DrawRectangle(0, 0, 10, 10);
+
+    wxFont f(12, wxFONTFAMILY_ROMAN, wxNORMAL, wxNORMAL, false);
+    xdc.SetFont(f);
+    xdc.SetTextForeground(*wxBLUE);
+    xdc.SetTextBackground(*wxBLACK);
+    xdc.DrawText(wxT("XXX"), 11, 11);
+
+    xdc.SelectObject(wxNullBitmap);
+    wxImage img = xbmp.ConvertToImage();
+
+    wxImage* i = &img;
+#else
     wxImage * i = buffer.drawingContext->FlushAndGetImage();
+#endif
 
     bool ha = i->HasAlpha();
     for(wxCoord x=0; x<buffer.BufferWi; x++)
