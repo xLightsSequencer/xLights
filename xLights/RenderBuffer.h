@@ -78,14 +78,6 @@ class SettingsMap;
 class SequenceElements;
 
 
-
-
-#ifdef __WXMSW__
-#define USE_GRAPHICS_CONTEXT_FOR_TEXT 0
-#else
-#define USE_GRAPHICS_CONTEXT_FOR_TEXT 1
-#endif
-
 class DrawingContext {
 public:
     DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha);

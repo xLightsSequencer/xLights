@@ -236,42 +236,6 @@ void xLightsFrame::CreateDefaultEffectsXml()
     EffectsXml.SetRoot( root );
     UnsavedRgbEffectsChanges = true;
 }
-void xLightsFrame::ShowModelsDialog()
-{
-    ModelListDialog dialog(this);
-    wxString name;
-    wxXmlNode* e;
-    for(e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "model")
-        {
-            name=e->GetAttribute("name");
-            if (!name.IsEmpty())
-            {
-                dialog.AddModel(name, e);
-            }
-        }
-    }
-    dialog.HtmlEasyPrint=HtmlEasyPrint;
-    dialog.SetSequenceElements(&mSequenceElements);
-    dialog.SetNetInfo(&NetInfo);
-    dialog.SetModelGroupsNode(ModelGroupsNode);
-    dialog.ShowModal();
-
-    // append any new models to the main xml structure
-    for(size_t i=0; i<dialog.ListBox1->GetCount(); i++)
-    {
-        e=(wxXmlNode*)dialog.GetXMLForModel(dialog.ListBox1->GetString(i));
-        if (e == nullptr) {
-            wxMessageBox("Could not find XML for " + dialog.ListBox1->GetString(i), _("ERROR"));
-        } else if (!e->GetParent()) {
-            ModelsNode->AddChild(e);
-        }
-    }
-    UnsavedRgbEffectsChanges=true;
-    UpdateModelsList();
-    EnableSequenceControls(true);
-}
 bool xLightsFrame::RenameModel(const std::string OldName, const std::string& NewName)
 {
     if (OldName == NewName) {

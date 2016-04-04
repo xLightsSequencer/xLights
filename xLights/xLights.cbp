@@ -514,14 +514,10 @@
 		<Unit filename="MIDI/MidiEventList.cpp" />
 		<Unit filename="MIDI/MidiFile.cpp" />
 		<Unit filename="MIDI/MidiMessage.cpp" />
-		<Unit filename="ModelDialog.cpp" />
-		<Unit filename="ModelDialog.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />
 		<Unit filename="ModelDimmingCurveDialog.h" />
 		<Unit filename="ModelFaceDialog.cpp" />
 		<Unit filename="ModelFaceDialog.h" />
-		<Unit filename="ModelListDialog.cpp" />
-		<Unit filename="ModelListDialog.h" />
 		<Unit filename="ModelPreview.cpp" />
 		<Unit filename="ModelPreview.h" />
 		<Unit filename="ModelViewSelector.cpp" />
@@ -1029,8 +1025,6 @@
 					<wxDialog wxs="wxsmith/AddShowDialog.wxs" src="AddShowDialog.cpp" hdr="AddShowDialog.h" fwddecl="0" i18n="1" name="AddShowDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ShowDatesDialog.wxs" src="ShowDatesDialog.cpp" hdr="ShowDatesDialog.h" fwddecl="0" i18n="1" name="ShowDatesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PlaybackOptionsDialog.wxs" src="PlaybackOptionsDialog.cpp" hdr="PlaybackOptionsDialog.h" fwddecl="0" i18n="1" name="PlaybackOptionsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ModelDialog.wxs" src="ModelDialog.cpp" hdr="ModelDialog.h" fwddecl="0" i18n="1" name="ModelDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ModelListDialog.wxs" src="ModelListDialog.cpp" hdr="ModelListDialog.h" fwddecl="0" i18n="1" name="ModelListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ChannelLayoutDialog.cpp" hdr="ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" fwddecl="0" i18n="1" name="PaletteMgmtDialog" language="CPP" />

@@ -31,6 +31,15 @@
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 
+
+
+
+#ifdef __WXMSW__
+#define USE_GRAPHICS_CONTEXT_FOR_TEXT 1
+#else
+#define USE_GRAPHICS_CONTEXT_FOR_TEXT 1
+#endif
+
 EffectRenderCache::EffectRenderCache() {}
 EffectRenderCache::~EffectRenderCache() {}
 void RenderBuffer::SetAllowAlphaChannel(bool a) { allowAlpha = a; }

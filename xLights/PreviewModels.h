@@ -53,7 +53,7 @@ class PreviewModels: public wxDialog
 
 	private:
         ModelManager &mModels;
-        const std::string &mGroup;
+        const std::string mGroup;
     
 		//(*Handlers(PreviewModels)
 		void OnButtonAddToModelGroupClick(wxCommandEvent& event);

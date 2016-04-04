@@ -1,5 +1,4 @@
 #include "xLightsMain.h"
-#include "ModelDialog.h" //Cheating to avoid full recompile by adding this in main.h
 #include "heartbeat.h"
 #include "DrawGLUtils.h"
 #include "SaveChangesDialog.h"

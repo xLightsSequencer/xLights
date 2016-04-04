@@ -3,14 +3,14 @@
 
 //(*Headers(LayoutPanel)
 #include <wx/panel.h>
-class wxChoice;
+class wxSplitterWindow;
+class wxCheckBox;
+class wxSplitterEvent;
+class wxStaticText;
 class wxListView;
 class wxFlexGridSizer;
 class wxButton;
-class wxSplitterWindow;
-class wxSplitterEvent;
-class wxStaticText;
-class wxCheckBox;
+class wxChoice;
 //*)
 
 #include <vector>
@@ -35,19 +35,18 @@ class LayoutPanel: public wxPanel
 
     private:
 		//(*Declarations(LayoutPanel)
-		wxCheckBox* CheckBoxOverlap;
-		wxFlexGridSizer* PreviewGLSizer;
-		wxListView* ListBoxElementList;
-		wxChoice* ViewChoice;
 		wxFlexGridSizer* ToolSizer;
-		wxButton* ButtonSavePreview;
+		wxListView* ListBoxElementList;
 		wxButton* ButtonSelectModelGroups;
 		wxSplitterWindow* SplitterWindow2;
-		wxPanel* SecondPanel;
-		wxPanel* PreviewGLPanel;
 		wxPanel* LeftPanel;
+		wxChoice* ViewChoice;
+		wxCheckBox* CheckBoxOverlap;
+		wxPanel* SecondPanel;
+		wxButton* ButtonSavePreview;
+		wxFlexGridSizer* PreviewGLSizer;
 		wxSplitterWindow* ModelSplitter;
-		wxButton* ButtonModelsPreview;
+		wxPanel* PreviewGLPanel;
 		//*)
 
 	protected:
@@ -59,7 +58,6 @@ class LayoutPanel: public wxPanel
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
 		static const long ID_CHECKBOXOVERLAP;
-		static const long ID_BUTTON_MODELS_PREVIEW;
 		static const long ID_BUTTON_SAVE_PREVIEW;
 		static const long ID_PANEL5;
 		static const long ID_PANEL1;
@@ -67,7 +65,6 @@ class LayoutPanel: public wxPanel
 		//*)
 
         static const long ID_PREVIEW_ALIGN;
-        static const long ID_PREVIEW_MODEL_PROPERTIES;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
         static const long ID_PREVIEW_MODEL_EXPORTCSV;
         static const long ID_PREVIEW_ALIGN_TOP;
@@ -91,7 +88,6 @@ class LayoutPanel: public wxPanel
 		void OnPreviewModelPopup(wxCommandEvent &event);
 		void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
 		void OnCheckBoxOverlapClick(wxCommandEvent& event);
-		void OnButtonModelsPreviewClick(wxCommandEvent& event);
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
 		void OnListBoxElementListItemSelect(wxListEvent& event);
 		void OnListBoxElementListColumnClick(wxListEvent& event);
@@ -121,7 +117,6 @@ class LayoutPanel: public wxPanel
         void SetupPropGrid(Model *model);
 
     protected:
-        void ShowModelProperties();
         void ExportModel();
         void AddModelButton(const std::string &type, const char *imageData[]);
 

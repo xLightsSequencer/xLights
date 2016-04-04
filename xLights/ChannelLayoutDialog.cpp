@@ -46,12 +46,14 @@ ChannelLayoutDialog::ChannelLayoutDialog(wxWindow* parent,wxWindowID id,const wx
 
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ChannelLayoutDialog::OnButton_PrintClick);
     //*)
+    HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
 }
 
 ChannelLayoutDialog::~ChannelLayoutDialog()
 {
     //(*Destroy(ChannelLayoutDialog)
     //*)
+    delete HtmlEasyPrint;
 }
 
 

@@ -1,15 +1,15 @@
 #include "LayoutPanel.h"
 
 //(*InternalHeaders(LayoutPanel)
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/listctrl.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/checkbox.h>
+#include <wx/splitter.h>
+#include <wx/choice.h>
+#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
-#include <wx/splitter.h>
-#include <wx/intl.h>
-#include <wx/stattext.h>
-#include <wx/choice.h>
 //*)
 
 #include <wx/clipbrd.h>
@@ -21,7 +21,6 @@
 #include "ModelPreview.h"
 #include "xLightsMain.h"
 #include "DrawGLUtils.h"
-#include "ModelDialog.h"
 #include "ChannelLayoutDialog.h"
 #include "models/ModelGroup.h"
 
@@ -36,7 +35,6 @@ const long LayoutPanel::ID_LISTBOX_ELEMENT_LIST = wxNewId();
 const long LayoutPanel::ID_PANEL2 = wxNewId();
 const long LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
 const long LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
-const long LayoutPanel::ID_BUTTON_MODELS_PREVIEW = wxNewId();
 const long LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PANEL5 = wxNewId();
 const long LayoutPanel::ID_PANEL1 = wxNewId();
@@ -50,7 +48,6 @@ END_EVENT_TABLE()
 
 
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
-const long LayoutPanel::ID_PREVIEW_MODEL_PROPERTIES = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTCSV = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
@@ -114,11 +111,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
 	//(*Initialize(LayoutPanel)
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizerPreview;
-	wxStaticText* StaticText1;
 	wxFlexGridSizer* LeftPanelSizer;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText1;
+	wxFlexGridSizer* FlexGridSizerPreview;
+	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
@@ -155,8 +152,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	CheckBoxOverlap->SetValue(false);
 	LeftPanelSizer->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
-	ButtonModelsPreview = new wxButton(LeftPanel, ID_BUTTON_MODELS_PREVIEW, _("Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MODELS_PREVIEW"));
-	FlexGridSizer2->Add(ButtonModelsPreview, 1, wxALL|wxEXPAND, 5);
 	ButtonSavePreview = new wxButton(LeftPanel, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
 	FlexGridSizer2->Add(ButtonSavePreview, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	LeftPanelSizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -185,7 +180,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
 	Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&LayoutPanel::OnListBoxElementListColumnClick);
 	Connect(ID_SPLITTERWINDOW1,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnModelSplitterSashPosChanged);
 	Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
-	Connect(ID_BUTTON_MODELS_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonModelsPreviewClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
@@ -638,17 +632,6 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
     }
 }
 
-void LayoutPanel::OnButtonModelsPreviewClick(wxCommandEvent& event)
-{
-    // update xml with offsets and scale
-    for (size_t i=0; i < modelPreview->GetModels().size(); i++)
-    {
-        modelPreview->GetModels()[i]->UpdateXmlWithScale();
-    }
-    xlights->ShowModelsDialog();
-    UpdatePreview();
-}
-
 void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 {
     // update xml with offsets and scale
@@ -1080,7 +1063,6 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     {
         return;
     }
-    mnu.Append(ID_PREVIEW_MODEL_PROPERTIES,"Model Properties");
     mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
     mnu.Append(ID_PREVIEW_MODEL_EXPORTCSV,"Export CSV");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, NULL, this);
@@ -1129,10 +1111,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         ExportModel();
     }
-    else if (event.GetId() == ID_PREVIEW_MODEL_PROPERTIES)
-    {
-        ShowModelProperties();
-    }
 
 }
 
@@ -1172,39 +1150,6 @@ void LayoutPanel::ExportModel()
     wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
     f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %d\n", model->name, model->GetDisplayAs(), model->GetStringType(), model->GetNodeCount() / model->NodesPerString(), model->GetNodeCount(), stch, /*WRONG:*/ model->NodeStartChannel(0) / model->NodesPerString() + 1, model->MyDisplay));
     f.Close();
-}
-
-void LayoutPanel::ShowModelProperties()
-{
-    int sel = ListBoxElementList->GetFirstSelected();
-    if (sel == wxNOT_FOUND) return;
-    Model* m=(Model*)ListBoxElementList->GetItemData(sel);
-
-    wxXmlNode* e=m->GetModelXml();
-    int DlgResult;
-    bool ok;
-    ModelDialog *dialog = new ModelDialog(this, xlights);
-    dialog->SetFromXml(e, &xlights->GetNetInfo());
-    dialog->TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
-    do
-    {
-        ok=true;
-        DlgResult=dialog->ShowModal();
-        if (DlgResult == wxID_OK)
-        {
-            // validate inputs
-            if (ok)
-            {
-                dialog->UpdateXml(e);
-                xlights->UnsavedRgbEffectsChanges=true;
-                xlights->UpdateModelsList();
-
-            }
-        }
-    }
-    while (DlgResult == wxID_OK && !ok);
-    UpdatePreview();
-    delete dialog;
 }
 
 void LayoutPanel::PreviewModelAlignTops()

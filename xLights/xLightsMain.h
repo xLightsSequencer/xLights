@@ -64,7 +64,6 @@
 #include "AddShowDialog.h"
 #include "ShowDatesDialog.h"
 #include "PlaybackOptionsDialog.h"
-#include "ModelListDialog.h"
 #include "EffectListDialog.h"
 #include "SeqExportDialog.h"
 #include "ViewsDialog.h"
@@ -564,7 +563,6 @@ private:
     void OnMenuItemImportEffects(wxCommandEvent& event);
     void SetPlaySpeed(wxCommandEvent& event);
     void OnBitmapButton_Link_DirsClick(wxCommandEvent& event);
-    void OnAuiToolBarItemModelsClick(wxCommandEvent& event);
     void OnMenuItemRenderOnSave(wxCommandEvent& event);
     void OnNotebook1PageChanging(wxAuiNotebookEvent& event);
     void OnButtonAddNullClick(wxCommandEvent& event);
@@ -1225,7 +1223,6 @@ public:
     void SetFrequency(int frequency);
     void RenderAll();
 
-    void ShowModelsDialog();
 protected:
     void ClearEffectWindow();
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
@@ -1305,7 +1302,6 @@ private:
     std::string lastPlayEffect;
     double mPointSize = 2.0;
 
-    wxHtmlEasyPrinting* HtmlEasyPrint;
     int NextGridRowToPlay;
     int SeqPlayColumn;
 
