@@ -170,8 +170,7 @@ void handleCrash(void *data) {
         std::string filename = std::string(dir.c_str()) + "/Library/Application Support/myapp/xLights/xLights_l4cpp.log";
 #endif
 #ifdef __LINUX__
-        wxGetEnv("user.home", &dir);
-        std::string filename = std::string(dir.c_str()) + "/xLights/xLights_l4cpp.log";
+        std::string filename = "/tmp/xLights_l4cpp.log";
 #endif
         if (wxFile::Exists(filename))
         {
@@ -256,7 +255,8 @@ bool xLightsApp::OnInit()
     std::string initFileName = "xlights.mac.properties";
 #endif
 #ifdef __LINUX__
-    std::string initFileName = "xlights.linux.properties";
+    const wxString datadir = wxStandardPaths::Get().GetDataDir();
+    std::string initFileName = std::string(datadir.c_str()) + "/xlights.linux.properties";
 #endif
 
     try
