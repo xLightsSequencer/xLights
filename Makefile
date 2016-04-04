@@ -59,6 +59,7 @@ install:
 	@$(CHK_DIR_EXISTS) $(DESTDIR)/${PREFIX}/bin || $(MKDIR) $(DESTDIR)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
+	install -D -m 644 bin/xlights.linux.properties $(DESTDIR)/${PREFIX}/share/xLights/xlights.linux.properties
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/piano
 	cp -r piano/* $(DESTDIR)/${PREFIX}/share/xLights/piano
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
