@@ -54,6 +54,9 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
             - search for the line "#define wxUSE_MDI 1"
                 - change it to "#define wxUSE_MDI 0"
             - save the file
+	 4b) Edit the wxWidgets-3.1.0\include\wx\rtti.h
+            - search for the line "bool IsKindOf(const wxClassInfo *info) const"
+                - change to "bool __attribute__((optimize("O0"))) IsKindOf(const wxClassInfo *info) const"
 	 5) If you have previously built wxWidgets before and are using the same directory you will need to make the same change as above to the setup.h file in two
 	    more locations: wxWidgets-3.1.0\lib\gcc_dll\mswu\wx\setup.h and wxWidgets-3.1.0\lib\gcc_dll\mswud\wx\setup.h.
 	 6) Also if you have built wxWidgets before you should delete the following 2 folders to force the setup.h change to be included
