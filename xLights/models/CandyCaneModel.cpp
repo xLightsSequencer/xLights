@@ -172,7 +172,7 @@ void CandyCaneModel::InitModel() {
             }
         }
     }
-    SetBufferSize(NumCanes,SegmentsPerCane);
+    SetBufferSize(SegmentsPerCane, NumCanes);
     
     for (int y=0; y < NumCanes; y++) {
         for(int x=0; x<SegmentsPerCane; x++) {
