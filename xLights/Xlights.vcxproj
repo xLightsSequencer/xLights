@@ -281,10 +281,8 @@
     <ClCompile Include="MIDI\MidiEventList.cpp" />
     <ClCompile Include="MIDI\MidiFile.cpp" />
     <ClCompile Include="MIDI\MidiMessage.cpp" />
-    <ClCompile Include="ModelDialog.cpp" />
     <ClCompile Include="ModelDimmingCurveDialog.cpp" />
     <ClCompile Include="ModelFaceDialog.cpp" />
-    <ClCompile Include="ModelListDialog.cpp" />
     <ClCompile Include="ModelPreview.cpp" />
     <ClCompile Include="models\ArchesModel.cpp" />
     <ClCompile Include="models\CandyCaneModel.cpp" />
@@ -495,10 +493,8 @@
     <ClInclude Include="LMSImportChannelMapDialog.h" />
     <ClInclude Include="LorConvertDialog.h" />
     <ClInclude Include="LyricsDialog.h" />
-    <ClInclude Include="ModelDialog.h" />
     <ClInclude Include="ModelDimmingCurveDialog.h" />
     <ClInclude Include="ModelFaceDialog.h" />
-    <ClInclude Include="ModelListDialog.h" />
     <ClInclude Include="ModelPreview.h" />
     <ClInclude Include="models\ArchesModel.h" />
     <ClInclude Include="models\CandyCaneModel.h" />

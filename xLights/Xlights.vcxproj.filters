@@ -462,16 +462,10 @@
     <ClCompile Include="LyricsDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ModelDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ModelDimmingCurveDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ModelFaceDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelListDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ModelPreview.cpp">
@@ -1184,16 +1178,10 @@
     <ClInclude Include="LyricsDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ModelDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ModelDimmingCurveDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ModelFaceDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelListDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ModelPreview.h">
