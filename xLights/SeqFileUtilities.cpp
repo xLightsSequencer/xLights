@@ -126,6 +126,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
                                           GetNetInfo(),                                 // global network info
                                           ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
                                           this,                                         // xLights main frame
+                                          NULL,
                                           &mf );                                        // media filename
 
             FileConverter::ReadFalconFile(read_params);
@@ -374,6 +375,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers)
                                               GetNetInfo(),                               // global network info
                                               read_mode,                                  // file read mode
                                               this,                                       // xLights main frame
+                                              nullptr,
                                               nullptr,                                    // filename not needed
                                               data_layer );                               // provide data layer for channel offsets
 

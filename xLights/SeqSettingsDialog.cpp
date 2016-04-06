@@ -836,6 +836,7 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes)
                                       xLightsParent->GetNetInfo(),                              // global network info
                                       ConvertParameters::READ_MODE_NORMAL,                      // file read mode
                                       xLightsParent,                                            // xLights main frame
+                                      nullptr,
                                       &media_filename,                                          // media filename
                                       new_data_layer,                                           // data layer to fill in header info
                                       data_file.GetFullPath(),                                  // output filename
@@ -919,6 +920,7 @@ void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
                                   xLightsParent->GetNetInfo(),                              // global network info
                                   ConvertParameters::READ_MODE_NORMAL,                      // file read mode
                                   xLightsParent,                                            // xLights main frame
+                                  nullptr,
                                   &media_filename,                                          // media filename
                                   layer,                                                    // data layer to fill in header info
                                   layer->GetDataSource(),                                   // output filename

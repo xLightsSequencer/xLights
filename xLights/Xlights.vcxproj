@@ -160,6 +160,7 @@
     <ClCompile Include="ChannelLayoutDialog.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="ColorPanel.cpp" />
+    <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="CurrentPreviewModels.cpp" />
     <ClCompile Include="CustomModelDialog.cpp" />
     <ClCompile Include="DataLayer.cpp" />
@@ -389,6 +390,7 @@
     <ClInclude Include="ChannelLayoutDialog.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="ColorPanel.h" />
+    <ClInclude Include="ConvertDialog.h" />
     <ClInclude Include="CurrentPreviewModels.h" />
     <ClInclude Include="CustomModelDialog.h" />
     <ClInclude Include="DataLayer.h" />
@@ -398,7 +400,6 @@
     <ClInclude Include="DrawGLUtils.h" />
     <ClInclude Include="E131Dialog.h" />
     <ClInclude Include="EffectAssist.h" />
-    <ClInclude Include="EffectDialogv2.h" />
     <ClInclude Include="EffectIconPanel.h" />
     <ClInclude Include="EffectListDialog.h" />
     <ClInclude Include="EffectsPanel.h" />

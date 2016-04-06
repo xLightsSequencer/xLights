@@ -40,7 +40,7 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
         ReadXlightsFile(filename);
         fn.SetExt("fseq");
     } else {
-        ReadFalconFile(filename);
+        ReadFalconFile(filename, NULL);
     }
     DisplayXlightsFilename(fn.GetFullPath());
     SeqBaseChannel=1;

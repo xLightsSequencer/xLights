@@ -729,6 +729,9 @@
     <ClCompile Include="models\IciclesModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConvertDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1127,9 +1130,6 @@
     <ClInclude Include="EffectAssist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EffectDialogv2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EffectIconPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1374,6 +1374,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BufferPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvertDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CustomModelDialog.h">
