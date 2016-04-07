@@ -45,6 +45,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Find a solution to some crashing in release builds
    -- bug (dkulp) Remove model properties dialog and model list dialog
    -- bug (dkulp) Fix crash in editing groups
+   -- enh (keithsw) Add writing of FPP universes file when saving networks
+   -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log found typically in c:\users\<user>\AppData\Roaming
 2016.17  Apr 3, 2016
    -- enh (keithsw) Add writing of FPP universes file when saving networks
    -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log found typically in c:\users\<user>\AppData\Roaming
