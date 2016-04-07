@@ -1,6 +1,6 @@
 xLights is a program that allows you to play the sequence files from Vixen and
-LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. 
-xLights has a extensive scheduler. Nutcracker is a program that generates animated effects 
+LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers.
+xLights has a extensive scheduler. Nutcracker is a program that generates animated effects
 on massive RGB devices such as megatrees, matrices, and arches.
 
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
@@ -8,18 +8,19 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+   -- bug (gil)   Fix Delete key operation so it doesn't do a Cut unless Shift is pressed.
 2016.17  Apr 3, 2016
    -- bug (dkulp) Fix text effect on Windows
    -- bug (dkulp) Fix single lines that are 1 channel/string with multiple lights
    -- bug (dkulp) Fix circle radius
-   -- bug (keithsw) Add true cancel when mis-loading a sequence when in wrong folder ... 
-                 what it actually does is just delete all models that dont exist ... 
+   -- bug (keithsw) Add true cancel when mis-loading a sequence when in wrong folder ...
+                 what it actually does is just delete all models that dont exist ...
 				 you should then not save the sequence.
    -- enh (sean) Added "bin/xlights.windows.properties" to installation script per Keith's request
 2016.16  Apr 2, 2016
    -- bug (dkulp) Fix icicle off by one
    -- bug (dkulp) Fix some scrolling on windows issues
-          On Mac, the Test panel checkboxes don't work, 
+          On Mac, the Test panel checkboxes don't work,
           use double click action to simulate
    -- bug (dkulp) Fix issue with single lines being clicked on too easily
    -- bug (dkulp) Fix crash if a view contains models that no longer exist
@@ -36,7 +37,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)   Draw red/blue alignment lines for two handle models.
    -- bug (keithsw) Fix test dialog handling of multi-universe E131
    -- bug (keithsw) Fix test dialog handling of different start pixel specifications on models
-   -- enh (keithsw) Move windows version to wxWidgets 3.1     
+   -- enh (keithsw) Move windows version to wxWidgets 3.1
 2016.14  Mar 23, 2016
    -- enh (keithsw) Piano support for audacity file reading.
    -- bug (dkulp) Fix crash if mapping maps a model that isn't used in the source sequence. This fixes #505

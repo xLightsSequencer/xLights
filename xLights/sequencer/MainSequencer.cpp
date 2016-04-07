@@ -65,7 +65,7 @@ void MainSequencer::SetHandlers(wxWindow *window)
             wxWindow* pclChild = *it;
             SetHandlers(pclChild);
         }
-        
+
         window->Connect(wxID_CUT, wxEVT_MENU, (wxObjectEventFunction)&MainSequencer::DoCut,0,this);
         window->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&MainSequencer::DoCopy,0,this);
         window->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&MainSequencer::DoPaste,0,this);
@@ -154,7 +154,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     SetHandlers(this);
     keyBindings.LoadDefaults();
     mCanUndo = false;
-    
+
 }
 
 MainSequencer::~MainSequencer()
@@ -200,7 +200,7 @@ void MainSequencer::OnScrollBarEffectGridHorzScroll(wxScrollEvent& event)
 {
     int position = ScrollBarEffectsHorizontal->GetThumbPosition();
     int timeLength = PanelTimeLine->GetTimeLength();
-    
+
     int startTime = (int)(((double)position/(double)timeLength) * (double)timeLength);
     PanelTimeLine->SetStartTimeMS(startTime);
     UpdateEffectGridHorizontalScrollBar();
@@ -280,7 +280,7 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
                 }
 				event.StopPropagation();
 			}
-			else if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT))
+			else if (event.ShiftDown())
 			{
                 if (mSequenceElements != nullptr) {
                     Paste();
@@ -291,7 +291,7 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
 			break;
 		case WXK_DELETE:
 #ifdef __WXMSW__
-			if (!GetKeyState(VK_LSHIFT) && !GetKeyState(VK_RSHIFT))
+			if (!event.ShiftDown())
 #endif
 			{
 				// Delete
@@ -720,7 +720,7 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
     PanelWaveForm->SetZoomLevel(PanelTimeLine->GetZoomLevel());
     PanelWaveForm->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
     UpdateTimeDisplay(PanelTimeLine->GetCurrentPlayMarkerMS());
-    
+
     //printf("%d\n", PanelTimeLine->GetStartPixelOffset());
     PanelTimeLine->Refresh();
     PanelTimeLine->Update();
@@ -730,7 +730,7 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
     PanelEffectGrid->Refresh();
     PanelEffectGrid->Update();
 
-    
+
     int zoomLevel = PanelTimeLine->GetZoomLevel();
     int maxZoomLevel = PanelTimeLine->GetMaxZoomLevel();
     if(zoomLevel == maxZoomLevel)
@@ -747,14 +747,14 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
         int endTime;
         int range = PanelTimeLine->GetTimeLength();
         PanelTimeLine->GetViewableTimeRange(startTime,endTime);
-        
+
         int diff = endTime - startTime;
         int thumbSize = diff;
         int pageSize = thumbSize;
         int position = startTime;
         ScrollBarEffectsHorizontal->SetScrollbar(position,thumbSize,range,pageSize);
     }
-    
+
     ScrollBarEffectsHorizontal->Refresh();
 }
 
