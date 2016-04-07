@@ -578,7 +578,7 @@ std::string Model::ComputeStringStartChannel(int i) {
     }
     wxString stch = ModelXml->GetAttribute(StartChanAttrName(i - 1));
     wxString sNet = "";
-    int ChannelsPerString = CalcCannelsPerString() + 1;
+    int ChannelsPerString = CalcCannelsPerString();
     long StringStartChanLong = 0;
     if (stch.Contains(":")) {
         sNet = stch.SubString(0, stch.Find(":")-1);
@@ -589,10 +589,13 @@ std::string Model::ComputeStringStartChannel(int i) {
             int endChannel;
             startNetwork--; // Zero based index
             if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
-                if (modelManager.GetNetInfo().GetEndNetworkAndChannel(startNetwork,(int)StringStartChanLong,ChannelsPerString,endNetwork,endChannel)) {
+                if (modelManager.GetNetInfo().GetEndNetworkAndChannel(startNetwork,(int)StringStartChanLong,ChannelsPerString+1,endNetwork,endChannel)) {
                     return wxString::Format("%i:%i",endNetwork+1,endChannel).ToStdString(); //endNetwork is zero based
                 }
             }
+        } else if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
+            long StringEndChan=StringStartChanLong + ChannelsPerString;
+            stch = sNet + wxString::Format(":%d", StringEndChan);
         }
     }
     if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
