@@ -35,6 +35,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Find a solution to some crashing in release builds
    -- bug (dkulp) Remove model properties dialog and model list dialog
    -- bug (dkulp) Fix crash in editing groups
+   -- bug (gil)   Fix Delete key operation so it doesn't do a Cut unless Shift is pressed.
 2016.17  Apr 3, 2016
    -- enh (keithsw) Add writing of FPP universes file when saving networks
    -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log found typically in c:\users\<user>\AppData\Roaming
