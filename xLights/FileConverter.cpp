@@ -20,6 +20,17 @@
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
 
+void ConvertParameters::AppendConvertStatus(const wxString& msg, bool flushbuffer)
+{
+    if (convertDialog != NULL)
+    {
+        convertDialog->AppendConvertStatus(msg + "\n", flushbuffer);
+    }
+    log4cpp::Category& logger = log4cpp::Category::getRoot();
+    logger.info("Convert Status: " + msg);
+}
+
+
 void ConvertParameters::SetStatusText(wxString msg)
 {
     if (xLightsFrm != NULL)
@@ -300,7 +311,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     }
     params.seq_data.init(0, 0, params.sequence_interval);
 
-    params.convertDialog->AppendConvertStatus(string_format("Reading LOR sequence: %s\n", params.inp_filename));
+    params.AppendConvertStatus(string_format("Reading LOR sequence: %s", params.inp_filename));
     params.SetStatusText(string_format("Reading LOR sequence: %s\n", params.inp_filename));
 
     int centisec = -1;
@@ -360,7 +371,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     channelCount++;
                     if ((channelCount % 1000) == 0)
                     {
-                        params.convertDialog->AppendConvertStatus (string_format(wxString("Channels found so far: %d\n"),channelCount));
+                        params.AppendConvertStatus (string_format(wxString("Channels found so far: %d"),channelCount));
                         params.SetStatusText(string_format(wxString("Channels found so far: %d"),channelCount));
                     }
 
@@ -430,7 +441,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         }
     }
     delete parser;
-    params.convertDialog->AppendConvertStatus (string_format(wxString("Track 1 length = %d centiseconds\n"),centisec), false);
+    params.AppendConvertStatus (string_format(wxString("Track 1 length = %d centiseconds"),centisec), false);
 
     if (centisec > 0)
     {
@@ -454,7 +465,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         {
             cnt += lorUnitSizes[network][u];
         }
-        params.convertDialog->AppendConvertStatus (string_format(wxString("LOR Network %d:  %d channels\n"),network,cnt), false);
+        params.AppendConvertStatus (string_format(wxString("LOR Network %d:  %d channels"),network,cnt), false);
     }
     for (network = 1; network < dmxUnitSizes.size(); network++)
     {
@@ -465,9 +476,9 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                 cnt = dmxUnitSizes[network][u];
             }
         }
-        params.convertDialog->AppendConvertStatus (string_format(wxString("DMX Network %d:  %d channels\n"),network,cnt), false);
+        params.AppendConvertStatus (string_format(wxString("DMX Network %d:  %d channels"),network,cnt), false);
     }
-    params.convertDialog->AppendConvertStatus (string_format(wxString("Total channels = %d\n"),channelCount));
+    params.AppendConvertStatus (string_format(wxString("Total channels = %d"),channelCount));
 
     cnt = 0;
     context.clear();
@@ -515,7 +526,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     if (empty && curchannel != -1)
                     {
                         chindex--;
-                        params.convertDialog->AppendConvertStatus (wxString("WARNING: ")+ChannelNames[curchannel] + " is empty\n");
+                        params.AppendConvertStatus (wxString("WARNING: ")+ChannelNames[curchannel] + " is empty");
                         ChannelNames[curchannel].clear();
                         MappedChannelCnt--;
                     }
@@ -547,7 +558,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     channelCount++;
                     if ((channelCount % 1000) == 0)
                     {
-                        params.convertDialog->AppendConvertStatus (string_format(wxString("Channels converted so far: %d\n"),channelCount));
+                        params.AppendConvertStatus (string_format(wxString("Channels converted so far: %d"),channelCount));
                         params.SetStatusText(string_format(wxString("Channels converted so far: %d"),channelCount));
                     }
 
@@ -600,11 +611,11 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     }
                     if (curchannel >= 0)
                     {
-                        //params.convertDialog->AppendConvertStatus (string_format(wxString("curchannel %d\n"),curchannel));
+                        //params.AppendConvertStatus (string_format(wxString("curchannel %d"),curchannel));
                         if (ChannelNames[curchannel].size() != 0)
                         {
-                           params.convertDialog->AppendConvertStatus (string_format(wxString("WARNING: ")+ChannelNames[curchannel]+wxString(" and ")
-                                                                                       +ChannelName+wxString(" map to the same channel %d\n"), curchannel));
+                           params.AppendConvertStatus (string_format(wxString("WARNING: ")+ChannelNames[curchannel]+wxString(" and ")
+                                                                                       +ChannelName+wxString(" map to the same channel %d"), curchannel));
                         }
                         MappedChannelCnt++;
                         ChannelNames[curchannel] = ChannelName;
@@ -613,7 +624,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     }
                     else
                     {
-                        params.convertDialog->AppendConvertStatus (wxString("WARNING: channel '")+ChannelName+wxString("' is unmapped\n"));
+                        params.AppendConvertStatus (wxString("WARNING: channel '")+ChannelName+wxString("' is unmapped"));
                     }
                 }
                 if (cnt > 1 && context[1] == wxString("channels") && NodeName == wxString("effect") && curchannel >= 0)
@@ -747,11 +758,11 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         ClearLastPeriod(params.seq_data);
     }
 
-    params.convertDialog->AppendConvertStatus (string_format(wxString("# of mapped channels with effects=%d\n"),MappedChannelCnt), false);
-    params.convertDialog->AppendConvertStatus (string_format(wxString("# of effects=%d\n"),EffectCnt), false);
+    params.AppendConvertStatus (string_format(wxString("# of mapped channels with effects=%d"),MappedChannelCnt), false);
+    params.AppendConvertStatus (string_format(wxString("# of effects=%d"),EffectCnt), false);
     if( params.media_filename )
-        params.convertDialog->AppendConvertStatus (wxString("Media file=")+*params.media_filename+wxString("\n"), false);
-    params.convertDialog->AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),params.seq_data.NumFrames()), false);
+        params.AppendConvertStatus (wxString("Media file=")+*params.media_filename, false);
+    params.AppendConvertStatus (string_format(wxString("New # of time periods=%ld"),params.seq_data.NumFrames()), false);
     params.SetStatusText(wxString("LOR sequence converted successfully"));
 
     wxYield();
@@ -813,7 +824,7 @@ void FileConverter::ReadXlightsFile(ConvertParameters& params)
         }
         delete [] buf;
 #ifndef NDEBUG
-        params.convertDialog->AppendConvertStatus (string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%d SeqData.NumChannels()=%d\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+        params.AppendConvertStatus (string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%d SeqData.NumChannels()=%d"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
 #endif
     }
     f.Close();
@@ -974,13 +985,13 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
         int i = map[tmp + 1];
         int orig = params.NetInfo.GetNumChannels(tmp / 2);
         if (i < orig) {
-            params.convertDialog->AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
+            params.AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d"), map[tmp], i, orig), false);
             i = orig;
         } else if (i > orig) {
-            params.convertDialog->AppendConvertStatus (string_format(wxString("WARNING Universe: %ld contains more channels than you have configured.\n"), map[tmp]), false);
-            params.convertDialog->AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
+            params.AppendConvertStatus (string_format(wxString("WARNING Universe: %ld contains more channels than you have configured."), map[tmp]), false);
+            params.AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d"), map[tmp], i, orig), false);
         } else {
-            params.convertDialog->AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld\n"), map[tmp], i, orig), false);
+            params.AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld"), map[tmp], i, orig), false);
         }
 
 
@@ -988,9 +999,9 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
         channels += i;
     }
 
-    params.convertDialog->AppendConvertStatus (string_format(wxString("TimeCells = %d\n"), timeCells), false);
-    params.convertDialog->AppendConvertStatus (string_format(wxString("msPerCell = %d ms\n"), msPerCell), false);
-    params.convertDialog->AppendConvertStatus (string_format(wxString("Channels = %d\n"), channels), false);
+    params.AppendConvertStatus (string_format(wxString("TimeCells = %d"), timeCells), false);
+    params.AppendConvertStatus (string_format(wxString("msPerCell = %d ms"), msPerCell), false);
+    params.AppendConvertStatus (string_format(wxString("Channels = %d"), channels), false);
     if (channels == 0)
     {
         return;
@@ -1117,7 +1128,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                             ChannelColors[channels] = 0x00FFFFFF;
                         }
                         wxString o2 = params.NetInfo.GetChannelName(channels);
-                        params.convertDialog->AppendConvertStatus (string_format("Map %s -> %s (%s)\n",
+                        params.AppendConvertStatus (string_format("Map %s -> %s (%s)",
                                                            ChannelNames[channels].c_str(),
                                                            origName.c_str(),
                                                            o2.c_str()), false);
@@ -1242,7 +1253,7 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
     }
     params.seq_data.init(0, 0, params.sequence_interval);
 
-    params.convertDialog->AppendConvertStatus (wxString("Reading Vixen sequence\n"));
+    params.AppendConvertStatus (wxString("Reading Vixen sequence"));
 
     SP_XmlPullParser *parser = new SP_XmlPullParser();
     parser->setMaxTextSize(MAX_READ_BLOCK_SIZE / 2);
@@ -1282,7 +1293,7 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
                 NodeName = FromAscii( stagEvent->getName() );
                 context.push_back(NodeName);
                 cnt++;
-                //msg=wxString("Element: ") + NodeName + string_format(wxString(" (%ld)\n"),cnt);
+                //msg=wxString("Element: ") + NodeName + string_format(wxString(" (%ld)"),cnt);
                 //AppendConvertStatus (msg);
                 if (cnt == 2 && (NodeName == wxString("Audio") || NodeName == wxString("Song")))
                 {
@@ -1318,7 +1329,7 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
                     }
                     else if (context[1] == wxString("EventValues"))
                     {
-                        //AppendConvertStatus(string_format(wxString("Chunk Size=%d\n"), NodeValue.size()));
+                        //AppendConvertStatus(string_format(wxString("Chunk Size=%d"), NodeValue.size()));
                         if (carryOver.size() > 0) {
                             NodeValue.insert(0, carryOver);
                         }
@@ -1389,17 +1400,17 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
     {
         numChannels = 0;
     }
-    params.convertDialog->AppendConvertStatus (string_format(wxString("Max Intensity=%ld\n"),MaxIntensity), false);
-    params.convertDialog->AppendConvertStatus (string_format(wxString("# of Channels=%ld\n"),numChannels), false);
-    params.convertDialog->AppendConvertStatus (string_format(wxString("Vix Event Period=%ld\n"),VixEventPeriod), false);
-    params.convertDialog->AppendConvertStatus (string_format(wxString("Vix data len=%ld\n"),VixDataLen), false);
+    params.AppendConvertStatus (string_format(wxString("Max Intensity=%ld"),MaxIntensity), false);
+    params.AppendConvertStatus (string_format(wxString("# of Channels=%ld"),numChannels), false);
+    params.AppendConvertStatus (string_format(wxString("Vix Event Period=%ld"),VixEventPeriod), false);
+    params.AppendConvertStatus (string_format(wxString("Vix data len=%ld"),VixDataLen), false);
     if (numChannels == 0)
     {
         return;
     }
     long VixNumPeriods = VixDataLen / VixChannels.size();
-    params.convertDialog->AppendConvertStatus (string_format(wxString("Vix # of time periods=%ld\n"),VixNumPeriods), false);
-    params.convertDialog->AppendConvertStatus (wxString("Media file=")+*params.media_filename+wxString("\n"), false);
+    params.AppendConvertStatus (string_format(wxString("Vix # of time periods=%ld"),VixNumPeriods), false);
+    params.AppendConvertStatus (wxString("Media file=")+*params.media_filename, false);
     if (VixNumPeriods == 0) {
         return;
     }
@@ -1517,7 +1528,7 @@ void FileConverter::ReadGlediatorFile(ConvertParameters& params)
     }
 
 #ifndef NDEBUG
-    params.convertDialog->AppendConvertStatus (string_format(wxString("ReadGlediatorFile SeqData.NumFrames()=%d SeqData.NumChannels()=%d\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+    params.AppendConvertStatus (string_format(wxString("ReadGlediatorFile SeqData.NumFrames()=%d SeqData.NumChannels()=%d"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
 #endif
 
     wxYield();
@@ -1700,7 +1711,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     delete []tmpBuf;
 
 #ifndef NDEBUG
-    params.convertDialog->AppendConvertStatus(string_format(wxString("Read ISEQ File SeqData.NumFrames()=%d SeqData.NumChannels()=%d\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+    params.AppendConvertStatus(string_format(wxString("Read ISEQ File SeqData.NumFrames()=%d SeqData.NumChannels()=%d"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
 #endif
 
     f.Close();

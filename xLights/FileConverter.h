@@ -39,6 +39,7 @@ public:
     void SetStatusText(wxString msg);
     void ConversionError(wxString msg);
     void PlayerError(wxString msg);
+    void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
 
     ConvertParameters( wxString inp_filename_,
                        SequenceData& seq_data_,
