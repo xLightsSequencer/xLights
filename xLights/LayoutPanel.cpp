@@ -1405,7 +1405,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
             DoCopy(evt);
             event.StopPropagation();
         }
-        else if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) // Paste
+        else if (event.ShiftDown()) // Paste
         {
             wxCommandEvent evt(wxEVT_MENU, wxID_PASTE);
             DoPaste(evt);
@@ -1415,7 +1415,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
 #endif
         case WXK_DELETE:
 #ifdef __WXMSW__
-            if (GetKeyState(VK_LSHIFT) || GetKeyState(VK_RSHIFT)) // Cut
+            if (event.ShiftDown()) // Cut
             {
                 wxCommandEvent evt(wxEVT_MENU, wxID_CUT);
                 DoCut(evt);
