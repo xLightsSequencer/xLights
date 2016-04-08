@@ -6,6 +6,7 @@
 #include "../UtilClasses.h"
 #include "assist/xlGridCanvasPictures.h"
 #include "assist/PicturesAssistPanel.h"
+#include "../xLightsXmlFile.h"
 
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
@@ -50,7 +51,7 @@ AssistPanel *PicturesEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_f
 
 bool PicturesEffect::needToAdjustSettings(const std::string &version)
 {
-    return IsVersionOlder("2016.9", version);
+    return true;
 }
 
 void PicturesEffect::adjustSettings(const std::string &version, Effect *effect)
@@ -62,13 +63,26 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect)
     }
 
     SettingsMap &settings = effect->GetSettings();
-    if( settings["E_CHOICE_Pictures_Direction"] == "scaled" )
+
+    std::string file = settings["FILEPICKER_Pictures_Filename"];
+    if (file != "")
     {
-        settings["E_CHOICE_Pictures_Direction"] = "none";
-        settings["E_CHECKBOX_Pictures_ScaleToFit"] = "1";
+        if (!wxFile::Exists(file))
+        {
+            settings["FILEPICKER_Pictures_Filename"] = xLightsXmlFile::FixFile("", file);
+        }
     }
-    settings["E_SLIDER_Pictures_StartScale"] = "100";
-    settings["E_SLIDER_Pictures_EndScale"] = "100";
+
+    if (IsVersionOlder("2016.9", version))
+    {
+        if (settings["E_CHOICE_Pictures_Direction"] == "scaled")
+        {
+            settings["E_CHOICE_Pictures_Direction"] = "none";
+            settings["E_CHECKBOX_Pictures_ScaleToFit"] = "1";
+        }
+        settings["E_SLIDER_Pictures_StartScale"] = "100";
+        settings["E_SLIDER_Pictures_EndScale"] = "100";
+    }
 }
 
 //CAUTION: these must match EffectDirections exactly:
