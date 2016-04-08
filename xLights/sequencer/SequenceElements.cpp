@@ -202,7 +202,7 @@ void SequenceElements::SetEffectsNode(wxXmlNode* effectsNode)
     mEffectsNode = effectsNode;
 }
 
-std::string SequenceElements::GetViewModels(const std::string &viewName) const 
+std::string SequenceElements::GetViewModels(const std::string &viewName) const
 {
     std::string result="";
     for(wxXmlNode* view=mViewsNode->GetChildren(); view!=NULL; view=view->GetNext() )
@@ -951,6 +951,7 @@ void SequenceElements::addTimingElement(Element *elem, std::vector<Row_Informati
         ri.colorIndex = timingColorIndex;
         ri.layerIndex = 0;
         ri.Index = rowIndex++;
+        timingRowCount++;
         mRowInformation.push_back(ri);
     }
     timingColorIndex++;
