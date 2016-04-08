@@ -35,7 +35,7 @@
 
 
 #ifdef __WXMSW__
-#define USE_GRAPHICS_CONTEXT_FOR_TEXT 1
+#define USE_GRAPHICS_CONTEXT_FOR_TEXT 0
 #else
 #define USE_GRAPHICS_CONTEXT_FOR_TEXT 1
 #endif
