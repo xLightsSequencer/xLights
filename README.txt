@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+   -- fix (keithsw) Ensure pictures, piano and video effect move when moving folders around
    -- enh (keithsw) Move convert tab into a dialog
 2016.20  Apr 13, 2016
    -- bug (gil)   Fix right-click Paste not active after a Control-C copy.
@@ -35,8 +36,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Find a solution to some crashing in release builds
    -- bug (dkulp) Remove model properties dialog and model list dialog
    -- bug (dkulp) Fix crash in editing groups
+2016.18  Apr 7, 2016
    -- bug (gil)   Fix bug when Papagayo timing was collapsed and selected grid cell selection wasn't working.
    -- bug (gil)   Fix Delete key operation so it doesn't do a Cut unless Shift is pressed.
+   -- bug (dkulp) Fix shift-del/ins on LayoutPanel as well
+   -- bug (dkulp) Fix "individual start channel" calculations
+   -- bug (dkulp) Set the buffer size correctly for candycanes.  Fixes #521
+   -- bug (dkulp) Find a solution to some crashing in release builds
+   -- bug (dkulp) Remove model properties dialog and model list dialog
+   -- bug (dkulp) Fix crash in editing groups
 2016.17  Apr 3, 2016
    -- enh (keithsw) Add writing of FPP universes file when saving networks
    -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log found typically in c:\users\<user>\AppData\Roaming
