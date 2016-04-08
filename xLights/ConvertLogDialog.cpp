@@ -32,9 +32,6 @@ void ConvertLogDialog::AppendConvertStatus(const wxString &msg, bool flushBuffer
             msgBuffer.Clear();
         }
     }
-
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.info("ConvertStatus: " + msg);
 }
 
 void ConvertLogDialog::Done()

@@ -994,6 +994,7 @@ void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
     }
     //TreeCtrl_Data_Layers->SetItemText(branch_num_channels, wxString::Format("Number of Channels: %d", new_data_layer->GetNumChannels()));  FIXME update in case channel number changes
     Button_Close->Enable(true);
+    _plog->Done();
 }
 
 void SeqSettingsDialog::UpdateDataLayer()
