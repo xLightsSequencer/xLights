@@ -10,6 +10,7 @@
 
 class xLightsFrame; // forward declare to prevent including the world
 class ConvertDialog;
+class ConvertLogDialog;
 
 class ConvertParameters
 {
@@ -35,6 +36,7 @@ public:
     ReadMode read_mode;
     xLightsFrame* xLightsFrm;
     ConvertDialog* convertDialog;
+    ConvertLogDialog* convertLogDialog;
 
     void SetStatusText(wxString msg);
     void ConversionError(wxString msg);
@@ -47,6 +49,7 @@ public:
                        ReadMode read_mode_,
                        xLightsFrame* xLightsFrm_,
                        ConvertDialog* convertDialog_,
+                       ConvertLogDialog* convertLogDialog_,
                        wxString* media_filename_ = nullptr,
                        DataLayer* data_layer_ = nullptr,
                        wxString out_filename_ = wxEmptyString,

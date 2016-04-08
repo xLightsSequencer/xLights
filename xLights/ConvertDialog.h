@@ -87,7 +87,6 @@ class ConvertDialog: public wxDialog
 		wxButton* ButtonStartConversion;
 		wxStaticText* StaticText11;
 		wxCheckBox* CheckBoxMapEmptyChannels;
-		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
@@ -102,7 +101,6 @@ class ConvertDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(ConvertDialog)
-		static const long ID_STATICTEXT1;
 		static const long ID_STATICTEXT2;
 		static const long ID_STATICTEXT3;
 		static const long ID_STATICTEXT6;

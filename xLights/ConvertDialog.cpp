@@ -14,7 +14,6 @@
 #include <wx/base64.h>
 
 //(*InternalHeaders(ConvertDialog)
-#include <wx/font.h>
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
@@ -25,7 +24,6 @@
 #include <log4cpp/Category.hh>
 
 //(*IdInit(ConvertDialog)
-const long ConvertDialog::ID_STATICTEXT1 = wxNewId();
 const long ConvertDialog::ID_STATICTEXT2 = wxNewId();
 const long ConvertDialog::ID_STATICTEXT3 = wxNewId();
 const long ConvertDialog::ID_STATICTEXT6 = wxNewId();
@@ -70,15 +68,11 @@ ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, NetInfoCla
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizerConvert;
 
-	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
+	Create(parent, id, _("xLights File Conversion"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizerConvert = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizerConvert->AddGrowableCol(0);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("xLights File Converter"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	wxFont StaticText1Font(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,_T("Arial Narrow"),wxFONTENCODING_DEFAULT);
-	StaticText1->SetFont(StaticText1Font);
-	FlexGridSizerConvert->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Entries on the Setup tab will guide the conversion. Make sure you have your lighting networks defined accurately before you start a conversion."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizerConvert->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("For LMS imports, LOR networks should be first followed by DMX starting at universe 1."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));

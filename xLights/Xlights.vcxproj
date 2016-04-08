@@ -161,6 +161,7 @@
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="ColorPanel.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
+    <ClCompile Include="ConvertLogDialog.cpp" />
     <ClCompile Include="CurrentPreviewModels.cpp" />
     <ClCompile Include="CustomModelDialog.cpp" />
     <ClCompile Include="DataLayer.cpp" />
@@ -391,6 +392,7 @@
     <ClInclude Include="Color.h" />
     <ClInclude Include="ColorPanel.h" />
     <ClInclude Include="ConvertDialog.h" />
+    <ClInclude Include="ConvertLogDialog.h" />
     <ClInclude Include="CurrentPreviewModels.h" />
     <ClInclude Include="CustomModelDialog.h" />
     <ClInclude Include="DataLayer.h" />

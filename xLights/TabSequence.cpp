@@ -21,7 +21,7 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 {
-    OpenSequence("");
+    OpenSequence("", NULL);
 }
 
 void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
@@ -497,9 +497,9 @@ void xLightsFrame::SaveSequence()
 
     CurrentSeqXmlFile->Save(mSequenceElements);
     if (mRenderOnSave) {
-        RenderIseqData(true); // render ISEQ layers below the Nutcracker layer
+        RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
         RenderGridToSeqData();
-        RenderIseqData(false);  // render ISEQ layers above the Nutcracker layer
+        RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
     }
     WriteFalconPiFile(xlightsFilename);
 	DisplayXlightsFilename(xlightsFilename);
@@ -560,9 +560,9 @@ void xLightsFrame::RenderAll()
 	wxYield(); // ensure all controls are disabled.
     wxStopWatch sw; // start a stopwatch timer
     StatusBar1->SetStatusText(_("Rendering all layers"));
-    RenderIseqData(true); // render ISEQ layers below the Nutcracker layer
+    RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
     RenderGridToSeqData();
-    RenderIseqData(false);  // render ISEQ layers above the Nutcracker layer
+    RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
     CallAfter(&xLightsFrame::SetStatusText, displayBuff);

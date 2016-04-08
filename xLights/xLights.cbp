@@ -461,6 +461,8 @@
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="ConvertDialog.cpp" />
 		<Unit filename="ConvertDialog.h" />
+		<Unit filename="ConvertLogDialog.cpp" />
+		<Unit filename="ConvertLogDialog.h" />
 		<Unit filename="CurrentPreviewModels.cpp" />
 		<Unit filename="CurrentPreviewModels.h" />
 		<Unit filename="CustomModelDialog.cpp" />
@@ -915,6 +917,7 @@
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/ConvertDialog.wxs" />
+		<Unit filename="wxsmith/ConvertLogDialog.wxs" />
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
 		<Unit filename="wxsmith/CurtainPanel.wxs" />
 		<Unit filename="wxsmith/CustomModelDialog.wxs" />
@@ -1112,6 +1115,7 @@
 					<wxDialog wxs="wxsmith/StartChannelDialog.wxs" src="StartChannelDialog.cpp" hdr="StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CustomModelDialog.wxs" src="CustomModelDialog.cpp" hdr="CustomModelDialog.h" fwddecl="1" i18n="1" name="CustomModelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ConvertDialog.wxs" src="ConvertDialog.cpp" hdr="ConvertDialog.h" fwddecl="0" i18n="1" name="ConvertDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ConvertLogDialog.wxs" src="ConvertLogDialog.cpp" hdr="ConvertLogDialog.h" fwddecl="0" i18n="1" name="ConvertLogDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

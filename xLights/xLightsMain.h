@@ -104,6 +104,7 @@
 
 class EffectTreeDialog;
 class ConvertDialog;
+class ConvertLogDialog;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -356,7 +357,7 @@ public:
     void ConversionError(const wxString& msg);
     void PlayerError(const wxString& msg);
     void SetMediaFilename(const wxString& filename);
-    void RenderIseqData(bool bottom_layers);
+    void RenderIseqData(bool bottom_layers, ConvertLogDialog* plog);
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
     void CreateDebugReport(wxDebugReportCompress *report);
@@ -1192,7 +1193,7 @@ protected:
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
     void BackupDirectory(wxString targetDirName);
     void NewSequence();
-    void OpenSequence(wxString passed_filename);
+    void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
     void SaveSequence();
     void SaveAsSequence();
     bool CloseSequence();

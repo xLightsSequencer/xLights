@@ -1,27 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxDialog" name="ConvertDialog">
+		<title>xLights File Conversion</title>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizerConvert" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>xLights File Converter</label>
-					<font>
-						<size>12</size>
-						<style>normal</style>
-						<weight>bold</weight>
-						<underlined>0</underlined>
-						<family>swiss</family>
-						<face>Arial Narrow</face>
-					</font>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
 					<label>Entries on the Setup tab will guide the conversion. Make sure you have your lighting networks defined accurately before you start a conversion.</label>

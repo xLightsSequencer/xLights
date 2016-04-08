@@ -8,6 +8,7 @@
 #include "LorConvertDialog.h"
 #include <wx/treectrl.h>
 #include "Images_png.h"
+#include "ConvertLogDialog.h"
 
 #include "VAMPPluginDialog.h"
 
@@ -125,6 +126,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	selected_branch_index(-1),
 	wizard_active(wizard_active_)
 {
+    _plog = NULL;
+
 	music_seq = wxBITMAP_PNG_FROM_DATA(music);
 	music_seq_pressed = wxBITMAP_PNG_FROM_DATA(music_pressed);
 	animation_seq = wxBITMAP_PNG_FROM_DATA(animation);
@@ -435,10 +438,24 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 
     UpdateDataLayer();
     needs_render = false;
+
+    int x, y, w, h;
+    GetPosition(&x, &y);
+    GetSize(&w, &h);
+    x += w;
+    _plog = new ConvertLogDialog(this, -1, wxPoint(x,y));
+    _plog->Show(false);
 }
 
 SeqSettingsDialog::~SeqSettingsDialog()
 {
+    if (_plog != NULL)
+    {
+        _plog->Show(false);
+        _plog->Close();
+        delete _plog;
+        _plog = NULL;
+    }
 	//(*Destroy(SeqSettingsDialog)
 	//*)
 }
@@ -797,14 +814,15 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
 {
-    bool modified = ImportDataLayer(strSupportedFileTypes);
+    bool modified = ImportDataLayer(strSupportedFileTypes, _plog);
     if( modified )
     {
         needs_render = true;
     }
+    _plog->Done();
 }
 
-bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes)
+bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDialog* plog)
 {
     bool return_val = false;
     wxFileDialog* ImportDialog = new wxFileDialog( this, "Choose file to import as data layer", wxEmptyString, wxEmptyString, filetypes, wxFD_OPEN, wxDefaultPosition);
@@ -813,6 +831,12 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes)
     Button_Layer_Import->Enable(false);
     if (ImportDialog->ShowModal() == wxID_OK)
     {
+        _plog->Show(true);
+        int x, y, w, h;
+        GetPosition(&x, &y);
+        GetSize(&w, &h);
+        x += w;
+        _plog->SetPosition(wxPoint(x, y));
         fDir =	ImportDialog->GetDirectory();
         wxString filename = ImportDialog->GetFilename();
         wxFileName full_name(filename);
@@ -837,6 +861,7 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes)
                                       ConvertParameters::READ_MODE_NORMAL,                      // file read mode
                                       xLightsParent,                                            // xLights main frame
                                       nullptr,
+                                      _plog,
                                       &media_filename,                                          // media filename
                                       new_data_layer,                                           // data layer to fill in header info
                                       data_file.GetFullPath(),                                  // output filename
@@ -910,6 +935,7 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes)
 
 void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
 {
+    _plog->Show(true);
     LayerTreeItemData* data = (LayerTreeItemData*)TreeCtrl_Data_Layers->GetItemData(selected_branch);
     DataLayer* layer = data->GetLayer();
     Button_Close->Enable(false);
@@ -921,6 +947,7 @@ void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
                                   ConvertParameters::READ_MODE_NORMAL,                      // file read mode
                                   xLightsParent,                                            // xLights main frame
                                   nullptr,
+                                  _plog,
                                   &media_filename,                                          // media filename
                                   layer,                                                    // data layer to fill in header info
                                   layer->GetDataSource(),                                   // output filename
@@ -1233,7 +1260,7 @@ void SeqSettingsDialog::OnBitmapButton_lorClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "LOR Sequences (*.lms,*.las)|*.lms;*.las";
-    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done();  WizardPage4(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
@@ -1241,7 +1268,7 @@ void SeqSettingsDialog::OnBitmapButton_vixenClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "Vixen Sequences (*.vix)|*.vix";
-    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage4(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
@@ -1249,7 +1276,7 @@ void SeqSettingsDialog::OnBitmapButton_gledClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "Glediator Record File (*.gled)|*.gled";
-    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    if( ImportDataLayer(strFileTypes, _plog) ) { WizardPage4(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
@@ -1257,7 +1284,7 @@ void SeqSettingsDialog::OnBitmapButton_hlsClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata";
-    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage4(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
@@ -1265,7 +1292,7 @@ void SeqSettingsDialog::OnBitmapButton_lynxClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "Lynx Conductor Sequences (*.seq)|*.seq";
-    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage4(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 
@@ -1273,7 +1300,7 @@ void SeqSettingsDialog::OnBitmapButton_xlightsClick(wxCommandEvent& event)
 {
     Notebook_Seq_Settings->SetSelection(4);
     const wxString strFileTypes = "xLights Sequences(*.xseq, *.iseq, *.fseq)|*.xseq;*.iseq;*.fseq";
-    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    if (ImportDataLayer(strFileTypes, _plog)) { _plog->Done(); WizardPage4(); }
     Notebook_Seq_Settings->SetSelection(0);
 }
 

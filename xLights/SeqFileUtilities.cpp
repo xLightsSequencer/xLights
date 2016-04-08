@@ -6,6 +6,7 @@
 #include "LMSImportChannelMapDialog.h"
 #include "SuperStarImportDialog.h"
 #include "SaveChangesDialog.h"
+#include "ConvertLogDialog.h"
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -89,7 +90,7 @@ static wxFileName mapFileName(const wxFileName &orig) {
     return orig;
 }
 
-void xLightsFrame::OpenSequence(const wxString passed_filename)
+void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
 {
     bool loaded_xml = false;
     bool loaded_fseq = false;
@@ -120,6 +121,10 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
         xlightsFilename = fseq_file.GetFullPath();
         if( fseq_file.FileExists() )
         {
+            if (plog != NULL)
+            {
+                plog->Show(true);
+            }
             wxString mf;
             ConvertParameters read_params(xlightsFilename,                              // input filename
                                           SeqData,                                      // sequence data object
@@ -127,6 +132,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename)
                                           ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
                                           this,                                         // xLights main frame
                                           NULL,
+                                          plog,
                                           &mf );                                        // media filename
 
             FileConverter::ReadFalconFile(read_params);
@@ -338,7 +344,7 @@ void xLightsFrame::ClearSequenceData()
             SeqData[i][j] = 0;
 }
 
-void xLightsFrame::RenderIseqData(bool bottom_layers)
+void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
 {
     DataLayerSet& data_layers = CurrentSeqXmlFile->GetDataLayers();
     ConvertParameters::ReadMode read_mode;
@@ -370,12 +376,17 @@ void xLightsFrame::RenderIseqData(bool bottom_layers)
         {
             if( start_rendering )
             {
+                if (plog != NULL)
+                {
+                    plog->Show(true);
+                }
                 ConvertParameters read_params(data_layer->GetDataSource(),                // input filename
                                               SeqData,                                    // sequence data object
                                               GetNetInfo(),                               // global network info
                                               read_mode,                                  // file read mode
                                               this,                                       // xLights main frame
                                               nullptr,
+                                              plog,
                                               nullptr,                                    // filename not needed
                                               data_layer );                               // provide data layer for channel offsets
 

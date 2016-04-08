@@ -13,6 +13,7 @@
 #include <wx/file.h>
 #include "xLightsMain.h"
 #include "ConvertDialog.h"
+#include "ConvertLogDialog.h"
 
 #define string_format wxString::Format
 
@@ -25,6 +26,10 @@ void ConvertParameters::AppendConvertStatus(const wxString& msg, bool flushbuffe
     if (convertDialog != NULL)
     {
         convertDialog->AppendConvertStatus(msg + "\n", flushbuffer);
+    }
+    if (convertLogDialog != NULL)
+    {
+        convertLogDialog->AppendConvertStatus(msg + "\n", flushbuffer);
     }
     log4cpp::Category& logger = log4cpp::Category::getRoot();
     logger.info("Convert Status: " + msg);
@@ -72,6 +77,7 @@ ConvertParameters::ConvertParameters( wxString inp_filename_,
                                       ReadMode read_mode_,
                                       xLightsFrame* xLightsFrm_,
                                       ConvertDialog* convertDialog_,
+                                      ConvertLogDialog* convertLogDialog_,
                                       wxString* media_filename_,
                                       DataLayer* data_layer_,
                                       wxString out_filename_,
@@ -91,7 +97,8 @@ ConvertParameters::ConvertParameters( wxString inp_filename_,
   map_no_network_channels(map_no_network_channels_),
   read_mode(read_mode_),
   xLightsFrm(xLightsFrm_),
-  convertDialog(convertDialog_)
+  convertDialog(convertDialog_),
+  convertLogDialog(convertLogDialog_)
 {
 }
 

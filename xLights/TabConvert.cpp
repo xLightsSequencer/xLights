@@ -695,6 +695,7 @@ void FRAMECLASS ReadFalconFile(const wxString& FileName, ConvertDialog* convertd
         ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
         this,                                         // xLights main frame
         convertdlg,
+        nullptr,
         &mediaFilename);                             // media filename
 
     FileConverter::ReadFalconFile(read_params);
