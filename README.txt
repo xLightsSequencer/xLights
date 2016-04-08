@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+   -- bug (gil)   Fix bug when Papagayo timing was collapsed and selected grid cell selection wasn't working.
    -- bug (gil)   Fix Delete key operation so it doesn't do a Cut unless Shift is pressed.
 2016.17  Apr 3, 2016
    -- bug (dkulp) Fix text effect on Windows

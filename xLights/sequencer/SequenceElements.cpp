@@ -950,9 +950,13 @@ void SequenceElements::addTimingElement(Element *elem, std::vector<Row_Informati
         ri.Active = elem->GetActive();
         ri.colorIndex = timingColorIndex;
         ri.layerIndex = 0;
+        if(selectedTimingRow<0)
+        {
+            selectedTimingRow = ri.Active?rowIndex:-1;
+        }
         ri.Index = rowIndex++;
-        timingRowCount++;
         mRowInformation.push_back(ri);
+        timingRowCount++;
     }
     timingColorIndex++;
 }
