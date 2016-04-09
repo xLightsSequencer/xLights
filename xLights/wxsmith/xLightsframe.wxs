@@ -148,7 +148,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarEffectSettings" member="yes">
 							<bitmap stock_id="xlART_EFFECTSETTINGS" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Effects</shorthelp>
+							<shorthelp>Effect Settings</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="ShowHideEffectSettingsWindow" entry="EVT_TOOL" />
 						</object>
