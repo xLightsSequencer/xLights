@@ -60,6 +60,7 @@ void RippleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     if(ColorIdx==colorcnt) ColorIdx--; // ColorIdx goes from 0-3 when colorcnt goes from 1-4. Make sure that is true
     
     double radius;
+    double side;
     buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
     int explode;
     switch (Object_To_Draw)
@@ -90,10 +91,9 @@ void RippleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
                 radius = xc-(xc*rx);
             else
                 radius = (xc*rx);
-            
-            
+                        
             Drawcircle(buffer, Movement,xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
-            radius=radius/2;
+            //radius=radius/2;
             /*Drawcircle( Movement,xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
              radius=radius/2;
              Drawcircle( Movement,xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
@@ -102,7 +102,49 @@ void RippleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
              */
             break;
         case RENDER_RIPPLE_TRIANGLE:
+            if (Movement == MOVEMENT_IMPLODE)
+                side = xc - (xc*rx);
+            else
+                side = (xc*rx);
+
+            Drawtriangle(buffer, Movement, xc, yc, side, hsv, Ripple_Thickness, CheckBox_Ripple3D);
             break;
+    }
+}
+
+void RippleEffect::Drawtriangle(RenderBuffer &buffer, int Movement, int xc, int yc, double side, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
+{
+    int i;
+    xlColor color(hsv);
+
+#define ROOT3DIV3 0.577350269
+#define SIN30 0.5
+#define COS30 0.866025404
+
+    for (i = 0; i<Ripple_Thickness; i++)
+    {
+        double radius = (side + i) * ROOT3DIV3;
+        double ytop = yc + radius;
+        int xtop = xc;
+
+        double xleft = xc - radius * COS30;
+        double yleft = yc - radius * SIN30;
+
+        double xright = xleft + side + i;
+        double yright = yleft;
+
+        if (CheckBox_Ripple3D) {
+            if (buffer.allowAlpha) {
+                color.alpha = 255.0 * (1.0 - ((float(i) / 2.0) / float(Ripple_Thickness)));
+            }
+            else {
+                hsv.value *= 1.0 - ((float(i) / 2.0) / float(Ripple_Thickness)); // we multiply by 1.0 when Ripple_Thickness=0
+                color = hsv;
+            }
+        }
+        buffer.DrawLine(xtop, ytop, xleft, yleft, color);
+        buffer.DrawLine(xtop, ytop, xright, yright, color);
+        buffer.DrawLine(xleft, yleft, xright, yright, color);
     }
 }
 

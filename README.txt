@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+   -- bug (keithsw) Fix implemented ripple missing triangle option #524
 2016.18  Apr 7, 2016
    -- bug (gil)   Fix bug when Papagayo timing was collapsed and selected grid cell selection wasn't working.
    -- bug (gil)   Fix Delete key operation so it doesn't do a Cut unless Shift is pressed.

@@ -17,7 +17,8 @@ class RippleEffect : public RenderableEffect
     private:
     
     void Drawcircle(RenderBuffer &buffer, int Movement, int xc, int yc, double radius,HSVValue &hsv, int Ripple_Thickness,int CheckBox_Ripple3D);
-    void Drawsquare(RenderBuffer &buffer, int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,HSVValue &hsv);
+    void Drawsquare(RenderBuffer &buffer, int Movement, int x1, int x2, int y1, int y2, int Ripple_Thickness, int CheckBox_Ripple3D, HSVValue &hsv);
+    void Drawtriangle(RenderBuffer &buffer, int Movement, int xc, int yc, double side, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D);
 
 };
 
