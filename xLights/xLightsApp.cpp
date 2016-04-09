@@ -122,27 +122,34 @@ wxString windows_get_stacktrace(void *data)
 
 void InitialiseLogging()
 {
+    static bool loggingInitialised = false;
+
+    if (!loggingInitialised)
+    {
+        loggingInitialised = true;
+
 #ifdef __WXMSW__
-    std::string initFileName = "xlights.windows.properties";
+        std::string initFileName = "xlights.windows.properties";
 #endif
 #ifdef __WXOSX_MAC__
-    std::string initFileName = "xlights.mac.properties";
+        std::string initFileName = "xlights.mac.properties";
 #endif
 #ifdef __LINUX__
-    const wxString datadir = wxStandardPaths::Get().GetDataDir();
-    std::string initFileName = std::string(datadir.c_str()) + "/xlights.linux.properties";
+        const wxString datadir = wxStandardPaths::Get().GetDataDir();
+        std::string initFileName = std::string(datadir.c_str()) + "/xlights.linux.properties";
 #endif
 
-    try
-    {
-        log4cpp::PropertyConfigurator::configure(initFileName);
-    }
-    catch (log4cpp::ConfigureFailure& e) {
-        // ignore config failure ... but logging wont work
-        printf("%s\n", e.what());
-    }
-    catch (const std::exception& ex) {
-        printf("%s\n", ex.what());
+        try
+        {
+            log4cpp::PropertyConfigurator::configure(initFileName);
+        }
+        catch (log4cpp::ConfigureFailure& e) {
+            // ignore config failure ... but logging wont work
+            printf("%s\n", e.what());
+        }
+        catch (const std::exception& ex) {
+            printf("%s\n", ex.what());
+        }
     }
 }
 
@@ -160,16 +167,16 @@ int main(int argc, char **argv)
     //     a folder the user can write to
     //     predictable ... as we want the handleCrash function to be able to locate the file to include it in the crash
     log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.info("MAIN: XLights started.");
+    logger.info("XLights main function executing.");
 
 #ifdef LINUX
     XInitThreads();
 #endif
     wxDISABLE_DEBUG_SUPPORT();
 
-    logger.info("Starting wxWidgets ...");
+    logger.info("Main: Starting wxWidgets ...");
     int rc =  wxEntry(argc, argv);
-    logger.info("wxWidgets exited with rc=" + wxString::Format("%d", rc));
+    logger.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
     return rc;
 }
 
@@ -283,19 +290,20 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 
 bool xLightsApp::OnInit()
 {
-#ifdef _MSC_VER
     InitialiseLogging();
-#endif
     log4cpp::Category& logger = log4cpp::Category::getRoot();
-#ifdef _MSC_VER
     logger.info("OnInit: XLights started.");
-#endif
-    logger.info("XLightsApp OnInit.");
 
 #ifdef _MSC_VER
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+#endif
+
+#if wxUSE_ON_FATAL_EXCEPTION
+    wxHandleFatalExceptions();
+#else
+    SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
 
 //    heartbeat("init", true); //tell monitor active now -DJ
@@ -354,12 +362,6 @@ bool xLightsApp::OnInit()
         wxMessageBox(_("Unrecognized command line parameters"),_("Command Line Error"));
         return false;
     }
-
-#if wxUSE_ON_FATAL_EXCEPTION
-    wxHandleFatalExceptions();
-#else
-    SetUnhandledExceptionFilter(windows_exception_handler);
-#endif
 
     //(*AppInitialize
     bool wxsOK = true;
