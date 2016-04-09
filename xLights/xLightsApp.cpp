@@ -120,18 +120,59 @@ wxString windows_get_stacktrace(void *data)
 
 #endif
 
+void InitialiseLogging()
+{
+#ifdef __WXMSW__
+    std::string initFileName = "xlights.windows.properties";
+#endif
+#ifdef __WXOSX_MAC__
+    std::string initFileName = "xlights.mac.properties";
+#endif
+#ifdef __LINUX__
+    const wxString datadir = wxStandardPaths::Get().GetDataDir();
+    std::string initFileName = std::string(datadir.c_str()) + "/xlights.linux.properties";
+#endif
+
+    try
+    {
+        log4cpp::PropertyConfigurator::configure(initFileName);
+    }
+    catch (log4cpp::ConfigureFailure& e) {
+        // ignore config failure ... but logging wont work
+        printf("%s\n", e.what());
+    }
+    catch (const std::exception& ex) {
+        printf("%s\n", ex.what());
+    }
+}
+
 #ifdef LINUX
     #include <X11/Xlib.h>
 #endif // LINUX
 //IMPLEMENT_APP(xLightsApp)
 int main(int argc, char **argv)
 {
+    InitialiseLogging();
+    // Dan/Chris ... if you get an exception here the most likely reason is the line
+    // appender.A1.fileName= in the xlights.xxx.properties file
+    // it seems to need to be a folder that exists ... ideally it would create it but it doesnt seem to
+    // it needs to be:
+    //     a folder the user can write to
+    //     predictable ... as we want the handleCrash function to be able to locate the file to include it in the crash
+    log4cpp::Category& logger = log4cpp::Category::getRoot();
+    logger.info("MAIN: XLights started.");
+
 #ifdef LINUX
     XInitThreads();
 #endif
     wxDISABLE_DEBUG_SUPPORT();
-    return wxEntry(argc, argv);
+
+    logger.info("Starting wxWidgets ...");
+    int rc =  wxEntry(argc, argv);
+    logger.info("wxWidgets exited with rc=" + wxString::Format("%d", rc));
+    return rc;
 }
+
 #ifdef _MSC_VER
 IMPLEMENT_APP(xLightsApp);
 #else
@@ -243,42 +284,19 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 bool xLightsApp::OnInit()
 {
 #ifdef _MSC_VER
+    InitialiseLogging();
+#endif
+    log4cpp::Category& logger = log4cpp::Category::getRoot();
+#ifdef _MSC_VER
+    logger.info("OnInit: XLights started.");
+#endif
+    logger.info("XLightsApp OnInit.");
+
+#ifdef _MSC_VER
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
 #endif
-
-#ifdef __WXMSW__
-    std::string initFileName = "xlights.windows.properties";
-#endif
-#ifdef __WXOSX_MAC__
-    std::string initFileName = "xlights.mac.properties";
-#endif
-#ifdef __LINUX__
-    const wxString datadir = wxStandardPaths::Get().GetDataDir();
-    std::string initFileName = std::string(datadir.c_str()) + "/xlights.linux.properties";
-#endif
-
-    try
-    {
-        log4cpp::PropertyConfigurator::configure(initFileName);
-    }
-    catch (log4cpp::ConfigureFailure& e) {
-        // ignore config failure ... but logging wont work
-        printf("%s\n", e.what());
-    }
-    catch (const std::exception& ex) {
-        printf("%s\n", ex.what());
-    }
-
-    // Dan/Chris ... if you get an exception here the most likely reason is the line
-    // appender.A1.fileName= in the xlights.xxx.properties file
-    // it seems to need to be a folder that exists ... ideally it would create it but it doesnt seem to
-    // it needs to be:
-    //     a folder the user can write to
-    //     predictable ... as we want the handleCrash function to be able to locate the file to include it in the crash
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.info("XLights started.");
 
 //    heartbeat("init", true); //tell monitor active now -DJ
 //check for options on command line: -DJ
@@ -360,6 +378,7 @@ bool xLightsApp::OnInit()
         glutInit(&(wxApp::argc), wxApp::argv);
     #endif
 
+    logger.info("XLightsApp OnInit Done.");
 
     return wxsOK;
 }

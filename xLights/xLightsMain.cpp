@@ -405,7 +405,10 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 
 xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(NetInfo)
 {
-	Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
+    log4cpp::Category& logger = log4cpp::Category::getRoot();
+    logger.debug("xLightsFrame being constructed.");
+    
+    Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
     wxStaticText* StaticText22;
@@ -1545,6 +1548,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
 
 	SetAudioControls();
+
+    logger.debug("xLightsFrame construction complete.");
 }
 
 xLightsFrame::~xLightsFrame()
@@ -1610,7 +1615,7 @@ void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
 	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.debug("Quit");
+	logger.info("Quit");
 	wxCloseEvent evt;
     if (QuitMenuItem->IsEnabled())
     {
@@ -2063,13 +2068,13 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
 	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.debug("xLights Closing");
+	logger.info("xLights Closing");
 
 	StopNow();
 
 	if (!CloseSequence())
     {
-		logger.debug("Closing aborted.");
+		logger.info("Closing aborted.");
 		event.Veto();
         return;
     }
@@ -2408,9 +2413,9 @@ void xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event
 void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 {
 	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.debug("Closing sequence.");
+	logger.info("Closing sequence.");
 	CloseSequence();
-	logger.debug("Sequence closed.");
+	logger.info("Sequence closed.");
 
     // force refreshes since grid has been cleared
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();
