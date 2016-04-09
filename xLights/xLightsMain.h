@@ -578,6 +578,8 @@ private:
     void ShowHideBufferSettingsWindow(wxCommandEvent& event);
     void ResetWindowsToDefaultPositions(wxCommandEvent& event);
     void OnActionTestMenuItemSelected(wxCommandEvent& event);
+    void OnAuiToolBarShowHideEffectSettings(wxCommandEvent& event);
+    void OnAuiToolBarItemShowHideEffects(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -617,6 +619,7 @@ private:
     static const long ID_AUITOOLBARITEM1;
     static const long ID_AUITOOLBARITEM4;
     static const long ID_AUITOOLBARITEM6;
+    static const long ID_AUITOOLBARITEM8;
     static const long ID_AUIWINDOWTOOLBAR;
     static const long ID_AUITOOLBARITEM14;
     static const long ID_AUITOOLBAR_VIEW;

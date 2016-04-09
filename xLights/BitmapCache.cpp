@@ -30,11 +30,11 @@
 #include "../include/output_lights_on_48.xpm"
 #include "../include/output_lights_on_64.xpm"
 
-
-
 #include "../include/effects.xpm"
 #include "../include/colors.xpm"
 #include "../include/layers.xpm"
+#include "../include/layers2.xpm"
+#include "../include/effsettings.xpm"
 #include "../include/model_preview_24.xpm"
 #include "../include/house_preview_24.xpm"
 #include "../include/lights_off_24.xpm"
@@ -247,6 +247,10 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, colors_xpm, colors_xpm, colors_xpm, colors_xpm, colors_xpm);
     } else if ("xlART_LAYERS" == id) {
         return effectBitmaps.get(24, false, id, layers_xpm, layers_xpm, layers_xpm, layers_xpm, layers_xpm);
+    } else if ("xlART_LAYERS2" == id) {
+        return effectBitmaps.get(24, false, id, layers2_xpm, layers2_xpm, layers2_xpm, layers2_xpm, layers2_xpm);
+    } else if ("xlART_EFFECTSETTINGS" == id) {
+        return effectBitmaps.get(24, false, id, effsettings_xpm, effsettings_xpm, effsettings_xpm, effsettings_xpm, effsettings_xpm);
     } else if ("xlART_MODEL_PREVIEW" == id) {
         return effectBitmaps.get(24, false, id, model_preview_xpm, model_preview_xpm, model_preview_xpm, model_preview_xpm, model_preview_xpm);
     } else if ("xlART_HOUSE_PREVIEW" == id) {

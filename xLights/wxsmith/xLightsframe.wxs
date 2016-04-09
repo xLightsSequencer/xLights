@@ -146,13 +146,13 @@
 			<object class="AuiManagerItem">
 				<object class="wxAuiToolBar" name="ID_AUIWINDOWTOOLBAR" subclass="xlAuiToolBar" variable="WindowMgmtToolbar" member="yes">
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarEffects" member="yes">
-							<bitmap stock_id="xlART_EFFECTS" stock_client="wxART_TOOLBAR" />
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarEffectSettings" member="yes">
+							<bitmap stock_id="xlART_EFFECTSETTINGS" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Effects</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="ShowHideEffectSettingsWindow" entry="EVT_TOOL" />
 						</object>
-						<label>Effects</label>
+						<label>Effect Settings</label>
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM5" variable="AuiToolBarColors" member="yes">
@@ -173,11 +173,11 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM3" variable="AuiToolBarLayers" member="yes">
-							<bitmap stock_id="xlART_LAYERS" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Effect Layering</shorthelp>
+							<bitmap stock_id="xlART_LAYERS2" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Layer Blending</shorthelp>
 							<handler function="ShowHideLayerTimingWindow" entry="EVT_TOOL" />
 						</object>
-						<label>Effect Layering</label>
+						<label>Layer Blending</label>
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarButtonModelPreview" member="no">
@@ -202,6 +202,14 @@
 							<handler function="ShowHideDisplayElementsWindow" entry="EVT_TOOL" />
 						</object>
 						<label>Models</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM8" variable="AuiToolBarItemEffects" member="no">
+							<bitmap stock_id="xlART_EFFECTS" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Effects</shorthelp>
+							<handler function="OnAuiToolBarItemShowHideEffects" entry="EVT_TOOL" />
+						</object>
+						<label>Effects</label>
 					</object>
 				</object>
 				<name>Windows Tool Bar</name>
