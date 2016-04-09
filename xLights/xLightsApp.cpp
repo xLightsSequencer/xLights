@@ -139,16 +139,25 @@ void InitialiseLogging()
         std::string initFileName = std::string(datadir.c_str()) + "/xlights.linux.properties";
 #endif
 
-        try
+        if (!wxFile::Exists(initFileName))
         {
-            log4cpp::PropertyConfigurator::configure(initFileName);
+#ifndef NDEBUG
+            wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
+#endif
         }
-        catch (log4cpp::ConfigureFailure& e) {
-            // ignore config failure ... but logging wont work
-            printf("%s\n", e.what());
-        }
-        catch (const std::exception& ex) {
-            printf("%s\n", ex.what());
+        else
+        {
+            try
+            {
+                log4cpp::PropertyConfigurator::configure(initFileName);
+            }
+            catch (log4cpp::ConfigureFailure& e) {
+                // ignore config failure ... but logging wont work
+                printf("%s\n", e.what());
+            }
+            catch (const std::exception& ex) {
+                printf("%s\n", ex.what());
+            }
         }
     }
 }
