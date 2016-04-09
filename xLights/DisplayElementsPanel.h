@@ -2,12 +2,12 @@
 #define DISPLAYELEMENTSPANEL_H
 
 //(*Headers(DisplayElementsPanel)
-#include <wx/sizer.h>
 #include <wx/listctrl.h>
-#include <wx/button.h>
-#include <wx/panel.h>
 #include <wx/scrolwin.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/panel.h>
+#include <wx/button.h>
 //*)
 
 #include "wx/xml/xml.h"
@@ -39,20 +39,21 @@ class DisplayElementsPanel: public wxPanel
         void MarkViewsChanged();
 
 		//(*Declarations(DisplayElementsPanel)
-		wxCheckedListCtrl* ListCtrlViews;
-		wxButton* ButtonShowAll;
-		wxButton* ButtonMoveDown;
-		wxButton* ButtonDeleteModels;
-		wxButton* ButtonAddModels;
-		wxButton* ButtonHideAll;
-		wxStaticText* StaticText3;
-		wxScrolledWindow* ScrolledWindowDisplayElements;
-		wxStaticText* StaticText4;
-		wxButton* ButtonAddViews;
-		wxStaticText* StaticText2;
-		wxCheckedListCtrl* ListCtrlModels;
-		wxButton* ButtonMoveUp;
 		wxButton* ButtonDeleteView;
+		wxButton* ButtonMoveUp;
+		wxButton* ButtonAddModels;
+		wxStaticText* StaticText2;
+		wxButton* ButtonShowAll;
+		wxPanel* Panel_Sizer;
+		wxButton* ButtonMoveDown;
+		wxStaticText* StaticText3;
+		wxCheckedListCtrl* ListCtrlModels;
+		wxScrolledWindow* ScrolledWindowDisplayElements;
+		wxButton* ButtonDeleteModels;
+		wxCheckedListCtrl* ListCtrlViews;
+		wxButton* ButtonAddViews;
+		wxStaticText* StaticText4;
+		wxButton* ButtonHideAll;
 		//*)
 
 
@@ -73,7 +74,8 @@ class DisplayElementsPanel: public wxPanel
 		static const long ID_STATICTEXT3;
 		static const long ID_BUTTON_MOVE_UP;
 		static const long ID_BUTTON_MOVE_DOWN;
-		static const long ID_SCROLLED_Display_Elements;
+		static const long ID_SCROLLEDWINDOW1;
+		static const long ID_PANEL1;
 		//*)
 
 	private:

@@ -1373,6 +1373,18 @@
     <ClInclude Include="models\ModelScreenLocation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BufferPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomModelDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LayoutPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StartChannelDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets-3.1.0\include\wx\msw\wx.rc">

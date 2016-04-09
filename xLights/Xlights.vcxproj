@@ -385,10 +385,12 @@
     <ClInclude Include="AddShowDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
+    <ClInclude Include="BufferPanel.h" />
     <ClInclude Include="ChannelLayoutDialog.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="ColorPanel.h" />
     <ClInclude Include="CurrentPreviewModels.h" />
+    <ClInclude Include="CustomModelDialog.h" />
     <ClInclude Include="DataLayer.h" />
     <ClInclude Include="DimmingCurve.h" />
     <ClInclude Include="DimmingCurvePanel.h" />
@@ -490,6 +492,7 @@
     <ClInclude Include="Image_Loader.h" />
     <ClInclude Include="JobPool.h" />
     <ClInclude Include="KeyBindings.h" />
+    <ClInclude Include="LayoutPanel.h" />
     <ClInclude Include="LMSImportChannelMapDialog.h" />
     <ClInclude Include="LorConvertDialog.h" />
     <ClInclude Include="LyricsDialog.h" />
@@ -554,6 +557,7 @@
     <ClInclude Include="serial.h" />
     <ClInclude Include="SerialPortWithRate.h" />
     <ClInclude Include="ShowDatesDialog.h" />
+    <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
     <ClInclude Include="SuperStarImportDialog.h" />
     <ClInclude Include="TestDialog.h" />

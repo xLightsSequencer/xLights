@@ -10,8 +10,8 @@
 #define MODEL_IMAGE 3
 
 //(*InternalHeaders(DisplayElementsPanel)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(DisplayElementsPanel)
@@ -28,7 +28,8 @@ const long DisplayElementsPanel::ID_BUTTON_DELETE_MODELS = wxNewId();
 const long DisplayElementsPanel::ID_STATICTEXT3 = wxNewId();
 const long DisplayElementsPanel::ID_BUTTON_MOVE_UP = wxNewId();
 const long DisplayElementsPanel::ID_BUTTON_MOVE_DOWN = wxNewId();
-const long DisplayElementsPanel::ID_SCROLLED_Display_Elements = wxNewId();
+const long DisplayElementsPanel::ID_SCROLLEDWINDOW1 = wxNewId();
+const long DisplayElementsPanel::ID_PANEL1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(DisplayElementsPanel,wxPanel)
@@ -40,24 +41,28 @@ END_EVENT_TABLE()
 DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(DisplayElementsPanel)
-	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	FlexGridSizer2 = new wxFlexGridSizer(1, 1, 0, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(0);
-	ScrolledWindowDisplayElements = new wxScrolledWindow(this, ID_SCROLLED_Display_Elements, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLED_Display_Elements"));
+	Panel_Sizer = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer5->AddGrowableCol(0);
-	FlexGridSizer5->AddGrowableRow(1);
+	FlexGridSizer5->AddGrowableRow(0);
+	ScrolledWindowDisplayElements = new wxScrolledWindow(Panel_Sizer, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
+	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
+	FlexGridSizer1->AddGrowableRow(1);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer8->AddGrowableCol(0);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -74,7 +79,7 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	ButtonDeleteView = new wxButton(ScrolledWindowDisplayElements, ID_BUTTON_DELETE_VIEW, _("Delete View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DELETE_VIEW"));
 	FlexGridSizer3->Add(ButtonDeleteView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer8->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer5->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer9->AddGrowableCol(0);
 	FlexGridSizer9->AddGrowableRow(0);
@@ -105,11 +110,15 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	ButtonMoveDown = new wxButton(ScrolledWindowDisplayElements, ID_BUTTON_MOVE_DOWN, _("Move Down"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MOVE_DOWN"));
 	FlexGridSizer4->Add(ButtonMoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer5->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
-	ScrolledWindowDisplayElements->SetSizer(FlexGridSizer5);
-	FlexGridSizer5->Fit(ScrolledWindowDisplayElements);
-	FlexGridSizer5->SetSizeHints(ScrolledWindowDisplayElements);
-	FlexGridSizer2->Add(ScrolledWindowDisplayElements, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer1->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
+	ScrolledWindowDisplayElements->SetSizer(FlexGridSizer1);
+	FlexGridSizer1->Fit(ScrolledWindowDisplayElements);
+	FlexGridSizer1->SetSizeHints(ScrolledWindowDisplayElements);
+	FlexGridSizer5->Add(ScrolledWindowDisplayElements, 0, wxALIGN_LEFT, 0);
+	Panel_Sizer->SetSizer(FlexGridSizer5);
+	FlexGridSizer5->Fit(Panel_Sizer);
+	FlexGridSizer5->SetSizeHints(Panel_Sizer);
+	FlexGridSizer2->Add(Panel_Sizer, 0, wxALIGN_LEFT, 2);
 	SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(this);
 	FlexGridSizer2->SetSizeHints(this);
@@ -123,6 +132,7 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	Connect(ID_BUTTON_DELETE_MODELS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonDeleteModelsClick);
 	Connect(ID_BUTTON_MOVE_UP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonMoveUpClick);
 	Connect(ID_BUTTON_MOVE_DOWN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonMoveDownClick);
+	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&DisplayElementsPanel::OnResize,0,this);
 	Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&DisplayElementsPanel::OnLeftUp);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&DisplayElementsPanel::OnResize);
 	//*)
@@ -758,6 +768,10 @@ void DisplayElementsPanel::UpdateModelsForSelectedView()
 void DisplayElementsPanel::OnResize(wxSizeEvent& event)
 {
     wxSize s = GetSize();
+    Panel_Sizer->SetSize(s);
+    Panel_Sizer->SetMinSize(s);
+    Panel_Sizer->SetMaxSize(s);
+    Panel_Sizer->Refresh();
 
     ScrolledWindowDisplayElements->SetSize(s);
     ScrolledWindowDisplayElements->SetMinSize(s);
