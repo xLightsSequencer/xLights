@@ -234,7 +234,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_PASTE_BY_TIME" variable="AuiToolBarItemPasteByTime" member="yes">
 							<bitmap stock_id="xlART_PASTE_BY_TIME" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Zoom In</shorthelp>
+							<shorthelp>Paste By Time</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAuiToolBarItemPasteByTimeClick" entry="EVT_TOOL" />
 						</object>
