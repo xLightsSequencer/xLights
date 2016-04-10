@@ -142,7 +142,8 @@ void InitialiseLogging()
         if (!wxFile::Exists(initFileName))
         {
 #ifndef NDEBUG
-            wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
+            // the app is not initialized so GUI is not available and no event loop.
+            //wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
 #endif
         }
         else
