@@ -66,7 +66,7 @@ void IciclesModel::InitModel() {
             curCoord++;
         }
     }
-    SetBufferSize(maxH, width);
+    SetBufferSize(maxH, width+1);
     screenLocation.SetRenderSize(width, maxH);
 }
 
