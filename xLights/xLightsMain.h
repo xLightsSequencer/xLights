@@ -580,6 +580,8 @@ private:
     void OnActionTestMenuItemSelected(wxCommandEvent& event);
     void OnAuiToolBarShowHideEffectSettings(wxCommandEvent& event);
     void OnAuiToolBarItemShowHideEffects(wxCommandEvent& event);
+    void OnAuiToolBarItemPasteByTimeClick(wxCommandEvent& event);
+    void OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -621,6 +623,9 @@ private:
     static const long ID_AUITOOLBARITEM6;
     static const long ID_AUITOOLBARITEM8;
     static const long ID_AUIWINDOWTOOLBAR;
+    static const long ID_PASTE_BY_TIME;
+    static const long ID_PASTE_BY_CELL;
+    static const long ID_AUITOOLBAR_EDIT;
     static const long ID_AUITOOLBARITEM14;
     static const long ID_AUITOOLBAR_VIEW;
     static const long ID_BITMAPBUTTON_TAB_INFO;
@@ -963,6 +968,7 @@ private:
     wxTimer Timer1;
     wxCheckBox* CheckBoxOffAtEnd;
     wxFileDialog* FileDialogPgoImage;
+    xlAuiToolBar* EditToolBar;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuBar* MenuBar;
     wxCheckBox* CheckBox_CoroEyesRandomBlink;
@@ -971,6 +977,8 @@ private:
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;
     AUIToolbarButtonWrapper *ButtonGracefulStop;
+    AUIToolbarButtonWrapper *ButtonPasteByTime;
+    AUIToolbarButtonWrapper *ButtonPasteByCell;
 
     wxBitmap pauseIcon;
     wxBitmap playIcon;

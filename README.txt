@@ -8,6 +8,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+   -- enh (gil)     Add EditToolBar with Paste By Cell and Paste By Time options.  Fixes #418 and Fixes #421.
+   -- enh (gil)     Add ability to select, copy, and paste timing effects. Several restrictions in place.  Fixes #366.
    -- bug (keithsw) Fix implemented ripple missing triangle option #524
    -- bug (keithsw) Cleaned up docking windows toolbar icons #519
    -- bug (keithsw) Fix focus issue when closing display elements panel

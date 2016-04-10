@@ -42,6 +42,8 @@
 #include "../include/zoom-out-24.xpm"
 #include "../include/zoom-in-24.xpm"
 #include "../include/settings-24.xpm"
+#include "../include/paste-by-time-24.xpm"
+#include "../include/paste-by-cell-24.xpm"
 
 #include "../include/green-gear-24.xpm"
 #include "../include/select_show_folder-24.xpm"
@@ -283,6 +285,10 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(48, false, id, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm);
     } else if ("xlART_MODELS" == id) {
         return effectBitmaps.get(24, true, id, models_16_xpm, models_24_xpm, models_32_xpm, models_48_xpm, models_64_xpm);
+    } else if ("xlART_PASTE_BY_TIME" == id) {
+        return effectBitmaps.get(24, false, id, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm);
+    } else if ("xlART_PASTE_BY_CELL" == id) {
+        return effectBitmaps.get(24, false, id, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm);
 #ifndef __WXOSX__
         //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
     } else if ("xlART_RENDER_ALL" == id) {

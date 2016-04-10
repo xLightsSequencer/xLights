@@ -28,7 +28,9 @@ class MainSequencer: public wxPanel
         void SetPlayStatus(int play_type);
         void GetSelectedEffectsData(wxString& copy_data);
         bool CopySelectedEffects();
-    
+        bool PasteByCellActive() { return mPasteByCell; }
+        void SetPasteByCell(bool state) { mPasteByCell = state; }
+
         void Cut();
         void Paste();
 
@@ -37,7 +39,7 @@ class MainSequencer: public wxPanel
         void DoPaste(wxCommandEvent& event);
         void DoUndo(wxCommandEvent& event);
         void DoRedo(wxCommandEvent& event);
-    
+
 		//(*Declarations(MainSequencer)
 		wxScrollBar* ScrollBarEffectsHorizontal;
 		wxScrollBar* ScrollBarEffectsVertical;
@@ -82,7 +84,7 @@ class MainSequencer: public wxPanel
         void InsertTimingMarkFromRange();
         void SplitTimingMark();
         void SetHandlers(wxWindow *);
-    
+
         void ScrollRight( wxCommandEvent& event);
         void HorizontalScrollChanged( wxCommandEvent& event);
         void TimelineChanged( wxCommandEvent& event);
@@ -92,6 +94,7 @@ class MainSequencer: public wxPanel
         SequenceElements* mSequenceElements;
         int mPlayType;
         bool mCanUndo;
+        bool mPasteByCell;
 };
 
 #endif

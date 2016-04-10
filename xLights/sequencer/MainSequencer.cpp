@@ -154,7 +154,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     SetHandlers(this);
     keyBindings.LoadDefaults();
     mCanUndo = false;
-
+    mPasteByCell = false;
 }
 
 MainSequencer::~MainSequencer()
@@ -454,6 +454,11 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
 void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
     int start_column = PanelEffectGrid->GetStartColumn();
     int column_start_time = -1000;
+    int number_of_timings = 0;
+    int number_of_effects = 0;
+    int number_of_timing_rows = mSequenceElements->GetNumberOfTimingRows();
+    int last_timing_row = 0;
+    wxString effect_data;
     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
     if( tel != nullptr && start_column != -1) {
         Effect* eff = tel->GetEffect(start_column);
@@ -461,9 +466,18 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
             column_start_time = eff->GetStartTimeMS();
         }
     }
+
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
-        int row_number = mSequenceElements->GetRowInformation(i)->Index-mSequenceElements->GetFirstVisibleModelRow();
+        int row_number;
+        if( i < number_of_timing_rows )
+        {
+            row_number = mSequenceElements->GetRowInformation(i)->Index;
+        }
+        else
+        {
+            row_number = mSequenceElements->GetRowInformation(i)->Index-mSequenceElements->GetFirstVisibleModelRow();
+        }
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
@@ -472,10 +486,59 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                 wxString end_time = wxString::Format("%d",ef->GetEndTimeMS());
                 wxString row = wxString::Format("%d",row_number);
                 wxString column_start = wxString::Format("%d",column_start_time);
-                copy_data += ef->GetEffectName() + "\t" + ef->GetSettingsAsString() + "\t" + ef->GetPaletteAsString() +
-                            "\t" + start_time + "\t" + end_time + "\t" + row + "\t" + column_start + "\n";
+                effect_data += ef->GetEffectName() + "\t" + ef->GetSettingsAsString() + "\t" + ef->GetPaletteAsString() +
+                               "\t" + start_time + "\t" + end_time + "\t" + row + "\t" + column_start;
+                if( i < number_of_timing_rows )
+                {
+                    number_of_timings++;
+                    last_timing_row = row_number;
+                    effect_data += "\tTIMING_EFFECT\n";
+                }
+                else
+                {
+                    number_of_effects++;
+                    if( column_start_time == -1000 && mSequenceElements->GetSelectedTimingRow() >= 0 )
+                    {
+                        tel->HitTestEffectByTime(ef->GetStartTimeMS()+1,start_column);
+                        column_start_time = tel->GetEffect(start_column)->GetStartTimeMS();
+                    }
+                    if( column_start_time != -1000 )  // add paste by cell info
+                    {
+                        if( mSequenceElements->GetSelectedTimingRow() >= 0 )
+                        {
+                            Effect* te_start = tel->GetEffectByTime(ef->GetStartTimeMS() + 1); // if we don't add 1ms, it picks up the end of the previous timing instead of the start of this one
+                            Effect* te_end = tel->GetEffectByTime(ef->GetEndTimeMS());
+                            if( te_start != nullptr && te_end != nullptr )
+                            {
+                                int start_pct = ((ef->GetStartTimeMS() - te_start->GetStartTimeMS()) * 100) / (te_start->GetEndTimeMS() - te_start->GetStartTimeMS());
+                                int end_pct = ((ef->GetEndTimeMS() - te_end->GetStartTimeMS()) * 100) / (te_end->GetEndTimeMS() - te_end->GetStartTimeMS());
+                                int start_index;
+                                int end_index;
+                                tel->HitTestEffectByTime(te_start->GetStartTimeMS()+1,start_index);
+                                tel->HitTestEffectByTime(te_end->GetStartTimeMS()+1,end_index);
+                                wxString start_pct_str = wxString::Format("%d",start_pct);
+                                wxString end_pct_str = wxString::Format("%d",end_pct);
+                                wxString start_index_str = wxString::Format("%d",start_index);
+                                wxString end_index_str = wxString::Format("%d",end_index);
+                                effect_data += "\t" + start_index_str + "\t" + end_index_str + "\t" + start_pct_str + "\t" + end_pct_str + "\n";
+                            } else {effect_data += "\tNO_PASTE_BY_CELL\n";}
+                        } else {effect_data += "\tNO_PASTE_BY_CELL\n";}
+                    } else {effect_data += "\tNO_PASTE_BY_CELL\n";}
+                }
             }
         }
+    }
+    wxString num_timings = wxString::Format("%d",number_of_timings);
+    wxString num_effects = wxString::Format("%d",number_of_effects);
+    wxString num_timing_rows = wxString::Format("%d",number_of_timing_rows);
+    wxString last_row = wxString::Format("%d",last_timing_row);
+    wxString starting_column = wxString::Format("%d",start_column);
+    copy_data = "CopyFormat1\t" + num_timings + "\t" + num_effects + "\t" + num_timing_rows + "\t" + last_row + "\t" + starting_column;
+    if( column_start_time != -1000 ) {
+        copy_data += "\tPASTE_BY_CELL\n" + effect_data;
+    }
+    else {
+        copy_data += "\tNO_PASTE_BY_CELL\n" + effect_data;
     }
 }
 

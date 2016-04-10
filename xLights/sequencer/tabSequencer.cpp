@@ -45,7 +45,7 @@ void xLightsFrame::CreateSequencer()
 
     sPreview1 = new ModelPreview(PanelSequencer);
     m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
-                   Left().Layer(1));
+                   Left().Layer(1).PaneBorder(true));
     sPreview2 = new ModelPreview(PanelSequencer, PreviewModels, false);
     m_mgr->AddPane(sPreview2,wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
                    Left().Layer(1));
@@ -656,7 +656,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 	RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
 
 	if( last_effect_created != nullptr ) {
-        UpdateEffectAssistWindow(last_effect_created, eff);		
+        UpdateEffectAssistWindow(last_effect_created, eff);
 	}
 
     mainSequencer->PanelEffectGrid->Refresh(false);

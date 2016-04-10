@@ -72,6 +72,7 @@ public:
     void CopyModelEffects(int row_number);
     void PasteModelEffects(int row_number);
 
+    void OldPaste(const wxString &data);
     void Paste(const wxString &data);
     void SetCanPaste() { mCanPaste = true; }
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }

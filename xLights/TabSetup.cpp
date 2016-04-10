@@ -347,7 +347,7 @@ void xLightsFrame::UpdateChannelNames()
     wxString FormatSpec,RGBFormatSpec;
     int ChannelNum,ChanPerNode,NodeNum,AbsoluteNodeNum;
     size_t NodeCount,n,c;
-    
+
     ChNames.clear();
     ChNames.resize(NetInfo.GetTotChannels());
     // update names with RGB models where MyDisplay is checked

@@ -324,7 +324,7 @@ void xLightsFrame::UpdateModelsList()
     AllModels.LoadModels(ModelsNode,
                          modelPreview->GetVirtualCanvasWidth(),
                          modelPreview->GetVirtualCanvasHeight());
-    
+
     std::vector<std::string> current;
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         current.push_back(it->first);
@@ -345,7 +345,7 @@ void xLightsFrame::UpdateModelsList()
                 choices.push_back("Delete Model");
                 choices.push_back("Rename Group");
                 choices.push_back("Delete Group");
-                
+
                 wxString msg = "A model of name \'" + name + "\' already exists.  What action should we take?";
                 wxSingleChoiceDialog dlg(this, msg, "Model/Group Name Conflict", choices, (void **)nullptr,
                                          wxDEFAULT_DIALOG_STYLE | wxOK | wxCENTRE | wxRESIZE_BORDER, wxDefaultPosition);
@@ -410,10 +410,10 @@ void xLightsFrame::UpdateModelsList()
                          modelPreview->GetVirtualCanvasHeight());
 
     wxString msg;
-    
-    
+
+
     std::set<std::string> modelsAdded;
-    
+
     for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
         Model *model = it->second;
         if (model->GetDisplayAs() == "ModelGroup") {
@@ -603,6 +603,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 	SetAudioControls();
     enableAllToolbarControls(WindowMgmtToolbar, enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(EffectsToolBar, enable && SeqData.NumFrames() > 0);
+    enableAllToolbarControls(EditToolBar, enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(ViewToolBar, enable);
     enableAllToolbarControls(OutputToolBar, enable);
 
@@ -663,7 +664,7 @@ int xLightsFrame::ChooseRandomEffect()
         count++;
         eff=rand() % effectManager.size();
     } while (!effectManager[eff]->CanBeRandom() && count < MAX_TRIES);
-    
+
     if(count==MAX_TRIES) eff = 0; // we failed to find a good effect after MAX_TRIES attempts
     return eff;
 }

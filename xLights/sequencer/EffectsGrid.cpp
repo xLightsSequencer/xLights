@@ -1328,7 +1328,7 @@ bool EffectsGrid::OneCellSelected()
     return false;
 }
 
-void EffectsGrid::Paste(const wxString &data) {
+void EffectsGrid::OldPaste(const wxString &data) {
     if (mSequenceElements == nullptr) {
         return;
     }
@@ -1524,6 +1524,236 @@ void EffectsGrid::Paste(const wxString &data) {
             }
             mCellRangeSelected = false;
         }
+    }
+
+    Refresh();
+}
+
+void EffectsGrid::Paste(const wxString &data) {
+    if (mSequenceElements == nullptr) {
+        return;
+    }
+
+    wxArrayString all_efdata = wxSplit(data, '\n');
+    if (all_efdata.size() == 0) {
+        return;
+    }
+    wxArrayString banner_data = wxSplit(all_efdata[0], '\t');
+    if( banner_data[0] != "CopyFormat1" )
+    {
+        OldPaste(data);
+        return;
+    }
+
+    bool paste_by_cell = ((MainSequencer*)mParent)->PasteByCellActive();
+    if( paste_by_cell )
+    {
+        if( banner_data[6] == "NO_PASTE_BY_CELL" )
+        {
+            wxMessageBox("Paste By Cell information missing.\nYou can only Paste By Time with this data.", "Paste Warning!", wxICON_WARNING | wxOK );
+            return;
+        }
+        if( mSequenceElements->GetSelectedTimingRow() < 0 )
+        {
+            wxMessageBox("Paste By Cell requires an active timing track.", "Paste Warning!", wxICON_WARNING | wxOK );
+            return;
+        }
+    }
+
+	int number_of_timings = wxAtoi(banner_data[1]);
+	int number_of_effects = wxAtoi(banner_data[2]);
+	int number_of_timing_rows = wxAtoi(banner_data[3]);
+	int last_timing_row = wxAtoi(banner_data[4]);
+	int start_column = wxAtoi(banner_data[5]);
+	int selected_start_column = 0;
+
+    if( number_of_timings > 0 && number_of_effects > 0 )
+    {
+        if( number_of_timing_rows != mSequenceElements->GetNumberOfTimingRows() )
+        {
+            wxMessageBox("Number of timing rows does not match how many existed when copied.", "Paste Warning!", wxICON_WARNING | wxOK );
+            return;
+        }
+    }
+
+    ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
+    if (mPartialCellSelected || OneCellSelected()) {
+        if( (number_of_timings + number_of_effects) > 1 || paste_by_cell)  // multi-effect paste or pasting by cell
+        {
+            wxArrayString eff1data = wxSplit(all_efdata[1], '\t');
+            int drop_time_offset, new_start_time, new_end_time, column_start_time;
+            column_start_time = wxAtoi(eff1data[6]);
+            drop_time_offset = wxAtoi(eff1data[3]);
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if (column_start_time < 0 || tel == nullptr)
+            {
+                drop_time_offset = mDropStartTimeMS - drop_time_offset;
+            }
+            else
+            {
+                drop_time_offset = mDropStartTimeMS - column_start_time;
+            }
+            int drop_row = mDropRow;
+            int start_row = wxAtoi(eff1data[5]);
+            int drop_row_offset = drop_row - start_row;
+            if( number_of_timings > 0 && number_of_effects > 0 )  // only allow timing and model effects to be pasted on same rows
+            {
+                drop_row = 0;
+                drop_row_offset = 0;
+            }
+            else if ( number_of_timings > 0 && number_of_effects == 0 ) // if only timing effects make sure enough rows remain to receive effects
+            {
+                if( last_timing_row + mDropRow >= number_of_timing_rows )
+                {
+                    wxMessageBox("Not enough timing rows to paste timing effects starting on this row.", "Paste Warning!", wxICON_WARNING | wxOK );
+                    return;
+                }
+            }
+            else if ( number_of_timings == 0 && number_of_effects > 0 ) // if only model effects make sure target row isn't in timing tracks
+            {
+                if( mDropRow < number_of_timing_rows )
+                {
+                    wxMessageBox("Cannot paste model effects into timing tracks.", "Paste Warning!", wxICON_WARNING | wxOK );
+                    return;
+                }
+            }
+            if( paste_by_cell )
+            {
+                bool found_selected_start_column = tel->HitTestEffectByTime(mDropStartTimeMS+1, selected_start_column);
+                if( !found_selected_start_column )
+                {
+                    wxMessageBox("Unable to find a selected timing start location for Paste By Cell.", "Paste Warning!", wxICON_WARNING | wxOK );
+                    return;
+                }
+            }
+
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            for (int i = 1; i < all_efdata.size() - 1; i++)
+            {
+                wxArrayString efdata = wxSplit(all_efdata[i], '\t');
+                if (efdata.size() < 7) {
+                    break;
+                }
+                bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
+                new_start_time = wxAtoi(efdata[3]);
+                new_end_time = wxAtoi(efdata[4]);
+                if( paste_by_cell && !is_timing_effect )
+                {
+                    int eff_start_column = wxAtoi(efdata[7]);
+                    int eff_end_column = wxAtoi(efdata[8]);
+                    int eff_start_pct = wxAtoi(efdata[9]);
+                    int eff_end_pct = wxAtoi(efdata[10]);
+                    int column_offset = selected_start_column - start_column;
+                    eff_start_column += column_offset;
+                    eff_end_column += column_offset;
+                    Effect* te_start = tel->GetEffect(eff_start_column);
+                    Effect* te_end = tel->GetEffect(eff_end_column);
+                    if( te_start == nullptr || te_end == nullptr )
+                    {
+                        break;
+                    }
+                    new_start_time = te_start->GetStartTimeMS() + (((te_start->GetEndTimeMS() - te_start->GetStartTimeMS()) * eff_start_pct) / 100);
+                    new_end_time = te_end->GetStartTimeMS() + (((te_end->GetEndTimeMS() - te_end->GetStartTimeMS()) * eff_end_pct) / 100);
+                }
+                else
+                {
+                    new_start_time += drop_time_offset;
+                    new_end_time += drop_time_offset;
+                }
+                int eff_row = wxAtoi(efdata[5]);
+                drop_row = eff_row + drop_row_offset;
+                Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
+                if (row_info == nullptr) break;
+                Element* elem = row_info->element;
+                if (elem == nullptr) break;
+                EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
+                if (el == nullptr) break;
+                if (el->GetRangeIsClearMS(new_start_time, new_end_time))
+                {
+                    int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
+                    if (effectIndex >= 0 || is_timing_effect) {
+                        Effect* ef = el->AddEffect(0,
+                            efdata[0].ToStdString(),
+                            efdata[1].ToStdString(),
+                            efdata[2].ToStdString(),
+                            new_start_time,
+                            new_end_time,
+                            EFFECT_NOT_SELECTED,
+                            false);
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID());
+                        if (!is_timing_effect && !ef->GetPaletteMap().empty() ) {
+                            sendRenderEvent(el->GetParentElement()->GetName(),
+                                new_start_time,
+                                new_end_time, true);
+                        }
+                    }
+                }
+            }
+            mPartialCellSelected = false;
+        }
+        else
+        {
+            wxArrayString efdata = wxSplit(all_efdata[1], '\t');
+            if (efdata.size() < 3) {
+                return;
+            }
+            if( efdata[0] == "Random" )
+            {
+                FillRandomEffects();
+            }
+            else
+            {
+                if(mCellRangeSelected && !mPartialCellSelected)
+                {
+                    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                    mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();
+                    mDropEndTimeMS = tel->GetEffect(mRangeEndCol)->GetEndTimeMS();
+                    int first_row = mSequenceElements->GetFirstVisibleModelRow();
+                    mDropRow = mRangeStartRow - first_row;
+                }
+                if( number_of_timings == 0 && mDropRow < number_of_timing_rows )
+                {
+                    wxMessageBox("Cannot paste model effect into timing track.", "Paste Warning!", wxICON_WARNING | wxOK );
+                    return;
+                }
+                EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
+                int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
+                if (effectIndex >= 0) {
+                    int end_time = mDropEndTimeMS;
+                    if( (efdata.size() == 7) && GetActiveTimingElement() == nullptr )  // use original effect length if no timing track is active
+                    {
+                        int drop_time_offset = wxAtoi(efdata[3]);
+                        drop_time_offset = mDropStartTimeMS - drop_time_offset;
+                        end_time = wxAtoi(efdata[4]);
+                        end_time += drop_time_offset;
+                    }
+                    if( el->GetRangeIsClearMS(mDropStartTimeMS, end_time) )
+                    {
+                        Effect* ef = el->AddEffect(0,
+                                      efdata[0].ToStdString(),
+                                      efdata[1].ToStdString(),
+                                      efdata[2].ToStdString(),
+                                      mDropStartTimeMS,
+                                      end_time,
+                                      EFFECT_SELECTED,
+                                      false);
+                        mSequenceElements->get_undo_mgr().CreateUndoStep();
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
+                        if (!ef->GetPaletteMap().empty()) {
+                            sendRenderEvent(el->GetParentElement()->GetName(),
+                                            mDropStartTimeMS,
+                                            mDropEndTimeMS, true);
+                        }
+                        RaiseSelectedEffectChanged(ef, true);
+                        mSelectedEffect = ef;
+                        mPartialCellSelected = false;
+                        mSelectedRow = mDropRow;
+                    }
+                }
+            }
+        }
+    } else {
+        wxMessageBox("Range selections are not valid Paste targets.", "Paste Warning!", wxICON_WARNING | wxOK );
     }
 
     Refresh();
@@ -1908,7 +2138,7 @@ void EffectsGrid::DrawLines()
         DrawGLUtils::AddVertex(x1, y, *mGridlineColor);
         DrawGLUtils::AddVertex(x2, y, *mGridlineColor);
     }
-    
+
     // Draw vertical lines
     int y1 = 0;
     int y2 = mWindowHeight-1;
