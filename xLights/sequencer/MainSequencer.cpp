@@ -481,6 +481,7 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
+            if( ef == nullptr ) break;
             if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
                 wxString start_time = wxString::Format("%d",ef->GetStartTimeMS());
                 wxString end_time = wxString::Format("%d",ef->GetEndTimeMS());
@@ -499,8 +500,10 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                     number_of_effects++;
                     if( column_start_time == -1000 && mSequenceElements->GetSelectedTimingRow() >= 0 )
                     {
-                        tel->HitTestEffectByTime(ef->GetStartTimeMS()+1,start_column);
-                        column_start_time = tel->GetEffect(start_column)->GetStartTimeMS();
+                        if( tel->HitTestEffectByTime(ef->GetStartTimeMS()+1,start_column) )
+                        {
+                            column_start_time = tel->GetEffect(start_column)->GetStartTimeMS();
+                        }
                     }
                     if( column_start_time != -1000 )  // add paste by cell info
                     {
