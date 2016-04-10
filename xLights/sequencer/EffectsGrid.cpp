@@ -1562,14 +1562,15 @@ void EffectsGrid::Paste(const wxString &data) {
 
 	int number_of_timings = wxAtoi(banner_data[1]);
 	int number_of_effects = wxAtoi(banner_data[2]);
-	int number_of_timing_rows = wxAtoi(banner_data[3]);
+	int number_of_original_timing_rows = wxAtoi(banner_data[3]);
 	int last_timing_row = wxAtoi(banner_data[4]);
 	int start_column = wxAtoi(banner_data[5]);
 	int selected_start_column = 0;
+	int number_of_timing_rows = mSequenceElements->GetNumberOfTimingRows();
 
     if( number_of_timings > 0 && number_of_effects > 0 )
     {
-        if( number_of_timing_rows != mSequenceElements->GetNumberOfTimingRows() )
+        if( number_of_original_timing_rows != number_of_timing_rows )
         {
             wxMessageBox("Number of timing rows does not match how many existed when copied.", "Paste Warning!", wxICON_WARNING | wxOK );
             return;
