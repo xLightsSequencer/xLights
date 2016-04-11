@@ -135,8 +135,7 @@ void InitialiseLogging()
         std::string initFileName = "xlights.mac.properties";
 #endif
 #ifdef __LINUX__
-        const wxString datadir = wxStandardPaths::Get().GetDataDir();
-        std::string initFileName = std::string(datadir.c_str()) + "/xlights.linux.properties";
+        std::string initFileName = "/usr/share/xLights/xlights.linux.properties";
 #endif
 
         if (!wxFile::Exists(initFileName))
