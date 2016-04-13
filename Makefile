@@ -11,6 +11,7 @@ CHK_DIR_EXISTS  = test -d
 INSTALL_PROGRAM = install -m 755 -p
 DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 256x256
+SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary
 PATH            := $(CURDIR)/wxWidgets-3.1.0:$(PATH)
 
 SUBDIRS         = xLights
@@ -59,11 +60,11 @@ install:
 	@$(CHK_DIR_EXISTS) $(DESTDIR)/${PREFIX}/bin || $(MKDIR) $(DESTDIR)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
-	install -D -m 644 bin/xlights.linux.properties $(DESTDIR)/${PREFIX}/share/xLights/xlights.linux.properties
+	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/piano
 	cp -r piano/* $(DESTDIR)/${PREFIX}/share/xLights/piano
-	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
-	cp -r songs/* $(DESTDIR)/${PREFIX}/share/xLights/songs
+	#install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/songs
+	#cp -r songs/* $(DESTDIR)/${PREFIX}/share/xLights/songs
 	$(foreach size, $(ICON_SIZES), install -D -m 644 xLights/Images.xcassets/AppIcon.appiconset/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
 
 uninstall:
