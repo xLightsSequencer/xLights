@@ -204,6 +204,17 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             }
             mSelectedEffect = selectedEffect;
         }
+        mnuLayer->AppendSeparator();
+        wxMenuItem* menu_copy = mnuLayer->Append(ID_GRID_MNU_COPY,"Copy");
+        wxMenuItem* menu_paste = mnuLayer->Append(ID_GRID_MNU_PASTE,"Paste");
+        wxMenuItem* menu_delete = mnuLayer->Append(ID_GRID_MNU_DELETE,"Delete");
+        if( mSelectedEffect == nullptr && !MultipleEffectsSelected() ) {
+            menu_copy->Enable(false);
+            menu_delete->Enable(false);
+        }
+        if( !mCanPaste || !(mCellRangeSelected || mPartialCellSelected) ) {
+            menu_paste->Enable(false);
+        }
     }
 
     if (mnuLayer != nullptr) {
