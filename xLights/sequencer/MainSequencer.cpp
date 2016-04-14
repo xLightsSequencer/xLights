@@ -275,8 +275,7 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
 			if (event.ControlDown())
 			{
                 if (mSequenceElements != nullptr) {
-                    CopySelectedEffects();
-                    PanelEffectGrid->SetCanPaste();
+                    Copy();
                 }
 				event.StopPropagation();
 			}
@@ -305,8 +304,7 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
 			{
 				// Cut - windows only
                 if (mSequenceElements != nullptr) {
-                    CopySelectedEffects();
-                    PanelEffectGrid->DeleteSelectedEffects();
+                    Cut();
                 }
 				event.StopPropagation();
 			}
@@ -385,8 +383,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case WXK_CONTROL_C:
             if (event.CmdDown() || event.ControlDown()) {
                 if (mSequenceElements != nullptr) {
-                    CopySelectedEffects();
-                    PanelEffectGrid->SetCanPaste();
+                    Copy();
                     event.StopPropagation();
                 }
             }
@@ -396,8 +393,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case WXK_CONTROL_X:
             if (event.CmdDown() || event.ControlDown()) {
                 if (mSequenceElements != nullptr) {
-                    CopySelectedEffects();
-                    PanelEffectGrid->DeleteSelectedEffects();
+                    Cut();
                     event.StopPropagation();
                 }
             }
@@ -427,7 +423,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
 
 void MainSequencer::DoCopy(wxCommandEvent& event) {
     if (mSequenceElements != nullptr) {
-        CopySelectedEffects();
+        Copy();
     }
 }
 void MainSequencer::DoCut(wxCommandEvent& event) {
@@ -567,6 +563,13 @@ bool MainSequencer::CopySelectedEffects() {
     }
     return false;
 }
+
+void MainSequencer::Copy() {
+    if (CopySelectedEffects()) {
+        PanelEffectGrid->SetCanPaste();
+    }
+}
+
 void MainSequencer::Cut() {
     if (CopySelectedEffects()) {
         PanelEffectGrid->DeleteSelectedEffects();

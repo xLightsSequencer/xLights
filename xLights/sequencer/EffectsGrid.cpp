@@ -1764,8 +1764,64 @@ void EffectsGrid::Paste(const wxString &data) {
                 }
             }
         }
-    } else {
-        wxMessageBox("Range selections are not valid Paste targets.", "Paste Warning!", wxICON_WARNING | wxOK );
+    }
+    else if (mCellRangeSelected) {
+        if ( number_of_timings == 0 && number_of_effects == 1 )  // only single effect paste allowed for range
+        {
+            wxArrayString efdata = wxSplit(all_efdata[1], '\t');
+            if (efdata.size() < 3) {
+                return;
+            }
+            if( efdata[0] == "Random" )
+            {
+                FillRandomEffects();
+            }
+            else
+            {
+                int start_time, end_time;
+                mSequenceElements->get_undo_mgr().CreateUndoStep();
+                int row1 = mRangeStartRow;
+                int row2 = mRangeEndRow;
+                if( row1 > row2 ) {
+                    std::swap(row1, row2);
+                }
+                int col1 = mRangeStartCol;
+                int col2 = mRangeEndCol;
+                if( col1 > col2 ) {
+                    std::swap(col1, col2);
+                }
+                for( int row = row1; row <= row2; row++ )
+                {
+                    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                    start_time = tel->GetEffect(col1)->GetStartTimeMS();
+                    end_time = tel->GetEffect(col2)->GetEndTimeMS();
+                    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+                    if( el->GetRangeIsClearMS(start_time, end_time) )
+                    {
+                        int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
+                        if (effectIndex >= 0) {
+                            Effect* ef = el->AddEffect(0,
+                                      efdata[0].ToStdString(),
+                                      efdata[1].ToStdString(),
+                                      efdata[2].ToStdString(),
+                                      start_time,
+                                      end_time,
+                                      EFFECT_SELECTED,
+                                      false);
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetName(), el->GetIndex(), ef->GetID() );
+                            if (!ef->GetPaletteMap().empty()) {
+                                sendRenderEvent(el->GetParentElement()->GetName(),
+                                                start_time,
+                                                end_time, true);
+                            }
+                            RaiseSelectedEffectChanged(ef, true);
+                            mSelectedEffect = ef;
+                         }
+                    }
+                }
+            }
+            mCellRangeSelected = false;
+        }
     }
 
     Refresh();

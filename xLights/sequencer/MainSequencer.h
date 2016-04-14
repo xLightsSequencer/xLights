@@ -32,6 +32,7 @@ class MainSequencer: public wxPanel
         void SetPasteByCell(bool state) { mPasteByCell = state; }
 
         void Cut();
+        void Copy();
         void Paste();
 
         void DoCopy(wxCommandEvent& event);
