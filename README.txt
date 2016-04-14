@@ -8,13 +8,16 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+2016.20  Apr 13, 2016
    -- bug (gil)   Fix right-click Paste not active after a Control-C copy.
    -- bug (gil)   Fix single copied effect not pasting to multiple cell selection.
    -- enh (gil)   Enable right-click Copy, Paste, Delete options for timing section of grid.
    -- enh (gil)   Enable Copy Row and Paste Row for Timing tracks.
    -- bug (gil)   Fix bug preventing some timing effects from being pasted.
    -- bug (gil)   Fix copy/paste bug where single effect copy was not pasting with original duration.
-2016.18  Apr 10, 2016
+   -- bug (chrisD) Install dictionaries/phoneme files on Linux
+   -- bug (dkulp) disable the popup as it causes a crash
+2016.19  Apr 10, 2016
    -- bug (dkulp) Fix Text not showing
    -- bug (dkulp) Fix icicles buffer width
    -- enh (gil)     Add EditToolBar with Paste By Cell and Paste By Time options.  Fixes #418 and Fixes #421.
