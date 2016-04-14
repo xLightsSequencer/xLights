@@ -215,6 +215,12 @@ void RowHeading::rightClick( wxMouseEvent& event)
         {
             mnuLayer->Append(ID_ROW_MNU_BREAKDOWN_TIMING_WORDS,"Breakdown Words");
         }
+        mnuLayer->AppendSeparator();
+        mnuLayer->Append(ID_ROW_MNU_COPY_ROW,"Copy Row");
+        wxMenuItem* menu_paste = mnuLayer->Append(ID_ROW_MNU_PASTE_ROW,"Paste Row");
+        if( !mCanPaste ) {
+            menu_paste->Enable(false);
+        }
     }
 
     mnuLayer->AppendSeparator();

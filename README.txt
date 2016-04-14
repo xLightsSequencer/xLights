@@ -8,6 +8,8 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+   -- enh (gil)   Enable Copy Row and Paste Row for Timing tracks.
+   -- bug (gil)   Fix bug preventing some timing effects from being pasted.
    -- bug (gil)   Fix copy/paste bug where single effect copy was not pasting with original duration.
 2016.18  Apr 10, 2016
    -- bug (dkulp) Fix Text not showing

@@ -457,6 +457,7 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
     int number_of_timings = 0;
     int number_of_effects = 0;
     int number_of_timing_rows = mSequenceElements->GetNumberOfTimingRows();
+    int first_timing_row = -1;
     int last_timing_row = 0;
     wxString effect_data;
     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -493,6 +494,10 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                 {
                     number_of_timings++;
                     last_timing_row = row_number;
+                    if( first_timing_row < 0 )
+                    {
+                        first_timing_row = row_number;
+                    }
                     effect_data += "\tTIMING_EFFECT\n";
                 }
                 else
@@ -531,6 +536,11 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
             }
         }
     }
+    if( first_timing_row >= 0 )
+    {
+        last_timing_row -= first_timing_row;  // calculate the total number of timing rows
+    }
+
     wxString num_timings = wxString::Format("%d",number_of_timings);
     wxString num_effects = wxString::Format("%d",number_of_effects);
     wxString num_timing_rows = wxString::Format("%d",number_of_timing_rows);
