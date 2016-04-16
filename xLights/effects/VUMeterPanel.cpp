@@ -40,6 +40,14 @@ const long VUMeterPanel::ID_STATICTEXT9 = wxNewId();
 const long VUMeterPanel::ID_CHECKBOX_VUMeter_SlowDownFalls = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT10 = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls = wxNewId();
+const long VUMeterPanel::ID_STATICTEXT12 = wxNewId();
+const long VUMeterPanel::IDD_SLIDER_VUMeter_StartNote = wxNewId();
+const long VUMeterPanel::ID_TEXTCTRL_VUMeter_StartNote = wxNewId();
+const long VUMeterPanel::ID_BITMAPBUTTON_VUMeter_StartNote = wxNewId();
+const long VUMeterPanel::ID_STATICTEXT11 = wxNewId();
+const long VUMeterPanel::IDD_SLIDER_VUMeter_EndNote = wxNewId();
+const long VUMeterPanel::ID_TEXTCTRL_VUMeter_EndNote = wxNewId();
+const long VUMeterPanel::ID_BITMAPBUTTON_VUMeter_EndNote = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(VUMeterPanel,wxPanel)
@@ -136,6 +144,26 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	BitmapButton_VUMeter_SlowDownFalls->SetDefault();
 	BitmapButton_VUMeter_SlowDownFalls->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_SlowDownFalls, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Start Note"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+	FlexGridSizer31->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_VUMeter_StartNote = new wxSlider(this, IDD_SLIDER_VUMeter_StartNote, 36, 0, 127, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_VUMeter_StartNote"));
+	FlexGridSizer31->Add(Slider_VUMeter_StartNote, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_VUMeter_StartNote = new wxTextCtrl(this, ID_TEXTCTRL_VUMeter_StartNote, _("36"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_StartNote"));
+	FlexGridSizer31->Add(TextCtrl_VUMeter_StartNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_VUMeter_StartNote = new wxBitmapButton(this, ID_BITMAPBUTTON_VUMeter_StartNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_VUMeter_StartNote"));
+	BitmapButton_VUMeter_StartNote->SetDefault();
+	BitmapButton_VUMeter_StartNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer31->Add(BitmapButton_VUMeter_StartNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("End Note"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+	FlexGridSizer31->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_VUMeter_EndNote = new wxSlider(this, IDD_SLIDER_VUMeter_EndNote, 84, 0, 127, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_VUMeter_EndNote"));
+	FlexGridSizer31->Add(Slider_VUMeter_EndNote, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_VUMeter_EndNote = new wxTextCtrl(this, ID_TEXTCTRL_VUMeter_EndNote, _("84"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_EndNote"));
+	FlexGridSizer31->Add(TextCtrl_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_VUMeter_EndNote = new wxBitmapButton(this, ID_BITMAPBUTTON_VUMeter_EndNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_VUMeter_EndNote"));
+	BitmapButton_VUMeter_EndNote->SetDefault();
+	BitmapButton_VUMeter_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer31->Add(BitmapButton_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
@@ -153,6 +181,12 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Connect(ID_CHOICE_VUMeter_Shape,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VUMeterPanel::OnChoice_VUMeter_TypeSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_Shape,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(IDD_SLIDER_VUMeter_StartNote,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnSlider_VUMeter_StartNoteCmdSliderUpdated);
+	Connect(ID_TEXTCTRL_VUMeter_StartNote,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnTextCtrl_VUMeter_StartNoteText);
+	Connect(ID_BITMAPBUTTON_VUMeter_StartNote,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(IDD_SLIDER_VUMeter_EndNote,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnSlider_VUMeter_StartNoteCmdSliderUpdated);
+	Connect(ID_TEXTCTRL_VUMeter_EndNote,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnTextCtrl_VUMeter_StartNoteText);
+	Connect(ID_BITMAPBUTTON_VUMeter_EndNote,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_VUMeter");
 
@@ -215,9 +249,105 @@ void VUMeterPanel::ValidateWindow()
 		Slider_VUMeter_Bars->Enable();
 		TextCtrl_VUMeter_Bars->Enable();
 	}
+
+	if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram")
+	{
+	    Slider_VUMeter_EndNote->Enable();
+	    Slider_VUMeter_StartNote->Enable();
+	    TextCtrl_VUMeter_EndNote->Enable();
+	    TextCtrl_VUMeter_StartNote->Enable();
+	}
+	else
+    {
+	    Slider_VUMeter_EndNote->Disable();
+	    Slider_VUMeter_StartNote->Disable();
+	    TextCtrl_VUMeter_EndNote->Disable();
+	    TextCtrl_VUMeter_StartNote->Disable();
+    }
 }
 
 void VUMeterPanel::OnChoice_VUMeter_TypeSelect(wxCommandEvent& event)
 {
 	ValidateWindow();
+}
+
+void VUMeterPanel::OnSlider_VUMeter_StartNoteCmdSliderUpdated(wxScrollEvent& event)
+{
+    int start = Slider_VUMeter_StartNote->GetValue();
+    int end = Slider_VUMeter_EndNote->GetValue();
+    if (event.GetEventObject() == Slider_VUMeter_StartNote)
+    {
+        if (end < start)
+        {
+            end = start;
+        }
+    }
+    else
+    {
+        if (end < start)
+        {
+            start = end;
+        }
+    }
+
+    if (end != Slider_VUMeter_EndNote->GetValue())
+    {
+        Slider_VUMeter_EndNote->SetValue(end);
+    }
+    wxString e = wxString::Format("%d", end);
+    if (e != TextCtrl_VUMeter_EndNote->GetValue())
+    {
+        TextCtrl_VUMeter_EndNote->SetValue(e);
+    }
+    if (start != Slider_VUMeter_StartNote->GetValue())
+    {
+        Slider_VUMeter_StartNote->SetValue(start);
+    }
+    wxString s = wxString::Format("%d", start);
+    if (s != TextCtrl_VUMeter_StartNote->GetValue())
+    {
+        TextCtrl_VUMeter_StartNote->SetValue(s);
+    }
+    ValidateWindow();
+}
+
+void VUMeterPanel::OnTextCtrl_VUMeter_StartNoteText(wxCommandEvent& event)
+{
+    int start = wxAtoi(TextCtrl_VUMeter_StartNote->GetValue());
+    int end = wxAtoi(TextCtrl_VUMeter_EndNote->GetValue());
+    if (event.GetEventObject() == TextCtrl_VUMeter_StartNote)
+    {
+        if (end < start)
+        {
+            end = start;
+        }
+    }
+    else
+    {
+        if (end < start)
+        {
+            start = end;
+        }
+    }
+
+    if (end != Slider_VUMeter_EndNote->GetValue())
+    {
+        Slider_VUMeter_EndNote->SetValue(end);
+    }
+    wxString e = wxString::Format("%d", end);
+    if (e != TextCtrl_VUMeter_EndNote->GetValue())
+    {
+        TextCtrl_VUMeter_EndNote->SetValue(e);
+    }
+    if (start != Slider_VUMeter_StartNote->GetValue())
+    {
+        Slider_VUMeter_StartNote->SetValue(start);
+    }
+    wxString s = wxString::Format("%d", start);
+    if (s != TextCtrl_VUMeter_StartNote->GetValue())
+    {
+        TextCtrl_VUMeter_StartNote->SetValue(s);
+    }
+
+    ValidateWindow();
 }

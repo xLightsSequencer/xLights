@@ -480,6 +480,10 @@
     <ClInclude Include="effects\TreePanel.h" />
     <ClInclude Include="effects\TwinkleEffect.h" />
     <ClInclude Include="effects\TwinklePanel.h" />
+    <ClInclude Include="effects\VideoEffect.h" />
+    <ClInclude Include="effects\VideoPanel.h" />
+    <ClInclude Include="effects\VUMeterEffect.h" />
+    <ClInclude Include="effects\VUMeterPanel.h" />
     <ClInclude Include="effects\WaveEffect.h" />
     <ClInclude Include="effects\WavePanel.h" />
     <ClInclude Include="EffectTreeDialog.h" />

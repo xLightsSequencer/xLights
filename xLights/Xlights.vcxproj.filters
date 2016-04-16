@@ -1385,9 +1385,21 @@
     <ClInclude Include="StartChannelDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="effects\VUMeterPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\VUMeterEffect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\VideoPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\VideoEffect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\wxWidgets-3.1.0\include\wx\msw\wx.rc">
+    <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

@@ -255,6 +255,86 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText12" member="yes">
+							<label>Start Note</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_VUMeter_StartNote" variable="Slider_VUMeter_StartNote" member="yes">
+							<value>36</value>
+							<max>127</max>
+							<handler function="OnSlider_VUMeter_StartNoteCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_StartNote" variable="TextCtrl_VUMeter_StartNote" member="yes">
+							<value>36</value>
+							<size>20,-1d</size>
+							<handler function="OnTextCtrl_VUMeter_StartNoteText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_VUMeter_StartNote" variable="BitmapButton_VUMeter_StartNote" member="yes">
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText11" member="yes">
+							<label>End Note</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_VUMeter_EndNote" variable="Slider_VUMeter_EndNote" member="yes">
+							<value>84</value>
+							<max>127</max>
+							<handler function="OnSlider_VUMeter_StartNoteCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_EndNote" variable="TextCtrl_VUMeter_EndNote" member="yes">
+							<value>84</value>
+							<size>20,-1d</size>
+							<handler function="OnTextCtrl_VUMeter_StartNoteText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_VUMeter_EndNote" variable="BitmapButton_VUMeter_EndNote" member="yes">
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxEXPAND</flag>
 				<border>2</border>

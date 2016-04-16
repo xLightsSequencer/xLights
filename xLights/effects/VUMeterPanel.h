@@ -22,28 +22,36 @@ class VUMeterPanel: public wxPanel
 		//(*Declarations(VUMeterPanel)
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText9;
+		wxTextCtrl* TextCtrl_VUMeter_StartNote;
+		wxBitmapButton* BitmapButton_VUMeter_EndNote;
 		wxSlider* Slider_VUMeter_Bars;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText6;
 		wxBitmapButton* BitmapButton_VUMeter_SlowDownFalls;
 		wxStaticText* StaticText8;
+		wxStaticText* StaticText11;
 		wxBitmapButton* BitmapButton_VUMeter_Sensitivity;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_VUMeter_Bars;
 		wxBitmapButton* BitmapButton_VUMeter_Type;
+		wxSlider* Slider_VUMeter_EndNote;
 		wxSlider* Slider_VUMeter_Sensitivity;
 		wxBitmapButton* BitmapButton_VUMeter_Shape;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
 		wxCheckBox* CheckBox_VUMeter_SlowDownFalls;
 		wxBitmapButton* BitmapButton_VUMeter_TimingTrack;
+		wxStaticText* StaticText12;
 		wxTextCtrl* TextCtrl_VUMeter_Bars;
 		wxChoice* Choice_VUMeter_Type;
 		wxChoice* Choice_VUMeter_Shape;
+		wxSlider* Slider_VUMeter_StartNote;
 		wxChoice* Choice_VUMeter_TimingTrack;
+		wxBitmapButton* BitmapButton_VUMeter_StartNote;
 		wxStaticText* StaticText4;
 		wxTextCtrl* TextCtrl_VUMeter_Sensitivity;
+		wxTextCtrl* TextCtrl_VUMeter_EndNote;
 		//*)
 
 	protected:
@@ -73,6 +81,14 @@ class VUMeterPanel: public wxPanel
 		static const long ID_CHECKBOX_VUMeter_SlowDownFalls;
 		static const long ID_STATICTEXT10;
 		static const long ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls;
+		static const long ID_STATICTEXT12;
+		static const long IDD_SLIDER_VUMeter_StartNote;
+		static const long ID_TEXTCTRL_VUMeter_StartNote;
+		static const long ID_BITMAPBUTTON_VUMeter_StartNote;
+		static const long ID_STATICTEXT11;
+		static const long IDD_SLIDER_VUMeter_EndNote;
+		static const long ID_TEXTCTRL_VUMeter_EndNote;
+		static const long ID_BITMAPBUTTON_VUMeter_EndNote;
 		//*)
 
 	public:
@@ -88,6 +104,8 @@ class VUMeterPanel: public wxPanel
 		void OnChoiceVUMeterDirectionSelect(wxCommandEvent& event);
 		void OnTextCtrl1Text(wxCommandEvent& event);
 		void OnChoice_VUMeter_TypeSelect(wxCommandEvent& event);
+		void OnSlider_VUMeter_StartNoteCmdSliderUpdated(wxScrollEvent& event);
+		void OnTextCtrl_VUMeter_StartNoteText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

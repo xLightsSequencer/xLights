@@ -77,7 +77,9 @@ void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
 		   SettingsMap.Get("CHOICE_VUMeter_TimingTrack", ""),
 		   SettingsMap.GetInt("TEXTCTRL_VUMeter_Sensitivity", 70),
  		   SettingsMap.Get("CHOICE_VUMeter_Shape", "Circle"),
-		   SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", TRUE)
+		   SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", TRUE),
+           SettingsMap.GetInt("TEXTCTRL_VUMeter_StartNote", 0),
+           SettingsMap.GetInt("TEXTCTRL_VUMeter_EndNote", 127)   
 		);
 }
 
@@ -90,6 +92,8 @@ public:
 	};
     virtual ~VUMeterRenderCache() {};
 	int _bars;
+    int _startNote;
+    int _endNote;
 	int _type;
 	std::string _timingtrack;
 	std::list<int> _timingmarks; // collection of recent timing marks ... used for sweep
@@ -151,7 +155,7 @@ int VUMeterEffect::DecodeType(std::string type)
 	return 2;
 }
 
-void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls)
+void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote)
 {
 	// no point if we have no media
 	if (buffer.GetMedia() == NULL)
@@ -167,8 +171,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		cache = new VUMeterRenderCache();
 		buffer.infoCache[id] = cache;
 	}
-	int &_bars = cache->_bars;
-	int &_type = cache->_type;
+    int &_bars = cache->_bars;
+    int &_startNote = cache->_startNote;
+    int &_endNote = cache->_endNote;
+    int &_type = cache->_type;
 	std::string& _timingtrack = cache->_timingtrack;
 	std::list<int>& _timingmarks = cache->_timingmarks;
 	int &_lasttimingmark = cache->_lasttimingmark;
@@ -178,9 +184,11 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	bool& _slowdownfalls = cache->_slowdownfalls;
 
 	// Check for config changes which require us to reset
-	if (_bars != bars || _type != nType || _timingtrack != timingtrack || _sensitivity != sensitivity || _slowdownfalls != slowdownfalls)
+	if (_bars != bars || _type != nType || _timingtrack != timingtrack || _sensitivity != sensitivity || _slowdownfalls != slowdownfalls || _startNote != startnote || _endNote != endnote)
 	{
 		_bars = bars;
+        _startNote = startnote;
+        _endNote = endnote;
 		_type = nType;
 		_timingtrack = timingtrack;
 		_timingmarks.clear();
@@ -203,7 +211,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		switch (_type)
 		{
 		case 1:
-			RenderSpectrogramFrame(buffer, usebars, _lastvalues, _slowdownfalls);
+			RenderSpectrogramFrame(buffer, usebars, _lastvalues, _slowdownfalls, _startNote, _endNote);
 			break;
 		case 2:
 			RenderVolumeBarsFrame(buffer, usebars);
@@ -239,7 +247,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, bool slowdownfalls)
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, bool slowdownfalls, int startNote, int endNote)
 {
 	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
 
@@ -281,15 +289,24 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 			lastvalues = *pdata;
 		}
 
-		if (usebars > pdata->size())
+        int datapoints = std::min((int)pdata->size(), endNote - startNote + 1);
+
+		if (usebars > datapoints)
 		{
-			usebars = pdata->size();
+			usebars = datapoints;
 		}
 
-		int per = pdata->size() / usebars;
+		int per = datapoints / usebars;
 		int cols = buffer.BufferWi / usebars;
 
 		std::list<float>::iterator it = lastvalues.begin();
+
+        // skip to our start note
+        for (int i = 0; i < startNote; i++)
+        {
+            ++it;
+        }
+
 		int x = 0;
 
 		for (int j = 0; j < usebars; j++)
@@ -303,6 +320,11 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 					f = *it;
 				}
 				++it;
+                // dont let it go off the end
+                if (it == lastvalues.end())
+                {
+                    --it;
+                }
 			}
 			for (int k = 0; k < cols; k++)
 			{

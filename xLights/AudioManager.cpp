@@ -205,14 +205,27 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 			free(cfg);
 		}
 
-		int start = 65.0 * (1.0 / (float)_rate) * (float)n;
-		int end = 1046.0 * (1.0 / (float)_rate) * (float)n;
-
-		for (int i = start; i < end; i++)
+		for (int j = 0; j < 127; j++)
 		{
-			kiss_fft_cpx* cur = out + i;
-			float val = sqrtf(cur->r * cur->r + cur->i * cur->i);
-			//float valscaled = val * scaling;
+            // choose the right bucket for this MIDI note
+            double freq = 440.0 * exp2f(((double)j - 69.0) / 12.0);
+            int start = freq * (double)n / (double)_rate;
+            double freqnext = 440.0 * exp2f(((double)j + 1.0 - 69.0) / 12.0);
+            int end = freqnext * (double)n / (double)_rate;
+
+            float val = 0.0;
+
+            // got through all buckets up to the next note and take the maximums
+            if (end < outcount-1)
+            {
+                for (int k = start; k <= end; k++)
+                {
+                    kiss_fft_cpx* cur = out + k;
+                    val = std::max(val, sqrtf(cur->r * cur->r + cur->i * cur->i));
+                    //float valscaled = valnew * scaling;
+                }
+            }
+
 			float db = log10(val);
 			if (db < 0.0)
 			{
