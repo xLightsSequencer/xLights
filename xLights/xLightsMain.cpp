@@ -1616,13 +1616,7 @@ void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
         return;
     }
     inMenuAction= true;
-
-    wxWindow* w = Notebook1->GetPage(Notebook1->GetSelection());
-
-    if (w == NULL)
-    {
-        w = FindFocus();
-    }
+    wxWindow *w = FindFocus();
     evt.Skip();
     if (w != nullptr && w->GetEventHandler()) {
         w->GetEventHandler()->ProcessEventLocally(evt);
