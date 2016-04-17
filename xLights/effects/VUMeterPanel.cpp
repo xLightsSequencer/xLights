@@ -90,6 +90,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Level Pulse"));
 	Choice_VUMeter_Type->Append(_("Level Shape"));
 	Choice_VUMeter_Type->Append(_("Color On"));
+	Choice_VUMeter_Type->Append(_("Timing Event Color"));
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -209,7 +210,10 @@ static inline void EnableControl(wxWindow *w, int id, bool e) {
 
 void VUMeterPanel::ValidateWindow()
 {
-	if (Choice_VUMeter_Type->GetStringSelection() == "Timing Event Spike" || Choice_VUMeter_Type->GetStringSelection() == "Timing Event Sweep" || Choice_VUMeter_Type->GetStringSelection() == "Pulse")
+	if (Choice_VUMeter_Type->GetStringSelection() == "Timing Event Spike" || 
+        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Sweep" || 
+        Choice_VUMeter_Type->GetStringSelection() == "Pulse" || 
+        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color")
 	{
 		Choice_VUMeter_TimingTrack->Enable();
 	}
@@ -247,8 +251,19 @@ void VUMeterPanel::ValidateWindow()
 	else
 	{
 		Choice_VUMeter_Shape->Disable();
-		Slider_VUMeter_Bars->Enable();
-		TextCtrl_VUMeter_Bars->Enable();
+
+        if (Choice_VUMeter_Type->GetStringSelection() == "On" || 
+            Choice_VUMeter_Type->GetStringSelection() == "Color On" || 
+            Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color")
+        {
+            Slider_VUMeter_Bars->Disable();
+            TextCtrl_VUMeter_Bars->Disable();
+        }
+        else
+        {
+            Slider_VUMeter_Bars->Enable();
+            TextCtrl_VUMeter_Bars->Enable();
+        }
 	}
 
 	if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram")

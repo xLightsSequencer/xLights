@@ -102,6 +102,7 @@ public:
 	int _sensitivity;
 	float _lastsize;
 	bool _slowdownfalls;
+    int _colourindex;
 };
 
 int VUMeterEffect::DecodeType(std::string type)
@@ -154,6 +155,10 @@ int VUMeterEffect::DecodeType(std::string type)
     {
         return 12;
     }
+    else if (type == "Timing Event Color")
+    {
+        return 13;
+    }
 
 	// default type is volume bars
 	return 2;
@@ -186,10 +191,12 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	int& _sensitivity = cache->_sensitivity;
 	float& _lastsize = cache->_lastsize;
 	bool& _slowdownfalls = cache->_slowdownfalls;
+    int & _colourindex = cache->_colourindex;
 
 	// Check for config changes which require us to reset
 	if (_bars != bars || _type != nType || _timingtrack != timingtrack || _sensitivity != sensitivity || _slowdownfalls != slowdownfalls || _startNote != startnote || _endNote != endnote)
 	{
+        _colourindex = -1;
 		_bars = bars;
         _startNote = startnote;
         _endNote = endnote;
@@ -244,6 +251,9 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 			break;
         case 12:
             RenderOnColourFrame(buffer);
+            break;
+        case 13:
+            RenderTimingEventColourFrame(buffer, _colourindex, _timingtrack);
             break;
 		}
 	}
@@ -1071,4 +1081,56 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 			DrawDiamond(buffer, centerx, centery, xx, color1);
 		}
 	}
+}
+
+void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colourindex, std::string timingtrack)
+{
+    if (timingtrack != "")
+    {
+        Element* t = NULL;
+        for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+        {
+            Element* e = mSequenceElements->GetElement(i);
+            if (e->GetEffectLayerCount() == 1 && e->GetType() == "timing" && e->GetName() == timingtrack)
+            {
+                t = e;
+                break;
+            }
+        }
+
+        if (t != NULL)
+        {
+            EffectLayer* el = t->GetEffectLayer(0);
+            int ms = buffer.curPeriod*buffer.GetMedia()->GetFrameInterval();
+            bool effectPresent = false;
+            for (int j = 0; j < el->GetEffectCount(); j++)
+            {
+                if (el->GetEffect(j)->GetStartTimeMS() == ms)
+                {
+                    effectPresent = true;
+                    break;
+                }
+            }
+
+            if (effectPresent)
+            {
+                colourindex++;
+                if (colourindex >= buffer.GetColorCount())
+                {
+                    colourindex = 0;
+                }
+            }
+
+            xlColor color;
+            buffer.palette.GetColor(colourindex, color);
+
+            for (int x = 0; x < buffer.BufferWi; x++)
+            {
+                for (int y = 0; y < buffer.BufferHt; y++)
+                {
+                    buffer.SetPixel(x, y, color);
+                }
+            }
+        }
+    }
 }
