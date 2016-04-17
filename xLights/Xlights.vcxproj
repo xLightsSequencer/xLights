@@ -216,6 +216,8 @@
     <ClCompile Include="effects\MeteorsPanel.cpp" />
     <ClCompile Include="effects\MorphEffect.cpp" />
     <ClCompile Include="effects\MorphPanel.cpp" />
+    <ClCompile Include="effects\MusicEffect.cpp" />
+    <ClCompile Include="effects\MusicPanel.cpp" />
     <ClCompile Include="effects\OffEffect.cpp" />
     <ClCompile Include="effects\OffPanel.cpp" />
     <ClCompile Include="effects\OnEffect.cpp" />
@@ -441,6 +443,8 @@
     <ClInclude Include="effects\MeteorsPanel.h" />
     <ClInclude Include="effects\MorphEffect.h" />
     <ClInclude Include="effects\MorphPanel.h" />
+    <ClInclude Include="effects\MusicEffect.h" />
+    <ClInclude Include="effects\MusicPanel.h" />
     <ClInclude Include="effects\OffEffect.h" />
     <ClInclude Include="effects\OffPanel.h" />
     <ClInclude Include="effects\OnEffect.h" />

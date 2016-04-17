@@ -675,6 +675,10 @@
 		<Unit filename="effects/MorphEffect.h" />
 		<Unit filename="effects/MorphPanel.cpp" />
 		<Unit filename="effects/MorphPanel.h" />
+		<Unit filename="effects/MusicEffect.cpp" />
+		<Unit filename="effects/MusicEffect.h" />
+		<Unit filename="effects/MusicPanel.cpp" />
+		<Unit filename="effects/MusicPanel.h" />
 		<Unit filename="effects/OffEffect.cpp" />
 		<Unit filename="effects/OffEffect.h" />
 		<Unit filename="effects/OffPanel.cpp" />
@@ -942,6 +946,7 @@
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelViewSelector.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
+		<Unit filename="wxsmith/MusicPanel.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/OffPanel.wxs" />
 		<Unit filename="wxsmith/OnPanel.wxs" />
@@ -1081,6 +1086,7 @@
 					<wxPanel wxs="wxsmith/MarqueePanel.wxs" src="effects/MarqueePanel.cpp" hdr="effects/MarqueePanel.h" fwddecl="1" i18n="1" name="MarqueePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MeteorsPanel.wxs" src="effects/MeteorsPanel.cpp" hdr="effects/MeteorsPanel.h" fwddecl="1" i18n="1" name="MeteorsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MorphPanel.wxs" src="effects/MorphPanel.cpp" hdr="effects/MorphPanel.h" fwddecl="1" i18n="1" name="MorphPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/MusicPanel.wxs" src="effects/MusicPanel.cpp" hdr="effects/MusicPanel.h" fwddecl="1" i18n="1" name="MusicPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PianoPanel.wxs" src="effects/PianoPanel.cpp" hdr="effects/PianoPanel.h" fwddecl="1" i18n="1" name="PianoPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PicturesPanel.wxs" src="effects/PicturesPanel.cpp" hdr="effects/PicturesPanel.h" fwddecl="1" i18n="1" name="PicturesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PinwheelPanel.wxs" src="effects/PinwheelPanel.cpp" hdr="effects/PinwheelPanel.h" fwddecl="1" i18n="1" name="PinwheelPanel" language="CPP" />
