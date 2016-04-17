@@ -8,6 +8,13 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+   -- enh (keithsw) Add Note On sub effect to VU Meter - Like On but you can filter the notes it responds to
+   -- enh (keithsw) Add Note Level Pulse sub effect to VU Meter - Like Level Pulse but you can filter the notes it responds to
+   -- enh (keithsw) Add Timing Event Colour sub effect to VU Meter - This changes colour on timing events
+   -- enh (keithsw) Add option to trigger firework effects based on the audio intensity
+   -- enh (keithsw) Add the option to vary meteor effect meteor count based on the audio intensity
+   -- enh (keithsw) Add Colour On sub effect to VU Meter - Selects a colour based on the intensity of the audio
+   -- enh (keithsw) Add the ability to constrain the frequency range of the spectrogram. Columns in this effect are now aligned with MIDI notes.
 2016.20  Apr 13, 2016
    -- bug (gil)   Fix right-click Paste not active after a Control-C copy.
    -- bug (gil)   Fix single copied effect not pasting to multiple cell selection.
@@ -24,7 +31,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (gil)     Add ability to select, copy, and paste timing effects. Several restrictions in place.  Fixes #366.
    -- bug (keithsw) Fix implemented ripple missing triangle option #524
    -- bug (keithsw) Cleaned up docking windows toolbar icons #519
-   -- bug (keithsw) Fix focus issue when closing display elements panel
 2016.18  Apr 7, 2016
    -- bug (gil)   Fix bug when Papagayo timing was collapsed and selected grid cell selection wasn't working.
    -- bug (gil)   Fix Delete key operation so it doesn't do a Cut unless Shift is pressed.
@@ -34,6 +40,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Find a solution to some crashing in release builds
    -- bug (dkulp) Remove model properties dialog and model list dialog
    -- bug (dkulp) Fix crash in editing groups
+   -- enh (keithsw) Add writing of FPP universes file when saving networks
+   -- enh (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log found typically in c:\users\<user>\AppData\Roaming
 2016.17  Apr 3, 2016
    -- bug (dkulp) Fix text effect on Windows
    -- bug (dkulp) Fix single lines that are 1 channel/string with multiple lights
