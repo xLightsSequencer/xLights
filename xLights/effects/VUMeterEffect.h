@@ -32,6 +32,8 @@ class VUMeterEffect : public RenderableEffect
 		void DrawBox(RenderBuffer& buffer, int startx, int endx, int starty, int endy, xlColor& color1);
 		void DrawCircle(RenderBuffer& buffer, int x, int y, float radius, xlColor& color1);
 		void DrawDiamond(RenderBuffer& buffer, int centerx, int centery, int size, xlColor& color1);
+        void RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote);
+        void RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int _startNote, int _endNote);
 };
 
 #endif // VUMETEREFFECT_H

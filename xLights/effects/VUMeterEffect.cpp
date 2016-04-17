@@ -159,6 +159,14 @@ int VUMeterEffect::DecodeType(std::string type)
     {
         return 13;
     }
+    else if (type == "Note On")
+    {
+        return 14;
+    }
+    else if (type == "Note Level Pulse")
+    {
+        return 15;
+    }
 
 	// default type is volume bars
 	return 2;
@@ -255,7 +263,13 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
         case 13:
             RenderTimingEventColourFrame(buffer, _colourindex, _timingtrack);
             break;
-		}
+        case 14:
+            RenderNoteOnFrame(buffer, _startNote, _endNote);
+            break;
+        case 15:
+            RenderNoteLevelPulseFrame(buffer, usebars, _sensitivity, _lasttimingmark, _startNote, _endNote);
+            break;
+        }
 	}
 	catch (...)
 	{
@@ -1129,6 +1143,85 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
                 for (int y = 0; y < buffer.BufferHt; y++)
                 {
                     buffer.SetPixel(x, y, color);
+                }
+            }
+        }
+    }
+}
+
+void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote)
+{
+    std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+
+    if (pdata != NULL && pdata->size() != 0)
+    {
+        int i = 0;
+        float level = 0.0;
+        for (auto it = pdata->begin(); it != pdata->end(); it++)
+        {
+            if (i > startNote && i <= endNote)
+            {
+                level = std::max(*it, level);
+            }
+            i++;
+        }
+
+        xlColor color1;
+        buffer.palette.GetColor(0, color1);
+        color1.alpha = level * (float)255;
+
+        for (int x = 0; x < buffer.BufferWi; x++)
+        {
+            for (int y = 0; y < buffer.BufferHt; y++)
+            {
+                buffer.SetPixel(x, y, color1);
+            }
+        }
+    }
+}
+
+void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote)
+{
+    std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+
+    if (pdata != NULL && pdata->size() != 0)
+    {
+        int i = 0;
+        float level = 0.0;
+        for (auto it = pdata->begin(); it != pdata->end(); it++)
+        {
+            if (i > startNote && i <= endNote)
+            {
+                level = std::max(*it, level);
+            }
+            i++;
+        }
+
+        if (level > (float)sensitivity / 100.0)
+        {
+            lasttimingmark = buffer.curPeriod;
+        }
+
+        if (fadeframes > 0 && buffer.curPeriod - lasttimingmark < fadeframes)
+        {
+            float ff = 1.0 - (((float)buffer.curPeriod - (float)lasttimingmark) / (float)fadeframes);
+            if (ff < 0)
+            {
+                ff = 0;
+            }
+
+            if (ff > 0.0)
+            {
+                xlColor color1;
+                buffer.palette.GetColor(0, color1);
+                color1.alpha = ff * (float)255;
+
+                for (int x = 0; x < buffer.BufferWi; x++)
+                {
+                    for (int y = 0; y < buffer.BufferHt; y++)
+                    {
+                        buffer.SetPixel(x, y, color1);
+                    }
                 }
             }
         }

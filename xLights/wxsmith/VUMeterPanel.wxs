@@ -72,6 +72,8 @@
 								<item>Level Shape</item>
 								<item>Color On</item>
 								<item>Timing Event Color</item>
+								<item>Note On</item>
+								<item>Note Level Pulse</item>
 							</content>
 							<selection>2</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />

@@ -91,6 +91,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Level Shape"));
 	Choice_VUMeter_Type->Append(_("Color On"));
 	Choice_VUMeter_Type->Append(_("Timing Event Color"));
+	Choice_VUMeter_Type->Append(_("Note On"));
+	Choice_VUMeter_Type->Append(_("Note Level Pulse"));
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -222,8 +224,10 @@ void VUMeterPanel::ValidateWindow()
 		Choice_VUMeter_TimingTrack->Disable();
 	}
 
-	if (Choice_VUMeter_Type->GetStringSelection() == "Level Pulse" || Choice_VUMeter_Type->GetStringSelection() == "Level Shape")
-	{
+	if (Choice_VUMeter_Type->GetStringSelection() == "Level Pulse" || 
+        Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
+    {
 		Slider_VUMeter_Sensitivity->Enable();
 		TextCtrl_VUMeter_Sensitivity->Enable();
 	}
@@ -233,7 +237,8 @@ void VUMeterPanel::ValidateWindow()
 		TextCtrl_VUMeter_Sensitivity->Disable();
 	}
 
-	if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape" || Choice_VUMeter_Type->GetStringSelection() == "Spectrogram")
+	if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape" || 
+        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram")
 	{
 		CheckBox_VUMeter_SlowDownFalls->Enable();
 	}
@@ -254,7 +259,8 @@ void VUMeterPanel::ValidateWindow()
 
         if (Choice_VUMeter_Type->GetStringSelection() == "On" || 
             Choice_VUMeter_Type->GetStringSelection() == "Color On" || 
-            Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color")
+            Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color" ||
+            Choice_VUMeter_Type->GetStringSelection() == "Note On")
         {
             Slider_VUMeter_Bars->Disable();
             TextCtrl_VUMeter_Bars->Disable();
@@ -266,8 +272,10 @@ void VUMeterPanel::ValidateWindow()
         }
 	}
 
-	if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram")
-	{
+	if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Note On" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
+    {
 	    Slider_VUMeter_EndNote->Enable();
 	    Slider_VUMeter_StartNote->Enable();
 	    TextCtrl_VUMeter_EndNote->Enable();
