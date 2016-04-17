@@ -6,6 +6,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/bitmap.h>
 #include <wx/slider.h>
 #include <wx/settings.h>
@@ -37,6 +38,8 @@ const long MeteorsPanel::IDD_TEXTCTRL_Meteors_Swirl_Intensity = wxNewId();
 const long MeteorsPanel::ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity = wxNewId();
 const long MeteorsPanel::ID_SLIDER_Meteors_Speed = wxNewId();
 const long MeteorsPanel::IDD_TEXTCTRL_Meteors_Speed = wxNewId();
+const long MeteorsPanel::ID_CHECKBOX_Meteors_UseMusic = wxNewId();
+const long MeteorsPanel::ID_BITMAPBUTTON_Meteors_UseMusic = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(MeteorsPanel,wxPanel)
@@ -130,6 +133,15 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	TextCtrl52->SetMaxLength(3);
 	FlexGridSizer41->Add(TextCtrl52, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer41->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Meteors_UseMusic = new wxCheckBox(this, ID_CHECKBOX_Meteors_UseMusic, _("Adjust count based on music intensity"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Meteors_UseMusic"));
+	CheckBox_Meteors_UseMusic->SetValue(false);
+	FlexGridSizer41->Add(CheckBox_Meteors_UseMusic, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer41->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Meteors_UseMusic = new wxBitmapButton(this, ID_BITMAPBUTTON_Meteors_UseMusic, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Meteors_UseMusic"));
+	BitmapButton_Meteors_UseMusic->SetDefault();
+	BitmapButton_Meteors_UseMusic->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer41->Add(BitmapButton_Meteors_UseMusic, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer41);
 	FlexGridSizer41->Fit(this);
 	FlexGridSizer41->SetSizeHints(this);
@@ -147,6 +159,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_Meteors_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&MeteorsPanel::UpdateLinkedTextCtrl);
 	Connect(IDD_TEXTCTRL_Meteors_Speed,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MeteorsPanel::UpdateLinkedSlider);
+	Connect(ID_BITMAPBUTTON_Meteors_UseMusic,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_METEORS");
 }

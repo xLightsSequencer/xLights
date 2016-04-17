@@ -4,6 +4,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../AudioManager.h"
 
 #include "../../include/meteors-16.xpm"
 #include "../../include/meteors-24.xpm"
@@ -118,7 +119,18 @@ void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     
     int MeteorsEffect = GetMeteorEffect(SettingsMap["CHOICE_Meteors_Effect"]);
     int ColorScheme = GetMeteorColorScheme(SettingsMap["CHOICE_Meteors_Type"]);
-    
+
+    if (SettingsMap.GetBool("CHECKBOX_Meteors_UseMusic", false))
+    {
+        float f = 0.0;
+        std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+        if (pf != NULL)
+        {
+            f = *pf->begin();
+        }
+        Count = (float)Count * f;
+    }
+
     MeteorsRenderCache *cache = GetCache(buffer, id);
 
     if (buffer.needToInit) {

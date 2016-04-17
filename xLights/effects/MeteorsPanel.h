@@ -3,6 +3,7 @@
 
 //(*Headers(MeteorsPanel)
 #include <wx/panel.h>
+class wxCheckBox;
 class wxTextCtrl;
 class wxStaticText;
 class wxSlider;
@@ -23,10 +24,12 @@ class MeteorsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_MeteorsCount;
 		wxBitmapButton* BitmapButton_MeteorsEffect;
 		wxSlider* Slider_Meteors_Length;
+		wxCheckBox* CheckBox_Meteors_UseMusic;
 		wxStaticText* StaticText128;
 		wxBitmapButton* BitmapButton_MeteorsType;
 		wxStaticText* StaticText39;
 		wxStaticText* StaticText130;
+		wxBitmapButton* BitmapButton_Meteors_UseMusic;
 		wxStaticText* StaticText43;
 		wxStaticText* StaticText41;
 		wxSlider* Slider_Meteors_Swirl_Intensity;
@@ -57,6 +60,8 @@ class MeteorsPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity;
 		static const long ID_SLIDER_Meteors_Speed;
 		static const long IDD_TEXTCTRL_Meteors_Speed;
+		static const long ID_CHECKBOX_Meteors_UseMusic;
+		static const long ID_BITMAPBUTTON_Meteors_UseMusic;
 		//*)
 
 	public:
