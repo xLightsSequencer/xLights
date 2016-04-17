@@ -70,6 +70,7 @@
 								<item>Intensity Wave</item>
 								<item>Level Pulse</item>
 								<item>Level Shape</item>
+								<item>Color On</item>
 							</content>
 							<selection>2</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />

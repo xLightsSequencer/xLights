@@ -150,6 +150,10 @@ int VUMeterEffect::DecodeType(std::string type)
 	{
 		return 11;
 	}
+    else if (type == "Color On")
+    {
+        return 12;
+    }
 
 	// default type is volume bars
 	return 2;
@@ -238,6 +242,9 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		case 11:
 			RenderLevelShapeFrame(buffer, shape, _lastsize, _sensitivity, _slowdownfalls);
 			break;
+        case 12:
+            RenderOnColourFrame(buffer);
+            break;
 		}
 	}
 	catch (...)
@@ -569,6 +576,27 @@ void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer)
 			buffer.SetPixel(x, y, color1);
 		}
 	}
+}
+
+void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer)
+{
+    float f = 0.0;
+    std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+    if (pf != NULL)
+    {
+        f = *pf->begin();
+    }
+
+    xlColor color1;
+    buffer.GetMultiColorBlend(f, false, color1);
+
+    for (int x = 0; x < buffer.BufferWi; x++)
+    {
+        for (int y = 0; y < buffer.BufferHt; y++)
+        {
+            buffer.SetPixel(x, y, color1);
+        }
+    }
 }
 
 void VUMeterEffect::RenderPulseFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, int& lasttimingmark)

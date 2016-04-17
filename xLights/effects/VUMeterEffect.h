@@ -22,8 +22,9 @@ class VUMeterEffect : public RenderableEffect
 		void RenderVolumeBarsFrame(RenderBuffer &buffer, int bars);
 		void RenderWaveformFrame(RenderBuffer &buffer, int bars);
 		void RenderTimingEventFrame(RenderBuffer &buffer, int bars, int type, std::string timingtrack, std::list<int> &timingmarks);
-		void RenderOnFrame(RenderBuffer &buffer);
-		void RenderPulseFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, int& lasttimingmark);
+        void RenderOnFrame(RenderBuffer &buffer);
+        void RenderOnColourFrame(RenderBuffer &buffer);
+        void RenderPulseFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, int& lasttimingmark);
 		void RenderIntensityWaveFrame(RenderBuffer &buffer, int bars);
 		void RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark);
 		void RenderLevelShapeFrame(RenderBuffer &buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls);
