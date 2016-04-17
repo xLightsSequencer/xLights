@@ -3,15 +3,16 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(FireworksPanel)
-#include <wx/bmpbuttn.h>
 #include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
+#include <wx/checkbox.h>
 #include <wx/bitmap.h>
+#include <wx/slider.h>
+#include <wx/settings.h>
+#include <wx/bmpbuttn.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(FireworksPanel)
@@ -27,6 +28,11 @@ const long FireworksPanel::ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity = wxNewId()
 const long FireworksPanel::ID_STATICTEXT96 = wxNewId();
 const long FireworksPanel::ID_SLIDER_Fireworks_Fade = wxNewId();
 const long FireworksPanel::ID_BITMAPBUTTON_SLIDER_Fireworks_Fade = wxNewId();
+const long FireworksPanel::ID_CHECKBOX_Fireworks_UseMusic = wxNewId();
+const long FireworksPanel::ID_BITMAPBUTTON_Fireworks_UseMusic = wxNewId();
+const long FireworksPanel::ID_STATICTEXT1 = wxNewId();
+const long FireworksPanel::ID_SLIDER_Fireworks_Sensitivity = wxNewId();
+const long FireworksPanel::ID_BITMAPBUTTON_Fireworks_Sensitivity = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(FireworksPanel,wxPanel)
@@ -37,15 +43,15 @@ END_EVENT_TABLE()
 FireworksPanel::FireworksPanel(wxWindow* parent)
 {
 	//(*Initialize(FireworksPanel)
-	wxSlider* Slider_Fireworks_Num_Explosions;
 	wxFlexGridSizer* FlexGridSizer73;
+	wxSlider* Slider_Fireworks_Num_Explosions;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer73 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer73->AddGrowableCol(1);
 	StaticText94 = new wxStaticText(this, ID_STATICTEXT95, _("Number of Explosions"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT95"));
 	FlexGridSizer73->Add(StaticText94, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Fireworks_Num_Explosions = new wxSlider(this, ID_SLIDER_Fireworks_Explosions, 5, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_Explosions"));
+	Slider_Fireworks_Num_Explosions = new wxSlider(this, ID_SLIDER_Fireworks_Explosions, 16, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_Explosions"));
 	FlexGridSizer73->Add(Slider_Fireworks_Num_Explosions, 1, wxALL|wxEXPAND, 5);
 	BitmapButton_FireworksNumberExplosions = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions"));
 	BitmapButton_FireworksNumberExplosions->SetDefault();
@@ -75,6 +81,22 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	BitmapButton_FireworksFade->SetDefault();
 	BitmapButton_FireworksFade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer73->Add(BitmapButton_FireworksFade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer73->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Fireworks_UseMusic = new wxCheckBox(this, ID_CHECKBOX_Fireworks_UseMusic, _("Fire with music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fireworks_UseMusic"));
+	CheckBox_Fireworks_UseMusic->SetValue(false);
+	FlexGridSizer73->Add(CheckBox_Fireworks_UseMusic, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Fireworks_UseMusic = new wxBitmapButton(this, ID_BITMAPBUTTON_Fireworks_UseMusic, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Fireworks_UseMusic"));
+	BitmapButton_Fireworks_UseMusic->SetDefault();
+	BitmapButton_Fireworks_UseMusic->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer73->Add(BitmapButton_Fireworks_UseMusic, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Trigger level"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer73->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Fireworks_Sensitivity = new wxSlider(this, ID_SLIDER_Fireworks_Sensitivity, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_Sensitivity"));
+	FlexGridSizer73->Add(Slider_Fireworks_Sensitivity, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Fireworks_Sensitivity = new wxBitmapButton(this, ID_BITMAPBUTTON_Fireworks_Sensitivity, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Fireworks_Sensitivity"));
+	BitmapButton_Fireworks_Sensitivity->SetDefault();
+	BitmapButton_Fireworks_Sensitivity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer73->Add(BitmapButton_Fireworks_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer73);
 	FlexGridSizer73->Fit(this);
 	FlexGridSizer73->SetSizeHints(this);
@@ -83,8 +105,12 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
+	Connect(ID_CHECKBOX_Fireworks_UseMusic,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnCheckBox_Fireworks_UseMusicClick);
+	Connect(ID_BITMAPBUTTON_Fireworks_UseMusic,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_Fireworks_Sensitivity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_FIREWORKS");
+    ValidateWindow();
 }
 
 FireworksPanel::~FireworksPanel()
@@ -93,4 +119,21 @@ FireworksPanel::~FireworksPanel()
 	//*)
 }
 
+void FireworksPanel::ValidateWindow()
+{
+    if (CheckBox_Fireworks_UseMusic->GetValue())
+    {
+        Slider_Fireworks_Sensitivity->Enable(true);
+    }
+    else
+    {
+        Slider_Fireworks_Sensitivity->Enable(false);
+    }
+}
+
 PANEL_EVENT_HANDLERS(FireworksPanel)
+
+void FireworksPanel::OnCheckBox_Fireworks_UseMusicClick(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
