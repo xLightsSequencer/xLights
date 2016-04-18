@@ -1,11 +1,11 @@
 #include "BufferPanel.h"
 
 //(*InternalHeaders(BufferPanel)
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/bitmap.h>
+#include <wx/settings.h>
+#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #include <vector>
@@ -19,8 +19,8 @@ const long BufferPanel::ID_BITMAPBUTTON_CHOICE_BufferStyle = wxNewId();
 const long BufferPanel::ID_CHOICE_BufferTransform = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_CHOICE_BufferTransform = wxNewId();
 const long BufferPanel::ID_STATICTEXT2 = wxNewId();
-const long BufferPanel::ID_SLIDER_EffectBlur = wxNewId();
-const long BufferPanel::IDD_TEXTCTRL_EffectBlur = wxNewId();
+const long BufferPanel::IDD_SLIDER_EffectBlur = wxNewId();
+const long BufferPanel::ID_TEXTCTRL_EffectBlur = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_SLIDER_EffectBlur = wxNewId();
 const long BufferPanel::ID_CHECKBOX_OverlayBkg = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_OverlayBkg = wxNewId();
@@ -50,14 +50,14 @@ END_EVENT_TABLE()
 BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(BufferPanel)
-	wxBitmapButton* BitmapButtonBufferStyle;
-	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxStaticText* StaticText4;
 	wxStaticText* StaticText2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxBitmapButton* BitmapButton1;
+	wxBitmapButton* BitmapButtonBufferStyle;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxStaticText* StaticText4;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
@@ -98,11 +98,11 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Sizer2->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer6->AddGrowableCol(0);
-	Slider_EffectBlur = new wxSlider(BufferScrollWindow, ID_SLIDER_EffectBlur, 0, 1, 15, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectBlur"));
+	Slider_EffectBlur = new wxSlider(BufferScrollWindow, IDD_SLIDER_EffectBlur, 1, 1, 15, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_EffectBlur"));
 	FlexGridSizer6->Add(Slider_EffectBlur, 1, wxALL|wxEXPAND, 1);
-	txtCtlEffectBlur = new wxTextCtrl(BufferScrollWindow, IDD_TEXTCTRL_EffectBlur, _("1"), wxDefaultPosition, wxDLG_UNIT(BufferScrollWindow,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("IDD_TEXTCTRL_EffectBlur"));
-	txtCtlEffectBlur->SetMaxLength(2);
-	FlexGridSizer6->Add(txtCtlEffectBlur, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	TextCtrl_EffectBlur = new wxTextCtrl(BufferScrollWindow, ID_TEXTCTRL_EffectBlur, _("1"), wxDefaultPosition, wxDLG_UNIT(BufferScrollWindow,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_EffectBlur"));
+	TextCtrl_EffectBlur->SetMaxLength(2);
+	FlexGridSizer6->Add(TextCtrl_EffectBlur, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Sizer2->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_EffectBlur = new wxBitmapButton(BufferScrollWindow, ID_BITMAPBUTTON_SLIDER_EffectBlur, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectBlur"));
 	BitmapButton_EffectBlur->SetDefault();
@@ -176,8 +176,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
 	Connect(ID_BITMAPBUTTON_CHOICE_BufferStyle,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_BufferTransform,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_EffectBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BufferPanel::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_EffectBlur,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BufferPanel::UpdateLinkedSlider);
+	Connect(IDD_SLIDER_EffectBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BufferPanel::UpdateLinkedTextCtrl);
+	Connect(ID_TEXTCTRL_EffectBlur,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BufferPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_EffectBlur,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_OverlayBkg,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferPanel::OnLockButtonClick);
 	Connect(ID_CHECKBOX_RotoZoom,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&BufferPanel::OnCheckBox_RotoZoomClick);
@@ -194,7 +194,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&BufferPanel::OnResize,0,this);
 	//*)
     RotoSizer->Show(false);
-    
+
     //remove when RotoZoom code works
     CheckBox_RotoZoom->Disable();
     CheckBox_RotoZoom->Show(false);
@@ -241,7 +241,7 @@ wxString BufferPanel::GetBufferString() {
 }
 
 void BufferPanel::SetDefaultControls(const Model *model) {
-    Slider_EffectBlur->SetValue(0);
+    Slider_EffectBlur->SetValue(1);
     CheckBox_OverlayBkg->SetValue(false);
     BufferStyleChoice->Clear();
     if (model != nullptr) {
@@ -253,8 +253,8 @@ void BufferPanel::SetDefaultControls(const Model *model) {
     if (BufferStyleChoice->IsEmpty()) {
         BufferStyleChoice->Append("Default");
     }
-    Slider_EffectBlur->SetValue(0);
-    txtCtlEffectBlur->SetValue("0");
+    Slider_EffectBlur->SetValue(1);
+    TextCtrl_EffectBlur->SetValue("1");
     BufferStyleChoice->SetSelection(0);
     BufferTransform->SetSelection(0);
     CheckBox_RotoZoom->SetValue(false);
@@ -279,11 +279,11 @@ void BufferPanel::OnResize(wxSizeEvent& event)
     Panel_Sizer->SetMinSize(s);
     Panel_Sizer->SetMaxSize(s);
     Panel_Sizer->Refresh();
-    
+
     BufferScrollWindow->SetSize(s);
     BufferScrollWindow->SetMinSize(s);
     BufferScrollWindow->SetMaxSize(s);
-    
+
     BufferScrollWindow->FitInside();
     BufferScrollWindow->SetScrollRate(5, 5);
     BufferScrollWindow->Refresh();
