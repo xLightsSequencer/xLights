@@ -66,7 +66,7 @@ class MusicPanel: public wxPanel
 		static const long ID_TEXTCTRL_Music_EndNote;
 		static const long ID_BITMAPBUTTON_Music_EndNote;
 		static const long ID_STATICTEXT3;
-		static const long ID_SLIDER_Music_Offset;
+		static const long IDD_SLIDER_Music_Offset;
 		static const long ID_TEXTCTRL_Music_Offset;
 		static const long ID_BITMAPBUTTON_Music_Offset;
 		static const long ID_CHECKBOX_Music_Scale;

@@ -20,6 +20,7 @@
 #include "MarqueeEffect.h"
 #include "MeteorsEffect.h"
 #include "MorphEffect.h"
+#include "MusicEffect.h"
 #include "OffEffect.h"
 #include "OnEffect.h"
 #include "PianoEffect.h"
@@ -66,6 +67,7 @@ EffectManager::EffectManager()
     add(new LightningEffect(eff_LIGHTNING));
     add(new MarqueeEffect(eff_MARQUEE));
     add(new MeteorsEffect(eff_METEORS));
+    add(new MusicEffect(eff_MUSIC));
     add(new MorphEffect(eff_MORPH));
     add(new PianoEffect(eff_PIANO));
     add(new PicturesEffect(eff_PICTURES));

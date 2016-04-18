@@ -62,6 +62,8 @@
 							<content>
 								<item>Morph In</item>
 								<item>Morph Out</item>
+								<item>Collide</item>
+								<item>Seperate</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoice_Music_TypeSelect" entry="EVT_CHOICE" />
@@ -179,7 +181,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Music_Offset" variable="Slider_Music_Offset" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Music_Offset" variable="Slider_Music_Offset" member="yes">
 							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
