@@ -26,15 +26,19 @@ class MusicPanel: public wxPanel
 		wxTextCtrl* TextCtrl_Music_EndNote;
 		wxBitmapButton* BitmapButton_Music_EndNote;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtrl_Music_StartNote;
+		wxSlider* Slider_Music_Sensitivity;
 		wxStaticText* StaticText11;
+		wxBitmapButton* BitmapButton_Music_Sensitivity;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_Music_Bars;
 		wxSlider* Slider_Music_Bars;
-		wxStaticText* StaticText5;
 		wxTextCtrl* TextCtrl_Music_Offset;
+		wxBitmapButton* BitmapButton_Music_Colour;
 		wxChoice* Choice_Music_Type;
+		wxChoice* Choice_Music_Colour;
 		wxTextCtrl* TextCtrl_Music_Bars;
 		wxStaticText* StaticText12;
 		wxBitmapButton* BitmapButton_Music_Offset;
@@ -42,7 +46,9 @@ class MusicPanel: public wxPanel
 		wxSlider* Slider_Music_EndNote;
 		wxBitmapButton* BitmapButton_Music_StartNote;
 		wxBitmapButton* BitmapButton_Music_Scale;
+		wxStaticText* StaticText4;
 		wxSlider* Slider_Music_Offset;
+		wxTextCtrl* TextCtrl_Music_Sensitivity;
 		wxCheckBox* CheckBox_Music_Scale;
 		//*)
 
@@ -55,7 +61,6 @@ class MusicPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_CHOICE_Music_Bars;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE_Music_Type;
-		static const long ID_STATICTEXT5;
 		static const long ID_BITMAPBUTTON_CHOICE_Music_Type;
 		static const long ID_STATICTEXT12;
 		static const long IDD_SLIDER_Music_StartNote;
@@ -65,6 +70,10 @@ class MusicPanel: public wxPanel
 		static const long IDD_SLIDER_Music_EndNote;
 		static const long ID_TEXTCTRL_Music_EndNote;
 		static const long ID_BITMAPBUTTON_Music_EndNote;
+		static const long ID_STATICTEXT4;
+		static const long IDD_SLIDER_Music_Sensitivity;
+		static const long ID_TEXTCTRL_Music_Sensitivity;
+		static const long ID_BITMAPBUTTON_Music_Sensitivty;
 		static const long ID_STATICTEXT3;
 		static const long IDD_SLIDER_Music_Offset;
 		static const long ID_TEXTCTRL_Music_Offset;
@@ -73,6 +82,9 @@ class MusicPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_Music_Scale;
 		static const long ID_CHECKBOX_Music_ScaleNotes;
 		static const long ID_BITMAPBUTTON_Music_ScaleNotes;
+		static const long ID_STATICTEXT6;
+		static const long ID_CHOICE_Music_Colour;
+		static const long ID_BITMAPBUTTON_Music_Colour;
 		//*)
 
 	public:

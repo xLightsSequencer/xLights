@@ -32,14 +32,15 @@ wxPanel *MusicEffect::CreatePanel(wxWindow *parent) {
 void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 	Render(buffer,
            SettingsMap.GetInt("TEXTCTRL_Music_Bars", 6),
-		   SettingsMap.Get("CHOICE_Music_Type", "Morphs In"),
+		   SettingsMap.Get("CHOICE_Music_Type", "Collide"),
 		   SettingsMap.GetInt("CHOICE_Music_Sensitivity", 50),
 		   SettingsMap.GetBool("TEXTCTRL_Music_Scale", false),
  		   SettingsMap.GetBool("CHOICE_Music_FreqRelative", false),
            SettingsMap.GetInt("TEXTCTRL_Music_OffsetX", 0),
            SettingsMap.GetInt("TEXTCTRL_Music_StartNote", 0),
-           SettingsMap.GetInt("TEXTCTRL_Music_EndNote", 127)   
-		);
+           SettingsMap.GetInt("TEXTCTRL_Music_EndNote", 127),   
+           SettingsMap.Get("CHOICE_Music_Colour", "Distinct")
+        );
 }
 
 // represents a music event for a note
@@ -48,14 +49,10 @@ class MusicEvent
 	public:
 		int _startframe;
 		int _duration; // in frames
-		xlColor _colour1;
-		xlColor _colour2;
 		MusicEvent(int startframe, int duration, const xlColor& c1, const xlColor& c2)
 		{
 			_startframe = startframe;
 			_duration = duration;
-			_colour1 = c1;
-			_colour2 = c2;
 		}
 		bool IsEventActive(int frame)
 		{
@@ -109,11 +106,24 @@ public:
     int _startNote;
     int _endNote;
 	int _type;
+    int _colourTreatment;
     int _sensitivity;
 	int _offsetx; // skip these many cols at left of model
 	bool _scale; // scale out to fill model horizontally
     bool _freqRelative; // scale based on maximum volume within frequency ... otherwise scale on maximum volume across all frequencies
 };
+
+int MusicEffect::DecodeColourTreatment(const std::string& colourtreatment)
+{
+    if (colourtreatment == "Distinct")
+    {
+        return 1;
+    }
+    else if (colourtreatment == "Blend")
+    {
+        return 2;
+    }
+}
 
 int MusicEffect::DecodeType(const std::string& type)
 {
@@ -141,7 +151,8 @@ void MusicEffect::Render(RenderBuffer &buffer,
     int bars, const std::string& type,
     int sensitivity, bool scale,
     bool freqrelative, int offsetx,
-    int startnote, int endnote)
+    int startnote, int endnote,
+    const std::string& colourtreatment)
 {
     // no point if we have no media
     if (buffer.GetMedia() == NULL)
@@ -150,6 +161,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
     }
 
     int nType = DecodeType(type);
+    int nTreatment = DecodeColourTreatment(colourtreatment);
 
     // Grab our cache
     MusicRenderCache *cache = (MusicRenderCache*)buffer.infoCache[id];
@@ -165,15 +177,17 @@ void MusicEffect::Render(RenderBuffer &buffer,
     bool &_scale = cache->_scale;
     int &_sensitivity = cache->_sensitivity;
     bool &_freqRelative = cache->_freqRelative;
+    int& _colourTreatment = cache->_colourTreatment;
     std::vector<std::list<MusicEvent*>*>& _events = cache->_events;
 
     // Check for config changes which require us to reset
-    if (buffer.needToInit || _bars != bars || _type != nType || _startNote != startnote || _endNote != endnote || _offsetx != offsetx || _scale != scale || _freqRelative != freqrelative || _sensitivity != sensitivity)
+    if (buffer.needToInit || _bars != bars || _type != nType || _startNote != startnote || _endNote != endnote || _offsetx != offsetx || _scale != scale || _freqRelative != freqrelative || _sensitivity != sensitivity || _colourTreatment != nTreatment)
     {
         buffer.needToInit = false;
         _bars = bars;
         _startNote = startnote;
         _endNote = endnote;
+        _colourTreatment = nTreatment;
         _type = nType;
         _offsetx = offsetx;
         _scale = scale;
@@ -220,16 +234,16 @@ void MusicEffect::Render(RenderBuffer &buffer,
                 switch (_type)
                 {
                 case 1:
-                    RenderMorph(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, true /* in */, *_events[x]);
+                    RenderMorph(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, true /* in */, *_events[x], _colourTreatment);
                     break;
                 case 2:
-                    RenderMorph(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, false /* out */, *_events[x]);
+                    RenderMorph(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, false /* out */, *_events[x], _colourTreatment);
                     break;
                 case 3:
-                    RenderCollide(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, true /* collide */, *_events[x]);
+                    RenderCollide(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, true /* collide */, *_events[x], _colourTreatment);
                     break;
                 case 4:
-                    RenderCollide(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, false /* uncollide */,* _events[x]);
+                    RenderCollide(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, false /* uncollide */,* _events[x], _colourTreatment);
                     break;
                 }
             }
@@ -241,6 +255,8 @@ void MusicEffect::Render(RenderBuffer &buffer,
         //int a = 0;
     }
 }
+
+#define MINIMUMEVENTLENGTH 5
 
 void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<MusicEvent*>*>& events, int startNote, int endNote, int bars, bool freqRelative, int sensitivity)
 {
@@ -327,7 +343,10 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
                     }
                     --f;
                     frame--;
-                    events[string]->push_back(new MusicEvent(startframe, frame - startframe, c1, c2));
+                    if (frame - startframe >= MINIMUMEVENTLENGTH)
+                    {
+                        events[string]->push_back(new MusicEvent(startframe, frame - startframe, c1, c2));
+                    }
                 }
                 frame++;
             }
@@ -404,11 +423,11 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     }
 }
 
-void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, bool in,std::list<MusicEvent*>& events)
+void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, bool in,std::list<MusicEvent*>& events, int colourTreatment)
 {
 }
 
-void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, bool in, std::list<MusicEvent*>& events)
+void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, bool in, std::list<MusicEvent*>& events, int colourTreatment)
 {
     for (auto it = events.begin(); it != events.end(); ++it)
     {
@@ -417,11 +436,12 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
             float progress = (*it)->OffsetInDuration(buffer.curPeriod);
 
             int mid = buffer.BufferHt / 2;
+            int length = buffer.BufferHt;
             int leftstart, leftend;
             if (in)
             {
-                leftstart = (progress - 0.5) * buffer.BufferHt;
-                leftend = progress * buffer.BufferHt;
+                leftstart = 0 - mid - 1 + progress * length;
+                leftend = leftstart + mid;
                 if (leftend > mid)
                 {
                     leftend = mid;
@@ -429,18 +449,44 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
             }
             else
             {
-                leftstart = mid - progress * buffer.BufferHt;
-                leftend = mid - (progress + 0.5) * buffer.BufferHt;
+                leftstart = mid - progress * length;
+                leftend = mid - (progress + 0.5) * length;
                 if (leftend > mid)
                 {
                     leftend = mid;
                 }
             }
 
-            for (int y = leftstart; y < leftend; y++)
+            int loopstart = leftstart;
+            if (loopstart < 0)
             {
-                buffer.SetPixel(x, y, (*it)->_colour1);
-                buffer.SetPixel(x, mid - y + mid, (*it)->_colour1);
+                loopstart = 0;
+            }
+
+            for (int y = loopstart; y < leftend; y++)
+            {
+                xlColor c = xlWHITE;
+                float proportion = ((float)y - (float)leftstart) / (float)mid;
+                if (colourTreatment == 1)
+                {
+                    // distinct
+                    float percolour = 1.0 / (float)buffer.GetColorCount();
+                    for (int i = 0; i < buffer.GetColorCount(); i++)
+                    {
+                        if (proportion <= ((float)i + 1.0)*percolour)
+                        {
+                            buffer.palette.GetColor(i, c);
+                            break;
+                        }
+                    }
+                }
+                else if (colourTreatment == 2)
+                {
+                    // blend
+                    buffer.GetMultiColorBlend(proportion, false, c);
+                }
+                buffer.SetPixel(x, y, c);
+                buffer.SetPixel(x, mid - y + mid - 1, c);
             }
         }
     }
