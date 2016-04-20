@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Add the option to vary meteor effect meteor count based on the audio intensity
    -- enh (keithsw) Add Colour On sub effect to VU Meter - Selects a colour based on the intensity of the audio
    -- enh (keithsw) Add the ability to constrain the frequency range of the spectrogram. Columns in this effect are now aligned with MIDI notes.
+   -- fix (keithsw) Ensure pictures, piano and video effect move when moving folders around
+   -- enh (keithsw) Move convert tab into a dialog
 2016.20  Apr 13, 2016
    -- bug (gil)   Fix right-click Paste not active after a Control-C copy.
    -- bug (gil)   Fix single copied effect not pasting to multiple cell selection.
@@ -40,9 +42,25 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Find a solution to some crashing in release builds
    -- bug (dkulp) Remove model properties dialog and model list dialog
    -- bug (dkulp) Fix crash in editing groups
+<<<<<<< HEAD
    -- enh (keithsw) Add writing of FPP universes file when saving networks
    -- enh (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log found typically in c:\users\<user>\AppData\Roaming
+=======
+2016.18  Apr 7, 2016
+   -- bug (gil)   Fix bug when Papagayo timing was collapsed and selected grid cell selection wasn't working.
+   -- bug (gil)   Fix Delete key operation so it doesn't do a Cut unless Shift is pressed.
+   -- bug (dkulp) Fix shift-del/ins on LayoutPanel as well
+   -- bug (dkulp) Fix "individual start channel" calculations
+   -- bug (dkulp) Set the buffer size correctly for candycanes.  Fixes #521
+   -- bug (dkulp) Find a solution to some crashing in release builds
+   -- bug (dkulp) Remove model properties dialog and model list dialog
+   -- bug (dkulp) Fix crash in editing groups
+   -- enh (keithsw) Add writing of FPP universes file when saving networks
+   -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log found typically in c:\users\<user>\AppData\Roaming
+>>>>>>> ConvertInDialog
 2016.17  Apr 3, 2016
+   -- enh (keithsw) Add writing of FPP universes file when saving networks
+   -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log found typically in c:\users\<user>\AppData\Roaming
    -- bug (dkulp) Fix text effect on Windows
    -- bug (dkulp) Fix single lines that are 1 channel/string with multiple lights
    -- bug (dkulp) Fix circle radius

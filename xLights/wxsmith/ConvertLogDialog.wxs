@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="ConvertLogDialog">
+		<title>Conversion Log</title>
+		<id_arg>0</id_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_LOG" variable="TextCtrlLog" member="yes">
+					<size>584,401</size>
+					<style>wxTE_MULTILINE|wxTE_READONLY</style>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

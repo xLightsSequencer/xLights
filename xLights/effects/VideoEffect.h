@@ -60,6 +60,8 @@ class VideoEffect : public RenderableEffect
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual bool needToAdjustSettings(const std::string& version) { return true; };
+        virtual void adjustSettings(const std::string &version, Effect *effect);
 };
 
 #endif // VIDEOEFFECT_H

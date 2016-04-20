@@ -9,6 +9,8 @@
 #include "SequenceData.h"
 
 class xLightsFrame; // forward declare to prevent including the world
+class ConvertDialog;
+class ConvertLogDialog;
 
 class ConvertParameters
 {
@@ -28,17 +30,26 @@ public:
     NetInfoClass& NetInfo;
     DataLayer* data_layer;
     wxString* media_filename;
-    xLightsFrame* xLightsParent;
     bool channels_off_at_end;
     bool map_empty_channels;
     bool map_no_network_channels;
     ReadMode read_mode;
+    xLightsFrame* xLightsFrm;
+    ConvertDialog* convertDialog;
+    ConvertLogDialog* convertLogDialog;
+
+    void SetStatusText(wxString msg);
+    void ConversionError(wxString msg);
+    void PlayerError(wxString msg);
+    void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
 
     ConvertParameters( wxString inp_filename_,
                        SequenceData& seq_data_,
                        NetInfoClass& NetInfo_,
                        ReadMode read_mode_,
-                       xLightsFrame* xLightsParent_,
+                       xLightsFrame* xLightsFrm_,
+                       ConvertDialog* convertDialog_,
+                       ConvertLogDialog* convertLogDialog_,
                        wxString* media_filename_ = nullptr,
                        DataLayer* data_layer_ = nullptr,
                        wxString out_filename_ = wxEmptyString,

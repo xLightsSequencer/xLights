@@ -21,8 +21,11 @@
 #include <wx/treectrl.h>
 //*)
 
+class ConvertLogDialog;
+
 class SeqSettingsDialog: public wxDialog
 {
+    ConvertLogDialog* _plog;
 	public:
 
 		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning, bool wizard_active_ = false);
@@ -263,7 +266,7 @@ class SeqSettingsDialog: public wxDialog
         void WizardPage2();
         void WizardPage3();
         void WizardPage4();
-        bool ImportDataLayer(const wxString& filetypes);
+        bool ImportDataLayer(const wxString& filetypes, ConvertLogDialog* plog);
 };
 
 #endif

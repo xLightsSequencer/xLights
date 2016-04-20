@@ -103,27 +103,20 @@
 #include <log4cpp/Category.hh>
 
 class EffectTreeDialog;
+class ConvertDialog;
+class ConvertLogDialog;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
 
 // notebook pages
 #define SETUPTAB 0
-//#define TESTTAB 1
-//#define CONVERTTAB 2
-//#define PREVIEWTAB 3
-//#define SCHEDULETAB 4
-//#define PAPAGAYOTAB 5
-//#define NEWSEQUENCER 6
-#define CONVERTTAB 1
-#define PREVIEWTAB 2
-#define SCHEDULETAB 3
-#define PAPAGAYOTAB 4
-#define NEWSEQUENCER 5
+#define PREVIEWTAB 1
+#define SCHEDULETAB 2
+#define PAPAGAYOTAB 3
+#define NEWSEQUENCER 4
 
-//#define FixedPages 7
-#define FixedPages 6
-
+#define FixedPages 5
 
 #define TEXT_ENTRY_TIMING           0
 #define TEXT_ENTRY_EFFECT           1
@@ -360,28 +353,24 @@ public:
     static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
     wxString GetShowDirectory() { return showDirectory; }
     NetInfoClass& GetNetInfo() { return NetInfo; }
-//    wxCheckListBox* GetCheckListBoxTestChannels() { return CheckListBoxTestChannels; }
-    void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
     void ConversionInit();
     void ConversionError(const wxString& msg);
     void PlayerError(const wxString& msg);
     void SetMediaFilename(const wxString& filename);
-    void AppendConvertLog(const wxString& msg);
-    void RenderIseqData(bool bottom_layers);
+    void RenderIseqData(bool bottom_layers, ConvertLogDialog* plog);
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
     void CreateDebugReport(wxDebugReportCompress *report);
     wxString GetThreadStatusReport();
 	void SetAudioControls();
-
-    void ImportSuperStar(const wxFileName &filename);
-    void ImportLMS(const wxFileName &filename);
-    void ImportHLS(const wxFileName &filename);
-    void ImportVix(const wxFileName &filename);
     void ImportXLights(const wxFileName &filename);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements,
-                       bool allowAllModels = false, bool clearSrc = false);
+        bool allowAllModels = false, bool clearSrc = false);
+    void ImportVix(const wxFileName &filename);
+    void ImportHLS(const wxFileName &filename);
+    void ImportLMS(const wxFileName &filename);
     void ImportLSP(const wxFileName &filename);
+    void ImportSuperStar(const wxFileName &filename);
 
     EffectManager &GetEffectManager() { return effectManager; }
 
@@ -437,8 +426,8 @@ private:
     void OnMenuItemAddListSelected(wxCommandEvent& event);
     void OnButtonLightsOffClick(wxCommandEvent& event);
     void OnCheckBoxLightOutputClick(wxCommandEvent& event);
-    void OnButtonStartConversionClick(wxCommandEvent& event);
-    void OnButtonChooseFileClick(wxCommandEvent& event);
+    //void OnButtonStartConversionClick(wxCommandEvent& event);
+    //void OnButtonChooseFileClick(wxCommandEvent& event);
     void OnButtonStopNowClick(wxCommandEvent& event);
     void OnButtonGracefulStopClick(wxCommandEvent& event);
     void OnButtonSaveScheduleClick(wxCommandEvent& event);
@@ -582,6 +571,7 @@ private:
     void OnAuiToolBarItemShowHideEffects(wxCommandEvent& event);
     void OnAuiToolBarItemPasteByTimeClick(wxCommandEvent& event);
     void OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event);
+    void OnMenuItemConvertSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -651,27 +641,6 @@ private:
     static const long ID_BITMAPBUTTON2;
     static const long ID_LISTCTRL_NETWORKS;
     static const long ID_PANEL_SETUP;
-    static const long ID_STATICTEXT14;
-    static const long ID_STATICTEXT19;
-    static const long ID_STATICTEXT68;
-    static const long ID_STATICTEXT15;
-    static const long ID_BUTTON_CHOOSE_FILE;
-    static const long ID_TEXTCTRL_FILENAME;
-    static const long ID_STATICTEXT16;
-    static const long ID_CHOICE_OUTPUT_FORMAT;
-    static const long ID_STATICTEXT17;
-    static const long ID_CHECKBOX_OFF_AT_END;
-    static const long ID_STATICTEXT20;
-    static const long ID_CHECKBOX_MAP_EMPTY_CHANNELS;
-    static const long ID_STATICTEXT33;
-    static const long ID_CHECKBOX_LOR_WITH_NO_CHANNELS;
-    static const long ID_STATICTEXT39;
-    static const long ID_CHECKBOX_ShowChannelMapping;
-    static const long ID_CHOICE1;
-    static const long ID_BUTTON_START_CONVERSION;
-    static const long ID_STATICTEXT18;
-    static const long ID_TEXTCTRL_CONVERSION_STATUS;
-    static const long ID_PANEL_CONVERT;
     static const long ID_PANEL_PREVIEW;
     static const long ID_TREECTRL1;
     static const long ID_CHECKBOX_RUN_SCHEDULE;
@@ -739,6 +708,7 @@ private:
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
     static const long ID_MENUITEM13;
+    static const long ID_MENUITEM_CONVERT;
     static const long idMenuSaveSched;
     static const long idMenuAddList;
     static const long idMenuRenameList;
@@ -819,8 +789,6 @@ private:
     //(*Declarations(xLightsFrame)
     xlAuiToolBar* OutputToolBar;
     wxChoice* Choice_PgoOutputType;
-    wxTextCtrl* TextCtrlFilename;
-    wxStaticText* StaticText20;
     wxButton* Button_pgo_filename;
     wxButton* ButtonAddE131;
     wxMenuItem* MenuItemViewSavePerspective;
@@ -828,7 +796,6 @@ private:
     wxMenuItem* MenuItem33;
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemGridNodeValuesOff;
-    wxChoice* LORImportTimeResolution;
     wxCheckBox* CheckBoxRunSchedule;
     wxCheckBox* CheckBox_CoroEyesRandomLR;
     wxButton* ButtonClearLog;
@@ -840,9 +807,7 @@ private:
     wxTextCtrl* TextCtrl_PgoAutoFade;
     wxStaticText* StaticText2;
     wxTextCtrl* TextCtrl_pgo_filename;
-    wxFileDialog* FileDialogConvert;
     wxAuiManager* MainAuiManager;
-    wxStaticText* StaticText14;
     wxMenuItem* MenuItemRenderCanvasMode;
     wxButton* Button_PgoStitch;
     wxStaticText* StaticTextShowEnd;
@@ -850,26 +815,19 @@ private:
     wxMenuItem* MenuItemGridNodeValuesOn;
     wxMenu* MenuItem15;
     wxMenu* Menu3;
-    wxChoice* ChoiceOutputFormat;
     wxStaticText* StaticText26;
     wxTextCtrl* TextCtrlLog;
     wxMenu* MenuItemRenderMode;
     wxButton* Button_Change_Media_Dir;
-    wxStaticText* StaticText65;
     wxMenuItem* MenuItemRefresh;
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxMenuItem* MenuItem36;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
     wxStaticText* StaticText32;
-    wxStaticText* StaticText19;
     wxButton* ButtonNetworkDeleteAll;
-    wxButton* ButtonStartConversion;
-    wxStaticText* StaticText18;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxStaticText* StaticTextShowStart;
-    wxStaticText* StaticText31;
-    wxCheckBox* CheckBoxMapEmptyChannels;
     xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem37;
     wxStaticText* StaticText1;
@@ -887,7 +845,6 @@ private:
     wxStaticText* StaticText67;
     wxChoice* Choice_PgoGroupName;
     wxPanel* Panel3;
-    wxStaticText* StaticText39;
     wxMenuItem* MenuItemEffectAssistAlwaysOn;
     wxMenu* MenuItem7;
     wxButton* ButtonAddDongle;
@@ -900,6 +857,7 @@ private:
     xlAuiToolBar* WindowMgmtToolbar;
     wxMenuItem* MenuItemRenderEraseMode;
     wxMenuItem* MenuItem3;
+    wxMenuItem* MenuItemConvert;
     wxButton* ButtonNetworkChange;
     wxButton* ButtonAddNull;
     wxMenuItem* Menu_Settings_Sequence;
@@ -926,10 +884,8 @@ private:
     wxMenuItem* MenuItemEffectAssistToggleMode;
     wxButton* Button_PgoCopyVoices;
     wxStaticText* StaticText43;
-    wxStaticText* StaticText15;
     wxStaticText* MediaDirectoryLabel;
     wxMenuItem* mRenderOnSaveMenuItem;
-    wxPanel* PanelConvert;
     wxPanel* PanelSetup;
     wxTextCtrl* TextCtrl_PgoMinRest;
     wxStaticText* StaticText68;
@@ -937,7 +893,6 @@ private:
     wxStaticText* StaticText35;
     wxStaticText* StaticText_PgoOutputType;
     wxCheckBox* CheckBox_PgoAutoFade;
-    wxCheckBox* CheckBoxShowChannelMapping;
     wxPanel* Panel2;
     wxMenuItem* MenuItemSavePlaylists;
     wxPanel* PanelPapagayo;
@@ -945,28 +900,22 @@ private:
     wxButton* ButtonUpdateShow;
     wxMessageDialog* MessageDialog1;
     wxMenu* GridSpacingMenu;
-    wxTextCtrl* TextCtrlConversionStatus;
     wxStaticText* StaticText25;
     wxMenuItem* MenuItem16;
     wxMenuItem* MenuItem34;
     wxSplitterWindow* SplitterWindow1;
-    wxCheckBox* MapLORChannelsWithNoNetwork;
-    wxButton* ButtonChooseFile;
     wxMenuItem* MenuItemEffectAssistWindow;
     wxMenuItem* ActionTestMenuItem;
     wxStaticText* StaticText36;
     wxStaticText* StaticText4;
-    wxStaticText* StaticText17;
     wxMenu* MenuItem18;
     wxMenu* MenuItem1;
     xlAuiToolBar* EffectsToolBar;
     wxButton* ButtonSaveSchedule;
     wxButton* ButtonAddShow;
     wxButton* Button_CoroGroupDelete;
-    wxStaticText* StaticText16;
     wxMenu* AudioMenu;
     wxTimer Timer1;
-    wxCheckBox* CheckBoxOffAtEnd;
     wxFileDialog* FileDialogPgoImage;
     xlAuiToolBar* EditToolBar;
     wxMenuItem* MenuItemGridIconBackgroundOff;
@@ -1045,7 +994,6 @@ private:
     wxString mediaDirectory;
     SeqDataType SeqData;
 
-    wxArrayString FileNames;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
     long seekPoint;
@@ -1059,40 +1007,42 @@ private:
 public:
     bool UnsavedRgbEffectsChanges;
 
-    void ReadLorFile(const wxString& filename, int LORImportInterval);
-    void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
+    //void ReadLorFile(const wxString& filename, int LORImportInterval);
+    //void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
+
+    void ClearLastPeriod();
+    void WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf); //       Vixen *.vir
+    void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc
+    void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LOR *.lcb
+    void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int cpn);  //      LSP UserPatterns.xml
+    wxString base64_encode();
+    int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
+    void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = NULL);
+    void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg); // = NULL);
+    void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
 
 private:
 
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
-    void ReadVixFile(const wxString& filename);
-    void ReadHLSFile(const wxString& filename);
-    void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = NULL);
-    void ReadFalconFile(const wxString& FileName);
-    void ReadGlediatorFile(const wxString& FileName);
-    void ReadConductorFile(const wxString& FileName);
+    //void ReadVixFile(const wxString& filename);
+    //void ReadHLSFile(const wxString& filename);
+    //void ReadGlediatorFile(const wxString& FileName);
+    //void ReadConductorFile(const wxString& FileName);
     int GetLorTrack1Length(const char* filename);
-    bool WriteVixenFile(const wxString& filename); //     Vixen *.vix
-    void WriteVirFile(const wxString& filename);
-    void WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf); //       Vixen *.vir
-    void WriteHLSFile(const wxString& filename);  //      HLS *.hlsnc
-    void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc
-    void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
-    void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
+    //bool WriteVixenFile(const wxString& filename); //     Vixen *.vix
+    //void WriteVirFile(const wxString& filename);
+    //void WriteHLSFile(const wxString& filename);  //      HLS *.hlsnc
+    //void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
     void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
                                 SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
     void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
-    void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf,int cpn);  //      LSP UserPatterns.xml
     void WriteLcbFile(const wxString& filename);  //      LOR *.lcb
-    void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LOR *.lcb
-    void ClearLastPeriod();
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);
     bool mapEmptyChannels();
     bool showChannelMapping();
     bool isSetOffAtEnd();
 
-    wxString base64_encode();
 
     wxXmlNode* SelectModelToExport();
 
@@ -1243,7 +1193,7 @@ protected:
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
     void BackupDirectory(wxString targetDirName);
     void NewSequence();
-    void OpenSequence(wxString passed_filename);
+    void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
     void SaveSequence();
     void SaveAsSequence();
     bool CloseSequence();
@@ -1331,6 +1281,7 @@ public:
     void UpdatePreview();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
+    int GetTotalChannels() { return _totalChannels; };
 
 private:
 
@@ -1392,7 +1343,6 @@ private:
 
     void LoadSequencer(xLightsXmlFile& xml_file);
     void LoadPerspective(wxXmlNode *p);
-	int GetTotalChannels() { return _totalChannels; };
 
     void CheckForAndCreateDefaultPerpective();
     void ZoomIn();

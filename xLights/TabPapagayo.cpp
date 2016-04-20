@@ -1004,7 +1004,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 
     ButtonStartPapagayo->Enable(false);
 //    wxString OutputFormat = Choice_PgoOutputType->GetString(Choice_PgoOutputType->GetSelection()); //Choice_PgoOutputType->GetStringSelection();
-    TextCtrlConversionStatus->Clear();
+    //TextCtrlConversionStatus->Clear();
     ButtonStartPapagayo->Enable(true);
     debug(10, "out fmt = '%c'", outmode); //(const char*)OutputFormat.c_str());
     if (!voices.size()) retmsg(wxString("No Papagayo voice info found."));

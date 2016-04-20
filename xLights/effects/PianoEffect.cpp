@@ -6,6 +6,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../xLightsXmlFile.h"
 
 #include <vector>
 
@@ -22,6 +23,26 @@ PianoEffect::PianoEffect(int id) : RenderableEffect(id, "Piano", piano, piano, p
 PianoEffect::~PianoEffect()
 {
     //dtor
+}
+
+void PianoEffect::adjustSettings(const std::string &version, Effect *effect)
+{
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect);
+    }
+
+    SettingsMap &settings = effect->GetSettings();
+    std::string file = settings["TEXTCTRL_Piano_File"];
+
+    if (file != "")
+    {
+        if (!wxFile::Exists(file))
+        {
+            settings["TEXTCTRL_Piano_File"] = xLightsXmlFile::FixFile("", file);
+        }
+    }
 }
 
 wxPanel *PianoEffect::CreatePanel(wxWindow *parent) {

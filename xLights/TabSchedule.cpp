@@ -840,7 +840,7 @@ bool xLightsFrame::Play(wxString& filename, long delay)
         return PlayCurrentXlightsFile();
         break;
     case 'F':
-        ReadFalconFile(fullpath);
+        ReadFalconFile(fullpath, NULL);
         return PlayCurrentXlightsFile();
         break;
     }

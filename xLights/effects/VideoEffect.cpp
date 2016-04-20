@@ -4,6 +4,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../xLightsXmlFile.h"
 
 #include "../../include/video-16.xpm"
 #include "../../include/video-24.xpm"
@@ -303,6 +304,26 @@ VideoEffect::~VideoEffect()
 
 wxPanel *VideoEffect::CreatePanel(wxWindow *parent) {
     return new VideoPanel(parent);
+}
+
+void VideoEffect::adjustSettings(const std::string &version, Effect *effect)
+{
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect);
+    }
+
+    SettingsMap &settings = effect->GetSettings();
+    std::string file = settings["FILEPICKERCTRL_Video_Filename"];
+
+    if (file != "")
+    {
+        if (!wxFile::Exists(file))
+        {
+            settings["FILEPICKERCTRL_Video_Filename"] = xLightsXmlFile::FixFile("", file);
+        }
+    }
 }
 
 void VideoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
