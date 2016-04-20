@@ -46,6 +46,8 @@ const long MusicPanel::ID_BITMAPBUTTON_Music_ScaleNotes = wxNewId();
 const long MusicPanel::ID_STATICTEXT6 = wxNewId();
 const long MusicPanel::ID_CHOICE_Music_Colour = wxNewId();
 const long MusicPanel::ID_BITMAPBUTTON_Music_Colour = wxNewId();
+const long MusicPanel::ID_CHECKBOX_Music_Fade = wxNewId();
+const long MusicPanel::ID_BITMAPBUTTON_Music_Fade = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(MusicPanel,wxPanel)
@@ -77,10 +79,11 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer31->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Music_Type = new wxChoice(this, ID_CHOICE_Music_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Music_Type"));
-	Choice_Music_Type->SetSelection( Choice_Music_Type->Append(_("Morph In")) );
-	Choice_Music_Type->Append(_("Morph Out"));
+	Choice_Music_Type->SetSelection( Choice_Music_Type->Append(_("Morph")) );
+	Choice_Music_Type->Append(_("Bounce"));
 	Choice_Music_Type->Append(_("Collide"));
 	Choice_Music_Type->Append(_("Seperate"));
+	Choice_Music_Type->Append(_("On"));
 	FlexGridSizer31->Add(Choice_Music_Type, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Music_Type = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Music_Type, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Music_Type"));
@@ -150,12 +153,22 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	Choice_Music_Colour = new wxChoice(this, ID_CHOICE_Music_Colour, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Music_Colour"));
 	Choice_Music_Colour->SetSelection( Choice_Music_Colour->Append(_("Distinct")) );
 	Choice_Music_Colour->Append(_("Blend"));
+	Choice_Music_Colour->Append(_("Cycle"));
 	FlexGridSizer31->Add(Choice_Music_Colour, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Music_Colour = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Colour, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Colour"));
 	BitmapButton_Music_Colour->SetDefault();
 	BitmapButton_Music_Colour->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_Music_Colour, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Music_Fade = new wxCheckBox(this, ID_CHECKBOX_Music_Fade, _("Fade"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Music_Fade"));
+	CheckBox_Music_Fade->SetValue(false);
+	FlexGridSizer31->Add(CheckBox_Music_Fade, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Music_Fade = new wxBitmapButton(this, ID_BITMAPBUTTON_Music_Fade, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Music_Fade"));
+	BitmapButton_Music_Fade->SetDefault();
+	BitmapButton_Music_Fade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer31->Add(BitmapButton_Music_Fade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
@@ -181,6 +194,7 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_Music_Scale,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_Music_ScaleNotes,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_Music_Colour,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_Music_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_Music");
 

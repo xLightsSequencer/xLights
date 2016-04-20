@@ -44,10 +44,12 @@ class MusicPanel: public wxPanel
 		wxBitmapButton* BitmapButton_Music_Offset;
 		wxBitmapButton* BitmapButton_Music_Type;
 		wxSlider* Slider_Music_EndNote;
+		wxBitmapButton* BitmapButton_Music_Fade;
 		wxBitmapButton* BitmapButton_Music_StartNote;
 		wxBitmapButton* BitmapButton_Music_Scale;
 		wxStaticText* StaticText4;
 		wxSlider* Slider_Music_Offset;
+		wxCheckBox* CheckBox_Music_Fade;
 		wxTextCtrl* TextCtrl_Music_Sensitivity;
 		wxCheckBox* CheckBox_Music_Scale;
 		//*)
@@ -85,6 +87,8 @@ class MusicPanel: public wxPanel
 		static const long ID_STATICTEXT6;
 		static const long ID_CHOICE_Music_Colour;
 		static const long ID_BITMAPBUTTON_Music_Colour;
+		static const long ID_CHECKBOX_Music_Fade;
+		static const long ID_BITMAPBUTTON_Music_Fade;
 		//*)
 
 	public:

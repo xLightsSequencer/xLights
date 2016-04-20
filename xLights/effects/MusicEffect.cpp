@@ -39,7 +39,8 @@ void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
            SettingsMap.GetInt("TEXTCTRL_Music_Offset", 0),
            SettingsMap.GetInt("TEXTCTRL_Music_StartNote", 0),
            SettingsMap.GetInt("TEXTCTRL_Music_EndNote", 127),   
-           SettingsMap.Get("CHOICE_Music_Colour", "Distinct")
+           SettingsMap.Get("CHOICE_Music_Colour", "Distinct"),
+           SettingsMap.GetBool("CHECKBOX_Music_Fade", false)
         );
 }
 
@@ -108,6 +109,7 @@ public:
 	int _type;
     int _colourTreatment;
     int _sensitivity;
+    bool _fade;
 	int _offsetx; // skip these many cols at left of model
 	bool _scale; // scale out to fill model horizontally
     bool _freqRelative; // scale based on maximum volume within frequency ... otherwise scale on maximum volume across all frequencies
@@ -123,15 +125,19 @@ int MusicEffect::DecodeColourTreatment(const std::string& colourtreatment)
     {
         return 2;
     }
+    else if (colourtreatment == "Cycle")
+    {
+        return 3;
+    }
 }
 
 int MusicEffect::DecodeType(const std::string& type)
 {
-    if (type == "Morphs In")
+    if (type == "Morph")
     {
         return 1;
     }
-    else if (type == "Morphs Out")
+    else if (type == "Bounce")
     {
         return 2;
     }
@@ -143,6 +149,10 @@ int MusicEffect::DecodeType(const std::string& type)
     {
         return 4;
     }
+    else if (type == "On")
+    {
+        return 5;
+    }
     // default type is volume bars
     return 1;
 }
@@ -152,30 +162,14 @@ void MusicEffect::Render(RenderBuffer &buffer,
     int sensitivity, bool scale,
     bool freqrelative, int offsetx,
     int startnote, int endnote,
-    const std::string& colourtreatment)
+    const std::string& colourtreatment,
+    bool fade)
 {
     startnote = Normalise(startnote, 0, 127);
     endnote = Normalise(endnote, 0, 127);
     sensitivity = Normalise(sensitivity, 0, 100);
     bars = Normalise(bars, 0, 100);
     offsetx = Normalise(offsetx, 0, 100);
-
-    if (startnote < 0)
-    {
-        startnote = 0;
-    }
-    if (endnote < 0)
-    {
-        endnote = 0;
-    }
-    if (startnote > 127)
-    {
-        startnote = 127;
-    }
-    if (endnote > 127)
-    {
-        endnote = 127;
-    }
 
     // no point if we have no media
     if (buffer.GetMedia() == NULL)
@@ -200,6 +194,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
     bool &_scale = cache->_scale;
     int &_sensitivity = cache->_sensitivity;
     bool &_freqRelative = cache->_freqRelative;
+    bool &_fade = cache->_fade;
     int& _colourTreatment = cache->_colourTreatment;
     std::vector<std::list<MusicEvent*>*>& _events = cache->_events;
 
@@ -209,10 +204,11 @@ void MusicEffect::Render(RenderBuffer &buffer,
     int lightsperbar = 0.5 + (float)(buffer.BufferWi - offsetx) / (float)actualbars;
 
     // Check for config changes which require us to reset
-    if (buffer.needToInit || _bars != bars || _type != nType || _startNote != startnote || _endNote != endnote || _offsetx != offsetx || _scale != scale || _freqRelative != freqrelative || _sensitivity != sensitivity || _colourTreatment != nTreatment)
+    if (buffer.needToInit || _bars != bars || _type != nType || _startNote != startnote || _endNote != endnote || _offsetx != offsetx || _scale != scale || _freqRelative != freqrelative || _sensitivity != sensitivity || _colourTreatment != nTreatment || _fade != fade)
     {
         buffer.needToInit = false;
         _bars = bars;
+        _fade = fade;
         _startNote = startnote;
         _endNote = endnote;
         _colourTreatment = nTreatment;
@@ -242,16 +238,19 @@ void MusicEffect::Render(RenderBuffer &buffer,
                 switch (_type)
                 {
                 case 1:
-                    RenderMorph(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, true /* in */, *_events[x], _colourTreatment);
+                    RenderMorph(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, *_events[x], _colourTreatment, false, fade);
                     break;
                 case 2:
-                    RenderMorph(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, false /* out */, *_events[x], _colourTreatment);
+                    RenderMorph(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, *_events[x], _colourTreatment, true, fade);
                     break;
                 case 3:
-                    RenderCollide(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, true /* collide */, *_events[x], _colourTreatment);
+                    RenderCollide(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, true /* collide */, *_events[x], _colourTreatment, fade);
                     break;
                 case 4:
-                    RenderCollide(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, false /* uncollide */,* _events[x], _colourTreatment);
+                    RenderCollide(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, false /* uncollide */,* _events[x], _colourTreatment, fade);
+                    break;
+                case 5:
+                    RenderOn(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, *_events[x], _colourTreatment, fade);
                     break;
                 }
             }
@@ -280,6 +279,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     // use multiple notes of data per output string using the maximum of these notes intensities
     std::map<int /*bar*/, std::map<int /*frame*/, float>> data;
     std::map<int /*bar*/, float> max;
+    float overallmax = 0.0;
 
     // go through each frame and extract the data i need
     for (int f = buffer.curEffStartPer; f <= buffer.curEffEndPer; f++)
@@ -294,7 +294,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
             ++pn;
         }
 
-        for (int b = 0; b < bars; b++)
+        for (int b = 0; b < bars && pn != pdata->end(); b++)
         {
             float val = 0.0;
             max[b] = 0.0;
@@ -305,6 +305,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
             }
             data[b][f] = val;
             max[b] = std::max(max[b], val);
+            overallmax = std::max(overallmax, val);
         }
     }
 
@@ -318,7 +319,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
         }
         else
         {
-            notesensitivity = (float)sensitivity / 100.0;
+            notesensitivity = (float)sensitivity / 100.0 * overallmax;
         }
         int startframe = -1;
         // extract the value for this note
@@ -336,7 +337,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
                 }
                 --f;
                 frame--;
-                if (frame - startframe > MINIMUMEVENTLENGTH)
+                if (frame - startframe >= MINIMUMEVENTLENGTH)
                 {
                     events[b]->push_back(new MusicEvent(startframe, frame - startframe));
                 }
@@ -346,14 +347,73 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     }
 }
 
-void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, bool in,std::list<MusicEvent*>& events, int colourTreatment)
+void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, std::list<MusicEvent*>& events, int colourTreatment, bool bounce, bool fade)
 {
-}
-
-void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, bool in, std::list<MusicEvent*>& events, int colourTreatment)
-{
+    bool up = true;
+    int event = -1;
     for (auto it = events.begin(); it != events.end(); ++it)
     {
+        event++;
+        up = !up;
+        if ((*it)->IsEventActive(buffer.curPeriod))
+        {
+            float progress = (*it)->OffsetInDuration(buffer.curPeriod);
+
+            int length = buffer.BufferHt;
+            int start = -1 * length + progress * 2 * length + 1;
+            int end = start + length;
+
+            for (int y = std::max(0, start); y < std::min(end, buffer.BufferHt); y++)
+            {
+                xlColor c = xlWHITE;
+                float proportion = ((float)end - (float)y) / (float)length;
+                if (colourTreatment == 1)
+                {
+                    // distinct
+                    float percolour = 1.0 / (float)buffer.GetColorCount();
+                    for (int i = 0; i < buffer.GetColorCount(); i++)
+                    {
+                        if (proportion <= ((float)i + 1.0)*percolour)
+                        {
+                            buffer.palette.GetColor(i, c);
+                            break;
+                        }
+                    }
+                }
+                else if (colourTreatment == 2)
+                {
+                    // blend
+                    buffer.GetMultiColorBlend(proportion, false, c);
+                }
+                else if (colourTreatment == 3)
+                {
+                    buffer.palette.GetColor(event % buffer.GetColorCount(), c);
+                }
+
+                if (fade)
+                {
+                    c.alpha = (1.0 -proportion) * 255;
+                }
+
+                if (up || !bounce)
+                {
+                    buffer.SetPixel(x, y, c);
+                }
+                else
+                {
+                    buffer.SetPixel(x, buffer.BufferHt - y - 1, c);
+                }
+            }
+        }
+    }
+}
+
+void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, bool in, std::list<MusicEvent*>& events, int colourTreatment, bool fade)
+{
+    int event = -1;
+    for (auto it = events.begin(); it != events.end(); ++it)
+    {
+        event++;
         if ((*it)->IsEventActive(buffer.curPeriod))
         {
             float progress = (*it)->OffsetInDuration(buffer.curPeriod);
@@ -402,8 +462,67 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
                     // blend
                     buffer.GetMultiColorBlend(proportion, false, c);
                 }
+                else if (colourTreatment == 3)
+                {
+                    buffer.palette.GetColor(event % buffer.GetColorCount(), c);
+                }
+
+                if (fade)
+                {
+                    c.alpha = progress * 255;
+                }
+
                 buffer.SetPixel(x, y, c);
                 buffer.SetPixel(x, mid - y + mid - 1, c);
+            }
+        }
+    }
+}
+
+void MusicEffect::RenderOn(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, std::list<MusicEvent*>& events, int colourTreatment, bool fade)
+{
+    int event = -1;
+    for (auto it = events.begin(); it != events.end(); ++it)
+    {
+        event++;
+        if ((*it)->IsEventActive(buffer.curPeriod))
+        {
+            float progress = (*it)->OffsetInDuration(buffer.curPeriod);
+
+
+            for (int y = 0; y < buffer.BufferHt; y++)
+            {
+                xlColor c = xlWHITE;
+                float proportion = (float)y / (float)buffer.BufferHt;
+                if (colourTreatment == 1)
+                {
+                    // distinct
+                    float percolour = 1.0 / (float)buffer.GetColorCount();
+                    for (int i = 0; i < buffer.GetColorCount(); i++)
+                    {
+                        if (proportion <= ((float)i + 1.0)*percolour)
+                        {
+                            buffer.palette.GetColor(i, c);
+                            break;
+                        }
+                    }
+                }
+                else if (colourTreatment == 2)
+                {
+                    // blend
+                    buffer.GetMultiColorBlend(proportion, false, c);
+                }
+                else if (colourTreatment == 3)
+                {
+                    buffer.palette.GetColor(event % buffer.GetColorCount(), c);
+                }
+
+                if (fade)
+                {
+                    c.alpha = (1.0 - progress) * 255;
+                }
+
+                buffer.SetPixel(x, y, c);
             }
         }
     }

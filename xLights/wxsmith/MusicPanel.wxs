@@ -60,10 +60,11 @@
 					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE_Music_Type" variable="Choice_Music_Type" member="yes">
 							<content>
-								<item>Morph In</item>
-								<item>Morph Out</item>
+								<item>Morph</item>
+								<item>Bounce</item>
 								<item>Collide</item>
 								<item>Seperate</item>
+								<item>On</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoice_Music_TypeSelect" entry="EVT_CHOICE" />
@@ -319,6 +320,7 @@
 							<content>
 								<item>Distinct</item>
 								<item>Blend</item>
+								<item>Cycle</item>
 							</content>
 							<selection>0</selection>
 						</object>
@@ -333,6 +335,36 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_Colour" variable="BitmapButton_Music_Colour" member="yes">
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Music_Fade" variable="CheckBox_Music_Fade" member="yes">
+							<label>Fade</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_Fade" variable="BitmapButton_Music_Fade" member="yes">
 							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
