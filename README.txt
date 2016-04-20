@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+   -- enh (keithsw) Add Music Effect
    -- enh (keithsw) Add Note On sub effect to VU Meter - Like On but you can filter the notes it responds to
    -- enh (keithsw) Add Note Level Pulse sub effect to VU Meter - Like Level Pulse but you can filter the notes it responds to
    -- enh (keithsw) Add Timing Event Colour sub effect to VU Meter - This changes colour on timing events
