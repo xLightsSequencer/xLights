@@ -438,23 +438,17 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
             int mid = buffer.BufferHt / 2;
             int length = buffer.BufferHt;
             int leftstart, leftend;
-            if (in)
+
+            if (!in)
             {
-                leftstart = 0 - mid - 1 + progress * length;
-                leftend = leftstart + mid;
-                if (leftend > mid)
-                {
-                    leftend = mid;
-                }
+                progress = 1.0 - progress;
             }
-            else
+
+            leftstart = 0 - mid - 1 + progress * length;
+            leftend = leftstart + mid;
+            if (leftend > mid)
             {
-                leftstart = mid - progress * length;
-                leftend = mid - (progress + 0.5) * length;
-                if (leftend > mid)
-                {
-                    leftend = mid;
-                }
+                leftend = mid;
             }
 
             int loopstart = leftstart;
