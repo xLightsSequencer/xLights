@@ -34,9 +34,9 @@ void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
            SettingsMap.GetInt("TEXTCTRL_Music_Bars", 6),
 		   SettingsMap.Get("CHOICE_Music_Type", "Collide"),
 		   SettingsMap.GetInt("CHOICE_Music_Sensitivity", 50),
-		   SettingsMap.GetBool("TEXTCTRL_Music_Scale", false),
- 		   SettingsMap.GetBool("CHOICE_Music_FreqRelative", false),
-           SettingsMap.GetInt("TEXTCTRL_Music_OffsetX", 0),
+		   SettingsMap.GetBool("CHECKBOX_Music_Scale", false),
+ 		   SettingsMap.GetBool("CHECKBOX_Music_ScaleNotes", false),
+           SettingsMap.GetInt("TEXTCTRL_Music_Offset", 0),
            SettingsMap.GetInt("TEXTCTRL_Music_StartNote", 0),
            SettingsMap.GetInt("TEXTCTRL_Music_EndNote", 127),   
            SettingsMap.Get("CHOICE_Music_Colour", "Distinct")
@@ -49,7 +49,7 @@ class MusicEvent
 	public:
 		int _startframe;
 		int _duration; // in frames
-		MusicEvent(int startframe, int duration, const xlColor& c1, const xlColor& c2)
+		MusicEvent(int startframe, int duration)
 		{
 			_startframe = startframe;
 			_duration = duration;
@@ -154,6 +154,29 @@ void MusicEffect::Render(RenderBuffer &buffer,
     int startnote, int endnote,
     const std::string& colourtreatment)
 {
+    startnote = Normalise(startnote, 0, 127);
+    endnote = Normalise(endnote, 0, 127);
+    sensitivity = Normalise(sensitivity, 0, 100);
+    bars = Normalise(bars, 0, 100);
+    offsetx = Normalise(offsetx, 0, 100);
+
+    if (startnote < 0)
+    {
+        startnote = 0;
+    }
+    if (endnote < 0)
+    {
+        endnote = 0;
+    }
+    if (startnote > 127)
+    {
+        startnote = 127;
+    }
+    if (endnote > 127)
+    {
+        endnote = 127;
+    }
+
     // no point if we have no media
     if (buffer.GetMedia() == NULL)
     {
@@ -180,6 +203,11 @@ void MusicEffect::Render(RenderBuffer &buffer,
     int& _colourTreatment = cache->_colourTreatment;
     std::vector<std::list<MusicEvent*>*>& _events = cache->_events;
 
+    int actualbars = std::min(bars, std::min(endnote - startnote + 1, buffer.BufferWi - offsetx));
+    int notesperbar = (endnote - startnote + 1) / actualbars;
+    int actualendnote = startnote + std::min(endnote, actualbars * notesperbar);
+    int lightsperbar = 0.5 + (float)(buffer.BufferWi - offsetx) / (float)actualbars;
+
     // Check for config changes which require us to reset
     if (buffer.needToInit || _bars != bars || _type != nType || _startNote != startnote || _endNote != endnote || _offsetx != offsetx || _scale != scale || _freqRelative != freqrelative || _sensitivity != sensitivity || _colourTreatment != nTreatment)
     {
@@ -195,34 +223,14 @@ void MusicEffect::Render(RenderBuffer &buffer,
         _freqRelative = freqrelative;
         cache->ClearEvents();
         // We limit bars to the width of the model less the x offset
-        if (_bars > buffer.BufferWi - _offsetx)
-        {
-            _bars = buffer.BufferWi - _offsetx;
-        }
 
-        CreateEvents(buffer, _events, _startNote, _endNote, _bars, _freqRelative, _sensitivity);
+        CreateEvents(buffer, _events, _startNote, actualendnote, actualbars, _freqRelative, _sensitivity);
     }
-
-    int n = std::min(_bars, _endNote - _startNote + 1);
 
     int per = 1;
     if (_scale)
     {
-        per = _bars / n;
-        if (_events.size() * per != _bars)
-        {
-            // fewer data points than requested ... this is ok ... just empty columns will exist
-            int a = 0;
-        }
-
-    }
-    else
-    {
-        if (_events.size() != _bars)
-        {
-            // fewer data points than requested ... this is ok ... just empty columns will exist
-            int a = 0;
-        }
+        per = lightsperbar;
     }
 
     try
@@ -234,16 +242,16 @@ void MusicEffect::Render(RenderBuffer &buffer,
                 switch (_type)
                 {
                 case 1:
-                    RenderMorph(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, true /* in */, *_events[x], _colourTreatment);
+                    RenderMorph(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, true /* in */, *_events[x], _colourTreatment);
                     break;
                 case 2:
-                    RenderMorph(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, false /* out */, *_events[x], _colourTreatment);
+                    RenderMorph(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, false /* out */, *_events[x], _colourTreatment);
                     break;
                 case 3:
-                    RenderCollide(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, true /* collide */, *_events[x], _colourTreatment);
+                    RenderCollide(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, true /* collide */, *_events[x], _colourTreatment);
                     break;
                 case 4:
-                    RenderCollide(buffer, (x*(i+1)) + i + _offsetx, _bars, _startNote, _endNote, false /* uncollide */,* _events[x], _colourTreatment);
+                    RenderCollide(buffer, (x*per) + i + _offsetx, _bars, _startNote, _endNote, false /* uncollide */,* _events[x], _colourTreatment);
                     break;
                 }
             }
@@ -267,158 +275,78 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     }
 
     float notesperbar = ((float)endNote - (float)startNote + 1.0) / (float)bars;
-    float barspernote = (float)bars / ((float)endNote - (float)startNote + 1.0);
-
-    xlColor c1, c2;
-    buffer.palette.GetColor(0, c1);
-    if (buffer.GetColorCount() > 1)
-    {
-        buffer.palette.GetColor(1, c2);
-    }
-    else
-    {
-        c2 = xlWHITE;
-    }
 
     if (notesperbar < 1.0)
     {
-        // use bars per note
-        // use multiple output strings per note of data
-        std::map<int /*note*/, std::map<int /* frame */, float>> data;
-        std::map<int /* note */, float> max;
-
-        // zero out the maximums
-        for (int n = startNote; n <= endNote; n++)
-        {
-            max[n] = 0.0;
-        }
-
-        // go through each frame and extract the data i need
-        for (int f = buffer.curEffStartPer; f <= buffer.curEffEndPer; f++)
-        {
-            std::list<float>* pdata = buffer.GetMedia()->GetFrameData(f, FRAMEDATATYPE::FRAMEDATA_VU, "");
-
-            auto pn = pdata->begin();
-
-            // skip to start note
-            for (int i = 0; i < startNote; i++)
-            {
-                ++pn;
-            }
-
-            for (int n = startNote; n <= endNote; n++)
-            {
-                data[n][f] = *pn;
-                ++pn;
-                max[n] = std::max(max[n], *pn);
-            }
-        }
-
-        int string = 0;
-        for (int n = startNote; n <= endNote; n++)
-        {            
-            events.push_back(new std::list<MusicEvent*>());
-            float notesensitivity;
-            if (freqRelative)
-            {
-                notesensitivity = sensitivity * max[n];
-            }
-            else
-            {
-                notesensitivity = sensitivity;
-            }
-            int startframe = -1;
-            // extract the value for this note
-            int frame = 0;
-            for (auto f = data[n].begin(); f != data[n].end(); ++f)
-            {
-                if (f->second > notesensitivity)
-                {
-                    startframe = frame;
-
-                    while (f != data[n].end() && f->second > notesensitivity)
-                    {
-                        ++f;
-                        frame++;
-                    }
-                    --f;
-                    frame--;
-                    if (frame - startframe >= MINIMUMEVENTLENGTH)
-                    {
-                        events[string]->push_back(new MusicEvent(startframe, frame - startframe, c1, c2));
-                    }
-                }
-                frame++;
-            }
-            string++;
-        }
+        int a = 0;
     }
-    else
+
+    // use notes per bar
+    // use multiple notes of data per output string using the maximum of these notes intensities
+    std::map<int /*bar*/, std::map<int /*frame*/, float>> data;
+    std::map<int /*bar*/, float> max;
+
+    // go through each frame and extract the data i need
+    for (int f = buffer.curEffStartPer; f <= buffer.curEffEndPer; f++)
     {
-        // use notes per bar
-        // use multiple notes of data per output string using the maximum of these notes intensities
-        std::map<int /*string*/, std::map<int /* frame */, float>> data;
-        std::map<int /* string */, float> max;
+        std::list<float>* pdata = buffer.GetMedia()->GetFrameData(f, FRAMEDATATYPE::FRAMEDATA_VU, "");
 
-        // go through each frame and extract the data i need
-        for (int f = buffer.curEffStartPer; f <= buffer.curEffEndPer; f++)
+        auto pn = pdata->begin();
+
+        // skip to start note
+        for (int i = 0; i < startNote; i++)
         {
-            std::list<float>* pdata = buffer.GetMedia()->GetFrameData(f, FRAMEDATATYPE::FRAMEDATA_VU, "");
-
-            auto pn = pdata->begin();
-
-            // skip to start note
-            for (int i = 0; i < startNote; i++)
-            {
-                ++pn;
-            }
-
-            for (int b = 0; b < bars; b++)
-            {
-                float val = 0.0;
-                max[b] = 0.0;
-                for (int n = 0; n < (int)notesperbar; n++)
-                {
-                    val = std::max(val, *pn);
-                    ++pn;
-                }
-                data[b][f] = val;
-                max[b] = std::max(max[b], val);
-            }
+            ++pn;
         }
 
         for (int b = 0; b < bars; b++)
         {
-            events.push_back(new std::list<MusicEvent*>());
-            float notesensitivity;
-            if (freqRelative)
+            float val = 0.0;
+            max[b] = 0.0;
+            for (int n = 0; n < (int)notesperbar; n++)
             {
-                notesensitivity = (float)sensitivity / 100.0 * max[b];
+                val = std::max(val, *pn);
+                ++pn;
             }
-            else
-            {
-                notesensitivity = (float)sensitivity / 100.0;
-            }
-            int startframe = -1;
-            // extract the value for this note
-            int frame = 0;
-            for (auto f = data[b].begin(); f != data[b].end(); ++f)
-            {
-                if (f->second > notesensitivity)
-                {
-                    startframe = frame;
+            data[b][f] = val;
+            max[b] = std::max(max[b], val);
+        }
+    }
 
-                    while (f != data[b].end() && f->second > notesensitivity)
-                    {
-                        ++f;
-                        frame++;
-                    }
-                    --f;
-                    frame--;
-                    events[b]->push_back(new MusicEvent(startframe, frame - startframe, c1, c2));
+    for (int b = 0; b < bars; b++)
+    {
+        events.push_back(new std::list<MusicEvent*>());
+        float notesensitivity;
+        if (freqRelative)
+        {
+            notesensitivity = (float)sensitivity / 100.0 * max[b];
+        }
+        else
+        {
+            notesensitivity = (float)sensitivity / 100.0;
+        }
+        int startframe = -1;
+        // extract the value for this note
+        int frame = 0;
+        for (auto f = data[b].begin(); f != data[b].end(); ++f)
+        {
+            if (f->second > notesensitivity)
+            {
+                startframe = frame;
+
+                while (f != data[b].end() && f->second > notesensitivity)
+                {
+                    ++f;
+                    frame++;
                 }
-                frame++;
+                --f;
+                frame--;
+                if (frame - startframe > MINIMUMEVENTLENGTH)
+                {
+                    events[b]->push_back(new MusicEvent(startframe, frame - startframe));
+                }
             }
+            frame++;
         }
     }
 }
