@@ -676,19 +676,6 @@ void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const 
   }
 }
 
-int RenderBuffer::Normalise(int val, int min, int max)
-{
-    if (val < min)
-    {
-        return min;
-    }
-    if (val > max)
-    {
-        return max;
-    }
-    return val;
-}
-
 void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color, bool direction )
 {
     int x0 = x0_;

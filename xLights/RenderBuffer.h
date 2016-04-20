@@ -256,7 +256,6 @@ public:
     void SetDisplayListRect(Effect *eff, int startIdx, double x1, double y1, double x2, double y2,
                             const xlColor &cx1y1, const xlColor &cx1y2,
                             const xlColor &cx2y1, const xlColor &cx2y2);
-    int Normalise(int val, int min, int max);
 
     int BufferHt,BufferWi;  // size of the buffer
     

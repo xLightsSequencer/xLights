@@ -276,11 +276,6 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
 
     float notesperbar = ((float)endNote - (float)startNote + 1.0) / (float)bars;
 
-    if (notesperbar < 1.0)
-    {
-        int a = 0;
-    }
-
     // use notes per bar
     // use multiple notes of data per output string using the maximum of these notes intensities
     std::map<int /*bar*/, std::map<int /*frame*/, float>> data;
