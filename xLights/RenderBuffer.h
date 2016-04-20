@@ -257,7 +257,6 @@ public:
                             const xlColor &cx1y1, const xlColor &cx1y2,
                             const xlColor &cx2y1, const xlColor &cx2y2);
 
-
     int BufferHt,BufferWi;  // size of the buffer
     
     xlColorVector pixels; // this is the calculation buffer

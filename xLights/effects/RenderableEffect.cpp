@@ -268,6 +268,19 @@ std::string RenderableEffect::GetEffectString() {
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect) {
     AdjustSettingsToBeFitToTime(effect->GetEffectIndex(), effect->GetSettings(), effect->GetStartTimeMS(), effect->GetEndTimeMS(), effect->GetPalette());
 }
+int RenderableEffect::Normalise(int val, int min, int max)
+{
+    if (val < min)
+    {
+        return min;
+    }
+    if (val > max)
+    {
+        return max;
+    }
+    return val;
+}
+
 void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors)
 {
     if (effectIdx == EffectManager::eff_FACES
