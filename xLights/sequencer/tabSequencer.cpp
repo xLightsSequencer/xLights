@@ -913,7 +913,7 @@ void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
     {
         mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(0);
         wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-        wxPostEvent(this, eventScroll);
+        mainSequencer->HorizontalScrollChanged(eventScroll);
 
         mainSequencer->PanelTimeLine->ResetMarkers(0);
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
@@ -927,7 +927,7 @@ void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
     int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
     mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(limit-1);
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-    wxPostEvent(this, eventScroll);
+    mainSequencer->HorizontalScrollChanged(eventScroll);
 
     int end_ms = CurrentSeqXmlFile->GetSequenceDurationMS();
     mainSequencer->PanelTimeLine->ResetMarkers(end_ms);

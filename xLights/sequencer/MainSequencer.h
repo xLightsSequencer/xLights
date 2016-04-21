@@ -30,6 +30,7 @@ class MainSequencer: public wxPanel
         bool CopySelectedEffects();
         bool PasteByCellActive() { return mPasteByCell; }
         void SetPasteByCell(bool state) { mPasteByCell = state; }
+        void HorizontalScrollChanged( wxCommandEvent& event);
 
         void Cut();
         void Copy();
@@ -87,7 +88,6 @@ class MainSequencer: public wxPanel
         void SetHandlers(wxWindow *);
 
         void ScrollRight( wxCommandEvent& event);
-        void HorizontalScrollChanged( wxCommandEvent& event);
         void TimelineChanged( wxCommandEvent& event);
         void UpdateEffectGridHorizontalScrollBar();
 
