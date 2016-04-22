@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.21  Apr 22, 2016
    -- enh (keithsw) Add x/y offset and some new movements to tendril
    -- enh (keithsw) Custom model export and import allowing simple sharing
    -- enh (keithsw) Add x offset to piano
@@ -24,7 +25,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Add Colour On sub effect to VU Meter - Selects a colour based on the intensity of the audio
    -- enh (keithsw) Add the ability to constrain the frequency range of the spectrogram. Columns in this effect are now aligned with MIDI notes.
    -- fix (keithsw) Ensure pictures, piano and video effect move when moving folders around
-   -- enh (keithsw) Move convert tab into a dialog
+   -- enh (keithsw) Move convert tab into a dialog under TOOLS. Now go to convert "TOOLS,CONVERT"
 2016.20  Apr 13, 2016
    -- bug (gil)   Fix right-click Paste not active after a Control-C copy.
    -- bug (gil)   Fix single copied effect not pasting to multiple cell selection.
