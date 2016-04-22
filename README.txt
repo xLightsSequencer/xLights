@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add x offset to piano
    -- enh (keithsw) Add x and y offsets to select meteor effects
    -- enh (keithsw) Add x and y offsets to select vumeter effects
    -- enh (keithsw) Add timing track option for defining piano notes

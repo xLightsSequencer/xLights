@@ -99,8 +99,9 @@ void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 		SettingsMap.GetInt("TEXTCTRL_Piano_MIDI_Start"),
 		SettingsMap.GetInt("TEXTCTRL_Piano_MIDI_Speed"),
 		SettingsMap.GetInt("TEXTCTRL_Piano_Scale"),
-		std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", ""))
-		);
+		std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", "")),
+        SettingsMap.GetInt("TEXTCTRL_Piano_XOffset")
+        );
 }
 
 class PianoCache : public EffectRenderCache 
@@ -117,13 +118,14 @@ public:
 	std::string _file;
 	int _MIDIStartAdjust;
 	int _MIDISpeedAdjust;
+    int _xoffset;
 	std::map<int, std::list<float>> _timings;
 	int _scale;
 	std::string _MIDItrack;
 };
 
 //render piano fx during sequence:
-void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps, const std::string type, std::string timingsource, std::string file, int MIDIAdjustStart, int MIDIAdjustSpeed, int scale, std::string MIDITrack)
+void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const int endmidi, const bool sharps, const std::string type, std::string timingsource, std::string file, int MIDIAdjustStart, int MIDIAdjustSpeed, int scale, std::string MIDITrack, int xoffset)
 {
 	PianoCache *cache = (PianoCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
@@ -142,6 +144,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 	std::map<int, std::list<float>>& _timings = cache->_timings;
 	int& _scale = cache->_scale;
 	std::string& _MIDITrack = cache->_MIDItrack;
+    int& _xoffset = cache->_xoffset;
 
 	if (buffer.needToInit ||
         _startMidiChannel != startmidi ||
@@ -151,6 +154,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 		_timingsource != timingsource ||
 		_file != file ||
 		_scale != scale ||
+        _xoffset != xoffset ||
 		_MIDISpeedAdjust != MIDIAdjustSpeed ||
 		_MIDIStartAdjust != MIDIAdjustStart ||
 		_MIDITrack != MIDITrack)
@@ -184,6 +188,7 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 		_endMidiChannel = endmidi;
 		_showSharps = sharps;
 		_type = type;
+        _xoffset = xoffset;
 		_timingsource = timingsource;
 		_MIDISpeedAdjust = MIDIAdjustSpeed;
 		_MIDIStartAdjust = MIDIAdjustStart;
@@ -221,11 +226,11 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 
 		if (_type == "True Piano")
 		{
-			DrawTruePiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel, _scale);
+			DrawTruePiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel, _scale, _xoffset);
 		}
 		else if (_type == "Bars")
 		{
-			DrawBarsPiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel, _scale);
+			DrawBarsPiano(buffer, pdata, _showSharps, _startMidiChannel, _endMidiChannel, _scale, _xoffset);
 		}
 	}
 }
@@ -291,8 +296,9 @@ bool PianoEffect::KeyDown(std::list<float>* pdata, int ch)
 	return false;
 }
 
-void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale)
+void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale, int xoffset)
 {
+    int truexoffset = xoffset * buffer.BufferWi / 100;
 	xlColor wkcolour, bkcolour, wkdcolour, bkdcolour, kbcolour;
 
 	// count the keys
@@ -408,7 +414,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	}
 
 	// Draw white keys
-	int x = 0;
+	int x = truexoffset;
 	for (int i = start; i <= end; i++)
 	{
 		if (!IsSharp(i))
@@ -428,7 +434,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	// Draw white key borders
 	if (border)
 	{
-		x = fwkw;
+		x = fwkw + truexoffset;
 		for (int i = 0; i < wkcount; i++)
 		{
 			buffer.DrawLine(x, 0, x, buffer.BufferHt * scale / 100, kbcolour);
@@ -442,15 +448,15 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 		// Draw the black keys
 		if (IsSharp(start))
 		{
-			x = -1 * fwkw / 2;
+			x = -1 * fwkw / 2 + truexoffset;
 		}
 		else if (IsSharp(start + 1))
 		{
-			x = fwkw / 2;
+			x = fwkw / 2 + truexoffset;
 		}
 		else
 		{
-			x = fwkw + fwkw / 2;
+			x = fwkw + fwkw / 2 + truexoffset;
 		}
 		for (i = start; i <= end; i++)
 		{
@@ -477,9 +483,10 @@ void PianoEffect::DrawTruePiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	}
 }
 
-void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale)
+void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale, int xoffset)
 {
-	xlColor wkcolour, bkcolour, wkdcolour, bkdcolour;
+    int truexoffset = xoffset * buffer.BufferWi / 100;
+    xlColor wkcolour, bkcolour, wkdcolour, bkdcolour;
 
 	// count the keys
 	int kcount = -1;
@@ -534,7 +541,7 @@ void PianoEffect::DrawBarsPiano(RenderBuffer &buffer, std::list<float>* pdata, b
 	}
 
 	// Draw keys
-	int x = 0;
+	int x = 0 + truexoffset;
 	int wkh = buffer.BufferHt;
 	if (sharps)
 	{

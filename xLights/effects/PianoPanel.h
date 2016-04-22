@@ -32,6 +32,8 @@ class PianoPanel: public wxPanel
         void TimingTrackValidateWindow();
 
 		//(*Declarations(PianoPanel)
+		wxStaticText* StaticText9;
+		wxTextCtrl* TextCtrl_Piano_XOffset;
 		wxBitmapButton* BitmapButton_Piano_MIDITrack_APPLYLAST;
 		wxBitmapButton* BitmapButton_Piano_Type;
 		wxTextCtrl* TextCtrl_Piano_File;
@@ -54,10 +56,12 @@ class PianoPanel: public wxPanel
 		wxFileDialog* FileDialog1;
 		wxBitmapButton* BitmapButton_Piano_MIDI_Start;
 		wxStaticText* StaticText3;
-		wxBitmapButton* BitmapButton1;
+		wxBitmapButton* BitmapButton_Piano_XOffset;
 		wxSpinCtrl* SpinCtrl_Piano_EndMIDI;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
+		wxBitmapButton* BitmapButton_Piano_scale;
+		wxSlider* Slider_Piano_XOffset;
 		wxBitmapButton* BitmapButton_Piano_Notes_Source;
 		wxChoice* Choice_Piano_Type;
 		wxSlider* Slider_Piano_MIDI_Start;
@@ -87,7 +91,11 @@ class PianoPanel: public wxPanel
 		static const long ID_STATICTEXT7;
 		static const long IDD_SLIDER_Piano_Scale;
 		static const long ID_TEXTCTRL_Piano_Scale;
-		static const long ID_BITMAPBUTTON1;
+		static const long ID_BITMAPBUTTON_Piano_Scale;
+		static const long ID_STATICTEXT9;
+		static const long IDD_SLIDER_Piano_XOffset;
+		static const long ID_TEXTCTRL_Piano_XOffset;
+		static const long ID_BITMAPBUTTON_Piano_XOffset;
 		static const long ID_STATICTEXT4;
 		static const long ID_TEXTCTRL_Piano_File;
 		static const long ID_BUTTON_Piano_File;
