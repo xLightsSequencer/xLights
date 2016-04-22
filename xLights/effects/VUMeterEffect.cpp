@@ -79,8 +79,10 @@ void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
  		   SettingsMap.Get("CHOICE_VUMeter_Shape", "Circle"),
 		   SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", TRUE),
            SettingsMap.GetInt("TEXTCTRL_VUMeter_StartNote", 0),
-           SettingsMap.GetInt("TEXTCTRL_VUMeter_EndNote", 127)   
-		);
+           SettingsMap.GetInt("TEXTCTRL_VUMeter_EndNote", 127),   
+           SettingsMap.GetInt("TEXTCTRL_VUMeter_XOffset", 0),
+           SettingsMap.GetInt("TEXTCTRL_VUMeter_YOffset", 0)
+        );
 }
 
 class VUMeterRenderCache : public EffectRenderCache 
@@ -103,6 +105,8 @@ public:
 	float _lastsize;
 	bool _slowdownfalls;
     int _colourindex;
+    int _xoffset;
+    int _yoffset;
 };
 
 int VUMeterEffect::DecodeType(std::string type)
@@ -172,13 +176,20 @@ int VUMeterEffect::DecodeType(std::string type)
 	return 2;
 }
 
-void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote)
+void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset)
 {
 	// no point if we have no media
 	if (buffer.GetMedia() == NULL)
 	{
 		return;
 	}
+
+    bars = Normalise(bars, 1, 100);
+    sensitivity = Normalise(sensitivity, 0, 100);
+    startnote = Normalise(startnote, 0, 127);
+    endnote = Normalise(endnote, 0, 127);
+    xoffset = Normalise(xoffset, -100, 100);
+    yoffset = Normalise(yoffset, -100, 100);
 
 	int nType = DecodeType(type);
 
@@ -200,9 +211,13 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	float& _lastsize = cache->_lastsize;
 	bool& _slowdownfalls = cache->_slowdownfalls;
     int & _colourindex = cache->_colourindex;
+    int & _xoffset = cache->_xoffset;
+    int & _yoffset = cache->_yoffset;
+
 
 	// Check for config changes which require us to reset
-	if (_bars != bars || _type != nType || _timingtrack != timingtrack || _sensitivity != sensitivity || _slowdownfalls != slowdownfalls || _startNote != startnote || _endNote != endnote)
+	if (_bars != bars || _type != nType || _timingtrack != timingtrack || _sensitivity != sensitivity || _slowdownfalls != slowdownfalls || _startNote != startnote || _endNote != endnote ||
+        _xoffset != xoffset || _yoffset != yoffset)
 	{
         _colourindex = -1;
 		_bars = bars;
@@ -215,10 +230,12 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		_lastvalues.clear();
 		_sensitivity = sensitivity;
 		_lastsize = 0;
+        _xoffset = xoffset;
+        _yoffset = yoffset;
 		_slowdownfalls = slowdownfalls;
 	}
 
-	// We limit bars to the width of the model
+	// We limit bars to the width of the model in some effects
 	int usebars = _bars;
 	if (usebars > buffer.BufferWi)
 	{
@@ -230,13 +247,13 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		switch (_type)
 		{
 		case 1:
-			RenderSpectrogramFrame(buffer, usebars, _lastvalues, _slowdownfalls, _startNote, _endNote);
+			RenderSpectrogramFrame(buffer, _bars, _lastvalues, _slowdownfalls, _startNote, _endNote, _xoffset);
 			break;
 		case 2:
 			RenderVolumeBarsFrame(buffer, usebars);
 			break;
 		case 3:
-			RenderWaveformFrame(buffer, usebars);
+			RenderWaveformFrame(buffer, usebars, _yoffset);
 			break;
 		case 4:
 		case 5:
@@ -255,7 +272,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 			RenderLevelPulseFrame(buffer, usebars, _sensitivity, _lasttimingmark);
 			break;
 		case 11:
-			RenderLevelShapeFrame(buffer, shape, _lastsize, _sensitivity, _slowdownfalls);
+			RenderLevelShapeFrame(buffer, shape, _lastsize, _sensitivity, _slowdownfalls, _xoffset, _yoffset);
 			break;
         case 12:
             RenderOnColourFrame(buffer);
@@ -278,7 +295,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, bool slowdownfalls, int startNote, int endNote)
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, bool slowdownfalls, int startNote, int endNote, int xoffset)
 {
 	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
 
@@ -338,7 +355,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
             ++it;
         }
 
-		int x = 0;
+		int x = xoffset * buffer.BufferWi / 2 / 100;
 
 		for (int j = 0; j < usebars; j++)
 		{
@@ -416,8 +433,9 @@ void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars)
 	}
 }
 
-void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars)
+void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int yoffset)
 {
+    int trueyoffset = yoffset * buffer.BufferHt / 2 / 100;
 	int start = buffer.curPeriod - usebars;
 	int cols = buffer.BufferWi / usebars;
 	int x = 0;
@@ -454,7 +472,7 @@ void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars)
 					xlColor color1;
 					//buffer.GetMultiColorBlend((double)y / (double)e, false, color1);
 					buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
-					buffer.SetPixel(x, y, color1);
+					buffer.SetPixel(x, y + trueyoffset, color1);
 				}
 				x++;
 			}
@@ -833,11 +851,11 @@ void VUMeterEffect::DrawBox(RenderBuffer& buffer, int startx, int endx, int star
 			}
 			else
 			{
-				if (starty >= 0 && starty < buffer.BufferWi)
+				if (starty >= 0 && starty < buffer.BufferHt)
 				{
 					buffer.SetPixel(x, starty, color1);
 				}
-				if (endy >= 0 && endy < buffer.BufferWi)
+				if (endy >= 0 && endy < buffer.BufferHt)
 				{
 					buffer.SetPixel(x, endy, color1);
 				}
@@ -866,9 +884,11 @@ void VUMeterEffect::DrawDiamond(RenderBuffer& buffer, int centerx, int centery, 
 	}
 }
 
-void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls)
+void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset)
 {
-	float scaling = (float)scale / 100.0 * 7.0;
+    int truexoffset = xoffset * buffer.BufferWi / 2 / 100;
+    int trueyoffset = yoffset * buffer.BufferHt / 2 / 100;
+    float scaling = (float)scale / 100.0 * 7.0;
 
 	float f = 0.0;
 	std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
@@ -879,8 +899,8 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 
 	if (shape == "Square")
 	{
-		int centerx = (buffer.BufferWi / 2.0);
-		int centery = (buffer.BufferHt / 2.0);
+		int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+		int centery = (buffer.BufferHt / 2.0) + trueyoffset;
 		float maxside = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
 		float side = maxside * f;
 		if (slowdownfalls)
@@ -920,8 +940,8 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 	}
 	else if (shape == "Filled Square")
 	{
-		int centerx = (buffer.BufferWi / 2.0);
-		int centery = (buffer.BufferHt / 2.0);
+		int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+		int centery = (buffer.BufferHt / 2.0) + trueyoffset;
 		float maxside = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
 		float side = maxside * f;
 		if (slowdownfalls)
@@ -982,8 +1002,8 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 		xlColor color1;
 		buffer.palette.GetColor(0, color1);
 
-		int centerx = (buffer.BufferWi / 2.0);
-		int centery = (buffer.BufferHt / 2.0);
+		int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+		int centery = (buffer.BufferHt / 2.0) + trueyoffset;
 		color1.alpha = 0.25 * 255;
 		DrawCircle(buffer, centerx, centery, lastsize-2, color1);
 		DrawCircle(buffer, centerx, centery, lastsize+2, color1);
@@ -1016,8 +1036,8 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 		{
 			lastsize = radius;
 		}
-		int centerx = (buffer.BufferWi / 2.0);
-		int centery = (buffer.BufferHt / 2.0);
+		int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+		int centery = (buffer.BufferHt / 2.0) + trueyoffset;
 
 		for (int x = 0; x <= lastsize; x++)
 		{
@@ -1029,8 +1049,8 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 	}
 	else if (shape == "Diamond")
 	{
-		int centerx = (buffer.BufferWi / 2.0);
-		int centery = (buffer.BufferHt / 2.0);
+		int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+		int centery = (buffer.BufferHt / 2.0) + trueyoffset;
 		float maxside = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
 		float side = maxside * f;
 		if (slowdownfalls)
@@ -1065,8 +1085,8 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 	}
 	else if (shape == "Filled Diamond")
 	{
-		int centerx = (buffer.BufferWi / 2.0);
-		int centery = (buffer.BufferHt / 2.0);
+		int centerx = (buffer.BufferWi / 2.0) + truexoffset;
+		int centery = (buffer.BufferHt / 2.0) + trueyoffset;
 		float maxside = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
 		float side = maxside * f;
 		if (slowdownfalls)

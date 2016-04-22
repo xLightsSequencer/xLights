@@ -25,21 +25,28 @@ class VUMeterPanel: public wxPanel
 		wxTextCtrl* TextCtrl_VUMeter_StartNote;
 		wxBitmapButton* BitmapButton_VUMeter_EndNote;
 		wxSlider* Slider_VUMeter_Bars;
+		wxStaticText* StaticText13;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText14;
 		wxStaticText* StaticText6;
 		wxBitmapButton* BitmapButton_VUMeter_SlowDownFalls;
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText11;
 		wxBitmapButton* BitmapButton_VUMeter_Sensitivity;
 		wxStaticText* StaticText1;
+		wxSlider* Slider_VUMeter_YOffset;
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_VUMeter_Bars;
 		wxBitmapButton* BitmapButton_VUMeter_Type;
 		wxSlider* Slider_VUMeter_EndNote;
+		wxBitmapButton* BitmapButton_VUMeter_XOffset;
 		wxSlider* Slider_VUMeter_Sensitivity;
 		wxBitmapButton* BitmapButton_VUMeter_Shape;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
+		wxBitmapButton* BitmapButton_VUMeter_YOffset;
+		wxTextCtrl* TextCtrl_VUMeter_XOffset;
+		wxTextCtrl* TextCtrl_VUMeter_YOffset;
 		wxCheckBox* CheckBox_VUMeter_SlowDownFalls;
 		wxBitmapButton* BitmapButton_VUMeter_TimingTrack;
 		wxStaticText* StaticText12;
@@ -48,6 +55,7 @@ class VUMeterPanel: public wxPanel
 		wxChoice* Choice_VUMeter_Shape;
 		wxSlider* Slider_VUMeter_StartNote;
 		wxChoice* Choice_VUMeter_TimingTrack;
+		wxSlider* Slider_VUMeter_XOffset;
 		wxBitmapButton* BitmapButton_VUMeter_StartNote;
 		wxStaticText* StaticText4;
 		wxTextCtrl* TextCtrl_VUMeter_Sensitivity;
@@ -89,6 +97,14 @@ class VUMeterPanel: public wxPanel
 		static const long IDD_SLIDER_VUMeter_EndNote;
 		static const long ID_TEXTCTRL_VUMeter_EndNote;
 		static const long ID_BITMAPBUTTON_VUMeter_EndNote;
+		static const long ID_STATICTEXT13;
+		static const long IDD_SLIDER_VUMeter_XOffset;
+		static const long ID_TEXTCTRL_VUMeter_XOffset;
+		static const long ID_BITMAPBUTTON_VUMeter_XOffset;
+		static const long ID_STATICTEXT14;
+		static const long IDD_SLIDER_VUMeter_YOffset;
+		static const long ID_TEXTCTRL_VUMeter_YOffset;
+		static const long ID_BITMAPBUTTON_VUMeter_YOffset;
 		//*)
 
 	public:

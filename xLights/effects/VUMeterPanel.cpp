@@ -48,6 +48,14 @@ const long VUMeterPanel::ID_STATICTEXT11 = wxNewId();
 const long VUMeterPanel::IDD_SLIDER_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::ID_TEXTCTRL_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_VUMeter_EndNote = wxNewId();
+const long VUMeterPanel::ID_STATICTEXT13 = wxNewId();
+const long VUMeterPanel::IDD_SLIDER_VUMeter_XOffset = wxNewId();
+const long VUMeterPanel::ID_TEXTCTRL_VUMeter_XOffset = wxNewId();
+const long VUMeterPanel::ID_BITMAPBUTTON_VUMeter_XOffset = wxNewId();
+const long VUMeterPanel::ID_STATICTEXT14 = wxNewId();
+const long VUMeterPanel::IDD_SLIDER_VUMeter_YOffset = wxNewId();
+const long VUMeterPanel::ID_TEXTCTRL_VUMeter_YOffset = wxNewId();
+const long VUMeterPanel::ID_BITMAPBUTTON_VUMeter_YOffset = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(VUMeterPanel,wxPanel)
@@ -168,6 +176,26 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	BitmapButton_VUMeter_EndNote->SetDefault();
 	BitmapButton_VUMeter_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText13 = new wxStaticText(this, ID_STATICTEXT13, _("Horizontal Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
+	FlexGridSizer31->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_VUMeter_XOffset = new wxSlider(this, IDD_SLIDER_VUMeter_XOffset, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_VUMeter_XOffset"));
+	FlexGridSizer31->Add(Slider_VUMeter_XOffset, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_VUMeter_XOffset = new wxTextCtrl(this, ID_TEXTCTRL_VUMeter_XOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_XOffset"));
+	FlexGridSizer31->Add(TextCtrl_VUMeter_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_VUMeter_XOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_VUMeter_XOffset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_VUMeter_XOffset"));
+	BitmapButton_VUMeter_XOffset->SetDefault();
+	BitmapButton_VUMeter_XOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer31->Add(BitmapButton_VUMeter_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText14 = new wxStaticText(this, ID_STATICTEXT14, _("Vertical Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
+	FlexGridSizer31->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_VUMeter_YOffset = new wxSlider(this, IDD_SLIDER_VUMeter_YOffset, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_VUMeter_YOffset"));
+	FlexGridSizer31->Add(Slider_VUMeter_YOffset, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_VUMeter_YOffset = new wxTextCtrl(this, ID_TEXTCTRL_VUMeter_YOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_YOffset"));
+	FlexGridSizer31->Add(TextCtrl_VUMeter_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_VUMeter_YOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_VUMeter_YOffset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_VUMeter_YOffset"));
+	BitmapButton_VUMeter_YOffset->SetDefault();
+	BitmapButton_VUMeter_YOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer31->Add(BitmapButton_VUMeter_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
@@ -191,6 +219,12 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Connect(IDD_SLIDER_VUMeter_EndNote,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnSlider_VUMeter_StartNoteCmdSliderUpdated);
 	Connect(ID_TEXTCTRL_VUMeter_EndNote,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnTextCtrl_VUMeter_StartNoteText);
 	Connect(ID_BITMAPBUTTON_VUMeter_EndNote,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(IDD_SLIDER_VUMeter_XOffset,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VUMeterPanel::UpdateLinkedTextCtrl);
+	Connect(ID_TEXTCTRL_VUMeter_XOffset,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VUMeterPanel::UpdateLinkedSlider);
+	Connect(ID_BITMAPBUTTON_VUMeter_XOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(IDD_SLIDER_VUMeter_YOffset,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VUMeterPanel::UpdateLinkedTextCtrl);
+	Connect(ID_TEXTCTRL_VUMeter_YOffset,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VUMeterPanel::UpdateLinkedSlider);
+	Connect(ID_BITMAPBUTTON_VUMeter_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_VUMeter");
 
@@ -212,53 +246,53 @@ static inline void EnableControl(wxWindow *w, int id, bool e) {
 
 void VUMeterPanel::ValidateWindow()
 {
-	if (Choice_VUMeter_Type->GetStringSelection() == "Timing Event Spike" || 
-        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Sweep" || 
-        Choice_VUMeter_Type->GetStringSelection() == "Pulse" || 
+    if (Choice_VUMeter_Type->GetStringSelection() == "Timing Event Spike" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Sweep" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Pulse" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color")
-	{
-		Choice_VUMeter_TimingTrack->Enable();
-	}
-	else
-	{
-		Choice_VUMeter_TimingTrack->Disable();
-	}
+    {
+        Choice_VUMeter_TimingTrack->Enable();
+    }
+    else
+    {
+        Choice_VUMeter_TimingTrack->Disable();
+    }
 
-	if (Choice_VUMeter_Type->GetStringSelection() == "Level Pulse" || 
+    if (Choice_VUMeter_Type->GetStringSelection() == "Level Pulse" ||
         Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
     {
-		Slider_VUMeter_Sensitivity->Enable();
-		TextCtrl_VUMeter_Sensitivity->Enable();
-	}
-	else
-	{
-		Slider_VUMeter_Sensitivity->Disable();
-		TextCtrl_VUMeter_Sensitivity->Disable();
-	}
+        Slider_VUMeter_Sensitivity->Enable();
+        TextCtrl_VUMeter_Sensitivity->Enable();
+    }
+    else
+    {
+        Slider_VUMeter_Sensitivity->Disable();
+        TextCtrl_VUMeter_Sensitivity->Disable();
+    }
 
-	if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape" || 
+    if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
         Choice_VUMeter_Type->GetStringSelection() == "Spectrogram")
-	{
-		CheckBox_VUMeter_SlowDownFalls->Enable();
-	}
-	else
-	{
-		CheckBox_VUMeter_SlowDownFalls->Disable();
-	}
+    {
+        CheckBox_VUMeter_SlowDownFalls->Enable();
+    }
+    else
+    {
+        CheckBox_VUMeter_SlowDownFalls->Disable();
+    }
 
-	if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape")
-	{
-		Choice_VUMeter_Shape->Enable();
-		Slider_VUMeter_Bars->Disable();
-		TextCtrl_VUMeter_Bars->Disable();
-	}
-	else
-	{
-		Choice_VUMeter_Shape->Disable();
+    if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape")
+    {
+        Choice_VUMeter_Shape->Enable();
+        Slider_VUMeter_Bars->Disable();
+        TextCtrl_VUMeter_Bars->Disable();
+    }
+    else
+    {
+        Choice_VUMeter_Shape->Disable();
 
-        if (Choice_VUMeter_Type->GetStringSelection() == "On" || 
-            Choice_VUMeter_Type->GetStringSelection() == "Color On" || 
+        if (Choice_VUMeter_Type->GetStringSelection() == "On" ||
+            Choice_VUMeter_Type->GetStringSelection() == "Color On" ||
             Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color" ||
             Choice_VUMeter_Type->GetStringSelection() == "Note On")
         {
@@ -270,23 +304,44 @@ void VUMeterPanel::ValidateWindow()
             Slider_VUMeter_Bars->Enable();
             TextCtrl_VUMeter_Bars->Enable();
         }
-	}
+    }
 
-	if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" ||
+    if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note On" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
     {
-	    Slider_VUMeter_EndNote->Enable();
-	    Slider_VUMeter_StartNote->Enable();
-	    TextCtrl_VUMeter_EndNote->Enable();
-	    TextCtrl_VUMeter_StartNote->Enable();
-	}
-	else
+        Slider_VUMeter_EndNote->Enable();
+        Slider_VUMeter_StartNote->Enable();
+        TextCtrl_VUMeter_EndNote->Enable();
+        TextCtrl_VUMeter_StartNote->Enable();
+    }
+    else
     {
-	    Slider_VUMeter_EndNote->Disable();
-	    Slider_VUMeter_StartNote->Disable();
-	    TextCtrl_VUMeter_EndNote->Disable();
-	    TextCtrl_VUMeter_StartNote->Disable();
+        Slider_VUMeter_EndNote->Disable();
+        Slider_VUMeter_StartNote->Disable();
+        TextCtrl_VUMeter_EndNote->Disable();
+        TextCtrl_VUMeter_StartNote->Disable();
+    }
+    if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" || Choice_VUMeter_Type->GetStringSelection() == "Level Shape")
+    {
+        Slider_VUMeter_XOffset->Enable();
+        TextCtrl_VUMeter_XOffset->Enable();
+    }
+    else
+    {
+        Slider_VUMeter_XOffset->Disable();
+        TextCtrl_VUMeter_XOffset->Disable();
+    }
+    if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Waveform")
+    {
+        Slider_VUMeter_YOffset->Enable();
+        TextCtrl_VUMeter_YOffset->Enable();
+    }
+    else
+    {
+        Slider_VUMeter_YOffset->Disable();
+        TextCtrl_VUMeter_YOffset->Disable();
     }
 }
 

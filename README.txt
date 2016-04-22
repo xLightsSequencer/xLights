@@ -7,7 +7,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
---------------------------------
+---------------------------------
+   -- enh (keithsw) Add x and y offsets to select vumeter effects
    -- enh (keithsw) Add timing track option for defining piano notes
    -- bug (gil)     Fix first frame and last frame buttons so the grid will scroll.  Fixes #544.
    -- enh (keithsw) Add Music Effect
