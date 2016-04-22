@@ -119,6 +119,8 @@ void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     
     int MeteorsEffect = GetMeteorEffect(SettingsMap["CHOICE_Meteors_Effect"]);
     int ColorScheme = GetMeteorColorScheme(SettingsMap["CHOICE_Meteors_Type"]);
+    int xoffset = SettingsMap.GetInt("TEXTCTRL_Meteors_XOffset", 0);
+    int yoffset = SettingsMap.GetInt("TEXTCTRL_Meteors_YOffset", 0);
 
     if (SettingsMap.GetBool("CHECKBOX_Meteors_UseMusic", false))
     {
@@ -158,10 +160,10 @@ void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             RenderMeteorsHorizontal(buffer, ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity, mspeed);
             break;
         case METEORS_IMPLODE: //4:
-            RenderMeteorsImplode(buffer, ColorScheme, Count, Length, SwirlIntensity, mspeed);
+            RenderMeteorsImplode(buffer, ColorScheme, Count, Length, SwirlIntensity, mspeed, xoffset, yoffset);
             break;
         case METEORS_EXPLODE: //5:
-            RenderMeteorsExplode(buffer, ColorScheme, Count, Length, SwirlIntensity, mspeed);
+            RenderMeteorsExplode(buffer, ColorScheme, Count, Length, SwirlIntensity, mspeed, xoffset, yoffset);
             break;
         case METEORS_ICICLES: //6
             RenderIcicleDrip(buffer, ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity, mspeed);
@@ -503,12 +505,15 @@ public:
     }
 };
 
-void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed)
+void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed, int xoffset, int yoffset)
 {
+    int truexoffset = xoffset * buffer.BufferWi / 2 / 100;
+    int trueyoffset = yoffset * buffer.BufferHt / 2 / 100;
+
     double angle;
     int halfdiag=(sqrt( (double)buffer.BufferHt*buffer.BufferHt + buffer.BufferWi*buffer.BufferWi))/2; // 1/2 the length of the diagonal
-    int centerX=buffer.BufferWi/2;
-    int centerY=buffer.BufferHt/2;
+    int centerX=buffer.BufferWi/2 + truexoffset;
+    int centerY=buffer.BufferHt/2 + trueyoffset;
     
     MeteorRadialClass m;
     HSVValue hsv,hsv0,hsv1;
@@ -594,7 +599,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
     }
     
     // delete old meteors
-    cache->meteorsRadial.remove_if(MeteorHasExpiredImplode(buffer.BufferWi/2,buffer.BufferHt/2));
+    cache->meteorsRadial.remove_if(MeteorHasExpiredImplode(buffer.BufferWi/2+truexoffset,buffer.BufferHt/2+trueyoffset));
 }
 
 /*
@@ -617,8 +622,11 @@ public:
     }
 };
 
-void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed)
+void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed, int xoffset, int yoffset)
 {
+    int truexoffset = xoffset * buffer.BufferWi / 2 / 100;
+    int trueyoffset = yoffset * buffer.BufferHt / 2 / 100;
+
     double angle;
     int halfdiag=(sqrt( (double)buffer.BufferHt*buffer.BufferHt + buffer.BufferWi*buffer.BufferWi))/2; // 1/2 the length of the diagonal
 
@@ -634,8 +642,8 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
 
     // create new meteors
     
-    m.x=buffer.BufferWi/2;
-    m.y=buffer.BufferHt/2;
+    m.x=buffer.BufferWi/2+truexoffset;
+    m.y=buffer.BufferHt/2+trueyoffset;
     m.cnt=1;
     for(int i=0; i<MinDimension; i++)
     {
