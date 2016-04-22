@@ -67,6 +67,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
         static const long ID_PREVIEW_MODEL_EXPORTCSV;
+        static const long ID_PREVIEW_MODEL_EXPORTCUSTOMMODEL;
         static const long ID_PREVIEW_ALIGN_TOP;
         static const long ID_PREVIEW_ALIGN_BOTTOM;
         static const long ID_PREVIEW_ALIGN_LEFT;
@@ -118,6 +119,8 @@ class LayoutPanel: public wxPanel
 
     protected:
         void ExportModel();
+        void ExportCustomModel();
+        void ImportCustomModel(Model* model);
         void AddModelButton(const std::string &type, const char *imageData[]);
 
         bool SelectSingleModel(int x,int y);
@@ -162,6 +165,7 @@ class LayoutPanel: public wxPanel
         bool colSizesSet;
         std::vector<NewModelBitmapButton*> buttons;
         NewModelBitmapButton *selectedButton;
+        wxString _lastCustomModel;
         Model *newModel;
     
         std::string lastModelName;

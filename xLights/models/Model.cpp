@@ -228,6 +228,24 @@ protected:
 static wxArrayString NODE_TYPES;
 static wxArrayString PIXEL_STYLES;
 
+void Model::SetProperty(wxString property, wxString value, bool apply)
+{
+    wxString val = ModelXml->GetAttribute(property);
+    if (val != "")
+    {
+        ModelXml->DeleteAttribute(property);
+        ModelXml->AddAttribute(property, value);
+    }
+    else
+    {
+        ModelXml->AddAttribute(property, value);
+    }
+    if (apply)
+    {
+        SetFromXml(ModelXml);
+    }
+}
+
 void Model::AddProperties(wxPropertyGridInterface *grid) {
     if (PIXEL_STYLES.empty()) {
         PIXEL_STYLES.push_back("Square");
@@ -337,7 +355,6 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
 }
-
 
 static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
     wxString tp = "Single Color Custom";

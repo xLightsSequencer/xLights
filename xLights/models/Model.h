@@ -48,11 +48,11 @@ public:
     
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
     
-    
     virtual bool StrandsZigZagOnString() const { return false;};
     int GetDefaultBufferWi() const {return BufferWi;}
     int GetDefaultBufferHt() const {return BufferHt;}
-    
+
+    void SetProperty(wxString property, wxString value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface *grid);
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid);

@@ -12,4 +12,5 @@
 #include "singleline.xpm"
 #include "canes.xpm"
 #include "icicles.xpm"
+#include "import.xpm"
 #endif
