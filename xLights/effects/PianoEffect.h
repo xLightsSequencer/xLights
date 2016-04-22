@@ -21,6 +21,7 @@ class PianoEffect : public RenderableEffect
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
         virtual bool needToAdjustSettings(const std::string& version) { return true; };
         virtual void adjustSettings(const std::string &version, Effect *effect);
+        virtual void SetDefaultParameters(Model *cls);
 
     private:
     
@@ -33,8 +34,11 @@ class PianoEffect : public RenderableEffect
 		bool KeyDown(std::list<float>* pdata, int ch);
 		std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
 		std::map<int, std::list<float>> LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string MIDITrack);
-		int LowerTS(float t, int intervalMS);
+        std::map<int, std::list<float>> LoadTimingTrack(std::string track, int intervalMS);
+        int LowerTS(float t, int intervalMS);
 		int UpperTS(float t, int intervalMS);
+        std::list<std::string> ExtractNotes(std::string& label);
+        int ConvertNote(std::string& note);
 };
 
 #endif // PIANOEFFECT_H

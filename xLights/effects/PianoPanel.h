@@ -28,9 +28,10 @@ class PianoPanel: public wxPanel
 		PianoPanel(wxWindow* parent);
 		virtual ~PianoPanel();
 		void SetAudio(AudioManager* audio) { _media = audio; };
+        void SetTimingTrack(std::list<std::string> timingtracks) { _timingtracks = timingtracks; };
+        void TimingTrackValidateWindow();
 
 		//(*Declarations(PianoPanel)
-		wxStaticText* StaticText9;
 		wxBitmapButton* BitmapButton_Piano_MIDITrack_APPLYLAST;
 		wxBitmapButton* BitmapButton_Piano_Type;
 		wxTextCtrl* TextCtrl_Piano_File;
@@ -51,7 +52,6 @@ class PianoPanel: public wxPanel
 		wxChoice* Choice_Piano_MIDITrack_APPLYLAST;
 		wxStaticText* StaticText1;
 		wxFileDialog* FileDialog1;
-		wxStaticText* StaticText_Piano_NumRows;
 		wxBitmapButton* BitmapButton_Piano_MIDI_Start;
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton1;
@@ -82,7 +82,6 @@ class PianoPanel: public wxPanel
 		static const long ID_STATICTEXT_Piano_NumKeys;
 		static const long ID_SPINCTRL_Piano_EndMIDI;
 		static const long ID_BITMAPBUTTON_Piano_EndMIDI;
-		static const long ID_STATICTEXT_Piano_NumRows;
 		static const long ID_CHECKBOX_Piano_ShowSharps;
 		static const long ID_BITMAPBUTTON_Piano_ShowSharps;
 		static const long ID_STATICTEXT7;
@@ -94,7 +93,6 @@ class PianoPanel: public wxPanel
 		static const long ID_BUTTON_Piano_File;
 		static const long ID_STATICTEXT8;
 		static const long ID_CHOICE_Piano_MIDITrack_APPLYLAST;
-		static const long ID_STATICTEXT9;
 		static const long ID_BITMAPBUTTON_Piano_MIDITrack_APPLYLAST;
 		static const long ID_STATICTEXT5;
 		static const long IDD_SLIDER_Piano_MIDI_Start;
@@ -106,6 +104,7 @@ class PianoPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_Piano_MIDI_Speed;
 		//*)
 		AudioManager* _media;
+        std::list<std::string> _timingtracks;
 
 	public:
 
@@ -137,10 +136,10 @@ class PianoPanel: public wxPanel
 		//*)
 
 		DECLARE_EVENT_TABLE()
-		void ValidateWindow();
 		void MIDIExtraValidateWindow();
 		void AudacityExtraValidateWindow();
 		bool MIDITrackContainsNotes(int track, MidiFile* midifile);
+        void ValidateWindow();
 };
 
 #endif

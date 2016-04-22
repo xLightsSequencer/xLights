@@ -23,6 +23,7 @@
 								<item>Polyphonic Transcription</item>
 								<item>Audacity Timing File</item>
 								<item>MIDI File</item>
+								<item>Timing Track</item>
 							</content>
 							<selection>1</selection>
 							<handler function="OnChoice_Piano_Notes_SourceSelect" entry="EVT_CHOICE" />
@@ -133,12 +134,9 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_Piano_NumRows" variable="StaticText_Piano_NumRows" member="yes">
-							<label></label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -269,14 +267,6 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText9" member="yes">
-							<label></label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_MIDITrack_APPLYLAST" variable="BitmapButton_Piano_MIDITrack_APPLYLAST" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<default>1</default>
@@ -286,6 +276,11 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">

@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+   -- enh (keithsw) Add timing track option for defining piano notes
    -- bug (gil)     Fix first frame and last frame buttons so the grid will scroll.  Fixes #544.
    -- enh (keithsw) Add Music Effect
    -- enh (keithsw) Add Note On sub effect to VU Meter - Like On but you can filter the notes it responds to

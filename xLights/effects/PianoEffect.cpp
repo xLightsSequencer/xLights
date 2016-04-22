@@ -25,6 +25,35 @@ PianoEffect::~PianoEffect()
     //dtor
 }
 
+void PianoEffect::SetDefaultParameters(Model *cls)
+{
+    PianoPanel *fp = (PianoPanel*)panel;
+    if (fp == nullptr)
+    {
+        return;
+    }
+
+    if (mSequenceElements == nullptr)
+    {
+        return;
+    }
+
+    // Load the names of the timing tracks
+    std::list<std::string> timingtracks;
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetEffectLayerCount() == 1 && e->GetType() == "timing")
+        {
+            timingtracks.push_back(e->GetName());
+        }
+    }
+
+    // Select the first one
+    fp->SetTimingTrack(timingtracks);
+    fp->TimingTrackValidateWindow();
+}
+
 void PianoEffect::adjustSettings(const std::string &version, Effect *effect)
 {
     // give the base class a chance to adjust any settings
@@ -114,7 +143,8 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 	int& _scale = cache->_scale;
 	std::string& _MIDITrack = cache->_MIDItrack;
 
-	if (_startMidiChannel != startmidi ||
+	if (buffer.needToInit ||
+        _startMidiChannel != startmidi ||
 		_endMidiChannel != endmidi ||
 		_showSharps != sharps ||
 		_type != type ||
@@ -125,22 +155,30 @@ void PianoEffect::RenderPiano(RenderBuffer &buffer, const int startmidi, const i
 		_MIDIStartAdjust != MIDIAdjustStart ||
 		_MIDITrack != MIDITrack)
 	{
-		if ((_timingsource != timingsource || _file != file || _MIDITrack != MIDITrack || _MIDISpeedAdjust != MIDIAdjustSpeed || _MIDIStartAdjust != MIDIAdjustStart) && timingsource != "Polyphonic Transcription")
+        buffer.needToInit = false;
+		if (timingsource == "Audacity Timing File" && (_timingsource != timingsource || _file != file))
 		{
 			// need to load timings
 			_timings.clear();
 			if (wxFile::Exists(file))
 			{
-				if (timingsource == "Audacity Timing File")
-				{
-					_timings = LoadAudacityFile(file, buffer.frameTimeInMs);
-				}
-				else if (timingsource == "MIDI File")
-				{
-					_timings = LoadMIDIFile(file, buffer.frameTimeInMs, MIDIAdjustSpeed, MIDIAdjustStart * 10, MIDITrack);
-				}
-			}
-		}
+				_timings = LoadAudacityFile(file, buffer.frameTimeInMs);
+			}            
+        }
+        else if (timingsource == "MIDI File" && (_timingsource != timingsource || _file != file || _MIDITrack != MIDITrack || _MIDISpeedAdjust != MIDIAdjustSpeed || _MIDIStartAdjust != MIDIAdjustStart))
+        {
+            // need to load timings
+            _timings.clear();
+            if (wxFile::Exists(file))
+            {
+                _timings = LoadMIDIFile(file, buffer.frameTimeInMs, MIDIAdjustSpeed, MIDIAdjustStart * 10, MIDITrack);
+            }
+        }
+        else if (timingsource == "Timing Track" && (_timingsource != timingsource || _MIDITrack != MIDITrack))
+        {
+            _timings.clear();
+            _timings = LoadTimingTrack(MIDITrack, buffer.frameTimeInMs);
+        }
 
 		_startMidiChannel = startmidi;
 		_endMidiChannel = endmidi;
@@ -772,4 +810,165 @@ std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int 
 	}
 
 	return res;
+}
+
+std::list<std::string> PianoEffect::ExtractNotes(std::string& label)
+{
+    std::string n = label;
+    std::transform(n.begin(), n.end(), n.begin(), ::toupper);
+
+    std::list<std::string> res;
+
+    string s = "";
+    for (auto it = n.begin(); it != n.end(); ++it)
+    {
+        if (*it == ':' || *it == ' ' || *it == ';')
+        {
+            if (s != "")
+            {
+                res.push_back(s);
+                s = "";
+            }
+        }
+        else
+        {
+            if ((*it >= 'A' && *it <= 'G') ||
+                (*it == '#') ||
+                (*it >= '0' && *it <= '9'))
+            {
+                s += *it;
+            }
+        }
+    }
+
+    if (s != "")
+    {
+        res.push_back(s);
+    }
+
+    return res;
+}
+
+int PianoEffect::ConvertNote(std::string& note)
+{
+    int number = -1;
+    std::string n = note;
+    int nletter = -1;
+    std::transform(n.begin(), n.end(), n.begin(), ::toupper);
+
+    switch (n[0])
+    {
+    case 'A':
+        nletter = 9;
+        break;
+    case 'B':
+        nletter = 11;
+        break;
+    case 'C':
+        nletter = 0;
+        break;
+    case 'D':
+        nletter = 2;
+        break;
+    case 'E':
+        nletter = 4;
+        break;
+    case 'F':
+        nletter = 5;
+        break;
+    case 'G':
+        nletter = 7;
+        break;
+    default:
+        number = wxAtoi(n);
+        if (number < 0) number = 0;
+        if (number > 127) number = 127;
+        return number;
+    }
+
+    int octave = 4;
+    n = n.substr(1);
+    if (n != "")
+    {
+        if (n[0] == '#')
+        {
+            nletter++;
+            n = n.substr(1);
+        }
+        else if (n[0] == 'B')
+        {
+            nletter--;
+            n = n.substr(1);
+        }
+    }
+
+    if (n != "")
+    {
+        octave = wxAtoi(n);
+    }
+
+    number = 12 + (octave * 12) + nletter;
+    if (number < 0) number = 0;
+    if (number > 127) number = 127;
+    return number;
+}
+
+std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(std::string track, int intervalMS)
+{
+    log4cpp::Category& logger = log4cpp::Category::getRoot();
+    log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
+    std::map<int, std::list<float>> res;
+
+    logger_pianodata.debug("Loading timings from timing track " + track);
+
+    if (mSequenceElements == nullptr)
+    {
+        logger_pianodata.debug("No timing tracks found.");
+        return res;
+    }
+
+    // Load the names of the timing tracks
+    Element* t = NULL;
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetEffectLayerCount() == 1 && e->GetType() == "timing")
+        {
+            if (e->GetName() == track)
+            {
+                t = e;
+                break;
+            }
+        }
+    }
+
+    if (t == NULL)
+    {
+        logger_pianodata.debug("Timing track not found.");
+        return res;
+    }
+
+    EffectLayer* el = t->GetEffectLayer(0);
+    for (int j = 0; j < el->GetEffectCount(); j++)
+    {
+        std::list<float> notes;
+        int starttime = el->GetEffect(j)->GetStartTimeMS();
+        int endtime = el->GetEffect(j)->GetEndTimeMS();
+        std::string label = el->GetEffect(j)->GetEffectName();
+        std::list<std::string> notelabels = ExtractNotes(label);
+        for (auto s = notelabels.begin(); s != notelabels.end(); ++s)
+        {
+            float n = (float)ConvertNote(*s);
+            if (n >= 0)
+            {
+                notes.push_back(n);
+            }
+        }
+        for (int i = starttime; i < endtime; i += intervalMS)
+        {
+            res[i] = notes;
+        }
+    }
+
+    return res;
 }
