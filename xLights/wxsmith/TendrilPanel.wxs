@@ -24,11 +24,13 @@
 								<item>Square</item>
 								<item>Circle</item>
 								<item>Horizontal Zig Zag</item>
+								<item>Horiz. Zig Zag Return</item>
 								<item>Vertical Zig Zag</item>
+								<item>Vert. Zig Zag Return</item>
 								<item>Music Line</item>
 								<item>Music Circle</item>
 							</content>
-							<selection>0</selection>
+							<selection>2</selection>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -104,7 +106,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Tendril_Thickness" variable="Slider_Tendril_Thickness" member="yes">
-							<value>1</value>
+							<value>3</value>
 							<min>1</min>
 							<max>20</max>
 							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -115,7 +117,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_Thickness" variable="TextCtrl_Tendril_Thickness" member="yes">
-							<value>1</value>
+							<value>3</value>
 							<size>20,-1d</size>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
@@ -367,6 +369,84 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="IID_BITMAPBUTTON_CHOICE_Tendril_Speed" variable="BitmapButton_TendrilSpeed" member="yes">
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText10" member="yes">
+							<label>Horizontal Offset</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Tendril_XOffset" variable="Slider_Tendril_XOffset" member="yes">
+							<min>-100</min>
+							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_XOffset" variable="TextCtrl_Tendril_XOffset" member="yes">
+							<value>0</value>
+							<size>20,-1d</size>
+							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Tendril_XOffset" variable="BitmapButton_Tendril_XOffset" member="yes">
+							<default>1</default>
+							<size>13,13</size>
+							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText11" member="yes">
+							<label>Vertical Offset</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Tendril_YOffset" variable="Slider_Tendril_YOffset" member="yes">
+							<min>-100</min>
+							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_YOffset" variable="TextCtrl_Tendril_YOffset" member="yes">
+							<value>0</value>
+							<size>20,-1d</size>
+							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Tendril_YOffset" variable="BitmapButton_Tendril_YOffset" member="yes">
 							<default>1</default>
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

@@ -70,7 +70,7 @@ class TendrilEffect : public RenderableEffect
         void Render(RenderBuffer &buffer,
 					const std::string& movement, int tunemovement, int movementSpeed, int thickness,
                     float friction, float dampening,
-                    float tension, int trails, int length);
+                    float tension, int trails, int length, int xoffset, int yoffset);
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 		virtual bool needToAdjustSettings(const std::string &version) override;

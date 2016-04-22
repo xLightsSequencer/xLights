@@ -19,15 +19,18 @@ class TendrilPanel: public wxPanel
 		virtual ~TendrilPanel();
 
 		//(*Declarations(TendrilPanel)
+		wxStaticText* StaticText10;
 		wxStaticText* StaticText9;
 		wxTextCtrl* TextCtrl_Tendril_Length;
 		wxTextCtrl* TextCtrl_Tendril_Dampening;
+		wxBitmapButton* BitmapButton_Tendril_XOffset;
 		wxStaticText* StaticText2;
 		wxBitmapButton* BitmapButton_TendrilSpeed;
 		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtrl_Tendril_Trails;
 		wxSlider* Slider_Tendril_Dampening;
 		wxStaticText* StaticText8;
+		wxStaticText* StaticText11;
 		wxBitmapButton* BitmapButton_TendrilDampening;
 		wxTextCtrl* TextCtrl_Tendril_Thickness;
 		wxStaticText* StaticText1;
@@ -36,8 +39,10 @@ class TendrilPanel: public wxPanel
 		wxStaticText* StaticText3;
 		wxSlider* Slider_Tendril_TuneMovement;
 		wxBitmapButton* BitmapButton_TendrilTension;
+		wxTextCtrl* TextCtrl_Tendril_YOffset;
 		wxBitmapButton* BitmapButton_TendrilFriction;
 		wxSlider* Slider_Tendril_Speed;
+		wxSlider* Slider_Tendril_XOffset;
 		wxStaticText* StaticText5;
 		wxBitmapButton* BitmapButton_TendrilLength;
 		wxStaticText* StaticText7;
@@ -48,7 +53,10 @@ class TendrilPanel: public wxPanel
 		wxStaticText* StaticText68;
 		wxChoice* Choice_Tendril_Movement;
 		wxSlider* Slider_Tendril_Thickness;
+		wxSlider* Slider_Tendril_YOffset;
+		wxTextCtrl* TextCtrl_Tendril_XOffset;
 		wxSlider* Slider_Tendril_Length;
+		wxBitmapButton* BitmapButton_Tendril_YOffset;
 		wxBitmapButton* BitmapButton_TendrilTrails;
 		wxStaticText* StaticText4;
 		wxSlider* Slider_Tendril_Trails;
@@ -96,6 +104,14 @@ class TendrilPanel: public wxPanel
 		static const long IDD_SLIDER_Tendril_Speed;
 		static const long ID_TEXTCTRL_Tendril_Speed;
 		static const long IID_BITMAPBUTTON_CHOICE_Tendril_Speed;
+		static const long ID_STATICTEXT10;
+		static const long IDD_SLIDER_Tendril_XOffset;
+		static const long ID_TEXTCTRL_Tendril_XOffset;
+		static const long ID_BITMAPBUTTON_Tendril_XOffset;
+		static const long ID_STATICTEXT11;
+		static const long IDD_SLIDER_Tendril_YOffset;
+		static const long ID_TEXTCTRL_Tendril_YOffset;
+		static const long ID_BITMAPBUTTON_Tendril_YOffset;
 		//*)
 
 	public:

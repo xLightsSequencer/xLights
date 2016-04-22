@@ -51,6 +51,14 @@ const long TendrilPanel::ID_STATICTEXT27 = wxNewId();
 const long TendrilPanel::IDD_SLIDER_Tendril_Speed = wxNewId();
 const long TendrilPanel::ID_TEXTCTRL_Tendril_Speed = wxNewId();
 const long TendrilPanel::IID_BITMAPBUTTON_CHOICE_Tendril_Speed = wxNewId();
+const long TendrilPanel::ID_STATICTEXT10 = wxNewId();
+const long TendrilPanel::IDD_SLIDER_Tendril_XOffset = wxNewId();
+const long TendrilPanel::ID_TEXTCTRL_Tendril_XOffset = wxNewId();
+const long TendrilPanel::ID_BITMAPBUTTON_Tendril_XOffset = wxNewId();
+const long TendrilPanel::ID_STATICTEXT11 = wxNewId();
+const long TendrilPanel::IDD_SLIDER_Tendril_YOffset = wxNewId();
+const long TendrilPanel::ID_TEXTCTRL_Tendril_YOffset = wxNewId();
+const long TendrilPanel::ID_BITMAPBUTTON_Tendril_YOffset = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(TendrilPanel,wxPanel)
@@ -72,11 +80,13 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer31->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Tendril_Movement = new wxChoice(this, ID_CHOICE_Tendril_Movement, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Tendril_Movement"));
-	Choice_Tendril_Movement->SetSelection( Choice_Tendril_Movement->Append(_("Random")) );
+	Choice_Tendril_Movement->Append(_("Random"));
 	Choice_Tendril_Movement->Append(_("Square"));
-	Choice_Tendril_Movement->Append(_("Circle"));
+	Choice_Tendril_Movement->SetSelection( Choice_Tendril_Movement->Append(_("Circle")) );
 	Choice_Tendril_Movement->Append(_("Horizontal Zig Zag"));
+	Choice_Tendril_Movement->Append(_("Horiz. Zig Zag Return"));
 	Choice_Tendril_Movement->Append(_("Vertical Zig Zag"));
+	Choice_Tendril_Movement->Append(_("Vert. Zig Zag Return"));
 	Choice_Tendril_Movement->Append(_("Music Line"));
 	Choice_Tendril_Movement->Append(_("Music Circle"));
 	FlexGridSizer31->Add(Choice_Tendril_Movement, 1, wxALL|wxEXPAND, 2);
@@ -98,9 +108,9 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 	FlexGridSizer31->Add(BitmapButton_Tendril_TuneMovement, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer31->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Tendril_Thickness = new wxSlider(this, IDD_SLIDER_Tendril_Thickness, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Tendril_Thickness"));
+	Slider_Tendril_Thickness = new wxSlider(this, IDD_SLIDER_Tendril_Thickness, 3, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Tendril_Thickness"));
 	FlexGridSizer31->Add(Slider_Tendril_Thickness, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Tendril_Thickness = new wxTextCtrl(this, ID_TEXTCTRL_Tendril_Thickness, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Tendril_Thickness"));
+	TextCtrl_Tendril_Thickness = new wxTextCtrl(this, ID_TEXTCTRL_Tendril_Thickness, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Tendril_Thickness"));
 	FlexGridSizer31->Add(TextCtrl_Tendril_Thickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Tendril_Thickness = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Tendril_Thickness, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Tendril_Thickness"));
 	BitmapButton_Tendril_Thickness->SetDefault();
@@ -166,6 +176,26 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 	BitmapButton_TendrilSpeed->SetDefault();
 	BitmapButton_TendrilSpeed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_TendrilSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Horizontal Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+	FlexGridSizer31->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_Tendril_XOffset = new wxSlider(this, IDD_SLIDER_Tendril_XOffset, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Tendril_XOffset"));
+	FlexGridSizer31->Add(Slider_Tendril_XOffset, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_Tendril_XOffset = new wxTextCtrl(this, ID_TEXTCTRL_Tendril_XOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Tendril_XOffset"));
+	FlexGridSizer31->Add(TextCtrl_Tendril_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_Tendril_XOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_Tendril_XOffset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Tendril_XOffset"));
+	BitmapButton_Tendril_XOffset->SetDefault();
+	BitmapButton_Tendril_XOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer31->Add(BitmapButton_Tendril_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("Vertical Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+	FlexGridSizer31->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_Tendril_YOffset = new wxSlider(this, IDD_SLIDER_Tendril_YOffset, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Tendril_YOffset"));
+	FlexGridSizer31->Add(Slider_Tendril_YOffset, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_Tendril_YOffset = new wxTextCtrl(this, ID_TEXTCTRL_Tendril_YOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Tendril_YOffset"));
+	FlexGridSizer31->Add(TextCtrl_Tendril_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_Tendril_YOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_Tendril_YOffset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Tendril_YOffset"));
+	BitmapButton_Tendril_YOffset->SetDefault();
+	BitmapButton_Tendril_YOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer31->Add(BitmapButton_Tendril_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
@@ -196,6 +226,12 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 	Connect(IDD_SLIDER_Tendril_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedTextCtrl);
 	Connect(ID_TEXTCTRL_Tendril_Speed,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedSlider);
 	Connect(IID_BITMAPBUTTON_CHOICE_Tendril_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TendrilPanel::OnLockButtonClick);
+	Connect(IDD_SLIDER_Tendril_XOffset,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedTextCtrl);
+	Connect(ID_TEXTCTRL_Tendril_XOffset,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedSlider);
+	Connect(ID_BITMAPBUTTON_Tendril_XOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TendrilPanel::OnLockButtonClick);
+	Connect(IDD_SLIDER_Tendril_YOffset,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedTextCtrl);
+	Connect(ID_TEXTCTRL_Tendril_YOffset,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TendrilPanel::UpdateLinkedSlider);
+	Connect(ID_BITMAPBUTTON_Tendril_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TendrilPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_Tendril");
 }
