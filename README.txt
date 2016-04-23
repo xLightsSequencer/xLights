@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix Pictures effect broken by last release.
 2016.21  Apr 22, 2016
    -- enh (keithsw) Add x/y offset and some new movements to tendril
    -- enh (keithsw) Custom model export and import allowing simple sharing

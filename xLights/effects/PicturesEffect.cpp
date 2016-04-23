@@ -64,12 +64,12 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect)
 
     SettingsMap &settings = effect->GetSettings();
 
-    std::string file = settings["FILEPICKER_Pictures_Filename"];
+    std::string file = settings["E_FILEPICKER_Pictures_Filename"];
     if (file != "")
     {
         if (!wxFile::Exists(file))
         {
-            settings["FILEPICKER_Pictures_Filename"] = xLightsXmlFile::FixFile("", file);
+            settings["E_FILEPICKER_Pictures_Filename"] = xLightsXmlFile::FixFile("", file);
         }
     }
 
