@@ -63,13 +63,13 @@ void PianoEffect::adjustSettings(const std::string &version, Effect *effect)
     }
 
     SettingsMap &settings = effect->GetSettings();
-    std::string file = settings["TEXTCTRL_Piano_File"];
+    std::string file = settings["E_TEXTCTRL_Piano_File"];
 
     if (file != "")
     {
         if (!wxFile::Exists(file))
         {
-            settings["TEXTCTRL_Piano_File"] = xLightsXmlFile::FixFile("", file);
+            settings["E_TEXTCTRL_Piano_File"] = xLightsXmlFile::FixFile("", file);
         }
     }
 }

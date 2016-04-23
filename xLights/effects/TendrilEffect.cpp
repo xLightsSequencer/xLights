@@ -28,7 +28,7 @@ bool TendrilEffect::needToAdjustSettings(const std::string &version)
 void TendrilEffect::adjustSettings(const std::string &version, Effect *effect)
 {
 	SettingsMap &settings = effect->GetSettings();
-	int movement = settings.GetInt("SLIDER_Tendril_Movement", -1);
+	int movement = settings.GetInt("E_SLIDER_Tendril_Movement", -1);
 
 	if (movement != -1)
 	{

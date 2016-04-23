@@ -315,13 +315,13 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect)
     }
 
     SettingsMap &settings = effect->GetSettings();
-    std::string file = settings["FILEPICKERCTRL_Video_Filename"];
+    std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
 
     if (file != "")
     {
         if (!wxFile::Exists(file))
         {
-            settings["FILEPICKERCTRL_Video_Filename"] = xLightsXmlFile::FixFile("", file);
+            settings["E_FILEPICKERCTRL_Video_Filename"] = xLightsXmlFile::FixFile("", file);
         }
     }
 }
