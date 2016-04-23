@@ -315,6 +315,15 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect)
     }
 
     SettingsMap &settings = effect->GetSettings();
+
+    // if the old loop setting is prsent then clear it and change the duration treatment
+    bool loop = settings.GetBool("E_CHECKBOX_Video_Loop", false);
+    if (loop)
+    {
+        settings["E_CHOICE_Video_DurationTreatment"] = "Loop";
+        settings.erase("E_CHECKBOX_Video_Loop");
+    }
+
     std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
 
     if (file != "")
@@ -331,7 +340,7 @@ void VideoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 		   SettingsMap["FILEPICKERCTRL_Video_Filename"],
 		SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
 		SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
-		SettingsMap.GetBool("CHECKBOX_Video_Loop", false)
+		SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal")
 		);
 }
 
@@ -355,12 +364,13 @@ public:
     VideoReader* _videoreader;
 	int _videoframerate;
 	bool _aspectratio;
-	bool _loop;
+	std::string _durationTreatment;
 	int _loops;
+    int _frameMS;
 };
 
 void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
-	double starttime, bool aspectratio, bool loop)
+	double starttime, bool aspectratio, std::string durationTreatment)
 {
 	VideoRenderCache *cache = (VideoRenderCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
@@ -371,8 +381,9 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	std::string &_filename = cache->_filename;
 	int &_starttime = cache->_starttime;
 	bool &_aspectratio = cache->_aspectratio;
-	bool &_loop = cache->_loop;
+	std::string &_durationTreatment = cache->_durationTreatment;
 	int &_loops = cache->_loops;
+    int &_frameMS = cache->_frameMS;
 	VideoReader* &_videoreader = cache->_videoreader;
 
 	if (_starttime != starttime)
@@ -381,13 +392,14 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 	}
     
 	// we always reopen video on first frame or if it is not open or if the filename has changed
-	if (buffer.needToInit || _videoreader == NULL || _filename != filename || _aspectratio != aspectratio || _loop != loop)
+	if (buffer.needToInit || _videoreader == NULL || _filename != filename || _aspectratio != aspectratio || _durationTreatment != durationTreatment)
 	{
         buffer.needToInit = false;
 		_filename = filename;
 		_aspectratio = aspectratio;
-		_loop = loop;
+		_durationTreatment = durationTreatment;
 		_loops = 0;
+        _frameMS = buffer.frameTimeInMs;
 		if (_videoreader != NULL)
 		{
 			delete _videoreader;
@@ -412,21 +424,30 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
 			{
 				_videoreader->Seek(_starttime * 1000);
 			}
+
+            if (_durationTreatment == "Slow/Accelerate")
+            {
+                int effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
+                int effectMS = effectFrames * buffer.frameTimeInMs;
+                int videoFrames = (videolen - _starttime) / buffer.frameTimeInMs;
+                float speedFactor = (float)videoFrames / (float)effectFrames;
+                _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
+            }
 		}
 	}
 
 	if (_videoreader != NULL)
 	{
 		// get the image for the current frame
-		AVFrame* image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs - _loops * _videoreader->GetLengthMS());
+		AVFrame* image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * _videoreader->GetLengthMS());
 		
 		// if we have reached the end and we are to loop
-		if (_videoreader->AtEnd() && _loop)
+		if (_videoreader->AtEnd() && _durationTreatment == "Loop")
 		{
 			_loops++;
 			// jump back to start and try to read frame again
 			_videoreader->Seek(0);
-			image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs - _loops * _videoreader->GetLengthMS());
+			image = _videoreader->GetNextFrame(_starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * _videoreader->GetLengthMS());
 		}
 
 		int startx = (buffer.BufferWi - _videoreader->GetWidth()) / 2;

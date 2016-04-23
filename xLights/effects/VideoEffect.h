@@ -55,7 +55,7 @@ class VideoEffect : public RenderableEffect
         virtual ~VideoEffect();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
         void Render(RenderBuffer &buffer,
-					const std::string& filename, double starttime, bool keepaspectratio, bool loop);
+					const std::string& filename, double starttime, bool keepaspectratio, std::string durationTreatment);
         virtual bool CanBeRandom() {return false;}
 
     protected:

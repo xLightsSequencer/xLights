@@ -4,11 +4,12 @@
 //(*Headers(VideoPanel)
 #include <wx/panel.h>
 class wxFilePickerCtrl;
-class wxTextCtrl;
-class wxFlexGridSizer;
-class wxSlider;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxStaticText;
+class wxSlider;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
 
 #include <wx/filepicker.h>
@@ -46,11 +47,11 @@ class VideoPanel: public wxPanel
         void addVideoTime(std::string fn, unsigned long ms);
 	protected:
         //(*Declarations(VideoPanel)
-        xlVideoFilePickerCtrl* FilePicker_Video_Filename;
+        wxChoice* Choice_Video_DurationTreatment;
         wxSlider* Slider_Video_Starttime;
         wxCheckBox* CheckBox_Video_AspectRatio;
         wxStaticText* StaticText8;
-        wxCheckBox* CheckBox_Video_Loop;
+        xlVideoFilePickerCtrl* FilePicker_Video_Filename;
         wxTextCtrl* TextCtrl_Video_Starttime;
         //*)
 
@@ -65,8 +66,8 @@ class VideoPanel: public wxPanel
 		static const long ID_STATICTEXT8;
 		static const long ID_SLIDER_Video_Starttime;
 		static const long ID_TEXTCTRL_Video_Starttime;
+		static const long ID_CHOICE_Video_DurationTreatment;
 		static const long ID_CHECKBOX_Video_AspectRatio;
-		static const long ID_CHECKBOX_Video_Loop;
 		//*)
 
 	public:

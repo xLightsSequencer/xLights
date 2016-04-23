@@ -8,6 +8,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Add video acceleration and slow down so video fully plays in time periods different to their actual length
+   -- bug (keithsw) Fix spectrograms wider than the model
+   -- bug (keithsw) Similar fix for video
    -- bug (gil)     Fix Pictures effect broken by last release.
 2016.21  Apr 22, 2016
    -- enh (keithsw) Add x/y offset and some new movements to tendril

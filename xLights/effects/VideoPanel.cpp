@@ -3,14 +3,15 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(VideoPanel)
-#include <wx/checkbox.h>
 #include <wx/sizer.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
-#include <wx/filepicker.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/filepicker.h>
+#include <wx/slider.h>
+#include <wx/choice.h>
+#include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(VideoPanel)
@@ -18,8 +19,8 @@ const long VideoPanel::ID_FILEPICKERCTRL_Video_Filename = wxNewId();
 const long VideoPanel::ID_STATICTEXT8 = wxNewId();
 const long VideoPanel::ID_SLIDER_Video_Starttime = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_Starttime = wxNewId();
+const long VideoPanel::ID_CHOICE_Video_DurationTreatment = wxNewId();
 const long VideoPanel::ID_CHECKBOX_Video_AspectRatio = wxNewId();
-const long VideoPanel::ID_CHECKBOX_Video_Loop = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(VideoPanel,wxPanel)
@@ -30,11 +31,13 @@ END_EVENT_TABLE()
 VideoPanel::VideoPanel(wxWindow* parent)
 {
 	//(*Initialize(VideoPanel)
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer42;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText1;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer42;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -57,12 +60,19 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	FlexGridSizer3->Add(FlexGridSizer2, 1, wxEXPAND, 2);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer5->AddGrowableCol(1);
+	StaticText1 = new wxStaticText(this, wxID_ANY, _("Duration Treatment"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer5->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Choice_Video_DurationTreatment = new wxChoice(this, ID_CHOICE_Video_DurationTreatment, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Video_DurationTreatment"));
+	Choice_Video_DurationTreatment->SetSelection( Choice_Video_DurationTreatment->Append(_("Normal")) );
+	Choice_Video_DurationTreatment->Append(_("Loop"));
+	Choice_Video_DurationTreatment->Append(_("Slow/Accelerate"));
+	FlexGridSizer5->Add(Choice_Video_DurationTreatment, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	CheckBox_Video_AspectRatio = new wxCheckBox(this, ID_CHECKBOX_Video_AspectRatio, _("Maintain Aspect Ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Video_AspectRatio"));
 	CheckBox_Video_AspectRatio->SetValue(false);
 	FlexGridSizer4->Add(CheckBox_Video_AspectRatio, 1, wxALL|wxEXPAND, 2);
-	CheckBox_Video_Loop = new wxCheckBox(this, ID_CHECKBOX_Video_Loop, _("Loop Video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Video_Loop"));
-	CheckBox_Video_Loop->SetValue(false);
-	FlexGridSizer4->Add(CheckBox_Video_Loop, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxEXPAND, 2);
 	FlexGridSizer42->Add(FlexGridSizer3, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
@@ -76,7 +86,6 @@ VideoPanel::VideoPanel(wxWindow* parent)
     SetName("ID_PANEL_Video");
 	TextCtrl_Video_Starttime->SetValue("0.000");
 	CheckBox_Video_AspectRatio->SetValue(false);
-	CheckBox_Video_Loop->SetValue(false);
 }
 
 VideoPanel::~VideoPanel()
