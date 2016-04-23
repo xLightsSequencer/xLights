@@ -23,9 +23,20 @@ const long GenerateCustomModelDialog::ID_PANEL_Prepare = wxNewId();
 const long GenerateCustomModelDialog::ID_TEXTCTRL_GCM_Filename = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_GCM_SelectFile = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_GCM_Generate = wxNewId();
-const long GenerateCustomModelDialog::ID_STATICBITMAP1 = wxNewId();
-const long GenerateCustomModelDialog::ID_TEXTCTRL_Message = wxNewId();
-const long GenerateCustomModelDialog::ID_BUTTON_Continue = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICBITMAP_Preview = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_Back1Frame = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_Forward1Frame = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_Back10Frames = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_Forward10Frames = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT_StartFrameOk = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_SF_Next = wxNewId();
+const long GenerateCustomModelDialog::ID_PANEL_StartFrame = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT1 = wxNewId();
+const long GenerateCustomModelDialog::ID_SLIDER_LevelFilterAdjust = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_BD_Back = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_BD_Next = wxNewId();
+const long GenerateCustomModelDialog::ID_PANEL_BulbDetect = wxNewId();
+const long GenerateCustomModelDialog::ID_AUINOTEBOOK_ProcessSettings = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_Generate = wxNewId();
 const long GenerateCustomModelDialog::ID_AUINOTEBOOK1 = wxNewId();
 //*)
@@ -40,18 +51,27 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
     _network = network;
 
 	//(*Initialize(GenerateCustomModelDialog)
+	wxFlexGridSizer* FlexGridSizer4;
 	wxStaticText* StaticText2;
+	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText6;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxStaticText* StaticText8;
+	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText3;
+	wxFlexGridSizer* FlexGridSizer7;
 	wxStaticText* StaticText5;
 	wxStaticText* StaticText7;
+	wxFlexGridSizer* FlexGridSizer8;
 	wxButton* Button_GCM_SelectFile;
+	wxFlexGridSizer* FlexGridSizer13;
+	wxFlexGridSizer* FlexGridSizer12;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer11;
 	wxStaticText* StaticText4;
 
 	Create(parent, id, _("Generate Custom Models"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
@@ -109,28 +129,85 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer2->Fit(Panel_Prepare);
 	FlexGridSizer2->SetSizeHints(Panel_Prepare);
 	Panel_Generate = new wxPanel(AuiNotebook1, ID_PANEL_Generate, wxPoint(59,17), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Generate"));
-	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer3->AddGrowableCol(1);
-	FlexGridSizer3->AddGrowableRow(2);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
+	FlexGridSizer3->AddGrowableRow(1);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer4->AddGrowableCol(1);
 	StaticText3 = new wxStaticText(Panel_Generate, wxID_ANY, _("Video File"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	FlexGridSizer3->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_GCM_Filename = new wxTextCtrl(Panel_Generate, ID_TEXTCTRL_GCM_Filename, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_GCM_Filename"));
-	FlexGridSizer3->Add(TextCtrl_GCM_Filename, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer4->Add(TextCtrl_GCM_Filename, 1, wxALL|wxEXPAND, 2);
 	Button_GCM_SelectFile = new wxButton(Panel_Generate, ID_BUTTON_GCM_SelectFile, _("..."), wxDefaultPosition, wxSize(29,28), 0, wxDefaultValidator, _T("ID_BUTTON_GCM_SelectFile"));
-	FlexGridSizer3->Add(Button_GCM_SelectFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(Button_GCM_SelectFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_GCM_Generate = new wxButton(Panel_Generate, ID_BUTTON_GCM_Generate, _("Generate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GCM_Generate"));
-	FlexGridSizer3->Add(Button_GCM_Generate, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBitmap1 = new wxStaticBitmap(Panel_Generate, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
-	FlexGridSizer3->Add(StaticBitmap1, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Message = new wxTextCtrl(Panel_Generate, ID_TEXTCTRL_Message, wxEmptyString, wxDefaultPosition, wxSize(0,150), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Message"));
-	FlexGridSizer3->Add(TextCtrl_Message, 1, wxALL|wxEXPAND, 2);
-	Button_Continue = new wxButton(Panel_Generate, ID_BUTTON_Continue, _(">"), wxDefaultPosition, wxSize(28,28), 0, wxDefaultValidator, _T("ID_BUTTON_Continue"));
-	FlexGridSizer3->Add(Button_Continue, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer4->Add(Button_GCM_Generate, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer5->AddGrowableCol(0);
+	FlexGridSizer5->AddGrowableRow(0);
+	StaticBitmap_Preview = new wxStaticBitmap(Panel_Generate, ID_STATICBITMAP_Preview, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER|wxCLIP_CHILDREN, _T("ID_STATICBITMAP_Preview"));
+	FlexGridSizer5->Add(StaticBitmap_Preview, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer7 = new wxFlexGridSizer(1, 1, 0, 0);
+	FlexGridSizer7->AddGrowableCol(0);
+	FlexGridSizer7->AddGrowableRow(0);
+	AuiNotebook_ProcessSettings = new wxAuiNotebook(Panel_Generate, ID_AUINOTEBOOK_ProcessSettings, wxDefaultPosition, wxDefaultSize, 0);
+	Panel_StartFrame = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_StartFrame, wxPoint(43,126), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_StartFrame"));
+	FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer10->AddGrowableCol(0);
+	FlexGridSizer10->AddGrowableRow(2);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
+	Button_Back1Frame = new wxButton(Panel_StartFrame, ID_BUTTON_Back1Frame, _("Back 1 Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Back1Frame"));
+	FlexGridSizer11->Add(Button_Back1Frame, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Forward1Frame = new wxButton(Panel_StartFrame, ID_BUTTON_Forward1Frame, _("Forward 1 Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Forward1Frame"));
+	FlexGridSizer11->Add(Button_Forward1Frame, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Back10Frames = new wxButton(Panel_StartFrame, ID_BUTTON_Back10Frames, _("Back 10 Frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Back10Frames"));
+	FlexGridSizer11->Add(Button_Back10Frames, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Forward10Frames = new wxButton(Panel_StartFrame, ID_BUTTON_Forward10Frames, _("Forward 10 Frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Forward10Frames"));
+	FlexGridSizer11->Add(Button_Forward10Frames, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
+	StaticText_StartFrameOk = new wxStaticText(Panel_StartFrame, ID_STATICTEXT_StartFrameOk, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_StartFrameOk"));
+	wxFont StaticText_StartFrameOkFont(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	StaticText_StartFrameOk->SetFont(StaticText_StartFrameOkFont);
+	FlexGridSizer10->Add(StaticText_StartFrameOk, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_SF_Next = new wxButton(Panel_StartFrame, ID_BUTTON_SF_Next, _("Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SF_Next"));
+	FlexGridSizer12->Add(Button_SF_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer10->Add(FlexGridSizer12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel_StartFrame->SetSizer(FlexGridSizer10);
+	FlexGridSizer10->Fit(Panel_StartFrame);
+	FlexGridSizer10->SetSizeHints(Panel_StartFrame);
+	Panel_BulbDetect = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_BulbDetect, wxPoint(71,14), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_BulbDetect"));
+	Panel_BulbDetect->Hide();
+	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer9->AddGrowableCol(0);
+	FlexGridSizer9->AddGrowableRow(1);
+	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer8->AddGrowableCol(1);
+	StaticText9 = new wxStaticText(Panel_BulbDetect, ID_STATICTEXT1, _("Adjust"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer8->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_LevelFilterAdjust = new wxSlider(Panel_BulbDetect, ID_SLIDER_LevelFilterAdjust, 200, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_LevelFilterAdjust"));
+	FlexGridSizer8->Add(Slider_LevelFilterAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer13 = new wxFlexGridSizer(0, 2, 0, 0);
+	Button_BD_Back = new wxButton(Panel_BulbDetect, ID_BUTTON_BD_Back, _("Back"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_BD_Back"));
+	FlexGridSizer13->Add(Button_BD_Back, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_BD_Next = new wxButton(Panel_BulbDetect, ID_BUTTON_BD_Next, _("Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_BD_Next"));
+	FlexGridSizer13->Add(Button_BD_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(FlexGridSizer13, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel_BulbDetect->SetSizer(FlexGridSizer9);
+	FlexGridSizer9->Fit(Panel_BulbDetect);
+	FlexGridSizer9->SetSizeHints(Panel_BulbDetect);
+	AuiNotebook_ProcessSettings->AddPage(Panel_StartFrame, _("Start Frame"));
+	AuiNotebook_ProcessSettings->AddPage(Panel_BulbDetect, _("Bulb Detect"));
+	FlexGridSizer7->Add(AuiNotebook_ProcessSettings, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer5->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	Panel_Generate->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Panel_Generate);
 	FlexGridSizer3->SetSizeHints(Panel_Generate);
@@ -146,8 +223,13 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Connect(ID_TEXTCTRL_GCM_Filename,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnTextCtrl_GCM_FilenameText);
 	Connect(ID_BUTTON_GCM_SelectFile,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_GCM_SelectFileClick);
 	Connect(ID_BUTTON_GCM_Generate,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_GCM_GenerateClick);
-	Connect(ID_BUTTON_Continue,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_ContinueClick);
+	Connect(ID_BUTTON_SF_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_SF_NextClick);
+	Connect(ID_SLIDER_LevelFilterAdjust,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_LevelFilterAdjustCmdScroll);
+	Connect(ID_BUTTON_BD_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BD_BackClick);
+	Connect(ID_BUTTON_BD_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BD_NextClick);
 	//*)
+
+    StaticBitmap1->SetScaleMode(wxStaticBitmapBase::ScaleMode::Scale_AspectFill);
 
     ValidateWindow();
 }
@@ -343,6 +425,41 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     return levelmaxstart[bestlevel] * FRAMEMS;
 }
 
+std::list<wxPoint> GenerateCustomModelDialog::FindLights(wxImage& image)
+{
+    std::list<wxPoint> res;
+
+    // Greyscale the image
+    wxImage grey = image.ConvertToGreyscale();
+
+    StaticBitmap1->SetBitmap(grey);
+
+    TextCtrl_Message->SetValue("Grey. Continue?");
+    _continue = false;
+    while (!_continue) wxYield();
+    TextCtrl_Message->SetValue("");
+
+    // blur the photo to eliminate the noise
+    wxImage blur = grey.Blur(15);
+
+    StaticBitmap1->SetBitmap(blur);
+
+    TextCtrl_Message->SetValue("Blur. Continue?");
+    _continue = false;
+    while (!_continue) wxYield();
+    TextCtrl_Message->SetValue("");
+
+    // sharpen the image
+
+    // take out any pixel about threshold not surrounded by at least 3 bright pixels?
+
+    // take out the bottom 15%
+
+    // emphasise the top 15%
+
+    return res;
+}
+
 void GenerateCustomModelDialog::OnButton_GCM_GenerateClick(wxCommandEvent& event)
 {
     VideoReader vr(std::string(TextCtrl_GCM_Filename->GetValue().c_str()), 800, 600, false);
@@ -350,32 +467,40 @@ void GenerateCustomModelDialog::OnButton_GCM_GenerateClick(wxCommandEvent& event
     wxProgressDialog pd("Analysing video ...", "", 100, this);
     pd.Update(1);
 
-    AVFrame* image;
-    //image = vr.GetNextFrame(0);
-    wxImage bmp(800, 600, true);
-    //bmp.SetData((unsigned char*)(image->data[0]));
-    //StaticBitmap1->SetBitmap(bmp);
-
-    //TextCtrl_Message->SetValue("First frame. Continue?");
-    //_continue = false;
-    //while (!_continue) wxYield();
-    //TextCtrl_Message->SetValue("");
-
     int starttime = FindStartFrame(&vr);
-    pd.Update(5, wxString::Format("Start frame found at %dms", starttime));
+    pd.Update(15, wxString::Format("Start frame found at %dms", starttime));
 
-    //image = vr.GetNextFrame(starttime);
-    //bmp.SetData((unsigned char*)(image->data[0]));
-    //StaticBitmap1->SetBitmap(bmp);
+    AVFrame* image;
+    image = vr.GetNextFrame(starttime);
+    wxImage bmp(image->width, image->height, true);
+    bmp.SetData((unsigned char*)(image->data[0]));
+    StaticBitmap1->SetBitmap(bmp);
 
-    //TextCtrl_Message->SetValue("Start Frame. Continue?");
-    //_continue = false;
-    //while (!_continue) wxYield();
-    //TextCtrl_Message->SetValue("");
+    TextCtrl_Message->SetValue("Start Frame. Continue?");
+    _continue = false;
+    while (!_continue) wxYield();
+    TextCtrl_Message->SetValue("");
+
+    // confirm the start frame with the user ... let them bump it forward or back
+
+    // look at this start frame and identify all the light locations
+    std::list<wxPoint> points = FindLights(bmp);
+    pd.Update(30, wxString::Format("Start frame analysed for lights. %d found.", points.size()));
+
+    // confirm with the user that i identified them all ... let them manuall add them/move them around?
+
+    // generate a grid with just x's to show where the lights are
+    // grid should be minimal. narrow and short and as little resolution as possible
+
+    // confirm with the user as well
 
     int currpixelframe = starttime + LEADON + FLAGOFF + FLAGON + FLAGOFF;
 
-    // TODO ... this is where the miracle happens
+    // now go through all the frames at the expected points and check only which of the light locations is on so I can number them
+
+    // now regenerate the grid with the x's replaced by numbers
+
+    // export the model to an xmodel file ... ready for use
 
     pd.Update(100);
     pd.Close();
@@ -607,4 +732,28 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 void GenerateCustomModelDialog::OnButton_ContinueClick(wxCommandEvent& event)
 {
     _continue = true;
+}
+
+void GenerateCustomModelDialog::OnButton_BackClick(wxCommandEvent& event)
+{
+}
+
+void GenerateCustomModelDialog::OnButton_NextClick(wxCommandEvent& event)
+{
+}
+
+void GenerateCustomModelDialog::OnButton_SF_NextClick(wxCommandEvent& event)
+{
+}
+
+void GenerateCustomModelDialog::OnButton_BD_BackClick(wxCommandEvent& event)
+{
+}
+
+void GenerateCustomModelDialog::OnButton_BD_NextClick(wxCommandEvent& event)
+{
+}
+
+void GenerateCustomModelDialog::OnSlider_LevelFilterAdjustCmdScroll(wxScrollEvent& event)
+{
 }

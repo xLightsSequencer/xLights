@@ -38,6 +38,7 @@ class GenerateCustomModelDialog: public wxDialog
     void UpdateProgress(wxProgressDialog& pd, int totaltime);
     int FindStartFrame(VideoReader* vr);
     float CalcFrameBrightness(AVFrame* image);
+    std::list<wxPoint> FindLights(wxImage& image);
 
 #ifdef __WXOSX__
     AppNapSuspender _sleepData;
@@ -59,20 +60,31 @@ class GenerateCustomModelDialog: public wxDialog
 		virtual ~GenerateCustomModelDialog();
 
 		//(*Declarations(GenerateCustomModelDialog)
-		wxStaticBitmap* StaticBitmap1;
+		wxStaticText* StaticText9;
+		wxButton* Button_Forward10Frames;
+		wxSlider* Slider_LevelFilterAdjust;
+		wxButton* Button_Back1Frame;
+		wxStaticBitmap* StaticBitmap_Preview;
+		wxAuiNotebook* AuiNotebook_ProcessSettings;
 		wxButton* Button_GCM_Generate;
 		wxSlider* Slider_Intensity;
 		wxButton* Button_PCM_Run;
 		wxSpinCtrl* SpinCtrl_NC_Count;
 		wxFileDialog* FileDialog1;
-		wxButton* Button_Continue;
-		wxTextCtrl* TextCtrl_Message;
+		wxButton* Button_Back10Frames;
+		wxPanel* Panel_BulbDetect;
 		wxTextCtrl* TextCtrl_GCM_Filename;
 		wxPanel* Panel_Generate;
 		wxAuiNotebook* AuiNotebook1;
+		wxButton* Button_SF_Next;
+		wxStaticText* StaticText_StartFrameOk;
+		wxButton* Button_BD_Back;
 		wxRadioBox* RadioBox1;
 		wxPanel* Panel_Prepare;
+		wxPanel* Panel_StartFrame;
 		wxSpinCtrl* SpinCtrl_StartChannel;
+		wxButton* Button_BD_Next;
+		wxButton* Button_Forward1Frame;
 		//*)
 
 	protected:
@@ -87,9 +99,20 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_TEXTCTRL_GCM_Filename;
 		static const long ID_BUTTON_GCM_SelectFile;
 		static const long ID_BUTTON_GCM_Generate;
-		static const long ID_STATICBITMAP1;
-		static const long ID_TEXTCTRL_Message;
-		static const long ID_BUTTON_Continue;
+		static const long ID_STATICBITMAP_Preview;
+		static const long ID_BUTTON_Back1Frame;
+		static const long ID_BUTTON_Forward1Frame;
+		static const long ID_BUTTON_Back10Frames;
+		static const long ID_BUTTON_Forward10Frames;
+		static const long ID_STATICTEXT_StartFrameOk;
+		static const long ID_BUTTON_SF_Next;
+		static const long ID_PANEL_StartFrame;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_LevelFilterAdjust;
+		static const long ID_BUTTON_BD_Back;
+		static const long ID_BUTTON_BD_Next;
+		static const long ID_PANEL_BulbDetect;
+		static const long ID_AUINOTEBOOK_ProcessSettings;
 		static const long ID_PANEL_Generate;
 		static const long ID_AUINOTEBOOK1;
 		//*)
@@ -102,6 +125,12 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnButton_GCM_GenerateClick(wxCommandEvent& event);
 		void OnButton_PCM_RunClick(wxCommandEvent& event);
 		void OnButton_ContinueClick(wxCommandEvent& event);
+		void OnButton_BackClick(wxCommandEvent& event);
+		void OnButton_NextClick(wxCommandEvent& event);
+		void OnButton_SF_NextClick(wxCommandEvent& event);
+		void OnButton_BD_BackClick(wxCommandEvent& event);
+		void OnButton_BD_NextClick(wxCommandEvent& event);
+		void OnSlider_LevelFilterAdjustCmdScroll(wxScrollEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
