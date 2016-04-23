@@ -1504,6 +1504,10 @@
 					<label>&amp;Convert</label>
 					<handler function="OnMenuItemConvertSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENUITEM_GenerateCustomModel" variable="Menu_GenerateCustomModel" member="yes">
+					<label>&amp;Generate Custom Model</label>
+					<handler function="OnMenu_GenerateCustomModelSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuPlaylist" member="no">
 				<label>&amp;Playlist</label>
