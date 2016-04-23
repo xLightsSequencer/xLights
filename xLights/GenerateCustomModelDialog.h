@@ -14,6 +14,7 @@
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/filedlg.h>
+#include <wx/statbmp.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
@@ -29,6 +30,7 @@ class GenerateCustomModelDialog: public wxDialog
 {
     wxXmlDocument* _network;
     wxDateTime _starttime;
+    bool _continue;
 
     void ValidateWindow();
     void SetBulbs(bool nodes, int count, int startch, int node, int ms, int intensity, xOutput* xout);
@@ -57,11 +59,14 @@ class GenerateCustomModelDialog: public wxDialog
 		virtual ~GenerateCustomModelDialog();
 
 		//(*Declarations(GenerateCustomModelDialog)
+		wxStaticBitmap* StaticBitmap1;
 		wxButton* Button_GCM_Generate;
 		wxSlider* Slider_Intensity;
 		wxButton* Button_PCM_Run;
 		wxSpinCtrl* SpinCtrl_NC_Count;
 		wxFileDialog* FileDialog1;
+		wxButton* Button_Continue;
+		wxTextCtrl* TextCtrl_Message;
 		wxTextCtrl* TextCtrl_GCM_Filename;
 		wxPanel* Panel_Generate;
 		wxAuiNotebook* AuiNotebook1;
@@ -82,6 +87,9 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_TEXTCTRL_GCM_Filename;
 		static const long ID_BUTTON_GCM_SelectFile;
 		static const long ID_BUTTON_GCM_Generate;
+		static const long ID_STATICBITMAP1;
+		static const long ID_TEXTCTRL_Message;
+		static const long ID_BUTTON_Continue;
 		static const long ID_PANEL_Generate;
 		static const long ID_AUINOTEBOOK1;
 		//*)
@@ -93,6 +101,7 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnTextCtrl_GCM_FilenameText(wxCommandEvent& event);
 		void OnButton_GCM_GenerateClick(wxCommandEvent& event);
 		void OnButton_PCM_RunClick(wxCommandEvent& event);
+		void OnButton_ContinueClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
