@@ -297,6 +297,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 
 void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, bool slowdownfalls, int startNote, int endNote, int xoffset)
 {
+    int truexoffset = xoffset * buffer.BufferWi / 100;
 	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
 
 	if (pdata != NULL && pdata->size() != 0)
@@ -345,8 +346,15 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 		}
 
 		int per = datapoints / usebars;
-		int cols = buffer.BufferWi / usebars;
-
+        int cols = 1;
+        if (xoffset == 0)
+        {
+            cols = buffer.BufferWi / usebars;
+        }
+        if (cols < 1)
+        {
+            cols = 1;
+        }
 		std::list<float>::iterator it = lastvalues.begin();
 
         // skip to our start note
@@ -355,7 +363,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
             ++it;
         }
 
-		int x = xoffset * buffer.BufferWi / 2 / 100;
+		int x = truexoffset;
 
 		for (int j = 0; j < usebars; j++)
 		{
