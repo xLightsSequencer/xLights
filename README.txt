@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix so playback works after an XML file import.  Fixes #535.
    -- bug (gil)     Fix SuperStar import to work with horizontal layouts.  Fixes #537.
    -- enh (keithsw) Add video acceleration and slow down so video fully plays in time periods different to their actual length
    -- bug (keithsw) Fix spectrograms wider than the model

@@ -49,7 +49,7 @@ class xLightsXmlFile : public wxFileName
         static const wxString ERASE_MODE;
         static const wxString CANVAS_MODE;
 
-        bool Open(const wxString& ShowDir);
+        bool Open(const wxString& ShowDir, bool ignore_audio=false);
 
         void Save( SequenceElements& elements);
         wxXmlDocument& GetXmlDocument() { return seqDocument; }
@@ -64,7 +64,7 @@ class xLightsXmlFile : public wxFileName
         void SetSequenceDurationMS(int length);
         void SetSequenceDuration(const wxString& length);
         void SetSequenceDuration(double length);
-		
+
 		static wxString FixFile(const wxString& ShowDir, const wxString& file);
 		static wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 
@@ -144,7 +144,7 @@ class xLightsXmlFile : public wxFileName
 		AudioManager* audio;
 
         void CreateNew();
-        bool LoadSequence(const wxString& ShowDir);
+        bool LoadSequence(const wxString& ShowDir, bool ignore_audio=false);
         bool LoadV3Sequence();
         bool Save();
         bool SaveCopy();

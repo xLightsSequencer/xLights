@@ -723,7 +723,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
 
     xLightsXmlFile xlf(filename);
-    xlf.Open(GetShowDirectory());
+    xlf.Open(GetShowDirectory(), true);
     SequenceElements se(this);
     se.SetFrequency(mSequenceElements.GetFrequency());
     se.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.

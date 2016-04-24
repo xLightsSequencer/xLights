@@ -817,7 +817,7 @@ void xLightsXmlFile::CreateNew()
     version_string = xlights_version_string;
 }
 
-bool xLightsXmlFile::Open(const wxString& ShowDir)
+bool xLightsXmlFile::Open(const wxString& ShowDir, bool ignore_audio)
 {
     if( !FileExists() )
         return false;
@@ -829,7 +829,7 @@ bool xLightsXmlFile::Open(const wxString& ShowDir)
     }
     else if( IsXmlSequence(*this) )
     {
-        return LoadSequence(ShowDir);
+        return LoadSequence(ShowDir, ignore_audio);
     }
     return false;
 }
@@ -1165,7 +1165,7 @@ void xLightsXmlFile::ConvertToFixedPointTiming()
     }
 }
 
-bool xLightsXmlFile::LoadSequence(const wxString& ShowDir)
+bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
 {
 	log4cpp::Category& logger = log4cpp::Category::getRoot();
 	logger.info("Loading sequence " + GetFullPath());
@@ -1237,16 +1237,19 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir)
                 }
                 else if( element->GetName() == "mediaFile")
                 {
-                    media_file = FixFile(ShowDir, element->GetNodeContent());
-                    wxFileName mf = media_file;
-					if (audio != NULL)
-					{
-						delete audio;
-                        audio = NULL;
-					}
-                    if( mf.FileExists() )
+                    if( !ignore_audio )
                     {
-                        audio = new AudioManager(std::string(media_file.c_str()), this, 4096, 32768);
+                        media_file = FixFile(ShowDir, element->GetNodeContent());
+                        wxFileName mf = media_file;
+                        if (audio != NULL)
+                        {
+                            delete audio;
+                            audio = NULL;
+                        }
+                        if( mf.FileExists() )
+                        {
+                            audio = new AudioManager(std::string(media_file.c_str()), this, 4096, 32768);
+                        }
                     }
                 }
                 else if( element->GetName() == "sequenceDuration")
