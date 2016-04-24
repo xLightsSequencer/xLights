@@ -18,6 +18,10 @@
 		670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E473E1C62A901008F4C60 /* ModelGroup.cpp */; };
 		670E47421C62F4AD008F4C60 /* CircleModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E47411C62F4AD008F4C60 /* CircleModel.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
+		6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF471CCB1D8800899A4B /* MusicEffect.cpp */; };
+		6719BF4C1CCB1D8800899A4B /* MusicPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF491CCB1D8800899A4B /* MusicPanel.cpp */; };
+		6719BF511CCB1DAB00899A4B /* ConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF4D1CCB1DAB00899A4B /* ConvertDialog.cpp */; };
+		6719BF521CCB1DAB00899A4B /* ConvertLogDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF4F1CCB1DAB00899A4B /* ConvertLogDialog.cpp */; };
 		671C0BCD1C245E230098A48D /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.1.dylib */; };
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
@@ -324,6 +328,14 @@
 		670E47411C62F4AD008F4C60 /* CircleModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CircleModel.cpp; path = models/CircleModel.cpp; sourceTree = "<group>"; };
 		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
+		6719BF471CCB1D8800899A4B /* MusicEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MusicEffect.cpp; path = effects/MusicEffect.cpp; sourceTree = "<group>"; };
+		6719BF481CCB1D8800899A4B /* MusicEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MusicEffect.h; path = effects/MusicEffect.h; sourceTree = "<group>"; };
+		6719BF491CCB1D8800899A4B /* MusicPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MusicPanel.cpp; path = effects/MusicPanel.cpp; sourceTree = "<group>"; };
+		6719BF4A1CCB1D8800899A4B /* MusicPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MusicPanel.h; path = effects/MusicPanel.h; sourceTree = "<group>"; };
+		6719BF4D1CCB1DAB00899A4B /* ConvertDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertDialog.cpp; sourceTree = "<group>"; };
+		6719BF4E1CCB1DAB00899A4B /* ConvertDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConvertDialog.h; sourceTree = "<group>"; };
+		6719BF4F1CCB1DAB00899A4B /* ConvertLogDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertLogDialog.cpp; sourceTree = "<group>"; };
+		6719BF501CCB1DAB00899A4B /* ConvertLogDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConvertLogDialog.h; sourceTree = "<group>"; };
 		671B331C1AD5CB7600C9F215 /* UtilClasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UtilClasses.h; sourceTree = "<group>"; };
 		671B331D1AD6071600C9F215 /* BitmapCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BitmapCache.h; sourceTree = "<group>"; };
 		671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_qa-3.1.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_qa-3.1.dylib"; sourceTree = "<group>"; };
@@ -961,6 +973,10 @@
 		679BD3281C37552D000539FE /* Effects */ = {
 			isa = PBXGroup;
 			children = (
+				6719BF471CCB1D8800899A4B /* MusicEffect.cpp */,
+				6719BF481CCB1D8800899A4B /* MusicEffect.h */,
+				6719BF491CCB1D8800899A4B /* MusicPanel.cpp */,
+				6719BF4A1CCB1D8800899A4B /* MusicPanel.h */,
 				67EE95AE1C848A3600C62C95 /* VideoPanel.h */,
 				67EE95AF1C848A3600C62C95 /* VideoPanel.cpp */,
 				67EE95B01C848A3600C62C95 /* VideoEffect.h */,
@@ -1251,6 +1267,10 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6719BF4D1CCB1DAB00899A4B /* ConvertDialog.cpp */,
+				6719BF4E1CCB1DAB00899A4B /* ConvertDialog.h */,
+				6719BF4F1CCB1DAB00899A4B /* ConvertLogDialog.cpp */,
+				6719BF501CCB1DAB00899A4B /* ConvertLogDialog.h */,
 				67DAFDCD1CA1A62B004B3237 /* MIDI */,
 				675AC53B1C987AA700C4AFE9 /* CustomModelDialog.h */,
 				675AC53C1C987AA700C4AFE9 /* CustomModelDialog.cpp */,
@@ -1662,6 +1682,7 @@
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,
 				67229EDE1C95DDF000D34024 /* TestDialog.cpp in Sources */,
 				67B2CF771C39D98A003C17CA /* GarlandsPanel.cpp in Sources */,
+				6719BF521CCB1DAB00899A4B /* ConvertLogDialog.cpp in Sources */,
 				67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */,
 				67B2CFE91C3A186A003C17CA /* MarqueeEffect.cpp in Sources */,
 				6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */,
@@ -1720,6 +1741,7 @@
 				677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */,
 				67B2CF961C39D98A003C17CA /* ButterflyEffect.cpp in Sources */,
 				67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */,
+				6719BF511CCB1DAB00899A4B /* ConvertDialog.cpp in Sources */,
 				676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */,
 				67A61A5217B51C0F008E95BB /* serial.cpp in Sources */,
 				673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */,
@@ -1758,6 +1780,8 @@
 				6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */,
 				670C828A1C45C48B000AA5D8 /* ModelManager.cpp in Sources */,
 				67DAFDE01CA1A63C004B3237 /* MidiMessage.cpp in Sources */,
+				6719BF4C1CCB1D8800899A4B /* MusicPanel.cpp in Sources */,
+				6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */,
 				67B2CFE81C3A186A003C17CA /* MeteorsEffect.cpp in Sources */,
 				67B2CFF11C3A186A003C17CA /* FanEffect.cpp in Sources */,
 				67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */,
