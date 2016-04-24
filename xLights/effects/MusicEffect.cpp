@@ -281,6 +281,11 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     std::map<int /*bar*/, float> max;
     float overallmax = 0.0;
 
+    for (int b = 0; b < bars; b++)
+    {
+        max[b] = 0.0;
+    }
+
     // go through each frame and extract the data i need
     for (int f = buffer.curEffStartPer; f <= buffer.curEffEndPer; f++)
     {
@@ -297,7 +302,6 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
         for (int b = 0; b < bars && pn != pdata->end(); b++)
         {
             float val = 0.0;
-            max[b] = 0.0;
             for (int n = 0; n < (int)notesperbar; n++)
             {
                 val = std::max(val, *pn);
@@ -323,7 +327,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
         }
         int startframe = -1;
         // extract the value for this note
-        int frame = 0;
+        int frame = buffer.curEffStartPer;
         for (auto f = data[b].begin(); f != data[b].end(); ++f)
         {
             if (f->second > notesensitivity)
