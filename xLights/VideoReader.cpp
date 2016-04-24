@@ -221,9 +221,21 @@ void VideoReader::Seek(int timestampMS)
 
 AVFrame* VideoReader::GetNextFrame(int timestampMS)
 {
-	if (_valid && timestampMS <= _length)
+    if (!_valid)
+    {
+        return NULL;
+    }
+
+    int tgtframe = GetFrameForTime(timestampMS, _videoStream);
+
+    // If the caller is after an old frame we have to seek first
+    if (_currentframe > tgtframe)
+    {
+        Seek(timestampMS);
+    }
+
+	if (timestampMS <= _length)
 	{
-        int tgtframe = GetFrameForTime(timestampMS, _videoStream);
 		AVPacket pkt2;
 
         int rc;

@@ -12,6 +12,30 @@
 
 #include <wx/msgdlg.h>
 #include <wx/file.h>
+#include <wx/dc.h>
+
+#define PAGE_STARTFRAME 0
+#define PAGE_BULBDETECT 1
+
+class MyGenericStaticBitmap : public wxGenericStaticBitmap {
+public:
+    MyGenericStaticBitmap(wxWindow *parent,
+        wxWindowID id,
+        const wxBitmap& bitmap,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = 0,
+        const wxString& name = wxStaticBitmapNameStr)
+        : wxGenericStaticBitmap(parent, id, bitmap, pos, size, style, name) {};
+    void MyGenericStaticBitmap::OnEraseBackGround(wxEraseEvent& event) {};
+    DECLARE_EVENT_TABLE()
+};
+
+BEGIN_EVENT_TABLE(MyGenericStaticBitmap, wxGenericStaticBitmap)
+EVT_ERASE_BACKGROUND(MyGenericStaticBitmap::OnEraseBackGround)
+END_EVENT_TABLE()
+
+const long GenerateCustomModelDialog::ID_STATICBITMAP_Preview = wxNewId();
 
 //(*IdInit(GenerateCustomModelDialog)
 const long GenerateCustomModelDialog::ID_RADIOBOX1 = wxNewId();
@@ -23,7 +47,7 @@ const long GenerateCustomModelDialog::ID_PANEL_Prepare = wxNewId();
 const long GenerateCustomModelDialog::ID_TEXTCTRL_GCM_Filename = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_GCM_SelectFile = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_GCM_Generate = wxNewId();
-const long GenerateCustomModelDialog::ID_STATICBITMAP_Preview = wxNewId();
+const long GenerateCustomModelDialog::ID_GAUGE_Progress = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_Back1Frame = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_Forward1Frame = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_Back10Frames = wxNewId();
@@ -32,6 +56,8 @@ const long GenerateCustomModelDialog::ID_STATICTEXT_StartFrameOk = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_SF_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_StartFrame = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT1 = wxNewId();
+const long GenerateCustomModelDialog::ID_SLIDER_AdjustBlur = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT2 = wxNewId();
 const long GenerateCustomModelDialog::ID_SLIDER_LevelFilterAdjust = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BD_Back = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BD_Next = wxNewId();
@@ -66,6 +92,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxStaticText* StaticText5;
 	wxStaticText* StaticText7;
 	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer14;
 	wxButton* Button_GCM_SelectFile;
 	wxFlexGridSizer* FlexGridSizer13;
 	wxFlexGridSizer* FlexGridSizer12;
@@ -140,16 +167,20 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer4->Add(TextCtrl_GCM_Filename, 1, wxALL|wxEXPAND, 2);
 	Button_GCM_SelectFile = new wxButton(Panel_Generate, ID_BUTTON_GCM_SelectFile, _("..."), wxDefaultPosition, wxSize(29,28), 0, wxDefaultValidator, _T("ID_BUTTON_GCM_SelectFile"));
 	FlexGridSizer4->Add(Button_GCM_SelectFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_GCM_Generate = new wxButton(Panel_Generate, ID_BUTTON_GCM_Generate, _("Generate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GCM_Generate"));
 	FlexGridSizer4->Add(Button_GCM_Generate, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer5->AddGrowableCol(0);
+	FlexGridSizer5->AddGrowableCol(1);
 	FlexGridSizer5->AddGrowableRow(0);
-	StaticBitmap_Preview = new wxStaticBitmap(Panel_Generate, ID_STATICBITMAP_Preview, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER|wxCLIP_CHILDREN, _T("ID_STATICBITMAP_Preview"));
-	FlexGridSizer5->Add(StaticBitmap_Preview, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer14 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer14->AddGrowableCol(0);
+	FlexGridSizer14->AddGrowableRow(0);
+	Gauge_Progress = new wxGauge(Panel_Generate, ID_GAUGE_Progress, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_GAUGE_Progress"));
+	FlexGridSizer14->Add(Gauge_Progress, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer5->Add(FlexGridSizer14, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer7 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer7->AddGrowableCol(0);
 	FlexGridSizer7->AddGrowableRow(0);
@@ -168,7 +199,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Button_Forward10Frames = new wxButton(Panel_StartFrame, ID_BUTTON_Forward10Frames, _("Forward 10 Frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Forward10Frames"));
 	FlexGridSizer11->Add(Button_Forward10Frames, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer10->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
-	StaticText_StartFrameOk = new wxStaticText(Panel_StartFrame, ID_STATICTEXT_StartFrameOk, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_StartFrameOk"));
+	StaticText_StartFrameOk = new wxStaticText(Panel_StartFrame, ID_STATICTEXT_StartFrameOk, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE, _T("ID_STATICTEXT_StartFrameOk"));
 	wxFont StaticText_StartFrameOkFont(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	StaticText_StartFrameOk->SetFont(StaticText_StartFrameOkFont);
 	FlexGridSizer10->Add(StaticText_StartFrameOk, 1, wxALL|wxEXPAND, 2);
@@ -188,8 +219,12 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer9->AddGrowableRow(1);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer8->AddGrowableCol(1);
-	StaticText9 = new wxStaticText(Panel_BulbDetect, ID_STATICTEXT1, _("Adjust"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	StaticText9 = new wxStaticText(Panel_BulbDetect, ID_STATICTEXT1, _("Blur"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer8->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_AdjustBlur = new wxSlider(Panel_BulbDetect, ID_SLIDER_AdjustBlur, 5, 1, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_AdjustBlur"));
+	FlexGridSizer8->Add(Slider_AdjustBlur, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText10 = new wxStaticText(Panel_BulbDetect, ID_STATICTEXT2, _("Level"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer8->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_LevelFilterAdjust = new wxSlider(Panel_BulbDetect, ID_SLIDER_LevelFilterAdjust, 200, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_LevelFilterAdjust"));
 	FlexGridSizer8->Add(Slider_LevelFilterAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -223,13 +258,32 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Connect(ID_TEXTCTRL_GCM_Filename,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnTextCtrl_GCM_FilenameText);
 	Connect(ID_BUTTON_GCM_SelectFile,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_GCM_SelectFileClick);
 	Connect(ID_BUTTON_GCM_Generate,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_GCM_GenerateClick);
+	Connect(ID_BUTTON_Back1Frame,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_Back1FrameClick);
+	Connect(ID_BUTTON_Forward1Frame,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_Forward1FrameClick);
+	Connect(ID_BUTTON_Back10Frames,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_Back10FramesClick);
+	Connect(ID_BUTTON_Forward10Frames,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_Forward10FramesClick);
 	Connect(ID_BUTTON_SF_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_SF_NextClick);
-	Connect(ID_SLIDER_LevelFilterAdjust,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_LevelFilterAdjustCmdScroll);
+	Connect(ID_SLIDER_AdjustBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScroll);
+	Connect(ID_SLIDER_LevelFilterAdjust,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_LevelFilterAdjustCmdScroll);
 	Connect(ID_BUTTON_BD_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BD_BackClick);
 	Connect(ID_BUTTON_BD_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BD_NextClick);
 	//*)
 
-    StaticBitmap1->SetScaleMode(wxStaticBitmapBase::ScaleMode::Scale_AspectFill);
+    _displaybmp = wxImage(GCM_DISPLAYIMAGEWIDTH, GCM_DISPLAYIMAGEHEIGHT, true);
+    //unshare(_displaybmp);
+
+    StaticBitmap_Preview = new MyGenericStaticBitmap(Panel_Generate, ID_STATICBITMAP_Preview, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("ID_STATICBITMAP_Preview"));
+    StaticBitmap_Preview->SetScaleMode(wxStaticBitmapBase::ScaleMode::Scale_AspectFit);
+    StaticBitmap_Preview->SetSizeHints(wxSize(400, 300), wxSize(400, 300));
+    StaticBitmap_Preview->SetBitmap(_displaybmp);
+    FlexGridSizer14->Insert(0, StaticBitmap_Preview, 1, wxALL | wxEXPAND, 2);
+    FlexGridSizer14->Layout();
+    FlexGridSizer5->Layout();
+
+    AuiNotebook_ProcessSettings->Hide();
+    _state = VideoProcessingStates::NOT_PROCESSING;
+    _vr = NULL;
+    Gauge_Progress->Hide();
 
     ValidateWindow();
 }
@@ -238,20 +292,44 @@ GenerateCustomModelDialog::~GenerateCustomModelDialog()
 {
 	//(*Destroy(GenerateCustomModelDialog)
 	//*)
+
+    if (_vr != NULL)
+    {
+        delete _vr;
+    }
 }
 
 void GenerateCustomModelDialog::ValidateWindow()
 {
     wxString file = TextCtrl_GCM_Filename->GetValue();
-    if (file == "" || wxFile::Exists(file))
+    if (_state == VideoProcessingStates::NOT_PROCESSING)
     {
-        TextCtrl_GCM_Filename->SetBackgroundColour(*wxWHITE);
-        Button_GCM_Generate->Enable();
+        AuiNotebook_ProcessSettings->Hide();
+        if (wxFile::Exists(file))
+        {
+            TextCtrl_GCM_Filename->SetBackgroundColour(*wxWHITE);
+            Button_GCM_Generate->Enable();
+        }
+        else
+        {
+            TextCtrl_GCM_Filename->SetBackgroundColour(*wxRED);
+            Button_GCM_Generate->Disable();
+        }
     }
     else
     {
-        TextCtrl_GCM_Filename->SetBackgroundColour(*wxRED);
+        AuiNotebook_ProcessSettings->Show();
         Button_GCM_Generate->Disable();
+
+        if (_state == VideoProcessingStates::FINDING_START_FRAME)
+        {
+        }
+        else if (_state == VideoProcessingStates::DETECTING_BULBS)
+        {
+        }
+        else if (_state == VideoProcessingStates::NUMBERING_BULBS)
+        {
+        }
     }
 }
 
@@ -261,6 +339,8 @@ void GenerateCustomModelDialog::OnButton_GCM_SelectFileClick(wxCommandEvent& eve
     if (FileDialog1->ShowModal() == wxID_OK)
     {
         TextCtrl_GCM_Filename->SetValue(FileDialog1->GetDirectory() + "/" + FileDialog1->GetFilename());
+        VideoReader vr(std::string(TextCtrl_GCM_Filename->GetValue().c_str()), 800, 600, true);
+        ShowImage(CreateImageFromFrame(vr.GetNextFrame(0)));
     }
     ValidateWindow();
 }
@@ -270,29 +350,22 @@ void GenerateCustomModelDialog::OnTextCtrl_GCM_FilenameText(wxCommandEvent& even
     ValidateWindow();
 }
 
-#define AVFrameRed(d, w,x,y) (int)*(d + w * 3 * y + x * 3)
-#define AVFrameGreen(d, w,x,y) (int)*(d + w * 3 * y + x * 3 + 1)
-#define AVFrameBlue(d, w,x,y) (int)*(d + w * 3 * y + x * 3 + 2)
-
-float GenerateCustomModelDialog::CalcFrameBrightness(AVFrame* image)
+float GenerateCustomModelDialog::CalcFrameBrightness(wxImage& image)
 {
-    //wxImage img(image->width, image->height, true);
-    //img.SetData((unsigned char*)(image->data[0]));
-    //wxImage grey = img.ConvertToGreyscale();
-    //StaticBitmap1->SetBitmap(grey);
-
-    int w = image->width;
-    int h = image->height;
+    wxImage grey = image.ConvertToGreyscale();
+    int w = image.GetWidth();
+    int h = image.GetHeight();
     int64_t total = 0;
-    for (int x = 0; x < w; x++)
+    for (int y = 0; y < h; y++)
     {
-        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
         {
-            total += (int)((float)AVFrameRed(image->data[0], w, x, y) * 0.299 + (float)AVFrameGreen(image->data[0], w, x, y) * 0.587 + (float)AVFrameBlue(image->data[0], w, x, y) * 0.114);
+            total += *(grey.GetData() + w * 3 * y + x * 3);
         }
     }
 
-    return (float)((double)total / ((double)w * (double)h) / 255.0);
+    return (float)((double)total /
+           ((double)w * (double)h) / 255.0);
 }
 
 #define STARTSCANSECS 30
@@ -303,27 +376,26 @@ float GenerateCustomModelDialog::CalcFrameBrightness(AVFrame* image)
 #define FLAGOFF 500
 #define NODEON 500
 #define NODEOFF 200
-
+#define DELAYMSUNTILSAMPLE 100
 
 // returns the MS of the best start frame - 0.1 MS into what looks like a bright section of the video that lasts about 3 seconds
 int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
 {
     std::list<float> framebrightness;
 
-    // scan first STARTSCANSECS seconds of video
+    // scan first STARTSCANSECS seconds of video build a list of average frame brightnesses
     for (int s = 0; s < STARTSCANSECS; s++)
     {
-        // calculate each frame average brightness
         for (int ss = 0; ss < 20; ss++)
         {
             int ms = s * 1000 + ss * FRAMEMS;
-            AVFrame* image = vr->GetNextFrame(ms);
-
-            framebrightness.push_back(CalcFrameBrightness(image));
+            wxImage img = CreateImageFromFrame(vr->GetNextFrame(ms));
+            ShowImage(img);
+            framebrightness.push_back(CalcFrameBrightness(img));
         }
     }
 
-    // find a LEADON millisecondsecond high ... this will be our start frame
+    // find the maximum number of frames in the video that it is about a set of brightness thresholds
     std::map<int, int> levelmaxlen;
     std::map<int, int> levelmaxstart;
     float level = 0.1;
@@ -367,6 +439,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
         level += 0.1;
     }
 
+    // look for thresholds that are close to LEADON long
     std::map<int, bool> suitable;
     for (int l = 1; l < 10; l++)
     {
@@ -380,6 +453,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
         }
     }
 
+    // choose the best threshold to use
     int first = 0;
     int last = 0;
     int curfirst = 0;
@@ -422,32 +496,85 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     }
 
     // pick a point 0.1 secs into the high period as our start frame
-    return levelmaxstart[bestlevel] * FRAMEMS;
+    int candidateframe = levelmaxstart[bestlevel] * FRAMEMS;
+    candidateframe += DELAYMSUNTILSAMPLE / FRAMEMS;
+
+    // check the second all on event is there ... if not move up to 10 frames forward looking for it
+    for (int i = 0; i < 10; i++)
+    {
+        if (LooksLikeStartFrame(candidateframe))
+        {
+            break;
+        }
+        else
+        {
+            candidateframe++;
+        }
+    }
+
+    return candidateframe;
+}
+
+bool GenerateCustomModelDialog::LooksLikeStartFrame(int candidateframe)
+{
+    wxImage image = CreateImageFromFrame(_vr->GetNextFrame(candidateframe));
+    wxImage nextimage = CreateImageFromFrame(_vr->GetNextFrame(candidateframe + LEADON + FLAGOFF));
+    float fimage = CalcFrameBrightness(image);
+    float fnextimage = CalcFrameBrightness(nextimage);
+
+    if (fnextimage > fimage * 0.9 && fnextimage < fimage * 1.1)
+    {
+        // within 10% close enough
+        return true;
+    }
+
+    return false;
+}
+
+void GenerateCustomModelDialog::ApplyThreshold(wxImage& image, int threshold)
+{
+    for (int i = 0; i < image.GetWidth() * image.GetHeight() * 3; i++)
+    {
+        if (*(image.GetData() + i) > threshold)
+        {
+            *(image.GetData() + i) = 255;
+        }
+        else
+        {
+            *(image.GetData() + i) = 0;
+        }
+    }
+}
+
+void GenerateCustomModelDialog::CalculateMask(int blur, int level)
+{
+    wxImage image = CreateImageFromFrame(_vr->GetNextFrame(_startframetime));
+
+    // Greyscale the image
+    wxImage grey = image.ConvertToGreyscale();
+    //ShowImage(grey);
+    //wxSleep(1);
+
+    // blur the photo to eliminate the noise
+    wxImage imgblur = grey.Blur(15);
+    //ShowImage(imgblur);
+    //wxSleep(1);
+
+    // now use a threshold to make it b&w
+    _mask = imgblur;
+    ApplyThreshold(_mask, Slider_LevelFilterAdjust->GetValue());
+    ShowImage(_mask);
 }
 
 std::list<wxPoint> GenerateCustomModelDialog::FindLights(wxImage& image)
 {
     std::list<wxPoint> res;
 
-    // Greyscale the image
-    wxImage grey = image.ConvertToGreyscale();
+    CalculateMask(Slider_AdjustBlur->GetValue(), Slider_LevelFilterAdjust->GetValue());
 
-    StaticBitmap1->SetBitmap(grey);
+    // edge detect!
 
-    TextCtrl_Message->SetValue("Grey. Continue?");
-    _continue = false;
-    while (!_continue) wxYield();
-    TextCtrl_Message->SetValue("");
 
-    // blur the photo to eliminate the noise
-    wxImage blur = grey.Blur(15);
-
-    StaticBitmap1->SetBitmap(blur);
-
-    TextCtrl_Message->SetValue("Blur. Continue?");
-    _continue = false;
-    while (!_continue) wxYield();
-    TextCtrl_Message->SetValue("");
 
     // sharpen the image
 
@@ -462,49 +589,58 @@ std::list<wxPoint> GenerateCustomModelDialog::FindLights(wxImage& image)
 
 void GenerateCustomModelDialog::OnButton_GCM_GenerateClick(wxCommandEvent& event)
 {
-    VideoReader vr(std::string(TextCtrl_GCM_Filename->GetValue().c_str()), 800, 600, false);
+    if (_vr != NULL)
+    {
+        delete _vr;
+        _vr = NULL;
+    }
 
-    wxProgressDialog pd("Analysing video ...", "", 100, this);
-    pd.Update(1);
+    _vr = new VideoReader(std::string(TextCtrl_GCM_Filename->GetValue().c_str()), 800, 600, true);
 
-    int starttime = FindStartFrame(&vr);
-    pd.Update(15, wxString::Format("Start frame found at %dms", starttime));
+    if (_vr == NULL)
+    {
+        wxMessageBox("Unable to process video.");
+        return;
+    }
 
-    AVFrame* image;
-    image = vr.GetNextFrame(starttime);
-    wxImage bmp(image->width, image->height, true);
-    bmp.SetData((unsigned char*)(image->data[0]));
-    StaticBitmap1->SetBitmap(bmp);
+    _state = VideoProcessingStates::FINDING_START_FRAME;
+    SetCursor(wxCURSOR_WAIT);
 
-    TextCtrl_Message->SetValue("Start Frame. Continue?");
-    _continue = false;
-    while (!_continue) wxYield();
-    TextCtrl_Message->SetValue("");
+    Gauge_Progress->SetValue(2);
+    Gauge_Progress->Show();
+    wxYield(); /// let it show
 
-    // confirm the start frame with the user ... let them bump it forward or back
+    _startframetime = FindStartFrame(_vr);
+    ShowFrame(_startframetime);
+    Gauge_Progress->SetValue(15);
 
-    // look at this start frame and identify all the light locations
-    std::list<wxPoint> points = FindLights(bmp);
-    pd.Update(30, wxString::Format("Start frame analysed for lights. %d found.", points.size()));
+    SetCursor(wxCURSOR_ARROW);
+    AuiNotebook_ProcessSettings->GetPage(PAGE_STARTFRAME)->Show();
+    ValidateWindow();
+}
 
-    // confirm with the user that i identified them all ... let them manuall add them/move them around?
+wxImage GenerateCustomModelDialog::CreateImageFromFrame(AVFrame* frame)
+{
+    wxImage img(frame->width, frame->height, (unsigned char *)frame->data[0], true);
+    img.SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
 
-    // generate a grid with just x's to show where the lights are
-    // grid should be minimal. narrow and short and as little resolution as possible
+    return img;
+}
 
-    // confirm with the user as well
+void GenerateCustomModelDialog::ShowImage(wxImage& image)
+{
+    if (image.IsOk())
+    {
+        _displaybmp = image.Scale(GCM_DISPLAYIMAGEWIDTH, GCM_DISPLAYIMAGEHEIGHT, wxImageResizeQuality::wxIMAGE_QUALITY_HIGH);
+    }
+    StaticBitmap_Preview->SetBitmap(_displaybmp);
+    wxYield();
+}
 
-    int currpixelframe = starttime + LEADON + FLAGOFF + FLAGON + FLAGOFF;
-
-    // now go through all the frames at the expected points and check only which of the light locations is on so I can number them
-
-    // now regenerate the grid with the x's replaced by numbers
-
-    // export the model to an xmodel file ... ready for use
-
-    pd.Update(100);
-    pd.Close();
-    SetFocus();
+void GenerateCustomModelDialog::ShowFrame(int time)
+{
+    wxImage image = CreateImageFromFrame(_vr->GetNextFrame(time));
+    ShowImage(image);
 }
 
 void GenerateCustomModelDialog::UpdateProgress(wxProgressDialog& pd, int totaltime)
@@ -727,33 +863,126 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     EnableSleepModes();
 
     wxMessageBox("Please stop the video.", "", 5L, this);
-}
-
-void GenerateCustomModelDialog::OnButton_ContinueClick(wxCommandEvent& event)
-{
-    _continue = true;
-}
-
-void GenerateCustomModelDialog::OnButton_BackClick(wxCommandEvent& event)
-{
-}
-
-void GenerateCustomModelDialog::OnButton_NextClick(wxCommandEvent& event)
-{
+    ValidateWindow();
 }
 
 void GenerateCustomModelDialog::OnButton_SF_NextClick(wxCommandEvent& event)
 {
+    _state = VideoProcessingStates::DETECTING_BULBS;
+    AuiNotebook_ProcessSettings->GetPage(PAGE_STARTFRAME)->Hide();
+    AuiNotebook_ProcessSettings->GetPage(PAGE_BULBDETECT)->Show();
+
+    // look at this start frame and identify all the light locations
+    std::list<wxPoint> points = FindLights(CreateImageFromFrame(_vr->GetNextFrame(_startframetime)));
+
+    // confirm with the user that i identified them all ... let them manuall add them/move them around?
+
+    // generate a grid with just x's to show where the lights are
+    // grid should be minimal. narrow and short and as little resolution as possible
+
+    // confirm with the user as well
+
+    int currpixelframe = _startframetime + LEADON + FLAGOFF + FLAGON + FLAGOFF;
+
+    // now go through all the frames at the expected points and check only which of the light locations is on so I can number them
+
+    // now regenerate the grid with the x's replaced by numbers
+
+    // export the model to an xmodel file ... ready for use
+    ValidateWindow();
 }
 
 void GenerateCustomModelDialog::OnButton_BD_BackClick(wxCommandEvent& event)
 {
+    _state = VideoProcessingStates::FINDING_START_FRAME;
+    AuiNotebook_ProcessSettings->GetPage(PAGE_BULBDETECT)->Hide();
+    OnButton_GCM_GenerateClick(event);
 }
 
 void GenerateCustomModelDialog::OnButton_BD_NextClick(wxCommandEvent& event)
 {
+    ValidateWindow();
+}
+
+void GenerateCustomModelDialog::ValidateStartFrame()
+{
+    if (LooksLikeStartFrame(_startframetime))
+    {
+        StaticText_StartFrameOk->SetLabel("Looks ok.");
+        StaticText_StartFrameOk->SetForegroundColour(*wxGREEN);
+    }
+    else
+    {
+        StaticText_StartFrameOk->SetLabel("Looks wrong.");
+        StaticText_StartFrameOk->SetForegroundColour(*wxRED);
+    }
+}
+
+void GenerateCustomModelDialog::MoveStartFrame(int by)
+{
+    _startframetime += by * FRAMEMS;
+
+    if (_startframetime < 0)
+    {
+        _startframetime = 0;
+    }
+
+    if (_startframetime > _vr->GetLengthMS())
+    {
+        _startframetime = _vr->GetLengthMS();
+    }
+}
+
+void GenerateCustomModelDialog::OnButton_Back1FrameClick(wxCommandEvent& event)
+{
+    SetCursor(wxCURSOR_WAIT);
+    MoveStartFrame(-1);
+    ValidateStartFrame();
+    ShowFrame(_startframetime);
+    ValidateWindow();
+    SetCursor(wxCURSOR_ARROW);
+}
+
+void GenerateCustomModelDialog::OnButton_Forward1FrameClick(wxCommandEvent& event)
+{
+    SetCursor(wxCURSOR_WAIT);
+    MoveStartFrame(1);
+    ValidateStartFrame();
+    ShowFrame(_startframetime);
+    ValidateWindow();
+    SetCursor(wxCURSOR_ARROW);
+}
+
+void GenerateCustomModelDialog::OnButton_Back10FramesClick(wxCommandEvent& event)
+{
+    SetCursor(wxCURSOR_WAIT);
+    MoveStartFrame(-10);
+    ValidateStartFrame();
+    _vr->Seek(_startframetime);
+    ShowFrame(_startframetime);
+    ValidateWindow();
+    SetCursor(wxCURSOR_ARROW);
+}
+
+void GenerateCustomModelDialog::OnButton_Forward10FramesClick(wxCommandEvent& event)
+{
+    SetCursor(wxCURSOR_WAIT);
+    MoveStartFrame(10);
+    ValidateStartFrame();
+    ShowFrame(_startframetime);
+    ValidateWindow();
+    SetCursor(wxCURSOR_ARROW);
 }
 
 void GenerateCustomModelDialog::OnSlider_LevelFilterAdjustCmdScroll(wxScrollEvent& event)
 {
+    CalculateMask(Slider_AdjustBlur->GetValue(), Slider_LevelFilterAdjust->GetValue());
+    ValidateWindow();
+}
+
+
+void GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScroll(wxScrollEvent& event)
+{
+    CalculateMask(Slider_AdjustBlur->GetValue(), Slider_LevelFilterAdjust->GetValue());
+    ValidateWindow();
 }
