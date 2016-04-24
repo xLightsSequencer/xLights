@@ -33,7 +33,7 @@ void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 	Render(buffer,
            SettingsMap.GetInt("TEXTCTRL_Music_Bars", 6),
 		   SettingsMap.Get("CHOICE_Music_Type", "Collide"),
-		   SettingsMap.GetInt("CHOICE_Music_Sensitivity", 50),
+		   SettingsMap.GetInt("TEXTCTRL_Music_Sensitivity", 50),
 		   SettingsMap.GetBool("CHECKBOX_Music_Scale", false),
  		   SettingsMap.GetBool("CHECKBOX_Music_ScaleNotes", false),
            SettingsMap.GetInt("TEXTCTRL_Music_Offset", 0),
