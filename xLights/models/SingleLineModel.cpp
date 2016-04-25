@@ -26,14 +26,14 @@ void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, 
     parm1 = lights;
     parm2 = 1;
     parm3 = 1;
-    
+
     StringType = pbc.GetStringType();
     rgbOrder = pbc.rgbOrder;
     SingleNode = pbc.SingleNode;
     SingleChannel = pbc.SingleChannel;
     IsLtoR = pbc.GetIsLtoR();
     customColor = pbc.customColor;
-    
+
     bool flip = false;
     if (forceDirection) {
         int sn = pbc.GetNodeStringNumber(pbc.MapToNodeIndex(strand, 0));
@@ -90,8 +90,8 @@ const std::vector<std::string> &SingleLineModel::GetBufferStyles() const {
 
 void SingleLineModel::InitModel() {
     InitLine();
-    
-    
+
+
     for (auto node = Nodes.begin(); node != Nodes.end(); node++) {
         int count = 0;
         int num = node->get()->Coords.size();
@@ -126,7 +126,7 @@ void SingleLineModel::InitLine() {
     int chan = 0,idx;
     int ChanIncr=SingleChannel ?  1 : 3;
     size_t NodeCount=GetNodeCount();
-    
+
     idx = 0;
     for(size_t n=0; n<NodeCount; n++) {
         if (Nodes[n]->StringNum != LastStringNum) {
@@ -138,7 +138,7 @@ void SingleLineModel::InitLine() {
         Nodes[n]->Coords.resize(SingleNode?parm2:parm3);
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
-            Nodes[n]->Coords[c].bufX=IsLtoR ? idx : numLights-idx-1;
+            Nodes[n]->Coords[c].bufX=IsLtoR ? idx : (SingleNode ? idx : numLights-idx-1);
             Nodes[n]->Coords[c].bufY=0;
         }
         idx++;
@@ -173,7 +173,7 @@ void SingleLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetAttribute("Max", 250);
         p->SetEditor("SpinCtrl");
     }
-    
+
     p = grid->Append(new wxEnumProperty("Starting Location", "SingleLineStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
 }
 int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -198,7 +198,7 @@ int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
-    
+
     return Model::OnPropertyGridChange(grid, event);
 }
 
