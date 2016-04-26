@@ -3,17 +3,13 @@
 #include "wx/wx.h"
 
 #ifdef __WXMAC__
- #include "OpenGL/glu.h"
  #include "OpenGL/gl.h"
 #else
-// #define GLEW_STATIC
 #ifdef _MSC_VER
 #include "../GL/glut.h"
 #else
-#include <GL/glu.h>
 #include <GL/gl.h>
 #endif
-// #include <GL/glext.h>
 #endif
 
 #include "wx/sizer.h"
@@ -54,7 +50,7 @@ END_EVENT_TABLE()
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
-                   xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize)
+                   xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize, 0, "", true)
 {
     m_dragging = false;
     m_drag_mode = DRAG_NORMAL;
@@ -241,7 +237,6 @@ void Waveform::InitializeGLCanvas()
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    glLoadIdentity();
     mIsInitialized = true;
     SetZoomLevel(mZoomLevel);
 }
@@ -269,8 +264,6 @@ void Waveform::renderGL( )
 	{
 		DrawWaveView(views[mCurrentWaveView]);
 	}
-
-    glFlush();
     SwapBuffers();
 }
 
@@ -303,50 +296,55 @@ void Waveform::DrawWaveView(const WaveView &wv)
     // draw shaded region if needed
     if( selected_x1 != -1 && selected_x2 != -1)
     {
-        glEnable(GL_BLEND);
         color.Set(0, 0, 200, 45);
         DrawGLUtils::AddVertex(selected_x1, 1, color);
         DrawGLUtils::AddVertex(selected_x2, 1, color);
         DrawGLUtils::AddVertex(selected_x2, mWindowHeight-1, color);
         DrawGLUtils::AddVertex(selected_x1, mWindowHeight-1, color);
-        DrawGLUtils::End(GL_TRIANGLE_FAN);
-        glDisable(GL_BLEND);
+        DrawGLUtils::End(GL_TRIANGLE_FAN, GL_BLEND);
     }
 
     if(_media != NULL)
     {
         xlColor c(130,178,207,255);
 
-        std::vector<double> vertexes;
-        vertexes.resize((mWindowWidth + 2) * 2);
-
-        for (int x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
-        {
-            index = x+mStartPixelOffset;
-            if (index >= 0 && index < wv.MinMaxs.size())
+        int max = std::min(mWindowWidth, (int)wv.MinMaxs.size());
+        if (mStartPixelOffset != wv.lastRenderStart || max != wv.lastRenderSize) {
+            wv.background.Reset();
+            wv.outline.Reset();
+            wv.background.PreAlloc((mWindowWidth + 2) * 2);
+            wv.outline.PreAlloc((mWindowWidth + 2) + 4);
+            
+            std::vector<double> vertexes;
+            vertexes.resize((mWindowWidth + 2));
+            
+            for (int x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
             {
-                double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                double y2 = ((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                DrawGLUtils::AddVertex(x, y1, c);
-                DrawGLUtils::AddVertex(x, y2, c);
-                vertexes[x * 2] = y1;
-                vertexes[x * 2 + 1] = y2;
+                index = x+mStartPixelOffset;
+                if (index >= 0 && index < wv.MinMaxs.size())
+                {
+                    double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                    double y2 = ((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                    
+                    
+                    wv.background.AddVertex(x, y1);
+                    wv.background.AddVertex(x, y2);
+                    
+                    wv.outline.AddVertex(x, y1);
+                    vertexes[x] = y2;
+                }
             }
+            for(int x=mWindowWidth;x >= 0 ; x--) {
+                if (x<wv.MinMaxs.size()) {
+                    wv.outline.AddVertex(x, vertexes[x]);
+                }
+            }
+            wv.lastRenderSize = max;
+            wv.lastRenderStart = mStartPixelOffset;
         }
-        DrawGLUtils::End(GL_TRIANGLE_STRIP);
 
-        
-        for(int x=0;x<mWindowWidth-1 && (x)<wv.MinMaxs.size();x++)
-        {
-            DrawGLUtils::AddVertex(x, vertexes[x * 2], xlWHITE);
-        }
-        for(int x=mWindowWidth;x >= 0 ; x--)
-        {
-            if (x<wv.MinMaxs.size()) {
-                DrawGLUtils::AddVertex(x, vertexes[x * 2 + 1], xlWHITE);
-            }
-        }
-        DrawGLUtils::End(GL_LINE_STRIP);
+        DrawGLUtils::Draw(wv.background, c, GL_TRIANGLE_STRIP);
+        DrawGLUtils::Draw(wv.outline, xlWHITE, GL_LINE_STRIP);
     }
 
     // draw selection line if not a range

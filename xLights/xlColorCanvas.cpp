@@ -17,7 +17,7 @@ END_EVENT_TABLE()
 #define CORNER_2B_SELECTED      4
 
 xlColorCanvas::xlColorCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
-    : xlGLCanvas(parent, id, pos, size, style, name),
+    : xlGLCanvas(parent, id, pos, size, style, name, true),
       mDisplayType(TYPE_PALETTE),
       mDisplayMode(MODE_SATURATION),
       mDragging(false),
@@ -251,7 +251,7 @@ void xlColorCanvas::DrawPalette()
     double focus_row = 0;
     double focus_col = 0;
     
-    DrawGLUtils::PreAlloc((iXrange + 1) * (iYrange + 1) * 4);
+    DrawGLUtils::PreAlloc((iXrange + 1) * (iYrange + 1) * 6);
 
     switch( mDisplayMode )
     {
@@ -264,7 +264,7 @@ void xlColorCanvas::DrawPalette()
             {
                 hsv.value = (1.0 - (double)row/dYrange);
                 color = hsv;
-                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
+                DrawGLUtils::AddRectAsTriangles(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = mHSV.saturation * dXrange;
@@ -279,7 +279,7 @@ void xlColorCanvas::DrawPalette()
             {
                 hsv.value = (1.0 - (double)row/dYrange);
                 color = hsv;
-                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
+                DrawGLUtils::AddRectAsTriangles(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = mHSV.hue * dXrange;
@@ -294,7 +294,7 @@ void xlColorCanvas::DrawPalette()
             {
                 hsv.saturation = (1.0 - (double)row/dYrange);
                 color = hsv;
-                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
+                DrawGLUtils::AddRectAsTriangles(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = mHSV.hue * dXrange;
@@ -308,7 +308,7 @@ void xlColorCanvas::DrawPalette()
             for( int row = 0; row <= iYrange; row++ )
             {
                 color.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
+                DrawGLUtils::AddRectAsTriangles(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = ((double)mRGB.green / 255.0) * dXrange;
@@ -322,7 +322,7 @@ void xlColorCanvas::DrawPalette()
             for( int row = 0; row <= iYrange; row++ )
             {
                 color.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
+                DrawGLUtils::AddRectAsTriangles(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = ((double)mRGB.red / 255.0) * dXrange;
@@ -336,14 +336,14 @@ void xlColorCanvas::DrawPalette()
             for( int row = 0; row <= iYrange; row++ )
             {
                 color.green = GetRGBColorFromRangeValue(row, iYrange, 255, true);
-                DrawGLUtils::AddRect(col, row, col + 1, row + 1, color, 0);
+                DrawGLUtils::AddRectAsTriangles(col, row, col + 1, row + 1, color, 0);
             }
         }
         focus_col = ((double)mRGB.red / 255.0) * dXrange;
         focus_row = dXrange - ((double)mRGB.green / 255.0) * dXrange;
         break;
     }
-    DrawGLUtils::End(GL_QUADS);
+    DrawGLUtils::End(GL_TRIANGLES);
     
     double radius = std::max(4.0, dXrange / 40.0);
     if( mHSV.value > 0.6 )
@@ -390,7 +390,7 @@ void xlColorCanvas::DrawSlider()
             break;
     }
     
-    
+    DrawGLUtils::PreAlloc((iYrange +1 ) * 6);
     for( int row = 0; row <= iYrange; row++ )
     {
         switch( mDisplayMode )
@@ -417,8 +417,8 @@ void xlColorCanvas::DrawSlider()
                 color.blue = GetRGBColorFromRangeValue(row, iYrange, 255, true);
                 break;
         }
-        DrawGLUtils::AddRect(0, row, mWindowWidth-1, row + 1, color, 0);
+        DrawGLUtils::AddRectAsTriangles(0, row, mWindowWidth-1, row + 1, color, 0);
     }
-    DrawGLUtils::End(GL_QUADS);
+    DrawGLUtils::End(GL_TRIANGLES);
 }
 

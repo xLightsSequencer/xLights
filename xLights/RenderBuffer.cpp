@@ -902,21 +902,23 @@ void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, double x1, double y1
     eff->GetBackgroundDisplayList()[idx].color = cx1y1;
     eff->GetBackgroundDisplayList()[idx+1].color = cx1y2;
     eff->GetBackgroundDisplayList()[idx+2].color = cx2y2;
-    eff->GetBackgroundDisplayList()[idx+3].color = cx2y1;
+    eff->GetBackgroundDisplayList()[idx+3].color = cx2y2;
+    eff->GetBackgroundDisplayList()[idx+4].color = cx2y1;
+    eff->GetBackgroundDisplayList()[idx+5].color = cx1y1;
+    
     eff->GetBackgroundDisplayList()[idx].x = x1;
     eff->GetBackgroundDisplayList()[idx+1].x = x1;
     eff->GetBackgroundDisplayList()[idx+2].x = x2;
     eff->GetBackgroundDisplayList()[idx+3].x = x2;
+    eff->GetBackgroundDisplayList()[idx+4].x = x2;
+    eff->GetBackgroundDisplayList()[idx+5].x = x1;
 
     eff->GetBackgroundDisplayList()[idx].y = y1;
     eff->GetBackgroundDisplayList()[idx+1].y = y2;
     eff->GetBackgroundDisplayList()[idx+2].y = y2;
-    eff->GetBackgroundDisplayList()[idx+3].y = y1;
-
-    eff->GetBackgroundDisplayList()[idx].usage = GL_QUADS;
-    eff->GetBackgroundDisplayList()[idx+1].usage = GL_QUADS;
-    eff->GetBackgroundDisplayList()[idx+2].usage = GL_QUADS;
-    eff->GetBackgroundDisplayList()[idx+3].usage = GL_QUADS;
+    eff->GetBackgroundDisplayList()[idx+3].y = y2;
+    eff->GetBackgroundDisplayList()[idx+4].y = y1;
+    eff->GetBackgroundDisplayList()[idx+5].y = y1;
 }
 void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex, int inc) {
     std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
@@ -936,7 +938,7 @@ void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex
 
         int idx = cur * count + (curPeriod - curEffStartPer);
         cur++;
-        SetDisplayListHRect(eff, idx*4, x, y, x2, y2, c, c);
+        SetDisplayListHRect(eff, idx*6, x, y, x2, y2, c, c);
     }
 }
 

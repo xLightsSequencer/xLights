@@ -34,9 +34,10 @@ ColorWashEffect::~ColorWashEffect()
 }
 
 
-int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
+int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
+                                          DrawGLUtils::xlVertexColorAccumulator &bg) {
     if (e->HasBackgroundDisplayList()) {
-        DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList());
+        DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), bg);
         return e->GetBackgroundDisplayList().iconSize;
     }
     DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
@@ -190,17 +191,17 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     }
     std::unique_lock<std::recursive_mutex> lock(effect->GetBackgroundDisplayList().lock);
     if (VertFade || HorizFade) {
-        effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 4 * 2);
+        effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6 * 2);
         int total = buffer.curEffEndPer - buffer.curEffStartPer + 1;
         double x1 = double(buffer.curPeriod - buffer.curEffStartPer) / double(total);
         double x2 = (buffer.curPeriod - buffer.curEffStartPer + 1.0) / double(total);
-        int idx = (buffer.curPeriod - buffer.curEffStartPer) * 8;
+        int idx = (buffer.curPeriod - buffer.curEffStartPer) * 12;
         buffer.SetDisplayListVRect(effect, idx, x1, 0.0, x2, 0.5,
                                    xlBLACK, orig);
-        buffer.SetDisplayListVRect(effect, idx + 4, x1, 0.5, x2, 1.0,
+        buffer.SetDisplayListVRect(effect, idx, x1, 0.5, x2, 1.0,
                                    orig, xlBLACK);
     } else {
-        effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 4);
+        effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
         int midX = (startX + endX) / 2;
         int midY = (startY + endY) / 2;
         buffer.CopyPixelsToDisplayListX(effect, midY, midX, midX);

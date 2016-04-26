@@ -88,17 +88,20 @@ void xlGridCanvas::DrawBaseGrid()
 
     int height = mCellSize * mRows;
     int width = mCellSize * mColumns;
-    glEnable(GL_BLEND);
+    DrawGLUtils::PreAlloc((mRows + mColumns + 2) * 2);
     for(int row = 0; row <= mRows; row++ )
     {
         int y = mCellSize*(row+1);
-        DrawGLUtils::DrawLine(*mGridlineColor,255,mCellSize,y,width+mCellSize,y,0.5);
+        DrawGLUtils::AddVertex(mCellSize, y, *mGridlineColor);
+        DrawGLUtils::AddVertex(width+mCellSize,y, *mGridlineColor);
     }
     for(int col = 0; col <= mColumns; col++ )
     {
         int x = mCellSize*(col+1);
-        DrawGLUtils::DrawLine(*mGridlineColor,255,x,mCellSize,x,height+mCellSize,0.5);
+        DrawGLUtils::AddVertex(x,mCellSize, *mGridlineColor);
+        DrawGLUtils::AddVertex(x,height+mCellSize, *mGridlineColor);
     }
-    glDisable(GL_BLEND);
+    glLineWidth(0.5);
+    DrawGLUtils::End(GL_LINES, GL_BLEND);
 }
 

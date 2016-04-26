@@ -10,9 +10,9 @@ class MeteorsEffect : public RenderableEffect
         MeteorsEffect(int id);
         virtual ~MeteorsEffect();
     
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
     
     void RenderMeteorsVertical(RenderBuffer &buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);

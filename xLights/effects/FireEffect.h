@@ -10,9 +10,9 @@ class FireEffect : public RenderableEffect
         FireEffect(int id);
         virtual ~FireEffect();
     
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
 };
 

@@ -10,9 +10,9 @@ class StrobeEffect : public RenderableEffect
         StrobeEffect(int id);
         virtual ~StrobeEffect();
     
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
 };
 

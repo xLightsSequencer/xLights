@@ -11,7 +11,7 @@
 #endif
 #endif
 
-//#include "wx/wx.h"
+#include "DrawGLUtils.h"
 
 /*
  * This is a simple class built on top of OpenGL that manages drawing images in a higher-level and quicker way.
@@ -86,31 +86,17 @@ void xLightsDrawable::render()
 
     if(xscale!=1 || yscale!=1)
 	{
-        glScalef(xscale, yscale, 1);
+        DrawGLUtils::Scale(xscale, yscale, 1);
     }
 
     if(angle!=0)
 	{
-        glRotatef(angle, 0,0,1);
+        DrawGLUtils::Rotate(angle, 0,0,1);
     }
-
-    glBindTexture(GL_TEXTURE_2D, image->getID()[0] );
-
-    glBegin(GL_QUADS);
-
-    glTexCoord2f(xflip? image->tex_coord_x : 0, yflip? 0 : image->tex_coord_y);
-    glVertex2f( -hotspotX, -hotspotY );
-
-    glTexCoord2f(xflip? 0 : image->tex_coord_x, yflip? 0 : image->tex_coord_y);
-    glVertex2f( image->width-hotspotX, -hotspotY );
-
-    glTexCoord2f(xflip? 0 : image->tex_coord_x, yflip? image->tex_coord_y : 0);
-    glVertex2f( image->width-hotspotX, image->height-hotspotY );
-
-    glTexCoord2f(xflip? image->tex_coord_x : 0, yflip? image->tex_coord_y : 0);
-    glVertex2f( -hotspotX, image->height-hotspotY );
-
-    glEnd();
+    
+    DrawGLUtils::DrawTexture(image->getID(), hotspotX, hotspotY, image->width-hotspotX, image->height-hotspotY,
+                             xflip? image->tex_coord_x : 0, yflip? 0 : image->tex_coord_y,
+                             xflip? 0 : image->tex_coord_x, yflip? image->tex_coord_y : 0);
 
 }
 

@@ -84,12 +84,19 @@ class Waveform : public xlGLCanvas
 
             public:
 
+            mutable DrawGLUtils::xlVertexAccumulator background;
+            mutable DrawGLUtils::xlVertexAccumulator outline;
+            mutable int lastRenderStart;
+            mutable int lastRenderSize;
+            
             std::vector<MINMAX> MinMaxs;
             WaveView(int ZoomLevel,float SamplesPerPixel, AudioManager* media)
             {
                 mZoomLevel = ZoomLevel;
                 mSamplesPerPixel = SamplesPerPixel;
                 SetMinMaxSampleSet(SamplesPerPixel, media);
+                lastRenderStart = -1;
+                lastRenderSize = 0;
             }
 
 
