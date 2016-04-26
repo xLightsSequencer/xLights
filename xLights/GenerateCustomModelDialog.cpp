@@ -875,6 +875,7 @@ void GenerateCustomModelDialog::DoStartFrameIdentify()
     SetCursor(wxCURSOR_WAIT);
 
     SetStartFrame(FindStartFrame(_vr));
+    ValidateStartFrame();
 
     SetCursor(wxCURSOR_ARROW);
 }
@@ -1014,9 +1015,9 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     int curlast = 0;
     for (int l = 1; l < 10; l++)
     {
-        curlast = l;
         if (suitable[l])
         {
+            curlast = l;
             if (curfirst == 0)
             {
                 curfirst = l;
@@ -1046,12 +1047,12 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     }
     else
     {
-        bestlevel = (float)((int)((last - first) / 2 * 10)) / 10.0;
+        bestlevel = ((int)(((float)last + (float)first) / 2.0 * 10.0)) / 10;
     }
 
     // pick a point 0.1 secs into the high period as our start frame
     int candidateframe = levelmaxstart[bestlevel] * FRAMEMS;
-    candidateframe += DELAYMSUNTILSAMPLE / FRAMEMS;
+    candidateframe += DELAYMSUNTILSAMPLE;
 
     // check the second all on event is there ... if not move up to 10 frames forward looking for it
     for (int i = 0; i < 10; i++)
