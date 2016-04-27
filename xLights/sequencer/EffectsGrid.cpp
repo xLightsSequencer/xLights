@@ -992,7 +992,6 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
     }
     else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow > 0)
     {
-        Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         int row = mSelectedRow-1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         while( row >= mSequenceElements->GetNumberOfTimingRows() )
@@ -1048,7 +1047,6 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
     }
     else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow >= 0)
     {
-        Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         int row = mSelectedRow+1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         while( row < mSequenceElements->GetVisibleRowInformationSize() )
@@ -1101,7 +1099,6 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift)
     else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow >= 0 )
     {
         int effect_length_ms = mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS();
-        Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
         if( tel != nullptr )
         {
@@ -1191,7 +1188,6 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift)
     else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && mSelectedRow >= 0 )
     {
         int effect_length_ms = mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS();
-        Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
         if( tel != nullptr )
         {

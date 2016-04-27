@@ -428,7 +428,6 @@ void VideoEffect::Render(RenderBuffer &buffer, const std::string& filename,
             if (_durationTreatment == "Slow/Accelerate")
             {
                 int effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
-                int effectMS = effectFrames * buffer.frameTimeInMs;
                 int videoFrames = (videolen - _starttime) / buffer.frameTimeInMs;
                 float speedFactor = (float)videoFrames / (float)effectFrames;
                 _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
