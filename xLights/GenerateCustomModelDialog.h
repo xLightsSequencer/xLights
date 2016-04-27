@@ -27,6 +27,7 @@
 #include <wx/xml/xml.h>
 #include <wx/progdlg.h>
 #include <wx/generic/statbmpg.h>
+#include <wx/dcmemory.h>
 
 #include <list>
 #include <map>
@@ -58,6 +59,32 @@ public:
 
 class MyGenericStaticBitmap;
 
+class GCMBulb
+{
+    wxPoint _location;
+    int _num;
+
+public:
+    GCMBulb(wxPoint pt, int num) { _location = pt; _num = num; }
+    void Draw(wxMemoryDC& dc)
+    {
+        dc.DrawCircle(_location, 3);
+    }
+    int GetNum() {
+        return _num;
+    }
+    inline wxPoint GetLocation(float scale = 1.0, wxPoint trim = wxPoint(0, 0))
+    {
+        return wxPoint((_location.x - trim.x) * scale, (_location.y - trim.y) * scale);
+    }
+    inline bool IsSameLocation(GCMBulb& r, float scale = 1.0, wxPoint trim = wxPoint(0,0))
+    {
+        wxPoint rloc = r.GetLocation(scale, trim);
+        wxPoint lloc = GetLocation(scale, trim);
+        return lloc.x == rloc.x && lloc.y == rloc.y;
+    }
+};
+
 class GenerateCustomModelDialog: public wxDialog
 {
     // variables passed into us
@@ -73,6 +100,7 @@ class GenerateCustomModelDialog: public wxDialog
 #pragma region Generate Tab
     enum VideoProcessingStates
     {
+        CHOOSE_MODELTYPE,
         CHOOSE_VIDEO,
         FINDING_START_FRAME,
         CIRCLING_BULBS,
@@ -82,21 +110,32 @@ class GenerateCustomModelDialog: public wxDialog
 
     wxImage _displaybmp; // the image we are displaying on the screen
     int _startframetime; // time in MS in the video the start frame occurs at
+    float _startframebrightness;
     wxImage _startFrame; // the image of the start frame
+    wxImage _darkFrame; // an image with no lights on
     wxImage _greyFrame;  // the greyscale version of the start frame
     wxImage _bwFrame;    // the black and white version of the image after blur & level
-    wxImage _cbFrame;    // the Circle bulbs image - edges
+    //wxImage _cbFrame;    // the Circle bulbs image - edges
     wxImage _biFrame;    // the Bulb identify output - essentially a mask
+    std::list<GCMBulb> _lights; // our lights
     VideoProcessingStates _state;
     VideoReader* _vr;
     MyGenericStaticBitmap* StaticBitmap_Preview;
     bool _busy;          // true while busy and re-entrancy possible
+    wxPoint _trim;
+    float _scale;
+    wxSize _size;
+    bool _warned;
 
     void UpdateProgress(wxProgressDialog& pd, int totaltime);
     void ShowFrame(int time);
     wxImage CreateImageFromFrame(AVFrame* frame);
     void ShowImage(const wxImage& image);
     void SwapPage(int oldp, int newp);
+
+#pragma region Model Type Tab
+    void MTTabEntry();
+#pragma endregion Model Type Tab
 
 #pragma region Choose Video Tab
     void CVTabEntry();
@@ -124,12 +163,23 @@ class GenerateCustomModelDialog: public wxDialog
 #pragma region Identify Bulbs Tab
     void DoBulbIdentify();
     void BITabEntry();
-    float CalcPoint(wxImage& edge, int x0, int y0, int radius);
-    std::map<xlPoint, int> CircleDetect(wxImage& mask, wxImage& edge, int radius);
-    std::list<wxPoint> CircleDetect(wxImage& mask, wxImage& edge, int minr, int maxr);
-    std::list<wxPoint> FindLights(wxImage& image);
-    wxImage CreateDetectMask(std::list<wxPoint> centres, wxImage ref, bool includeimage, wxColor col);
+    //float CalcPoint(wxImage& edge, int x0, int y0, int radius);
+    //std::map<xlPoint, int> CircleDetect(wxImage& mask, wxImage& edge, int radius);
+    //std::list<wxPoint> CircleDetect(wxImage& mask, wxImage& edge, int minr, int maxr);
+    std::list<GCMBulb> FindLights(wxImage& image, int num);
+    wxImage CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxColor col);
+    void WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount);
+    GCMBulb FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num);
+    void SubtractImage(wxImage& from, wxImage& tosubtract);
+    int CountWhite(wxImage& image);
 #pragma endregion Identify Bulbs Tab
+
+    wxString CreateCustomModelData();
+    wxPoint CalcTrim();
+    bool TestScale(std::list<GCMBulb>::iterator it, float scale, wxPoint trim);
+    void CMTabEntry();
+    wxSize CalcSize(float scale, wxPoint trim);
+    void DoGenerateCustomModel();
 
 #pragma endregion Generate Tab
 
@@ -158,28 +208,32 @@ class GenerateCustomModelDialog: public wxDialog
 		wxStaticText* StaticText10;
 		wxPanel* Panel_BulbIdentify;
 		wxStaticText* StaticText9;
+		wxButton* Button_Shrink;
 		wxButton* Button_Forward10Frames;
 		wxSlider* Slider_LevelFilterAdjust;
-		wxSlider* Slider_BI_MinRadius;
-		wxSlider* Slider_BI_MaxRadius;
+		wxFlexGridSizer* FlexGridSizer19;
+		wxStaticText* StaticText_CM_Request;
 		wxButton* Button_BI_Back;
 		wxButton* Button_SF_Back;
 		wxButton* Button_Back1Frame;
-		wxStaticText* StaticText13;
 		wxButton* Button_CB_RestoreDefault;
-		wxStaticText* StaticText14;
 		wxButton* Button_CM_Back;
+		wxRadioBox* RadioBox2;
 		wxAuiNotebook* AuiNotebook_ProcessSettings;
 		wxSlider* Slider_Intensity;
+		wxStaticText* StaticText_BI;
 		wxStaticText* StaticText11;
 		wxGrid* Grid_CM_Result;
+		wxStaticText* StaticText_BI_Slider;
 		wxButton* Button_PCM_Run;
-		wxStaticText* StaticText18;
 		wxButton* Button_CV_Next;
+		wxPanel* Panel1;
 		wxSpinCtrl* SpinCtrl_NC_Count;
 		wxFileDialog* FileDialog1;
 		wxButton* Button_Back10Frames;
 		wxPanel* Panel_BulbCircle;
+		wxButton* Button_CV_Back;
+		wxButton* Button_MT_Next;
 		wxGauge* Gauge_Progress;
 		wxTextCtrl* TextCtrl_GCM_Filename;
 		wxPanel* Panel_ChooseVideo;
@@ -190,20 +244,18 @@ class GenerateCustomModelDialog: public wxDialog
 		wxButton* Button_SF_Next;
 		wxStaticText* StaticText_StartFrameOk;
 		wxPanel* Panel_CustomModel;
-		wxFileDialog* FileDialog2;
 		wxButton* Button_BI_Next;
 		wxButton* Button_BD_Back;
-		wxStaticText* StaticText15;
 		wxRadioBox* RadioBox1;
 		wxStaticText* StaticText12;
 		wxPanel* Panel_Prepare;
 		wxSlider* Slider_BI_Sensitivity;
 		wxPanel* Panel_StartFrame;
+		wxButton* Button_Grow;
 		wxStaticText* StaticText17;
 		wxButton* Button_CM_Save;
 		wxSpinCtrl* SpinCtrl_StartChannel;
 		wxButton* Button_BD_Next;
-		wxStaticText* StaticText16;
 		wxButton* Button_Forward1Frame;
 		//*)
 
@@ -219,9 +271,13 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_BUTTON_PCM_Run;
 		static const long ID_PANEL_Prepare;
 		static const long ID_GAUGE_Progress;
+		static const long ID_RADIOBOX2;
+		static const long ID_BUTTON_MT_Next;
+		static const long ID_PANEL1;
 		static const long ID_STATICTEXT10;
 		static const long ID_TEXTCTRL_GCM_Filename;
 		static const long ID_BUTTON_GCM_SelectFile;
+		static const long ID_BUTTON_CV_Back;
 		static const long ID_BUTTON_CV_Next;
 		static const long ID_PANEL_ChooseVideo;
 		static const long ID_STATICTEXT3;
@@ -243,10 +299,6 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_BUTTON_BD_Next;
 		static const long ID_PANEL_BulbCircle;
 		static const long ID_STATICTEXT5;
-		static const long ID_STATICTEXT6;
-		static const long ID_SLIDER_BI_MinRadius;
-		static const long ID_STATICTEXT7;
-		static const long ID_SLIDER_BI_MaxRadius;
 		static const long ID_STATICTEXT8;
 		static const long ID_SLIDER_BI_Sensitivity;
 		static const long ID_BUTTON_BI_Back;
@@ -254,6 +306,8 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_PANEL_BulbIdentify;
 		static const long ID_STATICTEXT9;
 		static const long ID_GRID_CM_Result;
+		static const long ID_BUTTON_Shrink;
+		static const long ID_BUTTON_Grow;
 		static const long ID_BUTTON_CM_Back;
 		static const long ID_BUTTON_CM_Save;
 		static const long ID_PANEL_CustomModel;
@@ -293,6 +347,11 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnButton_SF_BackClick(wxCommandEvent& event);
 		void OnAuiNotebook_ProcessSettingsPageChanging(wxAuiNotebookEvent& event);
 		void OnButton_CB_RestoreDefaultClick(wxCommandEvent& event);
+		void OnButton_MT_NextClick(wxCommandEvent& event);
+		void OnButton_CV_BackClick(wxCommandEvent& event);
+		void OnButton_ShrinkClick(wxCommandEvent& event);
+		void OnButton_GrowClick(wxCommandEvent& event);
+		void OnResize(wxSizeEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

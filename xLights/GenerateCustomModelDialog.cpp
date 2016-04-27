@@ -13,6 +13,9 @@
 #include <wx/msgdlg.h>
 #include <wx/file.h>
 #include <wx/dcmemory.h>
+#include <wx/log.h>
+
+#include "xLightsMain.h"
 
 #define GCM_DISPLAYIMAGEWIDTH 400
 #define GCM_DISPLAYIMAGEHEIGHT 300
@@ -20,13 +23,14 @@
 #define PAGE_PREPARE 0
 #define PAGE_GENERATE 1
 
-#define PAGE_CHOOSEVIDEO 0
-#define PAGE_STARTFRAME 1
-#define PAGE_CIRCLEBULB 2
-#define PAGE_BULBIDENTIFY 3
-#define PAGE_REVIEWMODEL 4
+#define PAGE_MODELTYPE 0
+#define PAGE_CHOOSEVIDEO 1
+#define PAGE_STARTFRAME 2
+#define PAGE_CIRCLEBULB 3
+#define PAGE_BULBIDENTIFY 4
+#define PAGE_REVIEWMODEL 5
 
-#define STARTSCANSECS 30
+#define STARTSCANSECS 15
 #define FRAMEMS 50
 #define LEADOFF 3000
 #define LEADON 500
@@ -84,9 +88,13 @@ const long GenerateCustomModelDialog::ID_SLIDER_Intensity = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_PCM_Run = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_Prepare = wxNewId();
 const long GenerateCustomModelDialog::ID_GAUGE_Progress = wxNewId();
+const long GenerateCustomModelDialog::ID_RADIOBOX2 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_MT_Next = wxNewId();
+const long GenerateCustomModelDialog::ID_PANEL1 = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT10 = wxNewId();
 const long GenerateCustomModelDialog::ID_TEXTCTRL_GCM_Filename = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_GCM_SelectFile = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_CV_Back = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CV_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_ChooseVideo = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT3 = wxNewId();
@@ -108,10 +116,6 @@ const long GenerateCustomModelDialog::ID_BUTTON_BD_Back = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BD_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_BulbCircle = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT5 = wxNewId();
-const long GenerateCustomModelDialog::ID_STATICTEXT6 = wxNewId();
-const long GenerateCustomModelDialog::ID_SLIDER_BI_MinRadius = wxNewId();
-const long GenerateCustomModelDialog::ID_STATICTEXT7 = wxNewId();
-const long GenerateCustomModelDialog::ID_SLIDER_BI_MaxRadius = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT8 = wxNewId();
 const long GenerateCustomModelDialog::ID_SLIDER_BI_Sensitivity = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BI_Back = wxNewId();
@@ -119,6 +123,8 @@ const long GenerateCustomModelDialog::ID_BUTTON_BI_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_BulbIdentify = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT9 = wxNewId();
 const long GenerateCustomModelDialog::ID_GRID_CM_Result = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_Shrink = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_Grow = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CM_Back = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CM_Save = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_CustomModel = wxNewId();
@@ -140,13 +146,14 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	//(*Initialize(GenerateCustomModelDialog)
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer16;
-	wxFlexGridSizer* FlexGridSizer19;
+	wxFlexGridSizer* FlexGridSizer24;
 	wxFlexGridSizer* FlexGridSizer23;
 	wxStaticText* StaticText2;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText6;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer25;
 	wxFlexGridSizer* FlexGridSizer22;
 	wxStaticText* StaticText8;
 	wxFlexGridSizer* FlexGridSizer9;
@@ -169,6 +176,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer17;
 	wxStaticText* StaticText4;
+	wxFlexGridSizer* FlexGridSizer26;
 
 	Create(parent, id, _("Generate Custom Models"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -176,7 +184,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	AuiNotebook1 = new wxAuiNotebook(this, ID_AUINOTEBOOK1, wxDefaultPosition, wxSize(800,500), wxTAB_TRAVERSAL);
+	AuiNotebook1 = new wxAuiNotebook(this, ID_AUINOTEBOOK1, wxDefaultPosition, wxSize(1000,500), wxTAB_TRAVERSAL);
 	Panel_Prepare = new wxPanel(AuiNotebook1, ID_PANEL_Prepare, wxPoint(63,54), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Prepare"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
@@ -231,7 +239,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
 	FlexGridSizer5->AddGrowableRow(0);
-	FlexGridSizer14 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer14 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer14->AddGrowableCol(0);
 	FlexGridSizer14->AddGrowableRow(0);
 	Gauge_Progress = new wxGauge(Panel_Generate, ID_GAUGE_Progress, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_GAUGE_Progress"));
@@ -241,15 +249,37 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer7->AddGrowableCol(0);
 	FlexGridSizer7->AddGrowableRow(0);
 	AuiNotebook_ProcessSettings = new wxAuiNotebook(Panel_Generate, ID_AUINOTEBOOK_ProcessSettings, wxDefaultPosition, wxDefaultSize, 0);
+	Panel1 = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL1, wxPoint(73,8), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	FlexGridSizer24 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer24->AddGrowableCol(0);
+	FlexGridSizer24->AddGrowableRow(1);
+	FlexGridSizer25 = new wxFlexGridSizer(0, 3, 0, 0);
+	wxString __wxRadioBoxChoices_2[3] =
+	{
+		_("Nodes"),
+		_("Single Channels"),
+		_("Static Lights")
+	};
+	RadioBox2 = new wxRadioBox(Panel1, ID_RADIOBOX2, _("Type"), wxDefaultPosition, wxDefaultSize, 3, __wxRadioBoxChoices_2, 1, 0, wxDefaultValidator, _T("ID_RADIOBOX2"));
+	FlexGridSizer25->Add(RadioBox2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer24->Add(FlexGridSizer25, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer24->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer26 = new wxFlexGridSizer(0, 3, 0, 0);
+	Button_MT_Next = new wxButton(Panel1, ID_BUTTON_MT_Next, _("Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MT_Next"));
+	FlexGridSizer26->Add(Button_MT_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer24->Add(FlexGridSizer26, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel1->SetSizer(FlexGridSizer24);
+	FlexGridSizer24->Fit(Panel1);
+	FlexGridSizer24->SetSizeHints(Panel1);
 	Panel_ChooseVideo = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_ChooseVideo, wxPoint(18,15), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_ChooseVideo"));
 	FlexGridSizer21 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer21->AddGrowableCol(0);
 	FlexGridSizer21->AddGrowableRow(2);
-	StaticText18 = new wxStaticText(Panel_ChooseVideo, ID_STATICTEXT10, _("Select you video file you recorded in the prepare step."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
-	FlexGridSizer21->Add(StaticText18, 1, wxALL|wxEXPAND, 2);
+	StaticText_CM_Request = new wxStaticText(Panel_ChooseVideo, ID_STATICTEXT10, _("Insert text here"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+	FlexGridSizer21->Add(StaticText_CM_Request, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer22 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer22->AddGrowableCol(1);
-	StaticText3 = new wxStaticText(Panel_ChooseVideo, wxID_ANY, _("Video File"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	StaticText3 = new wxStaticText(Panel_ChooseVideo, wxID_ANY, _("Media File"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer22->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_GCM_Filename = new wxTextCtrl(Panel_ChooseVideo, ID_TEXTCTRL_GCM_Filename, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_GCM_Filename"));
 	FlexGridSizer22->Add(TextCtrl_GCM_Filename, 1, wxALL|wxEXPAND, 2);
@@ -258,6 +288,8 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer21->Add(FlexGridSizer22, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer21->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer23 = new wxFlexGridSizer(0, 3, 0, 0);
+	Button_CV_Back = new wxButton(Panel_ChooseVideo, ID_BUTTON_CV_Back, _("Back"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CV_Back"));
+	FlexGridSizer23->Add(Button_CV_Back, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_CV_Next = new wxButton(Panel_ChooseVideo, ID_BUTTON_CV_Next, _("Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CV_Next"));
 	FlexGridSizer23->Add(Button_CV_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer21->Add(FlexGridSizer23, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -268,7 +300,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer10->AddGrowableCol(0);
 	FlexGridSizer10->AddGrowableRow(3);
-	StaticText11 = new wxStaticText(Panel_StartFrame, ID_STATICTEXT3, _("This is the frame the scan has identified as being the most likely to show all your bulbs.\nYou can move it forward or backwards with the buttons below.\n\nClick next when you are happy with it."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	StaticText11 = new wxStaticText(Panel_StartFrame, ID_STATICTEXT3, _("This is the frame the scan has identified as being the most likely to show all your bulbs. It should be a frame showing all the bulbs on and it should be near the start of the first flash of all the bulbs before each bulb was lit in turn.\nYou can move it forward or backwards with the buttons below.\n\nClick next when you are happy with it."), wxDefaultPosition, wxSize(658,99), 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer10->Add(StaticText11, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
 	Button_Back1Frame = new wxButton(Panel_StartFrame, ID_BUTTON_Back1Frame, _("Back 1 Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Back1Frame"));
@@ -312,7 +344,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Slider_LevelFilterAdjust = new wxSlider(Panel_BulbCircle, ID_SLIDER_LevelFilterAdjust, 200, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_LevelFilterAdjust"));
 	FlexGridSizer8->Add(Slider_LevelFilterAdjust, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer9->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer9->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_CB_RestoreDefault = new wxButton(Panel_BulbCircle, ID_BUTTON_CB_RestoreDefault, _("Restore Default"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CB_RestoreDefault"));
 	FlexGridSizer4->Add(Button_CB_RestoreDefault, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -331,21 +363,13 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer15->AddGrowableCol(0);
 	FlexGridSizer15->AddGrowableRow(2);
-	StaticText13 = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT5, _("We now need to pinpoint exactly where the bulbs are. The magenta circles are what is currently identified.\nIf it has missed some small bulbs or identified multiple where one should be adjust the settings below.\nHaving some false bulbs identified is less important than missing bulbs.\n\nClick next when you are happy that all bulbs have been detected."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-	FlexGridSizer15->Add(StaticText13, 1, wxALL|wxEXPAND, 5);
+	StaticText_BI = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT5, _("The red circles on the image show the bulbs we have identify. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected."), wxDefaultPosition, wxSize(652,75), 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer15->Add(StaticText_BI, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer16 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer16->AddGrowableCol(1);
-	StaticText14 = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT6, _("Minimum Radius"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-	FlexGridSizer16->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_BI_MinRadius = new wxSlider(Panel_BulbIdentify, ID_SLIDER_BI_MinRadius, 5, 2, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BI_MinRadius"));
-	FlexGridSizer16->Add(Slider_BI_MinRadius, 1, wxALL|wxEXPAND, 2);
-	StaticText15 = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT7, _("Maximum Radius"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-	FlexGridSizer16->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_BI_MaxRadius = new wxSlider(Panel_BulbIdentify, ID_SLIDER_BI_MaxRadius, 20, 2, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BI_MaxRadius"));
-	FlexGridSizer16->Add(Slider_BI_MaxRadius, 1, wxALL|wxEXPAND, 2);
-	StaticText16 = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT8, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-	FlexGridSizer16->Add(StaticText16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_BI_Sensitivity = new wxSlider(Panel_BulbIdentify, ID_SLIDER_BI_Sensitivity, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BI_Sensitivity"));
+	StaticText_BI_Slider = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT8, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer16->Add(StaticText_BI_Slider, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_BI_Sensitivity = new wxSlider(Panel_BulbIdentify, ID_SLIDER_BI_Sensitivity, 100, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BI_Sensitivity"));
 	FlexGridSizer16->Add(Slider_BI_Sensitivity, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer15->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer15->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -359,9 +383,9 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer15->Fit(Panel_BulbIdentify);
 	FlexGridSizer15->SetSizeHints(Panel_BulbIdentify);
 	Panel_CustomModel = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_CustomModel, wxPoint(259,19), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_CustomModel"));
-	FlexGridSizer18 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer18 = new wxFlexGridSizer(4, 1, 0, 0);
 	FlexGridSizer18->AddGrowableCol(0);
-	FlexGridSizer18->AddGrowableRow(2);
+	FlexGridSizer18->AddGrowableRow(1);
 	StaticText17 = new wxStaticText(Panel_CustomModel, ID_STATICTEXT9, _("This is the new custom model. Click save to create a model file that you can then import into your layout."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer18->Add(StaticText17, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer19 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -371,7 +395,12 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer19->Add(Grid_CM_Result, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer18->Add(FlexGridSizer19, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer18->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer20 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer20 = new wxFlexGridSizer(0, 5, 0, 0);
+	Button_Shrink = new wxButton(Panel_CustomModel, ID_BUTTON_Shrink, _("-"), wxDefaultPosition, wxSize(26,28), 0, wxDefaultValidator, _T("ID_BUTTON_Shrink"));
+	FlexGridSizer20->Add(Button_Shrink, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Grow = new wxButton(Panel_CustomModel, ID_BUTTON_Grow, _("+"), wxDefaultPosition, wxSize(26,28), 0, wxDefaultValidator, _T("ID_BUTTON_Grow"));
+	FlexGridSizer20->Add(Button_Grow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer20->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_CM_Back = new wxButton(Panel_CustomModel, ID_BUTTON_CM_Back, _("Back"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CM_Back"));
 	FlexGridSizer20->Add(Button_CM_Back, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_CM_Save = new wxButton(Panel_CustomModel, ID_BUTTON_CM_Save, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CM_Save"));
@@ -380,7 +409,8 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Panel_CustomModel->SetSizer(FlexGridSizer18);
 	FlexGridSizer18->Fit(Panel_CustomModel);
 	FlexGridSizer18->SetSizeHints(Panel_CustomModel);
-	AuiNotebook_ProcessSettings->AddPage(Panel_ChooseVideo, _("Choose Video"));
+	AuiNotebook_ProcessSettings->AddPage(Panel1, _("Model Type"));
+	AuiNotebook_ProcessSettings->AddPage(Panel_ChooseVideo, _("Choose Media"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_StartFrame, _("Start Frame"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_BulbCircle, _("Bulb Circle"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_BulbIdentify, _("Bulb Identify"));
@@ -396,13 +426,14 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer1->Add(AuiNotebook1, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 2);
 	SetSizer(FlexGridSizer1);
 	FileDialog1 = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
-	FileDialog2 = new wxFileDialog(this, _("Save the new model"), wxEmptyString, _("custom"), _("*.xmodel"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT|wxFD_CHANGE_DIR, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON_PCM_Run,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_PCM_RunClick);
+	Connect(ID_BUTTON_MT_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MT_NextClick);
 	Connect(ID_TEXTCTRL_GCM_Filename,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnTextCtrl_GCM_FilenameText);
 	Connect(ID_BUTTON_GCM_SelectFile,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_GCM_SelectFileClick);
+	Connect(ID_BUTTON_CV_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CV_BackClick);
 	Connect(ID_BUTTON_CV_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CV_NextClick);
 	Connect(ID_BUTTON_Back1Frame,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_Back1FrameClick);
 	Connect(ID_BUTTON_Forward1Frame,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_Forward1FrameClick);
@@ -415,14 +446,15 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Connect(ID_BUTTON_CB_RestoreDefault,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CB_RestoreDefaultClick);
 	Connect(ID_BUTTON_BD_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BD_BackClick);
 	Connect(ID_BUTTON_BD_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BD_NextClick);
-	Connect(ID_SLIDER_BI_MinRadius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MinRadiusCmdSliderUpdated);
-	Connect(ID_SLIDER_BI_MaxRadius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MaxRadiusCmdSliderUpdated);
 	Connect(ID_SLIDER_BI_Sensitivity,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdSliderUpdated);
 	Connect(ID_BUTTON_BI_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_BackClick);
 	Connect(ID_BUTTON_BI_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_NextClick);
+	Connect(ID_BUTTON_Shrink,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_ShrinkClick);
+	Connect(ID_BUTTON_Grow,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_GrowClick);
 	Connect(ID_BUTTON_CM_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CM_BackClick);
 	Connect(ID_BUTTON_CM_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CM_SaveClick);
 	Connect(ID_AUINOTEBOOK_ProcessSettings,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING,(wxObjectEventFunction)&GenerateCustomModelDialog::OnAuiNotebook_ProcessSettingsPageChanging);
+	Connect(wxEVT_SIZE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnResize);
 	//*)
 
     _displaybmp = wxImage(GCM_DISPLAYIMAGEWIDTH, GCM_DISPLAYIMAGEHEIGHT, true);
@@ -435,9 +467,13 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
     FlexGridSizer14->Layout();
     FlexGridSizer5->Layout();
 
+    FlexGridSizer19->Fit(Grid_CM_Result);
+    FlexGridSizer19->SetSizeHints(Grid_CM_Result);
+    FlexGridSizer19->Layout();
+
     _vr = NULL;
 
-    CVTabEntry();
+    MTTabEntry();
 
     ValidateWindow();
 }
@@ -456,6 +492,11 @@ GenerateCustomModelDialog::~GenerateCustomModelDialog()
 
 #pragma region Global Functions
 
+void GenerateCustomModelDialog::OnResize(wxSizeEvent& event)
+{
+    event.Skip();
+}
+
 void GenerateCustomModelDialog::ValidateWindow()
 {
     if (_state == VideoProcessingStates::CHOOSE_VIDEO)
@@ -472,6 +513,9 @@ void GenerateCustomModelDialog::ValidateWindow()
             Button_CV_Next->Disable();
         }
         Button_GCM_SelectFile->Enable();
+    }
+    else if (_state == VideoProcessingStates::CHOOSE_MODELTYPE)
+    {
     }
     else if (_state == VideoProcessingStates::FINDING_START_FRAME)
     {
@@ -493,6 +537,10 @@ void GenerateCustomModelDialog::ValidateWindow()
 
 inline unsigned char GetPixel(int x, int y, int w3, unsigned char* data) {
     return *(data + y*w3 + x * 3);
+}
+
+inline void SetPixel(int x, int y, int w3, unsigned char* data, unsigned char c) {
+    *(data + y*w3 + x * 3) = c;
 }
 
 wxImage GenerateCustomModelDialog::CreateImageFromFrame(AVFrame* frame)
@@ -796,6 +844,27 @@ void GenerateCustomModelDialog::SwapPage(int oldp, const int newp)
 #pragma endregion Generate Tab General Methods
 
 // ***********************************************************
+// Model Type tab methods
+// ***********************************************************
+
+#pragma region Model Type
+
+void GenerateCustomModelDialog::MTTabEntry()
+{
+    // nothing to do
+    _state = VideoProcessingStates::CHOOSE_MODELTYPE;
+}
+
+void GenerateCustomModelDialog::OnButton_MT_NextClick(wxCommandEvent& event)
+{
+    CVTabEntry();
+    SwapPage(PAGE_MODELTYPE, PAGE_CHOOSEVIDEO);
+    ValidateWindow();
+}
+
+#pragma endregion Model Type
+
+// ***********************************************************
 // Choose Video tab methods
 // ***********************************************************
 
@@ -803,23 +872,52 @@ void GenerateCustomModelDialog::SwapPage(int oldp, const int newp)
 
 void GenerateCustomModelDialog::CVTabEntry()
 {
+    Button_CV_Next->Enable();
+    Button_CV_Back->Enable();
+    Button_GCM_SelectFile->Enable();
+    TextCtrl_GCM_Filename->Enable();
+
+    if (RadioBox2->GetSelection() == 2)
+    {
+        StaticText_CM_Request->SetLabel("Select a picture of your static lights model.");
+    }
+    else
+    {
+        StaticText_CM_Request->SetLabel("Select the video you recorded of your model using the prepare tab.");
+    }
     Gauge_Progress->SetValue(0);
     _state = VideoProcessingStates::CHOOSE_VIDEO;
     if (wxFile::Exists(std::string(TextCtrl_GCM_Filename->GetValue().c_str())))
     {
-        VideoReader vr(std::string(TextCtrl_GCM_Filename->GetValue().c_str()), 800, 600, true);
-        ShowImage(CreateImageFromFrame(vr.GetNextFrame(0)));
+        if (RadioBox2->GetSelection() == 2)
+        {
+            _startFrame.LoadFile(TextCtrl_GCM_Filename->GetValue());
+            ShowImage(_startFrame);
+        }
+        else
+        {
+            VideoReader vr(std::string(TextCtrl_GCM_Filename->GetValue().c_str()), 800, 600, true);
+            ShowImage(CreateImageFromFrame(vr.GetNextFrame(0)));
+        }
     }
 }
 
 void GenerateCustomModelDialog::OnButton_GCM_SelectFileClick(wxCommandEvent& event)
 {
-    FileDialog1->SetWildcard(VIDEOWILDCARD);
+    if (RadioBox2->GetSelection() == 2)
+    {
+        FileDialog1->SetWildcard(wxImage::GetImageExtWildcard());
+    }
+    else
+    {
+        FileDialog1->SetWildcard(VIDEOWILDCARD);
+    }
     if (FileDialog1->ShowModal() == wxID_OK)
     {
         TextCtrl_GCM_Filename->SetValue(FileDialog1->GetDirectory() + "/" + FileDialog1->GetFilename());
         CVTabEntry();
     }
+
     ValidateWindow();
 }
 
@@ -832,6 +930,8 @@ void GenerateCustomModelDialog::SetStartFrame(int time)
 {
     _startframetime = time;
     _startFrame = CreateImageFromFrame(_vr->GetNextFrame(time));
+    _startframebrightness = CalcFrameBrightness(_startFrame);
+    _darkFrame = CreateImageFromFrame(_vr->GetNextFrame(time + LEADON)).ConvertToGreyscale();
     ShowImage(_startFrame);
 }
 
@@ -839,11 +939,28 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
 {
     Button_CV_Next->Disable();
     Button_GCM_SelectFile->Disable();
+    Button_CV_Back->Disable();
+    TextCtrl_GCM_Filename->Disable();
 
-    DoStartFrameIdentify();
+    if (RadioBox2->GetSelection() == 2)
+    {
+        DoBulbCircle();
+        CBTabEntry();
+        SwapPage(PAGE_CHOOSEVIDEO, PAGE_CIRCLEBULB);
+    }
+    else
+    {
+        DoStartFrameIdentify();
+        SFTabEntry();
+        SwapPage(PAGE_CHOOSEVIDEO, PAGE_STARTFRAME);
+    }
+    ValidateWindow();
+}
 
-    SFTabEntry();
-    SwapPage(PAGE_CHOOSEVIDEO, PAGE_STARTFRAME);
+void GenerateCustomModelDialog::OnButton_CV_BackClick(wxCommandEvent& event)
+{
+    MTTabEntry();
+    SwapPage(PAGE_CHOOSEVIDEO, PAGE_MODELTYPE);
     ValidateWindow();
 }
 
@@ -960,6 +1077,8 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
         int currunlength = 0;
         int maxrunstart = 0;
         int currunstart = 0;
+        float maxrunbrightness = 0.0;
+        float curmaxbrightness = 0.0;
 
         auto it = framebrightness.begin();
         for (int j = 0; j < framebrightness.size(); j++)
@@ -971,23 +1090,28 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
                     currunstart = j;
                 }
                 currunlength++;
+                if (*it > curmaxbrightness)
+                {
+                    curmaxbrightness = *it;
+                }
             }
             else
             {
-                if (currunlength > maxrunlength)
+                if (currunlength > maxrunlength || curmaxbrightness > maxrunbrightness * 1.2)
                 {
                     maxrunlength = currunlength;
                     maxrunstart = currunstart;
-                    currunlength = 0;
+                    maxrunbrightness = curmaxbrightness;
                 }
+                currunlength = 0;
+                curmaxbrightness = 0.0;
             }
             it++;
         }
-        if (currunlength > maxrunlength)
+        if (currunlength > maxrunlength || curmaxbrightness > maxrunbrightness * 1.2)
         {
             maxrunlength = currunlength;
             maxrunstart = currunstart;
-            currunlength = 0;
         }
         levelmaxlen[(int)(level*10.0)] = maxrunlength;
         levelmaxstart[(int)(level*10.0)] = maxrunstart;
@@ -1168,13 +1292,26 @@ void GenerateCustomModelDialog::OnButton_SF_NextClick(wxCommandEvent& event)
     Button_SF_Next->Disable();
     Button_SF_Back->Disable();
 
-    DoBulbCircle();
-
-    CBTabEntry();
-
-    _state = VideoProcessingStates::CIRCLING_BULBS;
-    SwapPage(PAGE_STARTFRAME, PAGE_CIRCLEBULB);
-
+    if (RadioBox2->GetSelection() == 2)
+    {
+        // Nodes
+        DoBulbIdentify();
+        BITabEntry();
+        SwapPage(PAGE_STARTFRAME, PAGE_BULBIDENTIFY);
+    }
+    else if (RadioBox2->GetSelection() == 0)
+    {
+        DoBulbIdentify();
+        BITabEntry();
+        SwapPage(PAGE_STARTFRAME, PAGE_BULBIDENTIFY);
+    }
+    else
+    {
+        // channels
+        DoBulbCircle();
+        CBTabEntry();
+        SwapPage(PAGE_STARTFRAME, PAGE_CIRCLEBULB);
+    }
     ValidateWindow();
 }
 
@@ -1195,6 +1332,11 @@ void GenerateCustomModelDialog::OnButton_SF_BackClick(wxCommandEvent& event)
 
 void GenerateCustomModelDialog::DoBulbCircle()
 {
+    if (RadioBox2->GetSelection() == 2)
+    {
+        _startFrame.LoadFile(TextCtrl_GCM_Filename->GetValue());
+    }
+
     // store the start frame in greyscale as we only need to do this once
     _greyFrame = _startFrame.ConvertToGreyscale();
 
@@ -1205,7 +1347,8 @@ void GenerateCustomModelDialog::CBTabEntry()
 {
     Gauge_Progress->SetValue(10);
     _state = VideoProcessingStates::CIRCLING_BULBS;
-    ShowImage(_cbFrame);
+    //ShowImage(_cbFrame);
+    ShowImage(_bwFrame);
     Slider_LevelFilterAdjust->Enable();
     Slider_AdjustBlur->Enable();
     Button_BD_Back->Enable();
@@ -1225,14 +1368,16 @@ wxImage GenerateCustomModelDialog::OutlineBulbs()
         // now use a threshold to make it b&w
         _bwFrame = imgblur;
         ApplyThreshold(_bwFrame, Slider_LevelFilterAdjust->GetValue());
+        ShowImage(_bwFrame);
 
         // now find the edges in the image
-        _cbFrame = DetectEdges(_bwFrame);
-        ShowImage(_cbFrame);
+        //_cbFrame = DetectEdges(_bwFrame);
+        //ShowImage(_cbFrame);
         _busy = false;
     }
 
-    return _cbFrame;
+    //return _cbFrame;
+    return _bwFrame;
 }
 
 inline bool Get3Pixel(int x1, int x2, int x3, int y1, int y2, int y3, int w3, unsigned char* data)
@@ -1308,8 +1453,16 @@ void GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScroll(wxScrollEvent& even
 
 void GenerateCustomModelDialog::OnButton_BD_BackClick(wxCommandEvent& event)
 {
-    SFTabEntry();
-    SwapPage(PAGE_CIRCLEBULB, PAGE_STARTFRAME);
+    if (RadioBox2->GetSelection() == 2)
+    {
+        CVTabEntry();
+        SwapPage(PAGE_CIRCLEBULB, PAGE_CHOOSEVIDEO);
+    }
+    else
+    {
+        SFTabEntry();
+        SwapPage(PAGE_CIRCLEBULB, PAGE_STARTFRAME);
+    }
 }
 
 void GenerateCustomModelDialog::OnButton_BD_NextClick(wxCommandEvent& event)
@@ -1323,7 +1476,7 @@ void GenerateCustomModelDialog::OnButton_BD_NextClick(wxCommandEvent& event)
     DoBulbIdentify();
 
     BITabEntry();
-    SwapPage(PAGE_BULBIDENTIFY, PAGE_CIRCLEBULB);
+    SwapPage(PAGE_CIRCLEBULB, PAGE_BULBIDENTIFY);
     ValidateWindow();
 }
 
@@ -1343,224 +1496,395 @@ void GenerateCustomModelDialog::OnButton_CB_RestoreDefaultClick(wxCommandEvent& 
 
 #pragma region Bulb Identify
 
-void GenerateCustomModelDialog::DoBulbIdentify()
+void GenerateCustomModelDialog::SubtractImage(wxImage& from, wxImage& tosubtract)
 {
-
-}
-
-void GenerateCustomModelDialog::BITabEntry()
-{
-    Gauge_Progress->SetValue(15);
-    _state = VideoProcessingStates::IDENTIFYING_BULBS;
-    ShowImage(_biFrame);
-    Slider_BI_MinRadius->Enable();
-    Slider_BI_MinRadius->Enable();
-    Slider_BI_Sensitivity->Enable();
-    Button_BI_Next->Enable();
-    Button_BI_Back->Enable();
-}
-
-// returns a number between 0-1 saying how much edge exists on the circle edge
-// https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-float GenerateCustomModelDialog::CalcPoint(wxImage& edge, int x0, int y0, int radius)
-{
-    int accum = 0;
-    int points = 0;
-    int w3 = edge.GetWidth() * 3;
-    unsigned char* data = edge.GetData();
-    int x = 0, y = radius;
-    int dp = 1 - radius;
-    do
+    int b = from.GetWidth() * 3 * from.GetHeight();
+    unsigned char * datafrom = from.GetData();
+    unsigned char * datatosubtract = tosubtract.GetData();
+    for (int i = 0; i < b; i++)
     {
-        if (dp < 0)
+        if (*(datatosubtract + i) > *(datafrom + i))
         {
-            dp = dp + 2 * (++x) + 3;
+            *(datafrom + i) = 0;
         }
         else
         {
-            dp = dp + 2 * (++x) - 2 * (--y) + 5;
+            *(datafrom + i) = *(datafrom + i) - *(datatosubtract + i);
         }
-
-        if (GetPixel(x0 + x, y0 + y, w3, data) > 0)
-        {
-            accum++;
-        }
-        if (GetPixel(x0 - x, y0 + y, w3, data) > 0)
-        {
-            accum++;
-        }
-        if (GetPixel(x0 + x, y0 - y, w3, data) > 0)
-        {
-            accum++;
-        }
-        if (GetPixel(x0 - x, y0 - y, w3, data) > 0)
-        {
-            accum++;
-        }
-        if (GetPixel(x0 + y, y0 + x, w3, data) > 0)
-        {
-            accum++;
-        }
-        if (GetPixel(x0 - y, y0 + x, w3, data) > 0)
-        {
-            accum++;
-        }
-        if (GetPixel(x0 + y, y0 - x, w3, data) > 0)
-        {
-            accum++;
-        }
-        if (GetPixel(x0 - y, y0 - x, w3, data) > 0)
-        {
-            accum++;
-        }
-        points += 8;
-    } while (x < y);
-
-    return (float)accum / float(points);
+    }
 }
 
-// for a given radius find all the centres where there is a chance there is a circle
-// this is based on circles whose edge score > CIRCLETHRESHOLD
-#define CIRCLETHRESHOLD 0.5
-// This will not detect bulbs hard up against the edge of the video
-std::map<xlPoint, int> GenerateCustomModelDialog::CircleDetect(wxImage& mask, wxImage& edge, int radius)
+int GenerateCustomModelDialog::CountWhite(wxImage& image)
 {
-    std::map<xlPoint, int> accum;
-    int w = edge.GetWidth();
-    int h = edge.GetHeight();
-    int w3 = w * 3;
-    unsigned char* maskdata = mask.GetData();
-    for (int x = 0 + radius; x < w - radius; x++)
+    int res = 0;
+    int b = image.GetWidth() * 3 * image.GetHeight();
+    unsigned char * data = image.GetData();
+    for (int i = 0; i < b; i+=3)
     {
-        for (int y = 0 + radius; y < h - radius; y++)
+        if (*(data + i) == 255)
         {
-            // the centre must be white in our mask
-            if (GetPixel(x, y, w3, maskdata) > 0)
-            {
-                xlPoint p(x, y);
-                float score = CalcPoint(edge, x, y, radius);
-                if (score > CIRCLETHRESHOLD)
-                {
-                    accum[p] = score * 255;
-                }
-            }
+            res++;
         }
-    }
-    return accum;
-}
-
-std::list<wxPoint> GenerateCustomModelDialog::CircleDetect(wxImage& mask, wxImage& edge, int minr, int maxr)
-{
-    std::list<wxPoint> res;
-    std::map<int/*radius*/, std::map<xlPoint, int/*score*/>> cone;
-
-    for (int i = minr; i <= maxr; i++)
-    {
-        cone[i - minr] = CircleDetect(mask, edge, i);
-    }
-
-    // reorganise by points
-    std::map<xlPoint, std::map<int/*radius*/, int/*score*/>> centres;
-    for (auto r = cone.begin(); r != cone.end(); ++r)
-    {
-        for (auto p = cone[r->first].begin(); p != cone[r->first].end(); ++p)
-        {
-            centres[p->first][r->first] = p->second;
-        }
-    }
-
-    // for each point find the best scoring radius
-    std::map<xlPoint, int> bestradius;
-    for (auto p = centres.begin(); p != centres.end(); ++p)
-    {
-        int maxscore = 0;
-        int maxr = -1;
-
-        for (auto r = centres[p->first].begin(); r != centres[p->first].end(); ++r)
-        {
-            if (r->second >= maxscore)
-            {
-                maxscore = r->second;
-                maxr = r->first;
-            }
-        }
-        bestradius[p->first] = maxr + minr; // restoring radius to true value
-    }
-
-    // coallesc the centres - ie anything centred less than COALLESCSIZE limit away is the same
-    //for (int i = max; i >= 0; i++)
-    //{
-    //    for(auto )
-    //}
-
-    for (auto c = bestradius.begin(); c != bestradius.end(); c++)
-    {
-        res.push_back((wxPoint)c->first);
     }
 
     return res;
 }
 
-wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<wxPoint> centres, wxImage ref, bool includeimage, wxColor col)
+void GenerateCustomModelDialog::DoBulbIdentify()
+{
+    if (!_busy)
+    {
+        _busy = true;
+        _warned = false;
+        _lights.clear();
+        if (RadioBox2->GetSelection() == 2)
+        {
+            _lights.splice(_lights.end(), FindLights(_bwFrame, 1));
+        }
+        else
+        {
+            // handle videos here
+            int currentTime = _startframetime + LEADON + FLAGOFF + FLAGON + FLAGOFF;
+            int n = 1;
+
+            while (currentTime < _vr->GetLengthMS())
+            {
+                wxImage bwFrame;
+
+                while (!bwFrame.IsOk() || CountWhite(bwFrame) < 50)
+                {
+                    if (bwFrame.IsOk())
+                    {
+                        currentTime += 50;
+                    }
+
+                    wxImage frame = CreateImageFromFrame(_vr->GetNextFrame(currentTime));
+                    float brightness = CalcFrameBrightness(frame);
+
+                    if (brightness > _startframebrightness * .8)
+                    {
+                        // this is our end frame ...
+                        _busy = false;
+                        _biFrame = CreateDetectMask(_lights, _startFrame, true, *wxRED);
+                        ShowImage(_biFrame);
+                        return;
+                    }
+
+                    wxImage grey = frame.ConvertToGreyscale();
+                    SubtractImage(grey, _darkFrame);
+                    wxImage imgblur = grey.Blur(3);
+                    bwFrame = imgblur;
+                    ApplyThreshold(bwFrame, Slider_BI_Sensitivity->GetValue());
+                }
+
+                _lights.splice(_lights.end(), FindLights(bwFrame, n++));
+                currentTime = currentTime + NODEON + NODEOFF;
+            }
+            _biFrame = CreateDetectMask(_lights, _startFrame, true, *wxRED);
+            ShowImage(_biFrame);
+        }
+        _busy = false;
+    }
+}
+
+void GenerateCustomModelDialog::BITabEntry()
+{
+    Gauge_Progress->SetValue(75);
+    _state = VideoProcessingStates::IDENTIFYING_BULBS;
+    ShowImage(_biFrame);
+    if (RadioBox2->GetSelection() == 2)
+    {
+        StaticText_BI->SetLabel("The red circles on the image show the bulbs we have identified.\n\nClick next when you are happy that all bulbs have been detected.");
+        Slider_BI_Sensitivity->Hide();
+        StaticText_BI_Slider->Hide();
+    }
+    else
+    {
+        StaticText_BI->SetLabel("The red circles on the image show the bulbs we have identified. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected.");
+        StaticText_BI_Slider->Show();
+        Slider_BI_Sensitivity->Show();
+        Slider_BI_Sensitivity->Enable();
+    }
+    Button_BI_Next->Enable();
+    Button_BI_Back->Enable();
+}
+
+//// returns a number between 0-1 saying how much edge exists on the circle edge
+//// https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+//float GenerateCustomModelDialog::CalcPoint(wxImage& edge, int x0, int y0, int radius)
+//{
+//    int accum = 0;
+//    int points = 0;
+//    int w3 = edge.GetWidth() * 3;
+//    unsigned char* data = edge.GetData();
+//    int x = 0, y = radius;
+//    int dp = 1 - radius;
+//    do
+//    {
+//        if (dp < 0)
+//        {
+//            dp = dp + 2 * (++x) + 3;
+//        }
+//        else
+//        {
+//            dp = dp + 2 * (++x) - 2 * (--y) + 5;
+//        }
+//
+//        if (GetPixel(x0 + x, y0 + y, w3, data) > 0)
+//        {
+//            accum++;
+//        }
+//        if (GetPixel(x0 - x, y0 + y, w3, data) > 0)
+//        {
+//            accum++;
+//        }
+//        if (GetPixel(x0 + x, y0 - y, w3, data) > 0)
+//        {
+//            accum++;
+//        }
+//        if (GetPixel(x0 - x, y0 - y, w3, data) > 0)
+//        {
+//            accum++;
+//        }
+//        if (GetPixel(x0 + y, y0 + x, w3, data) > 0)
+//        {
+//            accum++;
+//        }
+//        if (GetPixel(x0 - y, y0 + x, w3, data) > 0)
+//        {
+//            accum++;
+//        }
+//        if (GetPixel(x0 + y, y0 - x, w3, data) > 0)
+//        {
+//            accum++;
+//        }
+//        if (GetPixel(x0 - y, y0 - x, w3, data) > 0)
+//        {
+//            accum++;
+//        }
+//        points += 8;
+//    } while (x < y);
+//
+//    return (float)accum / float(points);
+//}
+//
+//// for a given radius find all the centres where there is a chance there is a circle
+//// this is based on circles whose edge score > CIRCLETHRESHOLD
+//#define CIRCLETHRESHOLD 0.5
+//// This will not detect bulbs hard up against the edge of the video
+//std::map<xlPoint, int> GenerateCustomModelDialog::CircleDetect(wxImage& mask, wxImage& edge, int radius)
+//{
+//    std::map<xlPoint, int> accum;
+//    int w = edge.GetWidth();
+//    int h = edge.GetHeight();
+//    int w3 = w * 3;
+//    unsigned char* maskdata = mask.GetData();
+//    for (int x = 0 + radius; x < w - radius; x++)
+//    {
+//        for (int y = 0 + radius; y < h - radius; y++)
+//        {
+//            // the centre must be white in our mask
+//            if (GetPixel(x, y, w3, maskdata) > 0)
+//            {
+//                xlPoint p(x, y);
+//                float score = CalcPoint(edge, x, y, radius);
+//                if (score > CIRCLETHRESHOLD)
+//                {
+//                    accum[p] = score * 255;
+//                }
+//            }
+//        }
+//    }
+//    return accum;
+//}
+//
+//std::list<wxPoint> GenerateCustomModelDialog::CircleDetect(wxImage& mask, wxImage& edge, int minr, int maxr)
+//{
+//    std::list<wxPoint> res;
+//    std::map<int/*radius*/, std::map<xlPoint, int/*score*/>> cone;
+//
+//    for (int i = minr; i <= maxr; i++)
+//    {
+//        cone[i - minr] = CircleDetect(mask, edge, i);
+//    }
+//
+//    // reorganise by points
+//    std::map<xlPoint, std::map<int/*radius*/, int/*score*/>> centres;
+//    for (auto r = cone.begin(); r != cone.end(); ++r)
+//    {
+//        for (auto p = cone[r->first].begin(); p != cone[r->first].end(); ++p)
+//        {
+//            centres[p->first][r->first] = p->second;
+//        }
+//    }
+//
+//    // for each point find the best scoring radius
+//    std::map<xlPoint, int> bestradius;
+//    for (auto p = centres.begin(); p != centres.end(); ++p)
+//    {
+//        int maxscore = 0;
+//        int maxr = -1;
+//
+//        for (auto r = centres[p->first].begin(); r != centres[p->first].end(); ++r)
+//        {
+//            if (r->second >= maxscore)
+//            {
+//                maxscore = r->second;
+//                maxr = r->first;
+//            }
+//        }
+//        bestradius[p->first] = maxr + minr; // restoring radius to true value
+//    }
+//
+//    // coallesc the centres - ie anything centred less than COALLESCSIZE limit away is the same
+//    //for (int i = max; i >= 0; i++)
+//    //{
+//    //    for(auto )
+//    //}
+//
+//    for (auto c = bestradius.begin(); c != bestradius.end(); c++)
+//    {
+//        res.push_back((wxPoint)c->first);
+//    }
+//
+//    return res;
+//}
+
+wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxColor col)
 {
     wxBitmap bmp(ref.GetWidth(), ref.GetHeight());
-    wxMemoryDC* dc = new wxMemoryDC(bmp);
+    wxMemoryDC dc(bmp);
 
     if (includeimage)
     {
-        dc->DrawBitmap(ref, wxPoint(0, 0), false);
+        dc.DrawBitmap(ref, wxPoint(0, 0), false);
     }
 
     wxBrush b(col, wxBrushStyle::wxBRUSHSTYLE_SOLID);
     wxPen p(col, 1);
 
-    dc->SetBrush(b);
-    dc->SetPen(p);
+    dc.SetBrush(b);
+    dc.SetPen(p);
 
     for (auto c = centres.begin(); c != centres.end(); c++)
     {
-        dc->DrawCircle(*c, 3);
+        c->Draw(dc);
     }
 
     return bmp.ConvertToImage();
 }
 
-std::list<wxPoint> GenerateCustomModelDialog::FindLights(wxImage& image)
+void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount)
 {
-    std::list<wxPoint> res;
+    int pc = GetPixel(x, y, w3, data);
 
-    if (!_busy)
+    // only need to do something if the pixel is white
+    if (pc == 255)
     {
-        _busy = true;
-        // now circle detect
-        res = CircleDetect(_bwFrame, _cbFrame, 5, 40);
+        totalX += x;
+        totalY += y;
+        pixelCount++;
+        SetPixel(x, y, w3, data, 0); // Black out the pixel because we have processed it
 
-        wxImage detectmask = CreateDetectMask(res, _cbFrame, true, *wxRED);
-        ShowImage(detectmask);
-        _busy = false;
+        if (pixelCount > 1000)
+        {
+            if (!_warned)
+            {
+                log4cpp::Category& logger = log4cpp::Category::getRoot();
+                logger.warn("Too many pixels in blob when generating Custom Model.");
+                wxMessageBox("Too many pixels were found in a single blob. Model generation will continue but model will be compromised. Consider going back and changing the image settings.");
+                _warned = true;
+            }
+            return;
+        }
+
+        // we dont look at edge pixels ... should not make a big difference & simplifies code
+        if (x > 0 && y > 0 && x < w-1 && y < h-1)
+        {
+            WalkPixels(x - 1, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
+            WalkPixels(x, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
+            WalkPixels(x + 1, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
+            WalkPixels(x - 1, y, w, h, w3, data, totalX, totalY, pixelCount);
+            WalkPixels(x + 1, y, w, h, w3, data, totalX, totalY, pixelCount);
+            WalkPixels(x - 1, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
+            WalkPixels(x, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
+            WalkPixels(x + 1, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
+        }
     }
+}
+
+GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num)
+{
+    int totalX = 0;
+    int totalY = 0;
+    int pixelCount = 0;
+    WalkPixels(x, y, w, h, w3, data, totalX, totalY, pixelCount);
+
+    return GCMBulb(wxPoint(totalX / pixelCount, totalY / pixelCount), num);
+}
+
+std::list<GCMBulb> GenerateCustomModelDialog::FindLights(wxImage& image, int num)
+{
+    std::list<GCMBulb> res;
+
+    wxImage temp = image;
+    temp.UnShare(); // we are going to change the data so get out own copy
+    int w = temp.GetWidth();
+    int w3 = w * 3;
+    int h = temp.GetHeight();
+    unsigned char * data = temp.GetData();
+
+    for (int y = 0; y < temp.GetHeight(); y++)
+    {
+        for (int x = 0; x < temp.GetWidth(); x++)
+        {
+            if (GetPixel(x, y, w3, data) > 0)
+            {
+                res.push_back(FindCenter(x, y, w, h, w3, data, num));
+            }
+        }
+    }
+
+    // now circle detect
+    // res = CircleDetect(_bwFrame, _cbFrame, 5, 40);
+
+    _biFrame = CreateDetectMask(res, _startFrame, true, *wxRED);
+    ShowImage(_biFrame);
 
     return res;
 }
 
-void GenerateCustomModelDialog::OnSlider_BI_MinRadiusCmdSliderUpdated(wxScrollEvent& event)
-{
-}
-
-void GenerateCustomModelDialog::OnSlider_BI_MaxRadiusCmdSliderUpdated(wxScrollEvent& event)
-{
-}
-
 void GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdSliderUpdated(wxScrollEvent& event)
 {
+    if (!_busy)
+    {
+        Button_BI_Next->Disable();
+        Button_BI_Back->Disable();
+        DoBulbIdentify();
+        Button_BI_Next->Enable();
+        Button_BI_Back->Enable();
+    }
 }
 
 void GenerateCustomModelDialog::OnButton_BI_NextClick(wxCommandEvent& event)
 {
+    DoGenerateCustomModel();
+    CMTabEntry();
+    SwapPage(PAGE_BULBIDENTIFY, PAGE_REVIEWMODEL);
 }
 
 void GenerateCustomModelDialog::OnButton_BI_BackClick(wxCommandEvent& event)
 {
+    if (RadioBox2->GetSelection() == 2)
+    {
+        CBTabEntry();
+        SwapPage(PAGE_BULBIDENTIFY, PAGE_CIRCLEBULB);
+    }
+    else
+    {
+        SFTabEntry();
+        SwapPage(PAGE_BULBIDENTIFY, PAGE_STARTFRAME);
+    }
 }
 
 #pragma endregion Bulb Identify
@@ -1571,17 +1895,255 @@ void GenerateCustomModelDialog::OnButton_BI_BackClick(wxCommandEvent& event)
 
 #pragma region Custom Model
 
+void GenerateCustomModelDialog::CMTabEntry()
+{
+    _state = VideoProcessingStates::REVIEW_CUSTOM_MODEL;
+    Gauge_Progress->SetValue(100);
+    ShowImage(_biFrame);
+}
+
+bool GenerateCustomModelDialog::TestScale(std::list<GCMBulb>::iterator it, float scale, wxPoint trim)
+{
+    GCMBulb b = *it;
+    ++it;
+    if (it != _lights.end())
+    {
+
+        if (!TestScale(it, scale, trim))
+        {
+            return false;
+        }
+        while (it != _lights.end())
+        {
+            if (b.IsSameLocation(*it, scale, trim))
+            {
+                return false;
+            }
+            ++it;
+        }
+    }
+    return true;
+}
+
+wxPoint GenerateCustomModelDialog::CalcTrim()
+{
+    int x = 999999;
+    int y = 999999;
+
+    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    {
+        wxPoint loc = it->GetLocation();
+        if (loc.x < x)
+        {
+            x = loc.x;
+        }
+        if (loc.y < y)
+        {
+            y = loc.y;
+        }
+    }
+
+    return wxPoint(x, y);
+}
+
+wxSize GenerateCustomModelDialog::CalcSize(float scale, wxPoint trim)
+{
+    int x = 0;
+    int y = 0;
+
+    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    {
+        wxPoint loc = it->GetLocation(scale,trim);
+        if (loc.x > x)
+        {
+            x = loc.x;
+        }
+        if (loc.y > y)
+        {
+            y = loc.y;
+        }
+    }
+
+    return wxSize(x+1, y+1);
+}
+
+// this will find the best scale to 1/100th of the imput size
+void GenerateCustomModelDialog::DoGenerateCustomModel()
+{
+    if (_lights.size() == 0)
+    {
+        return;
+    }
+
+    _trim = CalcTrim();
+
+    float best = 1.0;
+    float curr = 0.9;
+
+    while (TestScale(_lights.begin(), curr, _trim))
+    {
+        best = curr;
+        curr = curr - 0.1;
+    }
+    curr = curr - 0.01;
+    while (TestScale(_lights.begin(), curr, _trim))
+    {
+        best = curr;
+        curr = curr - 0.01;
+    }
+    _scale = best;
+
+    _size = CalcSize(_scale, _trim);
+
+    Grid_CM_Result->ClearGrid();
+    if (Grid_CM_Result->GetNumberCols() > 0)
+    {
+        Grid_CM_Result->DeleteCols(0, Grid_CM_Result->GetNumberCols());
+        if (Grid_CM_Result->GetNumberRows() > 0)
+        {
+            Grid_CM_Result->DeleteRows(0, Grid_CM_Result->GetNumberRows());
+        }
+        Grid_CM_Result->AppendCols(_size.x);
+        Grid_CM_Result->AppendRows(_size.y);
+    }
+    else
+    {
+        Grid_CM_Result->CreateGrid(_size.y, _size.x);
+    }
+
+    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    {
+        wxPoint p = it->GetLocation(_scale, _trim);
+        Grid_CM_Result->SetCellValue(p.y, p.x, wxString::Format("%d", it->GetNum()));
+        Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, *wxGREEN);
+    }
+
+    wxFont font = Grid_CM_Result->GetDefaultCellFont();
+    Grid_CM_Result->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
+    Grid_CM_Result->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
+    for (int c = 0; c < Grid_CM_Result->GetNumberCols(); ++c)
+        Grid_CM_Result->SetColSize(c, 2 * font.GetPixelSize().y); //Grid_CM_Result->GetColSize(c) * 4/5);
+    for (int r = 0; r < Grid_CM_Result->GetNumberRows(); ++r)
+        Grid_CM_Result->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //Grid_CM_Result->GetRowSize(r) * 4/5);
+    font = Grid_CM_Result->GetLabelFont();
+    Grid_CM_Result->SetColLabelSize(int(1.5 * (float)font.GetPixelSize().y));
+    FlexGridSizer19->Layout();
+    Layout();
+}
+
 void GenerateCustomModelDialog::OnButton_CM_BackClick(wxCommandEvent& event)
 {
+    BITabEntry();
+    SwapPage(PAGE_REVIEWMODEL, PAGE_BULBIDENTIFY);
+}
+
+wxString GenerateCustomModelDialog::CreateCustomModelData()
+{
+    wxString res = "";
+    for (int y = 0; y < Grid_CM_Result->GetNumberRows(); y++)
+    {
+        for (int x = 0; x < Grid_CM_Result->GetNumberCols(); x++)
+        {
+            res += Grid_CM_Result->GetCellValue(y, x);
+
+            if (x + 1 != Grid_CM_Result->GetNumberCols())
+            {
+                res += ",";
+            }
+        }
+
+        if (y + 1 != Grid_CM_Result->GetNumberRows())
+        {
+            res += ";";
+        }
+    }
+
+    return res;
 }
 
 void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
 {
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "NewCustomModel", wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename.IsEmpty()) return;
+    wxFile f(filename);
+    if (!f.Create(filename, true) || !f.IsOpened()) wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    wxString name = wxFileName(filename).GetName();
+    wxString cm = CreateCustomModelData();
+    wxString p1 = wxString::Format("%d",Grid_CM_Result->GetNumberCols());
+    wxString p2 = wxString::Format("%d", Grid_CM_Result->GetNumberRows());
+    wxString st;
+    if (RadioBox2->GetSelection() == 2)
+    {
+        st = "Single Color White";
+    }
+    else if (RadioBox2->GetSelection() == 1)
+    {
+        st = "Single Color White";
+    }
+    else
+    {
+        st = "RGB Nodes";
+    }
+    wxString ps = "2";
+    wxString t = "0";
+    wxString mb = "";
+    wxString a = "1";
+    wxString sn = "";
+    wxString nn = "";
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%s\" ", p1));
+    f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("StringType=\"%s\" ", st));
+    f.Write(wxString::Format("Transparency=\"%s\" ", t));
+    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
+    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
+    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
+    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    f.Write(wxString::Format("CustomModel=\"%s\" ", cm));
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(" />\n");
+    f.Close();
 }
 
+void GenerateCustomModelDialog::OnButton_GrowClick(wxCommandEvent& event)
+{
+    Grid_CM_Result->BeginBatch();
+    wxFont font = Grid_CM_Result->GetLabelFont();
+    font.MakeLarger();
+    Grid_CM_Result->SetLabelFont(font);
+    font = Grid_CM_Result->GetDefaultCellFont();
+    font.MakeLarger();
+    Grid_CM_Result->SetDefaultCellFont(font);
+    for (int c = 0; c < Grid_CM_Result->GetNumberCols(); ++c)
+        Grid_CM_Result->SetColSize(c, 2 * font.GetPixelSize().y); //Grid_CM_Result->GetColSize(c) * 5/4);
+    for (int r = 0; r < Grid_CM_Result->GetNumberRows(); ++r)
+        Grid_CM_Result->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //Grid_CM_Result->GetRowSize(r) * 5/4);
+    Grid_CM_Result->EndBatch();
+}
+
+void GenerateCustomModelDialog::OnButton_ShrinkClick(wxCommandEvent& event)
+{
+    Grid_CM_Result->BeginBatch();
+    wxFont font = Grid_CM_Result->GetLabelFont();
+    font.MakeSmaller();
+    Grid_CM_Result->SetLabelFont(font);
+    font = Grid_CM_Result->GetDefaultCellFont();
+    font.MakeSmaller();
+    Grid_CM_Result->SetDefaultCellFont(font);
+    Grid_CM_Result->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
+    Grid_CM_Result->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
+    for (int c = 0; c < Grid_CM_Result->GetNumberCols(); ++c)
+        Grid_CM_Result->SetColSize(c, 2 * font.GetPixelSize().y); //Grid_CM_Result->GetColSize(c) * 4/5);
+    for (int r = 0; r < Grid_CM_Result->GetNumberRows(); ++r)
+        Grid_CM_Result->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //Grid_CM_Result->GetRowSize(r) * 4/5);
+    Grid_CM_Result->EndBatch();
+}
 #pragma endregion Custom Model
 
 #pragma endregion Generate
-
 
 
