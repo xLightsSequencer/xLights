@@ -3,8 +3,8 @@
 #include <wx/xml/xml.h>
 
 //(*InternalHeaders(CurrentPreviewModels)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 #include <wx/msgdlg.h>
@@ -16,6 +16,7 @@
 const long CurrentPreviewModels::ID_CHECKLISTBOX_CURRENT_GROUPS = wxNewId();
 const long CurrentPreviewModels::ID_BUTTON2 = wxNewId();
 const long CurrentPreviewModels::ID_BUTTON1 = wxNewId();
+const long CurrentPreviewModels::ID_BUTTON3 = wxNewId();
 const long CurrentPreviewModels::ID_BUTTON_EDIT_GROUPS = wxNewId();
 //*)
 
@@ -27,9 +28,9 @@ END_EVENT_TABLE()
 CurrentPreviewModels::CurrentPreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, ModelManager &Models, wxWindowID id,const wxPoint& pos,const wxSize& size) : mModels(Models)
 {
 	//(*Initialize(CurrentPreviewModels)
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Model Groups"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
@@ -42,11 +43,13 @@ CurrentPreviewModels::CurrentPreviewModels(wxWindow* parent,wxXmlNode* ModelGrou
 	CheckListBoxCurrentGroups->SetMinSize(wxSize(-1,400));
 	FlexGridSizer2->Add(CheckListBoxCurrentGroups, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	EditButton = new wxButton(this, ID_BUTTON2, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer5->Add(EditButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	AddButton = new wxButton(this, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer5->Add(AddButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	RenameButton = new wxButton(this, ID_BUTTON3, _("Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer5->Add(RenameButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	RemoveButton = new wxButton(this, ID_BUTTON_EDIT_GROUPS, _("Remove"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_EDIT_GROUPS"));
 	FlexGridSizer5->Add(RemoveButton, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -63,6 +66,7 @@ CurrentPreviewModels::CurrentPreviewModels(wxWindow* parent,wxXmlNode* ModelGrou
 	Connect(ID_CHECKLISTBOX_CURRENT_GROUPS,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,(wxObjectEventFunction)&CurrentPreviewModels::OnCurrentGroupsDClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurrentPreviewModels::OnEditButtonClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurrentPreviewModels::OnAddButtonClick);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurrentPreviewModels::OnRenameButtonClick);
 	Connect(ID_BUTTON_EDIT_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurrentPreviewModels::OnRemoveButtonClick);
 	//*)
 	mModelGroups = ModelGroups;
@@ -111,6 +115,7 @@ void CurrentPreviewModels::PopulateModelGroups()
     CheckListBoxCurrentGroups->SetSelection(-1);
     EditButton->Enable(false);
     RemoveButton->Enable(false);
+    RenameButton->Enable(false);
 }
 
 void CurrentPreviewModels::OnAddButtonClick(wxCommandEvent& event)
@@ -171,4 +176,26 @@ void CurrentPreviewModels::OnCurrentGroupsSelect(wxCommandEvent& event)
 {
     EditButton->Enable(true);
     RemoveButton->Enable(true);
+    RenameButton->Enable(true);
+}
+
+void CurrentPreviewModels::OnRenameButtonClick(wxCommandEvent& event)
+{
+    wxString sel = CheckListBoxCurrentGroups->GetStringSelection();
+    wxTextEntryDialog dlg(this, "Enter new name for group " + sel, "Rename " + sel, sel);
+    while (dlg.ShowModal() == wxID_OK) {
+        wxString name = dlg.GetValue();
+        
+        while (mModels.GetModel(name.ToStdString()) != nullptr) {
+            wxTextEntryDialog dlg2(this, "Model or Group of name " + name + " already exists. Enter new name for group", "Enter new name for group");
+            if (dlg2.ShowModal() == wxID_OK) {
+                name = dlg2.GetValue();
+            } else {
+                return;
+            }
+        }
+        
+        mModels.Rename(sel.ToStdString(), name.ToStdString());
+        PopulateModelGroups();
+    }
 }

@@ -2,10 +2,10 @@
 #define CURRENTPREVIEWMODELS_H
 
 //(*Headers(CurrentPreviewModels)
-#include <wx/checklst.h>
-#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/checklst.h>
 #include <wx/button.h>
+#include <wx/dialog.h>
 //*)
 #include <wx/xml/xml.h>
 
@@ -19,10 +19,11 @@ class CurrentPreviewModels: public wxDialog
 		virtual ~CurrentPreviewModels();
 
 		//(*Declarations(CurrentPreviewModels)
+		wxCheckListBox* CheckListBoxCurrentGroups;
 		wxButton* AddButton;
 		wxButton* EditButton;
-		wxCheckListBox* CheckListBoxCurrentGroups;
 		wxButton* RemoveButton;
+		wxButton* RenameButton;
 		//*)
 
 	protected:
@@ -31,6 +32,7 @@ class CurrentPreviewModels: public wxDialog
 		static const long ID_CHECKLISTBOX_CURRENT_GROUPS;
 		static const long ID_BUTTON2;
 		static const long ID_BUTTON1;
+		static const long ID_BUTTON3;
 		static const long ID_BUTTON_EDIT_GROUPS;
 		//*)
 
@@ -46,6 +48,7 @@ class CurrentPreviewModels: public wxDialog
 		void OnEditButtonClick(wxCommandEvent& event);
 		void OnCurrentGroupsDClick(wxCommandEvent& event);
 		void OnCurrentGroupsSelect(wxCommandEvent& event);
+		void OnRenameButtonClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
