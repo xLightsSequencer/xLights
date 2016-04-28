@@ -483,7 +483,7 @@
 																	</object>
 																	<object class="sizeritem">
 																		<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
-																			<cols>2</cols>
+																			<cols>3</cols>
 																			<growablecols>1</growablecols>
 																			<object class="sizeritem">
 																				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText9" member="yes">
@@ -505,6 +505,16 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL_BC_Blur" variable="TextCtrl_BC_Blur" member="yes">
+																					<value>5</value>
+																					<size>40,24</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
 																				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText10" member="yes">
 																					<label>Level</label>
 																				</object>
@@ -520,6 +530,16 @@
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL_BC_Level" variable="TextCtrl_BC_level" member="yes">
+																					<value>200</value>
+																					<size>40,24</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
 																				<option>1</option>
 																			</object>
 																		</object>
@@ -602,7 +622,7 @@
 																	</object>
 																	<object class="sizeritem">
 																		<object class="wxFlexGridSizer" variable="FlexGridSizer16" member="no">
-																			<cols>2</cols>
+																			<cols>3</cols>
 																			<growablecols>1</growablecols>
 																			<object class="sizeritem">
 																				<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText_BI_Slider" member="yes">
@@ -620,6 +640,43 @@
 																				</object>
 																				<flag>wxALL|wxEXPAND</flag>
 																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL_BI_Sensitivity" variable="TextCtrl_BI_Sensitivity" member="yes">
+																					<value>50</value>
+																					<size>40,24</size>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText13" member="yes">
+																					<label>Minimum Separation</label>
+																				</object>
+																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxSlider" name="ID_SLIDER_BI_MinSeparation" variable="Slider_BI_MinSeparation" member="yes">
+																					<value>10</value>
+																					<min>1</min>
+																					<handler function="OnSlider_BI_MinSeparationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL_BI_MinSeparation" variable="TextCtrl_BI_MinSeparation" member="yes">
+																					<value>10</value>
+																					<size>40,24</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
 																				<option>1</option>
 																			</object>
 																		</object>

@@ -109,8 +109,10 @@ const long GenerateCustomModelDialog::ID_PANEL_StartFrame = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT4 = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT1 = wxNewId();
 const long GenerateCustomModelDialog::ID_SLIDER_AdjustBlur = wxNewId();
+const long GenerateCustomModelDialog::ID_TEXTCTRL_BC_Blur = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT2 = wxNewId();
 const long GenerateCustomModelDialog::ID_SLIDER_LevelFilterAdjust = wxNewId();
+const long GenerateCustomModelDialog::ID_TEXTCTRL_BC_Level = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CB_RestoreDefault = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BD_Back = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BD_Next = wxNewId();
@@ -118,6 +120,10 @@ const long GenerateCustomModelDialog::ID_PANEL_BulbCircle = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT5 = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT8 = wxNewId();
 const long GenerateCustomModelDialog::ID_SLIDER_BI_Sensitivity = wxNewId();
+const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_Sensitivity = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT6 = wxNewId();
+const long GenerateCustomModelDialog::ID_SLIDER_BI_MinSeparation = wxNewId();
+const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_MinSeparation = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BI_Back = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BI_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_BulbIdentify = wxNewId();
@@ -333,16 +339,20 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer9->AddGrowableRow(4);
 	StaticText12 = new wxStaticText(Panel_BulbCircle, ID_STATICTEXT4, _("We now need to process this image. Use the sliders below to adjust settings to get clear white\nrough circles around all of your bulbs.\n\nClick next when you are happy with it."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer9->Add(StaticText12, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer8 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer8->AddGrowableCol(1);
 	StaticText9 = new wxStaticText(Panel_BulbCircle, ID_STATICTEXT1, _("Blur"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer8->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_AdjustBlur = new wxSlider(Panel_BulbCircle, ID_SLIDER_AdjustBlur, 5, 1, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_AdjustBlur"));
 	FlexGridSizer8->Add(Slider_AdjustBlur, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_BC_Blur = new wxTextCtrl(Panel_BulbCircle, ID_TEXTCTRL_BC_Blur, _("5"), wxDefaultPosition, wxSize(40,24), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_BC_Blur"));
+	FlexGridSizer8->Add(TextCtrl_BC_Blur, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText10 = new wxStaticText(Panel_BulbCircle, ID_STATICTEXT2, _("Level"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer8->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_LevelFilterAdjust = new wxSlider(Panel_BulbCircle, ID_SLIDER_LevelFilterAdjust, 200, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_LevelFilterAdjust"));
 	FlexGridSizer8->Add(Slider_LevelFilterAdjust, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_BC_level = new wxTextCtrl(Panel_BulbCircle, ID_TEXTCTRL_BC_Level, _("200"), wxDefaultPosition, wxSize(40,24), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_BC_Level"));
+	FlexGridSizer8->Add(TextCtrl_BC_level, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer9->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -365,12 +375,20 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer15->AddGrowableRow(2);
 	StaticText_BI = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT5, _("The red circles on the image show the bulbs we have identify. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected."), wxDefaultPosition, wxSize(652,75), 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer15->Add(StaticText_BI, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer16 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer16 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer16->AddGrowableCol(1);
 	StaticText_BI_Slider = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT8, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer16->Add(StaticText_BI_Slider, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_BI_Sensitivity = new wxSlider(Panel_BulbIdentify, ID_SLIDER_BI_Sensitivity, 100, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BI_Sensitivity"));
+	Slider_BI_Sensitivity = new wxSlider(Panel_BulbIdentify, ID_SLIDER_BI_Sensitivity, 50, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BI_Sensitivity"));
 	FlexGridSizer16->Add(Slider_BI_Sensitivity, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_BI_Sensitivity = new wxTextCtrl(Panel_BulbIdentify, ID_TEXTCTRL_BI_Sensitivity, _("50"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("ID_TEXTCTRL_BI_Sensitivity"));
+	FlexGridSizer16->Add(TextCtrl_BI_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText13 = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT6, _("Minimum Separation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer16->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_BI_MinSeparation = new wxSlider(Panel_BulbIdentify, ID_SLIDER_BI_MinSeparation, 10, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BI_MinSeparation"));
+	FlexGridSizer16->Add(Slider_BI_MinSeparation, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_BI_MinSeparation = new wxTextCtrl(Panel_BulbIdentify, ID_TEXTCTRL_BI_MinSeparation, _("10"), wxDefaultPosition, wxSize(40,24), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_BI_MinSeparation"));
+	FlexGridSizer16->Add(TextCtrl_BI_MinSeparation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer15->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer15->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer17 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -400,7 +418,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer20->Add(Button_Shrink, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Grow = new wxButton(Panel_CustomModel, ID_BUTTON_Grow, _("+"), wxDefaultPosition, wxSize(26,28), 0, wxDefaultValidator, _T("ID_BUTTON_Grow"));
 	FlexGridSizer20->Add(Button_Grow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer20->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer20->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_CM_Back = new wxButton(Panel_CustomModel, ID_BUTTON_CM_Back, _("Back"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CM_Back"));
 	FlexGridSizer20->Add(Button_CM_Back, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_CM_Save = new wxButton(Panel_CustomModel, ID_BUTTON_CM_Save, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CM_Save"));
@@ -447,6 +465,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Connect(ID_BUTTON_BD_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BD_BackClick);
 	Connect(ID_BUTTON_BD_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BD_NextClick);
 	Connect(ID_SLIDER_BI_Sensitivity,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdSliderUpdated);
+	Connect(ID_SLIDER_BI_MinSeparation,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdSliderUpdated);
 	Connect(ID_BUTTON_BI_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_BackClick);
 	Connect(ID_BUTTON_BI_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_NextClick);
 	Connect(ID_BUTTON_Shrink,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_ShrinkClick);
@@ -471,7 +490,13 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
     FlexGridSizer19->SetSizeHints(Grid_CM_Result);
     FlexGridSizer19->Layout();
 
+    StaticBitmap_Preview->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&GenerateCustomModelDialog::OnStaticBitmapLeftDown, 0, this);
+    StaticBitmap_Preview->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&GenerateCustomModelDialog::OnStaticBitmapLeftUp, 0, this);
+    StaticBitmap_Preview->Connect(wxEVT_MOTION, (wxObjectEventFunction)&GenerateCustomModelDialog::OnStaticBitmapMouseMove, 0, this);
+    StaticBitmap_Preview->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&GenerateCustomModelDialog::OnStaticBitmapMouseLeave, 0, this);
+
     _vr = NULL;
+    _draggingedge = -1;
 
     MTTabEntry();
 
@@ -545,10 +570,17 @@ inline void SetPixel(int x, int y, int w3, unsigned char* data, unsigned char c)
 
 wxImage GenerateCustomModelDialog::CreateImageFromFrame(AVFrame* frame)
 {
-    wxImage img(frame->width, frame->height, (unsigned char *)frame->data[0], true);
-    img.SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
+    if (frame != NULL)
+    {
+        wxImage img(frame->width, frame->height, (unsigned char *)frame->data[0], true);
+        img.SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
 
-    return img;
+        return img;
+    }
+    else
+    {
+        return wxImage(_startFrame.GetWidth(), _startFrame.GetHeight(), true);
+    }
 }
 
 void GenerateCustomModelDialog::ShowImage(const wxImage& image)
@@ -892,6 +924,7 @@ void GenerateCustomModelDialog::CVTabEntry()
         if (RadioBox2->GetSelection() == 2)
         {
             _startFrame.LoadFile(TextCtrl_GCM_Filename->GetValue());
+            _clip = wxRect(0, 0, _startFrame.GetWidth()-1, _startFrame.GetHeight()-1);
             ShowImage(_startFrame);
         }
         else
@@ -930,6 +963,7 @@ void GenerateCustomModelDialog::SetStartFrame(int time)
 {
     _startframetime = time;
     _startFrame = CreateImageFromFrame(_vr->GetNextFrame(time));
+    _clip = wxRect(0, 0, _startFrame.GetWidth()-1, _startFrame.GetHeight()-1);
     _startframebrightness = CalcFrameBrightness(_startFrame);
     _darkFrame = CreateImageFromFrame(_vr->GetNextFrame(time + LEADON)).ConvertToGreyscale();
     ShowImage(_startFrame);
@@ -1441,12 +1475,14 @@ void GenerateCustomModelDialog::ApplyThreshold(wxImage& image, int threshold)
 
 void GenerateCustomModelDialog::OnSlider_LevelFilterAdjustCmdScroll(wxScrollEvent& event)
 {
+    TextCtrl_BC_level->SetValue(wxString::Format("%d", Slider_LevelFilterAdjust->GetValue()));
     OutlineBulbs();
     ValidateWindow();
 }
 
 void GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScroll(wxScrollEvent& event)
 {
+    TextCtrl_BC_Blur->SetValue(wxString::Format("%d", Slider_AdjustBlur->GetValue()));
     OutlineBulbs();
     ValidateWindow();
 }
@@ -1565,7 +1601,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                     {
                         // this is our end frame ...
                         _busy = false;
-                        _biFrame = CreateDetectMask(_lights, _startFrame, true, *wxRED);
+                        _biFrame = CreateDetectMask(_lights, _startFrame, true, *wxRED, _clip, Slider_BI_MinSeparation->GetValue());
                         ShowImage(_biFrame);
                         return;
                     }
@@ -1580,7 +1616,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                 _lights.splice(_lights.end(), FindLights(bwFrame, n++));
                 currentTime = currentTime + NODEON + NODEOFF;
             }
-            _biFrame = CreateDetectMask(_lights, _startFrame, true, *wxRED);
+            _biFrame = CreateDetectMask(_lights, _startFrame, true, *wxRED, _clip, Slider_BI_Sensitivity->GetValue());
             ShowImage(_biFrame);
         }
         _busy = false;
@@ -1609,149 +1645,10 @@ void GenerateCustomModelDialog::BITabEntry()
     Button_BI_Back->Enable();
 }
 
-//// returns a number between 0-1 saying how much edge exists on the circle edge
-//// https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-//float GenerateCustomModelDialog::CalcPoint(wxImage& edge, int x0, int y0, int radius)
-//{
-//    int accum = 0;
-//    int points = 0;
-//    int w3 = edge.GetWidth() * 3;
-//    unsigned char* data = edge.GetData();
-//    int x = 0, y = radius;
-//    int dp = 1 - radius;
-//    do
-//    {
-//        if (dp < 0)
-//        {
-//            dp = dp + 2 * (++x) + 3;
-//        }
-//        else
-//        {
-//            dp = dp + 2 * (++x) - 2 * (--y) + 5;
-//        }
-//
-//        if (GetPixel(x0 + x, y0 + y, w3, data) > 0)
-//        {
-//            accum++;
-//        }
-//        if (GetPixel(x0 - x, y0 + y, w3, data) > 0)
-//        {
-//            accum++;
-//        }
-//        if (GetPixel(x0 + x, y0 - y, w3, data) > 0)
-//        {
-//            accum++;
-//        }
-//        if (GetPixel(x0 - x, y0 - y, w3, data) > 0)
-//        {
-//            accum++;
-//        }
-//        if (GetPixel(x0 + y, y0 + x, w3, data) > 0)
-//        {
-//            accum++;
-//        }
-//        if (GetPixel(x0 - y, y0 + x, w3, data) > 0)
-//        {
-//            accum++;
-//        }
-//        if (GetPixel(x0 + y, y0 - x, w3, data) > 0)
-//        {
-//            accum++;
-//        }
-//        if (GetPixel(x0 - y, y0 - x, w3, data) > 0)
-//        {
-//            accum++;
-//        }
-//        points += 8;
-//    } while (x < y);
-//
-//    return (float)accum / float(points);
-//}
-//
-//// for a given radius find all the centres where there is a chance there is a circle
-//// this is based on circles whose edge score > CIRCLETHRESHOLD
-//#define CIRCLETHRESHOLD 0.5
-//// This will not detect bulbs hard up against the edge of the video
-//std::map<xlPoint, int> GenerateCustomModelDialog::CircleDetect(wxImage& mask, wxImage& edge, int radius)
-//{
-//    std::map<xlPoint, int> accum;
-//    int w = edge.GetWidth();
-//    int h = edge.GetHeight();
-//    int w3 = w * 3;
-//    unsigned char* maskdata = mask.GetData();
-//    for (int x = 0 + radius; x < w - radius; x++)
-//    {
-//        for (int y = 0 + radius; y < h - radius; y++)
-//        {
-//            // the centre must be white in our mask
-//            if (GetPixel(x, y, w3, maskdata) > 0)
-//            {
-//                xlPoint p(x, y);
-//                float score = CalcPoint(edge, x, y, radius);
-//                if (score > CIRCLETHRESHOLD)
-//                {
-//                    accum[p] = score * 255;
-//                }
-//            }
-//        }
-//    }
-//    return accum;
-//}
-//
-//std::list<wxPoint> GenerateCustomModelDialog::CircleDetect(wxImage& mask, wxImage& edge, int minr, int maxr)
-//{
-//    std::list<wxPoint> res;
-//    std::map<int/*radius*/, std::map<xlPoint, int/*score*/>> cone;
-//
-//    for (int i = minr; i <= maxr; i++)
-//    {
-//        cone[i - minr] = CircleDetect(mask, edge, i);
-//    }
-//
-//    // reorganise by points
-//    std::map<xlPoint, std::map<int/*radius*/, int/*score*/>> centres;
-//    for (auto r = cone.begin(); r != cone.end(); ++r)
-//    {
-//        for (auto p = cone[r->first].begin(); p != cone[r->first].end(); ++p)
-//        {
-//            centres[p->first][r->first] = p->second;
-//        }
-//    }
-//
-//    // for each point find the best scoring radius
-//    std::map<xlPoint, int> bestradius;
-//    for (auto p = centres.begin(); p != centres.end(); ++p)
-//    {
-//        int maxscore = 0;
-//        int maxr = -1;
-//
-//        for (auto r = centres[p->first].begin(); r != centres[p->first].end(); ++r)
-//        {
-//            if (r->second >= maxscore)
-//            {
-//                maxscore = r->second;
-//                maxr = r->first;
-//            }
-//        }
-//        bestradius[p->first] = maxr + minr; // restoring radius to true value
-//    }
-//
-//    // coallesc the centres - ie anything centred less than COALLESCSIZE limit away is the same
-//    //for (int i = max; i >= 0; i++)
-//    //{
-//    //    for(auto )
-//    //}
-//
-//    for (auto c = bestradius.begin(); c != bestradius.end(); c++)
-//    {
-//        res.push_back((wxPoint)c->first);
-//    }
-//
-//    return res;
-//}
-
-wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxColor col)
+wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxColor col, wxRect clip, int minseparation)
 {
+    std::list<GCMBulb> mins = ApplyMinimumSeparation(centres, Slider_BI_MinSeparation->GetValue());
+
     wxBitmap bmp(ref.GetWidth(), ref.GetHeight());
     wxMemoryDC dc(bmp);
 
@@ -1766,50 +1663,103 @@ wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, 
     dc.SetBrush(b);
     dc.SetPen(p);
 
-    for (auto c = centres.begin(); c != centres.end(); c++)
+    for (auto c = mins.begin(); c != mins.end(); c++)
     {
         c->Draw(dc);
     }
 
+    wxSize displaysize = StaticBitmap_Preview->GetSize();
+    int penw = 3 * std::max((float)_startFrame.GetWidth() / (float)displaysize.GetWidth(),
+        (float)_startFrame.GetHeight() / (float)displaysize.GetHeight());
+    wxPen p2(*wxWHITE, 2, wxPENSTYLE_LONG_DASH);
+    dc.SetPen(p2);
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRectangle(_clip);
+
     return bmp.ConvertToImage();
 }
 
+//void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount)
+//{
+//    int pc = GetPixel(x, y, w3, data);
+//
+//    // only need to do something if the pixel is white
+//    if (pc == 255)
+//    {
+//        totalX += x;
+//        totalY += y;
+//        pixelCount++;
+//        SetPixel(x, y, w3, data, 0); // Black out the pixel because we have processed it
+//
+//        if (pixelCount > 1000)
+//        {
+//            if (!_warned)
+//            {
+//                log4cpp::Category& logger = log4cpp::Category::getRoot();
+//                logger.warn("Too many pixels in blob when generating Custom Model.");
+//                wxMessageBox("Too many pixels were found in a single blob. Model generation will continue but model will be compromised. Consider going back and changing the image settings.");
+//                _warned = true;
+//            }
+//            return;
+//        }
+//
+//        // we dont look at edge pixels ... should not make a big difference & simplifies code
+//        if (x > 0 && y > 0 && x < w-1 && y < h-1)
+//        {
+//            WalkPixels(x - 1, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
+//            WalkPixels(x, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
+//            WalkPixels(x + 1, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
+//            WalkPixels(x - 1, y, w, h, w3, data, totalX, totalY, pixelCount);
+//            WalkPixels(x + 1, y, w, h, w3, data, totalX, totalY, pixelCount);
+//            WalkPixels(x - 1, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
+//            WalkPixels(x, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
+//            WalkPixels(x + 1, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
+//        }
+//    }
+//}
+
 void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount)
 {
-    int pc = GetPixel(x, y, w3, data);
+    std::list<wxPoint> pixels;
+    pixels.push_back(wxPoint(x, y));
 
-    // only need to do something if the pixel is white
-    if (pc == 255)
+    while(pixels.size() != 0)
     {
-        totalX += x;
-        totalY += y;
-        pixelCount++;
-        SetPixel(x, y, w3, data, 0); // Black out the pixel because we have processed it
+        std::list<wxPoint>::iterator it = pixels.begin();
 
-        if (pixelCount > 1000)
+        if (GetPixel(it->x, it->y, w3, data) > 0)
         {
-            if (!_warned)
-            {
-                log4cpp::Category& logger = log4cpp::Category::getRoot();
-                logger.warn("Too many pixels in blob when generating Custom Model.");
-                wxMessageBox("Too many pixels were found in a single blob. Model generation will continue but model will be compromised. Consider going back and changing the image settings.");
-                _warned = true;
+            SetPixel(it->x, it->y, w3, data, 0);
+            pixelCount++;
+            totalX += it->x;
+            totalY += it->y;
+
+            if (GetPixel(it->x - 1, it->y - 1, w3, data) > 0) {
+                pixels.push_back(wxPoint(it->x - 1, it->y - 1));
             }
-            return;
+            if (GetPixel(it->x - 1, it->y + 1, w3, data) > 0) { 
+                pixels.push_back(wxPoint(it->x - 1, it->y + 1));
+            }
+            if (GetPixel(it->x + 1, it->y - 1, w3, data) > 0) {
+                pixels.push_back(wxPoint(it->x + 1, it->y - 1));
+            }
+            if (GetPixel(it->x + 1, it->y + 1, w3, data) > 0) {
+                pixels.push_back(wxPoint(it->x + 1, it->y + 1));
+            }
+            if (GetPixel(it->x, it->y - 1, w3, data) > 0) {
+                pixels.push_back(wxPoint(it->x, it->y - 1));
+            }
+            if (GetPixel(it->x, it->y + 1, w3, data) > 0) {
+                pixels.push_back(wxPoint(it->x, it->y + 1));
+            }
+            if (GetPixel(it->x - 1, it->y, w3, data) > 0) {
+                pixels.push_back(wxPoint(it->x - 1, it->y));
+            }
+            if (GetPixel(it->x + 1, it->y, w3, data) > 0) {
+                pixels.push_back(wxPoint(it->x + 1, it->y));
+            }
         }
-
-        // we dont look at edge pixels ... should not make a big difference & simplifies code
-        if (x > 0 && y > 0 && x < w-1 && y < h-1)
-        {
-            WalkPixels(x - 1, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
-            WalkPixels(x, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
-            WalkPixels(x + 1, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
-            WalkPixels(x - 1, y, w, h, w3, data, totalX, totalY, pixelCount);
-            WalkPixels(x + 1, y, w, h, w3, data, totalX, totalY, pixelCount);
-            WalkPixels(x - 1, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
-            WalkPixels(x, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
-            WalkPixels(x + 1, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
-        }
+        pixels.pop_front();
     }
 }
 
@@ -1841,14 +1791,14 @@ std::list<GCMBulb> GenerateCustomModelDialog::FindLights(wxImage& image, int num
             if (GetPixel(x, y, w3, data) > 0)
             {
                 res.push_back(FindCenter(x, y, w, h, w3, data, num));
+                //ShowImage(temp);
+                //wxYield();
+                //wxMilliSleep(500);
             }
         }
     }
 
-    // now circle detect
-    // res = CircleDetect(_bwFrame, _cbFrame, 5, 40);
-
-    _biFrame = CreateDetectMask(res, _startFrame, true, *wxRED);
+    _biFrame = CreateDetectMask(res, _startFrame, true, *wxRED, _clip, Slider_BI_MinSeparation->GetValue());
     ShowImage(_biFrame);
 
     return res;
@@ -1856,6 +1806,7 @@ std::list<GCMBulb> GenerateCustomModelDialog::FindLights(wxImage& image, int num
 
 void GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdSliderUpdated(wxScrollEvent& event)
 {
+    TextCtrl_BI_Sensitivity->SetValue(wxString::Format("%d", Slider_BI_Sensitivity->GetValue()));
     if (!_busy)
     {
         Button_BI_Next->Disable();
@@ -1902,18 +1853,18 @@ void GenerateCustomModelDialog::CMTabEntry()
     ShowImage(_biFrame);
 }
 
-bool GenerateCustomModelDialog::TestScale(std::list<GCMBulb>::iterator it, float scale, wxPoint trim)
+bool GenerateCustomModelDialog::TestScale(std::list<GCMBulb>& lights, std::list<GCMBulb>::iterator it, float scale, wxPoint trim)
 {
     GCMBulb b = *it;
     ++it;
-    if (it != _lights.end())
+    if (it != lights.end())
     {
 
-        if (!TestScale(it, scale, trim))
+        if (!TestScale(lights, it, scale, trim))
         {
             return false;
         }
-        while (it != _lights.end())
+        while (it != lights.end())
         {
             if (b.IsSameLocation(*it, scale, trim))
             {
@@ -1925,12 +1876,12 @@ bool GenerateCustomModelDialog::TestScale(std::list<GCMBulb>::iterator it, float
     return true;
 }
 
-wxPoint GenerateCustomModelDialog::CalcTrim()
+wxPoint GenerateCustomModelDialog::CalcTrim(std::list<GCMBulb>& lights)
 {
     int x = 999999;
     int y = 999999;
 
-    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    for (auto it = lights.begin(); it != lights.end(); it++)
     {
         wxPoint loc = it->GetLocation();
         if (loc.x < x)
@@ -1946,12 +1897,12 @@ wxPoint GenerateCustomModelDialog::CalcTrim()
     return wxPoint(x, y);
 }
 
-wxSize GenerateCustomModelDialog::CalcSize(float scale, wxPoint trim)
+wxSize GenerateCustomModelDialog::CalcSize(std::list<GCMBulb>& lights, float scale, wxPoint trim)
 {
     int x = 0;
     int y = 0;
 
-    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    for (auto it = lights.begin(); it != lights.end(); it++)
     {
         wxPoint loc = it->GetLocation(scale,trim);
         if (loc.x > x)
@@ -1967,6 +1918,60 @@ wxSize GenerateCustomModelDialog::CalcSize(float scale, wxPoint trim)
     return wxSize(x+1, y+1);
 }
 
+std::list<GCMBulb> GenerateCustomModelDialog::RemoveClippedLights(std::list<GCMBulb>& lights, wxRect& clip)
+{
+    std::list<GCMBulb> res;
+
+    for (auto it = lights.begin(); it != lights.end(); ++it)
+    {
+        int x = it->GetLocation().x;
+        int y = it->GetLocation().y;
+        if (x >= _clip.GetLeft() && x <= _clip.GetRight() &&
+            y >= _clip.GetTop() && y <= _clip.GetBottom())
+        {
+            res.push_back(*it);
+        }
+    }
+
+    return res;
+}
+
+bool IsWithin(int x1, int y1, int x2, int y2, int d)
+{
+    int dist = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+
+    return d > dist;
+}
+
+std::list<GCMBulb> GenerateCustomModelDialog::ApplyMinimumSeparation(std::list<GCMBulb>& lights, int minseparation)
+{
+    std::list<GCMBulb> res;
+
+    for (auto it = lights.begin(); it != lights.end(); ++it)
+    {
+        int x = it->GetLocation().x;
+        if (x != -100)
+        {
+            int y = it->GetLocation().y;
+            int count = 1;
+            for (auto it2 = it; it2 != lights.end(); ++it2)
+            {
+                if (IsWithin(it->GetLocation().x, it->GetLocation().y, it2->GetLocation().x, it2->GetLocation().y, minseparation))
+                {
+                    count++;
+                    x += it2->GetLocation().x;
+                    y += it2->GetLocation().y;
+                    it2->SetLocation(-100, -100);
+                }
+            }
+
+            res.push_back(GCMBulb(wxPoint(x / count, y / count), it->GetNum()));
+        }
+    }
+
+    return res;
+}
+
 // this will find the best scale to 1/100th of the imput size
 void GenerateCustomModelDialog::DoGenerateCustomModel()
 {
@@ -1975,25 +1980,28 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
         return;
     }
 
-    _trim = CalcTrim();
+    std::list<GCMBulb> clipped = RemoveClippedLights(_lights, _clip);
+    std::list<GCMBulb> newlights = ApplyMinimumSeparation(clipped, Slider_BI_MinSeparation->GetValue());
+
+    _trim = CalcTrim(newlights);
 
     float best = 1.0;
     float curr = 0.9;
 
-    while (TestScale(_lights.begin(), curr, _trim))
+    while (TestScale(newlights, newlights.begin(), curr, _trim))
     {
         best = curr;
         curr = curr - 0.1;
     }
     curr = curr - 0.01;
-    while (TestScale(_lights.begin(), curr, _trim))
+    while (TestScale(newlights, newlights.begin(), curr, _trim))
     {
         best = curr;
         curr = curr - 0.01;
     }
     _scale = best;
 
-    _size = CalcSize(_scale, _trim);
+    _size = CalcSize(newlights, _scale, _trim);
 
     Grid_CM_Result->ClearGrid();
     if (Grid_CM_Result->GetNumberCols() > 0)
@@ -2011,7 +2019,7 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
         Grid_CM_Result->CreateGrid(_size.y, _size.x);
     }
 
-    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    for (auto it = newlights.begin(); it != newlights.end(); it++)
     {
         wxPoint p = it->GetLocation(_scale, _trim);
         Grid_CM_Result->SetCellValue(p.y, p.x, wxString::Format("%d", it->GetNum()));
@@ -2146,4 +2154,157 @@ void GenerateCustomModelDialog::OnButton_ShrinkClick(wxCommandEvent& event)
 
 #pragma endregion Generate
 
+int GenerateCustomModelDialog::GetEdge(int x, int y)
+{
+    wxSize displaysize = StaticBitmap_Preview->GetSize();
+    float xf = (float)_startFrame.GetWidth() / (float)displaysize.GetWidth();
+    float yf = (float)_startFrame.GetHeight() / (float)displaysize.GetHeight();
+    int edge = -1;
 
+    if (abs(xf*x - _clip.GetLeft()) < 3 * xf)
+    {
+        if (yf*y >= _clip.GetTop() && yf*y <= _clip.GetBottom())
+        {
+            edge = 3;
+        }
+    }
+    else if (abs(xf*x - _clip.GetRight()) < 5 * xf)
+    {
+        if (yf*y >= _clip.GetTop() && yf*y <= _clip.GetBottom())
+        {
+            edge = 1;
+        }
+    }
+    else if (abs(yf*y - _clip.GetTop()) < 5*yf)
+    {
+        if (xf*x >= _clip.GetLeft() && xf*x <= _clip.GetRight())
+        {
+            edge = 0;
+        }
+    }
+    else if (abs(yf*y - _clip.GetBottom()) < 5*yf)
+    {
+        if (xf*x >= _clip.GetLeft() && xf*x <= _clip.GetRight())
+        {
+            edge = 2;
+        }
+    }
+
+    return edge;
+}
+
+void GenerateCustomModelDialog::ResizeClip(int x, int y)
+{
+    wxSize displaysize = StaticBitmap_Preview->GetSize();
+    float xf = (float)_startFrame.GetWidth() / (float)displaysize.GetWidth() * (float)x;
+    float yf = (float)_startFrame.GetHeight() / (float)displaysize.GetHeight() * (float)y;
+    if (_draggingedge == -1)
+    {
+        return;
+    }
+    else if (_draggingedge == 0)
+    {
+        int b = _clip.GetBottom();
+        _clip.SetTop(yf);
+        _clip.SetBottom(b);
+    }
+    else if (_draggingedge == 1)
+    {
+        _clip.SetRight(xf);
+    }
+    else if (_draggingedge == 2)
+    {
+        _clip.SetBottom(yf);
+    }
+    else if (_draggingedge == 3)
+    {
+        int r = _clip.GetRight();
+        _clip.SetLeft(xf);
+        _clip.SetRight(r);
+    }
+    StaticBitmap_Preview->SetEraseBackground(false);
+    _biFrame = CreateDetectMask(_lights, _startFrame, true, *wxRED, _clip, Slider_BI_MinSeparation->GetValue());
+    ShowImage(_biFrame);
+    StaticBitmap_Preview->SetEraseBackground(true);
+}
+
+void GenerateCustomModelDialog::OnStaticBitmapLeftDown(wxMouseEvent& event)
+{
+    // only doing dragging on one page
+    if (_state == VideoProcessingStates::IDENTIFYING_BULBS)
+    {
+        _draggingedge = GetEdge(event.GetX(), event.GetY());
+        if (_draggingedge >= 0)
+        {
+            ResizeClip(event.GetX(), event.GetY());
+            if (_draggingedge % 2 == 0)
+            {
+                SetCursor(wxCURSOR_SIZENS);
+            }
+            else
+            {
+                SetCursor(wxCURSOR_SIZEWE);
+            }
+        }
+    }
+}
+
+void GenerateCustomModelDialog::OnStaticBitmapLeftUp(wxMouseEvent& event)
+{
+    if (_state == VideoProcessingStates::IDENTIFYING_BULBS)
+    {
+        if (_draggingedge >= 0)
+        {
+            ResizeClip(event.GetX(), event.GetY());
+        }
+        _draggingedge = -1;
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+
+void GenerateCustomModelDialog::OnStaticBitmapMouseLeave(wxMouseEvent& event)
+{
+    if (_state == VideoProcessingStates::IDENTIFYING_BULBS)
+    {
+        if (_draggingedge >= 0)
+        {
+            ResizeClip(std::min(event.GetX(),_startFrame.GetWidth() - 1), std::min(event.GetY(), _startFrame.GetHeight() - 1));
+        }
+        _draggingedge = -1;
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+void GenerateCustomModelDialog::OnStaticBitmapMouseMove(wxMouseEvent& event)
+{
+    if (_state == VideoProcessingStates::IDENTIFYING_BULBS)
+    {
+        if (_draggingedge >= 0)
+        {
+            ResizeClip(event.GetX(), event.GetY());
+        }
+        else
+        {
+            int e = GetEdge(event.GetX(), event.GetY());
+            if (e == -1)
+            {
+                SetCursor(wxCURSOR_ARROW);
+            }
+            else if (e % 2 == 0)
+            {
+                SetCursor(wxCURSOR_SIZENS);
+            }
+            else
+            {
+                SetCursor(wxCURSOR_SIZEWE);
+            }
+        }
+    }
+}
+
+
+void GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_BI_MinSeparation->SetValue(wxString::Format("%d", Slider_BI_MinSeparation->GetValue()));
+}

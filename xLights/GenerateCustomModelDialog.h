@@ -66,6 +66,7 @@ class GCMBulb
 
 public:
     GCMBulb(wxPoint pt, int num) { _location = pt; _num = num; }
+    void SetLocation(int x, int y) { _location = wxPoint(x, y); }
     void Draw(wxMemoryDC& dc)
     {
         dc.DrawCircle(_location, 3);
@@ -126,12 +127,16 @@ class GenerateCustomModelDialog: public wxDialog
     float _scale;
     wxSize _size;
     bool _warned;
+    int _draggingedge;
+    wxRect _clip;
 
     void UpdateProgress(wxProgressDialog& pd, int totaltime);
     void ShowFrame(int time);
     wxImage CreateImageFromFrame(AVFrame* frame);
     void ShowImage(const wxImage& image);
     void SwapPage(int oldp, int newp);
+    int GetEdge(int x, int y);
+    void ResizeClip(int x, int y);
 
 #pragma region Model Type Tab
     void MTTabEntry();
@@ -167,19 +172,21 @@ class GenerateCustomModelDialog: public wxDialog
     //std::map<xlPoint, int> CircleDetect(wxImage& mask, wxImage& edge, int radius);
     //std::list<wxPoint> CircleDetect(wxImage& mask, wxImage& edge, int minr, int maxr);
     std::list<GCMBulb> FindLights(wxImage& image, int num);
-    wxImage CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxColor col);
+    wxImage CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxColor col, wxRect rect, int minseparation);
     void WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount);
     GCMBulb FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num);
     void SubtractImage(wxImage& from, wxImage& tosubtract);
     int CountWhite(wxImage& image);
+    std::list<GCMBulb> ApplyMinimumSeparation(std::list<GCMBulb>& clipped, int minseparation);
 #pragma endregion Identify Bulbs Tab
 
     wxString CreateCustomModelData();
-    wxPoint CalcTrim();
-    bool TestScale(std::list<GCMBulb>::iterator it, float scale, wxPoint trim);
+    wxPoint CalcTrim(std::list<GCMBulb>& lights);
+    bool TestScale(std::list<GCMBulb>& lights, std::list<GCMBulb>::iterator it, float scale, wxPoint trim);
     void CMTabEntry();
-    wxSize CalcSize(float scale, wxPoint trim);
+    wxSize CalcSize(std::list<GCMBulb>& lights, float scale, wxPoint trim);
     void DoGenerateCustomModel();
+    std::list<GCMBulb> RemoveClippedLights(std::list<GCMBulb>& lights, wxRect& clip);
 
 #pragma endregion Generate Tab
 
@@ -213,9 +220,12 @@ class GenerateCustomModelDialog: public wxDialog
 		wxSlider* Slider_LevelFilterAdjust;
 		wxFlexGridSizer* FlexGridSizer19;
 		wxStaticText* StaticText_CM_Request;
+		wxTextCtrl* TextCtrl_BI_Sensitivity;
+		wxSlider* Slider_BI_MinSeparation;
 		wxButton* Button_BI_Back;
 		wxButton* Button_SF_Back;
 		wxButton* Button_Back1Frame;
+		wxStaticText* StaticText13;
 		wxButton* Button_CB_RestoreDefault;
 		wxButton* Button_CM_Back;
 		wxRadioBox* RadioBox2;
@@ -235,6 +245,8 @@ class GenerateCustomModelDialog: public wxDialog
 		wxButton* Button_CV_Back;
 		wxButton* Button_MT_Next;
 		wxGauge* Gauge_Progress;
+		wxTextCtrl* TextCtrl_BC_Blur;
+		wxTextCtrl* TextCtrl_BI_MinSeparation;
 		wxTextCtrl* TextCtrl_GCM_Filename;
 		wxPanel* Panel_ChooseVideo;
 		wxSlider* Slider_AdjustBlur;
@@ -256,6 +268,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxButton* Button_CM_Save;
 		wxSpinCtrl* SpinCtrl_StartChannel;
 		wxButton* Button_BD_Next;
+		wxTextCtrl* TextCtrl_BC_level;
 		wxButton* Button_Forward1Frame;
 		//*)
 
@@ -292,8 +305,10 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_STATICTEXT4;
 		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_AdjustBlur;
+		static const long ID_TEXTCTRL_BC_Blur;
 		static const long ID_STATICTEXT2;
 		static const long ID_SLIDER_LevelFilterAdjust;
+		static const long ID_TEXTCTRL_BC_Level;
 		static const long ID_BUTTON_CB_RestoreDefault;
 		static const long ID_BUTTON_BD_Back;
 		static const long ID_BUTTON_BD_Next;
@@ -301,6 +316,10 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_STATICTEXT5;
 		static const long ID_STATICTEXT8;
 		static const long ID_SLIDER_BI_Sensitivity;
+		static const long ID_TEXTCTRL_BI_Sensitivity;
+		static const long ID_STATICTEXT6;
+		static const long ID_SLIDER_BI_MinSeparation;
+		static const long ID_TEXTCTRL_BI_MinSeparation;
 		static const long ID_BUTTON_BI_Back;
 		static const long ID_BUTTON_BI_Next;
 		static const long ID_PANEL_BulbIdentify;
@@ -352,9 +371,15 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnButton_ShrinkClick(wxCommandEvent& event);
 		void OnButton_GrowClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
+		void OnSlider_BI_MinSeparationCmdSliderUpdated(wxScrollEvent& event);
 		//*)
 
-		DECLARE_EVENT_TABLE()
+        void OnStaticBitmapLeftUp(wxMouseEvent& event);
+        void OnStaticBitmapLeftDown(wxMouseEvent& event);
+        void OnStaticBitmapMouseMove(wxMouseEvent& event);
+        void OnStaticBitmapMouseLeave(wxMouseEvent& event);
+
+        DECLARE_EVENT_TABLE()
 };
 
 #endif
