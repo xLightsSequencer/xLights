@@ -883,8 +883,15 @@ void GenerateCustomModelDialog::SwapPage(int oldp, const int newp)
 
 void GenerateCustomModelDialog::MTTabEntry()
 {
-    // nothing to do
     _state = VideoProcessingStates::CHOOSE_MODELTYPE;
+    _displaybmp = wxImage(GCM_DISPLAYIMAGEWIDTH, GCM_DISPLAYIMAGEHEIGHT, true);
+    StaticBitmap_Preview->SetBitmap(_displaybmp);
+    if (_vr != NULL)
+    {
+        delete _vr;
+        _vr = NULL;
+    }
+    _draggingedge = -1;
 }
 
 void GenerateCustomModelDialog::OnButton_MT_NextClick(wxCommandEvent& event)
@@ -923,7 +930,7 @@ void GenerateCustomModelDialog::CVTabEntry()
     {
         if (RadioBox2->GetSelection() == 2)
         {
-            _startFrame.LoadFile(TextCtrl_GCM_Filename->GetValue());
+            _startFrame = wxImage(TextCtrl_GCM_Filename->GetValue());
             _clip = wxRect(0, 0, _startFrame.GetWidth()-1, _startFrame.GetHeight()-1);
             ShowImage(_startFrame);
         }
