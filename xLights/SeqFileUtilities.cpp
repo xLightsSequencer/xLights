@@ -313,6 +313,10 @@ bool xLightsFrame::CloseSequence()
     mainSequencer->PanelWaveForm->CloseMedia();
     SeqData.init(0,0,50);
     EnableSequenceControls(true);  // let it re-evaluate menu state
+    StatusBar1->SetStatusText("");
+    StatusBar1->SetStatusText(CurrentDir, 1);
+    sPreview1->Refresh();
+    sPreview2->Refresh();
     return true;
 }
 
