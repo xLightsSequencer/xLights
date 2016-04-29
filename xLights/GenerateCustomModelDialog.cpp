@@ -379,9 +379,9 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer16->AddGrowableCol(1);
 	StaticText_BI_Slider = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT8, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer16->Add(StaticText_BI_Slider, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_BI_Sensitivity = new wxSlider(Panel_BulbIdentify, ID_SLIDER_BI_Sensitivity, 50, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BI_Sensitivity"));
+	Slider_BI_Sensitivity = new wxSlider(Panel_BulbIdentify, ID_SLIDER_BI_Sensitivity, 127, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BI_Sensitivity"));
 	FlexGridSizer16->Add(Slider_BI_Sensitivity, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_BI_Sensitivity = new wxTextCtrl(Panel_BulbIdentify, ID_TEXTCTRL_BI_Sensitivity, _("50"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("ID_TEXTCTRL_BI_Sensitivity"));
+	TextCtrl_BI_Sensitivity = new wxTextCtrl(Panel_BulbIdentify, ID_TEXTCTRL_BI_Sensitivity, _("127"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("ID_TEXTCTRL_BI_Sensitivity"));
 	FlexGridSizer16->Add(TextCtrl_BI_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText13 = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT6, _("Minimum Separation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
 	FlexGridSizer16->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1526,7 +1526,7 @@ void GenerateCustomModelDialog::OnButton_BD_NextClick(wxCommandEvent& event)
 void GenerateCustomModelDialog::OnButton_CB_RestoreDefaultClick(wxCommandEvent& event)
 {
     Slider_AdjustBlur->SetValue(5);
-    Slider_BI_Sensitivity->SetValue(200);
+    Slider_LevelFilterAdjust->SetValue(200);
     OutlineBulbs();
     ValidateWindow();
 }
@@ -1640,12 +1640,15 @@ void GenerateCustomModelDialog::BITabEntry()
         StaticText_BI->SetLabel("The red circles on the image show the bulbs we have identified.\n\nClick next when you are happy that all bulbs have been detected.");
         Slider_BI_Sensitivity->Hide();
         StaticText_BI_Slider->Hide();
+        TextCtrl_BI_Sensitivity->Hide();
     }
     else
     {
         StaticText_BI->SetLabel("The red circles on the image show the bulbs we have identified. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected.");
         StaticText_BI_Slider->Show();
         Slider_BI_Sensitivity->Show();
+        TextCtrl_BI_Sensitivity->Show();
+        TextCtrl_BI_Sensitivity->Enable();
         Slider_BI_Sensitivity->Enable();
     }
     Button_BI_Next->Enable();
@@ -1744,7 +1747,7 @@ void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, u
             if (GetPixel(it->x - 1, it->y - 1, w3, data) > 0) {
                 pixels.push_back(wxPoint(it->x - 1, it->y - 1));
             }
-            if (GetPixel(it->x - 1, it->y + 1, w3, data) > 0) { 
+            if (GetPixel(it->x - 1, it->y + 1, w3, data) > 0) {
                 pixels.push_back(wxPoint(it->x - 1, it->y + 1));
             }
             if (GetPixel(it->x + 1, it->y - 1, w3, data) > 0) {

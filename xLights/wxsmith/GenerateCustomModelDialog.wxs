@@ -634,7 +634,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER_BI_Sensitivity" variable="Slider_BI_Sensitivity" member="yes">
-																					<value>50</value>
+																					<value>127</value>
 																					<max>255</max>
 																					<handler function="OnSlider_BI_SensitivityCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
@@ -644,7 +644,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL_BI_Sensitivity" variable="TextCtrl_BI_Sensitivity" member="yes">
-																					<value>50</value>
+																					<value>127</value>
 																					<size>40,24</size>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
