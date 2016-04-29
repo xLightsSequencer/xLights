@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Reposition view when playback starts or loops so that play marker is visible.  Fixes #550.
    -- enh (gil)     Paste modifications for how single effects paste in various situations.  Fixes #549.
 2016.22  Apr 24, 2016
    -- bug (gil)     Fix bug where SingleLine model wouldn't draw when set to

@@ -105,6 +105,25 @@ TimeLine::~TimeLine()
 {
 }
 
+void TimeLine::CheckNeedToScrollToPlayStart()
+{
+    int StartTime;
+    int EndTime;
+    GetViewableTimeRange(StartTime, EndTime);
+    int scroll_start = GetPositionFromTimeMS(StartTime);
+    int scroll_end = GetPositionFromTimeMS(EndTime);
+    if(mCurrentPlayMarkerStart < scroll_start || mCurrentPlayMarkerStart > scroll_end)
+    {
+        int new_start_time = mCurrentPlayMarkerStartMS - 1000;
+        if( new_start_time < 0 )
+        {
+            new_start_time = 0;
+        }
+        SetStartTimeMS(new_start_time);
+        RaiseChangeTimeline();
+    }
+}
+
 void TimeLine::RaiseChangeTimeline()
 {
     Refresh();
@@ -210,6 +229,7 @@ void TimeLine::PlayStarted()
         mCurrentPlayMarkerStartMS = mSelectedPlayMarkerStartMS;
         mCurrentPlayMarkerEndMS = mSelectedPlayMarkerEndMS;
     }
+    CheckNeedToScrollToPlayStart();
     timeline_initiated_play = false;
     Refresh(false);
 }

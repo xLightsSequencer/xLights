@@ -754,6 +754,7 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
         playType = PLAY_TYPE_MODEL_PAUSED;
     }
     else if (playType == PLAY_TYPE_MODEL_PAUSED) {
+        mainSequencer->PanelTimeLine->CheckNeedToScrollToPlayStart();
         playType = PLAY_TYPE_MODEL;
     }
     else if (playType == PLAY_TYPE_EFFECT_PAUSED) {
