@@ -1667,6 +1667,14 @@ wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, 
         dc.DrawBitmap(ref, wxPoint(0, 0), false);
     }
 
+    wxSize displaysize = StaticBitmap_Preview->GetSize();
+    int penw = 3 * std::max((float)_startFrame.GetWidth() / (float)displaysize.GetWidth(),
+        (float)_startFrame.GetHeight() / (float)displaysize.GetHeight());
+    wxPen p2(*wxGREEN, penw, wxPENSTYLE_LONG_DASH);
+    dc.SetPen(p2);
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRectangle(_clip);
+
     wxBrush b(col, wxBrushStyle::wxBRUSHSTYLE_SOLID);
     wxPen p(col, 1);
 
@@ -1677,14 +1685,6 @@ wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, 
     {
         c->Draw(dc);
     }
-
-    wxSize displaysize = StaticBitmap_Preview->GetSize();
-    int penw = 3 * std::max((float)_startFrame.GetWidth() / (float)displaysize.GetWidth(),
-        (float)_startFrame.GetHeight() / (float)displaysize.GetHeight());
-    wxPen p2(*wxWHITE, 2, wxPENSTYLE_LONG_DASH);
-    dc.SetPen(p2);
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRectangle(_clip);
 
     return bmp.ConvertToImage();
 }
