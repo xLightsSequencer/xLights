@@ -106,7 +106,7 @@ public:
     void SetLocation(int x, int y) { _location = wxPoint(x, y); }
     void Draw(wxMemoryDC& dc, float factor)
     {
-        int diameter = 3 * factor;
+        int diameter = 2 * factor;
         if (isSupressedButDraw())
         {
             wxBrush b(*wxBLUE, wxBrushStyle::wxBRUSHSTYLE_SOLID);

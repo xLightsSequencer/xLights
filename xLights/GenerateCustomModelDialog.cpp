@@ -1657,6 +1657,7 @@ void GenerateCustomModelDialog::BITabEntry()
 
 wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxRect clip, int minseparation)
 {
+    RemoveClippedLights(centres, _clip);
     ApplyMinimumSeparation(centres, Slider_BI_MinSeparation->GetValue());
 
     wxBitmap bmp(ref.GetWidth(), ref.GetHeight());
@@ -1975,13 +1976,14 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
     float best = 1.0;
     float curr = 0.9;
 
-    while (TestScale(_lights, _lights.begin(), curr, _trim))
+    while (curr > 0 && TestScale(_lights, _lights.begin(), curr, _trim))
     {
         best = curr;
         curr = curr - 0.1;
     }
+    float start = curr;
     curr = curr - 0.01;
-    while (TestScale(_lights, _lights.begin(), curr, _trim))
+    while (curr > start && TestScale(_lights, _lights.begin(), curr, _trim))
     {
         best = curr;
         curr = curr - 0.01;
