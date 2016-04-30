@@ -572,6 +572,7 @@ private:
     void OnAuiToolBarItemPasteByTimeClick(wxCommandEvent& event);
     void OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event);
     void OnMenuItemConvertSelected(wxCommandEvent& event);
+    void OnPaneClose(wxAuiManagerEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);

@@ -391,7 +391,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 {
     log4cpp::Category& logger = log4cpp::Category::getRoot();
     logger.debug("xLightsFrame being constructed.");
-    
+
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
@@ -1118,6 +1118,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_TEXTCTRL_PgoMaxRest,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoMaxRestText);
     Connect(ID_TEXTCTRL_PgoAutoFade,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoAutoFadeText);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
+    m_mgr->Connect(wxEVT_AUI_PANE_CLOSE,(wxObjectEventFunction)&xLightsFrame::OnPaneClose,0,this);
     PanelSequencer->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint,0,this);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanging);
@@ -2716,4 +2717,9 @@ void xLightsFrame::OnMenuItemConvertSelected(wxCommandEvent& event)
     ConvertDialog dialog(this, SeqData, NetInfo, mediaFilename, ChannelNames, ChannelColors, ChNames); // , &NetInfo, &ChNames, mMediaLengthMS);
     dialog.CenterOnParent();
     dialog.ShowModal();
+}
+
+void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
+{
+    SetFocus();
 }
