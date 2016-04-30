@@ -15,130 +15,123 @@
 #ifdef _MSC_VER
 #include "GL/glut.h"
 #else
-#define GL_GLEXT_PROTOTYPES
-#include <GL/glcorearb.h>
 #include <GL/gl.h>
+#include <GL/glext.h>
 #endif
 #endif
 
 #include <DrawGLUtils.h>
 #include <stack>
 
-#ifdef __WXMAC__
+#include <log4cpp/Category.hh>
 
-class OpenGL31Cache : public DrawGLUtils::xlGLCacheInfo {
+#ifndef __WXMAC__
+
+PFNGLUSEPROGRAMPROC glUseProgram;
+PFNGLCREATESHADERPROC glCreateShader;
+PFNGLSHADERSOURCEPROC glShaderSource;
+PFNGLCOMPILESHADERPROC glCompileShader;
+PFNGLGETSHADERIVPROC glGetShaderiv;
+PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+PFNGLCREATEPROGRAMPROC glCreateProgram;
+PFNGLATTACHSHADERPROC glAttachShader;
+PFNGLGETPROGRAMIVPROC glGetProgramiv;
+PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
+PFNGLDETACHSHADERPROC glDetachShader;
+PFNGLDELETESHADERPROC glDeleteShader;
+PFNGLLINKPROGRAMPROC glLinkProgram;
+PFNGLDELETEPROGRAMPROC glDeleteProgram;
+PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+PFNGLUNIFORM1IPROC glUniform1i;
+PFNGLUNIFORM4FPROC glUniform4f;
+PFNGLUNIFORM1FPROC glUniform1f;
+PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
+PFNGLBINDBUFFERPROC glBindBuffer;
+PFNGLDELETEBUFFERSPROC glDeleteBuffers;
+PFNGLGENBUFFERSPROC glGenBuffers;
+PFNGLBUFFERDATAPROC glBufferData;
+PFNGLFLUSHMAPPEDBUFFERRANGEPROC glFlushMappedBufferRange;
+PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
+PFNGLUNMAPBUFFERPROC glUnmapBuffer;
+PFNGLACTIVETEXTUREPROC glActiveTexture;
+PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
+PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
+
+void LoadGLFunctions() {
+    glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
+    glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
+    glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
+    glCompileShader = (PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader");
+    glGetShaderiv = (PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv");
+    glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)wglGetProcAddress("glGetShaderInfoLog");
+    glCreateProgram = (PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram");
+    glAttachShader = (PFNGLATTACHSHADERPROC)wglGetProcAddress("glAttachShader");
+    glGetProgramiv = (PFNGLGETPROGRAMIVPROC)wglGetProcAddress("glGetProgramiv");
+    glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)wglGetProcAddress("glGetProgramInfoLog");
+    glDetachShader = (PFNGLDETACHSHADERPROC)wglGetProcAddress("glDetachShader");
+    glDeleteShader = (PFNGLDELETESHADERPROC)wglGetProcAddress("glDeleteShader");
+    glLinkProgram = (PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram");
+    glDeleteProgram = (PFNGLDELETEPROGRAMPROC)wglGetProcAddress("glDeleteProgram");
+    glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
+    glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
+    glUniform4f = (PFNGLUNIFORM4FPROC)wglGetProcAddress("glUniform4f");
+    glUniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
+    glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)wglGetProcAddress("glUniformMatrix4fv");
+    glBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
+    glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
+    glGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
+    glBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
+    glFlushMappedBufferRange = (PFNGLFLUSHMAPPEDBUFFERRANGEPROC)wglGetProcAddress("glFlushMappedBufferRange");
+    glMapBufferRange = (PFNGLMAPBUFFERRANGEPROC)wglGetProcAddress("glMapBufferRange");
+    glUnmapBuffer = (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBuffer");
+    glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
+    glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress("glGenVertexArrays");
+    glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress("glBindVertexArray");
+    glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)wglGetProcAddress("glDeleteVertexArrays");
+    glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glEnableVertexAttribArray");
+    glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
+    glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArray");
+    glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)wglGetProcAddress("glGetAttribLocation");
+}
+#else
+void LoadGLFunctions() {
+}
+#endif
+
+class ShaderProgram {
 public:
-
-
-    OpenGL31Cache() : matrix(nullptr), colors(4), vertices(2), textures(1) {
-        max = 1024;
-        superMax = 1024;
-        //colors = new uint8_t[max * 4];
-        //vertices = new float[max * 2];
-        curCount = 0;
-
+    void Cleanup() {
+        glDeleteVertexArrays(1, &VertexArrayID);
+        glDeleteBuffers(1, &vBuffer);
+        glDeleteProgram(ProgramID);
+    }
+    void UseProgram() {
+        glUseProgram(ProgramID);
+    }
+    void Init(const char * vs, const char * fs) {
         GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
         GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-        GLint Result = GL_FALSE;
-        int InfoLogLength;
-        const char *VertexSourcePointer =
-            "#version 330 core\n"
-            "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
-            "layout(location = 1) in vec4 vertexColor;\n"
-            "layout(location = 2) in vec2 vertexUV;\n"
-            "out vec4 fragmentColor;\n"
-            "out vec2 UV;\n"
-            "uniform int RenderType;\n"
-            "uniform mat4 MVP;\n"
-            "uniform vec4 inColor;\n"
-            "void main(){\n"
-            "    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);"
-            "    if (RenderType == -2) {\n"
-            "        fragmentColor = inColor;\n"
-            "    } else if (RenderType == -1) {\n"
-            "        fragmentColor = inColor;\n"
-            "    } else {\n"
-            "        fragmentColor = vertexColor;\n"
-            "    }\n"
-            "    UV = vertexUV;\n"
-            "}\n";
-        glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
-        glCompileShader(VertexShaderID);
-
-        glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
-        glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-        if ( InfoLogLength > 0 ) {
-            std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
-            glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-            printf("%s\n", &VertexShaderErrorMessage[0]);
-        }
-
-        char const * FragmentSourcePointer =
-            "#version 330 core\n"
-            "in vec4 fragmentColor;\n"
-            "in vec2 UV;\n"
-            "in float radius;\n"
-            "out vec4 color;\n"
-            "uniform sampler2D tex;\n"
-            "uniform int RenderType;\n"
-            "uniform float PointSmoothMin = 0.4;\n"
-            "uniform float PointSmoothMax = 0.5;\n"
-            "void main(){\n"
-            "    if (RenderType == -1) {\n"
-            "        vec4 c = texture(tex, UV);\n"
-            "        color = vec4(c.rgb, c.a*fragmentColor.a);\n"
-            "    } else if (RenderType == 0 || RenderType == -2) {\n"
-            "        color = fragmentColor;\n"
-            "    } else {\n"
-            "        float dist = distance(gl_PointCoord, vec2(0.5));\n"
-            "        float alpha = 1.0 - smoothstep(PointSmoothMin, PointSmoothMax, dist);\n"
-            "        if (alpha == 0.0) discard;\n"
-            "        alpha = alpha * fragmentColor.a;\n"
-            "        color = vec4(fragmentColor.rgb, alpha);\n"
-            "    }\n"
-            "}\n";
-
-
-        glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
-        glCompileShader(FragmentShaderID);
-
-        // Check Fragment Shader
-        glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
-        glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-        if ( InfoLogLength > 0 ) {
-            std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
-            glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-            printf("%s\n", &FragmentShaderErrorMessage[0]);
-        }
-
-        ProgramID = glCreateProgram();
-        glAttachShader(ProgramID, VertexShaderID);
-        glAttachShader(ProgramID, FragmentShaderID);
-
-        glLinkProgram(ProgramID);
-        glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-        glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-        if ( InfoLogLength > 0 ){
-            std::vector<char> ProgramErrorMessage(InfoLogLength+1);
-            glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-            printf("%s\n", &ProgramErrorMessage[0]);
-        }
-        glDetachShader(ProgramID, VertexShaderID);
-        glDetachShader(ProgramID, FragmentShaderID);
+        CompileShader(vs, VertexShaderID);
+        CompileShader(fs, FragmentShaderID);
+        ProgramID = CreateProgram(VertexShaderID, FragmentShaderID);
         glDeleteShader(VertexShaderID);
         glDeleteShader(FragmentShaderID);
+        
         glUseProgram(ProgramID);
-
-        glGenVertexArrays(1, &VertexArrayID);
-        glBindVertexArray(VertexArrayID);
         MatrixID = glGetUniformLocation(ProgramID, "MVP");
-        RenderTypeID = glGetUniformLocation(ProgramID, "RenderType");
         PointSmoothMinID = glGetUniformLocation(ProgramID, "PointSmoothMin");
         PointSmoothMaxID = glGetUniformLocation(ProgramID, "PointSmoothMax");
-        glUniform1i(glGetUniformLocation(ProgramID, "tex"), 0);
+        RenderTypeID = glGetUniformLocation(ProgramID, "RenderType");
 
+        
+        glGenVertexArrays(1, &VertexArrayID);
+        glBindVertexArray(VertexArrayID);
         glEnableVertexAttribArray(0);
-        vertices.Init(max);
         glVertexAttribPointer(
                               0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
                               2,                  // size
@@ -147,84 +140,15 @@ public:
                               0,                  // stride
                               (void*)0            // array buffer offset
                               );
-
-        // 2nd attribute buffer : colors
-        glEnableVertexAttribArray(1);
-        colors.Init(max);
-        glVertexAttribPointer(1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-                              GL_BGRA,                                // size
-                              GL_UNSIGNED_BYTE,                         // type
-                              GL_TRUE,                         // normalized?
-                              0,                                // stride
-                              (void*)0                          // array buffer offset
-                              );
-
-        glEnableVertexAttribArray(2);
-        textures.Init(12);
-        glVertexAttribPointer(
-                              2,                  // attribute. No particular reason for 2, but must match the layout in the shader.
-                              2,                  // size
-                              GL_FLOAT,           // type
-                              GL_FALSE,           // normalized?
-                              0,                  // stride
-                              (void*)0            // array buffer offset
-                              );
-        glDisableVertexAttribArray(2);
         
         glGenBuffers(1, &vBuffer);
-        glGenBuffers(1, &cBuffer);
-        glGenBuffers(1, &tBuffer);
-        start = 0;
-    }
-    ~OpenGL31Cache() {
-        if (matrix) {
-            delete matrix;
-        }
-        while (!matrixStack.empty()) {
-            delete matrixStack.top();
-            matrixStack.pop();
-        }
-        if (ProgramID != 0) {
-            vertices.CleanUp();
-            colors.CleanUp();
-            textures.CleanUp();
-
-            glDeleteVertexArrays(1, &VertexArrayID);
-            glDeleteProgram(ProgramID);
-        }
-        glDeleteBuffers(1, &vBuffer);
-        glDeleteBuffers(1, &cBuffer);
-        glDeleteBuffers(1, &tBuffer);
     }
     
-    
-    
-    void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
-        glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
-        glBufferData(GL_ARRAY_BUFFER, va.count*2*sizeof(GLfloat), &va.vertices[0], GL_DYNAMIC_DRAW);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
-        
-        glDisableVertexAttribArray(1);
-        GLuint cid = glGetUniformLocation(ProgramID, "inColor");
-        glUniform4f(cid,
-                    ((float)color.Red())/255.0,
-                    ((float)color.Green())/255.0,
-                    ((float)color.Blue())/255.0,
-                    ((float)color.Alpha())/255.0
-                    );
-        glUniform1i(RenderTypeID, -2);
-        if (enableCapability > 0) {
-            glEnable(enableCapability);
-        }
-        glDrawArrays(type, 0, va.count);
-        glUniform1i(RenderTypeID, 0);
-        if (enableCapability > 0) {
-            glDisable(enableCapability);
-        }
-        
-        glBindBuffer(GL_ARRAY_BUFFER, vertices.id);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
-        glEnableVertexAttribArray(1);
+    void SetMatrix(glm::mat4 &m) {
+        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr(m));
+    }
+    void SetRenderType(int i) {
+        glUniform1i(RenderTypeID, i);
     }
     float CalcSmoothPointParams() {
         float ps;
@@ -243,12 +167,250 @@ public:
         return ps;
     }
     
-    void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
-        glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
+    
+    static GLuint CreateProgram(GLuint vs, GLuint fs) {
+        GLuint ProgramID = glCreateProgram();
+        glAttachShader(ProgramID, vs);
+        glAttachShader(ProgramID, fs);
+        glLinkProgram(ProgramID);
+        
+        
+        GLint Result = GL_FALSE;
+        int InfoLogLength;
+        
+        glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
+        glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+        if ( InfoLogLength > 0 ){
+            std::vector<char> ProgramErrorMessage(InfoLogLength+1);
+            glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+            printf("%s\n", &ProgramErrorMessage[0]);
+            log4cpp::Category& logger = log4cpp::Category::getRoot();
+            logger.info(&ProgramErrorMessage[0]);
+        }
+        glDetachShader(ProgramID, vs);
+        glDetachShader(ProgramID, fs);
+        return ProgramID;
+    }
+    
+    static void CompileShader(const char *sourcePointer, GLuint shaderID) {
+        glShaderSource(shaderID, 1, &sourcePointer , NULL);
+        glCompileShader(shaderID);
+        
+        GLint Result = GL_FALSE;
+        int InfoLogLength;
+        
+        glGetShaderiv(shaderID, GL_COMPILE_STATUS, &Result);
+        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+        if ( InfoLogLength > 0 ) {
+            std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
+            glGetShaderInfoLog(shaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+            printf("%s\n", &VertexShaderErrorMessage[0]);
+            
+            log4cpp::Category& logger = log4cpp::Category::getRoot();
+            logger.info(&VertexShaderErrorMessage[0]);
+        }
+    }
+
+    GLuint ProgramID;
+    GLuint MatrixID;
+    GLuint PointSmoothMinID;
+    GLuint PointSmoothMaxID;
+    GLuint VertexArrayID;
+    GLuint RenderTypeID;
+    GLuint vBuffer;
+};
+
+
+class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
+public:
+
+
+    OpenGL33Cache() : matrix(nullptr), colors(4), vertices(2) {
+        LoadGLFunctions();
+        textureProgram.Init(
+                           "#version 330 core\n"
+                           "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
+                           "layout(location = 2) in vec2 vertexUV;\n"
+                           "out vec4 fragmentColor;\n"
+                           "out vec2 UV;\n"
+                           "uniform mat4 MVP;\n"
+                           "uniform vec4 inColor;\n"
+                           "void main(){\n"
+                           "    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);\n"
+                           "    fragmentColor = inColor;\n"
+                           "    UV = vertexUV;\n"
+                           "}\n",
+                           
+                           "#version 330 core\n"
+                           "in vec4 fragmentColor;\n"
+                           "in vec2 UV;\n"
+                           "out vec4 color;\n"
+                           "uniform sampler2D tex;\n"
+                           "uniform int RenderType;\n"
+                           "void main(){\n"
+                           "    vec4 c = texture(tex, UV);\n"
+                           "    color = vec4(c.rgb, c.a*fragmentColor.a);\n"
+                           "}\n");
+
+        
+        singleColorProgram.Init(
+                      "#version 330 core\n"
+                      "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
+                      "out vec4 fragmentColor;\n"
+                      "uniform mat4 MVP;\n"
+                      "uniform vec4 inColor;\n"
+                      "void main(){\n"
+                      "    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);"
+                      "    fragmentColor = inColor;\n"
+                      "}\n",
+                      "#version 330 core\n"
+                      "in vec4 fragmentColor;\n"
+                      "out vec4 color;\n"
+                      "uniform int RenderType = 0;\n"
+                      "uniform float PointSmoothMin = 0.4;\n"
+                      "uniform float PointSmoothMax = 0.5;\n"
+                      "void main(){\n"
+                      "    if (RenderType == 0) {\n"
+                      "        color = fragmentColor;\n"
+                      "    } else {\n"
+                      "        float dist = distance(gl_PointCoord, vec2(0.5));\n"
+                      "        float alpha = 1.0 - smoothstep(PointSmoothMin, PointSmoothMax, dist);\n"
+                      "        if (alpha == 0.0) discard;\n"
+                      "        alpha = alpha * fragmentColor.a;\n"
+                      "        color = vec4(fragmentColor.rgb, alpha);\n"
+                      "    }\n"
+                      "}\n");
+        
+
+        normalProgram.Init(
+                           "#version 330 core\n"
+                           "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
+                           "layout(location = 1) in vec4 vertexColor;\n"
+                           "out vec4 fragmentColor;\n"
+                           "uniform int RenderType;\n"
+                           "uniform mat4 MVP;\n"
+                           "uniform vec4 inColor;\n"
+                           "void main(){\n"
+                           "    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);\n"
+                           "    if (RenderType == -2) {\n"
+                           "        fragmentColor = inColor;\n"
+                           "    } else if (RenderType == -1) {\n"
+                           "        fragmentColor = inColor;\n"
+                           "    } else {\n"
+                           "        fragmentColor = vertexColor;\n"
+                           "    }\n"
+                           "}\n",
+                           
+                           "#version 330 core\n"
+                           "in vec4 fragmentColor;\n"
+                           "in vec2 UV;\n"
+                           "out vec4 color;\n"
+                           "uniform int RenderType;\n"
+                           "uniform float PointSmoothMin = 0.4;\n"
+                           "uniform float PointSmoothMax = 0.5;\n"
+                           "void main(){\n"
+                           "    if (RenderType == 0 || RenderType == -2) {\n"
+                           "        color = fragmentColor;\n"
+                           "    } else {\n"
+                           "        float dist = distance(gl_PointCoord, vec2(0.5));\n"
+                           "        float alpha = 1.0 - smoothstep(PointSmoothMin, PointSmoothMax, dist);\n"
+                           "        if (alpha == 0.0) discard;\n"
+                           "        alpha = alpha * fragmentColor.a;\n"
+                           "        color = vec4(fragmentColor.rgb, alpha);\n"
+                           "    }\n"
+                           "}\n");
+        normalProgram.UseProgram();
+
+        max = superMax = 1024;
+        curCount = 0;
+        glEnableVertexAttribArray(0);
+        vertices.Init(max);
+        
+        // 2nd attribute buffer : colors
+        glEnableVertexAttribArray(1);
+        colors.Init(max);
+        glVertexAttribPointer(1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+                              GL_BGRA,                                // size
+                              GL_UNSIGNED_BYTE,                         // type
+                              GL_TRUE,                         // normalized?
+                              0,                                // stride
+                              (void*)0                          // array buffer offset
+                              );
+
+
+        glGenBuffers(1, &cBuffer);
+        glGenBuffers(1, &tBuffer);
+        start = 0;
+    }
+    ~OpenGL33Cache() {
+        if (matrix) {
+            delete matrix;
+        }
+        while (!matrixStack.empty()) {
+            delete matrixStack.top();
+            matrixStack.pop();
+        }
+        if (normalProgram.ProgramID != 0) {
+            vertices.CleanUp();
+            colors.CleanUp();
+        }
+        glDeleteBuffers(1, &cBuffer);
+        glDeleteBuffers(1, &tBuffer);
+        
+        singleColorProgram.Cleanup();
+        textureProgram.Cleanup();
+        normalProgram.Cleanup();
+    }
+
+
+    void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
+        if (va.count == 0) {
+            return;
+        }
+
+        singleColorProgram.UseProgram();
+        singleColorProgram.SetMatrix(*matrix);
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, singleColorProgram.vBuffer);
         glBufferData(GL_ARRAY_BUFFER, va.count*2*sizeof(GLfloat), &va.vertices[0], GL_DYNAMIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 
-        
+        GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
+        glUniform4f(cid,
+                    ((float)color.Red())/255.0,
+                    ((float)color.Green())/255.0,
+                    ((float)color.Blue())/255.0,
+                    ((float)color.Alpha())/255.0
+                    );
+        float ps = 0;
+        if (type == GL_POINTS && enableCapability == 0x0B10) {
+            //POINT_SMOOTH, removed in OpenGL3.x
+            singleColorProgram.SetRenderType(1);
+            ps = singleColorProgram.CalcSmoothPointParams();
+        } else if (enableCapability > 0) {
+            glEnable(enableCapability);
+        }
+        glDrawArrays(type, 0, va.count);
+        if (type == GL_POINTS && enableCapability == 0x0B10) {
+            singleColorProgram.SetRenderType(0);
+        } else if (enableCapability > 0) {
+            glDisable(enableCapability);
+        }
+
+        normalProgram.UseProgram();
+        glBindBuffer(GL_ARRAY_BUFFER, vertices.id);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+    }
+
+    void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
+        if (va.count == 0) {
+            return;
+        }
+        glBindBuffer(GL_ARRAY_BUFFER, normalProgram.vBuffer);
+        glBufferData(GL_ARRAY_BUFFER, va.count*2*sizeof(GLfloat), &va.vertices[0], GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+
+
         glBindBuffer(GL_ARRAY_BUFFER, cBuffer);
         glBufferData(GL_ARRAY_BUFFER, va.count*4*sizeof(GLubyte), &va.colors[0], GL_DYNAMIC_DRAW);
         glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
@@ -256,23 +418,23 @@ public:
         float ps = 2.0;
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             //POINT_SMOOTH, removed in OpenGL3.x
-            glUniform1i(RenderTypeID, 1);
-            ps = CalcSmoothPointParams();
+            normalProgram.SetRenderType(1);
+            ps = normalProgram.CalcSmoothPointParams();
         } else {
             if (enableCapability > 0) {
                 glEnable(enableCapability);
             } else if (enableCapability != 0) {
-                glUniform1i(RenderTypeID, enableCapability);
+                normalProgram.SetRenderType(enableCapability);
             }
         }
         glDrawArrays(type, 0, va.count);
         if (type == GL_POINTS && enableCapability == 0x0B10) {
-            glUniform1i(RenderTypeID, 0);
+            normalProgram.SetRenderType(0);
             glPointSize(ps);
         } else if (enableCapability > 0) {
             glDisable(enableCapability);
         } else if (enableCapability != 0) {
-            glUniform1i(RenderTypeID, 0);
+            normalProgram.SetRenderType(0);
         }
         glBindBuffer(GL_ARRAY_BUFFER, vertices.id);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
@@ -280,43 +442,46 @@ public:
         glVertexAttribPointer(1, GL_BGRA, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
     }
     void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability) override {
-        glGetError();
-        glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
+        if (va.count == 0) {
+            return;
+        }
+        textureProgram.UseProgram();
+        textureProgram.SetMatrix(*matrix);
+
+        glBindBuffer(GL_ARRAY_BUFFER, textureProgram.vBuffer);
         glBufferData(GL_ARRAY_BUFFER, va.count*2*sizeof(GLfloat), &va.vertices[0], GL_DYNAMIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
         glEnableVertexAttribArray(0);
+        
         glDisableVertexAttribArray(1);
         glActiveTexture(GL_TEXTURE0); //switch to texture image unit 0
         glBindTexture(GL_TEXTURE_2D, va.id);
-        glUniform1i(glGetUniformLocation(ProgramID, "tex"), 0);
+        glUniform1i(glGetUniformLocation(textureProgram.ProgramID, "tex"), 0);
 
         glEnableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, tBuffer);
         glBufferData(GL_ARRAY_BUFFER, va.count*2*sizeof(GLfloat), &va.tvertices[0], GL_DYNAMIC_DRAW);
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 
-        GLuint cid = glGetUniformLocation(ProgramID, "inColor");
+        GLuint cid = glGetUniformLocation(textureProgram.ProgramID, "inColor");
         glUniform4f(cid, 1.0, 1.0, 1.0, ((float)va.alpha)/255.0);
 
-        glUniform1i(RenderTypeID, -1);
         if (enableCapability > 0) {
             glEnable(enableCapability);
         }
-
         glDrawArrays(type, 0, va.count);
-
-        glUniform1i(RenderTypeID, 0);
         if (enableCapability > 0) {
             glDisable(enableCapability);
         }
 
+        normalProgram.UseProgram();
         glBindBuffer(GL_ARRAY_BUFFER, vertices.id);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
         glEnableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
     }
-    
-    
+
+
     virtual void addVertex(float x, float y, const xlColor &c) override {
         ensureSize(1);
         vertices[curCount * 2] = x;
@@ -349,28 +514,31 @@ public:
 
     void flush(int type, int enableCapability) override {
         vertices.FlushAndUnmap(start, curCount);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+        
         colors.FlushAndUnmap(start, curCount);
-
+        glVertexAttribPointer(1, GL_BGRA, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
+        
         float ps;
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             //POINT_SMOOTH, removed in OpenGL3.x
-            ps = CalcSmoothPointParams();
-            glUniform1i(RenderTypeID, 1);
+            ps = normalProgram.CalcSmoothPointParams();
+            normalProgram.SetRenderType(1);
         } else {
             if (enableCapability > 0) {
                 glEnable(enableCapability);
             } else if (enableCapability != 0) {
-                glUniform1i(RenderTypeID, enableCapability);
+                normalProgram.SetRenderType(enableCapability);
             }
         }
         glDrawArrays(type, start, curCount);
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             glPointSize(ps);
-            glUniform1i(RenderTypeID, 0);
+            normalProgram.SetRenderType(0);
         } else if (enableCapability > 0) {
             glDisable(enableCapability);
         } else if (enableCapability != 0) {
-            glUniform1i(RenderTypeID, 0);
+            normalProgram.SetRenderType(0);
         }
         start += curCount;
         max -= curCount;
@@ -386,61 +554,18 @@ public:
         curCount = 0;
     }
 
-    void DrawTexture(GLuint* texture, float x, float y, float x2, float y2,
+    void DrawTexture(GLuint* texture,
+                     float x, float y, float x2, float y2,
                      float tx, float ty, float tx2, float ty2) override {
-        if (start) {
-            vertices.FlushAndUnmap(start, curCount);
-            colors.FlushAndUnmap(start, curCount);
-        }
-        textures.FlushAndUnmap(0, 0);
-        
-        max = superMax;
-        start = 0;
-        curCount = 0;
-        
-        vertices.ReInit(max);
-        colors.ReInit(max);
-
-        addVertex(x - 0.4, y, xlBLACK);
-        addVertex(x - 0.4, y2, xlBLACK);
-        addVertex(x2 - 0.4, y2, xlBLACK);
-        addVertex(x2 - 0.4, y2, xlBLACK);
-        addVertex(x2 - 0.4, y, xlBLACK);
-        addVertex(x - 0.4, y, xlBLACK);
-
-        
-        glActiveTexture(GL_TEXTURE0); //switch to texture image unit 0
-        glBindTexture(GL_TEXTURE_2D, *texture);
-
-        
-        glEnableVertexAttribArray(2);
-        textures.ReInit(12);
-        textures[0] = tx;
-        textures[1] = ty;
-        textures[2] = tx;
-        textures[3] = ty2;
-        textures[4] = tx2;
-        textures[5] = ty2;
-        textures[6] = tx2;
-        textures[7] = ty2;
-        textures[8] = tx2;
-        textures[9] = ty;
-        textures[10] = tx;
-        textures[11] = ty;
-        /*
-        float textureVert[12] {
-            tx, ty,
-            tx, ty2,
-            tx2, ty2,
-            tx2, ty2,
-            tx2, ty,
-            tx, ty
-        };
-         */
-
-        textures.FlushAndUnmap(0, 12);
-        flush(GL_TRIANGLES, -1);
-        glDisableVertexAttribArray(2);
+        DrawGLUtils::xlVertexTextureAccumulator va(*texture);
+        va.PreAlloc(12);
+        va.AddVertex(x, y, tx, ty);
+        va.AddVertex(x2, y, tx2, ty);
+        va.AddVertex(x2, y2, tx2, ty2);
+        va.AddVertex(x2, y2, tx2, ty2);
+        va.AddVertex(x, y2, tx, ty2);
+        va.AddVertex(x, y, tx, ty);
+        Draw(va, GL_TRIANGLES, 0);
     }
 
     void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
@@ -449,7 +574,7 @@ public:
         }
         glm::mat4 m = glm::ortho((float)topleft_x, (float)bottomright_x, (float)bottomright_y, (float)topleft_y);
         matrix = new glm::mat4(m);
-        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr(m));
+        normalProgram.SetMatrix(*matrix);
     }
     void PushMatrix() override {
         matrixStack.push(matrix);
@@ -462,7 +587,7 @@ public:
             }
             matrix = matrixStack.top();
             matrixStack.pop();
-            glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr(*matrix));
+            normalProgram.SetMatrix(*matrix);
         }
     }
     void Translate(float x, float y, float z) override {
@@ -474,7 +599,7 @@ public:
             glm::mat4 tm = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
             matrix = new glm::mat4(tm);
         }
-        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr(*matrix));
+        normalProgram.SetMatrix(*matrix);
     }
     void Rotate(float angle, float x, float y, float z) override {
         if (matrix) {
@@ -487,7 +612,7 @@ public:
             glm::mat4 tm = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(x, y, z));
             matrix = new glm::mat4(tm);
         }
-        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr(*matrix));
+        normalProgram.SetMatrix(*matrix);
     }
     void Scale(float w, float h, float z) override {
         if (matrix) {
@@ -498,7 +623,7 @@ public:
             glm::mat4 tm = glm::scale(glm::mat4(1.0f), glm::vec3(w, h, z));
             matrix = new glm::mat4(tm);
         }
-        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr(*matrix));
+        normalProgram.SetMatrix(*matrix);
     }
 
 
@@ -527,7 +652,7 @@ protected:
                 glDeleteBuffers(1, &id);
             }
         }
-        
+
         void FlushAndUnmap(int start, int count) {
             glBindBuffer(GL_ARRAY_BUFFER, id);
             if (mapped) {
@@ -542,7 +667,7 @@ protected:
                 array = nullptr;
             }
         }
-        
+
         void Remap(int start, int max) {
             glBindBuffer(GL_ARRAY_BUFFER, id);
             array = (T*)glMapBufferRange(GL_ARRAY_BUFFER, sizePerUnit*start, sizePerUnit*max,
@@ -554,7 +679,7 @@ protected:
                 array = new T[max * size];
             }
         }
-        
+
         void ReInit(int max) {
             glBindBuffer(GL_ARRAY_BUFFER, id);
             glBufferData(GL_ARRAY_BUFFER, max*sizePerUnit, nullptr, GL_DYNAMIC_DRAW);
@@ -567,11 +692,11 @@ protected:
                 array = new T[max * size];
             }
         }
-        
+
         void Resize(int start, int curCount, int newmax) {
             if (mapped) {
                 FlushAndUnmap(start, curCount);
-                
+
                 T *m = (T*)glMapBufferRange(GL_ARRAY_BUFFER, sizePerUnit*start,  sizePerUnit*curCount, GL_MAP_READ_BIT);
                 T *tmpv = nullptr;
                 if (m) {
@@ -595,54 +720,41 @@ protected:
                 }
             }
         }
-        
+
         T &operator[](int idx) {
             return array[idx];
         }
-        
+
         int sizePerUnit;
         int size;
         GLuint id;
         bool mapped;
         T *array;
     };
-    
+
     int max;
     int superMax;
     int start;
     int curCount;
-    
+
     xlGLArray<uint8_t> colors;
     xlGLArray<float> vertices;
-    xlGLArray<float> textures;
 
 
-    GLuint MatrixID;
-    GLuint TextureID;
-    GLuint RenderTypeID;
-    GLuint PointSmoothMinID;
-    GLuint PointSmoothMaxID;
-
-    GLuint ProgramID;
-    GLuint VertexArrayID;
+    ShaderProgram textureProgram;
+    ShaderProgram singleColorProgram;
+    ShaderProgram normalProgram;
     
-    GLuint vBuffer;
+    GLuint TextureID;
     GLuint cBuffer;
     GLuint tBuffer;
-
+    
     std::stack<glm::mat4*> matrixStack;
 
     glm::mat4 *matrix;
 };
 
 
-
-DrawGLUtils::xlGLCacheInfo *Create31Cache() {
-    return new OpenGL31Cache();
+DrawGLUtils::xlGLCacheInfo *Create33Cache() {
+    return new OpenGL33Cache();
 }
-#else 
-DrawGLUtils::xlGLCacheInfo *Create31Cache() {
-    return nullptr;
-}
-
-#endif

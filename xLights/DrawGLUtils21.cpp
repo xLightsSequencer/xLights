@@ -14,21 +14,59 @@
 #ifdef _MSC_VER
 #include "GL/glut.h"
 #else
-#define GL_GLEXT_PROTOTYPES
-#include <GL/glcorearb.h>
 #include <GL/gl.h>
+#include <GL/glext.h>
 #endif
 #endif
 
 #include <DrawGLUtils.h>
 #include <stack>
 
+#ifndef __WXMAC__
+extern PFNGLUSEPROGRAMPROC glUseProgram;
+extern PFNGLCREATESHADERPROC glCreateShader;
+extern PFNGLSHADERSOURCEPROC glShaderSource;
+extern PFNGLCOMPILESHADERPROC glCompileShader;
+extern PFNGLGETSHADERIVPROC glGetShaderiv;
+extern PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+extern PFNGLCREATEPROGRAMPROC glCreateProgram;
+extern PFNGLATTACHSHADERPROC glAttachShader;
+extern PFNGLGETPROGRAMIVPROC glGetProgramiv;
+extern PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
+extern PFNGLDETACHSHADERPROC glDetachShader;
+extern PFNGLDELETESHADERPROC glDeleteShader;
+extern PFNGLLINKPROGRAMPROC glLinkProgram;
+extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
+extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+extern PFNGLUNIFORM1IPROC glUniform1i;
+extern PFNGLUNIFORM4FPROC glUniform4f;
+extern PFNGLUNIFORM1FPROC glUniform1f;
+extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
+extern PFNGLBINDBUFFERPROC glBindBuffer;
+extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
+extern PFNGLGENBUFFERSPROC glGenBuffers;
+extern PFNGLBUFFERDATAPROC glBufferData;
+extern PFNGLFLUSHMAPPEDBUFFERRANGEPROC glFlushMappedBufferRange;
+extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
+extern PFNGLUNMAPBUFFERPROC glUnmapBuffer;
+extern PFNGLACTIVETEXTUREPROC glActiveTexture;
+extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
+extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
+#endif
+
+extern void LoadGLFunctions();
 
 class OpenGL21Cache : public DrawGLUtils::xlGLCacheInfo {
 public:
 
 
     OpenGL21Cache() : matrix(nullptr) {
+        LoadGLFunctions();
 
         GLuint VertexShaderIDc = CompileShader(GL_VERTEX_SHADER,
             "#version 120\n"

@@ -869,7 +869,7 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 		wxString fname;
 		wxString ext;
 		wxFileName::SplitPath(sd, &path, &fname, &ext);
-		wxArrayString parts = wxSplit(path, '\\', '\\');
+		wxArrayString parts = wxSplit(path, '\\', 0);
 		if (fname == "")
 		{
 			// no subdirectory

@@ -4,20 +4,9 @@
 #include "wx/glcanvas.h"
 #include "DrawGLUtils.h"
 
-#ifndef __WXMSW__
-#define GL_CONTEXT_CLASS wxGLContext
-#else
-#define GL_CONTEXT_CLASS xlightsGLContext
-class xlightsGLContext;
-#endif
-
 
 class xlGLCanvas
-#ifdef __WXMSW__
-    : public wxWindow
-#else
     : public wxGLCanvas
-#endif // __WXMSW__
 {
     public:
         xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
@@ -34,9 +23,6 @@ class xlGLCanvas
 
         double translateToBacking(double x);
 
-#ifdef __WXMSW__
-        bool SwapBuffers();
-#endif
     protected:
       	DECLARE_EVENT_TABLE()
 
@@ -51,7 +37,7 @@ class xlGLCanvas
         void OnEraseBackGround(wxEraseEvent& event) {};
 
     private:
-        GL_CONTEXT_CLASS* m_context;
+        wxGLContext* m_context;
         DrawGLUtils::xlGLCacheInfo *cache;
 };
 
