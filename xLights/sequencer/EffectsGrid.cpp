@@ -2486,6 +2486,9 @@ void EffectsGrid::DrawEffects()
                                 float sz = 1;
                                 float xl = x1+(x/2)-1;
                                 float xr = x1+(x/2)+1;
+                                
+                                textures[m_EffectTextures[e->GetEffectIndex()]].AddFullTexture(xl, y-sz, xr, y+sz);
+
                                 lines.AddVertex(xl-0.4,y-sz);
                                 lines.AddVertex(xr+0.4,y-sz);
                                 lines.AddVertex(xl-0.4,y+sz);
@@ -2523,12 +2526,12 @@ void EffectsGrid::DrawEffects()
             }
         }
     }
+    DrawGLUtils::Draw(backgrounds, GL_TRIANGLES);
     for (auto it = textures.begin(); it != textures.end(); it++) {
         it->second.id = it->first;
         DrawGLUtils::Draw(it->second, GL_TRIANGLES);
         it->second.Reset();
     }
-    DrawGLUtils::Draw(backgrounds, GL_TRIANGLES);
     DrawGLUtils::Draw(lines, *mEffectColor, GL_LINES);
     DrawGLUtils::Draw(selectedLines, *mSelectionColor, GL_LINES);
 

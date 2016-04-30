@@ -166,8 +166,7 @@ public:
         glUniform1f(PointSmoothMaxID, max);
         return ps;
     }
-    
-    
+
     static GLuint CreateProgram(GLuint vs, GLuint fs) {
         GLuint ProgramID = glCreateProgram();
         glAttachShader(ProgramID, vs);

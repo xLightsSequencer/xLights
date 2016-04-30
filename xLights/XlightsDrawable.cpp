@@ -84,17 +84,12 @@ void xLightsDrawable::render()
 
     //glTranslatef(x,y,0);
 
-    if(xscale!=1 || yscale!=1)
-	{
-        DrawGLUtils::Scale(xscale, yscale, 1);
-    }
-
     if(angle!=0)
 	{
         DrawGLUtils::Rotate(angle, 0,0,1);
     }
     
-    DrawGLUtils::DrawTexture(image->getID(), hotspotX, hotspotY, image->width-hotspotX, image->height-hotspotY,
+    DrawGLUtils::DrawTexture(image->getID(), -hotspotX*xscale, -hotspotY*yscale, (image->width-hotspotX)*xscale, (image->height-hotspotY)*yscale,
                              xflip? image->tex_coord_x : 0, yflip? 0 : image->tex_coord_y,
                              xflip? 0 : image->tex_coord_x, yflip? image->tex_coord_y : 0);
 
