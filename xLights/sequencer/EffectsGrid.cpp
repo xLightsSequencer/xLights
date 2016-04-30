@@ -1379,7 +1379,7 @@ void EffectsGrid::OldPaste(const wxString &data) {
 					new_start_time += drop_time_offset;
 					new_end_time += drop_time_offset;
 					int eff_row = wxAtoi(efdata[5]);
-					drop_row = eff_row + drop_row_offset;
+					drop_row = eff_row + drop_row_offset + mSequenceElements->GetFirstVisibleModelRow();
 					Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
 					if (row_info == nullptr) break;
 					Element* elem = row_info->element;
@@ -1705,6 +1705,10 @@ void EffectsGrid::Paste(const wxString &data) {
                 }
                 int eff_row = wxAtoi(efdata[5]);
                 drop_row = eff_row + drop_row_offset;
+                if( !is_timing_effect )
+                {
+                   drop_row += mSequenceElements->GetFirstVisibleModelRow();
+                }
                 Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
                 if (row_info == nullptr) break;
                 Element* elem = row_info->element;
@@ -2915,8 +2919,8 @@ void EffectsGrid::CopyModelEffects(int row_number)
         mRangeEndCol = -1;
         mRangeStartRow = -1;
         mRangeEndRow = -1;
-        int first_row = mSequenceElements->GetFirstVisibleModelRow();
-        mSequenceElements->SelectEffectsInRowAndTimeRange(row_number-first_row,row_number-first_row,mDropStartTimeMS,mSequenceElements->GetSequenceEnd());
+        //int first_row = mSequenceElements->GetFirstVisibleModelRow();
+        mSequenceElements->SelectEffectsInRowAndTimeRange(row_number,row_number,mDropStartTimeMS,mSequenceElements->GetSequenceEnd());
         ((MainSequencer*)mParent)->CopySelectedEffects();
         mCanPaste = true;
         effectLayer->UnSelectAllEffects();

@@ -387,7 +387,7 @@ Row_Information_Struct* SequenceElements::GetRowInformationFromRow(int row_numbe
 {
     for(int i=0;i<mRowInformation.size();i++)
     {
-        if(row_number == mRowInformation[i].Index - GetFirstVisibleModelRow())
+        if(row_number == mRowInformation[i].Index)
         {
             return &mRowInformation[i];
         }
