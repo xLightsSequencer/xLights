@@ -63,13 +63,69 @@ class GCMBulb
 {
     wxPoint _location;
     int _num;
+    int _brightness;
+    bool _suppressoutsideclip;
+    bool _suppressduplicate;
+    bool _suppresstooclose;
 
 public:
-    GCMBulb(wxPoint pt, int num) { _location = pt; _num = num; }
-    void SetLocation(int x, int y) { _location = wxPoint(x, y); }
-    void Draw(wxMemoryDC& dc)
+    GCMBulb(wxPoint pt, int num, int brightness) { 
+        _location = pt; 
+        _num = num;  
+        _brightness = brightness; 
+        _suppressoutsideclip = false;
+        _suppressduplicate = false;
+        _suppresstooclose = false;
+    }
+    void TooClose()
     {
-        dc.DrawCircle(_location, 3);
+        _suppresstooclose = true;
+    }
+    void Duplicate()
+    {
+        _suppressduplicate = true;
+    }
+    void OutsideClip()
+    {
+        _suppressoutsideclip = true;
+    }
+    void Reset()
+    {
+        _suppressoutsideclip = false;
+        _suppressduplicate = false;
+        _suppresstooclose = false;
+    }
+    bool isSupressed()
+    {
+        return _suppressoutsideclip || _suppressduplicate || _suppresstooclose;
+    }
+    bool isSupressedButDraw()
+    {
+        return _suppressoutsideclip || _suppresstooclose;
+    }
+    void SetLocation(int x, int y) { _location = wxPoint(x, y); }
+    void Draw(wxMemoryDC& dc, float factor)
+    {
+        int diameter = 3 * factor;
+        if (isSupressedButDraw())
+        {
+            wxBrush b(*wxBLUE, wxBrushStyle::wxBRUSHSTYLE_SOLID);
+            dc.SetBrush(b);
+            wxPen p(*wxBLUE, 1);
+            dc.SetPen(p);
+            dc.DrawCircle(_location, diameter);
+        }
+        else if (!isSupressed())
+        {
+            wxBrush b(*wxRED, wxBrushStyle::wxBRUSHSTYLE_SOLID);
+            dc.SetBrush(b);
+            wxPen p(*wxRED, 1);
+            dc.SetPen(p);
+            dc.DrawCircle(_location, diameter);
+        }
+    }
+    int GetBrightness() {
+        return _brightness;
     }
     int GetNum() {
         return _num;
@@ -172,12 +228,12 @@ class GenerateCustomModelDialog: public wxDialog
     //std::map<xlPoint, int> CircleDetect(wxImage& mask, wxImage& edge, int radius);
     //std::list<wxPoint> CircleDetect(wxImage& mask, wxImage& edge, int minr, int maxr);
     std::list<GCMBulb> FindLights(wxImage& image, int num);
-    wxImage CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxColor col, wxRect rect, int minseparation);
+    wxImage CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxRect rect, int minseparation);
     void WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount);
-    GCMBulb FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num);
+    GCMBulb FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, wxImage& grey);
     void SubtractImage(wxImage& from, wxImage& tosubtract);
     int CountWhite(wxImage& image);
-    std::list<GCMBulb> ApplyMinimumSeparation(std::list<GCMBulb>& clipped, int minseparation);
+    void ApplyMinimumSeparation(std::list<GCMBulb>& clipped, int minseparation);
 #pragma endregion Identify Bulbs Tab
 
     wxString CreateCustomModelData();
@@ -186,7 +242,7 @@ class GenerateCustomModelDialog: public wxDialog
     void CMTabEntry();
     wxSize CalcSize(std::list<GCMBulb>& lights, float scale, wxPoint trim);
     void DoGenerateCustomModel();
-    std::list<GCMBulb> RemoveClippedLights(std::list<GCMBulb>& lights, wxRect& clip);
+    void RemoveClippedLights(std::list<GCMBulb>& lights, wxRect& clip);
 
 #pragma endregion Generate Tab
 

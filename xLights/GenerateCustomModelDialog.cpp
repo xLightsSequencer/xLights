@@ -1608,7 +1608,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                     {
                         // this is our end frame ...
                         _busy = false;
-                        _biFrame = CreateDetectMask(_lights, _startFrame, true, *wxRED, _clip, Slider_BI_MinSeparation->GetValue());
+                        _biFrame = CreateDetectMask(_lights, _startFrame, true, _clip, Slider_BI_MinSeparation->GetValue());
                         ShowImage(_biFrame);
                         return;
                     }
@@ -1623,7 +1623,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                 _lights.splice(_lights.end(), FindLights(bwFrame, n++));
                 currentTime = currentTime + NODEON + NODEOFF;
             }
-            _biFrame = CreateDetectMask(_lights, _startFrame, true, *wxRED, _clip, Slider_BI_Sensitivity->GetValue());
+            _biFrame = CreateDetectMask(_lights, _startFrame, true, _clip, Slider_BI_Sensitivity->GetValue());
             ShowImage(_biFrame);
         }
         _busy = false;
@@ -1655,9 +1655,9 @@ void GenerateCustomModelDialog::BITabEntry()
     Button_BI_Back->Enable();
 }
 
-wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxColor col, wxRect clip, int minseparation)
+wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxRect clip, int minseparation)
 {
-    std::list<GCMBulb> mins = ApplyMinimumSeparation(centres, Slider_BI_MinSeparation->GetValue());
+    ApplyMinimumSeparation(centres, Slider_BI_MinSeparation->GetValue());
 
     wxBitmap bmp(ref.GetWidth(), ref.GetHeight());
     wxMemoryDC dc(bmp);
@@ -1668,65 +1668,34 @@ wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, 
     }
 
     wxSize displaysize = StaticBitmap_Preview->GetSize();
-    int penw = 3 * std::max((float)_startFrame.GetWidth() / (float)displaysize.GetWidth(),
+    float factor = std::max((float)_startFrame.GetWidth() / (float)displaysize.GetWidth(),
         (float)_startFrame.GetHeight() / (float)displaysize.GetHeight());
+    int penw = 2 * factor;
     wxPen p2(*wxGREEN, penw, wxPENSTYLE_LONG_DASH);
     dc.SetPen(p2);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.DrawRectangle(_clip);
 
-    wxBrush b(col, wxBrushStyle::wxBRUSHSTYLE_SOLID);
-    wxPen p(col, 1);
-
-    dc.SetBrush(b);
-    dc.SetPen(p);
-
-    for (auto c = mins.begin(); c != mins.end(); c++)
+    // draw blue first
+    for (auto c = centres.begin(); c != centres.end(); c++)
     {
-        c->Draw(dc);
+        if (c->isSupressedButDraw())
+        {
+            c->Draw(dc, factor);
+        }
+    }
+
+    // now red so they are easy to see
+    for (auto c = centres.begin(); c != centres.end(); c++)
+    {
+        if (!c->isSupressed())
+        {
+            c->Draw(dc, factor);
+        }
     }
 
     return bmp.ConvertToImage();
 }
-
-//void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount)
-//{
-//    int pc = GetPixel(x, y, w3, data);
-//
-//    // only need to do something if the pixel is white
-//    if (pc == 255)
-//    {
-//        totalX += x;
-//        totalY += y;
-//        pixelCount++;
-//        SetPixel(x, y, w3, data, 0); // Black out the pixel because we have processed it
-//
-//        if (pixelCount > 1000)
-//        {
-//            if (!_warned)
-//            {
-//                log4cpp::Category& logger = log4cpp::Category::getRoot();
-//                logger.warn("Too many pixels in blob when generating Custom Model.");
-//                wxMessageBox("Too many pixels were found in a single blob. Model generation will continue but model will be compromised. Consider going back and changing the image settings.");
-//                _warned = true;
-//            }
-//            return;
-//        }
-//
-//        // we dont look at edge pixels ... should not make a big difference & simplifies code
-//        if (x > 0 && y > 0 && x < w-1 && y < h-1)
-//        {
-//            WalkPixels(x - 1, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
-//            WalkPixels(x, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
-//            WalkPixels(x + 1, y - 1, w, h, w3, data, totalX, totalY, pixelCount);
-//            WalkPixels(x - 1, y, w, h, w3, data, totalX, totalY, pixelCount);
-//            WalkPixels(x + 1, y, w, h, w3, data, totalX, totalY, pixelCount);
-//            WalkPixels(x - 1, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
-//            WalkPixels(x, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
-//            WalkPixels(x + 1, y + 1, w, h, w3, data, totalX, totalY, pixelCount);
-//        }
-//    }
-//}
 
 void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount)
 {
@@ -1773,20 +1742,21 @@ void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, u
     }
 }
 
-GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num)
+GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, wxImage& grey)
 {
     int totalX = 0;
     int totalY = 0;
     int pixelCount = 0;
     WalkPixels(x, y, w, h, w3, data, totalX, totalY, pixelCount);
 
-    return GCMBulb(wxPoint(totalX / pixelCount, totalY / pixelCount), num);
+    return GCMBulb(wxPoint(totalX / pixelCount, totalY / pixelCount), num, GetPixel(totalX / pixelCount, totalY / pixelCount, w3, grey.GetData()));
 }
 
 std::list<GCMBulb> GenerateCustomModelDialog::FindLights(wxImage& image, int num)
 {
     std::list<GCMBulb> res;
 
+    wxImage grey = image.ConvertToGreyscale();
     wxImage temp = image;
     temp.UnShare(); // we are going to change the data so get out own copy
     int w = temp.GetWidth();
@@ -1800,15 +1770,12 @@ std::list<GCMBulb> GenerateCustomModelDialog::FindLights(wxImage& image, int num
         {
             if (GetPixel(x, y, w3, data) > 0)
             {
-                res.push_back(FindCenter(x, y, w, h, w3, data, num));
-                //ShowImage(temp);
-                //wxYield();
-                //wxMilliSleep(500);
+                res.push_back(FindCenter(x, y, w, h, w3, data, num, grey));
             }
         }
     }
 
-    _biFrame = CreateDetectMask(res, _startFrame, true, *wxRED, _clip, Slider_BI_MinSeparation->GetValue());
+    _biFrame = CreateDetectMask(res, _startFrame, true, _clip, Slider_BI_MinSeparation->GetValue());
     ShowImage(_biFrame);
 
     return res;
@@ -1867,18 +1834,20 @@ bool GenerateCustomModelDialog::TestScale(std::list<GCMBulb>& lights, std::list<
 {
     GCMBulb b = *it;
     ++it;
-    if (it != lights.end())
+    if (it != lights.end() && !it->isSupressed())
     {
-
         if (!TestScale(lights, it, scale, trim))
         {
             return false;
         }
         while (it != lights.end())
         {
-            if (b.IsSameLocation(*it, scale, trim))
+            if (!it->isSupressed())
             {
-                return false;
+                if (b.IsSameLocation(*it, scale, trim))
+                {
+                    return false;
+                }
             }
             ++it;
         }
@@ -1893,14 +1862,17 @@ wxPoint GenerateCustomModelDialog::CalcTrim(std::list<GCMBulb>& lights)
 
     for (auto it = lights.begin(); it != lights.end(); it++)
     {
-        wxPoint loc = it->GetLocation();
-        if (loc.x < x)
+        if (!it->isSupressed())
         {
-            x = loc.x;
-        }
-        if (loc.y < y)
-        {
-            y = loc.y;
+            wxPoint loc = it->GetLocation();
+            if (loc.x < x)
+            {
+                x = loc.x;
+            }
+            if (loc.y < y)
+            {
+                y = loc.y;
+            }
         }
     }
 
@@ -1914,36 +1886,38 @@ wxSize GenerateCustomModelDialog::CalcSize(std::list<GCMBulb>& lights, float sca
 
     for (auto it = lights.begin(); it != lights.end(); it++)
     {
-        wxPoint loc = it->GetLocation(scale,trim);
-        if (loc.x > x)
+        if (!it->isSupressed())
         {
-            x = loc.x;
-        }
-        if (loc.y > y)
-        {
-            y = loc.y;
+            wxPoint loc = it->GetLocation(scale, trim);
+            if (loc.x > x)
+            {
+                x = loc.x;
+            }
+            if (loc.y > y)
+            {
+                y = loc.y;
+            }
         }
     }
 
     return wxSize(x+1, y+1);
 }
 
-std::list<GCMBulb> GenerateCustomModelDialog::RemoveClippedLights(std::list<GCMBulb>& lights, wxRect& clip)
+void GenerateCustomModelDialog::RemoveClippedLights(std::list<GCMBulb>& lights, wxRect& clip)
 {
-    std::list<GCMBulb> res;
-
     for (auto it = lights.begin(); it != lights.end(); ++it)
     {
-        int x = it->GetLocation().x;
-        int y = it->GetLocation().y;
-        if (x >= _clip.GetLeft() && x <= _clip.GetRight() &&
-            y >= _clip.GetTop() && y <= _clip.GetBottom())
+        if (!it->isSupressed())
         {
-            res.push_back(*it);
+            int x = it->GetLocation().x;
+            int y = it->GetLocation().y;
+            if (x < _clip.GetLeft() || x > _clip.GetRight() ||
+                y < _clip.GetTop() || y > _clip.GetBottom())
+            {
+                it->OutsideClip();
+            }
         }
     }
-
-    return res;
 }
 
 bool IsWithin(int x1, int y1, int x2, int y2, int d)
@@ -1953,33 +1927,31 @@ bool IsWithin(int x1, int y1, int x2, int y2, int d)
     return d > dist;
 }
 
-std::list<GCMBulb> GenerateCustomModelDialog::ApplyMinimumSeparation(std::list<GCMBulb>& lights, int minseparation)
+void GenerateCustomModelDialog::ApplyMinimumSeparation(std::list<GCMBulb>& lights, int minseparation)
 {
-    std::list<GCMBulb> res;
-
     for (auto it = lights.begin(); it != lights.end(); ++it)
     {
-        int x = it->GetLocation().x;
-        if (x != -100)
+        if (!it->isSupressed())
         {
-            int y = it->GetLocation().y;
-            int count = 1;
             for (auto it2 = it; it2 != lights.end(); ++it2)
             {
-                if (IsWithin(it->GetLocation().x, it->GetLocation().y, it2->GetLocation().x, it2->GetLocation().y, minseparation))
+                if (it != it2 && !it2->isSupressed())
                 {
-                    count++;
-                    x += it2->GetLocation().x;
-                    y += it2->GetLocation().y;
-                    it2->SetLocation(-100, -100);
+                    if (IsWithin(it->GetLocation().x, it->GetLocation().y, it2->GetLocation().x, it2->GetLocation().y, minseparation))
+                    {
+                        if (it->GetBrightness() >= it2->GetBrightness())
+                        {
+                            it2->TooClose();
+                        }
+                        else
+                        {
+                            it->TooClose();
+                        }
+                    }
                 }
             }
-
-            res.push_back(GCMBulb(wxPoint(x / count, y / count), it->GetNum()));
         }
     }
-
-    return res;
 }
 
 // this will find the best scale to 1/100th of the imput size
@@ -1990,28 +1962,33 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
         return;
     }
 
-    std::list<GCMBulb> clipped = RemoveClippedLights(_lights, _clip);
-    std::list<GCMBulb> newlights = ApplyMinimumSeparation(clipped, Slider_BI_MinSeparation->GetValue());
+    for (auto it = _lights.begin(); it != _lights.end(); ++it)
+    {
+        it->Reset();
+    }
 
-    _trim = CalcTrim(newlights);
+    RemoveClippedLights(_lights, _clip);
+    ApplyMinimumSeparation(_lights, Slider_BI_MinSeparation->GetValue());
+
+    _trim = CalcTrim(_lights);
 
     float best = 1.0;
     float curr = 0.9;
 
-    while (TestScale(newlights, newlights.begin(), curr, _trim))
+    while (TestScale(_lights, _lights.begin(), curr, _trim))
     {
         best = curr;
         curr = curr - 0.1;
     }
     curr = curr - 0.01;
-    while (TestScale(newlights, newlights.begin(), curr, _trim))
+    while (TestScale(_lights, _lights.begin(), curr, _trim))
     {
         best = curr;
         curr = curr - 0.01;
     }
     _scale = best;
 
-    _size = CalcSize(newlights, _scale, _trim);
+    _size = CalcSize(_lights, _scale, _trim);
 
     Grid_CM_Result->ClearGrid();
     if (Grid_CM_Result->GetNumberCols() > 0)
@@ -2029,11 +2006,14 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
         Grid_CM_Result->CreateGrid(_size.y, _size.x);
     }
 
-    for (auto it = newlights.begin(); it != newlights.end(); it++)
+    for (auto it = _lights.begin(); it != _lights.end(); it++)
     {
-        wxPoint p = it->GetLocation(_scale, _trim);
-        Grid_CM_Result->SetCellValue(p.y, p.x, wxString::Format("%d", it->GetNum()));
-        Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, *wxGREEN);
+        if (!it->isSupressed())
+        {
+            wxPoint p = it->GetLocation(_scale, _trim);
+            Grid_CM_Result->SetCellValue(p.y, p.x, wxString::Format("%d", it->GetNum()));
+            Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, *wxGREEN);
+        }
     }
 
     wxFont font = Grid_CM_Result->GetDefaultCellFont();
@@ -2233,7 +2213,7 @@ void GenerateCustomModelDialog::ResizeClip(int x, int y)
         _clip.SetRight(r);
     }
     StaticBitmap_Preview->SetEraseBackground(false);
-    _biFrame = CreateDetectMask(_lights, _startFrame, true, *wxRED, _clip, Slider_BI_MinSeparation->GetValue());
+    _biFrame = CreateDetectMask(_lights, _startFrame, true, _clip, Slider_BI_MinSeparation->GetValue());
     ShowImage(_biFrame);
     StaticBitmap_Preview->SetEraseBackground(true);
 }
