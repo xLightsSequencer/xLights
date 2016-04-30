@@ -1657,6 +1657,11 @@ void GenerateCustomModelDialog::BITabEntry()
 
 wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxRect clip, int minseparation)
 {
+    for (auto it = _lights.begin(); it != _lights.end(); ++it)
+    {
+        it->Reset();
+    }
+
     RemoveClippedLights(centres, _clip);
     ApplyMinimumSeparation(centres, Slider_BI_MinSeparation->GetValue());
 
@@ -1671,6 +1676,29 @@ wxImage GenerateCustomModelDialog::CreateDetectMask(std::list<GCMBulb> centres, 
     wxSize displaysize = StaticBitmap_Preview->GetSize();
     float factor = std::max((float)_startFrame.GetWidth() / (float)displaysize.GetWidth(),
         (float)_startFrame.GetHeight() / (float)displaysize.GetHeight());
+
+    // draw grey out clipped area
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    wxBrush shade(*wxLIGHT_GREY, wxBRUSHSTYLE_BDIAGONAL_HATCH);
+    dc.SetBrush(shade);
+    if (_clip.GetLeft() > 0)
+    {
+        dc.DrawRectangle(wxRect(0, 0, _clip.GetLeft(), _startFrame.GetHeight()));
+    }
+    if (_clip.GetRight() < _startFrame.GetWidth())
+    {
+        dc.DrawRectangle(wxRect(_clip.GetRight(), 0, _startFrame.GetWidth() - _clip.GetRight(), _startFrame.GetHeight()));
+    }
+    if (_clip.GetTop() > 0)
+    {
+        dc.DrawRectangle(wxRect(0, 0, _startFrame.GetWidth(), _clip.GetTop()));
+    }
+    if (_clip.GetBottom() < _startFrame.GetHeight())
+    {
+        dc.DrawRectangle(wxRect(0, _clip.GetBottom(), _startFrame.GetWidth(), _startFrame.GetHeight() - _clip.GetBottom()));
+    }
+
+    // Draw clip rectangle
     int penw = 2 * factor;
     wxPen p2(*wxGREEN, penw, wxPENSTYLE_LONG_DASH);
     dc.SetPen(p2);
