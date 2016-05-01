@@ -16,6 +16,7 @@
 #include <wx/log.h>
 
 #include "xLightsMain.h"
+#include <log4cpp/Category.hh>
 
 #define GCM_DISPLAYIMAGEWIDTH 400
 #define GCM_DISPLAYIMAGEHEIGHT 300
@@ -749,12 +750,28 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 {
     wxMessageBox("Please prepare to video the model ... press ok when ready to start.", "", 5L, this);
 
+    log4cpp::Category &logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
+    logger_pcm.info("Running lights to be videod.");
+
     wxProgressDialog pd("Running light patterns", "", 100, this);
 
     int count = SpinCtrl_NC_Count->GetValue();
     int startch = SpinCtrl_StartChannel->GetValue();
     int intensity = Slider_Intensity->GetValue();
     bool nodes = RadioBox1->GetSelection() == 0;
+
+    logger_pcm.info("   Count: %d.", count);
+    logger_pcm.info("   Start Channel: %d.", startch);
+    logger_pcm.info("   Intensity: %d.", intensity);
+    if (nodes)
+    {
+        logger_pcm.info("   Nodes.");
+    }
+    else
+    {
+        logger_pcm.info("   Channels.");
+    }
+
 
     DisableSleepModes();
 
@@ -801,6 +818,8 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     SetFocus();
 
     EnableSleepModes();
+
+    logger_pcm.info("   Done.");
 
     wxMessageBox("Please stop the video.", "", 5L, this);
     ValidateWindow();
@@ -875,6 +894,20 @@ void GenerateCustomModelDialog::MTTabEntry()
 
 void GenerateCustomModelDialog::OnButton_MT_NextClick(wxCommandEvent& event)
 {
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    logger_gcm.info("Generating custom model.");
+    switch (RadioBox2->GetSelection())
+    {
+    case 0:
+        logger_gcm.info("   Nodes.");
+        break;
+    case 1:
+        logger_gcm.info("   Channels.");
+        break;
+    case 2:
+        logger_gcm.info("   Static Bulbs.");
+        break;
+    }
     TextCtrl_GCM_Filename->SetValue(""); // clear the filename in case the type has changed
     CVTabEntry();
     SwapPage(PAGE_MODELTYPE, PAGE_CHOOSEVIDEO);
@@ -962,6 +995,9 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
     Button_CV_Back->Disable();
     TextCtrl_GCM_Filename->Disable();
 
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    logger_gcm.info("File: %s.", TextCtrl_GCM_Filename->GetValue());
+
     if (RadioBox2->GetSelection() == 2)
     {
         CheckBox_BI_ManualUpdate->SetValue(false);
@@ -997,6 +1033,7 @@ void GenerateCustomModelDialog::OnButton_CV_BackClick(wxCommandEvent& event)
 
 void GenerateCustomModelDialog::DoStartFrameIdentify()
 {
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     if (_vr != NULL)
     {
         delete _vr;
@@ -1007,6 +1044,7 @@ void GenerateCustomModelDialog::DoStartFrameIdentify()
 
     if (_vr == NULL)
     {
+        logger_gcm.info("Error starting video reader.");
         wxMessageBox("Unable to process video.");
         ValidateWindow();
         return;
@@ -1036,17 +1074,21 @@ void GenerateCustomModelDialog::SFTabEntry()
 // A frame looks like a valid start frame if another frame LEADON + FLAGOFF MS in the future is about as bright
 bool GenerateCustomModelDialog::LooksLikeStartFrame(int candidateframe)
 {
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     wxImage image = CreateImageFromFrame(_vr->GetNextFrame(candidateframe));
-    wxImage nextimage = CreateImageFromFrame(_vr->GetNextFrame(candidateframe + LEADON + FLAGOFF));
+    int testframe = candidateframe + LEADON + FLAGOFF;
+    wxImage nextimage = CreateImageFromFrame(_vr->GetNextFrame(testframe));
     float fimage = CalcFrameBrightness(image);
     float fnextimage = CalcFrameBrightness(nextimage);
 
     if (fnextimage > fimage * 0.9 && fnextimage < fimage * 1.1)
     {
+        logger_gcm.info("Frame %d (%f) and %d (%f) close enough to look like start frame.", candidateframe, fimage, testframe, fnextimage);
         // within 10% close enough
         return true;
     }
 
+    logger_gcm.info("Frame %d (%f) and %d (%f) NOT close enough to look like start frame.", candidateframe, fimage, testframe, fnextimage);
     return false;
 }
 
@@ -1071,6 +1113,8 @@ float GenerateCustomModelDialog::CalcFrameBrightness(wxImage& image)
 // returns the MS of the best start frame - 0.1 MS into what looks like a bright section of the video that lasts about 3 seconds
 int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
 {
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    logger_gcm.info("Finding start frame in first %d secs.", STARTSCANSECS);
     std::list<float> framebrightness;
 
     StaticBitmap_Preview->SetEraseBackground(false);
@@ -1189,6 +1233,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     int bestlevel;
     if (first == 0)
     {
+        logger_gcm.info("    No great match found.");
         bestlevel = 7;
     }
     else
@@ -1199,6 +1244,8 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     // pick a point 0.1 secs into the high period as our start frame
     int candidateframe = levelmaxstart[bestlevel] * FRAMEMS;
     candidateframe += DELAYMSUNTILSAMPLE;
+
+    logger_gcm.info("    Selected start frame %d.", candidateframe);
 
     // check the second all on event is there ... if not move up to 10 frames forward looking for it
     for (int i = 0; i < 10; i++)
@@ -1213,18 +1260,23 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
         }
     }
 
+    logger_gcm.info("    After scanning forward the best start frame is %d.", candidateframe);
+
     return candidateframe;
 }
 
 void GenerateCustomModelDialog::ValidateStartFrame()
 {
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     if (LooksLikeStartFrame(_startframetime))
     {
+        logger_gcm.info("Start frame look ok.");
         StaticText_StartFrameOk->SetLabel("Looks ok.");
         StaticText_StartFrameOk->SetForegroundColour(*wxGREEN);
     }
     else
     {
+        logger_gcm.info("Start frame does NOT look ok.");
         StaticText_StartFrameOk->SetLabel("Looks wrong.");
         StaticText_StartFrameOk->SetForegroundColour(*wxRED);
     }
@@ -1243,6 +1295,9 @@ void GenerateCustomModelDialog::MoveStartFrame(int by)
     {
         _startframetime = _vr->GetLengthMS();
     }
+
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    logger_gcm.info("Start frame moved manually to %d.", _startframetime);
 }
 
 void GenerateCustomModelDialog::OnButton_Back1FrameClick(wxCommandEvent& event)
@@ -1413,6 +1468,8 @@ void GenerateCustomModelDialog::ApplyContrast(wxImage& grey, int contrast)
 
 void GenerateCustomModelDialog::DoBulbIdentify()
 {
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+
     if (!_busy)
     {
         _busy = true;
@@ -1430,6 +1487,22 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         SetCursor(wxCURSOR_WAIT);
 
         wxYield(); // let them update
+
+        logger_gcm.info("Executing bulb identify.");
+        logger_gcm.info("   Image Size: %dx%d.", _startFrame.GetWidth(), _startFrame.GetHeight());
+        logger_gcm.info("   Blur: %d.", Slider_AdjustBlur->GetValue());
+        logger_gcm.info("   Sensitivity: %d.", Slider_BI_Sensitivity->GetValue());
+        logger_gcm.info("   Contrast: %d.", Slider_BI_Contrast->GetValue());
+        logger_gcm.info("   Minimum Separation: %d.", Slider_BI_MinSeparation->GetValue());
+        logger_gcm.info("   Clip Rectangle: (%d,%d)-(%d,%d).", _clip.GetLeft(), _clip.GetTop(), _clip.GetRight(), _clip.GetBottom());
+        if (CheckBox_BI_IsSteady->GetValue())
+        {
+            logger_gcm.info("   Is Steady: TRUE.");
+        }
+        else
+        {
+            logger_gcm.info("   Is Steady: FALSE.");
+        }
         _warned = false;
         _lights.clear();
         if (RadioBox2->GetSelection() == 2)
@@ -1453,6 +1526,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
             int sincefound = 0;
             while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < 100)
             {
+                logger_gcm.info("   Looking for frame at %d.", currentTime);
                 wxImage bwFrame;
                 wxImage grey;
 
@@ -1462,6 +1536,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                     if (bwFrame.IsOk())
                     {
                         currentTime += 50;
+                        logger_gcm.info("   No frame found so now trying %d.", currentTime);
                     }
 
                     wxImage frame = CreateImageFromFrame(_vr->GetNextFrame(currentTime));
@@ -1469,6 +1544,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
 
                     if (brightness > _startframebrightness * .8)
                     {
+                        logger_gcm.info("   End found at time %d as brightness (%f) > 80% of start frame brightness (%f).", currentTime, brightness, _startframebrightness);
                         // this is our end frame ...
                         _busy = false;
                         _biFrame = CreateDetectMask(_startFrame, true, _clip);
@@ -1484,6 +1560,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                         Button_BI_Next->Enable();
                         Button_BI_Back->Enable();
                         SetCursor(wxCURSOR_ARROW);
+                        logger_gcm.info("Result: %s.", TextCtrl_BI_Status->GetValue());
                         return;
                     }
 
@@ -1508,6 +1585,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
 
             if (sincefound >= 100)
             {
+                logger_gcm.info("   Too many frames with no lights spotted. Aborting scan. 100 frames no bulb.");
                 wxMessageBox("Too many frames with no lights spotted. Aborting scan.");
             }
 
@@ -1525,6 +1603,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         Button_BI_Next->Enable();
         Button_BI_Back->Enable();
         SetCursor(wxCURSOR_ARROW);
+        logger_gcm.info("Result: %s.", TextCtrl_BI_Status->GetValue());
         _busy = false;
     }
 }
@@ -1806,6 +1885,8 @@ void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, u
         if (!_warned)
         {
             _warned = true;
+            log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+            logger_gcm.info("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.");
             wxMessageBox("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.");
         }
     }
@@ -2259,7 +2340,14 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "NewCustomModel", wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    logger_gcm.info("Saving to xmodel file %s.", filename);
+    if (!f.Create(filename, true) || !f.IsOpened())
+    {
+        logger_gcm.info("Unable to create file %s. Error %d\n", filename, f.GetLastError());
+        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+        return;
+    }
     wxString name = wxFileName(filename).GetName();
     wxString cm = CreateCustomModelData();
     wxString p1 = wxString::Format("%d",Grid_CM_Result->GetNumberCols());
