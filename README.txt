@@ -8,10 +8,15 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-   -- bug (gil)     Fix Copy Row/Paste Row when vertically scrolled. Fixes #553.
-   -- bug (gil)     Fix application losing focusing when closing a floating panel.
-   -- enh (gil)     Reposition view when playback starts or loops so that play marker is visible.  Fixes #550.
-   -- enh (gil)     Paste modifications for how single effects paste in various situations.  Fixes #549.
+2016.23  May 01, 2016
+   -- bug (gil)   Fix Copy Row/Paste Row when vertically scrolled. Fixes #553.
+   -- bug (gil)   Fix application losing focusing when closing a floating panel.
+   -- enh (gil)   Reposition view when playback starts or loops so that play marker is visible.  Fixes #550.
+   -- enh (gil)   Paste modifications for how single effects paste in various situations.  Fixes #549.
+   -- bug (dkulp) Add rename button to groups dialog.  Fixes #548
+   -- bug (dkulp) Fix blur setting when clicking on effects. Fixes #547
+   -- bug (dkulp) Reset status bar and refresh previews on file close.  Fixes #552
+   -- bug (dkulp) Only redirect the menu items that need redirecting
 2016.22  Apr 24, 2016
    -- bug (gil)     Fix bug where SingleLine model wouldn't draw when set to
                        3 Channel RGB and controller on right.  Fixes #525.
