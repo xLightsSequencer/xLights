@@ -170,8 +170,8 @@ class GenerateCustomModelDialog: public wxDialog
     float _startframebrightness;
     wxImage _startFrame; // the image of the start frame
     wxImage _darkFrame; // an image with no lights on
-    wxImage _greyFrame;  // the greyscale version of the start frame
-    wxImage _bwFrame;    // the black and white version of the image after blur & level
+    //wxImage _greyFrame;  // the greyscale version of the start frame
+    //wxImage _bwFrame;    // the black and white version of the image after blur & level
     //wxImage _cbFrame;    // the Circle bulbs image - edges
     wxImage _biFrame;    // the Bulb identify output - essentially a mask
     std::list<GCMBulb> _lights; // our lights
@@ -213,34 +213,32 @@ class GenerateCustomModelDialog: public wxDialog
     void MoveStartFrame(int by);
 #pragma endregion Start Frame Tab
 
-#pragma region Circle Bulbs Tab
-    void DoBulbCircle();
-    wxImage OutlineBulbs();
-    void ApplyThreshold(wxImage& image, int threshold);
-    wxImage DetectEdges(wxImage& image);
-    void CBTabEntry();
-#pragma endregion Circle Bulbs Tab
-
 #pragma region Identify Bulbs Tab
+    void ApplyThreshold(wxImage& image, int threshold);
     void DoBulbIdentify();
     void BITabEntry();
     //float CalcPoint(wxImage& edge, int x0, int y0, int radius);
     //std::map<xlPoint, int> CircleDetect(wxImage& mask, wxImage& edge, int radius);
     //std::list<wxPoint> CircleDetect(wxImage& mask, wxImage& edge, int minr, int maxr);
-    std::list<GCMBulb> FindLights(wxImage& image, int num);
-    wxImage CreateDetectMask(std::list<GCMBulb> centres, wxImage ref, bool includeimage, wxRect rect, int minseparation);
+    void FindLights(wxImage& image, int num);
+    wxImage CreateDetectMask(wxImage ref, bool includeimage, wxRect rect);
     void WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount);
     GCMBulb FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, wxImage& grey);
     void SubtractImage(wxImage& from, wxImage& tosubtract);
     int CountWhite(wxImage& image);
-    void ApplyMinimumSeparation(std::list<GCMBulb>& clipped, int minseparation);
+    int ApplyMinimumSeparation(std::list<GCMBulb>& clipped, int minseparation);
+    wxString GenerateStats(int minseparation);
+    int GetMaxNum();
+    int GetBulbCount();
+    wxString GetMissingNodes();
+    wxString GetMultiBulbNodes();
 #pragma endregion Identify Bulbs Tab
 
     wxString CreateCustomModelData();
     wxPoint CalcTrim(std::list<GCMBulb>& lights);
     bool TestScale(std::list<GCMBulb>& lights, std::list<GCMBulb>::iterator it, float scale, wxPoint trim);
     void CMTabEntry();
-    wxSize CalcSize(std::list<GCMBulb>& lights, float scale, wxPoint trim);
+    wxSize CalcSize();
     void DoGenerateCustomModel();
     void RemoveClippedLights(std::list<GCMBulb>& lights, wxRect& clip);
 
@@ -268,12 +266,10 @@ class GenerateCustomModelDialog: public wxDialog
 		virtual ~GenerateCustomModelDialog();
 
 		//(*Declarations(GenerateCustomModelDialog)
-		wxStaticText* StaticText10;
 		wxPanel* Panel_BulbIdentify;
 		wxStaticText* StaticText9;
 		wxButton* Button_Shrink;
 		wxButton* Button_Forward10Frames;
-		wxSlider* Slider_LevelFilterAdjust;
 		wxFlexGridSizer* FlexGridSizer19;
 		wxStaticText* StaticText_CM_Request;
 		wxTextCtrl* TextCtrl_BI_Sensitivity;
@@ -296,8 +292,8 @@ class GenerateCustomModelDialog: public wxDialog
 		wxPanel* Panel1;
 		wxSpinCtrl* SpinCtrl_NC_Count;
 		wxFileDialog* FileDialog1;
+		wxTextCtrl* TextCtrl_BI_Status;
 		wxButton* Button_Back10Frames;
-		wxPanel* Panel_BulbCircle;
 		wxButton* Button_CV_Back;
 		wxButton* Button_MT_Next;
 		wxGauge* Gauge_Progress;
@@ -313,9 +309,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxStaticText* StaticText_StartFrameOk;
 		wxPanel* Panel_CustomModel;
 		wxButton* Button_BI_Next;
-		wxButton* Button_BD_Back;
 		wxRadioBox* RadioBox1;
-		wxStaticText* StaticText12;
 		wxPanel* Panel_Prepare;
 		wxSlider* Slider_BI_Sensitivity;
 		wxPanel* Panel_StartFrame;
@@ -323,8 +317,6 @@ class GenerateCustomModelDialog: public wxDialog
 		wxStaticText* StaticText17;
 		wxButton* Button_CM_Save;
 		wxSpinCtrl* SpinCtrl_StartChannel;
-		wxButton* Button_BD_Next;
-		wxTextCtrl* TextCtrl_BC_level;
 		wxButton* Button_Forward1Frame;
 		//*)
 
@@ -358,24 +350,18 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_BUTTON_SF_Back;
 		static const long ID_BUTTON_SF_Next;
 		static const long ID_PANEL_StartFrame;
-		static const long ID_STATICTEXT4;
+		static const long ID_STATICTEXT5;
 		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_AdjustBlur;
 		static const long ID_TEXTCTRL_BC_Blur;
-		static const long ID_STATICTEXT2;
-		static const long ID_SLIDER_LevelFilterAdjust;
-		static const long ID_TEXTCTRL_BC_Level;
-		static const long ID_BUTTON_CB_RestoreDefault;
-		static const long ID_BUTTON_BD_Back;
-		static const long ID_BUTTON_BD_Next;
-		static const long ID_PANEL_BulbCircle;
-		static const long ID_STATICTEXT5;
 		static const long ID_STATICTEXT8;
 		static const long ID_SLIDER_BI_Sensitivity;
 		static const long ID_TEXTCTRL_BI_Sensitivity;
 		static const long ID_STATICTEXT6;
 		static const long ID_SLIDER_BI_MinSeparation;
 		static const long ID_TEXTCTRL_BI_MinSeparation;
+		static const long ID_BUTTON_CB_RestoreDefault;
+		static const long ID_TEXTCTRL_BI_Status;
 		static const long ID_BUTTON_BI_Back;
 		static const long ID_BUTTON_BI_Next;
 		static const long ID_PANEL_BulbIdentify;
@@ -428,6 +414,10 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnButton_GrowClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnSlider_BI_MinSeparationCmdSliderUpdated(wxScrollEvent& event);
+		void OnButton_BI_RestoreDefaultClick(wxCommandEvent& event);
+		void OnSlider_AdjustBlurCmdScrollChanged(wxScrollEvent& event);
+		void OnSlider_BI_SensitivityCmdScrollChanged(wxScrollEvent& event);
+		void OnSlider_BI_MinSeparationCmdScrollChanged(wxScrollEvent& event);
 		//*)
 
         void OnStaticBitmapLeftUp(wxMouseEvent& event);
