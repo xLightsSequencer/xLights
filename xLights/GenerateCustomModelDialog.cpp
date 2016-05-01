@@ -86,7 +86,6 @@ const long GenerateCustomModelDialog::ID_SPINCTRL_StartChannel = wxNewId();
 const long GenerateCustomModelDialog::ID_SLIDER_Intensity = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_PCM_Run = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_Prepare = wxNewId();
-const long GenerateCustomModelDialog::ID_GAUGE_Progress = wxNewId();
 const long GenerateCustomModelDialog::ID_RADIOBOX2 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_MT_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL1 = wxNewId();
@@ -115,6 +114,12 @@ const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_Sensitivity = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT6 = wxNewId();
 const long GenerateCustomModelDialog::ID_SLIDER_BI_MinSeparation = wxNewId();
 const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_MinSeparation = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT2 = wxNewId();
+const long GenerateCustomModelDialog::ID_SLIDER_BI_Contrast = wxNewId();
+const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_Contrast = wxNewId();
+const long GenerateCustomModelDialog::ID_CHECKBOX_BI_IsSteady = wxNewId();
+const long GenerateCustomModelDialog::ID_CHECKBOX_BI_ManualUpdate = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON_BI_Update = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CB_RestoreDefault = wxNewId();
 const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_Status = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BI_Back = wxNewId();
@@ -174,9 +179,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxStaticText* StaticText4;
 	wxFlexGridSizer* FlexGridSizer26;
 
-	Create(parent, id, _("Generate Custom Models"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
-	SetClientSize(wxDefaultSize);
-	Move(wxDefaultPosition);
+	Create(parent, wxID_ANY, _("Generate Custom Models"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
@@ -238,8 +241,6 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer14 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer14->AddGrowableCol(0);
 	FlexGridSizer14->AddGrowableRow(0);
-	Gauge_Progress = new wxGauge(Panel_Generate, ID_GAUGE_Progress, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_GAUGE_Progress"));
-	FlexGridSizer14->Add(Gauge_Progress, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5->Add(FlexGridSizer14, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer7 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer7->AddGrowableCol(0);
@@ -325,7 +326,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Panel_BulbIdentify = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_BulbIdentify, wxPoint(176,18), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_BulbIdentify"));
 	FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer15->AddGrowableCol(0);
-	FlexGridSizer15->AddGrowableRow(3);
+	FlexGridSizer15->AddGrowableRow(5);
 	StaticText_BI = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT5, _("The red circles on the image show the bulbs we have identify. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected."), wxDefaultPosition, wxSize(652,75), 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer15->Add(StaticText_BI, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer16 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -348,8 +349,22 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	FlexGridSizer16->Add(Slider_BI_MinSeparation, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_BI_MinSeparation = new wxTextCtrl(Panel_BulbIdentify, ID_TEXTCTRL_BI_MinSeparation, _("10"), wxDefaultPosition, wxSize(40,24), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_BI_MinSeparation"));
 	FlexGridSizer16->Add(TextCtrl_BI_MinSeparation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText10 = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT2, _("Contrast"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer16->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Slider_BI_Contrast = new wxSlider(Panel_BulbIdentify, ID_SLIDER_BI_Contrast, 0, -255, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BI_Contrast"));
+	FlexGridSizer16->Add(Slider_BI_Contrast, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_BI_Contrast = new wxTextCtrl(Panel_BulbIdentify, ID_TEXTCTRL_BI_Contrast, _("0"), wxDefaultPosition, wxSize(40,24), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_BI_Contrast"));
+	FlexGridSizer16->Add(TextCtrl_BI_Contrast, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer15->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer27 = new wxFlexGridSizer(0, 3, 0, 0);
+	CheckBox_BI_IsSteady = new wxCheckBox(Panel_BulbIdentify, ID_CHECKBOX_BI_IsSteady, _("Video is steady"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_BI_IsSteady"));
+	CheckBox_BI_IsSteady->SetValue(true);
+	FlexGridSizer15->Add(CheckBox_BI_IsSteady, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_BI_ManualUpdate = new wxCheckBox(Panel_BulbIdentify, ID_CHECKBOX_BI_ManualUpdate, _("Manual Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_BI_ManualUpdate"));
+	CheckBox_BI_ManualUpdate->SetValue(true);
+	FlexGridSizer15->Add(CheckBox_BI_ManualUpdate, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer27 = new wxFlexGridSizer(0, 2, 0, 0);
+	Button_BI_Update = new wxButton(Panel_BulbIdentify, ID_BUTTON_BI_Update, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_BI_Update"));
+	FlexGridSizer27->Add(Button_BI_Update, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_CB_RestoreDefault = new wxButton(Panel_BulbIdentify, ID_BUTTON_CB_RestoreDefault, _("Restore Default"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CB_RestoreDefault"));
 	FlexGridSizer27->Add(Button_CB_RestoreDefault, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer15->Add(FlexGridSizer27, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -428,6 +443,11 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Connect(ID_SLIDER_BI_Sensitivity,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdSliderUpdated);
 	Connect(ID_SLIDER_BI_MinSeparation,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdScrollChanged);
 	Connect(ID_SLIDER_BI_MinSeparation,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdSliderUpdated);
+	Connect(ID_SLIDER_BI_Contrast,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_ContrastCmdScrollChanged);
+	Connect(ID_SLIDER_BI_Contrast,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_BI_ContrastCmdSliderUpdated);
+	Connect(ID_CHECKBOX_BI_IsSteady,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnCheckBox_BI_IsSteadyClick);
+	Connect(ID_CHECKBOX_BI_ManualUpdate,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnCheckBox_BI_ManualUpdateClick);
+	Connect(ID_BUTTON_BI_Update,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_UpdateClick);
 	Connect(ID_BUTTON_CB_RestoreDefault,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_RestoreDefaultClick);
 	Connect(ID_BUTTON_BI_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_BackClick);
 	Connect(ID_BUTTON_BI_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BI_NextClick);
@@ -855,6 +875,7 @@ void GenerateCustomModelDialog::MTTabEntry()
 
 void GenerateCustomModelDialog::OnButton_MT_NextClick(wxCommandEvent& event)
 {
+    TextCtrl_GCM_Filename->SetValue(""); // clear the filename in case the type has changed
     CVTabEntry();
     SwapPage(PAGE_MODELTYPE, PAGE_CHOOSEVIDEO);
     ValidateWindow();
@@ -883,7 +904,6 @@ void GenerateCustomModelDialog::CVTabEntry()
     {
         StaticText_CM_Request->SetLabel("Select the video you recorded of your model using the prepare tab.");
     }
-    Gauge_Progress->SetValue(0);
     _state = VideoProcessingStates::CHOOSE_VIDEO;
     if (wxFile::Exists(std::string(TextCtrl_GCM_Filename->GetValue().c_str())))
     {
@@ -944,6 +964,9 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
 
     if (RadioBox2->GetSelection() == 2)
     {
+        CheckBox_BI_ManualUpdate->SetValue(false);
+        Button_BI_Update->Hide();
+        CheckBox_BI_IsSteady->Hide();
         DoBulbIdentify();
         BITabEntry();
         SwapPage(PAGE_CHOOSEVIDEO, PAGE_BULBIDENTIFY);
@@ -999,7 +1022,6 @@ void GenerateCustomModelDialog::DoStartFrameIdentify()
 
 void GenerateCustomModelDialog::SFTabEntry()
 {
-    Gauge_Progress->SetValue(5);
     _state = VideoProcessingStates::FINDING_START_FRAME;
     ShowImage(_startFrame);
     Button_Back10Frames->Enable();
@@ -1230,8 +1252,8 @@ void GenerateCustomModelDialog::OnButton_Back1FrameClick(wxCommandEvent& event)
         _busy = true;
         SetCursor(wxCURSOR_WAIT);
         MoveStartFrame(-1);
-        ValidateStartFrame();
         SetStartFrame(_startframetime);
+        ValidateStartFrame();
         ValidateWindow();
         SetCursor(wxCURSOR_ARROW);
         _busy = false;
@@ -1245,8 +1267,8 @@ void GenerateCustomModelDialog::OnButton_Forward1FrameClick(wxCommandEvent& even
         _busy = true;
         SetCursor(wxCURSOR_WAIT);
         MoveStartFrame(1);
-        ValidateStartFrame();
         SetStartFrame(_startframetime);
+        ValidateStartFrame();
         ValidateWindow();
         SetCursor(wxCURSOR_ARROW);
         _busy = false;
@@ -1260,8 +1282,8 @@ void GenerateCustomModelDialog::OnButton_Back10FramesClick(wxCommandEvent& event
         _busy = true;
         SetCursor(wxCURSOR_WAIT);
         MoveStartFrame(-10);
-        ValidateStartFrame();
         SetStartFrame(_startframetime);
+        ValidateStartFrame();
         ValidateWindow();
         SetCursor(wxCURSOR_ARROW);
         _busy = false;
@@ -1275,8 +1297,8 @@ void GenerateCustomModelDialog::OnButton_Forward10FramesClick(wxCommandEvent& ev
         _busy = true;
         SetCursor(wxCURSOR_WAIT);
         MoveStartFrame(10);
-        ValidateStartFrame();
         SetStartFrame(_startframetime);
+        ValidateStartFrame();
         ValidateWindow();
         SetCursor(wxCURSOR_ARROW);
         _busy = false;
@@ -1292,8 +1314,11 @@ void GenerateCustomModelDialog::OnButton_SF_NextClick(wxCommandEvent& event)
     Button_SF_Next->Disable();
     Button_SF_Back->Disable();
 
-    // Nodes
-    DoBulbIdentify();
+    CheckBox_BI_ManualUpdate->SetValue(true);
+    Button_BI_Update->Show();
+    CheckBox_BI_IsSteady->Show();
+    _biFrame = _startFrame;
+
     BITabEntry();
     SwapPage(PAGE_STARTFRAME, PAGE_BULBIDENTIFY);
     ValidateWindow();
@@ -1363,6 +1388,29 @@ int GenerateCustomModelDialog::CountWhite(wxImage& image)
     return res;
 }
 
+void GenerateCustomModelDialog::ApplyContrast(wxImage& grey, int contrast)
+{
+    // Dont need to do anything if zero
+    if (contrast == 0)
+    {
+        return;
+    }
+
+    float factor = (259.0 * ((float)contrast + 255.0)) / (255.0 * (259.0 - (float)contrast));
+
+    int w = grey.GetWidth();
+    int h = grey.GetHeight();
+    int w3 = w * 3;
+    unsigned char* data = grey.GetData();
+    for (int y = 0; y < h; y++)
+    {
+        for (int x = 0; x < w; x++)
+        {
+            SetPixel(x, y, w3, data, (unsigned char)(factor * (GetPixel(x,y,w3,data) - 128) + 128));
+        }
+    }
+}
+
 void GenerateCustomModelDialog::DoBulbIdentify()
 {
     if (!_busy)
@@ -1372,9 +1420,16 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         Slider_AdjustBlur->Disable();
         Slider_BI_Sensitivity->Disable();
         Slider_BI_MinSeparation->Disable();
+        Slider_BI_Contrast->Disable();
+        CheckBox_BI_ManualUpdate->Disable();
+        CheckBox_BI_IsSteady->Disable();
+        Button_BI_Update->Disable();
         Button_CB_RestoreDefault->Disable();
         Button_BI_Next->Disable();
         Button_BI_Back->Disable();
+        SetCursor(wxCURSOR_WAIT);
+
+        wxYield(); // let them update
         _warned = false;
         _lights.clear();
         if (RadioBox2->GetSelection() == 2)
@@ -1382,24 +1437,28 @@ void GenerateCustomModelDialog::DoBulbIdentify()
             _startFrame.LoadFile(TextCtrl_GCM_Filename->GetValue());
             wxImage bwFrame;
             wxImage grey = _startFrame.ConvertToGreyscale();
+            ApplyContrast(grey, Slider_BI_Contrast->GetValue());
             wxImage imgblur = grey.Blur(Slider_AdjustBlur->GetValue());
             bwFrame = imgblur;
             ApplyThreshold(bwFrame, Slider_BI_Sensitivity->GetValue());
-            FindLights(bwFrame, 1);
+            FindLights(bwFrame, 1, grey);
             _biFrame = CreateDetectMask(bwFrame, true, _clip);
         }
         else
         {
             // handle videos here
-            int currentTime = _startframetime + LEADON + FLAGOFF + FLAGON + FLAGOFF;
+            int currentTime = _startframetime + LEADON + FLAGOFF + FLAGON + (0.9 * (float)FLAGOFF);
             int n = 1;
 
-            while (currentTime < _vr->GetLengthMS())
+            int sincefound = 0;
+            while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < 100)
             {
                 wxImage bwFrame;
+                wxImage grey;
 
-                while (!bwFrame.IsOk() || CountWhite(bwFrame) < 50)
+                while ((!bwFrame.IsOk() || CountWhite(bwFrame) < 50) && currentTime < _vr->GetLengthMS() && sincefound < 100)
                 {
+                    sincefound++;
                     if (bwFrame.IsOk())
                     {
                         currentTime += 50;
@@ -1414,41 +1473,71 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                         _busy = false;
                         _biFrame = CreateDetectMask(_startFrame, true, _clip);
                         ShowImage(_biFrame);
+                        Slider_AdjustBlur->Enable();
+                        Slider_BI_Sensitivity->Enable();
+                        Slider_BI_MinSeparation->Enable();
+                        Slider_BI_Contrast->Enable();
+                        Button_CB_RestoreDefault->Enable();
+                        CheckBox_BI_ManualUpdate->Enable();
+                        CheckBox_BI_IsSteady->Enable();
+                        Button_BI_Update->Enable();
+                        Button_BI_Next->Enable();
+                        Button_BI_Back->Enable();
+                        SetCursor(wxCURSOR_ARROW);
                         return;
                     }
 
-                    wxImage grey = frame.ConvertToGreyscale();
-                    SubtractImage(grey, _darkFrame);
+                    grey = frame.ConvertToGreyscale();
+                    if (CheckBox_BI_IsSteady->GetValue())
+                    {
+                        SubtractImage(grey, _darkFrame);
+                    }
+                    ApplyContrast(grey, Slider_BI_Contrast->GetValue());
                     wxImage imgblur = grey.Blur(Slider_AdjustBlur->GetValue());
                     bwFrame = imgblur;
                     ApplyThreshold(bwFrame, Slider_BI_Sensitivity->GetValue());
                 }
 
-                FindLights(bwFrame, n++);
-                currentTime = currentTime + NODEON + NODEOFF;
+                if (sincefound < 100)
+                {
+                    sincefound = 0;
+                    FindLights(bwFrame, n++, grey);
+                    currentTime = currentTime + (0.9 * (float)(NODEON + NODEOFF));
+                }
             }
+
+            if (sincefound >= 100)
+            {
+                wxMessageBox("Too many frames with no lights spotted. Aborting scan.");
+            }
+
             _biFrame = CreateDetectMask(_startFrame, true, _clip);
         }
         ShowImage(_biFrame);
         Slider_AdjustBlur->Enable();
         Slider_BI_Sensitivity->Enable();
         Slider_BI_MinSeparation->Enable();
+        Slider_BI_Contrast->Enable();
+        CheckBox_BI_ManualUpdate->Enable();
+        CheckBox_BI_IsSteady->Enable();
+        Button_BI_Update->Enable();
         Button_CB_RestoreDefault->Enable();
         Button_BI_Next->Enable();
         Button_BI_Back->Enable();
+        SetCursor(wxCURSOR_ARROW);
         _busy = false;
     }
 }
 
 void GenerateCustomModelDialog::BITabEntry()
 {
-    Gauge_Progress->SetValue(75);
     _state = VideoProcessingStates::IDENTIFYING_BULBS;
     ShowImage(_biFrame);
     StaticText_BI->SetLabel("The red circles on the image show the bulbs we have identified. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected.");
     Slider_BI_Sensitivity->Enable();
     Slider_AdjustBlur->Enable();
     Slider_BI_MinSeparation->Enable();
+    Slider_BI_Contrast->Enable();
     Button_CB_RestoreDefault->Enable();
     Button_BI_Next->Enable();
     Button_BI_Back->Enable();
@@ -1511,6 +1600,7 @@ wxString GenerateCustomModelDialog::GetMissingNodes()
                     }
                     res += wxString::Format("%d", i);
                 }
+                current = it->GetNum();
             }
         }
     }
@@ -1672,7 +1762,7 @@ void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, u
     std::list<wxPoint> pixels;
     pixels.push_back(wxPoint(x, y));
 
-    while(pixels.size() != 0)
+    while(pixels.size() != 0 && pixels.size() < 1000)
     {
         std::list<wxPoint>::iterator it = pixels.begin();
 
@@ -1710,6 +1800,15 @@ void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, u
         }
         pixels.pop_front();
     }
+
+    if (pixels.size() != 0)
+    {
+        if (!_warned)
+        {
+            _warned = true;
+            wxMessageBox("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.");
+        }
+    }
 }
 
 GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, wxImage& grey)
@@ -1722,10 +1821,9 @@ GCMBulb GenerateCustomModelDialog::FindCenter(int x, int y, int w, int h, int w3
     return GCMBulb(wxPoint(totalX / pixelCount, totalY / pixelCount), num, GetPixel(totalX / pixelCount, totalY / pixelCount, w3, grey.GetData()));
 }
 
-void GenerateCustomModelDialog::FindLights(wxImage& image, int num)
+void GenerateCustomModelDialog::FindLights(wxImage& bwimage, int num, wxImage& greyimage)
 {
-    wxImage grey = image.ConvertToGreyscale();
-    wxImage temp = image;
+    wxImage temp = bwimage;
     temp.UnShare(); // we are going to change the data so get out own copy
     int w = temp.GetWidth();
     int w3 = w * 3;
@@ -1738,7 +1836,7 @@ void GenerateCustomModelDialog::FindLights(wxImage& image, int num)
         {
             if (GetPixel(x, y, w3, data) > 0)
             {
-                _lights.push_back(FindCenter(x, y, w, h, w3, data, num, grey));
+                _lights.push_back(FindCenter(x, y, w, h, w3, data, num, greyimage));
             }
         }
     }
@@ -1772,56 +1870,123 @@ void GenerateCustomModelDialog::OnButton_BI_RestoreDefaultClick(wxCommandEvent& 
         TextCtrl_BC_Blur->SetValue("1");
         Slider_BI_Sensitivity->SetValue(127);
         TextCtrl_BI_Sensitivity->SetValue("127");
-        Button_BI_Next->Disable();
-        Button_BI_Back->Disable();
-        DoBulbIdentify();
-        Button_BI_Next->Enable();
-        Button_BI_Back->Enable();
+        Slider_BI_Contrast->SetValue(0);
+        TextCtrl_BI_Contrast->SetValue("0");
+        if (!CheckBox_BI_ManualUpdate->GetValue())
+        {
+            DoBulbIdentify();
+        }
     }
 }
 
 void GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScrollChanged(wxScrollEvent& event)
 {
-    if (!_busy)
+    if (!CheckBox_BI_ManualUpdate->GetValue())
     {
-        DoBulbIdentify();
+        if (!_busy)
+        {
+            DoBulbIdentify();
+        }
     }
 }
 
 void GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdScrollChanged(wxScrollEvent& event)
 {
-    if (!_busy)
+    if (!CheckBox_BI_ManualUpdate->GetValue())
     {
-        DoBulbIdentify();
+        if (!_busy)
+        {
+            DoBulbIdentify();
+        }
     }
 }
 
 void GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdScrollChanged(wxScrollEvent& event)
 {
+    if (!CheckBox_BI_ManualUpdate->GetValue())
+    {
+        if (!_busy)
+        {
+            DoBulbIdentify();
+        }
+    }
+}
+
+void GenerateCustomModelDialog::OnSlider_BI_ContrastCmdScrollChanged(wxScrollEvent& event)
+{
+    if (!CheckBox_BI_ManualUpdate->GetValue())
+    {
+        if (!_busy)
+        {
+            DoBulbIdentify();
+        }
+    }
+}
+
+void GenerateCustomModelDialog::OnCheckBox_BI_IsSteadyClick(wxCommandEvent& event)
+{
+    if (!CheckBox_BI_ManualUpdate->GetValue())
+    {
+        if (!_busy)
+        {
+            DoBulbIdentify();
+        }
+    }
+}
+
+void GenerateCustomModelDialog::OnCheckBox_BI_ManualUpdateClick(wxCommandEvent& event)
+{
+    if (CheckBox_BI_ManualUpdate->GetValue())
+    {
+        Button_BI_Update->Show();
+    }
+    else
+    {
+        Button_BI_Update->Hide();
+        if (!_busy)
+        {
+            DoBulbIdentify();
+        }
+    }
+}
+
+void GenerateCustomModelDialog::OnButton_BI_UpdateClick(wxCommandEvent& event)
+{
     if (!_busy)
     {
         DoBulbIdentify();
     }
 }
 
+void GenerateCustomModelDialog::OnSlider_BI_ContrastCmdSliderUpdated(wxScrollEvent& event)
+{
+    TextCtrl_BI_Contrast->SetValue(wxString::Format("%d", Slider_BI_Contrast->GetValue()));
+}
+
 void GenerateCustomModelDialog::OnButton_BI_NextClick(wxCommandEvent& event)
 {
-    DoGenerateCustomModel();
-    CMTabEntry();
-    SwapPage(PAGE_BULBIDENTIFY, PAGE_REVIEWMODEL);
+    if (!_busy)
+    {
+        DoGenerateCustomModel();
+        CMTabEntry();
+        SwapPage(PAGE_BULBIDENTIFY, PAGE_REVIEWMODEL);
+    }
 }
 
 void GenerateCustomModelDialog::OnButton_BI_BackClick(wxCommandEvent& event)
 {
-    if (RadioBox2->GetSelection() == 2)
+    if (!_busy)
     {
-        CVTabEntry();
-        SwapPage(PAGE_BULBIDENTIFY, PAGE_CHOOSEVIDEO);
-    }
-    else
-    {
-        SFTabEntry();
-        SwapPage(PAGE_BULBIDENTIFY, PAGE_STARTFRAME);
+        if (RadioBox2->GetSelection() == 2)
+        {
+            CVTabEntry();
+            SwapPage(PAGE_BULBIDENTIFY, PAGE_CHOOSEVIDEO);
+        }
+        else
+        {
+            SFTabEntry();
+            SwapPage(PAGE_BULBIDENTIFY, PAGE_STARTFRAME);
+        }
     }
 }
 
@@ -1836,7 +2001,6 @@ void GenerateCustomModelDialog::OnButton_BI_BackClick(wxCommandEvent& event)
 void GenerateCustomModelDialog::CMTabEntry()
 {
     _state = VideoProcessingStates::REVIEW_CUSTOM_MODEL;
-    Gauge_Progress->SetValue(100);
     ShowImage(_biFrame);
 }
 
@@ -2322,6 +2486,9 @@ void GenerateCustomModelDialog::OnStaticBitmapMouseMove(wxMouseEvent& event)
         }
     }
 }
+
+
+
 
 
 

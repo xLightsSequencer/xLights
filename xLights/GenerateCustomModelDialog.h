@@ -9,6 +9,7 @@
 #include <wx/stattext.h>
 #include <wx/radiobox.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/aui/aui.h>
 #include <wx/slider.h>
@@ -17,7 +18,6 @@
 #include <wx/filedlg.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
-#include <wx/gauge.h>
 //*)
 
 #ifdef __WXOSX__
@@ -220,11 +220,12 @@ class GenerateCustomModelDialog: public wxDialog
     //float CalcPoint(wxImage& edge, int x0, int y0, int radius);
     //std::map<xlPoint, int> CircleDetect(wxImage& mask, wxImage& edge, int radius);
     //std::list<wxPoint> CircleDetect(wxImage& mask, wxImage& edge, int minr, int maxr);
-    void FindLights(wxImage& image, int num);
+    void FindLights(wxImage& bwimage, int num, wxImage& greyimage);
     wxImage CreateDetectMask(wxImage ref, bool includeimage, wxRect rect);
     void WalkPixels(int x, int y, int w, int h, int w3, unsigned char *data, int& totalX, int& totalY, int& pixelCount);
     GCMBulb FindCenter(int x, int y, int w, int h, int w3, unsigned char *data, int num, wxImage& grey);
     void SubtractImage(wxImage& from, wxImage& tosubtract);
+    void ApplyContrast(wxImage& grey, int contrast);
     int CountWhite(wxImage& image);
     int ApplyMinimumSeparation(std::list<GCMBulb>& clipped, int minseparation);
     wxString GenerateStats(int minseparation);
@@ -266,10 +267,12 @@ class GenerateCustomModelDialog: public wxDialog
 		virtual ~GenerateCustomModelDialog();
 
 		//(*Declarations(GenerateCustomModelDialog)
+		wxStaticText* StaticText10;
 		wxPanel* Panel_BulbIdentify;
 		wxStaticText* StaticText9;
 		wxButton* Button_Shrink;
 		wxButton* Button_Forward10Frames;
+		wxTextCtrl* TextCtrl_BI_Contrast;
 		wxFlexGridSizer* FlexGridSizer19;
 		wxStaticText* StaticText_CM_Request;
 		wxTextCtrl* TextCtrl_BI_Sensitivity;
@@ -282,6 +285,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxButton* Button_CM_Back;
 		wxRadioBox* RadioBox2;
 		wxAuiNotebook* AuiNotebook_ProcessSettings;
+		wxButton* Button_BI_Update;
 		wxSlider* Slider_Intensity;
 		wxStaticText* StaticText_BI;
 		wxStaticText* StaticText11;
@@ -296,11 +300,12 @@ class GenerateCustomModelDialog: public wxDialog
 		wxButton* Button_Back10Frames;
 		wxButton* Button_CV_Back;
 		wxButton* Button_MT_Next;
-		wxGauge* Gauge_Progress;
 		wxTextCtrl* TextCtrl_BC_Blur;
+		wxSlider* Slider_BI_Contrast;
 		wxTextCtrl* TextCtrl_BI_MinSeparation;
 		wxTextCtrl* TextCtrl_GCM_Filename;
 		wxPanel* Panel_ChooseVideo;
+		wxCheckBox* CheckBox_BI_ManualUpdate;
 		wxSlider* Slider_AdjustBlur;
 		wxButton* Button_GCM_SelectFile;
 		wxPanel* Panel_Generate;
@@ -309,6 +314,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxStaticText* StaticText_StartFrameOk;
 		wxPanel* Panel_CustomModel;
 		wxButton* Button_BI_Next;
+		wxCheckBox* CheckBox_BI_IsSteady;
 		wxRadioBox* RadioBox1;
 		wxPanel* Panel_Prepare;
 		wxSlider* Slider_BI_Sensitivity;
@@ -331,7 +337,6 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_SLIDER_Intensity;
 		static const long ID_BUTTON_PCM_Run;
 		static const long ID_PANEL_Prepare;
-		static const long ID_GAUGE_Progress;
 		static const long ID_RADIOBOX2;
 		static const long ID_BUTTON_MT_Next;
 		static const long ID_PANEL1;
@@ -360,6 +365,12 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_STATICTEXT6;
 		static const long ID_SLIDER_BI_MinSeparation;
 		static const long ID_TEXTCTRL_BI_MinSeparation;
+		static const long ID_STATICTEXT2;
+		static const long ID_SLIDER_BI_Contrast;
+		static const long ID_TEXTCTRL_BI_Contrast;
+		static const long ID_CHECKBOX_BI_IsSteady;
+		static const long ID_CHECKBOX_BI_ManualUpdate;
+		static const long ID_BUTTON_BI_Update;
 		static const long ID_BUTTON_CB_RestoreDefault;
 		static const long ID_TEXTCTRL_BI_Status;
 		static const long ID_BUTTON_BI_Back;
@@ -418,6 +429,12 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnSlider_AdjustBlurCmdScrollChanged(wxScrollEvent& event);
 		void OnSlider_BI_SensitivityCmdScrollChanged(wxScrollEvent& event);
 		void OnSlider_BI_MinSeparationCmdScrollChanged(wxScrollEvent& event);
+		void OnSlider_BI_ContrastCmdScrollChanged(wxScrollEvent& event);
+		void OnSlider_BI_ContrastCmdSliderUpdated(wxScrollEvent& event);
+		void OnCheckBox_BI_IsSteadyClick(wxCommandEvent& event);
+		void OnButton1Click(wxCommandEvent& event);
+		void OnCheckBox_BI_ManualUpdateClick(wxCommandEvent& event);
+		void OnButton_BI_UpdateClick(wxCommandEvent& event);
 		//*)
 
         void OnStaticBitmapLeftUp(wxMouseEvent& event);
