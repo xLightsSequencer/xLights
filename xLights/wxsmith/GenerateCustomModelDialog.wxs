@@ -354,7 +354,7 @@
 																<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
 																	<cols>1</cols>
 																	<growablecols>0</growablecols>
-																	<growablerows>3</growablerows>
+																	<growablerows>4</growablerows>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText11" member="yes">
 																			<label>This is the frame the scan has identified as being the most likely to show all your bulbs. It should be a frame showing all the bulbs on and it should be near the start of the first flash of all the bulbs before each bulb was lit in turn.&#x0A;You can move it forward or backwards with the buttons below.&#x0A;&#x0A;Click next when you are happy with it.</label>
@@ -421,6 +421,15 @@
 																			<style>wxALIGN_CENTRE</style>
 																		</object>
 																		<flag>wxALL|wxEXPAND</flag>
+																		<border>2</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="ID_STATICTEXT_StartTime" variable="StaticText_StartTime" member="yes">
+																			<label></label>
+																			<size>95,16</size>
+																		</object>
+																		<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>2</border>
 																		<option>1</option>
 																	</object>

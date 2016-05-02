@@ -102,6 +102,7 @@ const long GenerateCustomModelDialog::ID_BUTTON_Forward1Frame = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_Back10Frames = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_Forward10Frames = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT_StartFrameOk = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT_StartTime = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_SF_Back = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_SF_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_StartFrame = wxNewId();
@@ -180,7 +181,9 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxStaticText* StaticText4;
 	wxFlexGridSizer* FlexGridSizer26;
 
-	Create(parent, wxID_ANY, _("Generate Custom Models"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+	Create(parent, id, _("Generate Custom Models"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
+	SetClientSize(wxDefaultSize);
+	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
@@ -297,7 +300,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	Panel_StartFrame = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_StartFrame, wxPoint(43,126), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_StartFrame"));
 	FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer10->AddGrowableCol(0);
-	FlexGridSizer10->AddGrowableRow(3);
+	FlexGridSizer10->AddGrowableRow(4);
 	StaticText11 = new wxStaticText(Panel_StartFrame, ID_STATICTEXT3, _("This is the frame the scan has identified as being the most likely to show all your bulbs. It should be a frame showing all the bulbs on and it should be near the start of the first flash of all the bulbs before each bulb was lit in turn.\nYou can move it forward or backwards with the buttons below.\n\nClick next when you are happy with it."), wxDefaultPosition, wxSize(658,99), 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer10->Add(StaticText11, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -314,6 +317,8 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, wxXmlDocu
 	wxFont StaticText_StartFrameOkFont(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	StaticText_StartFrameOk->SetFont(StaticText_StartFrameOkFont);
 	FlexGridSizer10->Add(StaticText_StartFrameOk, 1, wxALL|wxEXPAND, 2);
+	StaticText_StartTime = new wxStaticText(Panel_StartFrame, ID_STATICTEXT_StartTime, wxEmptyString, wxDefaultPosition, wxSize(95,16), 0, _T("ID_STATICTEXT_StartTime"));
+	FlexGridSizer10->Add(StaticText_StartTime, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_SF_Back = new wxButton(Panel_StartFrame, ID_BUTTON_SF_Back, _("Back"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SF_Back"));
@@ -981,11 +986,14 @@ void GenerateCustomModelDialog::OnTextCtrl_GCM_FilenameText(wxCommandEvent& even
 void GenerateCustomModelDialog::SetStartFrame(int time)
 {
     _startframetime = time;
+    StaticText_StartTime->SetLabel(wxString::Format("%dms", time));
     _startFrame = CreateImageFromFrame(_vr->GetNextFrame(time));
     _clip = wxRect(0, 0, _startFrame.GetWidth()-1, _startFrame.GetHeight()-1);
     _startframebrightness = CalcFrameBrightness(_startFrame);
     _darkFrame = CreateImageFromFrame(_vr->GetNextFrame(time + LEADON)).ConvertToGreyscale();
     ShowImage(_startFrame);
+    log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    logger_gcm.info("Start frame set to time %dms brightness %f.", time, _startframebrightness);
 }
 
 void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
@@ -996,7 +1004,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
     TextCtrl_GCM_Filename->Disable();
 
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    logger_gcm.info("File: %s.", TextCtrl_GCM_Filename->GetValue());
+    logger_gcm.info("File: %s.", std::string(TextCtrl_GCM_Filename->GetValue().c_str()).c_str());
 
     if (RadioBox2->GetSelection() == 2)
     {
@@ -1076,9 +1084,9 @@ bool GenerateCustomModelDialog::LooksLikeStartFrame(int candidateframe)
 {
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     wxImage image = CreateImageFromFrame(_vr->GetNextFrame(candidateframe));
+    float fimage = CalcFrameBrightness(image);
     int testframe = candidateframe + LEADON + FLAGOFF;
     wxImage nextimage = CreateImageFromFrame(_vr->GetNextFrame(testframe));
-    float fimage = CalcFrameBrightness(image);
     float fnextimage = CalcFrameBrightness(nextimage);
 
     if (fnextimage > fimage * 0.9 && fnextimage < fimage * 1.1)
@@ -1095,14 +1103,16 @@ bool GenerateCustomModelDialog::LooksLikeStartFrame(int candidateframe)
 float GenerateCustomModelDialog::CalcFrameBrightness(wxImage& image)
 {
     wxImage grey = image.ConvertToGreyscale();
-    int w = image.GetWidth();
-    int h = image.GetHeight();
+    int w = grey.GetWidth();
+    int h = grey.GetHeight();
+    int w3 = w * 3;
+    unsigned char * data = grey.GetData();
     int64_t total = 0;
     for (int y = 0; y < h; y++)
     {
         for (int x = 0; x < w; x++)
         {
-            total += *(grey.GetData() + w * 3 * y + x * 3);
+            total += GetPixel(x,y,w3,data);
         }
     }
 
@@ -1114,21 +1124,25 @@ float GenerateCustomModelDialog::CalcFrameBrightness(wxImage& image)
 int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
 {
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    logger_gcm.info("Finding start frame in first %d secs.", STARTSCANSECS);
     std::list<float> framebrightness;
 
     StaticBitmap_Preview->SetEraseBackground(false);
 
-    // scan first STARTSCANSECS seconds of video build a list of average frame brightnesses
-    for (int s = 0; s < STARTSCANSECS; s++)
+    // skip over any leading blankness
+    int start = 0;
+    while (CalcFrameBrightness(CreateImageFromFrame(vr->GetNextFrame(start))) == 0.0)
     {
-        for (int ss = 0; ss < 20; ss++)
-        {
-            int ms = s * 1000 + ss * FRAMEMS;
-            wxImage img = CreateImageFromFrame(vr->GetNextFrame(ms));
-            ShowImage(img);
-            framebrightness.push_back(CalcFrameBrightness(img));
-        }
+        start += FRAMEMS;
+    }
+    logger_gcm.info("Skipped first %dms due to black lead in.", start);
+    logger_gcm.info("Finding start frame in first %dms.", (STARTSCANSECS * 1000) - start);
+
+    // scan first STARTSCANSECS seconds of video build a list of average frame brightnesses
+    for (int ms = start; ms < STARTSCANSECS * 1000; ms+=FRAMEMS)
+    {
+        wxImage img = CreateImageFromFrame(vr->GetNextFrame(ms));
+        ShowImage(img);
+        framebrightness.push_back(CalcFrameBrightness(img));
     }
 
     StaticBitmap_Preview->SetEraseBackground(true);
@@ -1242,7 +1256,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     }
 
     // pick a point 0.1 secs into the high period as our start frame
-    int candidateframe = levelmaxstart[bestlevel] * FRAMEMS;
+    int candidateframe = levelmaxstart[bestlevel] * FRAMEMS + start;
     candidateframe += DELAYMSUNTILSAMPLE;
 
     logger_gcm.info("    Selected start frame %d.", candidateframe);
@@ -1256,7 +1270,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
         }
         else
         {
-            candidateframe++;
+            candidateframe+=FRAMEMS;
         }
     }
 
@@ -1535,7 +1549,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                     sincefound++;
                     if (bwFrame.IsOk())
                     {
-                        currentTime += 50;
+                        currentTime += FRAMEMS;
                         logger_gcm.info("   No frame found so now trying %d.", currentTime);
                     }
 
@@ -1544,7 +1558,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
 
                     if (brightness > _startframebrightness * .8)
                     {
-                        logger_gcm.info("   End found at time %d as brightness (%f) > 80% of start frame brightness (%f).", currentTime, brightness, _startframebrightness);
+                        logger_gcm.info("   End found at time %d as brightness (%f) > 80%% of start frame brightness (%f).", currentTime, brightness, _startframebrightness);
                         // this is our end frame ...
                         _busy = false;
                         _biFrame = CreateDetectMask(_startFrame, true, _clip);
@@ -1560,7 +1574,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                         Button_BI_Next->Enable();
                         Button_BI_Back->Enable();
                         SetCursor(wxCURSOR_ARROW);
-                        logger_gcm.info("Result: %s.", TextCtrl_BI_Status->GetValue());
+                        logger_gcm.info("Result: %s.", std::string(TextCtrl_BI_Status->GetValue().c_str()).c_str());
                         return;
                     }
 
@@ -1603,7 +1617,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         Button_BI_Next->Enable();
         Button_BI_Back->Enable();
         SetCursor(wxCURSOR_ARROW);
-        logger_gcm.info("Result: %s.", TextCtrl_BI_Status->GetValue());
+        logger_gcm.info("Result: %s.", std::string(TextCtrl_BI_Status->GetValue().c_str()).c_str());
         _busy = false;
     }
 }
@@ -2341,10 +2355,10 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    logger_gcm.info("Saving to xmodel file %s.", filename);
+    logger_gcm.info("Saving to xmodel file %s.", std::string(filename.c_str()).c_str());
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        logger_gcm.info("Unable to create file %s. Error %d\n", filename, f.GetLastError());
+        logger_gcm.info("Unable to create file %s. Error %d\n", std::string(filename.c_str()).c_str(), f.GetLastError());
         wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
         return;
     }

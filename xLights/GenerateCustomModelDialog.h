@@ -273,6 +273,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxButton* Button_Shrink;
 		wxButton* Button_Forward10Frames;
 		wxTextCtrl* TextCtrl_BI_Contrast;
+		wxStaticText* StaticText_StartTime;
 		wxFlexGridSizer* FlexGridSizer19;
 		wxStaticText* StaticText_CM_Request;
 		wxTextCtrl* TextCtrl_BI_Sensitivity;
@@ -352,6 +353,7 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_BUTTON_Back10Frames;
 		static const long ID_BUTTON_Forward10Frames;
 		static const long ID_STATICTEXT_StartFrameOk;
+		static const long ID_STATICTEXT_StartTime;
 		static const long ID_BUTTON_SF_Back;
 		static const long ID_BUTTON_SF_Next;
 		static const long ID_PANEL_StartFrame;
