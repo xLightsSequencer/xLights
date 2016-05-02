@@ -49,7 +49,9 @@ extern PFNGLBUFFERDATAPROC glBufferData;
 extern PFNGLFLUSHMAPPEDBUFFERRANGEPROC glFlushMappedBufferRange;
 extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
 extern PFNGLUNMAPBUFFERPROC glUnmapBuffer;
+#ifndef LINUX
 extern PFNGLACTIVETEXTUREPROC glActiveTexture;
+#endif
 extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
 extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;

@@ -53,7 +53,9 @@ PFNGLBUFFERDATAPROC glBufferData;
 PFNGLFLUSHMAPPEDBUFFERRANGEPROC glFlushMappedBufferRange;
 PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
 PFNGLUNMAPBUFFERPROC glUnmapBuffer;
+#ifndef LINUX
 PFNGLACTIVETEXTUREPROC glActiveTexture;
+#endif
 PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
 PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
@@ -61,6 +63,13 @@ PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
+
+#ifdef LINUX // conversion function from glx to wgl calls
+__GLXextFuncPtr wglGetProcAddress(const char* a) {
+    return glXGetProcAddress((const GLubyte*)a);
+}
+#endif
+
 
 void LoadGLFunctions() {
     glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
@@ -89,7 +98,9 @@ void LoadGLFunctions() {
     glFlushMappedBufferRange = (PFNGLFLUSHMAPPEDBUFFERRANGEPROC)wglGetProcAddress("glFlushMappedBufferRange");
     glMapBufferRange = (PFNGLMAPBUFFERRANGEPROC)wglGetProcAddress("glMapBufferRange");
     glUnmapBuffer = (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBuffer");
+#ifndef LINUX
     glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
+#endif
     glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress("glGenVertexArrays");
     glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress("glBindVertexArray");
     glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)wglGetProcAddress("glDeleteVertexArrays");
