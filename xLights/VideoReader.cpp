@@ -162,7 +162,6 @@ void VideoReader::Seek(int timestampMS)
 	// we have to be valid
 	if (_valid)
 	{
-		// Seek about 5 secs prior to the desired timestamp ... to make sure we get a key frame
         int tgtframe = GetFrameForTime(timestampMS, _videoStream);
 
 		if (tgtframe < _lastframe)
@@ -177,7 +176,8 @@ void VideoReader::Seek(int timestampMS)
 			return;
 		}
 
-		int adj_timestamp = timestampMS - 5000;
+        // Seek about 5 secs prior to the desired timestamp ... to make sure we get a key frame
+        int adj_timestamp = timestampMS - 5000;
 		if (adj_timestamp < 0)
 		{
 			adj_timestamp = 0;

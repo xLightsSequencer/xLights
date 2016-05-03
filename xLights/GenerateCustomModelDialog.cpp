@@ -38,7 +38,8 @@
 #define FLAGOFF 500
 #define NODEON 500
 #define NODEOFF 200
-#define DELAYMSUNTILSAMPLE 100
+//#define DELAYMSUNTILSAMPLE 100
+#define DELAYMSUNTILSAMPLE 0
 
 #pragma region Flicker Free Static Bitmap
 
@@ -1011,6 +1012,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
         CheckBox_BI_ManualUpdate->SetValue(false);
         Button_BI_Update->Hide();
         CheckBox_BI_IsSteady->Hide();
+        CheckBox_BI_ManualUpdate->Hide();
         DoBulbIdentify();
         BITabEntry();
         SwapPage(PAGE_CHOOSEVIDEO, PAGE_BULBIDENTIFY);
@@ -1060,8 +1062,7 @@ void GenerateCustomModelDialog::DoStartFrameIdentify()
 
     SetCursor(wxCURSOR_WAIT);
 
-    SetStartFrame(FindStartFrame(_vr));
-    ValidateStartFrame();
+    FindStartFrame(_vr);
 
     SetCursor(wxCURSOR_ARROW);
 }
@@ -1079,28 +1080,36 @@ void GenerateCustomModelDialog::SFTabEntry()
     ValidateWindow();
 }
 
+#define ALLOWABLEDIFFERENCE 0.2
 // A frame looks like a valid start frame if another frame LEADON + FLAGOFF MS in the future is about as bright
 bool GenerateCustomModelDialog::LooksLikeStartFrame(int candidateframe)
 {
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     wxImage image = CreateImageFromFrame(_vr->GetNextFrame(candidateframe));
     float fimage = CalcFrameBrightness(image);
+
+    if (fimage < 0.75 * _overallmaxbrightness)
+    {
+        logger_gcm.info("       Frame %d (%f) NOT close enough to maximum brightness %f to be considered start frame.", candidateframe, fimage, _overallmaxbrightness);
+        return false;
+    }
+
     int testframe = candidateframe + LEADON + FLAGOFF;
     wxImage nextimage = CreateImageFromFrame(_vr->GetNextFrame(testframe));
     float fnextimage = CalcFrameBrightness(nextimage);
 
-    if (fnextimage > fimage * 0.9 && fnextimage < fimage * 1.1)
+    if (fnextimage > fimage * (1.0 - ALLOWABLEDIFFERENCE) && fnextimage < fimage * (1.0 + ALLOWABLEDIFFERENCE))
     {
-        logger_gcm.info("Frame %d (%f) and %d (%f) close enough to look like start frame.", candidateframe, fimage, testframe, fnextimage);
-        // within 10% close enough
+        logger_gcm.info("       Frame %d (%f) and %d (%f) close enough to look like start frame.", candidateframe, fimage, testframe, fnextimage);
+        // within +/-20% close enough
         return true;
     }
 
-    logger_gcm.info("Frame %d (%f) and %d (%f) NOT close enough to look like start frame.", candidateframe, fimage, testframe, fnextimage);
+    logger_gcm.info("       Frame %d (%f) and %d (%f) NOT close enough to look like start frame.", candidateframe, fimage, testframe, fnextimage);
     return false;
 }
 
-float GenerateCustomModelDialog::CalcFrameBrightness(wxImage& image)
+float GenerateCustomModelDialog::CalcFrameBrightness(const wxImage& image)
 {
     wxImage grey = image.ConvertToGreyscale();
     int w = grey.GetWidth();
@@ -1120,7 +1129,31 @@ float GenerateCustomModelDialog::CalcFrameBrightness(wxImage& image)
         ((double)w * (double)h) / 255.0);
 }
 
-// returns the MS of the best start frame - 0.1 MS into what looks like a bright section of the video that lasts about 3 seconds
+//#define PIXELBRIGHTNESSTHRESHOLD 235
+//float GenerateCustomModelDialog::CalcFrameBrightness(wxImage& image)
+//{
+//    wxImage grey = image.ConvertToGreyscale();
+//    int w = grey.GetWidth();
+//    int h = grey.GetHeight();
+//    int w3 = w * 3;
+//    unsigned char * data = grey.GetData();
+//    int64_t total = 0;
+//    for (int y = 0; y < h; y++)
+//    {
+//        for (int x = 0; x < w; x++)
+//        {
+//            if (GetPixel(x, y, w3, data) > PIXELBRIGHTNESSTHRESHOLD)
+//            {
+//                total++;
+//            }
+//        }
+//    }
+//
+//    return (float)total;
+//}
+
+// returns the MS of the best start frame - 0.1 MS into what looks like a bright section of the video that lasts about LEADON seconds
+#define EXTRABRIGHTTHRESHOLD 0.2
 int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
 {
     log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
@@ -1142,12 +1175,15 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     {
         wxImage img = CreateImageFromFrame(vr->GetNextFrame(ms));
         ShowImage(img);
-        framebrightness.push_back(CalcFrameBrightness(img));
+        float b = CalcFrameBrightness(img);
+        framebrightness.push_back(b);
+        logger_gcm.info("   Frame %d brightness %f.", ms, b);
     }
 
     StaticBitmap_Preview->SetEraseBackground(true);
 
     // find the maximum number of frames in the video that it is about a set of brightness thresholds
+    _overallmaxbrightness = 0.0;
     std::map<int, int> levelmaxlen;
     std::map<int, int> levelmaxstart;
     float level = 0.1;
@@ -1156,7 +1192,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
         int maxrunlength = 0;
         int currunlength = 0;
         int maxrunstart = 0;
-        int currunstart = 0;
+        int currunstart = start / FRAMEMS;
         float maxrunbrightness = 0.0;
         float curmaxbrightness = 0.0;
 
@@ -1177,24 +1213,33 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
             }
             else
             {
-                if (currunlength > maxrunlength || curmaxbrightness > maxrunbrightness * 1.2)
+                // take this run if it is closer to the right length
+                //if (currunlength > maxrunlength || curmaxbrightness > maxrunbrightness * (1.0 + EXTRABRIGHTTHRESHOLD))
+                if (abs(LEADON/FRAMEMS - currunlength) < abs(LEADON/FRAMEMS - maxrunlength))
                 {
                     maxrunlength = currunlength;
                     maxrunstart = currunstart;
                     maxrunbrightness = curmaxbrightness;
+                    if (maxrunbrightness > _overallmaxbrightness)
+                    {
+                        _overallmaxbrightness = maxrunbrightness;
+                    }
                 }
                 currunlength = 0;
                 curmaxbrightness = 0.0;
             }
             it++;
         }
-        if (currunlength > maxrunlength || curmaxbrightness > maxrunbrightness * 1.2)
+        // take this run if it is closer to the right length
+        //if (currunlength > maxrunlength || curmaxbrightness > maxrunbrightness * (1.0 + EXTRABRIGHTTHRESHOLD))
+        if (abs(LEADON / FRAMEMS - currunlength) < abs(LEADON / FRAMEMS - maxrunlength))
         {
             maxrunlength = currunlength;
             maxrunstart = currunstart;
         }
         levelmaxlen[(int)(level*10.0)] = maxrunlength;
         levelmaxstart[(int)(level*10.0)] = maxrunstart;
+        logger_gcm.info("   For level %f maxrunstarts at %dms and goes for %dms with max brightness %f.", level, maxrunstart * FRAMEMS, maxrunlength * FRAMEMS, maxrunbrightness);
         level += 0.1;
     }
 
@@ -1202,9 +1247,27 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     std::map<int, bool> suitable;
     for (int l = 1; l < 10; l++)
     {
-        if (levelmaxlen[l] > LEADON / FRAMEMS - 5 && levelmaxlen[l] < LEADON / FRAMEMS + 5)
+        if (levelmaxlen[l] > LEADON / FRAMEMS - 2 && levelmaxlen[l] < LEADON / FRAMEMS + 2)
         {
-            suitable[l] = true;
+            logger_gcm.info("   Level %f looks suitable from a length perspective.", (float)l/10.0);
+            if (LooksLikeStartFrame(levelmaxstart[l] * FRAMEMS))
+            {
+                logger_gcm.info("       And looking forward the second flash also seems to be there.");
+                suitable[l] = true;
+            }
+            else
+            {
+                // check just one more frame
+                if (LooksLikeStartFrame((levelmaxstart[l] + 1) * FRAMEMS))
+                {
+                    logger_gcm.info("       And looking forward the second flash also seems to be there ... but only once I looked forward one frame.");
+                    suitable[l] = true;
+                }
+                else
+                {
+                    suitable[l] = false;
+                }
+            }
         }
         else
         {
@@ -1249,17 +1312,22 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     {
         logger_gcm.info("    No great match found.");
         bestlevel = 7;
+        while (bestlevel > 1 && levelmaxstart[bestlevel] == 0)
+        {
+            bestlevel--;
+        }
     }
     else
     {
-        bestlevel = ((int)(((float)last + (float)first) / 2.0 * 10.0)) / 10;
+        bestlevel = ((((float)last + (float)first + 1.0) * 10.0) / 2.0) / 10;
+        logger_gcm.info("    Level chosen: halfway between %f and %f ... %f.", (float)first/10.0, (float)last/10.0, (float)bestlevel / 10.0);
     }
 
     // pick a point 0.1 secs into the high period as our start frame
     int candidateframe = levelmaxstart[bestlevel] * FRAMEMS + start;
-    candidateframe += DELAYMSUNTILSAMPLE;
-
     logger_gcm.info("    Selected start frame %d.", candidateframe);
+    candidateframe += DELAYMSUNTILSAMPLE;
+    logger_gcm.info("    After adding delay Selected start frame %d.", candidateframe);
 
     // check the second all on event is there ... if not move up to 10 frames forward looking for it
     for (int i = 0; i < 10; i++)
@@ -1275,6 +1343,9 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     }
 
     logger_gcm.info("    After scanning forward the best start frame is %d.", candidateframe);
+
+    SetStartFrame(candidateframe);
+    ValidateStartFrame();
 
     return candidateframe;
 }
@@ -1386,6 +1457,7 @@ void GenerateCustomModelDialog::OnButton_SF_NextClick(wxCommandEvent& event)
     CheckBox_BI_ManualUpdate->SetValue(true);
     Button_BI_Update->Show();
     CheckBox_BI_IsSteady->Show();
+    CheckBox_BI_ManualUpdate->Show();
     _biFrame = _startFrame;
 
     BITabEntry();

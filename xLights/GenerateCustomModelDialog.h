@@ -69,10 +69,10 @@ class GCMBulb
     bool _suppresstooclose;
 
 public:
-    GCMBulb(wxPoint pt, int num, int brightness) { 
-        _location = pt; 
-        _num = num;  
-        _brightness = brightness; 
+    GCMBulb(wxPoint pt, int num, int brightness) {
+        _location = pt;
+        _num = num;
+        _brightness = brightness;
         _suppressoutsideclip = false;
         _suppressduplicate = false;
         _suppresstooclose = false;
@@ -185,6 +185,7 @@ class GenerateCustomModelDialog: public wxDialog
     bool _warned;
     int _draggingedge;
     wxRect _clip;
+    float _overallmaxbrightness;
 
     void UpdateProgress(wxProgressDialog& pd, int totaltime);
     void ShowFrame(int time);
@@ -206,7 +207,7 @@ class GenerateCustomModelDialog: public wxDialog
     void DoStartFrameIdentify();
     void SetStartFrame(int time);
     void SFTabEntry();
-    float CalcFrameBrightness(wxImage& image);
+    float CalcFrameBrightness(const wxImage& image);
     int FindStartFrame(VideoReader* vr);
     void ValidateStartFrame();
     bool LooksLikeStartFrame(int candidateframe);
