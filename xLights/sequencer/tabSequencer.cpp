@@ -754,6 +754,7 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
         playType = PLAY_TYPE_MODEL_PAUSED;
     }
     else if (playType == PLAY_TYPE_MODEL_PAUSED) {
+        mainSequencer->PanelTimeLine->CheckNeedToScrollToPlayStart();
         playType = PLAY_TYPE_MODEL;
     }
     else if (playType == PLAY_TYPE_EFFECT_PAUSED) {
@@ -1114,11 +1115,14 @@ void xLightsFrame::TimerRgbSeq(long msec)
 				return;
 			}
         }
+        //wxLongLong ms = wxGetUTCTimeMillis();
         mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time);
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
         mainSequencer->PanelWaveForm->CheckNeedToScroll();
         mainSequencer->PanelEffectGrid->ForceRefresh();
         mainSequencer->UpdateTimeDisplay(current_play_time);
+        //wxLongLong me = wxGetUTCTimeMillis();
+        //printf("%d\n", (me-ms).GetLo());
     }
 
     if (selectedEffect != NULL && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {

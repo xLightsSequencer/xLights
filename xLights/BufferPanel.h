@@ -63,8 +63,8 @@ class BufferPanel: public wxPanel
 		static const long ID_CHOICE_BufferTransform;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferTransform;
 		static const long ID_STATICTEXT2;
-		static const long IDD_SLIDER_EffectBlur;
-		static const long ID_TEXTCTRL_EffectBlur;
+		static const long ID_SLIDER_EffectBlur;
+		static const long IDD_TEXTCTRL_EffectBlur;
 		static const long ID_BITMAPBUTTON_SLIDER_EffectBlur;
 		static const long ID_CHECKBOX_OverlayBkg;
 		static const long ID_BITMAPBUTTON_OverlayBkg;

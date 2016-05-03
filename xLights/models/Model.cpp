@@ -1520,14 +1520,16 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
     //preview->GetSize(&w, &h);
     preview->GetVirtualCanvasSize(w, h);
 
-    if (pixelStyle == 1) {
-        glEnable(GL_POINT_SMOOTH);
-    }
     if (pixelSize != 2) {
         glPointSize(preview->calcPixelSize(pixelSize));
     }
     GetModelScreenLocation().PrepareToDraw();
-    DrawGLUtils::PreAlloc(NodeCount);
+    
+    int vcount = 0;
+    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+        vcount += it->get()->Coords.size();
+    }
+    DrawGLUtils::PreAlloc(vcount);
 
     bool started = false;
     int first = 0; int last = NodeCount;
@@ -1587,10 +1589,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
         }
     }
     if (started) {
-        DrawGLUtils::End(GL_POINTS);
-    }
-    if (pixelStyle == 1) {
-        glDisable(GL_POINT_SMOOTH);
+        DrawGLUtils::End(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0);
     }
     if (pixelSize != 2) {
         glPointSize(preview->calcPixelSize(2));
@@ -1603,41 +1602,40 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
 }
 
 void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
-    xlColor color;
-    int w, h;
-
-
-    preview->GetSize(&w, &h);
-
-    double scaleX = double(w) * 0.95 / GetModelScreenLocation().RenderWi;
-    double scaleY = double(h) * 0.95 / GetModelScreenLocation().RenderHt;
-    double scale=scaleY < scaleX ? scaleY : scaleX;
-
-    double pointScale = scale;
-    if (pointScale > 2.5) {
-        pointScale = 2.5;
-    }
-    if (pointScale > GetModelScreenLocation().RenderHt) {
-        pointScale = GetModelScreenLocation().RenderHt;
-    }
-    if (pointScale > GetModelScreenLocation().RenderWi) {
-        pointScale = GetModelScreenLocation().RenderWi;
-    }
     bool success = preview->StartDrawing(pointSize);
-
-    if (pixelStyle == 1) {
-        glEnable(GL_POINT_SMOOTH);
-    }
-    glPointSize(preview->calcPixelSize(pixelSize*pointScale));
-    int lastPixelStyle = pixelStyle;
-    int lastPixelSize = pixelSize;
-
-
+    
     if(success) {
+        xlColor color;
+        int w, h;
+
+        preview->GetSize(&w, &h);
+
+        double scaleX = double(w) * 0.95 / GetModelScreenLocation().RenderWi;
+        double scaleY = double(h) * 0.95 / GetModelScreenLocation().RenderHt;
+        double scale=scaleY < scaleX ? scaleY : scaleX;
+
+        double pointScale = scale;
+        if (pointScale > 2.5) {
+            pointScale = 2.5;
+        }
+        if (pointScale > GetModelScreenLocation().RenderHt) {
+            pointScale = GetModelScreenLocation().RenderHt;
+        }
+        if (pointScale > GetModelScreenLocation().RenderWi) {
+            pointScale = GetModelScreenLocation().RenderWi;
+        }
+        
+        glPointSize(preview->calcPixelSize(pixelSize*pointScale));
+        int lastPixelStyle = pixelStyle;
+        int lastPixelSize = pixelSize;
 
         // layer calculation and map to output
         size_t NodeCount=Nodes.size();
-        DrawGLUtils::PreAlloc(NodeCount);
+        int vcount = 0;
+        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+            vcount += it->get()->Coords.size();
+        }
+        DrawGLUtils::PreAlloc(vcount);
         double sx,sy;
         bool started = false;
         int first = 0; int last = NodeCount;
@@ -1697,13 +1695,8 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                     || lastPixelSize != Nodes[n]->model->pixelSize) {
 
                     if (started) {
-                        DrawGLUtils::End(GL_POINTS);
+                        DrawGLUtils::End(GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0);
                         started = false;
-                    }
-                    if (lastPixelStyle == 1 && Nodes[n]->model->pixelStyle != 1) {
-                        glDisable(GL_POINT_SMOOTH);
-                    } else if (lastPixelStyle != 1 && Nodes[n]->model->pixelStyle == 1) {
-                        glEnable(GL_POINT_SMOOTH);
                     }
                     lastPixelStyle = Nodes[n]->model->pixelStyle;
 
@@ -1729,15 +1722,12 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             }
         }
         if (started) {
-            DrawGLUtils::End(GL_POINTS);
+            DrawGLUtils::End(GL_POINTS, lastPixelStyle == 1 ? GL_POINT_SMOOTH : 0);
         }
         preview->EndDrawing();
-    }
-    if (lastPixelStyle == 1) {
-        glDisable(GL_POINT_SMOOTH);
-    }
-    if (lastPixelSize != 2) {
-        glPointSize(preview->calcPixelSize(2));
+        if (lastPixelSize != 2) {
+            glPointSize(preview->calcPixelSize(2));
+        }
     }
 }
 

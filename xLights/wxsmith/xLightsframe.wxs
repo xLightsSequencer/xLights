@@ -1395,6 +1395,7 @@
 							<handler function="OnPanelSequencerPaint" entry="EVT_PAINT" />
 							<object class="wxAuiManager" variable="m_mgr" member="yes">
 								<style>wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT</style>
+								<handler function="OnPaneClose" entry="EVT_AUI_PANE_CLOSE" />
 							</object>
 						</object>
 						<label>Sequencer</label>

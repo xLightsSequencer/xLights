@@ -624,8 +624,6 @@ void xlGridCanvasPictures::render( wxPaintEvent& event )
         DrawBaseGrid();
         DrawSelection();
     }
-
-    glFlush();
     SwapBuffers();
 }
 
@@ -658,14 +656,11 @@ void xlGridCanvasPictures::DrawPicturesEffect()
     sprite->scale(mCellSize, mCellSize);
     sprite->setHotspot(-1, -mRows - 1 + imageHeight);
 
-    glPushMatrix();
+    DrawGLUtils::PushMatrix();
 
     if( mPaintMode != PAINT_SELECTCOPY || !mCopyAvailable )
     {
-        glColor3f(1.0f, 1.0f, 1.0f);
-        glEnable(GL_TEXTURE_2D);   // textures
         sprite->render();
-        glDisable(GL_TEXTURE_2D);   // textures
     }
     else
     {
@@ -680,7 +675,7 @@ void xlGridCanvasPictures::DrawPicturesEffect()
         glDisable(GL_TEXTURE_2D);
     }
 
-    glPopMatrix();
+    DrawGLUtils::PopMatrix();
 
     if( NewPictureName != PictureName || mPasteCopy)
     {

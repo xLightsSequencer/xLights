@@ -107,7 +107,7 @@ private:
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl) : xlights(xl),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
-    colSizesSet(false)
+    colSizesSet(false), updatingProperty(false)
 {
     _lastCustomModel = "";
     appearanceVisible = sizeVisible = stringPropsVisible = false;
@@ -302,12 +302,15 @@ LayoutPanel::~LayoutPanel()
 
 void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     wxString name = event.GetPropertyName();
+    updatingProperty = true;
     if (name == "BkgBrightness") {
         xlights->SetPreviewBackgroundBrightness(event.GetValue().GetLong());
     } else if (name == "BkgSizeWidth") {
         xlights->SetPreviewSize(event.GetValue().GetLong(), modelPreview->GetVirtualCanvasHeight());
+        xlights->UpdateModelsList();
     } else if (name == "BkgSizeHeight") {
         xlights->SetPreviewSize(modelPreview->GetVirtualCanvasWidth(), event.GetValue().GetLong());
+        xlights->UpdateModelsList();
     } else if (name == "BkgImage") {
         xlights->SetPreviewBackgroundImage(event.GetValue().GetString());
     } else if (name == "BkgFill") {
@@ -350,6 +353,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             }
         }
     }
+    updatingProperty = false;
 }
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
@@ -515,27 +519,29 @@ void LayoutPanel::UnSelectAllModels()
     UpdatePreview();
     selectedModel = nullptr;
 
-    propertyEditor->Freeze();
-    clearPropGrid();
-    propertyEditor->Append(new wxImageFileProperty("Background Image",
-                                                   "BkgImage",
-                                                   modelPreview->GetBackgroundImage()));
-    propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", modelPreview->GetScaleBackgroundImage()))->SetAttribute("UseCheckbox", 1);
-    wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
-    prop->SetAttribute("Min", 0);
-    prop->SetAttribute("Max", 4096);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxUIntProperty("Height", "BkgSizeHeight", modelPreview->GetVirtualCanvasHeight()));
-    prop->SetAttribute("Min", 0);
-    prop->SetAttribute("Max", 4096);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxStringProperty("Brightness",
-                                                       "BkgBrightness",
-                                                       wxString::Format("%d", modelPreview->GetBackgroundBrightness())));
-    prop->SetAttribute("Min", 0);
-    prop->SetAttribute("Max", 100);
-    prop->SetEditor("SpinCtrl");
-    propertyEditor->Thaw();
+    if (!updatingProperty) {
+        propertyEditor->Freeze();
+        clearPropGrid();
+        propertyEditor->Append(new wxImageFileProperty("Background Image",
+                                                       "BkgImage",
+                                                       modelPreview->GetBackgroundImage()));
+        propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", modelPreview->GetScaleBackgroundImage()))->SetAttribute("UseCheckbox", 1);
+        wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
+        prop->SetAttribute("Min", 0);
+        prop->SetAttribute("Max", 4096);
+        prop->SetEditor("SpinCtrl");
+        prop = propertyEditor->Append(new wxUIntProperty("Height", "BkgSizeHeight", modelPreview->GetVirtualCanvasHeight()));
+        prop->SetAttribute("Min", 0);
+        prop->SetAttribute("Max", 4096);
+        prop->SetEditor("SpinCtrl");
+        prop = propertyEditor->Append(new wxStringProperty("Brightness",
+                                                           "BkgBrightness",
+                                                           wxString::Format("%d", modelPreview->GetBackgroundBrightness())));
+        prop->SetAttribute("Min", 0);
+        prop->SetAttribute("Max", 100);
+        prop->SetEditor("SpinCtrl");
+        propertyEditor->Thaw();
+    }
 }
 
 void LayoutPanel::SetupPropGrid(Model *model) {

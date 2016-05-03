@@ -8,9 +8,8 @@
 #include <Cocoa/Cocoa.h>
 #import <AppKit/NSOpenGL.h>
 #import <AppKit/NSOpenGLView.h>
-#include "wx/glcanvas.h"
 
-
+#include "xlGLCanvas.h"
 #include "osxMacUtils.h"
 
 double xlOSXGetMainScreenContentScaleFactor()
@@ -30,12 +29,12 @@ double xlOSXGetMainScreenContentScaleFactor()
 
 
 
-void xlSetOpenGLRetina(wxGLCanvas &win) {
+void xlSetOpenGLRetina(xlGLCanvas &win) {
     NSOpenGLView *glView = (NSOpenGLView*)win.GetHandle();
     [glView setWantsBestResolutionOpenGLSurface:YES];
 }
 
-void xlSetRetinaCanvasViewport(wxGLCanvas &win, int &x, int &y, int &x2, int&y2) {
+void xlSetRetinaCanvasViewport(xlGLCanvas &win, int &x, int &y, int &x2, int&y2) {
     NSOpenGLView *glView = (NSOpenGLView*)win.GetHandle();
     
     NSPoint pt;
@@ -52,7 +51,7 @@ void xlSetRetinaCanvasViewport(wxGLCanvas &win, int &x, int &y, int &x2, int&y2)
     y2 = -pt2.y;
 }
 
-double xlTranslateToRetina(wxGLCanvas &win, double x) {
+double xlTranslateToRetina(xlGLCanvas &win, double x) {
     NSOpenGLView *glView = (NSOpenGLView*)win.GetHandle();
     NSSize pt;
     pt.width = x;

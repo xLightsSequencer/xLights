@@ -8,8 +8,17 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.23  May 01, 2016
+   -- bug (gil)   Fix Copy Row/Paste Row when vertically scrolled. Fixes #553.
+   -- bug (gil)   Fix application losing focusing when closing a floating panel.
+   -- enh (gil)   Reposition view when playback starts or loops so that play marker is visible.  Fixes #550.
+   -- enh (gil)   Paste modifications for how single effects paste in various situations.  Fixes #549.
+   -- bug (dkulp) Add rename button to groups dialog.  Fixes #548
+   -- bug (dkulp) Fix blur setting when clicking on effects. Fixes #547
+   -- bug (dkulp) Reset status bar and refresh previews on file close.  Fixes #552
+   -- bug (dkulp) Only redirect the menu items that need redirecting
 2016.22  Apr 24, 2016
-   -- bug (gil)     Fix bug where SingleLine model wouldn't draw when set to 
+   -- bug (gil)     Fix bug where SingleLine model wouldn't draw when set to
                        3 Channel RGB and controller on right.  Fixes #525.
    -- bug (gil)     Fix so playback works after an XML file import.  Fixes #535.
    -- bug (gil)     Fix SuperStar import to work with horizontal layouts.  Fixes #537.
@@ -30,13 +39,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Fix first frame and last frame buttons so the grid will scroll.  Fixes #544.
    -- enh (keithsw) Add Music Effect
    -- enh (keithsw) Add Note On sub effect to VU Meter - Like On but you can filter the notes it responds to
-   -- enh (keithsw) Add Note Level Pulse sub effect to VU Meter - Like Level Pulse but you can 
+   -- enh (keithsw) Add Note Level Pulse sub effect to VU Meter - Like Level Pulse but you can
                       filter the notes it responds to
    -- enh (keithsw) Add Timing Event Colour sub effect to VU Meter - This changes colour on timing events
    -- enh (keithsw) Add option to trigger firework effects based on the audio intensity
    -- enh (keithsw) Add the option to vary meteor effect meteor count based on the audio intensity
    -- enh (keithsw) Add Colour On sub effect to VU Meter - Selects a colour based on the intensity of the audio
-   -- enh (keithsw) Add the ability to constrain the frequency range of the spectrogram. Columns in 
+   -- enh (keithsw) Add the ability to constrain the frequency range of the spectrogram. Columns in
                      this effect are now aligned with MIDI notes.
    -- fix (keithsw) Ensure pictures, piano and video effect move when moving folders around
    -- enh (keithsw) Move convert tab into a dialog under TOOLS. Now go to convert "TOOLS,CONVERT"
@@ -67,7 +76,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Fix crash in editing groups
 <<<<<<< HEAD
    -- enh (keithsw) Add writing of FPP universes file when saving networks
-   -- enh (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log 
+   -- enh (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log
             found typically in c:\users\<user>\AppData\Roaming
 =======
 2016.18  Apr 7, 2016
@@ -80,11 +89,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp) Remove model properties dialog and model list dialog
    -- bug (dkulp) Fix crash in editing groups
    -- enh (keithsw) Add writing of FPP universes file when saving networks
-   -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log 
+   -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log
          found typically in c:\users\<user>\AppData\Roaming>>>>>>> ConvertInDialog
 2016.17  Apr 3, 2016
    -- enh (keithsw) Add writing of FPP universes file when saving networks
-   -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log 
+   -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log
           found typically in c:\users\<user>\AppData\Roaming
    -- bug (dkulp) Fix text effect on Windows
    -- bug (dkulp) Fix single lines that are 1 channel/string with multiple lights

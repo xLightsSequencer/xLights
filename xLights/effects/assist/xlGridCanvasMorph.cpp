@@ -362,8 +362,6 @@ void xlGridCanvasMorph::render( wxPaintEvent& event )
         DrawBaseGrid();
         DrawMorphEffect();
     }
-
-    glFlush();
     SwapBuffers();
 }
 

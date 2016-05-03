@@ -13,7 +13,7 @@ DimmingCurvePanel::DimmingCurvePanel(wxWindow* parent,
                                      long style,
                                      const wxString& name,
                                      int glFlags[])
-    : xlGLCanvas(parent, id, pos, size, style, name), curve(nullptr), channel(0)
+    : xlGLCanvas(parent, id, pos, size, style, "DimmingCurve-" + name, true), curve(nullptr), channel(0)
 {
 }
 
@@ -93,9 +93,7 @@ void DimmingCurvePanel::render(wxPaintEvent& event) {
 
             DrawGLUtils::AddVertex(xpos, ypos, xlYELLOW);
         }
-        DrawGLUtils::End(GL_LINE_STRIP, true);
+        DrawGLUtils::End(GL_LINE_STRIP);
     }
-
-    glFlush();
     SwapBuffers();
 }

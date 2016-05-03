@@ -17,6 +17,8 @@
 #include "Element.h"
 #include "../EffectTreeDialog.h"
 
+#include <map>
+
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 
 
@@ -109,11 +111,12 @@ private:
     void DrawModelOrViewEffects(int row);
     void DrawSelectedCells();
 
-    int DrawEffectBackground(const Row_Information_Struct* ri, const Effect *effect, int x1, int y1, int x2, int y2);
+    int DrawEffectBackground(const Row_Information_Struct* ri, const Effect *effect,
+                             int x1, int y1, int x2, int y2,
+                             DrawGLUtils::xlVertexColorAccumulator &backgrounds);
 
     void DrawTimingEffects(int row);
     void DrawEffects();
-    void DrawTimings();
     void DrawPlayMarker();
     bool AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position, bool offset);
@@ -165,6 +168,16 @@ private:
 
     int mSelectedRow;
     Effect* mSelectedEffect;
+    
+    DrawGLUtils::xlVertexAccumulator lines;
+    DrawGLUtils::xlVertexAccumulator timingEffLines;
+    DrawGLUtils::xlVertexColorAccumulator timingLines;
+    DrawGLUtils::xlVertexTextAccumulator texts;
+    DrawGLUtils::xlVertexAccumulator selectedLines;
+    DrawGLUtils::xlVertexColorAccumulator backgrounds;
+    DrawGLUtils::xlVertexColorAccumulator textBackgrounds;
+    DrawGLUtils::xlVertexColorAccumulator selectedBoxes;
+    std::map<GLuint, DrawGLUtils::xlVertexTextureAccumulator> textures;
 
     int mResizingMode;
     int mStartResizeTimeMS;

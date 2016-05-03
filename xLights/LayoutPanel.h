@@ -154,6 +154,7 @@ class LayoutPanel: public wxPanel
         int mHitTestNextSelectModelIndex;
     
         wxPropertyGrid *propertyEditor;
+        bool updatingProperty;
         Model *selectedModel;
 
         void refreshModelList();

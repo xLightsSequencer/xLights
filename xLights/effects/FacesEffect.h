@@ -11,11 +11,11 @@ class FacesEffect : public RenderableEffect
     public:
         FacesEffect(int id);
         virtual ~FacesEffect();
-        virtual bool CanBeRandom() {return false;}
-        virtual void SetDefaultParameters(Model *cls);
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        virtual bool CanBeRandom() override {return false;}
+        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
         void mouth(RenderBuffer &buffer, int Phoneme,int BufferHt, int BufferWt);
         void coroface(RenderBuffer &buffer, int Phoneme, const std::string& x_y, const std::string& Outline_x_y, const std::string& Eyes_x_y);

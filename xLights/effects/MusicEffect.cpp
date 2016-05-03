@@ -129,6 +129,7 @@ int MusicEffect::DecodeColourTreatment(const std::string& colourtreatment)
     {
         return 3;
     }
+    return 1;
 }
 
 int MusicEffect::DecodeType(const std::string& type)

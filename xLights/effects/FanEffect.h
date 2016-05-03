@@ -10,12 +10,13 @@ class FanEffect : public RenderableEffect
         FanEffect(int id);
         virtual ~FanEffect();
     
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
     
     
-        virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2);
+        virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
+                                         DrawGLUtils::xlVertexColorAccumulator &backgrounds) override;
     protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent);
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
 };
 

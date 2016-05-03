@@ -51,8 +51,6 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
 	 4) Edit the wxWidgets-3.1.0\include\wx\msw\setup.h to enable GDI+
 	    - search for the line "#   define wxUSE_GRAPHICS_CONTEXT 0"
 		- change it to "#   define wxUSE_GRAPHICS_CONTEXT 1"
-            - search for the line "#define wxUSE_MDI 1"
-                - change it to "#define wxUSE_MDI 0"
             - save the file
 	 4b) Edit the wxWidgets-3.1.0\include\wx\rtti.h
             - search for the line "bool IsKindOf(const wxClassInfo *info) const"

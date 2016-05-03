@@ -1,19 +1,20 @@
 #include "wx/wx.h"
 #include "wx/sizer.h"
 #ifdef __WXMAC__
- #include "OpenGL/glu.h"
  #include "OpenGL/gl.h"
 #else
 #ifdef _MSC_VER
 #include "GL/glut.h"
 #else
-#include <GL/glu.h>
 #include <GL/gl.h>
 #endif
 #endif
 
 #include "ModelPreview.h"
 #include "models/Model.h"
+
+#include "DrawGLUtils.h"
+
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 EVT_MOTION(ModelPreview::mouseMoved)
@@ -107,14 +108,14 @@ void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
 ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a, int styles)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, ""), PreviewModels(&models), allowSelected(a)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, "Preview", true), PreviewModels(&models), allowSelected(a)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
     virtualHeight = 0;
 }
 ModelPreview::ModelPreview(wxPanel* parent)
-: xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize), PreviewModels(NULL), allowSelected(false)
+: xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(NULL), allowSelected(false)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
@@ -126,14 +127,6 @@ ModelPreview::~ModelPreview()
 
 void ModelPreview::SetCanvasSize(int width,int height)
 {
-    /*
-    SetSize(width,height);
-    wxSize s;
-    s.SetWidth(width);
-    s.SetHeight(height);
-    SetMaxSize(s);
-    SetMinSize(s);
-     */
     SetVirtualCanvasSize(width, height);
 }
 void ModelPreview::SetVirtualCanvasSize(int width, int height) {
@@ -219,44 +212,30 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     }
     glPointSize(translateToBacking(mPointSize));
-    glPushMatrix();
+    DrawGLUtils::PushMatrix();
     // Rotate Axis and tranlate
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glRotatef(180,0,0,1);
-    glRotatef(180,0,1,0);
+    DrawGLUtils::Rotate(180,0,0,1);
+    DrawGLUtils::Rotate(180,0,1,0);
 
     currentPixelScaleFactor = 1.0;
     if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
         && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
-        glTranslatef(0,-mWindowHeight,0);
+        DrawGLUtils::Translate(0,-mWindowHeight,0);
         double scaleh= double(mWindowHeight) / double(virtualHeight);
         double scalew = double(mWindowWidth) / double(virtualWidth);
-        glScalef(scalew, scaleh, 1.0);
+        DrawGLUtils::Scale(scalew, scaleh, 1.0);
 
         if (scalew < scaleh) {
             scaleh = scalew;
         }
         currentPixelScaleFactor = scaleh;
         glPointSize(calcPixelSize(mPointSize));
-        glColor3f(0.0, 0.0, 0.0);
-        glBegin(GL_QUADS);
-        glVertex2f(0, 0);
-        glVertex2f(virtualWidth, 0);
-        glVertex2f(virtualWidth, virtualHeight);
-        glVertex2f(0, virtualHeight);
-        glEnd();
+        DrawGLUtils::DrawFillRectangle(xlBLACK, 255, 0, 0, virtualWidth, virtualHeight);
     } else if (virtualWidth == 0 && virtualHeight == 0) {
-        glTranslatef(0, -mWindowHeight, 0);
+        DrawGLUtils::Translate(0, -mWindowHeight, 0);
     } else {
-        glTranslatef(0, -virtualHeight, 0);
-        glColor3f(0.0, 0.0, 0.0);
-        glBegin(GL_QUADS);
-        glVertex2f(0, 0);
-        glVertex2f(virtualWidth, 0);
-        glVertex2f(virtualWidth, virtualHeight);
-        glVertex2f(0, virtualHeight);
-        glEnd();
+        DrawGLUtils::Translate(0, -virtualHeight, 0);
+        DrawGLUtils::DrawFillRectangle(xlBLACK, 255, 0, 0, virtualWidth, virtualHeight);
     }
     if(mBackgroundImageExists)
     {
@@ -265,31 +244,49 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
            image = new Image(mBackgroundImage);
            sprite = new xLightsDrawable(image);
         }
-        float intensity = mBackgroundBrightness*.01;
-        glPushMatrix();
-        double scaleh= double(virtualHeight) / double(image->height);
-        double scalew = double(virtualWidth) / double(image->width);
-        if (scaleImage) {
-            glScalef(scalew, scaleh, 1.0);
-        } else {
-            if (scalew < scaleh) {
-                scaleh = scalew;
+        float scaleh = 1.0;
+        float scalew = 1.0;
+        if (!scaleImage) {
+            float nscaleh = float(image->height) / float(virtualHeight);
+            float nscalew = float(image->width) / float(virtualWidth);
+            if (nscalew < nscaleh) {
+                scaleh = 1.0;
+                scalew = nscalew / nscaleh;
+            } else {
+                scaleh = nscaleh / nscalew;
+                scalew = 1.0;
             }
-            glScalef(scaleh, scaleh, 1.0);
         }
+        DrawGLUtils::xlVertexTextureAccumulator va(*image->getID());
+        va.PreAlloc(6);
+        float tx1 = 0;
+        float tx2 = image->tex_coord_x;
+        va.AddVertex(0, 0, tx1, -0.5/(image->textureHeight));
+        va.AddVertex(virtualWidth * scalew, 0, tx2, -0.5/(image->textureHeight));
+        va.AddVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
         
-        glColor3f(intensity, intensity, intensity);
-        glEnable(GL_TEXTURE_2D);   // textures
-        sprite->render();
-        glDisable(GL_TEXTURE_2D);   // textures
-        glPopMatrix();
+        va.AddVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
+        va.AddVertex(virtualWidth * scalew, 0, tx2, -0.5/(image->textureHeight));
+        va.AddVertex(virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
+        
+        int i = mBackgroundBrightness * 255 / 100;
+        va.alpha = i;
+        DrawGLUtils::Draw(va, GL_TRIANGLES, 0);
+        
+        /*
+        if (mBackgroundBrightness < 100) {
+            int b = (100 - mBackgroundBrightness) * 255;
+            b /= 100;
+            DrawGLUtils::DrawFillRectangle(xlBLACK, b, 0, 0, virtualWidth, virtualHeight);
+        }
+         */
     }
     return true;
 }
 
 void ModelPreview::EndDrawing()
 {
-    glPopMatrix();
+    DrawGLUtils::PopMatrix();
     SwapBuffers();
     mIsDrawing = false;
 }

@@ -1,169 +1,129 @@
 #include <wx/file.h>
 #include "xlGLCanvas.h"
 
-
-#ifdef __WXMSW__
-
-class GL_CONTEXT_CLASS {
-public:
-    GL_CONTEXT_CLASS(xlGLCanvas *win) {
-        PIXELFORMATDESCRIPTOR pfd = {
-            sizeof(PIXELFORMATDESCRIPTOR),  //  size of this pfd
-            1,                     // version number
-            PFD_DRAW_TO_WINDOW |   // support window
-            PFD_SUPPORT_OPENGL   // support OpenGL
-            | PFD_DOUBLEBUFFER      // double buffered
-            ,
-            PFD_TYPE_RGBA,         // RGBA type
-            24,                    // 24-bit color depth
-            0, 0, 0, 0, 0, 0,      // color bits ignored
-            0,                     // no alpha buffer
-            0,                     // shift bit ignored
-            0,                     // no accumulation buffer
-            0, 0, 0, 0,            // accum bits ignored
-            16,                    // 32-bit z-buffer
-            0,                     // no stencil buffer
-            0,                     // no auxiliary buffer
-            PFD_MAIN_PLANE,        // main layer
-            0,                     // reserved
-            0, 0, 0                // layer masks ignored
-        };
-        m_hDC = ::GetDC(win->GetHWND());
-        origWin = win;
-        int iPixelFormat = ChoosePixelFormat(m_hDC, &pfd);
-
-
-        /*
-        wxFile file("c:\\temp\\out.txt", wxFile::OpenMode::write);
-
-        int max = DescribePixelFormat(m_hDC, iPixelFormat,
-         sizeof(PIXELFORMATDESCRIPTOR), &pfd);
-        int match = -1;
-        for (int x = 0; x < max; x++) {
-            DescribePixelFormat(m_hDC, x,
-                                sizeof(PIXELFORMATDESCRIPTOR), &pfd);
-
-            if (pfd.cRedBits == 8
-                && pfd.cGreenBits == 8
-                && pfd.cBlueBits == 8
-                //&& pfd.cAlphaBits == 8   //don't need alpha things, has issues on Windows8 and Aero
-                && (pfd.dwFlags & PFD_SUPPORT_OPENGL)
-                && (pfd.dwFlags & PFD_DRAW_TO_WINDOW)
-                && (pfd.dwFlags & PFD_DOUBLEBUFFER)
-                && pfd.iPixelType == PFD_TYPE_RGBA) {
-                match = x;
-            }
-
-            int accel = true;
-            if ((pfd.dwFlags & PFD_GENERIC_FORMAT)
-                && !(pfd.dwFlags & PFD_GENERIC_ACCELERATED)) {
-                accel = false;
-            }
-            file.Write(wxString::Format("%2d pt:%d  cd:%2d  ab:%d r:%d g:%d b:%d d:%2d  acc:%d  %X      %d\n",
-                                         x,
-                                         pfd.iPixelType,
-                                         pfd.cColorBits,
-                                         pfd.cAlphaBits,
-                                        pfd.cRedBits,
-                                        pfd.cGreenBits,
-                                        pfd.cBlueBits,
-                                        pfd.cDepthBits,
-                                        accel,
-                                         pfd.dwFlags,
-                                         match));
-        }
-
-
-        file.Close();
-        if (match != -1) {
-            iPixelFormat = match;
-        }
-         */
-        DescribePixelFormat(m_hDC, iPixelFormat,
-                            sizeof(PIXELFORMATDESCRIPTOR), &pfd);
-
-        SetPixelFormat(m_hDC, iPixelFormat, &pfd);
-        m_glContext = wglCreateContext(m_hDC);
-    }
-    ~GL_CONTEXT_CLASS() {
-        wglDeleteContext(m_glContext);
-        ::ReleaseDC(origWin->GetHWND(), m_hDC);
-    }
-    bool SetCurrent(xlGLCanvas &win) {
-        if ( !wglMakeCurrent(m_hDC, m_glContext) )
-        {
-            wxLogLastError(wxT("wglMakeCurrent"));
-            return false;
-        }
-        return true;
-    }
-    bool SwapBuffers() {
-        if ( !::SwapBuffers(m_hDC) )
-        {
-            wxLogLastError(wxT("SwapBuffers"));
-            return false;
-        }
-        return true;
-    }
-    HDC m_hDC;
-    xlGLCanvas *origWin;
-    HGLRC m_glContext;
-};
-#endif
-
-#ifdef __WXMSW__
-BEGIN_EVENT_TABLE(xlGLCanvas, wxWindow)
-#else
 BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
-#endif // __WXMSW__
 EVT_SIZE(xlGLCanvas::Resized)
 EVT_ERASE_BACKGROUND(xlGLCanvas::OnEraseBackGround)  // Override to do nothing on this event
 END_EVENT_TABLE()
 
-#ifdef __WXOSX__
-void xlSetOpenGLRetina(wxGLCanvas &win);
-void xlSetRetinaCanvasViewport(wxGLCanvas &win, int &x, int &y, int &x2, int&y2);
-double xlTranslateToRetina(wxGLCanvas &win, double x);
-#else
-#define xlSetOpenGLRetina(a)
-#define xlSetRetinaCanvasViewport(w,a,b,c,d)
-#define xlTranslateToRetina(a, x) x
-#endif
+#include "osxMacUtils.h"
 
-static const int GLARGS[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
+#include <wx/log.h>
+#include <log4cpp/Category.hh>
+
+static wxGLAttributes GetAttributes() {
+    wxGLAttributes atts;
+    atts.PlatformDefaults().RGBA().MinRGBA(8, 8, 8, 8).DoubleBuffer().Depth(16).EndList();
+    return atts;
+}
+
+
+#ifndef __WXMAC__
+static bool functionsLoaded = false;
+extern void LoadGLFunctions();
+
+#include <GL/glext.h>
+extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
+extern PFNGLUSEPROGRAMPROC glUseProgram;
+#endif
 
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
-                const wxSize &size, long style, const wxString &name, bool allowRetina)
-#ifndef __WXMSW__
-    :wxGLCanvas(parent, id, GLARGS, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style),
-#else
-    :   wxWindow(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style),
-#endif
+                       const wxSize &size, long style, const wxString &name,
+                       bool coreProfile)
+    :   wxGLCanvas(parent, GetAttributes(), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
         mWindowWidth(0),
         mWindowHeight(0),
         mWindowResized(false),
         mIsInitialized(false),
-        m_context(new GL_CONTEXT_CLASS(this))
+        m_context(nullptr),
+        m_coreProfile(coreProfile),
+        cache(nullptr)
 {
-    if (allowRetina) {
-        xlSetOpenGLRetina(*this);
-    }
+    xlSetOpenGLRetina(*this);
+    //CreateGLContext();
 }
 
 xlGLCanvas::~xlGLCanvas()
 {
+    if (cache != nullptr) {
+        DrawGLUtils::DestroyCache(cache);
+    }
     delete m_context;
 }
 
-void xlGLCanvas::SetCurrentGLContext() {
-     m_context->SetCurrent(*this);
-}
+DrawGLUtils::xlGLCacheInfo *Create33Cache();
+DrawGLUtils::xlGLCacheInfo *Create21Cache();
+DrawGLUtils::xlGLCacheInfo *Create15Cache();
 
-#ifdef __WXMSW__
-bool xlGLCanvas::SwapBuffers() {
-    return m_context->SwapBuffers();
-}
+void xlGLCanvas::SetCurrentGLContext() {
+    if (m_context == nullptr) {
+        CreateGLContext();
+    }
+    m_context->SetCurrent(*this);
+#ifndef __WXMAC__
+    if (!functionsLoaded) {
+        LoadGLFunctions();
+        functionsLoaded = true;
+    }
 #endif
+    if (cache == nullptr) {
+        log4cpp::Category::getRoot().info(wxString::Format("%s - glVer:  %s  (%s)(%s)\n", (const char *)GetName().c_str(),
+                                          glGetString(GL_VERSION), glGetString(GL_RENDERER), glGetString(GL_VENDOR)).c_str());
+        
+        printf("%s - glVer:  %s  (%s)(%s)\n", (const char *)GetName().c_str(),
+               glGetString(GL_VERSION), glGetString(GL_RENDERER), glGetString(GL_VENDOR));
+        const GLubyte* str = glGetString(GL_VERSION);
+        const GLubyte* vend = glGetString(GL_RENDERER);
+        if (str[0] > '3' || (str[0] == '3' && str[2] >= '3')) {
+            cache = Create33Cache();
+        }
+        if (cache == nullptr && str[0] >= '2') {
+            if (!wxString(vend).Contains("AMD")) {
+                cache = Create21Cache();
+            }
+        }
+        if (cache == nullptr) {
+            cache = Create15Cache();
+        }
+    }
+    DrawGLUtils::SetCurrentCache(cache);
+}
+void xlGLCanvas::CreateGLContext() {
+    if (m_context == nullptr) {
+        //trying to detect OGL verions and stuff can result in unwanted logs
+        wxLogLevel cur = wxLog::GetLogLevel();
+        wxLog::SetLogLevel(wxLOG_Error);
+        wxLog::Suspend();
+#ifndef __WXMAC__
+        if (!functionsLoaded) {
+            m_context = new wxGLContext(this);
+            LoadGLFunctions();
+            delete m_context;
+            m_context = nullptr;
+            functionsLoaded = glUseProgram != nullptr;
+        }
+#endif
+
+        if (m_coreProfile) {
+            wxGLContextAttrs atts;
+            atts.PlatformDefaults().CoreProfile().OGLVersion(3, 3).EndList();
+            m_context = new wxGLContext(this, nullptr, &atts);
+            if (!m_context->IsOK()) {
+                delete m_context;
+                m_context = nullptr;
+            }
+        }
+        if (m_context == nullptr) {
+            m_context = new wxGLContext(this);
+        }
+        if (!m_context->IsOK()) {
+            delete m_context;
+            m_context = nullptr;
+        }
+        wxLog::SetLogLevel(cur);
+        wxLog::Resume();
+    }
+}
 
 void xlGLCanvas::Resized(wxSizeEvent& evt)
 {
@@ -178,20 +138,9 @@ double xlGLCanvas::translateToBacking(double x) {
 
 
 // Inits the OpenGL viewport for drawing in 2D.
-void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
+void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y)
 {
-    int x, y, x2, y2;
-    x = topleft_x;
-    y = topleft_y;
-    x2 = bottomrigth_x;
-    y2 =bottomrigth_y;
-    xlSetRetinaCanvasViewport(*this, x,y,x2,y2);
-    glViewport(x,y,x2-x,y2-y);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
+    DrawGLUtils::SetViewport(*this, topleft_x, topleft_y, bottomright_x, bottomright_y);
     mWindowResized = false;
 }
 

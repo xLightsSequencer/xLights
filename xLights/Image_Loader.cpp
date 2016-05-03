@@ -11,14 +11,6 @@ GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &texture
                   bool &scaledW, bool &scaledH, bool &hasAlpha)
 {
 	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	// the first time, init image handlers (remove this part if you do it somewhere else in your app)
-    static bool is_first_time = true;
-    if(is_first_time)
-    {
-        wxInitAllImageHandlers();
-        
-        is_first_time = false;
-    }
     
     // check the file exists
     if(!wxFileExists(path))
@@ -42,10 +34,8 @@ GLuint* loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureW
     glEnable(GL_TEXTURE_2D);
     int maxSize = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
-
 	glGenTextures( 1, &ID[0] );
-	glBindTexture( GL_TEXTURE_2D, *ID );
-
+    glBindTexture( GL_TEXTURE_2D, *ID );
 
 
 
@@ -53,7 +43,6 @@ GLuint* loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureW
 	imageHeight=img->GetHeight();
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT,   1   );
-
     /*
      * Many graphics card require that textures be power of two.
      * Below is a simple implementation, probably not optimal but working.
@@ -131,7 +120,7 @@ GLuint* loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureW
     // if yes, everything is fine
     glTexImage2D(GL_TEXTURE_2D,
                  0,
-                 bytesPerPixel,
+                 img->HasAlpha() ?  GL_RGBA : GL_RGB,
                  textureWidth,
                  textureHeight,
                  0,
@@ -143,11 +132,9 @@ GLuint* loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureW
 	// set texture parameters as you wish
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // GL_LINEAR
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // GL_LINEAR
-
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glDisable(GL_TEXTURE_2D);
-
 	return ID;
 
 }

@@ -77,15 +77,22 @@ void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
         end = hsv;
     }
 }
-int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
+int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
+                                   DrawGLUtils::xlVertexColorAccumulator &bg) {
     if (e->HasBackgroundDisplayList()) {
-        DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList());
+        DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), bg);
         return e->GetBackgroundDisplayList().iconSize;
     }
     xlColor start;
     xlColor end;
     GetOnEffectColors(e, start, end);
-    DrawGLUtils::DrawHBlendedRectangle(start, end, x1, y1, x2, y2);
+    bg.AddVertex(x1, y1, start);
+    bg.AddVertex(x1, y2, start);
+    bg.AddVertex(x2, y2, end);
+    
+    bg.AddVertex(x2, y2, end);
+    bg.AddVertex(x2, y1, end);
+    bg.AddVertex(x1, y1, start);
     return 2;
 }
 
@@ -132,11 +139,11 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
     }
     if (shimmer || cycles != 1.0) {
         std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
-        eff->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 4);
+        eff->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
         buffer.CopyPixelsToDisplayListX(eff, 0, 0, 0);
     } else if (buffer.needToInit) {
         std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
-        eff->GetBackgroundDisplayList().resize(4);
+        eff->GetBackgroundDisplayList().resize(6);
         if (start == 100 && end == 100) {
             buffer.palette.GetColor(0, color);
             buffer.SetDisplayListHRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, color);

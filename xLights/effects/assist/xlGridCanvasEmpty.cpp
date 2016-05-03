@@ -58,12 +58,10 @@ void xlGridCanvasEmpty::render( wxPaintEvent& event )
 
     if( mEffect != nullptr )
     {
-
         DrawBaseGrid();
         DrawEmptyEffect();
     }
 
-    glFlush();
     SwapBuffers();
 }
 
