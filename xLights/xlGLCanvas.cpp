@@ -8,44 +8,39 @@ END_EVENT_TABLE()
 
 #include "osxMacUtils.h"
 
+#include <wx/log.h>
+#include <log4cpp/Category.hh>
+
 static wxGLAttributes GetAttributes() {
     wxGLAttributes atts;
-    atts.PlatformDefaults().MinRGBA(8, 8, 8, 8).DoubleBuffer().Depth(16).EndList();
+    atts.PlatformDefaults().RGBA().MinRGBA(8, 8, 8, 8).DoubleBuffer().Depth(16).EndList();
     return atts;
 }
+
+
+#ifndef __WXMAC__
+static bool functionsLoaded = false;
+extern void LoadGLFunctions();
+
+#include <GL/glext.h>
+extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
+extern PFNGLUSEPROGRAMPROC glUseProgram;
+#endif
 
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                        const wxSize &size, long style, const wxString &name,
                        bool coreProfile)
-    :   wxGLCanvas(parent, GetAttributes(), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style),
+    :   wxGLCanvas(parent, GetAttributes(), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
         mWindowWidth(0),
         mWindowHeight(0),
         mWindowResized(false),
         mIsInitialized(false),
-        cache(nullptr),
-        m_context(nullptr)
+        m_context(nullptr),
+        m_coreProfile(coreProfile),
+        cache(nullptr)
 {
-#ifdef __WXOSX__
-    if (coreProfile) {
-        wxGLContextAttrs atts;
-        atts.PlatformDefaults().CoreProfile().OGLVersion(3, 3).EndList();
-        
-        //Set NeedsARB to false cause if we fail to find a 3.3 context, we're ok
-        //dropping down to 2.x/1.x and we'll detect that later
-        atts.SetNeedsARB(false);
-        m_context = new wxGLContext(this, nullptr, &atts);
-        if (!m_context->IsOK()) {
-            delete m_context;
-            m_context = nullptr;
-        }
-    }
-#endif
-    if (m_context == nullptr) {
-        wxGLContextAttrs atts;
-        atts.PlatformDefaults().EndList();
-        m_context = new wxGLContext(this, nullptr, &atts);
-    }
     xlSetOpenGLRetina(*this);
+    //CreateGLContext();
 }
 
 xlGLCanvas::~xlGLCanvas()
@@ -56,12 +51,78 @@ xlGLCanvas::~xlGLCanvas()
     delete m_context;
 }
 
+DrawGLUtils::xlGLCacheInfo *Create33Cache();
+DrawGLUtils::xlGLCacheInfo *Create21Cache();
+DrawGLUtils::xlGLCacheInfo *Create15Cache();
+
 void xlGLCanvas::SetCurrentGLContext() {
+    if (m_context == nullptr) {
+        CreateGLContext();
+    }
     m_context->SetCurrent(*this);
+#ifndef __WXMAC__
+    if (!functionsLoaded) {
+        LoadGLFunctions();
+        functionsLoaded = true;
+    }
+#endif
     if (cache == nullptr) {
-        cache = DrawGLUtils::CreateCache();
+        log4cpp::Category::getRoot().info(wxString::Format("%s - glVer:  %s  (%s)(%s)\n", (const char *)GetName().c_str(),
+                                          glGetString(GL_VERSION), glGetString(GL_RENDERER), glGetString(GL_VENDOR)).c_str());
+        
+        printf("%s - glVer:  %s  (%s)(%s)\n", (const char *)GetName().c_str(),
+               glGetString(GL_VERSION), glGetString(GL_RENDERER), glGetString(GL_VENDOR));
+        const GLubyte* str = glGetString(GL_VERSION);
+        const GLubyte* vend = glGetString(GL_RENDERER);
+        if (str[0] > '3' || (str[0] == '3' && str[2] >= '3')) {
+            cache = Create33Cache();
+        }
+        if (cache == nullptr && str[0] >= '2') {
+            if (!wxString(vend).Contains("AMD")) {
+                cache = Create21Cache();
+            }
+        }
+        if (cache == nullptr) {
+            cache = Create15Cache();
+        }
     }
     DrawGLUtils::SetCurrentCache(cache);
+}
+void xlGLCanvas::CreateGLContext() {
+    if (m_context == nullptr) {
+        //trying to detect OGL verions and stuff can result in unwanted logs
+        wxLogLevel cur = wxLog::GetLogLevel();
+        wxLog::SetLogLevel(wxLOG_Error);
+        wxLog::Suspend();
+#ifndef __WXMAC__
+        if (!functionsLoaded) {
+            m_context = new wxGLContext(this);
+            LoadGLFunctions();
+            delete m_context;
+            m_context = nullptr;
+            functionsLoaded = glUseProgram != nullptr;
+        }
+#endif
+
+        if (m_coreProfile) {
+            wxGLContextAttrs atts;
+            atts.PlatformDefaults().CoreProfile().OGLVersion(3, 3).EndList();
+            m_context = new wxGLContext(this, nullptr, &atts);
+            if (!m_context->IsOK()) {
+                delete m_context;
+                m_context = nullptr;
+            }
+        }
+        if (m_context == nullptr) {
+            m_context = new wxGLContext(this);
+        }
+        if (!m_context->IsOK()) {
+            delete m_context;
+            m_context = nullptr;
+        }
+        wxLog::SetLogLevel(cur);
+        wxLog::Resume();
+    }
 }
 
 void xlGLCanvas::Resized(wxSizeEvent& evt)

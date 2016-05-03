@@ -170,23 +170,8 @@ protected:
 
 
 
-DrawGLUtils::xlGLCacheInfo *Create33Cache();
-DrawGLUtils::xlGLCacheInfo *Create21Cache();
-
-
-DrawGLUtils::xlGLCacheInfo *DrawGLUtils::CreateCache() {
-    const GLubyte* str = glGetString(GL_VERSION);
-    DrawGLUtils::xlGLCacheInfo *ret = nullptr;
-    if (str[0] > '3' || (str[0] == '3' && str[2] >= '3')) {
-        ret = Create33Cache();
-    }
-    if (ret == nullptr && str[0] == '2') {
-        //ret = Create21Cache();
-    }
-    if (ret == nullptr) {
-        ret = new OpenGL15Cache();
-    }
-    return ret;
+DrawGLUtils::xlGLCacheInfo *Create15Cache() {
+    return new OpenGL15Cache();
 }
 void DrawGLUtils::SetCurrentCache(xlGLCacheInfo *c) {
     currentCache = c;

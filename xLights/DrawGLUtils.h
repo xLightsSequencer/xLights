@@ -89,7 +89,7 @@ namespace DrawGLUtils
     class xlVertexTextureAccumulator {
     public:
         xlVertexTextureAccumulator() : id(0), count(0), alpha(255) {}
-        xlVertexTextureAccumulator(GLuint i) : id(i), count(0) {}
+        xlVertexTextureAccumulator(GLuint i) : id(i), count(0), alpha(255) {}
         ~xlVertexTextureAccumulator() {}
         
         void PreAlloc(unsigned int i) {
@@ -111,11 +111,11 @@ namespace DrawGLUtils
             AddVertex(x2, y, 1, 0);
             AddVertex(x, y, 0, 0);
         }
-        std::vector<float> vertices;
-        std::vector<float> tvertices;
+        GLuint id;
         unsigned int count;
         uint8_t alpha;
-        GLuint id;
+        std::vector<float> vertices;
+        std::vector<float> tvertices;
     };
     class xlVertexTextAccumulator {
     public:
@@ -141,6 +141,8 @@ namespace DrawGLUtils
     public:
         xlGLCacheInfo() {};
         virtual ~xlGLCacheInfo() {};
+        
+        virtual bool IsCoreProfile() { return false;}
         
         virtual void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;

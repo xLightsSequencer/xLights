@@ -18,3 +18,10 @@ build
 xLights/Debug/
 xLights/Release/
 xLights/xLights_l4cpp.log
+.objs_wr
+.objs_wd
+.objs_ld
+.objs_lr
+.objs_debug
+.objs
+wxWidgets*

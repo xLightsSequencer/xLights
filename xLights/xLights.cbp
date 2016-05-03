@@ -155,6 +155,7 @@
 			<Target title="MinGW_Debug">
 				<Option platforms="Windows;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_wd" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -209,6 +210,7 @@
 			<Target title="MinGW_Release">
 				<Option platforms="Windows;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_wr" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -267,8 +269,10 @@
 			<Target title="Linux_Debug">
 				<Option platforms="Unix;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_ld" />
 				<Option type="0" />
 				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
@@ -280,7 +284,7 @@
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
 					<Add option="-D__WXDEBUG__" />
-					<Add option="-D__cdecl=&apos;&apos;" />
+					<Add option='-D__cdecl=&quot;&quot;' />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -304,6 +308,7 @@
 			<Target title="Linux_Release">
 				<Option platforms="Unix;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_lr" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />

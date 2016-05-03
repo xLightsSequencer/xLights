@@ -193,9 +193,13 @@ public:
         if ( InfoLogLength > 0 ){
             std::vector<char> ProgramErrorMessage(InfoLogLength+1);
             glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-            printf("%s\n", &ProgramErrorMessage[0]);
-            log4cpp::Category& logger = log4cpp::Category::getRoot();
-            logger.info(&ProgramErrorMessage[0]);
+            wxString l = &ProgramErrorMessage[0];
+            l.Trim();
+            if (l.length() > 0) {
+                printf("Program Log: %s\n", &ProgramErrorMessage[0]);
+                log4cpp::Category& logger = log4cpp::Category::getRoot();
+                logger.info(&ProgramErrorMessage[0]);
+            }
         }
         glDetachShader(ProgramID, vs);
         glDetachShader(ProgramID, fs);
@@ -214,10 +218,13 @@ public:
         if ( InfoLogLength > 0 ) {
             std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
             glGetShaderInfoLog(shaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-            printf("%s\n", &VertexShaderErrorMessage[0]);
-            
-            log4cpp::Category& logger = log4cpp::Category::getRoot();
-            logger.info(&VertexShaderErrorMessage[0]);
+            wxString l = &VertexShaderErrorMessage[0];
+            l.Trim();
+            if (l.length() > 0) {
+                printf("Shader Log: %s\n", &VertexShaderErrorMessage[0]);
+                log4cpp::Category& logger = log4cpp::Category::getRoot();
+                logger.info(&VertexShaderErrorMessage[0]);
+            }
         }
     }
 
@@ -236,7 +243,6 @@ public:
 
 
     OpenGL33Cache() : matrix(nullptr), colors(4), vertices(2) {
-        LoadGLFunctions();
         textureProgram.Init(
                            "#version 330 core\n"
                            "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
@@ -372,6 +378,7 @@ public:
         normalProgram.Cleanup();
     }
 
+    virtual bool IsCoreProfile() override { return true;}
 
     void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
         if (va.count == 0) {

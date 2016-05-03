@@ -20,6 +20,9 @@
 #endif
 
 #include <DrawGLUtils.h>
+
+#include <log4cpp/Category.hh>
+
 #include <stack>
 
 #ifndef __WXMAC__
@@ -68,8 +71,6 @@ public:
 
 
     OpenGL21Cache() : matrix(nullptr) {
-        LoadGLFunctions();
-
         GLuint VertexShaderIDc = CompileShader(GL_VERTEX_SHADER,
             "#version 120\n"
             "attribute vec2 vertexPosition_modelspace;\n"
@@ -93,8 +94,19 @@ public:
         GLuint FragmentShaderID = CompileShader(GL_FRAGMENT_SHADER,
             "#version 120\n"
             "varying vec4 fragmentColor;\n"
+            "uniform int RenderType = 0;\n"
+            "uniform float PointSmoothMin = 0.5;\n"
+            "uniform float PointSmoothMax = 0.75;\n"
             "void main(){\n"
-            "    gl_FragColor = fragmentColor;\n"
+            "    if (RenderType == 0) {\n"
+            "        gl_FragColor = fragmentColor;\n"
+            "    } else {\n"
+            "        float dist = distance(gl_PointCoord, vec2(0.5));\n"
+            "        float alpha = 1.0 - smoothstep(PointSmoothMin, PointSmoothMax, dist);\n"
+            "        if (alpha == 0.0) discard;\n"
+            "        alpha = alpha * fragmentColor.a;\n"
+            "        gl_FragColor = vec4(fragmentColor.rgb, alpha);\n"
+            "    }\n"
             "}\n");
 
         ProgramIDcolors = LinkProgram(VertexShaderIDc, FragmentShaderID);
@@ -147,7 +159,13 @@ public:
         if ( InfoLogLength > 0 ) {
             std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
             glGetShaderInfoLog(shad, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-            printf("%s\n", &VertexShaderErrorMessage[0]);
+            wxString l = &VertexShaderErrorMessage[0];
+            l.Trim();
+            if (l.length() > 0) {
+                printf("Shader Log(2.1): %s\n", &VertexShaderErrorMessage[0]);
+                log4cpp::Category& logger = log4cpp::Category::getRoot();
+                logger.info(&VertexShaderErrorMessage[0]);
+            }
         }
         return shad;
     }
@@ -166,7 +184,13 @@ public:
         if ( InfoLogLength > 0 ){
             std::vector<char> ProgramErrorMessage(InfoLogLength+1);
             glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-            printf("%s\n", &ProgramErrorMessage[0]);
+            wxString l = &ProgramErrorMessage[0];
+            l.Trim();
+            if (l.length() > 0) {
+                printf("Program Log(2.1): %s\n", &ProgramErrorMessage[0]);
+                log4cpp::Category& logger = log4cpp::Category::getRoot();
+                logger.info(&ProgramErrorMessage[0]);
+            }
         }
         glDetachShader(ProgramID, VertexShaderID);
         glDetachShader(ProgramID, FragmentShaderID);
@@ -216,6 +240,22 @@ public:
         }
         glDisableVertexAttribArray(vattrib);
     }
+    float CalcSmoothPointParams() {
+        float ps;
+        glGetFloatv(GL_POINT_SIZE, &ps);
+        glPointSize(ps+1);
+        float delta = 1.0 / (ps+1);
+        float mid = 0.35 + 0.15 * ((ps - 1.0f)/25.0f);
+        if (mid > 0.5) {
+            mid = 0.5;
+        }
+        
+        float min = std::max(0.0f, mid - delta);
+        float max = std::min(1.0f, mid + delta);
+        glUniform1f(glGetUniformLocation(ProgramIDcolors, "PointSmoothMin"), min);
+        glUniform1f(glGetUniformLocation(ProgramIDcolors, "PointSmoothMax"), max);
+        return ps;
+    }
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
         glUseProgram(ProgramIDcolors);
         SetMVP(ProgramIDcolors);
@@ -228,11 +268,27 @@ public:
         glEnableVertexAttribArray(cattrib);
         glVertexAttribPointer(cattrib, 4, GL_UNSIGNED_BYTE, true, 0, &va.colors[0]);
         
+        float ps = 2.0;
         if (enableCapability != 0) {
-            glEnable(enableCapability);
+            if (enableCapability == GL_POINT_SMOOTH) {
+                glEnable(enableCapability);
+                GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
+                glUniform1i(cid, 1);
+                ps = CalcSmoothPointParams();
+                glEnable(GL_POINT_SPRITE);
+                glTexEnvi(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE_ARB ,GL_FALSE);
+            } else {
+                glEnable(enableCapability);
+            }
         }
         glDrawArrays(type, 0, va.count);
         if (enableCapability > 0) {
+            if (enableCapability == GL_POINT_SMOOTH || enableCapability == GL_POINT_SPRITE) {
+                GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
+                glUniform1i(cid, 0);
+                glPointSize(ps);
+                glDisable(GL_POINT_SPRITE);
+            }
             glDisable(enableCapability);
         }
         glDisableVertexAttribArray(cattrib);

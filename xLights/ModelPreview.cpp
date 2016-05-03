@@ -108,14 +108,14 @@ void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
 ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a, int styles)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, "", true), PreviewModels(&models), allowSelected(a)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, "Preview", true), PreviewModels(&models), allowSelected(a)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
     virtualHeight = 0;
 }
 ModelPreview::ModelPreview(wxPanel* parent)
-: xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "", true), PreviewModels(NULL), allowSelected(false)
+: xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(NULL), allowSelected(false)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;

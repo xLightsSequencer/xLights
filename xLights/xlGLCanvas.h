@@ -36,8 +36,10 @@ class xlGLCanvas
         void Resized(wxSizeEvent& evt);
         void OnEraseBackGround(wxEraseEvent& event) {};
 
+        void CreateGLContext();
     private:
         wxGLContext* m_context;
+        bool m_coreProfile;
         DrawGLUtils::xlGLCacheInfo *cache;
 };
 

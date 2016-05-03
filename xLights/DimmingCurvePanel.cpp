@@ -13,7 +13,7 @@ DimmingCurvePanel::DimmingCurvePanel(wxWindow* parent,
                                      long style,
                                      const wxString& name,
                                      int glFlags[])
-    : xlGLCanvas(parent, id, pos, size, style, name, true), curve(nullptr), channel(0)
+    : xlGLCanvas(parent, id, pos, size, style, "DimmingCurve-" + name, true), curve(nullptr), channel(0)
 {
 }
 

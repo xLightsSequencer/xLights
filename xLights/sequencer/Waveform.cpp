@@ -50,7 +50,7 @@ END_EVENT_TABLE()
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
-                   xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize, 0, "", true)
+                   xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize, 0, "WaveForm", true)
 {
     m_dragging = false;
     m_drag_mode = DRAG_NORMAL;
