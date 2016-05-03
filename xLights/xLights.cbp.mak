@@ -1538,7 +1538,7 @@ AudioManager.h: JobPool.h
 
 PixelBuffer.h: models/Model.h models/SingleLineModel.h RenderBuffer.h
 
-RenderBuffer.h: image.h ../include/globals.h Color.h
+RenderBuffer.h: ../include/globals.h Color.h
 
 PaletteMgmtDialog.h: EffectsPanel.h
 
@@ -1620,7 +1620,7 @@ models/ModelScreenLocation.cpp: models/ModelScreenLocation.h ModelPreview.h Draw
 
 sequencer/UndoManager.cpp: sequencer/UndoManager.h sequencer/Element.h sequencer/SequenceElements.h
 
-sequencer/Waveform.cpp: image.h sequencer/Waveform.h sequencer/TimeLine.h DrawGLUtils.h
+sequencer/Waveform.cpp: sequencer/Waveform.h sequencer/TimeLine.h DrawGLUtils.h
 
 sequencer/tabSequencer.cpp: xLightsMain.h sequencer/SequenceElements.h TopEffectsPanel.h EffectIconPanel.h sequencer/Element.h sequencer/Effect.h BufferPanel.h SeqSettingsDialog.h DisplayElementsPanel.h effects/RenderableEffect.h
 
@@ -1654,13 +1654,13 @@ sequencer/SequenceElements.cpp: sequencer/SequenceElements.h sequencer/TimeLine.
 
 effects/TendrilPanel.cpp: effects/TendrilPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
-effects/SpirographPanel.cpp: effects/SpirographPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/SpirographPanel.cpp: effects/SpirographPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/StrobeEffect.cpp: effects/StrobeEffect.h effects/StrobePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/strobe.xpm
 
 effects/StrobeEffect.h: effects/RenderableEffect.h
 
-effects/StrobePanel.cpp: effects/StrobePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/StrobePanel.cpp: effects/StrobePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/TendrilEffect.cpp: effects/TendrilEffect.h effects/TendrilPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h ../include/tendril-16.xpm ../include/tendril-24.xpm ../include/tendril-32.xpm ../include/tendril-48.xpm ../include/tendril-64.xpm
 
@@ -1670,33 +1670,33 @@ effects/TextEffect.cpp: effects/TextEffect.h effects/TextPanel.h sequencer/Effec
 
 effects/TextEffect.h: effects/RenderableEffect.h
 
-effects/TextPanel.cpp: effects/TextPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/TextPanel.cpp: effects/TextPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/TreeEffect.cpp: effects/TreeEffect.h effects/TreePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/tree-16.xpm ../include/tree-24.xpm ../include/tree-32.xpm ../include/tree-48.xpm ../include/tree-64.xpm
 
 effects/TreeEffect.h: effects/RenderableEffect.h
 
-effects/TreePanel.cpp: effects/TreePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/TreePanel.cpp: effects/TreePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
-effects/SingleStrandPanel.cpp: effects/SingleStrandPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/SingleStrandPanel.cpp: effects/SingleStrandPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/SnowflakesEffect.cpp: effects/SnowflakesEffect.h effects/SnowflakesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/snowflakes-16.xpm ../include/snowflakes-24.xpm ../include/snowflakes-32.xpm ../include/snowflakes-48.xpm ../include/snowflakes-64.xpm
 
 effects/SnowflakesEffect.h: effects/RenderableEffect.h
 
-effects/SnowflakesPanel.cpp: effects/SnowflakesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/SnowflakesPanel.cpp: effects/SnowflakesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/SnowstormEffect.cpp: effects/SnowstormEffect.h effects/SnowstormPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/snowstorm-16.xpm ../include/snowstorm-24.xpm ../include/snowstorm-32.xpm ../include/snowstorm-48.xpm ../include/snowstorm-64.xpm
 
 effects/SnowstormEffect.h: effects/RenderableEffect.h
 
-effects/SnowstormPanel.cpp: effects/SnowstormPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/SnowstormPanel.cpp: effects/SnowstormPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/SpiralsEffect.cpp: effects/SpiralsEffect.h effects/SpiralsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/spirals-16.xpm ../include/spirals-24.xpm ../include/spirals-32.xpm ../include/spirals-48.xpm ../include/spirals-64.xpm
 
 effects/SpiralsEffect.h: effects/RenderableEffect.h
 
-effects/SpiralsPanel.cpp: effects/SpiralsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/SpiralsPanel.cpp: effects/SpiralsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/SpirographEffect.cpp: effects/SpirographEffect.h effects/SpirographPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/spirograph-16.xpm ../include/spirograph-24.xpm ../include/spirograph-32.xpm ../include/spirograph-48.xpm ../include/spirograph-64.xpm
 
@@ -1740,7 +1740,7 @@ effects/TwinkleEffect.cpp: effects/TwinkleEffect.h effects/TwinklePanel.h sequen
 
 effects/TwinkleEffect.h: effects/RenderableEffect.h
 
-effects/TwinklePanel.cpp: effects/TwinklePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/TwinklePanel.cpp: effects/TwinklePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/VUMeterEffect.cpp: effects/VUMeterEffect.h effects/VUMeterPanel.h AudioManager.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/vumeter-16.xpm ../include/vumeter-24.xpm ../include/vumeter-32.xpm ../include/vumeter-48.xpm ../include/vumeter-64.xpm
 
@@ -1754,7 +1754,7 @@ effects/WaveEffect.cpp: effects/WaveEffect.h effects/WavePanel.h sequencer/Effec
 
 effects/WaveEffect.h: effects/RenderableEffect.h
 
-effects/WavePanel.cpp: effects/WavePanel.h ../include/padlock16x16-blue.xpm ../include/padlock16x16-green.xpm effects/EffectPanelUtils.h image.h
+effects/WavePanel.cpp: effects/WavePanel.h ../include/padlock16x16-blue.xpm ../include/padlock16x16-green.xpm effects/EffectPanelUtils.h
 
 xlGLCanvas.cpp: xlGLCanvas.h osxMacUtils.h
 
@@ -1772,9 +1772,9 @@ xlSlider.cpp: xlSlider.h
 
 xlights_out.cpp: xlights_out.h xLightsMain.h serial.h
 
-xLightsApp.cpp: xLightsApp.h xLightsMain.h image.h
+xLightsApp.cpp: xLightsApp.h xLightsMain.h
 
-xLightsMain.cpp: xLightsMain.h xLightsApp.h heartbeat.h SeqSettingsDialog.h RenderCommandEvent.h BitmapCache.h effects/RenderableEffect.h LayoutPanel.h TestDialog.h ConvertDialog.h GenerateCustomModelDialog.h xLightsBasic.cpp ../include/xLights.xpm ../include/open.xpm ../include/save.xpm ../include/insertrow.xpm ../include/deleterow.xpm ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm ../include/control-pause-blue-icon.xpm ../include/control-pause-icon.xpm ../include/control-play-blue-icon.xpm ../include/control-play-icon.xpm ../include/control-stop-blue-icon.xpm ../include/control-stop-icon.xpm image.h osxMacUtils.h TabSchedule.cpp
+xLightsMain.cpp: xLightsMain.h xLightsApp.h heartbeat.h SeqSettingsDialog.h RenderCommandEvent.h BitmapCache.h effects/RenderableEffect.h LayoutPanel.h TestDialog.h ConvertDialog.h GenerateCustomModelDialog.h xLightsBasic.cpp ../include/xLights.xpm ../include/open.xpm ../include/save.xpm ../include/insertrow.xpm ../include/deleterow.xpm ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm ../include/control-pause-blue-icon.xpm ../include/control-pause-icon.xpm ../include/control-play-blue-icon.xpm ../include/control-play-icon.xpm ../include/control-stop-blue-icon.xpm ../include/control-stop-icon.xpm osxMacUtils.h TabSchedule.cpp
 
 TestDialog.h: Color.h models/ModelManager.h xlights_out.h SequenceData.h osxMacUtils.h
 
@@ -1802,7 +1802,7 @@ PerspectivesPanel.cpp: PerspectivesPanel.h
 
 PixelAppearanceDlg.cpp: PixelAppearanceDlg.h
 
-PixelBuffer.cpp: PixelBuffer.h image.h DimmingCurve.h models/ModelManager.h models/SingleLineModel.h UtilClasses.h
+PixelBuffer.cpp: PixelBuffer.h DimmingCurve.h models/ModelManager.h models/SingleLineModel.h UtilClasses.h
 
 PlaybackOptionsDialog.cpp: PlaybackOptionsDialog.h
 
@@ -1828,7 +1828,7 @@ FileConverter.h: NetInfo.h DataLayer.h SequenceData.h
 
 LMSImportChannelMapDialog.h: Color.h
 
-SeqSettingsDialog.cpp: SeqSettingsDialog.h RenameTextDialog.h NewTimingDialog.h xLightsXmlFile.h DataLayer.h FileConverter.h LorConvertDialog.h Images_png.h ConvertLogDialog.h VAMPPluginDialog.h image.h
+SeqSettingsDialog.cpp: SeqSettingsDialog.h RenameTextDialog.h NewTimingDialog.h xLightsXmlFile.h DataLayer.h FileConverter.h LorConvertDialog.h Images_png.h ConvertLogDialog.h VAMPPluginDialog.h
 
 VAMPPluginDialog.h: xLightsXmlFile.h AudioManager.h
 
@@ -1848,7 +1848,7 @@ TabConvert.cpp: xLightsMain.h ConvertDialog.h FileConverter.h
 
 TabPapagayo.cpp: xLightsMain.h
 
-PreviewModels.cpp: PreviewModels.h image.h models/ModelManager.h models/ModelGroup.h
+PreviewModels.cpp: PreviewModels.h models/ModelManager.h models/ModelGroup.h
 
 RenameTextDialog.cpp: RenameTextDialog.h
 
@@ -1866,7 +1866,7 @@ SeqExportDialog.cpp: SeqExportDialog.h
 
 DisplayElementsPanel.cpp: DisplayElementsPanel.h ../include/model-16.xpm ../include/timing-16.xpm ../include/eye-16.xpm ../include/eye-16_gray.xpm ModelViewSelector.h sequencer/Element.h
 
-CustomModelDialog.cpp: CustomModelDialog.h image.h models/CustomModel.h
+CustomModelDialog.cpp: CustomModelDialog.h models/CustomModel.h
 
 DataLayer.cpp: DataLayer.h
 
@@ -1890,11 +1890,11 @@ AudioManager.cpp: AudioManager.h xLightsXmlFile.h
 
 BitmapCache.cpp: BitmapCache.h ../include/padlock16x16-blue.xpm ../include/padlock16x16-red.xpm ../include/stop_sign_24.xpm ../include/output_lights_24.xpm ../include/output_lights_off_16.xpm ../include/output_lights_off_24.xpm ../include/output_lights_off_32.xpm ../include/output_lights_off_48.xpm ../include/output_lights_off_64.xpm ../include/output_lights_on_16.xpm ../include/output_lights_on_24.xpm ../include/output_lights_on_32.xpm ../include/output_lights_on_48.xpm ../include/output_lights_on_64.xpm ../include/effects.xpm ../include/colors.xpm ../include/layers.xpm ../include/layers2.xpm ../include/effsettings.xpm ../include/model_preview_24.xpm ../include/house_preview_24.xpm ../include/lights_off_24.xpm ../include/graceful_stop_24.xpm ../include/zoom-out-24.xpm ../include/zoom-in-24.xpm ../include/settings-24.xpm ../include/paste-by-time-24.xpm ../include/paste-by-cell-24.xpm ../include/green-gear-24.xpm ../include/select_show_folder-24.xpm ../include/save-24.xpm ../include/save-as-24.xpm ../include/folder.xpm ../include/file_new-24.xpm ../include/stop-24.xpm ../include/stop-24_off.xpm ../include/trash-24.xpm ../include/search-24.xpm ../include/replay-24.xpm ../include/play-24.xpm ../include/play-24_off.xpm ../include/pause-24.xpm ../include/pause-24_off.xpm ../include/move-24.xpm ../include/home-24.xpm ../include/gears-24.xpm ../include/forward-24.xpm ../include/forward-24_off.xpm ../include/eye-open-24.xpm ../include/backward-24.xpm ../include/backward-24_off.xpm ../include/link-48.xpm ../include/unlink-48.xpm ../include/models-16.xpm ../include/models-24.xpm ../include/models-32.xpm ../include/models-48.xpm ../include/models-64.xpm ../include/point_1a-64.xpm ../include/point_1b-64.xpm ../include/point_2a-64.xpm ../include/point_2b-64.xpm ../include/point_1ab-64.xpm ../include/point_2ab-64.xpm ../include/papagayo-16.xpm ../include/papagayo-64.xpm ../include/model-16.xpm ../include/model-64.xpm
 
-BufferPanel.cpp: BufferPanel.h image.h models/Model.h effects/EffectPanelUtils.h ../include/padlock16x16-blue.xpm
+BufferPanel.cpp: BufferPanel.h models/Model.h effects/EffectPanelUtils.h ../include/padlock16x16-blue.xpm
 
 ChannelLayoutDialog.cpp: ChannelLayoutDialog.h
 
-ColorPanel.cpp: ColorPanel.h xLightsMain.h ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm image.h Color.h effects/EffectPanelUtils.h
+ColorPanel.cpp: ColorPanel.h xLightsMain.h ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm Color.h effects/EffectPanelUtils.h
 
 ConvertDialog.cpp: ConvertDialog.h FileConverter.h xLightsMain.h
 
@@ -1904,7 +1904,7 @@ CurrentPreviewModels.cpp: CurrentPreviewModels.h PreviewModels.h models/ModelMan
 
 Image.cpp: Image.h Image_Loader.h
 
-Image_Loader.cpp: Image_Loader.h image.h
+Image_Loader.cpp: Image_Loader.h
 
 JobPool.cpp: JobPool.h
 
@@ -1924,7 +1924,7 @@ EffectListDialog.cpp: EffectListDialog.h
 
 EffectTreeDialog.cpp: EffectTreeDialog.h xLightsMain.h
 
-EffectsPanel.cpp: image.h effects/EffectManager.h effects/RenderableEffect.h EffectsPanel.h ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
+EffectsPanel.cpp: effects/EffectManager.h effects/RenderableEffect.h EffectsPanel.h ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 TabPreview.cpp: xLightsMain.h heartbeat.h DrawGLUtils.h SaveChangesDialog.h models/Model.h xLightsXmlFile.h LayoutPanel.h
 
@@ -1940,15 +1940,15 @@ effects/MeteorsEffect.cpp: effects/MeteorsEffect.h effects/MeteorsPanel.h sequen
 
 effects/MeteorsEffect.h: effects/RenderableEffect.h
 
-effects/MeteorsPanel.cpp: effects/MeteorsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/MeteorsPanel.cpp: effects/MeteorsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/MorphEffect.cpp: effects/MorphEffect.h effects/MorphPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h effects/assist/AssistPanel.h effects/assist/xlGridCanvasMorph.h ../include/morph.xpm
 
 effects/MorphEffect.h: effects/RenderableEffect.h
 
-effects/MorphPanel.cpp: effects/MorphPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/MorphPanel.cpp: effects/MorphPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
-effects/MarqueePanel.cpp: effects/MarqueePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/MarqueePanel.cpp: effects/MarqueePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/MusicEffect.cpp: effects/MusicEffect.h effects/MusicPanel.h AudioManager.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/music-16.xpm ../include/music-24.xpm ../include/music-32.xpm ../include/music-48.xpm ../include/music-64.xpm
 
@@ -1962,15 +1962,15 @@ effects/OffEffect.h: effects/RenderableEffect.h
 
 effects/OffPanel.cpp: effects/OffPanel.h
 
-effects/LifePanel.cpp: effects/LifePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/LifePanel.cpp: effects/LifePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
-effects/GarlandsPanel.cpp: effects/GarlandsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/GarlandsPanel.cpp: effects/GarlandsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/GlediatorEffect.cpp: effects/GlediatorEffect.h effects/GlediatorPanel.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/glediator.xpm
 
 effects/GlediatorEffect.h: effects/RenderableEffect.h
 
-effects/GlediatorPanel.cpp: effects/GlediatorPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/GlediatorPanel.cpp: effects/GlediatorPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/LifeEffect.cpp: effects/LifeEffect.h effects/LifePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/life-16.xpm ../include/life-24.xpm ../include/life-32.xpm ../include/life-48.xpm ../include/life-64.xpm
 
@@ -1984,7 +1984,7 @@ effects/LightningEffect.cpp: effects/LightningEffect.h effects/LightningPanel.h 
 
 effects/LightningEffect.h: effects/RenderableEffect.h
 
-effects/LightningPanel.cpp: effects/LightningPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/LightningPanel.cpp: effects/LightningPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/MarqueeEffect.cpp: effects/MarqueeEffect.h effects/MarqueePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/marquee-16.xpm ../include/marquee-24.xpm ../include/marquee-32.xpm ../include/marquee-48.xpm ../include/marquee-64.xpm
 
@@ -1994,7 +1994,7 @@ effects/ShimmerEffect.cpp: effects/ShimmerEffect.h effects/ShimmerPanel.h sequen
 
 effects/ShimmerEffect.h: effects/RenderableEffect.h
 
-effects/PlasmaPanel.cpp: effects/PlasmaPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/PlasmaPanel.cpp: effects/PlasmaPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/RenderableEffect.cpp: effects/RenderableEffect.h sequencer/Effect.h effects/EffectManager.h effects/assist/xlGridCanvasEmpty.h
 
@@ -2002,15 +2002,15 @@ effects/RippleEffect.cpp: effects/RippleEffect.h effects/RipplePanel.h sequencer
 
 effects/RippleEffect.h: effects/RenderableEffect.h Color.h
 
-effects/RipplePanel.cpp: effects/RipplePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/RipplePanel.cpp: effects/RipplePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
-effects/ShimmerPanel.cpp: effects/ShimmerPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/ShimmerPanel.cpp: effects/ShimmerPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/ShockwaveEffect.cpp: effects/ShockwaveEffect.h effects/ShockwavePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/shockwave-16.xpm ../include/shockwave-24.xpm ../include/shockwave-32.xpm ../include/shockwave-48.xpm ../include/shockwave-64.xpm
 
 effects/ShockwaveEffect.h: effects/RenderableEffect.h
 
-effects/ShockwavePanel.cpp: effects/ShockwavePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/ShockwavePanel.cpp: effects/ShockwavePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/OnPanel.cpp: effects/OnPanel.h effects/EffectPanelUtils.h
 
@@ -2020,25 +2020,25 @@ effects/PianoEffect.h: effects/RenderableEffect.h
 
 effects/PianoPanel.h: AudioManager.h
 
-effects/PianoPanel.cpp: effects/PianoPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/PianoEffect.h image.h xLightsMain.h
+effects/PianoPanel.cpp: effects/PianoPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/PianoEffect.h xLightsMain.h
 
 effects/PicturesEffect.cpp: effects/PicturesEffect.h effects/PicturesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h effects/assist/xlGridCanvasPictures.h effects/assist/PicturesAssistPanel.h xLightsXmlFile.h ../include/pictures-16.xpm ../include/pictures-24.xpm ../include/pictures-32.xpm ../include/pictures-48.xpm ../include/pictures-64.xpm
 
 effects/PicturesEffect.h: effects/RenderableEffect.h
 
-effects/PicturesPanel.cpp: effects/PicturesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/PicturesPanel.cpp: effects/PicturesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/PinwheelEffect.cpp: effects/PinwheelEffect.h effects/PinwheelPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/pinwheel-16.xpm ../include/pinwheel-24.xpm ../include/pinwheel-32.xpm ../include/pinwheel-48.xpm ../include/pinwheel-64.xpm
 
 effects/PinwheelEffect.h: effects/RenderableEffect.h
 
-effects/PinwheelPanel.cpp: effects/PinwheelPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/PinwheelPanel.cpp: effects/PinwheelPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/PlasmaEffect.cpp: effects/PlasmaEffect.h effects/PlasmaPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/plasma-16.xpm ../include/plasma-24.xpm ../include/plasma-32.xpm ../include/plasma-48.xpm ../include/plasma-64.xpm
 
 effects/PlasmaEffect.h: effects/RenderableEffect.h
 
-effects/ButterflyPanel.cpp: effects/ButterflyPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/ButterflyPanel.cpp: effects/ButterflyPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 djdebug.cpp: xLightsApp.h
 
@@ -2046,7 +2046,7 @@ effects/BarsEffect.cpp: effects/BarsEffect.h effects/BarsPanel.h sequencer/Effec
 
 effects/BarsEffect.h: effects/RenderableEffect.h
 
-effects/BarsPanel.cpp: effects/BarsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/BarsPanel.cpp: effects/BarsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/ButterflyEffect.cpp: effects/ButterflyEffect.h effects/ButterflyPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/butterfly-16.xpm ../include/butterfly-24.xpm ../include/butterfly_32.xpm ../include/butterfly-48.xpm ../include/butterfly-64.xpm
 
@@ -2056,13 +2056,13 @@ effects/CirclesEffect.cpp: effects/CirclesEffect.h effects/CirclesPanel.h sequen
 
 effects/CirclesEffect.h: effects/RenderableEffect.h
 
-effects/CirclesPanel.cpp: effects/CirclesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/CirclesPanel.cpp: effects/CirclesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/ColorWashEffect.cpp: effects/ColorWashEffect.h effects/ColorWashPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/ColorWash.xpm
 
 effects/ColorWashEffect.h: effects/RenderableEffect.h
 
-effects/ColorWashPanel.cpp: effects/ColorWashPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/ColorWashPanel.cpp: effects/ColorWashPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 TabSequence.cpp: xLightsMain.h heartbeat.h SeqSettingsDialog.h xLightsXmlFile.h effects/RenderableEffect.h models/ModelGroup.h BufferPanel.h LayoutPanel.h
 
@@ -2070,9 +2070,9 @@ TabSetup.cpp: xLightsMain.h SerialPortWithRate.h E131Dialog.h NullOutputDialog.h
 
 TestDialog.cpp: TestDialog.h models/Model.h models/ModelGroup.h
 
-TimingPanel.cpp: TimingPanel.h ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm image.h models/Model.h effects/EffectPanelUtils.h
+TimingPanel.cpp: TimingPanel.h ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm models/Model.h effects/EffectPanelUtils.h
 
-TopEffectsPanel.cpp: TopEffectsPanel.h xLightsMain.h sequencer/EffectDropTarget.h ../include/Off.xpm image.h
+TopEffectsPanel.cpp: TopEffectsPanel.h xLightsMain.h sequencer/EffectDropTarget.h ../include/Off.xpm
 
 VAMPPluginDialog.cpp: VAMPPluginDialog.h
 
@@ -2082,13 +2082,13 @@ ViewsDialog.cpp: ViewsDialog.h djdebug.cpp
 
 XlightsDrawable.cpp: XlightsDrawable.h DrawGLUtils.h
 
-effects/FanPanel.cpp: effects/FanPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/FanPanel.cpp: effects/FanPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/FireEffect.cpp: effects/FireEffect.h effects/FirePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/fire-16.xpm ../include/fire-24.xpm ../include/fire-32.xpm ../include/fire-48.xpm ../include/fire-64.xpm
 
 effects/FireEffect.h: effects/RenderableEffect.h
 
-effects/FirePanel.cpp: effects/FirePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/FirePanel.cpp: effects/FirePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/FireworksEffect.cpp: effects/FireworksEffect.h effects/FireworksPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h ../include/fireworks-16.xpm ../include/fireworks-24.xpm ../include/fireworks-32.xpm ../include/fireworks-48.xpm ../include/fireworks-64.xpm
 
@@ -2098,13 +2098,13 @@ effects/FanEffect.cpp: effects/FanEffect.h effects/FanPanel.h sequencer/Effect.h
 
 effects/FanEffect.h: effects/RenderableEffect.h
 
-effects/FireworksPanel.cpp: effects/FireworksPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/FireworksPanel.cpp: effects/FireworksPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/GalaxyEffect.cpp: effects/GalaxyEffect.h effects/GalaxyPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/galaxy-16.xpm ../include/galaxy-24.xpm ../include/galaxy-32.xpm ../include/galaxy-48.xpm ../include/galaxy-64.xpm
 
 effects/GalaxyEffect.h: effects/RenderableEffect.h
 
-effects/GalaxyPanel.cpp: effects/GalaxyPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/GalaxyPanel.cpp: effects/GalaxyPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/GarlandsEffect.cpp: effects/GarlandsEffect.h effects/GarlandsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/garlands-16.xpm ../include/garlands-24.xpm ../include/garlands-32.xpm ../include/garlands-48.xpm ../include/garlands-64.xpm
 
@@ -2120,7 +2120,7 @@ effects/FacesEffect.h: effects/RenderableEffect.h
 
 effects/CurtainEffect.cpp: effects/CurtainEffect.h effects/CurtainPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/curtain-16.xpm ../include/curtain-24.xpm ../include/curtain-32.xpm ../include/curtain-48.xpm ../include/curtain-64.xpm
 
-effects/CurtainPanel.cpp: effects/CurtainPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h image.h
+effects/CurtainPanel.cpp: effects/CurtainPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/DMXEffect.cpp: effects/DMXEffect.h effects/DMXPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/dmx-16.xpm ../include/dmx-24.xpm ../include/dmx-32.xpm ../include/dmx-48.xpm ../include/dmx-64.xpm
 
