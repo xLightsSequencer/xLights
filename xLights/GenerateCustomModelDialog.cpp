@@ -2519,28 +2519,28 @@ int GenerateCustomModelDialog::GetEdge(int x, int y)
     float yf = (float)_startFrame.GetHeight() / (float)displaysize.GetHeight();
     int edge = -1;
 
-    if (abs(xf*x - _clip.GetLeft()) < 3 * xf)
+    if (std::abs(xf*x - _clip.GetLeft()) < 3 * xf)
     {
         if (yf*y >= _clip.GetTop() && yf*y <= _clip.GetBottom())
         {
             edge = 3;
         }
     }
-    else if (abs(xf*x - _clip.GetRight()) < 5 * xf)
+    else if (std::abs(xf*x - _clip.GetRight()) < 5 * xf)
     {
         if (yf*y >= _clip.GetTop() && yf*y <= _clip.GetBottom())
         {
             edge = 1;
         }
     }
-    else if (abs(yf*y - _clip.GetTop()) < 5*yf)
+    else if (std::abs(yf*y - _clip.GetTop()) < 5*yf)
     {
         if (xf*x >= _clip.GetLeft() && xf*x <= _clip.GetRight())
         {
             edge = 0;
         }
     }
-    else if (abs(yf*y - _clip.GetBottom()) < 5*yf)
+    else if (std::abs(yf*y - _clip.GetBottom()) < 5*yf)
     {
         if (xf*x >= _clip.GetLeft() && xf*x <= _clip.GetRight())
         {

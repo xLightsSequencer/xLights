@@ -3,6 +3,7 @@
 
 #undef min
 #include <algorithm>
+#include <cmath>
 
 VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool keepaspectratio)
 {

@@ -120,6 +120,8 @@
 		6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9261A5653670018EC0C /* tabSequencer.cpp */; };
 		6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9271A5653670018EC0C /* TimeLine.cpp */; };
 		6784F9311A5653670018EC0C /* Waveform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9281A5653670018EC0C /* Waveform.cpp */; };
+		679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */; };
+		679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484AB1CD8E998001A7B4F /* VideoReader.cpp */; };
 		679B1E371AD6C73200927259 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 679B1E361AD6C73200927259 /* Images.xcassets */; };
 		679BD3351C37555C000539FE /* OnPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3291C37555C000539FE /* OnPanel.cpp */; };
 		679BD3361C37555C000539FE /* EffectPanelUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD32A1C37555C000539FE /* EffectPanelUtils.cpp */; };
@@ -518,6 +520,10 @@
 		6784F9261A5653670018EC0C /* tabSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tabSequencer.cpp; path = sequencer/tabSequencer.cpp; sourceTree = "<group>"; };
 		6784F9271A5653670018EC0C /* TimeLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TimeLine.cpp; path = sequencer/TimeLine.cpp; sourceTree = "<group>"; };
 		6784F9281A5653670018EC0C /* Waveform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Waveform.cpp; path = sequencer/Waveform.cpp; sourceTree = "<group>"; };
+		679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GenerateCustomModelDialog.cpp; sourceTree = "<group>"; };
+		679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenerateCustomModelDialog.h; sourceTree = "<group>"; };
+		679484AB1CD8E998001A7B4F /* VideoReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoReader.cpp; sourceTree = "<group>"; };
+		679484AC1CD8E998001A7B4F /* VideoReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoReader.h; sourceTree = "<group>"; };
 		679B1E361AD6C73200927259 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = xLights/Images.xcassets; sourceTree = "<group>"; };
 		679BD3291C37555C000539FE /* OnPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OnPanel.cpp; path = effects/OnPanel.cpp; sourceTree = "<group>"; };
 		679BD32A1C37555C000539FE /* EffectPanelUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectPanelUtils.cpp; path = effects/EffectPanelUtils.cpp; sourceTree = "<group>"; };
@@ -1269,6 +1275,10 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */,
+				679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */,
+				679484AB1CD8E998001A7B4F /* VideoReader.cpp */,
+				679484AC1CD8E998001A7B4F /* VideoReader.h */,
 				6719BF4D1CCB1DAB00899A4B /* ConvertDialog.cpp */,
 				6719BF4E1CCB1DAB00899A4B /* ConvertDialog.h */,
 				6719BF4F1CCB1DAB00899A4B /* ConvertLogDialog.cpp */,
@@ -1608,6 +1618,7 @@
 				67B2CF901C39D98A003C17CA /* ColorWashPanel.cpp in Sources */,
 				67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */,
 				67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */,
+				679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */,
 				67B2CFD71C3A186A003C17CA /* SnowstormEffect.cpp in Sources */,
 				67B2CF871C39D98A003C17CA /* SnowstormPanel.cpp in Sources */,
 				67DAFDDD1CA1A63C004B3237 /* MidiEvent.cpp in Sources */,
@@ -1711,6 +1722,7 @@
 				67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */,
 				6784F92E1A5653670018EC0C /* SequenceElements.cpp in Sources */,
 				67B2CFEE1C3A186A003C17CA /* GalaxyEffect.cpp in Sources */,
+				679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */,
 				67B2CFEA1C3A186A003C17CA /* LightningEffect.cpp in Sources */,
 				677421DB1A6A8FBE0082DA5B /* NewTimingDialog.cpp in Sources */,
 				675DE26A1B53381800A9BB44 /* xlColorPicker.cpp in Sources */,

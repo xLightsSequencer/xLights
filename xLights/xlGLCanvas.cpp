@@ -14,6 +14,10 @@ END_EVENT_TABLE()
 static wxGLAttributes GetAttributes() {
     wxGLAttributes atts;
     atts.PlatformDefaults().RGBA().MinRGBA(8, 8, 8, 8).DoubleBuffer().Depth(16).EndList();
+    if (!wxGLCanvas::IsDisplaySupported(atts)) {
+        atts.Reset();
+        atts.PlatformDefaults().RGBA().DoubleBuffer().Depth(16).EndList();
+    }
     return atts;
 }
 
@@ -23,7 +27,6 @@ static bool functionsLoaded = false;
 extern void LoadGLFunctions();
 
 #include <GL/glext.h>
-extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
 extern PFNGLUSEPROGRAMPROC glUseProgram;
 #endif
 
@@ -41,6 +44,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
 {
     xlSetOpenGLRetina(*this);
     //CreateGLContext();
+    this->GetGLCTXAttrs().PlatformDefaults();
 }
 
 xlGLCanvas::~xlGLCanvas()
@@ -94,17 +98,9 @@ void xlGLCanvas::CreateGLContext() {
         wxLogLevel cur = wxLog::GetLogLevel();
         wxLog::SetLogLevel(wxLOG_Error);
         wxLog::Suspend();
-#ifndef __WXMAC__
-        if (!functionsLoaded) {
-            m_context = new wxGLContext(this);
-            LoadGLFunctions();
-            delete m_context;
-            m_context = nullptr;
-            functionsLoaded = glUseProgram != nullptr;
-        }
-#endif
 
         if (m_coreProfile) {
+
             wxGLContextAttrs atts;
             atts.PlatformDefaults().CoreProfile().OGLVersion(3, 3).EndList();
             m_context = new wxGLContext(this, nullptr, &atts);
@@ -116,6 +112,12 @@ void xlGLCanvas::CreateGLContext() {
         if (m_context == nullptr) {
             m_context = new wxGLContext(this);
         }
+#ifndef __WXMAC__
+        if (!functionsLoaded) {
+            LoadGLFunctions();
+            functionsLoaded = glUseProgram != nullptr;
+        }
+#endif
         if (!m_context->IsOK()) {
             delete m_context;
             m_context = nullptr;
