@@ -57,7 +57,7 @@ inline double toRadians(long degrees) {
 // initialize screen coordinates for tree
 void TreeModel::SetTreeCoord(long degrees) {
     double bufferX, bufferY;
-    if (BufferWi < 2) return;
+    if (BufferWi < 1) return;
     if (BufferHt < 1) return; // June 27,2013. added check to not divide by zero
     double RenderHt, RenderWi;
     if (degrees > 0) {
