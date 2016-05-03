@@ -8,6 +8,7 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keithsw) Auto generation of custom models added.
 2016.23  May 01, 2016
    -- bug (gil)   Fix Copy Row/Paste Row when vertically scrolled. Fixes #553.
    -- bug (gil)   Fix application losing focusing when closing a floating panel.

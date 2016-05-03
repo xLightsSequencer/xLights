@@ -6,11 +6,11 @@
 #ifdef __WXMAC__
  #include "OpenGL/gl.h"
 #else
-	#ifdef _MSC_VER
-		#include "GL/glut.h"
-	#else
+	//#ifdef _MSC_VER
+	//	#include "GL/glut.h"
+	//#else
 		#include <GL/gl.h>
-	#endif
+	//#endif
 #endif
 
 #include <wx/bitmap.h>
