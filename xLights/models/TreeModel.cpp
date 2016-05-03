@@ -45,6 +45,7 @@ void TreeModel::InitModel() {
         degrees = -1;
     }
     rotation = wxAtoi(ModelXml->GetAttribute("TreeRotation", "3"));
+    spiralRotations = wxAtof(ModelXml->GetAttribute("TreeSpiralRotations", "0.0"));
 
     SetTreeCoord(degrees);
     DisplayAs = "Tree";
@@ -75,6 +76,9 @@ void TreeModel::SetTreeCoord(long degrees) {
             //shift a tiny bit to make the strands in back not line up exactly with the strands in front
             StartAngle += toRadians(rotation);
         }
+        
+        double offsetPerNode = spiralRotations * 2.0 * M_PI / BufferHt;
+        
         double topYoffset = std::abs(0.2 * topradius * cos(M_PI));
         double ytop = RenderHt - topYoffset;
         double ybot = std::abs(0.2 * radius * cos(M_PI));
@@ -85,7 +89,7 @@ void TreeModel::SetTreeCoord(long degrees) {
             for(size_t c=0; c < CoordCount; c++) {
                 bufferX=Nodes[n]->Coords[c].bufX;
                 bufferY=Nodes[n]->Coords[c].bufY;
-                angle=StartAngle + double(bufferX) * AngleIncr;
+                angle=StartAngle + double(bufferX) * AngleIncr + (offsetPerNode * bufferY);
                 double xb=radius * sin(angle);
                 double xt=topradius * sin(angle);
                 double yb = ybot - 0.2 * radius * cos(angle);
@@ -186,6 +190,11 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         ModelXml->AddAttribute("TreeRotation", wxString::Format("%d", event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
+    } else if (event.GetPropertyName() == "TreeSpiralRotations") {
+        ModelXml->DeleteAttribute("TreeSpiralRotations");
+        ModelXml->AddAttribute("TreeSpiralRotations", wxString::Format("%f", event.GetPropertyValue().GetDouble()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
     }
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
@@ -209,6 +218,13 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", "-360");
     p->SetAttribute("Max", "360");
     p->SetAttribute("Precision", 1);
+    p->SetEditor("SpinCtrl");
+    p->Enable(treeType == 0);
+    
+    p = grid->Append(new wxFloatProperty("Spirals", "TreeSpiralRotations", treeType == 0 ? spiralRotations : 0.0));
+    p->SetAttribute("Min", "-10");
+    p->SetAttribute("Max", "10");
+    p->SetAttribute("Precision", 2);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
 }

@@ -20,6 +20,7 @@ class TreeModel : public MatrixModel
         int treeType;
         long degrees;
         float rotation;
+        float spiralRotations;
         void SetTreeCoord(long degrees);
 };
 
