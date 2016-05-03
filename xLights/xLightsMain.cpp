@@ -29,6 +29,7 @@
 
 #include "TestDialog.h"
 #include "ConvertDialog.h"
+#include "GenerateCustomModelDialog.h"
 
 // scripting language
 #include "xLightsBasic.cpp"
@@ -211,6 +212,7 @@ const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
+const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
 const long xLightsFrame::idMenuSaveSched = wxNewId();
 const long xLightsFrame::idMenuAddList = wxNewId();
 const long xLightsFrame::idMenuRenameList = wxNewId();
@@ -391,7 +393,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 {
     log4cpp::Category& logger = log4cpp::Category::getRoot();
     logger.debug("xLightsFrame being constructed.");
-    
+
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
@@ -903,6 +905,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(ActionTestMenuItem);
     MenuItemConvert = new wxMenuItem(Menu1, ID_MENUITEM_CONVERT, _("&Convert"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemConvert);
+    Menu_GenerateCustomModel = new wxMenuItem(Menu1, ID_MENUITEM_GenerateCustomModel, _("&Generate Custom Model"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(Menu_GenerateCustomModel);
     MenuBar->Append(Menu1, _("&Tools"));
     MenuPlaylist = new wxMenu();
     MenuItemSavePlaylists = new wxMenuItem(MenuPlaylist, idMenuSaveSched, _("Save Playlists"), wxEmptyString, wxITEM_NORMAL);
@@ -1131,6 +1135,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
+    Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
     Connect(idMenuSaveSched,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSavePlaylistsSelected);
     Connect(idMenuAddList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemAddListSelected);
     Connect(idMenuRenameList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenameListSelected);
@@ -2712,4 +2717,52 @@ void xLightsFrame::OnMenuItemConvertSelected(wxCommandEvent& event)
     ConvertDialog dialog(this, SeqData, NetInfo, mediaFilename, ChannelNames, ChannelColors, ChNames); // , &NetInfo, &ChNames, mMediaLengthMS);
     dialog.CenterOnParent();
     dialog.ShowModal();
+}
+
+void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
+{
+    // save the media playing state and stop it if it is playing
+    MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
+    if (CurrentSeqXmlFile != NULL && CurrentSeqXmlFile->GetMedia() != NULL)
+    {
+        mps = CurrentSeqXmlFile->GetMedia()->GetPlayingState();
+        if (mps == MEDIAPLAYINGSTATE::PLAYING)
+        {
+            CurrentSeqXmlFile->GetMedia()->Pause();
+            SetAudioControls();
+        }
+    }
+
+    Timer1.Stop();
+
+    // save the output state and turn it off
+    bool output = CheckBoxLightOutput->IsChecked();
+    if (output)
+    {
+        AllLightsOff();
+    }
+
+    // creating the dialog can take some time so display an hourglass
+    SetCursor(wxCURSOR_WAIT);
+
+    GenerateCustomModelDialog dialog(this, &NetworkXML);
+    dialog.CenterOnParent();
+    dialog.ShowModal();
+
+    SetCursor(wxCURSOR_DEFAULT);
+
+    // resume output if it was set
+    if (output)
+    {
+        EnableOutputs();
+    }
+
+    Timer1.Start();
+
+    // resume playing the media if it was playing
+    if (mps == MEDIAPLAYINGSTATE::PLAYING)
+    {
+        CurrentSeqXmlFile->GetMedia()->Play();
+        SetAudioControls();
+    }
 }

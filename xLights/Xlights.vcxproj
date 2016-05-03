@@ -269,6 +269,7 @@
     <ClCompile Include="ExportModelSelect.cpp" />
     <ClCompile Include="FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
+    <ClCompile Include="GenerateCustomModelDialog.cpp" />
     <ClCompile Include="heartbeat.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Image_Loader.cpp" />
@@ -371,6 +372,7 @@
     <ClCompile Include="vamp-hostsdk\PluginWrapper.cpp" />
     <ClCompile Include="vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="VAMPPluginDialog.cpp" />
+    <ClCompile Include="VideoReader.cpp" />
     <ClCompile Include="ViewsDialog.cpp" />
     <ClCompile Include="wxCheckedListCtrl.cpp" />
     <ClCompile Include="xlColorCanvas.cpp" />
@@ -497,6 +499,7 @@
     <ClInclude Include="ExportModelSelect.h" />
     <ClInclude Include="FileConverter.h" />
     <ClInclude Include="FlickerFreeBitmapButton.h" />
+    <ClInclude Include="GenerateCustomModelDialog.h" />
     <ClInclude Include="heartbeat.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Images_png.h" />
@@ -597,6 +600,7 @@
     <ClInclude Include="vamp-hostsdk\vamp.h" />
     <ClInclude Include="vamp-hostsdk\Window.h" />
     <ClInclude Include="VAMPPluginDialog.h" />
+    <ClInclude Include="VideoReader.h" />
     <ClInclude Include="ViewsDialog.h" />
     <ClInclude Include="wininet.h" />
     <ClInclude Include="wxCheckedListCtrl.h" />
