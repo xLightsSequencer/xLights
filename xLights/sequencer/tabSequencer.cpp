@@ -16,7 +16,7 @@
 #include "../SeqSettingsDialog.h"
 #include "../DisplayElementsPanel.h"
 #include "../effects/RenderableEffect.h"
-
+#include "../xlCustomControl.h"
 
 #define PLAY_TYPE_STOPPED 0
 #define PLAY_TYPE_EFFECT 1
@@ -1337,6 +1337,11 @@ void xLightsFrame::ApplySetting(wxString name, wxString value)
 			oldfont.SetNativeFontInfoUserDesc(value);
 			picker->SetSelectedFont(oldfont);
 		}
+        else if (name.StartsWith("ID_CUSTOM"))
+        {
+            xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
+            custom->SetValue(value.ToStdString());
+        }
 		else
 		{
 			wxMessageBox("Unknown type: " + name, "Internal Error");

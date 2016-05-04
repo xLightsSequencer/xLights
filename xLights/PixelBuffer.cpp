@@ -80,6 +80,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
         model->InitRenderBufferNodes("Default", "None", layers[x]->Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
         layers[x]->bufferType = "Default";
         layers[x]->bufferTransform = "None";
+        layers[x]->subBuffer = "";
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi);
     }
 }
@@ -472,7 +473,10 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             int x = layers[layer]->Nodes[node]->Coords[0].bufX;
             int y = layers[layer]->Nodes[node]->Coords[0].bufY;
 
-            if (layers[layer]->isMasked(x, y)) {
+            if (x < 0 || y < 0
+                || x >= layers[layer]->BufferWi
+                || y >= layers[layer]->BufferHt
+                || layers[layer]->isMasked(x, y)) {
                 color = xlBLACK;
                 color.alpha = 0;
             } else {
@@ -604,62 +608,6 @@ void PixelBufferClass::Blur(LayerInfo* layer)
         }
     }
 }
-void PixelBufferClass::RotoZoom(LayerInfo* layer)
-{
-    int ZoomRotation = layer->ZoomRotation;
-    xlColor c;
-    float PI_2 = 6.283185307179586476925286766559;
-
-    float W,sin_W,cos_W,x_cos_W,x_sin_W;
-
-
-    int u,v,indx;
-    //  How I can I get these values?
-    int StartFrame = layer->buffer.curEffStartPer;
-    int CurrentFrame = layer->buffer.curPeriod;
-    int EndFrame = layer->buffer.curEffEndPer;
-    int MaxSizeArray = layer->BufferHt*layer->BufferWi;
-
-    float EP; // EP is how far we are into the current effect
-    if((EndFrame-StartFrame)>0)
-        EP = (CurrentFrame-StartFrame)/(EndFrame-StartFrame);
-    else
-        EP=0.0;
-
-    W = PI_2 * (ZoomRotation/10.0);
-    W*=EP; //    Move radian as we are farther into the effect
-
-//  This is temp work around for a buffer allocation to copy data before roto zooming.
-//  This would be better to be a dynamic buffer allocation and deletion of buffer at end of routine
-    std::vector<xlColor> copyBuffer(MaxSizeArray);
-
-    for (int x = 0; x < layer->BufferWi; x++)
-    {
-        for (int y = 0; y < layer->BufferHt; y++)
-        {
-            layer->buffer.GetPixel(x, y, c);
-            indx = x*layer->BufferHt+y;
-            copyBuffer[indx]=c;  // Make a copy of existing frame buffer
-        }
-    }
-    cos_W = cos(W);
-    sin_W = sin(W);
-    for (int x = 0; x < layer->BufferWi; x++)
-    {
-        x_cos_W=x*cos_W; // save some compute cycles
-        x_sin_W=x*sin_W;
-        for (int y = 0; y < layer->BufferHt; y++)
-        {
-            u = x_cos_W+y*(-sin_W); // Calculate new location to move old color to
-            v = x_sin_W+y*cos_W;
-            indx = u*layer->BufferHt+v;
-            c=copyBuffer[indx]; // get color from copyBuffer
-            layer->buffer.SetPixel(x, y, c); // and overwrite current x,y location
-        }
-    }
-
-
-}
 
 void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors)
 {
@@ -674,16 +622,12 @@ static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
 static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
 static const std::string SLIDER_EffectBlur("SLIDER_EffectBlur");
 
-
-static const std::string CHECKBOX_RotoZoom("CHECKBOX_RotoZoom");
-static const std::string SLIDER_ZoomCycles("SLIDER_ZoomCycles");
-static const std::string SLIDER_ZoomRotation("SLIDER_ZoomRotation");
-static const std::string SLIDER_ZoomInOut("SLIDER_ZoomInOut");
-
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
 static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
+static const std::string CUSTOM_SubBuffer("CUSTOM_SubBuffer");
 static const std::string STR_DEFAULT("Default");
+static const std::string STR_EMPTY("");
 
 static const std::string SLIDER_SparkleFrequency("SLIDER_SparkleFrequency");
 static const std::string SLIDER_Brightness("SLIDER_Brightness");
@@ -698,6 +642,39 @@ static const std::string SLIDER_In_Transition_Adjust("SLIDER_In_Transition_Adjus
 static const std::string SLIDER_Out_Transition_Adjust("SLIDER_Out_Transition_Adjust");
 static const std::string CHECKBOX_In_Transition_Reverse("CHECKBOX_In_Transition_Reverse");
 static const std::string CHECKBOX_Out_Transition_Reverse("CHECKBOX_Out_Transition_Reverse");
+
+
+void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
+    if (subBuffer == STR_EMPTY) {
+        return;
+    }
+    wxArrayString v = wxSplit(subBuffer, 'x');
+    float x1 = v.size() > 0 ? wxAtof(v[0]) : 0.0;
+    float y1 = v.size() > 1 ? wxAtof(v[1]) : 0.0;
+    float x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
+    float y2 = v.size() > 3 ? wxAtof(v[3]) : 100.0;
+
+    if (x1 > x2) std::swap(x1, x2);
+    if (y1 > y2) std::swap(y1, y2);
+    
+    x1 *= (float)bufferWi;
+    x2 *= (float)bufferWi;
+    y1 *= (float)bufferHi;
+    y2 *= (float)bufferHi;
+    x1 /= 100.0;
+    x2 /= 100.0;
+    y1 /= 100.0;
+    y2 /= 100.0;
+    
+    for (int x = 0; x < newNodes.size(); x++) {
+        for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+            it2->bufX -= x1;
+            it2->bufY -= y1;
+        }
+    }
+    bufferWi = int(std::ceil(x2 - x1));
+    bufferHi = int(std::ceil(y2 - y1));
+}
 
 void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMap) {
     LayerInfo *inf = layers[layer];
@@ -717,11 +694,6 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->blur = settingsMap.GetInt(SLIDER_EffectBlur, 1);
     inf->sparkle_count = settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
 
-    inf->RotoZoom = settingsMap.GetInt(CHECKBOX_RotoZoom, 0) ;
-    inf->ZoomCycles = settingsMap.GetInt(SLIDER_ZoomCycles, 1);
-    inf->ZoomRotation = settingsMap.GetInt(SLIDER_ZoomRotation, 0);
-    inf->ZoomInOut = settingsMap.GetInt(SLIDER_ZoomInOut, 0);
-
     inf->brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
     inf->contrast=settingsMap.GetInt(SLIDER_Contrast, 0);
 
@@ -733,12 +705,16 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
     const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
-    if (inf->bufferType != type || inf->bufferTransform != transform)
+    const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
+    
+    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer)
     {
         inf->Nodes.clear();
         model->InitRenderBufferNodes(type, transform, inf->Nodes, inf->BufferWi, inf->BufferHt);
+        ComputeSubBuffer(subBuffer, inf->Nodes, inf->BufferWi, inf->BufferHt);
         inf->bufferType = type;
         inf->bufferTransform = transform;
+        inf->subBuffer = subBuffer;
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi);
     }
 }
@@ -789,11 +765,6 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
         if (layers[layer]->blur > 1)
         {
             Blur(layers[layer]);
-        }
-
-        if (layers[layer]->RotoZoom > 0)
-        {
-            RotoZoom(layers[layer]);
         }
     }
 

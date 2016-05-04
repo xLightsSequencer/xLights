@@ -19,6 +19,7 @@
 		670E47421C62F4AD008F4C60 /* CircleModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E47411C62F4AD008F4C60 /* CircleModel.cpp */; };
 		670F23661CCE664500A09765 /* DrawGLUtils21.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670F23651CCE664500A09765 /* DrawGLUtils21.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
+		6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */; };
 		6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF471CCB1D8800899A4B /* MusicEffect.cpp */; };
 		6719BF4C1CCB1D8800899A4B /* MusicPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF491CCB1D8800899A4B /* MusicPanel.cpp */; };
 		6719BF511CCB1DAB00899A4B /* ConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF4D1CCB1DAB00899A4B /* ConvertDialog.cpp */; };
@@ -332,6 +333,9 @@
 		670F23651CCE664500A09765 /* DrawGLUtils21.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils21.cpp; sourceTree = "<group>"; };
 		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
+		6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubBufferPanel.cpp; sourceTree = "<group>"; };
+		6718EE721CDA4BD400A6E842 /* SubBufferPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubBufferPanel.h; sourceTree = "<group>"; };
+		6718EE741CDA600B00A6E842 /* xlCustomControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlCustomControl.h; sourceTree = "<group>"; };
 		6719BF471CCB1D8800899A4B /* MusicEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MusicEffect.cpp; path = effects/MusicEffect.cpp; sourceTree = "<group>"; };
 		6719BF481CCB1D8800899A4B /* MusicEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MusicEffect.h; path = effects/MusicEffect.h; sourceTree = "<group>"; };
 		6719BF491CCB1D8800899A4B /* MusicPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MusicPanel.cpp; path = effects/MusicPanel.cpp; sourceTree = "<group>"; };
@@ -1275,6 +1279,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */,
+				6718EE721CDA4BD400A6E842 /* SubBufferPanel.h */,
 				679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */,
 				679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */,
 				679484AB1CD8E998001A7B4F /* VideoReader.cpp */,
@@ -1402,6 +1408,7 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				6718EE741CDA600B00A6E842 /* xlCustomControl.h */,
 				671FD62F1BD72014003C2E33 /* ResizeImageDialog.h */,
 				67D11C741BEA691900000A7F /* ModelDimmingCurveDialog.h */,
 				67D11C761BEA691900000A7F /* DimmingCurve.h */,
@@ -1678,6 +1685,7 @@
 				67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				675AC53D1C987AA700C4AFE9 /* CustomModelDialog.cpp in Sources */,
+				6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */,
 				67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */,
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,

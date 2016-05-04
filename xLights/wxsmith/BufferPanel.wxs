@@ -15,6 +15,7 @@
 								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 									<cols>1</cols>
 									<growablecols>0</growablecols>
+									<growablerows>1</growablerows>
 									<object class="sizeritem">
 										<object class="wxFlexGridSizer" variable="Sizer2" member="yes">
 											<cols>3</cols>
@@ -171,169 +172,17 @@
 												<border>5</border>
 												<option>1</option>
 											</object>
-											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_RotoZoom" variable="CheckBox_RotoZoom" member="yes">
-													<label>RotoZoom?</label>
-													<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
-													<handler function="OnCheckBox_RotoZoomClick" entry="EVT_CHECKBOX" />
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="spacer">
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_RotoZoom" variable="BitmapButton_RotoZoom" member="yes">
-													<bitmap code="padlock16x16_blue_xpm" />
-													<size>13,13</size>
-													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
 										</object>
 										<flag>wxEXPAND</flag>
 										<border>10</border>
 									</object>
 									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="RotoSizer" member="yes">
-											<cols>4</cols>
-											<growablecols>1</growablecols>
-											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText6" member="yes">
-													<label>Zoom Cycles</label>
-													<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxSlider" name="ID_SLIDER_ZoomCycles" variable="Slider_ZoomCycles" member="yes">
-													<min>1</min>
-													<max>20</max>
-													<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
-												</object>
-												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_ZoomCycles" variable="TextCtrl_ZoomCycles" member="yes">
-													<value>1</value>
-													<size>20,-1d</size>
-													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>1</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_ZoomCycles" variable="BitmapButton_ZoomCycles" member="yes">
-													<bitmap code="padlock16x16_blue_xpm" />
-													<size>13,13</size>
-													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText7" member="yes">
-													<label>Zoom Rotation</label>
-													<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxSlider" name="ID_SLIDER_ZoomRotation" variable="Slider_ZoomRotation" member="yes">
-													<min>-20</min>
-													<max>20</max>
-													<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
-												</object>
-												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_ZoomRotation" variable="TextCtrl_ZoomRotation" member="yes">
-													<value>0</value>
-													<size>20,-1d</size>
-													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>1</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_ZoomRotation" variable="BitmapButton_ZoomRotation" member="yes">
-													<bitmap code="padlock16x16_blue_xpm" />
-													<size>13,13</size>
-													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText8" member="yes">
-													<label>Zoom In/Out</label>
-													<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxSlider" name="ID_SLIDER_ZoomInOut" variable="Slider_ZoomInOut" member="yes">
-													<min>-10</min>
-													<max>10</max>
-													<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
-												</object>
-												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_ZoomInOut" variable="TextCtrl_ZoomInOut" member="yes">
-													<value>0</value>
-													<size>20,-1d</size>
-													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>1</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_ZoomInOut" variable="BitmapButton_ZoomInOut" member="yes">
-													<bitmap code="padlock16x16_blue_xpm" />
-													<size>13,13</size>
-													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
+										<object class="wxFlexGridSizer" variable="SubBufferPanelSizer" member="yes">
+											<cols>1</cols>
+											<growablecols>0</growablecols>
+											<growablerows>0</growablerows>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
 										<option>1</option>
 									</object>
 								</object>

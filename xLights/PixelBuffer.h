@@ -65,10 +65,6 @@ private:
     public:
         LayerInfo(xLightsFrame *frame, bool onlyOnMain) : buffer(frame, onlyOnMain) {
 			blur = 0;
-			RotoZoom =0;
-			ZoomCycles=1;
-			ZoomRotation=0;
-			ZoomInOut=0;
             sparkle_count = 0;
             brightness = 0;
             contrast = 0;
@@ -86,15 +82,12 @@ private:
         RenderBuffer buffer;
         std::string bufferType;
         std::string bufferTransform;
+        std::string subBuffer;
         int BufferHt;
         int BufferWi;
         std::vector<NodeBaseClassPtr> Nodes;
         int sparkle_count;
 		int blur;
-		int RotoZoom;
-		int	ZoomCycles;
-		int	ZoomRotation;
-		int	ZoomInOut;
         int brightness;
         int contrast;
         double fadeFactor;
@@ -143,8 +136,6 @@ private:
     void SetDimmingCurve(DimmingCurve *value);
     void reset(int layers, int timing);
 	void Blur(LayerInfo* layer);
-	void RotoZoom(LayerInfo* layer);
-
 
     std::string modelName;
     std::string lastBufferType;
