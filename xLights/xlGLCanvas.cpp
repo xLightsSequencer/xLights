@@ -117,6 +117,7 @@ void xlGLCanvas::CreateGLContext() {
 
             wxGLContextAttrs atts;
             atts.PlatformDefaults().CoreProfile().OGLVersion(3, 3).EndList();
+            //atts.PlatformDefaults().OGLVersion(2, 1).EndList();
             m_context = new wxGLContext(this, nullptr, &atts);
             if (!m_context->IsOK()) {
                 delete m_context;

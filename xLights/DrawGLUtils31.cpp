@@ -392,6 +392,8 @@ public:
         glBufferData(GL_ARRAY_BUFFER, va.count*2*sizeof(GLfloat), &va.vertices[0], GL_DYNAMIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 
+        glDisableVertexAttribArray(1);
+
         GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
         glUniform4f(cid,
                     ((float)color.Red())/255.0,
@@ -423,11 +425,13 @@ public:
         if (va.count == 0) {
             return;
         }
+        glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, normalProgram.vBuffer);
         glBufferData(GL_ARRAY_BUFFER, va.count*2*sizeof(GLfloat), &va.vertices[0], GL_DYNAMIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 
 
+        glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, cBuffer);
         glBufferData(GL_ARRAY_BUFFER, va.count*4*sizeof(GLubyte), &va.colors[0], GL_DYNAMIC_DRAW);
         glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
@@ -453,8 +457,10 @@ public:
         } else if (enableCapability != 0) {
             normalProgram.SetRenderType(0);
         }
+        glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertices.id);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+        glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, colors.id);
         glVertexAttribPointer(1, GL_BGRA, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
     }
