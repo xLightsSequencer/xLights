@@ -1,8 +1,0 @@
-#minimal faces:									
-#FaceShape	Xon	Yon	Xoff	Yoff	W	H	DestX	DestY	DestZ
-EyesOpen	5	0	0	0	5	6	0	0	0
-EyesClosed	10	0	0	0	5	6	0	0	0
-MouthUpper	30	0	0	0	5	6	0	0	0
-MouthMiddle	25	0	0	0	5	6	0	0	0
-MouthLower	20	0	0	0	5	6	0	0	0
-MouthRound	15	0	0	0	5	6	0	0	0
