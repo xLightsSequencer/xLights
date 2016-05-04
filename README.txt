@@ -8,11 +8,22 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-   -- enh (keithsw) Auto generation of custom models added.
-2016.23  May 01, 2016
+2016.24  May 04, 2016
+   -- bug (dkulp) Fix OPENGL calls so that Sound wavefile shows on Intel Graphics cards
+2016.23  May 03, 2016
+   -- enh (keithsw) Added new option "Tools, Generate Custom Model"
+   -- enh (dkulp) Upgrade to newer OpenGL library. 
+                  The OpenGL rendering has been updated from the “fixed pipeline” code 
+				  (which was state of the art in 1998) to using modern OpenGL shaders (>2010).  
+				  This allows us to better use the capabilities of modern video cards.   
+				  However, to support older machines, we can drop down to OpenGL 2.1 shaders 
+				  or even to the old 1.3 fixed pipeline.  Modern machines should be faster, 
+				  older machines should still work.
+   -- enh (dkulp) New option on the Tree model, "Spirals". This is how many times a strand is wrapped 
+           around the tree. 1.0=one full wrap, 2.5 = 2 1/2 wraps from bottom to top. 
    -- bug (gil)   Fix Copy Row/Paste Row when vertically scrolled. Fixes #553.
    -- bug (gil)   Fix application losing focusing when closing a floating panel.
-   -- enh (gil)   Reposition view when playback starts or loops so that play marker is visible.  Fixes #550.
+   -- enh (gil)   Re-position view when playback starts or loops so that play marker is visible.  Fixes #550.
    -- enh (gil)   Paste modifications for how single effects paste in various situations.  Fixes #549.
    -- bug (dkulp) Add rename button to groups dialog.  Fixes #548
    -- bug (dkulp) Fix blur setting when clicking on effects. Fixes #547
