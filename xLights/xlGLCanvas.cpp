@@ -83,7 +83,7 @@ void xlGLCanvas::SetCurrentGLContext() {
             (const char *)glGetString(GL_RENDERER),
             (const char *)glGetString(GL_VENDOR));
         logger_opengl.info(std::string(config.c_str()));
-        printf("%s\n", config.c_str());
+        printf("%s\n", (const char *)config.c_str());
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* vend = glGetString(GL_RENDERER);
         if (str[0] > '3' || (str[0] == '3' && str[2] >= '3')) {

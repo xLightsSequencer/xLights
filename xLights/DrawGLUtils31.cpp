@@ -419,6 +419,9 @@ public:
         normalProgram.UseProgram();
         glBindBuffer(GL_ARRAY_BUFFER, vertices.id);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, colors.id);
+        glVertexAttribPointer(1, GL_BGRA, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
     }
 
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
