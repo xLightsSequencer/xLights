@@ -164,6 +164,88 @@ void InitialiseLogging()
     }
 }
 
+std::string DecodeOS(wxOperatingSystemId o)
+{
+    switch (o)
+    {
+    case wxOS_UNKNOWN:
+        return "Call get get operating system failed.";
+    case wxOS_MAC_OS:
+        return "Apple Mac OS 8 / 9 / X with Mac paths.";
+    case wxOS_MAC_OSX_DARWIN:
+        return "Apple OS X with Unix paths.";
+    case wxOS_MAC:
+        return "An Apple Mac of some type.";
+    case wxOS_WINDOWS_NT:
+        return "Windows NT family(XP / Vista / 7 / 8 / 10).";
+    case wxOS_WINDOWS:
+        return "A Windows system of some type.";
+    case wxOS_UNIX_LINUX:
+        return "Linux.";
+    case wxOS_UNIX_FREEBSD:
+        return "FreeBSD.";
+    case wxOS_UNIX_OPENBSD:
+        return "OpenBSD.";
+    case wxOS_UNIX_NETBSD:
+        return "NetBSD.";
+    case wxOS_UNIX_SOLARIS:
+        return "Solaris.";
+    case wxOS_UNIX_AIX:
+        return "AIX.";
+    case wxOS_UNIX_HPUX:
+        return "HP / UX.";
+    case wxOS_UNIX:
+        return "Some flavour of Unix.";
+    }
+
+    return "Unknown Operating System.";
+}
+
+void DumpConfig()
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Version: " + std::string(xlights_version_string.c_str()));
+    logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
+    logger_base.info("Machine configuration:");
+    wxMemorySize s = wxGetFreeMemory();
+    if (s != -1)
+    {
+        logger_base.info("  Free Memory:%ld.", s);
+    }
+    logger_base.info("  Current directory: " + std::string(wxGetCwd().c_str()));
+    logger_base.info("  Machine name: " + std::string(wxGetHostName().c_str()));
+    logger_base.info("  OS: " + std::string(wxGetOsDescription().c_str()));
+    int verMaj = -1;
+    int verMin = -1;
+    int verMicro = -1;
+    wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin, &verMicro);
+    logger_base.info("  OS: %s %d.%d.%d", DecodeOS(o).c_str(), verMaj, verMin, verMicro);
+    if (wxIsPlatform64Bit())
+    {
+        logger_base.info("      64 bit");
+    }
+    else
+    {
+        logger_base.info("      NOT 64 bit");
+    }
+    if (wxIsPlatformLittleEndian())
+    {
+        logger_base.info("      Little Endian");
+    }
+    else
+    {
+        logger_base.info("      Big Endian");
+    }
+#ifdef LINUX
+    wxLinuxDistributionInfo l = wxGetLinuxDistributionInfo();
+    logger_base.info("  %s %s %s %s",
+        std::string(l.Id.c_str()),
+        std::string(l.Release.c_str()),
+        std::string(l.CodeName.c_str()),
+        std::string(l.Description.c_str()));
+#endif
+}
+
 #ifdef LINUX
     #include <X11/Xlib.h>
 #endif // LINUX
@@ -178,7 +260,7 @@ int main(int argc, char **argv)
     //     a folder the user can write to
     //     predictable ... as we want the handleCrash function to be able to locate the file to include it in the crash
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("XLights main function executing.");
+    logger_base.info("******* XLights main function executing.");
 
 #ifdef LINUX
     XInitThreads();
@@ -309,7 +391,8 @@ bool xLightsApp::OnInit()
 {
     InitialiseLogging();
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("OnInit: XLights started.");
+    logger_base.info("******* OnInit: XLights started.");
+    DumpConfig();
 
 #ifdef _MSC_VER
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);

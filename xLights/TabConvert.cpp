@@ -38,10 +38,8 @@ void FRAMECLASS ConversionInit()
 
 void FRAMECLASS SetMediaFilename(const wxString& filename)
 {
-#ifndef NDEBUG
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Setting media file to: " + filename + "\n");
-#endif
+    logger_base.debug("Setting media file to: " + filename);
 
     mediaFilename=filename;
     if (mediaFilename.size() == 0)
