@@ -170,6 +170,8 @@
     <ClCompile Include="DisplayElementsPanel.cpp" />
     <ClCompile Include="djdebug.cpp" />
     <ClCompile Include="DrawGLUtils.cpp" />
+    <ClCompile Include="DrawGLUtils21.cpp" />
+    <ClCompile Include="DrawGLUtils31.cpp" />
     <ClCompile Include="E131Dialog.cpp" />
     <ClCompile Include="EffectAssist.cpp" />
     <ClCompile Include="EffectIconPanel.cpp" />

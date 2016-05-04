@@ -26,7 +26,11 @@ static wxGLAttributes GetAttributes() {
 static bool functionsLoaded = false;
 extern void LoadGLFunctions();
 
-#include <GL/glext.h>
+#ifdef _MSC_VER
+    #include "GL\glext.h"
+#else
+    #include <GL/glext.h>
+#endif
 extern PFNGLUSEPROGRAMPROC glUseProgram;
 #endif
 
@@ -73,7 +77,7 @@ void xlGLCanvas::SetCurrentGLContext() {
     if (cache == nullptr) {
         log4cpp::Category::getRoot().info(wxString::Format("%s - glVer:  %s  (%s)(%s)\n", (const char *)GetName().c_str(),
                                           glGetString(GL_VERSION), glGetString(GL_RENDERER), glGetString(GL_VENDOR)).c_str());
-        
+
         printf("%s - glVer:  %s  (%s)(%s)\n", (const char *)GetName().c_str(),
                glGetString(GL_VERSION), glGetString(GL_RENDERER), glGetString(GL_VENDOR));
         const GLubyte* str = glGetString(GL_VERSION);

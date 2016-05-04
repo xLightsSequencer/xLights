@@ -1192,6 +1192,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
+    logger.debug("xLightsFrame constructor UI code done.");
+
     //need to direct these menu items to different places depending on what is active
     Connect(wxID_UNDO, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_REDO, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
@@ -1231,8 +1233,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     UnsavedPlaylistChanges = false;
     UnsavedNetworkChanges = false;
 
+    logger.debug("xLightsFrame constructor creating sequencer.");
+
     CreateSequencer();
 
+    logger.debug("xLightsFrame constructor sequencer creation done.");
 
     layoutPanel = new LayoutPanel(PanelPreview, this);
     FlexGridSizerPreview->Add(layoutPanel, 1, wxALL | wxEXPAND, 5);
@@ -1255,6 +1260,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     effGridPrevX = 0;
     effGridPrevY = 0;
     mSavedChangeCount = 0;
+
+    logger.debug("xLightsFrame constructor loading network list.");
 
     // Load headings into network list
     wxListItem itemCol;
@@ -1311,6 +1318,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
         }
         mru_MenuItem[i] = NULL;
     }
+
+    logger.debug("xLightsFrame constructor loading config.");
+
     dir.clear();
     bool ok = true;
     if (!xLightsApp::showDir.IsNull())

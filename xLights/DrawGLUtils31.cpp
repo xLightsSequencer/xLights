@@ -12,15 +12,16 @@
 
 #include "wx/wx.h"
 
-#ifdef _MSC_VER
-#include "GL/glut.h"
-#else
 #include <GL/gl.h>
-#include <GL/glext.h>
-#endif
+    #ifdef _MSC_VER
+        #include "GL/glext.h"
+        //#include "GL/glut.h"
+    #else
+        #include <GL/glext.h>
+    #endif
 #endif
 
-#include <DrawGLUtils.h>
+#include "DrawGLUtils.h"
 #include <stack>
 
 #include <log4cpp/Category.hh>

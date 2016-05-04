@@ -1,0 +1,1 @@
+The glext.h file is here purely for Microsoft Visual c++ builds as it is not included in the SDK by default. This file was sourced from https://www.opengl.org/registry/api/GL/glext.h in May 2016

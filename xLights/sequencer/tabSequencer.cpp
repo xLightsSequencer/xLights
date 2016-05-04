@@ -29,9 +29,12 @@
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
 {
+    // Lots of logging here as this function hard crashes
+    log4cpp::Category& logger = log4cpp::Category::getRoot();
     EffectsPanel1 = NULL;
     timingPanel = NULL;
 
+    logger.debug("CreateSequencer: Creating Panels.");
     mainSequencer = new MainSequencer(PanelSequencer);
     mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
     mainSequencer->SetSequenceElements(&mSequenceElements);
@@ -52,6 +55,7 @@ void xLightsFrame::CreateSequencer()
 
     effectsPnl = new TopEffectsPanel(PanelSequencer);
     effectsPnl->BitmapButtonSelectedEffect->SetEffect(effectManager[0], mIconSize);
+
     EffectsPanel1 = new EffectsPanel(effectsPnl, &effectManager);
     EffectsPanel1->SetSequenceElements(&mSequenceElements);
     effectsPnl->EffectSizer->Add(EffectsPanel1, wxEXPAND);
@@ -62,8 +66,6 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).
                    Left().Layer(1));
     sEffectAssist->Layout();
-
-
 
     colorPanel = new ColorPanel(PanelSequencer);
     timingPanel = new TimingPanel(PanelSequencer);
@@ -78,6 +80,7 @@ void xLightsFrame::CreateSequencer()
     displayElementsPanel->SetViewChoice(mainSequencer->ViewChoice);
     displayElementsPanel->Fit();
 
+    logger.debug("CreateSequencer: Hooking up the panes.");
     m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements"))
                    .Float());
     // Hide the panel on start.
@@ -95,8 +98,11 @@ void xLightsFrame::CreateSequencer()
 
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
-    m_mgr->Update();
+    logger.debug("CreateSequencer: Updating the layout.");
+    m_mgr->Update(); // <== KW: I have seen crashes on this line -107374819
+    logger.debug("CreateSequencer: Resizing everything.");
     mainSequencer->Layout();
+    logger.debug("CreateSequencer: Done.");
 }
 
 void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
