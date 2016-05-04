@@ -51,8 +51,6 @@ public:
         if (l.y < r.y) return true;
         return false;
     }
-    operator wxPoint() const { return wxPoint(x,y); }
-    operator wxPoint() { return wxPoint(x, y); }
 };
 
 #pragma endregion xlPoint

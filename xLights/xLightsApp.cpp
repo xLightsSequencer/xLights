@@ -196,6 +196,8 @@ std::string DecodeOS(wxOperatingSystemId o)
         return "HP / UX.";
     case wxOS_UNIX:
         return "Some flavour of Unix.";
+    default:
+        break;
     }
 
     return "Unknown Operating System.";
