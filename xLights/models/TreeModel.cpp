@@ -46,7 +46,8 @@ void TreeModel::InitModel() {
     }
     rotation = wxAtoi(ModelXml->GetAttribute("TreeRotation", "3"));
     spiralRotations = wxAtof(ModelXml->GetAttribute("TreeSpiralRotations", "0.0"));
-
+    botTopRatio = wxAtof(ModelXml->GetAttribute("TreeBottomTopRatio", "6.0"));
+    perspective = wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
     SetTreeCoord(degrees);
     DisplayAs = "Tree";
 }
@@ -67,7 +68,7 @@ void TreeModel::SetTreeCoord(long degrees) {
         
         double radians=toRadians(degrees);
         double radius=RenderWi/2.0;
-        double topradius=RenderWi/12;
+        double topradius=radius/botTopRatio;
         
         double StartAngle=-radians/2.0;
         double AngleIncr=radians/double(BufferWi);
@@ -79,9 +80,9 @@ void TreeModel::SetTreeCoord(long degrees) {
         
         double offsetPerNode = spiralRotations * 2.0 * M_PI / BufferHt;
         
-        double topYoffset = std::abs(0.2 * topradius * cos(M_PI));
+        double topYoffset = std::abs(perspective * topradius * cos(M_PI));
         double ytop = RenderHt - topYoffset;
-        double ybot = std::abs(0.2 * radius * cos(M_PI));
+        double ybot = std::abs(perspective * radius * cos(M_PI));
         
         size_t NodeCount=GetNodeCount();
         for(size_t n=0; n<NodeCount; n++) {
@@ -92,8 +93,8 @@ void TreeModel::SetTreeCoord(long degrees) {
                 angle=StartAngle + double(bufferX) * AngleIncr + (offsetPerNode * bufferY);
                 double xb=radius * sin(angle);
                 double xt=topradius * sin(angle);
-                double yb = ybot - 0.2 * radius * cos(angle);
-                double yt = ytop - 0.2 * topradius * cos(angle);
+                double yb = ybot - perspective * radius * cos(angle);
+                double yt = ytop - perspective * topradius * cos(angle);
                 double posOnString = (bufferY/(double)(BufferHt-1.0));
                 
                 Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
@@ -195,6 +196,16 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         ModelXml->AddAttribute("TreeSpiralRotations", wxString::Format("%f", event.GetPropertyValue().GetDouble()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
+    } else if (event.GetPropertyName() == "TreeBottomTopRatio") {
+        ModelXml->DeleteAttribute("TreeBottomTopRatio");
+        ModelXml->AddAttribute("TreeBottomTopRatio", wxString::Format("%f", event.GetPropertyValue().GetDouble()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if (event.GetPropertyName() == "TreePerspective") {
+        ModelXml->DeleteAttribute("TreePerspective");
+        ModelXml->AddAttribute("TreePerspective", wxString::Format("%f", event.GetPropertyValue().GetDouble()/10.0));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
     }
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
@@ -225,6 +236,20 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", "-10");
     p->SetAttribute("Max", "10");
     p->SetAttribute("Precision", 2);
+    p->SetEditor("SpinCtrl");
+    p->Enable(treeType == 0);
+    
+    p = grid->Append(new wxFloatProperty("Bottom/Top Ratio", "TreeBottomTopRatio", treeType == 0 ? botTopRatio : 6.0));
+    p->SetAttribute("Min", "1");
+    p->SetAttribute("Max", "50");
+    p->SetAttribute("Precision", 1);
+    p->SetEditor("SpinCtrl");
+    p->Enable(treeType == 0);
+    p = grid->Append(new wxFloatProperty("Perspective", "TreePerspective", treeType == 0 ? perspective*10 : 2));
+    p->SetAttribute("Min", "0");
+    p->SetAttribute("Max", "10");
+    p->SetAttribute("Precision", 2);
+    p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
 }

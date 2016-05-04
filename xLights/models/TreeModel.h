@@ -21,6 +21,8 @@ class TreeModel : public MatrixModel
         long degrees;
         float rotation;
         float spiralRotations;
+        float botTopRatio;
+        float perspective;
         void SetTreeCoord(long degrees);
 };
 
