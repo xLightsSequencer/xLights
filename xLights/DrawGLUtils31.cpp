@@ -140,7 +140,6 @@ public:
         PointSmoothMaxID = glGetUniformLocation(ProgramID, "PointSmoothMax");
         RenderTypeID = glGetUniformLocation(ProgramID, "RenderType");
 
-        
         glGenVertexArrays(1, &VertexArrayID);
         glBindVertexArray(VertexArrayID);
         glEnableVertexAttribArray(0);
@@ -198,8 +197,8 @@ public:
             l.Trim();
             if (l.length() > 0) {
                 printf("Program Log: %s\n", &ProgramErrorMessage[0]);
-                log4cpp::Category& logger = log4cpp::Category::getRoot();
-                logger.info(&ProgramErrorMessage[0]);
+                log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+                logger_opengl.error(std::string(&ProgramErrorMessage[0]));
             }
         }
         glDetachShader(ProgramID, vs);
@@ -223,8 +222,8 @@ public:
             l.Trim();
             if (l.length() > 0) {
                 printf("Shader Log: %s\n", &VertexShaderErrorMessage[0]);
-                log4cpp::Category& logger = log4cpp::Category::getRoot();
-                logger.info(&VertexShaderErrorMessage[0]);
+                log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+                logger_opengl.error(std::string(&VertexShaderErrorMessage[0]));
             }
         }
     }

@@ -23,6 +23,7 @@
 #include "Image.h"
 const double PI  =3.141592653589793238463;
 
+#include <log4cpp/Category.hh>
 
 static DrawGLUtils::xlGLCacheInfo *currentCache;
 
@@ -523,6 +524,11 @@ static void addMipMap(GLuint* texture, const wxImage &l_Image, int &level) {
         int err = glGetError();
         if (err == GL_NO_ERROR) {
             level++;
+        }
+        else
+        {
+            log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+            logger_opengl.error("Error glTexImage2D: %d", err);
         }
     }
 }

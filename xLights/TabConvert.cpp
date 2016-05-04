@@ -39,8 +39,8 @@ void FRAMECLASS ConversionInit()
 void FRAMECLASS SetMediaFilename(const wxString& filename)
 {
 #ifndef NDEBUG
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.debug("Setting media file to: " + filename + "\n");
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Setting media file to: " + filename + "\n");
 #endif
 
     mediaFilename=filename;
@@ -747,8 +747,8 @@ void FRAMECLASS ReadXlightsFile(const wxString& FileName, wxString *mediaFilenam
         }
         delete[] buf;
 #ifndef NDEBUG
-        log4cpp::Category& logger = log4cpp::Category::getRoot();
-        logger.debug(string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"), SeqData.NumFrames(), SeqData.NumChannels()));
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug(string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"), SeqData.NumFrames(), SeqData.NumChannels()));
 #endif
     }
     f.Close();

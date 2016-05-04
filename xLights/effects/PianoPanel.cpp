@@ -285,8 +285,8 @@ void PianoPanel::OnChoice_Piano_Notes_SourceSelect(wxCommandEvent& event)
 			}
 			catch (...)
 			{
-				log4cpp::Category& logger = log4cpp::Category::getRoot();
-				logger.warn("Exception caught processing Polyphonic Transcription");
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("Exception caught processing Polyphonic Transcription");
 			}
 		}
 	}

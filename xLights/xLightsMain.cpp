@@ -391,8 +391,8 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 
 xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(NetInfo)
 {
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.debug("xLightsFrame being constructed.");
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xLightsFrame being constructed.");
 
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
@@ -1192,7 +1192,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
-    logger.debug("xLightsFrame constructor UI code done.");
+    logger_base.debug("xLightsFrame constructor UI code done.");
 
     //need to direct these menu items to different places depending on what is active
     Connect(wxID_UNDO, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
@@ -1233,11 +1233,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     UnsavedPlaylistChanges = false;
     UnsavedNetworkChanges = false;
 
-    logger.debug("xLightsFrame constructor creating sequencer.");
+    logger_base.debug("xLightsFrame constructor creating sequencer.");
 
     CreateSequencer();
 
-    logger.debug("xLightsFrame constructor sequencer creation done.");
+    logger_base.debug("xLightsFrame constructor sequencer creation done.");
 
     layoutPanel = new LayoutPanel(PanelPreview, this);
     FlexGridSizerPreview->Add(layoutPanel, 1, wxALL | wxEXPAND, 5);
@@ -1261,7 +1261,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     effGridPrevY = 0;
     mSavedChangeCount = 0;
 
-    logger.debug("xLightsFrame constructor loading network list.");
+    logger_base.debug("xLightsFrame constructor loading network list.");
 
     // Load headings into network list
     wxListItem itemCol;
@@ -1319,7 +1319,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
         mru_MenuItem[i] = NULL;
     }
 
-    logger.debug("xLightsFrame constructor loading config.");
+    logger_base.debug("xLightsFrame constructor loading config.");
 
     dir.clear();
     bool ok = true;
@@ -1468,7 +1468,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
 	SetAudioControls();
 
-    logger.debug("xLightsFrame construction complete.");
+    logger_base.debug("xLightsFrame construction complete.");
 }
 
 xLightsFrame::~xLightsFrame()
@@ -1533,8 +1533,8 @@ void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
 
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.info("Quit");
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Quit");
 	wxCloseEvent evt;
     if (QuitMenuItem->IsEnabled())
     {
@@ -1963,14 +1963,14 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.info("xLights Closing");
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	logger_base.info("xLights Closing");
 
 	StopNow();
 
 	if (!CloseSequence())
     {
-		logger.info("Closing aborted.");
+		logger_base.info("Closing aborted.");
 		event.Veto();
         return;
     }
@@ -1984,7 +1984,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     //ScrolledWindow1->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);
 
     Destroy();
-	logger.info("xLights Closed.");
+	logger_base.info("xLights Closed.");
 }
 
 void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
@@ -2308,10 +2308,10 @@ void xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event
 
 void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.info("Closing sequence.");
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Closing sequence.");
 	CloseSequence();
-	logger.info("Sequence closed.");
+	logger_base.info("Sequence closed.");
 
     // force refreshes since grid has been cleared
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();

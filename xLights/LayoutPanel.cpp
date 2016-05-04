@@ -1463,8 +1463,6 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) {
     return m;
 }
 void LayoutPanel::OnChar(wxKeyEvent& event) {
-    //log4cpp::Category& logger = log4cpp::Category::getRoot();
-    //logger.info(wxString::Format("In char %x   %d  %d", event.GetKeyCode(), event.ControlDown(), modelPreview->HasFocus()));
 
     wxChar uc = event.GetKeyCode();
     switch (uc) {
@@ -1502,10 +1500,6 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
 
     wxChar uc = event.GetKeyCode();
     
-    //log4cpp::Category& logger = log4cpp::Category::getRoot();
-    //logger.info(wxString::Format("In char hook %x %c  %d  %d", event.GetKeyCode(), event.GetKeyCode(), event.ControlDown(), modelPreview->HasFocus()));
-    //printf("och: %x  %c\n", uc, uc);
-
     switch(uc) {
 #ifdef __WXMSW__
         case 'z':

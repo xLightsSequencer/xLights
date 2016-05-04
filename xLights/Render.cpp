@@ -293,9 +293,9 @@ public:
     }
 
     virtual void Process() {
-		log4cpp::Category& logger = log4cpp::Category::getRoot();
-		SetGenericStatus("Initializing rendering thread for %s\n", 0);
-		logger.info("Initializing rendering thread.");
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        SetGenericStatus("Initializing rendering thread for %s\n", 0);
+		logger_base.info("Initializing rendering thread.");
 		//printf("Starting rendering %lx (no next)\n", (unsigned long)this);
         int maxFrameBeforeCheck = -1;
         int origChangeCount;
@@ -482,10 +482,10 @@ public:
             }
         } catch ( std::exception &ex) {
             printf("Caught an exception %s\n", ex.what());
-			logger.error("Caught an exception on rendering thread: " + std::string(ex.what()));
+			logger_base.error("Caught an exception on rendering thread: " + std::string(ex.what()));
 		} catch ( ... ) {
             printf("Caught an unknown exception\n");
-			logger.error("Caught an unknown exception on rendering thread.");
+			logger_base.error("Caught an unknown exception on rendering thread.");
 		}
         if (next) {
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
@@ -502,7 +502,7 @@ public:
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
-		logger.info("Rendering thread exiting.");
+		logger_base.info("Rendering thread exiting.");
 	}
 
 private:
@@ -823,8 +823,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                        bool bgThread, RenderEvent *event) {
     bool retval=true;
 
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	buffer.SetLayer(layer, period, resetEffectState);
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    buffer.SetLayer(layer, period, resetEffectState);
     resetEffectState = false;
     int eidx = -1;
     if (effectObj != nullptr) {
@@ -849,7 +849,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 retval = event->returnVal;
             } else {
                 printf("HELP!!!!\n");
-				logger.info("HELP!!!!");
+				logger_base.info("HELP!!!!");
 			}
             if (period % 10 == 0) {
                 //constantly putting stuff on CallAfter can result in the main

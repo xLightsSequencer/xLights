@@ -217,8 +217,8 @@ void ConvertDialog::OnButtonChooseFileClick(wxCommandEvent& event)
 
 void ConvertDialog::OnButtonStartConversionClick(wxCommandEvent& event)
 {
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.info("Converstion starting.");
+    log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
+    logger_conversion.info("Conversion starting.");
 
     ButtonStartConversion->Enable(false);
     wxString OutputFormat = ChoiceOutputFormat->GetStringSelection();
@@ -244,7 +244,7 @@ void ConvertDialog::OnButtonStartConversionClick(wxCommandEvent& event)
 
     ButtonStartConversion->Enable(true);
 
-    logger.info("Conversion complete.");
+    logger_conversion.info("Conversion complete.");
 }
 
 void ConvertDialog::OnButtonCloseClick(wxCommandEvent& event)
@@ -269,8 +269,8 @@ void ConvertDialog::AppendConvertStatus(const wxString &msg, bool flushBuffer) {
         }
     }
 
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.info("ConvertStatus: " + msg);
+    log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
+    logger_conversion.info("ConvertStatus: " + msg);
 }
 
 bool ConvertDialog::mapEmptyChannels() {

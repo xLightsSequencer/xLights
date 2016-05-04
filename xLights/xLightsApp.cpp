@@ -140,9 +140,11 @@ void InitialiseLogging()
 
         if (!wxFile::Exists(initFileName))
         {
+#ifdef _MSC_VER
 #ifndef NDEBUG
             // the app is not initialized so GUI is not available and no event loop.
-            //wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
+            wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
+#endif
 #endif
         }
         else
@@ -175,17 +177,17 @@ int main(int argc, char **argv)
     // it needs to be:
     //     a folder the user can write to
     //     predictable ... as we want the handleCrash function to be able to locate the file to include it in the crash
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.info("XLights main function executing.");
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("XLights main function executing.");
 
 #ifdef LINUX
     XInitThreads();
 #endif
     wxDISABLE_DEBUG_SUPPORT();
 
-    logger.info("Main: Starting wxWidgets ...");
+    logger_base.info("Main: Starting wxWidgets ...");
     int rc =  wxEntry(argc, argv);
-    logger.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
+    logger_base.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
     return rc;
 }
 
@@ -199,8 +201,8 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 
 xLightsFrame *topFrame = NULL;
 void handleCrash(void *data) {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.crit("Crash handler called.");
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.crit("Crash handler called.");
 	wxDebugReportCompress *report = new wxDebugReportCompress();
     report->SetCompressedFileDirectory(topFrame->CurrentDir);
     report->AddAll(wxDebugReport::Context_Exception);
@@ -267,7 +269,7 @@ void handleCrash(void *data) {
     trace += topFrame->GetThreadStatusReport();
 #endif // LINUX
 
-	logger.crit(trace);
+	logger_base.crit(trace);
 
     report->AddText("backtrace.txt", trace, "Backtrace");
     if (!wxThread::IsMain() && topFrame != nullptr) {
@@ -286,8 +288,8 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
         report->Process();
         wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
     }
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
 	delete report;
 	exit(1);
 }
@@ -306,8 +308,8 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 bool xLightsApp::OnInit()
 {
     InitialiseLogging();
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.info("OnInit: XLights started.");
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("OnInit: XLights started.");
 
 #ifdef _MSC_VER
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
@@ -395,7 +397,7 @@ bool xLightsApp::OnInit()
         glutInit(&(wxApp::argc), wxApp::argv);
     #endif
 
-    logger.info("XLightsApp OnInit Done.");
+    logger_base.info("XLightsApp OnInit Done.");
 
     return wxsOK;
 }

@@ -31,8 +31,8 @@ void ConvertParameters::AppendConvertStatus(const wxString& msg, bool flushbuffe
     {
         convertLogDialog->AppendConvertStatus(msg + "\n", flushbuffer);
     }
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.info("Convert Status: " + msg);
+    log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
+    logger_conversion.info("Convert Status: " + msg);
 }
 
 
@@ -1726,8 +1726,8 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 
 void FileConverter::WriteFalconPiFile( ConvertParameters& params )
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.debug("Start fseq write");
+    log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
+    logger_conversion.debug("Start fseq write");
 	wxUint8 vMinor = 0;
     wxUint8 vMajor = 1;
     wxUint16 fixedHeaderLength = 28;
@@ -1823,6 +1823,6 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
     }
     f.Close();
     free(buf);
-	logger.debug("End fseq write");
+	logger_conversion.debug("End fseq write");
 }
 

@@ -7,7 +7,7 @@
 
 VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool keepaspectratio)
 {
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _valid = false;
 	_length = 0;
 	_formatContext = NULL;
@@ -26,13 +26,13 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	int res = avformat_open_input(&_formatContext, filename.c_str(), NULL, NULL);
 	if (res != 0)
 	{
-        logger.info("Error opening the file" + filename);
+        logger_base.info("Error opening the file" + filename);
 		return;
 	}
 
 	if (avformat_find_stream_info(_formatContext, NULL) < 0)
 	{
-        logger.info("Error finding the stream info in " + filename);
+        logger_base.info("Error finding the stream info in " + filename);
 		return;
 	}
 
@@ -41,7 +41,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	_streamIndex = av_find_best_stream(_formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &cdc, 0);
 	if (_streamIndex < 0)
 	{
-        logger.info("Could not find any video stream in " + filename);
+        logger_base.info("Could not find any video stream in " + filename);
 		return;
 	}
 
@@ -53,7 +53,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
     _codecContext->thread_count = 1;
 	if (avcodec_open2(_codecContext, cdc, NULL) != 0)
 	{
-        logger.info("Couldn't open the context with the decoder in " + filename);
+        logger_base.info("Couldn't open the context with the decoder in " + filename);
 		return;
 	}
 
@@ -99,6 +99,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	if (_length <= 0 || _lastframe <= 0)
 	{
 		// This is bad ... it still does not look right
+        logger_base.warn("Attempts to determine length of video have not been successful. Problems ahead.");
 	}
 
 	_dstFrame = av_frame_alloc();

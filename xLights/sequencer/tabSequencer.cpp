@@ -30,11 +30,11 @@
 void xLightsFrame::CreateSequencer()
 {
     // Lots of logging here as this function hard crashes
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     EffectsPanel1 = NULL;
     timingPanel = NULL;
 
-    logger.debug("CreateSequencer: Creating Panels.");
+    logger_base.debug("CreateSequencer: Creating Panels.");
     mainSequencer = new MainSequencer(PanelSequencer);
     mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
     mainSequencer->SetSequenceElements(&mSequenceElements);
@@ -80,7 +80,7 @@ void xLightsFrame::CreateSequencer()
     displayElementsPanel->SetViewChoice(mainSequencer->ViewChoice);
     displayElementsPanel->Fit();
 
-    logger.debug("CreateSequencer: Hooking up the panes.");
+    logger_base.debug("CreateSequencer: Hooking up the panes.");
     m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements"))
                    .Float());
     // Hide the panel on start.
@@ -98,11 +98,11 @@ void xLightsFrame::CreateSequencer()
 
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
-    logger.debug("CreateSequencer: Updating the layout.");
+    logger_base.debug("CreateSequencer: Updating the layout.");
     m_mgr->Update(); // <== KW: I have seen crashes on this line -107374819
-    logger.debug("CreateSequencer: Resizing everything.");
+    logger_base.debug("CreateSequencer: Resizing everything.");
     mainSequencer->Layout();
-    logger.debug("CreateSequencer: Done.");
+    logger_base.debug("CreateSequencer: Done.");
 }
 
 void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)

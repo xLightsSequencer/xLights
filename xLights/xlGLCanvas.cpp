@@ -74,24 +74,34 @@ void xlGLCanvas::SetCurrentGLContext() {
         functionsLoaded = true;
     }
 #endif
-    if (cache == nullptr) {
-        log4cpp::Category::getRoot().info(wxString::Format("%s - glVer:  %s  (%s)(%s)\n", (const char *)GetName().c_str(),
-                                          glGetString(GL_VERSION), glGetString(GL_RENDERER), glGetString(GL_VENDOR)).c_str());
 
-        printf("%s - glVer:  %s  (%s)(%s)\n", (const char *)GetName().c_str(),
-               glGetString(GL_VERSION), glGetString(GL_RENDERER), glGetString(GL_VENDOR));
+    if (cache == nullptr) {
+        log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+        wxString config = wxString::Format("%s - glVer:  %s  (%s)(%s)", 
+            (const char *)GetName().c_str(),
+            (const char *)glGetString(GL_VERSION),
+            (const char *)glGetString(GL_RENDERER),
+            (const char *)glGetString(GL_VENDOR));
+        logger_opengl.info(std::string(config.c_str()));
+        printf("%s\n", config.c_str());
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* vend = glGetString(GL_RENDERER);
         if (str[0] > '3' || (str[0] == '3' && str[2] >= '3')) {
+            logger_opengl.info("Try creating 33 Cache");
             cache = Create33Cache();
         }
         if (cache == nullptr && str[0] >= '2') {
             if (!wxString(vend).Contains("AMD")) {
+                logger_opengl.info("Try creating 21 Cache");
                 cache = Create21Cache();
             }
         }
         if (cache == nullptr) {
+            logger_opengl.info("Try creating 15 Cache");
             cache = Create15Cache();
+        }
+        if (cache == nullptr) {
+            logger_opengl.error("All attempts at cache creation have failed.");
         }
     }
     DrawGLUtils::SetCurrentCache(cache);
@@ -128,6 +138,12 @@ void xlGLCanvas::CreateGLContext() {
         }
         wxLog::SetLogLevel(cur);
         wxLog::Resume();
+
+        if (m_context == nullptr)
+        {
+            log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+            logger_opengl.error("Error creating GL context.");
+        }
     }
 }
 

@@ -621,7 +621,6 @@ int PianoEffect::UpperTS(float t, int intervalMS)
 
 std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, int intervalMS)
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
     log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 
@@ -640,7 +639,7 @@ std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, 
 			if (components.size() != 3)
 			{
 				// this is a problem ... there should be 3 floating point numbers
-				logger.warn("Invalid data in audacity file - 3 tab separated floating point values expected: '" + l + "'");
+                logger_pianodata.warn("Invalid data in audacity file - 3 tab separated floating point values expected: '" + l + "'");
 				break;
 			}
 			else
@@ -697,7 +696,6 @@ std::map<int, std::list<float>> PianoEffect::LoadAudacityFile(std::string file, 
 
 std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
     log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 
@@ -813,7 +811,7 @@ std::map<int, std::list<float>> PianoEffect::LoadMIDIFile(std::string file, int 
 	}
 	else
 	{
-		logger.warn("Invalid MIDI file " + file);
+        logger_pianodata.warn("Invalid MIDI file " + file);
 	}
 
 	return res;
@@ -922,7 +920,6 @@ int PianoEffect::ConvertNote(std::string& note)
 
 std::map<int, std::list<float>> PianoEffect::LoadTimingTrack(std::string track, int intervalMS)
 {
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
     log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<float>> res;
 

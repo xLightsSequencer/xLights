@@ -253,8 +253,8 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         return;
     }
 
-    log4cpp::Category& logger = log4cpp::Category::getRoot();
-    logger.info("Polyphonic transcription started on file " + _audio_file);
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Polyphonic transcription started on file " + _audio_file);
 
     log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     logger_pianodata.debug("Processing polyphonic transcription on file " + _audio_file);
@@ -268,7 +268,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
     if (pt == NULL)
     {
-        logger.warn("Unable to load Polyphonic Transcription VAMP plugin.");
+        logger_base.warn("Unable to load Polyphonic Transcription VAMP plugin.");
     }
     else
     {
@@ -315,8 +315,8 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
             
             if (first && features.size() > 0)
             {
-                log4cpp::Category& logger = log4cpp::Category::getRoot();
-                logger.warn("Polyphonic transcription data process oddly retrieved data.");
+                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("Polyphonic transcription data process oddly retrieved data.");
                 first = false;
             }
             if (len > pref_step)
@@ -387,22 +387,22 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         }
         catch (...)
         {
-            logger.warn("Polyphonic Transcription threw an error getting the remaining features.");
+            logger_base.warn("Polyphonic Transcription threw an error getting the remaining features.");
         }
 
         //done with VAMP Polyphonic Transcriber
         delete pt;
     }
     _polyphonicTranscriptionDone = true;
-    logger.info("Polyphonic transcription completed.");
+    logger_base.info("Polyphonic transcription completed.");
 }
 
 // Frame Data Extraction Functions
 // process audio data and build data for each frame
 void AudioManager::DoPrepareFrameData()
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.info("Start processing audio frame data.");
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Start processing audio frame data.");
 
 	// lock the mutex
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
@@ -410,7 +410,7 @@ void AudioManager::DoPrepareFrameData()
 	// if we have already done it ... bail
 	if (_frameDataPrepared)
 	{
-		logger.info("Aborting processing audio frame data ... it has already been done.");
+		logger_base.info("Aborting processing audio frame data ... it has already been done.");
 		return;
 	}
 
@@ -582,7 +582,7 @@ void AudioManager::DoPrepareFrameData()
 	// flag the fact that the data is all ready
 	_frameDataPrepared = true;
 
-	logger.info("Audio frame data processing complete.");
+	logger_base.info("Audio frame data processing complete.");
 }
 
 // Called to trigger frame data creation
@@ -1054,14 +1054,13 @@ int AudioManager::OpenMediaFile()
 
 void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	// setup our conversion format ... we need to conver the input to a standard format before we can process anything
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // setup our conversion format ... we need to conver the input to a standard format before we can process anything
 	uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
 	AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
 	int out_sample_rate = _rate;
 	int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
-	// this is not used
-	//int out_buffer_size = av_samples_get_buffer_size(NULL, out_channels, out_nb_samples, out_sample_fmt, 1);
 
 	#define CONVERSION_BUFFER_SIZE 192000
 	uint8_t* out_buffer = (uint8_t *)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
@@ -1129,7 +1128,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 					if (read + frame->nb_samples > _trackSize)
 					{
 						// I dont understand why this happens ... add logging when i can
-						logger.warn("This shouldnt happen ... read ["+ wxString::Format("%i", read) +"] + nb_samples ["+ wxString::Format("%i", frame->nb_samples) +"] > _tracksize ["+ wxString::Format("%i", _trackSize) +"] .");
+						logger_base.warn("This shouldnt happen ... read ["+ wxString::Format("%i", read) +"] + nb_samples ["+ wxString::Format("%i", frame->nb_samples) +"] > _tracksize ["+ wxString::Format("%i", _trackSize) +"] .");
 					}
 
 					// copy the PCM data into the PCM buffer for playing

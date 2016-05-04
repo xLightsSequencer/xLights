@@ -836,8 +836,8 @@ bool xLightsXmlFile::Open(const wxString& ShowDir, bool ignore_audio)
 
 wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	// This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
 	static wxString RememberShowDir;
 	wxString sd;
 	if (ShowDir == "")
@@ -887,7 +887,7 @@ wxString xLightsXmlFile::FixFile(const wxString& ShowDir, const wxString& file)
 
 			if (wxFileExists(relative))
 			{
-				logger.debug("File location fixed: " + file + " -> " + relative);
+				logger_base.debug("File location fixed: " + file + " -> " + relative);
 				return relative;
 			}
 		}
@@ -1167,12 +1167,12 @@ void xLightsXmlFile::ConvertToFixedPointTiming()
 
 bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
 {
-	log4cpp::Category& logger = log4cpp::Category::getRoot();
-	logger.info("Loading sequence " + GetFullPath());
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Loading sequence " + GetFullPath());
 
 	if (!seqDocument.Load(GetFullPath()))
 	{
-		logger.error("XML file load failed.");
+		logger_base.error("XML file load failed.");
 		return false;
 	}
     is_open = true;
@@ -1321,7 +1321,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
 		}
 	}
 
-	logger.info("Sequence loaded.");
+	logger_base.info("Sequence loaded.");
 
 	return is_open;
 }
