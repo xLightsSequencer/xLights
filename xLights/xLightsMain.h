@@ -575,6 +575,7 @@ private:
     void OnMenu_GenerateCustomModelSelected(wxCommandEvent& event);
     void OnPaneClose(wxAuiManagerEvent& event);
     void OnMenuItemPackageDebugFiles(wxCommandEvent& event);
+    void OnMenuOpenGLSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -767,6 +768,11 @@ private:
     static const long ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF;
     static const long ID_MENUITEM_EFFECT_ASSIST_TOGGLE;
     static const long ID_MENUITEM_EFFECT_ASSIST;
+    static const long ID_MENU_OPENGL_AUTO;
+    static const long ID_MENU_OPENGL_3;
+    static const long ID_MENU_OPENGL_2;
+    static const long ID_MENU_OPENGL_1;
+    static const long ID_MENUITEM19;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_STATUSBAR1;
@@ -802,6 +808,7 @@ private:
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemGridNodeValuesOff;
     wxCheckBox* CheckBoxRunSchedule;
+    wxMenuItem* MenuItem40;
     wxCheckBox* CheckBox_CoroEyesRandomLR;
     wxButton* ButtonClearLog;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
@@ -833,6 +840,7 @@ private:
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxStaticText* StaticTextShowStart;
+    wxMenu* MenuItem39;
     xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem37;
     wxStaticText* StaticText1;
@@ -846,6 +854,7 @@ private:
     wxPanel* PanelSequencer;
     wxButton* ButtonSaveLog;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
+    wxMenuItem* MenuItem42;
     wxButton* ButtonStartPapagayo;
     wxStaticText* StaticText67;
     wxChoice* Choice_PgoGroupName;
@@ -893,6 +902,7 @@ private:
     wxStaticText* StaticText43;
     wxStaticText* MediaDirectoryLabel;
     wxMenuItem* mRenderOnSaveMenuItem;
+    wxMenuItem* MenuItem41;
     wxPanel* PanelSetup;
     wxTextCtrl* TextCtrl_PgoMinRest;
     wxStaticText* StaticText68;
@@ -911,6 +921,7 @@ private:
     wxMenuItem* MenuItem16;
     wxMenuItem* MenuItem34;
     wxSplitterWindow* SplitterWindow1;
+    wxMenuItem* MenuItem43;
     wxMenuItem* MenuItemEffectAssistWindow;
     wxMenuItem* ActionTestMenuItem;
     wxStaticText* StaticText36;

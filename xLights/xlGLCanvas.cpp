@@ -54,6 +54,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
 
 xlGLCanvas::~xlGLCanvas()
 {
+    m_context->SetCurrent(*this);
     if (cache != nullptr) {
         DrawGLUtils::DestroyCache(cache);
     }
@@ -115,11 +116,11 @@ void xlGLCanvas::CreateGLContext() {
         wxLogLevel cur = wxLog::GetLogLevel();
         wxLog::SetLogLevel(wxLOG_Error);
         wxLog::Suspend();
-        
+
         wxConfigBase* config = wxConfigBase::Get();
         int ver = 99;
         config->Read("ForceOpenGLVer", &ver, 99);
-        
+
 
         if (m_coreProfile && ver >= 3) {
             wxGLContextAttrs atts;

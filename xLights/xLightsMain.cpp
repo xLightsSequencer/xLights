@@ -268,6 +268,11 @@ const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_TOGGLE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST = wxNewId();
+const long xLightsFrame::ID_MENU_OPENGL_AUTO = wxNewId();
+const long xLightsFrame::ID_MENU_OPENGL_3 = wxNewId();
+const long xLightsFrame::ID_MENU_OPENGL_2 = wxNewId();
+const long xLightsFrame::ID_MENU_OPENGL_1 = wxNewId();
+const long xLightsFrame::ID_MENUITEM19 = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
@@ -1038,6 +1043,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem7->Append(MenuItemEffectAssistToggleMode);
     MenuItemEffectAssistToggleMode->Check(true);
     MenuSettings->Append(ID_MENUITEM_EFFECT_ASSIST, _("Effect Assist Window"), MenuItem7, wxEmptyString);
+    MenuItem39 = new wxMenu();
+    MenuItem40 = new wxMenuItem(MenuItem39, ID_MENU_OPENGL_AUTO, _("Auto Detect"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem39->Append(MenuItem40);
+    MenuItem41 = new wxMenuItem(MenuItem39, ID_MENU_OPENGL_3, _("3.x"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem39->Append(MenuItem41);
+    MenuItem42 = new wxMenuItem(MenuItem39, ID_MENU_OPENGL_2, _("2.x"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem39->Append(MenuItem42);
+    MenuItem43 = new wxMenuItem(MenuItem39, ID_MENU_OPENGL_1, _("1.x"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem39->Append(MenuItem43);
+    MenuSettings->Append(ID_MENUITEM19, _("OpenGL"), MenuItem39, wxEmptyString);
     MenuItem13 = new wxMenuItem(MenuSettings, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItem13);
     MenuBar->Append(MenuSettings, _("&Settings"));
@@ -1189,6 +1204,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistAlwaysOnSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistAlwaysOffSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_TOGGLE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistToggleModeSelected);
+    Connect(ID_MENU_OPENGL_AUTO,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
+    Connect(ID_MENU_OPENGL_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
+    Connect(ID_MENU_OPENGL_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
+    Connect(ID_MENU_OPENGL_1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
@@ -2844,4 +2863,19 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     }
 
     report.Process();
+}
+
+void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    if (event.GetId() == ID_MENU_OPENGL_AUTO) {
+        config->Write("ForceOpenGLVer", 99);
+    } else if (event.GetId() == ID_MENU_OPENGL_3) {
+        config->Write("ForceOpenGLVer", 3);
+    } else if (event.GetId() == ID_MENU_OPENGL_2) {
+        config->Write("ForceOpenGLVer", 2);
+    } else if (event.GetId() == ID_MENU_OPENGL_1) {
+        config->Write("ForceOpenGLVer", 1);
+    }
+    wxMessageBox("OpenGL changes require a restart\n");
 }

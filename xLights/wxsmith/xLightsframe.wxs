@@ -1784,6 +1784,25 @@
 						<checkable>1</checkable>
 					</object>
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM19" variable="MenuItem39" member="yes">
+					<label>OpenGL</label>
+					<object class="wxMenuItem" name="ID_MENU_OPENGL_AUTO" variable="MenuItem40" member="yes">
+						<label>Auto Detect</label>
+						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENU_OPENGL_3" variable="MenuItem41" member="yes">
+						<label>3.x</label>
+						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENU_OPENGL_2" variable="MenuItem42" member="yes">
+						<label>2.x</label>
+						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENU_OPENGL_1" variable="MenuItem43" member="yes">
+						<label>1.x</label>
+						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
+					</object>
+				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
 					<label>Reset Toolbars</label>
 					<handler function="ResetToolbarLocations" entry="EVT_MENU" />
