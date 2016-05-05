@@ -268,7 +268,7 @@ void Waveform::renderGL( )
 void Waveform::DrawWaveView(const WaveView &wv)
 {
     int index;
-    glLineWidth( 1 );
+    LOG_GL_ERRORV(glLineWidth( 1 ));
 
     xlColor color(212,208,200);
     DrawGLUtils::AddVertex(0, 0, color);
