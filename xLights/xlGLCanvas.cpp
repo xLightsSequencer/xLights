@@ -54,11 +54,13 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
 
 xlGLCanvas::~xlGLCanvas()
 {
-    m_context->SetCurrent(*this);
-    if (cache != nullptr) {
-        DrawGLUtils::DestroyCache(cache);
+    if (m_context) {
+        m_context->SetCurrent(*this);
+        if (cache != nullptr) {
+            DrawGLUtils::DestroyCache(cache);
+        }
+        delete m_context;
     }
-    delete m_context;
 }
 
 DrawGLUtils::xlGLCacheInfo *Create33Cache();
