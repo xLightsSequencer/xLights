@@ -378,6 +378,7 @@
     <ClCompile Include="VideoReader.cpp" />
     <ClCompile Include="ViewsDialog.cpp" />
     <ClCompile Include="wxCheckedListCtrl.cpp" />
+    <ClCompile Include="wxNumberCtrl.cpp" />
     <ClCompile Include="xlColorCanvas.cpp" />
     <ClCompile Include="xlColorPicker.cpp" />
     <ClCompile Include="xlColorPickerFields.cpp" />

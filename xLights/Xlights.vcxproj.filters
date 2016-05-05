@@ -756,6 +756,9 @@
     <ClCompile Include="SubBufferPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="wxNumberCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
