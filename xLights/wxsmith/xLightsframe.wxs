@@ -1509,6 +1509,11 @@
 					<label>&amp;Generate Custom Model</label>
 					<handler function="OnMenu_GenerateCustomModelSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENUITEM18" variable="MenuItem38" member="yes">
+					<label>&amp;Package Problem FIles</label>
+					<help>Packages up current configuration, logs and sequence for reporting a problem to development team.</help>
+					<handler function="OnMenuItemPackageDebugFiles" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuPlaylist" member="no">
 				<label>&amp;Playlist</label>

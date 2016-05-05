@@ -574,6 +574,7 @@ private:
     void OnMenuItemConvertSelected(wxCommandEvent& event);
     void OnMenu_GenerateCustomModelSelected(wxCommandEvent& event);
     void OnPaneClose(wxAuiManagerEvent& event);
+    void OnMenuItemPackageDebugFiles(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -712,6 +713,7 @@ private:
     static const long ID_MENUITEM13;
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MENUITEM_GenerateCustomModel;
+    static const long ID_MENUITEM18;
     static const long idMenuSaveSched;
     static const long idMenuAddList;
     static const long idMenuRenameList;
@@ -859,6 +861,7 @@ private:
     wxMenuItem* MenuItemBackup;
     xlAuiToolBar* WindowMgmtToolbar;
     wxMenuItem* Menu_GenerateCustomModel;
+    wxMenuItem* MenuItem38;
     wxMenuItem* MenuItemRenderEraseMode;
     wxMenuItem* MenuItem3;
     wxMenuItem* MenuItemConvert;

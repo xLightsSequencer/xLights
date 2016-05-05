@@ -17,6 +17,7 @@
 #include <wx/persist/toplevel.h>
 #include <wx/valnum.h>
 #include <wx/clipbrd.h>
+#include <wx/debugrpt.h>
 #include "xLightsApp.h" //global app run-time flags
 #include "heartbeat.h" //DJ
 #include "SeqSettingsDialog.h"
@@ -213,6 +214,7 @@ const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
+const long xLightsFrame::ID_MENUITEM18 = wxNewId();
 const long xLightsFrame::idMenuSaveSched = wxNewId();
 const long xLightsFrame::idMenuAddList = wxNewId();
 const long xLightsFrame::idMenuRenameList = wxNewId();
@@ -907,6 +909,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(MenuItemConvert);
     Menu_GenerateCustomModel = new wxMenuItem(Menu1, ID_MENUITEM_GenerateCustomModel, _("&Generate Custom Model"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(Menu_GenerateCustomModel);
+    MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Problem FIles"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
+    Menu1->Append(MenuItem38);
     MenuBar->Append(Menu1, _("&Tools"));
     MenuPlaylist = new wxMenu();
     MenuItemSavePlaylists = new wxMenuItem(MenuPlaylist, idMenuSaveSched, _("Save Playlists"), wxEmptyString, wxITEM_NORMAL);
@@ -1137,6 +1141,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
+    Connect(ID_MENUITEM18,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemPackageDebugFiles);
     Connect(idMenuSaveSched,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSavePlaylistsSelected);
     Connect(idMenuAddList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemAddListSelected);
     Connect(idMenuRenameList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenameListSelected);
@@ -2785,4 +2790,58 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
 void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
 {
     SetFocus();
+}
+
+void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
+{
+    wxFileDialog fd(this, "Zip file to create.", CurrentDir, "xLightsProblem.zip", "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (fd.ShowModal() == wxID_CANCEL) return;
+
+    wxDebugReportCompress report;
+    report.SetCompressedFileBaseName(wxFileName(fd.GetFilename()).GetName());
+    report.SetCompressedFileDirectory(fd.GetDirectory());
+
+    wxFileName fn(CurrentDir, "xlights_networks.xml");
+    if (fn.Exists()) {
+        report.AddFile(fn.GetFullPath(), "xlights_networks.xml");
+    }
+    if (wxFileName(CurrentDir, "xlights_rgbeffects.xml").Exists()) {
+        report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
+    }
+    if (wxFile::Exists(wxFileName(CurrentDir, "xLights_l4cpp.log").GetFullPath()))
+    {
+        report.AddFile(wxFileName(CurrentDir, "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
+    }
+    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
+    {
+        report.AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
+    }
+    else
+    {
+        wxString dir;
+#ifdef __WXMSW__
+        wxGetEnv("APPDATA", &dir);
+        std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
+#endif
+#ifdef __WXOSX_MAC__
+        wxGetEnv("user.home", &dir);
+        std::string filename = std::string(dir.c_str()) + "/Library/Application Support/myapp/xLights/xLights_l4cpp.log";
+#endif
+#ifdef __LINUX__
+        std::string filename = "/tmp/xLights_l4cpp.log";
+#endif
+        if (wxFile::Exists(filename))
+        {
+            report.AddFile(filename, "xLights_l4cpp.log");
+        }
+    }
+    if (GetSeqXmlFileName() != "") {
+        wxFileName fn(GetSeqXmlFileName());
+        if (fn.Exists() && !fn.IsDir()) {
+            report.AddFile(GetSeqXmlFileName(), fn.GetName());
+        }
+    }
+
+    report.Process();
 }
