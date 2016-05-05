@@ -346,7 +346,7 @@ public:
         glEnableVertexAttribArray(1);
         colors.Init(max);
         glVertexAttribPointer(1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-                              GL_BGRA,                                // size
+                              4,                                // size
                               GL_UNSIGNED_BYTE,                         // type
                               GL_TRUE,                         // normalized?
                               0,                                // stride
@@ -421,7 +421,7 @@ public:
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, colors.id);
-        glVertexAttribPointer(1, GL_BGRA, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
+        glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
     }
 
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
@@ -465,7 +465,7 @@ public:
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, colors.id);
-        glVertexAttribPointer(1, GL_BGRA, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
+        glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
     }
     void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
@@ -513,10 +513,9 @@ public:
         vertices[curCount * 2] = x;
         vertices[curCount * 2 + 1] = y;
 
-        //BGRA format is fastest
-        colors[curCount*4] = c.Blue();
+        colors[curCount*4] = c.Red();
         colors[curCount*4 + 1] = c.Green();
-        colors[curCount*4 + 2] = c.Red();
+        colors[curCount*4 + 2] = c.Blue();
         colors[curCount*4 + 3] = c.Alpha();
         curCount++;
     }
@@ -543,7 +542,7 @@ public:
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
         
         colors.FlushAndUnmap(start, curCount);
-        glVertexAttribPointer(1, GL_BGRA, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
+        glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 );
         
         float ps;
         if (type == GL_POINTS && enableCapability == 0x0B10) {

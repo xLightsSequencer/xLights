@@ -22,6 +22,7 @@ SubBufferPanel::SubBufferPanel(wxPanel* parent, wxWindowID id,
     x1 = y1 = 0.0;
     x2 = y2 = 100.0;
     draggingHandle = -1;
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
 }
 SubBufferPanel::~SubBufferPanel()
 {

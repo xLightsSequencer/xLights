@@ -9,6 +9,7 @@ END_EVENT_TABLE()
 #include "osxMacUtils.h"
 
 #include <wx/log.h>
+#include <wx/config.h>
 #include <log4cpp/Category.hh>
 
 static wxGLAttributes GetAttributes() {
@@ -74,6 +75,9 @@ void xlGLCanvas::SetCurrentGLContext() {
         functionsLoaded = true;
     }
 #endif
+    wxConfigBase* config = wxConfigBase::Get();
+    int ver = 99;
+    config->Read("ForceOpenGLVer", &ver, 99);
 
     if (cache == nullptr) {
         log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
@@ -86,11 +90,11 @@ void xlGLCanvas::SetCurrentGLContext() {
         printf("%s\n", (const char *)config.c_str());
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* vend = glGetString(GL_RENDERER);
-        if (str[0] > '3' || (str[0] == '3' && str[2] >= '3')) {
+        if (ver >= 3 && (str[0] > '3' || (str[0] == '3' && str[2] >= '3'))) {
             logger_opengl.info("Try creating 33 Cache");
             cache = Create33Cache();
         }
-        if (cache == nullptr && str[0] >= '2') {
+        if (cache == nullptr && ver >=2 && str[0] >= '2') {
             if (!wxString(vend).Contains("AMD")) {
                 logger_opengl.info("Try creating 21 Cache");
                 cache = Create21Cache();
@@ -112,9 +116,13 @@ void xlGLCanvas::CreateGLContext() {
         wxLogLevel cur = wxLog::GetLogLevel();
         wxLog::SetLogLevel(wxLOG_Error);
         wxLog::Suspend();
+        
+        wxConfigBase* config = wxConfigBase::Get();
+        int ver = 99;
+        config->Read("ForceOpenGLVer", &ver, 99);
+        
 
-        if (m_coreProfile) {
-
+        if (m_coreProfile && ver >= 3) {
             wxGLContextAttrs atts;
             atts.PlatformDefaults().CoreProfile().OGLVersion(3, 3).EndList();
             //atts.PlatformDefaults().OGLVersion(2, 1).EndList();
