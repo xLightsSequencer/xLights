@@ -854,7 +854,11 @@ void GenerateCustomModelDialog::UpdateProgress(wxProgressDialog& pd, int totalti
 void GenerateCustomModelDialog::OnAuiNotebook_ProcessSettingsPageChanging(wxAuiNotebookEvent& event)
 {
     int page = event.GetSelection();
-    if (_state == VideoProcessingStates::CHOOSE_VIDEO && page != PAGE_CHOOSEVIDEO)
+    if (_state == VideoProcessingStates::CHOOSE_MODELTYPE && page != PAGE_MODELTYPE)
+    {
+        event.Veto();
+    }
+    else if (_state == VideoProcessingStates::CHOOSE_VIDEO && page != PAGE_CHOOSEVIDEO)
     {
         event.Veto();
     }
