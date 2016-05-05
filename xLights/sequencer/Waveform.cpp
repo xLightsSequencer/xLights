@@ -270,23 +270,30 @@ void Waveform::DrawWaveView(const WaveView &wv)
     int index;
     LOG_GL_ERRORV(glLineWidth( 1 ));
 
+    DrawGLUtils::xlVertexColorAccumulator vac;
+    DrawGLUtils::xlVertexAccumulator va;
+    vac.PreAlloc(8);
+    va.PreAlloc(8);
     xlColor color(212,208,200);
-    DrawGLUtils::AddVertex(0, 0, color);
-    DrawGLUtils::AddVertex(mWindowWidth, 0, color);
-    DrawGLUtils::AddVertex(mWindowWidth, mWindowHeight, color);
-    DrawGLUtils::AddVertex(0, mWindowHeight, color);
-    DrawGLUtils::End(GL_TRIANGLE_FAN);
-
+    
+    va.AddVertex(0, 0);
+    va.AddVertex(mWindowWidth, 0);
+    va.AddVertex(mWindowWidth, mWindowHeight);
+    va.AddVertex(0, mWindowHeight);
+    DrawGLUtils::Draw(va, color, GL_TRIANGLE_FAN);
+    va.Reset();
+    
     int max_wave_ht = mWindowHeight - VERTICAL_PADDING;
 
     // Draw Outside rectangle
     color.Set(128, 128, 128);
-    DrawGLUtils::AddVertex(0.25, 0, color);
-    DrawGLUtils::AddVertex(mWindowWidth, 0, color);
-    DrawGLUtils::AddVertex(mWindowWidth, mWindowHeight-0.5, color);
-    DrawGLUtils::AddVertex(0.25, mWindowHeight-0.5, color);
-    DrawGLUtils::End(GL_LINE_LOOP);
-
+    va.AddVertex(0.25, 0);
+    va.AddVertex(mWindowWidth, 0);
+    va.AddVertex(mWindowWidth, mWindowHeight-0.5);
+    va.AddVertex(0.25, mWindowHeight-0.5);
+    DrawGLUtils::Draw(va, color, GL_LINE_LOOP);
+    va.Reset();
+    
     // Get selection positions from timeline
     int selected_x1 = mTimeline->GetSelectedPositionStart();
     int selected_x2 = mTimeline->GetSelectedPositionEnd();
@@ -295,11 +302,12 @@ void Waveform::DrawWaveView(const WaveView &wv)
     if( selected_x1 != -1 && selected_x2 != -1)
     {
         color.Set(0, 0, 200, 45);
-        DrawGLUtils::AddVertex(selected_x1, 1, color);
-        DrawGLUtils::AddVertex(selected_x2, 1, color);
-        DrawGLUtils::AddVertex(selected_x2, mWindowHeight-1, color);
-        DrawGLUtils::AddVertex(selected_x1, mWindowHeight-1, color);
-        DrawGLUtils::End(GL_TRIANGLE_FAN, GL_BLEND);
+        va.AddVertex(selected_x1, 1);
+        va.AddVertex(selected_x2, 1);
+        va.AddVertex(selected_x2, mWindowHeight-1);
+        va.AddVertex(selected_x1, mWindowHeight-1);
+        DrawGLUtils::Draw(va, color, GL_TRIANGLE_FAN, GL_BLEND);
+        va.Reset();
     }
 
     if(_media != NULL)
@@ -349,8 +357,8 @@ void Waveform::DrawWaveView(const WaveView &wv)
     if( selected_x1 != -1 && selected_x2 == -1 )
     {
         color.Set(0, 0, 0, 128);
-        DrawGLUtils::AddVertex(selected_x1, 1, color);
-        DrawGLUtils::AddVertex(selected_x1, mWindowHeight-1, color);
+        vac.AddVertex(selected_x1, 1, color);
+        vac.AddVertex(selected_x1, mWindowHeight-1, color);
     }
 
     // draw mouse position line
@@ -358,8 +366,8 @@ void Waveform::DrawWaveView(const WaveView &wv)
     if( mouse_marker != -1 )
     {
         color.Set(0, 0, 255, 255);
-        DrawGLUtils::AddVertex(mouse_marker, 1, color);
-        DrawGLUtils::AddVertex(mouse_marker, mWindowHeight-1, color);
+        vac.AddVertex(mouse_marker, 1, color);
+        vac.AddVertex(mouse_marker, mWindowHeight-1, color);
     }
 
     // draw play marker line
@@ -367,11 +375,11 @@ void Waveform::DrawWaveView(const WaveView &wv)
     if( play_marker != -1 )
     {
         color.Set(0, 0, 0, 255);
-        DrawGLUtils::AddVertex(play_marker, 1, color);
-        DrawGLUtils::AddVertex(play_marker, mWindowHeight-1, color);
+        vac.AddVertex(play_marker, 1, color);
+        vac.AddVertex(play_marker, mWindowHeight-1, color);
     }
-    if (DrawGLUtils::VertexCount() > 0) {
-        DrawGLUtils::End(GL_LINES);
+    if (vac.count > 0) {
+        DrawGLUtils::Draw(vac, GL_LINES);
     }
 }
 

@@ -138,11 +138,11 @@ void JobPoolWorker::ProcessJob(Job *job)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (job) {
-		logger_base.info("Starting job on background thread.");
+		logger_base.debug("Starting job on background thread.");
 		currentJob = job;
         job->Process();
         currentJob = nullptr;
-		logger_base.info("Job on background thread done.");
+		logger_base.debug("Job on background thread done.");
 	}
 }
 

@@ -38,38 +38,47 @@ void DimmingCurvePanel::InitializeGLCanvas() {
     if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
-    glDisable(GL_TEXTURE_2D);   // textures
-    glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
+    LOG_GL_ERRORV(glEnable(GL_BLEND));
+    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     mIsInitialized = true;
 }
 void DimmingCurvePanel::render(wxPaintEvent& event) {
     if(!mIsInitialized) { InitializeGLCanvas(); }
     if(!IsShownOnScreen()) return;
+    wxPaintDC(this);
     SetCurrentGLContext();
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    wxPaintDC(this);
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     if( mWindowResized )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     }
 
-    DrawGLUtils::DrawLine(xlLIGHT_GREY,255,2,2,mWindowWidth-2,2,0.5);
-    DrawGLUtils::DrawLine(xlLIGHT_GREY,255,2,2,2,mWindowHeight-2,0.5);
-    DrawGLUtils::DrawLine(xlLIGHT_GREY,255,mWindowWidth-2,2,mWindowWidth-2,mWindowHeight-2,0.5);
-    DrawGLUtils::DrawLine(xlLIGHT_GREY,255,2,mWindowHeight-2,mWindowWidth-2,mWindowHeight-2,0.5);
+    DrawGLUtils::xlVertexAccumulator va;
+    va.PreAlloc(16);
+    va.AddVertex(2,2);
+    va.AddVertex(mWindowWidth-2,2);
+
+    va.AddVertex(2,2);
+    va.AddVertex(2,mWindowWidth-2);
+    va.AddVertex(mWindowWidth-2,2);
+    va.AddVertex(mWindowWidth-2,mWindowHeight-2);
+    va.AddVertex(2,mWindowHeight-2);
+    va.AddVertex(mWindowWidth-2,mWindowHeight-2);
+
+    va.AddVertex(mWindowWidth-2,2);
+    va.AddVertex(2,mWindowHeight-2);
+    LOG_GL_ERRORV(glLineWidth(0.5));
+    DrawGLUtils::Draw(va, xlLIGHT_GREY, GL_LINES);
 
 
-    DrawGLUtils::DrawLine(xlLIGHT_GREY,255,mWindowWidth-2,2,2,mWindowHeight-2,0.5);
-
+    va.Reset();
     if (curve != nullptr) {
-        DrawGLUtils::PreAlloc(256);
+        va.PreAlloc(256);
 
         for (int x = 0; x < 255; x++) {
             xlColor c(x,x,x);
@@ -90,10 +99,10 @@ void DimmingCurvePanel::render(wxPaintEvent& event) {
             }
 
             ypos = mWindowHeight - 2 - ypos * float(mWindowHeight - 4.0) / 255.0;
-
-            DrawGLUtils::AddVertex(xpos, ypos, xlYELLOW);
+            va.AddVertex(xpos, ypos);
         }
-        DrawGLUtils::End(GL_LINE_STRIP);
+        
+        DrawGLUtils::Draw(va, xlYELLOW, GL_LINE_STRIP);
     }
     SwapBuffers();
 }

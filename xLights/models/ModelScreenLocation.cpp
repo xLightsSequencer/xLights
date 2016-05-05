@@ -326,14 +326,14 @@ void BoxedScreenLocation::DrawHandles() const {
     sx += w1;
     sy += h1;
 
-    glEnable( GL_LINE_SMOOTH );
-    glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
-    glLineWidth(1.7);
+    LOG_GL_ERRORV(glEnable( GL_LINE_SMOOTH ));
+    LOG_GL_ERRORV(glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ));
+    IGNORE_GL_ERRORV(glLineWidth(1.7));
     DrawGLUtils::AddVertex(w1,h1, xlWHITE);
     DrawGLUtils::AddVertex(sx, sy, xlWHITE);
     DrawGLUtils::End(GL_LINES);
-    glLineWidth(1.0);
-    glDisable(GL_LINE_SMOOTH);
+    IGNORE_GL_ERRORV(glLineWidth(1.0));
+    LOG_GL_ERRORV(glDisable(GL_LINE_SMOOTH));
 }
 
 void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
@@ -921,14 +921,15 @@ void ThreePointScreenLocation::DrawHandles() const {
     float sx = v1.x;
     float sy = v1.y;
 
-    glEnable( GL_LINE_SMOOTH );
-    glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
-    glLineWidth(1.7);
+    LOG_GL_ERRORV(glEnable( GL_LINE_SMOOTH ));
+    LOG_GL_ERRORV(glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ));
+    IGNORE_GL_ERRORV(glLineWidth(1.7));
+    
     DrawGLUtils::AddVertex(sx1, sy1, xlWHITE);
     DrawGLUtils::AddVertex(sx, sy, xlWHITE);
     DrawGLUtils::End(GL_LINES);
-    glLineWidth(1.0);
-    glDisable(GL_LINE_SMOOTH);
+    IGNORE_GL_ERRORV(glLineWidth(1.0));
+    LOG_GL_ERRORV(glDisable(GL_LINE_SMOOTH));
 
     DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
 

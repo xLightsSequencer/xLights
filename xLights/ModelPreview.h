@@ -64,6 +64,10 @@ public:
 
 protected:
     virtual void InitializeGLCanvas();
+    virtual bool UsesVertexTextureAccumulator() {return true;}
+    virtual bool UsesVertexColorAccumulator() {return false;}
+    virtual bool UsesVertexAccumulator() {return false;}
+    virtual bool UsesAddVertex() {return true;}
 
 private:
 	void render(wxPaintEvent& event);

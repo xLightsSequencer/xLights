@@ -58,7 +58,7 @@ void ModelPreview::render( wxPaintEvent& event )
     if(mIsDrawing) return;
     //if(!mIsInitialized) { InitializeGLCanvas(); }
     //SetCurrentGLContext();
-    //wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
+    //wxPaintDC(this);
     //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     if(!StartDrawing(mPointSize)) return;
@@ -185,7 +185,7 @@ void ModelPreview::SetBackgroundBrightness(int brightness)
 void ModelPreview::SetPointSize(wxDouble pointSize)
 {
     mPointSize = pointSize;
-    glPointSize( mPointSize );
+    LOG_GL_ERRORV(glPointSize( mPointSize ));
 }
 double ModelPreview::calcPixelSize(double i) {
     double d = translateToBacking(i * currentPixelScaleFactor);
@@ -205,7 +205,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     mIsDrawing = true;
     SetCurrentGLContext();
     wxClientDC dc(this);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     if( mWindowResized )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
@@ -228,7 +228,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             scaleh = scalew;
         }
         currentPixelScaleFactor = scaleh;
-        glPointSize(calcPixelSize(mPointSize));
+        LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
         DrawGLUtils::DrawFillRectangle(xlBLACK, 255, 0, 0, virtualWidth, virtualHeight);
     } else if (virtualWidth == 0 && virtualHeight == 0) {
         DrawGLUtils::Translate(0, -mWindowHeight, 0);

@@ -2264,7 +2264,7 @@ void EffectsGrid::DrawLines()
     }
     DrawGLUtils::End(GL_TRIANGLES);
 
-    LOG_GL_ERRORV(glLineWidth(0.2));
+    IGNORE_GL_ERRORV(glLineWidth(0.2));
     for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
     {
         y = (row+1)*DEFAULT_ROW_HEADING_HEIGHT;
@@ -2286,7 +2286,7 @@ void EffectsGrid::DrawLines()
     }
 
     DrawGLUtils::End(GL_LINES);
-    LOG_GL_ERRORV(glLineWidth(1));
+    IGNORE_GL_ERRORV(glLineWidth(1));
 }
 
 
@@ -2535,18 +2535,18 @@ void EffectsGrid::DrawEffects()
     DrawGLUtils::Draw(lines, *mEffectColor, GL_LINES);
     DrawGLUtils::Draw(selectedLines, *mSelectionColor, GL_LINES);
 
-    glLineWidth(2.0);
+    IGNORE_GL_ERRORV(glLineWidth(2.0));
     DrawGLUtils::Draw(timingEffLines, xlWHITE, GL_LINES);
     DrawGLUtils::Draw(textBackgrounds, GL_TRIANGLES);
-    glLineWidth(1.0);
+    IGNORE_GL_ERRORV(glLineWidth(1.0));
     DrawGLUtils::Draw(timingLines, GL_LINES, GL_BLEND);
 
     float factor = translateToBacking(1.0);
     int toffset;
     float fontSize = ComputeFontSize(toffset, factor);
 
-    glDisable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     DrawGLUtils::Draw(texts, fontSize, factor, GL_BLEND);
     DrawGLUtils::Draw(selectedBoxes, GL_TRIANGLES, GL_BLEND);
 

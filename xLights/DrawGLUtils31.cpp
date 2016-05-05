@@ -117,14 +117,16 @@ void LoadGLFunctions() {
 
 class ShaderProgram {
 public:
-    ShaderProgram() : buffers(nullptr), numBuffers(0) {}
+    ShaderProgram() : ProgramID(0), buffers(nullptr), numBuffers(0) {}
     
     void Cleanup() {
-        LOG_GL_ERRORV(glUseProgram(0));
-        LOG_GL_ERRORV(glDeleteBuffers(numBuffers, buffers));
-        LOG_GL_ERRORV(glDeleteProgram(ProgramID));
-        delete [] buffers;
-        LOG_GL_ERRORV(glDeleteVertexArrays(1, &VertexArrayID));
+        if (ProgramID != 0) {
+            LOG_GL_ERRORV(glUseProgram(0));
+            LOG_GL_ERRORV(glDeleteBuffers(numBuffers, buffers));
+            LOG_GL_ERRORV(glDeleteProgram(ProgramID));
+            delete [] buffers;
+            LOG_GL_ERRORV(glDeleteVertexArrays(1, &VertexArrayID));
+        }
     }
     GLuint GetBufferID(int idx) {
         return buffers[idx];
@@ -257,15 +259,16 @@ public:
 
 class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
     
-    int UsageCount = 0;
-    
     ShaderProgram textureProgram;
     ShaderProgram singleColorProgram;
     ShaderProgram normalProgram;
     ShaderProgram vbNormalProgram;
     
-    void Load33Shaders() {
-        if (UsageCount == 0) {
+    void Load33Shaders(bool UsesVertexTextureAccumulator,
+                       bool UsesVertexColorAccumulator,
+                       bool UsesVertexAccumulator,
+                       bool UsesAddVertex) {
+        if (UsesVertexTextureAccumulator) {
             textureProgram.Init(
                                 "#version 330 core\n"
                                 "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
@@ -290,8 +293,8 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                                 "    vec4 c = texture(tex, UV);\n"
                                 "    color = vec4(c.rgb, c.a*fragmentColor.a);\n"
                                 "}\n", 2);
-            
-            
+        }
+        if (UsesVertexAccumulator) {
             singleColorProgram.Init(
                                     "#version 330 core\n"
                                     "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
@@ -319,62 +322,65 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                                     "        color = vec4(fragmentColor.rgb, alpha);\n"
                                     "    }\n"
                                     "}\n", 1);
-            
-            const char *npVS = "#version 330 core\n"
-                                "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
-                                "layout(location = 1) in vec4 vertexColor;\n"
-                                "out vec4 fragmentColor;\n"
-                                "uniform int RenderType;\n"
-                                "uniform mat4 MVP;\n"
-                                "uniform vec4 inColor;\n"
-                                "void main(){\n"
-                                "    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);\n"
-                                "    if (RenderType == -2) {\n"
-                                "        fragmentColor = inColor;\n"
-                                "    } else if (RenderType == -1) {\n"
-                                "        fragmentColor = inColor;\n"
-                                "    } else {\n"
-                                "        fragmentColor = vertexColor;\n"
-                                "    }\n"
-                                "}\n";
-            const char *npFS = "#version 330 core\n"
-                                "in vec4 fragmentColor;\n"
-                                "in vec2 UV;\n"
-                                "out vec4 color;\n"
-                                "uniform int RenderType;\n"
-                                "uniform float PointSmoothMin = 0.4;\n"
-                                "uniform float PointSmoothMax = 0.5;\n"
-                                "void main(){\n"
-                                "    if (RenderType == 0 || RenderType == -2) {\n"
-                                "        color = fragmentColor;\n"
-                                "    } else {\n"
-                                "        float dist = distance(gl_PointCoord, vec2(0.5));\n"
-                                "        float alpha = 1.0 - smoothstep(PointSmoothMin, PointSmoothMax, dist);\n"
-                                "        if (alpha == 0.0) discard;\n"
-                                "        alpha = alpha * fragmentColor.a;\n"
-                                "        color = vec4(fragmentColor.rgb, alpha);\n"
-                                "    }\n"
-                                "}\n";
-            
+        }
+        const char *npVS = "#version 330 core\n"
+                            "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
+                            "layout(location = 1) in vec4 vertexColor;\n"
+                            "out vec4 fragmentColor;\n"
+                            "uniform int RenderType;\n"
+                            "uniform mat4 MVP;\n"
+                            "uniform vec4 inColor;\n"
+                            "void main(){\n"
+                            "    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);\n"
+                            "    if (RenderType == -2) {\n"
+                            "        fragmentColor = inColor;\n"
+                            "    } else if (RenderType == -1) {\n"
+                            "        fragmentColor = inColor;\n"
+                            "    } else {\n"
+                            "        fragmentColor = vertexColor;\n"
+                            "    }\n"
+                            "}\n";
+        const char *npFS = "#version 330 core\n"
+                            "in vec4 fragmentColor;\n"
+                            "in vec2 UV;\n"
+                            "out vec4 color;\n"
+                            "uniform int RenderType;\n"
+                            "uniform float PointSmoothMin = 0.4;\n"
+                            "uniform float PointSmoothMax = 0.5;\n"
+                            "void main(){\n"
+                            "    if (RenderType == 0 || RenderType == -2) {\n"
+                            "        color = fragmentColor;\n"
+                            "    } else {\n"
+                            "        float dist = distance(gl_PointCoord, vec2(0.5));\n"
+                            "        float alpha = 1.0 - smoothstep(PointSmoothMin, PointSmoothMax, dist);\n"
+                            "        if (alpha == 0.0) discard;\n"
+                            "        alpha = alpha * fragmentColor.a;\n"
+                            "        color = vec4(fragmentColor.rgb, alpha);\n"
+                            "    }\n"
+                            "}\n";
+        if (UsesVertexColorAccumulator) {
             normalProgram.Init(npVS, npFS, 2);
+        }
+        if (UsesAddVertex) {
             vbNormalProgram.Init(npVS, npFS, 2);
         }
-        UsageCount++;
     }
     void Release33Shaders() {
-        UsageCount--;
-        if (UsageCount == 0) {
-            singleColorProgram.Cleanup();
-            textureProgram.Cleanup();
-            normalProgram.Cleanup();
-        }
+        singleColorProgram.Cleanup();
+        textureProgram.Cleanup();
+        normalProgram.Cleanup();
     }
     
 
 public:
-    OpenGL33Cache() : matrix(nullptr), colors(4), vertices(2) {
-        Load33Shaders();
-        InitializeVertexBuffer();
+    OpenGL33Cache(bool UsesVertexTextureAccumulator,
+                  bool UsesVertexColorAccumulator,
+                  bool UsesVertexAccumulator,
+                  bool UsesAddVertex) : matrix(nullptr), colors(4), vertices(2) {
+        Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex);
+        if (UsesAddVertex) {
+            InitializeVertexBuffer();
+        }
     }
     ~OpenGL33Cache() {
         if (matrix) {
@@ -394,32 +400,31 @@ public:
         if (va.count == 0) {
             return;
         }
-        glGetError();
         singleColorProgram.UseProgram();
         singleColorProgram.SetMatrix(*matrix);
         singleColorProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
-        GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
-        glUniform4f(cid,
+        LOG_GL_ERRORV(GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor"));
+        LOG_GL_ERRORV(glUniform4f(cid,
                     ((float)color.Red())/255.0,
                     ((float)color.Green())/255.0,
                     ((float)color.Blue())/255.0,
                     ((float)color.Alpha())/255.0
-                    );
+                    ));
         float ps = 0;
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             //POINT_SMOOTH, removed in OpenGL3.x
             singleColorProgram.SetRenderType(1);
             ps = singleColorProgram.CalcSmoothPointParams();
         } else if (enableCapability > 0) {
-            glEnable(enableCapability);
+            LOG_GL_ERRORV(glEnable(enableCapability));
         }
-        glDrawArrays(type, 0, va.count);
+        LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             singleColorProgram.SetRenderType(0);
         } else if (enableCapability > 0) {
-            glDisable(enableCapability);
+            LOG_GL_ERRORV(glDisable(enableCapability));
         }
         singleColorProgram.UnbindBuffer(0);
     }
@@ -428,7 +433,6 @@ public:
         if (va.count == 0) {
             return;
         }
-//        glGetError();
         normalProgram.UseProgram();
         normalProgram.SetMatrix(*matrix);
 
@@ -445,7 +449,7 @@ public:
             ps = normalProgram.CalcSmoothPointParams();
         } else {
             if (enableCapability > 0) {
-                glEnable(enableCapability);
+                LOG_GL_ERRORV(glEnable(enableCapability));
             } else if (enableCapability != 0) {
                 normalProgram.SetRenderType(enableCapability);
             }
@@ -453,9 +457,9 @@ public:
         LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             normalProgram.SetRenderType(0);
-            glPointSize(ps);
+            LOG_GL_ERRORV(glPointSize(ps));
         } else if (enableCapability > 0) {
-            glDisable(enableCapability);
+            LOG_GL_ERRORV(glDisable(enableCapability));
         } else if (enableCapability != 0) {
             normalProgram.SetRenderType(0);
         }
@@ -467,7 +471,6 @@ public:
         if (va.count == 0) {
             return;
         }
-        glGetError();
         textureProgram.UseProgram();
         textureProgram.SetMatrix(*matrix);
 
@@ -485,11 +488,11 @@ public:
         LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)va.alpha)/255.0));
 
         if (enableCapability > 0) {
-            glEnable(enableCapability);
+            LOG_GL_ERRORV(glEnable(enableCapability));
         }
         LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         if (enableCapability > 0) {
-            glDisable(enableCapability);
+            LOG_GL_ERRORV(glDisable(enableCapability));
         }
         textureProgram.UnbindBuffer(0);
         textureProgram.UnbindBuffer(1);
@@ -584,12 +587,14 @@ public:
             if (mapped) {
                 FlushAndUnmap(start, curCount);
                 
-                LOG_GL_ERRORV(T *m = (T*)glMapBufferRange(GL_ARRAY_BUFFER, sizePerUnit*start,  sizePerUnit*curCount, GL_MAP_READ_BIT));
                 T *tmpv = nullptr;
-                if (m) {
-                    tmpv = new T[curCount * size];
-                    memcpy(tmpv, m, curCount*sizePerUnit);
-                    LOG_GL_ERRORV(glUnmapBuffer(GL_ARRAY_BUFFER));
+                if (curCount) {
+                    LOG_GL_ERRORV(T *m = (T*)glMapBufferRange(GL_ARRAY_BUFFER, sizePerUnit*start,  sizePerUnit*curCount, GL_MAP_READ_BIT));
+                    if (m) {
+                        tmpv = new T[curCount * size];
+                        memcpy(tmpv, m, curCount*sizePerUnit);
+                        LOG_GL_ERRORV(glUnmapBuffer(GL_ARRAY_BUFFER));
+                    }
                 }
                 ReInit(newmax);
                 if (tmpv) {
@@ -806,6 +811,9 @@ protected:
 };
 
 
-DrawGLUtils::xlGLCacheInfo *Create33Cache() {
-    return new OpenGL33Cache();
+DrawGLUtils::xlGLCacheInfo *Create33Cache(bool UsesVertexTextureAccumulator,
+                                          bool UsesVertexColorAccumulator,
+                                          bool UsesVertexAccumulator,
+                                          bool UsesAddVertex) {
+    return new OpenGL33Cache(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex);
 }

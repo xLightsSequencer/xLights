@@ -63,7 +63,7 @@ xlGLCanvas::~xlGLCanvas()
     }
 }
 
-DrawGLUtils::xlGLCacheInfo *Create33Cache();
+DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool);
 DrawGLUtils::xlGLCacheInfo *Create21Cache();
 DrawGLUtils::xlGLCacheInfo *Create15Cache();
 
@@ -86,7 +86,7 @@ void xlGLCanvas::SetCurrentGLContext() {
         log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* rend = glGetString(GL_RENDERER);
-        const GLubyte* vend = glGetString(GL_RENDERER);
+        const GLubyte* vend = glGetString(GL_VENDOR);
         wxString config = wxString::Format("%s - glVer:  %s  (%s)(%s)",
             (const char *)GetName().c_str(),
             (const char *)str,
@@ -96,7 +96,10 @@ void xlGLCanvas::SetCurrentGLContext() {
         printf("%s\n", (const char *)config.c_str());
         if (ver >= 3 && (str[0] > '3' || (str[0] == '3' && str[2] >= '3'))) {
             logger_opengl.info("Try creating 33 Cache");
-            cache = Create33Cache();
+            cache = Create33Cache(UsesVertexTextureAccumulator(),
+                                  UsesVertexColorAccumulator(),
+                                  UsesVertexAccumulator(),
+                                  UsesAddVertex());
         }
         if (cache == nullptr && ver >=2 && str[0] >= '2') {
             logger_opengl.info("Try creating 21 Cache");
@@ -126,7 +129,7 @@ void xlGLCanvas::CreateGLContext() {
 
         if (m_coreProfile && ver >= 3) {
             wxGLContextAttrs atts;
-            atts.PlatformDefaults().CoreProfile().OGLVersion(3, 3).EndList();
+            atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile().EndList();
             //atts.PlatformDefaults().OGLVersion(2, 1).EndList();
             m_context = new wxGLContext(this, nullptr, &atts);
             if (!m_context->IsOK()) {

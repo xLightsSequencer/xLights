@@ -50,6 +50,12 @@ inline void unshare(wxObject &o) {
         o.UnShare();
     }
 }
+inline void unshare(const wxObject &o2) {
+    wxObject *o = (wxObject*)&o2;
+    if (o->GetRefData() != nullptr) {
+        o->UnShare();
+    }
+}
 
 AudioManager* RenderBuffer::GetMedia()
 {
@@ -95,6 +101,12 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, boo
         unshare(pen);
         dc->SetPen(pen);
 
+        unshare(dc->GetBrush());
+        unshare(dc->GetBackground());
+        unshare(dc->GetFont());
+        unshare(dc->GetPen());
+        unshare(dc->GetTextForeground());
+        unshare(dc->GetTextBackground());
     #ifndef LINUX
         wxColor c(12, 25, 3);
         unshare(c);

@@ -1521,7 +1521,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
     preview->GetVirtualCanvasSize(w, h);
 
     if (pixelSize != 2) {
-        glPointSize(preview->calcPixelSize(pixelSize));
+        LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(pixelSize)));
     }
     GetModelScreenLocation().PrepareToDraw();
     
@@ -1592,7 +1592,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, const xlColor *c, bool a
         DrawGLUtils::End(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0);
     }
     if (pixelSize != 2) {
-        glPointSize(preview->calcPixelSize(2));
+        LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(2)));
     }
 
 
@@ -1625,7 +1625,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             pointScale = GetModelScreenLocation().RenderWi;
         }
         
-        glPointSize(preview->calcPixelSize(pixelSize*pointScale));
+        LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(pixelSize*pointScale)));
         int lastPixelStyle = pixelStyle;
         int lastPixelSize = pixelSize;
 
@@ -1726,7 +1726,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         }
         preview->EndDrawing();
         if (lastPixelSize != 2) {
-            glPointSize(preview->calcPixelSize(2));
+            LOG_GL_ERRORV(glPointSize(preview->calcPixelSize(2)));
         }
     }
 }

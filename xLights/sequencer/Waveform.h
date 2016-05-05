@@ -57,7 +57,11 @@ class Waveform : public xlGLCanvas
         };
 
     protected:
-		virtual void InitializeGLCanvas();
+		virtual void InitializeGLCanvas() override;
+        virtual bool UsesVertexTextureAccumulator() override {return false;}
+        virtual bool UsesVertexColorAccumulator() override {return true;}
+        virtual bool UsesVertexAccumulator() override {return true;}
+        virtual bool UsesAddVertex() override {return false;}
 
     private:
       	DECLARE_EVENT_TABLE()

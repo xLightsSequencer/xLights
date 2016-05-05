@@ -120,19 +120,27 @@ wxString windows_get_stacktrace(void *data)
 
 #endif
 
-void InitialiseLogging()
+void InitialiseLogging(bool fromMain)
 {
     static bool loggingInitialised = false;
 
     if (!loggingInitialised)
     {
-        loggingInitialised = true;
 
 #ifdef __WXMSW__
         std::string initFileName = "xlights.windows.properties";
 #endif
 #ifdef __WXOSX_MAC__
         std::string initFileName = "xlights.mac.properties";
+        if (!wxFile::Exists(initFileName)) {
+            if (fromMain) {
+                return;
+            } else if (wxFile::Exists(wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties")) {
+                initFileName = wxStandardPaths::Get().GetResourcesDir() + "/xlights.mac.properties";
+            }
+        }
+        loggingInitialised = true;
+        
 #endif
 #ifdef __LINUX__
         std::string initFileName = "/usr/share/xLights/xlights.linux.properties";
@@ -252,7 +260,7 @@ void DumpConfig()
 //IMPLEMENT_APP(xLightsApp)
 int main(int argc, char **argv)
 {
-    InitialiseLogging();
+    InitialiseLogging(true);
     // Dan/Chris ... if you get an exception here the most likely reason is the line
     // appender.A1.fileName= in the xlights.xxx.properties file
     // it seems to need to be a folder that exists ... ideally it would create it but it doesnt seem to
@@ -297,32 +305,30 @@ void handleCrash(void *data) {
     if (wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").Exists()) {
         report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     }
-	if (wxFile::Exists(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath()))
-	{
-		report->AddFile(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
-	}
-	else if (wxFile::Exists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
-	{
-		report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
-	}
-    else
-    {
-        wxString dir;
+	
+    wxString dir;
 #ifdef __WXMSW__
-        wxGetEnv("APPDATA", &dir);
-        std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
+    wxGetEnv("APPDATA", &dir);
+    std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
 #endif
 #ifdef __WXOSX_MAC__
-        wxGetEnv("user.home", &dir);
-        std::string filename = std::string(dir.c_str()) + "/Library/Application Support/myapp/xLights/xLights_l4cpp.log";
+    wxGetEnv("user.home", &dir);
+    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xLights_l4cpp.log";
 #endif
 #ifdef __LINUX__
-        std::string filename = "/tmp/xLights_l4cpp.log";
+    std::string filename = "/tmp/xLights_l4cpp.log";
 #endif
-        if (wxFile::Exists(filename))
-        {
-            report->AddFile(filename, "xLights_l4cpp.log");
-        }
+    if (wxFile::Exists(filename))
+    {
+        report->AddFile(filename, "xLights_l4cpp.log");
+    }
+    else if (wxFile::Exists(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath()))
+    {
+        report->AddFile(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
+    }
+    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
+    {
+        report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
     }
     if (topFrame->GetSeqXmlFileName() != "") {
         wxFileName fn(topFrame->GetSeqXmlFileName());
@@ -389,7 +395,7 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 
 bool xLightsApp::OnInit()
 {
-    InitialiseLogging();
+    InitialiseLogging(false);
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
     DumpConfig();

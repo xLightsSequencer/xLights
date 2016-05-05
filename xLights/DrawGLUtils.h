@@ -13,6 +13,7 @@ namespace DrawGLUtils
 {
     #define LOG_GL_ERROR() DrawGLUtils::LogGLError(__FILE__, __LINE__)
     #define LOG_GL_ERRORV(a) a; DrawGLUtils::LogGLError(__FILE__, __LINE__, #a)
+    #define IGNORE_GL_ERRORV(a) a; glGetError()
 
     
     class xlVertexAccumulator {

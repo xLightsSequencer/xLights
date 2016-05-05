@@ -37,6 +37,12 @@ class xlGLCanvas
         void OnEraseBackGround(wxEraseEvent& event) {};
 
         void CreateGLContext();
+    
+    
+        virtual bool UsesVertexTextureAccumulator() {return true;}
+        virtual bool UsesVertexColorAccumulator() {return true;}
+        virtual bool UsesVertexAccumulator() {return true;}
+        virtual bool UsesAddVertex() {return true;}
     private:
         wxGLContext* m_context;
         bool m_coreProfile;
