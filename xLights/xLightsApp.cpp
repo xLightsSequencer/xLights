@@ -239,11 +239,10 @@ void DumpConfig()
     }
 #ifdef LINUX
     wxLinuxDistributionInfo l = wxGetLinuxDistributionInfo();
-    logger_base.info("  %s %s %s %s",
-        std::string(l.Id.c_str()),
-        std::string(l.Release.c_str()),
-        std::string(l.CodeName.c_str()),
-        std::string(l.Description.c_str()));
+    logger_base.info("  " + std::string(l.Id.c_str()) \
+        + " " + std::string(l.Release.c_str()) \
+        + " " + std::string(l.CodeName.c_str()) \
+        + " " + std::string(l.Description.c_str()));
 #endif
 }
 
