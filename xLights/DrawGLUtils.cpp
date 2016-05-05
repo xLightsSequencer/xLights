@@ -27,10 +27,36 @@ const double PI  =3.141592653589793238463;
 
 static DrawGLUtils::xlGLCacheInfo *currentCache;
 
+
+#define DO_LOG_GL_MSG(a, ...) logger_opengl.info(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
+
+void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
+    int er = glGetError();
+    if (er) {
+        static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+        const char *f2 = file + strlen(file);
+        while (f2 > file && *f2 != '\\' && *f2 != '/') {
+            f2--;
+        }
+        if (*f2 == '\\' || *f2 == '/') {
+            f2++;
+        }
+        
+        if (msg) {
+            DO_LOG_GL_MSG("%s/%d - %s:   %X", f2, line, msg, er);
+        } else {
+            DO_LOG_GL_MSG("%s/%d:   %X", f2, line, er);
+        }
+    }
+}
+
+
 class OpenGL15Cache : public DrawGLUtils::xlGLCacheInfo {
 public:
     OpenGL15Cache() {
         data.PreAlloc(128);
+        LOG_GL_ERRORV(glEnable(GL_COLOR_MATERIAL));
+        LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
     };
     virtual ~OpenGL15Cache() {
     };
@@ -192,7 +218,7 @@ void DrawGLUtils::SetViewport(xlGLCanvas &win, int topleft_x, int topleft_y, int
     y2 = bottomright_y;
 
     xlSetRetinaCanvasViewport(win, x,y,x2,y2);
-    glViewport(x,y,x2-x,y2-y);
+    LOG_GL_ERRORV(glViewport(x,y,x2-x,y2-y));
     currentCache->Ortho(topleft_x, topleft_y, bottomright_x, bottomright_y);
 }
 
@@ -912,8 +938,8 @@ public:
 
     }
     void Draw(float x, float yBase, const wxString &text, float factor) {
-        glDisable(GL_DEPTH_TEST);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+        LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         DrawGLUtils::xlVertexTextureAccumulator va(id);
         Populate(x, yBase, text, factor, va);
         DrawGLUtils::Draw(va, GL_TRIANGLES, GL_BLEND);
@@ -969,7 +995,7 @@ void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float
     for (int x = 0; x < va.count; x++) {
         FONTS[tsize].Populate(va.vertices[x*2], va.vertices[x*2 + 1], va.text[x], factor, vat);
     }
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     Draw(vat, GL_TRIANGLES, enableCapability);
 }
 

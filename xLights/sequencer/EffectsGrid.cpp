@@ -2264,7 +2264,7 @@ void EffectsGrid::DrawLines()
     }
     DrawGLUtils::End(GL_TRIANGLES);
 
-    glLineWidth(0.2);
+    LOG_GL_ERRORV(glLineWidth(0.2));
     for(int row=0;row < mSequenceElements->GetVisibleRowInformationSize();row++)
     {
         y = (row+1)*DEFAULT_ROW_HEADING_HEIGHT;
@@ -2286,7 +2286,7 @@ void EffectsGrid::DrawLines()
     }
 
     DrawGLUtils::End(GL_LINES);
-    glLineWidth(1);
+    LOG_GL_ERRORV(glLineWidth(1));
 }
 
 
@@ -2683,7 +2683,7 @@ void EffectsGrid::Draw()
 
     SetCurrentGLContext();
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     if( mWindowResized )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
@@ -2691,10 +2691,15 @@ void EffectsGrid::Draw()
             mTimeline->RecalcEndTime();  // force a recalc of the Timeline end time so that timing effect positions will calculate correct during redraw
         }
     }
+    LOG_GL_ERROR();
+
     if( mSequenceElements )
     {
+        LOG_GL_ERROR();
         DrawLines();
+        LOG_GL_ERROR();
         DrawEffects();
+        LOG_GL_ERROR();
         DrawPlayMarker();
     }
 

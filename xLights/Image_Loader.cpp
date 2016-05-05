@@ -5,6 +5,7 @@
 #include "wx/wx.h"
 #define GL_CLAMP_TO_EDGE 0x812F
 
+#include "DrawGLUtils.h"
 #include <log4cpp/Category.hh>
 
 GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
@@ -31,17 +32,18 @@ GLuint* loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureW
 
 	GLuint* ID=new GLuint[1];
     glEnable(GL_TEXTURE_2D);
+    glGetError();
     int maxSize = 0;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
-	glGenTextures( 1, &ID[0] );
-    glBindTexture( GL_TEXTURE_2D, *ID );
+    LOG_GL_ERRORV(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize));
+	LOG_GL_ERRORV(glGenTextures( 1, &ID[0] ));
+    LOG_GL_ERRORV(glBindTexture( GL_TEXTURE_2D, *ID ));
 
 
 
 	imageWidth=img->GetWidth();
 	imageHeight=img->GetHeight();
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT,   1   );
+	LOG_GL_ERRORV(glPixelStorei(GL_UNPACK_ALIGNMENT,   1   ));
     /*
      * Many graphics card require that textures be power of two.
      * Below is a simple implementation, probably not optimal but working.
@@ -117,7 +119,7 @@ GLuint* loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureW
     }//next
 
     // if yes, everything is fine
-    glTexImage2D(GL_TEXTURE_2D,
+    LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D,
                  0,
                  img->HasAlpha() ?  GL_RGBA : GL_RGB,
                  textureWidth,
@@ -125,15 +127,16 @@ GLuint* loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureW
                  0,
                  img->HasAlpha() ?  GL_RGBA : GL_RGB,
                  GL_UNSIGNED_BYTE,
-                 imageData);
+                 imageData));
 
     delete [] imageData;
 	// set texture parameters as you wish
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // GL_LINEAR
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // GL_LINEAR
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)); // GL_LINEAR
+	LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)); // GL_LINEAR
+	LOG_GL_ERRORV(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    LOG_GL_ERRORV(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
     glDisable(GL_TEXTURE_2D);
+    glGetError();
 	return ID;
 
 }

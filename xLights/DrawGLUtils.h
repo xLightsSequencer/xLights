@@ -11,6 +11,10 @@ class xlGLCanvas;
 
 namespace DrawGLUtils
 {
+    #define LOG_GL_ERROR() DrawGLUtils::LogGLError(__FILE__, __LINE__)
+    #define LOG_GL_ERRORV(a) a; DrawGLUtils::LogGLError(__FILE__, __LINE__, #a)
+
+    
     class xlVertexAccumulator {
     public:
         xlVertexAccumulator() : count(0) {}
@@ -176,6 +180,8 @@ namespace DrawGLUtils
     void Rotate(float angle, float x, float y, float z);
     void Scale(float w, float h, float z);
     
+    void LogGLError(const char *file, int line, const char *msg = nullptr);
+
     
     class DisplayListItem {
     public:

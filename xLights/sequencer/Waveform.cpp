@@ -229,13 +229,11 @@ void Waveform::InitializeGLCanvas()
 {
     if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
-    glDisable(GL_TEXTURE_2D);   // textures
-    glDisable(GL_COLOR_MATERIAL);
-    glDisable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
+    LOG_GL_ERRORV(glDisable(GL_BLEND));
+    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     mIsInitialized = true;
     SetZoomLevel(mZoomLevel);

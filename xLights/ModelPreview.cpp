@@ -108,7 +108,7 @@ void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
 ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a, int styles)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, "Preview", true), PreviewModels(&models), allowSelected(a)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true), PreviewModels(&models), allowSelected(a)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
@@ -147,14 +147,13 @@ void ModelPreview::InitializeGLCanvas()
     SetCurrentGLContext();
 
     if (allowSelected) {
-        glClearColor(0.8f, 0.8f, 0.8f, 1.0f); // Black Background
+        LOG_GL_ERRORV(glClearColor(0.8f, 0.8f, 0.8f, 1.0f)); // Black Background
     } else {
-        glClearColor(0.0, 0.0, 0.0, 1.0f); // Black Background
+        LOG_GL_ERRORV(glClearColor(0.0, 0.0, 0.0, 1.0f)); // Black Background
     }
-    glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    LOG_GL_ERRORV(glEnable(GL_BLEND));
+    LOG_GL_ERRORV(glDisable(GL_DEPTH_TEST));
+    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
 
     mIsInitialized = true;
 }
@@ -211,7 +210,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     }
-    glPointSize(translateToBacking(mPointSize));
+    LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
     DrawGLUtils::PushMatrix();
     // Rotate Axis and tranlate
     DrawGLUtils::Rotate(180,0,0,1);

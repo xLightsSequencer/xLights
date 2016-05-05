@@ -81,24 +81,23 @@ void xlGLCanvas::SetCurrentGLContext() {
 
     if (cache == nullptr) {
         log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-        wxString config = wxString::Format("%s - glVer:  %s  (%s)(%s)", 
+        const GLubyte* str = glGetString(GL_VERSION);
+        const GLubyte* rend = glGetString(GL_RENDERER);
+        const GLubyte* vend = glGetString(GL_RENDERER);
+        wxString config = wxString::Format("%s - glVer:  %s  (%s)(%s)",
             (const char *)GetName().c_str(),
-            (const char *)glGetString(GL_VERSION),
-            (const char *)glGetString(GL_RENDERER),
-            (const char *)glGetString(GL_VENDOR));
+            (const char *)str,
+            (const char *)rend,
+            (const char *)vend);
         logger_opengl.info(std::string(config.c_str()));
         printf("%s\n", (const char *)config.c_str());
-        const GLubyte* str = glGetString(GL_VERSION);
-        const GLubyte* vend = glGetString(GL_RENDERER);
         if (ver >= 3 && (str[0] > '3' || (str[0] == '3' && str[2] >= '3'))) {
             logger_opengl.info("Try creating 33 Cache");
             cache = Create33Cache();
         }
         if (cache == nullptr && ver >=2 && str[0] >= '2') {
-            if (!wxString(vend).Contains("AMD")) {
-                logger_opengl.info("Try creating 21 Cache");
-                cache = Create21Cache();
-            }
+            logger_opengl.info("Try creating 21 Cache");
+            cache = Create21Cache();
         }
         if (cache == nullptr) {
             logger_opengl.info("Try creating 15 Cache");
