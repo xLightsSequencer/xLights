@@ -8,6 +8,15 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2016.25  May 05, 2016
+   -- bug (dkulp) Bunch more fixes to OPENGL calls. Now Radeon cards should work
+   -- enh (dkulp) Add a menu item to select the max OpenGL version to use. Higher the version, the higher
+           the eprformance of graphics. The lower, the more graphic cards that can be supported.
+   -- enh (keithsw) New option "Tools,Log". This will create a zip file of your xlights log file. No longer need to
+           search the hidden appdata directory to find it. Keith described it like this: Add "Package Problem Files" 
+		   to tools menu which lets the user package current config/sequence/logs when reporting a problem.
+   -- enh (dkulp) Sub-Buffers. Add ability to specify what section of a buffer you want the effect applied to
+   -- enh (keithsw) Block manual switching between wizard tabs in auto generation of custom model. 
 2016.24  May 04, 2016
    -- bug (dkulp) Fix OPENGL calls so that Sound wavefile shows on Intel Graphics cards
 2016.23  May 03, 2016
