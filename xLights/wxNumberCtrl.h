@@ -1,3 +1,5 @@
+// This code comes from https://forums.wxwidgets.org/viewtopic.php?t=15978
+
 #ifndef _WXNUMBERCTRL_H_
 #define _WXNUMBERCTRL_H_
 
