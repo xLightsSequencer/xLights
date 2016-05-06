@@ -13,6 +13,18 @@ class wxChoice;
 
 class TendrilPanel: public wxPanel
 {
+    // these are only used for validation
+    int __tuneMovement;
+    int __thickness;
+    int __friction;
+    int __dampening;
+    int __tension;
+    int __trails;
+    int __length;
+    int __speed;
+    int __horizontalOffset;
+    int __verticalOffset;
+
 	public:
 
 		TendrilPanel(wxWindow* parent);

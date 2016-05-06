@@ -78,6 +78,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_TuneMovement" variable="TextCtrl_Tendril_TuneMovement" member="yes">
 							<value>10</value>
 							<size>20,-1d</size>
+							<validator>__tuneMovement</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -119,6 +120,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_Thickness" variable="TextCtrl_Tendril_Thickness" member="yes">
 							<value>3</value>
 							<size>20,-1d</size>
+							<validator>__thickness</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -159,6 +161,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_Friction" variable="TextCtrl_Tendril_Friction" member="yes">
 							<value>10</value>
 							<size>20,-1d</size>
+							<validator>__friction</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -199,6 +202,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_Dampening" variable="TextCtrl_Tendril_Dampening" member="yes">
 							<value>10</value>
 							<size>20,-1d</size>
+							<validator>__dampening</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -239,6 +243,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_Tension" variable="TextCtrl_Tendril_Tension" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
+							<validator>__tension</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -280,6 +285,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_Trails" variable="TextCtrl_Tendril_Trails" member="yes">
 							<value>1</value>
 							<size>20,-1d</size>
+							<validator>__trails</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -320,6 +326,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_Length" variable="TextCtrl_Tendril_Length" member="yes">
 							<value>60</value>
 							<size>20,-1d</size>
+							<validator>__length</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -361,6 +368,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_Speed" variable="TextCtrl_Tendril_Speed" member="yes">
 							<value>10</value>
 							<size>20,-1d</size>
+							<validator>__speed</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -400,6 +408,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_XOffset" variable="TextCtrl_Tendril_XOffset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
+							<validator>__horizontalOffset</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -439,6 +448,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Tendril_YOffset" variable="TextCtrl_Tendril_YOffset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
+							<validator>__verticalOffset</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
