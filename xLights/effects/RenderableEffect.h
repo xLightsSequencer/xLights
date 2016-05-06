@@ -67,7 +67,6 @@ class RenderableEffect
     
         bool IsVersionOlder(const std::string& compare, const std::string& version);
         void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors);
-        int Normalise(int val, int min, int max);
 
         void initBitmaps(const char **data16,
                          const char **data24,

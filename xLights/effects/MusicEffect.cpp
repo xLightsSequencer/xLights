@@ -166,12 +166,6 @@ void MusicEffect::Render(RenderBuffer &buffer,
     const std::string& colourtreatment,
     bool fade)
 {
-    startnote = Normalise(startnote, 0, 127);
-    endnote = Normalise(endnote, 0, 127);
-    sensitivity = Normalise(sensitivity, 0, 100);
-    bars = Normalise(bars, 0, 100);
-    offsetx = Normalise(offsetx, 0, 100);
-
     // no point if we have no media
     if (buffer.GetMedia() == NULL)
     {

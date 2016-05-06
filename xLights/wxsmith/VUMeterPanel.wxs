@@ -31,6 +31,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_Bars" variable="TextCtrl_VUMeter_Bars" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
+							<validator>__bars</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -159,6 +160,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_Sensitivity" variable="TextCtrl_VUMeter_Sensitivity" member="yes">
 							<value>70</value>
 							<size>20,-1d</size>
+							<validator>__sensitivity</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -281,6 +283,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_StartNote" variable="TextCtrl_VUMeter_StartNote" member="yes">
 							<value>36</value>
 							<size>20,-1d</size>
+							<validator>__startNote</validator>
 							<handler function="OnTextCtrl_VUMeter_StartNoteText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -321,6 +324,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_EndNote" variable="TextCtrl_VUMeter_EndNote" member="yes">
 							<value>84</value>
 							<size>20,-1d</size>
+							<validator>__endNote</validator>
 							<handler function="OnTextCtrl_VUMeter_StartNoteText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -360,6 +364,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_XOffset" variable="TextCtrl_VUMeter_XOffset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
+							<validator>__horizontalOffset</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -399,6 +404,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_YOffset" variable="TextCtrl_VUMeter_YOffset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
+							<validator>__verticalOffset</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

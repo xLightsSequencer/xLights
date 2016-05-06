@@ -184,13 +184,6 @@ void VUMeterEffect::Render(RenderBuffer &buffer, int bars, const std::string& ty
 		return;
 	}
 
-    bars = Normalise(bars, 1, 100);
-    sensitivity = Normalise(sensitivity, 0, 100);
-    startnote = Normalise(startnote, 0, 127);
-    endnote = Normalise(endnote, 0, 127);
-    xoffset = Normalise(xoffset, -100, 100);
-    yoffset = Normalise(yoffset, -100, 100);
-
 	int nType = DecodeType(type);
 
 	// Grab our cache

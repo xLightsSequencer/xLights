@@ -14,6 +14,14 @@ class wxChoice;
 
 class VUMeterPanel: public wxPanel
 {
+    // these are only used for validation
+    int __bars;
+    int __sensitivity;
+    int __startNote;
+    int __endNote;
+    int __horizontalOffset;
+    int __verticalOffset;
+
 	public:
 
 		VUMeterPanel(wxWindow* parent);
