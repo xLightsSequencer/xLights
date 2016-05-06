@@ -674,6 +674,8 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
     }
     bufferWi = int(std::ceil(x2 - x1));
     bufferHi = int(std::ceil(y2 - y1));
+    if (bufferWi < 1) bufferWi = 1;
+    if (bufferHi < 1) bufferHi = 1;
 }
 
 void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMap) {

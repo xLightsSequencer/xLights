@@ -9,6 +9,7 @@ BEGIN_EVENT_TABLE(SubBufferPanel, wxWindow)
 EVT_MOTION(SubBufferPanel::mouseMoved)
 EVT_LEFT_DOWN(SubBufferPanel::mouseLeftDown)
 EVT_LEFT_UP(SubBufferPanel::mouseLeftUp)
+EVT_LEFT_DCLICK(SubBufferPanel::mouseDblClick)
 EVT_PAINT(SubBufferPanel::Paint)
 END_EVENT_TABLE()
 
@@ -94,6 +95,10 @@ int SubBufferPanel::OverMouseHandle(wxMouseEvent& event) {
     return -1;
 }
 
+void SubBufferPanel::mouseDblClick( wxMouseEvent& event) {
+    SetDefaults();
+}
+
 void SubBufferPanel::mouseLeftDown( wxMouseEvent& event) {
     if (!IsEnabled()) {
         return;
@@ -168,6 +173,9 @@ void SubBufferPanel::Paint( wxPaintEvent& event ) {
     float bh = size.GetHeight()*0.8;
     dc.DrawRectangle(startX, startY, bw, bh);
     
+    if (!IsEnabled()) {
+        return;
+    }
     dc.SetBrush(*wxYELLOW_BRUSH);
     dc.SetPen(*wxYELLOW_PEN);
     

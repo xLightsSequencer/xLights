@@ -19,6 +19,7 @@ class SubBufferPanel : public wxWindow, public xlCustomControl
         DECLARE_EVENT_TABLE()
 
     
+        void mouseDblClick( wxMouseEvent& event);
         void mouseLeftDown( wxMouseEvent& event);
         void mouseLeftUp( wxMouseEvent& event);
         void mouseMoved( wxMouseEvent& event);
