@@ -8,28 +8,29 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)   Improve Sequence Elements toolbar icon.
 2016.25  May 05, 2016
    -- bug (dkulp) Bunch more fixes to OPENGL calls. Now Radeon cards should work
    -- enh (dkulp) Add a menu item to select the max OpenGL version to use. Higher the version, the higher
            the eprformance of graphics. The lower, the more graphic cards that can be supported.
    -- enh (keithsw) New option "Tools,Log". This will create a zip file of your xlights log file. No longer need to
-           search the hidden appdata directory to find it. Keith described it like this: Add "Package Problem Files" 
+           search the hidden appdata directory to find it. Keith described it like this: Add "Package Problem Files"
 		   to tools menu which lets the user package current config/sequence/logs when reporting a problem.
    -- enh (dkulp) Sub-Buffers. Add ability to specify what section of a buffer you want the effect applied to
-   -- enh (keithsw) Block manual switching between wizard tabs in auto generation of custom model. 
+   -- enh (keithsw) Block manual switching between wizard tabs in auto generation of custom model.
 2016.24  May 04, 2016
    -- bug (dkulp) Fix OPENGL calls so that Sound wavefile shows on Intel Graphics cards
 2016.23  May 03, 2016
    -- enh (keithsw) Added new option "Tools, Generate Custom Model"
-   -- enh (dkulp) Upgrade to newer OpenGL library. 
-                  The OpenGL rendering has been updated from the “fixed pipeline” code 
-				  (which was state of the art in 1998) to using modern OpenGL shaders (>2010).  
-				  This allows us to better use the capabilities of modern video cards.   
-				  However, to support older machines, we can drop down to OpenGL 2.1 shaders 
-				  or even to the old 1.3 fixed pipeline.  Modern machines should be faster, 
+   -- enh (dkulp) Upgrade to newer OpenGL library.
+                  The OpenGL rendering has been updated from the “fixed pipeline” code
+				  (which was state of the art in 1998) to using modern OpenGL shaders (>2010).
+				  This allows us to better use the capabilities of modern video cards.
+				  However, to support older machines, we can drop down to OpenGL 2.1 shaders
+				  or even to the old 1.3 fixed pipeline.  Modern machines should be faster,
 				  older machines should still work.
-   -- enh (dkulp) New option on the Tree model, "Spirals". This is how many times a strand is wrapped 
-           around the tree. 1.0=one full wrap, 2.5 = 2 1/2 wraps from bottom to top. 
+   -- enh (dkulp) New option on the Tree model, "Spirals". This is how many times a strand is wrapped
+           around the tree. 1.0=one full wrap, 2.5 = 2 1/2 wraps from bottom to top.
    -- bug (gil)   Fix Copy Row/Paste Row when vertically scrolled. Fixes #553.
    -- bug (gil)   Fix application losing focusing when closing a floating panel.
    -- enh (gil)   Re-position view when playback starts or loops so that play marker is visible.  Fixes #550.

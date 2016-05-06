@@ -72,11 +72,8 @@
 
 #include "../include/link-48.xpm"
 #include "../include/unlink-48.xpm"
-#include "../include/models-16.xpm"
-#include "../include/models-24.xpm"
-#include "../include/models-32.xpm"
-#include "../include/models-48.xpm"
-#include "../include/models-64.xpm"
+
+#include "../include/sequence_elements-24.xpm"
 
 #include "../include/point_1a-64.xpm"
 #include "../include/point_1b-64.xpm"
@@ -283,8 +280,8 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(48, false, id, link_48_xpm, link_48_xpm, link_48_xpm, link_48_xpm, link_48_xpm);
     } else if ("xlART_UNLINK" == id) {
         return effectBitmaps.get(48, false, id, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm);
-    } else if ("xlART_MODELS" == id) {
-        return effectBitmaps.get(24, true, id, models_16_xpm, models_24_xpm, models_32_xpm, models_48_xpm, models_64_xpm);
+    } else if ("xlART_SEQUENCE_ELEMENTS" == id) {
+        return effectBitmaps.get(24, true, id, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm);
     } else if ("xlART_PASTE_BY_TIME" == id) {
         return effectBitmaps.get(24, false, id, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm);
     } else if ("xlART_PASTE_BY_CELL" == id) {
