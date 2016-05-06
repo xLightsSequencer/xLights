@@ -31,6 +31,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Music_Bars" variable="TextCtrl_Music_Bars" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
+							<validator>__bars</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -112,6 +113,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Music_StartNote" variable="TextCtrl_Music_StartNote" member="yes">
 							<value>60</value>
 							<size>20,-1d</size>
+							<validator>__startNote</validator>
 							<handler function="OnTextCtrl_Music_StartNoteText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -152,6 +154,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Music_EndNote" variable="TextCtrl_Music_EndNote" member="yes">
 							<value>80</value>
 							<size>20,-1d</size>
+							<validator>__endNote</validator>
 							<handler function="OnTextCtrl_Music_StartNoteText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -191,6 +194,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Music_Sensitivity" variable="TextCtrl_Music_Sensitivity" member="yes">
 							<value>50</value>
 							<size>20,-1d</size>
+							<validator>__sensitivity</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -229,6 +233,7 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Music_Offset" variable="TextCtrl_Music_Offset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
+							<validator>__offset</validator>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

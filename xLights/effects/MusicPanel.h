@@ -14,6 +14,14 @@ class wxChoice;
 
 class MusicPanel: public wxPanel
 {
+
+    // these are only used for validation
+    int __bars;
+    int __startNote;
+    int __endNote;
+    int __sensitivity;
+    int __offset;
+
 	public:
 
 		MusicPanel(wxWindow* parent);
